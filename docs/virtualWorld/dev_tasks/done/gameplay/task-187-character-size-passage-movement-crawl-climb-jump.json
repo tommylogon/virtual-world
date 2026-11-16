@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-187",
+  "kind": "task",
+  "number": 187,
+  "title": "Character Size + Passage Movement (crawl/climb/jump)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "movement",
+    "traits",
+    "ways",
+    "size"
+  ],
+  "created": "2026-08-06",
+  "updated": "2026-08-06",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Characters get a selectable **size trait** (tiny / small / normal / huge / giant /\ntitanic). Ways (doors, passages, tunnels) get a **`max_size`** property plus an optional\n**`requires`** movement type (`crawl` / `climb` / `jump`). Passing a way then depends on\nsize: walk normally, **auto-crawl** through a tight fit, or be **blocked** if\nyou don't fit. New movement verbs `crawl`, `climb`, `jump`, and **jump/climb failure is trigger-driven**.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [x] Fits: normal walks a normal door (no change) - `test_go_passes_through_plain_way`\n- [x] Tight fit: normal auto-crawls a small tunnel (no cost scaling) - `test_tight_fit_auto_crawls_without_scaling_cost`\n- [x] Blocked: huge cannot pass a small tunnel - `test_two_tiers_over_max_size_blocked`, `test_one_tier_over_climb_way_blocked`\n- [x] `climb` gated to `requires: climb` ways - `test_climb_way_rejects_go`, `test_climb_success_moves`\n- [x] `jump` gated to `requires: jump` ways; failure fires the way's failure trigger - `test_jump_failure_fires_on_fail_jump_trigger`, `test_jump_success_moves`, `test_jump_failure_without_trigger_uses_generic_message`\n- [x] Agent prompt lists crawl/climb/jump and surfaces size - `buildSizeContext` in prompt-builder.js, action table rows\n- [x] Full suite green: 538 passed, 1 skipped (`-k \"not mcp and not emote\"`)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "design_decisions_locked_2026_08_06": "### Size = trait, not a property\n\n- Six mutually-exclusive traits in `data/library/traits/`:\n  `size_tiny`, `size_small`, `size_normal`, `size_huge`, `size_giant`, `size_titanic`.\n  The trait selector picks one; default is `normal` when none present.\n- Reference scale (flavor only, no height property): normal ≈ 170 cm human,\n  small ≈ 90 cm, tiny ≈ 45 cm, huge ≈ 3.4 m, giant ≈ 7 m, titanic ≈ 14 m+.\n- Engine resolves a tier index from the present trait: `tiny=0 < small=1 < normal=2 <\n  huge=3 < giant=4 < titanic=5`.\n\n### Ways\n\n- `max_size` property (dropdown: none/tiny/small/normal/huge/giant/titanic) - the\n  largest size that passes **walking**.\n- `requires` property (dropdown: none / crawl / climb / jump).\n- Passing rules on `go`:\n  - your size ≤ `max_size` → normal move.\n  - `max_size` < size ≤ `max_size`+1 tier (e.g. `normal` in a `small` tunnel) →\n    **auto-crawl**: `go` converts to a crawl move, narrates\n    \"You drop to your hands and knees and crawl through...\" (no persistent condition\n    in v1 - the move itself is the crawl).\n  - size ≥ 2 tiers over `max_size` → **blocked**: \"You don't fit through the X.\"\n- `requires: climb` → only `climb <dir>` passes (or `go` returns \"you need to climb\").\n- `requires: jump` → only `jump <dir>` passes.\n\n### Movement verbs (no cost scaling)\n\n- `crawl <dir>` - explicit crawl through a tight/crawl way.\n- `climb <dir>` - only on `requires: climb` ways.\n- `jump <dir>` - only on `requires: jump` ways; risky.\n- **No time/energy multiplier in v1.** The way's authored `cost` applies as-is.\n  The `time` field is a *duration* hint for the future stateful-action system\n  (task-131) - the clock advances exactly once per turn for all characters\n  (`tick_turn` → `advance_clock(1)`), never per action, so scaling it here would\n  be both wrong and desync-prone. Crawl is flavor + gating only.\n- `stand` - reserved for a persistent crawling state; not needed in v1 (crawl resolves\n  per move).\n\n### Jump/climb failure = trigger-driven\n\n- No hardcoded failure in movement code. `requires: jump`/`climb` ways may carry a\n  **failure trigger** (`on_fail_jump` / `on_fail_climb` trigger edges on the way node)\n  that defines the consequence (damage, narrative, etc.). The engine rolls\n  (Athletics/DEX) and on failure fires the way's failure trigger if present; if none,\n  the move simply doesn't happen with a generic message.",
+      "files_to_modify": "1. `data/library/traits/size_*.json` - six size traits (new)\n2. `engine/grapple.py` or new `engine/size.py` - size tier lookup helper\n3. `engine/movement.py` - max_size checks + auto-crawl + crawl/climb/jump + multipliers\n4. `routes/action.py` - `crawl`/`climb`/`jump` commands\n5. `static/js/inspector/way-view.js` - `max_size` + `requires` dropdowns\n6. `static/js/agent/prompt-builder.js` - action rows + size context\n7. `static/js/agent-engine.js` - validate/normalize crawl/climb/jump/stand\n8. `tests/test_movement.py` - size/passage tests",
+      "status": "**Implemented 2026-08-06** - all eight backend + frontend touchpoints landed; moving to `review/` pending browser E2E."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-187-character-size-passage-movement.md"
+  }
+}

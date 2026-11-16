@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-85",
+  "kind": "task",
+  "number": 85,
+  "title": "Time, Weather, Dates, and Moon Phases",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-24 (updated from stub)",
+  "updated": "2026-07-24 (updated from stub)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The time system already tracks hours/minutes in a 24h cycle. This task adds:\n- Date tracking (day/month/year)\n- Weather system (clear, cloudy, rainy, stormy, foggy)\n- Moon phase cycle (affects outdoor night light)\n- Weather effects on outdoor light levels (cloudy = dimmer, storm = much dimmer)\n- Integration with light spill system (task-80)",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Advance time from 06:00 to 18:00 - outdoor light stays bright\n- Advance to 19:00 - outdoor light drops to night level\n- Set weather to stormy - outdoor light drops further\n- Full moon at midnight - outdoor light = 25 (dim, can see shapes)\n- New moon at midnight - outdoor light = 5 (pitch_black)\n- Weather change fires event in stream\n- Date increments correctly over multiple in-game days",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/tick_manager.py` - date calculation, weather tick, moon phase",
+      "engine/weather.py` - new module (or add to tick_manager)",
+      "engine/lighting.py` - `get_time_of_day_light()` uses weather + moon phase",
+      "routes/settings.py` - `GET/POST /api/settings/weather",
+      "routes/state.py` - expose date, weather, moon_phase in `/api/state",
+      "static/js/world-state.js` - parse new state fields",
+      "static/js/event-stream.js` - weather change events",
+      "static/js/ui/settings-view.js` - weather override control",
+      "static/css/style.css` - weather icons styling"
+    ],
+    "custom": {
+      "what_already_exists": "- `TickManager.get_game_time_string()` - returns \"HH:MM:SS\"\n- `clock_start_hour`, `clock_start_minute` - configurable start time\n- `time_per_tick_minutes` - configurable tick duration\n- Time cycles through 24h modulo",
+      "what_s_missing": "### 1. Date Tracking\n- Add to world state: `game_day`, `game_month`, `game_year`\n- Calculate from `time_ticks` elapsed (e.g., day = time_ticks × time_per_tick_minutes / 1440)\n- Expose in `/api/state` response\n- Display in game UI (event stream header or status bar)\n\n### 2. Weather System\n- New module `engine/weather.py` or add to `engine/tick_manager.py`\n- Weather types: `clear`, `cloudy`, `rainy`, `stormy`, `foggy`, `windy`\n- Weather affects outdoor light levels:\n  - `clear`: 100% of time-of-day light\n  - `cloudy`: 70% of time-of-day light\n  - `rainy`: 50% of time-of-day light\n  - `stormy`: 30% of time-of-day light\n  - `foggy`: 40% of time-of-day light\n- Weather changes randomly per tick with configurable probability\n- Or weather is set manually via settings (for GM control)\n- Weather affects room environments (rain adds water, fog reduces visibility)\n- API endpoint: `/api/settings/weather` - GET current weather, POST to change\n\n### 3. Moon Phases\n- Deterministic cycle based on `game_day` (30-day cycle)\n- Phases: `new_moon`, `crescent`, `quarter`, `gibbous`, `full_moon`\n- Each phase affects outdoor night light differently (see task-80)\n- Expose in `/api/state` response as `moon_phase`\n\n### 4. Integration with Light System (task-80)\n- Outdoor rooms get `get_time_of_day_light(hour, weather, moon_phase)`\n- This replaces the static `environment.light` for outdoor rooms\n- Light spill uses the *computed* outdoor light, not the static value\n- Moon phase only matters at night\n\n### 5. UI Display\n- Show date in event stream header: \"Day 3, Month 2, Year 1246 - 14:30 - Clear\"\n- Moon phase icon in sidebar (🌑🌒🌓🌔🌕)\n- Weather display with simple icon (☀️🌤️☁️🌧️⛈️🌫️)\n- Weather change events in event stream: \"The sky darkens as storm clouds roll in.\"",
+      "dependencies": "- **Blocked by**: Nothing\n- **Blocks**: Task-80 (light spill), Task-100 (graph light overlay)\n- **Related**: Task-80 (needs this for time-of-day light), Task-98 (tags for weather areas)"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Environment/Time & Weather]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/environment/task-85-time_weather_dates.md"
+  }
+}

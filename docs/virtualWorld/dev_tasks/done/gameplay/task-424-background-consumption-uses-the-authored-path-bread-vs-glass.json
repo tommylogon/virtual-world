@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-424",
+  "kind": "task",
+  "number": 424,
+  "title": "Background consumption uses the authored path (bread vs glass)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One consumption path. The background tier calls the authored one, with the active\nplayer swapped in for the decision (the same trick `_travel_toward` already uses\nfor movement), so a glass empties, a skin keeps its charges, and bread is eaten.",
+    "why": "Consumption has two mechanisms that disagree:\n\n- **Player path** (`engine/items/consume_actions.py:consume_item`) is **data-driven**.\n  It fires the item's `on_eat`/`on_drink` triggers, applies the action cost, records\n  a turn event, and then **stops** - depletion is the item's own business via\n  `adjust_uses`, `set_state`, or `rename`. So bread can be destroyed, a glass can\n  *empty and persist*, and a container can be refillable, because the item authors it.\n- **Background path** (`background_simulation._consume_here`) is **hardcoded**:\n  `count - 1` → `uses - 1` → **remove the node**. It ignores authored triggers\n  entirely.\n\nSo the background tier cannot empty a container, destroys anything with\n`uses == -1` that it consumes, and forced the wash-spot fixture (task-410) to avoid\nthe `water` tag purely to escape deletion.",
+    "how": "1. `_consume_here` delegates to the item-consume path instead of hardcoding\n   depletion. Keep the current behaviour only as a degenerate fallback for items\n   with **no** authored consumption triggers, and log when it is taken.\n2. **Data pass:** consumables must author their own effect, because the vital\n   restore currently comes from the background hardcode\n   (`MEAL_RESTORE = 45`, `DRINK_RESTORE = 50`). Each food/drink item gains an\n   `on_eat`/`on_drink` trigger with `adjust_vital` (Hunger/Thirst), plus\n   `adjust_uses` and an empty/finished state where it should persist.\n3. Add the missing pattern: a **drinkable container** authors\n   `uses_reached 0 → set_state empty` (+ optional `rename`), so it survives being\n   drunk from. `uses` is charges/durability, never a gauge (task-410).\n4. Only then retire `MEAL_RESTORE`/`DRINK_RESTORE` from the background tier.",
+    "verify": "- Unit: `_consume_here` on a container item that authors an empty state leaves the\n  node; on an item with no triggers it falls back and says so.\n- Unit: background eat fires the item's `adjust_vital` (Hunger drops by the\n  authored amount, not by a constant).\n- Soak: a week at 1 and 15 min/tick, survival and food counts unchanged vs\n  task-410's result.",
+    "acceptance": [
+      {
+        "text": "Drinking from a glass leaves an empty glass in the world; eating bread removes it.",
+        "done": false
+      },
+      {
+        "text": "An item with `uses: -1` is never destroyed by being consumed.",
+        "done": false
+      },
+      {
+        "text": "A refillable container can be refilled and drunk again.",
+        "done": false
+      },
+      {
+        "text": "Authored `on_eat`/`on_drink` triggers fire for background characters exactly as",
+        "done": false
+      },
+      {
+        "text": "they do for the player, and the trace shows the same reason tags.",
+        "done": false
+      },
+      {
+        "text": "Camp food supply behaviour is unchanged from task-410 (still 23/23 over a week).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "scoping_notes_2026_09_21_measured": "Two things this task did not know, both of which change its shape. It is **three\npieces, not one**, and the first piece on its own is invisible.\n\n**1. Almost nothing authors its own consumption.** Of ~40 edible/drinkable library\nitems, only six have an `on_eat`/`on_drink` trigger (`rations_of_dried_meat`,\n`water_pitcher`, `wheel_of_cheese`, and three Taco Bell items). The rest are\ntag-only, and `_consume_item` accepts them on the tag alone - so with the authored\npath they would fire no effect and never deplete: an infinite loaf. The hardcoded\ndepletion is currently the *only* thing making camp food finite.\n\n**2. The camp places five consumables**, not a sprawling inventory:\n`item_berries`, `item_bread`, `item_dried_meat`, `item_mushrooms` (food) and\n`item_water_skin` (drink) - and none of them has a trigger today. So the data pass\nis small and tractable, and it is what makes the change *visible*; the code half\nalone would leave the camp on the fallback and change nothing observable.\n\n**3. \"A glass empties and persists\" needs a mechanism that does not exist yet.**\n`uses` reaching 0 is handled generically in the *use* path\n(`items/use_actions.py`, which detaches the item from its area) and for **lit**\nitems (`tick_manager` fires `on_depleted` under `if is_lit`) - but **not** in the\nconsume path. `_consume_item` relies on the item calling `adjust_uses`. So a\ndrinkable container cannot currently author \"at 0 charges, become empty and stay\nin the world\" through consumption: that generic depletion hook is part of this\ntask, and the acceptance item about the empty glass depends on it.\n\nSuggested order: the code delegation (a) → the generic `uses == 0 → on_depleted /\nset_state` hook (c) → the data pass on the five camp consumables (b). Only then\nretire `MEAL_RESTORE`/`DRINK_RESTORE`, and the soak should be unchanged because\nuntil (b) lands every camp item is still on the fallback.",
+      "non_goals": "- New consumption verbs or nutrition detail.\n- Changing what counts as food/drink (`FOOD_TAGS`/`DRINK_TAGS`).\n- Refill mechanics beyond making them possible in data.",
+      "progress_2026_09_24_change_1_delegation": "The code half is in; the data half is not, so the observable behaviour of the\nshipped camp is deliberately unchanged (its five consumables author no triggers,\nso every one still takes the fallback - which is the point of the suggested order).\n\n- **`engine/background_simulation.py`** - `_consume_here` now checks\n  `_has_authored_consume(node, \"on_eat\"/\"on_drink\")`; when the item authors its\n  own consumption it runs `_consume_via_authored` (the player `eat_item`/\n  `drink_item` path with the background character swapped into the active slot,\n  the same trick as `_forage_check`), and only the need-level trace/log is added\n  afterwards - the item's `adjust_vital` is the single source of truth, so the\n  hardcoded constant is **not** applied (validated: an authored `-20` leaves\n  Hunger at 60, not `80 - MEAL_RESTORE`). Items with no authored trigger keep the\n  old count/uses/remove path and log that the fallback was taken.\n- **`tests/test_background_consumption.py`** (4): authored eat runs the trigger\n  and its `remove_item`; authored drink does the same; a silent item still falls\n  back and removes; a non-food item is not eaten.",
+      "progress_2026_09_24_change_2_data_pass_change_3_depletion_hook": "**Correction to the scoping note above.** It said none of the five camp\nconsumables authors a trigger. True for berries and dried meat, but **three did**\n- `item_bread`, `item_mushrooms`, `item_water_skin` - with **legacy positive**\n`adjust_vital` amounts (satiation semantics). Under the current *drive* semantics\n(Hunger/Thirst rise) those amounts *increase* the need, so the moment change 1's\nauthored path went live the camp began to starve (a measured week soak fell to\n16/23). The data pass is therefore not cosmetic: it is what makes change 1 safe.\n\n- **Change 3 - the depletion hook is in `engine/items/consume_actions.py`**\n  (`_deplete_if_spent` + `PERSISTENT_EMPTY_STATES`): on a genuine last-use\n  transition (`uses_before > 0`, now 0) the item's `on_depleted` fires; a node that\n  marked itself a persistent empty state (a glass, the water skin) stays in the\n  world, anything else is removed. `tests/test_consume_depletion.py` (6).\n- **Change 2 - `tools/author_camp_consumables.py`** authors the five items in\n  `kraktooth_goblin_camp.json`: every food gets `on_eat` → `adjust_vital Hunger`\n  (`-MEAL_RESTORE`) + `adjust_uses −1`; the water skin gets `on_drink` →\n  `adjust_vital Thirst` (`-DRINK_RESTORE`) + `adjust_uses −1`, and `on_depleted` →\n  `set_state empty`. Idempotent and surgical: it edits the raw JSON (never\n  `to_scenario_dict()`, which rewrites every character), rewrites an existing\n  trigger of the same type in place, and a re-run is a no-op. `tests/test_camp_consumables.py`\n  (3) is the data regression guard.\n- **Soak - restored to the acceptance figure.** `--background-all --mature` over a\n  week is **23/23 alive, 0 dead** at both `1 min/tick` (10080 ticks) and\n  `15 min/tick` (672 ticks). Before the data pass the same run was 16/23.\n\n**Change 4 (retire the constants) is deliberately not done.** `MEAL_RESTORE` /\n`DRINK_RESTORE` survive only as the *documented degenerate fallback* in\n`_consume_here`, which is the sole branch for items that author no consumption. A\nmeasured pass over `data/library/items` found **78 edible/drinkable items, only 13\nof them authored, 65 tag-only** - so deleting the constants now would leave the\nmajority of library food eaten but restoring nothing (or, with the fallback also\nremoved, firing no trigger and never depleting: the infinite loaf). Retirement is\ntherefore a **library-wide** data pass, filed as **task-506** (which also notes\nthat several *authored* items, e.g. `rations_of_dried_meat` and `apple`, carry no\ndepletion and are infinite once the authored path is live). The camp no longer\ntouches the fallback: all five of its consumables now author `on_eat`/`on_drink`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-410 (renewable sources - the same `_find_consumable` path).",
+      "relates": "`engine/items/consume_actions.py`, `engine/background_simulation.py`."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-424-data-driven-consumption-in-background.md"
+  }
+}

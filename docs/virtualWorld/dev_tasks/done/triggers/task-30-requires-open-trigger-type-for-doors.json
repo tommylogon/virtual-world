@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-30",
+  "kind": "task",
+  "number": 30,
+  "title": "`requires_open` Trigger Type for Doors",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-19",
+  "updated": "2026-07-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A new trigger type `requires_open` was added to the door movement system in `virtual_world_engine.py`. When a door has a `triggers` edge with `trigger_type: \"requires_open\"`, its conditions are evaluated before auto-opening. If any condition fails, the door stays shut and a fail message is shown.\n\nThis is redundant with `needs_open` (a property on the door node that gates passage behind a skill check). Both serve the same purpose - preventing auto-open - just through different mechanisms.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - `move_to_area()`: added `requires_open` trigger check before auto-open"
+    ],
+    "custom": {
+      "current_behavior": "When `go [direction]` hits a closed door:\n\n```\nif state == \"locked\":          → blocked, key required\nif needs_open.enabled:         → blocked, skill check (Athletics DC N)\nif requires_open triggers:     → blocked if conditions fail (new, redundant)\nelse:                          → auto-open, walk through\n```",
+      "review_question": "Should `requires_open` be kept as an alternative approach for door gating? It allows conditions (like `has_item`, `state_equals`) rather than just skill checks. But `needs_open` already covers the most common case. If kept, update the door editor UI in the inspector to support adding `requires_open` trigger edges."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Connections]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-30-door_requires_open_trigger.md"
+  }
+}

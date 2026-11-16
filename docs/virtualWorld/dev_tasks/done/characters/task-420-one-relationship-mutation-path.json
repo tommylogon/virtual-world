@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "task-420",
+  "kind": "task",
+  "number": 420,
+  "title": "One relationship mutation path",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-20",
+  "updated": "2026-09-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-349",
+      "task-350"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Relationship state is written from several places with no shared entry point:\n\n- `engine/combat.py:159-165` mutates `target.relationships[attacker]` inline.\n- `engine/derive.py` (task-350) derives closeness from experience.\n- task-417's coarse meetings will write symmetric deltas.\n- The foreground LLM loop writes its own outcome.\n\nThe store itself is a single blunt scalar - `player.relationships[npc] =\n{\"closeness\": ...}` (read at `engine/area_description.py:371`).\n\nTwo consequences:\n\n1. **No cause is recorded.** A delta from a beating looks identical to one from\n   a shared meal, so nothing downstream (trace, memory, reflection) can explain\n   a relationship.\n2. **The two fidelity tiers diverge.** Foreground social interaction and\n   background relationship drift are separate code paths writing the same\n   scalar. At promotion/demotion (task-412) the value can jump, because the two\n   paths never agreed on how it evolves.",
+    "how": "A single mutation entry point:\n\n```python\ndef apply_relationship_delta(actor, target, delta, cause, area_id=None):\n    \"\"\"The only writer of player.relationships.*.closeness.\"\"\"\n```\n\nRules:\n\n- **All** writers go through it: combat, derive, coarse meetings, foreground\n  outcomes. No direct `relationships[...] = ...` writes anywhere else.\n- `cause` is a short token (`combat`, `meeting`, `gift`, `derive`, `dialogue`)\n  and is recorded on the trace alongside the delta.\n- `area_id` is recorded when known, so a relationship change can be located\n  (and so task-417's co-presence gate is auditable after the fact).\n- Deltas are clamped consistently in one place; symmetry for meetings is a\n  caller-visible property (call twice with opposite actors, or pass a symmetric\n  pair in one call).\n- Foreground LLM output is converted into deltas before it reaches this\n  function - the LLM never writes the store directly.",
+    "verify": "- Unit: each cause produces the expected delta and trace entry.\n- Unit: clamping is identical regardless of caller.\n- Regression: combat relationship test (the \"psychotic friend\" betrayal case at\n  `engine/combat.py:159`) still passes.",
+    "acceptance": [
+      {
+        "text": "A test/whitelist proves `relationships[...] = ` appears only in the new",
+        "done": false
+      },
+      {
+        "text": "module (combat and derive refactored to call it).",
+        "done": false
+      },
+      {
+        "text": "Every delta carries a `cause` and appears in the trace.",
+        "done": false
+      },
+      {
+        "text": "Coarse meetings produce symmetric deltas through the same call.",
+        "done": false
+      },
+      {
+        "text": "Save/load format unchanged (no schema change, still `{\"closeness\": float}`).",
+        "done": false
+      },
+      {
+        "text": "Promotion/demotion fixture: relationship value is continuous across a tier",
+        "done": false
+      },
+      {
+        "text": "change.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_2026_09_21": "Done. `engine/relationships.py` holds the single mutation path:\n\n- `apply_relationship_delta(player, other, delta, cause, tick, area_id)` - the\n  only writer of `closeness`. Clamps in one place, stamps\n  `last_interaction_tick`/`interaction_count`, and records the cause on the trace\n  as `why=\"social:<cause>\"` with `delta={closeness, cause, with}`.\n- `apply_symmetric_delta(a, b, delta, cause)` - symmetry is a property of the\n  *call*, so a meeting cannot be applied to one side by accident. Each side still\n  gets its own trace entry, because each side's history is its own.\n- `closeness_band` / `band_at_least` / `BAND_LABELS` - the band ladder was inline\n  in `Player.get_relationship_nl`; it is now defined once and the prose calls it,\n  so a band-gated rule can never disagree with the wording about the edges.\n  `band_at_least` is the gate task-423 needs for `flirt`/`confide` (the Diary's\n  `has_relationship: {min_quality}`).\n- `ensure_relationship(player, other, tick)` → `(record, created)`. Creating a\n  record is not the same as feeling something: no closeness, no novelty.\n\nRefactored callers: `player.update_relationship` (cause `dialogue`),\n`player.register_first_meeting`, `player.felt_toward`, `player.get_relationship_nl`,\n`engine/combat.py` (cause `combat`, was an inline inline `-30`), the `label`\ncommand (writes `label`, not closeness - a declaration is not a measurement), and\nthe felt-toward route. `engine/derive.py` turned out to be a *reader* only, so it\nneeded no change.\n\nGuarded by `tests/test_relationships.py::test_relationships_are_written_only_through_the_one_path`,\nwhich scans `engine/`, `routes/` and `player.py` for `relationships[...] = ` and\nallows exactly two elsewhere: the bulk import in `routes/player_ops.py` (a\npayload replacing the store - deserialization, not a mutation). 32 tests.\n\n### Deliberately left alone\n\n`_grant_meeting_entertainment` is a **second Entertainment path for meeting\nsomeone**, and since task-425 pays character novelty through perception it now\ndouble-pays when a character walks into a room. Folding it into the novelty curve\nneeds the name → character-node-id mapping that task-423 establishes when it\npopulates `entity_ids` with `[actor_id, target_id, area_id]`, so it is recorded\nthere rather than half-fixed here.",
+      "why_this_is_the_prerequisite_for_task_412": "Promotion/demotion should change **who produces deltas**, not how they are\nstored. With one write path, demoting a character mid-conversation cannot make\nthe relationship jump, because both tiers were always writing the same field\nthrough the same clamp with a recorded cause.",
+      "non_goals": "- Richer relationship models (trust/fear/respect) - out of scope; the scalar\n  stays a scalar for now.\n- Relationship simulation of any new kind (this is plumbing only).\n- Replacing `engine/derive.py`; it becomes a *caller* of the new function."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-417 (co-presence meetings).",
+      "prerequisite for": "task-412 (promotion/demotion handoff).",
+      "relates": "task-350 (`engine/derive.py`), task-409."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-420-unified-relationship-delta-path.md"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-53",
+  "kind": "task",
+  "number": 53,
+  "title": "Use Item with Parameters (Text/Message Passing)",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-433",
+      "task-363",
+      "bug-599"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Items support parameterized use: `use pen on paper \"i wrote this\"` writes text on\nthe paper. The intent is item-to-item communication, writing systems, and complex\ninteractive items.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Use action accepts target arguments (e.g. `use key on door`).",
+        "done": true
+      },
+      {
+        "text": "Trigger handlers receive target arguments and execute contextual effects.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/effects.py",
+      "engine/actions.py"
+    ],
+    "custom": {
+      "current_state_audited_2026_09_21": "### What works\n\n- **Command parsing.** `use <tool> on <target> \"<text>\"` - `routes/action_handlers.py:382-414`\n  (the `use` branch; line 393 `on_idx`, 397-405 quoted-token split), using\n  `tokenize_command_detailed` at `routes/helpers.py:113-152`. Quoted tokens after\n  `on`: the first becomes the target, the rest become `params`.\n- **Engine entry point.** `VirtualWorld.use_item_on(item, target, params=…, amount=…)`\n  at `virtual_world_engine.py:616-617` → `engine/items/use_actions.py:187`.\n- **The inscription path.** `engine/items/use_actions.py:266-277` - when `params`\n  is truthy, appends `\\n[Inscribed: \"<params>\"]` to the **target node's**\n  `properties[\"description\"]`, stamps `updated`, records a `use` turn event, and\n  returns early. Because it lands in `node.properties`, it is serialized with the\n  graph and survives both save and scenario export; `examine` renders it for\n  anyone.\n- **`{params}` in trigger context.** `use_actions.py:283` seeds\n  `trigger_context = {\"params\": params or \"\"}` for `on_use_on` triggers (and\n  `:358` for a way target). `_render_template` (`engine/triggers/execution.py:77-139`)\n  resolves it in effect values.\n- **`set_description` / `append_description` effects.** Backend:\n  `engine/effect_handlers/properties.py:71-109`. Authorable in the UI:\n  `static/js/shared/trigger-types.js:73-74`, `trigger-editor.js:737-742, 1721-1731`,\n  `static/js/shared/trigger-helpers.js:201-205`, `trigger-graph.js:175`,\n  `static/js/item-library.js:839-843`. Known to prompt docs:\n  `static/js/prompt-docs.js:37`, `static/js/main.js:373`, procedural generators\n  (`static/js/shared/ai-generator.js:155`, `static/js/item-library/ai-generation.js`).\n- **Reading.** `read` is an alias that rewrites to `examine`\n  (`routes/action_handlers.py:217-220`), so any inscribed description is readable.\n\n### What was proposed but is NOT implemented\n\n- **`params_match` condition** - proposed in this task; no `params_match`\n  implementation exists anywhere in the codebase. `params` is only reachable as\n  a `{params}` template token inside an authored effect value.\n- **Phase 2 built-in per-item param effects** (phone→notify, radio→tune, etc.) -\n  never built; only the generic trigger path exists.\n- **No test coverage** for the inscription path or the `{params}` template token.\n  `tests/test_descriptive_targets.py:161` touches `use_item_on` but asserts the\n  descriptive-target failure, not inscription.\n\n### Known defects / traps\n\n- **`params` is silently un-gated.** `use_actions.py:266-277` never checks that\n  the tool is a writing implement or that the target is writable. Any tool+target\n  pair inscribes if `params` is set - see task-160 / task-363, where\n  `use create flame on dried flower crown` *inscribed* \"flower crown\" onto a\n  crown.\n- **Targeting is by quoted token, not structure.** `use pen on paper \"text\"`\n  takes the quoted token as the **target**, so no inscription; only\n  `use pen on \"paper\" \"text\"` works. This is ambiguous and easy for an agent or\n  human to get wrong.\n- **`append_description` re-appends on every fire** (fixed literal), so it is not\n  idempotent as a note mechanism.\n- **`set_description`/`append_description` target a literal node id**\n  (`properties.py:80,100` - `\"self\"` does not resolve there; `set_parameter`\n  does resolve `\"self\"` via `engine/effects.py:470-479`).\n\n### What this task did not do\n\n- The **LLM cannot drive it**: the structured action schema has no text field,\n  the normalizer only emits `use <tool> on <target>`, and the tool path\n  (`tools/game_tools.py:224`) calls `use_item_on(item_name, target)` with no\n  `params`. AI narration that says \"she wrote X\" never persists.\n- No authored pen/paper/noticeboard content exists.\n- Reading back is an `examine` side effect, not a `read` behaviour.\n\nThese are scoped in **task-433**.",
+      "original_proposed_design_kept_for_history": "### Phase 1: Params in trigger context\n\nWhen `use_item_on()` fires `on_use_on` triggers, pass the `params` text into the\ntrigger context so conditions and effects can reference it.\n\nNew condition type: `params_match` - checks if params match a pattern. *(never built)*\n\nNew effect type: `set_description` - changes a node's description. *(built - see above)*\n\n### Phase 2: Built-in param effects *(never built)*\n\n| Item | `use [item] on [target] '[text]'` | Intended effect |\n|------|-----------------------------------|-----------------|\n| pen | paper \"Hello World\" | Paper description becomes \"Hello World\" |\n| phone | phone \"Call Miki\" | Notify Miki's player |\n| radio | radio \"tune 98.7\" | Change room noise |\n| note | note \"Remember milk\" | Note description changes |\n\n### Phase 3: Custom param triggers *(partly built)*\n\nTriggers may reference `{params}` in effect messages and values:\n\n```json\n{\n  \"trigger_type\": \"on_use_on\",\n  \"effect_type\": \"set_description\",\n  \"effect_params\": {\n    \"message\": \"You write '{params}' on the paper.\",\n    \"target_property\": \"description\",\n    \"value\": \"{params}\"\n  }\n}\n```\n\n`{params}` templating works; `target_property` is not a real field - the target\nis a node id and the field is always `description`.",
+      "audit": "**Status**: Ready to test (authoring path), superseded for the agent path by task-433.\n\n**How to test**:\n- Create a `pen` item with an `on_use_on` trigger: `set_description`, target =\n  the paper item's id, value `\"{params}\"`.\n- In-game: `use pen on \"paper\" \"Hello World\"`. Verify the paper's description\n  changes and `examine paper` shows it.\n- Verify a message containing `{params}` renders the text.\n- Regression: `use pen on paper` (no quotes) writes nothing; `use create flame\n  on dried flower crown` does not inscribe (task-363 cases)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "residual work": "[[dev_tasks/todo/items/task-433-character-inscription-persistent-notes|task-433]]"
+    }
+  }
+}

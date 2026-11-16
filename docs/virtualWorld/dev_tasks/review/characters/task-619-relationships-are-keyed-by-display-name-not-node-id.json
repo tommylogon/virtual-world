@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-619",
+  "kind": "task",
+  "number": 619,
+  "title": "Relationships are keyed by display name, not node id",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-349",
+      "task-350",
+      "task-420",
+      "task-734"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Relationships are keyed by display name, not by node id, so renaming a\ncharacter orphans its relationships.\n\nCORRECTED 2026-09-30 after live testing. The original claim was that\nrelationships are \"stored in two shapes in one field\". **That half is wrong.**\nAll 23 characters expose a single object shape:\n\n    {\"Gribba\": {\"closeness\": 20, \"first_sighting\": false}, ...}\n\nThe other half reproduces. Counting every relationship key across all 23\ncharacters: 65 of 67 are display names (\"Gribba\", \"Krikka\", \"Mikka\", \"Rikka\",\n\"Thrazz\", \"Vekka\"), 1 looks like an id, 1 is ambiguous.\n\nWhy it matters: `AGENTS.md` states \"Node identity is an opaque ID. Display names\nare a resolution layer.\" Keying a persisted record by the display name inverts\nthat -- rename a character and every relationship pointing at it is orphaned,\nwith no id left to re-resolve from. The same class as the id leaks in\ntask-624/task-638, on the write side rather than the display side.\n\nScope note: migrating the key to an id is not a one-liner. It needs a\nserialization migration, a read path that tolerates the old name-keyed form, and\na decision about whether the two-key state (1 id-keyed entry already present) is\na partial migration that is half done or a legitimate second representation.\n\nThe relationship field holds two record shapes and is keyed by display name rather than id, so a rename orphans the relationship.\n\nStatus note (previously free text in the status field): this card is out of date and needs its measurements redone and its goal re-authored before work starts.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: select a character → Mind panel → Relationships. The panel\nshould resolve each relationship by the other character's opaque node ID and\ndisplay the current character name as a label.\n\nCurrent availability: the measured card evidence says all 23 characters use\none object shape, but 65 of 67 relationship keys are display names. The\nrelationship-key migration and Mind-panel resolution are not claimed as\nimplemented by this card.\n\nLive steps when available:\n1. In a scratch scenario, inspect Character A's relationship entry to\n   Character B in the Mind panel and record B's node ID and displayed name.\n   - expected: the relationship resolves to B by node ID and displays B's\n     current name and closeness.\n2. Rename B's character node, reload the scenario, and reopen A's Mind panel.\n   - expected: A's relationship still points to the same node ID and renders\n     B's new name; no orphaned relationship appears under the old name.\n3. Rename another character to B's former display name and inspect A's\n   relationship list.\n   - expected: the relationship remains attached to B's ID and is not\n     reassigned to the character who inherited the old name.\n4. Save and reload again; inspect the serialized relationship record.\n   - expected: the stored key is B's opaque ID, with the relationship facts\n     preserved once and no duplicate display-name keyed record.\n\nThese steps define the intended Mind-panel verification. The task's current\nacceptance and data migration still need to be completed.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Character Creation & Archetypes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-619-relationships-stored-in-two-shapes-in-one-field-keyed-by-display-name.md"
+  }
+}

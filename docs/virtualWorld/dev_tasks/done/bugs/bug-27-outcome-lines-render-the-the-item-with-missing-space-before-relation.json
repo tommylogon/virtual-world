@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "bug-27",
+  "kind": "bug",
+  "number": 27,
+  "title": "Outcome lines render \"the the <item>\" with missing space before relation",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Take an item that sits *under/on/in* something → log shows exactly one\n  article, `... earring from under ...` spacing.\n- Grep any new export for regex `the the|e[a-z]+from` → zero hits.\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "`taco_bell_event_log_2026-08-23T16-19-57.txt` (reproduced twice):\n\n- Tick 23: `You pick up the the blue butterfly earringfrom under the Booth Table.`\n- Tick 39+ RECENTLY echo: same string.\n\nTwo defects in one line:\n\n1. **Doubled article** - \"the the\". The model's action said\n   `\"item\": \"take the Blue Butterfly Earring\"` (the verb leaked into the item\n   field) and/or the pickup template prefixes its own \"the\" without checking\n   whether the matched name already starts with one.\n2. **Missing space before the relation clause** - `earringfrom`. The result\n   template joins `<name>` + `from under the <surface>` with no separator.",
+      "why_it_matters": "Outcome lines are the engine's voice (G2 in presence-gap analysis). This one\nappears on nearly every container-surface pickup, so the most common action in\nthe game renders with a visible stutter right next to character prose.",
+      "fix_sketch": "Find the take/pickup result template (engine/matching.py handle or\nroutes/action_handlers.py take path - trace from `_execute_take`/item-actions).\n- Strip a leading article (\"the \", \"a \", \"an \") from the matched display name\n  if the template adds its own, or never add one and always use the node's\n  canonical name.\n- Join relation clauses with a space; sweep sibling templates (put/reveal/search)\n  for the same join pattern.",
+      "implementation_2026_08_28": "Both defects were **engine-side**, in `engine/items/take_drop_actions.py` (not the export):\n\n1. **Doubled article** - the result templates hardcoded `\"the \"` + the raw action\n   `item_name` (e.g. `\"the blue butterfly earring\"`), producing `the the`. Added a\n   module helper `_display_name(name)` that strips a leading `the`/`a`/`an`, and\n   applied it across every take/drop phrasing (`take the …`, `pick up the …`,\n   `put … away and take …`, `try to take the …`, `The … is gone.`,\n   `already wearing/carrying the …`, `dropped the …`).\n2. **Missing space** - the spatial relation clause was built as `f\"{prep} the\n   {surface}\"` with no leading space, so `<name>` + `from under the <surface>`\n   joined as `earringfrom`. Now the prep branch prefixes a space\n   (`f\" {prep} the {surface}\"`), matching the container branch.\n\nVerified: `engine/items/take_drop_actions.py` compiles; `tests/test_item_actions.py`\n(61) all pass. Taking an item `under the Booth Table` now reads\n`You pick up the blue butterfly earring from under the Booth Table.`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-27-outcome-line-article-duplication-and-missing-space.md"
+  }
+}

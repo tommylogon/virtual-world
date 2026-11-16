@@ -17,7 +17,7 @@ related: ['task-691', 'task-714', 'task-729', 'task-736', 'task-756', 'task-785'
 
 ## What
 
-Inventory the character inspector's Bio and Advanced sections, classify each as mind state or definition, and move the mind surfaces into the Mind panel. From **Bio**: `✨ Interest Tags`, `😨 Fear Tags`, `🧪 Recipes`, `👁️ What I See`, `📋 Plan`, and `💭 Latest Thoughts`. From **Advanced**: `🧠 Knowledge`, `📜 Timeline`, `🧠 Conversation Memory`. Keep in Bio (definition/body): stats/skills/traits, personality, appearance, tags, aliases. The 🧠 Mind entry point moved to the always-visible status row (it used to sit inside the Bio memories section header). `known-by.ts` stays shared for areas. Each moved surface gets one home — the Mind panel — and leaves its old tab.
+Inventory the character inspector's Bio and Advanced sections, classify each as mind state or definition, and move the mind surfaces into the Mind panel. From **Bio**: `✨ Interest Tags`, `😨 Fear Tags`, `🧪 Recipes`, `👁️ What I See`, `📋 Plan`, and `💭 Latest Thoughts`. From **Advanced**: `🧠 Knowledge`, `📜 Timeline`, `🧠 Conversation Memory`. Keep in Bio (definition/body): stats/skills/traits, personality, appearance, tags, aliases. The 🧠 Mind entry point moved to the always-visible status row (it used to sit inside the Bio memories section header). `known-by.ts` stays shared for areas. Each moved surface gets one home - the Mind panel - and leaves its old tab.
 
 **Not in this card:** the delegated Bio `🧠 Memories` list/editor. It is the memory **editor** (add / generate / suppress / delete / filter), and task-729 owns moving those edit controls into the Mind panel. The Mind panel's Memories tab already carries the *display* half (task-714). So the Bio section stays until 729; removing it here would have dropped the only add/generate/delete/suppress controls.
 
@@ -56,7 +56,7 @@ Move each block's render and wiring from `agent-view.ts` into the Mind panel (`m
 
 ## Files
 
-- `static/js/inspector/mind-view.ts` (destination — new renderers `_interestTagsHtml` / `_fearTagsHtml` / `_whatISeeHtml` / `_latestThoughtsHtml` / `_planHtml` / `_knowledgeHtml` / `_recipesHtml` / `_eventsTimelineHtml` / `_conversationHtml`, mounted into the task-820 tabs and wired per render)
+- `static/js/inspector/mind-view.ts` (destination - new renderers `_interestTagsHtml` / `_fearTagsHtml` / `_whatISeeHtml` / `_latestThoughtsHtml` / `_planHtml` / `_knowledgeHtml` / `_recipesHtml` / `_eventsTimelineHtml` / `_conversationHtml`, mounted into the task-820 tabs and wired per render)
 - `static/js/inspector/agent-view.ts` (`_renderBioTab`, `_renderAdvancedTab`, status row entry point)
 - `static/js/inspector/known-by.ts` (knowledge chips)
 - `static/js/agent/` (`getDisplayHistory`), `PlanTracker`

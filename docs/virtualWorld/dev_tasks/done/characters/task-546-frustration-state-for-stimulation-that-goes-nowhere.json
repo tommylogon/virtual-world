@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "id": "task-546",
+  "kind": "task",
+  "number": 546,
+  "title": "Frustration state for stimulation that goes nowhere",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-488"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Stimulation with no route to release currently just sits on the meter. Give the engine a way to accumulate frustration (and release it) when arousal climbs with no satisfying outcome.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**Frustration accumulates when a build has no satisfying outcome**, and it",
+        "done": true
+      },
+      {
+        "text": "is observable - a `frustrated` condition with a four-step `symptoms` ladder",
+        "done": false
+      },
+      {
+        "text": "and a log line for the active player.",
+        "done": false
+      },
+      {
+        "text": "**It discharges under a defined condition rather than only expiring** - a",
+        "done": true
+      },
+      {
+        "text": "release ends it (see below, which required fixing a pre-existing gap).",
+        "done": false
+      },
+      {
+        "text": "**Non-carriers are unaffected**, and nothing changes while",
+        "done": true
+      },
+      {
+        "text": "`world.mature_content` is off.",
+        "done": false
+      },
+      {
+        "text": "**The ordinary release path is unchanged** - the first test in the file.",
+        "done": true
+      },
+      {
+        "text": "Tests in `tests/test_stimulation_paths.py` covering accumulation,",
+        "done": true
+      },
+      {
+        "text": "discharge, and the unchanged ordinary path.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_2026_09_27": "- The pleasure vitals are `Stimulation`, `Arousal`, `Pleasure` (+ `Pain` in the\n  report dict). There is **no** frustration value, condition, or accumulator\n  anywhere in the engine today.\n- `engine/tick_manager.py` has exactly one outlet for a full meter: the release\n  cascade at `Stimulation >= 65 and Arousal >= 40`, which applies the satisfaction\n  condition and resets the meters. A path that can never release therefore has\n  nowhere to go but the same cascade.\n- The nearest existing pattern is `sensitized` (an edging condition stacked by the\n  tick pass while `50 <= Stimulation < 65`) - frustration is the same shape of\n  thing with a different trigger, so a condition is the cheaper, more consistent\n  representation than a new vital.\n- Frustration needs an observable consequence to be worth building: it must feed\n  at least one prompt line or behavior nudge, otherwise it is an invisible number.",
+      "open_design_decisions_settle_before_implementing": "1. **Condition or vital?** Recommendation: a `frustrated` condition with a tiered\n   `symptoms` ladder, mirroring `sensitized`/`nipple_hard`, so it is visible in\n   the existing condition/perception pipeline for free and needs no serializer\n   change.\n2. **What builds it?** Accumulated `Stimulation` above a threshold that no release\n   has cleared, or (with task-545 in place) stimulation on any path other than the\n   designated one. The second is what task-488 wants; the first is the general case.\n3. **How does it discharge?** On release, on being touched on the right path, or\n   only by its duration expiring. A frustration that can be worked off is a better\n   play loop than one that only times out.\n4. **Does it gate or only narrate?** If it ever blocks release on its own, it\n   changes the release cascade for *everyone*, not just trait carriers.",
+      "decisions_following_the_task_s_own_recommendations": "1. **A condition, not a vital** - mirroring `sensitized`, so it is visible in the\n   existing condition/perception pipeline for free and needs no serializer\n   change. `data/library/conditions/frustrated.json` is the authoring, with\n   `stack: accumulate` so it is a *build* rather than a flag, `ends_on:\n   [\"duration\", \"release\"]`, and `periodic: {Sanity: -1}` so it costs something\n   while it lasts.\n2. **What builds it**: a build that reaches the release threshold and is *refused*\n   by the gate (task-488). The general case - stimulation above a threshold no\n   release has cleared - is the same event here, because the only gate that\n   exists is `single_track`.\n3. **It discharges on release**, which required a real fix (below), and by\n   duration. A frustration that can be worked off is the better loop.\n4. **It does not gate.** Frustration is the visible *consequence* of a blocked\n   build. If it ever blocked release on its own it would change the release\n   cascade for every character in every world - which the task explicitly\n   declines, and which would make it a second invisible gate.",
+      "a_pre_existing_gap_this_task_s_acceptance_exposed": "`ends_on: [\"release\"]` was declared on **four** mature conditions\n(`sensitized`, `highly_aroused`, `frantic`, and the new `frustrated`) and\n**nothing ever honoured it**: `Player.end_instances(action)` existed, delegated\ncorrectly to `condition_end_instances`, and had **zero callers**. So every one of\nthose conditions could only ever end by its duration expiring.\n\nFixed at the one place a release happens - the cascade in `_pleasure_tick` - which\nmakes the declaration true for all four and discharges frustration as a side\neffect rather than a special case. This is the kind of thing AGENTS.md's \"never\ninfer runtime behavior from existence\" rule is about: the mechanism was complete\nand correct and simply had no caller.",
+      "implementation_2026_10_02_wt_characters_engine": "### Files\n\n- `data/library/conditions/frustrated.json` - **new** condition.\n- `engine/tick_manager.py` - `_build_frustration`, and `p.end_instances(\"release\")`\n  in the cascade.\n- `tests/test_stimulation_paths.py` - the `frustrated` tests.\n\n### A bug the negative test caught\n\nThe gate's ancestor match was written `if key in region_chain(key)` - which is\ntrue for **every** key - instead of `if named in region_chain(key)`. That made\n`_single_track_designated` return the first recorded path regardless of what was\nnamed, so the gate released everything and task-488 was a no-op. It is fixed, and\nit is worth recording because the only thing that caught it was a test asserting\nthat a *wrong* path does not release: every other assertion in the file would\nhave passed.\n\n### Verify\n\n```\npython -m pytest tests/test_stimulation_paths.py -q                           # 21 passed\npython -m pytest tests/test_pleasure_system.py tests/test_body_parts.py \\\n  tests/test_conditions.py tests/test_traits.py \\\n  tests/test_stimulation_paths.py -q                                          # 225 passed\npython -m pytest tests/test_condition_catalog.py -q                          # passed\n```\n\n**Full suite compared by failure NAME against the clean-master baseline**: 15\nfailed on both, `Compare-Object` empty.",
+      "related": "- task-488 - the consumer this unblocks\n- task-545 - supplies the path knowledge that makes \"wrong path\" frustration possible\n- task-209 (done) - `sensitized`, the edging condition this mirrors"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-546-frustration-state-for-stimulation-that-goes-nowhere.md"
+  }
+}

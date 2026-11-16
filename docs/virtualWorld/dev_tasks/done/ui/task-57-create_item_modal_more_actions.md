@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: Done — verified 2026-08-03. 14-action checkbox grid + collapsible triggers section in static/js/ui/create-modal.js.
+**Status**: Done - verified 2026-08-03. 14-action checkbox grid + collapsible triggers section in static/js/ui/create-modal.js.
 
 ---
 
@@ -61,8 +61,8 @@ Option A is preferred because it's a single workflow.
 
 ## Files
 
-- `static/js/main.js` — expand action checkboxes, add trigger section to create modal
-- `templates/index.html` — may need additional modal HTML for triggers
+- `static/js/main.js` - expand action checkboxes, add trigger section to create modal
+- `templates/index.html` - may need additional modal HTML for triggers
 
 ## How
 

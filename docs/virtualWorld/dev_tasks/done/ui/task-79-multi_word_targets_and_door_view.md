@@ -20,7 +20,7 @@ Two fixes found while testing "open swinging door" from the living room.
 
 ## Fix 1: Multi-Word Target Names
 
-`tokenize_command()` splits on spaces, so `"open swinging door"` produced tokens `["open", "swinging", "door"]` and `tokens[1]` was `"swinging"` — broke all multi-word targets (`swinging door`, `front door`, `rusty key`, etc.) unless quoted.
+`tokenize_command()` splits on spaces, so `"open swinging door"` produced tokens `["open", "swinging", "door"]` and `tokens[1]` was `"swinging"` - broke all multi-word targets (`swinging door`, `front door`, `rusty key`, etc.) unless quoted.
 
 **Fix:** Replaced `tokens[1]` with `' '.join(tokens[1:])` in all single-target branches. For branches with keyword separators (`use X on Y`, `attack X with Y`, `rest [N] on Y`), added keyword-index search in tokens to split at the right point.
 
@@ -42,7 +42,7 @@ Two fixes found while testing "open swinging door" from the living room.
 
 ## Fix 2: `visible_in_direction` on Way Open
 
-`toggle_way()` returned just `"You open the swinging door."` — the `visible_in_direction` text from the exit definition was only shown in `get_area_description()`, not in the action result. So it never appeared in `=== WHAT HAPPENED ===` for agent reactions.
+`toggle_way()` returned just `"You open the swinging door."` - the `visible_in_direction` text from the exit definition was only shown in `get_area_description()`, not in the action result. So it never appeared in `=== WHAT HAPPENED ===` for agent reactions.
 
 **Fix:** Both `toggle_way()` and `toggle_way_by_id()` now look up the room→door connection edge's `visible_in_direction` property and append it as a second line when opening:
 

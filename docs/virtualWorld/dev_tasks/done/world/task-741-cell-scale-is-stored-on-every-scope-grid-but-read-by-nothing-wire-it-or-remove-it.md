@@ -30,12 +30,12 @@ The WorldPainter grid dialog's scale field writes grid.cell_scale, and it is rea
 
 Removed end to end:
 
-- `engine/world_grid.py` — `ensure_grid(record, w, h, mode)` (param dropped),
+- `engine/world_grid.py` - `ensure_grid(record, w, h, mode)` (param dropped),
   normalise writes `{"w","h"}`, model doc updated; the now-unused `_as_float`
   helper deleted.
-- `routes/world_grid_ops.py` — grid payload `{"w","h"}`, both `ensure_grid`
+- `routes/world_grid_ops.py` - grid payload `{"w","h"}`, both `ensure_grid`
   call sites, docstring; `routes/player_ops.py` map scope payload.
-- `static/js/worldpainter/editor.ts` — `WpPayload.grid`, the grid dialog's
+- `static/js/worldpainter/editor.ts` - `WpPayload.grid`, the grid dialog's
   `scale` input + `wp-grid-scale` role, and both grid POST bodies; rebuilt to
   `.js`. `static/js/agent/turn-minimap.ts` `MapScope` type.
 - Tests: `test_world_grid.py`, `test_world_scopes.py`,

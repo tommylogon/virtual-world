@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-140",
+  "kind": "task",
+  "number": 140,
+  "title": "Consolidate Temperature & Light Description Systems",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-30 (updated 2026-07-30)",
+  "updated": "2026-07-30 (updated 2026-07-30)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Temperature and light descriptions are duplicated across 6+ locations with inconsistent thresholds, inconsistent labels, and some paths using raw ambient temperature while others use equipment-adjusted `feels_like`. Consolidate into one authoritative backend source, remove frontend duplicates, widen thresholds to cover realistic ranges.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "current_duplication_map": "### Temperature (5 independent systems - #6 removed via dead code cleanup)\n\n| # | File | Thresholds | Uses | Problem |\n|---|------|------------|------|---------|\n| 1 | `engine/area_description.py:146-157` env_summary | ≥35/≥30/≥25/≤10/≤0/≤-10 | `feels_like` | Gaps at 11-24°C and -9 to -1°C |\n| 2 | `engine/area_description.py:203-212` warnings | >35/>32/<-5/<5 | `feels_like` | Different labels than env_summary |\n| 3 | `engine/area_description.py:287-299` exit clues | <5/<15/>35/>28 | **raw ambient** ❌ | Should use `feels_like` |\n| 4 | `prompt-builder.js:477-478` lead-in | <5/<15/>35/>28 | **raw ambient** ❌ | Different labels (\"bitterly cold\" vs \"freezing\") |\n| 5 | `prompt-builder.js:431-435` exit clues | <5/<15/>35/>28 | **raw ambient** ❌ | Identical to #3 but in JS |\n| ~~6~~ | ~~`agent-engine.js:_buildRoomContext`~~ | ~~<5/<15/>35/>28~~ | ~~**raw ambient** ❌~~ | **Removed** - dead code cleanup |\n\nStill present but separate use-case: `agent-engine.js:182` sensory memory snapshot - logs \"I'm at [area]. It's [temp] and [light] here.\" as a character memory (not a prompt). Thresholds: `<5 freezing` / `<15 cold` / `>35 sweltering` / `>28 warm`. Light: `<10 pitch dark` / `<30 dimly lit` / `<70 well lit` / `else bright`. Uses raw ambient temp.\n\n### Light (5 independent systems)\n\n| # | File | Thresholds | Problem |\n|---|------|------------|---------|\n| 1 | `engine/lighting.py:13-30` | ≤20/40/70/90 | Reference |\n| 2 | `prompt-builder.js:25-32` | <20/≤40/≤70/≤90 | Same thresholds, duplicate |\n| 3 | `agent-engine.js:184` | <10/<30/<70 | **Different thresholds** ❌ |\n| 4 | `network-manager.js:351-356` | 10/30/55/80/95 | Different int mapping |\n| 5 | `network-manager.js:396-438` | Full spill reimplementation | Pure frontend duplicate |\n\n---",
+      "requirements": "### 1. Widen temperature thresholds\n\nReplace the current coarse bands with a fuller spectrum:\n\n| Feels Like | env_summary text | Warning text |\n|------------|-----------------|--------------|\n| ≥60°C | \"The heat is infernal - you can't breathe.\" | \"You are burning! Seek shelter or die!\" |\n| ≥50°C | \"Blazing heat - the air shimmers.\" | \"The heat is cooking you alive!\" |\n| ≥40°C | \"Scorching hot.\" | \"The intense heat is draining your energy!\" |\n| ≥35°C | \"Very hot.\" | \"You're overheating - find shade or water.\" |\n| ≥30°C | \"Hot.\" | \"It's quite hot; you're feeling thirsty.\" |\n| ≥25°C | \"Warm.\" | (none) |\n| ≥18°C | \"Pleasant.\" | (none) |\n| ≥12°C | \"Cool.\" | (none) |\n| ≥5°C | \"Chilly.\" | (none) |\n| ≥0°C | \"Cold.\" | \"The cold is biting.\" |\n| ≥-10°C | \"Freezing.\" | \"It's freezing! You need to warm up.\" |\n| ≥-25°C | \"Bitterly cold.\" | \"The cold is sapping your strength.\" |\n| ≥-50°C | \"Arctic - the cold is lethal.\" | \"Hypothermia is imminent - find warmth now!\" |\n| < -50°C | \"Deadly cold - nothing survives.\" | \"You are freezing to death!\" |\n\n### 2. All paths use `feels_like` (equipment-adjusted)\n\n- Exit clues must use `feels_like` (or at minimum the area's ambient temp, not the target room's raw temp)\n- Frontend prompt builder must receive `feels_like` from backend state instead of calculating from raw temp\n- Remove the 3+ frontend temperature description code paths\n\n### 3. Remove frontend light description duplicates\n\n- `lightToLevel` already exists in `prompt-builder.js` - but `agent-engine.js:184` uses different thresholds. Fix to match.\n- `network-manager.js:396-438` light spill reimplementation is a full frontend duplicate of `engine/lighting.py:get_ambient_light`. Remove or mark as visual-only.\n\n### 4. Consolidation approach\n\n**Option A: Backend as single source of truth**\n- Backend generates all temperature/light text and includes it in `/api/state`\n- Frontend removes all its own temperature/light description code\n- Frontend directly renders what the backend sends\n\n**Option B: Shared constants**\n- Extract threshold tables to `shared/` or a constants module\n- Both backend and frontend import from the same source\n- Lighter lift but doesn't fix the architecture\n\n---",
+      "what_was_changed": "### Backend - single source of truth for temperature/light descriptions\n\n- `engine/area_description.py` - Added `temperature_description()`, `temperature_warning()` functions with widened thresholds (14 bands from -50°C to 60°C). Replaced inline env_summary and warnings with calls to these functions. Exit clues now use `feels_like` (equipment-adjusted) instead of raw ambient temp.\n- `engine/lighting.py` - No change (it remains the reference).\n- `engine/serialization.py` - Added `_compute_feels_like()` method. Each player's serialized state now includes `feels_like` (equipment-adjusted temperature). Areas include `light_description`.\n\n### Frontend - removed duplicates, fixed thresholds\n\n- `static/js/agent/prompt-builder.js` - `lightToLevel` thresholds fixed to match reference (`<20` → `<=20`). Exit clue temperature thresholds widened to match backend bands. Lead-in tempFeel now reads `player.feels_like` from backend state instead of computing from raw ambient temp.\n- `static/js/agent/agent-engine.js` - Light thresholds at line 184 changed from `<10/<30/<70` to `<=20/<=40/<=70/<=90` (matching `lighting.py`). Temperature thresholds widened to match the 14-band spectrum.\n- `static/js/graph/network-manager.js` - Added doc comment marking `_computeAmbientLight` as visual-only duplicate of backend.",
+      "related": "- [[review/ui/task-113-vital-detail-modal|task-113: Vital detail modal]] - vital detail modal shows feels_like correctly\n- [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-140-consolidate-temp-light-descriptions.md"
+  }
+}

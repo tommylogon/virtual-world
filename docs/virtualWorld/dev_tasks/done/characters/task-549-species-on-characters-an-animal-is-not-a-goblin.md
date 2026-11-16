@@ -14,7 +14,7 @@ priority: high
 
 Characters have no species or faction field at all, so an animal, a goblin and a human are the same kind of thing to the simulation. Add a species/faction identity that the need layer can read.
 
-## Measured (2026-09-27) — there is no species anywhere
+## Measured (2026-09-27) - there is no species anywhere
 
 - `player.py` has **no** species, faction, or race field. `rg species engine/
   player.py` returns one hit, and it is a comment in `engine/traits.py` about
@@ -28,7 +28,7 @@ Characters have no species or faction field at all, so an animal, a goblin and a
   would be tagged `bathroom`, and that distinction is authored by hand and
   invisible to the simulation. An animal, a goblin and a human all draw from the
   same list.
-- The world *already* models the split — but only for narration. 31 of 272 areas
+- The world *already* models the split - but only for narration. 31 of 272 areas
   in the Kraktooth scenario carry `goblin_description`, `human_description` and
   `goblin_knowledge` properties, so a goblin and a human in the same room already
   get different text. What is missing is the same distinction in the
@@ -47,26 +47,26 @@ Characters have no species or faction field at all, so an animal, a goblin and a
 
 ## Acceptance
 
-- [x] A character carries a species identity **readable by the need layer** —
+- [x] A character carries a species identity **readable by the need layer** -
       `Player.species`, normalised to lowercase, read from the `Player` (never
       from a bare graph node, which carries no such field).
 - [x] **A species can be excluded from a service**, so "would an animal use a
       latrine" is a property of the data and not of the author's tag choices.
       `engine/species.py` profiles declare exclusions; the background relief
       handler reads one.
-- [x] **Existing characters and scenarios load unchanged** — asserted against
+- [x] **Existing characters and scenarios load unchanged** - asserted against
       all 70 library characters: none declares a species, and an unspecified
       species permits every service, so every one of them behaves identically.
 - [x] Species is authorable through `POST /api/players/<name>` and hydrates from
       a library definition, and round-trips in `Player.to_dict()`.
 - [x] Tests in `tests/test_species.py` (18 tests), including the relief wiring.
 
-## Implementation — 2026-10-02 (WT-characters-engine)
+## Implementation - 2026-10-02 (WT-characters-engine)
 
 ### A bug the live API caught and the code read did not: two player serializers
 
-There are **two** places that serialize a player —
-`Player.to_dict()` and `SerializationManager._serialize_player` — and
+There are **two** places that serialize a player -
+`Player.to_dict()` and `SerializationManager._serialize_player` - and
 `/api/state` serves the *second* one. The species was added to the first. The
 consequence was the worst shape a write can have:
 
@@ -85,20 +85,20 @@ so the next field added does not repeat it.
 
 ### Files
 
-- `engine/species.py` — **new**. `SPECIES_PROFILES`, `species_of`,
+- `engine/species.py` - **new**. `SPECIES_PROFILES`, `species_of`,
   `profile_for`, `can_use_service`, `excluded_services`, `describe_species`.
-- `player.py` — `self.species = None`; serialised in `to_dict()`.
-- `engine/serialization.py` — reads `species` back (absent → `None`).
-- `engine/effects.py` — the library loader normalises and sets it.
-- `engine/background_simulation.py` — the need layer reads it; `_relieve` and
+- `player.py` - `self.species = None`; serialised in `to_dict()`.
+- `engine/serialization.py` - reads `species` back (absent → `None`).
+- `engine/effects.py` - the library loader normalises and sets it.
+- `engine/background_simulation.py` - the need layer reads it; `_relieve` and
   `_note_species_mismatch`.
-- `routes/player_ops.py` — authorable through the existing update route.
-- `tests/test_species.py` — **new**, 18 tests.
+- `routes/player_ops.py` - authorable through the existing update route.
+- `tests/test_species.py` - **new**, 18 tests.
 
 ### The three open decisions, answered
 
 1. **Field or tag?** A **field**, `Player.species`. A tag would have needed no
-   serializer change, but it would also have been invisible to the need layer —
+   serializer change, but it would also have been invisible to the need layer -
    the need layer already intersects tags, so a `species: animal` tag would have
    been read by exactly the same mechanism that cannot currently read species,
    which is the problem. A field is the thing the need layer asks for directly.
@@ -112,7 +112,7 @@ so the next field added does not repeat it.
    from its last word, so `deep elf` gets the `elf` row without a profile being
    registered for every adjective.
 3. **What does it gate?** **Need servicing only, and comfort rather than
-   permission.** Movement and narration are deliberately untouched — see below.
+   permission.** Movement and narration are deliberately untouched - see below.
 
 ### The two rules that make it safe to add at all
 
@@ -123,7 +123,7 @@ so the next field added does not repeat it.
    nothing", which is a very different and much worse mistake.
 2. **Exclusion is authored, never guessed.** There is no hardcoded "animals don't
    use latrines"; a profile lists the services it *cannot* use. Only exclusions
-   exist — a positive list would have to enumerate every service to stay honest,
+   exist - a positive list would have to enumerate every service to stay honest,
    and the day a service is added it would silently start lying. Pinned by
    `test_every_profile_only_declares_exclusions_never_permissions`.
 
@@ -133,7 +133,7 @@ task-551 permits relief **anywhere** and this task must not undo that. So an
 exclusion changes whether a *fixture is a proper place*, not whether relief
 happens: an animal that cannot use a latrine relieves where it stands, pays the
 same dignity cost anybody else would pay, and the lived log records that it found
-a fixture unusable for its body. Two tests hold that line — one asserts the
+a fixture unusable for its body. Two tests hold that line - one asserts the
 fixture stops counting as comfort, one asserts relief still succeeds in a world
 with no latrine at all.
 
@@ -144,11 +144,11 @@ objective facts with a reason tag (`why="species:animal"`).
 
 ### Not done here
 
-- **Narration** — the 31 Kraktooth areas carrying `goblin_description` /
+- **Narration** - the 31 Kraktooth areas carrying `goblin_description` /
   `human_description` are left as they are. Complementing them is a separate
   change in a layer this task does not own, and `describe_species` exists so
   that change has one place to read from when it happens.
-- **Movement gating** (can a goblin enter the village?) — out of scope, and it
+- **Movement gating** (can a goblin enter the village?) - out of scope, and it
   belongs with task-550, which applies the same idea to areas.
 
 ### Verify
@@ -166,7 +166,7 @@ The two `test_character_identity` failures are the documented pre-existing ones
 **Full suite compared by failure NAME against the clean-master baseline**: 15
 failed on both, `Compare-Object` empty.
 
-**Live — 2026-10-02, `python app.py` on `VW_PORT=4466`.**
+**Live - 2026-10-02, `python app.py` on `VW_PORT=4466`.**
 
 ```
 GET  /api/state                     -> species key present on the player
@@ -177,15 +177,15 @@ POST /api/players/Kaelen%20Voss  {"species": null}
 GET  /api/state                     -> null  (unspecified again)
 ```
 
-Written through the API and read back from the same API — which is exactly the
+Written through the API and read back from the same API - which is exactly the
 round trip that was broken before `_serialize_player` learned about the field.
 
 ## Related
 
-- task-550 — faction and ownership, which is the same idea applied to areas
-- task-551 — relief anywhere but indoors, which makes the species question matter
-- task-653 — occupancy, the sibling reader of the size axis
-- task-606 — scale-correct ability scores, which species and size both feed
+- task-550 - faction and ownership, which is the same idea applied to areas
+- task-551 - relief anywhere but indoors, which makes the species question matter
+- task-653 - occupancy, the sibling reader of the size axis
+- task-606 - scale-correct ability scores, which species and size both feed
 
 ## Why
 

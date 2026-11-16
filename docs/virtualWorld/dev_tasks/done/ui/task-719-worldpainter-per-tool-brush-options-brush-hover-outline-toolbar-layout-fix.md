@@ -21,7 +21,7 @@ Move brush size selector into per-tool rail options, add dashed white brush hove
 - [x] Toolbar is single-row with horizontal scroll; it no longer wraps and blocks the grid below
 - [x] The what-next checklist reports from below the map, not between the toolbar and the art
 
-**Evidence (live, 2026-10-06):** the outline was dead code — drawn at
+**Evidence (live, 2026-10-06):** the outline was dead code - drawn at
 the end of `_drawRoute`, below the route early-return, so with no route
 in progress the redraw never reached the canvas context. Moved above
 the return. Measured in the browser: 0 outline pixels at rest, ~2900

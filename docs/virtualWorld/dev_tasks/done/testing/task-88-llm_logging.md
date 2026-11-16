@@ -10,13 +10,13 @@ priority: medium
 
 **Filed**: 2026-07-21 (rewritten 2026-07-29, updated 2026-07-30)
 **Priority**: Medium
-**Status**: Implemented — pending review
+**Status**: Implemented - pending review
 
 ---
 
 ## What
 
-Every LLM call should log its **full request (prompt) and response** to the event stream so you can see exactly what's being sent and received. Currently only the agent engine does this — 16 other call sites are invisible.
+Every LLM call should log its **full request (prompt) and response** to the event stream so you can see exactly what's being sent and received. Currently only the agent engine does this - 16 other call sites are invisible.
 
 ---
 
@@ -24,10 +24,10 @@ Every LLM call should log its **full request (prompt) and response** to the even
 
 **Done.** Every LLM call goes through `llmClient.chat()` which logs full request/response to EventStream:
 
-- `llm-client.js:56-58` — `logRawLLMRequest()` before fetch (all call sites)
-- `llm-client.js:87-89` — `logRawLLM()` after non-streaming response
-- `llm-client.js:143-145` — `logRawLLM()` after streaming response
-- `agent-engine.js:559` — Duplicate `events.logRawLLMRequest()` removed, delegates to llmClient
+- `llm-client.js:56-58` - `logRawLLMRequest()` before fetch (all call sites)
+- `llm-client.js:87-89` - `logRawLLM()` after non-streaming response
+- `llm-client.js:143-145` - `logRawLLM()` after streaming response
+- `agent-engine.js:559` - Duplicate `events.logRawLLMRequest()` removed, delegates to llmClient
 
 ---
 
@@ -52,23 +52,23 @@ Modified `chat()` to emit request/response to EventStream directly. This catches
 
 ### Changes made
 
-**`llm-client.js`** — Added EventStream logging in `chat()`:
+**`llm-client.js`** - Added EventStream logging in `chat()`:
 - Before fetch: `VW.events.logRawLLMRequest(model, messages)` (line 56-58)
 - After non-streaming response: `VW.events.logRawLLM(model, messages, content)` (line 87-89)
 - After streaming response: `VW.events.logRawLLM(model, this._lastMessages, fullContent)` (line 143-145)
 
-**`agent-engine.js`** — Removed duplicate `events.logRawLLMRequest(stepName, final)` from `_callLLM()` since llmClient now handles it.
+**`agent-engine.js`** - Removed duplicate `events.logRawLLMRequest(stepName, final)` from `_callLLM()` since llmClient now handles it.
 
-**`event-stream.js`** — No changes needed (already had `logRawLLMRequest()` and `logRawLLM()` methods).
+**`event-stream.js`** - No changes needed (already had `logRawLLMRequest()` and `logRawLLM()` methods).
 
 ### Verification
 
-1. ✅ Open event stream — see `📤 LLM` bubble with full prompt, `🤖 LLM` with full response
-2. ✅ Click Improve on any item — works
-3. ✅ Click Improve on area — works
-4. ✅ Generate narration — works
-5. ✅ Agent engine phases — still work, logging from llmClient
-6. ✅ Toggle `filterRawLLM` — bubbles show/hide correctly
+1. ✅ Open event stream - see `📤 LLM` bubble with full prompt, `🤖 LLM` with full response
+2. ✅ Click Improve on any item - works
+3. ✅ Click Improve on area - works
+4. ✅ Generate narration - works
+5. ✅ Agent engine phases - still work, logging from llmClient
+6. ✅ Toggle `filterRawLLM` - bubbles show/hide correctly
 
 ---
 
@@ -82,11 +82,11 @@ Modified `chat()` to emit request/response to EventStream directly. This catches
 ## Steps to verify
 
 1. Open event stream
-2. Click Improve on any item — should see `📤 LLM` bubble with full prompt, then `🤖 LLM` bubble with full response
-3. Click Improve on an area — same
-4. Generate narration — same
-5. Agent engine phases — same (should still work, just from a different source)
-6. Toggle `filterRawLLM` in Settings — bubbles should show/hide
+2. Click Improve on any item - should see `📤 LLM` bubble with full prompt, then `🤖 LLM` bubble with full response
+3. Click Improve on an area - same
+4. Generate narration - same
+5. Agent engine phases - same (should still work, just from a different source)
+6. Toggle `filterRawLLM` in Settings - bubbles should show/hide
 
 ## How
 

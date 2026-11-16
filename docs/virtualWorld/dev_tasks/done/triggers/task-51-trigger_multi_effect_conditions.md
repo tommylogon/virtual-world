@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-17
 **Priority**: High
-**Status**: In Review — implemented (code-verified 2026-08-11). `effects`/`conditions` arrays supported with backward compat (single `effect_type`/`condition`); editor formats hint at `main.js:313`; `has_items`, `state_equals`, `consume_item`, `set_state` in trigger engine.
+**Status**: In Review - implemented (code-verified 2026-08-11). `effects`/`conditions` arrays supported with backward compat (single `effect_type`/`condition`); editor formats hint at `main.js:313`; `has_items`, `state_equals`, `consume_item`, `set_state` in trigger engine.
 
 ---
 
@@ -58,18 +58,18 @@ Triggers currently support one `effect_type` + `effect_params` and one `conditio
 - Backward compatible: if `conditions` absent, use single `condition`
 
 ### New Condition Types
-- `has_items` — checks player carries ALL listed items (via graph edges, NOT `self.player.inventory`)
+- `has_items` - checks player carries ALL listed items (via graph edges, NOT `self.player.inventory`)
   - Similar to existing `has_item` but takes an array and uses correct inventory source
   - Fix the existing `has_item` bug simultaneously (it reads dead `self.player.inventory` list instead of graph)
-- `state_equals` — checks `current_state` on a target node (exists but may need polish)
+- `state_equals` - checks `current_state` on a target node (exists but may need polish)
 
 ### New Effect Types
-- `set_state` — set `current_state` on a target node (e.g. `"on"`, `"lit"`, `"open"`)
-- `consume_item` — decrement uses or remove item from player inventory
-- `message` — display text to player (already exists as effect_type but needs to work as array entry)
+- `set_state` - set `current_state` on a target node (e.g. `"on"`, `"lit"`, `"open"`)
+- `consume_item` - decrement uses or remove item from player inventory
+- `message` - display text to player (already exists as effect_type but needs to work as array entry)
 
 ### New Trigger Types (if needed)
-- `on_state_enter` / `on_state_exit` — fires when a node's state changes TO/FROM a value (from stateful_continuous_triggers card)
+- `on_state_enter` / `on_state_exit` - fires when a node's state changes TO/FROM a value (from stateful_continuous_triggers card)
 
 ## Execution Logic
 
@@ -81,9 +81,9 @@ In `_execute_triggers()`:
 
 ## Engine Changes
 
-- `virtual_world_engine.py` — `_execute_triggers()` format parsing, new condition/effect dispatch
-- `static/js/item-library.js` — trigger editor UI for array of effects
-- `world_template.json` — migrate the fireplace triggers once format is stable
+- `virtual_world_engine.py` - `_execute_triggers()` format parsing, new condition/effect dispatch
+- `static/js/item-library.js` - trigger editor UI for array of effects
+- `world_template.json` - migrate the fireplace triggers once format is stable
 
 ## Dependencies
 

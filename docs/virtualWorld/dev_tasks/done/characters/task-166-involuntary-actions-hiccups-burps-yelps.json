@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-166",
+  "kind": "task",
+  "number": 166,
+  "title": "Involuntary Actions (Hiccups, Burps, Yelps)",
+  "status": "done",
+  "priority": "low",
+  "area": "characters",
+  "tags": [
+    "characters",
+    "speech",
+    "emote",
+    "flavor"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add involuntary actions - a hiccup, a burp, a yelp, a stutter, etc. - that can be injected into a character's speech or emote, triggered by conditions, random chance, or specific situations.",
+    "why": "Speech and emote are always deliberate. Nothing makes a character hiccup mid-sentence, stutter when frightened, or yelp when startled. These little moments add life to the simulation but don't exist.",
+    "how": "### Involuntary event sources\n\n- Random chance per turn (low probability, configurable)\n- Condition-driven: `frightened` → stutter, poisoned/sick → cough or hiccup, freezing → shiver/stutter (`frightened` is now a catalog entry - see [[review/characters/task-trait-condition-system-v2|task: Trait & Condition System v2]])\n- Situation-driven: startled by a loud sound or sudden damage → yelp; eating too fast → burp\n- Trait-driven: `jittery` (aliases `nervous`/`clumsy`) raises the chance (done)\n\n### Injection points\n\n- When the agent emits speech, run it through a post-processor that can inject involuntary interruptions (e.g. `\"I-I'm fine\"`, `\"Could you... *hic* ...help me?\"`)\n- Emote injection: append `*she hiccups*` or `*a small yelp escapes him*` to the emote output\n- Keep it non-blocking: involuntary actions never replace the intended action, only flavor it\n- Log to the event stream so others in the room see it\n\n### Folded in from the Pleasure System design (v3.1 body reactions)\n\nThe erogenous-zone design doc (§Additions #3) lists \"body reactions\" - goosebumps, shivers, cough, sneeze, hiccup, itch. These overlap this task's hiccup/burp scope. Rather than a separate task:\n- Keep hiccup/burp/yelp/stutter as speech/emote injection (this task)\n- Add **itch** and **goosebumps** as condition-driven flavor conditions (see `CONDITION_DEFINITIONS` in `player.py` - these are always-active, no mature toggle)\n- These are non-erotic and independent of `mature_content`; only the arousal-linked behaviors (nipple hardening, blushing) live in the pleasure system (task-209)",
+    "verify": "- [x] Frightened character stutters occasionally\n- [x] Random hiccup/burp appears at low frequency\n- [x] Startled reaction (yelp) fires on loud noise\n- [x] Involuntary text never replaces the real action/speech\n- [x] `jittery` raises the chance\n- [x] A shout startles only once (no repeated yelp on a lingering entry)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/involuntary.js` - the generator (condition/trait/startle pools + `speech`/`emote` entry points)",
+      "static/js/agent-engine.js` - `_speakLine` / `_performEmote` injection, `_detectStartle",
+      "engine/player_conditions.py` - `itch` / `goosebumps` flavor conditions",
+      "tools/unit/test_involuntary.js` + `tools/unit/run.cjs` - tests"
+    ],
+    "custom": {
+      "status_implemented_2026_09_22": "**This is a live-game (attended agent) layer, not a backsim feature.** It runs\nwhere a character's line is emitted, so it applies to the LLM-agent and human\ntiers in the browser. Background and simple NPCs have no speech/emote emission\npath and intentionally never reach it - the cheap policy stays a valid but\nplainer policy ([[Simulation Model]] §Cognition refines). Do **not** push this\ninto `BackgroundSimulation`.\n\n**Shipped (v1.4.0, `static/js/agent/involuntary.js`):** condition-driven\nspeech/emote interruption (frightened → stutter, hypothermia → shiver, sick /\npoisoned → cough, social_breakdown → hollow mutter, paranoid → stutter,\nhallucinating → ramble), `itch` / `goosebumps` emote flavor, a low random\nbaseline (hiccup/burp/yelp), pronoun rendering, and wiring into\n`agent-engine.js` `_speakLine` / `_performEmote`. Never replaces the intended\naction; injected before the text is sent so the room and event stream see it.\n\n**Added 2026-09-22:**\n- **Trait-driven**: `jittery` (aliases `nervous`, `clumsy`) multiplies every\n  involuntary roll ×1.8.\n- **Situation-driven startle**: a *new* shout/scream in `recent_hearing` raises\n  a yelp. `AgentEngine._detectStartle()` tracks which hearing entries already\n  startled a character (so a lingering shout does not yelp forever) and caches\n  the result per turn so the speech and the emote agree.\n- **Tests**: `tools/unit/test_involuntary.js` (8 cases, `Math.random` pinned),\n  loaded by `tools/unit/run.cjs`.\n\n**Deliberately re-worded for the timeframe model:** the roll is **per emitted\nline**, not \"per turn\". A turn is a timeframe of N game minutes containing an\nemergent flow of actions ([[Simulation Model]] §Time); a per-turn roll would\nsilently scale with turn length.\n\n**Still open / optional:**\n- `sudden damage → yelp` is not wired: only loud speech startles. The turn-event\n  buffer has no target field, so a reliable \"was just hurt\" signal needs either\n  an HP-delta check or an attacker-target field on the event.\n- `eating too fast → burp` needs a post-consume hook; deferred (low value).\n- Verb conjugation: templates use `{they} scratch` / `{they} grip`, which reads\n  \"he scratch\" for a male character. All templates inherited this; fixing it\n  needs per-pronoun verb forms or rephrasing the pools.\n\n---",
+      "related": "- [[todo/gameplay/task-165-chance-to-stun-on-attack|task-165: Stun conditions]]\n- [[done/prompting/task-151-flavor-text-interaction-polish|task-151: Flavor text polish]]\n- `todo/pleasure/task-209-arousal-conditions.md` - arousal-linked body reactions (nipple hardening, blushing) live there; keep non-erotic reactions here"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-166-involuntary-actions.md"
+  }
+}

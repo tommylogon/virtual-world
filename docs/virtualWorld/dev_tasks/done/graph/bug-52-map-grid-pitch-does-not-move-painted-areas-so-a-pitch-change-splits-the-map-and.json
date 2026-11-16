@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "bug-52",
+  "kind": "bug",
+  "number": 52,
+  "title": "Map grid pitch does not move painted areas, so a pitch change splits the map and its areas onto two grids",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-523",
+      "task-524",
+      "bug-51"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- A node carrying `properties.cell` is **always** placed at its cell. The flag is\n  about physics, and the lattice is not physics: for a painted node the cell *is*\n  the position, and the art is drawn to those cells. The exemption still stands\n  for a node with no cell, so a hand-positioned way/item is untouched.\n- `hasPaintedCoords(properties)` is the new predicate, and **`cell` is the\n  discriminator, not the numbers** - a node dragged in the graph also has numeric\n  `x`/`y` (canvas units), and treating it as painted would scale it a second time.\n  The first version of the fix checked the numbers and the regression test caught\n  exactly that.\n- Latent twin closed: `persistPositionsToWorld` wrote canvas positions into\n  `properties.x/y`, which for a painted node hold *engine* units (`cell * 40`)\n  that the Map layout multiplies by the pitch again. A \"save layout to world\" in\n  Map mode would therefore have drifted the map further on every save. Painted\n  nodes are now skipped there, and the log says how many were left on their cells.\n  (Checked the saved world: no drift had happened yet - all 21 areas were exactly\n  `cell * 40`.)",
+    "verify": "- `test_graph_layout_engine.js`: a painted area and a placed way are placed at\n  `cell * pitch` with physics off, while a frozen area *without* a cell is left\n  alone; plus the `hasPaintedCoords` discrimination cases.\n- `tools/unit/run.cjs`: the `vm` sandbox had no `setTimeout`, which\n  `_applyGridLayout` needs for its redraw - added synchronous stubs (and\n  `clearTimeout`/`setInterval`/`clearInterval`) rather than making every test\n  care.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "symptom": "The author raised **Map grid** from 40 to 260. The background image grew to the\nnew pitch; the areas stayed where they were, so the map and its areas ended up on\ntwo different grids - exactly what `graph-background.js` warns about in its\n`_mapUnitsPerCell` comment.",
+      "cause": "`_applyGridLayout` filtered out every node with `central_gravity_enabled: false`:\n\n```js\nconst frozen = (id) => (((nodesObj[id] || {}).properties) || {}).central_gravity_enabled === false);\n```\n\nThat flag is **not** the author's doing: `tools/build_scenario.py:81`,\n`tools/assemble_scenario.py:135` and `tools/generate_scenario.py:254` all\n`setdefault(\"central_gravity_enabled\", False)` on every area they emit. All 21\nareas of the goblin camp carried it, so the lattice placed *none* of them and they\nkept whatever pitch they were last saved at (40px), while\n`_mapUnitsPerCell()` - which reads the current pitch - re-fitted the art to 260.\n\nMeasured on the goblin camp before the fix: pitch 260, art `5200 × 1743`\n(= 20 × 260, letterboxed), areas still at 40px/cell.",
+      "verified": "Live against the author's server, goblin camp loaded, Map layout, pitch 260:\n`nodePitch {x: 260, y: 260}` and `artWidth 5200` - the areas and the art on one\ngrid, matching each other.",
+      "also_answered_here": "**The map pitch is global, not per scope.** One `config.graphMapSpacing` for the\nwhole world, read by both `GraphLayoutEngine.mapSpacing()` (the lattice) and\n`_mapUnitsPerCell()` (the art). It is also **Map-layout only** - in Graph layout\nthe areas sit on their saved positions and the toolbar says so, so raising the\npitch there does nothing by design."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "fixed": "2026-09-27"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-52-map-grid-pitch-does-not-move-painted-areas-so-a-pitch-change-splits-the-map-and-its-areas-onto-two-grids.md"
+  }
+}

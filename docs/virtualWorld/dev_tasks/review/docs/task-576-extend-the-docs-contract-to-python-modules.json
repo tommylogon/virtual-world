@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "id": "task-576",
+  "kind": "task",
+  "number": 576,
+  "title": "Extend the @docs contract to Python modules",
+  "status": "review",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-578"
+    ],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "js-module-index-py",
+      "js-module-index",
+      "task-338"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give every `engine/` and `routes/` module the same `@docs` docstring header the JS side\nalready has, and grow the module index into a language-agnostic feature-to-documentation\nmap.",
+    "why": "Ensure python engine modules adhere to the documentation contract, maintaining mapped documentation notes for core simulation systems.",
+    "how": "Mirror the existing JS header, at the top of the module docstring:\n\n```python\n\"\"\"Turn queue, background simulation, and the shared barrier before the next increment.\n\n@module tick_manager\n@contributes the per-turn loop, character ordering, and the shared barrier\n@relates background_simulation, player, graph\n@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md\n\"\"\"\n```\n\n- `@docs` is a **repo-relative path**, matching today's JS convention. `none` is a valid\n  value and must not fail the check.\n- A path that does not resolve on disk should be reported by the checker, not silently\n  accepted - that is the whole value of the contract.\n- Prefer extending `tools/js_module_index.py` into a shared, language-agnostic indexer\n  over writing a second Python-only tool. The generated table gains a Language column.\n  Keeping one tool is what stops the two sides drifting.",
+    "verify": "1. Run documentation contract linter across python modules\n   - expected: python module documentation mappings validate cleanly\n   - observed: Verified clean lint pass in tools/lint_docs.py",
+    "acceptance": [
+      {
+        "text": "A new Python module without the header fails the contract check, exactly as",
+        "done": true
+      },
+      {
+        "text": "a new JS module does today - `tests/test_module_index_py.py`.",
+        "done": false
+      },
+      {
+        "text": "A `@docs` path that does not exist on disk is a check failure (a folder",
+        "done": true
+      },
+      {
+        "text": "target included).",
+        "done": false
+      },
+      {
+        "text": "`docs/design/js-module-index.md` is regenerated with Python rows and a",
+        "done": true
+      },
+      {
+        "text": "`Lang` column; every existing JS row is still present.",
+        "done": false
+      },
+      {
+        "text": "`python tools/js_module_index.py --check` exits 0",
+        "done": true
+      },
+      {
+        "text": "(`162 known-uncovered, 0 known-bad-@docs, no new`).",
+        "done": false
+      },
+      {
+        "text": "[~] **Not met as written:** every one of the 180 modules carrying a header.",
+        "done": false
+      },
+      {
+        "text": "18 core modules do; the other 162 are baselined and filed as **task-669**.",
+        "done": false
+      },
+      {
+        "text": "The convention and the guard are live; the backfill is bounded, known",
+        "done": false
+      },
+      {
+        "text": "work rather than an undocumented gap.",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/lint_docs.py"
+    ],
+    "custom": {
+      "measured_2026_09_28": "The convention already exists and is already guarded - on one language only.\n\n- **152 of 179** JS modules carry `@docs docs/virtualWorld/...` in their header.\n- `tools/js_module_index.py:34` lists `docs` in `TAGS`, so it is part of the enforced\n  module contract, and the tool generates a **Docs column** into\n  `docs/design/js-module-index.md`.\n- **0 of 126** `engine/` + `routes/` modules have any such header. The rules engine -\n  where a feature's actual behaviour lives - is entirely outside the convention.\n\nSo the link data exists, is machine-readable, and is checked by a test. What is missing is\nthat it covers half the codebase, and that nothing in the running app can consume it.",
+      "resolution_2026_10_02": "`tools/js_module_index.py` is now language-agnostic. It scans `engine/` and\n`routes/` `.py` modules alongside `static/js`, reads the contract from the real\nmodule docstring (via `ast`, so a header may sit anywhere in a long docstring),\nand holds Python to the same guard the front end has. The generated index gained\na **Lang** column; the file keeps its historical `js_` name so\n`npm run module:check` and the docs citing it keep working.\n\nBecause the back end started from zero headers against 180 modules, the JS\nbootstrapping pattern is reused: 18 core engine/route modules are documented\nbelow, and the remaining 162 are recorded in\n`docs/design/py-module-baseline.txt`. The guard fails a **new** Python module\nthat omits the contract; the existing debt ratchets down under task-669.\n\nDocumented core modules: `engine/tick_manager`, `engine/foraging`,\n`engine/item_reach`, `engine/background_simulation`, `engine/fog`,\n`engine/world_compile`, `engine/world_grid`, `engine/trigger_validator`,\n`engine/nl_editor_validation`, `engine/promotion`, `engine/lived_log`,\n`engine/movement`, `engine/combat`, `engine/soak_telemetry`,\n`engine/soak_runner`, `routes/graph_ops`, `routes/library_ops`,\n`routes/world_grid_ops`.",
+      "browser_ui": "Intended UI home: Not applicable - this card establishes `@module`/`@contributes`/`@docs` headers and a source-to-documentation index for Python modules; no product screen changes.\n\nCurrent availability: the card records Python module headers, missing-path/folder-target failures, generated Python rows/Lang column, and a passing `python tools/js_module_index.py --check`. The header contract itself is verified in repository tooling.\n\nWhy no browser UI: the acceptance is whether source modules name real documentation notes and the index contains their declarations; a player browser cannot inspect this contract.\n\nAlternative verification steps:\n1. Remove a required `@docs` header from a scratch Python module and run `python tools/js_module_index.py --check`.\n   - expected: the guard fails with that module path; restoring a real note target or justified `none` declaration restores the check.\n2. Point a scratch header at a directory/nonexistent note and rerun the check.\n   - expected: the folder/dead target is rejected.\n3. Regenerate `docs/design/js-module-index.md` and inspect the Python rows and `Lang` column.\n   - expected: all pre-existing JS rows remain, Python modules appear with their declared note, and the generated index matches the source headers.\n\nThis section is not a claim that planned tooling is exposed in the browser."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocks": "task-578"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/docs/task-576-extend-the-docs-contract-to-python-modules.md"
+  }
+}

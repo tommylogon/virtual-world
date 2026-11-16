@@ -6,7 +6,7 @@ priority: medium
 related: ['task-2', 'task-703', 'task-831', 'task-840']
 ---
 
-# task-832: Crafting recipes — fire and light
+# task-832: Crafting recipes - fire and light
 
 <!-- deps:start -->
 **Related:** [[task-2-crafting_and_recipes]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-840-crafting-runtime-who-crafts-activities-backsim-abort]]
@@ -20,17 +20,17 @@ Base materials: branch, log, firewood, kindling, flint, tinderbox (tool), tallow
 
 | # | Recipe | Ingredients (consumed) | Equipment (kept) | Cond | Min | Skill/DC | Success | Fail | Crit-fail |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | split kindling | branch ×1 | hatchet | — | 5 | Survival 8 | kindling ×3 | kindling ×1 + wood_scraps | wasted branch (nothing) |
-| 2 | chop firewood | log ×1 | axe | — | 15 | Survival 9 | firewood (uses 6) | firewood (uses 3) | jammed axe, log kept, time lost |
-| 3 | bundle tinder | bark_stripping ×2, cloth_scrap ×1 | — | — | 5 | Survival 7 | tinder_bundle ×2 | tinder_bundle ×1 | damp wad (useless) |
-| 4 | light campfire | kindling ×1, firewood (uses 2) | tinderbox | — | 10 | Survival 8 | campfire on | consume kindling, fire unlit | consume kindling + singed fingers (minor burn cond) |
-| 5 | bank coals overnight | wood_ash ×1 | campfire (lit) | — | 5 | Survival 10 | banked_coals | coals out, relight needed | — |
-| 6 | burn charcoal | firewood (uses 6) | charcoal_pit / covered fire | — | 240 | Survival 12 | charcoal (uses 6) | charcoal (uses 3) + wood_ash | fire pit burned out, all lost |
+| 1 | split kindling | branch ×1 | hatchet | - | 5 | Survival 8 | kindling ×3 | kindling ×1 + wood_scraps | wasted branch (nothing) |
+| 2 | chop firewood | log ×1 | axe | - | 15 | Survival 9 | firewood (uses 6) | firewood (uses 3) | jammed axe, log kept, time lost |
+| 3 | bundle tinder | bark_stripping ×2, cloth_scrap ×1 | - | - | 5 | Survival 7 | tinder_bundle ×2 | tinder_bundle ×1 | damp wad (useless) |
+| 4 | light campfire | kindling ×1, firewood (uses 2) | tinderbox | - | 10 | Survival 8 | campfire on | consume kindling, fire unlit | consume kindling + singed fingers (minor burn cond) |
+| 5 | bank coals overnight | wood_ash ×1 | campfire (lit) | - | 5 | Survival 10 | banked_coals | coals out, relight needed | - |
+| 6 | burn charcoal | firewood (uses 6) | charcoal_pit / covered fire | - | 240 | Survival 12 | charcoal (uses 6) | charcoal (uses 3) + wood_ash | fire pit burned out, all lost |
 | 7 | render tallow | animal_fat ×2 | cooking_pot, fire (on) | fire on | 30 | Cooking 9 | tallow (uses 4) | tallow (uses 2, scorched) | burned_grease (useless) |
 | 8 | dip tallow candle | tallow (uses 2), wick ×1 | fire (low) | fire on | 20 | Survival 8 | candle ×2 | lumpy_candle ×1 (half light) | spilled tallow (lost), wick kept |
-| 9 | pour beeswax candle | beeswax ×1, wick ×1 | fire (low) | fire on | 20 | Survival 10 | beeswax_candle ×2 | beeswax_candle ×1 | wax fire — all lost |
+| 9 | pour beeswax candle | beeswax ×1, wick ×1 | fire (low) | fire on | 20 | Survival 10 | beeswax_candle ×2 | beeswax_candle ×1 | wax fire - all lost |
 | 10 | refill lantern oil | animal_fat ×1 | lantern, fire (low) | fire on | 10 | Survival 8 | lantern_oil (uses 4) | lantern_oil (uses 2) | spilled oil (lost) |
-| 11 | make torch | stick ×1, cloth_scrap ×1, tallow (uses 1) | — | — | 10 | Survival 8 | torch ×1 | soggy_torch (won't light) | — |
+| 11 | make torch | stick ×1, cloth_scrap ×1, tallow (uses 1) | - | - | 10 | Survival 8 | torch ×1 | soggy_torch (won't light) | - |
 | 12 | light torch | torch ×1 | campfire (lit) / tinderbox | fire or tool | 2 | Survival 6 | torch (lit) | torch unlit, time lost | torch dropped in mud (kept, unlit) |
 | 13 | fire-hardened stake | green_stick ×1 | campfire (lit) | fire on | 15 | Survival 9 | sharpened_stake ×1 | stake ×1 (soft, half damage) | burned_stick (useless) |
 
@@ -48,15 +48,15 @@ Author each recipe entry (`data/library/recipes/*.json`) per task-831 � recipe
 
 1. Run the recipe gate over this card's files.
     - expected: clean pass, all outputs resolve to library files.
-    - observed: 2026-10-16 — `recipe_check.py --check`: all 17 clean
+    - observed: 2026-10-16 - `recipe_check.py --check`: all 17 clean
       (13 new + 4 prior). 19 missing item files authored alongside
       (8 base materials + 11 of the card's 13; `banked_coals` etc.).
 2. Craft split-kindling → light campfire → dip candle end to end in a scratch world.
     - expected: each tier behaves per its outcome row; fail consumes per its flag.
-    - observed: 2026-10-16 — `test_fire_chain_kindling_then_candle_end_to_end`
+    - observed: 2026-10-16 - `test_fire_chain_kindling_then_candle_end_to_end`
       crafts the real authored kindling through the engine. Campfire
       LIGHTING is message-only by design (craft spawns items; writing
-      node state is the task-703 executor's job — recorded below).
+      node state is the task-703 executor's job - recorded below).
 
 ## Acceptance
 
@@ -83,7 +83,7 @@ Author each recipe entry (`data/library/recipes/*.json`) per task-831 � recipe
 
 ## Files
 
-- `data/library/items/*.json` — new outputs listed above
+- `data/library/items/*.json` - new outputs listed above
 - `data/library/recipes/*.json` � new entries per task-831 schema (data, never nodes)
 
 ## Browser UI and intended live verification

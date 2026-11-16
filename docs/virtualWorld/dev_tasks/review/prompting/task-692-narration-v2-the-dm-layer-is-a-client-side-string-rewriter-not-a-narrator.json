@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "id": "task-692",
+  "kind": "task",
+  "number": 692,
+  "title": "Narration v2: the DM layer is a client-side string rewriter, not a narrator",
+  "status": "review",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-593",
+      "task-400",
+      "task-661",
+      "bug-517",
+      "bug-518",
+      "bug-519"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the `narration_mode` flag with a real DM layer that reads engine\nperception, never contradicts it, and treats human narration as a\nfirst-class mode rather than a text box.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**Structure - one row per event**",
+        "done": false
+      },
+      {
+        "text": "An action produces exactly ONE event row, not the current three",
+        "done": false
+      },
+      {
+        "text": "(🎭 involuntary + ▶️ action + 🔎 result). Assert the row count in a",
+        "done": false
+      },
+      {
+        "text": "captured trace.",
+        "done": false
+      },
+      {
+        "text": "The narration carries the actor, and the actor is correct: an NPC's",
+        "done": false
+      },
+      {
+        "text": "action does not render as `You` (see bug-518).",
+        "done": false
+      },
+      {
+        "text": "With narration `none`, the row is the mechanical result and it is",
+        "done": false
+      },
+      {
+        "text": "unchanged from today's behavior.",
+        "done": false
+      },
+      {
+        "text": "With narration `ai`/`player`, the row is the narration **and the",
+        "done": false
+      },
+      {
+        "text": "mechanical deltas are still reachable** - assert the agent prompt",
+        "done": false
+      },
+      {
+        "text": "contains the `hunger −12` style fact, not only prose. Today's",
+        "done": false
+      },
+      {
+        "text": "`outputText = narratedText` drops it.",
+        "done": false
+      },
+      {
+        "text": "**Correctness**",
+        "done": false
+      },
+      {
+        "text": "The director is given rendered perception (`room_perception.py`)",
+        "done": false
+      },
+      {
+        "text": "and cannot introduce a fact absent from it - or the task states",
+        "done": false
+      },
+      {
+        "text": "plainly which contradictions are accepted and why.",
+        "done": false
+      },
+      {
+        "text": "`player` and `ai` modes are gated by the same code, and `player`",
+        "done": false
+      },
+      {
+        "text": "mode fires for action results (today it does not).",
+        "done": false
+      },
+      {
+        "text": "Regression test for bug-517 (narration must not reach",
+        "done": false
+      },
+      {
+        "text": "`recent_hearing` as speech).",
+        "done": false
+      },
+      {
+        "text": "Regression test for bug-518 (result rows must carry an actor).",
+        "done": false
+      },
+      {
+        "text": "**The cursed-key test - the one that decides whether v2 is real**",
+        "done": false
+      },
+      {
+        "text": "Pick up a cursed key in `none` mode: the row reads mechanically and",
+        "done": false
+      },
+      {
+        "text": "the `curse_xxx` trigger applies.",
+        "done": false
+      },
+      {
+        "text": "Pick up the same key in `ai` mode: the row is prose describing the",
+        "done": false
+      },
+      {
+        "text": "cold metal; the `curse_xxx` still applies; the fact survives.",
+        "done": false
+      },
+      {
+        "text": "Pick up the same key in `player` mode: a draft is pre-written from the",
+        "done": false
+      },
+      {
+        "text": "trigger's data, the human edits the prose in one step, and the",
+        "done": false
+      },
+      {
+        "text": "trigger still applies. No trigger inspector is opened.",
+        "done": false
+      },
+      {
+        "text": "If a human DM cannot narrate a pickup in one step, v2 has not landed.",
+        "done": false
+      },
+      {
+        "text": "**Precedence - the prose guard**",
+        "done": false
+      },
+      {
+        "text": "An item whose `success_message` is **distinct** renders that text in",
+        "done": false
+      },
+      {
+        "text": "`ai` mode. A test asserting the generated narration does not replace",
+        "done": false
+      },
+      {
+        "text": "it. `data/library/items/protein_bar.json` is the fixture:",
+        "done": false
+      },
+      {
+        "text": "`triggers[0].effects[0].params.success_message`.",
+        "done": false
+      },
+      {
+        "text": "The test must read the message from `effects[].params.`, and must",
+        "done": false
+      },
+      {
+        "text": "fail if it reads the empty outer `triggers[].success_message`",
+        "done": false
+      },
+      {
+        "text": "instead - that field exists, is blank, and is the obvious wrong path.",
+        "done": false
+      },
+      {
+        "text": "An item whose `success_message` is **batch filler** (appears",
+        "done": false
+      },
+      {
+        "text": "verbatim in `tools/item_content_pass*.py`) is the one case where",
+        "done": false
+      },
+      {
+        "text": "generated narration may replace it. Fixture: any item carrying",
+        "done": false
+      },
+      {
+        "text": "*\"You eat it. Better than nothing and not much more.\"* (216 items).",
+        "done": false
+      },
+      {
+        "text": "Assert the authorship predicate itself - that count of messages",
+        "done": false
+      },
+      {
+        "text": "appearing in the generator scripts is 8, and that the individually",
+        "done": false
+      },
+      {
+        "text": "authored set is 131. A future content pass that genuinely improves",
+        "done": false
+      },
+      {
+        "text": "filler should move those numbers, and the test should say so rather",
+        "done": false
+      },
+      {
+        "text": "than fail mysteriously.",
+        "done": false
+      },
+      {
+        "text": "Assert the ~435 filler-only items still get *a* line (the mechanical",
+        "done": false
+      },
+      {
+        "text": "verb is acceptable) - v2 must not leave them blank, and must not",
+        "done": false
+      },
+      {
+        "text": "pay an LLM call per generic acorn.",
+        "done": false
+      },
+      {
+        "text": "A human override in `player` mode persists: reload the scenario and",
+        "done": false
+      },
+      {
+        "text": "the edited text is still there. Today it is discarded on reload.",
+        "done": false
+      },
+      {
+        "text": "An item with no `success_message` at all gets generated narration.",
+        "done": false
+      },
+      {
+        "text": "**Prose authority**",
+        "done": false
+      },
+      {
+        "text": "Assert only one system writes flavor for a given event:",
+        "done": false
+      },
+      {
+        "text": "`involuntary.ts` conditions appear inside the narration rather than",
+        "done": false
+      },
+      {
+        "text": "as a parallel row that duplicates it.",
+        "done": false
+      },
+      {
+        "text": "**Live**",
+        "done": false
+      },
+      {
+        "text": "Manual: play Kraktooth with narration on and confirm (a) narration",
+        "done": false
+      },
+      {
+        "text": "fires, (b) it does not contradict hidden/locked/gated world state,",
+        "done": false
+      },
+      {
+        "text": "(c) the same room re-entered reads continuously, (d) the UI says",
+        "done": false
+      },
+      {
+        "text": "whether narration is actually live.",
+        "done": false
+      },
+      {
+        "text": "Authored content: narration prompts that exercise world lore and",
+        "done": false
+      },
+      {
+        "text": "character state must exist for Kraktooth, not just a generic default.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_exists_today_measured_2026_10_04": "`static/js/narration-ui.ts` is 255 lines and is the whole system.\n\n**It is not a backend feature.** `app.world.narration_mode` has exactly\nthree code paths in the repo: the `'none'` default in\n`virtual_world_engine.py:66`, the setter in `routes/settings.py:279`, and\nsave/load in `engine/serialization.py:312,633`. **Nothing in `engine/`\nreads it.** A count, not a grep impression - `rg -n \"narration_mode\"\nengine/` returns 2 hits, both serialization. The simulation does not\nchange behavior based on this setting at all.\n\n**The only live gate is one line in the agent loop**\n(`static/js/agent-engine.ts:778`):\n\n    if (narrationMode === 'ai' && config.apiKey && config.model) {\n\nThree conditions. `config.apiKey`/`config.model` are browser-side LLM\nkeys, so narration silently no-ops when the active profile lacks them -\nwith no indication in the UI. The dropdown reads as a world-quality\nswitch; it is a per-action-result string substitution in one client path.\n\n**The two gates disagree.** `room-context.ts:880` accepts\n`!== 'none'` (so `player` mode works for room context);\n`agent-engine.ts:778` accepts only `'ai'` (so **`player` mode never\nfires for action results**). Player mode is half-wired.\n\n**Narration replaces the description with prose the LLM invented.**\n`_generateAINarration` sends `areaName`, `description`, item *names*,\ncharacter *names*, and exits - then the returned text overwrites the\n`Description:` line via `contextString.replace(/^Description: .*/m, ...)`.\nEverything that made the engine authoritative is discarded:\n`engine/room_perception.py` is the declared ONE source of truth for what\na character can perceive (its docstring names four bugs that came from\nre-implementing it), and narration bypasses it entirely. The narrator is\nfree to describe a door that is `requires: crawl`, a hidden item, or an\nNPC that is not actually present.\n\n**Player mode is a textarea with a prefill** built by naive template -\n`` `You are in ${areaName}.` `` plus `You can see: ${items.join(', ')}`\n- and whatever the human types becomes the description with no schema.",
+      "why_this_is_not_add_more_prompt": "The prompts themselves are not the ceiling. `_generateAINarration`'s\nsystem message is competent - second person, sensory detail, 2-4\nsentences, don't list items mechanically. Adding adjectives does not fix\na narrator that is handed the wrong inputs and trusted with the output.",
+      "the_actual_defect_visible_in_a_real_htc_log": "Captured 2026-10-04 playing the mansion scenario. One action, three rows:\n\n    🎭 sammy lopez  sammy lopez fumbles with the granola bar and takes a\n                     hesitant bite, eyes darting around the dim foyer.\n    ▶️ sammy lopez  eat granola_bar\n    🔎 You          You eat the granola_bar.\n\n**The same event is told three times, in two voices, with two\ndifferent actors.** The 🎭 row is flavor from\n`static/js/agent/involuntary.ts` (task-166/534 - condition-driven\nhiccups/shivers/stutters). The 🔎 row is the mechanical system result.\nThere is no narration in this trace at all: the LLM never ran, because\n`config.apiKey`/`config.model` were unset, and nothing in the UI says so.\nThe badge reads \"🔇 No Narration\" as if narration were a choice rather\nthan an inactive wire.\n\nAnd the 🔎 row is attributed to **You** on an action `sammy lopez`\nperformed. `turn-feed.ts:561` computes `isPlayer = !parsed.actor ||\nparsed.actor === 'You' || parsed.actor === playerName`, and the engine's\nresult rows carry no actor, so every NPC result renders as if the human\ndid it. That is a separate defect from narration but it is in the same\ntrace and the same fix surface - narration returning a *structured*\nresult with a known actor is what makes both go away.",
+      "the_shape_that_fixes_it": "The user's model, which is the right one: **the system message is the\ninput to a director pass, and the director's output is the result the\nplayer and the agent actually receive.** Not decoration stacked on a\nmechanical result - a replacement for it.\n\n    engine result (structured, actor + facts)\n        │\n        ├─ mode none    → render mechanical  ─┐\n        ├─ mode player  → director + human edit ─┤→ ONE row: the narration\n        └─ mode ai      → director pass       ─┘     + the facts, attached\n\nConcretely, for `eat granola_bar` with a hidden `hunger` effect:\n\n- **none** - `sammy lopez eats the granola bar. Hunger −12.`\n- **ai** - `sammy lopez takes a hesitant bite, eyes still on the door.\n  The stale-sweet taste of it does nothing for the gnawing in her\n  stomach. (hunger −12)`\n\nOne row. One voice. The mechanical facts survive *inside* the prose\nrather than beside it, so nothing is lost and nothing is said twice.\n\n### Why one row and not two\n\nToday `involuntary.ts` and `narration-ui.ts` are two independent prose\ngenerators that both decorate the same action and never learn about each\nother. The fix is that the **director is the only writer of flavor**.\n`involuntary.ts` keeps its job - it is a condition→phrase table with no\nLLM cost and it must stay cheap for background NPCs - but it becomes an\n*input to* the director (the active conditions are facts the director\nmay use), not a parallel emitter that races it. One prose authority per\nevent.",
+      "the_finding_that_reframes_the_design_582_success_messages_126_distinct": "A full run export (`data/exports/mansion_...`, tick 6834, and the\n2026-10-04 re-run) shows this result row:\n\n    ▶️ kyrie johansen - use protein_bar\n    ↳ kyrie johansen - ✓You use the protein_bar.\n      you choke down the protein bar. it tastes like nothing, which is\n      almost worse than tasting bad.\n\nThat second line is **not generated at runtime**. It is\n`data/library/items/protein_bar.json` →\n`triggers[0].effects[0].params.success_message`.\n\n**Correction (2026-10-04): two earlier drafts got the provenance\nwrong in opposite directions. Both are recorded here because the\ncorrected version is the one a future reader needs.**\n\n*Draft 2 claimed all 582 are \"hand-written\" and should outrank\ngenerated narration.* Wrong. Most of the volume is **string literals in\na batch generator**:\n\n    tools/item_content_pass1.py:650   message=\"You eat it. Better than nothing and not much more.\"\n    tools/item_content_pass2.py:339   message=\"You eat it. Better than nothing and not much more.\"\n    tools/item_content_pass3.py:240   message=\"You eat it, gathered and not much cleaned.\"\n\nIntroduced by `b15786e8`, across `item_content_pass1`–`pass5`. No LLM\nis in that loop.\n\n*Draft 3 claimed none of them are authored.* Also wrong - the user\nwrites these, and uses AI to help design them.\n\n**The reconciled measurement.** Splitting the distinct messages by\nwhether they appear verbatim in the generator scripts:\n\n| | count |\n|---|---|\n| item files with a `success_message` | 557 |\n| total message values | 582 |\n| **distinct** values (incl. `fail_message`) | **139** |\n| - of those, verbatim in a generator script | **8** |\n| - **not** in any script (individually authored) | **131** |\n| items where *every* message is script filler | **435** |\n| items with at least one individually authored message | **122** |\n| items whose only message is the single 216× template | **216** |\n\nSo the library is **two populations, not one**:\n\n- **131 individually authored lines** - the real content. `\"The lock\n  clicks open and you see a book\"`, `\"Porcelain, tank, lever. It has\n  witnessed things no employee is paid enough to scrub, yet...\"`, the\n  protein-bar line above. Hand-written or AI-assisted, either way\n  **deliberate per-item voice**. These are the assets.\n- **435 items carrying only batch filler**, dominated by one string at\n  216×. Volume without voice.\n\nThe volume/dedup numbers from draft 2 still hold and are why \"582\nauthored lines, don't overwrite them\" was the wrong conclusion: 8\nstrings account for nearly all the repetition.\n\n**Precedence to preserve, highest first:**\n1. human override (persisted)\n2. **individually authored** `success_message` / `fail_message` - the\n   131 not present in any generator script\n3. generated narration\n4. batch filler - a message that appears verbatim in\n   `tools/item_content_pass*.py`, or more than once in the library\n\n**The authorship test is mechanical: a `success_message` that appears\nverbatim in `tools/item_content_pass*.py` is filler.** That is a\ngreppable predicate, so assert it in a test rather than having the\ndirector adjudicate at runtime. Assert the counts too (582 / 139 / 8),\nso the split stays honest as the library grows.\n\n**Do not \"fix\" the filler by generating over it.** 435 items would then\nget a generated line, which at ~600 items/tick is a real cost for prose\nnobody wrote. The cheaper correct answer is that the filler is *fine*\nfor a generic acorn and the interesting items are the 131 - v2's job is\nto not damage the 131, and to let a GM replace filler deliberately.\n\nThis makes the GM payoff concrete: `player` mode is the only path that\ncan ever produce a *distinct* line for one of the 216 items whose sole\nmessage is the repeated template, and today it discards it on reload. A\npersisted override there is the highest-value edit available.\n\nNote the *shape* trap this exposes: `success_message` lives at\n`triggers[i].effects[j].params.success_message`, **not** at\n`triggers[i].success_message` - which exists on the same trigger and is\n**empty** (`protein_bar.json` has both, the outer one blank). Anything\nreading the obvious location gets nothing.",
+      "two_more_defects_this_run_exposed": "**Narrator's editorial residue is stored in character memories.**\n`miki`'s saved memory list contains, verbatim inside one memory's\n`text` field:\n\n    \"...where she goes, i go.\\n\\nshorter, punchier, still sounds like\n     miki rambling. keeps the asmr-brain moment, the fear, and the\n     clinginess to elena all in one breath. the original had the right\n     energy just needed the spelling fixed and the run-on tightened so\n     it reads like nervous excitement instead of a typo soup.\"\n\nThat is a **rewrite note addressed to a reviewer**, not a memory. It is\nin `data/scenarios/mansion.json` (not an export artifact - verified by\nreading the saved `players.miki.memories[].text` directly), it is\n`source: manual`, and it recurs in all three occurrences in the log. A\nmemory is first-person experience; this is second-person editorial\ncommentary about the memory. Whatever admits it does not distinguish\nthe two, so a character's recall can permanently contain its own\ndrafting notes - and it will be fed back into every future prompt.\n\n**The result row is second person inside a third-person log.** The same\nrow reads `↳ kyrie johansen - ✓You use the protein_bar.` - actor named\nin the gutter, then `You` in the text. The engine's authored message is\nwritten to the acting character (`you choke down...`), which is right\nfor the agent prompt and wrong for a shared feed read by everyone.\n\nNeither is strictly narration's fault, and both are in scope for a\ndirector that owns the result row: a director returning\n`{actor, narration, facts}` fixes the pronoun by construction, because\nthe text and the actor are produced together.",
+      "the_seven_changes_that_would_make_it_10x_better": "Ordered by leverage. 1-3 are correctness; 4-7 are the actual 10x.\n\n**0. A director pass that owns the result, not a post-processor.** This\nis the structural change everything else hangs off. The engine's\nstructured output (actor, action, effects, deltas, outcome) enters a\ndirector that returns **{narration, facts, actor}**. The event stream\nrenders one row. The agent prompt receives the narration *and* the\nfacts, because an agent that only sees prose cannot act on\n`hunger −12`. Today `outputText = narratedText` throws the facts away\n(`agent-engine.ts:782`) - the agent literally cannot see what happened\nto its own character.\n\n**1. Narration decorates perception; it never authors it.** The DM\nshould receive the *rendered perception block* - what\n`room_perception.py` says this character can perceive - and be asked to\nadd atmosphere around a set of facts it may not contradict. The\nmechanical description stays in the prompt as ground truth. Today's\n`replace()` is the wrong verb; the narration should be an additional\nlayer, not a substitution.\n\n**2. Give the DM the world's state, not just the room.** The prompt\ngets a name and a comma list. The engine holds conditions, vitals,\nrelationships, memories, `recent_hearing`, world lore, time of day,\nweather, and season. A DM that knows it is 2am in winter and the\ncharacter is hungry and has heard a rumor can write a sentence that\ncarries three facts at once. This is the single biggest quality jump\navailable and it is nearly free - the data already exists and is\nalready serialized.\n\n**3. Respect the character's own voice and perception limits.** A\ncharacter who cannot see the back of the room does not get a description\nof it. Narration should be downstream of perception filtering\n(`task-467` belief/hearsay work is directly relevant), not upstream of\nit.\n\n**4. Continuity - a narrator with amnesia.** Every call is stateless:\nno memory of what it said last turn, no thread. The same room\nre-described five times produces five unrelated paragraphs. A DM\nshould hold a running state: what it has already described, what\nmatters, what it deliberately withheld. This is what separates a DM\nfrom a text generator.\n\n**5. Narration that changes the world, not just the text.** Today the\noutput is cosmetic - it lands in the event stream and is discarded.\nThe high-value version: narration *reports* consequences the engine\nresolved (a failed pickpocket names the risk taken; a social failure\nnames the wrong read), and can surface engine state the mechanical\noutput omits. The memory-dynamics layer (`eed00a72`, tasks 685-691)\ngives this something to narrate *about* - a character contradicting an\nold memory is a story beat the DM can voice.\n\n**6. Make `player` mode a real mode.** Today it is a blocking textarea\nper room with a naive prefill, and it does not fire for action results\nat all. As a first-class mode it should be: an editable draft the DM\npre-writes (so the human edits prose rather than authoring from\nscratch), optional rather than modal-blocking, and able to express\n*intent* (\"she's lying\", \"he doesn't react\") as structured input the\nengine reads - which is the interesting thing a human DM can do that an\nLLM cannot.\n\n**The acceptance test for this is the cursed key.** The user's example:\npicking up a cursed key should narrate as *\"as his fingers touch the\ncold metal, a coldness flows through his body\"* - not *\"jake picks up\nkey, trigger on pickup caused curse_xxx to be applied.\"* For a human DM\nthis must be **one step**: the draft is pre-written from the trigger's\nown data, the human rewrites the prose, and the `curse_xxx` application\nstill happens mechanically and is still visible in the facts. The human\nis not typing triggers; the human is writing the line. If a human DM has\nto open a trigger inspector to narrate a pickup, the mode has failed.\nThat single interaction is the thesis of v2 and should be built first.\n\n**7. One place decides, and it is legible.** The mode lives in three\nplaces with two disagreeing gates and no UI indication of whether\nnarration is actually live. Whatever v2 is, the mode should be read in\none function, the gates should not disagree, and the UI should say\n\"Narration: AI (live)\" vs \"AI (no model configured - inactive)\" rather\nthan a badge that lies.",
+      "non_goals": "- Not a new engine subsystem. Narration stays a presentation layer.\n- Not replacing `room_perception.py` - it is correct and is the thing\n  narration should be deferring to.\n- Not prompt-only. If the fix is \"improve the system message,\" the\n  ceiling is still the discarded context.\n- **Not a replacement for the distinct `success_message` singletons.**\n  They outrank generated narration - but they are a small minority. The\n  repeated template filler does not, and preserving it would make v2\n  worse, not better.\n- Not a memory-quality project. The editorial-residue defect is filed\n  separately - it is real, and it is not narration's to fix.",
+      "open_questions": "- Should narration be a per-character voice (the DM writes each\n  character differently) or one consistent narrator voice? The former is\n  stronger but costs a lot more tokens per tick.\n- Where does narrated text live? Today it is written into the prompt\n  context *and* separately logged, which is why bug-517 exists.\n- Does the director run for background NPCs too, or only the attended\n  LLM-agent set? `involuntary.ts` deliberately stays cheap for\n  background NPCs; a per-action LLM call may not be affordable at that\n  tier. If narration is attended-only, the cheap tier renders the\n  mechanical row and that asymmetry must be visible in the UI rather\n  than looking like a bug.",
+      "browser_ui": "Intended UI home: game view → perform one action → inspect its event-stream row and the corresponding agent prompt/mechanical result with narration mode set to `none`, `ai`, or `player`.\n\nCurrent availability: the card describes narration as a client-side string rewrite and records that narrated text can replace mechanical deltas. The one-row DM presentation and first-class human narration mode are planned; no new narration behavior is claimed here.\n\nLive steps when available:\n1. Have an NPC perform one action while a human observes; inspect the event stream.\n   - expected: exactly one event row carries the correct NPC as actor, not `You`, and contains the action result without duplicate involuntary/action/result rows.\n2. Repeat with narration set to `none`.\n   - expected: the row is the same mechanical result the current simulation produces.\n3. Repeat with `ai` narration and then `player` narration; inspect both the row and the next agent prompt.\n   - expected: the row shows the chosen narration, while the prompt still contains the mechanical deltas (for example, `hunger −12`) needed for decisions.\n4. Compare the narrated row with `/api/state` deltas for the action.\n   - expected: narration never reverses or hides a mechanical change; all three modes retain the same underlying result.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/prompting/task-692-narration-v2-the-dm-layer-is-a-client-side-string-rewriter-not-a-narrator.md"
+  }
+}

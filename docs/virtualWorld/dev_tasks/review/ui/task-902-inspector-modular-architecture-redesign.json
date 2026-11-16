@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "task-902",
+  "kind": "task",
+  "number": 902,
+  "title": "Inspector: modular architecture redesign",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-22",
+  "updated": "2026-10-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Redesign the inspector as a proper modular, deduplicated system with shared base classes, composition over inheritance, and clear separation of concerns",
+    "why": "Current inspector has 17 view files with duplicated patterns: each builds HTML strings manually, repeats field rendering, has own state management, and couples directly to globals. No shared base class, no composition, no testability.",
+    "how": "Create InspectorView base class with lifecycle hooks, shared field builders, event bus integration. Extract common sections (header, tabs, properties grid, actions grid) into composable components. Replace string concatenation with lit-html templates throughout. Add TypeScript interfaces for view contracts.",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: Base view lifecycle and component rendering handles breadcrumbs and property grid without per-view duplication.\n   - observed: PASS 2026-10-24. _renderBreadcrumb() delegates to InspectorComponents.BreadcrumbComponent; PropertyGridComponent handles text and numeric input bindings.\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: Inspector views instantiate InspectorView base and eliminate unsafe string concatenation.\n   - observed: PASS 2026-10-24. 9 view singletons extend InspectorView; \npm run build:ts and \npm run typecheck pass with 0 errors.\n3. Run the targeted regression test for the mechanism.\n   - expected: Unit tests for base class lifecycle, components, and singleton inheritance pass.\n   - observed: PASS 2026-10-25. tools/unit/test_inspector_modular.js passes with 10 assertions in \node tools/unit/run.cjs.",
+    "acceptance": [
+      {
+        "text": "All inspector view singletons refactored to extend InspectorView base (agent-view, area-view, item-view, way-view, lore-view, memory-view, mind-view, paperdoll-view, behaviors-view).",
+        "done": true
+      },
+      {
+        "text": "Shared components extracted (InspectorComponents.BreadcrumbComponent, InspectorComponents.PropertyGridComponent in static/js/inspector/components.ts).",
+        "done": true
+      },
+      {
+        "text": "String-based HTML eliminated in refactored sections in favor of lit-html templates.",
+        "done": true
+      },
+      {
+        "text": "Unit tests for base class, components, and view singleton instances (tools/unit/test_inspector_modular.js).",
+        "done": true
+      },
+      {
+        "text": "TypeScript builds clean without type errors (",
+        "done": true
+      },
+      {
+        "text": "pm run build:ts and",
+        "done": false
+      },
+      {
+        "text": "pm run typecheck).",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/panel.ts",
+      "static/js/inspector.ts",
+      "static/js/inspector/helpers.ts",
+      "static/js/inspector/*-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Inspector panel (right side)\n\nCurrent availability: always\n\nLive steps when available:\n1. Select any node type\n2. Verify all sections render\n3. Verify breadcrumbs work\n4. Verify tabs switch\n5. Verify edits persist\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.",
+      "progress_2026_10_24": "- `static/js/inspector/inspector-view-base.ts`: Fixed `_deferRender` field collision with `InspectorAgentView._deferRender(fn)` by renaming the base boolean flag to `_renderQueued`; updated `hide()` to render the canonical empty state with the World Lore button.\n- `static/js/inspector/components.ts`: Fixed `PropertyGridComponent` text fields rendering as `<input type=\"number\">`, replaced invalid `${lockedAttr}` string attributes with `?disabled=${isLocked}` lit-html boolean attributes and `window.Lit.live` value bindings, and aligned `BreadcrumbComponent` with `.inspector-crumb*` classes.\n- `static/js/inspector.ts`: Delegated `_renderBreadcrumb()` to `InspectorComponents.BreadcrumbComponent`.\n- `static/js/inspector/*-view.ts` (`agent-view.ts`, `area-view.ts`, `item-view.ts`, `way-view.ts`, `lore-view.ts`, `memory-view.ts`, `mind-view.ts`, `paperdoll-view.ts`, `behaviors-view.ts`): All 9 view singletons now instantiate `InspectorView` as their base object, and `unsafeHTML(catOpts)` in `lore-view.ts` is replaced with native `lit-html` `<option>` templates.\n- `tools/unit/test_inspector_modular.js`: Added unit tests covering `InspectorView` lifecycle, `PropertyGridComponent` text vs number inputs, `BreadcrumbComponent`, and `instanceof InspectorView` across all 9 view singletons."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Inspector Panels|Inspector Panels]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-902-inspector-modular-architecture-redesign.md"
+  }
+}

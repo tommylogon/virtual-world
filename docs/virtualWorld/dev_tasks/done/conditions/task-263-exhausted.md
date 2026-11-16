@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -44,18 +44,18 @@ Bone-tired. Leveled (1–6) with escalating Energy drain and movement penalty; e
 - **Combat**: neutral mods.
 - **Movement**: `speed_mult` scales with level (0.5 → 0.0 at level 6). Dash blocked when `effective_speed < 0.5`; movement blocked at `<= 0` (exhaustion level 6).
 - **Periodic**: Energy drain scales by level via `level_periodic` (L1 −1 → L3 −3 → L6 −4). `effective_periodic_for` resolves level-scaled before catalog default.
-- **Lifecycle**: `stack: "refresh"` — re-exhaustion bumps `level` toward 6 and refreshes the timer. `default_duration: 5`. Ends on `rest`/`sleep`.
+- **Lifecycle**: `stack: "refresh"` - re-exhaustion bumps `level` toward 6 and refreshes the timer. `default_duration: 5`. Ends on `rest`/`sleep`.
 
 ## Perception
 
-`known: True` — self-evident.
+`known: True` - self-evident.
 
 ## Integration points
 
-- `player.py:121-134` — catalog entry (leveled via `level_periodic`/`level_speed_mult`).
-- `engine/conditions.py` — `effective_periodic_for`, `effective_speed_mult`, `effective_speed`, `symptom_for` (level-keyed).
-- `engine/activities.py` — `rest`/`sleep` clear exhaustion.
-- `engine/movement.py` — dash/movement gating at low `effective_speed`.
+- `player.py:121-134` - catalog entry (leveled via `level_periodic`/`level_speed_mult`).
+- `engine/conditions.py` - `effective_periodic_for`, `effective_speed_mult`, `effective_speed`, `symptom_for` (level-keyed).
+- `engine/activities.py` - `rest`/`sleep` clear exhaustion.
+- `engine/movement.py` - dash/movement gating at low `effective_speed`.
 - Energy collapse → may trigger `unconscious`.
 
 ## Steps to verify
@@ -69,7 +69,7 @@ Bone-tired. Leveled (1–6) with escalating Energy drain and movement penalty; e
 
 - Where is the exhaustion level set from (energy threshold in `tick_manager`)?
 - Does reaching level 6 collapse into `unconscious`? If so, who applies that transition?
-- `symptom_for` can key-off `level` for leveled diseases — do we want exhaustion symptoms by level?
+- `symptom_for` can key-off `level` for leveled diseases - do we want exhaustion symptoms by level?
 
 ## Why
 

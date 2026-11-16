@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -44,9 +44,9 @@ Toxin in the blood. You're losing HP. The canonical accumulating condition (5 vi
 - **Saves/checks**: none.
 - **Combat**: neutral.
 - **Movement**: full speed.
-- **Periodic**: `HP -5` per tick per instance — **4 poisons = −20 HP/tick** (drains sum across instances).
+- **Periodic**: `HP -5` per tick per instance - **4 poisons = −20 HP/tick** (drains sum across instances).
 - **Lifecycle**: `stack: "accumulate"`; `default_duration: 10`; ends on `duration` (each instance) or `antidote`.
-- **Hidden/unknown**: `known: False` — agent sees symptoms only.
+- **Hidden/unknown**: `known: False` - agent sees symptoms only.
 
 ## Perception
 
@@ -54,8 +54,8 @@ Toxin in the blood. You're losing HP. The canonical accumulating condition (5 vi
 
 ## Integration points
 
-- `player.py:150-164` — catalog entry.
-- `engine/conditions.py` — `process_tick` drains summed across instances; `symptom_for`/`perceived_conditions`.
+- `player.py:150-164` - catalog entry.
+- `engine/conditions.py` - `process_tick` drains summed across instances; `symptom_for`/`perceived_conditions`.
 - Poison delivery: `use poison on wine` (`on_use_on`), poisonous creatures, traps.
 - Antidote: `neutralizing_draught` → `remove_condition poisoned`; `ends_on: ["antidote"]`.
 - Task-190 composition: poison + paralysis/unconscious/blind via parameters on an `on_eat` effect (bundled `extra_conditions`).
@@ -70,7 +70,7 @@ Toxin in the blood. You're losing HP. The canonical accumulating condition (5 vi
 ## Open questions / things to work out
 
 - Should different poisons carry different severity (via `periodic` instance override and `level`)?
-- `−5` HP/tick baseline — is that the right default vs. per-source override?
+- `−5` HP/tick baseline - is that the right default vs. per-source override?
 
 ## Why
 

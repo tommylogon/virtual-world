@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Low
-**Status**: In Review — implemented (code-verified 2026-08-11). "Add from Library" button gone from room inspector; replaced with hint text at `static/js/inspector/area-view.js:53`. 📚 Item Library toolbar button remains.
+**Status**: In Review - implemented (code-verified 2026-08-11). "Add from Library" button gone from room inspector; replaced with hint text at `static/js/inspector/area-view.js:53`. 📚 Item Library toolbar button remains.
 
 ---
 
@@ -45,7 +45,7 @@ If the room inspector feels empty after removal, consider replacing with a text 
 
 ## Files
 
-- `static/js/inspector.js` — remove button HTML and its action section if empty
+- `static/js/inspector.js` - remove button HTML and its action section if empty
 
 ## How
 

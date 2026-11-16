@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-602",
+  "kind": "task",
+  "number": 602,
+  "title": "Aimed attacks silently ignore the region when the phrase carries an article",
+  "status": "done",
+  "priority": "high",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "resolve_region() returns None for 'the head', so 'attack X on the head' degrades to an un-aimed d20 hit-location roll. Confirmed live: 6x 'on the head' never landed on the head; dropping 'the' worked every time.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-602-aimed-attacks-silently-ignore-the-region-when-the-phrase-carries-an-article.md"
+  }
+}

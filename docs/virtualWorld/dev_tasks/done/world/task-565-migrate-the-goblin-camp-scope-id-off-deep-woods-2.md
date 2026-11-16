@@ -22,7 +22,7 @@ The scope's display name is already 'goblin camp'; the id is still deep_woods_2 
   and vice versa, and every `area_ids` entry names a node that exists.
 - The outer `deep_oods` scope is untouched.
 
-## Progress — 2026-09-28 (in `review`)
+## Progress - 2026-09-28 (in `review`)
 
 `tools/migrate_scope_id.py` (new, idempotent, dry-run by default). Applied:
 **24 references renamed, 0 leftovers.** `deep_oods_2` no longer appears in
@@ -31,7 +31,7 @@ The scope's display name is already 'goblin camp'; the id is still deep_woods_2 
 ### The task's last step was moot, and worth saying so
 
 The task said "then regenerate the zone so `area_deep_oods_2_x_y` node ids
-follow". **There are no `area_deep_oods_2_*` node ids** — measured 0. The camp's
+follow". **There are no `area_deep_oods_2_*` node ids** - measured 0. The camp's
 21 areas are hand-authored (`area_chiefs_pit`, `area_camp_entrance`,
 `area_water_source`, …), not grid-compiled, so there is nothing to regenerate. The
 migration is a pure rename of the scope record and its referrers.
@@ -52,8 +52,8 @@ quietly do it.
 
 ### Two bugs this task's own tests caught, both in the migration
 
-Both are the failure mode the task warns about — *"a silent half-rename is worse
-than a stale one"* — and both looked healthy:
+Both are the failure mode the task warns about - *"a silent half-rename is worse
+than a stale one"* - and both looked healthy:
 
 1. **A node's `id` was renamed but not the dict key it sits under.** The graph
    ended up with `nodes["area_deep_oods_2_10_14"]` holding a record whose `id` was
@@ -67,7 +67,7 @@ than a stale one"* — and both looked healthy:
 ### The leftover scan is the safety net, and it is a substring search
 
 After the rename the whole document is walked for any surviving mention of the old
-id — as **substring**, not equality, because a reference in a shape the script did
+id - as **substring**, not equality, because a reference in a shape the script did
 not anticipate is exactly what a substring catches and an equality check would
 miss. Leftovers are **reported and the write is withheld**, so a half-understood
 schema is a report rather than a broken save.
@@ -78,7 +78,7 @@ Re-running is a *success*, not an error: it says `already migrated`. A re-run is
 the normal way to confirm a migration took, and an error there would teach people
 to ignore the output.
 
-### New tests — `tests/test_scope_id_migration.py` (16)
+### New tests - `tests/test_scope_id_migration.py` (16)
 
 The camp after: id matches name, no surviving reference anywhere (substring scan
 over the whole document), the outer scope untouched, **the tree still coherent**

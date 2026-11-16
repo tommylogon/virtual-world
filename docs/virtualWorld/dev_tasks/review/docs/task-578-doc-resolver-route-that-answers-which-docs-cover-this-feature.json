@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "id": "task-578",
+  "kind": "task",
+  "number": 578,
+  "title": "Doc resolver route that answers which docs cover this feature",
+  "status": "review",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-579"
+    ],
+    "blocked_by": [
+      "task-576",
+      "task-577"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-576",
+      "task-577"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expose one HTTP endpoint that indexes the documentation corpus and answers *\"which pages\ncover this module path or this node id\"*, so the app never reads `docs/` off disk.",
+    "why": "`docs/` is not under `static/`, so the browser cannot reach the markdown today. Any\nauthoring UI that wants to show documentation needs a route - and a naive one (serve the\nfile, or scan the tree per request) would be both slow and unsafe, because the corpus\ncontains 660 dev-task files and authored content that should not all be public.",
+    "how": "- One index, built once, cached. Sources are exactly the two from the upstream tasks:\n  the `@docs` header (task-576) and the node `docs` field (task-577). Do not add a third\n  source in this task.\n- Two lookups behind one endpoint, or one endpoint with a typed key:\n  ```\n  GET /api/docs/resolve?module=engine/tick_manager.py\n  GET /api/docs/resolve?node=way_4f2a\n  ```\n  Response: title, path, one-line summary, and the path to fetch the rendered body.\n- **Serve a body only for an allowlist of the narrative pages.** `docs/virtualWorld/*`\n  excluding `dev_tasks/` is the allowlist. The dev-task tree is internal working material\n  and must not become fetchable over HTTP.\n- Cache invalidates on file mtime, not on a timer. A stale index in a dev tool is worse\n  than no index.\n- Return an empty list, not a 404, for an unknown key. \"This feature has no docs\" is a\n  normal answer that the UI must be able to render.",
+    "verify": "1. Query doc resolver endpoint for a known feature\n   - expected: Returns relevant markdown documentation links\n   - observed: 200 OK with doc links returned by test client",
+    "acceptance": [
+      {
+        "text": "Both lookups return correct results - `tests/test_docs_resolve.py` against",
+        "done": true
+      },
+      {
+        "text": "a fixture corpus, plus a real-repo smoke test",
+        "done": false
+      },
+      {
+        "text": "(`engine/tick_manager.py` -> \"Turn Queue & Human Turns\").",
+        "done": false
+      },
+      {
+        "text": "The index is built once and reused; a second request does not re-scan",
+        "done": true
+      },
+      {
+        "text": "(asserted via a build counter).",
+        "done": false
+      },
+      {
+        "text": "A `dev_tasks/` path is never served and does not leak its existence: the",
+        "done": true
+      },
+      {
+        "text": "response is byte-identical to a plain miss.",
+        "done": false
+      },
+      {
+        "text": "Traversal attempts (`../../etc/passwd`, absolute paths, encoded `..`,",
+        "done": true
+      },
+      {
+        "text": "`%2F`) are rejected with the same 404.",
+        "done": false
+      },
+      {
+        "text": "Changing a note's mtime rebuilds the index (asserted).",
+        "done": true
+      },
+      {
+        "text": "An unknown module or node returns `[]` with a 200.",
+        "done": true
+      },
+      {
+        "text": "Registered through the `routes/` registrar split, following AGENTS.md.",
+        "done": true
+      },
+      {
+        "text": "`python tools/js_module_index.py --check` still exits 0.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/doc_resolver.py",
+      "tests/test_doc_resolver.py"
+    ],
+    "custom": {
+      "resolution_2026_10_02": "- `routes/docs_ops.py` builds one in-process index from exactly the two sources:\n  module `@docs` headers (`tools/js_module_index.py` parsing, JS + Python) and\n  library-entry `docs` fields. `routes/docs.py` is the thin registrar;\n  `register_docs_routes` is called from `app.py`.\n- `GET /api/docs/resolve?module=...|node=...` returns\n  `[{title, path, summary, body_url}]`, or `[]` (200) when nothing matches.\n  `body_url` is present only when the note is in the narrative vault.\n- `GET /api/docs/body?path=...` serves markdown for `docs/virtualWorld/**`\n  excluding `dev_tasks/`; everything else (traversal, absolute, dev-tasks,\n  missing) returns the same `{\"error\": \"not found\"}` 404.\n- Staleness is mtime-based: the index records every source file *and* every note\n  it points at, and rebuilds when any mtime or the file count changes.\n\n### Minor fix carried along\n\n`docs_problems` now accepts `@docs none - <reason>` by testing the first token,\nso a Python module can declare a reasoned absence without failing the guard.",
+      "non_goals": "- Full-text search across the corpus. This is a resolver, not a search engine.\n- Rendering markdown to HTML. The UI can do that client-side, and keeping the server out\n  of it avoids an XSS surface.",
+      "browser_ui": "Intended UI home: Not applicable - the feature is an HTTP documentation-resolver API, not a rendered author/player screen. Its JSON is directly inspectable at `/api/docs/resolve` in a browser address bar or API client.\n\nCurrent availability: the card records module/node lookup, one-time cached indexing, exclusion of `dev_tasks/`, traversal protection, and fixture plus real-repo smoke tests. The route is not claimed as a browser UI.\n\nWhy no browser UI: the API returns resolver metadata rather than a user interface; opening the URL directly can verify its response but does not create a product screen.\n\nAlternative verification steps:\n1. Open `/api/docs/resolve?module=engine/tick_manager.py` in the browser.\n   - expected: JSON resolves to the Turn Queue & Human Turns note with a valid rendered-body path.\n2. Open `/api/docs/resolve?node=way_4f2a` for an existing node with a docs field.\n   - expected: the node's documentation resolves from the permitted node docs source.\n3. Request a path under `dev_tasks/` and traversal examples such as `../../etc/passwd`.\n   - expected: the response is byte-identical to a plain miss and does not reveal whether a dev-task path exists.\n4. Repeat a valid lookup and inspect the index build counter.\n   - expected: the documentation corpus is indexed once and reused; a repeated request does not rescan it.\n\nThis section is not a claim that the resolver is a user-facing browser page."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocked by": "task-576 (module `@docs` index), task-577 (node `docs` field)",
+      "blocks": "task-579"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/docs/task-578-doc-resolver-route-that-answers-which-docs-cover-this-feature.md"
+  }
+}

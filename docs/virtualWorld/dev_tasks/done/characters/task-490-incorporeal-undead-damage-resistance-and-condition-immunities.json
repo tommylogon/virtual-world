@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-490",
+  "kind": "task",
+  "number": 490,
+  "title": "Incorporeal undead: damage resistance and condition immunities",
+  "status": "done",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-309"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Complete the still-open part of task-309: D&D-style damage resistance/immunity for incorporeal undead (resistance to nonmagical weapons, immunity to cold/necrotic/poison) and condition immunities (grappled/restrained/prone/exhausted/...). Engine hooks: engine/combat.py damage resolution and engine/conditions.py application.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Incorporeal undead take reduced or no damage from nonmagical weapons and are immune to cold/necrotic/poison.",
+        "done": false
+      },
+      {
+        "text": "Condition immunities: grappled/restrained/prone/exhausted (and the rest of the 5e ghost list) cannot be applied to them.",
+        "done": false
+      },
+      {
+        "text": "Keyed off the incorporeal/undead identity from task-309 (`engine/combat.py`, `engine/conditions.py`).",
+        "done": false
+      },
+      {
+        "text": "Tests covering resistance/immunity and condition application.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_2026_09_28_wt_c": "### What task-309 had already done\n\nThe identities: an `undead` tag (not alive, corporeal) and a `ghost` tag\n(incorporeal, unseen until manifested), with `is_undead` / `is_incorporeal` /\n`is_undead_ghost` in `engine/player_manager.py`, wired into visibility and the\nskipping of vitals. What it left out is the other side of the coin: **what those\nidentities do to an attacker.** A ghost could be cut, chilled, poisoned and\ngrabbed, because nothing here existed.\n\n### Files\n\n- `engine/undead.py` - **new**. The defence profile and its arithmetic.\n- `engine/combat.py` - damage resolution hook.\n- `engine/conditions.py` - `apply_condition` immunity gate.\n- `tests/test_undead_resistance.py` - **new**, 57 tests.\n\n### A separate profile, and why\n\n`aggregate_bonuses` already produces a `resistances` dict, but it is a **flat\nsubtraction** assembled from equipped items (`resisted_damage` does\n`base - resist`). 5e resistance *halves* and immunity *negates*, and a halved\npoint of damage is nothing - none of which is a flat number. Folding undead into\nthat aggregate would also make a sword do less damage to a ghost, which is not\nwhat either rule means. So a profile is its own explicit thing with its own\narithmetic: `resist` halves, `immune` zeroes, and `damage // 2` is written as\ninteger division on purpose.\n\n### The rule I got wrong first, worth writing down\n\nThe 5e rule is resistance to damage **from nonmagical weapons** - about the\n*weapon*, not the injury. The first cut keyed the resistance on damage types\n(`slashing` and friends), so a mundane sword did full damage to a ghost because\n`slashing` was not in the resist table, while `lightning` and `force` - which\nwere - halved damage no matter what struck with them. That is the rule exactly\nbackwards.\n\nNow the profile carries a `NONMAGICAL_WEAPON` sentinel, and\n`apply_damage_resistance` takes a `from_nonmagical_weapon` flag, because only the\ncaller knows where a hit came from. A bare fist is *not* a nonmagical weapon: a\nghost is hard to hurt with a sword, not with a fist going straight through it.\nA weapon with no stated magicalness counts as mundane - the world has to say a\nweapon is enchanted for it to be, and defaulting the other way would make every\nmundane sword useless against ghosts without anyone having decided that.\n\n### Immunity beats resistance, and neither is a wound\n\nAn immune blow applies no region injury either. Wounding a ghost for touching it\nwould be the engine disagreeing with itself in two places - `engine/body_parts`\nand `engine/undead` - and the first of those to be wrong wins.\n\n### Ghost versus zombie\n\nThe two profiles are genuinely different, and the difference is the interesting\npart:\n\n| | ghost (undead + ghost) | zombie (undead) | mortal |\n|---|---|---|---|\n| cold / necrotic / poison | immune | immune | - |\n| nonmagical weapons | resist (halve) | - | - |\n| lightning / thunder / force | resist | - | - |\n| grappled / restrained / prone | immune | **vulnerable** | - |\n| exhausted | **vulnerable** | immune | - |\n\n5e says a ghost is immune to *all conditions except exhaustion*. `exhausted` is\ntherefore deliberately **not** in the ghost list, and a test asserts the two\nlists differ by exactly `{exhausted}` - so a well-meaning edit that \"fixes\" the\nasymmetry fails instead of silently rewriting the rule.\n\nA zombie is not a ghost: it has a body, so it can be grappled and it bleeds. It\nis only immune to exhaustion and the sensation set. The module checks **both**\ntags rather than reusing `is_undead_ghost`, which is the broad \"spectral entity\"\nalias and would wrongly hand a zombie the ghost profile.\n\n### The condition hook is loud\n\n`apply_condition` now returns `False` on a refusal, where it previously returned\n`None`. A refusal has to be distinguishable from a missing player, or a caller\ncannot tell that the grapple bounced. The immunity check is wrapped so it can\nnever break condition application, and `allow_immune=True` bypasses it for a\ncaller that has already established the target is a ghost.\n\n### The visibility gate comes first, and the tests had to be honest about it\n\ntask-309 made an unmanifested ghost invisible, and combat refuses to strike what\nit cannot see - so an unmanifested ghost never reaches the damage hooks at all.\nThe first version of the combat test passed *for the wrong reason*: it saw\n\"passes straight through\" in the message and concluded the resistance worked,\nwhen that line was the visibility gate. The test now manifests the ghost (the\nstate in which the resistances apply) and a separate `TestVisibilityGateStillWins`\npins the two gates and their order: see it, then hurt it.\n\n### Handed to WT-0\n\nNothing. No hub file was touched.\n\n### Verify\n\n`python -m pytest tests/test_undead_resistance.py -q` - 57 tests. And\n`tests/ -q -k \"combat or condition or ghost or undead or damage\"` - 413 pass, the\nsingle failure being the pre-existing `test_mcp_misc::test_ghost_mode` FastMCP\nwrapper mismatch.\n\nCovering: the identities agree with task-309's tag checks; immunity negates and\nresistance halves (and a halved 1 is 0); immunity beats resistance; a mundane\nblade is resisted at every damage type and a magical one is not; a fist is not a\nnonmagical weapon; a magic sword still is not a cold weapon; an immune blow\ncauses no region injury; an ordinary character is untouched; every listed immune\ncondition is a real condition in the catalog; the ghost and zombie lists differ\nby exactly exhaustion; and the visibility gate is honoured ahead of the damage\ngate.\n\n### Not done, deliberately\n\nNo authoring surface. Nothing in `data/library` or a scenario carries a\n`[\"undead\", \"ghost\"]` character yet, so the mechanic is reachable only from code.\n`data/library/characters/` and the scenarios are not this lane's to populate, and\ndoing so would also want task-457's canonical node first."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-490-incorporeal-undead-damage-resistance-and-condition-immunities.md"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-964",
+  "kind": "task",
+  "number": 964,
+  "title": "Add deliberate peek and eavesdrop way reconnaissance actions over beyond_visibility.py and sound.py",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "perception",
+    "stealth",
+    "sound",
+    "action-verbs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-588",
+      "task-958"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add intentional peek <way> and eavesdrop <way> reconnaissance actions built on engine/beyond_visibility.py and engine/sound.py so characters can scout through cracked doors/windows or listen closely at closed barriers without barging into an area.",
+    "why": "engine/beyond_visibility.py (lines 55-260) and engine/sound.py (lines 69-165) only apply passive beyond-door sightlines on see_through/open ways and passive sound attenuation across closed barriers. Characters have no intentional stealth verb to check what is happening behind a closed door or corner before entering.",
+    "how": "1. Extend engine/beyond_visibility.py with a targeted peek_way(graph, player_manager, area_id, way_handle, actor) helper checking see_through/window/cracked/open door eligibility and resolving occupant notice checks.\\n2. Extend engine/sound.py / routes/action_handlers.py with eavesdrop_way(world, actor, way_handle) that focuses listening across that single barrier (temporarily attenuating get_way_barrier resistance by focus/Perception bonus against recent/ongoing speech and sound sources beyond the barrier).\\n3. Register peek and eavesdrop in engine/action_verbs.py, PlanGrounding.PLAN_INTENT_ACTS, routes/action_handlers.py, and contextual-actions.ts.",
+    "verify": "1. Run pytest verifying peek <way> respects sealed vs cracked/windowed barriers + stealth spotting, and eavesdrop <way> captures adjacent room speech/sounds while failing on soundproof barriers.",
+    "acceptance": [
+      {
+        "text": "peek <way> and eavesdrop <way> are registered in engine/action_verbs.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts for adjacent closed/crackable/windowed ways.",
+        "done": false
+      },
+      {
+        "text": "peek <way> queries adjacent area contents via engine/beyond_visibility.py (without physically moving or opening the door wide) and rolls stealth vs occupant Perception to decide whether the peek is noticed.",
+        "done": false
+      },
+      {
+        "text": "eavesdrop <way> performs a focused acoustic check via engine/sound.py (reducing the barrier threshold across that single way for active listening without leaking through sealed/soundproof walls).",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "engine/beyond_visibility.py",
+      "engine/sound.py",
+      "engine/speech.py",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal exit brackets (`peek <way>`, `eavesdrop <way>`) and Event Stream perception output.\\n\\nCurrent availability: engine/beyond_visibility.py (sightline_run, build_beyond_suffix) and engine/sound.py (propagate_sound, get_way_barrier) run only passively during look/speech; no deliberate peek or eavesdrop verbs exist.\\n\\nManual verification steps:\\n1. Stand beside a closed door with characters talking inside the adjacent area and run `eavesdrop <way>` then `peek <way>`.\\n   - expected: eavesdrop captures muffled speech/activity through closed doors, and peek surfaces immediate beyond-door entities if crackable/windowed (with stealth detection risk)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Per-Agent Knowledge (Fog of War)]]",
+      "[[World Building/Way Properties]]",
+      "[[Commands]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

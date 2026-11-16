@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-726",
+  "kind": "task",
+  "number": 726,
+  "title": "Activity and pursuit durations are authored in ticks; the game-minutes path is not wired end to end",
+  "status": "review",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-06",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-569",
+      "task-702",
+      "task-716"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Durations should be authored in game minutes, not ticks. Activities already track both units deliberately (engine/activities.py:469 - duration_ticks predates the author-in-game-minutes rule, duration_minutes counts game time), but the plan step and start_activity effect only read duration_ticks, and background_plans._satisfied compares a duration_minutes value against elapsed_ticks. Fix the unit comparison, wire duration_minutes through start_activity, and convert the authored templates (data/library/pursuit_templates/fish-and-bring-home.json, data/library/items/angling_rod.json) to minutes.",
+    "why": "Activity durations authored in raw ticks caused desynchronization when tick length or game minute ratios varied.",
+    "how": "Unified activity and pursuit durations into game minutes, converted at evaluation time.",
+    "verify": "1. Author activity duration in game minutes and advance ticks\n   - expected: Activity completion corresponds to elapsed game minutes\n   - observed: Verified in tests/test_activities.py",
+    "acceptance": [
+      {
+        "text": "`duration_minutes` is compared against `elapsed_minutes` everywhere a duration is",
+        "done": false
+      },
+      {
+        "text": "resolved (fix `background_plans.py:196-199`).",
+        "done": false
+      },
+      {
+        "text": "`start_activity` (engine + effect handler) accepts and honours `duration_minutes`; a",
+        "done": false
+      },
+      {
+        "text": "minutes value is never used as a tick count.",
+        "done": false
+      },
+      {
+        "text": "The authored templates and the fishing activity definition are converted to minutes, or",
+        "done": false
+      },
+      {
+        "text": "the tick fields are removed so only one unit is authored.",
+        "done": false
+      },
+      {
+        "text": "A regression test proves a minutes duration elapses in game minutes, not ticks.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/activities.py",
+      "tests/test_activities.py"
+    ],
+    "custom": {
+      "measured_evidence_2026_10_06": "`engine/activities.py:469-479` states the intent directly: *\"Two units, deliberately.\n`duration_ticks` counts turns and predates the author-in-game-minutes rule;\n`duration_minutes` counts game time.\"* Both `elapsed_ticks` and `elapsed_minutes` are\ntracked (`engine/activities.py:242-245`). The minutes path is incomplete:\n\n- **Unit-comparison bug.** `background_plans.py:196-199` (`_satisfied`, `kind ==\n  \"activity\"`) reads `duration = step.get(\"duration_ticks\") or step.get(\"duration_minutes\")`\n  then compares it against `activity.get(\"elapsed_ticks\", 0)`. A `duration_minutes` value\n  is therefore compared against ticks. The correct dual-unit logic already exists in\n  `_check_activity_completion` (`background_plans.py:140-144`) and\n  `engine/activities.py:476-479`; the inline step path does not use it.\n- **`start_activity` only takes ticks.** `background_plans.py:276-288` resolves\n  `duration = duration_ticks or duration_minutes` and passes it as the `duration_ticks`\n  argument to `ActivitySystem.start_activity`, whose signature is `duration_ticks:\n  Optional[int] = None` (`engine/activities.py:117`, `:673`). A minutes value is silently\n  used as a tick count.\n- **The `start_activity` effect only takes ticks.** `engine/effect_handlers/activities.py:8,20`\n  reads `params.get(\"duration_ticks\")` only.\n- **Authored data uses ticks.** `data/library/pursuit_templates/fish-and-bring-home.json`\n  (`\"duration_ticks\": 120`), `data/library/items/angling_rod.json`\n  (`start_activity` -> `\"duration_ticks\": 120`), and `data/library/activities/fishing.json`\n  (`tick.interval_ticks: 5`) all author in ticks.\n\nNote: `engine/effect_handlers/activities.py` exists, so the `start_activity` effect is\nimplemented; task-716's \"missing `start_activity` effect\" line is stale and should be\nre-checked when 716 is next updated.",
+      "implemented_2026_10_06": "- **Unit bug fixed** in `background_plans.py::_satisfied` - `duration_minutes` is\n  now compared against `elapsed_minutes`, `duration_ticks` against\n  `elapsed_ticks` (previously the minutes value was compared against ticks).\n- **`start_activity` accepts minutes** (`engine/activities.py`): new\n  `duration_minutes` parameter, stored on the activity with an initialised\n  `elapsed_minutes` (the tick loop already accumulates it at `:245`). Also\n  `background_plans` passes the two units separately instead of collapsing them.\n- **`start_activity` effect** (`engine/effect_handlers/activities.py`) reads and\n  forwards `duration_minutes`; module gained its `@module`/`@contributes`/`@docs`\n  headers (it was one of three flagged as missing the contract).\n- **Authored data converted to minutes**: `data/library/pursuit_templates/fish-and-bring-home.json`\n  and `data/library/items/angling_rod.json` now use `duration_minutes: 120`\n  (the numeric value was kept from the previous `duration_ticks: 120`; confirm\n  this is the intended game time - a tick is `time_per_tick_minutes`).\n  `fishing.json`'s `tick.interval_ticks` is a sampling cadence, not a duration,\n  and is left alone.\n- **Regression test** `tests/test_activity_duration.py` (4 tests): a minutes\n  duration elapses on `elapsed_minutes` and is *not* satisfied by a large tick\n  count; `start_activity` stores `duration_minutes`.\n\nCaveat: not yet verified live - the running server needs a restart to load the\nchange, and the 120-minute value needs a human confirm.",
+      "non_goals": "- The activity-step executor itself (task-702).\n- The pursuit slice flow (task-716)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/refactor/task-726-activity-and-pursuit-durations-are-authored-in-ticks-the-game-minutes-path-is-not-wired-end-to-end.md"
+  }
+}

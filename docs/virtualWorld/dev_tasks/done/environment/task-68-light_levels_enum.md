@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: Done (2026-07-17) — Phase 1: Agent prompt alignment
+**Status**: Done (2026-07-17) - Phase 1: Agent prompt alignment
 
 ---
 
@@ -21,9 +21,9 @@ The frontend agent engine had hardcoded numeric thresholds (≤10, ≤25) that d
 
 ## What Was Done
 
-### Phase 1 — Agent prompt alignment (`2026-07-17`)
+### Phase 1 - Agent prompt alignment (`2026-07-17`)
 
-1. **Added `_lightToLevel(val)` helper** in `agent-engine.js:659-666`— mirrors the backend's `_light_to_level()` in Python:
+1. **Added `_lightToLevel(val)` helper** in `agent-engine.js:659-666`- mirrors the backend's `_light_to_level()` in Python:
    - ≤20 → `pitch_black`
    - ≤40 → `dim`
    - ≤70 → `normal`

@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "id": "task-554",
+  "kind": "task",
+  "number": 554,
+  "title": "Season is read nowhere in the engine; winter should be cold",
+  "status": "review",
+  "priority": "high",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-553"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-553",
+      "task-227"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Move the season logic out of the sky widget into the engine, so the temperature\ncurve and narration know what season it is.\n\nDepends on task-553 (the curve consumes the season).\nDesign: `docs/design/weather-world-integration.md` §2.4, §7.",
+    "why": "Season was previously only computed in frontend UI code (sky-scape.js) from the calendar month to change sky canvas colors, while the backend engine completely ignored the season. A scenario declaring season: winter experienced no temperature reduction, no seasonal narration, and no gameplay impact. Consolidating season resolution into the engine ensures a single source of truth for temperature curves, narration, and client sky rendering.",
+    "how": "1. In engine/weather_forecast.py, define SEASON_BY_MONTH, season_for_month(month), and resolve_season(world_state, game_month) with documented precedence (explicit authored world_state.season beats calendar month).\n2. Wire current_season() into virtual_world_engine.py to feed seasonal bias (-7 C in winter, +4 C in summer) into temp_curve_for_hour(hour, season).\n3. Broadcast engine season to the client via /api/settings/forecast and tick state payloads; remove duplicated month-to-season tables from static/js/sky-scape.js.\n4. Trigger narrative log messages on season transitions ([Season] Winter arrives.).",
+    "verify": "1. Compare exterior area temperature between identical scenarios configured for summer vs winter.\n   - expected: Winter scenario is significantly colder (e.g. ~11 C difference at midday) due to seasonal temperature curve bias.\n   - observed: Tested via unit tests in tests/test_weather_forecast.py.\n2. Advance calendar month across season boundaries (e.g. month 11 to 12).\n   - expected: Season automatically resolves to winter; event stream narrates the arrival of winter.\n   - observed: Season transition logic verified in engine tests.\n3. Inspect client sky widget state.\n   - expected: Client reads current season directly from engine forecast state rather than computing local duplicate tables.\n   - observed: Verified via frontend integration.",
+    "acceptance": [
+      {
+        "text": "**One server-side month→season resolver**: `engine/weather_forecast.py`",
+        "done": true
+      },
+      {
+        "text": "gained `SEASON_BY_MONTH`, `season_for_month()` and `resolve_season()`. It",
+        "done": false
+      },
+      {
+        "text": "uses the same boundaries the old frontend table did (Dec-Feb winter,",
+        "done": false
+      },
+      {
+        "text": "Mar-May spring, Jun-Aug summer, Sep-Nov autumn) - changing them would change",
+        "done": false
+      },
+      {
+        "text": "what \"winter\" means in every existing world.",
+        "done": false
+      },
+      {
+        "text": "**The engine reads a season, and there is no path where one is ignored.**",
+        "done": true
+      },
+      {
+        "text": "`world_state.season` is now consumed by the temperature model, so a scenario",
+        "done": false
+      },
+      {
+        "text": "that says `\"season\": \"winter\"` and is otherwise identical to one saying",
+        "done": false
+      },
+      {
+        "text": "`\"summer\"` is 11 °C colder at midday with no forecast entry changed.",
+        "done": false
+      },
+      {
+        "text": "**Precedence is decided and documented: an authored `world_state.season`",
+        "done": true
+      },
+      {
+        "text": "wins over the clock.** A scenario stating a season is making a claim about",
+        "done": false
+      },
+      {
+        "text": "its world and should not be overruled by whatever month the calendar is on.",
+        "done": false
+      },
+      {
+        "text": "With none authored the clock decides, so a world crossing a boundary changes",
+        "done": false
+      },
+      {
+        "text": "season **with no save and no reload** (checked: month 1 and 12 both resolve",
+        "done": false
+      },
+      {
+        "text": "to winter from the clock alone).",
+        "done": false
+      },
+      {
+        "text": "**An unrecognised season falls through to the clock** rather than becoming a",
+        "done": true
+      },
+      {
+        "text": "state the temperature model has no bias for. A broken save is still a",
+        "done": false
+      },
+      {
+        "text": "readable world.",
+        "done": false
+      },
+      {
+        "text": "**`sky-scape.js` no longer carries a month→season table.** The",
+        "done": true
+      },
+      {
+        "text": "`SEASON_BY_MONTH` const is deleted and the second, inline copy in the iframe",
+        "done": false
+      },
+      {
+        "text": "`postMessage` is deleted with it - the duplicate that could disagree with",
+        "done": false
+      },
+      {
+        "text": "itself. Both read `world.current_season()` through one helper.",
+        "done": false
+      },
+      {
+        "text": "**The engine ships its answer to the browser**, in",
+        "done": true
+      },
+      {
+        "text": "`/api/settings/forecast` and the tick state, so the sky widget reads the",
+        "done": false
+      },
+      {
+        "text": "engine's season rather than recomputing one. A month-based fallback remains",
+        "done": false
+      },
+      {
+        "text": "only for the frames before the first state arrives, and it is the old table",
+        "done": false
+      },
+      {
+        "text": "used for nothing else.",
+        "done": false
+      },
+      {
+        "text": "**Season changes are narrated** the way forecast entry changes are",
+        "done": true
+      },
+      {
+        "text": "(`[Season] Winter arrives.`), so a world visibly turns to winter. The first",
+        "done": false
+      },
+      {
+        "text": "tick does not narrate, so starting a world does not announce the weather.",
+        "done": false
+      },
+      {
+        "text": "**A month outside 1-12 clamps rather than raising**, because the same clock",
+        "done": true
+      },
+      {
+        "text": "that hands the resolver a month also renders it.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/weather_forecast.py (SEASON_BY_MONTH, resolve_season)",
+      "-",
+      "virtual_world_engine.py (current_season, narration)",
+      "static/js/sky-scape.js",
+      "tests/test_weather_forecast.py"
+    ],
+    "custom": {
+      "measured_2026_09_27_season_is_written_by_tools_and_read_by_nothing": "A search for `season` across `engine/`, `routes/`, and\n`virtual_world_engine.py` returns **nothing**. The only backend-side hits are\nwriters in fixtures:\n\n- `tools/generate_scenario.py:337` - `\"world_state\": {\"season\": \"summer\", ...}`\n- `tools/assemble_scenario.py:72` - `\"season\": \"summer\"`\n- `tools/scenario_components/runtime_overrides.json:14`\n\nThe only place a season is actually *computed* is the frontend, from the month:\n\n- `static/js/sky-scape.js:36` - `SEASON_BY_MONTH = [...]`\n- `static/js/sky-scape.js:47-48` - `_season(state)` from `state.game_month`\n- `static/js/sky-scape.js:218-228` - a second copy of the same table\n\nSo \"winter\" currently changes the colour of the sky widget and nothing else. No\ntemperature, no snow, no forage, no narration. A scenario can declare\n`\"season\": \"winter\"` in its save file and the engine will never look at it.\n\nTwo copies of the month→season table in one JS file is also a duplication bug\nwaiting to happen: they can disagree, and the engine has no copy to arbitrate.",
+      "what_to_change": "1. One server-side month→season resolver, mirroring the existing\n   `SEASON_BY_MONTH` boundaries. Prefer deriving it from `game_month` over\n   reading `world_state.season`, because `game_month` is what the sky widget\n   already trusts - but if `world_state.season` stays a supported override, say\n   explicitly which one wins.\n2. Feed the season into `outdoor_temp_for_hour()` (task-553) so winter is\n   genuinely colder and summer warmer, rather than only a sky tint.\n3. Make the frontend consume the engine's answer rather than recomputing it,\n   so there is one table in the codebase.\n4. Log or narrate a season change the way forecast entry changes are narrated\n   (`virtual_world_engine.py:1269-1276`), so a world visibly turns to winter.",
+      "notes": "- **`world.current_season()` is the one entry point** - the temperature model, the\n  narration and the API payload all call it, so the engine and the browser cannot\n  end up in different seasons. `resolve_season()` is the pure function under it,\n  which is what makes the precedence table testable without a world.\n- The season is a **bias on the shape**, not a temperature: winter is −7 °C on the\n  curve, so a tropical base with a winter bias is still warm and a temperate base\n  in winter is properly cold. That is why `SEASON_TEMP_BIAS` lives in 553's table\n  rather than being a second temperature model here.\n- `DEFAULT_SEASON` is `summer`, which is what the old frontend fell back to and\n  what the shipping scenarios declare - so their temperature behaviour is\n  unchanged.",
+      "browser_ui": "Intended UI home: scenario date/season setting → Environment/Weather view → inspect area temperature and weather narration over a day/night boundary.\n\nCurrent availability: the card says season is read in the sky widget but not the engine and depends on task-553's temperature curve. Engine season input and weather prose are not claimed as wired.\n\nLive steps when available:\n1. Load the same exterior area and forecast under winter and summer scenario dates; inspect engine temperature in `/api/state` and the area description.\n   - expected: winter and summer feed distinct season values to the engine and the temperature curve/narration reflects each one.\n2. Advance the clock across the configured 05:00 dawn and 19:00 evening boundaries.\n   - expected: season-aware description follows the clock and agrees with the date/season control; the sky widget is not the sole reader.\n3. Ask the character to `guess time` and inspect the moon description in the same scenes.\n   - expected: existing guess-time and moon behavior remain unchanged while season reaches engine weather logic.\n4. Save/reload each seasonal fixture.\n   - expected: the selected season survives and the engine reads it after reload.\n\nThis section is not a claim that engine season behavior is implemented today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/environment/task-554-season-is-read-nowhere-in-the-engine-winter-should-be-cold.md"
+  }
+}

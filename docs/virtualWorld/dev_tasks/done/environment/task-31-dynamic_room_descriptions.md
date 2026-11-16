@@ -10,13 +10,13 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: High
-**Status**: In Review — implemented (code-verified 2026-08-11). `get_area_description()` in `engine/area_description.py` composes base + item descriptions + environment + characters + exits; environment summary only shows notable conditions.
+**Status**: In Review - implemented (code-verified 2026-08-11). `get_area_description()` in `engine/area_description.py` composes base + item descriptions + environment + characters + exits; environment summary only shows notable conditions.
 
 ---
 
 ## What
 
-Area descriptions are currently static text. Items in the room are listed separately as a flat list after the description. The goal is to make room descriptions **dynamic** — composed from a base description, items' descriptions, environment (temp/smell/sound), and character positions — so that `look` outputs a rich, natural narrative of what's actually in the room and where things are.
+Area descriptions are currently static text. Items in the room are listed separately as a flat list after the description. The goal is to make room descriptions **dynamic** - composed from a base description, items' descriptions, environment (temp/smell/sound), and character positions - so that `look` outputs a rich, natural narrative of what's actually in the room and where things are.
 
 ## Why
 
@@ -26,7 +26,7 @@ Area descriptions are currently static text. Items in the room are listed separa
 2. Appends list of players present with their held items
 3. Appends environment warnings (hot/cold/toxic/etc.)
 4. Appends exit descriptions from door nodes
-5. Items are NOT included in the description — they're listed separately via `get_area_items()` (`app.py:277-279`)
+5. Items are NOT included in the description - they're listed separately via `get_area_items()` (`app.py:277-279`)
 
 ### The result
 
@@ -106,7 +106,7 @@ If items are taken, moved, or destroyed, the description updates automatically s
    - Option A: Base + bullet-point list of item descriptions
    - Option B: Base + natural prose (items' descriptions joined with ". ")
    - Option C: Items have a `when_looking` field vs `description` field
-   - **Recommendation**: Option B — items' descriptions should be written as full sentences that can follow naturally. The room description is the anchor, item descriptions are additive prose.
+   - **Recommendation**: Option B - items' descriptions should be written as full sentences that can follow naturally. The room description is the anchor, item descriptions are additive prose.
 
 2. **Item description length?** Keep `look` items short (1-2 sentences). Detailed description is for `examine`.
 
@@ -124,8 +124,8 @@ If items are taken, moved, or destroyed, the description updates automatically s
 
 ## Files
 
-- `virtual_world_engine.py` — rewrite `get_area_description()` to compose item descriptions; update `get_narration_context_for_area()` similarly
-- `app.py` — the `look` command handler may need simplification since items would be in the description now (line 274-279)
+- `virtual_world_engine.py` - rewrite `get_area_description()` to compose item descriptions; update `get_narration_context_for_area()` similarly
+- `app.py` - the `look` command handler may need simplification since items would be in the description now (line 274-279)
 
 ## Steps to verify
 

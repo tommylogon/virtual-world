@@ -18,8 +18,8 @@ priority: medium
 
 Saved scenarios contain **two representations** of the same exit data:
 
-1. **Graph** — area→way connection edges (`direction`, `visible_in_direction`) + way nodes
-2. **`areas` / `rooms` `.exits` dict** — snapshot written on serialize
+1. **Graph** - area→way connection edges (`direction`, `visible_in_direction`) + way nodes
+2. **`areas` / `rooms` `.exits` dict** - snapshot written on serialize
 
 Runtime already uses graph only:
 
@@ -28,7 +28,7 @@ Runtime already uses graph only:
         """Reconstruct the exits dict for a area from graph connections."""
 ```
 
-Authors editing one UI field update the graph. Opening raw JSON (e.g. `labs.json`) can show **different** `visible_in_direction` text in `graph.edges` vs `rooms[].exits` for the same ladder — confusing even when gameplay is correct.
+Authors editing one UI field update the graph. Opening raw JSON (e.g. `labs.json`) can show **different** `visible_in_direction` text in `graph.edges` vs `rooms[].exits` for the same ladder - confusing even when gameplay is correct.
 
 ## What
 
@@ -38,9 +38,9 @@ Single source of truth: **graph**. Serialized files either omit per-area `exits`
 
 ### A. Stop writing `exits` on save (preferred)
 
-- `engine/serialization.py` — remove `exits` from `rooms_serialized` / player-facing area dict OR write empty `{}`
+- `engine/serialization.py` - remove `exits` from `rooms_serialized` / player-facing area dict OR write empty `{}`
 - API responses still include `exits` built live via `build_exits_for_area()` (already happens in serialize path line ~107)
-- Frontend `worldState.areas[].exits` continues to work — always computed
+- Frontend `worldState.areas[].exits` continues to work - always computed
 
 ### B. Rebuild on load, ignore file exits
 
@@ -50,20 +50,20 @@ Single source of truth: **graph**. Serialized files either omit per-area `exits`
 ### C. Keep exits as export-only cache
 
 - Write on save but mark `_exits_cache: true` and overwrite on every load from graph
-- Document as derived — never hand-edit
+- Document as derived - never hand-edit
 
 ## Migration
 
-- `tools/strip_exits_cache.py` — optional: remove exits blocks from scenario JSON, verify graph intact
+- `tools/strip_exits_cache.py` - optional: remove exits blocks from scenario JSON, verify graph intact
 - Backward compat: load path must not **create** ways from stale exits if graph already has way nodes (audit `serialization.py` lines ~314–356 legacy path)
 
 ## Files
 
 - `engine/serialization.py`
 - `engine/area_description.py` (no change expected)
-- `data/scenarios/labs.json` — migrate after script
-- `world_template.json` — if exits duplication exists
-- `tests/test_serialization.py` — round-trip: edit edge view → save → load → exits match
+- `data/scenarios/labs.json` - migrate after script
+- `world_template.json` - if exits duplication exists
+- `tests/test_serialization.py` - round-trip: edit edge view → save → load → exits match
 
 ## Steps to verify
 

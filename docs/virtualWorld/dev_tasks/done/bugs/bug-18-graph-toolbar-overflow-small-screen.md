@@ -1,18 +1,18 @@
 ﻿# Bug-18: Graph Toolbar Overflows Off-Screen on Smaller Windows
 
-**Status:** Done — confirmed by Tommy 2026-08-30.
-**Area:** UI — graph editor toolbar
+**Status:** Done - confirmed by Tommy 2026-08-30.
+**Area:** UI - graph editor toolbar
 **Observed:** `toolbar for graph overflows out of screen on smaller screens`
 
 ## Repro (live markup)
 
 The toolbar is one `.editor-toolbar` with several `.toolbar-group` rows. The
-middle group is very wide — 11 controls in a row:
+middle group is very wide - 11 controls in a row:
 
 ```html
 <div class="toolbar-group">
     <button id="btn-physics">â¸ Physics</button>
-    <button id="btn-cardinal">ðŸ—ºï¸ Map</button>
+    <button id="btn-cardinal">ðŸ-ºï¸ Map</button>
     <button>âŠž Fit</button>
     <input id="graph-search" class="graph-search" type="text" placeholder="ðŸ” Search nodes...">
     <button>ðŸ“– Legend</button>
@@ -41,12 +41,12 @@ middle group is very wide — 11 controls in a row:
 
 `flex-wrap: wrap` only wraps *whole groups*. The groups themselves are `flex`
 rows whose buttons are `white-space: nowrap` and cannot shrink, so any single
-`toolbar-group` wider than the screen overflows past the right edge — the big
+`toolbar-group` wider than the screen overflows past the right edge - the big
 middle group is clearly it.
 
 ## Fix options
 
-1. **Scroll strip (simplest):** allow inner groups to scroll when too wide —
+1. **Scroll strip (simplest):** allow inner groups to scroll when too wide -
    `overflow-x: auto` on `.editor-toolbar` (buttons stay reachable, one row).
 2. **Wrap within groups:** make `.toolbar-group` also `flex-wrap: wrap` so the
    buttons inside a wide group flow to multiple lines (uses vertical space but

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-42",
+  "kind": "task",
+  "number": 42,
+  "title": "Proper Memory Editor + World Lore",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-15 (updated 2026-07-16)",
+  "updated": "2026-07-15 (updated 2026-07-16)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the single-textarea memory system with two complementary list-based systems:\n\n1. **World Lore (shared knowledge)** - a list of structured lore entries that every character sees as common knowledge.\n2. **Per-Character Memory (structured list)** - individual memories with type, tick, location, importance, tags. Editable per character.\n\nBoth systems use the same underlying list structure so they can be unified for future RAG/embedding support (see `vector_embeddings_rag_prep.md`).\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - add `world_lore` list field, auto-memory on events",
+      "player.py` - add structured `memories` field",
+      "app.py` - world lore CRUD API + memory CRUD API endpoints",
+      "static/js/api.js` - API calls for both systems",
+      "static/js/inspector.js` - world lore list editor + memory list editor",
+      "static/js/agent-engine.js` - inject world lore + structured memories into prompt",
+      "world_template.json` - add `world_lore` top-level field (list)",
+      "static/css/style.css` - optional styling for list editors"
+    ],
+    "custom": {
+      "part_1_world_lore_list_based_shared_knowledge": "### Concept\n\nA list of structured lore entries stored at the world level. Every character sees them in their system prompt as \"common knowledge everyone in this world knows.\" Not a flat text blob - individual entries with titles, categories, and metadata.\n\n### Lore Entry Structure\n\n```python\n{\n  \"id\": \"lore_001\",\n  \"title\": \"The Kingdom of Rocheveron\",\n  \"content\": \"The kingdom of Rocheveron is in the north, ruled by King Aldric...\",\n  \"category\": \"geography\",    # geography, history,人物, factions, magic, religion, etc.\n  \"tick_created\": 0,\n  \"importance\": 4,            # 1-5, controls prominence in prompt\n  \"tags\": [\"location:Rocheveron\", \"character:King_Aldric\"],\n  \"source\": \"manual\"          # \"manual\" or \"auto_generated\"\n}\n```\n\n### Storage\n\nNew field on the `VirtualWorld` class, serialized in `world_template.json`:\n\n```python\n# virtual_world_engine.py\nself.world_lore = [\n    {\"id\": \"lore_001\", \"title\": \"...\", \"content\": \"...\", ...},\n    {\"id\": \"lore_002\", ...},\n]\n```\n\n### Prompt Injection\n\nIn `agent-engine.js:_buildCharacterSystemPrompt()`, inject world lore entries as formatted text:\n\n```\n=== WORLD LORE (common knowledge) ===\n[Geography] The Kingdom of Rocheveron\n  The kingdom of Rocheveron is in the north, ruled by King Aldric...\n\n[History] The Great Fire of 1024\n  A massive fire destroyed half the capital...\n\n[Factions] The Iron Guild\n  Merchants and smiths who control trade in the southern provinces...\n```\n\nOnly include lore entries with importance >= threshold (configurable, default show all). Future: relevance filtering before RAG is built.\n\n### Frontend\n\n- **World tab** in the inspector panel (new section)\n- List view of all lore entries (same visual pattern as per-character memories)\n- [+ Add Lore Entry] button\n- Per-entry: [✏️ Edit] [🗑 Delete]\n- Entry editor modal: title, content (textarea), category (dropdown), importance (1-5 slider), tags (comma input)\n- Save calls `/api/world/lore` (batch) or individual CRUD\n\n### API\n\n- `GET /api/world/lore` - returns `{ \"lore\": [...] }`\n- `PUT /api/world/lore` - replaces entire lore list\n- `POST /api/world/lore/entry` - add single entry\n- `PUT /api/world/lore/entry/<id>` - update single entry\n- `DELETE /api/world/lore/entry/<id>` - delete single entry\n- Persisted in `world_template.json`: `{ \"world_lore\": [...], ... }`\n\n### Auto-Propagation\n\nWorld lore is injected into every character's system prompt server-side. No per-character copy needed. The prompt builder reads from `self.world_lore` directly.\n\n---",
+      "part_2_per_character_memory_structured_list": "### Memory structure\n\nEach memory is a structured entry:\n\n```python\n{\n  \"id\": \"mem_001\",\n  \"type\": \"observation\",  # observation, conversation, location, event, learned\n  \"tick\": 42,\n  \"timestamp\": \"Day 1, 14:30\",\n  \"content\": \"Tommy was in the Kitchen cooking eggs.\",\n  \"location\": \"Kitchen\",\n  \"importance\": 3,  # 1-5, determines retention\n  \"tags\": [\"character:Tommy\", \"room:Kitchen\", \"action:cooking\"],\n  \"source\": \"auto\"  # \"auto\" or \"manual\"\n}\n```\n\n### Location memory\n\nAutomatically record when a character moves to a new room:\n\n```\nYou remember being in the Foyer at 08:00.\nYou moved to the Kitchen at 08:05.\nYou moved to the Garden at 08:15.\n```\n\n### Frontend editor\n\nReplace the single textarea with a list view (same visual pattern as world lore):\n\n```\n🧠 Memories (24 total)\n━━━━━━━━━━━━━━━━━━━━━━━━━\n\n[+ Add Memory] [🗑 Clear All]\n\n📌 Day 1, 14:30 - Observation\n   \"Tommy was in the Kitchen cooking eggs.\"\n   📍 Kitchen | ⭐ Importance: 3 | 🏷️ character:Tommy\n   [✏️ Edit] [🗑 Delete]\n\n📌 Day 1, 14:00 - Location\n   \"Moved from Foyer to Kitchen.\"\n   📍 Kitchen\n   [✏️ Edit] [🗑 Delete]\n```\n\n### Memory filtering\n\n- Filter by type (observations, conversations, locations, events)\n- Filter by location\n- Filter by character\n- Search text\n- Sort by tick or importance\n\n### Backend\n\n- Store memories as a JSON list in a new field `Player.memories`\n- Add API for CRUD operations on individual memories\n- Automatic memory creation on significant events (move, conversation, item acquisition, etc.)\n- Memory consolidation/forgetting (old or low-importance memories are summarized and trimmed)\n\n### Prompt Integration\n\nIn `_buildMemoryContext()`, combine both sources:\n\n```\n=== WORLD LORE (common knowledge) ===\n{formatted lore entries}\n\n=== RECENT EVENTS ===\n{last 8 memories}\n\n=== RELATED MEMORIES ===\n{RAG-retrieved memories}\n```\n\n---",
+      "design_notes_for_future_rag_compatibility": "Both world lore entries and per-character memories share a compatible structure:\n- `id`, `content` (the text), `importance`, `tags`\n- Lore has `title` + `category`; memories have `type` + `tick` + `location`\n- Both can be embedded and stored in a vector index\n- Tags enable filtered retrieval (e.g., only lore tagged \"location:Rocheveron\")\n\nSee `vector_embeddings_rag_prep.md` for the future RAG integration plan.\n\n---"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-42-proper_memory_editor.md"
+  }
+}

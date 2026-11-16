@@ -22,7 +22,7 @@ authored interval from **game minutes** to whole ticks, and both sites use it:
 Quantised to the nearest tick with a floor of one, because a tick is the smallest
 step the scheduler has: at 15 min/tick an authored "20 minutes" becomes one tick
 (15 minutes), which is as close as it can get. **At the default 1 min/tick an
-authored value's meaning is unchanged**, so nothing in existing content shifts —
+authored value's meaning is unchanged**, so nothing in existing content shifts -
 and nothing in the shipped data uses either field anyway (`rg` finds no authored
 `"interval"` or `"npc_action_interval"` in `data/` or `world_template.json`),
 which is exactly why the divergence went unnoticed.
@@ -55,7 +55,7 @@ every 45 minutes instead of every 3.
 
 It is inert in the goblin camp (`process_simple_npcs` skips anyone without
 `simple_npc`, and the camp's characters are `simple_npc: false`), which is why it
-has not surfaced — but it is a live divergence for any `simple_npc` character or
+has not surfaced - but it is a live divergence for any `simple_npc` character or
 authored `behaviors[]` patrol.
 
 ## How
@@ -65,7 +65,7 @@ Express both intervals in **game minutes** and convert at evaluation:
 same action-credit idea as `background_simulation` if a behaviour should be able
 to fire more than once in a long tick.
 
-Keep the authored field's meaning documented either way — a data value whose unit
+Keep the authored field's meaning documented either way - a data value whose unit
 silently depends on a config setting is exactly the bug this task exists to
 remove.
 
@@ -80,7 +80,7 @@ remove.
 ## Non-goals
 
 - The newer behaviour phases (task-389/390).
-- Deciding whether the legacy `npc_behavior` wander path should be retired —
+- Deciding whether the legacy `npc_behavior` wander path should be retired -
   untested in practice, so it stays until someone exercises or removes it
   deliberately.
 

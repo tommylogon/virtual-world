@@ -10,7 +10,7 @@ related: ['task-207', 'task-208', 'task-209', 'task-210', 'task-211', 'task-212'
 
 **Filed**: 2026-08-11
 **Priority**: Low
-**Status**: Re-scoped (2026-09-22) — description-driven, not prop-driven
+**Status**: Re-scoped (2026-09-22) - description-driven, not prop-driven
 
 ---
 
@@ -18,7 +18,7 @@ related: ['task-207', 'task-208', 'task-209', 'task-210', 'task-211', 'task-212'
 **Related:** [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-213-mature-traits]]
 <!-- deps:end -->
 
-## Status — re-scoped (2026-09-22)
+## Status - re-scoped (2026-09-22)
 
 **Decision (user):** the numeric `opacity` and `friction` clothing properties are
 **cancelled**. `wet`, `comfort` and `coverage` remain usable. Where possible,
@@ -27,11 +27,11 @@ description**, not by new numeric props. This is a live-game presentation concer
 (prompt quality), not backsim mechanics.
 
 ### What already exists (keep)
-- **`coverage`** — read by `engine/body_parts.py:240` `is_exposed()` to decide
+- **`coverage`** - read by `engine/body_parts.py:240` `is_exposed()` to decide
   skin contact; echoed by the appearance prompt. Numeric and load-bearing. Keep.
-- **`wet`** — a character condition (task-190/231) applied via `set_wet`;
+- **`wet`** - a character condition (task-190/231) applied via `set_wet`;
   `engine/equipment_bonuses.py:107` cuts insulation when soaked. Already works.
-- **`current_state`** per item — echoed when it is a real state (not off/unlit).
+- **`current_state`** per item - echoed when it is a real state (not off/unlit).
 
 ### Shipped in this pass
 - **Item descriptions now reach both equipment prompts.** `engine/equipment.py`
@@ -47,12 +47,12 @@ description**, not by new numeric props. This is a live-game presentation concer
   (self vs viewer, no-description, placeholder stripping, opacity/friction gone).
 
 ### Still open / deliberately not done
-- **`comfort`** — not added as a property. If wanted, it should be description
+- **`comfort`** - not added as a property. If wanted, it should be description
   or tag flavor, not a number.
-- **Rain → clothing wet → description regenerates** — the wet *condition* and
+- **Rain → clothing wet → description regenerates** - the wet *condition* and
   the insulation penalty exist; automatically marking equipped clothing wet and
   re-running `_update_equipment_description()` on weather change is not wired.
-- **task-208 friction trickle** — `engine/tick_manager.py:1019` still reads an
+- **task-208 friction trickle** - `engine/tick_manager.py:1019` still reads an
   item `friction` prop. No library item authors one, and the property is
   cancelled, so this is dormant debt. Left in place because `task-208`'s test
   suite covers it; retire it only alongside that decision.
@@ -62,7 +62,7 @@ description**, not by new numeric props. This is a live-game presentation concer
 ## Closed by task-489 (2026-10-02, WT-characters-engine)
 
 The "Still open" list above had two items. One is closed, one was never open in
-the way it read, and the third entry — task-489's `opacity`/`friction` — is
+the way it read, and the third entry - task-489's `opacity`/`friction` - is
 **refused**. All of it is recorded in task-489's file; the summary:
 
 ### Closed: *"Rain -> clothing wet -> description regenerates"*
@@ -76,14 +76,14 @@ Two things made this harder than "call the description updater", and both were
 found by driving it:
 
 1. **`set_wet` with no node named never worked.** The branch read
-   `game_state.active_player` — which is a **name string**, not a `Player` — and
+   `game_state.active_player` - which is a **name string**, not a `Player` - and
    passed it to `equipment.get_equipped_items`, a method that does not exist. So
    rain, wading and flooding silently soaked *nothing*. The branch now resolves
    the object through `player_manager.get_active_player_obj()` and reads the
    `equipped` **edges** (task-654 made those and the dict one fact).
 2. **The code-generated description could not reflect the change even when it
    did fire.** `_update_equipment_description` renders `ITEM DETAILS` for the LLM
-   prompt but its *fallback* text listed slot names only — so a newly soaked
+   prompt but its *fallback* text listed slot names only - so a newly soaked
    character regenerated to byte-identical prose. That is why this read as
    unwired. The fallback now emits an item's live state as its own sentence.
 
@@ -94,7 +94,7 @@ because task-208's test suite covers it". It is now **live** and firing: the tic
 pass reads `node.properties.get("friction")` on equipped items, and task-545's
 recording pass attributes that gain to the `clothing_friction` path, which makes
 it distinguishable from any touch (task-488 needs that distinction). No library
-item authors a `friction` value, so in practice it contributes nothing — the
+item authors a `friction` value, so in practice it contributes nothing - the
 property is still effectively dormant, but the *mechanism* is now wired rather
 than absent, and the decision to retire it stands.
 

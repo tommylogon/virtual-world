@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-30
 **Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P4 — Keyboard map: Ctrl+S commit, Ctrl+K palette, Ctrl+Z undo (toolbar still works); docs + hints.
+**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md - P4 - Keyboard map: Ctrl+S commit, Ctrl+K palette, Ctrl+Z undo (toolbar still works); docs + hints.
 
 ## Notes
 

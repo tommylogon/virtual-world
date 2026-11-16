@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-194",
+  "kind": "task",
+  "number": 194,
+  "title": "Wind & Water Resistance on Clothing (Insulation)",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Insulation should react to wet and wind. Right now a garment contributes a flat insulation value regardless of weather, so a drenched coat protects exactly as well as a dry one.",
+    "how": "- Insulation is now a singular modifier: `effective_temp = ambient_temp + total_insulation` (equipment_bonuses.py:97,116).\n- Wet on a slot can dynamically shift that garment's insulation contribution (wet coat insulates less).\n- Wind in an area pushes `effective_temp` harder, with insulation resisting the wind chill.\n- Keep the single-modifier model; wind/wet just modify the value before it aggregates.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/equipment_bonuses.py` - fold wind/wet modifiers into total insulation",
+      "engine/equipment.py` - track wet state per equipped slot",
+      "engine/environment_propagation.py` - wind as an area-level factor that adjusts effective_temp"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/environment/task-194-wind-water-resistance-insulation.md"
+  }
+}

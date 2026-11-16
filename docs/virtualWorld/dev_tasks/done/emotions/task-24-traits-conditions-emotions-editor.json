@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-24",
+  "kind": "task",
+  "number": 24,
+  "title": "Traits, Conditions & Emotions Editor",
+  "status": "done",
+  "priority": "medium",
+  "area": "emotions",
+  "tags": [],
+  "created": "2026-07-15 (updated 2026-07-22)",
+  "updated": "2026-07-15 (updated 2026-07-22)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Characters have three separate systems: **traits** (permanent mechanical modifiers), **conditions** (temporary status effects), and **emotions** (current mood). These need a unified editor in the character inspector.",
+    "why": "TODO",
+    "how": "### Engine - `engine/traits.py` (new)\n- 23 trait definitions with full effect specs: glutton, cleanfreak, night_owl, morning_person, fast_healer, slow_healer, one_armed, small_bladder, big_bladder, blind, deaf, introvert, extrovert, apathetic, allergic (parameterized), light_sleeper, heavy_sleeper, immortal, dark_vision, darkvision (alias), slasher, is_slasher (alias), hardy\n- `TraitSystem` with static methods: `has_trait`, `has_effect`, `get_effects`, `get_action_cost_mods`, `get_vital_multipliers`, `get_sense_blocked`, `get_disabled_slots`, `get_hp_regen_multiplier`, `is_immune_to_condition`, `get_allergen_tag`, `get_energy_curve`, `process_tick_effects`\n\n### Wiring\n- **`tick_manager.py`**: Trait action cost mods replace ad-hoc dict iteration. Vital multipliers applied in `tick_turn()`. `process_tick_effects()` handles allergic reactions and energy curves. HP regen multiplier for fast/slow healer.\n- **`lighting.py`**: `TraitSystem.has_effect(player, \"dark_vision\")` replaces ad-hoc `traits.get(\"dark_vision\")`.\n- **`player_manager.py`**: `is_slasher()` delegates to `TraitSystem.has_effect(player, \"is_slasher\")`.\n- **`effects.py`**: `handle_apply_trait`, `handle_remove_trait` - add/remove traits via triggers.\n- **`trigger_system.py`**: `apply_trait`, `remove_trait` in EFFECT_TYPES. `has_trait` condition type.\n\n### Player model\n- **`player.tags`** - new field for identity markers (`[\"vampire\", \"faction:guard\"]`).\n- **`player.to_dict()`** - now includes `traits` and `tags` in API responses.\n- Serialization/import/update routes all handle both fields.\n\n### Inspector UI - `static/js/inspector/agent-view.js`\n- **Stats tab**: Traits section with colored badges + ✕ remove. Dropdown populated from library to add traits. Parameterized traits prompt for value.\n- **Bio tab**: Tags section with badge display + text input + Add button. Remove via ✕.\n- Library data loaded async via `ApiClient.getLibraryType('traits')`.\n\n### Library\n- 23 trait definition files in `data/library/traits/`.\n- Library Browser Traits tab can view/edit metadata.\n\n### Tests\n- `tests/test_traits.py`: 57 tests covering all trait definitions, effect resolution, tick processing.\n- `tests/test_conditions.py`: 38 tests for condition system.",
+    "verify": "### Manual Test Steps\n\n#### Traits\n1. Open the game in browser at http://127.0.0.1:4444\n2. Click a character in the agent list → open inspector → Stats tab\n3. **Expected**: You should see a \"Traits\" section with `[+ Add Trait]` button\n4. Click `[+ Add Trait]` → searchable dropdown of predefined traits appears\n5. Select \"Glutton\" → badge should appear: `[Glutton ✕]`\n6. Save the character, reload the page, open inspector again → trait should still be there\n7. Click `[✕]` on Glutton → it should be removed\n8. Try a parameterized trait like \"Allergic\" → should prompt for a tag value (e.g. \"pollen\")\n9. **Expected**: `[Allergic: pollen ✕]` badge appears\n10. Check `data/library/traits/` - should have 23 trait definition files\n\n#### Traits Engine Effects\n1. Add `glutton` trait to a character\n2. Run several turns (`rest 1` or step through)\n3. **Expected**: Hunger decays approximately 2× faster than a character without glutton\n4. Add `night_owl` trait - energy should decay slower at night, faster during day\n5. Add `blind` trait - `look` and `examine` commands should return vision-blocked messages\n6. Add `immortal` trait - damage the character to 0 HP → HP should bottom at 1, not die\n7. Add `allergic: pollen` to a character, then examine/use an item with tag `pollen` → should trigger allergic reaction (poisoned condition or damage)\n\n#### Conditions\n1. Open character inspector → should see \"Conditions\" section\n2. Apply a condition via trigger or manual add\n3. **Expected**: Condition badge shows with remaining duration `[🔥 Poisoned ⏱ 5]`\n4. Run turns - duration should count down each tick\n5. When duration hits 0, condition should auto-remove\n6. Manually remove a condition → should disappear immediately\n\n#### Tags\n1. Open character inspector → Bio tab → Tags section\n2. Type a tag like \"vampire\" and click Add\n3. **Expected**: `[vampire ✕]` badge appears\n4. Save/reload → tag persists\n5. Tags are separate from traits - shown in Bio tab, not Stats tab\n\n#### Automated Tests\nRun `node tools/test_engine.py` or check test_traits.py / test_conditions.py:\n- 57 trait tests should pass\n- 38 condition tests should pass",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "player.py` - ensure `traits`, `conditions`, `tags` stored cleanly",
+      "virtual_world_engine.py` - trait processing in `_update_vitals()`, condition tick/decay, tag checks in triggers",
+      "static/js/inspector.js` - traits/conditions/emotions editor in character inspector",
+      "static/js/api.js` - trait/condition/tag API methods",
+      "app.py` - trait/condition/tag endpoints"
+    ],
+    "custom": {
+      "core_model": "### Traits - permanent, engine-enforced\n\nTraits are machine-readable modifiers that change how the engine treats the character. They are NOT personality - personality lives in the `personality` text field for the LLM.\n\n| Trait | Engine Effect | Param |\n|-------|---------------|-------|\n| `glutton` | Hunger decay ×2 | - |\n| `cleanfreak` | Hygiene decay faster | - |\n| `night_owl` | Energy curve shifted to night hours | - |\n| `morning_person` | Energy curve shifted to morning, -energy at night | - |\n| `fast_healer` | HP regen ×2 | - |\n| `slow_healer` | HP regen ×0.5 | - |\n| `one_armed` | One hand slot disabled | - |\n| `small_bladder` | Bladder decay faster | - |\n| `big_bladder` | Bladder decay slower | - |\n| `blind` | Perception checks auto-fail, LLM narrated without sight | - |\n| `deaf` | Cannot hear, LLM narrated without audio | - |\n| `introvert` | Energy drains faster when in groups | - |\n| `extrovert` | Energy gains when socializing | - |\n| `apathetic` | No entertainment gain/loss from normal decay | - |\n| `allergic` | Takes damage or gains condition when near items with matching tag | `allergic:pollen` |\n| `light_sleeper` | Wakes from loud noises | - |\n| `heavy_sleeper` | Hard to wake | - |\n| `immortal` | Cannot die, HP bottoms at 1 | - |\n\n### Conditions - temporary\n\nConditions are temporary effects with a duration (in turns). They decay naturally or are cured.\n\n| Condition | Effect | Duration |\n|-----------|--------|----------|\n| `poisoned` | HP decay per tick | N turns |\n| `bleeding` | HP decay per tick, stops with bandage | Until treated |\n| `broken_leg` | Movement speed halved | Until healed |\n| `concussed` | -INT, -perception | N turns |\n| `burning` | HP decay, spreads to flammable items | Until extinguished |\n| `sick` | Vitals decay faster, -all skills | N turns |\n| `exhausted` | -all stats, +sleep need | N turns |\n| `drunk` | -DEX, -INT, +confidence, blurred narration | N turns |\n| `high` | Variable effects based on substance | N turns |\n| `blind_temporary` | Same as blind trait but temporary | N turns |\n| `deaf_temporary` | Same as deaf but temporary | N turns |\n\n### Emotions - current mood\n\nAlready partially implemented. Emotion + intensity slider, with optional description/context (e.g. \"Feeling cheerful after talking with Miki\").\n\n### Tags - identity markers on characters\n\nCharacters can have tags, separate from traits. Tags are checked by items, triggers, and conditions:\n\n```\ntags: [\"vampire\", \"faction:guard\", \"synthetic\", \"faction:crows\", \"nobility\"]\n```\n\nExample: A silver chain item has a trigger `on_equip: if target tags includes \"vampire\" → set condition \"burning\"`. The engine checks the wearer's tags, not traits.\n\n### What goes where\n\n| Quality | Goes In | Example | Handled By |\n|---------|---------|---------|------------|\n| \"I eat a lot\" | Trait | `glutton` | Engine (hunger ×2) |\n| \"I'm brave\" | Personality | `personality: \"Brave to a fault...\"` | LLM |\n| \"I'm a vampire\" | Tags | `tags: [\"vampire\"]` | Engine (items check this) |\n| \"I hate mods\" | Personality | `personality: \"Distrusts anyone with cybernetics...\"` | LLM |\n| \"I'm a guard\" | Tags | `tags: [\"faction:guard\"]` | Engine (uniform gives this tag) |\n| \"I'm allergic to bees\" | Trait | `allergic:bee` | Engine (checks bee-tagged items) |",
+      "allergy_system_parameterized_trait": "`allergic:<tag>` is a special trait with a parameter:\n\n```python\ntraits = {\"allergic\": \"pollen\", \"glutton\": True}\n```\n\nWhen the engine processes an action that involves an item or room with the matching tag:\n- Eating something with tag `pollen` → applies `poisoned` condition for N turns\n- Entering a room with air tag `pollen` → applies coughing/discomfort\n- Equipping something with tag `pollen` → same\n\nThe trigger system can also check: `if character has trait \"allergic:<X>\" and action involves tag \"X\" → apply effect`.",
+      "editor_ui": "### Traits Section\n\n```\n🧬 Traits\n[+ Add Trait]\n\nCurrent traits:\n[Glutton] [Night Owl] [Allergic: Peanuts ✕] [Blind]\n                      [pollen ■]\n```\n\n- Click [+] → searchable dropdown of predefined traits\n- Some traits accept parameters (allergic → tag input)\n- Each shows a tooltip with engine effect description\n- [✕] removes trait\n- Traits are permanent - no duration\n\n### Conditions Section\n\n```\n⚠️ Conditions\n[+ Add Condition]\n\n[🔥 Poisoned ⏱ 5] [🦴 Broken Leg ⏱ ∞ (needs treatment)]\n\nActive conditions with remaining duration.\nClick condition → set duration, remove, or describe effects.\n```\n\n- Conditions auto-decay each turn\n- Can be removed manually (GM override)\n- Duration shown as remaining turns (∞ for permanent until cured)\n\n### Emotions Section\n\nAlready exists - enhance with:\n- Description/context field (\"Feeling cheerful after talking with Miki\")\n- History log (previous emotions + triggers)",
+      "engine_integration": "### Trait effects applied in `_update_vitals()`\n- Check player traits each tick\n- Apply multipliers (glutton → hunger ×2)\n- Apply special cases (allergic checks air tags in current room)\n\n### Condition effects applied in `_update_vitals()` and action handlers\n- Check active conditions before actions\n- Apply damage/penalties per tick\n- Decay durations\n\n### Tag checks in item triggers and conditions\n- `has_tag: vampire` condition on items/triggers\n- `target_has_tag: faction:guard` - check target character's tags"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Traits System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/emotions/task-24-traits_conditions_emotions_editor.md"
+  }
+}

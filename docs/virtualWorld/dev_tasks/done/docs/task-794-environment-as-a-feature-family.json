@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-794",
+  "kind": "task",
+  "number": 794,
+  "title": "Environment as a feature family",
+  "status": "done",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-791"
+    ],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make **Environment** a feature *family*: an umbrella page over subpages. Environment covers light, heat/temperature, time/weather/sun/moon/seasons/forecast, plus the world-building cluster (worldpainter, areas, ways, connections, scopes, item placement, biomes, heightmaps, settlements, interiors, structures).",
+    "why": "Environment spans many independent authoring surfaces - light has its own inspector + Engine Config sliders, weather its own schedule, heat its own config. The Feature Map splits it across rows 23/24/25/36. One page is unreadable; the reader should be able to land on 'Environment' and navigate down.",
+    "how": "Umbrella page per the new standard, linking its family; each subpage follows the standard. Decide the boundary with World Building (the Map already treats WorldPainter/Grid-to-Graph/Scopes as editor features).",
+    "verify": "1. Open the Environment umbrella.\n   - expected: links to light, temperature, weather, and the world-building cluster.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "an Environment umbrella links a family of subpages",
+        "done": false
+      },
+      {
+        "text": "each subpage follows the feature/mechanic/system standard",
+        "done": false
+      },
+      {
+        "text": "the Map rows 23/24/25/36 map onto the family",
+        "done": false
+      }
+    ],
+    "files": [
+      "docs/virtualWorld/Environment/",
+      "docs/virtualWorld/World Building/",
+      "docs/virtualWorld/Feature Map.md"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Environment/Light System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/docs/task-794-environment-as-a-feature-family.md"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "task-427",
+  "kind": "task",
+  "number": 427,
+  "title": "Creature spawners, population caps, and a death path",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- **`tagged_count` condition** - count tagged entities in an area (or the world):\n  `{\"type\":\"tagged_count\",\"target_has_tag\":\"rabbit\",\"area\":\"current\",\"value\":4,\"op\":\"lt\"}`.\n  Generic beyond creatures: \"how many goblins are in this room\". Register in\n  `CONDITION_TYPES` and document with the other conditions.\n- **Creature templates** - a library character per species (`rabbit`, `deer`) with\n  species tags, vitals, and the behaviour needed to wander/graze. Spawned with\n  `spawn_character {character_id, area}`.\n- **Spawners are sources, not characters**: an untagged standing fixture with the\n  growth-counter pattern (`parameter_reached` + `tagged_count` + `spawn_character`),\n  so a burrow is not edible and cannot be hunted.\n- **Death yields a carcass** - a loot/drop-on-death hook in the combat/death path,\n  producing a food item. Audit `engine/combat.py` first: it is not confirmed today\n  that death drops anything.\n- **Lifetime** - creatures age/die, and starvation via task-409's needs so the\n  population self-limits rather than needing a cull.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A burrow spawns a rabbit only while the area holds fewer than N tagged rabbits.",
+        "done": false
+      },
+      {
+        "text": "Killing a creature yields a carcass item that then behaves as ordinary food",
+        "done": false
+      },
+      {
+        "text": "(consumption via task-424's path).",
+        "done": false
+      },
+      {
+        "text": "Population reaches a stable band over a week rather than 0 or unbounded.",
+        "done": false
+      },
+      {
+        "text": "A creature spawner is never itself edible or huntable.",
+        "done": false
+      },
+      {
+        "text": "Deterministic under a fixed seed.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/triggers/condition_tree.py`, `engine/trigger_validator.py` - `tagged_count",
+      "engine/effect_handlers/spawn.py` - spawn into the triggering item's area",
+      "engine/ghost.py`, `engine/effects.py`, `player.py`, `engine/serialization.py",
+      "- carcass-on-death + `carcass_item",
+      "data/library/characters/rabbit.json`, `data/library/items/carcass.json`,",
+      "data/library/items/rabbit_burrow.json",
+      "tests/test_creature_spawners.py"
+    ],
+    "custom": {
+      "gap": "task-410 covers **item** sources (plants) and, in slice 2, active item sources\n(fishing spot, snare). It records character sources as slice 4 without a task of\ntheir own - and they need three things item sources do not.\n\nA rabbit hole should either breed rabbits or be snared; a deer trail should\nproduce a deer you can hunt. Those are **character** spawns, and:\n\n1. **Nothing caps them.** `contains_count` counts items *inside* a node, but a\n   rabbit hole's rabbits are loose in the world. Without a live count of tagged\n   entities an `on_tick` spawner floods the map in a week.\n2. **Nothing kills them.** A cap only works if creatures also leave: hunted,\n   starved, eaten, old. Without a death path the fourth rabbit ends the\n   population forever.\n3. **Killing has to yield something.** A carcass is what a dead creature *drops*.\n   Do **not** shortcut a trail to \"survival check → carcass\" - that is a meat\n   dispenser the moment the player watches it, which is the background/foreground\n   seam we have been careful about all along.",
+      "resolution_2026_09_24": "Engine pieces:\n\n- **`tagged_count` condition** (`engine/triggers/condition_tree.py`, registered in\n  `engine/trigger_validator.py`) - counts live characters/items carrying a tag,\n  scoped to `\"world\"`, `\"current\"` (the anchoring item's area, else the active\n  actor's area) or a named area. `_count_tagged` / `_area_of_node` helpers.\n- **`spawn_character` defaults to the triggering item's area**\n  (`engine/effect_handlers/spawn.py`) - a burrow spawns rabbits where the burrow\n  is, not where the player happens to be. This was the missing piece that made a\n  fixture spawner usable.\n- **Death yields a carcass** (`engine/ghost.py`): a character whose template\n  declares `carcass` (new `Player.carcass_item`, serialized) drops a fresh\n  library-spawned food item instead of the human `body_<name>` item. The carcass\n  carries the library's authored `on_eat` trigger, so it depletes through\n  task-424's path rather than being infinite. `_hydrate_character`\n  (`engine/effects.py`) copies `carcass` from the template.\n\nData (no code change to add a species):\n\n- `data/library/characters/rabbit.json` - creature template, tags\n  `animal/rabbit/small/prey`, `carcass: \"carcass\"`.\n- `data/library/items/carcass.json` - ordinary food (`food/meat/carcass`), uses 1,\n  authored `on_eat` (Hunger −30, `adjust_uses -1`).\n- `data/library/items/rabbit_burrow.json` - untagged spawner: growth counter →\n  `spawn_character` gated by `tagged_count rabbit < 4`.\n\nTests: `tests/test_creature_spawners.py` (14) cover the count/scope/op matrix,\nthe fifth-rabbit cap, spawn-into-the-burrows-area, the spawner not being edible,\ntemplate hydration, creature-vs-human death, the depleting authored eat trigger,\nand two separate carcasses from two deaths. `tools/lint_library.py` gains no new\nerrors; the 24 remaining are pre-existing.\n\nStill open: the week-scale **population band** soak (a scenario that places a\nburrow and runs multi-day) - the cap + death mechanics it depends on are done and\ntested, but no scenario authors a burrow yet.",
+      "non_goals": "- Ecology, predator/prey modelling, breeding genetics, or taming.\n- Multi-species food webs.\n- Generated creature lineages (task-404 is life *experiences*, not species)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-410 (source/fixture pattern, and slice 2 for active sources).",
+      "relates": "`spawn_character` (`engine/effect_handlers/spawn.py:195`), combat."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-427-creature-spawners-and-population-caps.md"
+  }
+}

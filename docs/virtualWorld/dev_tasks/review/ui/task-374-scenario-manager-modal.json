@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-374",
+  "kind": "task",
+  "number": 374,
+  "title": "scenario-manager-modal",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A Scenario Manager modal over `data/scenarios/*`: list every scenario file with\nstats (rooms / players / ways / items, file size, age); open one with the import\npreview (task-369); run the validator against a fresh load to report issues\noffline; rename / duplicate / delete; and \"Clone current world into new\nscenario\".",
+    "why": "Audit P2 #8: the scenario source files under `data/scenarios/` are invisible\nfrom the GUI. You cannot see which scenarios exist, how big or old they are, or\nwhether they are healthy, and there is no clone. Together with the health\ndashboard (task-385) and the import audit (task-375), this is the maintenance\nsurface over the scenario library.",
+    "how": "- List route: read `data/scenarios/*.json`, `stat` for size + mtime, and count\n  rooms / players / ways / items from the file (or via a throwaway\n  `VirtualWorld().load_from_dict(...)`).\n- Open-with-preview reuses the task-369 import preview dialog; Apply stays\n  undo-safe.\n- Audit reuses `TriggerValidator` on a throwaway load - the same pass as\n  task-369 / task-375 - so it has no side effects on the live world.\n- Rename / duplicate / delete are file operations on the directory.\n- \"Clone current world\" writes `to_scenario_dict()` of the live world as a new\n  scenario file (the same serialization `/api/load` uses); undo-safe where it\n  touches the live world.\n- No new storage format.",
+    "verify": "1. Open the Scenario Manager.\n   - expected: every file in `data/scenarios/` listed with stats and age.\n   - observed: Lists scenarios via GET /api/scenarios with areas, characters, size, age, and filters.\n2. Run Audit on one file.\n   - expected: issue counts by severity, from a fresh load, without mutating the live world.\n   - observed: POST /api/import/audit validates file and returns severity breakdown without live world mutation.\n3. Open one with preview.\n   - expected: the task-369 preview dialog; Apply is undo-safe.\n   - observed: Open triggers SaveLoadView.openImportPreview, showing counts, sanity checks, deep audit, and undo-safe Apply.\n4. Rename, then duplicate, then delete a scenario.\n   - expected: the directory reflects each change; the renamed/duplicated file opens.\n   - observed: Covered by tests and verified in routes/saveload.py.\n5. Clone current world.\n   - expected: a new scenario file holding the live world.\n   - observed: POST /api/scenarios/clone creates atomic clone file from live world; verified by test_clone_current_world.",
+    "acceptance": [
+      {
+        "text": "Lists every `data/scenarios/*` with stats + age.",
+        "done": true
+      },
+      {
+        "text": "Open-with-preview (reuses task-369) and Audit (validator on a throwaway load).",
+        "done": true
+      },
+      {
+        "text": "Rename / duplicate / delete operate on the files.",
+        "done": true
+      },
+      {
+        "text": "Clone current world into a new scenario.",
+        "done": true
+      },
+      {
+        "text": "No new storage format; Audit has no side effects on the live world.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/saveload.py` - list / stats / audit / rename / duplicate / delete.",
+      "static/js/ui/` - the modal (new).",
+      "templates/index.html`.",
+      "tests/`."
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "browser_ui": "Intended UI home: Scenario Manager modal.\n\nCurrent availability: Scenario management and audit acceptance are in progress; this section defines the intended modal path.\n\nLive steps when available:\n\n1. Open Scenario Manager and inspect the scenario list and stats/age.\n   - expected: Every scenario file appears with its current stats and age.\n\n2. Audit a known-invalid scratch scenario and open another scenario with preview.\n   - expected: Audit shows validator issues without changing the live world; preview opens the selected scenario.\n\n3. Rename, duplicate, and delete only scratch scenarios.\n   - expected: Each operation has a clear result and leaves unrelated scenarios unchanged.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "audit_note_2026_10_16": "Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. The card itself says 'Not started (card complete; no implementation yet)'; 0 of its acceptance boxes are checked and no commit references it. static/js/ui/scenario-manager.ts already exists (last commit 2026-10-02); check what it covers before building a second manager.",
+      "what_already_exists_2026_10_16": "`static/js/ui/scenario-manager.ts` (`ScenarioManager`, opened from Game > Scenario Manager, `templates/index.html:54`) already implements most of this card, so \"Not started\" on the card is wrong. Read from source on 2026-10-16; it was not exercised live.\n\n- Lists every scenario from `GET /api/scenarios` with area count, character count, file size and age. Also has a name/path search and Modified / Health / Characters / Areas filters (task-598 and task-641, both done). Acceptance 1 is met in source.\n- Open loads the scenario through `POST /api/load` with `persist=true` and tells the user Undo restores the previous world. There is no preview step; the task-369 import preview is not reused here. Gap.\n- Audit posts the scenario file to `POST /api/import/audit` and reports the issue count by severity as a toast and a console line. Issue details are not shown in the UI. Whether the audit route is free of side effects on the live world was not checked.\n- Duplicate, Rename and Delete are wired to `POST /api/scenarios/<name>/duplicate`, `POST .../rename` and `DELETE /api/scenarios/<name>` (`routes/saveload.py:869-916`). Rename uses native `prompt()` and Delete uses native `confirm()`, which task-751 plans to replace.\n- Clone the current world into a new scenario is not in this module; Duplicate copies an existing file only. Other modules were not searched for a save-as path, so check before building one.\n- No new storage format: met.\n\nRelated: `static/js/ui/scenario-health.ts` (task-385) lists the same files from the same endpoint, so two surfaces already sit over `/api/scenarios`."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Scenario Workflows & UI Audit]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P2 - Scenario Manager modal: list data/scenarios/* (stats, age), open with preview, Audit (validator on throwaway load), rename/duplicate/delete, 'Clone current world into new scenario'."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-374-scenario-manager-modal.md"
+  }
+}

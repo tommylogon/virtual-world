@@ -20,7 +20,7 @@ fast-travels can never be meaningfully interrupted by other characters; the inte
 evaluator (task-466) has nothing actor-driven to react to.
 
 > **"Stalking" was a typo for "talking"** (the original ask was "steal from them,
-> talk to them, or find something"). The social-approach half is done — see below.
+> talk to them, or find something"). The social-approach half is done - see below.
 
 ## Acceptance
 
@@ -39,25 +39,25 @@ evaluator (task-466) has nothing actor-driven to react to.
   only the social pass's weighted draw. [[hostile→bully weights; `THEFT_TRAITS` +
   starvation motive drive theft; `attention_seeker`/`social_gain` drive flirt]]
 
-## Progress — 2026-09-24
+## Progress - 2026-09-24
 
 Implemented and tested; moving to review.
 
 - **`engine/background_social.py`**
-  - `APPROACH_ACTIONS` + `choose_approach_action()` — the approach toward the
+  - `APPROACH_ACTIONS` + `choose_approach_action()` - the approach toward the
     player now draws from the same weight table as the paired pass, restricted to
     non-hostile actions, so the band decides the kind (confide at friend, flirt at
     close friend) instead of always `chat`. Deterministic via the existing seeded
     RNG; falls back to `chat` when every option is gated out.
-  - `run_theft_pass()` + helpers — a would-be thief (a `thief`/`kleptomaniac`/
+  - `run_theft_pass()` + helpers - a would-be thief (a `thief`/`kleptomaniac`/
     `pickpocket` trait or tag, or a starving character after food) makes a capped,
     cooled-down attempt through the **real** `steal_item` path (Sleight of Hand vs
     Perception), swapping the thief into the active slot and restoring it after.
     Writes a `why="agenda:theft"` trace; the failed attempt emits the same
     "notices" log line the interrupt evaluator reads.
-- **`engine/background_simulation.py`** — `run_theft_pass` runs after the social
+- **`engine/background_simulation.py`** - `run_theft_pass` runs after the social
   pass each tick.
-- **`tests/test_background_agendas.py`** (10) — approach is never hostile/no-op and
+- **`tests/test_background_agendas.py`** (10) - approach is never hostile/no-op and
   is deterministic, band gating (cold never confides, warm can), hostile→bully
   weighting, tagged theft, starvation theft reaching only for food, cooldown +
   daily cap, a well-fed innocent does nothing, and the active player is restored.

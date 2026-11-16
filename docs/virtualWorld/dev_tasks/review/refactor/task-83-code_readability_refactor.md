@@ -83,7 +83,7 @@ Cryptic abbreviations and single-letter local variables obscure developer intent
 
 ## Acceptance
 
-- [x] Cryptic single-letter variables in touched functions (e.g. irtual_world_engine.py, pp.py) are renamed to descriptive equivalents.
+- [x] Cryptic single-letter variables in touched functions (e.g. virtual_world_engine.py, app.py) are renamed to descriptive equivalents.
 - [x] Non-obvious logic blocks (trigger dispatch, condition matching, effect execution) carry brief intent comments.
 - [x] No behavioral or functional regressions introduced; targeted unit test suites continue to pass identically.
 

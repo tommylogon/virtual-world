@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-130",
+  "kind": "task",
+  "number": 130,
+  "title": "Air Levels, Vacuum & Atmospheric Effects",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add air quality/atmosphere as an environmental property for areas. Areas can have no air (vacuum), thin air, poison gas, smoke, or other atmospheric conditions that affect characters over time.\n\n---",
+    "why": "Currently areas have temperature and light but no concept of air quality. You can't model vacuum in space, smoke-filled rooms, poison gas, or suffocation hazards.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "requirements": "### Area Properties\n- `environment.air` - enum or string: `\"breathable\"` (default), `\"thin\"`, `\"vacuum\"`, `\"poison\"`, `\"smoke\"`, `\"stale\"`\n- `environment.air_visibility` - visibility range: `\"clear\"`, `\"hazy\"`, `\"fog\"`, `\"obscured\"` (affects what characters can see/describe)\n\n### Effects on Characters\n- **Vacuum / no air**: suffocation damage per tick (HP drain), speech impossible\n- **Thin air**: energy drain, speech difficult\n- **Poison gas**: HP or vital damage per tick based on gas type\n- **Smoke**: coughing (interrupts speech), visibility reduced, eventual suffocation\n- **Stale**: minor discomfort, hygiene penalties\n\n### Propagation\n- Air can move between connected areas (e.g. smoke spreads from a fire room)\n- Use an existing tick-based propagation similar to heat\n- Air quality changes when doors open/close\n\n### Interactions\n- Items that affect air quality: gas mask (immunity to poison/smoke), air tank (temporary breathable air in vacuum), fan (clears smoke)\n- Triggers: `on_air_change`, `on_suffocation`\n- UI: show air quality indicator in area description and graph tooltips",
+      "related": "- [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]\n- [[review/environment/task-126-tag-based-light-and-heat-sources|task-126: Tag-based light and heat sources]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/environment/task-130-air-vacuum-atmospheric-effects.md"
+  }
+}

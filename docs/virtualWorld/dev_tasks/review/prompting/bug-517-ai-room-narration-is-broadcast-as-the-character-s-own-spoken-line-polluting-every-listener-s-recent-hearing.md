@@ -50,11 +50,11 @@ narrated result and leave the event stream showing both versions of one action.
 
 ## Verification
 
-- static/js/narration-ui.ts: updated getNarratedActionResult to combine systemMessages with action output into prompt context (ullOutput), passing consequences to LLM narrator.
-- static/js/agent-engine.ts: gathered ctionResult and data.system_messages before logging. Passed sysMsgs into 
+- static/js/narration-ui.ts: updated getNarratedActionResult to combine systemMessages with action output into prompt context (fullOutput), passing consequences to LLM narrator.
+- static/js/agent-engine.ts: gathered actionResult and data.system_messages before logging. Passed sysMsgs into 
 arrationUi.getNarratedActionResult(). When narration succeeds (
 arratedText returned), duplicate raw system messages are suppressed. When narration is off, skipped, or fails, raw system messages are logged via events.log(systemMessage, 'system-msg').
-- Unit test 	ools/unit/test_narration_system_messages.js: verified that getNarratedActionResult combines output and system messages into LLM prompt context in AI mode, returns null in none mode, and handles fallback.
+- Unit test tools/unit/test_narration_system_messages.js: verified that getNarratedActionResult combines output and system messages into LLM prompt context in AI mode, returns null in none mode, and handles fallback.
 - 
 pm run typecheck and 
 pm run build:ts pass with 0 errors.
@@ -63,7 +63,7 @@ pm run build:ts pass with 0 errors.
 
 - static/js/agent-engine.ts
 - static/js/narration-ui.ts
-- 	ools/unit/test_narration_system_messages.js
+- tools/unit/test_narration_system_messages.js
 
 ## Browser UI and intended live verification
 

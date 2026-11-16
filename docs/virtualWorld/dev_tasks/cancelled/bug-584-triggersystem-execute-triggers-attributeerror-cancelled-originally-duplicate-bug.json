@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "bug-584",
+  "kind": "bug",
+  "number": 584,
+  "title": "TriggerSystem.execute_triggers AttributeError (cancelled, originally duplicate bug-12)",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/bug-584-trigger-system-execute-triggers-traceback.md"
+  }
+}

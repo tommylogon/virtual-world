@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "task-719",
+  "kind": "task",
+  "number": 719,
+  "title": "WorldPainter: per-tool brush options, brush hover outline, toolbar layout fix",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-06",
+  "updated": "2026-10-06",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "worldpainter",
+      "editor-ts"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Move brush size selector into per-tool rail options, add dashed white brush hover preview outline on grid, and fix toolbar layout so it no longer blocks the grid below it.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Brush size selector lives in the per-tool rail options (paint/erase/route), not the shared toolbar",
+        "done": true
+      },
+      {
+        "text": "Dashed white hover outline shows the cells the brush would cover, for paint and erase, tracking the pointer and clipping to the grid edge",
+        "done": true
+      },
+      {
+        "text": "Toolbar is single-row with horizontal scroll; it no longer wraps and blocks the grid below",
+        "done": true
+      },
+      {
+        "text": "The what-next checklist reports from below the map, not between the toolbar and the art",
+        "done": true
+      },
+      {
+        "text": "**Evidence (live, 2026-10-06):** the outline was dead code - drawn at",
+        "done": false
+      },
+      {
+        "text": "the end of `_drawRoute`, below the route early-return, so with no route",
+        "done": false
+      },
+      {
+        "text": "in progress the redraw never reached the canvas context. Moved above",
+        "done": false
+      },
+      {
+        "text": "the return. Measured in the browser: 0 outline pixels at rest, ~2900",
+        "done": false
+      },
+      {
+        "text": "dashed pixels on hover; the outline box tracks the pointer across the",
+        "done": false
+      },
+      {
+        "text": "grid (339-575 x 178-335 at cell (2,0), 1527-1763 x 812-968 at cell",
+        "done": false
+      },
+      {
+        "text": "(17,9)) and a 3x3 brush at the top row correctly draws 3x2 (edge",
+        "done": false
+      },
+      {
+        "text": "clipped); contrast 4.4-6.6 against map content. `python",
+        "done": false
+      },
+      {
+        "text": "tools/ts_convert.py check`: build/typecheck/lint/unit/header survival/",
+        "done": false
+      },
+      {
+        "text": "window guards all ok (module:check failure is the pre-existing",
+        "done": false
+      },
+      {
+        "text": "a394b51e debt, unrelated).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-719-worldpainter-per-tool-brush-options-brush-hover-outline-toolbar-layout-fix.md"
+  }
+}

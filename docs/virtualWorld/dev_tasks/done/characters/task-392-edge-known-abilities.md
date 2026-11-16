@@ -5,11 +5,11 @@ area: characters
 priority: high
 ---
 
-# task-392: EDGE_KNOWN — Graph-Native Ability/Spell Knowledge
+# task-392: EDGE_KNOWN - Graph-Native Ability/Spell Knowledge
 
 **Filed**: 2026-09-03  
-**Status**: In Progress — core implementation complete; QA in progress  
-**Source**: Character backstory from `data/library/characters/Lyrie.json` — spells are currently forced to exist as carried/equipped intrinsic-ability items. We want a graph-native “character knows this spell” relationship instead of pretending every spell is a physical inventory slot.
+**Status**: In Progress - core implementation complete; QA in progress  
+**Source**: Character backstory from `data/library/characters/Lyrie.json` - spells are currently forced to exist as carried/equipped intrinsic-ability items. We want a graph-native “character knows this spell” relationship instead of pretending every spell is a physical inventory slot.
 
 ## What
 
@@ -94,7 +94,7 @@ get_edges_for_target(player_id, EDGE_KNOWN)       # known abilities
 
 - This is intentionally graph-native. No `Player.known_abilities[]` registry, no parallel store.
 - Intrinsic-ability tag filtering remains useful for presentation hiding, even when the item is not physically present.
-- Future work: `EDGE_KNOWN` can also be used for techniques, languages, recipes, and bestowed powers — not just spells.
+- Future work: `EDGE_KNOWN` can also be used for techniques, languages, recipes, and bestowed powers - not just spells.
 
 ## Progress
 
@@ -107,8 +107,8 @@ get_edges_for_target(player_id, EDGE_KNOWN)       # known abilities
 - [x] Inspector known abilities picker
 - [x] Autocomplete includes known abilities
 - [x] Prompt context shows known abilities
-- [x] Tests added — **8/8 green** (the round-trip test below was the missing one)
-- [x] No `cast` verb — uses `use` / `use_on`
+- [x] Tests added - **8/8 green** (the round-trip test below was the missing one)
+- [x] No `cast` verb - uses `use` / `use_on`
 - [x] Abilities hidden from other characters' examine/room listings
 - [x] Serialization round-trip test added (was required by Verification, was absent)
 - [x] Inspector picker duplicate-offer bug fixed
@@ -136,7 +136,7 @@ return-to-location block is `is_carrying`-guarded (`:176-183`); examine
 1. **The picker re-offered abilities you already had.** It compared a *name* list
    (`worldState.getInventory`) against node **ids** (`allItems.includes(id)`), so
    the graph branch never filtered and "Know" would add a duplicate `known` edge.
-   Fixed by adding `worldState.getInventoryIds()` and comparing ids — names are
+   Fixed by adding `worldState.getInventoryIds()` and comparing ids - names are
    not identity (two abilities can share one). The library branch now uses
    `properties.library_id` provenance instead of name matching. Same bug fixed in
    `_showAddItemPicker`, and `_showContainerPicker` was deduping containers by

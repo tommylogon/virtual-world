@@ -5,7 +5,7 @@ status: done
 priority: medium
 ---
 
-# Task 113: Vital Detail Modal — click vitals, see what affects them, edit values, decay rates, time to empty, mana for magic chars
+# Task 113: Vital Detail Modal - click vitals, see what affects them, edit values, decay rates, time to empty, mana for magic chars
 
 **Status**: Review  
 **Priority**: High  
@@ -23,17 +23,17 @@ Clicking a vital bar opens a modal with: current value (editable), decay rate (e
 ## Backend
 
 ### Done
-- `player.py`: Added `sync_vitals_with_tags()` — injects/removes "Mana" based on "magic" tag. Called at end of `__init__`.
+- `player.py`: Added `sync_vitals_with_tags()` - injects/removes "Mana" based on "magic" tag. Called at end of `__init__`.
 - `virtual_world_engine.py`: Added `"Mana": 0` to `baseline_decay` so it appears in the iteration but doesn't decay by default.
 - `routes/players.py`:
   - `sync_vitals_with_tags()` called when tags are updated via the update-player route
   - `sync_vitals_with_tags()` called in the create-player route (after tags set)
   - `sync_vitals_with_tags()` called in the import-player route
-  - `GET /api/players/<name>/vitals/<vital>` — returns value, max, percentage, decay rate (base + override), time to empty, and conditions affecting (from `PERIODIC_CONDITIONS`)
-  - `PATCH /api/players/<name>/vitals/<vital>` — updates value and/or decay rate
+  - `GET /api/players/<name>/vitals/<vital>` - returns value, max, percentage, decay rate (base + override), time to empty, and conditions affecting (from `PERIODIC_CONDITIONS`)
+  - `PATCH /api/players/<name>/vitals/<vital>` - updates value and/or decay rate
 
 ### What's left
-- Nothing — backend is done
+- Nothing - backend is done
 
 ---
 
@@ -63,10 +63,10 @@ Clicking a vital bar opens a modal with: current value (editable), decay rate (e
 - Vital name as title
 - Current value / max (large text)
 - Percentage indicator
-- **Edit Value** — number input, clamps to 0-max
-- **Edit Decay Rate** — number input (float, step 0.1), stored in `player.decay_rates`
-- **Time to Empty** — computed as `value / decay_rate` (turns), shows "No decay" if rate is 0
-- **Conditions Affecting** — lists conditions from `PERIODIC_CONDITIONS` that affect this vital (e.g., "poisoned: -5 HP/turn", "sick: -2 Hunger/turn")
+- **Edit Value** - number input, clamps to 0-max
+- **Edit Decay Rate** - number input (float, step 0.1), stored in `player.decay_rates`
+- **Time to Empty** - computed as `value / decay_rate` (turns), shows "No decay" if rate is 0
+- **Conditions Affecting** - lists conditions from `PERIODIC_CONDITIONS` that affect this vital (e.g., "poisoned: -5 HP/turn", "sick: -2 Hunger/turn")
 
 ### Time to Empty calculation:
 - `effective_rate = player.decay_rates.get(vital, baseline_decay.get(vital, 0))`
@@ -89,8 +89,8 @@ Clicking a vital bar opens a modal with: current value (editable), decay rate (e
 - `virtual_world/routes/players.py`
 
 ### Frontend (done)
-- `virtual_world/templates/index.html` — modal HTML + modal JS functions
-- `virtual_world/static/js/inspector/agent-view.js` — clickable vitals, Mana display
+- `virtual_world/templates/index.html` - modal HTML + modal JS functions
+- `virtual_world/static/js/inspector/agent-view.js` - clickable vitals, Mana display
 
 ## Why
 

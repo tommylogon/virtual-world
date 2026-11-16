@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-919",
+  "kind": "task",
+  "number": 919,
+  "title": "Pre-compile schema and consumer validation in persona compiler",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Execute strict pre-compile validation before running `compile_persona()`. Refuse compile or highlight issues if required schema fields are missing, invalid data types are present, or known consumers cannot parse the structured values.",
+    "why": "Compiling an incomplete or broken persona block currently generates broken or empty prose segments (e.g. `None` strings, incomplete sentences, or malformed tag lists) that overwrite working authored prose.",
+    "how": "- In `engine/character_appearance.py`, introduce `validate_before_compile(record: dict) -> tuple[bool, list[str]]`.\n- Check required types, age ranges, gender/pronoun consistency, and slug conformity.\n- Return structured error summaries in `POST /api/players/<name>/record/compile`.\n- Prevent accidental overwrite if critical validation errors exist.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "`compile_persona` refuses compile if critical validation errors exist, returning actionable reasons.",
+        "done": true
+      },
+      {
+        "text": "Warning-level issues are reported without blocking compilation when safe.",
+        "done": true
+      },
+      {
+        "text": "Unit tests cover validation rejections and safe compilations.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-919-pre-compile-schema-and-consumer-validation-in-persona-compiler.md"
+  }
+}

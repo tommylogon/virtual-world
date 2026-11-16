@@ -15,7 +15,7 @@ priority: high
 
 Simultaneous mode should be **turn-based with the wait removed**: every autonomous
 character resolves their turn without waiting for the previous one, and the world
-still advances its clock — by the normal increment — once **all** characters have
+still advances its clock - by the normal increment - once **all** characters have
 finished their turns.
 
 That is the whole fix. There is no separate clock model for simultaneous mode, and
@@ -33,7 +33,7 @@ the increment is unchanged: still `time_per_tick_minutes` per round.
 ```
 
 But **every** call site that drives the turn queue is guarded by `config.turnBased`
-— `static/js/agent-engine.js` — and
+- `static/js/agent-engine.js` - and
 `static/js/agent/turn-queue.js` (`reconcile`) returns early without it. The run
 loop excludes it explicitly (`agent-engine.js`):
 
@@ -43,7 +43,7 @@ loop excludes it explicitly (`agent-engine.js`):
 
 So in simultaneous mode the queue never advances, `TurnQueue.endTurn` never runs,
 `POST /api/turn/apply` is never sent, and **`TickManager.tick_turn` is never
-called**. It is not that the clock stalls — the entire world turn pipeline is frozen,
+called**. It is not that the clock stalls - the entire world turn pipeline is frozen,
 and only the characters the frontend happens to step do anything.
 
 Everything in `engine/tick_manager.py` is skipped:
@@ -72,8 +72,8 @@ LLM characters are being stepped, and nothing else is happening at all.
 
 ## Fix shape
 
-Advance the world once per **round** — when every character has had their turn,
-human included — rather than per queue wrap, so it is independent of the mode.
+Advance the world once per **round** - when every character has had their turn,
+human included - rather than per queue wrap, so it is independent of the mode.
 Concretely: track which characters have resolved this round and call
 `TurnQueue.endTurn` (or `POST /api/turn/apply`) when the set is complete, in both
 turn-based and simultaneous paths. `_simultaneousStep` (`agent-engine.js`)
@@ -88,7 +88,7 @@ Two separate things, and the fix must not conflate them:
  (`if (!events.isAutonomous(name)) return false;`) stays. The world does not
  puppet a player character in any mode.
 - **But do wait for them.** The human is in the round. A round is not complete until
- the human has taken their turn, so a slow player — or one who stops mid-turn —
+ the human has taken their turn, so a slow player - or one who stops mid-turn -
  simply stalls the world advance. That is correct, and it is already how turn-based
  behaves: the human sits in the turn queue, `step` awaits the composer, and the
  wrap to `endTurn` waits on them. The fix should reproduce that in simultaneous
@@ -96,10 +96,10 @@ Two separate things, and the fix must not conflate them:
 
 So the round-completion condition is "everyone has taken a turn", and "everyone"
 includes the controlling player. Do not implement the advance as "all autonomous
-characters are done" — that would silently make the world run ahead of a human who
+characters are done" - that would silently make the world run ahead of a human who
 is still deciding, which is a worse bug than the one being fixed.
 
-Note that `_simultaneousStep` is not truly parallel — it serialises one character
+Note that `_simultaneousStep` is not truly parallel - it serialises one character
 per loop iteration and paces them with per-character cooldowns
 (`VWSimultaneous.cooldownFor` / `tickCountdowns`). That is fine and is what "don't
 wait for the previous character" means in practice; it is only the *clock* that was
@@ -120,21 +120,21 @@ exercising the lifecycle, so nothing covers it. Fix or remove it here.
  simultaneous round and asserts `time_ticks` moved.
 - [ ] `tick_turn` runs in simultaneous mode: a test asserts vitals decay,
  `BackgroundSimulation.process_due` and `soak.apply_orders(gs)` are reached.
-- [ ] The increment is unchanged — still `time_per_tick_minutes` per round, not per
+- [ ] The increment is unchanged - still `time_per_tick_minutes` per round, not per
  character turn. A round is the unit, not a turn.
 - [ ] The human is a full participant: never auto-acted, but the round does not
  complete until they have taken their turn, so a slow player stalls the world
  advance rather than being run ahead of. Pinned by a test that starts a
  simultaneous round with a human mid-turn and asserts `time_ticks` has **not**
  moved until the human resolves.
-- [ ] A stalled human does not deadlock the run loop — cancelling or skipping the
+- [ ] A stalled human does not deadlock the run loop - cancelling or skipping the
  turn must still be able to close the round.
 - [ ] `_clock_advanced_by_task` is reset correctly or removed, with a test covering
  the `rest` → next-action lifecycle rather than setting the flag by hand.
 - [ ] `static/js/agent/turn-queue.js` is not left with a `config.turnBased` guard
  that can silently disable the advance in a future mode. If the guard is
  load-bearing, say why in a comment.
-- [ ] `docs/virtualWorld/Environment/Time & Weather.md` is corrected — lines 24, 77
+- [ ] `docs/virtualWorld/Environment/Time & Weather.md` is corrected - lines 24, 77
  and 94 still describe `time_per_tick_minutes = 5` (the code default is 1),
  actions that "consume time", and costs "multiplied by time ticks consumed".
  All three are stale under task-436.
@@ -158,15 +158,15 @@ exercising the lifecycle, so nothing covers it. Fix or remove it here.
 
 ## Related
 
-- task-352 — action economy. **Independent of this task**: the tier budget bounds how
+- task-352 - action economy. **Independent of this task**: the tier budget bounds how
  many actions fit in a turn, the round increment bounds the time. An earlier draft
  claimed the two had to be decided together because of a per-action time cost; that
  was wrong, because a turn is already the timeframe.
-- task-436 (review) — removed time costs from `ACTION_COSTS`; left the
+- task-436 (review) - removed time costs from `ACTION_COSTS`; left the
  `apply_action` comment claiming the caller advances the clock.
-- task-437 — resolution order; the per-round advance must not make order dependence
+- task-437 - resolution order; the per-round advance must not make order dependence
   worse.
-- `docs/virtualWorld/Simulation Model.md` — the timeframe model.
+- `docs/virtualWorld/Simulation Model.md` - the timeframe model.
 
 ## Verified (2026-10-02)
 
@@ -180,7 +180,7 @@ re-deriving it.
   human is the only round participant, switched to `simultaneous` via
   `config.setTurnMode`, then `await VW.agent.endSimRound()`. Result:
   `TICKS 0 -> 1 advanced=true`, `PAGEERRORS []`, and the event stream shows
-  "Kaelen Voss passes — round closed." with the clock at 08:05. A world turn
+  "Kaelen Voss passes - round closed." with the clock at 08:05. A world turn
   (applyTurn -> tick_turn) ran under simultaneous mode.
 - **Mechanism pin.** `tools/unit/test_sim_round.js` gained a guard that the
   `_closeSimRoundIfComplete` body gates on round completion and calls

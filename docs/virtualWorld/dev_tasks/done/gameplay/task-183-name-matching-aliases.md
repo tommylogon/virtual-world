@@ -5,9 +5,9 @@ area: gameplay
 priority: medium
 ---
 
-# Task: Name Matching — Word-Boundary + Item Aliases
+# Task: Name Matching - Word-Boundary + Item Aliases
 
-**Status**: Implemented (verified 2026-08-06) — all changes present in code:
+**Status**: Implemented (verified 2026-08-06) - all changes present in code:
 - `engine/matching.py`: word-boundary substring tier in `_match_item_name` (raw `input_lower in nl` replaced) and `_match_exit_direction`; single-char guard (`len(input_lower) < 2`); alias tier matching item `aliases` + description words before fuzzy; fuzzy `cutoff=0.7`.
 - `data/library/items/kindling.json` + `world_template.json`: kindling aliases `["twigs","dry twigs","firewood"]`.
 - `engine/serialization.py`: `aliases` survives save/load round-trip.
@@ -24,11 +24,11 @@ area has `kindling` ("a bundle of dry twigs").
 
 Evidence from `event_log_2026-08-02T12-00-06.txt`:
 - `matched 'stove' as item 'Stovepipe Leather Boots (Pair)' (substring match)` → "You use the Stovepipe Leather Boots (Pair)." (repeated ×5)
-- `You search for 'twigs' but can't find it here` (repeated ×6) — area item is `kindling`
+- `You search for 'twigs' but can't find it here` (repeated ×6) - area item is `kindling`
 
 ## How
 
-### 1. Engine: `engine/matching.py` — `_match_item_name`
+### 1. Engine: `engine/matching.py` - `_match_item_name`
 - **Fix the substring tier (lines 126-141):** the raw `if input_lower in nl` check matches
   "stove" inside "stovepipe". Replace the item-name tier with a **word-boundary-aware**
   match on *both* sides:
@@ -43,7 +43,7 @@ Evidence from `event_log_2026-08-02T12-00-06.txt`:
   A hit on an alias should emit the same `(substring match)`/`(alias match)` note so the
   player/agent sees what resolved.
 
-### 2. Engine: `engine/matching.py` — `_match_exit_direction`
+### 2. Engine: `engine/matching.py` - `_match_exit_direction`
 - Apply the same word-boundary treatment to the exit substring tier so inputs like
   `hollow floor` no longer fuzzy-match `willow gap` (seen in log:
   `matched 'hollow floor' as exit 'willow gap'`).

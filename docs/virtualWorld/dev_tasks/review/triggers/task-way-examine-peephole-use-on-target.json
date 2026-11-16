@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "task-way-examine-peephole-use-on-target",
+  "kind": "task",
+  "number": null,
+  "title": "Way & Area Triggers: examine, peephole, use-on target, area on_enter/on_examine",
+  "status": "review",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Ways (doors) previously fired **only** `on_open`/`on_close`/`on_enter`; areas fired nothing. Gaps closed:\n\n1. **Ways now fire `on_examine`** - examining a door (via its exit direction) runs the way's `on_examine` triggers.\n2. **Peephole / see-through** - a **closed** way with `see_through` + `visible_in_direction` on the area→way edge appends \"Through it you can see: {view}\" on examine.\n3. **use-on target fallback** - when an item is used on a way (`use rock on door`) and the *source* item's `on_use_on` produces no output, the **target way's `on_use`** fires.\n4. **Areas now fire `on_examine`** - \"examine the room\"/\"examine here\" resolves the current area, describes it (description + non-normal state), and runs its `on_examine` triggers. Matches by name/id or the phrases room/area/here/surroundings; falls through to items when no area matches.\n5. **Areas now fire `on_enter`** - moving into an area runs its `on_enter` triggers (alongside the door's existing on_enter).",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "the_semantics_worth_pinning_down_it_bit_us": "- **`on_use_on` is source-only**: \"use SOURCE on TARGET\" - the source item fires `on_use_on`; ways/areas/characters can be *targets*, never sources. \"Use door 1 on Mike\" is not a thing.\n- **The target being acted on fires its `on_use`.** This matches the pre-existing item-target fallback in `use_item_on` (`matched_item` → `use_item` → `on_use`). My first pass wired the way's `on_use_on` as the fallback - wrong, and caught in review: `on_use_on` on the target would imply the target is the *source* of another use-on. The way's own `on_use` (\"the door is being used\") is the correct target-side event.\n- **Source wins**: if the source item's `on_use_on` produces output, it returns early and the target's `on_use` never fires (keycard pattern keeps working).\n- \"Use door\" alone (no item) is `on_use` (toggle/activate) - not wired for ways yet, separate concern.\n- **Area `on_enter` outputs go to the log** (like the door's on_enter), not the move result string - matched existing behavior.",
+      "trigger_matrix_agreed_design": "| Trigger | item | way | area | character |\n|---|---|---|---|---|\n| on_examine | ✅ | ✅ (added) | ✅ (added) | ✅ |\n| on_use / on_use_on | ✅ | ⚠️ use-on target only | ❌ | ❌ |\n| on_open / on_close | ✅ (containers) | ✅ | ❌ | ❌ |\n| on_take / on_drop / on_equip / on_unequip | ✅ | ❌ | ❌ | ❌ |\n| on_tick / on_state_enter / on_state_exit | ✅ | ✅ | ❌ | ❌ |\n| on_enter | ❌ | ✅ | ✅ (added) | ❌ |\n| on_eat / on_drink / on_read / on_light | ✅ | ❌ | ❌ | ❌ |\n\nNot implementing \"all trigger types on all entity types\" - verbs that don't make sense for a node type are excluded (a door can't be taken/eaten/equipped).",
+      "also_fixed_state_equals_ui_redundancy": "The trigger editor showed the generic **Value** field *and* the dedicated **State** field for `state_equals`, plus the generic **Target (blank = self)** *and* the dedicated **Target Node** - but collection only read the dedicated ones (`cond-node`/`cond-state`). Removed `state_equals` from both generic field lists so the row shows exactly: Target Node + State.",
+      "tests": "`tests/test_trigger_system.py::TestWayTriggerFiring` (new, 6):\n- `test_way_on_examine_fires` - door examine runs its on_examine trigger.\n- `test_way_on_examine_peephole` - closed see_through door shows the view + locked state.\n- `test_way_on_use_fires_when_item_silent` - passive item on door fires the door's `on_use`.\n- `test_way_on_use_not_fired_when_item_has_on_use_on` - source on_use_on wins, target on_use does not double-fire.\n- `test_area_on_examine_fires` - examining the current area runs its on_examine triggers (with description).\n- `test_area_on_enter_fires` - moving into an area runs its on_enter triggers (logged).",
+      "files_changed": "- `engine/item_actions.py` - way-examine trigger execution + peephole glimpse; way-side use-on fallback fires `on_use` (was `on_use_on`); area-examine path with on_examine triggers\n- `engine/movement.py` - area `on_enter` trigger execution on arrival\n- `static/js/shared/trigger-editor.js` - `state_equals` no longer shows the generic Value / Target fields\n- `tests/test_trigger_system.py` - `TestWayTriggerFiring`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Triggers",
+    "status_note": "In Review - implemented 2026-08-09, 6 new tests pass, full suite 779 passed (clean).",
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/triggers/task-way-examine-peephole-use-on-target.md"
+  }
+}

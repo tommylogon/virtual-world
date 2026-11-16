@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Low
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -35,7 +35,7 @@ Occupied with a persistent multi-turn activity. Non-blocking and interruptible; 
 
 ## Behavior breakdown
 
-- **Gates**: **none** — busy does not block action/movement/speech on its own.
+- **Gates**: **none** - busy does not block action/movement/speech on its own.
 - **Saves/checks**: none.
 - **Combat**: neutral.
 - **Movement**: full speed.
@@ -44,12 +44,12 @@ Occupied with a persistent multi-turn activity. Non-blocking and interruptible; 
 
 ## Perception
 
-`known: True` — rendered as "occupied".
+`known: True` - rendered as "occupied".
 
 ## Integration points
 
-- `player.py:111-120` — catalog entry. Uses `"busy"` for `rest`/`sleep`/`wait`/`bathe`/`meditate`/`sit`/`lie down`.
-- `engine/activities.py` — applies/removes `busy` as activities start/finish; the activity stores flavor + regen separately.
+- `player.py:111-120` - catalog entry. Uses `"busy"` for `rest`/`sleep`/`wait`/`bathe`/`meditate`/`sit`/`lie down`.
+- `engine/activities.py` - applies/removes `busy` as activities start/finish; the activity stores flavor + regen separately.
 - Interruptibility: ending an activity calls `end_conditions`/`end_instances("stop")`.
 
 ## Steps to verify
@@ -60,7 +60,7 @@ Occupied with a persistent multi-turn activity. Non-blocking and interruptible; 
 ## Open questions / things to work out
 
 - Does `busy` actually gate anything, or is it purely informational now? (Activities themselves, not the condition, likely own interrupt behavior.)
-- Duplicated `busy` instances from stacked activities — does `stack: "noop"` leave stale markers?
+- Duplicated `busy` instances from stacked activities - does `stack: "noop"` leave stale markers?
 
 ## Why
 

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-357",
+  "kind": "task",
+  "number": 357,
+  "title": "Structure templates: capture + materialize connected areas (with population)",
+  "status": "review",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-291",
+      "task-355",
+      "task-237",
+      "task-397",
+      "task-399",
+      "task-411",
+      "task-412",
+      "task-418",
+      "task-427",
+      "task-398",
+      "task-400",
+      "task-401",
+      "task-590",
+      "task-591"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "(see \"Implemented\" at the bottom). Scope **reframed 2026-09-22** from \"save/load\na connected-area bundle\" to the **structure-template → scope-materialization\nlayer**. The manual save/import UI is consumer #1, not the contract.\n- `review/ui/task-237-save-area-to-library.md` - single-area save, implemented\n  (the one-area special case of capture).\n- `todo/world/task-397-world-scope-hierarchy-and-projection.md` - a materialized\n  structure *is* a scope; this task is the source those scopes are made from.\n- `todo/world/task-399-background-character-simulation-and-reactivation.md`,\n  `todo/world/task-411-attention-budget-and-fidelity-tiers.md`,\n  `todo/characters/task-412-promotion-demotion-and-trace-consolidation.md`,\n  `todo/world/task-418-awareness-channels-audibility-over-radius.md` - fidelity\n  tiers operate at this granularity; a stamped structure's residents arrive in\n  `background` and promote/demote as the attended set changes.\n- `todo/gameplay/task-427-creature-spawners-and-population-caps.md` - *dynamic*\n  creatures are spawners inside a structure, not authored population.\n- `todo/world/task-398-deterministic-structure-generation.md`,\n  `todo/world/task-400-pines-world-scale-vertical-slice.md`,\n  `todo/world/task-401-chunk-persistence-and-gateway-ways.md` - determinism,\n  scale target, and boundary ways as future gateway ways.",
+    "why": "",
+    "how": "",
+    "verify": "- pytest: new `tests/test_structures.py` green; no regressions (existing suite;\n  known pre-existing failures: MCP `.fn` wrapper, social/tick scaling).\n- Manual E2E: capture Taco Bell → reset to Pines → materialize → walk dining ↔\n  restrooms ↔ kitchen in-game; residents present, in background, promotable;\n  boundary exit shows as a dead stub; trigger validator clean.",
+    "acceptance": [
+      {
+        "text": "Structures save connected areas, internal ways, and items as one cohesive template.",
+        "done": true
+      },
+      {
+        "text": "Instantiating a structure stamps all areas and interconnecting ways into target scope.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/structure_generation.py",
+      "routes/structures_ops.py",
+      "tests/test_structures.py"
+    ],
+    "custom": {
+      "why_the_real_use_case": "Two layers:\n\n1. **World population (primary).** A world is built by *stamping structures*, not\n   by hand-placing every room, way, item and NPC. Author a town / camp / farm\n   once, then materialize it wherever a world needs one - internally wired and\n   already populated. \"Populate the Pines\" becomes \"materialize these N\n   structures with these population policies.\"\n2. **Portable built places (secondary).** Move/duplicate a specific designed\n   place between worlds or scenarios without re-wiring it (today the library\n   stores areas and ways separately and importing an area creates **no exits**, so\n   nothing built is reusable as a *place*).\n\nFidelity follows from the first layer: because `simulation_mode` (task-399) is an\nexecution mode on the same `Player`, a materialized structure's population can\ncome up in `background` and be promoted to `active` only when the attended set\n(task-411/418) reaches it. The structure is the natural unit for that selection.",
+      "design_decisions_settled": "- **Template semantics are the core; the fixed-identity snapshot is a special\n  case.** A bundle stores resident *archetypes* (species/roles, schedules, vital\n  policies) plus slots/params; instance identities are minted at materialization,\n  deterministically from a seed. Named-resident packs (miki, jake) are archetypes\n  with a pinned identity. This avoids the \"five identical mikis\" failure when\n  stamping.\n- **Node collisions remap ids only - never node display names.** The existing\n  `WorldGraph.add_node` (`graph.py:121-139`) does the opposite (random suffix on\n  *id and name* for item/character/logic_trigger, silent overwrite for `way`,\n  `ValueError` for `area`), so materialization must **not** use it; it owns the\n  remap. Every reference to a remapped id must be rewritten: edge endpoints plus\n  id-bearing properties (`area_from`/`area_to`, `library_id`, `node_id`, trigger\n  `target`).\n- **Residents resolve by identity, and are never dropped.** The engine keys\n  people by *name* (`player_manager.players`, `Player.node_id_for`,\n  relationships), so a duplicate resident name **mints a unique instance**\n  (`zombie` → `zombie 2`, anchor `player_zombie_2`). This covers the realistic\n  population case (rabbit/deer/zombie). True duplicate *display* names (500\n  literal \"Jon\"s) need the id-keyed identity refactor and are out of scope here.\n- **Boundary ways are gateways, near-side only - grafting them is manual by\n  design.** Model a boundary exit as a way node with only the near-side\n  `area → way` connection edge - never an edge to a missing area id. Engines\n  already tolerate a way with no far-side edge (`matching._collect_exits`,\n  `area_description`, `examine_actions` leave `target_area` empty), so it renders\n  as a visible-but-dead exit the author ties to the host world. Only the wiring\n  *inside* the captured group is automatic.\n- **Characters are `Player` payloads, not graph nodes.** Character state lives in\n  `player_manager.players` (`_serialize_player`, `serialization.py:104-166`); the\n  graph node is a bare anchor added at load (`serialization.py:459-462`). A graph\n  -only bundle imports an inert anchor with no vitals/memories and nothing for\n  the engine to drive, so the template must carry the player payload for its\n  residents and materialization must deserialize them.\n- **Deterministic ids.** Same template + seed + target scope → same ids. Use\n  derived ids, not random suffixes (aligns with task-412 stable id and task-408\n  dedup; guarantees \"no duplicate character nodes / no orphan nodes\").\n- **Skip obsolete `unlocks`/`requires` edges** (triggers supersede them; see\n  corrections.md `graph.unlock_edges_obsolete`). Constants still exist in\n  `graph.py:475-476` but nothing consumes them.\n- **No world lore travels** (lore is global), and runtime perception flags are\n  stripped while authored `current_state` (a locked door) is kept.",
+      "what_exists_today_verified_2026_09_22": "| Piece | Location | Gap |\n|-------|----------|-----|\n| Graph serialize (nodes+edges) | `graph.py:338` `to_dict()`; `engine/serialization.py:344` | Full-world only |\n| Graph deserialize | `graph.py:425` `load_from_dict()` | **Clears** the graph - no merge path |\n| Single-area library import | `routes/library_ops.py:567` `handle_library_import_area` | Imports area + items, **never creates ways/exits** |\n| Single-way library import | `routes/library_ops.py` / route `/api/library/import/way/<id>` | Exists - usable for hand-grafting stubs |\n| Character library import | route `/api/library/import/character/<id>` | Single character; player-state path exists |\n| Registry pattern | `routes/helpers.py:155-184` (`data/library/<type>/*.json`) | Add `structures` to `REGISTRY_TYPES` (`library_ops.py:16`) + frontend type list (`library-browser.js:96`) |\n| Way↔area edge model | `engine/movement.py:96` `connect_areas` (area→way→area, direction on area→way edge) | - |\n| Boundary-stub tolerance | `engine/matching.py:105-112`, `engine/area_description.py:509-518` | Safe: missing far side is tolerated |\n| Context menu / inspector | `graph/context-menu.js:46`, `graph/manager.js:221`, `inspector/area-view.js` | \"Save to Library\" (task-237) only; no structure actions |\n\nNote: `data/library/rooms/` (3 files) is **not** a registry type and no library\ncode reads it - a legacy store that should not be confused with structures;\ndecide to ignore or delete.",
+      "data_shape_sketch": "```jsonc\n{\n  \"template_id\": \"taco_bell\",\n  \"name\": \"Taco Bell\",\n  \"root_area\": \"area_tb_dining\",       // capture root; materialization root may differ\n  \"nodes\": { \"area_tb_dining\": { ... }, \"way_tb_north\": { ... }, \"item_...\": { ... } },\n  \"edges\": [ { \"source\": \"...\", \"target\": \"...\", \"type\": \"connection\", \"properties\": {} } ],\n  \"residents\": [                        // Player payloads, not graph nodes\n    { \"template_key\": \"miki\", \"identity\": \"pinned|minted\", \"player\": { ... },\n      \"schedule\": [...], \"vital_policy\": \"eat_when_hungry\", \"simulation_mode\": \"background\" }\n  ],\n  \"population\": { \"policy\": \"cap\", \"cap\": 12 },  // per-materialization knob\n  \"boundary_exits\": [ { \"area\": \"area_tb_dining\", \"way\": \"way_tb_to_street\", \"direction\": \"out\" } ]\n}\n```",
+      "plan_phased": "1. **Capture / serialize** - `engine/structures.py` `collect_structure(graph,\n   root_area_id, include_items, include_characters)` returns\n   `{root_area, nodes, edges, residents, boundary_exits}`. Walk outward over\n   `EDGE_CONNECTION` (area→way→area) with a visited-area set; collect the full\n   internal edge set; recurse item contents; snapshot resident `Player` payloads;\n   mark boundary ways near-side-only; strip runtime artifacts. Keep it a raw\n   graph subset so materialization is a straight replay (no scenario\n   reconstruction).\n2. **Materialize into a world/scope** - `materialize_structure(world, template,\n   {target_root_area, host_anchor_way, seed, population_policy})`: clone\n   nodes/edges with **deterministic id remap**, keep display names, rewrite all\n   references, create resident anchors + deserialize `Player`s via the existing\n   player path, land residents in `background` mode, register the scope entry\n   (task-397) when that lands. Add-only: never touches existing nodes.\n3. **Routes** - `routes/structures_ops.py` (`GET /api/structures`,\n   `POST /api/structures/preview`, `POST /api/structures/save`,\n   `POST /api/structures/materialize/<id>`) + thin `routes/structures.py`\n   registration; add `structures` to `REGISTRY_TYPES`.\n4. **UI** *(consumer #1)* - area context menu \"Save Structure…\" with a live\n   preview (areas/ways/items/residents counts) and include checkboxes; library\n   browser list + per-bundle Materialize with the same options and a post-import\n   report.\n5. **Tests** - cycle-safe capture; boundary stub renders/no crash; round-trip\n   (build → capture → clear → materialize → structural equality); collision remap\n   (ids only, display names preserved, references resolve); a resident\n   round-trip proving the `Player` is live and in `background` after\n   materialization; deterministic ids across two runs with the same seed.",
+      "considerations_risks": "- Characters travel as full `Player` payloads. Resident instance identity is\n  minted on a name clash (`miki` → `miki 2`); an explicit per-resident\n  `pinned|minted` policy (pin a scene's exact cast vs mint a fresh generic\n  resident every stamp) is still a follow-up.\n- `add_edge` de-dupes case-insensitively on (source, target, type); remapped\n  edges must be added after remap or they can drop.\n- Do **not** rely on `add_node` for any of this (see decisions).\n- Scopes (task-397) are the natural home for \"which template made this\"; until\n  that lands, materialization can take a plain target root area and be upgraded\n  to scope registration later.\n- Autosave/scenario source untouched - materialization mutates the running world\n  only.",
+      "implemented_2026_09_22": "**Engine - `engine/structures.py`**\n- `collect_structure(world, root_area_id, include_items, include_characters)`:\n  cycle-safe outward walk over `EDGE_CONNECTION`; item fixpoint through\n  in/on/under/behind/beside/at; residents snapshotted as full `Player` payloads\n  (anchors never emitted as raw nodes); boundary ways recorded and kept\n  near-side-only; runtime props stripped; obsolete `unlocks`/`requires` skipped.\n- `materialize_structure(world, template, seed, ...)`: add-only replay;\n  deterministic id remap (SHA-1 of `template:seed:id`, node display names\n  preserved); recursive reference rewrite (edge endpoints + `area_from`/`area_to`\n  + equipped stacks + memory `entity_ids`); residents deserialized via the\n  existing serializer path and landed in `simulation_mode=\"background\"`; a name\n  clash **mints a unique instance** (`zombie` → `zombie 2`, anchors\n  `player_zombie_2`) rather than dropping the resident; returns a report\n  (`renamed`, `minted_residents`, validator issues).\n- `summarize_structure()` for listing.\n\n**Routes**\n- `routes/structures_ops.py`: `GET /api/structures`,\n  `POST /api/structures/preview`, `POST /api/structures/save`,\n  `POST /api/structures/<id>/materialize`, `DELETE /api/structures/<id>`.\n- `routes/structures.py` thin registrar, wired in `app.py`.\n- `structures` added to `REGISTRY_TYPES` (`routes/library_ops.py`), so it gets\n  the generic library CRUD/listing for free.\n\n**UI**\n- `static/js/structures.js` - Save dialog (name, include items/residents, live\n  preview of counts + boundary exits) and a Structures browser with\n  Materialize/Delete; loaded from `templates/index.html`.\n- Area right-click menu gains \"📦 Save as Structure…\"; toolbar gains\n  \"📦 Structures\".\n\n**Tests - `tests/test_structures.py` (14)**\n- collect: connected areas/ways, cycle safety, item capture + runtime-prop\n  stripping, characters excluded by default, residents-as-players, boundary\n  near-side-only.\n- materialize: round-trip restores structure + resident in background;\n  collision remaps ids but keeps node names and resolves references; duplicate\n  resident mints `miki 2`; deterministic ids across identical worlds; boundary\n  stub is a dead exit; summary fields.\n- routes: preview→save→list→materialize, and 404 for a missing structure.\n\n**Not done / follow-ups**\n- Scope registration (task-397) - materialization takes a plain target world\n  today; when scopes land, record `{scope → template, seed}` and expose\n  `target_scope`.\n- **Boundary grafting is manual by design** (not a gap): an imported structure's\n  external exits are dead stubs the author ties to the host world. Everything\n  *inside* the group is wired automatically on materialize.\n- **Duplicate display names** are now partly supported for players by task-446\n  Slice A (step 1): the player registry accepts a repeated name via a stable\n  id-derived key. Full id-keyed identity (relationships, `current_area`, item\n  resolution) is task-446; until it lands, `mint` remains the default and\n  task-357 keeps minting `miki 2`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-357-structure-save-load-connected-areas.md"
+  }
+}

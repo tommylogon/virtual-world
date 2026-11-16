@@ -23,7 +23,7 @@ Make **Environment** a feature *family*: an umbrella page over subpages. Environ
 
 ## Why
 
-Environment spans many independent authoring surfaces — light has its own inspector + Engine Config sliders, weather its own schedule, heat its own config. The Feature Map splits it across rows 23/24/25/36. One page is unreadable; the reader should be able to land on 'Environment' and navigate down.
+Environment spans many independent authoring surfaces - light has its own inspector + Engine Config sliders, weather its own schedule, heat its own config. The Feature Map splits it across rows 23/24/25/36. One page is unreadable; the reader should be able to land on 'Environment' and navigate down.
 
 ## How
 

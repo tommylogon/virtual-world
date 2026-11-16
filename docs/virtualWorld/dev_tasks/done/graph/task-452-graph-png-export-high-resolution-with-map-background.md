@@ -26,15 +26,15 @@ Export the graph canvas to a high-resolution PNG that includes the map backgroun
 
 ## How
 
-- `static/js/graph/graph-export.js` (new) — `GraphExport.openDialog/closeDialog/exportPNG`.
+- `static/js/graph/graph-export.js` (new) - `GraphExport.openDialog/closeDialog/exportPNG`.
   Rebuilds the rendered nodes/edges into a hidden N× `vis.Network` (physics off, frozen at
   `getPositions()`), because vis derives canvas resolution from `devicePixelRatio` only.
   Composites map layers (Canvas2D) then the offscreen vis canvas at 1:1.
-- `static/js/graph/graph-background.ts` — added `getExportLayers()` (pure accessor for visible,
+- `static/js/graph/graph-background.ts` - added `getExportLayers()` (pure accessor for visible,
   decoded map layers); `graph-background.js` regenerated with `npm run build:ts`.
-- `static/js/ui/world-export.js` — `saveFileWithDialog` maps `.png` → `image/png`.
-- `templates/index.html` — script tag, toolbar button, More-menu item, `#graph-export-modal`.
-- `tools/unit/run.cjs` + `tools/unit/test_graph-export.js` — 6 tests for crop/clamp/view-scale helpers.
+- `static/js/ui/world-export.js` - `saveFileWithDialog` maps `.png` → `image/png`.
+- `templates/index.html` - script tag, toolbar button, More-menu item, `#graph-export-modal`.
+- `tools/unit/run.cjs` + `tools/unit/test_graph-export.js` - 6 tests for crop/clamp/view-scale helpers.
 
 ## Steps to verify
 

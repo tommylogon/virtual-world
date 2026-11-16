@@ -18,13 +18,13 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
 
 `engine/biomes.py`
 
-- `BUILDING_TAG` / `is_building(biome_id)` — the vocabulary decides, from the
+- `BUILDING_TAG` / `is_building(biome_id)` - the vocabulary decides, from the
   `building` tag task-561 gave the 31 types, not from a list of ids in the
   compiler. A modder's `watermill` joins without a code change.
 
 `engine/world_compile.py`
 
-- `building_subject()` / `building_refusal()` — a building's name as a thing you
+- `building_subject()` / `building_refusal()` - a building's name as a thing you
   can be inside of ("inn", "ferry landing") and the line its door gives when
   there is nothing behind it, composed from the building's category tags
   (`BUILDING_DOOR_TAILS`): a watch house is barred, an inn is shut, a smithy's
@@ -32,7 +32,7 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
   id, so the same building always refuses the same way and two of a kind do not
   read as clones. The editor reads the same function (see the route below), so
   the painter's preview and the world cannot drift.
-- `_enter_way()` — the way itself. `direction` is the phrase `enter the inn` and
+- `_enter_way()` - the way itself. `direction` is the phrase `enter the inn` and
   `aliases: ["in"]` keeps `go in` resolving, as the child gateway already does.
   `see_through: False` (a front door is not a window) and `kind: "entrance"`,
   which is deliberately *not* `door`: a painted door **cell** is structure the
@@ -43,8 +43,8 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
   meaning the doorstep. With no interior, because the street already has a
   compass way onto the plot: a way back would be a *second* connection for the
   same pair, and two ways both answering to `out` on the plot means a bare "out"
-  picks one at random. Walking a real world found exactly that — in through the
-  street door, type "out", and the shut **alley** door answers — so the plot keeps
+  picks one at random. Walking a real world found exactly that - in through the
+  street door, type "out", and the shut **alley** door answers - so the plot keeps
   its compass exits and says `Visible exits: west, east`.
 - The emitter, in `compile_grid` after the doorways: for every building region,
   the **cardinal** sides that already have a way (`emitted_pairs`, so a walled
@@ -53,8 +53,8 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
   is a corner of the plot.
   - **With an interior** (a placed child scope that is materialized): the way
     leads to that interior's entry area, open, and **one-way**. One-way on
-    purpose: inside, `out` must keep meaning one thing — the doorstep the child
-    gateway points at — and a second `out` onto the street would make the word
+    purpose: inside, `out` must keep meaning one thing - the doorstep the child
+    gateway points at - and a second `out` onto the street would make the word
     ambiguous. You come out onto the doorstep and walk off it, which is also
     what keeps an adjacent building one turn.
   - **With no interior**: the way leads to the building's own cell (the plot) and
@@ -67,7 +67,7 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
     it) and the `in` way needs an entry area id we do not have.
 - The parent records its door sides on the placement (`placements[id].sides`),
   and the child mints its own `in` ways from them when it compiles. This is what
-  covers the **common** order — generate the town, *then* draw the interior —
+  covers the **common** order - generate the town, *then* draw the interior -
   where the parent had no entry area to point at. The alternative was
   re-deriving the parent's whole region naming from the child side for the sake
   of one string.
@@ -78,7 +78,7 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
 - Areas for a building cell record `properties.building`, the fact the map, the
   description and the inspector all read.
 
-`engine/movement.py` — `refusal_message`
+`engine/movement.py` - `refusal_message`
 
 - A way with a `refusal_message` raises that line instead of letting you through,
   and holds until `current_state` is `open`. Checked *before* the state machine,
@@ -95,7 +95,7 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
   `world_compile.building_refusal`.
 - `grid-model.cellEnter(vocab, biomeId, child)` and `info.enter` in `cellInfo`:
   `in → The Inn` when the cell has an interior, `in → The inn's door is shut.`
-  when it does not, `''` for anything else — including a road painted over a
+  when it does not, `''` for anything else - including a road painted over a
   building cell, which the compiler also does not treat as a building.
 - The cell inspector shows an `enter` row, and the hover readout shows the shut
   line so the author notices it while painting rather than in play.
@@ -133,11 +133,11 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
   compass, because `in`/`out` name the threshold crossing and the plot is past it.
   A character who walks in and then says "out" gets `No exit 'out'. Visible exits:
   west, east`, which is honest but not generous. If it matters, the fix is a
-  `leave the {subject}` phrase on the plot's compass ways — a prose call for
+  `leave the {subject}` phrase on the plot's compass ways - a prose call for
   task-564, not a movement rule.
 - **The plot's prose.** A building cell still compiles to an area, because the
   placement record and the `out` side of every interior point at it, and it
-  carries the building biome's descriptions — which read as the *inside*. So
+  carries the building biome's descriptions - which read as the *inside*. So
   standing on the plot reads like standing in the building. task-567 (generate
   interiors from type) gives the interior its own descriptions; naming the plot
   ("the inn front") is a prose call that belongs with it.

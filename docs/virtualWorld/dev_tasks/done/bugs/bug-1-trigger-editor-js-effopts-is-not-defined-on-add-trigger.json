@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "bug-1",
+  "kind": "bug",
+  "number": 1,
+  "title": "trigger-editor.js â€” `effOpts is not defined` on add trigger",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Clicking \"Add Trigger\" in the library item editor throws `Uncaught ReferenceError: effOpts is not defined` at trigger-editor.js:69.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "static/js/shared/trigger-editor.js:66,69",
+      "---",
+      "_Audited 2026-08-03 - duplicate file consolidated into this record._"
+    ],
+    "custom": {
+      "root_cause": "Typo in `trigger-editor.js`. The variable is declared as `const effectOpts` on line 41 but referenced as `effOpts` (missing the `c`) on lines 66 and 69:\n\n```\nLine 41:  const effectOpts = this._effectTypes.map(...).join('');\nLine 66:  effectRowsHtml += this._buildEffectRowHtml(effOpts, eff, idx);\nLine 69:  effectRowsHtml = this._buildEffectRowHtml(effOpts, null, 0);\n```",
+      "fix": "Change `effOpts` to `effectOpts` on lines 66 and 69."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-1-trigger-editor-effOpts-undefined.md"
+  }
+}

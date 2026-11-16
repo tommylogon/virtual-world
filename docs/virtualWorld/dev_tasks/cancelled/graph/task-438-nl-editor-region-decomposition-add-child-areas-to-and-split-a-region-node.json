@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "task-438",
+  "kind": "task",
+  "number": 438,
+  "title": "NL editor region decomposition - add child areas to, and split, a region node",
+  "status": "cancelled",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "world",
+      "scopes",
+      "task-398",
+      "deterministic",
+      "structure",
+      "generation"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Type this into the NL editor and get a reviewable staged graph patch:\n\n> \"Add a creek margin, a rocky rise, and a deeper interior to the Deep Forest.\"\n>\n> \"Split the Deep Forest into: forest edge, undergrowth, deep interior, creek margin,\n> rocky rise - instead of one node.\"\n\nThe LLM interprets the request and authors the **content** (names, descriptions,\nfeatures, tags, ambience). The **topology** - node creation, way minting, boundary\nretargeting, id casing, contents migration - is deterministic code. This is task-398's\ngenerator contract applied to an *existing* region instead of an unmade scope.",
+    "why": "`area_deep_forest` is one node with six outbound ways (Raven River, Old Dwarven Ruins,\nNorthern Hills, Human Road, Abandoned Farm, Murk Lake) and seven inbound\n(`kraktooth_goblin_camp.json:2539+`). Six regions have this shape - `northern_hills`,\n`murk_lake`, `blackmarsh`, `raven_river`, `eldenford`, `human_road` - and the library\n`data/library/areas/eldenford.json` is 15 lines with `\"exits\": []`, its contents\n(\"farms, houses, livestock, a smithy, an inn, a market, and guards\") left as prose.\n\nThe camp interior, by contrast, is correctly decomposed: `area_chiefs_pit` is a hub with\n`way_pit_to_*` passage nodes to ~20 leaf areas. The exterior was never decomposed.\n\nThe NL editor already has the mutation primitives - `create_node`, `connect_areas`,\n`attach`, `spawn_library_item`, `link_to_library` (`static/js/nl-editor/tools.js:291-441`)\n- and a staging buffer with deterministic minted IDs, so chains\n*create → connect → attach* resolve before commit. What it does **not** have is a\n*topology operation*: one intent → N areas + internal ways + boundary re-homing, planned\ndeterministically. Asking a small local model to hand-assemble six areas and ten ways\nthrough 25 individual tool calls is how `Generated Scenario Review (2026-08).md` ended\nwith 9 broken scenarios out of 13.",
+    "how": "### Anchor rule (v1): never delete the region node\n\nOn `split_area`, retag the region node `region` and keep its id. Deleting it would dangle\nevery `way_*` edge and every spatial relation, and - given task-439 - would also churn the\nsave's area keys. The retained node becomes the grouping anchor, forward-compatible with\ntask-397's `properties.world_scope_id`.\n\n### Children: authored inline or pulled from the library\n\n```jsonc\n\"children\": [\n  { \"name\": \"Creek Margin\", \"approach\": \"east\",\n    \"description\": \"...\", \"tags\": [\"forest\", \"water_margin\"],\n    \"features\": [\"creek\", \"reeds\"] },\n  { \"library_area\": \"frozen_thicket\", \"name\": \"Thicket\", \"approach\": \"north\" }\n]\n```\n\nA library child imports `description` / `environment` / `tags` / `features` but **not its\n`exits`** - the planner mints the ways, so `frozen_thicket`'s hardcoded exits to\n`Snowbound Hollow` do not drag in a dead winter sub-graph. The library already holds the\nright vocabulary (`weeping_willow_hollow`, `frozen_thicket`, `frozen_stream_crossing`,\n`frozen_lake_clearing`, `marsh_trail`, `stream_bank`, `rocky_slope`, `willow_gap`), so\n\"a hollow / a thicket / a crossing / a rocky rise\" can be reused rather than invented.\n\n### Gateway assignment (slice 2)\n\nEach child may declare `approach` / `cardinal`. A boundary way is re-homed to the child\nwhose `approach` matches the way's `cardinal` / `direction`. Anything unmatched is\n**reported** as an unresolved pool in the preview (task-398: \"may not substitute\nunrelated items silently\") - the author assigns it in the tray or re-declares `approach`.\n\n### Connectivity modes\n\n- `hub` - all children off the region node (slice 1 default, matches `area_chiefs_pit`).\n- `linear` - a chain; right for a river as a sequence of banks.\n- `mesh` - children adjacent per declared `approach`.\n\nBidirectional ways get four `connection` edges via `MovementSystem.connect_areas`\n(`engine/movement.py:96`), matching the existing corpus.\n\n### Boundary-way retarget + contents migration (slice 2)\n\n- Every `way_*` connected to the region is patched (`update_node`) to target the assigned\n  child. This is an update to an existing node, so it rides the existing staging buffer;\n  Apply must be atomic across creates **and** updates, with rollback.\n- Items and characters with an `in` edge to the region are re-homed to a child via\n  `attach`, or stay if the anchor is retained.\n- A character must never be left in an area that no longer exists; `at` stays 1:1.\n\n### Proxy resource nodes (opt-in)\n\nFor each new child, optionally clone one representative stateful proxy - e.g. the existing\nberry-bush node (`on_tick` grow, then `spawn_item {into: \"container\"} `capped by\n`contains_count berries < 10`; `kraktooth_goblin_camp.json:1466-1531`). One node per child,\ndescribed **plural** (\"berry bushes\"), so resource yield scales with child count without\nauthoring individual plants. Co-ordinate caps with task-427 (population caps) and task-410\n(food renewal).\n\n### Interim region representation\n\n`properties.region: \"<region_id>\"` on every child, plus `tags: [\"region\"]` on the anchor.\nNo engine change; superseded by task-397's `world_scopes` manifest when it lands.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "\"Add a creek margin and a rocky rise to Deep Forest\" stages exactly two areas and two",
+        "done": false
+      },
+      {
+        "text": "ways with four connection edges each, ghosts visible, nothing applied until Apply.",
+        "done": false
+      },
+      {
+        "text": "\"Split Deep Forest into …\" retargets all six boundary ways; the preview shows a table of",
+        "done": false
+      },
+      {
+        "text": "old way → new child; unmatched gateways are listed, not guessed.",
+        "done": false
+      },
+      {
+        "text": "Same seed + same children + clean graph yields an identical patch; a second run creates",
+        "done": false
+      },
+      {
+        "text": "nothing.",
+        "done": false
+      },
+      {
+        "text": "No character is orphaned; `look` resolves; movement to river / ruins / hills / road /",
+        "done": false
+      },
+      {
+        "text": "farm / murk still works end-to-end.",
+        "done": false
+      },
+      {
+        "text": "`python -m pytest tests/ -q -k \"not mcp and not emote\"`; new `tests/test_decompose.py`",
+        "done": false
+      },
+      {
+        "text": "covers determinism, idempotency, retarget, unresolved gateway, contents migration.",
+        "done": false
+      },
+      {
+        "text": "Reload preserves every generated node and its provenance; a later manual edit to a",
+        "done": false
+      },
+      {
+        "text": "generated child survives a re-run.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "two_verbs_two_phases": "### slice 1 - `add_areas` (ships first; no retargeting)\n\nAppend N child areas to a region and connect them to it. The region node is **retained**\nas the hub, so all six existing boundary ways keep pointing at it, unchanged. Nothing\ndangles, no save key churns. The result mirrors `area_chiefs_pit` + `way_pit_to_*` -\nthe precedent already exists in the same scenario file.\n\n### slice 2 - `split_area` (the hard half)\n\nDecompose the region: create children, connect them internally, **re-home every boundary\nway** to the correct child, then demote the region node to a grouping anchor. Requires a\ngateway-assignment rule and a rollback-safe atomic create+update Apply.",
+      "non_negotiable_properties_task_398_generator_contract": "Deterministic · seedable · reviewable before Apply · idempotent (a second run must not\nduplicate) · provenance on every generated node · never overwrite manual edits ·\n**report** unresolved assignments, never silently substitute.",
+      "tool_contract": "Add to `static/js/nl-editor/tools.js`, mirroring the existing schema shape (`tools.js:341-357`):\n\n```jsonc\n{ \"name\": \"add_areas\",\n  \"parameters\": { \"region_id\": \"string\", \"children\": \"array\",\n                  \"connect\": \"hub|linear|mesh\", \"populate\": \"boolean\",\n                  \"replicate_proxies\": \"array\", \"seed\": \"string\" } }\n\n{ \"name\": \"split_area\",\n  \"parameters\": { \"region_id\": \"string\", \"children\": \"array\",\n                  \"connect\": \"hub|linear|mesh\", \"gateways\": \"object\",\n                  \"populate\": \"boolean\", \"replicate_proxies\": \"array\",\n                  \"preserve_region_node\": \"boolean (default true)\", \"seed\": \"string\" } }\n```\n\nPlanning lives in a pure, framework-free module - `engine/decompose.py`, modelled on\n`engine/population.py`: `plan_*(...)` is pure and deterministic; `apply_*(plan, spawn,\nrelate, ...)` takes callables so the engine never imports Flask or a route-private helper.\nThe NL editor tool stages the returned patch; `tools/generate_scenario.py` may consume the\nsame planner offline.",
+      "work_plan": "1. **Phase 0 - prerequisites.** task-439 (`rooms_serialized[node.name]` →\n   id-keyed, and name-based exit/`current_area` lookups made unambiguous). Split areas\n   share names (\"hollow\", \"clearing\", \"crossing\") **by design**, so this is not optional.\n2. **Phase 1 - `engine/decompose.py` (slice 1).**\n   `plan_add_areas(graph, region_id, children, seed) -> DecompositionPatch`\n   (nodes, edges, region assignments, unresolved, report, provenance). Deterministic,\n   region-scoped id minting: `area_deep_forest_creek_margin`,\n   `way_deep_forest_to_creek_margin`. Tests: same seed → same patch; re-run is a no-op.\n3. **Phase 2 - `add_areas` tool + staging tray (slice 1).** Wire through\n   `static/js/nl-editor/tools.js`, `staging.js`, `ghosts.js`; ghost preview of the new\n   cluster; Apply.\n4. **Phase 3 - `split_area` + gateway retarget (slice 2).** Boundary-way patching,\n   contents migration, unresolved-gateway report, atomic create+update Apply, rollback.\n5. **Phase 4 - population wiring.** Point the editor's `populate_area` at\n   `engine/population.py`. **It currently is not:** `tools.js:344` describes nine\n   hardcoded theme packs (`apothecary, kitchen, garden, study, smithy, warehouse, shrine,\n   bedroom, generic`) with canned item lists and NPCs (`tools.js:552-660`); it never reads\n   the area's tags, is not seedable, and has no forest/hollow/marsh vocabulary. No\n   `populate` route exists in `routes/`. Without this the split produces empty areas.\n   Gated on task-324 (23/58 areas tagged, none domain-flavoured; `eldenford.json` is\n   `tags: []`).\n6. **Phase 5 - validation gate.** Reuse the validator (task-393) before Apply: every edge\n   endpoint exists, no duplicate area names, id casing, region coherence, every child\n   reachable from the anchor. Refuse to split an already-split region unless `--variant`.",
+      "non_goals": "- Replacing task-397's `world_scopes` manifest (this is the interim `region` property).\n- Generating wilderness *grids* or district road layouts (task-398's non-goal stands).\n- Chunk unloading / projection endpoints (task-401, task-402).\n- Re-filling way orientation prose for existing scenarios (task-395 / task-435).\n- Unsupervised LLM topology - the LLM never mints ids or picks way endpoints.",
+      "risks": "- **Name collisions** - why task-439 is a hard prerequisite and not a nice-to-have.\n- **Travel depth** - `background_simulation._target_step` BFSes exits and returns one hop\n  (`engine/background_simulation.py:735-742`), so decomposition needs no new travel code,\n  but a region four hops deep costs four turns to reach food. Interacts with\n  `minutes_in_turn` (task-436 / task-437). Verify a hungry goblin still eats.\n- **Sanitized-id shim** - `background_simulation.py:703-706` documents ways referencing\n  `area_chiefs_pit` while the node id keeps the apostrophe. Graph-level case resolution\n  now exists (`graph.py:70-77`), but adding 30-40 areas multiplies the surface area for\n  this class of mismatch.\n- **Budget** - one child with furniture, items, an NPC and a way is a large slice of the\n  NL editor's hard-coded 6000-token context (`static/js/nl-editor/agent-loop.js:23`;\n  task-422 is still unstarted). Prefer several small `add_areas` calls over one giant\n  `split_area`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-439 (canonical area identity in save + lookups - hard prerequisite),"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/graph/task-438-nl-editor-region-decomposition.md"
+  }
+}

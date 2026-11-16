@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-805",
+  "kind": "task",
+  "number": 805,
+  "title": "Disposition whispers: render the score registry as words for the LLM",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-800"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-704",
+      "task-799",
+      "task-800",
+      "task-801",
+      "task-802",
+      "task-803",
+      "task-804",
+      "task-806"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The same registry and weights rendered as prose for the LLM prompt, so soak and LLM share one vocabulary. `disposition.whispers(player)` emits one line per active trait that moves a score, plus a pressing need and a remembered target. `TraitSystem.behavior_prompts(player)` returns each carried trait's own `behavior_prompt`.\n\n**The gap it closes:** the prompt builder already reads `player.trait_behavior` (`static/js/agent/prompt-builder/character-state.ts:288-303`) and **nothing in Python ever wrote it** (`grep trait_behavior --glob *.py` finds no writer), so the trait schema-v2 `behavior_prompt` never reached a prompt. Serialization now writes both the trait prose and the whispers into that field.",
+    "why": "One layer for soak and LLM: the soak gets the numbers, the LLM gets the whispers, both from the same authored traits - so a character does not have two vocabularies. It also repairs the schema-v2 seam: the read side existed, the write side was never built.",
+    "how": "`engine/disposition.whispers` (with `WHISPERS`, `_NEED_WHISPERS`, `pressing_need`); `engine/traits.TraitSystem.behavior_prompts`; and `engine/serialization._trait_behavior`, merged into the player payload as `trait_behavior`. No JavaScript change was needed - `character-state.ts` already reads the field, so this is the missing writer. The lines are deterministic and de-duplicated, and `whispers` composes from the same `TRAIT_MODIFIERS` / `NEED_THRESHOLDS` the soak weights read.",
+    "verify": "1. In the app, open the LLM Inspector for a strongly-traited character.\n   - expected: the built request contains the character's traits as prose.\n   - observed: PARTIAL 2026-10-13. `/api/state` carries `trait_behavior` for 22/27 players (the trait behavior_prompts + the whispers), which is the field the builder reads; the Inspector render itself was not driven.\n2. The same character in the 🧠 Mind panel.\n   - expected: the whispers and the numbers come from the same traits.\n   - observed: VERIFIED 2026-10-13, live on localhost:4444. The \"Disposition - what they weigh\" block shows the character's weights *and* the whisper lines from the same traits, e.g. scarred's behavior_prompt plus \"You need to relieve yourself.\"",
+    "acceptance": [
+      {
+        "text": "The LLM context carries the same traits the soak weights (payload verified live: 22/27 players).",
+        "done": true
+      },
+      {
+        "text": "No trait renders only in numbers: every trait in `TRAIT_MODIFIERS` has a `WHISPERS` line, and every carried trait with a `behavior_prompt` contributes prose.",
+        "done": true
+      },
+      {
+        "text": "`tests/test_disposition.py` 36 passed; `tests/test_serialization.py` 16 passed.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/disposition.py` (`whispers`, `WHISPERS`, `pressing_need`)",
+      "engine/traits.py` (`TraitSystem.behavior_prompts`)",
+      "engine/serialization.py` (`_trait_behavior` + the payload field)",
+      "tests/test_disposition.py",
+      "static/js/agent/prompt-builder/character-state.ts` (reader only - unchanged; it already consumed the missing field)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: load a character → Human Turn/Agent Lens prompt context → inspect the generated disposition/trait prose and the matching raw LLM input.\n\nCurrent availability: the card records live payload verification for 22/27 players and tests for score whispers and carried-trait `behavior_prompt` prose. The UI should expose the same prompt context the LLM receives; no new editor is claimed.\n\nLive steps when available:\n1. Select a character with a trait in `TRAIT_MODIFIERS` and inspect its Agent Lens prompt context and Raw LLM capture.\n   - expected: the character receives the matching `WHISPERS` line in words, not only a numeric score.\n2. Select a character carrying a trait with `behavior_prompt` and inspect the same two surfaces.\n   - expected: the trait's authored behavior prose appears once in the LLM context and agrees with the carried trait in `/api/state`.\n3. Give the character a pressing need and a remembered target, then reopen the prompt context.\n   - expected: the whisper includes those live modifiers only when present and uses the same score vocabulary as the soak registry.\n4. Compare the visible Agent Lens and captured raw prompt.\n   - expected: both contain the same disposition text; the UI does not fabricate additional personality traits.\n\nThis section is not a claim that every character payload is freshly verified today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm.md"
+  }
+}

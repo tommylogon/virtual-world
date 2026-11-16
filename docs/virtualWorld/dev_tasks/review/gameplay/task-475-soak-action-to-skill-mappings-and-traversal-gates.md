@@ -49,4 +49,4 @@ During long-horizon soak simulations, characters previously bypassed skill check
 - engine/traversal.py
 - engine/background_simulation.py (_travel_toward, _travel_to_area, _hop)
 - engine/timeskip.py (_move)
-- 	ests/test_traversal.py
+- tests/test_traversal.py

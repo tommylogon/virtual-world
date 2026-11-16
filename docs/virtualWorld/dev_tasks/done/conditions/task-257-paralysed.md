@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
 
 ## What
 
-Rigor-locked — cannot move, act, or speak, and fails STR/DEX saves. Unlike `unconscious`, the character **keeps their grip** on held items.
+Rigor-locked - cannot move, act, or speak, and fails STR/DEX saves. Unlike `unconscious`, the character **keeps their grip** on held items.
 
 ## Schema (catalog entry)
 
@@ -38,18 +38,18 @@ Rigor-locked — cannot move, act, or speak, and fails STR/DEX saves. Unlike `un
 - **Gates**: blocks actions, movement, speech.
 - **Saves/checks**: auto-fails STR/DEX.
 - **Combat**: `defense_mod -5` (helpless).
-- **Movement**: `speed_mult: 0.0`; **keeps grip** (`drops_held_items: False` — distinct from unconscious).
+- **Movement**: `speed_mult: 0.0`; **keeps grip** (`drops_held_items: False` - distinct from unconscious).
 - **Periodic**: none.
-- **Lifecycle**: `stack: "noop"` (a fresh paralysis does nothing if already paralysed), `default_duration: 3` ticks, ends on `duration`. No `ends_on` action removes it early — only the countdown.
+- **Lifecycle**: `stack: "noop"` (a fresh paralysis does nothing if already paralysed), `default_duration: 3` ticks, ends on `duration`. No `ends_on` action removes it early - only the countdown.
 
 ## Perception
 
-`known: True` — self-evident; rendered with description.
+`known: True` - self-evident; rendered with description.
 
 ## Integration points
 
-- `player.py:61-70` — catalog entry.
-- `engine/conditions.py` — `get_condition_mods`, `auto_fails_saves`, `effective_speed`.
+- `player.py:61-70` - catalog entry.
+- `engine/conditions.py` - `get_condition_mods`, `auto_fails_saves`, `effective_speed`.
 - `can_act`/`can_speak` via `BLOCKING_CONDITIONS` / `blocks_speech`.
 - `process_tick` duration countdown (auto-expires).
 - Potential source: poison variants, certain traps/effects.
@@ -64,7 +64,7 @@ Rigor-locked — cannot move, act, or speak, and fails STR/DEX saves. Unlike `un
 ## Open questions / things to work out
 
 - Should anything end paralysis early (e.g. an antidote / `cure` in `ends_on`)?
-- Gap vs. unconscious: keep grip vs. drop — confirm that's the intended differentiator.
+- Gap vs. unconscious: keep grip vs. drop - confirm that's the intended differentiator.
 
 ## Why
 

@@ -5,9 +5,9 @@ area: testing
 priority: medium
 ---
 
-# task-347 — Export-log lint guards: grep-able regression checks over play sessions
+# task-347 - Export-log lint guards: grep-able regression checks over play sessions
 
-**Status**: Todo — filed 2026-08-27 from export-log review.
+**Status**: Todo - filed 2026-08-27 from export-log review.
 
 ## Found
 
@@ -18,7 +18,7 @@ attribution, memory dup writes → task-346, appearance grammar → task-345).
 Today these are found by hand months later.
 
 Sibling to task-11 (live-agent regression harness): task-11 replays full
-sessions with an actual model; THIS task needs no model — just lint existing/
+sessions with an actual model; THIS task needs no model - just lint existing/
 new exports for known-bad signatures.
 
 ## What
@@ -57,7 +57,7 @@ historical logs stay annotated (lint runs per-file, not per-build).
   Wired as `npm run loglint` and documented in `AGENTS.md`.
 - Rules: `article-double` (bug-27), `missing-space` (bug-27; glued relation word,
   with an allowlist for real words like *thunder*), `apostrophe-strip` (bug-28,
-  scoped to CONVERSATION), `double-attribution` (bug-29, scoped to WITNESSED —
+  scoped to CONVERSATION), `double-attribution` (bug-29, scoped to WITNESSED -
   same quote twice in one block), `memory-dup` (task-346, scoped to I REMEMBER),
   `pronoun-stitch` (G1 verb + "your"), `appearance-grammar` (task-345
   "you is/was").
@@ -68,7 +68,7 @@ historical logs stay annotated (lint runs per-file, not per-build).
 ### Findings on the real logs
 
 - **bug-28 confirmed observable**: the taco_bell log shows the
-  `that s— … i m` apostrophe-stripped CONVERSATION echo (16 hits) — so the
+  `that s- … i m` apostrophe-stripped CONVERSATION echo (16 hits) - so the
   mangling is in what was recorded/broadcast, even though the current code path
   stores speech verbatim (see bug-28 notes).
 - **bug-29 stays a false alarm**: `double-attribution` = 0 on the same log,

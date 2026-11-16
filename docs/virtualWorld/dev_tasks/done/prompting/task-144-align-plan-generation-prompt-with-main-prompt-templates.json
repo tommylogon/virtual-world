@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-144",
+  "kind": "task",
+  "number": 144,
+  "title": "Align Plan Generation Prompt with Main Prompt Templates",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The plan generation prompt uses different section names than the main prompt templates:\n\n| Main templates | Plan prompt |\n|---------------|-------------|\n| `=== YOUR STATE ===` | `=== CONDITION ===` |\n| `Carrying: ...` (context setter) | `=== CURRENT WORLD ===` (full context setter) |\n| `=== RECENTLY / JUST HAPPENED ===` | `=== MOST RECENT OUTCOME ===` |",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/plan-manager.js` - likely the plan prompt builder"
+    ],
+    "custom": {
+      "cause": "The plan prompt is built in a separate code path (likely `plan-manager.js`) that doesn't reuse `buildRoomContext()` or the standard template functions. It constructs its own prompt from scratch with different section names, duplicating the personality preamble in the process.",
+      "scope": "- Locate the plan prompt builder\n- Align section names with the main templates (`=== YOUR STATE ===`, `=== YOUR THOUGHTS ===`, `=== RECENTLY ===`)\n- Ensure personality is only included once (currently duplicated from the user message preamble)\n- Reuse `buildRoomContext()` if feasible",
+      "done": "- Plan prompt now starts with the bare `buildRoomContext()` output (no `=== CURRENT WORLD ===` header), matching the observe/decide templates.\n- `=== CONDITION ===` → `=== YOUR STATE ===`\n- `=== MOST RECENT OUTCOME ===` → `=== RECENTLY ===`\n- `=== MOST RECENT THOUGHT ===` → `=== YOUR THOUGHTS ===` (own section after YOUR STATE, matching DECIDE)\n- Removed the duplicated `You are {name}. {personality}` line - the roomContext preamble already carries it.\n- `buildRoomContext()` gained an `includePlan` param (default `true`); plan generation passes `false` so the generator doesn't see its own active plan (it's already fed via `=== PREVIOUS PLAN ===`).\n- Kept `=== WORLD KNOWLEDGE ===`, `=== PREVIOUS PLAN ===`, threat note, and plan rules.",
+      "files_modified": "1. `static/js/agent/plan-manager.js` - prompt section rename/dedupe, `buildRoomContext(..., false)`\n2. `static/js/agent/prompt-builder.js` - `includePlan` param on `buildRoomContext`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "completed": "2026-08-03"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-144-align-plan-prompt-with-main-templates.md"
+  }
+}

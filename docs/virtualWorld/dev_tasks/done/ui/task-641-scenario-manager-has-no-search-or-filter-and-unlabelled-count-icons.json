@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "task-641",
+  "kind": "task",
+  "number": 641,
+  "title": "Scenario Manager has no search or filter and unlabelled count icons",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "At this scenario's size the unfiltered list is unusable and the count icons carry no label.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open Scenario Manager and type `pin` in its filter.\n   - expected: one of 22 scenarios remains, named `pines`, and focus remains in the filter.\n   - observed: live: `pin` → `1 of 22`, only `pines` listed.\n2. Type a query with no matches, then clear it.\n   - expected: the UI says no scenario matches, distinctly from an empty registry; clearing restores all rows.\n   - observed: implemented and recorded in the resolution; repeat the browser pass when changing this surface.\n3. Hover each count in a scenario row.\n   - expected: area count, character count, file size, and last-modified values each name what they represent.\n   - observed: the card records titles “23 areas”, “21 characters”, “File size on disk”, and “Last modified”.",
+    "acceptance": [
+      {
+        "text": "The Scenario Manager has a filter that narrows the list live",
+        "done": true
+      },
+      {
+        "text": "A match count is shown, so it is clear the list is filtered",
+        "done": true
+      },
+      {
+        "text": "A filter with no matches says so distinctly from \"no scenarios exist\"",
+        "done": true
+      },
+      {
+        "text": "Each count carries a `title` naming what it counts",
+        "done": true
+      },
+      {
+        "text": "Typing keeps focus in the filter across repaints",
+        "done": true
+      },
+      {
+        "text": "Verified live: typed \"pin\" -> 1 of 22, only `pines` listed",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30": "Both halves confirmed at source, in `static/js/ui/scenario-manager.js`, then\nfixed.\n\n**The counts were one flat string.** `renderList` built a single text node:\n\n    stats.textContent = `<house> ${sc.areas} Â· <sprout> ${sc.players} Â· ${fmtSize(...)} Â· ${fmtAge(...)}`\n\nso the two numbers had to be decoded from two glyphs. Verified there was no\ndisclosure available: a whole-document scan for digit-only elements carrying a\n`title` or `aria-label` returned **zero**. The pattern the top bar already uses\n(`title=\"Next forecast change\"`, `title=\"Scenario source\"`) was absent here.\nEach count is now its own element with a `title` -- \"23 areas\", \"21 characters\",\n\"File size on disk\", \"Last modified\".\n\n**There was no filter at all**, and the registry holds **22 scenarios** in a\n`max-height:60vh` scroller, so the list really is unusable unfiltered. Added a\nlive filter over name, plus an exact match on either count, a \"N of M\" counter,\nand a distinct \"No scenario matches ...\" message -- without that last one, a\nfiltered-to-nothing list is indistinguishable from an empty registry, which is\nthe same class of defect as the one task-620 was retracted for.\n\n**One encoding note for whoever touches this file.** The emoji are stored\nmojibake'd (`Ã°Å¸` sequences, i.e. UTF-8 bytes read as Latin-1), so an edit that\ntypes a real emoji in `oldString` will not match. The glyphs are therefore built\nfrom `String.fromCharCode(0xD83C, 0xDFE0)` / `(0xD83C, 0xDF3F)` to match the\nexisting bytes exactly rather than \"fixing\" the encoding in passing.\n\n- TODO",
+      "browser_ui": "Intended UI home: Game menu → Scenario Manager modal → filter field and scenario rows/count icons.\n\nCurrent availability: The card records a live pass over 22 scenarios: typing `pin` produced `1 of 22` and only `pines`; the count icons now have titles and filtering preserves keyboard focus.\n\nLive steps when available:\n1. Open Scenario Manager and type `pin` into its filter.\n   - expected: the counter reads `1 of 22` and only `pines` remains; typing does not lose focus during repaint.\n2. Replace the filter with a string that matches no scenario, then clear it.\n   - expected: the modal distinguishes “no scenario matches” from an empty scenario registry; clearing restores the full list.\n3. Hover each row's area count, character count, file size, and last-modified value.\n   - expected: each has a title identifying exactly what it counts or describes.\n4. Filter by an exact area/player count.\n   - expected: the matching scenario rows remain and the displayed count agrees with the row total.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-641-scenario-manager-has-no-search-or-filter-and-unlabelled-count-icons.md"
+  }
+}

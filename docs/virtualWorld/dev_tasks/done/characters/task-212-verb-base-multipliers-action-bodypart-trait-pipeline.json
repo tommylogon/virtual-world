@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-212",
+  "kind": "task",
+  "number": 212,
+  "title": "Verb Base Multipliers & Action→BodyPart→Trait Pipeline",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-11",
+  "updated": "2026-08-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-207",
+      "task-208",
+      "task-209",
+      "task-210",
+      "task-211",
+      "task-213",
+      "task-215"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Each intimacy verb needs base mechanical properties (pressure, pleasure multiplier, pain potential, stim type) so the system can compute stimulation before intensity/body-part/trait modifiers. Without defaults, \"gentle kiss\" vs \"firm pinch\" can't be calculated.",
+    "how": "- New file `engine/pleasure_actions.py` with `VERB_BASE` table (from design §Additions #1): `caress/pinch/kiss/lick/suck/bite/blow/tickle` with `pressure`, `pleasure_mult`, `pain_potential`, `stim_type` (sustained/rhythmic/spike).\n- Multiplier pipeline: `VERB_BASE → × intensity modifier (light/normal/firm) → × body_part sensitivity (from `body_state`) → × trait multiplier (per-body-part) → applies to Stimulation/Pleasure, adjusted by mood/context/relationship`.\n- `pain_potential` flips to negative pleasure if it exceeds comfort (overstimulation).\n- **Trait multiplier source:** read from `TRAIT_DEFINITIONS` (`engine/traits.py:90`) - see task-213. Design's `\"multipliers\": {\"body_part:nipple\": 3.0}` shape needs mapping onto the existing trait `effects` schema, or a parallel `body_part_multipliers` key on the trait dict.",
+    "verify": "- [ ] Same verb + different intensity scales stimulation correctly\n- [ ] Body-part sensitivity (nipple 0.9 vs 0.7) affects gain\n- [ ] Trait multiplier (e.g. `wired_differently` nipple ×3.0) applies\n- [ ] Pain potential can make pleasure go negative (overstimulation)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/pleasure_actions.py` - NEW: `VERB_BASE`, `apply_stimulation()`, multiplier pipeline",
+      "engine/traits.py` - body-part multiplier lookup (see task-213)"
+    ],
+    "custom": {
+      "related": "- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §Additions #1, Phase 4\n- `task-211 intimacy verbs` (action dispatch), `task-213 traits`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-212-verb-multipliers.md"
+  }
+}

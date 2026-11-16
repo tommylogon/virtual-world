@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-433",
+  "kind": "task",
+  "number": 433,
+  "title": "Agent-reachable inscription (task-53 follow-up)",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-53",
+      "task-363",
+      "task-160",
+      "task-299"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "(Use Item with Parameters - `use pen on paper \"text\"` → `on_use_on` →\n`set_description`/`append_description`, `{params}` templating; **implemented,\nIn Review**).\ninscription), task-299 (long-distance communication - letters), task-423\n(background social interactions), task-403 (unified memory/knowledge).",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Inscription action writes custom text onto readable item nodes.",
+        "done": true
+      },
+      {
+        "text": "Examining inscribed item displays author and persistent inscription text.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/items.py",
+      "tests/test_items.py"
+    ],
+    "custom": {
+      "why_this_exists": "task-53 built the **engine half**: a quoted `use <tool> on <target> \"<text>\"`\ncarries `params` into the `on_use_on` trigger context, and effects can render\n`{params}` (plus the hardcoded `[Inscribed: …]` description append at\n`engine/items/use_actions.py:266-277`). That works for an authored human-driven\npair.\n\nWhat task-53 does **not** cover is everything needed for characters to do it on\ntheir own, intentionally, in a world that can then read it back. Verified\n2026-09-21:\n\n1. **No agent can reach it.** The LLM emits a structured action\n   `{action, item, target, speech, emote, …}` with **no text field**\n   (`static/js/agent/prompt-builder/system-prompt.js`,\n   `agent/action-normalizer.js`), so it can only produce `use <tool> on\n   <target>` - never a `params`. The tool path\n   (`tools/game_tools.py:224`) calls `use_item_on(item_name, target)` with no\n   `params` either.\n2. **It is un-gated and accidental.** task-160/363 document\n   `use create flame on dried flower crown` *inscribing* \"flower crown\" onto a\n   crown because `\"flower crown\"` was quoted. Nothing checks that a tool is a\n   writing implement or a target is writable. task-53's path inherits this.\n3. **`{params}` only works where a trigger exists - none does.** No authored\n   `ink_pen`, `parchment`, `pencil`, `journal`, `notebook`, `letter`\n   (`data/library/items/`) or the Ink Pen/Parchment in `The Valerious Case.json`\n   carries an `on_use_on` trigger. The capability has no content using it.\n4. **`set_description` overwrites, and targets a literal node id.**\n   `engine/effect_handlers/properties.py:71-109` - the value is rendered, but\n   the target is a literal node id (\"self\" fails), so generic \"the paper in my\n   hand\" is not expressible. Overwriting `description` is also lossy: no\n   author, no tick, no structure, mixed with authored prose.\n5. **Reading back is unaddressed.** `read` is still an `examine` alias\n   (`routes/action_handlers.py:217-220`); there is no inscription block or\n   `read`-prioritises-note behaviour.\n6. **Narration does not persist, and should not.** When the LLM narrates \"she\n   scribbles 'DONT GO HERE' on the paper\", that prose is browser-only\n   (`static/js/narration-ui.js:209-232`, `static/js/agent-engine.js:650-663`,\n   IndexedDB in `static/js/stream/stream-persistence.js`) - never POSTed, never\n   serialized.",
+      "design_the_delta_only": "1. **Agent reachability.** Add a `text` field to the structured action schema,\n   teach it in the system prompt, and have the normalizer emit an\n   unambiguous inscription form (an `inscribe`/`write` verb, or\n   `use <tool> on <target>` carrying `text`). Forward it on the tool path.\n2. **Gating, so it is deliberate.** Require the target to be writable\n   (`writable`/`paper`/`book`/`sign`/`wall`) and the tool to be a writing\n   implement (`pen`/`pencil`/`quill`/`charcoal`/`chalk`). Ordinary\n   `use X on Y` must never inscribe (keeps task-363 fixed).\n3. **Authoring parity + content.** Ship real pen/paper/noticeboard items with\n   the trigger, so the mechanism has something to drive.\n4. **Structured store.** Prefer `properties.inscriptions: [{by, tick, text}]`\n   over overwriting `description`; render a \"Written here:\" block on\n   `examine`. Keep the legacy `[Inscribed: …]` string readable (or migrate it).\n5. **Read-back.** Decide whether `read` stays an alias with an inscription\n   block, or becomes a first-class verb that surfaces notes first.\n6. **Limits.** Max length, control-char stripping, cap per item, author+tick.\n7. **Narration stays flavor** - never commit world state from narrated prose.",
+      "non_goals": "- Re-implementing task-53's params/trigger plumbing.\n- Rich text, images, forgery, signatures.\n- A world-wide message board (task-299).",
+      "resolution_2026_10_02": "The engine half (task-53's `params` → `on_use_on` context) is retained; the\ninscription path now has reachability, gating, a structured store, and read-back.\n\n**Backend (`engine/items/use_actions.py`).** The un-gated `[Inscribed: …]`\ndescription append is replaced by `_inscribe()`:\n- **Gated:** the tool must carry a writing tag\n  (`writing/pen/pencil/quill/charcoal/chalk/stylus/ink`) and the target a\n  writable tag (`writable/paper/parchment/book/journal/notebook/letter/sign/\n  noticeboard/wall/page/scroll`) or `writable: true`. Ordinary `use X on Y`\n  with no `params` never reaches it, so task-363 stays fixed.\n- **Structured store:** `properties.inscriptions: [{by, tick, text}]`, so the\n  authored `description` is never overwritten and authorship/timing survive.\n- **Limits:** `sanitize_inscription` strips control characters, collapses\n  trailing whitespace and caps at 2000 chars; 20 records per item.\n- **Read-back:** `examine` (and `read`, its alias) renders a `Written here:`\n  block with author, tick and text.\n\n**Agent reachability.**\n- `static/js/shared/json-schemas.js` - `text` added to the strict `agentAction`\n  schema and its `required` list.\n- `static/js/agent/action-normalizer.js` - `use_on`/`write`/`inscribe` with a\n  `text` payload emit `use <tool> on \"<target>\" \"<text>\"` (the only form the\n  parser carries as `params`); both verbs added to `VALID_VERBS`.\n- `static/js/agent/prompt-builder/system-prompt.js` and `schema-fragments.js`\n  teach the field and example.\n- `tools/game_tools.py::tool_use_item` and `mcp_server.py::use` forward `text`.\n\n**Content.** `ink_pen`/`pencil` tagged as writing implements, `parchment`\ntagged writable; pass-authored `quill_pen`, `chalk` (writing) and\n`notice_board` (paper/sign) already qualify.\n\n**Acceptance:**\n- [x] An agent can inscribe chosen text; it persists in `Node.properties` and\n      round-trips a save (property dicts serialise verbatim).\n- [x] A different character `examine`/`read`s it and sees text, author and tick.\n- [x] Non-writable target / non-writing tool reject gracefully with a clear\n      message.\n- [x] Ordinary `use X on Y` never inscribes.\n- [x] Authored pen+paper pair works end to end.\n\nTests: `tests/test_inscription.py` (8 passed);\n`tools/unit/test_inscription_normalizer.js` (5 passed). JS lint + typecheck and\n`node tools/unit/run.cjs` (490 passed) all green.\n\n**Not done, recorded:** the pre-existing `set_description`/`append_description`\n`target: \"self\"` defect (the target-item node is dropped at effect dispatch) is\nleft as-is - the inscription path no longer depends on those handlers. `read`\nremains an `examine` alias with the inscription block rather than a first-class\nverb."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "builds on": "[[dev_tasks/review/items/task-53-use_item_with_parameters|task-53]]",
+      "relates": "task-160 / task-363 (structured actions; stopping *accidental*"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-433-character-inscription-persistent-notes.md"
+  }
+}

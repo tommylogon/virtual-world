@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-622",
+  "kind": "task",
+  "number": 622,
+  "title": "Way node id is a generated filename and the UI invites renaming it",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-446"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Way ids look like 'way_world_area_human_road_area_world_17_6' and the UI allows editing what should be an opaque identity.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolved_2026_10_02_wt_graph_render": "WorldPainter's grid compiler stamps `properties.generated` on every area/way cell\nand derives the id from the cell (`way_eldenford_interior_area_eldenford_interior_10_3_area_eldenford_interior_10_4`) - a filename, not a name, regenerated on the\nnext compile. The inspector nevertheless rendered it in an editable \"Node ID\"\nbox with a 🔄 \"sync ID from name\" button, inviting a rename that cannot stick.\n\n**Fix:** `InspectorHelpers.isGeneratedNode(nodeId)` (true when\n`worldState.getNode(nodeId).properties.generated` is set). The four inspectors\n(way, area, item, agent) render that id **read-only** for generated nodes and\nkeep the editable field + sync button for hand-authored nodes.\n\n**Evidence** (Playwright, `kraktooth_goblin_camp`, port 4464) - `Node ID` row of\n`#inspector-panel`, counting visible text inputs:\n\n| node | `isGeneratedNode` | ID inputs | result |\n|---|---|---|---|\n| `way_eldenford_interior_…_10_3_…_10_4` (generated way) | true | 0 | read-only text |\n| `area_eldenford_interior_10_3` (generated area) | true | 0 | read-only text |\n| `area_abandoned_farm` (hand-authored) | false | 1 | editable |\n\nScreenshots `inspector-genway.png` / `inspector-plain.png`. JS unit tests: 486\npassed / 0 failed; eslint clean on the five touched files."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-622-way-node-id-is-a-generated-filename-and-the-ui-invites-renaming-it.md"
+  }
+}

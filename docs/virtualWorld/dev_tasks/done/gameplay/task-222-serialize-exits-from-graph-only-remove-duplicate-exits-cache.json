@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-222",
+  "kind": "task",
+  "number": 222,
+  "title": "Serialize Exits from Graph Only (Remove Duplicate exits Cache)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-13",
+  "updated": "2026-08-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Single source of truth: **graph**. Serialized files either omit per-area `exits` or always rebuild on load and never read stale copies.",
+    "why": "Saved scenarios contain **two representations** of the same exit data:\n\n1. **Graph** - area→way connection edges (`direction`, `visible_in_direction`) + way nodes\n2. **`areas` / `rooms` `.exits` dict** - snapshot written on serialize\n\nRuntime already uses graph only:\n\n```110:111:engine/area_description.py\n    def build_exits_for_area(self, area_name: str) -> Dict[str, Any]:\n        \"\"\"Reconstruct the exits dict for a area from graph connections.\"\"\"\n```\n\nAuthors editing one UI field update the graph. Opening raw JSON (e.g. `labs.json`) can show **different** `visible_in_direction` text in `graph.edges` vs `rooms[].exits` for the same ladder - confusing even when gameplay is correct.",
+    "how": "TODO",
+    "verify": "- [ ] Edit ladder view in way inspector → save → reload → agent lens shows one consistent text\n- [ ] Grep saved JSON: no duplicate `visible_in_direction` under `rooms.*.exits` OR clearly documented as derived empty\n- [ ] Existing pytest serialization tests pass",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/serialization.py",
+      "engine/area_description.py` (no change expected)",
+      "data/scenarios/labs.json` - migrate after script",
+      "world_template.json` - if exits duplication exists",
+      "tests/test_serialization.py` - round-trip: edit edge view → save → load → exits match"
+    ],
+    "custom": {
+      "options": "### A. Stop writing `exits` on save (preferred)\n\n- `engine/serialization.py` - remove `exits` from `rooms_serialized` / player-facing area dict OR write empty `{}`\n- API responses still include `exits` built live via `build_exits_for_area()` (already happens in serialize path line ~107)\n- Frontend `worldState.areas[].exits` continues to work - always computed\n\n### B. Rebuild on load, ignore file exits\n\n- On template/scenario load, delete incoming `exits` from JSON before applying to graph\n- One-time migration script to strip exits from `labs.json`, `world_template.json` graph-heavy saves\n\n### C. Keep exits as export-only cache\n\n- Write on save but mark `_exits_cache: true` and overwrite on every load from graph\n- Document as derived - never hand-edit",
+      "migration": "- `tools/strip_exits_cache.py` - optional: remove exits blocks from scenario JSON, verify graph intact\n- Backward compat: load path must not **create** ways from stale exits if graph already has way nodes (audit `serialization.py` lines ~314–356 legacy path)",
+      "related": "- [[todo/ui/task-219-agent-lens-left-panel|task-219]]\n- [[dev_tasks/level-design-workflow|Level design workflow hub]]"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-222-serialize-exits-graph-only.md"
+  }
+}

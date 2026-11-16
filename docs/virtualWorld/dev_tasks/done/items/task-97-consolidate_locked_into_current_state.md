@@ -12,7 +12,7 @@ priority: medium
 
 Items had two properties expressing the same concept: `locked` (boolean) and `current_state: "locked"` (string). They could contradict each other (e.g., `desk.json` had `"locked": false` + `"current_state": "locked"`), and the boolean was what the code actually checked, making `current_state` decorative for lock behavior.
 
-The old unlock path (`locked_with` key-matching, `locked = False`) was dead code — replaced by trigger-based unlocking.
+The old unlock path (`locked_with` key-matching, `locked = False`) was dead code - replaced by trigger-based unlocking.
 
 ## How
 

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-312",
+  "kind": "task",
+  "number": 312,
+  "title": "Graph Search Filter (Hide Non-Matches)",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "Updated `GraphNetwork.applyFilter()` in `static/js/graph/network-manager.js` to truly hide non-matching nodes instead of dimming them. Non-matching nodes now get `opacity: 0.0` (fully invisible). Edges are also filtered: edges remain visible if at least one endpoint matches, and are hidden only when both endpoints are non-matching.\n\nThe search input already existed in the toolbar (`#graph-search`), so no HTML changes were needed.",
+    "verify": "- JS syntax check passed (`node --check network-manager.js`)\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "Graph search that hides non-matching nodes, showing only the matches.",
+      "notes": "- Editor UX: type to search, non-matching nodes/edges fade or disappear, only matches (and optionally their connections) stay visible.\n- Complements `task-302` (siblings stay open) and `task-303` (hide areas without characters) - all three reduce visual noise in the graph/map editor.",
+      "related": "- `developer ideas.md` line 19\n- Map editor code (`static/js/` graph/map editor modules), vis.js layout"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-312-graph-search-filter.md"
+  }
+}

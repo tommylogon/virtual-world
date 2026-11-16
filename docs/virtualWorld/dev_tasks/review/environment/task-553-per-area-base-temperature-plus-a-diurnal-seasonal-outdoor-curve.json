@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "id": "task-553",
+  "kind": "task",
+  "number": 553,
+  "title": "Per-area base temperature plus a diurnal/seasonal outdoor curve",
+  "status": "review",
+  "priority": "high",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-227",
+      "task-231",
+      "task-232",
+      "task-234"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Split authored climate baseline from simulated temperature: add\n`env.base_temperature` and a diurnal/seasonal curve, so the forecast applies a\ndelta instead of assigning `21.0 + temperature_mod` to every exterior area.\n\nDesign: `docs/design/weather-world-integration.md` §3-§5.",
+    "why": "A hardcoded 21.0 C baseline flattened the entire world exterior temperature regardless of whether an area was an icy mountain or a desert valley, while the lack of diurnal curve meant midday and 3:00 AM had identical outdoor temperatures. Splitting authored base_temperature from simulated temperature allows areas to declare local climate baselines that receive diurnal/seasonal delta curves without breaking indoor propagation or heat sources.",
+    "how": "1. In engine/weather_forecast.py, implement temp_curve_for_hour(hour, season) as a linear interpolation table of (hour, delta) anchors (e.g. -5.0 at 04:00, +3.5 at 14:00).\n2. In virtual_world_engine.py:_apply_forecast_env, read env.get('base_temperature', 21.0), add temp_curve_for_hour, and add temperature_mod when not None (fixing the truthiness bug where 0 delta was ignored).\n3. In area.py, include base_temperature: 21.0 in the default environment dict for discoverability.\n4. Keep the curve opt-in for unconfigured worlds to preserve 21.0 C baseline backward compatibility.",
+    "verify": "1. Set base_temperature: 5.0 on an exterior area and compare temperature against a default (21.0 C) area at the same hour.\n   - expected: Both areas reflect their authored base difference (16.0 C difference) plus identical diurnal curve offsets.\n   - observed: Tested via unit tests in tests/test_weather_forecast.py.\n2. Advance simulation hour from 04:00 to 14:00.\n   - expected: Outdoor temperatures vary across the diurnal swing (~8.5 C delta) without flattening to a static constant.\n   - observed: Diurnal curve output verified across 24-hour cycle.\n3. Test temperature_mod: 0.\n   - expected: Zero modifier is respected as a 0 delta rather than ignored by truthiness check.\n   - observed: Verified in forecast application tests.",
+    "acceptance": [
+      {
+        "text": "**`outdoor_temp_for_hour` exists as `temp_curve_for_hour(hour, season)`**,",
+        "done": true
+      },
+      {
+        "text": "an anchor table of `(hour, °C delta)` pairs linearly interpolated - the",
+        "done": false
+      },
+      {
+        "text": "same shape as `lighting._OUTDOOR_ANCHORS`, so the two curves read alike.",
+        "done": false
+      },
+      {
+        "text": "It is a **delta**, not an absolute: a day has the same shape whether the base",
+        "done": false
+      },
+      {
+        "text": "is 21 °C or 5 °C, and a table of absolutes would be a rewrite per climate.",
+        "done": false
+      },
+      {
+        "text": "**The curve has a shape**: coldest −5.0 at 04:00, warmest +3.5 at 14:00, an",
+        "done": true
+      },
+      {
+        "text": "8.5 °C swing. Deliberately shallow - a real curve belongs to the forecast",
+        "done": false
+      },
+      {
+        "text": "and the season, both of which are authored.",
+        "done": false
+      },
+      {
+        "text": "**Two keys, two facts.** `base_temperature` is the **authored** baseline the",
+        "done": true
+      },
+      {
+        "text": "world declares; `temperature` is the **simulated** value that propagation,",
+        "done": false
+      },
+      {
+        "text": "heat sources and the forecast all write, and which a hand-set value could",
+        "done": false
+      },
+      {
+        "text": "never survive being overwritten. `area.py`'s default `environment` declares",
+        "done": false
+      },
+      {
+        "text": "both so the key is discoverable.",
+        "done": false
+      },
+      {
+        "text": "**An area with `base_temperature: 5` and no forecast entry reports 5 °C plus",
+        "done": true
+      },
+      {
+        "text": "the curve, not 21 °C.** Two areas differ by exactly their base difference",
+        "done": false
+      },
+      {
+        "text": "(checked: 21 and 5 differ by 16.0 at the same hour).",
+        "done": false
+      },
+      {
+        "text": "**`temperature_mod: 0` is honoured.** The truthiness test is gone on both",
+        "done": true
+      },
+      {
+        "text": "`temperature_mod` and `light_mod`; a delta of zero is a real delta that says",
+        "done": false
+      },
+      {
+        "text": "\"no change\", and it now says so instead of being dropped.",
+        "done": false
+      },
+      {
+        "text": "**A world with no climate reproduces today's numbers exactly** - 21.0 °C at",
+        "done": true
+      },
+      {
+        "text": "every hour, unseasoned, unmodified. **This is why the curve is opt-in**, and",
+        "done": false
+      },
+      {
+        "text": "it was the one genuinely hard requirement here: the task also asks for",
+        "done": false
+      },
+      {
+        "text": "temperature to vary across the day, and those two cannot both hold for a",
+        "done": false
+      },
+      {
+        "text": "world that never chose a climate. So the curve applies when the area",
+        "done": false
+      },
+      {
+        "text": "authored a `base_temperature` **or** the world has a season, and a bare",
+        "done": false
+      },
+      {
+        "text": "placeholder stays flat. Simulating a diurnal swing around 21 °C would",
+        "done": false
+      },
+      {
+        "text": "invent variation nobody asked for, in every world that never picked one.",
+        "done": false
+      },
+      {
+        "text": "**The key is not written back.** `base_temperature` appearing has to keep",
+        "done": true
+      },
+      {
+        "text": "meaning \"the author or a compiler said what this place is like\"; a default",
+        "done": false
+      },
+      {
+        "text": "written every tick would make every area look climate-aware on the next one",
+        "done": false
+      },
+      {
+        "text": "and silently switch the curve on.",
+        "done": false
+      },
+      {
+        "text": "**A bad authored base falls back** rather than propagating: a non-numeric,",
+        "done": true
+      },
+      {
+        "text": "NaN or ±inf value reads as 21.0 instead of poisoning every later tick.",
+        "done": false
+      },
+      {
+        "text": "**The write order is documented on the function**: the forecast is a delta",
+        "done": true
+      },
+      {
+        "text": "layer and must never be the thing that decides a world's own baseline.",
+        "done": false
+      },
+      {
+        "text": "**Interior propagation is untouched** - this only changes what an *exterior*",
+        "done": true
+      },
+      {
+        "text": "area's outdoor reading is, and `effective_temperature()` composes as before.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/weather_forecast.py (temp_curve_for_hour)",
+      "-",
+      "virtual_world_engine.py (_apply_forecast_env)",
+      "engine/area.py",
+      "tests/test_weather_forecast.py"
+    ],
+    "custom": {
+      "measured_2026_09_27_the_world_s_own_climate_is_never_consulted": "`virtual_world_engine.py:1299-1301`:\n\n```python\nif temp_mod:\n    # temperature_mod is a delta from the outdoor base (21°C).\n    env[\"temperature\"] = round(21.0 + float(temp_mod), 1)\n```\n\nThree consequences, all measured:\n\n- **Every exterior area on the map is the same temperature, always.** 21 °C is\n  a hardcoded literal, not a per-area value. A mountain and a valley are both\n  21 °C.\n- **The temperature is flat between forecast entries.** Light has a real\n  diurnal curve - `lighting.py:19-36`, `outdoor_light_for_hour()` with an\n  interpolated anchor table - while temperature has none. 03:00 and 15:00 are\n  identical outdoors.\n- **`if temp_mod:` is a truthiness test**, so an authored `temperature_mod: 0`\n  is silently ignored. Harmless today only because 0 equals the 21 °C default;\n  it becomes a real bug the moment the base is not 21. Same for\n  `if light_mod:` at `:1302`.\n\n**The two-key split is mandatory, not stylistic.** `environment_propagation.py`\nalso writes `env[\"temperature\"]` every tick (`:136`, `:139`, `:182`), and\n`_apply_forecast_env` overwrites it every tick. A hand-set value cannot survive\ntoday, so \"just stop overwriting `temperature`\" would fight the propagation\nmodel. This is the same one-word-two-facts trap as `surface` (ground material)\nvs `floor` (storey index) in `engine/world_grid.py`:\n\n- `base_temperature` - authored, optional, defaults to `21.0`\n- `temperature` - simulated; written by propagation, heat sources, forecast",
+      "what_to_change": "1. `engine/weather_forecast.py` - add `outdoor_temp_for_hour(hour, season)`,\n   an anchor table copied from `lighting._OUTDOOR_ANCHORS` in shape\n   (`(hour, value)` pairs, linearly interpolated). Start flat-ish: a shallow\n   night dip, a midday peak. The *shape* is what matters, not the numbers.\n2. `virtual_world_engine._apply_forecast_env` - read\n   `env.get(\"base_temperature\", 21.0)`, add `temperature_mod` when\n   `is not None`, and add the curve. Never assign a literal outdoor base.\n3. `area.py` - the default `environment` dict may declare\n   `base_temperature: 21.0` alongside `temperature` so the key is discoverable.\n4. Keep the write order documented: the forecast is a **delta** layer, so it\n   must never be the thing that decides the world's own baseline.",
+      "notes": "- `base_temperature` sits on `env`, next to `temperature`, rather than on the\n  area node, so it travels with the other environment facts the propagation model\n  already reads and writes. It is a property of *the place outdoors*, which is\n  what a painted climate describes.\n- Hours outside 0-23 clamp rather than raise, matching\n  `engine.lighting.outdoor_light_for_hour`, so the two curves cannot disagree\n  about a silly hour.",
+      "browser_ui": "Intended UI home: Area Inspector → Environment → `base_temperature` and active Forecast view; compare an exterior area with an interior area across daytime, night, and seasonal changes.\n\nCurrent availability: the card proposes separating authored per-area climate baseline from the simulated forecast delta, with a diurnal/seasonal curve. The base field/curve behavior is not claimed as implemented.\n\nLive steps when available:\n1. Set two exterior areas to different `env.base_temperature` values and inspect their current temperatures before forecast deltas.\n   - expected: the authored baselines remain distinct and are visible in the Area Inspector/API.\n2. Advance from midday to night and compare each area's temperature.\n   - expected: the diurnal curve changes each area's baseline by its hour-dependent delta; it does not overwrite all exterior areas with `21.0 + temperature_mod`.\n3. Change the scenario season while holding the forecast entry fixed and repeat.\n   - expected: the seasonal curve adjusts the result while preserving each area's distinct baseline.\n4. Compare an interior area with an exterior area.\n   - expected: outdoor temperature curves do not apply to interiors unless their environment explicitly opts in.\n\nThis section is not a claim that the per-area base/curve is implemented today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/environment/task-553-per-area-base-temperature-plus-a-diurnal-seasonal-outdoor-curve.md"
+  }
+}

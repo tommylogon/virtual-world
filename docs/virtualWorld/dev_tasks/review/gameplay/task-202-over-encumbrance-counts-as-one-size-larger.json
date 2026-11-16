@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-202",
+  "kind": "task",
+  "number": 202,
+  "title": "Over-Encumbrance Counts as One Size Larger",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Carrying >= 50% of maximum carrying capacity adds an effective size tier to the character, restricting traversal through narrow gaps.",
+    "why": "Carrying too much should make a character count as one size larger for passage, but there is no connection between carried weight and size gating.",
+    "how": "- Items already have a `weight` property.\n- When total carried weight exceeds a threshold, the character counts as one size larger for movement and size gating (crawl / climb / jump).\n- Slot into existing movement gating, which is being built in task-187 character-size-passage-movement.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Effective size tier increments when carried weight reaches encumbrance threshold.",
+        "done": true
+      },
+      {
+        "text": "Narrow passages enforcing max_size block over-encumbered characters.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/movement.py - apply encumbrance-driven size bump in crawl/climb/jump gating",
+      "engine/item_actions.py - expose total carried weight for the encumbrance threshold"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-202-over-encumbrance-size.md"
+  }
+}

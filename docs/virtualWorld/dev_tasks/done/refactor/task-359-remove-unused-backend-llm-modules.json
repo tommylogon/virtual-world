@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-359",
+  "kind": "task",
+  "number": 359,
+  "title": "Remove unused backend LLM modules",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-07-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "After switching \"Generate from Equipment\" to frontend `llmClient.chat()`, no active feature uses the backend LLM modules anymore. All AI generation now happens browser-side.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Server starts cleanly\n- All features use fallback paths (same behavior as before)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_removed": "- `config.py`\n- `llm_connector.py`\n- `llm_providers.py`\n- `message_types.py`\n- `token_counter.py`\n- `benchmark_models.py`\n\n(`agent_config.json` never existed - defaults were hardcoded in config.py)",
+      "files_cleaned": "- `app.py` - removed `llm_connector` import block, `LLM_ENABLED` stays `False`\n- `routes/llm.py` - removed entire file (gated by `LLM_ENABLED`, dead)\n- `routes/action.py` - removed LLM reinterpretation block (gated by `LLM_ENABLED`, dead)\n- `engine/equipment.py` - removed unused `from config` / `from llm_connector` imports\n- `engine/narration.py` - removed unused `from config` / `from llm_connector` imports\n- `engine/logging_events.py` - removed unused `from config` import\n- `engine/skills.py` - removed unused `from config` import\n- `tests/test_emote.py` - removed (mocked `llm_connector`, no longer relevant)",
+      "erratum_2026_11_12": "The historical premise in this task that \"all AI generation now happens browser-side\" led to unintended fragility:\n1. Purely browser-side storage (IndexedDB/localStorage) subjected users to regular credential and configuration loss whenever browsers cleared site storage or updated versions.\n2. Direct browser-to-provider networking exposed frontend calls to CORS restrictions and prevented centralized telemetry.\n\nThis premise was formally superseded by task-910 (`routes/profiles.py`) and task-945, which establish backend provider profile and credential persistence (`data/config/profiles.json` and `.env`) with automated synchronization from the UI. Server-side profile persistence and backend-controlled LLM data is the canonical architecture going forward."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-359-remove-backend-llm-modules.md"
+  }
+}

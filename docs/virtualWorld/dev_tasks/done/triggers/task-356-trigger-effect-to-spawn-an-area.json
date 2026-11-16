@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-356",
+  "kind": "task",
+  "number": 356,
+  "title": "Trigger Effect to Spawn an Area",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a `spawn_area` trigger effect so triggers and behaviours can create a whole new area\nnode (with environment) at runtime - e.g. an area that only exists after a ritual, or\nwhen a character crosses a threshold.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/effects.py` - add `handle_spawn_area` + `_hydrate_area`.",
+      "engine/trigger_system.py` - `EFFECT_TYPES` + execution branch.",
+      "engine/trigger_validator.py` - schema/validation for new params.",
+      "static/js/inspector/behaviors-view.js` + trigger editor - new effect entry + fields.",
+      "docs/virtualWorld/` trigger docs - list `spawn_area`."
+    ],
+    "custom": {
+      "notes_open_questions": "- Areas are graph nodes (`type=\"area\"`) built with `description` + `environment`\n  subdict (light/temperature/air/smell/noise) - see `movement.add_area()` /\n  `serialization.py:331`.\n- Library exists at `data/library/areas/*.json` - hydrate like `_hydrate_item`. May carry\n  full area content (items, ways), so spawning may need to materialize child nodes +\n  connection edges, not just the area node itself (scope decision).\n- Options: spawn area into the world unconnected (reached only by teleport), or wire it\n  with a `spawn_way`-style connection from the current area - needs a direction or a\n  follow-up `spawn_way` effect.\n- New area needs `area_from`/`area_to`/exits derivation so matching and the frontend see\n  it; confirm whether spawn should regenerate `_build_exits_for_area`.\n- Duplicate area id/name on spawn - error, no-op, or re-enter existing?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "discussion - triggers can currently `spawn_item` but not areas."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-356-spawn-area-trigger-effect.md"
+  }
+}

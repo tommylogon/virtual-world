@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "id": "task-653",
+  "kind": "task",
+  "number": 653,
+  "title": "Per-area max occupancy computed from occupant size, with entities that take no space",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-605",
+      "task-606"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "DECIDED 2026-09-30 by Tommy. Each area gets a max occupancy, and occupancy is computed from the SIZE of what is standing in it, not a headcount. Some areas must hold a titanic dragon; some hold 4 normal-sized creatures; a fairy's house holds 7 small creatures. Some entities take up NO space at all -- a ghost is the example -- so size needs a zero-space flag distinct from 'tiny', because a 1cm spider is tiny but a ghost is intangible. This is the natural consumer of the size property from task-605: size already exists as a trait and is already used for way max_size gating, so occupancy is a second reader of the same axis rather than a new concept.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**A per-area budget exists and is authorable** - the area's",
+        "done": true
+      },
+      {
+        "text": "`max_occupancy` property, with a generous default",
+        "done": false
+      },
+      {
+        "text": "(`DEFAULT_MAX_OCCUPANCY = 100`) for areas that declare nothing.",
+        "done": false
+      },
+      {
+        "text": "**Occupancy is a sum of footprints, not a headcount.** `space_of` maps a",
+        "done": true
+      },
+      {
+        "text": "size tier to a named budget unit (`TIER_SPACE`), and the tiers are",
+        "done": false
+      },
+      {
+        "text": "deliberately non-linear: a titanic thing is not six normals.",
+        "done": false
+      },
+      {
+        "text": "**Zero space is a distinct concept from tiny.** `takes_no_space` reads the",
+        "done": true
+      },
+      {
+        "text": "`ghost` tag that `PlayerManager.is_incorporeal` already owns (task-309)",
+        "done": false
+      },
+      {
+        "text": "plus its synonyms, and a ghost costs 0 however large it was authored. A",
+        "done": false
+      },
+      {
+        "text": "1 cm spider is `tiny` and still costs 1.",
+        "done": false
+      },
+      {
+        "text": "**The size is read from the right object.** A `Player` carries `.size`; a",
+        "done": true
+      },
+      {
+        "text": "graph character node does not (it is created bare), so a node's size is",
+        "done": false
+      },
+      {
+        "text": "read from its `properties`, with a `size_*` trait as the fallback for a",
+        "done": false
+      },
+      {
+        "text": "world predating the `size` property. A graph-only resident is scored at",
+        "done": false
+      },
+      {
+        "text": "its own size, not defaulted to `normal`.",
+        "done": false
+      },
+      {
+        "text": "**The four that fit where four people do not** - four `normal` creatures",
+        "done": true
+      },
+      {
+        "text": "and one `huge` one fill the same budget; a dragon alone over capacity is a",
+        "done": false
+      },
+      {
+        "text": "reportable state; a room at zero occupancy always admits anything;",
+        "done": false
+      },
+      {
+        "text": "`fits` refuses only an arrival into a *full* room.",
+        "done": false
+      },
+      {
+        "text": "**Ghosts always fit** - into any room, however full.",
+        "done": true
+      },
+      {
+        "text": "**It is readable** - `world.area_occupancy(area)` and `world.would_fit`",
+        "done": true
+      },
+      {
+        "text": "expose the report; the area description narrates a crowded/full room, and",
+        "done": false
+      },
+      {
+        "text": "says nothing at all for an empty or quiet one.",
+        "done": false
+      },
+      {
+        "text": "**The dead do not occupy a room** (a corpse on the floor is not crowding),",
+        "done": true
+      },
+      {
+        "text": "but `include_dead=True` can count them.",
+        "done": false
+      },
+      {
+        "text": "Tests in `tests/test_occupancy.py` (40 tests), including the description",
+        "done": true
+      },
+      {
+        "text": "wiring and the bare-node cases.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_2026_10_02_wt_characters_engine": "### Files\n\n- `engine/occupancy.py` - **new**. `space_of`, `takes_no_space`, `area_budget`,\n  `occupants`, `occupancy_used`, `occupancy_report`, `fits`,\n  `normalize_area_id`, `describe_occupancy`, and the `TIER_SPACE` /\n  `ZERO_SPACE_TAGS` / `DEFAULT_MAX_OCCUPANCY` tables.\n- `engine/area_description.py` - appends a crowd sentence to the description.\n- `virtual_world_engine.py` - `area_occupancy(name)` and `would_fit(name)`.\n- `tests/test_occupancy.py` - **new**, 40 tests.\n\n### The decisions\n\n1. **Footprints are a named table, not a formula.** `TIER_SPACE` (tiny 1 →\n   titanic 200) is a tunable scale an author can reason about - \"a person fills\n   a quarter of a default room\" - rather than an emergent result of, say, `tier²`.\n   The tiers are non-linear because a leviathan is not six normals; it does not\n   sit beside them.\n2. **`0` as a budget means unbounded, not emptied.** `0` is the obvious way to\n   write \"no limit\" in an editor, and refusing every arrival on that reading\n   would be a nasty surprise. `area_budget` treats non-positive as \"fall back to\n   the default\", and a junk value (`\"roomy\"`) does the same rather than raising.\n3. **Capacity is a budget and a reportable state, not a gate on identity.** A\n   titanic dragon in a small hall is a legitimate scene, so `fits` always admits\n   anything into an *empty* room and only refuses an arrival into a *full* one.\n   Nothing in the engine refuses movement on it - `would_fit` is a report.\n4. **The consumer is the description, not a movement gate.** The area\n   description already narrates who is present; adding \"the room is crowded\"\n   there makes a packed room legible without changing where anyone can walk. The\n   `relief.py` privacy score was deliberately **not** switched to footprints: a\n   giant is one *witness*, and scoring it as 40 onlookers would be a new bug.\n5. **The crowd sentence is quiet by default.** `describe_occupancy` returns `\"\"`\n   for an empty room and for one under 40% of budget. A phrase on every area\n   trains the reader to skip the sentence; the one time it fires is the time it\n   means something.\n\n### A bug the wiring caught immediately\n\nThe first `_entity_in_area` had a copied-from-`relief.py` fallback that compared\n`area_id` against *itself*, so every character in the world counted as an\noccupant of whichever area was being measured - the counts were off by exactly\nthe whole roster. Caught by the very first test run, and it is why `occupants`\nnow funnels through a single `normalize_area_id` and compares one resolved id to\none resolved id.\n\n### Verify\n\n```\npython -m pytest tests/test_occupancy.py -q                          # 40 passed\npython -m pytest tests/test_area_description.py tests/test_area_id_case.py \\\n  tests/test_area_sounds.py tests/test_beyond_visibility.py \\\n  tests/test_background_relief_and_washing.py tests/test_npc_perception.py \\\n  tests/test_realism_perception.py tests/test_room_perception_contract.py \\\n  tests/test_ghost_visibility.py tests/test_size_property.py \\\n  tests/test_occupancy.py -q                                         # 156 passed\npython tools/js_module_index.py --check                              # OK\npython tools/feature_index.py --check                                # OK\n```\n\n**Full suite compared by failure NAME against the same clean-master baseline used\nfor task-538**: 15 failed on both, `Compare-Object` empty.\n\n### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`\n\nThe reporting surface here is the sentence the reader already sees when they\narrive, so that is what was checked - through `GET /api/area/description`, the\ncall the client itself makes.\n\n1. `PATCH /api/graph/node/area_blizzard_forest_clearing {\"properties\":\n   {\"max_occupancy\": 8}}` - a room sized for a couple of people.\n2. Added a character node `character_vhaidra_the_titanic` with\n   `size: titanic` (200 units) and moved `rat` into the same area (4 units).\n3. `GET /api/area/description` now ends:\n\n       an animal is here.\n       The room is full.\n\n4. **Counter-case**, so the sentence is not just always-on: the same request\n   with `max_occupancy: 10000` returns a description in which none of\n   `The room is full / crowded / busy`, `packed past its limits` or\n   `cannot properly hold` appear - an empty-sounding room, which is the point.\n\nLive world returned to its prior state afterwards (the titanic test node\ndeleted, the authored budget reset to the default, `rat` moved back to the\nKitchen)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-653-per-area-max-occupancy-computed-from-occupant-size-with-entities-that-take-no-space.md"
+  }
+}

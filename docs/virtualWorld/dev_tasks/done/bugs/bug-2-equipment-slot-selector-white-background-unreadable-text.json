@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "bug-2",
+  "kind": "bug",
+  "number": 2,
+  "title": "Equipment slot selector - white background, unreadable text",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The equipment slot multi-select dropdown in the library item editor uses the Choices.js library with default light theme, rendering a white background with light gray text that's unreadable on the dark-themed UI.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "static/css/style.css` - add Choices.js dark-theme overrides"
+    ],
+    "custom": {
+      "root_cause": "Choices.js default light theme with no dark-mode CSS overrides. The library applies its own inline styles that override the site's dark theme.",
+      "fix": "Add dark-theme CSS overrides for Choices.js elements in `static/css/style.css`. Key classes to override:\n\n- `.choices__inner` - input area background/border\n- `.choices__list--dropdown` - dropdown background/border\n- `.choices__list--dropdown .choices__item--selectable` - item text color\n- `.choices__list--dropdown .choices__item--selectable.is-highlighted` - hover/selected state\n- `.choices__input` - search input inside the widget\n\nColors should match the existing dark palette: `--bg-input`, `--bg-card`, `--text`, `--text-muted`, `--border`.",
+      "verification": "### Manual Test Steps:\n1. Open the game in browser at http://127.0.0.1:4444\n2. Click \"Item Library\" button\n3. Click any item, look for equipment slot multi-select dropdown\n4. Click the dropdown to expand it\n5. **Expected**: Dropdown has dark background with readable white/light text, not white background with gray text\n6. Also check in Item Inspector: click an item in the graph, look at equip slots selector\n7. Verify `.choices__list--dropdown` items have proper contrast (check CSS computed styles)\n\n### Files to verify:\n`static/css/style.css` should have `.choices__*` dark-theme CSS overrides."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Inspector Panels]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-2-choices-equip-slots-white-bg.md"
+  }
+}

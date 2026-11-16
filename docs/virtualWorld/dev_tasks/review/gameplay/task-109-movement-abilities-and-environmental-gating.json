@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-109",
+  "kind": "task",
+  "number": 109,
+  "title": "Movement Abilities and Environmental Gating",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-26",
+  "updated": "2026-07-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-110"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-230"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Design question deferred from the Stat Modifiers brainstorming session (2026-07-26):\n\nHow should item-granted movement abilities (fly, glide, dive) interact with the room/exit/navigation system?\n\n### The question\n\nItems like jetpacks (fly), wingsuits (glide), and scuba gear (dive) grant the player new movement capabilities. How should these work with the existing room/exit graph?\n\n### Possible models\n\n1. **Traversal-enabling** - Opens new exits/paths that only exist when the item is active (e.g., jetpack reveals a \"fly up to cliff ledge\" exit)\n\n2. **Environment-gating** - Lets the player survive/enter areas with hostile environments (scuba → underwater areas, EVA suit → vacuum)\n\n3. **Fast travel / room skipping** - Allows moving from A to C without passing through B (fly over intermediate areas)\n\n4. **Existing exit filtering** - Some exits are already conditionally visible (hidden ways, skill checks). Could movement abilities just be another condition gate on exits?\n\n### Related concepts\n\n- Windows / see-through connections (task-?? - not yet filed)\n- Light spill through open ways (task-230)\n- Skill-check-gated traversal (triggers on ways)\n- Room environment system (temperature, air, light)",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Environmental traversal gates (crawl, climb, swim) validate character movement abilities.",
+        "done": true
+      },
+      {
+        "text": "Blocked movement emits clear feedback stating missing traversal capability.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/movement.py",
+      "tests/test_movement.py"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-110 (Stat Modifiers system - item-granted abilities)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-109-movement-abilities-and-environmental-gating.md"
+  }
+}

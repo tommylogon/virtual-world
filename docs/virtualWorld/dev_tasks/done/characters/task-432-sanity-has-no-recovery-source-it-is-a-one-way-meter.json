@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "id": "task-432",
+  "kind": "task",
+  "number": 432,
+  "title": "Sanity has no recovery source - it is a one-way meter",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Sanity is drained from at least five places and restored from none:\n\n| drain | where |\n|---|---|\n| baseline `0.005/min` = **7.2/day** | `vital_rates.BASELINE_DECAY`, applied every tick |\n| darkness (`ENV_DARK_SANITY`, light < 20) | `tick_manager` |\n| low Social (`SANITY_PENALTY_SOCIAL_LOW` / `_VERY_LOW`) | `tick_manager` |\n| low Entertainment (`SANITY_PENALTY_ENT_LOW` / `_VERY_LOW`) | `tick_manager` |\n| `social_breakdown` (−1/min), `hallucinating` (−2/min) | condition `periodic` |\n\nAuthored Sanity is 65-90 across the camp. The baseline alone (7.2/day) empties\nan 80 in about eleven days, so a one-week run drops roughly fifty points - and\nnothing anywhere puts any back. `comfort` / `rest` / `meditate` end\n`hallucinating` but are *ends_on* actions, not sources: ending a drain is not the\nsame as refilling the meter.\n\n**Measured** (15 min/tick, one week, 23 background characters): Sanity\n**0 / 0 / 0** - and with Social *and* Entertainment pinned at 100 for the whole\nrun it is *still* 0/0/0 with all 23 `hallucinating`. So this is entirely\nindependent of the Social coupling task-431 fixed; it is simply a meter with no\ninflow, and every character therefore ends the week hallucinating by arithmetic\nrather than by anything that happened to them.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A one-week soak at 1 and 15 min/tick leaves Sanity **above 0 and settling**,",
+        "done": false
+      },
+      {
+        "text": "with characters who are actually deprived (isolated, dark, no rest) the ones",
+        "done": false
+      },
+      {
+        "text": "who drop.",
+        "done": false
+      },
+      {
+        "text": "`hallucinating` is not universal; it correlates with something in the run.",
+        "done": false
+      },
+      {
+        "text": "Sanity has at least one explicit authored source (fixture, activity, or tile)",
+        "done": false
+      },
+      {
+        "text": "rather than existing only as a drain, so it is not hardcoded into the tick.",
+        "done": false
+      },
+      {
+        "text": "The dark-room penalty still works, and a candle/lantern remains a real answer",
+        "done": false
+      },
+      {
+        "text": "to it.",
+        "done": false
+      },
+      {
+        "text": "Survival unchanged: Sanity must never drain HP (that is deliberate - it makes a",
+        "done": false
+      },
+      {
+        "text": "character *dangerous*, not dead).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_2026_09_21": "Both decisions taken as recommended: **sources are the existing fixtures + rest +\ncompany** (no new subsystem), and the **self-drain is removed** from the two\nbreakdown conditions.\n\n**The self-lock was the worse half.** `hallucinating` drained Sanity at -2/min and\n`social_breakdown` at -1/min, against a passive baseline of 0.005/min - so\n-2/min was 400x the baseline and -2880/day. A character who reached hallucinating\ncould never climb back out however well they lived, and low Sanity is what causes\nthe condition. Both drains are gone; the behavioural penalty (`attack_mod -2`,\n`defense_mod -2`, and whatever else the condition carries) is the cost, which is\nthe same reasoning as \"low Sanity makes a character dangerous, not dead\".\n\n**Sources**, all reusing what the world already models:\n\n| source | where | a night / a block gives |\n|---|---|---|\n| sleep | `ACTIVITY_REGEN[\"sleeping\"][\"Sanity\"]` = 0.025/min | ~12 over 8h |\n| rest | `ACTIVITY_REGEN[\"resting\"][\"Sanity\"]` = 0.05/min | ~3 over 60 min |\n| meditation | `ACTIVITY_REGEN[\"meditating\"]` (already existed at 0.05) | - |\n| company | `SANITY_COMPANY_GAIN` 0.004/min while Social >= 70 | ~5.8/day |\n\nThe sleep rate is sized against what Sanity actually loses in *this* camp: 7.2/day\npassive plus `ENV_DARK_SANITY` (the goblin camp is a cave, up to 28.8/day), so\nroughly 20/day of inflow. The first attempt at 0.10/min overshot badly - every\ncharacter sat at 100 within a week, which just makes the meter inert - so the\nrates are deliberately under the drain, with rest and company making up the rest.\n\n**A rest step in the background tier**, because sleep alone could not help\neverybody: `_tick_sleeping` wakes a character the moment Energy is full *before* it\nchecks any duration, so sleep cannot serve anyone who is not exhausted, and a\ncharacter whose day costs little Energy never slept and never recovered its mind.\nThat is who the five chronically low characters were. `_act` now rests for\n`SANITY_REST_MINUTES = 60` when Sanity is low - a bounded block on purpose, since\n`_act` skips anyone mid-activity and a sprawling rest would stop them eating.\n(An earlier attempt that simply sent low-Sanity characters to *sleep* killed four\nof them that way: they woke immediately on full Energy, looped, and starved.)\n\n**Measured**, one week, 23 background characters:\n\n| | before | after (15 min/tick) | after (1 min/tick) |\n|---|---|---|---|\n| Sanity avg | **0** | 80.3 | 76.0 |\n| Sanity min | 0 | 13 | 23 |\n| `hallucinating` | **23 of 23** | 4 of 23 | 4 of 23 |\n| alive | 23/23 | 23/23 | 23/23 |\n\nThe same four are low at both tick lengths - Croak-Mother (Social 30),\nSilver-Talon (39), Tusker (36), Old Iron-Back - so it is a property of the world\nrather than noise: the sedentary, poorly-connected characters sit on the edge of\nhallucinating while nineteen campmates are fine. Not darkness, which is what the\nfirst hypothesis was; they are in the *lit* Camp Entrance.\n\n**Knobs if they should be healthier:** `SANITY_THRESHOLD` (40),\n`SANITY_REST_MINUTES` (60), the sleep rate, `SANITY_COMPANY_MIN_SOCIAL` (70).\n\n`tests/test_sanity_sources.py` - 16 tests, including that the conditions no longer\ndrain Sanity (with a note on why), that a night beats the passive drain without\npegging the camp, that the company gain stays *below* the baseline (a steadying\ninfluence, not a source), and that the rest block is bounded and expressed in game\nminutes.",
+      "design_questions_to_settle": "1. **What restores Sanity?** Candidates already present in the world model:\n   sleep in a safe/sheltered place, company (it is a *social* animal need),\n   comfort/recreation fixtures (the task-425 pattern), daylight, a religious or\n   ritual site, and the `comfort`/`rest`/`meditate` activities becoming sources\n   rather than just condition-enders.\n2. **Is the baseline itself right?** A purely passive 7.2/day with no inflow\n   means every character is guaranteed to reach 0 on a fixed schedule. Either the\n   baseline drops to a trickle that only bites when nothing maintains it, or\n   sources must comfortably exceed it - the same \"maintenance vs source\" shape as\n   task-431's Social decision.\n3. **Should `hallucinating` be reachable in a normal week at all?** Right now it\n   is the default end-state. It should be what happens when someone is starved of\n   rest/safety/company, not the baseline condition of the whole camp.",
+      "non_goals": "- Fear/paranoia content, sanity-break narratives, or the `paranoid` branch.\n- Reworking the Social/Entertainment coupling penalties; task-431 settled Social.\n- Mental-health realism beyond a meter with believable sources and sinks."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "found while": "verifying the task-431 decay re-bake (Sanity read 0 for all 23",
+      "relates": "task-431 (the decay re-bake), task-425 (Entertainment/novelty),"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-432-sanity-has-no-recovery-source.md"
+  }
+}

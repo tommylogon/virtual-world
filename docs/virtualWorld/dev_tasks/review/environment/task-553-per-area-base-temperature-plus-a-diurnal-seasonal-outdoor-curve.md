@@ -142,9 +142,9 @@ A hardcoded 21.0 C baseline flattened the entire world exterior temperature rega
 ## Files
 
 - engine/weather_forecast.py (temp_curve_for_hour)
-- irtual_world_engine.py (_apply_forecast_env)
+- virtual_world_engine.py (_apply_forecast_env)
 - engine/area.py
-- 	ests/test_weather_forecast.py
+- tests/test_weather_forecast.py
 
 ## Browser UI and intended live verification
 

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "task-942",
+  "kind": "task",
+  "number": 942,
+  "title": "Director AI iterative draft refinement (currentDraft context), steering note priority, and entity grounding",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-933",
+      "task-728"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Improve `AgentEngine.draftTurnForCharacter()` and `HumanTurnComposer.askDirector()` so that the AI Director:\n1. **Supports Iterative \"Take 2\" Refinement (`currentDraft`)**:\n   - When the user clicks **🎬 Ask Director** while composer fields (`#htc-do`, `#htc-speech`, `#htc-emote`, `#htc-thought`, `#htc-emotion`, `#htc-memory`) already contain text, pass `currentDraft` into `draftTurnForCharacter()`.\n   - Inject a `[CURRENT DRAFT IN COMPOSER]` block so follow-up notes like *\"keep the action, just make the line shorter and whisper it to Kayla\"* modify the existing draft in place instead of starting over from scratch.\n2. **Places `[MANDATORY DIRECTOR STEERING NOTE]` Above the JSON Schema With Override Priority**:\n   - Inject the Director's Note directly before the final `\"Respond with ONLY a single raw JSON object...\"` instruction with explicit authority (`\"MANDATORY STAGE DIRECTION FROM THE DIRECTOR (overrides default schedule/motivation for this beat)\"`) so 8B local models follow the user's stage direction instead of getting distracted by background schedule text.\n3. **Grounds Drafted Item / Way / Person Names Against the Character's Actual Surroundings**:\n   - After parsing the LLM's structured action (`{ action, item, target }`), resolve fuzzy noun phrases (e.g. `\"phone case\"` or `\"phone\"` -> `\"Jake's phone\"`, `\"kayla\"` -> `\"kayla jenkins\"`) against the character's carried/worn items, visible room items, people present, and ways out so `#htc-do` and `#htc-say-target` receive valid canonical names.",
+    "why": "Live Playwright testing of `task-933` on `http://localhost:4444` revealed two UX friction points:\n1. When told *\"examine Jake's phone and mutter sarcastically about the cracked screen\"*, the 8B local model output `do: \"examine phone case\"` (an un-grounded substring that fails on execution) and rambled about its `08:00` schedule because `[DIRECTOR STEERING NOTE]` was appended after the JSON schema block without override priority.\n2. Clicking **🎬 Ask Director** a second time to refine a draft had no memory of Take 1 because `askDirector()` did not pass the current input values to `draftTurnForCharacter()`.",
+    "how": "1. In `static/js/agent/human-turn-composer.ts` (`askDirector()`):\n   - Collect current composer input values into `currentDraft` (`action`, `speech`, `speechVolume`, `target`, `emote`, `inner`, `emotion`, `memory`) and pass them to `VW.agent.draftTurnForCharacter()`.\n2. In `static/js/agent-engine.ts` (`draftTurnForCharacter()`):\n   - Accept `currentDraft` in `opts`.\n   - Format `[CURRENT DRAFT IN COMPOSER]` and `[MANDATORY DIRECTOR STEERING NOTE]` and insert them immediately before `\"Respond with ONLY a single raw JSON object\"` in `decidePrompt` / `reactPrompt`.\n   - Add `_groundDirectorDraft(charName, state, player, currentArea, draft)` to match fuzzy item/person/way references against the character's inventory, equipped items, visible room items, people in the room, and exits.",
+    "verify": "1. Run unit tests: `node tools/unit/run.cjs test_directed_mode`.\n   - expected: All tests pass, including `currentDraft` forwarding and entity grounding.\n2. Verify live in Playwright on `http://localhost:4444`.",
+    "acceptance": [
+      {
+        "text": "`askDirector()` passes `currentDraft` from composer inputs to `draftTurnForCharacter()`.",
+        "done": true
+      },
+      {
+        "text": "`[MANDATORY DIRECTOR STEERING NOTE]` is injected before the closing JSON schema instruction with explicit override priority.",
+        "done": true
+      },
+      {
+        "text": "Drafted actions and targets are grounded against the character's inventory, room items, people, and ways.",
+        "done": true
+      },
+      {
+        "text": "Zero em-dashes in code, task, or documentation.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.ts",
+      "static/js/agent/human-turn-composer.ts",
+      "tools/unit/test_directed_mode.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Human Turn Composer modal (`#htc-director-bar` -> `🎬 Ask Director` and `#htc-director-note`).\n\nLive steps:\n1. Open `jake halloway`'s turn in the Human Turn Composer on `http://localhost:4444`.\n2. Enter *\"examine Jake's phone and whisper a sarcastic comment to Kayla\"* in `#htc-director-note` and click **🎬 Ask Director**.\n   - expected: `#htc-do` populates with grounded `\"examine Jake's phone\"` (never `\"examine phone case\"`).\n3. Enter a follow-up refinement note *\"keep the action, just make the whisper shorter\"* and click **🎬 Ask Director** again.\n   - expected: `#htc-do` keeps `\"examine Jake's phone\"` while `#htc-speech` updates to a shorter line."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-942-director-iterative-draft-refinement-and-entity-grounding.md"
+  }
+}

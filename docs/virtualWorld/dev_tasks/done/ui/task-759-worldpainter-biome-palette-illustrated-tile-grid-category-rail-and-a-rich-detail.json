@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "task-759",
+  "kind": "task",
+  "number": 759,
+  "title": "WorldPainter biome palette: illustrated tile grid, category rail, and a rich detail panel",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-758"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-596",
+      "task-589",
+      "task-647",
+      "task-588"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the WorldPainter's grouped `<select>` with the palette the mockups draw:\na searchable, category-railed tile grid with colour swatches and illustrations,\na persistent detail panel answering what a tile is / does / connects to / what\nlives there, and a reach from any tile to the exits it implies. task-596 grew the\ndropdown into a filterable, swatched, one-line-detail picker; this is the actual\nauthoring surface the art shows, not another dropdown.",
+    "why": "The vocabulary is now 106 biomes + features + roads + interiors behind one\n`<select>`. task-596 answered \"bridge vs road?\" and \"where is the exit?\" in a\nsingle detail line, but the list is still a scroll, and it cannot show what the\nmockups show - illustrated tiles and a panel with neighbours, climate, resources\nand creatures. `docs/design/world-environment-taxonomy.md` §\"Gap analysis\"\nrecords the exact shortfall: no tile grid, no detail panel, no climate\nmatrix, and the records lack the `resources` / `creatures` / `climate_range` /\n`neighbours` fields the panel needs (task-758). An author painting a\n30-location town should see the palette, the tile, and everything about it\nwithout leaving the canvas.",
+    "how": "- **No new module, no Lit.** The painter is plain-DOM classic script; the pure\n  view-model lives in the existing tested seam `static/js/worldpainter/grid-model.ts`\n  (`paletteSections`, `filterPalette`, `flattenPalette`, `paletteTile`,\n  `tileKind`, `tileDetail`, `detailRows`), and the editor renders the surface\n  (`_palettePanel`) with the same `_el`/`_btn` helpers the rest of the panel\n  uses. A parallel `palette.ts` + Lit component was the original plan; reusing\n  the seam is the smallest coherent change and keeps one module contract.\n- **One source of truth.** The browser never reads `biomes.json`. Extend the\n  existing derived vocabulary route (`handle_painter_vocabulary`,\n  `routes/world_grid_ops.py:287`) so it ships the new fields from\n  `engine/biomes.biomes()`; the palette consumes the same derivation the editor\n  already uses (task-588 Q5). No second copy of the vocabulary.\n- **Category rail** derived from the existing `terrain` / tag sets - Ecosystems,\n  Terrain & Water, Human & Special, Roads, Interiors. No new taxonomy file; a new\n  biome lands in a category by its tags.\n- **Tiles** render the colour swatch already computed for the palette, the name,\n  a kind glyph (place / building / not-a-place / road), and the one-line \"is\"\n  string task-596 already composes.\n- **Detail panel** composes the fields the record carries - prose, kind, ground\n  surface, engine tags, entry/exit phrase, natural/unlikely neighbours,\n  transition biomes, and climate (temperature / rainfall / elevation, task-758).\n  A field the record does not carry renders as \"unknown\" - never invented. Until\n  task-758 lands, the panel shows the subset that exists (prose, kind, surface,\n  tags, crossings, entry/exit).\n- **Resources / Creatures / Hazards are read from their registries, not copied\n  onto the biome** - resources and creatures by tag-intersection with the\n  `data/library/resource_distribution/` and `hostile_distribution/` tables\n  (task-718/569), hazards from `data/worldpainter/hazards.json` (task-745). The\n  panel links to those entries; it does not duplicate them, and it shows nothing\n  until the registries exist. This is deliberate: baking resources/creatures into\n  the biome would be a second source of truth for spawns.\n- **Climate matrix** (temperature × humidity) is rendered only when the climate\n  fields exist; it is a view over task-758 data, not a new source.\n- **Interactions.** Clicking a tile sets the active brush and closes on pick;\n  `Esc` closes; the search box keeps focus for type-to-filter; Space-to-pan\n  still arms after a pick (do not regress bug-511). The `<select>`'s keyboard\n  path (arrow + Enter) is preserved for accessibility.\n- **Reuse, do not fork.** The cell inspector's `exits` row (task-596) stays the\n  authority for \"where is the exit\"; the palette links to it rather than\n  re-deriving adjacency.",
+    "verify": "1. Open **🗺️ WorldPainter** on a town scope (`kraktooth_goblin_camp` →\n   `eldenford_interior`), open the paint tool.\n   - expected: a tile grid with a category rail and a detail panel, not a `<select>`.\n   - observed:\n2. Type `bridge` in the search.\n   - expected: the grid filters to the bridge tile(s); the detail panel shows\n     \"crosses river, stream, ravine, chasm · cross the bridge\" and its kind.\n   - observed:\n3. Click a biome tile.\n   - expected: the brush is set, the palette closes; holding Space pans the view.\n   - observed:\n4. Inspect the detail panel against a task-758-populated record (e.g. Temperate\n   Mixed Forest).\n   - expected: neighbours, resources, creatures, climate render from the record;\n     a record with no climate shows \"unknown\", not a fabricated value.\n   - observed:",
+    "acceptance": [
+      {
+        "text": "A palette surface (tile grid + category rail + detail panel) replaces the",
+        "done": true
+      },
+      {
+        "text": "`<select>` in the WorldPainter paint tool. (Correction: it is not published",
+        "done": false
+      },
+      {
+        "text": "on `VW`; the view-model is on `VW.gridModel` and the editor renders it.)",
+        "done": false
+      },
+      {
+        "text": "Tiles show colour + name; the grid is grouped by a rail derived from",
+        "done": true
+      },
+      {
+        "text": "`terrain`/tags and is searchable by name and id. (The `kind` is shown in",
+        "done": false
+      },
+      {
+        "text": "the detail panel, not yet as a per-tile glyph.)",
+        "done": false
+      },
+      {
+        "text": "The detail panel renders every field the record carries and invents none -",
+        "done": false
+      },
+      {
+        "text": "done for the fields that exist now; the resources/creatures/hazards panels",
+        "done": false
+      },
+      {
+        "text": "wait on the task-718/745 registries.",
+        "done": false
+      },
+      {
+        "text": "The vocabulary route serves the task-758 climate/neighbour fields - waits",
+        "done": false
+      },
+      {
+        "text": "on task-758 (the `terrain` field it did need is now served).",
+        "done": false
+      },
+      {
+        "text": "Picking a tile sets the value and drops focus (Space still pans, bug-511);",
+        "done": true
+      },
+      {
+        "text": "`Esc` in the search closes; the search box keeps focus while typing.",
+        "done": false
+      },
+      {
+        "text": "Pure view-model helpers are unit-tested in",
+        "done": true
+      },
+      {
+        "text": "`tools/unit/test_worldpainter.js` (grouping, filter, detail composition).",
+        "done": false
+      },
+      {
+        "text": "Live browser check on a town scope: tiles, rail, filter, detail and pick",
+        "done": false
+      },
+      {
+        "text": "all behave; screenshot recorded.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/grid-model.ts` - palette view-model (+ emitted `.js`)",
+      "static/js/worldpainter/editor.ts` - `_valueControl`, `_palettePanel",
+      "routes/world_grid_ops.py` - `handle_painter_vocabulary` ships `terrain",
+      "tools/unit/test_worldpainter.js` - 8 view-model tests"
+    ],
+    "custom": {
+      "resolution_2026_10_09": "Shipped in two parts, no new module:\n\n- `static/js/worldpainter/grid-model.ts` - pure view-model: `paletteSections`\n  (rail derived from `terrain` + `tags`: wild terrain → rooms by purpose →\n  buildings by category → structure), `filterPalette`, `flattenPalette`,\n  `paletteTile`, `tileKind`, `tileDetail`, `detailRows`. `@contributes` updated.\n- `static/js/worldpainter/editor.ts` - `_valueControl` is now a read-out (swatch\n  + current tile + one-line detail) with a button that opens `_palettePanel`:\n  rail + search + tile grid + detail panel. Open state, category and query live\n  on `state` so a render rebuilds where the author left it. `_biomePalette` and\n  `_tileDetail` were removed (logic moved to the view-model).\n- `routes/world_grid_ops.py` - `handle_painter_vocabulary` now ships `terrain`,\n  which the rail derivation needs.\n\n**Verified:** `npm run build:ts` clean; `npm run typecheck` clean;\n`python tools/ts_convert.py check` green; `node tools/unit/run.cjs` → **644\npassed** (was 636; +8 palette tests); `pytest tests/test_world_grid_routes.py`\n→ 53 passed. Live browser pass still owed.\n\n**Deferred (named, not silent):** per-tile kind glyph, climate matrix, and the\nresources/creatures/hazards panels - the last wait on task-718/745 registries;\nthe climate/neighbour rows wait on task-758; both are tracked, not dropped."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocked by": "task-758 (the record fields the panel renders)",
+      "design": "`docs/design/world-environment-taxonomy.md` §\"Gap analysis: mockups"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-759-worldpainter-biome-palette-illustrated-tile-grid-category-rail-and-a-rich-detail-panel.md"
+  }
+}

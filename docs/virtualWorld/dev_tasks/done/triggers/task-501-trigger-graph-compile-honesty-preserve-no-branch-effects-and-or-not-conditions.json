@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-501",
+  "kind": "task",
+  "number": 501,
+  "title": "Trigger graph compile honesty: preserve NO-branch effects and OR/NOT conditions",
+  "status": "done",
+  "priority": "high",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-442",
+      "task-388"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix the two dishonest trigger-graph compiles so no authored effect is silently dropped and OR/NOT conditions survive the round trip.",
+    "why": "TODO",
+    "how": "- Compile a NO branch to real engine conditions/effects, **or** make the editor\n  refuse to save a NO branch it cannot represent. Silent truncation is not\n  acceptable.\n- Represent OR/NOT so they round-trip through `compileToEngine`; extend the\n  engine condition schema if needed (check `engine/triggers` condition\n  evaluation and the task-442 blueprint JSON contract).\n- Keep the yes/no trace honest: `_traceGraph` must not borrow a NO-branch\n  effect into `fail_message` while dropping the rest.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A condition node whose NO branch carries two effects produces two effects (or",
+        "done": false
+      },
+      {
+        "text": "a visible refusal), never one silent loss.",
+        "done": false
+      },
+      {
+        "text": "OR and NOT conditions authored in the graph survive `compileToEngine` and",
+        "done": false
+      },
+      {
+        "text": "evaluate correctly.",
+        "done": false
+      },
+      {
+        "text": "`fail_message` is only set when it is genuinely the only NO-branch content.",
+        "done": false
+      },
+      {
+        "text": "`node --check` clean on touched JS; targeted trigger tests and",
+        "done": false
+      },
+      {
+        "text": "`python -m pytest tests/ -q -k \"not mcp\"` green.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "problem_verified_2026_09_24": "Two defects in `static/js/shared/trigger-graph.js` make the editor's compile lie\nabout what it saved. Both were filed as task-388 defects #9–#11 and previously\nbundled into task-442 Slice 2; split out here because they are a self-contained\neditor/compiler fix, independent of the runtime blueprint materialiser.\n\n1. **NO-branch effects are discarded.** `_traceGraph` (`:2082-2113`) walks a\n   condition node's `output_no` wire (`:2091-2095`) but keeps only the first\n   `message` effect as `fail_message`; every other NO-branch effect is dropped.\n   A NO branch with two effects compiles to at most a fail message.\n2. **No OR/NOT.** `compileToEngine` (`:1996`) always emits\n   `{operator:'and', conditions: [...]}`; `compileToBehaviors` (`:1844`) does\n   the same. There is no OR/NOT representation, so an authored branch cannot\n   survive a compile.\n\nEvidence: `static/js/shared/trigger-graph.js:1844`, `:1996`, `:2082-2113`.",
+      "non_goals": "- Runtime blueprint materialisation and the blueprint browser - task-442\n  slices 1/3.\n- Editor pan/zoom/wire-deletion UX - task-388.",
+      "progress_2026_09_24": "Implemented in `static/js/shared/trigger-graph.js`; no engine change was needed\n(the condition tree already evaluates `and`/`or`/`not` -\n`engine/triggers/condition_tree.py:655-675`, covered by\n`tests/test_trigger_system.py`).\n\n- **`triggerToGraph` (import)** - no longer keeps only `conditions[0]`: every\n  leaf condition is drawn as a node in the chain. A `fail_message` is drawn as a\n  message effect on the last condition's NO socket, so it round-trips. A\n  condition tree the linear chain cannot draw (OR/NOT, or an AND that nests one\n  - `_treeIsFlat`) is stored on the trigger node as `condition_tree` +\n  `condition_leaves`.\n- **`_traceGraph`** - now also collects NO-branch effects and a `problems` list.\n  A lone NO message becomes `fail_message`; anything else (two effects, or a NO\n  branch that chains another condition) becomes a refusal reason. It no longer\n  borrows one NO message while dropping the rest.\n- **`compileToEngine`** - re-emits a stored `condition_tree` verbatim when the\n  drawn leaves still match it (`_sameShape`, order-insensitive, numeric/string\n  tolerant); if the group's conditions were edited in the graph it **refuses**\n  with `compile_error` rather than flattening to AND. Only sets `fail_message`\n  from a lone NO message. Clean compiles carry no `compile_error`.\n- **Refusal surfacing** - `TG.compileError` / `TG.reportCompileError`, wired into\n  the four save paths (`shared/trigger-graph.js` apply, `item-library.js`,\n  `inspector/trigger-helpers.js`, `shared/trigger-editor.js`), so a refused\n  compile cannot be saved silently.\n- **Tests** - `tools/unit/test_trigger_compile_honesty.js` (7), module loaded in\n  `tools/unit/run.cjs`. Verified: `node tools/unit/run.cjs` 174 passed (13\n  pre-existing `test_plan_tracker.js` failures, confirmed on a clean tree);\n  `node --check` clean; `npm run lint` clean; `npm run typecheck` clean;\n  `python tools/js_module_index.py --check` OK; 208 trigger tests pass.\n\nDeliberately deferred (filed): condition **group nodes** so an imported OR/NOT\ngroup is editable again instead of refused (task-502); behavior-mode compile\nhonesty, where `_traceBehavior`/`compileToBehaviors` still drop NO-branch\nactions (task-503)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-501-trigger-graph-compile-honesty-preserve-no-branch-effects-and-or-not-conditions.md"
+  }
+}

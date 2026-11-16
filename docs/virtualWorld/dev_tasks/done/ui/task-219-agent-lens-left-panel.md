@@ -6,11 +6,11 @@ status: done
 priority: medium
 ---
 
-# Agent Lens — Left Panel (Area + Agent Preview)
+# Agent Lens - Left Panel (Area + Agent Preview)
 
 **Filed**: 2026-08-13  
 **Priority**: High  
-**Status**: In Review — implemented 2026-08-13; Lens tab + area/agent/way preview; narrow-screen layout fix 2026-08-13 (hide alerts/validator on Lens tab, collapse preview settings by default); browser verify pending
+**Status**: In Review - implemented 2026-08-13; Lens tab + area/agent/way preview; narrow-screen layout fix 2026-08-13 (hide alerts/validator on Lens tab, collapse preview settings by default); browser verify pending
 
 ---
 
@@ -18,7 +18,7 @@ priority: medium
 
 Level designers cannot see what an LLM agent (or human `look`) will receive until they run an agent step. Editing areas, ways, and items in the **right inspector** while guessing prompt output is slow and error-prone (labs doors, ladder views, jump pits, clearance doors).
 
-Players never stand *in* a way — perception is always **from an area**. Preview must reflect that.
+Players never stand *in* a way - perception is always **from an area**. Preview must reflect that.
 
 ## What
 
@@ -45,8 +45,8 @@ Add left tab: **👁 Lens** (alongside Agents / Initiative / Outline), or option
 |--------------|-----------|---------------------------|
 | **Area node** | Area lens | **This area** (even if no agent is here) |
 | **Agent** (list or graph) | Agent lens | Agent's **actual** `current_area` |
-| **Way node** | Way lens (optional v1.1) | Snippets for **each connected area** ("From Kitchen…", "From Living Room…") — still area viewpoints, not "inside the way" |
-| Nothing | Last context or empty state | — |
+| **Way node** | Way lens (optional v1.1) | Snippets for **each connected area** ("From Kitchen…", "From Living Room…") - still area viewpoints, not "inside the way" |
+| Nothing | Last context or empty state | - |
 
 ### Area lens controls
 
@@ -54,9 +54,9 @@ Add left tab: **👁 Lens** (alongside Agents / Initiative / Outline), or option
 - **Way state preview:** toggle exits closed / open / locked **without saving** (preview only)
 - **Sections** (collapsible, copy button each):
   1. Area description (light-filtered per character traits)
-  2. Items that catch your attention (`buildAttention` — same as agent)
+  2. Items that catch your attention (`buildAttention` - same as agent)
   3. People here (stranger labels, first-impression line)
-  4. **Exits block** — exact lines from `buildRoomContext` (`From where you stand…`)
+  4. **Exits block** - exact lines from `buildRoomContext` (`From where you stand…`)
   5. Investigation notes / discovered items (if any for selected character)
 
 ### Agent lens controls
@@ -72,7 +72,7 @@ Full **next-turn prompt stack** for selected character (client-side, no LLM):
 | Footer note | "Reactive mode adds react prompt after action executes" |
 | Last action result | `config.lastActionResult[charName]` |
 
-Optional: **"Preview as if in…"** area dropdown (hypothetical placement) — clearly labeled, does not move the character.
+Optional: **"Preview as if in…"** area dropdown (hypothetical placement) - clearly labeled, does not move the character.
 
 ### Live update
 
@@ -84,15 +84,15 @@ Optional: **"Preview as if in…"** area dropdown (hypothetical placement) — c
 
 ### New files
 
-- `static/js/agent-lens.js` — lens controller, mode switching, render
-- `static/js/agent-lens/area-preview.js` — area mode sections
-- `static/js/agent-lens/agent-preview.js` — full prompt assembly
+- `static/js/agent-lens.js` - lens controller, mode switching, render
+- `static/js/agent-lens/area-preview.js` - area mode sections
+- `static/js/agent-lens/agent-preview.js` - full prompt assembly
 
 ### Touch
 
-- `templates/index.html` — left tab + pane `#left-tab-lens`
-- `static/js/ui-controller.js` — `switchLeftTab('lens')`
-- `static/js/inspector.js` or graph click handlers — notify lens of selection change
+- `templates/index.html` - left tab + pane `#left-tab-lens`
+- `static/js/ui-controller.js` - `switchLeftTab('lens')`
+- `static/js/inspector.js` or graph click handlers - notify lens of selection change
 - Reuse `PromptBuilder.*` from `static/js/agent/prompt-builder/` (no duplicate string logic)
 
 ### v1 scope
@@ -116,8 +116,8 @@ Optional: **"Preview as if in…"** area dropdown (hypothetical placement) — c
 
 ## Related
 
-- [[todo/ui/task-201-area-visibility-beyond-ways|task-201]] — see-through flags in lens
-- [[todo/ui/task-221-way-authoring-ux-and-tooltips|task-221]] — exit badges (`requires climb`, etc.) shown in lens
+- [[todo/ui/task-201-area-visibility-beyond-ways|task-201]] - see-through flags in lens
+- [[todo/ui/task-221-way-authoring-ux-and-tooltips|task-221]] - exit badges (`requires climb`, etc.) shown in lens
 - [[dev_tasks/level-design-workflow|Level design workflow hub]]
 
 ## Acceptance

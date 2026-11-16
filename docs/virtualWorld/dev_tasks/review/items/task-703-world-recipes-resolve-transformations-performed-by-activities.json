@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "task-703",
+  "kind": "task",
+  "number": 703,
+  "title": "World recipes resolve transformations performed by Activities",
+  "status": "review",
+  "priority": "high",
+  "area": "items",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-701",
+      "task-702"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-2",
+      "task-18",
+      "task-197",
+      "task-504",
+      "task-472",
+      "task-699",
+      "task-701",
+      "task-702",
+      "task-807"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Keep three meanings distinct. A **Pursuit** can bring a character to a place and give them a reason to cook. The **cooking Activity** is the visible process happening over time at a cooking area. The **world recipe** defines how the food transformation resolves: required ingredients, equipment, area conditions, duration, skill/quality tiers, and resulting items.\n\nEvolve task-2's crafting from instant graph-node transmutation to a world-recipe entry while preserving the existing `craft_item` path, condition leaves, and `give_item` outputs. A breakfast schedule may prompt a meal-preparation pursuit; it does not own the cooking rules.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A world recipe is stored separately from pursuit templates. The graph-node recipe shape is retired (never nodes - see task-831 and the AGENTS.md invariant); task-2's engine execution (`craft_item`, condition leaves, `give_item` outputs) remains the normal dispatch underneath, reading the recipe registry.",
+        "done": false
+      },
+      {
+        "text": "“Make X” checks recipe requirements before starting and answers with an explicit missing list, such as “you are missing: egg.” Keep today's fail-closed behavior.",
+        "done": false
+      },
+      {
+        "text": "On success, the character starts the crafting/cooking Activity at the required area or station for the recipe's game-minute duration (the egg: 10 minutes). The Activity is visible and interruptible according to its authored rules; it binds the actual station and any required spatial relationship.",
+        "done": false
+      },
+      {
+        "text": "Completion rechecks required conditions and resolves the world recipe once. Interruption cannot create an output or quality result unless the normal action path says the transformation completed.",
+        "done": false
+      },
+      {
+        "text": "Skill checks use task-472's central dice and can produce authored quality tiers such as cooked or burned (optionally perfect).",
+        "done": false
+      },
+      {
+        "text": "Author the cooked-egg recipe end to end in the fixture world. A meal-preparation pursuit can call that recipe, and a clock schedule can prompt the pursuit at breakfast time.",
+        "done": false
+      },
+      {
+        "text": "Demonstrate the Activity, recipe outcome, and pursuit progress in the browser and event stream; another character can perceive the cook at the station.",
+        "done": false
+      },
+      {
+        "text": "Resolve task-2's review status with a pointer to this task; retire the old node shape rather than maintaining a second source of truth (recipes are entries per task-831, never graph nodes).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: game view → request **Make X** → inspect the missing-requirements result or the character's cooking Activity at the required station → inspect the produced item and event stream.\n\nCurrent availability: the card separates a Pursuit (reason/place), cooking Activity (visible timed process), and world recipe (requirements and transformation). Recipe templates and timed Activity execution are not claimed as implemented by this card.\n\nLive steps when available:\n1. In a scratch world, use the authored egg recipe without one required ingredient and submit `Make X`.\n   - expected: the action fails closed and lists the exact missing ingredient (for example, “you are missing: egg”); it does not consume ingredients or create output.\n2. Supply all ingredients and required equipment, place the character at the authored cooking station, and request the same recipe.\n   - expected: the character starts the recipe's timed cooking Activity at that station; the Activity is visible and can be interrupted according to its authored rule.\n3. Advance the world through the recipe duration and inspect the event stream, inventory, and activity status.\n   - expected: the normal `craft_item`/condition/`give_item` dispatch produces the authored result once at completion; no instant graph-node transmutation bypasses the Activity.\n4. Repeat with a failed condition or interrupted Activity.\n   - expected: the recipe's fail outcome applies, required ingredients are not silently duplicated, and the Pursuit does not own the recipe's resolution rules.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items and Inventory/Item System & Properties Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "clarified": "2026-10-05"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes.md"
+  }
+}

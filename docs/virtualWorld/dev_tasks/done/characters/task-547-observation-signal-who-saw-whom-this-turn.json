@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-547",
+  "kind": "task",
+  "number": 547,
+  "title": "Observation signal: who saw whom this turn",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-487"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Nothing in the engine records that one character observed another, so any effect that depends on being seen or being exposed has no signal to read. Add a per-turn record of observers, with the public/covert distinction, built on the existing bystander-reaction perception pass.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A per-turn (or decaying) record of *who observed whom* exists and is readable",
+        "done": false
+      },
+      {
+        "text": "without re-running perception.",
+        "done": false
+      },
+      {
+        "text": "The record distinguishes a public observation from a covert or unobserved one.",
+        "done": false
+      },
+      {
+        "text": "Every character tier that can look is included, not only simple NPCs, and the",
+        "done": false
+      },
+      {
+        "text": "reaction cap no longer truncates the observer set.",
+        "done": false
+      },
+      {
+        "text": "Test asserting: an observer in the same area is recorded; a character in another",
+        "done": false
+      },
+      {
+        "text": "area (or one who fails the perception check) is not; the record does not",
+        "done": false
+      },
+      {
+        "text": "persist beyond its intended lifetime.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_2026_09_27_the_closest_thing_that_exists": "- `engine/npc_behaviors.py` `process_bystander_reactions()` already does the hard\n  half: it walks every **simple** NPC sharing the actor's area, runs\n  `calculate_perception_difficulty()` + `check_perception()`, and decides\n  whether the NPC noticed. `process_intimacy_verb()` in\n  `engine/pleasure_actions.py` already calls it for intimacy actions and\n  appends the reaction lines.\n- It is the wrong shape for a \"being seen\" signal, for three reasons:\n  1. it returns only **strings**, not who perceived, so nothing downstream can\n     read the observer set;\n  2. it skips anything that is not `simple_npc`, so agent-driven and human\n     characters - the ones a player would most expect to be *looking* - are\n     excluded entirely;\n  3. it is capped by `max_reactions` (default 1) and breaks out of the loop, so\n     the cap is also a silent truncation of the observer list.\n- There is no notion of \"publicly exposed\" vs \"covert\" anywhere: exposure is\n  currently per-region paperdoll coverage (`is_exposed` in `engine/body_parts.py`),\n  which answers *is this body part covered*, not *is anyone present to see it*.\n- `engine/background_social.py` reads `attention_seeker` and uses it in exactly\n  two places - `action_weights()` boosts `chat`/`joke`/`flirt` ×1.3, and\n  `ignore_weight()` drops the ignore weight ×0.6. That is an expression of\n  *seeking* attention, not a record of *receiving* it. task-487 needs the latter.",
+      "open_design_decisions_settle_before_implementing": "1. **What counts as public?** Presence in the same area with line of sight and\n   enough light, or merely co-presence? A private/closed area, a stealth state, or\n   a distracted observer should plausibly disqualify an observer.\n2. **Who counts as an observer?** Only NPCs, or also agent-driven and human\n   characters? Recommendation: everyone, since a human player's gaze is the case\n   players will most want to matter - but that needs a decision, because it\n   changes the cost profile of the pass.\n3. **Lifetime of the record.** Per turn only, or a decaying \"recently watched by\"\n   set? An effect like task-487's needs persistence across a few turns, since the\n   exposure and the reaction do not happen on the same tick.\n4. **Who computes it?** A dedicated pass, or refactoring\n   `process_bystander_reactions()` to return structured observations and letting\n   the reaction lines be built from those. The second avoids two passes over the\n   same NPC set; the first is a smaller change.",
+      "related": "- task-487 - the consumer this unblocks\n- task-214 (done) - `NPC Perception & Reaction Framework`, the pass being widened\n- task-468 / task-469 (done) - interrupt-driven background agendas, the same\n  \"did this character notice\" question for the background tier",
+      "implementation_2026_09_28_wt_c": "### Files\n\n- `engine/observation_signal.py` - **new**. The record itself.\n- `engine/npc_behaviors.py` - `record_observations()` added;\n  `process_bystander_reactions()` now builds its lines from that pass.\n- `tests/test_observation_signal.py` - **new**, 30 tests.\n\nNo hub file was touched. The record is deliberately **not serialized**: it is\nderived per-turn state, so persisting it would only store what the next\nperception pass recomputes. Keeping it derived is what keeps this off\n`engine/serialization.py` and `player.py`. The cost is that a page reload drops\nthe recent window; that self-heals on the next turn.\n\n### Naming: this is NOT `engine/observation.py`\n\nThat module is task-403's *observation memories* - \"what has this character\nseen\", a per-subject belief on the character, updated by `observe_area()`. This\ntask is the mirror image - \"who has seen *this* character\", an audience fact\nabout the target. Different question, different pass, different lifetime, so a\nseparate module. Both docstrings cross-reference the other.\n\n### The decisions, settled\n\n1. **What counts as public** - same area, ambient light at or above\n   `PUBLIC_LIGHT_FLOOR` (20), and an observer who is not asleep, unconscious,\n   dead or blind. Covert means *registered but not onlooker-visible*: someone\n   caught a shape in the dark, but nobody was watching it happen. This is\n   deliberately grounded in what the engine actually models. There is no\n   private/closed area concept, no facing, and no stealth state to key off -\n   inventing any of those would be scope this task does not have. It also\n   answers the question `body_parts.is_exposed` cannot: exposure there means\n   \"is this body part covered\", and a covered body part in an empty room is\n   nobody's business.\n2. **Who counts as an observer** - everyone who can look: simple NPCs,\n   agent-driven characters and human players alike, per the recommendation in\n   the task. The old pass skipped non-simple tiers for a good reason that does\n   not apply here - it only ever returned reaction *lines*, which those tiers\n   already narrate through their own prompts. A \"was I seen\" record is not a\n   line, and the tiers a player most expects to be watching were exactly the\n   ones being dropped.\n3. **Lifetime** - a decaying window, `DEFAULT_MEMORY_TURNS = 3`, because the\n   exposure and the reaction it causes land on different ticks. The store is\n   bounded by *pairs* of characters, not by turns: re-seeing refreshes in\n   place, so a week of wandering does not grow a row per turn. Pruning happens\n   on write; reads filter by window without mutating.\n4. **Who computes it** - the existing pass, refactored, not a second pass.\n   `record_observations()` does perception once for every tier and writes the\n   record; `process_bystander_reactions()` reads the same results and filters\n   them down to simple-NPC lines.\n\n### What the refactor actually fixed\n\nThree real defects, all from the old loop treating the observer set and the line\nlist as the same thing:\n\n- **The cap truncated observers.** `max_reactions` (default 1) `break`ed out of\n  the *candidate* loop, so it silently capped who was seen, not who spoke. The\n  cap now bounds lines, applied after perception.\n- **Noticing was conflated with commenting.** An observer whose reaction trait\n  resolved to `ignore` returned `None` and left no trace - they had demonstrably\n  seen the thing. They are now recorded; they just have no line.\n- **The tiers were filtered before the roll.** Non-simple characters never\n  consumed a d20, because the roll was only ever a step toward a line.\n\n### One finding worth carrying forward\n\n`Player.state` is **derived** from a precedence hierarchy\n(`engine/player_conditions.py:940`), and `awake` outranks lesser conditions - so\na character who is asleep still reports `state == \"awake\"`, and \"sleeping\" is\nprimarily an *activity*, not a condition. Any \"is this character watching\"\ncheck that reads `state` is therefore quietly wrong. `_is_public_observation()`\nreads conditions and the activity instead, and\n`test_sleeping_is_read_from_the_activity_not_the_state` asserts that `state`\ngenuinely fails to show the sleep, so the fallback cannot rot unnoticed.\n\n### Not fixed here\n\n`engine/npc_behaviors.py:237` calls `self.gs.is_undead_ghost(npc)` with a\n`Player`, but `is_undead_ghost(player_name: str)` takes a name, so the lookup\ncan never match and that exclusion has never fired. The new pass calls it\ncorrectly with `npc.name`. The stale call in `process_npc_reaction` is\npre-existing and outside this task's scope - it is the only known caller left\nwith the bug, so it is a one-word fix for whoever owns that path.\n\n### Handed to WT-0\n\nNothing. This task needed no hub change.\n\n### Verify\n\n`python -m pytest tests/test_observation_signal.py tests/test_npc_perception.py -q`\n- 50 tests, covering: an observer in the same area is recorded; one in another\narea is not; one who fails the perception roll is not; public and covert are\ndistinguishable and can coexist; agent and human tiers are included; the dead do\nnot observe; a non-mature world records nothing for a sexual stimulus; the line\ncap does not truncate the observer set; an ignoring observer is still recorded;\nand the record ages out past its window without growing per turn."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-547-observation-signal-who-saw-whom-this-turn.md"
+  }
+}

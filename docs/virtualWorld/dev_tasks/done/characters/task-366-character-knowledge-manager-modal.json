@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-366",
+  "kind": "task",
+  "number": 366,
+  "title": "Character Knowledge manager modal",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_built": "- Per-entity \"Known by\" panels removed from item/area/way inspectors.\n- Character inspector Advanced tab → 🧠 Knowledge section (chips + 🎛 Manage)\n  → modal (`static/js/inspector/known-by.js` rewrite): category tabs\n  (Items/Characters/Areas/Ways with live counts), search, ✓ All / ✕ None,\n  hidden markers, stale-ref cleanup, immediate save via\n  `updateCharacter(known)`. Alias refs written so engine + prompt builder\n  match (name / player_<slug> / character_<slug>; area name + node id + guess)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-366-character-knowledge-manager.md"
+  }
+}

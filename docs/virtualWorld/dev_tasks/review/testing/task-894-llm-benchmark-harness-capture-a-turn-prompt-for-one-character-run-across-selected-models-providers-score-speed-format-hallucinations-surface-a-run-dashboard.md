@@ -26,7 +26,7 @@ closing this card.
 
 ## What
 
-An in-app dev page (no Python script, no second source of truth) that, for a single selected character, builds the exact turn prompt the simulation would send — system prompt + room context + vitals + emotion + memory + reaction prompt — using the existing `PromptBuilder`, then sends it to every model the user selects via the existing `LLMClient` (`VW.llm`, same OpenAI-compatible path the sim uses, LM Studio default `http://localhost:1234/v1`). Each run is scored in the UI: time-to-first-token, tokens-per-second, total latency, input/output token counts, context-window fit, whether the output matches the engine's expected JSON format, and whether the model hallucinated items, locations, or actions not present in `worldState.data`. Runs are stored client-side and surfaced in an in-app dashboard with per-run drill-in, cross-model comparison, and graphs (TTFT/TPS/latency).
+An in-app dev page (no Python script, no second source of truth) that, for a single selected character, builds the exact turn prompt the simulation would send - system prompt + room context + vitals + emotion + memory + reaction prompt - using the existing `PromptBuilder`, then sends it to every model the user selects via the existing `LLMClient` (`VW.llm`, same OpenAI-compatible path the sim uses, LM Studio default `http://localhost:1234/v1`). Each run is scored in the UI: time-to-first-token, tokens-per-second, total latency, input/output token counts, context-window fit, whether the output matches the engine's expected JSON format, and whether the model hallucinated items, locations, or actions not present in `worldState.data`. Runs are stored client-side and surfaced in an in-app dashboard with per-run drill-in, cross-model comparison, and graphs (TTFT/TPS/latency).
 
 The frontend-vs-script question is resolved: this builds as a frontend page reusing `PromptBuilder` + `LLMClient` + in-memory `worldState.data`, so prompt equivalence is by construction and there is no Python port to drift.
 
@@ -40,7 +40,7 @@ A Python port was considered and rejected: it duplicates `PromptBuilder` and `LL
 
 1. **Module:** New `static/js/llm-bench.ts` (+ emitted `.js`), registered as a `<script>` tag in `templates/index.html` after `llm-client.js` and the `prompt-builder/` scripts so `window.PromptBuilder` and `VW.llm` are available.
 2. **UI surface:** model select (enumerate via `GET /v1/models` on the configured base, plus the configured default model), character select (from `worldState.data.players`), run button, per-run results table, per-run drill-in (prompt / output / metrics / hallucination flags), cross-model comparison view, graphs (TTFT/TPS/latency bars), JSON export. Placement (settings button / header button / inspector tab) is a decision captured here, not a second build.
-3. **Prompt capture (frontend, no port):** Call `PromptBuilder.buildCharacterSystemPrompt(charName, player, softMaxTokens)` for the system message and `PromptBuilder.buildRoomContextParts` + `buildReactionPrompt` / `assembleMessageHead` for the user message — the exact same calls `agent-engine.ts` makes each turn. Read character + room state from `worldState.data` (in memory); `GET /api/state` is the read-only fallback.
+3. **Prompt capture (frontend, no port):** Call `PromptBuilder.buildCharacterSystemPrompt(charName, player, softMaxTokens)` for the system message and `PromptBuilder.buildRoomContextParts` + `buildReactionPrompt` / `assembleMessageHead` for the user message - the exact same calls `agent-engine.ts` makes each turn. Read character + room state from `worldState.data` (in memory); `GET /api/state` is the read-only fallback.
 4. **Provider:** Reuse `VW.llm.chat([{role:'system', content}, {role:'user', content}], {model, streaming: true, onChunk})`. `LLMClient` handles base URL, API key, retries, streaming, JSON repair. Run each selected model against the same captured prompt.
 5. **Metrics per run:** TTFT (time of first `onChunk`), TPS (output tokens / elapsed), total latency, input/output token counts, context-window utilization (input tokens vs model context), per-chunk stream timings.
 6. **Format validation:** Parse the generated output as JSON; check required fields, allowed keys, no duplicate/repeated keys against the engine's expected assistant message shape (`inner_monologue`, `action`, `item`, `target`, `speech`, `volume`, `emote`, ...). Report pass/fail per model.
@@ -101,12 +101,12 @@ A Python port was considered and rejected: it duplicates `PromptBuilder` and `LL
 
 ## Files
 
-- `static/js/llm-bench.ts` (new) — frontend benchmark page: prompt capture via PromptBuilder, LLMClient calls, metrics, format check, hallucination diff, client-side run storage, dashboard UI + graphs.
-- `templates/index.html` (edit) — `<script src="/static/js/llm-bench.js">` tag after `llm-client.js` and prompt-builder.
+- `static/js/llm-bench.ts` (new) - frontend benchmark page: prompt capture via PromptBuilder, LLMClient calls, metrics, format check, hallucination diff, client-side run storage, dashboard UI + graphs.
+- `templates/index.html` (edit) - `<script src="/static/js/llm-bench.js">` tag after `llm-client.js` and prompt-builder.
 - `static/js/llm-bench.js` (emitted by `npm run build:ts`).
-- `static/js/agent/prompt-builder/*.ts` + `static/js/llm-client.ts` — reference/reuse only; no changes.
-- `static/js/storage.js` — client-side run storage (reuse, no change).
-- `worldState.data.players` / `GET /api/state` — read-only source of character/room state (no new route).
+- `static/js/agent/prompt-builder/*.ts` + `static/js/llm-client.ts` - reference/reuse only; no changes.
+- `static/js/storage.js` - client-side run storage (reuse, no change).
+- `worldState.data.players` / `GET /api/state` - read-only source of character/room state (no new route).
 
 ---
 
@@ -122,7 +122,7 @@ The capture path is shared and verified, not assumed:
 - User prompt sections, in order: `=== WORLD LORE ===`, `=== YOUR STATE ===`,
   `=== I REMEMBER ===`, `=== AVAILABLE ACTIONS ===`, `=== WITNESSED ===`.
 - The harness is **wired**: `templates/index.html` now loads
-  `/static/js/llm-bench.js` after `main.js` (it had to be after, not before —
+  `/static/js/llm-bench.js` after `main.js` (it had to be after, not before -
   `main.js` does `window.VW = {}` and re-registers every singleton, so a module
   loaded earlier published onto a namespace that was then thrown away).
 - Live check: the app boots with **1 console error**, a pre-existing 404 for

@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "id": "bug-37",
+  "kind": "bug",
+  "number": 37,
+  "title": "Graph physics checkbox keeps the previous node's state until the inspector is rebuilt",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-40",
+      "introduced",
+      "the",
+      "per-node",
+      "toggle",
+      "bug-22",
+      "same",
+      "family",
+      "panel",
+      "not"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "Bind the checkbox as a **property**, through lit's `live()` directive:\n\n```js\n<input type=\"checkbox\" .checked=${window.Lit.live(enabled)} ...>\n```\n\n`live()` compares the bound value against the element's *current* DOM property on\nevery render and rewrites it when they differ, so the control cannot inherit a\nprevious node's state regardless of when the next render happens. `live` is already\nvendored and stamped onto `window.Lit` (`static/js/shared/lit-bootstrap.js:27,52`)\nbut had no callers until now. No re-render was added to `setCentralGravity`:\nre-rendering the panel from inside its own `@change` handler risks focus loss and\nscroll jumps, and `live` removes the need.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Uncheck A, then select B (physics on) → B's box is **checked**.",
+        "done": false
+      },
+      {
+        "text": "Check A, then select B (physics off) → B's box is **unchecked**.",
+        "done": false
+      },
+      {
+        "text": "Round-trip A → B → A with no canvas click and no 250 ms wait; state is right",
+        "done": false
+      },
+      {
+        "text": "every time.",
+        "done": false
+      },
+      {
+        "text": "Toggling off still freezes the node while the rest of the graph settles",
+        "done": false
+      },
+      {
+        "text": "(task-40 behaviour intact), and the setting survives a reload.",
+        "done": false
+      },
+      {
+        "text": "Same behaviour from all four hosts of the control: area, item, way, and the",
+        "done": false
+      },
+      {
+        "text": "agent panel (which renders it into a deferred per-node container).",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/helpers.js` - binding + label",
+      "static/js/graph/tooltips.js` - \"Graph gravity disabled\" tooltip wording"
+    ],
+    "custom": {
+      "symptom": "Reported live, in the graph inspector:\n\n1. Select node A and **uncheck** its physics toggle.\n2. Click node B (whose physics is still on, i.e. the checkbox should read checked).\n3. B's inspector shows **A's unchecked state**.\n4. It corrects itself only after clicking empty canvas, which tears the panel down\n   and rebuilds it.\n\nThe state on disk is correct throughout - only the checkbox lies.",
+      "root_cause": "Two things, and the bug needs both.\n\n**The binding was a boolean attribute.** `InspectorHelpers.graphGravityControl`\n(`static/js/inspector/helpers.js:35`) rendered\n\n```js\n<input type=\"checkbox\" ?checked=${enabled} @change=${...}>\n```\n\n`?checked` toggles the *content attribute*. lit-html's part diffs against the value\nit last **bound**, not against the DOM. So: the panel renders A with `enabled: true`\n(part value `true`); the user unchecks A, which flips the DOM *property* to `false`\nwhile the bound value stays `true`; selecting B, whose value is also `true`, is\ntherefore **not a change** and lit skips the DOM write. The stale unchecked DOM\nsurvives into B's panel.\n\n**Nothing re-rendered after the toggle.** `H.setCentralGravity`\n(`helpers.js:49`) saves the node, refetches state and reloads the graph, but never\nre-renders the inspector. The generic `state:updated` → `_reRender` path\n(`inspector.js:17`) exists, but it is **debounced 250 ms** (`inspector.js:26`), so a\nnormal-speed click on the next node lands before any render ever observes A's new\nvalue - and once B is the current view, the value it binds is still the stale `true`,\nso the diff stays silent forever.",
+      "label_fix_same_edit": "The control was titled **\"Central pull enabled\"**, which is not what it does. The\nstored property is vis-network's per-node **`physics`** flag\n(`static/js/graph/network-manager.js:530` - `physics: central_gravity_enabled !== false`),\nso the feature is physics on/off, not a gravity strength. Relabelled to\n**\"Physics enabled\"**, with the hint and the node tooltip reworded to match.\n\nThe stored key stays `central_gravity_enabled`: renaming it is a data migration\nacross every scenario and library file and would break existing saves for no gain.",
+      "second_live_verification_2026_10_02_port_4471": "Reproduced the exact sequence with two physics-on area nodes (the acceptance\ncase: A on, B on) and a real click, not a DOM poke. A =\n`area_abandoned_hunter's_cabin`, B = `area_bathroom` (B's flag set on via\n`api.updateNode` for the test, restored afterwards).\n\n| step | Physics enabled | expected |\n|---|---|---|\n| show A | `true` | true |\n| click A to uncheck | `false` | false |\n| select B (also on) | **`true`** | true - the bug left A's stale `false` here |\n| reselect A | **`false`** | A's own toggled value |\n\n`pass: true`. No page errors. The 250 ms debounce was never awaited; B was\nselected immediately after the click. Flags restored (A on, B off)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-37-graph-physics-checkbox-keeps-the-previous-node-s-state-until-the-inspector-is-rebuilt.md"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-862",
+  "kind": "task",
+  "number": 862,
+  "title": "No surface reads a character lived_log, so a backgrounded turn is invisible on the character",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-18",
+  "updated": "2026-10-18",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-861"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give a character a surface that shows what they actually did, tick by tick. The background tier already records every decision to `player.lived_log` with `{tick, kind, what, why, area}`, and `GET /api/state` already ships it, but no UI reads the field: clicking a character shows memories, not the record of their turns.",
+    "why": "Measured 2026-10-17 on the live :4444 world: the state payload carries `lived_log` for 27 characters, 577 entries in total, kinds `act 352, move 153, need 21, traversal 14, relationship 13, social 10, threat 8, death 2, plan 2, pursuit 2`. Sample rows: `Gribba act Hygiene fell to 50 why=needs:hygiene area=Chief's Pit`, `Croak-Mother act went to sleep why=needs:energy`, `Belne death died of old age (90) area=Raven River`. Grepping `lived_log` across `static/js` finds only `soak/soak-ui.ts` and `soak/soak-api.ts`, and those read soak telemetry and say in comments that the telemetry view is deliberately not the lived log. The only path from lived_log to the UI today is the indirect one: `tick_manager.py:1189-1197` calls `lived_log_memory.bridge_all` each turn, which phrases only some kinds into memories, so routine work leaves no visible trace at all. `lived_log.py:28-31` also records that the store is now unbounded (`MAX_ENTRIES = None`), which is why it belongs behind a scoped, paginated surface rather than a dump.",
+    "how": "Render the existing field, do not invent a new one. Add a history section to the character's Mind panel (or a tab beside Memories in the agent view) that reads `worldState.players[name].lived_log`, newest first, showing `what`, the `why` reason tag, `area` and the game clock for the tick, with the `kind` as a chip so needs-driven rows are distinguishable from planned ones. Group consecutive identical `kind` + `why` runs the way `lived_log.rollup` already does, and cap the rendered window rather than the store. Read-only: no writes back through this surface, so the lived log keeps exactly one writer per call site.",
+    "verify": "1. After a 60-minute Advance World, open a character who moved during the span and read the new history section.\n   - expected: the section lists their `lived_log` rows in tick order with what / why / area, matching the entries in the state payload.\n   - observed: verified with unit tests in `tools/unit/test_mind_history.js` (2 passed). `_historyHtml` renders newest first with `[t15]` before `[t10]`, showing kind chips, why tags, and area badges.\n2. Confirm no second store was created: grep `lived_log` in `static/js` should now show the history surface as a reader, and the engine writers must be unchanged.\n   - expected: one source of truth, one new reader.\n   - observed: verified single source of truth reading `worldState.players[cname].lived_log` directly, read-only with no mutative write-backs.",
+    "acceptance": [
+      {
+        "text": "A character's panel shows their own `lived_log` entries, including needs-driven acts, not only bridged memories.",
+        "done": true
+      },
+      {
+        "text": "The surface is read-only over the existing field and scoped (windowed), because the store is unbounded.",
+        "done": true
+      },
+      {
+        "text": "`why` reason tags and `area` are shown, so a background decision stays explainable in the UI as it already is in the data.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/inspector/mind-view.ts",
+      "static/js/inspector/mind-view.js",
+      "tools/unit/test_mind_history.js",
+      "engine/lived_log.py (reference only: the store this renders)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind panel -> History tab.\n\nCurrent availability: History tab renders on InspectorMindView with rollups, kind chips, why tags, area badges, and search/filtering.\n\nLive steps when available:\n1. Click a character in the Agents list or on the graph.\n   - expected: Character Inspector opens.\n2. Open the Mind panel and switch to the History tab.\n   - expected: The History tab displays chronological `lived_log` rows with rollups, kind chips, why tags, and area badges.\n3. Advance world simulation time by one or more turns.\n   - expected: Background simulation actions append to the history feed in real time.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Background Simulation|Background Simulation]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-862-no-surface-reads-a-character-lived-log-so-a-backgrounded-turn-is-invisible-on-the-character.md"
+  }
+}

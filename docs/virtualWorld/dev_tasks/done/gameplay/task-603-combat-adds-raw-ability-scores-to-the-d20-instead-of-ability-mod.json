@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-603",
+  "kind": "task",
+  "number": 603,
+  "title": "Combat adds raw ability scores to the d20 instead of ability_mod",
+  "status": "done",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "combat.py:212 rolls d20 + raw STR and combat.py:213 rolls d20 + raw DEX, so STR 9 lands as +9 and DEX 11 as +11. engine/checks.py:74 already defines ability_mod() and combat never calls it. STR9 vs DEX11 gives the attacker 42.8%.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-603-combat-adds-raw-ability-scores-to-the-d20-instead-of-ability-mod.md"
+  }
+}

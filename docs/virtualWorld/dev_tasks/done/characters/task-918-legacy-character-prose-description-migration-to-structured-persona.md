@@ -12,6 +12,10 @@ related: ["task-903", "task-843"]
 **Filed:** 2026-10-31
 **Related:** task-903, task-843
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]], [[task-843-character-file-import-llm-converts-any-card-or-prose-to-the-persona-schema]]
+<!-- deps:end -->
+
 ## What
 
 Build an offline / CLI tool (`tools/migrate_prose_to_persona.py`) and an inspector action that parses unstructured character description paragraphs into the 4-part persona block (`identity`, `appearance`, `personality`, `narrative`), keeping existing prose intact as `base_description`.
@@ -36,5 +40,5 @@ Older scenarios (and imported third-party character cards) have multi-paragraph 
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

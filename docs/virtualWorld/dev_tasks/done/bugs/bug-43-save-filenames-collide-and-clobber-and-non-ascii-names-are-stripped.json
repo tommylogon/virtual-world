@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "bug-43",
+  "kind": "bug",
+  "number": 43,
+  "title": "Save filenames collide and clobber, and non-ASCII names are stripped",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-31"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "1. Resolve a free filename: if the target exists, append a numeric/disambiguating\n   suffix (`..._2`, `..._3`) - never silently overwrite a different save. Slot\n   overwrites (`slot=` / autosave) stay the one intentional in-place overwrite.\n2. Normalize names (NFKD) and keep Unicode letters/digits, folding only characters\n   that are genuinely unsafe on Windows (`<>:\"/\\|?*`, control chars). Fall back to a\n   stable placeholder only if the result is empty.\n3. Factor the sanitizer into one shared helper so `_save_game`, rename, and scenario\n   naming use the same rules.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Saving two different states with the same name in the same second yields two",
+        "done": true
+      },
+      {
+        "text": "files; neither overwrites the other.",
+        "done": false
+      },
+      {
+        "text": "A save named with non-ASCII letters keeps those letters in the filename (or at",
+        "done": true
+      },
+      {
+        "text": "least does not become all underscores), and the save still loads.",
+        "done": false
+      },
+      {
+        "text": "Overwriting an existing slot via 💾 still replaces that same file in place.",
+        "done": true
+      },
+      {
+        "text": "Path traversal remains rejected (`_safe_save_path`); add cases for the new",
+        "done": true
+      },
+      {
+        "text": "unicode/normalization path.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/helpers.py` - `_save_game` sanitizer + filename (282-326)",
+      "routes/saveload.py` - rename sanitizer (312), scenario name (793), `_safe_scenario_name` (638)",
+      "tests/test_saveload.py` - collision and unicode coverage"
+    ],
+    "custom": {
+      "symptom": "Two data-loss / nameless-file problems in save filename generation:\n\n1. **Collision clobbers.** `_save_game` names a new save\n   `<safe_name>_YYYYMMDD_HHMMSS.json` with a second-resolution timestamp and no\n   uniqueness guard. Saving twice with the same name inside the same second writes the\n   second state over the first file with no warning. The current `saves/` list already\n   holds several distinct runs all named `test save`, so the pattern is real.\n2. **Non-ASCII stripped.** The sanitizer\n   `''.join(c if c.isalnum() or c in ' _-' else '_' for c in name)` replaces every\n   character outside ASCII alphanumerics/space/underscore/hyphen with `_`. A name like\n   `Ærø kysten` or `Draghál` loses its letters - ids/filenames become rows of\n   underscores. `str.isalnum()` is Unicode-aware, so the filter is stricter than it\n   needs to be for a filesystem name.\n\nNote: `bug-31` covers path *validation* (traversal). This is filename *generation*.",
+      "root_cause": "- `routes/helpers.py:293` - sanitizer drops non-ASCII letters.\n- `routes/helpers.py:310` - `filename = f\"{safe_name}_{ts}.json\"`, no collision check.\n- Same sanitizer is duplicated in the rename route (`routes/saveload.py:312`), the\n  scenario-name route (`saveload.py:793`), and the scenario path helper\n  (`saveload.py:638`), so a fix must be applied consistently or the sites will drift.",
+      "resolution_2026_09_24": "One shared `sanitize_filename(name, *, allow='', fallback='unnamed')` in\n`routes/helpers.py` replaces all six ad-hoc copies (`helpers._save_scenario`,\n`helpers._save_game`, `saveload` rename, `_safe_scenario_name`, `scenario/name`,\n`scenario/commit`). It now:\n\n- NFKC-normalises and keeps Unicode letters/digits (not just ASCII), so\n  `Draghál` / `Ærø kysten` survive instead of collapsing to underscores. The\n  task text said NFKD, but NFKD + an alnum-only filter peels the combining mark\n  and turns `á` into `a_`; NFKC composes it, which is what the second acceptance\n  criterion actually wants. Documented in the helper docstring.\n- Folds only characters unsafe on a filesystem, trims Windows-hostile trailing\n  dots/spaces, and escapes reserved stems (`CON`, `com1`, ...).\n- Keeps scenario names' extra `.()` allowance via `allow='.()'`.\n\n`unique_filename(dir, filename)` resolves same-second collisions to\n`..._2.json`, `..._3.json`. `_save_game` uses it for named saves; slot/autosave\nwrites bypass it (the one intentional in-place overwrite). Rename uses it too,\nunless the new name resolves back to the current file.\n\nNote: only the *filename* is disambiguated on collision - the stored\n`_save_metadata.name` display label is untouched (convention: rename ids, not\ndisplay names). Tests in `tests/test_saveload.py` (`TestSanitizeFilename`,\n`TestSaveFilenameCollisions`, `TestSafeSavePath`)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-43-save-filenames-collide-and-clobber-and-non-ascii-names-are-stripped.md"
+  }
+}

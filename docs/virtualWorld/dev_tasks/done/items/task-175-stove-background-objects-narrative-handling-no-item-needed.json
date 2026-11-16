@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-175",
+  "kind": "task",
+  "number": 175,
+  "title": "Stove & Background Objects - Narrative Handling (no item needed)",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [
+    "items",
+    "matching",
+    "flavor",
+    "narrative"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-03",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Background objects referenced only in descriptions (kitchen stove, loose tile, moon, fireplace) are handled **by narrative responses, not real items**. `examine stove` returns *\"You examine stove. … It does not seem to be of any use.\"*, the character remembers it as narrative, and `stove` resolves against the room description - **not** against *Stovepipe Leather Boots (Pair)*.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_per_requirement": "### 1. Name-matching fix (dependency: word-boundary matching) ✅\n`engine/matching.py:155-196` uses word-boundary regex (exact → word-boundary → alias → fuzzy), so `stove` no longer matches inside `stovepipe`. Locked by `tests/test_matching.py:170` `test_stove_does_not_match_stovepipe_boots`.\n\n### 2. No-use note in examine flavor ✅\n`_describe_flavor_target` (`engine/item_actions.py:256-300`) appends *\"It does not seem to be of any use.\"* to every flavor hit (the \"always append\" decision the task left open).\n\n### 3. Character memory of the narrative result ✅ (by design)\nThe flavor fallback returns narrative text, not a raw system string, so it flows through the existing observe/reaction memory synthesis per the system-vs-character separation. `_descriptive_target_failure` keeps logging `record_turn_event` so others witness failed attempts.\n\n### 4. Test cases ✅ (one added this session)\n- `examine stove` → flavor text + no-use note, **never** the boots - `tests/test_descriptive_targets.py::test_examine_stove_uses_flavor_not_boots` (added 2026-08-03, end-to-end through `get_item_desc`).\n- `use kindling on stove` → scenery failure - `test_use_on_flavor_via_real_matching`.\n- `use create flame on stove` → fire-appropriate failure - `test_fire_item_gets_fire_failure_text` / `test_fire_item_without_node_uses_generic`.\n- Real targets still work - `test_matching.py` word-boundary + existing take/key/door cases.",
+      "observation_non_blocking": "- `data/library/items/stove.json` exists in the library despite the task's \"rejected\" note - but it is **not placed in the world graph** (no `item_stove` nodes in world_template/autosave), so `examine stove` still goes through the narrative fallback. The \"no real item\" decision holds in practice; the library file is a harmless unused entry.",
+      "files_modified": "- `engine/item_actions.py` - `_describe_flavor_target` no-use note (already landed before this review)\n- `engine/matching.py` - word-boundary tier via the name-matching work (F4)\n- `tests/test_descriptive_targets.py` - end-to-end examine-stove case added during review",
+      "related": "- `task-183-name-matching-aliases` (prerequisite, F4) - landed.\n- `task-181-command-parser-multiwindow-targets` (multi-word `use X on Y`).\n- `task-174` (fire mechanic) - `use create flame` alone spawns the lit ember.\n- `task-160` (parameterized actions) - fixes emission, not resolution."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-175-stove-background-objects-narrative.md"
+  }
+}

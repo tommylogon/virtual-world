@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "id": "task-734",
+  "kind": "task",
+  "number": 734,
+  "title": "Knowledge is memory: fold known/recipes/known-places into one prose+data record with episodic vs semantic kinds",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-404",
+      "task-725",
+      "task-736",
+      "task-786",
+      "task-966",
+      "task-968",
+      "task-969"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Unify the character's separate knowledge stores (known, crafting_known/recipes, known locations, known_way_aspects) with the memory model so one prose+data record shape carries all learned content. Keep distinct lifecycles: episodic memories tick/decay/emotion-weight; semantic and procedural knowledge are stable and do not fade on the event curve. discovered_exits and visited_areas stay derived indexes over the graph, not persisted stores.",
+    "why": "TODO",
+    "how": "One knowledge/memory **record** (prose + data + `kind` + salience + rehearsal),\nwith a **lifecycle curve per kind** - not a binary \"episodic decays, semantic\ndoes not\":\n\n- **episodic** - an event: tick, emotion weight, decays/reinforces fast (task-685).\n- **procedural** - a recipe or a skill you practiced. Decays with **disuse**, and\n  rehearsal resets it: cook pancakes for 15 years then stop, and yes, you lose\n  the recipe. This corrects an earlier overreach in this task (\"semantic never\n  fades\"). The repo already counts successful uses toward a skill raise\n  (`player.py`, skill uses) - decay-by-disuse is the other half.\n- **semantic** - a fact about the world (\"the smith is down that road\"): does not\n  fade on a clock; it is **invalidated by change** (the road closed, the smith\n  died), not by time.\n\n**capability** (skills/traits) is unchanged - learned ability is not a memory,\nthough its *practice history* is procedural.\n\n**Derived indexes stay derived.** `discovered_exits` and `visited_areas` are a\nview over the graph (what the character has perceived), not memories; task-724's\nrule says a derived value is not persisted as its own store. `discovered_items`\nis the same - a set of node ids already in the graph. `known_way_aspects` is the\nspatial/route memory and is the one that *is* a memory (see task-736).",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`known`, `crafting_known`, known locations and `known_way_aspects` are",
+        "done": false
+      },
+      {
+        "text": "readable as one record shape with `kind: semantic`.",
+        "done": false
+      },
+      {
+        "text": "Semantic knowledge does not decay on the episodic curve; episodic memory",
+        "done": false
+      },
+      {
+        "text": "still does.",
+        "done": false
+      },
+      {
+        "text": "`discovered_exits`/`visited_areas`/`discovered_items` remain derived, not",
+        "done": false
+      },
+      {
+        "text": "persisted stores.",
+        "done": false
+      },
+      {
+        "text": "Existing saves and scenarios round-trip.",
+        "done": false
+      },
+      {
+        "text": "A targeted test proves a semantic record survives a decay pass that trims",
+        "done": false
+      },
+      {
+        "text": "an episodic one.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "grounding_measured_2026_10_07": "The memory record **already is prose + data** (`player.py:991`):\n\n```\nadd_memory(text, tick, importance=5, memory_type=\"observation\", tags=None,\n           source=\"auto\", entity_ids=None, location=\"\", salience=0,\n           category=None, confidence=None, contradicts=None)\n```\n\n`text` = prose; `entity_ids / tags / importance / category / confidence /\ncontradicts / tick / source / salience` = data. The structured-dynamics fields\n(`category/confidence/contradicts`) are task-685's and are read by recall\n(task-690).\n\nThe gap is that learned *content* lives in parallel stores, not in that model:\n\n```\nself.known = []                  self.crafting_known = ...\nself.discovered_exits = set()          self.known_way_aspects = {}\nself.discovered_items = set()          self.visited_areas = set()\n```",
+      "why_not_one_flat_list": "One flat list forces one decay curve on everything. A recipe you have not cooked\nin fifteen years and a locked door you saw yesterday are not the same fact, and\nthey should not age at the same rate. The model unifies the *shape*; the\n*lifecycle* is per kind.",
+      "open_questions": "- Migration: existing `known`/`crafting_known`/`known_way_aspects` becomes\n  semantic records; `discovered_*`/`visited_areas` are dropped as derived. What\n  writes the first semantic records - a projector, or the same add path?\n- Does recall (task-690) score semantic knowledge, or only episodic? A recipe\n  should surface by relevance, not by recency.\n- Idempotency: re-deriving semantic records from authored content must not\n  duplicate (same class as task-733's biography→memories).",
+      "browser_ui": "Intended UI home: select a character → Mind panel → Knowledge and Memories.\nKnown facts, recipes, places, and known ways should appear as one record model\nwith a visible kind; derived exploration indexes remain internal projections.\n\nCurrent availability: the card describes separate knowledge and episodic\nmemory stores and proposes unified records with distinct lifecycles. The\nunified Mind-panel record view is not claimed as implemented today.\n\nLive steps when available:\n1. In a scratch scenario, teach a character one fact about an area, one recipe,\n   and add one recent episodic event memory. Open the character's Mind panel.\n   - expected: the three entries are readable through the same record view and\n     show semantic, procedural, and episodic kinds respectively.\n2. Advance enough simulation time for the episodic memory's activation to\n   decay, then reopen Mind and inspect all three entries.\n   - expected: the episodic record follows its decay rule; semantic knowledge\n     remains stable and the recipe follows its procedural-use lifecycle.\n3. Use the learned recipe and ask the character to recall the area fact.\n   - expected: rehearsal affects the procedural record as specified, and the\n     semantic fact remains available without being promoted into a new store.\n4. Inspect `/api/state` and reload the scenario.\n   - expected: learned knowledge round-trips; `discovered_exits`,\n     `visited_areas`, and `discovered_items` remain derived indexes rather than\n     new persisted stores.\n\nThese steps define the intended Mind-panel view and lifecycle checks. The\nunified record model remains planned.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Character Creation & Archetypes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

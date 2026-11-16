@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-275",
+  "kind": "task",
+  "number": 275,
+  "title": "Condition: Suffocating (`suffocating`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Can't breathe - drowning, choking, airless area. A hard, urgent gate with a short lethal countdown.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"suffocating\": {\n    \"name\": \"Suffocating\", \"description\": \"You can't get air.\",\n    \"blocks_actions\": True, \"blocks_movement\": False, \"blocks_speech\": True,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [\"CON\"],\n    \"attack_mod\": 0, \"defense_mod\": -3, \"speed_mult\": 0.5,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {\"HP\": -4, \"Energy\": -3},\n    \"ends_on\": [\"breathe\", \"reach_air\", \"breath_of_air\"],\n    \"known\": True, \"symptoms\": {\n        1: \"Your chest burns. You're drowning.\",\n        2: \"Black spots crowd your vision.\",\n        3: \"You're going to black out.\",\n    },\n    \"stack\": \"noop\",\n    \"default_duration\": 4,   # short - lethal if not treated\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: `blocks_actions: True` - you can't do much while suffocating; speech blocked (can't talk underwater). Movement stays possible (struggle toward air).\n- **Saves/checks**: auto-fails CON saves.\n- **Combat**: `defense_mod -3` (helpless-ish while choking).\n- **Movement**: `speed_mult 0.5` (struggling).\n- **Periodic**: heavy HP + Energy drain - designed **lethal quickly** if the condition isn't broken (`default_duration 4` then collapse).\n- **Lifecycle**: `stack: \"noop\"` (already suffocating); ends on reaching air / breathing / `breath_of_air` spell or effect; otherwise the countdown runs out.",
+      "perception": "`known: True` - agent knows they can't breathe.",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry.\n- **Air/area design** (task-130 air/vacuum area effects cancelled/considered): underwater, flooded, or airless areas apply it via triggers (`on_enter`, `on_tick`, area `air` property).\n- `engine/conditions.py` - `BLOCKING_CONDITIONS` (blocks actions), `process_tick`.\n- Rescue: drag to surface, `breath_of_air`-style effect ending it.",
+      "testing_proposed": "- [ ] Suffocating blocks actions and speech; movement (toward air) still works.\n- [ ] Heavy periodic drain; short countdown â†’ collapse if untreated.\n- [ ] Reaching air / a breath effect ends it promptly.\n- [ ] Applies automatically in water/airless areas (via area triggers).",
+      "open_questions_things_to_work_out": "- What triggers it - an `air`/area property, submersion state, or gameplay items (choke hold, gas)? Tie to the air/vacuum area modeling.\n- Should suffocation pause recovery/countdown while able to take a breath, or is it all-or-nothing?\n- Default `4` ticks with `HP -4` - confirm lethality target (fast but survivable with prompt rescue).\n- Any interactions with `wet`/`unconscious` (blacking out)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-275-suffocating.md"
+  }
+}

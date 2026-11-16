@@ -37,8 +37,8 @@ The lead-in should combine:
 Full room description follows below as before.
 
 ### Scope
-- `static/js/agent/prompt-builder.js` — `buildRoomContext()` function
-- `static/js/agent-engine.js` — `_buildRoomContext()` function
+- `static/js/agent/prompt-builder.js` - `buildRoomContext()` function
+- `static/js/agent-engine.js` - `_buildRoomContext()` function
 
 ## Why
 

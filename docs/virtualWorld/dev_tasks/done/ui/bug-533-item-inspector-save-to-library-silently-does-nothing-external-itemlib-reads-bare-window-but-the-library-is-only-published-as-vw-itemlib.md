@@ -12,7 +12,7 @@ priority: high
 
 ## What
 
-In the item inspector, the **📚 Save to Library** button does nothing — no event-log
+In the item inspector, the **📚 Save to Library** button does nothing - no event-log
 line, no console output, no backend request. User-reported on a goblin spear from
 the world. Root cause confirmed by reading the load path.
 
@@ -27,19 +27,19 @@ The button (`static/js/inspector/item-view.ts:643`):
 
 But the item library is published only under the `VW` namespace:
 
-- `static/js/main.ts:22` — `window.VW = {};`
-- `static/js/main.ts:81` — `VW.itemLib = itemLib;`
+- `static/js/main.ts:22` - `window.VW = {};`
+- `static/js/main.ts:81` - `VW.itemLib = itemLib;`
 
 Bare `window.itemLib` / `globalThis.itemLib` is never set. So `_external('itemLib')`
 returns `null`, and the optional-chaining call `?.` short-circuits: the click runs
 no code, logs nothing, and reaches no endpoint. A silent no-op, not an error.
 
 The codebase already documents this exact trap at
-`static/js/library-browser.ts:39` — *"a load-time snapshot (`window.itemLib`) was
-always undefined"* — so resurrecting `window.itemLib` is the wrong fix.
+`static/js/library-browser.ts:39` - *"a load-time snapshot (`window.itemLib`) was
+always undefined"* - so resurrecting `window.itemLib` is the wrong fix.
 
 Same latent failure at `item-view.ts:818`, which builds the save payload's trigger
-list with `_external('itemLib')?._extractTriggersFromEdges(nodeId)` — with the
+list with `_external('itemLib')?._extractTriggersFromEdges(nodeId)` - with the
 reference null, the triggers array is silently empty.
 
 Worked example of the *working* pattern: `InspectorPanel` and `TagMultiselect` are

@@ -21,7 +21,7 @@ Reported live, in the graph inspector:
 4. It corrects itself only after clicking empty canvas, which tears the panel down
    and rebuilds it.
 
-The state on disk is correct throughout — only the checkbox lies.
+The state on disk is correct throughout - only the checkbox lies.
 
 ## Root cause
 
@@ -46,7 +46,7 @@ survives into B's panel.
 re-renders the inspector. The generic `state:updated` → `_reRender` path
 (`inspector.js:17`) exists, but it is **debounced 250 ms** (`inspector.js:26`), so a
 normal-speed click on the next node lands before any render ever observes A's new
-value — and once B is the current view, the value it binds is still the stale `true`,
+value - and once B is the current view, the value it binds is still the stale `true`,
 so the diff stays silent forever.
 
 ## How
@@ -69,7 +69,7 @@ scroll jumps, and `live` removes the need.
 
 The control was titled **"Central pull enabled"**, which is not what it does. The
 stored property is vis-network's per-node **`physics`** flag
-(`static/js/graph/network-manager.js:530` — `physics: central_gravity_enabled !== false`),
+(`static/js/graph/network-manager.js:530` - `physics: central_gravity_enabled !== false`),
 so the feature is physics on/off, not a gravity strength. Relabelled to
 **"Physics enabled"**, with the hint and the node tooltip reworded to match.
 
@@ -89,10 +89,10 @@ across every scenario and library file and would break existing saves for no gai
 
 ## Files
 
-- `static/js/inspector/helpers.js` — binding + label
-- `static/js/graph/tooltips.js` — "Graph gravity disabled" tooltip wording
+- `static/js/inspector/helpers.js` - binding + label
+- `static/js/graph/tooltips.js` - "Graph gravity disabled" tooltip wording
 
-## Second live verification — 2026-10-02 (port 4471)
+## Second live verification - 2026-10-02 (port 4471)
 
 Reproduced the exact sequence with two physics-on area nodes (the acceptance
 case: A on, B on) and a real click, not a DOM poke. A =
@@ -103,7 +103,7 @@ case: A on, B on) and a real click, not a DOM poke. A =
 |---|---|---|
 | show A | `true` | true |
 | click A to uncheck | `false` | false |
-| select B (also on) | **`true`** | true — the bug left A's stale `false` here |
+| select B (also on) | **`true`** | true - the bug left A's stale `false` here |
 | reselect A | **`false`** | A's own toggled value |
 
 `pass: true`. No page errors. The 250 ms debounce was never awaited; B was

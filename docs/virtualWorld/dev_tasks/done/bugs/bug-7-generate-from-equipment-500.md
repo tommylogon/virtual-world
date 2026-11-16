@@ -24,6 +24,6 @@ Either:
 
 ## Files
 
-- `virtual_world_engine.py:422` — calls wrong method name
-- `engine/equipment.py:341` — method defined with different name
-- `routes/players.py:345-356` — route that returns 500 on exception
+- `virtual_world_engine.py:422` - calls wrong method name
+- `engine/equipment.py:341` - method defined with different name
+- `routes/players.py:345-356` - route that returns 500 on exception

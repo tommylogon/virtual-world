@@ -19,7 +19,7 @@ priority: medium
 
 Tags are currently freeform strings scattered across items, characters, and rooms with no central registry, no autocomplete, and no consistent UI. Every place that edits tags has its own duplicated input pattern. This task creates a proper tag library and replaces all tag inputs with a searchable multiselect component.
 
-**Why this matters:** Tags are becoming a core query system (see task-98 Phase 1). Triggers use `target_tag`, agents will use `interest_tags`, and the `find` command will search by tag. Without a library, tags drift — "flammable" vs "flamable", "magic" vs "magical" — and queries break silently.
+**Why this matters:** Tags are becoming a core query system (see task-98 Phase 1). Triggers use `target_tag`, agents will use `interest_tags`, and the `find` command will search by tag. Without a library, tags drift - "flammable" vs "flamable", "magic" vs "magical" - and queries break silently.
 
 ---
 
@@ -58,14 +58,14 @@ Per-file JSON registry, same pattern as traits/conditions/behaviours:
 ```
 
 Fields:
-- `id` — unique slug (lowercase, underscores)
-- `name` — display name
-- `description` — what this tag means
-- `category` — grouping category (physical, essence, location, state, faction, etc.)
-- `color` — hex color for UI badge
-- `icon` — emoji icon for UI badge
-- `applies_to` — which entity types this tag is valid for: `["items"]`, `["characters"]`, `["rooms"]`, or combinations
-- `examples` — example usages for documentation/autocomplete hints
+- `id` - unique slug (lowercase, underscores)
+- `name` - display name
+- `description` - what this tag means
+- `category` - grouping category (physical, essence, location, state, faction, etc.)
+- `color` - hex color for UI badge
+- `icon` - emoji icon for UI badge
+- `applies_to` - which entity types this tag is valid for: `["items"]`, `["characters"]`, `["rooms"]`, or combinations
+- `examples` - example usages for documentation/autocomplete hints
 
 ### 1.2 Add `tags` to `REGISTRY_TYPES` in `routes/library_routes.py`
 
@@ -107,11 +107,11 @@ GET /api/tags/search?q=flam
 ```
 
 ### Files to touch (Phase 1)
-- `data/library/tags/` — new directory with seed files
-- `routes/library_routes.py` — add `'tags'` to REGISTRY_TYPES
-- `routes/tags.py` — new route module for validate + search endpoints
-- `routes/__init__.py` — register new route module
-- `static/js/library-browser.js` — add tags tab
+- `data/library/tags/` - new directory with seed files
+- `routes/library_routes.py` - add `'tags'` to REGISTRY_TYPES
+- `routes/tags.py` - new route module for validate + search endpoints
+- `routes/__init__.py` - register new route module
+- `static/js/library-browser.js` - add tags tab
 
 ---
 
@@ -157,38 +157,38 @@ new TagMultiselect(containerElement, {
 
 ### 2.2 Replace tag inputs in Inspector views
 
-**`static/js/inspector/item-view.js`** — `_renderTagsSection()` at ~line 232:
+**`static/js/inspector/item-view.js`** - `_renderTagsSection()` at ~line 232:
 - Replace the current text input + badge pattern with `TagMultiselect`
 - Filter: `appliesTo: 'items'`
 
-**`static/js/inspector/agent-view.js`** — `_addTag()` at ~line 370:
+**`static/js/inspector/agent-view.js`** - `_addTag()` at ~line 370:
 - Replace the current text input + badge pattern with `TagMultiselect`
 - Filter: `appliesTo: 'characters'`
 
-**`static/js/inspector/room-view.js`** — if it has tag editing:
+**`static/js/inspector/room-view.js`** - if it has tag editing:
 - Replace with `TagMultiselect`
 - Filter: `appliesTo: 'rooms'`
 
 ### 2.3 Replace tag inputs in Library Browser
 
-**`static/js/library-browser.js`** — character and room editors:
+**`static/js/library-browser.js`** - character and room editors:
 - Replace the `tags (comma-separated)` text field with `TagMultiselect`
 - On save, serialize as comma-separated or array
 
 ### 2.4 Replace tag input in Trigger Editor
 
-**`static/js/shared/trigger-editor.js`** — if it has tag fields for `target_tag`:
+**`static/js/shared/trigger-editor.js`** - if it has tag fields for `target_tag`:
 - Replace with `TagMultiselect` (single-select mode for `target_tag`)
 
 ### Files to touch (Phase 2)
-- `static/js/shared/tag-multiselect.js` — new component
-- `static/js/inspector/item-view.js` — replace tag input
-- `static/js/inspector/agent-view.js` — replace tag input
-- `static/js/inspector/room-view.js` — replace tag input (if exists)
-- `static/js/inspector/helpers.js` — can remove `addTag`/`removeTag` (replaced by component)
-- `static/js/library-browser.js` — replace tag text fields
-- `static/js/shared/trigger-editor.js` — replace tag fields
-- `templates/index.html` — add script tag for new module
+- `static/js/shared/tag-multiselect.js` - new component
+- `static/js/inspector/item-view.js` - replace tag input
+- `static/js/inspector/agent-view.js` - replace tag input
+- `static/js/inspector/room-view.js` - replace tag input (if exists)
+- `static/js/inspector/helpers.js` - can remove `addTag`/`removeTag` (replaced by component)
+- `static/js/library-browser.js` - replace tag text fields
+- `static/js/shared/trigger-editor.js` - replace tag fields
+- `templates/index.html` - add script tag for new module
 
 ---
 
@@ -206,7 +206,7 @@ When a tag is added to an item/character/room that doesn't exist in the library:
 When saving an item/character/room via API:
 - Backend validates all tags against the library
 - Returns warning for unknown tags (but doesn't block save)
-- Logs warning: `"Tag 'flamable' not in library — did you mean 'flammable'?"`
+- Logs warning: `"Tag 'flamable' not in library - did you mean 'flammable'?"`
 
 ### 3.3 Tag usage stats
 
@@ -222,9 +222,9 @@ New route `GET /api/tags/stats` that returns:
 Useful for seeing which tags are actually used, and for cleaning up unused tags.
 
 ### Files to touch (Phase 3)
-- `routes/tags.py` — add stats endpoint, validation logic
-- `engine/serialization.py` — add tag validation on save
-- `routes/helpers.py` — add tag auto-registration helper
+- `routes/tags.py` - add stats endpoint, validation logic
+- `engine/serialization.py` - add tag validation on save
+- `routes/helpers.py` - add tag auto-registration helper
 
 ---
 
@@ -238,7 +238,7 @@ Tags with defined colors show as colored dots/badges on graph nodes:
 - Filter graph by tag (click tag to highlight all nodes with that tag)
 
 ### Files to touch (Phase 4)
-- `static/js/graph/` — add tag color indicators
+- `static/js/graph/` - add tag color indicators
 
 ---
 
@@ -322,7 +322,7 @@ Initial tag library entries to create:
 
 ## Migration
 
-Existing tags on items/characters/rooms will continue to work. The tag library is advisory, not enforced — unknown tags are warned but not blocked. Over time, as users interact with the multiselect, tags naturally converge to library entries.
+Existing tags on items/characters/rooms will continue to work. The tag library is advisory, not enforced - unknown tags are warned but not blocked. Over time, as users interact with the multiselect, tags naturally converge to library entries.
 
 Optional: a one-time `POST /api/tags/migrate` endpoint that scans all entities and auto-creates library entries for any tags not yet in the library.
 
@@ -331,26 +331,26 @@ Optional: a one-time `POST /api/tags/migrate` endpoint that scans all entities a
 ## What's Left
 
 ### Phase 3 (only gap)
-- `engine/serialization.py` — tag validation on save not implemented
+- `engine/serialization.py` - tag validation on save not implemented
 
 ### Phase 4 (not started)
-- `static/js/graph/` — tag color indicators on graph nodes
+- `static/js/graph/` - tag color indicators on graph nodes
 
 ---
 
 ## Files left to touch
 
 ### Backend
-- `engine/serialization.py` — tag validation on save
+- `engine/serialization.py` - tag validation on save
 
 ### Frontend
-- `static/js/graph/` — tag color indicators
+- `static/js/graph/` - tag color indicators
 
 ---
 
 > **Completion note (2026-08-02):** The two remaining gaps are implemented.
-> - Phase 3b: `validate_tags_on_save()` added to `routes/helpers.py`; wired into `PATCH /api/graph/node/<id>` — warns (logs + `tag_warnings` in response) on unknown/misspelled tags, never blocks saves.
-> - Phase 4: graph tag panel in `static/js/graph/network-manager.js` — tag icons prepended to node labels (from the tag library), a clickable `🏷️ Tags` toolbar panel listing each used tag with its color dot/icon/count, click-to-filter highlight (matching nodes full opacity, others dimmed), and tag names in hover tooltips for area/character/item nodes. Toolbar button + CSS added in `templates/index.html` and `static/css/style.css`.
+> - Phase 3b: `validate_tags_on_save()` added to `routes/helpers.py`; wired into `PATCH /api/graph/node/<id>` - warns (logs + `tag_warnings` in response) on unknown/misspelled tags, never blocks saves.
+> - Phase 4: graph tag panel in `static/js/graph/network-manager.js` - tag icons prepended to node labels (from the tag library), a clickable `🏷️ Tags` toolbar panel listing each used tag with its color dot/icon/count, click-to-filter highlight (matching nodes full opacity, others dimmed), and tag names in hover tooltips for area/character/item nodes. Toolbar button + CSS added in `templates/index.html` and `static/css/style.css`.
 
 ## Commit History
 

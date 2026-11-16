@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-851",
+  "kind": "task",
+  "number": 851,
+  "title": "Authorable starting injuries, missing parts and prosthetics",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-16",
+  "updated": "2026-10-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-253"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let authors create characters with wounds, missing limbs, hooks: seed the same injured/bleeding condition instances combat makes; represent absent parts and prosthetics (mods cover hook) without a parallel injury store.",
+    "why": "Withholding injury authoring was the wrong call (corrected on review): a broken leg\nor a hook hand is legitimate character creation. But the mechanics stay single - a\nseeded wound must heal, ache, and slow exactly like a dealt one, so authoring seeds\nthe same instances instead of inventing a parallel injury model. A hook itself is an\nappearance modification (exists); absence is the new `missing` condition.",
+    "how": "- `PUT /body` grows `injuries[]` (`{region, level 1..3, bleeding, source?=authored}`)\n  and `missing[]`, validated against the catalog. Wounds call\n  `player.add_condition` exactly as `combat._apply_region_injury` does - speed\n  (`level_speed_mult`), symptoms, `ends_on: heal/medicine` all work untouched.\n- New `data/library/conditions/missing.json`: permanent (`ends_on: cure`),\n  body_part-scoped, symptoms with `{body_part}`. No stat mods in v1 - a missing leg\n  does not yet slow travel; that integration is filed below, not silently omitted.\n- UI: ✖ badge on doll slots, ✖ chip in 🩺 modal + Persona side rows (all three read\n  `conditions.missing`, same store).\n- Prose: left to the author (mods/hook lines). The endpoint seeds state, never touches\n  the record - layers stay clean.",
+    "verify": "1. Seed a broken leg + missing hand via `PUT /body`, read the doll.\n   - expected: injured Lv2 slows (speed_mult), ✖ shows on slot + side row; prose untouched.\n   - observed: backend 8/8 green incl. same-instance + rejection tests; UI chips verified in code + ts gate (live doll check needs restart - route is new).\n2. `python -m pytest tests/test_body_baseline.py tests/test_body_parts.py tests/test_pleasure_system.py tests/test_equipment_system.py`.\n   - expected: all green.\n   - observed: 113 passed 2026-10-16.\n3. `python tools/ts_convert.py check`.\n   - expected: green (modal chip restore included).\n   - observed: green; also repaired an edit that dropped the 🩺 injured line.",
+    "acceptance": [
+      {
+        "text": "Starting wounds are the same instances combat makes (speed/symptoms/healing work).",
+        "done": true
+      },
+      {
+        "text": "Missing parts are a condition, not a second model; shown in all three body views.",
+        "done": true
+      },
+      {
+        "text": "Bad regions/levels are 400s that write nothing.",
+        "done": true
+      },
+      {
+        "text": "Prosthetics stay mods; prose stays the author's.",
+        "done": true
+      },
+      {
+        "text": "Follow-up (not this card): missing-limb travel/movement integration.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/player_ops.py (`handle_set_body_baseline` grows injuries/missing)",
+      "data/library/conditions/missing.json (new)",
+      "tests/test_body_baseline.py (4 → 8 tests)",
+      "static/js/inspector/paperdoll-view.ts (✖ badges, modal chip)",
+      "static/js/inspector/mind-view.ts (✖ side chip)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Paperdoll View / Mind Panel (Body Baseline).\n\nCurrent availability: Shipped and live-checked on 2026-10-16. Paperdoll view renders injury and missing-part badges; baseline routes support starting wounds and missing limbs.\n\nLive steps when available:\n1. Open a character in the Character Inspector and navigate to the Paperdoll view.\n   - expected: Configured starting injuries and missing parts render with visual badges without overwriting hand-crafted character prose.\n2. Inspect mechanical condition and speed effects.\n   - expected: Injury conditions apply appropriate movement and speed penalties according to severity level.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-851-authorable-starting-injuries-missing-parts-and-prosthetics.md"
+  }
+}

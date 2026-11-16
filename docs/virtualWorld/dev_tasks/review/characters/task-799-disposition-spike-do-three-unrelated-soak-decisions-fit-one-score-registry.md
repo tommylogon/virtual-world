@@ -57,7 +57,7 @@ No code. For each of the three decisions, name the scores it turns on and the ki
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this is a completed design spike documenting three distinct decision-score shapes, not a player-facing control or shipped resolver.
+Intended UI home: Not applicable - this is a completed design spike documenting three distinct decision-score shapes, not a player-facing control or shipped resolver.
 
 Current availability: acceptance records Gribba choosing who to feed, a road captain at a crossing, and a wolf deciding to hunt; one universal pick rule was rejected and the score-kind union was handed to task-800.
 

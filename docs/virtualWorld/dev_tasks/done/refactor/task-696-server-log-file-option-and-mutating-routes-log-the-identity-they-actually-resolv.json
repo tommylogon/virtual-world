@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "id": "task-696",
+  "kind": "task",
+  "number": 696,
+  "title": "Server log file option, and mutating routes log the identity they actually resolved",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-521"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Name-resolution drift is this repo's most common bug class, and today's import bug (bug-521) produced exactly one server-side trace - a generic warning - while the updateCharacter response echoed `\"player\":\"zombie\"` for a call targeting `zombie__c4d808`. So a resolver that silently rewrites its target is invisible at the moment it happens. The fix is logging only, and the file option is off by default, so nothing about behaviour changes: `VW_LOG=<path>` (or `--log-file`) routes the root logger to a file so an agent without the launching terminal can read server evidence; every mutating route logs the resolved identity at INFO when input name and stored key differ (`set_player_area('zombie__c4d808' -> key 'zombie', area 'Old Dwarven Ruins')`); responses that echo an identity echo the RESOLVED one, not the input; and the import/refresh paths in `routes/library_ops.py` log the pre/post key when `_unique_key` suffixes a duplicate. Reuse the existing resolver rather than adding a second one - the log records what the resolver actually returned, so a future drift guard has a source of truth to check against.",
+    "why": "Name-resolution drift is this repo's most common bug class. The resolver rewrites\nits target silently (`zombie` -> `zombie__c4d808`), so the only evidence was a\ngeneric warning and a response echoing the wrong name. Logging is the smallest\ncoherent change that makes the rewrite visible without changing behaviour; the\nfile option is off by default so nothing about the simulation moves.",
+    "how": "- `app.py`: `_LogFileHandler` marker subclass + `_attach_log_file(path)`, which\n  finds and replaces any prior instance on the root logger so re-attaching is\n  idempotent. Wired into `__main__` via `--log-file` and the `VW_LOG` env var.\n- `routes/player_ops.py`: `_log_resolved_identity(app, route, supplied, ...)` is\n  the single helper; every mutating route calls it and echoes the resolved key\n  in its response, not the input.\n- `routes/library_ops.py`: `import_character` logs the pre/post key when\n  `_unique_key` suffixes a duplicate.",
+    "verify": "1. Boot with `VW_LOG=<path>` (running scratch server `bgp_1466dac35001af08VXchVqCYVD`,\n   port 4444, autosave world - already up, logging to `vwlog2.txt`).\n   - expected: `Server logging to <path>` appears in the log.\n   - observed: `2026-10-16 22:35:55,690 INFO __main__: Server logging to\n     C:\\Users\\Tommy\\AppData\\Local\\Temp\\kilo\\vwlog2.txt`\n2. Exercise a duplicate-name character (three `zombie` entries live) through\n   every mutating route.\n   - expected: each route logs supplied vs resolved key/id; the response echoes\n     the resolved key.\n   - observed:\n     - `move_player` -> `supplied='zombie' resolved_key='zombie'\n       resolved_id='player_zombie' area=Old Dwarven Ruins`; response\n       `\"player\":\"zombie\"`.\n     - `player_speak` -> `supplied='zombie' resolved_key='zombie'\n       resolved_id='player_zombie' area=Old Dwarven Ruins`; response\n       `\"speaker\":\"zombie\"`.\n     - `update_vital` (PATCH HP=42) -> `supplied='zombie' resolved_key='zombie'\n       resolved_id='player_zombie' vital=HP value=42`.\n     - `set_active_player` -> `supplied='zombie' resolved_key='zombie'\n       resolved_id='player_zombie'`; response `\"active\":\"zombie\"`.\n3. Import a library character whose name is already held.\n   - expected: `_unique_key` suffix is logged as `(uniqued)`.\n   - observed: `import_character supplied='zombie' resolved_key='zombie__97e239'\n     resolved_id='97e2396b' (uniqued)`; response `\"player\":\"zombie__97e239\"`.\n4. Confirm no behaviour changed: every call returned 200 with the same shape\n   as before the change; no route logic was altered, only logging and the\n   response echo.",
+    "acceptance": [
+      {
+        "text": "Today's import bug (bug-521) produced exactly one server-side trace - a generic",
+        "done": false
+      },
+      {
+        "text": "warning - and the updateCharacter response echoed `\"player\":\"zombie\"` for a call",
+        "done": false
+      },
+      {
+        "text": "targeting `zombie__c4d808`. Name-resolution drift is this repo's most common bug",
+        "done": false
+      },
+      {
+        "text": "class; the logs should show it at the moment it happens.",
+        "done": false
+      },
+      {
+        "text": "`VW_LOG=<path>` (or `--log-file`) routes the root logger to a file, so an",
+        "done": false
+      },
+      {
+        "text": "agent without the launching terminal can read server evidence.",
+        "done": false
+      },
+      {
+        "text": "Every mutating route logs the resolved identity when input name and stored",
+        "done": false
+      },
+      {
+        "text": "key differ, at INFO: `set_player_area('zombie__c4d808' -> key 'zombie',",
+        "done": false
+      },
+      {
+        "text": "area 'Old Dwarven Ruins')` - a resolver that silently rewrites its target",
+        "done": false
+      },
+      {
+        "text": "must be visible.",
+        "done": false
+      },
+      {
+        "text": "Responses that echo an identity echo the RESOLVED one, not the input.",
+        "done": false
+      },
+      {
+        "text": "The import/refresh paths (routes/library_ops.py) log the pre/post key when",
+        "done": false
+      },
+      {
+        "text": "`_unique_key` suffixes a duplicate.",
+        "done": false
+      },
+      {
+        "text": "Does not change any behavior - logging only, and the file option is",
+        "done": false
+      },
+      {
+        "text": "off by default.",
+        "done": false
+      }
+    ],
+    "files": [
+      "app.py` - `--log-file` / `VW_LOG` support.",
+      "routes/player_ops.py` - `_log_resolved_identity` + 8 call sites.",
+      "routes/library_ops.py` - `import_character` pre/post key log."
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: game view → perform a mutating character/world action → inspect the configured server log file and the response's resolved target identity. The browser action is the trigger; the log is the verification surface.\n\nCurrent availability: the card records a name-resolution mismatch where a request for `zombie__c4d808` was logged/responded as `zombie`, with only one generic server trace. `VW_LOG`/`--log-file` and resolved-identity logging are not claimed as implemented.\n\nLive steps when available:\n1. Start the app with `VW_LOG=<scratch-log-path>` and open the scenario in the browser. Perform one action against a character whose node ID differs from its display name.\n   - expected: the request succeeds against the intended node and the log records both the supplied identifier and the exact resolved opaque ID.\n2. Repeat through a route that resolves an alias/name and through a route with an invalid target.\n   - expected: each mutating route logs the identity it actually resolved; an invalid target is reported as unresolved and is not logged as a different character.\n3. Read the configured log file while the server runs without relying on the launching terminal; restart with `--log-file` and repeat.\n   - expected: both configuration paths write the same structured request/result evidence without duplicating root handlers.\n4. Compare the browser response, `/api/state`, and log entry.\n   - expected: supplied name, resolved character ID, action result, and world state agree.\n\nThis section is not a claim that the log-file option or route identity logging is implemented today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-696-server-log-file-option-and-mutating-routes-log-the-identity-they-actually-resolved.md"
+  }
+}

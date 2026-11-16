@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-73",
+  "kind": "task",
+  "number": 73,
+  "title": "Trigger Execution: Read from Node When Edge Properties Empty",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-19",
+  "updated": "2026-07-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`_execute_triggers()` reads trigger conditions and effects ONLY from the **edge** properties. When a trigger edge has `\"properties\": {}` and the actual conditions/effects are on the **target trigger node**, the trigger fires with empty defaults - producing blank output.",
+    "why": "`virtual_world_engine.py:1276-1287`:\n\n```python\n# Parse conditions (array or single, backward compatible)\nconditions_list = trigger_edge.properties.get(\"conditions\", None)\nif conditions_list is None:\n    single_cond = trigger_edge.properties.get(\"condition\", None)\n    conditions_list = [single_cond] if single_cond else []\n\n# Parse effects (array or single, backward compatible)\neffects_list = trigger_edge.properties.get(\"effects\", None)\nif effects_list is None:\n    et = trigger_edge.properties.get(\"effect_type\", \"message\")\n    ep = trigger_edge.properties.get(\"effect_params\", {})\n    effects_list = [{\"type\": et, \"params\": dict(ep)}]\n```\n\nWhen the edge has `\"properties\": {}`:\n- `conditions_list = None` → `[]` (empty = always passes)\n- `effects_list = None` → `[{\"type\": \"message\", \"params\": {}}]` → outputs `\"Something happens.\"`\n\nThe trigger **executes** but produces an empty message because neither conditions nor effects are found on the edge.",
+    "how": "When edge properties are empty for conditions/effects, fall back to reading from the **target trigger node**:\n\n```python\nconditions_list = trigger_edge.properties.get(\"conditions\", None)\nif conditions_list is None:\n    # Fall back to target node\n    target_node = self.graph.get_node(trigger_edge.target)\n    if target_node:\n        conditions_list = target_node.properties.get(\"conditions\", None)\nif conditions_list is None:\n    single_cond = trigger_edge.properties.get(\"condition\", None)\n    ...\n\neffects_list = trigger_edge.properties.get(\"effects\", None)\nif effects_list is None:\n    # Fall back to target node\n    target_node = self.graph.get_node(trigger_edge.target)\n    if target_node:\n        effects_list = target_node.properties.get(\"effects\", None)\nif effects_list is None:\n    et = trigger_edge.properties.get(\"effect_type\", \"message\")\n    ...\n```\n\nOr more cleanly: always prefer edge properties, but if both edge and node lack them, default to empty.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py:1276-1287` - `_execute_triggers()",
+      "world_template.json:885-887` - affected trigger edge"
+    ],
+    "custom": {
+      "affected_triggers": "Example: `world_template.json` Stone Table with Heating Rune, `on_take` trigger:\n\n**Edge** (lines 885-887):\n```json\n{\n    \"properties\": {},\n    \"source\": \"item_Stone Table with Heating Rune\",\n    \"target\": \"trigger_item_Stone Table with Heating Rune_on_take_1784394461775\",\n    \"type\": \"triggers\"\n}\n```\n\n**Target Node** (lines 5027-5048): has conditions (empty) and effects (`success_message: \"The rune stops glowing when you take it.\"`), but these are never read.\n\nCompare to the `on_examine` trigger edge (lines 799-824) which **does** have all properties inlined on the edge - this one works correctly."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-73-trigger_edge_properties_vs_node.md"
+  }
+}

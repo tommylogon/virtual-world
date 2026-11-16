@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-209",
+  "kind": "task",
+  "number": 209,
+  "title": "Arousal State Conditions & Threshold Triggers",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-11",
+  "updated": "2026-08-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-207",
+      "task-208",
+      "task-210",
+      "task-211",
+      "task-212",
+      "task-213",
+      "task-215"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The arousal vitals need to manifest as visible/influential character states. These are modeled as conditions with periodic effects, symptoms, and combat mods - no new architecture.",
+    "how": "- Add condition definitions to `player.py` `CONDITION_DEFINITIONS` (verified location, `player.py:30`):\n  - `warming_up` (periodic Stimulation +1), `aroused` (Stim +2, attack/defense -2, auto_fail perception/concentration), `highly_aroused` (Stim +3, Energy -2, attack/defense -3, auto_fail + willpower), `frantic` (Stim +4, Energy -3, Sanity -2, attack/defense -5, auto_fail + self_control)\n  - `overstimulated` (Pleasure -3, Energy -1, excludes satisfied/numb)\n  - `nipple_hard` (periodic Arousal +1, known), `blushing` (visual only), `wetness` (periodic Arousal +2, not known unless exposed)\n  - `sensitized` (edging stack), `satisfied`\n- **`stack` field required** - the catalog's `stack` (accumulate/refresh/noop) governs re-application; `sensitized` should `accumulate` (stacks), arousal states likely `refresh`. `excludes` → use the existing `CONDITION_EXCLUSIONS` map (`player.py`).\n- Threshold checks in `tick_turn()` (`engine/tick_manager.py:83`): apply/remove arousal-state conditions based on Arousal value (0-15 baseline, 15-30 warming, 30-50 aroused, 50-90 highly, 90+ frantic).\n- Condition → vital feedback loops via `periodic` (already supported by `conditions.process_tick()`, called from `tick_turn()` line 108).\n- **Combat mods verified**: combat does `attack + attack_mod − target_defense_mod`, so aroused/highly_aroused/frantic `attack_mod`/`defense_mod` penalties will work if the catalog fields match the existing schema.",
+    "verify": "- [ ] Arousal crosses 15/30/50/90 → correct condition applied\n- [ ] Drops below threshold → condition removed\n- [ ] `periodic` effects feed back into vitals each tick\n- [ ] Combat mods apply (attack/defense penalties, auto-fail checks)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/player.py` - condition definitions (`CONDITION_DEFINITIONS` at `player.py:30`)",
+      "engine/tick_manager.py` - threshold checks (`tick_turn()` at line 83)"
+    ],
+    "custom": {
+      "related": "- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §2, §4, Phase 2"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-209-physiological-state-conditions.md"
+  }
+}

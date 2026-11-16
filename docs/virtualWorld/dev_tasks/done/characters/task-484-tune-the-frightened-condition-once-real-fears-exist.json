@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-484",
+  "kind": "task",
+  "number": 484,
+  "title": "Tune the frightened condition once real fears exist",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-469",
+      "task-552",
+      "bug-593"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Deferred from task-469: give 'frightened' real attack/defense modifiers and an\nends_on once authored fears are common enough to calibrate against.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO - blocked on task-552 producing fears. Do not start before then.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "blocked_on_task_552_with_the_calibration_data_2026_09_27": "The calibration this task is waiting on now exists, and the answer is that there\nis **nothing to tune against yet**: no fears are being generated at all.\n\nA 3-day Kraktooth goblin camp soak (4,320 ticks, 23 goblins and 5 humans, all\nbackground, seed 1234) produced this `why` breakdown over every decided action:\n\n| rule | share |\n|---|---|\n| `needs` | 82.2% |\n| `social` | 16.3% |\n| `traversal` | 1.0% |\n| `forage` | 0.5% |\n| `threat` | **0** |\n\nFive humans lived inside the camp for three days - in the chief's pit, the cooking\narea, the workshop - and not one goblin produced a `threat:` action. The mechanism\ndoes not exist, so tuning `frightened`'s attack/defense modifiers or its\n`ends_on` is premature: there is no producer to tune against.\n\n**So this task stays blocked, deliberately, and should be closed rather than left\ndangling if task-552 slips.** Tuning a condition that nothing applies is work\nnobody can verify. The evidence belongs here so the decision can be made on a\nmeasurement instead of on a date.\n\ntask-552 is the producer side: nothing in the simulation can represent \"that is\nnot mine\" or \"that person frightens me\". The natural test case is already in the\nscenario - the Eldenford Road Guard Captain, the one human with a military job,\nwho starts on the Human Road and ends up in the goblin camp.",
+      "re_opened_2026_09_28_wt_c_after_task_552_landed": "task-552 shipped the producer side, so \"do not start before then\" is satisfied\nin principle. It is not satisfied **in fact**, and the distinction decides how\nmuch of this task is earnable now.\n\n### What task-552 actually unblocked\n\n`engine/fear.py` can now be made afraid of a co-located character, the fear is\napplied with its source attached, and a background character reacts to it with a\nrecorded `threat:` action - 29 tests in `tests/test_fear_threat_response.py`.\n\nBut **no shipped scenario authors a single fear.**\n`data/scenarios/kraktooth_goblin_camp.json` carries `\"fear_tags\": []` on all 28\ncharacters, including the five humans. So the mechanism works and the *soak\ntable would still read zero* - there is no producer of fears **in any shipped\ncontent**, and that file belongs to task-408 (WT-A).\n\n### The honest split\n\n**Done now - a correctness fix, not a tuning decision.**\n`ends_on` was the one part of this task that was never actually a calibration\nquestion. `frightened` gates behaviour toward one *named* source:\n`engine.conditions.frightened_block` refuses an approach, a way, an area or an\nitem by name. A flag about a specific thing being present, kept after that thing\nhas left the world, is a stuck flag - and it sat there for its full 30-minute\ntimer regardless of whether the goblin was still standing there.\n\n`engine.fear.release_absent_fears()` now lifts the instance whose source is\ngone, called from both entry points (`react()` and `background_social.\nrun_fear_pass`) so detection and cleanup cannot disagree. It is **precise per\ninstance**: a character who fears two things and has lost one keeps the other\nfear, which is why it does not simply call `end_instances` for everyone. The\nreason string `\"source_absent\"` is declared on the condition's `ends_on` as the\ndocumented cause, dispatched by fear.py rather than by a generic condition tick\n- the same honest shape as every other `ends_on` entry in the catalog.\n\n**Still not earned - the numbers.**\n`defense_mod` (currently `0`), the check modifiers (`check_advantage` /\n`check_disadvantage`, both empty), `speed_mult`, and `FEAR_DURATION_MINUTES`\nitself are all **tuning**, and tuning needs a distribution. What exists today is\na table of hand-chosen weights in `engine/background_social.py` (`FEAR_COSTS`,\n`FEAR_RELATIONSHIP`, `choose_fear_reaction`), not a measurement. Inventing a\n`defense_mod` of −1 or −3 would be a guess dressed as a decision, and\n`attack_mod: -2` was set before any fear had ever been applied, so it is not\nevidence of anything either.\n\n### Recommendation\n\n**Stay blocked, or close as not-yet-earned.** The gate is now unambiguous and\none edit away: give the five Kraktooth humans `fear_tags: [\"goblin\"]` (the\n`goblin` tag is already on every goblin) and re-run the 3-day soak. That\nproduces a real frequency, and with it the distribution the numbers need. Until\nthen this task has exactly one honest line of work left, and it is done.\n\nIf a decision is needed on whether `frightened` should affect defence at all -\nwhich is a *design* question, answerable now - the current `defense_mod: 0` is a\ndefensible reading: adrenaline does not make you harder to hit, it makes you\nfight worse. That is an argument, not a measurement, and is recorded here as\nsuch rather than written into the condition."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

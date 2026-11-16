@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "id": "task-824",
+  "kind": "task",
+  "number": 824,
+  "title": "The Commons: shared character minds, channels, groups, and direct messages",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-14",
+  "updated": "2026-10-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-714",
+      "task-727",
+      "task-820",
+      "task-825",
+      "task-827"
+    ],
+    "parent": null,
+    "children": [
+      "task-854"
+    ],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Finish The Commons as a social app / phone surface for the existing characters.\nCharacters can read and write in a public conversation, private group chats with\nexplicit membership, and one-to-one direct messages. The page presents those\nconversations in a familiar social layout with a channel list, unread indicators,\nmessage history, member lists, and a composer that names the destination.\n\nThe Commons owns communication state: conversations, memberships, messages, and\nper-character read cursors. Character identity, personality, cognition, and\nmemories remain on the existing `Player`. Do not create a second character,\npersona, mind, or memory store for chat. Integrating Commons actions with the\nstandard world-turn loop and item/world interactions is separate follow-up work\ntracked by task-854.",
+    "why": "The original implementation was public-only and used one global read cursor.\nThe Commons now supports public, private group, and direct-message\nchannels with per-character read state, server-side authorization, persistence,\nscenario-authored examples, and the existing Player memory path. Those parts\nare verified in the steps below.\n\nThis task covers The Commons as a standalone communication surface: its channel\nmodel, authorization, explicit reads, existing Player memory path, pacing\ncontrols, and responsive UI. `CommonsAgent` currently makes communication\ndecisions through its own loop while reusing shared prompt/response modules and\nPlayer memory routes.\n\n> **Follow-up:** Standard world-turn and item/world integration is not part of\n> this task. It has been split into child task\n> [[task-854-integrate-the-commons-with-world-actions-and-items]].",
+    "how": "- Use the existing Player identity and shared prompt/response modules for\n  Commons decisions; do not create a second chat persona, mind, or memory store.\n- Keep standard world-turn and item/world integration outside this task; see\n  child task-854.\n- Keep conversation data in the communication layer. Before adding a new\n  channel abstraction, check for an existing conversation/message model that\n  can represent the behavior. If none fits, extend The Commons with public,\n  member-only group, and two-person DM channels rather than creating separate\n  message stores for each kind.\n- Enforce channel visibility and send permissions in the server model/routes,\n  not only by hiding messages in the UI. A character can read or post only in\n  conversations they are authorized to access. A DM has exactly its two\n  participants; a private group has an explicit membership list.\n- Keep reading explicit from each character's perspective. Polling, rendering,\n  unread counts, and another character's read must not advance that character's\n  cursor. Track unread/read state per character and conversation.\n- Use the existing Player identity/personality and normal memory retrieval and\n  storage. Do not persist chat-specific personality, private memories, or a\n  second mind. Show the standard agent's private thought only through the\n  existing cognition output; do not create a second persistent monologue store.\n- Preserve the existing Mind panel's sources of truth:\n  `Player.memories[]` is the durable subjective memory store shown by Mind →\n  Memories and read by the standard memory-retrieval path. The existing\n  `Player.lived_log` is the objective experience record; use its existing\n  writer/bridge only if a chat event needs that record. Do not add a\n  Commons-specific memory, experience, or transcript store. Channel messages\n  are the communication transcript, not a second character\n  memory. The Mind panel's “Timeline - the lived trace” currently renders the\n  browser event stream's `detailedTimeline`, and “Conversation memory” renders\n  `AgentEngine.getDisplayHistory`; neither is a durable replacement for\n  `Player.memories[]` or `Player.lived_log`.\n- Persist conversations, membership, messages, and read cursors through the\n  existing world save/load path. Do not create a second save source for chat.\n- Build a responsive phone/social UI for public posts, group chats, and DMs,\n  including conversation selection, membership, unread state, message history,\n  and destination selection when sending.\n- Reuse task-825's shared per-character pacing configuration and cooldown\n  behavior. Do not add an independent talkativeness source for The Commons.\n- Add targeted mechanism tests for privacy, explicit reads, shared Player\n  memory, and destination routing, plus a minimal wired scenario. Verify the\n  actual page and its channel flows live before moving this card to review.",
+    "verify": "1. Trace an explicit Commons read/reflection through the existing Player\n   memory path.\n   - expected: the existing Player identity and memory are used; a\n     read/reflection appears in that character's existing Mind → Memories list\n     and is available to standard memory retrieval; there is no parallel chat\n     persona or memory store. Verify against\n     `worldState.players[name].memories` and the existing\n     `/api/players/<name>/memories/retrieve` route. Keep the channel transcript\n     in The Commons and do not mistake the Mind panel's transient timeline or\n     AgentEngine display history for durable memory. This does not require\n     Commons decisions to run through the standard world-turn loop.\n   - observed: VERIFIED 2026-10-15 in both the game and isolated `TESTING=True` app. The live Vekka Mind → Memories tab showed 8 entries and the saved test-world Lyrie Mind → Memories tab showed 13 entries, including `I read Lyrie's night-watch message and decided to check the north gate. The Commons memory-path verification.` The Mind renderer reads `worldState.players[name].memories`; Commons recall and reflection call the existing `/api/players/<name>/memories/retrieve` and `/api/players/<name>/memories/entry` routes. `test_commons_memory_uses_existing_player_memories_collection`, `the commons: memory reflection writes to the existing Player memories endpoint`, and `the commons: recall uses the standard Player memory retrieval endpoint` verify the same collection and routes. No feature-specific memory field was added. The Mind panel's timeline and conversation display remain separate views, not replacement storage.\n2. Open `/commons`, inspect the full responsive interface, and interact with\n   the public conversation, a private group, and a DM. Use the in-memory test\n   world so browser writes cannot change the user's autosave:\n   `python -c \"from app import create_app; app=create_app({'TESTING': True}); app.run(port=4481, threaded=True)\"`.\n   Open `http://127.0.0.1:4481/commons` at 1440×900 and 390×844. Also visit\n   `/stage-chat` and confirm the browser address ends at `/commons`. At each\n   size, record the visible `button, select, input` count and labels from the\n   whole `document.body`, capture the top and bottom of the page, expand\n   “Characters & pacing,” and open then cancel both channel dialogs. Confirm the\n   initial state is paused and that browsing makes no mutating request. While\n   still paused, send a uniquely named public post, create a group with two\n   existing characters and send to it, then create a DM between those same two\n   characters and send to it. Switch the phone owner to a member and then a\n   non-member; verify the group/DM appears only for its members, the message\n   history and member list match the selected channel, and the composer sends\n   only to that channel. Reload and verify state is restored only within this\n   in-memory test process.\n   - expected: responsive layout and dialogs remain usable at both sizes;\n     public, group, and DM histories route to the selected channel; private\n     channels appear only to their members; autonomous turns stay paused.\n   - observed: VERIFIED 2026-10-15 in the isolated in-memory app. At the requested 390×844 phone viewport (browser CSS viewport 487×1055 at device scale 0.8), the expanded page had 17 rendered controls; top and bottom screenshots were checked, all three character pacing sliders were visible, and document/body widths matched at 481px with no horizontal overflow. The overflow was traced to the phone-owner row sharing the first flex line; the mobile topbar now gives that row a full line. At 1440×900 desktop viewport (CSS viewport 1800×1125), the three-column layout measured 285/1260/255px with no horizontal overflow and 17 rendered controls when pacing was expanded. Both dialogs were opened and cancelled. Public post, `Ravine Watch` group, and Kaelen–Lyrie DM flows were exercised while paused; rat could not see either private conversation, Lyrie could, and the channels/messages remained after reload in the same test process. `test_former_page_url_redirects_to_commons` asserts a 301 and `/commons` location; verify the address-bar redirect in the browser as part of the manual pass.\n3. Read a private group and a DM as an authorized character, then request each\n   as a non-member / non-participant through the API.\n   - expected: authorized readers receive only their channel's messages;\n     unauthorized reads and sends are rejected without leaking message text.\n     In the browser, use the Network panel or `fetch()` against the exact\n     `/api/commons/messages?as=<non-member>&channel_id=<private-id>` URL and\n     `/api/commons/read` POST body; record each status and response body.\n   - observed: VERIFIED 2026-10-15. `test_routes_filter_channels_by_perspective_and_reject_private_reads_and_sends` asserts the authorized read returns the message, non-member read and send return 403, and the denied response contains no private message text. In the browser, the member and non-member phone perspectives showed the group/DM only to Kaelen and Lyrie.\n4. Let a character choose whether to read and whether to send a message.\n   - expected: rendering and unread polling do not reveal or mark messages read;\n     an explicit read updates only that character's cursor and feeds the normal\n     Player memory path.\n   - observed: VERIFIED 2026-10-15. `test_public_chat_read_cursor_advances_only_on_explicit_read` asserts the cursor is unchanged by posting, advances to the explicitly read message id, and leaves unread messages for the next read. `the commons: explicit group read uses the shared Player memory endpoint and never prompts with unread text` proves unread bodies are absent from the decision prompt and only appear in the memory write after the explicit read; `the commons: think action does not read, send, or create a conversation` covers choosing to wait. The browser test opened the group/DM as Lyrie and marked those reads only for Lyrie.\n5. Save and reload the world after creating a group, DM, messages, and read\n   state.\n   - expected: the existing save/load path restores those communication records\n     without creating chat-specific character identity or memory data. A\n     successful The Commons write also reaches the existing autosave hook.\n   - observed: VERIFIED 2026-10-15. `test_saved_world_round_trips_chat_communication_but_scenario_export_drops_runtime_chat` checks channels, memberships, messages, and per-character cursors round-trip through `VirtualWorld.to_dict()` / `load_from_dict()`, while scenario export omits runtime chat. `test_commons_messages_and_read_cursors_use_standard_autosave` asserts both a post and explicit read call the existing `save_autosave` hook and persist cursor id 1. `test_kraktooth_scenario_authors_public_group_and_dm_conversations` loads the authored Kraktooth scenario and verifies its public post, `Camp Watch` group, Vekka–Zikka DM, and existing character membership. Live on `/commons`, Vekka saw all three channels and the seeded group/DM text; Rag-Tail saw only Public. Scenario source can seed initial The Commons data, but runtime changes are not exported back into scenarios.",
+    "acceptance": [
+      {
+        "text": "The Commons uses existing `Player` identity and shared prompt/response",
+        "done": true
+      },
+      {
+        "text": "modules; it creates no parallel chat mind or persona. Standard world-turn",
+        "done": false
+      },
+      {
+        "text": "decision/action integration is explicitly out of scope and tracked in child",
+        "done": false
+      },
+      {
+        "text": "task-854.",
+        "done": false
+      },
+      {
+        "text": "Chat recall and reflection use the existing Player memory system; no",
+        "done": true
+      },
+      {
+        "text": "separate memory store exists.",
+        "done": false
+      },
+      {
+        "text": "Public conversation supports posts and per-character explicit read state.",
+        "done": true
+      },
+      {
+        "text": "Private groups have explicit members; only members can read or post.",
+        "done": true
+      },
+      {
+        "text": "Direct messages are limited to their two participants.",
+        "done": true
+      },
+      {
+        "text": "Server-side read and send authorization prevents cross-channel leakage.",
+        "done": true
+      },
+      {
+        "text": "UI provides a responsive social / phone experience for public, group, and",
+        "done": true
+      },
+      {
+        "text": "direct conversations, with membership, unread state, history, and composer.",
+        "done": false
+      },
+      {
+        "text": "Polling and rendering do not auto-read messages; cursors are per character",
+        "done": true
+      },
+      {
+        "text": "and per conversation.",
+        "done": false
+      },
+      {
+        "text": "Conversations, membership, messages, and cursors round-trip through the",
+        "done": true
+      },
+      {
+        "text": "existing world persistence path.",
+        "done": false
+      },
+      {
+        "text": "Successful The Commons writes use the existing autosave hook.",
+        "done": true
+      },
+      {
+        "text": "The Commons uses the existing per-character talkativeness setting and",
+        "done": true
+      },
+      {
+        "text": "shared cooldown jitter helper. This does not close task-825's broader",
+        "done": false
+      },
+      {
+        "text": "simultaneous-turn acceptance, which remains unverified.",
+        "done": false
+      },
+      {
+        "text": "Targeted tests assert the authorization branch, cursor value, Player",
+        "done": true
+      },
+      {
+        "text": "memory path, and selected destination; live UI checks cover all three channel",
+        "done": false
+      },
+      {
+        "text": "types.",
+        "done": false
+      },
+      {
+        "text": "Authored scenario content demonstrates a public post, a private group,",
+        "done": true
+      },
+      {
+        "text": "and a DM without inventing a separate character or mind model.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/commons.py` (communication model)",
+      "routes/commons.py` (channel APIs and server-side authorization)",
+      "app.py` (route Commons mutations through the existing autosave hook)",
+      "Existing world serialization/save-load path, only where required for",
+      "communication state",
+      "static/js/commons/**` (Commons communication loop and social UI)",
+      "templates/commons.html` and `static/css/commons.css",
+      "tests/test_commons.py` and targeted frontend tests",
+      "An existing scenario with real characters and authored channel examples"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: The Commons page for public/group/direct conversations; Character Inspector → Mind → Memories for persistent experience.\n\nCurrent availability: Public, private-group, and direct channels, persistence,\nPlayer memory storage, and the standalone Commons communication loop exist.\nIntegration with standard world turns and item/world interactions is tracked\nseparately in child task-854.\n\nLive steps when available:\n\n1. Open The Commons, select a character, and post to a public conversation, a member group, and a one-to-one conversation.\n   - expected: Messages appear only in their addressed conversations; group membership and DM participants are visible.\n\n2. Try a private group as a non-member, then inspect the participating character’s Mind → Memories after a read/reflection.\n   - expected: The non-member is denied; experience appears in the existing Player memory list with no parallel chat persona or memory store.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "out_of_scope_follow_up": "- Standard `AgentEngine` world-turn integration and item/world interactions are\n  tracked separately by child task-854. That task must investigate the correct\n  shared, concurrency-safe seam without weakening channel privacy or\n  duplicating Player identity, communication state, or memory.\n- Task-825 tracks broader simultaneous async pacing behavior. This Commons card\n  verifies only that the Commons uses the shared per-character talkativeness\n  setting and cooldown jitter helper; it does not claim task-825 is complete."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages.md"
+  }
+}

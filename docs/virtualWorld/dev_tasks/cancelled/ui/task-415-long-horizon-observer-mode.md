@@ -8,7 +8,7 @@ priority: low
 # task-415: Long-horizon observer mode
 
 **Filed:** 2026-09-19  
-**Dropped:** 2026-09-19 — deferred for now; revisit once 411/412/414 exist.  
+**Dropped:** 2026-09-19 - deferred for now; revisit once 411/412/414 exist.  
 **Depends on:** task-340 (event stream v2), task-333 (human turn panel),
 task-414 (batch advance), task-411 (attention tiers), task-412
 (promotion/demotion).  
@@ -17,7 +17,7 @@ task-414 (batch advance), task-411 (attention tiers), task-412
 ## What
 
 Let the user **watch** a long-running world, **follow** a character, and **drop
-in** to interact — the "experience it, don't just measure it" goal.
+in** to interact - the "experience it, don't just measure it" goal.
 example if tha tof humanoid agents https://github.com/humanoidagents/humanoidagents
 
 ## How

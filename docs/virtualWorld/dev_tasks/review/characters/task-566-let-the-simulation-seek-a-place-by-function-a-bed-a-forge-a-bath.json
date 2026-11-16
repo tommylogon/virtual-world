@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "id": "task-566",
+  "kind": "task",
+  "number": 566,
+  "title": "Let the simulation seek a place by function (a bed, a forge, a bath)",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-561",
+      "task-563"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A painted town is a service directory (The Stag Inn for travellers, The Crooked Mug for locals, the Silver Lily, a smithy, a bathhouse, a ferry), but nothing in the sim asks where any of that is: there is no venue concept at all, so a tired traveller walks the streets instead of seeking a bed. This is the difference between a painted map and a living town, and it is the item that makes a settlement matter to the simulation rather than to the eye. Needs a place lookup by kind (task-561's building types) and a need->venue mapping, then a decision about how a character chooses among several inns. Deliberately separate from the authoring tasks: it touches needs/background_sim, not the compiler.",
+    "why": "NPCs with critical rest or hygiene needs previously wandered aimlessly instead of routing to functional areas (a bed, a bath).",
+    "how": "Added venue seeking in `engine/background_simulation.py` with `REST_SEEK_ENERGY` routing characters to reachable areas carrying functional tags.",
+    "verify": "1. In a scratch scenario, place a tired character one hop from a sleeping venue\n   and farther from a second venue; advance a background tick and read the\n   event stream and map movement.\n   - expected: the character selects the reachable venue using the documented\n     nearest-first order and walks one hop along the graph.\n   - observed: this card records the `REST_SEEK_ENERGY` branch, nearest-first\n     tie rules, and route compatibility as checked; it does not record a fresh\n     browser run.\n2. Remove all venue tags and advance the same character again.\n   - expected: no venue-seeking event or route is produced, and the existing\n     need cascade continues.\n   - observed: the card records the empty-world fallback as checked; no new\n     live evidence was collected for this backfill.",
+    "acceptance": [
+      {
+        "text": "**There is a venue concept now**: `engine/venues.py`, a lookup of *places by",
+        "done": true
+      },
+      {
+        "text": "what they provide* - `rest`, `meal`, `drink`, `bath`, `work`, `worship`,",
+        "done": false
+      },
+      {
+        "text": "`care`.",
+        "done": false
+      },
+      {
+        "text": "**A place lookup by kind, and it needed no new vocabulary.** A venue is a",
+        "done": true
+      },
+      {
+        "text": "set of tags plus a preference order, and task-561's building types already",
+        "done": false
+      },
+      {
+        "text": "carry the tags: `sleeps` on an inn and a cottage, `food`/`drink` on a",
+        "done": false
+      },
+      {
+        "text": "tavern, `craft` on a smithy, `worship` on a temple, `medical` on an",
+        "done": false
+      },
+      {
+        "text": "infirmary. A building becomes a venue for free by being tagged.",
+        "done": false
+      },
+      {
+        "text": "**Tags *or* name are both read**, which was not obvious until it was tested:",
+        "done": true
+      },
+      {
+        "text": "task-568's rooms carry a *purpose* tag (`service`, `sleeping`) and express",
+        "done": false
+      },
+      {
+        "text": "what they are through their **id** (`bathroom`, `guest_room`), so a",
+        "done": false
+      },
+      {
+        "text": "tag-only match could not find a bathroom. Checked: the bathroom in the test",
+        "done": false
+      },
+      {
+        "text": "town is found once names are read too.",
+        "done": false
+      },
+      {
+        "text": "**A need → venue mapping, wired into the decision chain.** The branch that",
+        "done": true
+      },
+      {
+        "text": "matters is the one the task names: at `REST_SEEK_ENERGY` a tired character",
+        "done": false
+      },
+      {
+        "text": "asks where a bed is and walks there, one hop at a time, and the log says so.",
+        "done": false
+      },
+      {
+        "text": "It sits **above** `ENERGY_THRESHOLD` and well above the critical 15, so a",
+        "done": false
+      },
+      {
+        "text": "character that is not tired yet does not cross town to book a room, and",
+        "done": false
+      },
+      {
+        "text": "seeking a bed never competes with \"lie down now\".",
+        "done": false
+      },
+      {
+        "text": "**A character chooses among several inns, and the rule is explicit**",
+        "done": true
+      },
+      {
+        "text": "(`choose_venue`), in four tiers, each earning its place:",
+        "done": false
+      },
+      {
+        "text": "**fewest hops** - a character with a bed next door does not cross town for",
+        "done": false
+      },
+      {
+        "text": "a better one;",
+        "done": false
+      },
+      {
+        "text": "**familiarity** - among equally near places, one this character has used",
+        "done": false
+      },
+      {
+        "text": "before, more-used first. This is what makes a town feel inhabited: a",
+        "done": false
+      },
+      {
+        "text": "regular goes back to *their* inn, a newcomer goes to the nearest;",
+        "done": false
+      },
+      {
+        "text": "**preference tier** - among those still equal, the nicer kind (an inn",
+        "done": false
+      },
+      {
+        "text": "before a barn), as the venue declares;",
+        "done": false
+      },
+      {
+        "text": "**node name, last** - a total order, so the same world answers the same",
+        "done": false
+      },
+      {
+        "text": "way every turn.",
+        "done": false
+      },
+      {
+        "text": "Checked: nearest wins over nicer, memory wins an exact tie (`3 visits` beat",
+        "done": false
+      },
+      {
+        "text": "`1` between two places two hops away), an inn beats a bunkroom at one hop",
+        "done": false
+      },
+      {
+        "text": "each, and five calls return one answer.",
+        "done": false
+      },
+      {
+        "text": "**Nearest-first is the default and familiarity only breaks ties** -",
+        "done": true
+      },
+      {
+        "text": "deliberately, and the module says why: a character with a bed in the next",
+        "done": false
+      },
+      {
+        "text": "room is not going to the best inn in the city because it is better. The",
+        "done": false
+      },
+      {
+        "text": "tiers are a preference among equals, not a shopping list.",
+        "done": false
+      },
+      {
+        "text": "**A venue is never somewhere a character is routed that the player could",
+        "done": true
+      },
+      {
+        "text": "not go.** The reachability walk is the same",
+        "done": false
+      },
+      {
+        "text": "`build_exits_for_area(include_hidden=True)` BFS the rest of the sim uses, so",
+        "done": false
+      },
+      {
+        "text": "the direction returned is one `movement.move_to_area` accepts.",
+        "done": false
+      },
+      {
+        "text": "**A shut door is a routing problem, not an absent bed.**",
+        "done": true
+      },
+      {
+        "text": "`current_state` is deliberately not consulted: a locked building everyone",
+        "done": false
+      },
+      {
+        "text": "has a key to is still the building, and whether the door opens is the",
+        "done": false
+      },
+      {
+        "text": "traversal layer's job (which already refuses it).",
+        "done": false
+      },
+      {
+        "text": "**The log says where and why** - \"Ari walks to The Stag Inn - is looking",
+        "done": true
+      },
+      {
+        "text": "for a bed\" - because a character teleporting for unexplained reasons is the",
+        "done": false
+      },
+      {
+        "text": "thing this task exists to stop.",
+        "done": false
+      },
+      {
+        "text": "**A world with no venues behaves exactly as before.** No candidate, no",
+        "done": true
+      },
+      {
+        "text": "choice, no log line; `_seek_venue` returns False and every caller falls back",
+        "done": false
+      },
+      {
+        "text": "to what it would have done anyway. Checked across all seven venues on an",
+        "done": false
+      },
+      {
+        "text": "empty world. A town should be something a character *walks* to, and its",
+        "done": false
+      },
+      {
+        "text": "absence must not leave characters standing in the road waiting for a",
+        "done": false
+      },
+      {
+        "text": "building nobody painted.",
+        "done": false
+      },
+      {
+        "text": "**Familiarity lives on the character** (`venue_visits`, a counter per area),",
+        "done": true
+      },
+      {
+        "text": "so it travels with a save, and a character who has never been anywhere has",
+        "done": false
+      },
+      {
+        "text": "nothing to be loyal to. The counter moves on **arriving** and on **sleeping",
+        "done": false
+      },
+      {
+        "text": "somewhere** - standing one room from the inn is not a visit.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/background_simulation.py",
+      "tests/test_background_simulation.py"
+    ],
+    "custom": {
+      "notes": "- **Deliberately separate from the authoring tasks**, as the file says: this\n  touches `background_simulation`, not the compiler, and needs nothing from the\n  painter beyond the tags that already ship.\n- `meal` and `drink` venues exist and are wired to the lookup, but the *needs* that\n  drive them still serve themselves from items and water areas first - the venue\n  is the fallback for a character who finds nothing here, which is the case the\n  task describes (\"a painted town is a service directory\"). Food and drink were\n  left alone deliberately: changing how a character eats is a different decision\n  from teaching it where a bed is, and doing both at once would make the need\n  thresholds untestable.\n- The venue table is a plain dict, so a world can extend it without touching this\n  module - which is the same \"vocabulary, not code\" shape as task-568's room tags\n  and task-525's `merge:` rules.",
+      "browser_ui": "Intended UI home: Game view → map and event stream for the active scenario.\n\nCurrent availability: Venue lookup and the `REST_SEEK_ENERGY` decision branch\nare implemented and covered by this card's recorded engine evidence. The\nfollowing is the intended live scenario check; this card does not record a\nfresh browser run.\n\nLive steps when available:\n1. Load an authoring fixture with a tired character, a reachable area tagged\n   `sleeps`, and a second connected area tagged as a less-preferred sleeping\n   place. Set the character's Energy to 55 or below, then advance one complete\n   background-simulation tick while watching the event stream and map.\n   - expected: the event stream explains the chosen destination with a line\n     such as “<character> walks to <venue> - is looking for a bed”, and movement\n     follows the connected route instead of teleporting.\n2. Repeat with no area offering a venue tag, using the same character needs.\n   - expected: no venue-seeking line or forced route appears; the ordinary\n     need-precedence behavior remains in effect.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-566-let-the-simulation-seek-a-place-by-function-a-bed-a-forge-a-bath.md"
+  }
+}

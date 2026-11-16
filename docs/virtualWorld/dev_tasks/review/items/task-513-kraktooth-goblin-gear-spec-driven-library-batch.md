@@ -117,8 +117,8 @@ Authoring sixty distinct goblin items by hand creates naming drift, inconsistent
 ## Files
 
 - data/library/items/_specs/kraktooth_gear.json
-- 	ools/gen_library_items.py
-- 	ools/lint_library.py
+- tools/gen_library_items.py
+- tools/lint_library.py
 - data/library/items/
 
 ## Browser UI and intended live verification

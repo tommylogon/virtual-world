@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-101",
+  "kind": "task",
+  "number": 101,
+  "title": "Simultaneous Turns Per Area (Parallel Processing with Sync)",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-437",
+      "task-465",
+      "task-131",
+      "task-955"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Currently all characters are processed sequentially in a global initiative order. This task changes the game loop to process areas in parallel - all characters in a room act (sequentially within the room), then areas sync before the next tick. If one room finishes before another, it waits. Movement between areas during a tick is handled as a special case.",
+    "why": "Local actors in other rooms should process turn ticks simultaneously without blocking on human interaction in the player's room.",
+    "how": "### Engine Changes\n\n- New grouping logic in `tick_manager.py` or new `engine/area_tick.py`\n- Character actions within a room are sequential (maintains causality)\n- Area processing can be parallelized via `concurrent.futures` or async\n- Sync barrier implementation (simple counter + event flag)\n\n### Edge Cases\n\n- **Empty areas**: Rooms with no characters are skipped\n- **Single-character areas**: Process immediately, wait at barrier\n- **All characters in one room**: Falls back to sequential (same as current behavior)\n- **All areas empty**: Tick advances without character processing\n\n### Frontend Changes\n\n- Event stream might need room labels (\"Kitchen: Traveler looks around\")\n- Turn order display might need room grouping\n- Step button advances one room-tick (all areas, all characters)",
+    "verify": "- Two areas with characters - both process same tick\n- Character moves between areas mid-tick\n- Empty areas don't block processing\n- All characters in one room = same behavior as before\n- Sync barrier works (slow room doesn't lose events)",
+    "acceptance": [
+      {
+        "text": "Rooms process turn ticks simultaneously for local NPC actors.",
+        "done": true
+      },
+      {
+        "text": "Human turn waiting gate restricts only the active controlled character's room.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/tick_manager.py` - restructure tick loop for room-based processing",
+      "engine/player_manager.py` - add `get_players_by_area()` grouping",
+      "engine/movement.py` - handle cross-room movement during tick",
+      "routes/action.py` - `/api/turn/apply` may need changes",
+      "static/js/agent/turn-queue.js` - turn order display"
+    ],
+    "custom": {
+      "what_already_exists": "- `TickManager.tick_turn()` processes characters by global initiative order\n- `PlayerManager` tracks which players are in which areas\n- `process_simple_npcs()` groups NPCs by behavior type\n- Turn queue in `TurnQueue` manages initiative order",
+      "the_new_flow": "```\nTick N:\n  Phase 1: Group all characters by room\n  Phase 2: For each room (in parallel / concurrent):\n    Process characters in that room sequentially\n    Handle movement within room\n    Collect events\n  Phase 3: Sync barrier - wait for all areas\n  Phase 4: Resolve cross-room movement\n    - Character A moved from Area 1 to Area 2\n    - Area 2 characters can *react* to A's arrival\n    - Character A does NOT get a new action in Area 2\n  Phase 5: Apply tick-level effects (vital decay, conditions)\n  Phase 6: Next tick\n```\n\n### Key Rules\n\n- All areas process the same tick at the same \"time\"\n- Within a room, characters act in initiative order (sequentially)\n- If Area A finishes before Area B, Area A waits at the sync barrier\n- If Character C moves from Area B to Area A:\n  - C finishes their action in Area B\n  - After sync, C is now in Area A\n  - Area A characters who haven't acted yet can *react* to C's arrival\n  - C does NOT get a new turn in Area A this tick\n- Dead/sleeping/unconscious characters are still processed (they just don't act)",
+      "progress_2026_09_22": "- The **frontend experiment** now has a per-room variant: the turn-mode dial\n  offers \"Simultaneous per room\" (`static/js/agent/simultaneous.js`,\n  `agent-engine.js:_simultaneousRoomStep`, task-465). It groups by area, gives\n  each room an independent countdown, and runs that room's characters\n  sequentially - an approximation of Phase 1/2 with no snapshot.\n- The **engine-level** flow above (true tick-level parallel processing, the\n  Phase 3 sync barrier, Phase 4 cross-room movement resolution, `tick_manager`\n  restructure) is still open and is absorbed by task-437 (\"task-101 is step 5\")."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Triggers & Effects]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

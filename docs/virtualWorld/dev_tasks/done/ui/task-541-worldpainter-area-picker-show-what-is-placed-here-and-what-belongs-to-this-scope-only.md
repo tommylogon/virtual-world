@@ -21,14 +21,14 @@ up in the world map's picker as if they belonged there.
 
 ## Acceptance
 
-- [x] The payload carries each candidate's **owning scope** — `scope_id` *and*
+- [x] The payload carries each candidate's **owning scope** - `scope_id` *and*
       `scope_name`, so the "elsewhere" group can name the scope it belongs to
       instead of showing a bare id.
 - [x] `gridModel.areaGroups(payload, selectedId)` returns up to three groups, in
       order: **On this grid** (with each cell), **This scope, not placed**, and
       **Elsewhere in the world**. The editor renders them as `<optgroup>`s;
       `placeableAreas` is the flattened view of the same list.
-- [x] An area with **no** scope counts as this scope's — it belongs to nobody, so
+- [x] An area with **no** scope counts as this scope's - it belongs to nobody, so
       any map may claim it.
 - [x] An area already on this grid is never listed twice, even if the server also
       offers it as a candidate.

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "task-959",
+  "kind": "task",
+  "number": 959,
+  "title": "Implement character disarm contested action to wrest visibly held items cleanly without lethal attack",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "combat",
+    "disarm",
+    "action-verbs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "bug-590"
+    ],
+    "blocked_by": [
+      "bug-588"
+    ],
+    "depends_on": [],
+    "related": [
+      "bug-590",
+      "bug-592",
+      "task-955",
+      "task-962",
+      "task-963"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a non-lethal contested disarm action (disarm <person> [item]) in combat.py and action_verbs.py to wrest visibly held items away without lethal attack damage or covert steal, recording structured disarm turn_events.",
+    "why": "engine/action_verbs.py (lines 115-117) only exposes attack, grab, and release for combat. Without disarm, a character trying to stop someone brandishing a knife, gun, or phone must either deal lethal damage via player_attack or attempt covert pocket-picking via steal. Furthermore, bug-590 ThreatDetector needs explicit disarm turn_events to distinguish an ally disarming an aggressor from hostile violence.",
+    "how": "1. Add player_disarm(attacker_name, target_name, item_name=None) in engine/combat.py resolving an opposed DEX/STR/Athletics check against target's visibly held/equipped item (honoring weapon size, two-handed grip, prone/frightened modifiers, and approach_character).\\n2. On success, move the item off the defender's equipped hand slot/carry onto the disarmer (if a free hand / requested) or drop it into the current area cleanly via existing equipment/drop helpers, updating weight and firing any unequip triggers.\\n3. Record a structured 'disarm' turn_event with actor, target, and disarmed item metadata for ThreatDetector (bug-590) and simultaneous round visibility (task-955).\\n4. Register disarm in engine/action_verbs.py, routes/action_handlers.py (_VERBS_NEEDING_TARGET + dispatcher), PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions.ts when another present character visibly holds an item.",
+    "verify": "1. Run pytest covering engine/combat.py player_disarm success, failure, free-hand catch vs floor drop, non-lethal HP preservation, and structured turn_event emission.\\n2. Run npm run build:ts and node tools/unit/run.cjs verifying PlanGrounding and contextual-actions disarm surfacing.",
+    "acceptance": [
+      {
+        "text": "disarm is registered in engine/action_verbs.py, PlanGrounding.PLAN_INTENT_ACTS, routes/action_handlers.py, and contextual-actions.ts when a co-located character holds a visible item or weapon.",
+        "done": false
+      },
+      {
+        "text": "Disarm resolves as an opposed physical contest (Athletics/DEX/STR) against the target's visibly held/equipped hand item without dealing lethal weapon damage, moving the item either to the ground or the disarmer's grip cleanly.",
+        "done": false
+      },
+      {
+        "text": "Successful and failed disarm attempts record structured turn_events (actor, action='disarm', target, item, outcome) consumable by ThreatDetector (bug-590) and witness memories.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "engine/combat.py",
+      "routes/action_handlers.py",
+      "engine/items/transfer_actions.py",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Available Actions / People Here context and Event Stream turn log.\\n\\nCurrent availability: engine/action_verbs.py exposes attack, grab, and release; no disarm verb exists in engine/combat.py or routes/action_handlers.py.\\n\\nManual verification steps:\\n1. Equip/hold a weapon or item on Character A and run `disarm A` (or `disarm <item> from A`) from Character B.\\n2. Inspect resulting item possession, HP (no lethal damage), and turn_events.\\n   - expected: Opposed check runs, weapon moves out of A's hand on success, and structured 'disarm' turn_event records actor, target, and item."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Combat System]]",
+      "[[Items & Inventory/Equipment & Paperdoll]]",
+      "[[Commands]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

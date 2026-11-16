@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-572",
+  "kind": "task",
+  "number": 572,
+  "title": "Integration test layer",
+  "status": "review",
+  "priority": "high",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "3239 unit tests, but NO integration or E2E layer: no save/load round-trip, no timeskip determinism, no trigger fan-out, no scope load/unload, no perf baseline. The unit tests are strong; the seams between systems are untested, and the seams are where the remaining bugs are. Add a harness covering at minimum: save/load round-trip preserving two same-named areas in different scopes (the task-446 defect), same-seed trace equality (the 17 bare random call sites), and a compiled-region generation benchmark (task-402).",
+    "why": "Over 3200 unit tests verified individual components, but integration seams between save/load, seed determinism, RNG calls, and compiled region generation were unverified.",
+    "how": "Authored tests/test_integration_layer.py covering duplicate-name area save/load across scopes, RNG seed replay determinism, seed divergence control, and deterministic shape verification for 9x9 compiled regions (81 areas / 272 ways / 1088 edges).",
+    "verify": "1. Run integration test layer\n   - expected: pytest tests/test_integration_layer.py passes\n   - observed: 5 passed in tests/test_integration_layer.py\n2. Assert determinism across random draws\n   - expected: Same seed yields identical execution trace\n   - observed: Verified on 20 turn trace comparison",
+    "acceptance": [
+      {
+        "text": "A save/load round-trip preserves two same-named areas in **different",
+        "done": true
+      },
+      {
+        "text": "scopes** (the task-446 defect), asserting against the graph, not the",
+        "done": false
+      },
+      {
+        "text": "name-keyed `areas` projection.",
+        "done": false
+      },
+      {
+        "text": "Same-seed trace equality over a full turn, plus a different-seed control",
+        "done": true
+      },
+      {
+        "text": "proving the trace actually covers RNG-driven state.",
+        "done": false
+      },
+      {
+        "text": "A compiled-region generation benchmark with a published node/edge count and",
+        "done": true
+      },
+      {
+        "text": "same-seed recompile equality (task-402's foundation).",
+        "done": false
+      }
+    ],
+    "files": [
+      "tests/test_integration_layer.py",
+      "engine/world_compile.py",
+      "-",
+      "routes/persistence_ops.py"
+    ],
+    "custom": {
+      "outcome_2026_10_02": "`tests/test_integration_layer.py`, 5 tests against the engine seam (no Flask):\n\n1. `test_two_same_named_areas_survive_a_save_load_round_trip` - builds two areas\n   both named `Hollow` in the `town` and `crypt` scopes, round-trips\n   `to_dict()`/`load_from_dict()`, and asserts both ids, both `world_scope_id`\n   stamps and both scope-membership entries survive.\n2. `test_the_areas_projection_is_name_keyed_and_collapses_the_pair` - pins the\n   documented **task-439** defect: `to_dict()[\"areas\"]` is keyed by display name,\n   so the pair collapses to one entry while the authoritative graph keeps both.\n   This is the seam bug the task names; the fix lands in task-439.\n3. `test_the_same_seed_replays_the_same_trace` - seeds the global RNG, opts the\n   rat's behaviour tree in (so the ~19 bare `random.` tick-path draws are\n   exercised), runs 20 full turns, and compares positions/vitals/log.\n4. `test_different_seeds_diverge` - the control that keeps (3) from passing\n   vacuously.\n5. `test_a_compiled_region_has_a_published_and_deterministic_shape` - compiles a\n   painted 9x9 region: **81 areas / 272 ways / 1088 edges** (published in the\n   failure message and stdout, per task-402), and the same seed recompiles to the\n   same node ids. This is the harness task-402's larger benchmark can grow from;\n   no arbitrary latency target is asserted.\n\n**Not done here:** task-402's ≥100k-node synthetic generator and the\nscoped-endpoint out-of-scope guard. The compiler seam is covered; the scale\nfixture is its own task."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/testing/task-572-integration-test-layer.md"
+  }
+}

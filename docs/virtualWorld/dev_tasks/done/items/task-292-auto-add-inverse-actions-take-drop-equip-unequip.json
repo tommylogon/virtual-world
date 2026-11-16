@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-292",
+  "kind": "task",
+  "number": 292,
+  "title": "Auto-Add Inverse Actions (take↔drop, equip↔unequip)",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-08-18",
+  "updated": "2026-08-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When a designer enables an allowed action on an item, also enable its inverse automatically (`take`↔`drop`, `equip`↔`unequip`), so the pair stays in sync everywhere item actions are defined or rendered.",
+    "why": "Item `actions` are a gate/allowlist, but inverse verbs are not automatic: an item you can `take` doesn't advertise `drop` in its available actions, and one you can `equip` doesn't advertise `unequip`. Defining one and remembering the other by hand is error-prone.",
+    "how": "- `engine/item_actions.py` - new `INVERSE_ACTIONS` map + `normalize_item_actions()` helper (string or list → deduped list with inverses).\n- `routes/graph.py` - normalize `actions` in `update_node` and `build_item_legacy`.\n- `routes/library_routes.py` - normalize in library placement, character/area item import, and `_refresh_item` (both selective and blind refresh).\n- `engine/serialization.py` - normalize in scenario item deserialization and container contents.\n- `engine/effects.py` - normalize `actions` in the `spawn_item` effect.\n- `engine/trigger_system.py` - normalize in `_get_available_actions` (read-time safety net).\n- `static/js/inspector/item-view.js` - `INVERSE_ACTIONS` client-side; `_toggleAction` adds/removes the inverse and ensures the inverse's base trigger.",
+    "verify": "- [x] `python -m pytest tests/test_action_inverses.py -q` (9 tests: helper unit cases + `update_node`/`build_item` integration)\n- [x] Full suite: `python -m pytest tests/ -q -k \"not mcp and not emote\"` → 971 passed, 1 skipped\n- [x] `node --check static/js/inspector/item-view.js` clean\n- [ ] In-browser: enable `equip` on an item → `unequip` auto-checks + `on_unequip` trigger created; enable `take` → `drop` appears in the item's available actions",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "behavior": "- If `take` is present → also `drop`; if `drop` → also `take`. Same for `equip`↔`unequip`. Bidirectional, no duplicates, unknown actions preserved.\n- Applies at every write path (inspector `update_node`/`build_item`, library place/import/refresh-from-library, scenario deserialization incl. container contents, `spawn_item` effect) and at read time in `_get_available_actions` so existing, never-re-saved items show the inverse immediately.\n- The world item inspector's action checkbox grid toggles the inverse together and creates a base `on_<inverse>` trigger when the action is enabled."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Inspector Panels|Inspector]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-292-auto-add-inverse-actions.md"
+  }
+}

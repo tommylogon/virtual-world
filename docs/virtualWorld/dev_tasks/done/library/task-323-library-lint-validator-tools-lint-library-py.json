@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-323",
+  "kind": "task",
+  "number": 323,
+  "title": "Library Lint Validator (tools/lint_library.py)",
+  "status": "done",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "2026-08-21",
+  "updated": "2026-08-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One reusable lint script that catches the data-quality problems we keep finding\nby hand: dead interest tags, wearables missing `equip_slots`, tag case drift,\nsingleton tags, broken `contents` references, and sparse area tags. Script-first;\noptional route integration later.\n\nThis is the regression guard for task-326 (interest pass) and task-324 (domain\ntagging), and a quality gate for task-9 (population engine reads tags - garbage\ntags in, garbage rooms out).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Run against current tree: expects **0 errors** after task-326 lands\n  (before that, check 1 reports the known dead tags - useful as a worklist)\n- Deliberately break a copy of one file â†’ lint catches it â†’ restore",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/lint_library.py` (new script)",
+      "optional: `routes/library_routes.py` (lint endpoint), `static/js/ui/*` (panel)"
+    ],
+    "custom": {
+      "checks_all_observed_as_real_problems": "1. **Dead interest tags** - character `interest_tags` matching zero item tags.\n   Found 61/125 dead (49%) in the 2026-08-21 survey; satsuki/uzume/nia/nina/pam\n   were 5–6/6 dead.\n2. **Wearable missing equip_slots** - items tagged `clothing`/`armor` without\n   `equip_slots`. Was 50/60 before tools/fix_item_equipment.py; must stay 0.\n3. **Tag case drift** - same tag in multiple casings across items/areas\n   (`Container` vs `container`, `Consumable` vs `consumable` were live bugs).\n4. **Singleton tags** - item tags appearing on exactly one item (`berry`,\n   `necklace`, `guitar`) - each is either a typo or an under-connected concept;\n   report, don't auto-fix.\n5. **Broken contents refs** - library item `contents` pointing at missing\n   library ids (currently only a runtime warning at spawn time,\n   routes/library_routes.py:179).\n6. **Area tag coverage** - library areas with no tags (35/58 as of survey);\n   informational for task-324.",
+      "work_plan": "1. `tools/lint_library.py`:\n   - Loads `data/library/{items,characters,areas}/*.json`\n   - Runs checks 1–6; exit code 1 on errors (checks 1–3, 5), warnings only for\n     4 and 6\n   - `--check <name>` to run a single check; default all\n   - Output: per-file lines + summary counts (grep-friendly)\n2. Optional follow-up (separate commit): expose as\n   `GET /api/library/lint` so the editor's World Issues panel (#validation-section)\n   can show library problems alongside trigger validation\n   (engine/trigger_validator.py pattern).",
+      "dependencies": "- None. Run it before AND after task-326/task-324 data passes.\n- Feeds: task-9 (tag quality gate), future library edits (CI-able)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/library/task-323-library-lint-validator.md"
+  }
+}

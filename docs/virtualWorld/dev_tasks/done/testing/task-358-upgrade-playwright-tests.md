@@ -5,9 +5,9 @@ status: done
 priority: medium
 ---
 
-# Task 358: Upgrade Playwright Tests — Actually Test Things
+# Task 358: Upgrade Playwright Tests - Actually Test Things
 
-## Outcome (verified 2026-09-22) — Phases 1–2 closed; Phases 3–5 re-filed as task-444
+## Outcome (verified 2026-09-22) - Phases 1–2 closed; Phases 3–5 re-filed as task-444
 
 The foundation this task asked for (console-error capture, shared helper, and the ten
 bugs converted into real click-through regression tests) **landed**. The three remaining
@@ -15,14 +15,14 @@ phases were never started, so they have been **re-filed as
 [[dev_tasks/todo/testing/task-444-playwright-persistence-and-error-boundaries|task-444]]**
 with the corrected counts.
 
-- **Phase 1 — landed.** `tools/test_helpers.cjs` (103 lines) exports `startSession`,
+- **Phase 1 - landed.** `tools/test_helpers.cjs` (103 lines) exports `startSession`,
   `checkConsoleErrors`, `switchTab`, `showAgent`, `api`, `getState`, `gameCmd`
   (`:94-103`), with `pageerror` plus filtered `console.error` capture (`:29-35`).
-- **Phase 2 — landed.** `tools/test_regressions.cjs` (181 lines) requires the helper
+- **Phase 2 - landed.** `tools/test_regressions.cjs` (181 lines) requires the helper
   (`:8`) and covers the ten filed bugs (settings tabs `:24-41`, trigger editor `:44-76`,
   generate-from-equipment `:79-96`, turn advance `:99-107`, max-steps `:110-122`,
   initiative order `:125-139`, HP display `:142-156`, dropdown readability `:159-172`).
-- **Phases 3–5 — not started, verified absent:** `grep 'page.reload' tools/` → 0 hits;
+- **Phases 3–5 - not started, verified absent:** `grep 'page.reload' tools/` → 0 hits;
   `grep 'page.route' tools/` → 0 hits; no `--suite` flag and no JUnit output anywhere.
   → task-444.
 - **Corrected claims:** `tools/` holds **28** `.cjs` files, not 12; the helper is adopted
@@ -34,11 +34,11 @@ with the corrected counts.
   This file itself called it "mechanical, low value" (line 192); task-444 lists it as a
   non-goal.
 
-### Prior state (2026-09-21) — partial; the file's own "In Progress (partial)" is accurate
+### Prior state (2026-09-21) - partial; the file's own "In Progress (partial)" is accurate
 
 **Landed (Phases 1-2), claims verified:**
 - `tools/test_helpers.cjs` exists (103 lines) and exports exactly what the file
-  says — `startSession`, `checkConsoleErrors`, `switchTab`, `showAgent`, `api`,
+  says - `startSession`, `checkConsoleErrors`, `switchTab`, `showAgent`, `api`,
   `getState`, `gameCmd` (`:94-103`), with `pageerror` plus filtered
   `console.error` capture (`:29-35`).
 - `tools/test_regressions.cjs` exists (181 lines), requires the helper (`:8`), and
@@ -47,11 +47,11 @@ with the corrected counts.
   `:110-122`, initiative order `:125-139`, HP display `:142-156`, dropdown
   readability `:159-172`).
 - `tools/test_all.cjs` has error capture, the final "No JS/console errors" check
-  and `browser.close()` — **but it re-implements the helper inline rather than
+  and `browser.close()` - **but it re-implements the helper inline rather than
   requiring it**, so the "wired via the helper" framing is wrong for this file.
 
 **Not done (Phases 3-5), all verified absent:**
-- **Phase 3 (persistence):** no `page.reload(...)` anywhere in `tools/` — not
+- **Phase 3 (persistence):** no `page.reload(...)` anywhere in `tools/` - not
   started, not merely "basic".
 - **Phase 4 (error boundaries):** no `page.route(...)` anywhere in `tools/`.
 - **Phase 5:** no `--suite` flag and no JUnit output anywhere.
@@ -61,7 +61,7 @@ with the corrected counts.
   this.
 
 **False claims:** the Project Structure section names `tools/test_ways.cjs`, which
-**does not exist**; "~434 Playwright tests across 12 files" is stale — `tools/`
+**does not exist**; "~434 Playwright tests across 12 files" is stale - `tools/`
 holds 28 `.cjs` files.
 
 **Note:** the `153/153` and `14/14` pass counts are point-in-time and were not
@@ -74,7 +74,7 @@ re-run here (they need a browser); nothing in the repo contradicts them.
 
 ## The Problem
 
-We have ~434 Playwright tests across 12 files, but bugs still slip through because the tests check **presence** and **API responses** — not actual **UI interactions**. The 10 recently-filed bugs (typos, method name mismatches, missing constructor attrs, CSS issues) are all things a click-through test should have caught.
+We have ~434 Playwright tests across 12 files, but bugs still slip through because the tests check **presence** and **API responses** - not actual **UI interactions**. The 10 recently-filed bugs (typos, method name mismatches, missing constructor attrs, CSS issues) are all things a click-through test should have caught.
 
 > **Corrected 2026-09-22:** there are **28** `.cjs` files under `tools/`, not 12. The
 > "~434 tests" figure is unverified and stale; do not use it as a baseline.
@@ -108,10 +108,10 @@ await t('Add Trigger button opens editor without errors', async () => {
 - [ ] Add `page.on('pageerror')` capture to every test file's setup
 - [ ] Add `page.on('console', msg => if (msg.type() === 'error') ...)` capture
 - [ ] Create shared `startSession()` helper that wires up error capture + navigation
-- [ ] Run existing tests with error capture enabled — they should all still pass (no bugs currently showing)
+- [ ] Run existing tests with error capture enabled - they should all still pass (no bugs currently showing)
 
 **Blocks**: None
-**Bug coverage**: Would catch bug 1 (typo), bug 7 (method mismatch), bug 10 (missing attr) — the JS runtime errors
+**Bug coverage**: Would catch bug 1 (typo), bug 7 (method mismatch), bug 10 (missing attr) - the JS runtime errors
 
 ### Phase 2: Click-Through Tests for Bug-Prone Areas
 **Goal**: Convert the 10 bug reports into regression tests that click real buttons.
@@ -193,38 +193,38 @@ await t('Backend 500 shows user-friendly error', async () => {
 
 New file: `virtual_world/tools/test_helpers.cjs` (shared helpers):
 ```javascript
-// startSession(browser, url) — launches page with error capture
-// checkConsoleErrors(errors) — throws if any errors accumulated
-// switchTab(label) — clicks tab by data-tab-btn content
-// showAgent(name) — opens agent in inspector
-// api(command) — POST /api/action shorthand
-// getState() — GET /api/state shorthand
+// startSession(browser, url) - launches page with error capture
+// checkConsoleErrors(errors) - throws if any errors accumulated
+// switchTab(label) - clicks tab by data-tab-btn content
+// showAgent(name) - opens agent in inspector
+// api(command) - POST /api/action shorthand
+// getState() - GET /api/state shorthand
 ```
 
 Existing files get upgraded in-place rather than rewritten:
-- `test_all.cjs` — gets Phase 1 error capture + Phase 3 state verification
-- `test_ui.cjs` — gets Phase 2 click-through + Phase 4 error resilience
-- ~~`test_ways.cjs`~~ — ⚠️ **does not exist** (corrected 2026-09-22); Phase 3 state verification moved to task-444
+- `test_all.cjs` - gets Phase 1 error capture + Phase 3 state verification
+- `test_ui.cjs` - gets Phase 2 click-through + Phase 4 error resilience
+- ~~`test_ways.cjs`~~ - ⚠️ **does not exist** (corrected 2026-09-22); Phase 3 state verification moved to task-444
 
 ## Requirements
 
-- [x] Phase 1: Console error capture — `tools/test_helpers.cjs` created (`startSession`, `checkConsoleErrors`, `switchTab`, `showAgent`, `api`, `getState`, `gameCmd`); error capture (pageerror + console.error, filtering browser "Failed to load resource" noise) wired into `test_all.cjs`; `test_all.cjs` now closes the browser (runnable headless)
-- [x] Phase 2: Bug-regression click-through tests — `tools/test_regressions.cjs` maps the 10 known bugs to real UI click tests (settings tabs, trigger editor open, generate-from-equipment, turn advance, max-steps, initiative order, HP display, dropdown readability)
-- [ ] Phase 3: UI state persistence verification (edit → save → reload → verify) — only basic checks so far
-- [ ] Phase 4: Error boundary/user-friendly error display tests (`page.route()` 500-mocking) — not implemented
-- [ ] Phase 5: Test runner improvements (suites, CI output) — not implemented
+- [x] Phase 1: Console error capture - `tools/test_helpers.cjs` created (`startSession`, `checkConsoleErrors`, `switchTab`, `showAgent`, `api`, `getState`, `gameCmd`); error capture (pageerror + console.error, filtering browser "Failed to load resource" noise) wired into `test_all.cjs`; `test_all.cjs` now closes the browser (runnable headless)
+- [x] Phase 2: Bug-regression click-through tests - `tools/test_regressions.cjs` maps the 10 known bugs to real UI click tests (settings tabs, trigger editor open, generate-from-equipment, turn advance, max-steps, initiative order, HP display, dropdown readability)
+- [ ] Phase 3: UI state persistence verification (edit → save → reload → verify) - only basic checks so far
+- [ ] Phase 4: Error boundary/user-friendly error display tests (`page.route()` 500-mocking) - not implemented
+- [ ] Phase 5: Test runner improvements (suites, CI output) - not implemented
 
 ---
 
 ## Status Update (2026-08-02)
 
 **What's done:**
-- `tools/test_helpers.cjs` — shared helper module with error-capturing `startSession()` and UI/API wrappers. Filters browser-injected `Failed to load resource` messages (expected from intentional 4xx/5xx failure-path tests) so only genuine page errors and `console.error()` calls are captured.
-- `tools/test_all.cjs` — error capture added (pageerror + console.error), network-resource noise filtered, final "No JS/console errors" check added to the results, and `browser.close()` at the end. **Result: 153/153 passed.**
-- `tools/test_regressions.cjs` — new click-through regression file mapping the 10 bug reports: settings tabs open without errors, trigger graph editor opens without JS errors, Generate-from-Equipment runs without errors, `/api/turn/apply` succeeds repeatedly, max-steps input updates `config.maxSteps`, initiative queue sorts players, HP display matches state, tag-multiselect dropdown text is readable. **Result: 14/14 passed** (several checks skip gracefully on the minimal test world — no item nodes / single player / no Choices.js dropdowns present).
+- `tools/test_helpers.cjs` - shared helper module with error-capturing `startSession()` and UI/API wrappers. Filters browser-injected `Failed to load resource` messages (expected from intentional 4xx/5xx failure-path tests) so only genuine page errors and `console.error()` calls are captured.
+- `tools/test_all.cjs` - error capture added (pageerror + console.error), network-resource noise filtered, final "No JS/console errors" check added to the results, and `browser.close()` at the end. **Result: 153/153 passed.**
+- `tools/test_regressions.cjs` - new click-through regression file mapping the 10 bug reports: settings tabs open without errors, trigger graph editor opens without JS errors, Generate-from-Equipment runs without errors, `/api/turn/apply` succeeds repeatedly, max-steps input updates `config.maxSteps`, initiative queue sorts players, HP display matches state, tag-multiselect dropdown text is readable. **Result: 14/14 passed** (several checks skip gracefully on the minimal test world - no item nodes / single player / no Choices.js dropdowns present).
 
 **Remaining:**
-- Wire error capture into the remaining ~12 `.cjs` test files via the helper (mechanical, low value — most already have basic `pageerror` capture).
+- Wire error capture into the remaining ~12 `.cjs` test files via the helper (mechanical, low value - most already have basic `pageerror` capture).
 - Phase 3: persistence verification pattern.
 - Phase 4: `page.route()` 500-mocking and connection-loss error-boundary tests.
 - Phase 5: `--suite` flag (smoke <30s / full) and JUnit XML output.

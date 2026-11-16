@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "task-651",
+  "kind": "task",
+  "number": 651,
+  "title": "Painter grid payload omits the floor and climate layers when they are empty",
+  "status": "done",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "GET /api/world/scopes/<id>/grid returns layers with only 'biome' and 'road' keys populated; a 'floor' layer and a 'climate' layer are absent entirely rather than present-and-empty, while the layer selector offers four layers (biome, road, floor, climate). The editor has to treat a missing layer as 'nothing painted', which is indistinguishable from 'not implemented' for anything reading the payload -- including a lint. The same applies to names: {} with 30 locations named on the reference art.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`_grid_payload` (`routes/world_grid_ops.py`) always returns all four",
+        "done": true
+      },
+      {
+        "text": "`world_grid.PAINT_LAYERS` keys, each present and possibly `{}`; `names` was",
+        "done": false
+      },
+      {
+        "text": "already present-and-empty.",
+        "done": false
+      },
+      {
+        "text": "`names` is populated for the Eldenford art as part of task-650 (29 names).",
+        "done": true
+      },
+      {
+        "text": "Regression test `test_grid_payload_presents_every_paint_layer` asserts an",
+        "done": true
+      },
+      {
+        "text": "unpainted scope has all four keys and that painting one leaves the other",
+        "done": false
+      },
+      {
+        "text": "three present-and-empty.",
+        "done": false
+      },
+      {
+        "text": "Live proof: the payload's `layers` keys are `biome, climate, floor, road`",
+        "done": true
+      },
+      {
+        "text": "with `floor` and `climate` empty rather than absent.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "verified_2026_10_09": "Re-confirmed in the tree: `_grid_payload` builds\n`\"layers\": {layer: {...} for layer in world_grid.PAINT_LAYERS}` over\n`PAINT_LAYERS = (\"biome\", \"road\", \"floor\", \"climate\")`, and\n`tests/test_world_grid_routes.py::test_grid_payload_presents_every_paint_layer`\nasserts it. Closed to `done`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-651-painter-grid-payload-omits-the-floor-and-climate-layers-when-they-are-empty.md"
+  }
+}

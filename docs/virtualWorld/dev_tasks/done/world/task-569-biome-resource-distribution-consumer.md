@@ -42,7 +42,7 @@ Done. The "implemented" body below is the shipped behaviour; pooled-node
   plus a normal `in` edge, stamped with `generated` provenance so it unloads
   with its scope (task-584). Deterministic for a seed. A tag (or missing
   container content) that resolves to nothing places **no** item and is counted
-  in the returned `unresolved_tags` — never substituted.
+  in the returned `unresolved_tags` - never substituted.
 - `world_compile.compile_grid` gained `spawn_index` / `resources_per_area`:
   when an index is supplied it invokes the spawner and feeds `unresolved_tags`
   into `GenerationReport` (and a note).
@@ -50,7 +50,7 @@ Done. The "implemented" body below is the shipped behaviour; pooled-node
   and passes it, so the production Generate button now composes resources.
   `{resources_per_area: N}` is accepted; default 1 per area.
 
-Tests: `tests/test_biome_spawner.py` (9) — resolved placement + provenance,
+Tests: `tests/test_biome_spawner.py` (9) - resolved placement + provenance,
 seed determinism, a dead tag reported not substituted, no-biome no-op, the
 compile-integration path populating `unresolved_tags`, and compile-without-index
 unchanged.

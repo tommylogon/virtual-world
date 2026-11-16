@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-17",
+  "kind": "task",
+  "number": 17,
+  "title": "Editable Characters - Paperdoll, Grid Inventory, Auto-Appearance",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-15 (updated 2026-07-21)",
+  "updated": "2026-07-15 (updated 2026-07-21)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The character inspector needs a full overhaul: tabbed sections, an RPG-style grid inventory with tooltips, a paperdoll equipment view (editable, not read-only), and auto-generated appearance descriptions derived from equipped items. The equipment engine is tracked in `task-3-equipment_system.md` - this task covers the frontend UI.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector.js` - tabbed layout, paperdoll editor, grid inventory, tooltips, context menus",
+      "static/js/main.js` - right-click context menu handlers, drop command",
+      "app.py` - inventory add/remove/drop endpoints, equip/unequip from inspector, appearance LLM endpoint",
+      "virtual_world_engine.py` - appearance derivation from equipment, nude/base description",
+      "static/js/item-library.js` - equip_slots, container fields in item editor",
+      "player.py` - base_appearance vs derived_appearance",
+      "Scenario data files - `equipped` field on character definitions"
+    ],
+    "custom": {
+      "current_state_already_implemented": "| Feature | Status |\n|---------|--------|\n| State dropdown | ✅ Editable |\n| Current room | ✅ Editable |\n| Emotion + intensity | ✅ Editable |\n| Personality textarea | ✅ Editable |\n| Appearance (base + current) | ✅ Split into base_description + description |\n| Generate description from equipment | ✅ Button in inspector (now calls LLM via /api/players/<name>/generate-description) |\n| Memory/world_knowledge | ✅ Editable |\n| Behaviors (NPCs) | ✅ Editable |\n| Stats (STR/DEX/CON/INT/WIS/CHA) | ✅ Editable |\n| Skills | ✅ Editable |\n| Relationships | ✅ Editable |\n| Vitals display | ✅ Read-only bars |\n| Examine other characters | ✅ Shows base + equipment + mood |\n| Inventory | ✅ Grid layout with icon/name/weight, click-to-inspect, drop/equip buttons, add-item picker |\n| Equipment paperdoll | ✅ CSS grid with 12 body slots (100x100px cells), tooltips, click-to-inspect, equip picker, unequip buttons |",
+      "part_1_tabbed_inspector": "Replace the single-page character inspector with tabbed sections:\n\n- **Stats** - stats, skills, vitals\n- **Equipment** - paperdoll view with editable slots (see Part 3)\n- **Inventory** - grid layout with tooltips (see Part 2)\n- **Bio** - personality, appearance, memories, behaviors (NPC)\n- **Relationships** - relationship editor",
+      "part_2_rpg_style_grid_inventory": "### Layout\n\nItems displayed in a **grid** (not a flat list). Each cell shows:\n- Item icon/emoji (📦 by default, different emoji per item type)\n- Item name\n- Weight / quantity badge\n\n### Interactions\n\n| Action | Behavior |\n|--------|----------|\n| **Click** | Opens item inspector |\n| **Hover** | Tooltip: name, description, weight, tags, equipment info |\n| **Right-click** | Context menu: Examine, Equip, Drop, Use |\n| **Drop** | Click drop button or right-click drop - removes item from character, places in current room |\n\n### Add Item\n\n\"Add Item\" button opens a searchable picker from:\n- World items (all items in the current scenario)\n- Library items (from item library)\n\n### Container contents\n\nItems marked `container: true` show an expandable list of contents. Clicking reveals items inside.\n\n### Visual\n\n```\n┌─────────────┬─────────────┬─────────────┐\n│ 📦 Rations  │ 📜 Old Map  │ 🔑 Rusty Key│\n│ 0.5 kg      │ 0.1 kg      │ 0.2 kg      │\n├─────────────┼─────────────┼─────────────┤\n│ 🧪 Health   │ 💎 Silver   │ 📖 Journal  │\n│ Potion      │ Ring        │             │\n│ 0.3 kg      │ 0.05 kg     │ 0.5 kg      │\n└─────────────┴─────────────┴─────────────┘\n```",
+      "part_3_paperdoll_equipment_view": "### Layout\n\nA visual character outline with labeled body slots, each showing the equipped item (or \"- empty -\").\n\n```\n         ┌───── Head ─────┐\n         │ [Steel Helmet] │\n         ├───── Neck ─────┤\n         │ [Gold Pendant] │\n┌─ Arms ─┼──── Torso ─────┼─ Arms ─┐\n│ [Brac- │  [Leather      │ [Brac- │\n│  ers]  │   Jacket]      │  ers]  │\n│        │  [Chainmail]   │        │\n├─ Hands ┼─── Waist ──────┼─ Hands ┤\n│        │ [Utility Belt] │        │\n├─ Legs ─┴────────┬───────┴─ Legs ─┤\n│ [Pants]         │ [Greaves]      │\n├────── Feet ─────┴─────── Feet ───┤\n│ [Hiking Boots]                   │\n├─── Left Hand ───┬─── Right Hand ─┤\n│ [Wooden Shield] │ [Longsword]    │\n└─────────────────┴───────────────┘\n```\n\n### EDITABLE, not read-only\n\nEach slot is clickable:\n- **Click on empty slot** → opens item picker filtered by compatible items for that slot\n- **Click on equipped item** → options: Unequip, Swap, Inspect\n- **Right-click on equipped item** → context menu\n- Slots can be set to \"empty\" to remove items\n\nThis is how scenarios start with equipped characters - the GM/editor assigns items to slots directly.\n\n### Stacked items\n\nSlots with stacked items show the outermost item with a \"+N more\" badge:\n```\n[Torso]  Leather Jacket +2 more  ▼\n```\nClick to expand the stack and see/remove inner layers.\n\n### Paperdoll CSS\n\nImplemented as a CSS grid/table with:\n- Character-shaped layout (head at top, feet at bottom, arms at sides)\n- Each cell is 100x100px\n- Color-coded: filled slot vs empty slot\n- Back slot moved to top row beside head\n- Hover tooltip shows item name\n- Click to open item inspector\n\n### Remaining frontend work (moved to task-89)\n\n- **Container contents expandable** in inventory - click container item to see items inside\n- **Click empty paperdoll slot** → auto-open equip picker (currently only + button)\n- **Swap option** on equipped items in paperdoll\n- **Drag-and-drop** from inventory to paperdoll slots (future)",
+      "part_4_auto_generated_appearance": "### The problem\n\nCurrently characters have a static `appearance` text field. With equipment, the appearance should change based on what's worn. A character in chainmail + jacket looks different from one in a t-shirt.\n\n### Solution: Base appearance + equipment overlay\n\n1. **Base appearance** - the character's naked/neutral description (body type, hair, face, skin, distinguishing features). Stored in `base_description` field.\n2. **Derived appearance** - base + equipment described on top of it, stored in `description` field.\n3. **Backend fallback** - `_update_equipment_description()` in `engine/equipment.py:392` runs on every equip/unequip via the backend. It builds a code-generated fallback template (never calls the LLM directly).\n4. **Frontend LLM hook** - `api.js:381` auto-triggers `InspectorAgentView._generateDescription()` after `wear`/`remove`/`unequip` actions. This calls `llmClient.chat()` with base_description + equipment, then saves the result back via `POST /api/players/<name>/description`.\n5. **Manual button** - \"Generate from Equipment\" in the inspector calls the same frontend LLM path.\n\n### How it shows to others\n\n| Situation | What they see |\n|-----------|---------------|\n| Fully clothed | LLM-generated (via frontend): \"Kaelen is a tall woman with sharp features, wearing a leather jacket over a chainmail shirt...\" |\n| Nude | LLM-generated from base_description only |\n| LLM fails or backend-only path | Fallback template: \"[p.name] is wearing chainmail on their torso, boots on their feet...\" |\n\n### Triggering the description\n\n- `wear` / `remove` / `unequip` commands - frontend `api.js:381` hook fires `InspectorAgentView._generateDescription()` via `llmClient.chat()`\n- Manual \"Generate from Equipment\" button - same frontend LLM path\n- Backend `_update_equipment_description()` runs the fallback template on every equip/unequip regardless (sets `player.description` to code-generated text as a safety net)",
+      "part_5_npc_starting_equipment": "Scenarios need a way to define what characters start with:\n\n### In world data\n\n```json\n{\n  \"characters\": {\n    \"guard\": {\n      \"name\": \"Marcus\",\n      \"description\": \"A broad-shouldered man...\",\n      \"equipped\": {\n        \"head\": \"steel_helmet\",\n        \"torso\": [\"tunic\", \"chainmail\"],\n        \"legs\": [\"pants\"],\n        \"feet\": [\"boots\"],\n        \"hand_right\": \"spear\",\n        \"waist\": \"belt_pouch\"\n      }\n    }\n  }\n}\n```\n\nWhen the scenario loads, these items are created (if not existing) and equipped to slots. The character's appearance is auto-generated from the equipped state.\n\n### In inspector\n\nWhen editing a character, equipment slots can be pre-filled from the paperdoll editor. This sets up starting gear for any character before the scenario begins."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Characters Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-17-editable_characters.md"
+  }
+}

@@ -13,7 +13,7 @@ wiki: "[[Developer Tooling]]"
 
 ## What
 
-docs/design/js-module-index.md is stale against the source it is generated from. It lists 382 modules / 211 documented / 171 awaiting a contract header; a live run of `python tools/js_module_index.py --write` reports 405 / 223 / 182. The missing rows are real modules added since the index was last generated, including static/js/agent/prompt-builder/capture.js (the shared turn-prompt capture used by the Benchmark Lab and the in-app harness). It cannot be regenerated today without reintroducing banned characters: roughly 100 source headers still use an em-dash (—) as their separator, and the generator emits that character verbatim into the Powers column, which violates the repo-wide em-dash ban.
+docs/design/js-module-index.md is stale against the source it is generated from. It lists 382 modules / 211 documented / 171 awaiting a contract header; a live run of `python tools/js_module_index.py --write` reports 405 / 223 / 182. The missing rows are real modules added since the index was last generated, including static/js/agent/prompt-builder/capture.js (the shared turn-prompt capture used by the Benchmark Lab and the in-app harness). It cannot be regenerated today without reintroducing banned characters: roughly 100 source headers still use an em-dash (-) as their separator, and the generator emits that character verbatim into the Powers column, which violates the repo-wide em-dash ban.
 
 ## Why
 

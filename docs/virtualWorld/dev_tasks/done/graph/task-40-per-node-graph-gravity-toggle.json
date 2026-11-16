@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-40",
+  "kind": "task",
+  "number": 40,
+  "title": "Per-Node Graph Gravity Toggle",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The graph now has a saved, per-node **Central pull enabled** toggle. It is available from the inspector for areas, items, ways, and character nodes.\n\nWhen disabled, the node is excluded from vis-network physics, so it remains in place while the rest of the graph continues to simulate.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph-manager.js` - maps `central_gravity_enabled` to the vis-network node physics option and refresh signature.",
+      "static/js/inspector.js` - adds the inspector control and persistence handler."
+    ],
+    "custom": {
+      "review_checklist": "- Confirm the toggle is shown for room, item, door, and character nodes.\n- Disable central pull for one node and confirm it no longer moves while the rest of the graph settles.\n- Re-enable it and confirm the node re-enters the simulation.\n- Reload the page/world and confirm the choice persists via `central_gravity_enabled`.\n- Confirm graph reloads do not discard other node positions.",
+      "technical_note": "vis-network exposes central gravity as a graph-wide setting. The implemented per-node behavior uses `physics: false`, so opting out also disables spring and other force movement for that node; it functions as a position lock."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-40-per_node_graph_gravity_toggle.md"
+  }
+}

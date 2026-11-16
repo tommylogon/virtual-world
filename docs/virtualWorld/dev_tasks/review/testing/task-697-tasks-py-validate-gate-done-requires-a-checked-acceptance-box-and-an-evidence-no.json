@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "task-697",
+  "kind": "task",
+  "number": 697,
+  "title": "tasks.py validate gate: done requires a checked acceptance box and an evidence note",
+  "status": "review",
+  "area": "testing",
+  "priority": "medium",
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ]
+  },
+  "created": "2026-10-04",
+  "relations": {
+    "related": [
+      "task-612",
+      "task-677"
+    ]
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "task-612 reached `done` with its Acceptance section still TODO and no live repro;",
+        "done": false
+      },
+      {
+        "text": "task-677's checkboxes drifted behind what actually shipped. The task tree is the",
+        "done": false
+      },
+      {
+        "text": "project's memory - an unverified `done` poisons the next session's ground truth.",
+        "done": false
+      },
+      {
+        "text": "`tasks.py validate` fails (or errors - decide warn vs error, warn to start)",
+        "done": false
+      },
+      {
+        "text": "when a task in `done/` has zero checked `- [x]` boxes in Acceptance.",
+        "done": false
+      },
+      {
+        "text": "It also warns when a `done/` task's body has no evidence marker",
+        "done": false
+      },
+      {
+        "text": "(a line matching /verified|repro|test|screenshot/i).",
+        "done": false
+      },
+      {
+        "text": "`review/` tasks with zero checked boxes get a softer warning (review",
+        "done": false
+      },
+      {
+        "text": "legitimately includes partial work - task-333/334 style).",
+        "done": false
+      },
+      {
+        "text": "Existing `done/` files that trip the rule are listed once, and the",
+        "done": false
+      },
+      {
+        "text": "grandfather set is either fixed or accepted via the usual baseline update -",
+        "done": false
+      },
+      {
+        "text": "do not mass-move old tasks silently.",
+        "done": false
+      },
+      {
+        "text": "`python tools/tasks.py validate` self-test: moving task-612 back to done",
+        "done": false
+      },
+      {
+        "text": "without evidence fails; with the evidence section added, passes.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable - this card changes the repository task validator, not the game UI.\n\nCurrent availability: the task records that `done/` cards can lack checked Acceptance boxes or evidence. The validator gate is planned; no new app control is involved.\n\nWhy no browser UI: the behavior is a command-line validation rule over Markdown cards. A game browser cannot prove that an invalid done card is rejected.\n\nAlternative verification steps:\n1. Create a scratch task card under `done/` with Acceptance left as TODO and run `python tools/tasks.py validate`.\n   - expected: validation emits the specified warning/error naming that card and the missing checked acceptance.\n2. Add one checked Acceptance item but no evidence marker and run validation again.\n   - expected: the checked box alone does not pass; the missing evidence is reported.\n3. Add the evidence note required by the rule and validate again.\n   - expected: that card's warning clears; unrelated validation warnings remain unchanged.\n4. Move the scratch card out of done and repeat.\n   - expected: the done-only gate no longer applies while normal schema checks still run.\n\nThis section is not a claim that planned task-tool behavior exists or works today."
+    }
+  }
+}

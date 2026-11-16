@@ -27,7 +27,7 @@ Defaults to `dry` in `area.py`.
 
 | Humidity | effective_temp modifier | Drying speed | Stealth modifier | Other |
 |----------|------------------------|--------------|------------------|-------|
-| dry | 0 | fast (baseline) | 0 | — |
+| dry | 0 | fast (baseline) | 0 | - |
 | humid | +2 (hot) / -1 (cold) | slow (2x) | -5 | Social -1/tick |
 | wet | +3 / -2 | very slow (4x) | -10 | Items may slip |
 | flooding | +4 / -3 | no drying | -15 | Movement cost +1 energy |
@@ -73,13 +73,13 @@ Flooding spreads to lower-connected areas through open doors (water flows downhi
 
 ## Files
 
-1. `engine/area.py` — add `humidity` to default environment
-2. `engine/equipment_bonuses.py` — humidity modifier on effective_temp
-3. `engine/environment_propagation.py` — `propagate_air()`, `propagate_flooding()`
-4. `engine/tick_manager.py` — item drying tick, humidity vitals effects
-5. `engine/effects.py` — `set_environment` / `adjust_environment` support `humidity` key
-6. `engine/serialization.py` — save/load `humidity`
-7. `engine/area_description.py` — humidity descriptions
+1. `engine/area.py` - add `humidity` to default environment
+2. `engine/equipment_bonuses.py` - humidity modifier on effective_temp
+3. `engine/environment_propagation.py` - `propagate_air()`, `propagate_flooding()`
+4. `engine/tick_manager.py` - item drying tick, humidity vitals effects
+5. `engine/effects.py` - `set_environment` / `adjust_environment` support `humidity` key
+6. `engine/serialization.py` - save/load `humidity`
+7. `engine/area_description.py` - humidity descriptions
 
 ## Dependencies
 

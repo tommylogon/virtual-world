@@ -17,7 +17,7 @@ Add a trigger effect that adds (or removes) a tag on a target node, so a trigger
 
 ## Why
 
-Trigger effects can *target* items by tag (`target_tag` in engine/trigger_system.py:1267) and can `set_hidden`, `adjust_uses`, `rename`, etc. — but nothing can *add* or *remove* a tag. If a trigger should make something flammable, mark a room as discovered, or turn an item into a light source after use, there's no way to do it.
+Trigger effects can *target* items by tag (`target_tag` in engine/trigger_system.py:1267) and can `set_hidden`, `adjust_uses`, `rename`, etc. - but nothing can *add* or *remove* a tag. If a trigger should make something flammable, mark a room as discovered, or turn an item into a light source after use, there's no way to do it.
 
 ## How
 
@@ -35,9 +35,9 @@ Trigger effects can *target* items by tag (`target_tag` in engine/trigger_system
 
 ## Files to Modify
 
-1. `engine/trigger_system.py` — `add_tag`/`remove_tag` added to EFFECT_TYPES ✅
-2. `engine/effects.py` — `handle_add_tag`/`handle_remove_tag` handlers + `_resolve_effect_target`/`_normalize_tags` helpers ✅
-3. `static/js/shared/trigger-editor.js`, `static/js/shared/trigger-graph.js`, `static/js/inspector.js`, `static/js/item-library.js` — effect options + tag/node param fields ✅
+1. `engine/trigger_system.py` - `add_tag`/`remove_tag` added to EFFECT_TYPES ✅
+2. `engine/effects.py` - `handle_add_tag`/`handle_remove_tag` handlers + `_resolve_effect_target`/`_normalize_tags` helpers ✅
+3. `static/js/shared/trigger-editor.js`, `static/js/shared/trigger-graph.js`, `static/js/inspector.js`, `static/js/item-library.js` - effect options + tag/node param fields ✅
 
 ## Steps to verify
 
@@ -46,9 +46,9 @@ Trigger effects can *target* items by tag (`target_tag` in engine/trigger_system
 - [x] Works with comma-string tag lists
 - [x] Tag-based effect targeting sees the new tag immediately
 
-**Implemented 2026-08-02** — `add_tag`/`remove_tag` effects target via `node_id`/`self`/`target_tag` fan-out and normalize both list and comma-string tag formats. Tests in `tests/test_trigger_system.py::TestAddRemoveTagEffect` (4 tests) — the integration test confirms tag-based targeting finds an item right after `add_tag` applies.
+**Implemented 2026-08-02** - `add_tag`/`remove_tag` effects target via `node_id`/`self`/`target_tag` fan-out and normalize both list and comma-string tag formats. Tests in `tests/test_trigger_system.py::TestAddRemoveTagEffect` (4 tests) - the integration test confirms tag-based targeting finds an item right after `add_tag` applies.
 
-**Status: DONE** — moved to `done/triggers/`.
+**Status: DONE** - moved to `done/triggers/`.
 
 ## Related
 

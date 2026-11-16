@@ -43,7 +43,7 @@ The biggest file in the project. Currently one `VirtualWorld` class with 22+ fun
 | 6 | `engine/tick_cycle.py` | `tick_turn()`, `tick()`, `advance_clock()`, `get_current_time()`, `rest()` | 300 |
 | 6 | `engine/narration.py` | `process_emote()`, `get_narration_context_for_area()`, `inject_narration()`, `fumble_around()` | 200 |
 | 6 | `engine/serialization.py` | `to_dict()`, `to_scenario_dict()`, `load_from_dict()`, legacy conversion | 400 |
-| — | `engine/engine.py` | Slim VirtualWorld class, imports and delegates to all modules | 100 |
+| - | `engine/engine.py` | Slim VirtualWorld class, imports and delegates to all modules | 100 |
 
 **Key decisions:**
 - **Approach A: Dependency Injection.** Each module receives only the shared state it needs (graph, players dict, etc.), not the entire engine.
@@ -54,7 +54,7 @@ The biggest file in the project. Currently one `VirtualWorld` class with 22+ fun
 
 | Module | Routes | Est. lines |
 |--------|--------|-----------|
-| `routes/helpers.py` | — (shared utilities) | 50 |
+| `routes/helpers.py` | - (shared utilities) | 50 |
 | `routes/pages.py` | 4 (HTML pages) | 20 |
 | `routes/action.py` | 4 (state, action, emote, turn) | 320 |
 | `routes/players.py` | 12 (player CRUD, speak, kill, import) | 350 |
@@ -77,8 +77,8 @@ The biggest file in the project. Currently one `VirtualWorld` class with 22+ fun
 
 | File | What | Used by |
 |------|------|---------|
-| `shared/dom-utils.js` | `escHtml()`, `escJsStr()` — unified HTML/JS escaping | All files |
-| `shared/json-utils.js` | `parseJSONFromResponse()` — code fence stripping + JSON parsing | agent-engine, item-library, main |
+| `shared/dom-utils.js` | `escHtml()`, `escJsStr()` - unified HTML/JS escaping | All files |
+| `shared/json-utils.js` | `parseJSONFromResponse()` - code fence stripping + JSON parsing | agent-engine, item-library, main |
 | `shared/trigger-editor.js` | Overlay modal + effects/conditions grid | inspector, item-library (replaces 400 duplicated lines) |
 | `shared/ai-generator.js` | System message builder + LLM call + form population | item-library, main (replaces 200 duplicated lines) |
 
@@ -168,11 +168,11 @@ The modularization is pure file-splitting with imports. No new dependencies. The
 The existing architecture (ES6 modules via `<script>` tags, no bundler) works fine for this scale. The files are small enough individually that HTTP/1.1 connection overhead isn't a concern. A build step (Webpack/Vite) would add complexity without solving any real problem.
 
 **What would help (already loaded via CDN):**
-- Tippy.js (tooltips) — ✅ already loaded
-- Notyf (toasts) — ✅ already loaded  
-- Choices.js (multi-select) — ✅ already loaded
+- Tippy.js (tooltips) - ✅ already loaded
+- Notyf (toasts) - ✅ already loaded  
+- Choices.js (multi-select) - ✅ already loaded
 
 **What I'd avoid:**
-- React/Vue/Svelte — would require a full rewrite of the HTML-in-JS pattern
-- TypeScript — no build step, adds compilation complexity. JSDoc comments could provide typing without a compiler.
-- Webpack/Vite — not needed at this scale, adds a bundler requirement
+- React/Vue/Svelte - would require a full rewrite of the HTML-in-JS pattern
+- TypeScript - no build step, adds compilation complexity. JSDoc comments could provide typing without a compiler.
+- Webpack/Vite - not needed at this scale, adds a bundler requirement

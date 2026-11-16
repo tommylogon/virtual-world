@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "task-486",
+  "kind": "task",
+  "number": 486,
+  "title": "Auto-regenerate description on body-state change",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-210",
+      "task-253",
+      "task-534"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Regenerate the stored player.description when conditions/body_state change, not only on equip/unequip: add an _update_state_description() hook (guarded by world.auto_generate_descriptions) and optionally _get_state_hash() caching skipped when mature_content is off. Tracked from task-210.",
+    "why": "When conditions alter physical appearance (blushing, injuries, exhaustion), character descriptions remained static unless regenerated manually.",
+    "how": "- `engine/equipment.py`:\n  - `VISIBLE_BODY_STATE_PHRASES` module constant - the visible-condition map shared by the prompt block and the fingerprint.\n  - `_get_state_hash(player)` - equipment (slot, id, `current_state`) + `mature_content` flag + present visible conditions + body-state sensitivity.\n  - `_update_state_description(player)` - hash-guarded, `auto_generate_descriptions`-guarded reconcile hook; returns whether it rebuilt.\n  - `_update_equipment_description()` re-seeds `player._description_state_hash` after writing prose.\n- `engine/tick_manager.py` - `tick_turn()` reconciles every living character once per turn, catching conditions changed by direct `player.conditions` dict writes (not just `add_condition`/`remove_condition`).\n- `engine/conditions.py` - `ConditionsSystem.apply_condition`/`remove_condition` refresh immediately via `_refresh_description` (best-effort; the per-turn hook is the safety net).",
+    "verify": "- [x] `tests/test_description_enrichment.py` (11 tests): regeneration on apply/remove, no-op when unchanged, non-visible conditions ignored, `auto_generate_descriptions` gate, `mature_content` gate, item `current_state` sensitivity, conditions-system immediate refresh, and the tick safety net after a direct dict write.\n- [x] `python -m pytest tests/test_description_enrichment.py -q` → 11 passed.\n- [x] Full suite unchanged from baseline (63 pre-existing failures, no new ones).",
+    "acceptance": [
+      {
+        "text": "`player.description` refreshes when a visible condition/body-state change is applied or removed (e.g. `nipple_hard`, `blushing`, `wetness`), not only on equip/unequip.",
+        "done": false
+      },
+      {
+        "text": "Guarded by `world.auto_generate_descriptions` (off → no regeneration) and respects the `world.mature_content` gate on the body-state block (`engine/equipment.py:_body_state_description_lines`).",
+        "done": false
+      },
+      {
+        "text": "Optional per design: `_get_state_hash()` (equipment + conditions + body_state) prevents redundant regeneration when nothing changed.",
+        "done": false
+      },
+      {
+        "text": "`engine/pleasure_actions.py`-style matures stay off in non-mature worlds.",
+        "done": false
+      },
+      {
+        "text": "Test coverage added; `python -m pytest tests/test_<name>.py -q` green.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_appearance.py",
+      "engine/player_conditions.py",
+      "tests/test_character_appearance.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector → Bio → Appearance description and\nConditions; run the scenario with `auto_generate_descriptions` and\n`mature_content` set in its test configuration.\n\nCurrent availability: Condition editing and the appearance-description field\nexist. The engine regenerates on condition changes when enabled; this card's\nrecorded verification is unit-level, not a browser run.\n\nLive steps when available:\n1. In a scratch world with `auto_generate_descriptions` and\n   `mature_content` enabled, select a character, record the current appearance\n   description, add the `blushing` condition in the Conditions editor, then\n   read the description again.\n   - expected: the text includes the authored visible phrase that the\n     character's cheeks are flushed.\n2. Remove `blushing` or let its duration expire, then inspect the description\n   after the condition change and after the next tick.\n   - expected: the flushed phrase is removed and the tick does not regenerate\n     the same unchanged description again.\n3. Disable `auto_generate_descriptions`, apply `blushing` in a fresh test\n   world, and compare the description; then turn `mature_content` off and\n   repeat with the mature body-state block.\n   - expected: the auto-generation-off world does not rewrite the description;\n     the mature-state phrase is absent when the mature-content gate is off.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-486-auto-regenerate-description-on-body-state-change.md"
+  }
+}

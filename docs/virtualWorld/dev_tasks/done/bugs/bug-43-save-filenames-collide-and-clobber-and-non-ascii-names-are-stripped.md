@@ -22,7 +22,7 @@ Two data-loss / nameless-file problems in save filename generation:
 2. **Non-ASCII stripped.** The sanitizer
    `''.join(c if c.isalnum() or c in ' _-' else '_' for c in name)` replaces every
    character outside ASCII alphanumerics/space/underscore/hyphen with `_`. A name like
-   `Ærø kysten` or `Draghál` loses its letters — ids/filenames become rows of
+   `Ærø kysten` or `Draghál` loses its letters - ids/filenames become rows of
    underscores. `str.isalnum()` is Unicode-aware, so the filter is stricter than it
    needs to be for a filesystem name.
 
@@ -30,8 +30,8 @@ Note: `bug-31` covers path *validation* (traversal). This is filename *generatio
 
 ## Root cause
 
-- `routes/helpers.py:293` — sanitizer drops non-ASCII letters.
-- `routes/helpers.py:310` — `filename = f"{safe_name}_{ts}.json"`, no collision check.
+- `routes/helpers.py:293` - sanitizer drops non-ASCII letters.
+- `routes/helpers.py:310` - `filename = f"{safe_name}_{ts}.json"`, no collision check.
 - Same sanitizer is duplicated in the rename route (`routes/saveload.py:312`), the
   scenario-name route (`saveload.py:793`), and the scenario path helper
   (`saveload.py:638`), so a fix must be applied consistently or the sites will drift.
@@ -39,7 +39,7 @@ Note: `bug-31` covers path *validation* (traversal). This is filename *generatio
 ## How
 
 1. Resolve a free filename: if the target exists, append a numeric/disambiguating
-   suffix (`..._2`, `..._3`) — never silently overwrite a different save. Slot
+   suffix (`..._2`, `..._3`) - never silently overwrite a different save. Slot
    overwrites (`slot=` / autosave) stay the one intentional in-place overwrite.
 2. Normalize names (NFKD) and keep Unicode letters/digits, folding only characters
    that are genuinely unsafe on Windows (`<>:"/\|?*`, control chars). Fall back to a
@@ -78,16 +78,16 @@ One shared `sanitize_filename(name, *, allow='', fallback='unnamed')` in
 writes bypass it (the one intentional in-place overwrite). Rename uses it too,
 unless the new name resolves back to the current file.
 
-Note: only the *filename* is disambiguated on collision — the stored
+Note: only the *filename* is disambiguated on collision - the stored
 `_save_metadata.name` display label is untouched (convention: rename ids, not
 display names). Tests in `tests/test_saveload.py` (`TestSanitizeFilename`,
 `TestSaveFilenameCollisions`, `TestSafeSavePath`).
 
 ## Files
 
-- `routes/helpers.py` — `_save_game` sanitizer + filename (282-326)
-- `routes/saveload.py` — rename sanitizer (312), scenario name (793), `_safe_scenario_name` (638)
-- `tests/test_saveload.py` — collision and unicode coverage
+- `routes/helpers.py` - `_save_game` sanitizer + filename (282-326)
+- `routes/saveload.py` - rename sanitizer (312), scenario name (793), `_safe_scenario_name` (638)
+- `tests/test_saveload.py` - collision and unicode coverage
 
 ## What
 

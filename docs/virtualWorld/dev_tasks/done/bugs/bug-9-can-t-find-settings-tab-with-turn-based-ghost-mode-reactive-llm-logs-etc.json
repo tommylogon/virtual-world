@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "bug-9",
+  "kind": "bug",
+  "number": 9,
+  "title": "Can't find settings tab with turn-based, ghost mode, reactive, LLM logs etc.",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "User cannot see a tab or section in the Settings modal that contains turn-based mode, ghost mode, reactive mode, LLM logs toggle, and related settings.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "templates/index.html:179-182` - settings tab buttons",
+      "templates/index.html:207-228` - Automation & Advanced tab content (turn-based, ghost, reactive, LLM logs all here)",
+      "static/js/ui/settings-view.js` - `switchTab()` logic",
+      "static/css/style.css:673-721` - tab button and pane styles"
+    ],
+    "custom": {
+      "current_state": "These settings exist in the Settings modal under the \"Automation & Advanced\" tab (`tab-automation`), which is the second of two tabs (alongside \"Connection\"). If the tab button is not rendering or the user can't find it, possible causes:\n\n1. CSS issue hiding the `.tab-btn` for `data-tab=\"tab-automation\"` (unlikely - both tabs use the same class)\n2. The button is visible but the label \"Automation & Advanced\" is not descriptive enough - user may be looking for a \"Provider\" or \"Behavior\" tab label\n3. Tab switching or tab rendering issue where the pane content doesn't show",
+      "investigation": "- Check that the `tab-automation` button renders in the DOM\n- Check `switchSettingsTab()` function (`main.js:92`) and `SettingsView.switchTab()` for bugs\n- Consider adding clearer tab labels or a dedicated \"Provider\" tab"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed (escaped `&` entity, renamed tab to \"Behavior & Automation\")",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-9-settings-tab-not-found-turnbased-ghost-reactive-etc.md"
+  }
+}

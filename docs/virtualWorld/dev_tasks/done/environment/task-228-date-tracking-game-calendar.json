@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-228",
+  "kind": "task",
+  "number": 228,
+  "title": "Date Tracking & Game Calendar",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-15",
+  "updated": "2026-08-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [
+      "task-85"
+    ],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a game calendar (day / month / year) derived from `time_ticks`. Expose it in world state and the API so other systems (moon phases, forecast schedules, scenarios with seasonal themes) can reference absolute dates.",
+    "why": "TODO",
+    "how": "### Calendar Config\n\nAdd to world state (or `virtual_world_engine.py` defaults):\n\n```python\ncalendar_config = {\n    \"minutes_per_day\": 1440,\n    \"days_per_week\": 7,\n    \"days_per_month\": 30,\n    \"months_per_year\": 12,\n    \"year_start_day\": 1,\n}\n```\n\n### Date Calculation\n\nIn `engine/tick_manager.py`:\n\n```python\n@property\ndef game_day(self) -> int:\n    total_minutes = self.time_ticks * self.time_per_tick_minutes\n    return int(total_minutes // 1440) + 1\n\n@property\ndef game_month(self) -> int:\n    cfg = self.player_manager.calendar_config\n    day = self.game_day\n    month = ((day - 1) // cfg[\"days_per_month\"]) % cfg[\"months_per_year\"] + 1\n    return month\n\n@property\ndef game_year(self) -> int:\n    cfg = self.player_manager.calendar_config\n    day = self.game_day\n    return ((day - 1) // (cfg[\"days_per_month\"] * cfg[\"months_per_year\"])) + 1\n```\n\n### World State Exposure\n\nAdd `game_day`, `game_month`, `game_year`, `calendar_config` to `/api/state` response.\n\n### UI Display\n\nEvent stream header format: `\"Day {day}, Month {month}, Year {year} - {HH:MM} - {weather}\"`",
+    "verify": "- Advance time across midnight → `game_day` increments\n- Advance across month boundary → `game_month` increments\n- Advance across year boundary → `game_year` increments\n- Calendar persists through save/load\n- Custom calendar config works",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/tick_manager.py` - add `game_day`, `game_month`, `game_year` properties",
+      "virtual_world_engine.py` - add `calendar_config` defaults",
+      "routes/state.py` - expose calendar fields in `/api/state",
+      "engine/serialization.py` - save/load calendar config",
+      "static/js/world-state.js` - parse new fields",
+      "static/js/event-stream.js` - display date in header"
+    ],
+    "custom": {
+      "what_already_exists": "- `TickManager.time_ticks` - monotonically increasing counter\n- `time_per_tick_minutes = 5` - each tick = 5 game minutes\n- `clock_start_hour = 8`, `clock_start_minute = 0` - day starts at 08:00",
+      "dependencies": "- **Blocked by**: Nothing\n- **Blocks**: task-227 (forecast schedule uses day for weekly/yearly), task-229 (moon phase uses game_day)",
+      "implemented_audit_2026_09_02": "Fully implemented before this audit: `game_day/month/year` + `calendar_config`\non the engine, serialization, `/api/state` exposure. This audit added the UI\nhalf: turn-card headers now render `Day N, Month N, Year N` (event-stream.js\n`_turnLabel`); the SkyScape top-bar widget also shows the date."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "filed": "2026-08-15",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-228-date-tracking-game-calendar.md"
+  }
+}

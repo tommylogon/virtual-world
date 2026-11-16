@@ -1,4 +1,4 @@
-# Bug 1: trigger-editor.js — `effOpts is not defined` on add trigger
+# Bug 1: trigger-editor.js â€” `effOpts is not defined` on add trigger
 
 **Filed**: 2026-07-23
 **Priority**: High
@@ -27,4 +27,4 @@ Change `effOpts` to `effectOpts` on lines 66 and 69.
 `static/js/shared/trigger-editor.js:66,69`
 
 ---
-_Audited 2026-08-03 � duplicate file consolidated into this record._
+_Audited 2026-08-03 - duplicate file consolidated into this record._

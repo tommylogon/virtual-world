@@ -5,9 +5,9 @@ area: refactor
 priority: medium
 ---
 
-# Task 314 — Modularize the largest files
+# Task 314 - Modularize the largest files
 
-## Outcome (verified 2026-09-22) — reconciled and closed
+## Outcome (verified 2026-09-22) - reconciled and closed
 
 This was an open-ended chore, so it is closed by **reconciliation + re-scoping**, not by
 splitting every file.
@@ -22,7 +22,7 @@ splitting every file.
   removed (its wave-2 split was abandoned and wiring the stale snapshot would have
   regressed the live file), and its false row was deleted from
   `docs/design/js-module-index.md`.
-- **Stale claims corrected** — see the corrected note below.
+- **Stale claims corrected** - see the corrected note below.
 - **Remaining splits re-filed as concrete, bounded tasks:** **task-440** (backend
   runner-ups) and **task-441** (frontend giants + the trigger test module). Each carries
   today's measured counts, the suggested seam, and its own acceptance criteria.
@@ -45,7 +45,7 @@ splitting every file.
 
 Everything below this block is the historical 2026-08/09 record, kept for context.
 
-## Historical state (2026-09-21) — partial, not closable, several files regrew
+## Historical state (2026-09-21) - partial, not closable, several files regrew
 
 Verified by measuring every candidate in the current tree rather than trusting the
 file, whose own line counts are historical and now misleading.
@@ -63,7 +63,7 @@ existing):**
 - `static/js/graph/network-manager.js` → `projector.js`, `overlays.js`,
   `tooltips.js`, `focus.js`.
 - `static/js/inspector/way-view.js` → `way-view-triggers.js` +
-  `way-view-connections.js`, and the "URGENT" wiring is fixed —
+  `way-view-connections.js`, and the "URGENT" wiring is fixed -
   `templates/index.html:1075-1077` loads all three.
 - **Not credited in the file:** `engine/serialization.py` (503) now imports
   `serialization_template` (273) and `serialization_legacy` (156), which the
@@ -77,22 +77,22 @@ existing):**
 | `engine/traits.py` | 1096 | 934 |
 | `engine/movement.py` | 1098 | 639 |
 | `engine/tick_manager.py` | 1104 | 533 |
-| `engine/matching.py` | 697 | — |
-| `engine/equipment.py` | 754 | — |
-| `engine/trigger_validator.py` | 821 | — |
+| `engine/matching.py` | 697 | - |
+| `engine/equipment.py` | 754 | - |
+| `engine/trigger_validator.py` | 821 | - |
 | `static/js/inspector/agent-view.js` | 2245 | 1736 |
 | `static/js/shared/trigger-graph.js` | 2116 | 1399 |
 | `static/js/shared/trigger-editor.js` | 2022 | 1571 |
-| `static/js/item-library.js` | 1401 | — |
-| `static/js/main.js` | 1060 | — |
-| `tests/test_trigger_system.py` | 2724 | — (still one module, 14 classes) |
+| `static/js/item-library.js` | 1401 | - |
+| `static/js/main.js` | 1060 | - |
+| `tests/test_trigger_system.py` | 2724 | - (still one module, 14 classes) |
 
 Also unresolved: ~~`static/js/inspector/agent/agent-header.js` (165 lines) is an
-orphan with no `<script>` tag~~ — **resolved 2026-09-22: deleted** (dead duplicate; see
+orphan with no `<script>` tag~~ - **resolved 2026-09-22: deleted** (dead duplicate; see
 the Outcome block).
 
 **Fixed here while triaging:** the item split left two dead facade wrappers that
-would have raised `NameError` — `_get_effective_weight` and
+would have raised `NameError` - `_get_effective_weight` and
 `_sum_container_contents` called `_node_effective_weight` /
 `_sum_container_contents` from `engine/items/carry_weight.py` without importing
 them (and the second shadowed the module function's own name inside the method).
@@ -100,8 +100,8 @@ No callers existed, which is why the suite stayed green; both wrappers are
 removed.
 
 **False/stale claims (corrected 2026-09-22):** the header says
-`virtual_world_engine.py` was "slimmed to a facade (756 now)" — it is **1322**;
-`agent-engine.js` "currently 752" — it is **1181**. The "URGENT, first action next
+`virtual_world_engine.py` was "slimmed to a facade (756 now)" - it is **1322**;
+`agent-engine.js` "currently 752" - it is **1181**. The "URGENT, first action next
 session" item is long resolved (`templates/index.html:1075-1077` loads all three
 way-view modules).
 
@@ -115,10 +115,10 @@ way-view modules).
 Line-count audit of `virtual_world/` (2026-08-19, excluding `node_modules`, `.kilo`, venvs; 190 project files, 59,528 lines) identified the files that have outgrown single-file ergonomics. Several are already over ~1,000 lines or sit in the 700–900 range where extracting focused modules pays off. This task tracks which files need refactoring and modularization, per layer.
 
 **Already done / in flight (do not duplicate):**
-- `virtual_world_engine.py` — was ~4,600 lines, already slimmed to a facade (756 now). Covered by task-83.
-- `agent-engine.js` — extraction done in task-218 (action-normalizer, response-parser, threat-detector, agent-state, plan-tracker). Watch its growth; currently 752.
+- `virtual_world_engine.py` - was ~4,600 lines, already slimmed to a facade (756 now). Covered by task-83.
+- `agent-engine.js` - extraction done in task-218 (action-normalizer, response-parser, threat-detector, agent-state, plan-tracker). Watch its growth; currently 752.
 
-## Backend — Python
+## Backend - Python
 
 | File | Lines | Why / suggested split |
 |------|-------|-----------------------|
@@ -157,7 +157,7 @@ for steal rolls.
 
 **Runner-up**: `engine/movement.py` (639), `engine/serialization.py` (587), `engine/matching.py` (601), `engine/equipment.py` (536), `engine/tick_manager.py` (533).
 
-## Frontend — JavaScript
+## Frontend - JavaScript
 
 | File | Lines | Why / suggested split |
 |------|-------|-----------------------|
@@ -168,7 +168,7 @@ for steal rolls.
 | `static/js/item-library.js` | 1,105 | Library browser monolith. Split list/editor/import from rendering. |
 | `static/js/inspector/way-view.js` | 923 | Way editor view. Extract the trigger/connection editing it embeds. |
 | `static/js/main.js` | 895 | App bootstrap + glue. Extract init wiring and cross-module event subscriptions. |
-| `static/js/library-browser.js` | 824 | Overlaps item-library.js — decide ownership and merge/split. |
+| `static/js/library-browser.js` | 824 | Overlaps item-library.js - decide ownership and merge/split. |
 | `static/js/inspector/item-view.js` | 790 | Item editor view. Extract equip-slot / container / trigger editing sections. |
 
 **Runner-up**: `static/js/event-stream.js` (775), `static/js/inspector/behaviors-view.js` (575), `static/js/graph-manager.js` (550), `static/js/ui-controller.js` (531).
@@ -179,26 +179,26 @@ for steal rolls.
 
 ## How
 
-1. **One file at a time** — pick the smallest "runner-up" first as a proof-of-pattern, then move up.
-2. **No behavior change** in this pass — extraction only, keep public imports/API stable.
+1. **One file at a time** - pick the smallest "runner-up" first as a proof-of-pattern, then move up.
+2. **No behavior change** in this pass - extraction only, keep public imports/API stable.
 3. Verify each extraction: backend `python -m pytest tests/ -q -k "not mcp and not emote"`, frontend `node --check` on every touched JS file.
 4. Follow the same shape as task-218 (module per concern, table of what moved, lines saved).
 
 ## Files
 
-### Frontend — `static/js/graph/network-manager.js`
+### Frontend - `static/js/graph/network-manager.js`
 
 Progress as of 2026-08-20 (1,496 → 843 lines; −653):
 
 | Extracted module | Lines | What moved |
 |------------------|-------|-------------|
-| **`graph/projector.js`** | 163 | `computeVisibleNodeIds()`, `edgeVisible()`, `applyVisibility()`, `_viewState()` — the pure visibility projection (unit-testable, no vis.js). |
+| **`graph/projector.js`** | 163 | `computeVisibleNodeIds()`, `edgeVisible()`, `applyVisibility()`, `_viewState()` - the pure visibility projection (unit-testable, no vis.js). |
 | **`graph/overlays.js`** | 272 | The 5 ambient overlays (light/heat/sound/trigger/cardinal) + color maps + change-cached `computeAmbientLight()` (kills the old O(E·N) re-walk). |
 | **`graph/tooltips.js`** | 224 | `buildTooltip()`, `buildTooltipHtml()`, `_escHtml()`, `findGraphEdge()`, `bindEdgeHoverTooltips()`, `attachNodeTooltips()`. |
 | **`graph/focus.js`**  | 116 | Search focus: `applyFilter()`, `settleSearch()`, `_fitToSearchMatches()`, `_kickClusterPhysics()`, `filterNodes()` (debounced). |
 
 `network-manager.js` keeps builders (buildNodeConfig/buildLegendHTML), tag-library
-functions, reveal/hide state, init/load/shell — and re-exports each moved member as a
+functions, reveal/hide state, init/load/shell - and re-exports each moved member as a
 thin `@deprecated` delegate so every existing call site (`GraphNetwork.*`) keeps
 working. `templates/index.html` gained `<script>` tags for projector/overlays/tooltips/
 focus before `network-manager.js`.

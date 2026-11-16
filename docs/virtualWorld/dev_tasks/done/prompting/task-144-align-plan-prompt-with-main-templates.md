@@ -37,7 +37,7 @@ The plan prompt is built in a separate code path (likely `plan-manager.js`) that
 
 ## Files
 
-- `static/js/agent/plan-manager.js` — likely the plan prompt builder
+- `static/js/agent/plan-manager.js` - likely the plan prompt builder
 
 ## Done
 
@@ -45,14 +45,14 @@ The plan prompt is built in a separate code path (likely `plan-manager.js`) that
 - `=== CONDITION ===` → `=== YOUR STATE ===`
 - `=== MOST RECENT OUTCOME ===` → `=== RECENTLY ===`
 - `=== MOST RECENT THOUGHT ===` → `=== YOUR THOUGHTS ===` (own section after YOUR STATE, matching DECIDE)
-- Removed the duplicated `You are {name}. {personality}` line — the roomContext preamble already carries it.
+- Removed the duplicated `You are {name}. {personality}` line - the roomContext preamble already carries it.
 - `buildRoomContext()` gained an `includePlan` param (default `true`); plan generation passes `false` so the generator doesn't see its own active plan (it's already fed via `=== PREVIOUS PLAN ===`).
 - Kept `=== WORLD KNOWLEDGE ===`, `=== PREVIOUS PLAN ===`, threat note, and plan rules.
 
 ## Files Modified
 
-1. `static/js/agent/plan-manager.js` — prompt section rename/dedupe, `buildRoomContext(..., false)`
-2. `static/js/agent/prompt-builder.js` — `includePlan` param on `buildRoomContext`
+1. `static/js/agent/plan-manager.js` - prompt section rename/dedupe, `buildRoomContext(..., false)`
+2. `static/js/agent/prompt-builder.js` - `includePlan` param on `buildRoomContext`
 
 ## What
 

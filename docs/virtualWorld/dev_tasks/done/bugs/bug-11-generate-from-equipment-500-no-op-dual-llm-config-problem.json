@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "bug-11",
+  "kind": "bug",
+  "number": 11,
+  "title": "\"Generate from Equipment\" → 500 / no-op - dual LLM config problem",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-07-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Clicking \"Generate from Equipment\" in the character inspector bio tab either returns a 500 or silently does nothing (description unchanged). No LLM request appears in the event stream.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "virtual_world_engine.py:101` - wrong logger (FIXED)",
+      "engine/equipment.py:341-414` - `_update_equipment_description` uses backend config, silent failures",
+      "config.py:29-90` - hardcoded defaults with `default_provider: \"lmstudio\"`, `llm_logging: false",
+      "llm_connector.py` - backend LLM calls go through here",
+      "static/js/inspector/agent-view.js:835-875` - frontend needs rework",
+      "static/js/shared/ai-generator.js` - pattern to follow (browser-side LLM call)",
+      "static/js/api.js:70-77` - `ApiClient.updateCharacter()` endpoint already exists"
+    ],
+    "custom": {
+      "root_cause_two_separate_issues": "### Issue 1: Wrong object passed as logger (FIXED)\n\n`virtual_world_engine.py:101` was passing `self` (VirtualWorld) as the `logging_events` argument to `EquipmentSystem.__init__` instead of `self.game_logger` (GameLogger). This caused `AttributeError: 'VirtualWorld' object has no attribute 'log_llm_call'` → 500.\n\nFix applied: changed `self` → `self.game_logger` on that line.\n\n### Issue 2: Dual LLM config - frontend vs backend (REMAINING)\n\nThe app has **two completely separate LLM config paths**:\n\n| Feature | Config source | Provider |\n|---------|-------------|----------|\n| **Agents** (browser-side) | Browser Settings UI → `config.apiBase/key/model` (localStorage) | Whatever user configured in Settings |\n| **Item/Area/Way AI gen** (browser-side) | Same - `AIGenerator.generate()` → `llmClient.chat()` | Same |\n| **Generate from Equipment** (backend-side) | `config.get_config()` → reads `agent_config.json` or hardcoded defaults | Default: `lmstudio` at `localhost:1234/v1` |\n\nThe backend LLM path uses `config.py` → `agent_config.json` (which doesn't exist) → hardcoded defaults with `default_provider: \"lmstudio\"` and `llm_logging: False`. If LM Studio isn't running, the call fails silently (`except Exception: pass` in `_update_equipment_description`), and the fallback just sets `description = base_description` - no visible change.\n\nMeanwhile, every other \"generate\" feature (items, areas, ways, narration) calls the LLM directly from the browser using `llmClient.chat()`, which uses the user's Settings UI config (e.g. OpenRouter, OpenAI, Gemini) - and those all work fine.",
+      "fix_option_b_selected": "Make \"Generate from Equipment\" work like everything else - call `llmClient.chat()` directly in the browser, then save the result via `ApiClient.updateCharacter()`.\n\nThis eliminates the backend LLM dependency entirely for this feature.\n\n### Changes needed\n\n**`static/js/inspector/agent-view.js`** (~line 835-875):\n- Replace the backend API call with `llmClient.chat()` using same prompt as backend\n- Use `AIGenerator` pattern: build prompt from `base_description + equipment`, call LLM, parse response\n- Save result via `ApiClient.updateCharacter` (already exists)\n\n**Backend route `routes/players.py`** (optionally):\n- Can keep or remove `/api/players/<name>/generate-description` endpoint - probably keep for now, the route won't be called anymore"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed - switched to frontend LLM client (same path as item/room/door generation)",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-11-generate-equipment-wrong-logger.md"
+  }
+}

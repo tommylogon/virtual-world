@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-384",
+  "kind": "task",
+  "number": 384,
+  "title": "per-edit-undo-feed",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A \"World edited\" feed: every mutation (including external / MCP edits) appears\nas a labeled row bound to its undo snapshot, with a one-click restore to that\npoint.",
+    "why": "Audit P4 #18: the live-edit push is \"a log line only; no per-edit undo binding,\nno edit feed\". The undo stack already records a labeled per-edit snapshot\n(task-371), so the data exists - this surfaces it as a feed where an edit is\nvisible by name and revertible by name.",
+    "how": "- The `after_request` hook already pushes a labeled snapshot per mutation\n  (task-371) and `GET /api/undo/list` exposes the stack; `/api/events`\n  `world_changed` announces each edit (see AGENTS.md: the SSE opens\n  unconditionally, independent of the spectator poll).\n- Render a feed: subscribe to `world_changed`, refresh the undo list, show each\n  edit with its label; a row's action restores to that snapshot via\n  `POST /api/undo {steps:N}`.\n- Reuse / extend the undo-history UI (task-371) rather than a parallel list.\n- External / MCP edits arrive through the same `world_changed` path.\n- No new storage.",
+    "verify": "1. Make several edits in the GUI.\n   - expected: each appears in the feed with a label.\n   - observed: TODO\n2. Trigger an edit from outside the GUI (an MCP / API call).\n   - expected: it appears in the feed too.\n   - observed: TODO\n3. Click a row's restore.\n   - expected: the world returns to that snapshot.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Every mutation appears with its label.",
+        "done": false
+      },
+      {
+        "text": "Per-entry restore returns the world to that snapshot.",
+        "done": false
+      },
+      {
+        "text": "External / MCP edits are included (via the same `world_changed` event).",
+        "done": false
+      },
+      {
+        "text": "Reuses the undo stack; no new storage.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/ui/undo-history.ts` (task-371) - extend into the feed.",
+      "routes/saveload.py` - undo endpoints (`/api/undo`, `/api/undo/list`).",
+      "templates/index.html`.",
+      "tests/`."
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "browser_ui": "Intended UI home: World editor → per-edit Undo/Changes feed.\n\nCurrent availability: The per-edit feed and restore path are still in progress.\n\nLive steps when available:\n\n1. Make several GUI edits and one supported API/MCP edit, then inspect the feed.\n   - expected: Each mutation appears once with a useful label, including external changes from the shared world-changed event.\n\n2. Restore one feed entry and inspect the world.\n   - expected: The selected snapshot is restored through existing undo machinery without new state storage.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "audit_note_2026_10_16": "Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. The card itself says 'Not started (card complete; no implementation yet)'; 0 of its acceptance boxes are checked and no commit references it. static/js/ui/undo-history.ts already exists (last commit 2026-10-10); check what it covers before building a second feed.",
+      "what_already_exists_2026_10_16": "`static/js/ui/undo-history.ts` (`UndoHistory`, the history button in the graph toolbar, `templates/index.html:209`) is the task-371 dropdown (done) and covers part of this card. Read from source on 2026-10-16; it was not exercised live.\n\n- Labelled list: `GET /api/undo/list` (`routes/saveload.py:331`) returns every undo entry newest first, index 0 being the next undo. A mutation appears only if its route pushes a snapshot or paint delta (`_push_undo_snapshot` / `_push_undo_delta`, called from `graph_ops.py`, `saveload.py`, `settings.py`, `world_grid_ops.py` and `app.py`). Which mutating routes skip the push was not enumerated, so \"every mutation appears\" is unverified.\n- Per-entry restore is met: a row posts `POST /api/undo` with `steps = index + 1`, then calls `worldState.fetch()`. It is a multi-step undo through the existing stack, not a jump to an independent snapshot.\n- External and MCP edits via `world_changed` are not met. The module never subscribes to `world_changed`; the list is fetched only when the dropdown opens, so it is a dropdown and not a live feed. `mcp_server.py` only exposes reset, undo and redo.\n- Reuses the undo stack with no new storage: met.\n- No unit test exists for it (no `*undo*` file in `tools/unit`).\n\nThe remaining scope of this card is a live-updating feed and coverage of external edits, not a second list.",
+      "reconnaissance_2026_10_20": "- Measured: static/js/ui/edit-feed.js exists and subscribes to world_changed SSE; undo-history.js also exists. routes/saveload.py has /api/undo/list and /api/undo.\n- Verdict: PARTLY_DONE. Live feed + world_changed subscription implemented (edit-feed.js). Card scope largely covered but some details may need polish; keep todo, update scope to reflect landed implementation."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P4 - 'World edited' feed with per-edit undo: bind EventSource world_changed entries to undo snapshots (labels)."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-384-per-edit-undo-feed.md"
+  }
+}

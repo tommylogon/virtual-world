@@ -39,7 +39,7 @@ TODO
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this task verifies the complete way-property vocabulary and its generated index/checker. A single Inspector view cannot prove that the declared property set is exhaustive or that every value tuple matches engine readers.
+Intended UI home: Not applicable - this task verifies the complete way-property vocabulary and its generated index/checker. A single Inspector view cannot prove that the declared property set is exhaustive or that every value tuple matches engine readers.
 
 Current availability: the card identifies omitted `entry_phrase` and `requires_item`, and a drifted `current_state` list (`broken` listed, `hidden` omitted, `see_through` misclassified). The declaration/checker correction is planned.
 

@@ -64,7 +64,7 @@ Extend the shared condition-leaf vocabulary so pursuit templates and world recip
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this card has no browser-facing behavior.
+Intended UI home: Not applicable - this card has no browser-facing behavior.
 
 Current availability: Some leaves are implemented; area_has_function and knows_about remain blocked as recorded in the card.
 

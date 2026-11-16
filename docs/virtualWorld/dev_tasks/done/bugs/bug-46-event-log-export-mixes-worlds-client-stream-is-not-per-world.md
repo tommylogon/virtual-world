@@ -18,7 +18,7 @@ Reported: 'something went pretty wrong? im in world_template, but it seems to ha
 
 - TODO
 
-## Second live verification — 2026-10-02 (port 4471)
+## Second live verification - 2026-10-02 (port 4471)
 
 Drove the live `events._persist` (`StreamPersistence`) directly, changing the
 in-memory `worldState.data._scenario_name` to simulate a world switch:

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-973",
+  "kind": "task",
+  "number": 973,
+  "title": "Memory: Human-time authoring helper and computed date/age display on Mind timeline",
+  "status": "todo",
+  "priority": "low",
+  "area": "ui",
+  "tags": [
+    "memories",
+    "timeline",
+    "ux"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "small",
+  "goal": "Make memory timestamps human-readable and easy to author while keeping integer tick as the engine clock",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-944"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Project integer ticks into readable world dates/ages in Mind -> Memories and provide a relative-time authoring converter.",
+    "why": "Authoring negative ticks like -5000 by hand is guesswork when time_per_tick_minutes varies per scenario, even though tick must remain an integer for decay and recency math.",
+    "how": "Add a tick-to-date/age projection helper in Mind/Memory UI using world time_per_tick_minutes and character age/birthday, plus a relative-time converter in memory authoring.",
+    "verify": "node tools/unit/run.cjs tools/unit/test_mind_history.js and npm run build:ts",
+    "acceptance": [
+      {
+        "text": "Memory editor and Mind timeline display computed world date and character age alongside raw integer tick",
+        "done": false
+      },
+      {
+        "text": "Authoring/backdate UI accepts human-readable relative age or time offsets (e.g. age 6, 3 days ago) and converts to integer tick using time_per_tick_minutes",
+        "done": false
+      },
+      {
+        "text": "Underlying memory JSON continues storing integer tick as the single simulation clock source of truth",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/mind-view.ts",
+      "static/js/inspector/memory-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Mind -> Memories timeline and memory detail cards show both tick and computed calendar date/age; Backdate/Weave modal includes a relative-time helper input."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Gameplay/Memory System.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

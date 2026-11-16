@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "id": "task-880",
+  "kind": "task",
+  "number": 880,
+  "title": "WorldPainter modularisation: split editor.ts into canvas, dialogs, and palette modules",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-19",
+  "updated": "2026-10-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-776",
+      "task-876",
+      "task-877",
+      "task-879"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Split the monolithic `static/js/worldpainter/editor.ts` into coherent, decoupled modules under `static/js/worldpainter/`:\n1. `editor-dialogs.ts`: Modal and popover dialogs (Grid exact dimensions, Heightmap import/export, New scope prompt, Interior floor-plan picker, Scope chooser, Generation preview).\n2. `editor-palette.ts`: The floating tile palette, category rail, search filter, tile detail panel, blocker badge, and cell & seam inspectors.\n3. `editor-handles.ts`: Interactive canvas handles (cell 0,0 corner handle resize, frame boundary E/S/SE handles, reference image scaling/cropping handles).\n4. `editor-canvas.ts`: Konva rendering passes: grid lines, vision decor, route drawing, stroke accumulator, selection marquee, cell clicking, and batch nudges.\n5. `editor.ts`: Core Konva stage lifecycle, viewport state, tool rail, toolbar orchestration, and network mutation dispatch.",
+    "why": "At 5,379 lines prior to modularization, `editor.ts` was the single largest TypeScript file in the front-end. It conflated five distinct responsibilities:\n- UI dialog DOM rendering and file upload/download flows\n- Pure Konva canvas transformations and shape drawing\n- Pointer drag maths for multiple independent interactive handle systems\n- Tile vocabulary browsing and search filtering\n- Network synchronization, undo/redo stacks, and preflight blockers\n\nThis makes adding features difficult to navigate and increases compilation overhead. Isolating math and state contracts into pure modules drastically improves testability and readability.",
+    "how": "1. **Extract Dialogs (`editor-dialogs.ts`):** Move `openGridDialog`, `openHeightmapImportDialog`, `openHeightmapExportDialog`, `promptNewScope`, `showChooser`, and interior floor-plan pickers out of `editor.ts`.\n2. **Extract Palette (`editor-palette.ts`):** Move `palettePanel`, category filtering, blocker badge, feature/area bars, grid HUD, and detail panel DOM builders into a dedicated module that interfaces with `grid-model.ts` vocabulary functions.\n3. **Extract Handle Drag Logic (`editor-handles.ts`):** Group `refMouseDown`/`refMouseMove`/`refMouseUp` and `gridMouseDown`/`gridMouseMove`/`gridMouseUp` along with their stage anchor maths and reference image transforms.\n4. **Extract Canvas Rendering & Stroke Logic (`editor-canvas.ts`):** Move grid line drawing, vision decor, route rendering, marquee, nudging, and stroke batch mutations.\n5. **Shared Ambient Types (`static/js/types/worldpainter.d.ts`):** Declare interfaces (`WpState`, `WpPayload`, `WpCell`, etc.) once for TypeScript type checking without polluting classic script namespaces.\n6. **Bundle/Compile:** Compile via `npm run build:ts` ensuring all parts compile cleanly and remain accessible through the window namespace / classic script tags in `templates/index.html`.\n7. Zero regressions in the 68 WorldPainter unit test suite and scope generator tests.",
+    "verify": "1. Follow the live verification steps above on the running server (`http://localhost:4444`).\n   - expected: All tools, handles, dialogs, and palette function identically to the monolithic build.\n   - observed: Clean UI mounting with zero console errors.\n2. Run unit test suite `node tools/unit/run.cjs test_worldpainter.js` and verify all tests pass.\n   - expected: All 68 tests pass.\n   - observed: 68 passed, 0 failed.\n3. Run backend scope generator tests `python -m pytest tests/test_scope_generation_preview.py tests/test_scope_generators.py`.\n   - expected: All 7 tests pass.\n   - observed: 7 passed, 0 failed.",
+    "acceptance": [
+      {
+        "text": "`editor.ts` line count decreases by at least 1,800 lines (under 2,600 lines) - achieved 2,577 lines (reduction of 2,802 lines).",
+        "done": true
+      },
+      {
+        "text": "Dialogs are isolated in `editor-dialogs.ts` (609 lines).",
+        "done": true
+      },
+      {
+        "text": "Palette components are isolated in `editor-palette.ts` (796 lines).",
+        "done": true
+      },
+      {
+        "text": "Handles are isolated in `editor-handles.ts` (574 lines).",
+        "done": true
+      },
+      {
+        "text": "Canvas rendering is isolated in `editor-canvas.ts` (683 lines).",
+        "done": true
+      },
+      {
+        "text": "No regression in canvas handle manipulation, painting, or dialog execution.",
+        "done": true
+      },
+      {
+        "text": "`node tools/unit/run.cjs test_worldpainter.js` passes with zero failures (68/68 ok).",
+        "done": true
+      },
+      {
+        "text": "Zero em-dashes introduced.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor.ts",
+      "static/js/worldpainter/editor-dialogs.ts",
+      "static/js/worldpainter/editor-palette.ts",
+      "static/js/worldpainter/editor-handles.ts",
+      "static/js/worldpainter/editor-canvas.ts",
+      "static/js/types/worldpainter.d.ts",
+      "templates/index.html",
+      "tools/unit/test_worldpainter.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: WorldPainter overlay canvas and toolbars\n\nCurrent availability: Functional modularized implementation in `editor.ts`, `editor-dialogs.ts`, `editor-palette.ts`, `editor-handles.ts`, and `editor-canvas.ts`.\n\nLive steps:\n1. Open WorldPainter on any scope (e.g. `world` or `the_pines`).\n2. Verify all modal dialogs open, render, and commit edits without error (Grid dropdown exact dimensions dialog, heightmap import dialog, add feature prompt).\n3. Verify palette rail filters tiles by category and search.\n4. Verify cell resize (0,0) green handle and boundary handles drag smoothly on canvas."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/WorldPainter]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-880-worldpainter-modularisation-split-editor-ts-into-canvas-dialogs-and-palette-modules.md"
+  }
+}

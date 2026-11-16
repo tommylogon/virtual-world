@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-440",
+  "kind": "task",
+  "number": 440,
+  "title": "Split the backend runner-up files",
+  "status": "review",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-83",
+      "code",
+      "readability",
+      "task-218",
+      "the",
+      "module-per-concern",
+      "shape",
+      "this",
+      "follows"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extract focused modules from the backend files that outgrew single-file ergonomics.\n**One file per commit, no behaviour change** - extraction only, public imports and APIs\nstable, suite green after each.",
+    "why": "Backend hosts above ~1.5k lines hold multiple operation families in one module, so callers and tests depend on an opaque file - and an agent session that touches one route family pulls the whole host into context. Remeasured 2026-10-16, the original 2026-09-21 list understates it: `world_compile.py` is 2,724 lines and was untracked; `routes/graph_ops.py` is 2,016 (+661); `virtual_world_engine.py` (1,926), `routes/player_ops.py` (1,668), `engine/background_simulation.py` (1,668), `routes/action_handlers.py` (1,632, +331), `routes/library_ops.py` (1,628, +544), `engine/tick_manager.py` (1,595, +494) are all new entrants. Prefer `world_compile.py`, `graph_ops.py` and the `routes/*_ops.py` family first - clearest operation-family seams. A cohesive ~900-line file may stay; this is not a linecount chase.",
+    "how": "1. **One file at a time.** Start with the smallest target that has a clean seam, as the\n   proof of pattern, then move up. Do not batch.\n2. **No behaviour change.** Extraction only. Keep public imports/API stable, move public\n   API re-exports up to the host module.\n3. **Dedup & reuse pass (mandatory per extraction).** While splitting, scan the extracted\n   concern and its host for duplicate logic, parallel data homes, and near-identical\n   helpers; consolidate onto one owner instead of copying into the new module. Prefer\n   reusing an existing seam (e.g. `serialization_template`/`serialization_legacy`) over\n   creating a second one. Record any dedup decision in the move table.\n4. **Agent-experience & cleanliness (mandatory per extraction).** Name modules by\n   concern (not by size), keep each under ~600 lines where the seam allows, add a\n   one-line module docstring stating its owner and its public surface, and ensure a fresh\n   agent session can understand the module without reading the host. No new abstraction\n   unless an existing seam already represents the concept.\n5. **Record what moved** in the task file as a table (module → lines → what moved), the\n   shape task-314's wave-1 table used.\n6. Verify per extraction with a **targeted** selection (never the full suite by default;\n   never `-q`): e.g. `python -m pytest tests/test_<touched>.py` plus any module that\n   patches the moved symbol.",
+    "verify": "1. Remeasure host and new module after each one-file extraction.\n   - expected: host line count materially lower; extracted concern has one owner;\n     public import paths stable.\n   - observed: 2026-10-16 remeasure recorded above; no extraction landed this pass.\n2. Run the focused test module(s) that exercise the extracted behaviour (no `-q`).\n     - expected: same behaviour passes; any changed `mock.patch` target is recorded.\n     - observed: 2026-10-16 extraction #3 - `engine/serialization_helpers.py` (162 lines) from `engine/serialization.py` (965 → 836, −129). Moved the stateless payload helpers (`_body_region_catalog`, `_VITAL_KEY_ALIASES`, `canonical_vitals`, `_region_exposure_map`, `_goals_payload`, `_mosiac_payload`, `_trait_behavior`, `normalize_dials`, `_disposition_payload`) into the new module; `WorldSerializer` and the loader facade stay in `serialization.py`. Re-exported from `serialization.py` so `from engine.serialization import X` and internal bare-name call sites keep working; `TraitSystem`/`TRAIT_DEFINITIONS` import dropped from `serialization.py` (now imported lazily inside `_trait_behavior`). No `mock.patch` targets moved. `tests/test_disposition.py` + `tests/test_traits.py` 116/116 pass; `import app` clean.\n     - observed: 2026-10-16 extraction #4 - `engine/world_compile_stable.py` (43 lines) from `engine/world_compile.py`. Deterministic primitives extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.\n     - observed: 2026-10-16 extraction #5 - `engine/world_compile_directions.py` (51 lines) from `engine/world_compile.py`. Direction constants/helpers extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.\n     - observed: 2026-10-16 extraction #6 - `engine/world_compile_blocking.py` (55 lines) from `engine/world_compile.py` (committed 4ac63acc). Way-blocking helpers extracted: `BLOCKED_WAY_PERCENT`, `BLOCKERS_BY_TERRAIN`, `DEFAULT_BLOCKER`, `_blocker_for`, `_is_blocked_way`, `_reachable_areas`, `_apply_way_blocking`; re-exported. Combined verification `tests/test_disposition.py tests/test_traits.py tests/test_trigger_system.py tests/test_world_compile.py` 387/387 pass; `import app` clean.\n     - observed: 2026-10-17 extraction #7 - `engine/world_compile_regions.py` (202 lines) from `engine/world_compile.py`. Region/merge helpers extracted: `_region_authored_name`, `_regions`, `_region_climate`, `_region_components`, `_merge_always_cells`, `_merge_never_cells`, plus the preflight constants `BLOCK`, `WARN`, `_WAYS_PER_AREA_UPPER`, `DEFAULT_MAX_STOREY_STEP` that the region helpers depend on. Re-exported from `world_compile.py` so internal call sites keep working. `tests/test_world_compile.py` 112/112 pass; combined set 387/387 pass; `import app` clean. Host `engine/world_compile.py` 2724 -> 2552 (-172).\n     - observed: 2026-10-19 extraction #8 - `routes/graph_image_ops.py` (207 lines) from `routes/graph_ops.py`. Extracted node expression images (`handle_upload_node_image`, `handle_remove_node_image`, `_delete_managed_image`, `_expression_slug`, `IMAGE_KINDS`) and background map uploads and multi-layer metadata (`handle_upload_background_image`, `handle_save_background`). Re-exported from `routes/graph_ops.py` and maintained in `routes/graph.py` with zero import churn. `tests/test_node_image.py`, `tests/test_character_expressions.py`, `tests/test_graph_background_layers.py` 18/18 pass; `import app` clean. Host `routes/graph_ops.py` 2021 -> 1838 (-183).\n3. Import the package and the extracted module in a clean process.\n    - expected: no cycle / import-time side effect; stable public API still exposed.\n    - observed: 2026-10-17 - `import app` clean after extraction #7; `engine.world_compile_regions` imports cleanly in isolation and re-exports resolve through `world_compile.py` with no cycle.\n    - observed: 2026-10-19 - `import app` clean after extraction #8; `routes.graph_image_ops` imports cleanly and re-exports resolve with no cycles.",
+    "acceptance": [
+      {
+        "text": "Each split lands with the host file's line count materially reduced and the package",
+        "done": false
+      },
+      {
+        "text": "existing, verified by measuring both.",
+        "done": false
+      },
+      {
+        "text": "No test file changes required beyond `mock.patch` targets that moved (record them).",
+        "done": false
+      },
+      {
+        "text": "The suite stays green per extraction.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/world_compile.py`, `tick_manager.py`, `movement.py`, `traits.py`, `equipment.py`, `background_simulation.py`, `background_social.py`, `matching.py`, `trigger_validator.py`, `serialization.py`, `player_conditions.py",
+      "routes/graph_ops.py`, `routes/graph_image_ops.py`, `player_ops.py`, `action_handlers.py`, `library_ops.py",
+      "virtual_world_engine.py`, `player.py` (only if a clean seam is proven)",
+      "new extracted modules under `engine/` / `routes/` as recorded per split"
+    ],
+    "custom": {
+      "measured_targets_2026_10_16_remeasure": "Remeasured 2026-10-16 (`engine/`, `routes/`, plus the two root runners). Δ vs the\n2026-09-21 card figures where comparable. **New entrants** were absent from the\noriginal list and now sit above several of the tracked targets.\n\n| File | Lines | Δ / note | Suggested seam |\n|------|------:|----------|----------------|\n| `engine/world_compile.py` | 2552 | −172 (extraction #7) | region/merge helpers + preflight constants extracted to `world_compile_regions.py`; stable, blocking, directions, regions seams done |\n| `routes/graph_ops.py` | 2016 | +661 | second pass: node CRUD / edges / batch / import-export |\n| `virtual_world_engine.py` | 1926 | **NEW** (root runner) | only if a clean phase or facade seam exists; do not churn for linecount |\n| `routes/player_ops.py` | 1668 | **NEW** | split by operation family (state / inventory / memory / update) |\n| `engine/background_simulation.py` | 1668 | **NEW** | schedule / social / ambient ticks from the orchestrator |\n| `routes/action_handlers.py` | 1632 | +331 | second pass: split by verb family |\n| `routes/library_ops.py` | 1628 | +544 | second pass |\n| `engine/tick_manager.py` | 1595 | +494 | extract tick phases (vitals / environment / triggers / activities) from the orchestrator |\n| `player.py` | 1450 | **NEW** (root model) | only if a clean concern separates; Player already projects from node props - do not invent a second store |\n| `engine/background_social.py` | 1389 | **NEW** | keep paired with `background_simulation` decisions |\n| `engine/traits.py` | 1247 | +151 | definition catalog vs event dispatch |\n| `engine/movement.py` | 1197 | +99 | traversal rules vs area/way construction |\n| `engine/equipment.py` | 1144 | +390 | was lower priority; now above 1k - inventory/equip rules vs coverage/body |\n| `engine/player_conditions.py` | 969 | +128 | was \"tracked not to split\"; re-evaluate if it keeps growing |\n| `engine/serialization.py` | 940 | +431 | already imports `serialization_template` + `serialization_legacy`; prefer extending that split over a new cut |\n| `engine/trigger_validator.py` | 930 | +109 | lower priority (also touched by task-393 family) |\n| `engine/matching.py` | 924 | +227 | lower priority - resolve only if it keeps growing |\n\nAlso carried over from task-314's wave reports: `triggers/testing.py` (205) still\nshares template-context shape with `triggers/execution.py` (629) - de-duplicate\nwhile splitting if that seam is touched.\n\n**Still not a linecount chase:** a cohesive ~900-line file may stay. New entrants\nare listed because they outgrew the old list, not because every one must be cut\nthis wave. Prefer `world_compile.py`, `graph_ops.py`, and the `routes/*_ops.py`\nfamily first - clearest operation-family seams.",
+      "non_goals": "- Behaviour changes, renames of public APIs, or architectural redesign.\n- Chasing a line-count target - a file that is cohesive at 900 lines stays 900 lines.\n- The frontend/JS and test splits (task-441).",
+      "browser_ui": "Intended UI home: Not applicable - this is a one-file-at-a-time Python module extraction with an explicit no-behavior-change contract; no new browser surface is intended.\n\nCurrent availability: the task requires smaller host modules while keeping public imports/APIs stable. The extraction sequence is not claimed as complete.\n\nWhy no browser UI: a screen interaction cannot establish that backend module boundaries changed without changing the public API or behavior; the proof belongs to imports, focused regression tests, and the measured source diff.\n\nAlternative verification steps:\n1. Before and after each extraction, record the host file's line count and inspect the new module's exported functions and imports.\n   - expected: the host's line count is materially lower, the extracted concern has one owner, and public import paths remain stable.\n2. Run the focused test module(s) that exercise the extracted behavior after each one-file split.\n   - expected: the same behavior passes after extraction; any changed `mock.patch` target is recorded explicitly.\n3. Import the application package and the extracted module in a clean process.\n   - expected: imports have no cycle or import-time side effect and the package still exposes the stable public API.\n\nThis section is not a claim that planned UI exists or works today.",
+      "current_status_note_2026_10_19": "- Standing refactor tracking card across backend runner-up modules.\n- Extraction #8 completed in routes/graph_ops.py (routes/graph_image_ops.py, -183 lines).\n- Further single-file extractions (e.g. routes/player_ops.py, routes/action_handlers.py) continue sequentially per Refactor Discipline."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "supersedes": "task-314's backend scope (which was measured 2026-09-21 and is now closed)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/refactor/task-440-split-the-backend-runner-up-files.md"
+  }
+}

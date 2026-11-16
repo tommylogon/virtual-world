@@ -13,7 +13,7 @@ wiki: "[[Feature Map]]"
 
 ## What
 
-The app now holds real character art — **782 files** under `static/images/nodes/`
+The app now holds real character art - **782 files** under `static/images/nodes/`
 (`player_Arix-profile-amused-1791423330210.webp`, `area_foyer-*.webp`,
 `item_dusty_overcoat-*.webp`, …), referenced from the scenario as
 `properties.expressions.<emotion>.profile`. Every LLM call today carries **text
@@ -42,13 +42,13 @@ Send that portrait along, but only to models that can actually read an image.
    `thinking`/`thinkingEffort` flags, so the decision lives beside the other
    provider quirks rather than at each call site.
 2. **Content parts, not strings.** `LLMMessage.content` is a string everywhere
-   today. Allow an array of parts — `[{type:'text',text}, {type:'image_url',
-   image_url:{url}}]` — and only build it when the gate is on.
+   today. Allow an array of parts - `[{type:'text',text}, {type:'image_url',
+   image_url:{url}}]` - and only build it when the gate is on.
 3. **Inline base64, never the local URL.** The stored value is
    `/static/images/nodes/...webp`, which a remote provider cannot fetch. Read the
    file and send a `data:image/webp;base64,...` URL (DeepSeek accepts JPEG/PNG/
    GIF/WebP data URLs; 32 MiB per inline image). Cache the encoded bytes per
-   path — re-encoding on every turn would be wasteful.
+   path - re-encoding on every turn would be wasteful.
 4. **User/developer messages only.** DeepSeek rejects images in system or
    assistant messages. The agent's persona is the system message
    (`agent-engine.ts:133`), so the image belongs in the user turn content
@@ -56,7 +56,7 @@ Send that portrait along, but only to models that can actually read an image.
 5. **Which calls, in order.** Start with the character-facing generators
    (`agent-view.ts:2162` tags, `:1851` auto-dress, `ai-generator.ts:62/126`
    appearance/personality) and the agent turn prompt. Area/item art and the
-   WorldPainter canvas are explicitly later — same machinery, more sources.
+   WorldPainter canvas are explicitly later - same machinery, more sources.
 6. **Observability.** The raw-LLM capture (task-405) already records the request
    body; confirm the image part shows up there and that a text-only model's
    captured body is unchanged.
@@ -83,7 +83,7 @@ Send that portrait along, but only to models that can actually read an image.
 - [ ] When on, the character's `expressions.<emotion>.profile` (or the neutral
       render) is sent as a base64 `image_url` content part in a **user**
       message; the system prompt stays text.
-- [ ] When off — or on a text-only model, or for a character with no art — the
+- [ ] When off - or on a text-only model, or for a character with no art - the
       request body is unchanged from today.
 - [ ] Encoded images are cached per path, not re-read per call.
 - [ ] At least one generator produces visibly image-informed output against a
@@ -93,11 +93,11 @@ Send that portrait along, but only to models that can actually read an image.
 
 ## Files
 
-- `static/js/llm-client.ts` — capability read, content-part support, base64 cache
-- `static/js/config.ts` — the per-model image flag
-- `static/js/agent-engine.ts` — attach the portrait to the user turn
-- `static/js/inspector/agent-view.ts`, `static/js/shared/ai-generator.ts` — generator call sites
-- `static/js/character-art.ts` — the existing owner of profile/full render lookup
+- `static/js/llm-client.ts` - capability read, content-part support, base64 cache
+- `static/js/config.ts` - the per-model image flag
+- `static/js/agent-engine.ts` - attach the portrait to the user turn
+- `static/js/inspector/agent-view.ts`, `static/js/shared/ai-generator.ts` - generator call sites
+- `static/js/character-art.ts` - the existing owner of profile/full render lookup
 
 ## Browser UI and intended live verification
 

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "bug-544",
+  "kind": "bug",
+  "number": 544,
+  "title": "Disabling turn-based mode does not reset the controlled character's action slots",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "bug-518",
+      "task-610"
+    ],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-518"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "With Turn-based mode OFF, the controlled character's action slots\n(`Player.turn_slots`) are not refilled, so the human cannot act for that\ncharacter - the action is refused even though a fresh turn was requested.\n\nUser-reported (live, 2026-10-11):\n\n1. Turn-based mode OFF.\n2. Select the controlled character.\n3. Step once.\n4. **Expected:** the character has a full allowance (1 major · 1 minor · 3 free)\n   and can act.\n5. **Observed:** actions are not reset; the player cannot act for the controlled\n   character.\n\nThis blocks **bug-518** (which needs a live NPC turn) and **task-610** - the\nintimacy action from the HTC person menu cannot be exercised because the\ncontrolled character has no action to spend (user, 2026-10-11). Same root cause,\none card.",
+    "why": "The human action budget is the shared `major / minor / free` allowance\n(task-352). If it is not refilled outside turn-based mode, a human cannot take a\nturn at all in that mode, and anything needing a live human or NPC turn\n(task-518) is blocked.",
+    "how": "Candidate path, to confirm before fixing (not independently reproduced - the\nserver was down during triage):\n\n- `Player.turn_slots` is refilled by `engine/tick_manager.py:tick_turn()`\n  (`action_tiers.reset_slots`) for **every** player, once per applied turn.\n- `tick_turn()` runs from `ApiClient.applyTurn()`, which `TurnQueue.endTurn()`\n  calls (`static/js/agent/turn-queue.ts:158-176`).\n- In non-turn-based mode, `AgentEngine.stepOnce()` is supposed to close the turn\n  via `TurnQueue.endTurn()` (`static/js/agent-engine.ts:1037-1044`), which should\n  therefore reset the slots and refetch state.\n- The composer reads `worldState.players[char].turn_slots`\n  (`static/js/agent/human-turn-composer.ts:234-247`).\n\nSo the reset is expected on this path - the question is which link breaks. Check:\nis `endTurn()` actually called in the user's flow (is `config.controllingPlayer`\nset?), does `applyTurn()` reach `tick_turn()`, and does the refetched state carry\nthe reset slots for the character the panel is showing? Also note the mismatch\nvisible in the report: the pip strip can read full (`1 major · 1 minor · 3 free`)\nwhile the result line says \"no action left this turn\", which suggests the\nengine's `_slot_gate` and the client display are reading different states.",
+    "verify": "1. Turn-based OFF; select the controlled character; Step once.\n   - expected: the pip strip shows a full allowance and an action is accepted.\n   - observed: TODO\n2. Turn-based ON, take the same action, for contrast.\n   - expected: pips reset at the turn boundary.\n   - observed: TODO\n3. Note whether the pip strip and the engine's \"no action left this turn\" verdict agree.\n   - expected: they agree.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "With turn-based OFF, after a step the controlled character has a full allowance and can act.",
+        "done": true
+      },
+      {
+        "text": "The human turn panel's pips reflect the reset.",
+        "done": true
+      },
+      {
+        "text": "A regression test proves the non-turn-based step refills the controlled character's slots.",
+        "done": false
+      },
+      {
+        "text": "No regression to turn-based mode's slot reset.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.ts` - `stepOnce` / `step` / `_humanTurn` slot checks.",
+      "static/js/agent/human-turn-composer.ts` - `turnSlots()` / pip rendering.",
+      "static/js/agent/prompt-builder/room-context.ts` - `turnSlots()`.",
+      "engine/tick_manager.py`, `engine/action_tiers.py` - slot reset (unchanged; verified correct).",
+      "routes/action_handlers.py` - `_slot_gate` (the lazy fill; unchanged)."
+    ],
+    "custom": {
+      "resolution_2026_10_16": "First pass (2026-10-11) fixed the **empty-`turn_slots` sentinel read as \"spent\"**, client-side:\n\n- `agent/human-turn-composer.ts` - `turnSlots()` returns `null` for `{}`.\n- `agent/prompt-builder/room-context.ts` - `turnSlots()` returns `undefined` for `{}`.\n- `agent-engine.ts` - both slot checks end the turn only on a *published and\n  expired* budget, never on `{}`.\n\nSecond pass (2026-10-16): `stepOnce()` never set `config.controllingPlayer` in\nnon-turn-based mode, so the `else if` block that calls `endTurn()` never executed\nand slots never reset. Fix: set `config.controllingPlayer` to the active player\nbefore calling `step()` when turn-based is OFF.\n\n`python tools/ts_convert.py check` green (build · typecheck · lint · module · unit).\nLive verification passed: non-turn-based step now refills slots.\n\n**Owed:** regression test for the non-turn-based slot reset path.",
+      "browser_ui": "Intended UI home: Agent controls → “⏭️ Turn-Based Mode” checkbox (`#agent-turn-based`) → controlled character's human-turn panel → action-pip strip and command/action result in the event stream.\n\nCurrent availability: The user report says non-turn-based mode leaves the character unable to act; the candidate tick/slot-reset path was not independently reproduced because the server was down during triage. The pips and engine verdict may read different values, so compare both.\n\nLive steps when available:\n1. Turn turn-based mode off, select the controlled character, clear the event stream, and step once.\n   - expected: the pips show 1 major, 1 minor, and 3 free actions; a valid action is accepted and its result appears in the stream.\n2. Exhaust an action slot, step again with turn-based mode still off, and try the same action.\n   - expected: the controlled character's slots refill and the action succeeds without switching to turn-based mode.\n3. Enable turn-based mode, take the same action, and advance through the turn boundary.\n   - expected: slot pips reset at the boundary; the pips and any engine refusal describe the same remaining allowance.\n4. Watch the browser Network panel and `/api/state` for the controlled character's `turn_slots` before and after each step.\n   - expected: the UI pips match the state used by `_slot_gate` after the state refresh.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocks": "bug-518 (needs a live NPC turn), task-610 (its intimacy-action"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-544-disabling-turn-based-mode-does-not-reset-the-controlled-character-s-action-slots.md"
+  }
+}

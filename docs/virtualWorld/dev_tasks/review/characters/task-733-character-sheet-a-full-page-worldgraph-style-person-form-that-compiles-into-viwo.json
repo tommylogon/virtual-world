@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "id": "task-733",
+  "kind": "task",
+  "number": 733,
+  "title": "Character sheet: a full-page WorldGraph-style person form that compiles into ViWo primitives",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-457"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-507",
+      "task-828",
+      "task-830",
+      "task-844",
+      "task-829",
+      "task-849",
+      "task-850",
+      "task-619",
+      "task-742",
+      "task-966",
+      "task-967",
+      "task-968"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give a character one rich authoring surface (a full-page editor over the WorldGraph person schema shape) that projects into the primitives the simulation already reads: personality prose/structured, appearance/base_description, interest_tags/fear_tags, traits, skills, memories, known, relationships. Author once as a structured sheet; compile it into the fields the engine and prompts consume, so the richer form is usable data rather than dead authoring metadata.",
+    "why": "TODO",
+    "how": "- **Author once, on the node.** The rich `sheet` is authored definition on the\n  character node (like task-507's structured block, and per task-724's decision\n  that authored definition lives on the node). A **projector** compiles it into\n  the primitives: prose (`personality`, `base_description`), id lists\n  (`interest_tags`, `fear_tags`), `traits`/`skills`, and authored content\n  (`memories`, `known`, `relationships`).\n- **One source of truth.** Either the sheet is authored and the primitives are\n  derived (one-way - editing the sheet re-projects), or the primitives are\n  authored directly and the sheet is just a form over the subset. Do **not** let\n  both be independently editable or they drift (the task-724 failure). Recommendation:\n  structured sheet is authoritative where present; prose/id lists are a rendered\n  projection; memories/known/relationships are authored **writes** the compile\n  step performs once.\n- **UI**: a full-page editor. The host frame is **task-673** (EntityEditor) and\n  the character layout is **task-675**; this task is the *rich form + projector*,\n  not another frame. \"Fill the full thing, or free-form into `personality`\" - both\n  modes must work (task-507's requirement).\n- Same endpoints (`updateNode`/`updateCharacter`); no new persistence model, no\n  second copy in a save.",
+    "verify": "1. Create a scratch character from the character sheet and enter distinct\n   values for pronouns, age, appearance, personality, interests, fears, traits,\n   and skills. Save and reopen the character.\n   - expected: the form restores the authored values and projects them into the\n     existing ViWo fields listed in the projection table; it does not create a\n     parallel unconsumed WorldGraph blob.\n2. Inspect the character's saved definition and runtime prompt after reload.\n   - expected: personality and appearance are present in the prompt, while\n     interest/fear tags, traits, skills, and memories remain in their existing\n     consumers. `mbti`, `alignment`, and `media` are not added as fields.\n3. Load a free-form-only character that has no structured sheet data.\n   - expected: its existing prose still loads and drives the prompt without\n     requiring a visit to the sheet or a migration.\n4. Edit one appearance field and one personality field, save, and reload.\n   - expected: only the corresponding projected primitives change; unrelated\n     authored fields and runtime memory remain intact.",
+    "acceptance": [
+      {
+        "text": "A character can be authored from the rich form; the projector writes",
+        "done": false
+      },
+      {
+        "text": "`personality`, `base_description`, `interest_tags`, `fear_tags`, `traits`,",
+        "done": false
+      },
+      {
+        "text": "`skills` and an editor can see them.",
+        "done": false
+      },
+      {
+        "text": "Free-form-only characters (prose) still work; the sheet is optional.",
+        "done": false
+      },
+      {
+        "text": "No field is added without a consumer (mbti/alignment/media stay out).",
+        "done": false
+      },
+      {
+        "text": "`pronouns`/`age` exist and are read where prose/time needs them.",
+        "done": false
+      },
+      {
+        "text": "Live: author a character from the sheet, save, reload, prompt contains the",
+        "done": false
+      },
+      {
+        "text": "projected personality + appearance; `npm run build:ts` and the unit runner",
+        "done": false
+      },
+      {
+        "text": "pass.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "source_model": "`F:\\AI\\code\\graph-editor` (WorldGraph) stores a deeply nested **person schema**\n(`js/storage.js:203-299`):\n\n```\nappearance            overview height build skin hair eyes face body genitalia style scent voice\npersonality           traits mbti alignment likes dislikes fears aspirations quirks habits speech_pattern\nbiography             early_life adulthood current_situation\nrelationships         family{parents,siblings,children,other} connections friends enemies rivals mentors protégés\nsecrets               deepest_secret hidden_facts known_by\ncapabilities          skills languages weaknesses\nkinks_and_sexuality   orientation experience preferences turn_ons turn_offs curiosities boundaries\nnarrative             arc potential_storylines role_in_town\nexample_dialogues\nmedia                 favorite_movies favorite_music favorite_books\n```\n\ntask-507 already aligned a curated subset to ViWo and reused the WorldGraph names\nwhere they overlap (\"so authored persons import cleanly\"), and deliberately\nexcluded `media` / `mbti` / `alignment` (`engine/character_appearance.py` docstring).",
+      "the_projection_every_form_field_has_exactly_one_viwo_primitive": "| WorldGraph field | ViWo primitive | consumer today |\n|---|---|---|\n| `appearance.*` | structured `appearance` block → rendered `base_description`/`description` | task-507 |\n| `personality.traits`, `quirks`, `habits`, `aspirations`, `speech_pattern` | structured `personality` block → prose `personality` | prompt voice |\n| `personality.likes` / `dislikes` | `interest_tags` | gift/dialogue targeting |\n| `personality.fears` | `fear_tags` | `engine/fear` |\n| `kinks_and_sexuality.turn_ons` / `turn_offs` | structured `personality.kinks`/`turn_offs` | affect map (652) |\n| `capabilities.skills`, `languages`, `weaknesses` | `skills`, `traits` | skills/traits |\n| `biography.*` | **memories** with `source: manual` | task-404 |\n| `secrets.*`, `known_by` | `known`, knowledge | task-366 |\n| `relationships.*` | `relationships` (label + closeness), `rel:` memories | task-447 / 724 |\n| `narrative.role_in_town`, `arc` | plans/goals | task-702/704 |\n| `example_dialogues`, `voice`, `scent` | prompt voice / perception | prompts |\n| `mbti`, `alignment`, `media` | **none - left out** | - |",
+      "folded_deltas_2026_10_18": "Three points folded in from cancelled cards (866, 867, 869). They are corrections to the projection above, not new scope.\n\n- **Relationships need a machine-readable role.** The source vocabulary is already here, but the projection maps `relationships.*` to `relationships` (label + closeness), and `label` is free text. Add a controlled `relation` type (parent / child / sibling / partner / friend / rival / enemy, plus `other` with a note) alongside `label`, and allow a relation target that is a group or faction tag, not only a character. The store is `task-619`; the group relation and its authoring UI are [[task-742-faction-scoped-hostility-and-group-aware-fear-wire-or-retire-the-hostile-trait]].\n- **`languages` is not `skills`.** The table maps `capabilities.languages -> skills, traits`. If a language is to gate dialogue or perception it needs its own field with a proficiency and a named reader; folding it into `skills` loses the proficiency and the reader.\n- **Region prose composes, it is not typed.** `appearance` includes `genitalia` and other per-region detail; it must render through `render_record_prose` into `base_description`, never be written there directly, or the next Compile treats it as stale. See [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]] and [[task-744-equipment-and-body-one-edge-truth-for-worn-gear-layered-coverage-body-marks-body-centric-ui]].",
+      "new_fields_needed": "Two of the fields the prose work depends on do **not exist** on a ViWo character:\n\n- **`pronouns`** - for prose generation (\"she/they/he\"). Today only the `female`\n  tag hints at it. Add a field; prompts read it.\n- **`age`** (and `species` already exists) - for time-related growth/aging. Add a\n  field; an aging mechanic is separate (compare task-537 `age_effect`).\n- `sexuality`/`orientation` is also absent (only `kinks`/`turn_offs` exist).",
+      "phases": "1. `sheet` model + projector for the **already-mechanic-backed** fields\n   (appearance, personality, likes/dislikes/fears, traits, skills) - extends 507.\n2. Add `pronouns` + `age` fields and wire them into prose/prompts.\n3. Compile `biography → memories(source=manual)` (shares task-404).\n4. Compile `secrets → known/knowledge` (task-366) and `narrative → plans` (702/704).",
+      "open_questions": "- Does `age` ever *change* (aging over sim time) or is it authoring-only? Decides\n  whether it is a sheet field or a runtime field with a mechanic.\n- `pronouns` as a field vs derived from `tags`/`gender`. Deriving is fragile;\n  a field is explicit.\n- Where `mbti`/`alignment` go: nowhere (507's call) unless a mechanic appears.",
+      "browser_ui": "Intended UI home: select a character → Character Inspector → Bio → open the\nfull-page **Character Sheet** authoring form. This is the proposed entry point\nfor one coherent authoring surface; it writes to the existing character\ndefinition and the primitives the simulation already consumes.\n\nCurrent availability: the full-page structured sheet is planned. Existing\ncharacter Bio and advanced fields are separate surfaces; this card does not\nclaim the WorldGraph-style form or projection workflow is available today.\n\nLive steps when available:\n1. Open a character's Bio in the Inspector and open **Character Sheet**. Enter\n   `they` for pronouns, `31` for age, a distinctive appearance detail, one\n   personality habit, one interest tag, one fear tag, one trait, and one skill.\n   Save the character and close the sheet.\n   - expected: the save succeeds and the Inspector shows the character's\n     updated authored definition.\n2. Reopen the sheet and reload the scenario. Compare the restored form values\n   with the character node's `properties` and the projected fields in\n   `/api/state`.\n   - expected: the same values survive reload in `personality`,\n     `base_description`/`description`, `interest_tags`, `fear_tags`, `traits`,\n     and `skills`; no duplicate sheet-only record is persisted.\n3. Open the character's prompt preview or run a character turn and inspect the\n   generated prompt context.\n   - expected: the distinctive personality and appearance are available to the\n     prompt. The character's existing prose-only authoring still works for a\n     second character with no sheet data.\n4. Inspect the sheet's available fields.\n   - expected: every offered field has a ViWo consumer; `mbti`, `alignment`,\n     and `media` are not presented as persisted character mechanics.\n\nThese steps define the intended authoring path and round-trip behavior; the\nfull-page sheet remains planned.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Character Creation & Archetypes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

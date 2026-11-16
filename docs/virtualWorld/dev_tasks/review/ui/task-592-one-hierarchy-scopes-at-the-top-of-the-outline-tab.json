@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "id": "task-592",
+  "kind": "task",
+  "number": 592,
+  "title": "One hierarchy: scopes at the top of the Outline tab",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-29",
+  "updated": "2026-09-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "task-398",
+      "task-528",
+      "task-531",
+      "task-574"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**Surviving scope, after the 2026-10-20 re-measurement.** The headline of this\ncard landed on 2026-09-30 in commit `55b9f749` (\"one hierarchy, and a map that\nnames its places\"): the scope tree is now the top of the Outline tab, the graph\nno longer renders it at the bottom, a scope row loads its scope, and an unmade\nrow offers the honest jump into the WorldPainter.\n\nWhat did **not** land is the part that makes it *one* tree. The area rows are\nstill a flat, separately sorted list under the scope tree\n(`static/js/graph/tree-view.ts:94`, rendered at `:154-156`): there is no\nworld → scope → area fold, no area nested under the scope that holds it, and no\nfallback row for areas that belong to no scope.",
+    "why": "Two collapsible trees with counts, on screen at once, on different subjects, in\ndifferent halves of the UI. A reader has to learn which one to trust, and the\npanel that names the problem (\"this scope is not built\") is not the panel that\ncan act on it.",
+    "how": "1. Write the fold as a pure function first: a scope summary plus a list of\n   areas produces rows of `{scope, areas}` in the order the tree wants them,\n   with areas that belong to no scope collected under a plainly-labelled\n   fallback row. Test it in `tools/unit/test_graph_scope_tree.js` before it\n   touches the DOM, per this card's own rule.\n2. Feed the fold from the two sources the panel already has:\n   `graphManager._scopeSummaries` (the flat scope list) and `worldState.areas`\n   (the loaded areas). The scope summary does not currently carry the areas it\n   holds, so the fold needs either the scope membership from\n   `GET /api/world/scopes?flat=1` or a new count of areas per scope - check\n   what the endpoint actually returns before assuming.\n3. Render the fold over the existing scope rows in `scope-tree.ts`, so the\n   scope row and its areas are one subtree, and the pure scope rules stay\n   where they are.",
+    "verify": "1. Open the Outline tab in a world with at least two scopes and areas in both.\n   - expected: scope rows first, each with its state and counts, and each\n     scope's areas nested under that scope.\n   - observed: CONFIRMED. `foldScopeAreas` groups areas under their parent scope,\n     renders member area cards within the scope block, and lists unscoped areas\n     under an explicit fallback row.\n2. Click a scope row.\n   - expected: the graph loads that scope and the area rows become that\n     scope's areas.\n   - observed: (2026-10-20) done. `scope-tree.ts:303` → `load()` (`:331-344`)\n     → `GraphToolbar.loadScope`; the heading names the loaded scope\n     (`tree-view.ts:83-85`).\n3. Check an unmade scope row.\n   - expected: the row says it is not built and offers \"open in WorldPainter\",\n     with no Generate button.\n   - observed: (2026-10-20) done. `scope-tree.ts:312-327` renders `🖌 Paint`\n     calling `VW.worldPainter.open(row.id)`.\n4. Look for the scope tree at the bottom of the graph.\n   - expected: it is not there; the Outline tab is the only place.\n   - observed: (2026-10-20) done. The static host moved into\n     `#left-tab-outline` (`templates/index.html:144`).\n5. Copy the outline to the clipboard.\n   - expected: the copy carries the scope hierarchy, not just the areas.\n   - observed: (2026-10-20) done. `tree-view.ts:203-228`.",
+    "acceptance": [
+      {
+        "text": "Landed on 2026-09-30 in commit `55b9f749`, re-verified 2026-10-20:",
+        "done": false
+      },
+      {
+        "text": "The scope hierarchy is the **top of the Outline tab**.",
+        "done": true
+      },
+      {
+        "text": "`GraphScopeTree.mountInOutline()` (`static/js/graph/scope-tree.ts:212-228`)",
+        "done": false
+      },
+      {
+        "text": "inserts the host immediately before `#outline-container`, and",
+        "done": false
+      },
+      {
+        "text": "`renderOutlinePanel` calls it after every outline paint",
+        "done": false
+      },
+      {
+        "text": "(`static/js/graph/tree-view.ts:162-164`). The host element itself lives",
+        "done": false
+      },
+      {
+        "text": "inside `#left-tab-outline` (`templates/index.html:137-145`).",
+        "done": false
+      },
+      {
+        "text": "Scope rows come first and carry their **state and counts**.",
+        "done": true
+      },
+      {
+        "text": "`rowLabel` (`static/js/graph/scope-tree.ts:174-189`).",
+        "done": false
+      },
+      {
+        "text": "Clicking a scope row **loads that scope** into the graph, and the area",
+        "done": true
+      },
+      {
+        "text": "rows follow it: `scope-tree.ts:303` → `load()` (`:331-344`) →",
+        "done": false
+      },
+      {
+        "text": "`GraphToolbar.loadScope` → `graphManager.setScopeFilter`. The outline",
+        "done": false
+      },
+      {
+        "text": "heading then names the loaded scope (`tree-view.ts:83-85`, `:155`).",
+        "done": false
+      },
+      {
+        "text": "The scope tree is **not** also rendered at the bottom of the graph. The",
+        "done": true
+      },
+      {
+        "text": "static `<nav id=\"scope-tree\">` moved out of the graph panel into",
+        "done": false
+      },
+      {
+        "text": "`#left-tab-outline` (`templates/index.html:144`).",
+        "done": false
+      },
+      {
+        "text": "An **unmade scope says so on its row**, and the row offers the honest",
+        "done": true
+      },
+      {
+        "text": "\"open in WorldPainter\" jump with no Generate button:",
+        "done": false
+      },
+      {
+        "text": "`scope-tree.ts:312-327` renders a `🖌 Paint` button that calls",
+        "done": false
+      },
+      {
+        "text": "`VW.worldPainter.open(row.id)`.",
+        "done": false
+      },
+      {
+        "text": "The pure rules stay pure and unit-tested: `buildTree`",
+        "done": true
+      },
+      {
+        "text": "(`scope-tree.ts:53`), `visibleRows` (`:115`), `toggleCollapsed` (`:159`)",
+        "done": false
+      },
+      {
+        "text": "and `rowLabel` (`:174`) are pure functions, and",
+        "done": false
+      },
+      {
+        "text": "`tools/unit/test_graph_scope_tree.js` holds 17 tests. Re-running the",
+        "done": false
+      },
+      {
+        "text": "pure half against the emitted `static/js/graph/scope-tree.js` on",
+        "done": false
+      },
+      {
+        "text": "2026-10-20: 7 passed, 0 failed.",
+        "done": false
+      },
+      {
+        "text": "`copyOutlineTree()` copies the **whole hierarchy**, not just the areas",
+        "done": true
+      },
+      {
+        "text": "(`tree-view.ts:203-228`).",
+        "done": false
+      },
+      {
+        "text": "Implemented (2026-10-24):",
+        "done": false
+      },
+      {
+        "text": "The area rows are **nested under the scope that holds them**, so the tab",
+        "done": true
+      },
+      {
+        "text": "shows world -> scope -> area in one tree and an area is never listed under",
+        "done": false
+      },
+      {
+        "text": "a scope it is not in.",
+        "done": false
+      },
+      {
+        "text": "The fold is a **pure function with a test**, per this card's own rule:",
+        "done": true
+      },
+      {
+        "text": "`GraphScopeTree.foldScopeAreas` implemented and unit tested in",
+        "done": false
+      },
+      {
+        "text": "`tools/unit/test_graph_scope_tree.js`.",
+        "done": false
+      },
+      {
+        "text": "Areas that belong to **no** scope (a hand-authored world) appear under a",
+        "done": true
+      },
+      {
+        "text": "plainly-labelled fallback row (\"Unscoped Areas\"), never silently dropped.",
+        "done": false
+      },
+      {
+        "text": "A **materialized scope with zero areas and zero items** says so on its",
+        "done": true
+      },
+      {
+        "text": "row (\"empty\") instead of rendering an empty count list.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/tree-view.ts` (the Outline panel: the area rows and the fold)",
+      "static/js/graph/scope-tree.ts` (the scope rows, `mountInOutline`, the paint jump)",
+      "static/js/graph/network-manager.ts` (the graph-side scope tree host, now removed)",
+      "templates/index.html` (the `#scope-tree` host inside `#left-tab-outline`)",
+      "tools/unit/test_graph_scope_tree.js` (17 tests; the fold's tests go here)"
+    ],
+    "custom": {
+      "the_problem_precisely": "*This section describes the state before 2026-09-30; the re-measurement is in\nthe Reconnaissance section at the bottom of this card.*\n\nThe scope tree (`static/js/graph/scope-tree.js`, task-397 step 4) and the Outline tab\n(`static/js/graph/tree-view.js`) are **not** duplicates, and it is worth saying why\nbefore changing anything:\n\n- The Outline tab is a tree of **areas** in the loaded state - descriptions, exits,\n  items, who is present, temperature/light/air - read from `worldState.areas`.\n  Before the change, `tree-view.js` contained **zero** references to scopes: it\n  could not tell you `goblin camp` exists, let alone that it has never been\n  generated. *Since 2026-09-30 it does reference scopes* - it mounts the scope\n  tree above the area list (`static/js/graph/tree-view.ts:162-164`), names the\n  loaded scope in the heading (`:83-85`) and copies the scope hierarchy to the\n  clipboard (`:203-229`).\n- The scope tree is a tree of **scopes** from `GET /api/world/scopes?flat=1` -\n  ids, states, area/item/character counts, parent and depth. It is the only thing\n  that reports `unmade`.\n\nDifferent subjects, different endpoints, disjoint data. The problem is everything\n*around* that:\n\n1. **Scope navigation is in three places**: the `Loaded world scope` dropdown, the\n   `scope-breadcrumb` (task-531), and the scope tree. Three routes to one place, and\n   **none of them in the left sidebar** - which is where navigation lives in this app\n   and where a reader looks first.\n2. **Two collapsible trees with counts, on screen at once**, on different subjects,\n   in different halves of the UI. They look like the same widget, so a reader has to\n   learn which one to trust. That is a real cost even though nothing is duplicated.\n3. **The diagnosis and the fix are in different windows.** The scope tree is the\n   only thing that says a scope is *not built*; the only thing that can build one is\n   ⚙ Generate in the WorldPainter. The panel that names the problem offers no way to\n   act on it, and - deliberately, per `scope-tree.js`'s own rule - no Generate\n   button, because \"a card that offered one would be a promise the graph cannot\n   keep\". That rule is right and stays; what changes is that the scope rows move\n   next to the areas, so \"this scope is empty\" is read in the same breath as the\n   areas of the scope that is not.",
+      "decisions_taken": "- **The scope tree becomes the top level of the Outline tab**, above the existing\n  area list, indented as its parent. One hierarchy, in the one panel that already\n  holds a hierarchy.\n- **A scope row loads that scope** - the same call the graph's scope tree row makes\n  today (`graphManager.setScopeFilter`), so behaviour is unchanged and the graph\n  keeps working exactly as it does.\n- **The area list follows the loaded scope.** It already does (it reads\n  `worldState.areas`, which is whatever is loaded), so this needs no new plumbing.\n- **No Generate button on a scope row.** Carried over from `scope-tree.js`'s rule.\n  What a row *may* offer is the honest \"open in WorldPainter\" jump - which is the\n  fix for point 3 and does not break the rule, because the WorldPainter is where\n  generation lives and the link says exactly that.",
+      "decisions_still_open_need_an_answer_before_the_ui_is_drawn": "1. **Does the `Loaded world scope` dropdown survive?** It is the third route to the\n   same place. Removing it makes the tree the only navigator; keeping it is a hedge\n   for someone who does not know the tree is there. *My recommendation: keep it\n   for now and delete it in a follow-up once the tree is in place and used*, and\n   removing a navigation surface and adding one in the same change means an author\n   who learned the old one has nothing, and there is no undo for muscle memory.\n2. **What does the graph keep?** The breadcrumb answers \"where am I\" and the tree\n   answers \"what else is there\", which is a real split worth keeping - so the\n   proposal is: breadcrumb stays in the graph, the scope **tree** moves out. If the\n   graph is showing the whole world with no scope loaded, the breadcrumb has nothing\n   to say, and the graph would then have *no* scope affordance at all; that is\n   acceptable because \"show whole world\" is a graph-local view, not a place in the\n   world.\n\n**Resolved 2026-09-30 by the implementation.** The dropdown survives\n(`templates/index.html:227`, `#graph-scope-filter`), as the recommendation said,\nand the breadcrumb stays in the graph (`templates/index.html:340`,\n`#scope-breadcrumb`) while the scope **tree** moved out of it. The follow-up that\nwould delete the dropdown is still open and is not part of this card's scope.",
+      "notes": "- The pure rules already exist and are already tested; this is mostly a **placement**\n  change plus one new pure function (the fold), which is why the estimate is small\n  even though it touches three files. *The placement change landed; the fold\n  function did not.*\n- `copyOutlineTree()` currently copies areas only. It should copy the **whole**\n  hierarchy once scopes are in the panel, or the clipboard will silently lose the\n  top two levels of the world. *Done 2026-09-30: `tree-view.ts:203-228`.*\n- Point 3 is the one worth remembering: the app currently tells you a scope is\n  unbuilt in one window and expects you to know which of two buttons in another\n  window fixes it. Nothing in the UI connects them, and that is a bigger usability\n  hole than the visual duplication this task is named after. *Done 2026-09-30: the\n  unmade row carries a `🖌 Paint` jump into the WorldPainter\n  (`scope-tree.ts:312-327`).*",
+      "browser_ui": "Intended UI home: World editor → Outline tab, showing world → scope → area.\n\nCurrent availability: re-measured 2026-10-20, the scope tree is at the top of\nthe Outline tab, a scope row loads its scope, and an unmade row offers the\nWorldPainter jump. The unified **world → scope → area** tree is not there yet:\nthe areas are a separate flat list under the scope rows, with no scope\nattribution and no fallback row for unscoped areas.\n\nLive steps when available:\n\n1. Open Outline and inspect a world with multiple scopes and areas.\n   - expected: Scope rows show state/counts, with only their member areas nested below.\n\n2. Select a scope row, then select a scope with no areas.\n   - expected: The graph loads the selected scope and the empty scope has an explicit empty/not-built state.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "audit_note_2026_10_16": "Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 7 acceptance boxes checked; the latest commit that mentions it is d4d8f324 (2026-10-02), a blocker note saying it collides with the task-580 scope-tree work.\n\n*Corrected 2026-10-20: the premise \"it was not being worked\" was wrong. The card\nand its implementation were committed together on 2026-09-30 in `55b9f749`, which\nadded the card to `dev_tasks/inprogress/ui/` in the same commit that added\n`mountInOutline`, the paint jump and the whole-hierarchy clipboard copy. The\n\"0 of 7 acceptance boxes checked\" count was a read of the boxes, not of the\ncode: of the original seven criteria, three are fully met, one is partly met,\nand three are not (see Acceptance).*",
+      "reconnaissance_2026_10_20_partly_done_still_open": "Re-checked on 2026-10-20 against the code. The newer work that owns this card's\nscope is **task-592's own implementation**, committed on 2026-09-30 as\n`55b9f749` (\"feat(graph): one hierarchy, and a map that names its places\"). It\nadded the card to `dev_tasks/inprogress/ui/` in the same commit. task-627 (done)\nis *not* this work: it fixed the flat `<select>` scope picker into real\n`<optgroup>` nesting (`static/js/shared/scope-options.js`), a different\nsurface.\n\nWhat landed (`55b9f749`, confirmed in the current tree):\n\n- The scope tree host moved out of the graph panel and into the Outline tab.\n  `templates/index.html:137-145` holds `<nav id=\"scope-tree\">` inside\n  `#left-tab-outline`; `GraphScopeTree.mountInOutline()`\n  (`static/js/graph/scope-tree.ts:212-228`) inserts it immediately before\n  `#outline-container`, and `renderOutlinePanel` calls it after every outline\n  paint (`static/js/graph/tree-view.ts:162-164`).\n- Scope rows carry state and counts (`rowLabel`, `scope-tree.ts:174-189`).\n- Clicking a scope row loads it (`scope-tree.ts:303` → `load()` `:331-344` →\n  `GraphToolbar.loadScope`), and the outline heading names the loaded scope\n  (`tree-view.ts:83-85`, `:155`).\n- An unmade row carries a `🖌 Paint` jump into the WorldPainter\n  (`scope-tree.ts:312-327`), with no Generate button, as the card required.\n- `copyOutlineTree()` copies the whole hierarchy (`tree-view.ts:203-228`).\n- The pure rules stayed pure: `buildTree` (`:53`), `visibleRows` (`:115`),\n  `toggleCollapsed` (`:159`), `rowLabel` (`:174`).\n\nEvidence counts: 1 `mountInOutline` call site\n(`static/js/graph/tree-view.ts:163`), 1 `#scope-tree` host\n(`templates/index.html:144`), 17 unit tests in\n`tools/unit/test_graph_scope_tree.js`, and a targeted re-run of the pure half\nagainst the emitted `static/js/graph/scope-tree.js`: 7 passed, 0 failed.\n\nWhat did not land:\n\n- The area rows are **not** nested under the scope that holds them.\n  `static/js/graph/tree-view.ts:74` reads every area in `worldState.areas`,\n  `:94` sorts them by name, and `:154-156` renders them as a sibling list\n  under the scope tree. There is no fold and no scope attribution, so the\n  world → scope → area tree the card is named for does not exist yet.\n- There is no fallback row for areas that belong to no scope.\n- A materialized scope with zero areas and zero items renders as the scope name\n  followed by a dash and an empty count list, because `rowLabel` only pushes a\n  count when it is non-zero (`scope-tree.ts:181-183`).\n\nFacts that drifted:\n\n- \"`tree-view.js` contains **zero** references to scopes\" was true on\n  2026-09-29 and false from 2026-09-30: `tree-view.ts` now references\n  `GraphScopeTree` at `:162-164`, `:208-212` and the scope name at `:83-85`.\n- The card's two open decisions were resolved by the implementation: the\n  `Loaded world scope` dropdown survives (`templates/index.html:227`), and the\n  breadcrumb stays in the graph (`templates/index.html:340`).\n- The 2026-10-16 audit note (\"it was not being worked\", \"0 of 7 acceptance\n  boxes checked\") measured the boxes, not the code, and is corrected above.\n\nVerdict: PARTLY_DONE. Of the card's original seven criteria, three are fully\nmet (the scope tree is the top of the Outline tab and the only place it lives,\nan unmade row says so and offers the WorldPainter jump, the pure rules stayed\npure and tested), one is partly met (clicking a scope row loads it, but a scope\nwith no areas does not say so on the row), and three are not (the world → scope\n→ area tree, the pure fold with its test, and the fallback row for unscoped\nareas). Card kept in todo with its scope rewritten to what is left."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-592-one-hierarchy-scopes-at-the-top-of-the-outline-tab.md"
+  }
+}

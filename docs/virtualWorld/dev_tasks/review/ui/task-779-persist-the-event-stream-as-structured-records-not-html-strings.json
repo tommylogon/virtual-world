@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "task-779",
+  "kind": "task",
+  "number": 779,
+  "title": "Persist the event stream as structured records, not HTML strings",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-777"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-777",
+      "task-778",
+      "task-340",
+      "bug-46"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Persist the event stream as structured records instead of HTML strings, so a run's log is complete and queryable rather than capped and re-parsed.\n\nToday `StreamPersistence.persist()` stores one IndexedDB record per row holding `child.outerHTML` (`static/js/stream/stream-persistence.ts:52`, `static/js/storage.ts:288` - `{ id, html }`), capped at 2000 rows, while the DOM itself is trimmed at 5000 (`event-stream.ts:69`). Restore re-renders those strings through `Lit.unsafeHTML` (`stream-persistence.ts:90`).\n\nChange the persisted shape to the event record task-777's projection already builds (`{ seq, tick, time, day, turn, actor, area, type, text, outcome?, payload? }`), render the DOM from records on restore, and keep the cap as a storage decision rather than a format one.",
+    "why": "The user-facing goal behind task-777 is \"find out what happened during a run\". Three things block it today, all with the same root:\n\n1. **The log is capped before you can export it.** 2000 persisted rows / 5000 DOM rows means a long run's beginning is gone at reload, and no export can recover what was trimmed. An export is only ever a window.\n2. **HTML is a lossy, parse-y source for a queryable artifact.** task-777 projects records out of the DOM at export time; the same records could simply BE the persisted form. Persisting HTML and re-deriving structure on every export is the second source of truth AGENTS.md warns about, in the opposite direction.\n3. **Restore re-renders 2000 nodes through `unsafeHTML`.** Records render once from data; the HTML round-trip also means any DOM-only state (collapse, story mode) has to be re-derived after the fact, which is what `rebindAll` and the `_lineSeq` regex rebuild exist for.\n\nbug-46 already established that these rows are per-world and unsalvageable across worlds, so the store is already treated as disposable session state - which makes a shape change cheap.",
+    "how": "Depends on task-777's projection: `projectStreamRows()` becomes the single writer for both the export path and persistence, so there is one record shape in the codebase.\n\n- `storage.saveEventLog` / `loadEventLog` take records instead of HTML strings. The store's `{ id, html }` rows become `{ id, ...record }`; a stored-log version key (same pattern as the existing `event_log_world` config key) drops or migrates pre-change logs rather than half-reading them.\n- Restore builds DOM from records: one renderer per `type` (the inverse of the projection), reusing the existing bubble construction where possible rather than a new parallel path.\n- What must survive the round-trip, verified live: turn-card grouping and collapse state, the area filter, the actor roster (`_knownActors`), `_lineSeq` continuity, story mode, and the raw-LLM chip payloads.\n- The cap becomes explicit and documented (rows or bytes), and the export no longer inherits it silently.\n- Keep the existing per-world drop behaviour from bug-46 intact.",
+    "verify": "1. Run a session, reload the page, export as JSONL.\n   - expected: the exported records match what the same range produced before the reload, including `seq` continuity and raw-LLM payloads.\n   - observed: ___\n2. Collapse a turn card, set an area filter, enable story mode, reload.\n   - expected: all three states are restored; the actor dropdown is repopulated.\n   - observed: ___\n3. Load a log persisted by the OLD format (HTML rows).\n   - expected: it is dropped or migrated cleanly - never half-rendered - and the app logs which.\n   - observed: ___\n4. Run past the old 2000-row cap.\n   - expected: rows persist up to the new documented cap, and the export states the cap rather than silently truncating.\n   - observed: ___",
+    "acceptance": [
+      {
+        "text": "The persisted stream is records, not HTML strings; `storage.saveEventLog`/`loadEventLog` carry the record shape.",
+        "done": false
+      },
+      {
+        "text": "One projection serves export and persistence - no second record shape.",
+        "done": false
+      },
+      {
+        "text": "Reload round-trips grouping, collapse, area filter, actor roster, `_lineSeq`, story mode and raw-LLM payloads.",
+        "done": false
+      },
+      {
+        "text": "Old-format logs are dropped or migrated cleanly, never half-rendered.",
+        "done": false
+      },
+      {
+        "text": "The cap is explicit, documented, and surfaced in the export instead of silently truncating.",
+        "done": false
+      },
+      {
+        "text": "bug-46's per-world drop behaviour is preserved.",
+        "done": false
+      },
+      {
+        "text": "Gates green: `python tools/ts_convert.py check`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/stream/stream-persistence.ts` (record round-trip)",
+      "static/js/storage.ts` (`saveEventLog` / `loadEventLog` shapes)",
+      "static/js/ui/event-log-export.ts` (projection shared with persistence, from task-777)",
+      "static/js/event-stream.ts` (restore path, `_lineSeq`, roster)",
+      "docs/virtualWorld/UI & Settings/Event Stream.md` (persistence model, after verification)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Game event stream → stream filters and turn-card controls → the existing header export buttons. Persistence is invisible to the player until reload, then the same event stream is restored from records.\n\nCurrent availability: The card records IndexedDB rows as `{ id, html }`, with a 2,000-row persisted cap and a 5,000-row DOM cap. Structured persistence is planned and depends on task-777's event record projection.\n\nLive steps when available:\n1. Run a session with multiple actors, a collapsed turn card, an area filter, story mode, and one raw-LLM chip; export the same range as JSONL.\n   - expected: the export contains the current event records with sequence continuity and raw-LLM payloads.\n2. Reload the page and inspect the event stream, actor filter, area filter, story mode, and collapsed card; export the same range again.\n   - expected: row order and sequence IDs match the pre-reload export, the turn card remains collapsed, the actor roster is restored, and the raw-LLM payload is still inspectable.\n3. Load an event log persisted by the old HTML-row format.\n   - expected: it is explicitly migrated or dropped with a visible/logged reason; no half-rendered row appears through `unsafeHTML`.\n4. Continue a test session past 2,000 persisted rows and inspect the export summary.\n   - expected: the documented storage cap is applied deliberately and the export names the retained range/cap instead of silently truncating it.\n5. Switch worlds and restore the original one.\n   - expected: bug-46's per-world drop behavior remains intact; one world's records do not appear in the other.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-779-persist-the-event-stream-as-structured-records-not-html-strings.md"
+  }
+}

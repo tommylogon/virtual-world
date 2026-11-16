@@ -5,9 +5,9 @@ area: bugs
 priority: medium
 ---
 
-# Bug 36 — `moveNode` called for nodes not in the DataSet: console spam + silent layout-restore failure
+# Bug 36 - `moveNode` called for nodes not in the DataSet: console spam + silent layout-restore failure
 
-**Status:** Done — fixed 2026-09-22.
+**Status:** Done - fixed 2026-09-22.
 
 ## Found
 
@@ -23,7 +23,7 @@ current DataSet:
 vis-network's `NodesHandler.moveNode` **logs** the problem rather than throwing,
 so the `try { net.moveNode(...) } catch (e) { /* node gone */ }` wrapper never
 silenced it, and `focus.js` had no guard at all. The snapshots can contain ids no
-longer in the rendered node set — after a world refetch, a projection change, or
+longer in the rendered node set - after a world refetch, a projection change, or
 a filtered view.
 
 ## Fix (2026-09-22)

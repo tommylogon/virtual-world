@@ -1,0 +1,40 @@
+{
+  "id": "task-746",
+  "kind": "task",
+  "number": 746,
+  "title": "A single-roll hazard effect: one check, branch, forced move, and a sweep guard against cascades",
+  "status": "review",
+  "area": "triggers",
+  "priority": "medium",
+  "created": "2026-10-09",
+  "relations": {
+    "related": [
+      "task-475",
+      "task-716",
+      "task-72"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[Triggers/Trigger System Overview]]"
+    ]
+  },
+  "sections": {
+    "what": "The river/bridge/cliff vision needs one primitive the trigger system cannot compose today. skill_check is a CONDITION (engine/triggers/condition_tree.py:427), so a success trigger and a fail trigger roll twice; and push_actor calls movement.move_to_area directly, which fires on_enter again, so fail -> push -> on_enter -> fail cascades forever. Add one effect (e.g. hazard / current_push) that: rolls the check ONCE, runs a fail branch or a success branch, moves the actor via push_actor along a direction/way, sets a per-character sweep guard with an expiry tick so it cannot re-fire within the sweep, and records traversal.note_refusal (AVOID_MINUTES) so the soak path routes around it. Register in EFFECT_TYPES (engine/triggers/constants.py). Note flag_equals reads char.flags but the writer (set_flag, engine/triggers/behaviors.py:275) is NPC-behaviour-only and not an item/way effect, so the guard belongs inside the effect. Tests: a failed Athletics on a river pushes exactly one cell and does NOT re-trigger; a success narrates and stands.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: trigger/behavior authoring surface → define one hazard check with success/fail outcomes and a forced movement → place the character on that way/area in the game view → inspect the event stream and resulting location.\n\nCurrent availability: the card identifies that `skill_check` is a condition that can roll twice and that `push_actor` can re-enter `on_enter`, causing a cascade. The one-roll hazard effect and sweep guard are planned; no new hazard authoring control is claimed.\n\nLive steps when available:\n1. Author a hazard that checks once and pushes the actor on failure. Trigger it with a character whose check result is controlled by the fixture.\n   - expected: the event records exactly one roll, then the selected success or failure branch; the failure branch moves the actor along the chosen way.\n2. Inspect the event stream and character location after the forced movement re-enters the destination's `on_enter` trigger.\n   - expected: the sweep guard prevents a second roll within the same sweep and prevents a push cascade; the actor's final position matches the one forced move.\n3. Repeat with a successful check.\n   - expected: the success branch runs once and no forced move occurs.\n4. Repeat the failure after the guard's expiry tick.\n   - expected: a later independent entry may roll again; the guard is per-character and expires as authored rather than permanently suppressing hazards.\n5. Inspect refusal/traversal notes for a blocked forced route.\n   - expected: `traversal.note_refusal` records the actual refusal and the character is not teleported through an invalid way.\n\nThis section is not a claim that the planned hazard effect exists or works today."
+    }
+  }
+}

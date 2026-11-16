@@ -87,7 +87,7 @@ separate task explicitly renegotiates turn order.
 - Regression: `tests/test_perf_guards.py` extended to assert the tick loop does
   not scan all characters per character.
 
-## Progress — 2026-09-28 (the presence index and the area-major sweep)
+## Progress - 2026-09-28 (the presence index and the area-major sweep)
 
 Shipped in `engine/tick_manager.py`, with `tests/test_area_major_ticks.py` (12).
 
@@ -96,7 +96,7 @@ Shipped in `engine/tick_manager.py`, with `tests/test_area_major_ticks.py` (12).
 `_presence_reset` builds `area name -> {registry key: player}` once per turn.
 `_presence_sync` re-files a character the moment it changes area (O(1), and it
 also refreshes the cached object), so the index is *live* rather than a
-snapshot — a lookup returns exactly what the old inline scan would have
+snapshot - a lookup returns exactly what the old inline scan would have
 returned at that moment, in the same roster order. `_presence_resync` does a
 full pass after a phase that can move anyone (the NPC / soak / background
 block, and the sound pass); it rebuilds wholesale only if the roster changed
@@ -109,7 +109,7 @@ and the per-hearing-area character filter in `_process_sound_sources`.
 
 The character loop still walks `player_manager.players` in registry order, so
 log-entry order, need-threshold messages and death handling are byte-for-byte
-unchanged. Area grouping is used only for scoped evaluation — which is the
+unchanged. Area grouping is used only for scoped evaluation - which is the
 non-negotiable constraint, not a compromise.
 
 ### The area-major item sweep
@@ -123,10 +123,10 @@ The two whole-graph passes are now one sweep, `_sweep_area_items`:
   visited;
 - placement (`_standing_items_by_area`) is cached against the graph revision
   plus node/edge counts, so the per-area in-edge lookup is no longer paid every
-  tick. Item *state* is never cached — it is read fresh each turn.
+  tick. Item *state* is never cached - it is read fresh each turn.
 
 An `on_tick` item the world has not placed anywhere still fires (it has no area
-to belong to), id-sorted, after the area sweep — `test_trigger_system.py::
+to belong to), id-sorted, after the area sweep - `test_trigger_system.py::
 TestTriggerEventIndex::test_standing_item_on_tick_fires_once_per_tick` pins that
 and caught the first version of the sweep, which silently dropped it.
 
@@ -154,7 +154,7 @@ per-character work, so end-to-end throughput differences sit inside the noise
 spread ±10 ms). An earlier measurement suggesting a 5x regression was an
 artefact of letting each arm inherit the previous arm's mutated world.
 
-`is_undead_ghost` is now the hot part of the read — three Python calls per
+`is_undead_ghost` is now the hot part of the read - three Python calls per
 co-present other, ~27 per character. Precomputing it into the index would cut
 that, but a tag granted mid-turn would be missed, so it stays live.
 
@@ -163,7 +163,7 @@ that, but a tag granted mid-turn would be missed, so it stays live.
 - The tick-loop shape guard lives in `tests/test_area_major_ticks.py`, not in
   `tests/test_perf_guards.py` as the Verification section says: that file
   carries another lane's lighting guards, and WT-0 does not edit other lanes'
-  files. The assertion is the intended one — the number of wholesale roster
+  files. The assertion is the intended one - the number of wholesale roster
   passes per tick must not grow with the population.
 - A whole-session two-run/same-seed trace diff is still owed. The sweep order is
   now a pure function of the graph, but `_process_wind_extinguish` and the

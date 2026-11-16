@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -44,12 +44,12 @@ Tied, bound, or held fast. Speed 0, attacks at disadvantage, DEX saves fail. Dif
 
 ## Perception
 
-`known: True` — self-evident.
+`known: True` - self-evident.
 
 ## Integration points
 
-- `player.py:91-100` — catalog entry.
-- `engine/conditions.py` — saves, speed, combat mods.
+- `player.py:91-100` - catalog entry.
+- `engine/conditions.py` - saves, speed, combat mods.
 - Rope/binding use flows, capture mechanics.
 
 ## Steps to verify
@@ -60,7 +60,7 @@ Tied, bound, or held fast. Speed 0, attacks at disadvantage, DEX saves fail. Dif
 
 ## Open questions / things to work out
 
-- Intentional overlap/contrast with `grappled` — when is a hold a grapple vs. a restraint (roots/traps/person?)?
+- Intentional overlap/contrast with `grappled` - when is a hold a grapple vs. a restraint (roots/traps/person?)?
 - Should escaping restraints be possible by strength without an explicit `escape` action name?
 
 ## Why

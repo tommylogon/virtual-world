@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "task-843",
+  "kind": "task",
+  "number": 843,
+  "title": "Character file import: LLM converts any card or prose to the Persona schema",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-828",
+      "task-830",
+      "task-829"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Upload a character file, a SillyTavern/Chub `.json` card, or free prose\n(`.md` / `.txt`), and get a ViWo character back. An LLM reads the file and\nfills the task-828 Persona schema; the author previews the result in the\nPersona tab and saves/compiles. The idea is NOT \"import a SillyTavern card\"\nspecifically: any character data in, one ViWo sheet out.\n\nReal inputs, already on disk (`F:\\AI\\characters\\goblins\\`): eleven\n`main_*_spec_v2.json` cards (SillyTavern shape: `name`, `description`,\n`personality`, `mes_example`, `scenario`, `tags`, `character_book`, ...)\nplus the `goblins.md` race bible as ambient context. PNGs carry no embedded\ncard data, out of scope.",
+    "why": "Eleven goblins already exist as cards, and every future character starts as\neither a card or a pile of prose. Hand-transcribing them field by field\nthrough a 40-field form is the database-form future the Persona tab just\nescaped. The import does the boring mapping; the author keeps the judgment\n(preview, fix, compile).",
+    "how": "1. **Deterministic pre-parse first, LLM second.** Pull what is certain\n   without a model: card `name` -> name, `tags` -> tag candidates,\n   `mes_example` lines -> `example_dialogues` candidates, `character_book`\n   entries -> memory/knowledge candidates (NOT persona fields, a lorebook is\n   knowledge, it rides memories, not the sheet). `scenario` / `first_mes` /\n   `system_prompt` are context for the prompt, never sheet fields. Only the\n   ambiguous rest goes to the LLM.\n2. **The LLM contract is `schema_for_llm()`.** That function exists so the\n   prompt and the validator cannot disagree: pass the schema, demand JSON for\n   it, run `validate()` on the answer. A `StructuredError` names the exact\n   field: surface it, do not guess. Fail closed, author fixes, retry.\n3. **Fill policy is maximal, with provenance (decision 2026-10-18).** The\n   prompt demands EVERY fillable field; where the source is silent the model\n   invents a fitting value rather than leaving a gap. Every invented value is\n   reported as a dotted path in a sibling `inferred` list, and the tab marks\n   those fields with a sparkle so the author can tell a read value from a\n   guess. The record itself stays the exact shape `PUT /record` validates, so\n   provenance rides in a `{\"record\": ..., \"inferred\": [...]}` wrapper, never\n   inside the record. This reverses the original draft's \"unknown fields stay\n   empty, never invented\" policy, which the live run had already disproved\n   (the model filled an unstated age).\n4. **Do not duplicate the hand precedent.**\n   `update_krakotooth_cards.py` (next to the cards) already maps\n   role/skin/summary/gear/quirks/height by hand; read it first and reuse its\n   field mapping for the deterministic layer instead of inventing a second one.\n5. **Land in the existing import path.** The converted Persona block enters\n   through the existing `PUT /record` + `POST /record/compile` routes, and the\n   preview lives in the Persona tab (task-830). No second import surface, no\n   second review screen.\n6. **LLM discipline.** Conversion only, never execution: the model fills\n   fields, it does not craft, move, or author memories. Same promise-boundary\n   as every other model call in the repo.",
+    "verify": "1. Import one goblin card (`main_kiala-*.json`) through the flow.\n   - expected: Persona tab shows a filled sheet (name, pronouns/age, appearance,\n     traits, a dialogue line); invented fields carry the sparkle marker; the\n     author fixes two fields, saves, compiles.\n   - observed: 2026-10-16, LIVE on :4444 with the real Kiala card: two\n     `chat/completions` calls to the local model, sheet filled (badges: species\n     goblin, occupation squire; age 0, the model filled an unstated age instead\n     of leaving it empty, which is now the intended policy, not a defect).\n     Screenshot on file. Found a REAL bug on the way: group fields rendered\n     `[object Object]`, `schema_for_llm` never declared `\"type\": \"object\"` on\n     appearance/narrative groups, so the tab fell to the scalar branch. Fixed +\n     regression test (`test_group_fields_declare_object_type`). Two infra fixes\n     on the way in: missing `<script>` tag for `character-import.js` (module\n     never loaded), and `tsc` dropping the `@module` header (interfaces-first,\n     types moved below functions, contract check green).\n2. Import free prose (a `.md` backstory with no card structure).\n   - expected: same sheet, still complete under the maximal-fill policy, with\n     the invented fields sparkle-marked so the author can tell what the source\n     did not say.\n   - observed: 2026-10-16, live on :4444: a 6-line Bram backstory converted to\n     badges (he/him, 41, human, blacksmith), nothing stored. Model inferred\n     pronouns from prose voice. 2026-10-18: prompt and splitter updated to\n     maximal fill + `inferred`; the tab renders the sparkle.\n3. Feed the converter garbage (a valid JSON card with a `personality` that\n   breaks slug discipline).\n   - expected: fail closed naming the exact field; nothing stored.\n   - observed: 2026-10-16, live: `.png` rejected with\n     `import failed: cannot import arix.png...`, nothing stored; stored record\n     verified untouched after both imports (form-only by design). Model-output\n     garbage path unit-tested (extractor throws with reason); PUT 400 path\n     proven by record tests.\n4. Run the targeted regression test for the mechanism.\n   - expected: converter unit test (deterministic layer + prompt contract +\n     answer split) passes with no live model.\n   - observed: 2026-10-16, `tools/unit/test_character_import.js`, 6 tests green.\n     2026-10-18: prompt-contract test updated to the maximal-fill rule and a\n     `splitConvertAnswer` test added. (A recorded-transcript fixture for the\n     full convert step is still open, deterministic + extract covered.)",
+    "acceptance": [
+      {
+        "text": "`.json` (SillyTavern/Chub shape) and `.md`/`.txt` (free prose) both",
+        "done": true
+      },
+      {
+        "text": "import through one flow.",
+        "done": false
+      },
+      {
+        "text": "Deterministic layer covers name/tags/dialogues/lorebook-split with no",
+        "done": true
+      },
+      {
+        "text": "model call; the LLM fills only the schema.",
+        "done": false
+      },
+      {
+        "text": "`validate()` gates the model output; failures name the field and store",
+        "done": true
+      },
+      {
+        "text": "nothing.",
+        "done": false
+      },
+      {
+        "text": "Preview in the Persona tab before anything is stored; save + compile are",
+        "done": true
+      },
+      {
+        "text": "the existing routes.",
+        "done": false
+      },
+      {
+        "text": "No second field mapping (reads `update_krakotooth_cards.py`) and no second",
+        "done": true
+      },
+      {
+        "text": "import surface (Persona tab + existing `PUT /record`; the original draft's",
+        "done": false
+      },
+      {
+        "text": "`handle_import_player` plan was dropped because it takes flat Player",
+        "done": false
+      },
+      {
+        "text": "fields only, so the tab is the correct home, intent preserved).",
+        "done": false
+      },
+      {
+        "text": "Converter test passes with no live LLM in tests.",
+        "done": true
+      },
+      {
+        "text": "Fill policy is maximal: the prompt demands every field and returns a",
+        "done": true
+      },
+      {
+        "text": "per-field provenance list; the tab marks inferred fields with a sparkle",
+        "done": false
+      },
+      {
+        "text": "and clears the marks on save/compile.",
+        "done": false
+      },
+      {
+        "text": "Live re-check after the policy change: one card import shows a full sheet",
+        "done": true
+      },
+      {
+        "text": "with sparkle marks, then saves and compiles (confirmed 2026-10-18).",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/character-import.ts` - pre-parse, `buildConvertPrompt`,",
+      "extractJsonBlock`, `splitConvertAnswer",
+      "static/js/inspector/mind-view.ts` - Persona tab import entry, sparkle render",
+      "engine/character_appearance.py` - `schema_for_llm` is the contract;",
+      "validate` gates the answer",
+      "routes/players.py`, `routes/player_ops.py` - `GET/PUT/DELETE /record`,",
+      "POST /record/compile` (the existing surface the import lands in)",
+      "tools/unit/test_character_import.js` - converter unit test",
+      "F:\\AI\\characters\\goblins\\update_krakotooth_cards.py` - read, do not duplicate"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-843-character-file-import-llm-converts-any-card-or-prose-to-the-persona-schema.md"
+  }
+}

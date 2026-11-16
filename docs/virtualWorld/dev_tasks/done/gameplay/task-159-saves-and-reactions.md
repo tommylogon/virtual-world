@@ -17,13 +17,13 @@ Give characters a chance to avoid traps, attacks, or other events via a saving t
 
 ## Status
 
-**In Review — implemented 2026-08-07.** The unified save primitive + integrations landed together with task-4 (grapple), which was the first consumer of `saving_throw`.
+**In Review - implemented 2026-08-07.** The unified save primitive + integrations landed together with task-4 (grapple), which was the first consumer of `saving_throw`.
 
 ## Problem (original, superseded)
 
 The original write-up said there was "no unified save concept" and proposed adding `saving_throw`. That part is **outdated**: task-4's grapple work added `SkillSystem.saving_throw(player, stat, dc)` (`engine/skills.py:95`), which already:
 - rolls `d20 + modifier` vs DC
-- supports **any** player object — the active player or NPCs
+- supports **any** player object - the active player or NPCs
 - logs `[Save] STR vs DC 10: roll 2 + 0 = 2 => failure` to the event stream
 
 What was still missing and is now implemented (2026-08-07):
@@ -38,7 +38,7 @@ What was still missing and is now implemented (2026-08-07):
 
 ### One primitive, everyone funnels through it
 
-`SkillSystem.saving_throw(player, stat_or_skill, dc)` is **the** save API. Callers pass the player object (active or NPC) — no `use_active_player` limitation like `skill_check`.
+`SkillSystem.saving_throw(player, stat_or_skill, dc)` is **the** save API. Callers pass the player object (active or NPC) - no `use_active_player` limitation like `skill_check`.
 
 ```
 saving_throw(player, "DEX", 12)       # stat save (modifier-based)
@@ -71,12 +71,12 @@ Deliberately NOT converted to saves (scope decision 2026-08-07): `player_attack`
 
 ## Files
 
-1. `engine/skills.py` — `saving_throw` unified (stats + skills, negative mods, any player)
-2. `virtual_world_engine.py` — facade `saving_throw`
-3. `engine/trigger_system.py` — `save_throw` condition (flat + tree), `_resolve_save_target`, `_last_save_msg` surfaced in trigger output
-4. `engine/effects.py` — `handle_damage` optional `save` param + named target
-5. `static/js/item-library.js`, `static/js/shared/trigger-editor.js`, `static/js/inspector.js`, `static/js/shared/trigger-graph.js` — condition dropdowns + fields
-6. `static/js/main.js`, `static/js/shared/ai-generator.js`, `static/js/prompt-docs.js`, `static/js/item-library/ai-generation.js` — LLM condition lists
+1. `engine/skills.py` - `saving_throw` unified (stats + skills, negative mods, any player)
+2. `virtual_world_engine.py` - facade `saving_throw`
+3. `engine/trigger_system.py` - `save_throw` condition (flat + tree), `_resolve_save_target`, `_last_save_msg` surfaced in trigger output
+4. `engine/effects.py` - `handle_damage` optional `save` param + named target
+5. `static/js/item-library.js`, `static/js/shared/trigger-editor.js`, `static/js/inspector.js`, `static/js/shared/trigger-graph.js` - condition dropdowns + fields
+6. `static/js/main.js`, `static/js/shared/ai-generator.js`, `static/js/prompt-docs.js`, `static/js/item-library/ai-generation.js` - LLM condition lists
 7. Tests: `tests/test_skills.py::TestSavingThrows`, `tests/test_trigger_system.py::TestSaveThrowCondition`, `tests/test_effects_save.py` (new)
 
 ## Steps to verify
@@ -90,7 +90,7 @@ Deliberately NOT converted to saves (scope decision 2026-08-07): `player_attack`
 
 ## Related
 
-- [[review/gameplay/task-4-grapple_restrain_system|task-4: Grapple/Restrain]] — first `saving_throw` consumer (STR saves on grab/escape)
+- [[review/gameplay/task-4-grapple_restrain_system|task-4: Grapple/Restrain]] - first `saving_throw` consumer (STR saves on grab/escape)
 - [[todo/gameplay/task-165-chance-to-stun-on-attack|task-165: Chance to stun on attack]]
 
 ## Why

@@ -7,12 +7,12 @@ priority: medium
 
 # Task-250: Merge Agents and Initiative Lists Into One Clickable List
 
-**Status:** Done — implemented 2026-08-16, live-verified. Moved to review/.
+**Status:** Done - implemented 2026-08-16, live-verified. Moved to review/.
 
 ## What
 
-Combine the two left-side lists — the Agents list (`#agent-list`) and the
-Initiative Order list (`#initiative-list`) — into a single list. Right now the
+Combine the two left-side lists - the Agents list (`#agent-list`) and the
+Initiative Order list (`#initiative-list`) - into a single list. Right now the
 Agents tab shows clickable rows (select active / open inspector) but no turn
 order, while the Initiative tab shows the order but the rows are not clickable.
 One list should do both: the same click-to-select / open-inspector behavior on
@@ -21,17 +21,17 @@ round, initiative roll).
 
 ## Current behavior (code)
 
-- `renderAgentList(state)` (`ui-controller.js:25-60`) — builds `#agent-list`
+- `renderAgentList(state)` (`ui-controller.js:25-60`) - builds `#agent-list`
   rows with status dot, vitals bar, location. Click: `selectAgent(name)` for
   all characters (since bug-19, NPC rows select too, opening the inspector /
   focus).
-- `_renderInitiative(state)` (`ui-controller.js:155-199`) — builds
+- `_renderInitiative(state)` (`ui-controller.js:155-199`) - builds
   `#initiative-list` rows with position, ▶️/✅/⏳ icon, name, NPC tag,
   initiative roll, status text; **no click handler**.
 - Tabs: `left-tab-agents` / `left-tab-initiative` in `templates/index.html`
   (line 62-63), both panes in `left-tab-body`.
 - The Initiative tab also hosts the **Turn-Based Mode checkbox**,
-  **Turn Order select**, and the **🎲 Re-roll** button (index.html:80-89) — these
+  **Turn Order select**, and the **🎲 Re-roll** button (index.html:80-89) - these
   need a new home after the merge.
 
 ## How
@@ -59,7 +59,7 @@ round, initiative roll).
 - Should the initiative markers still show in non-turn-based mode (e.g. nothing,
   since there is no order)?
 - The row content differs a lot today (vitals bar + location vs order status).
-  Combine both — or keep the agent row as the base and append order info?
+  Combine both - or keep the agent row as the base and append order info?
 - Is "select active" the right click action for the ordered rows, or should
   normal agents also open the inspector (match simple-NPC behavior)?
 

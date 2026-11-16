@@ -23,7 +23,7 @@ The WorldPainter scope picker exposes only one scope, so most world-scope author
 - [x] Depth is visible, so a child reads as belonging to its parent
 - [x] Verified live against a 6-scope world
 
-## Resolution (2026-09-30) — this gated the Eldenford work entirely
+## Resolution (2026-09-30) - this gated the Eldenford work entirely
 
 Tommy asked me to open the WorldPainter and finish the Eldenford town map. **I
 could not reach Eldenford at all.** The chooser read:

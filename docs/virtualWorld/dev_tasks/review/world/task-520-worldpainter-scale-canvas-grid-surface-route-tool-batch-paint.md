@@ -115,5 +115,5 @@ Implemented canvas-based grid surface renderer, route line painter tool, batch c
 - static/js/worldpainter/canvas-view.ts
 - static/js/worldpainter/grid-model.ts
 - 
-outes/world_grid_ops.py
-- 	ests/test_world_grid_routes.py
+routes/world_grid_ops.py
+- tests/test_world_grid_routes.py

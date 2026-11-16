@@ -140,7 +140,7 @@ that reconnaissance still stands.
    - observed: PASS 2026-10-24. 
 esolve_belief_destination and _record_belief_arrival
      wired in engine/timeskip.py; tested via
-     	ests/test_hearsay_places.py::test_belief_travel_follows_believed_heading_and_records_arrival_outcome.
+     tests/test_hearsay_places.py::test_belief_travel_follows_believed_heading_and_records_arrival_outcome.
 4. Map and hearsay teach knowledge
    - expected: reading a map reveals the areas it charts into the character's
      known list, and a direction given in dialogue reveals one area the same
@@ -148,13 +148,13 @@ esolve_belief_destination and _record_belief_arrival
    - observed: PASS 2026-10-24. Charted map writes on read/use, spoken direction
      writes known, and _upgrade_supporting_beliefs in engine/fog.py links
      learned places to matching memories; tested via
-     	ests/test_hearsay_places.py::test_map_and_reveal_upgrade_only_matching_place_beliefs.
+     tests/test_hearsay_places.py::test_map_and_reveal_upgrade_only_matching_place_beliefs.
 5. Generation on discovery at the frontier
    - expected: entering an unmade frontier cell generates content and reveals
      it for that character only.
    - observed: PASS 2026-10-24. materialize_frontier in engine/fog.py wired in
      engine/movement.py and engine/timeskip.py; tested via
-     	ests/test_hearsay_places.py::test_frontier_discovery_generates_content_and_reveals_for_discoverer_only.
+     tests/test_hearsay_places.py::test_frontier_discovery_generates_content_and_reveals_for_discoverer_only.
 
 ## Why
 

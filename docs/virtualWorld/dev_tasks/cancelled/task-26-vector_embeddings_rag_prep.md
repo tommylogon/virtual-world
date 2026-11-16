@@ -18,38 +18,38 @@ The concrete RAG architecture proposed here was NOT adopted; the shipped design 
 | Embed `content` field | Field is `text` (`content` doesn't exist) |
 | Tag convention `character:`/`room:`/`action:`/`item:` | Tags are single-word concepts only; entities live in a separate `entity_ids` array |
 | FAISS in-memory index (recommended) | No-dependency JSON `data/embeddings.json` + pure-python brute-force cosine |
-| `GET /api/memories/export` for bulk index build | Not built — moot, embeddings are generated incrementally per-memory browser-side |
-| `embedding_hash` cache column | Not built — vector store keys by `<char>::<memory_id>`, so identity/dedup is free |
+| `GET /api/memories/export` for bulk index build | Not built - moot, embeddings are generated incrementally per-memory browser-side |
+| `embedding_hash` cache column | Not built - vector store keys by `<char>::<memory_id>`, so identity/dedup is free |
 | EntityIndex-driven BFS for KNOWN ROUTES | EntityIndex deleted; spatial comes from `engine/spatial_memory.py` (task-136/task-178) |
 
 ## Revisited by task-685 (2026-10-04)
 
 Memory dynamics (task-685..691) touched the RAG surface again, so this record gets a
-second dated entry. Nothing here is outstanding — the table above still stands, and the
+second dated entry. Nothing here is outstanding - the table above still stands, and the
 one idea in this doc that had NOT been implemented is now implemented and extended.
 
 | This doc proposed | Where it ended up |
 |-------------------|-------------------|
-| "Hybrid scoring: combine vector similarity + importance + recency" (§RAG Architecture #4) | **Shipped, and larger than proposed** — `/memories/retrieve` (task-690) scores keyword + entity-graph match + exponential recency + `effective_importance` (availability × confidence) + emotion match, and reserves seat time for beliefs. Vector similarity still merges in client-side (`memory-context.js`) |
-| An "Indexing memories…" progress UI | Not needed in that form — embeddings are incremental per write (fire-and-forget) and silent by design; the **Memory Mind** (task-691) is the surface that shows what retrieval returns |
+| "Hybrid scoring: combine vector similarity + importance + recency" (§RAG Architecture #4) | **Shipped, and larger than proposed** - `/memories/retrieve` (task-690) scores keyword + entity-graph match + exponential recency + `effective_importance` (availability × confidence) + emotion match, and reserves seat time for beliefs. Vector similarity still merges in client-side (`memory-context.js`) |
+| An "Indexing memories…" progress UI | Not needed in that form - embeddings are incremental per write (fire-and-forget) and silent by design; the **Memory Mind** (task-691) is the surface that shows what retrieval returns |
 | `embedding_hash` column to skip re-embedding unchanged text | Solved differently, no column: the store keys by `<char>::<mem_id>` (identity is free) and `EmbeddingClient` has an in-memory dedupe cache for repeated prompt-poll embeds |
 | ~5 embedding calls per tick estimate | Actual: one per stored memory write (react phase) + one per prompt-build query, deduped; server search stays brute-force cosine over a small file |
-| `GET /api/memories/export` for bulk index build | Still not built; still unnecessary — vectors are upserted as memories are written, never bulk-rebuilt |
+| `GET /api/memories/export` for bulk index build | Still not built; still unnecessary - vectors are upserted as memories are written, never bulk-rebuilt |
 
 Open questions, answered:
 
-1. **"World lore embedded globally or per character?"** — Neither. Lore stayed a
+1. **"World lore embedded globally or per character?"** - Neither. Lore stayed a
    separate world-level prompt block; only `Player.memories[]` is embedded, per
    character, keyed `char::mem_id`. Cross-character search is *possible* at the store
    level (`search(character=None)`) but deliberately not exposed in the UI.
-2. **"A 'test retrieval' button in the inspector?"** — Answered by what shipped: the
+2. **"A 'test retrieval' button in the inspector?"** - Answered by what shipped: the
    `=== I REMEMBER ===` block is now a four-section character model (EVENTS / WHAT I
    BELIEVE / HOW I SEE PEOPLE / WHAT I EXPECT) and the turn-feedback line reports what
    was recalled and why ("recalled N · keyword / semantic / recent"). The Memory Mind
    shows the same view per character.
-3. **"How large can the index grow?"** — Still open, but one fact worth recording: the
+3. **"How large can the index grow?"** - Still open, but one fact worth recording: the
    store is ONE file with ONE model + dims for every character (mixed vector spaces are
-   rejected by design — confirmed live on 2026-10-04 when a 768-dim nomic config was
+   rejected by design - confirmed live on 2026-10-04 when a 768-dim nomic config was
    refused by a store holding 1024-dim qwen3 vectors). A per-character dims story
    would need a per-character index or a re-embed; noted here rather than filed.
 
@@ -63,8 +63,8 @@ and the lore-embedding path.
 
 **Filed**: 2026-07-16 (updated 2026-07-20)
 **Priority**: Low (future)
-**Status**: Superseded (moved 2026-08-29) — this was a *preparation* doc, never meant to
-implement embeddings. The intent is now fully covered by [[task-91 — activate cosine
+**Status**: Superseded (moved 2026-08-29) - this was a *preparation* doc, never meant to
+implement embeddings. The intent is now fully covered by [[task-91 - activate cosine
 similarity in MemoryStore|task-91]] (embeddings are live). Remaining prep items were
 dropped as unnecessary rather than left outstanding (see "Superseded by" below). Kept
 as a historical record only.
@@ -73,7 +73,7 @@ as a historical record only.
 
 ## What
 
-Prepare the memory and lore systems for future vector-embedding-based retrieval (RAG). Do **not** implement embeddings yet — this doc describes what the data model needs to support and the architectural decisions to make now so the RAG path is smooth later.
+Prepare the memory and lore systems for future vector-embedding-based retrieval (RAG). Do **not** implement embeddings yet - this doc describes what the data model needs to support and the architectural decisions to make now so the RAG path is smooth later.
 
 ---
 
@@ -110,10 +110,10 @@ Prepare the memory and lore systems for future vector-embedding-based retrieval 
 
 ### Shared Fields Compatible with Embedding
 Both have:
-- `id` — unique identifier
-- `content` — the text to embed
-- `importance` — weighting for retrieval scoring
-- `tags` — metadata for filtered retrieval
+- `id` - unique identifier
+- `content` - the text to embed
+- `importance` - weighting for retrieval scoring
+- `tags` - metadata for filtered retrieval
 
 ---
 
@@ -121,10 +121,10 @@ Both have:
 
 ### Components Needed
 
-1. **Embedding model** — calls an OpenAI-compatible API (same LLM endpoint or a dedicated embedding model like `text-embedding-3-small`)
-2. **Vector index** — in-memory or file-based (FAISS, Chroma, or a simple numpy-based index) since this is a single-user desktop app with no server-side persistence requirement
-3. **Retrieval pipeline** — on prompt build, embed the current context, query the index, return top-K matches
-4. **Hybrid scoring** — combine vector similarity + importance + recency for ranking
+1. **Embedding model** - calls an OpenAI-compatible API (same LLM endpoint or a dedicated embedding model like `text-embedding-3-small`)
+2. **Vector index** - in-memory or file-based (FAISS, Chroma, or a simple numpy-based index) since this is a single-user desktop app with no server-side persistence requirement
+3. **Retrieval pipeline** - on prompt build, embed the current context, query the index, return top-K matches
+4. **Hybrid scoring** - combine vector similarity + importance + recency for ranking
 
 ### Data Flow
 
@@ -154,25 +154,25 @@ Estimate ~5 embedding calls per tick (1 for query + 3 for each character's memor
 
 ---
 
-## Preparation Work (Do Now — No Embedding Code)
+## Preparation Work (Do Now - No Embedding Code)
 
 These changes make the RAG path smooth without implementing anything AI-embedding related:
 
 ### 1. Unique IDs on every entry
 
-✅ Already covered — both lore and memory entries have `id` fields.
+✅ Already covered - both lore and memory entries have `id` fields.
 
 ### 2. Content field is the canonical text to embed
 
-✅ `content` field exists on both. Keep it clean — no markdown, no formatting, just plain text for the embedding target.
+✅ `content` field exists on both. Keep it clean - no markdown, no formatting, just plain text for the embedding target.
 
 ### 3. Tags as structured metadata
 
 ✅ Tags are simple strings. For RAG, add a convention:
-- `character:<name>` — entity references
-- `room:<name>` — location references
-- `action:<verb>` — action type references
-- `item:<name>` — item references
+- `character:<name>` - entity references
+- `room:<name>` - location references
+- `action:<verb>` - action type references
+- `item:<name>` - item references
 
 This allows filtered retrieval (e.g., "only memories involving Tommy").
 
@@ -183,7 +183,7 @@ The `importance` field (1-5) should be available as a scoring multiplier during 
 ### 5. API endpoint for batch export
 
 Add one endpoint (not urgent):
-- `GET /api/memories/export` — returns all lore + all character memories as JSON
+- `GET /api/memories/export` - returns all lore + all character memories as JSON
 - Used by the future embedding pipeline to build the initial index
 
 ### 6. Embedding hash cache column
@@ -201,9 +201,9 @@ When RAG is implemented, the system checksums the content, compares to `embeddin
 ## When Ready to Implement
 
 1. Choose an embedding model (start with the same LLM provider's embedding endpoint)
-2. Add `embedding_cache.py` — handles embedding calls + hash-based caching
-3. Add `vector_index.py` — wraps FAISS or numpy-based index with add/search/delete
-4. Add `GET /api/memories/search?q=<text>` — for testing retrieval quality
+2. Add `embedding_cache.py` - handles embedding calls + hash-based caching
+3. Add `vector_index.py` - wraps FAISS or numpy-based index with add/search/delete
+4. Add `GET /api/memories/search?q=<text>` - for testing retrieval quality
 5. Hook into `_buildMemoryContext()` in `agent-engine.js`
 6. Add embedding progress UI (toast: "Indexing memories...")
 

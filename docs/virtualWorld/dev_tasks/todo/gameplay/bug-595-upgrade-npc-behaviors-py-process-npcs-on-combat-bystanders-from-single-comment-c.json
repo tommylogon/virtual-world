@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "bug-595",
+  "kind": "bug",
+  "number": 595,
+  "title": "Upgrade npc_behaviors.py process_npcs_on_combat bystanders from single-comment cap to real flee, hide, or intervene responses",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "npc-behavior",
+    "combat",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-590",
+      "task-742"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Allow bystander NPCs triggered via process_npcs_on_combat in engine/npc_behaviors.py to execute real physical responses (flee, hide, alert, intervene) according to traits and relationships instead of capping non-sexual reactions to one 'comment' line.",
+    "why": "In engine/npc_behaviors.py, process_npcs_on_combat calls process_bystander_reactions with max_reactions=1 and restricts non-sexual combat reactions to 'comment' dialogue lines. Meanwhile, npc_behaviors already has separate flee logic (lines 583-611) that only runs on periodic ticks, leaving room bystanders passively muttering one line during active violence.",
+    "how": "1. Review process_npcs_on_combat and process_bystander_reactions in engine/npc_behaviors.py.\\n2. Replace the single passive 'comment' max_reactions=1 cap for combat stimuli with disposition-driven bystander reactions using existing npc_behaviors flee (lines 583-611), hide, alert/shout, and ally defense hooks (guarding against infinite cascade recursion).\\n3. Add pytest coverage with peaceful bystanders fleeing armed violence and allied NPCs responding cleanly.",
+    "verify": "1. Run pytest covering process_npcs_on_combat with 3+ co-located NPCs of varied traits (cowardly, allied, hostile), verifying multiple witnesses respond with appropriate state changes rather than stopping at 1 passive comment.",
+    "acceptance": [
+      {
+        "text": "process_npcs_on_combat / process_bystander_reactions no longer limits non-sexual combat bystanders strictly to passive 'comment' text capped at max_reactions=1 across an entire crowd.",
+        "done": false
+      },
+      {
+        "text": "Non-combatant bystanders can react physically by disposition and fear posture (fleeing, taking cover/hiding, raising alarm, or aiding allies) using existing movement/hiding/combat helpers.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/npc_behaviors.py",
+      "engine/combat.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Event Stream turn log during multi-NPC combat.\\n\\nCurrent availability: engine/npc_behaviors.py (process_npcs_on_combat -> process_bystander_reactions) restricts non-sexual bystander combat reactions to 'comment' with max_reactions=1.\\n\\nManual verification steps:\\n1. Start a fight in an area containing multiple bystander NPCs (e.g. fearful civilian + brave ally).\\n2. Execute an attack and inspect logs and area occupancy.\\n   - expected: Fearful bystanders can flee or hide rather than watching passively, allies can move to intervene, and multiple witnesses are not blocked by a 1-comment cap."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/NPC Behavior System]]",
+      "[[Rules Engine/Combat System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

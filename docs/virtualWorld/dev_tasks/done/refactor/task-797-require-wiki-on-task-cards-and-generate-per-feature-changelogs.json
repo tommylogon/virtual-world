@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-797",
+  "kind": "task",
+  "number": 797,
+  "title": "Require wiki on task cards and generate per-feature changelogs",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make `wiki:` required on new task cards, and generate a `## Changelog` on each feature page from the tasks whose `wiki:` points at it - so every feature carries a real, dated history of what changed and why.",
+    "why": "The task <-> feature edge already exists (`doc_connected.py` reads task `wiki:` frontmatter) but it is optional, so the join is patchy. The goal is a wiki where each dev task is tied to its feature and the page shows the history.",
+    "how": "Have `tasks.py validate` warn (then error) on a missing `wiki:`. Add a generator that reads the task tree, groups by `wiki:` target, and writes each page's `## Changelog` between markers (like `doc_connected`). Wire it into the vault guards when stable.",
+    "verify": "1. File a task with no `wiki:`.\n   - expected: `tasks.py validate` warns.\n   - observed: TODO\n2. Run the changelog generator, open `Movement.md`.\n   - expected: a dated changelog of the tasks that touched movement.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "new task cards are required to carry `wiki:`",
+        "done": false
+      },
+      {
+        "text": "feature pages show a generated, dated changelog",
+        "done": false
+      },
+      {
+        "text": "the changelog is built from the task tree, never hand-maintained",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/tasks.py",
+      "tools/doc_connected.py"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-797-require-wiki-on-task-cards-and-generate-per-feature-changelogs.md"
+  }
+}

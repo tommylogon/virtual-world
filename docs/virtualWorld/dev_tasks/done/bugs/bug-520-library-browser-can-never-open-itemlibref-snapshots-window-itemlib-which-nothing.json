@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "bug-520",
+  "kind": "bug",
+  "number": 520,
+  "title": "Library browser can never open: itemLibRef snapshots window.itemLib, which nothing publishes",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Open the library browser (Build > Library) and it silently never appears. Console:\n`Uncaught (in promise) TypeError: can't access property \"data\", itemLibRef is undefined`\n(libraries-browser.js:93). Reproduced live 2026-10-04 in a driven browser session on\nkraktooth_goblin_camp; every open attempt, real mouse clicks included, died silently\nbecause `open()` is async and the rejection was unhandled.",
+    "why": "`library-browser.ts:45` snapshots `window.itemLib` at module load. But `itemLib` is a\ntop-level `const` in item-library.js - a global *lexical* binding, not a window\nproperty (the exact trap the TS-migration rules warn about) - and the only publication,\n`VW.itemLib = itemLib` in main.js, runs at main.js's load (index.html:1439), after\nlibrary-browser.js (index.html:1383). So the snapshot is always undefined and\n`open()` throws at `itemLibRef.data = ...` before it ever sets `display: flex`.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "fix_2026_10_04": "`itemLibRef` became a lazy function reading `VW.itemLib ?? window.itemLib` at call\ntime; the two call sites (`open()` data share, `switchTab('items')`) call it and\nguard for undefined. `python tools/ts_convert.py check` gate green."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-520-library-browser-can-never-open-itemlibref-snapshots-window-itemlib-which-nothing-publishes.md"
+  }
+}

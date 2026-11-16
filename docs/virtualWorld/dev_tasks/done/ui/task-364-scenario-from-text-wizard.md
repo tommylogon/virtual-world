@@ -8,7 +8,7 @@ priority: high
 # task-364: Scenario from Text wizard
 
 **Filed**: 2026-08-30
-**Status**: In Review — implemented 2026-08-30; E2E-verified with a stubbed LLM
+**Status**: In Review - implemented 2026-08-30; E2E-verified with a stubbed LLM
 (full draft→review→apply→undo round trip against the live server); real-LLM
 run + user playtest pending.
 
@@ -22,7 +22,7 @@ run + user playtest pending.
   `TemplateLoader` build. No new backend route.
 - Backend extensions in `engine/serialization_template.py`:
   - item `tags` + `light_level` / heat / sound props now survive
-    (previously silently dropped — light_source items lost their tag).
+    (previously silently dropped - light_source items lost their tag).
   - `characters` list → multiple players (protagonist stays active).
 - Tests: `tests/test_template_loader.py` (5). Full suite 1286 passed.
 

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "task-689",
+  "kind": "task",
+  "number": 689,
+  "title": "Engine: contradiction detection linking fallible memories",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-685",
+      "task-686",
+      "task-687",
+      "task-688",
+      "task-690",
+      "task-707"
+    ],
+    "parent": "task-685",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Characters may remember wrong things, and the system must not silently resolve\nconflicts into objective truth. What it does instead is **mark** them:\n\n- `memory_dynamics.detect_contradiction(new, existing_pool)` runs at write time\n  (both `Player.add_memory` and the HTTP entry endpoint): when the new memory\n  shares an entity with an existing one AND the pair shows negation asymmetry\n  (one side asserts, the other denies - markers: never/not/didn't/denied/isn't/\n  no longer - with ≥ 2 shared content words or Jaccard ≥ 0.4), link the ids\n  symmetrically in `contradicts[]` and drop the older memory's confidence ×0.9.\n- Conservative by construction: entity overlap AND shared content AND negation\n  asymmetry, or no link. A wrong link is visible, removable, and never\n  destructive (no deletes, no text rewrites, confidence loss ≤ 10% per link).\n- The reflection prompt (task-688) receives contradicting pairs among its\n  inputs and may emit a resolution belief with its own confidence; the\n  episodes stay untouched and linked.\n- Prompt rendering: a recalled memory with unresolved contradictions carries\n  `(you are not sure - this conflicts with what you remember at tick N)`.",
+    "why": "When characters acquire contradictory memories about the same entity, naive memory retrieval presents conflicting assertions without recognizing the contradiction.",
+    "how": "Added contradiction linking on memory ingestion based on entity overlap and opposing polarities/predicates, reducing confidence without deleting either memory.",
+    "verify": "1. Ingest conflicting memory statements\n   - expected: Memories link reciprocally as contradictory\n   - observed: Contradiction link verified on negation of shared entity\n2. Ingest unrelated memory\n   - expected: Unrelated memory gains no contradiction link\n   - observed: Clean isolation verified",
+    "acceptance": [
+      {
+        "text": "Unit: assert/deny pair with shared entity → both sides gain the link, older confidence drops; pair without shared entity → no link; pair with shared entity but no negation asymmetry → no link.",
+        "done": false
+      },
+      {
+        "text": "Symmetry: both entries list each other; deleting one removes the link from the survivor.",
+        "done": false
+      },
+      {
+        "text": "Wiring: a scenario where a character is told X, then told not-X, ends with one linked pair and no engine-side resolution.",
+        "done": false
+      },
+      {
+        "text": "Editor: a contradicts link is visible and removable in the memory editor (task-691 stage 2; acceptance deferred to it if not landed together).",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/memory.py",
+      "tests/test_memory_contradictions.py"
+    ],
+    "custom": {
+      "open_questions": "- Negation handling in English only for now (\"no/n't\" morphology). Is that\n  acceptable for v1, or do authored scenarios need a language-neutral escape\n  hatch (an explicit `contradicts` param on grant_memory effects)? Leaning:\n  add the explicit param - it is two lines and makes authored drama reliable.",
+      "browser_ui": "Intended UI home: Character Inspector → Mind → Memory Editor → open a memory pair linked as contradicts; remove the link from either entry and inspect both.\n\nCurrent availability: the task adds write-time contradiction linking for shared entities and asymmetric assertions, without resolving which memory is objectively true. The visible, removable link flow is an acceptance criterion and is not claimed complete here.\n\nLive steps when available:\n1. Tell a character that a named person lives in a specific area, then tell the same character that the person does not live there. Open both memories in Mind.\n   - expected: the two entries link to each other because they share the entity and negate each other; both confidences follow the authored reduction rule.\n2. Add a third memory about a different entity and a second memory about the same entity without negation.\n   - expected: neither unrelated nor non-contradictory pair gains a contradicts link.\n3. Remove the link from one memory in the editor and reopen the other.\n   - expected: the reciprocal link is removed symmetrically; no deletion of either memory occurs.\n4. Ask the character which claim is true.\n   - expected: the system surfaces the conflict as fallible memories and does not silently rewrite either into objective truth.\n\nThis section is not a claim that contradiction links are visible and editable today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-689-engine-contradiction-detection-linking-fallible-memory.md"
+  }
+}

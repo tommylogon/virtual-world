@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Low
-**Status**: In Review — implemented (code-verified 2026-08-11). Create modal has 📦 Container checkbox + contents JSON + container/character targets (`create-modal.js:122-127/157-161/252-268`).
+**Status**: In Review - implemented (code-verified 2026-08-11). Create modal has 📦 Container checkbox + contents JSON + container/character targets (`create-modal.js:122-127/157-161/252-268`).
 
 ---
 
@@ -74,13 +74,13 @@ The `api.createItem()` must handle the `contents` field and create `contains` ed
 **How to test**:
 - Click "Create" → "Item". Verify a "📦 Container (contains items)" checkbox appears below the form.
 - Check it, fill in JSON contents in the textarea that appears, submit. Verify the item is created with container contents visible in the inspector.
-- Open the Item Library, create/edit an item — verify the "📦 Container Contents" section with add/remove UI exists.
+- Open the Item Library, create/edit an item - verify the "📦 Container Contents" section with add/remove UI exists.
 
 ## Files
 
-- `static/js/main.js` — add container contents section to create modal
-- `templates/index.html` — may need additional HTML for contents editor
-- `app.py` — ensure container contents are created as edges
+- `static/js/main.js` - add container contents section to create modal
+- `templates/index.html` - may need additional HTML for contents editor
+- `app.py` - ensure container contents are created as edges
 
 ## How
 

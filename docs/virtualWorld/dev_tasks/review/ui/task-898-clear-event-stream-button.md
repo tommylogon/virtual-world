@@ -18,7 +18,7 @@ wiki: "[[UI Reference/Rendering & UI Modtons]]"
 
 ## What
 
-A single "Clear Event Stream" button in the event-stream toolbar that wipes the visible DOM, resets all internal state (`_knownActors`, `_lineSeq`, `_areaEventLog`, `_characterState`, streaming spans), and clears the persisted IndexedDB log — with a confirmation dialog so it is not accidental.
+A single "Clear Event Stream" button in the event-stream toolbar that wipes the visible DOM, resets all internal state (`_knownActors`, `_lineSeq`, `_areaEventLog`, `_characterState`, streaming spans), and clears the persisted IndexedDB log - with a confirmation dialog so it is not accidental.
 
 The button sits next to the existing export buttons (📥, ⏩, 📋) and uses the same `btn-icon` styling as the rest of the toolbar. No dropdown, no options: clearing is unambiguous and destructive, and the confirmation makes that explicit.
 
@@ -28,7 +28,7 @@ Three things make this worth a button rather than a keyboard shortcut or a hidde
 
 1. **The stream is the user's primary record of what happened.** A long session fills it with 5000 rows and 2000 persisted ones. Once full, new events overwrite old ones silently. The user cannot see how much they've lost until reload, and by then the log is already gone from IndexedDB. A clear button surfaces the loss before it happens.
 
-2. **`clearAll()` exists but has no UI entry point.** It is called programmatically from `main.ts` (new scenario), `saveload-view.ts` (load/save), and `scenario-manager.ts` (new scenario) — but never from a toolbar button. The user has no way to wipe their own stream without starting a new scenario or reloading.
+2. **`clearAll()` exists but has no UI entry point.** It is called programmatically from `main.ts` (new scenario), `saveload-view.ts` (load/save), and `scenario-manager.ts` (new scenario) - but never from a toolbar button. The user has no way to wipe their own stream without starting a new scenario or reloading.
 
 3. **Destructive actions need confirmation.** Per AGENTS.md, native `confirm()` is being replaced by `VW.dialog`. A clear button that fires `clearAll()` without confirmation would be accidental-click damage. The dialog pattern from task-751 fits this use case directly: one overlay, confirm label "Clear", cancel label "Cancel", danger styling on the confirm button.
 

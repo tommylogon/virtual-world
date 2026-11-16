@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-909",
+  "kind": "task",
+  "number": 909,
+  "title": "Dedicated Memory Model client and AgentLens live retrieval comparison sandbox",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-30",
+  "updated": "2026-11-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-908",
+      "task-690",
+      "task-730",
+      "task-948"
+    ],
+    "parent": "task-908",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Provide the UI configuration, execution client, and inspection sandbox for the Memory Subsystem:\n\n1. **Dedicated Memory Model Settings:**\n   - Add a \"Memory Model\" configuration block in Settings (`settings-view.ts` and `config.ts`), following the embedding model pattern.\n   - Options: Provider / Base URL, API Key, Model Name, API Format. Defaults to \"Same as Agent Model\" when left empty.\n   - Instantiates a dedicated `window.memoryLLMClient = new LLMClient()` configured with `reasoning: \"off\"` to ensure structured JSON memory extractions and reflections execute at full speed without wasting token budgets.\n\n2. **AgentLens Live Retrieval Sandbox:**\n   - Enhance the Agent Lens preview (`agent-lens.ts`) with a non-mutating recall workbench:\n     - Fix `buildMemoryContext` call inside Agent Lens to respect `_hypotheticalArea` instead of falling back to `player.current_area`.\n     - Provide a hypothetical stimulus bar: allows typing a line of dialogue (e.g. \"want olives with that?\") or toggling a need state (hunger) to test recall reactions in real time.\n     - Display a side-by-side diff: Legacy Flat Recall vs New Associative Recall.\n     - Collapsible candidate breakdown (`explain: true`): displays why the winning memories were selected (intersection match, recency, need match) and lists rejected runner-ups.\n\n3. **Open Question Tripwire Execution:**\n   - Support `category: \"question\"` in prompt assembly and Inspector.\n   - When room entities, dialogue, or visible items match an open question's watch targets, surface the question and active hypotheses in Lane 4 (`=== OPEN QUESTIONS / SUSPICIONS ===`).",
+    "why": "Benchmark runs on local LM Studio instances demonstrated that small 1.7B-2B models run structured memory extractions at over 200 tokens/second with 0.2s time-to-first-token when reasoning is turned off and GPU layers are offloaded. A dedicated client lets users delegate memory reflections and extractions to a fast local model without bottlenecking the main character model. Meanwhile, an interactive sandbox in Agent Lens allows tuning retrieval weights live without spending simulation turns or modifying scenario files.",
+    "how": "- Update `static/js/config.ts` and `static/js/ui/settings-view.ts`:\n  - Add fields for `memoryModel`, `memoryApiBase`, `memoryApiKey`, `memoryApiFormat`.\n  - Wire save/restore logic and initialize `window.memoryLLMClient`.\n- Update `static/js/agent-lens.ts`:\n  - Pass `hypotheticalArea` into `buildMemoryContext`.\n  - Add stimulus input and retrieval strategy toggle to the preview header.\n  - Render score explanation chips and candidate comparison.\n- Wire tripwire evaluation in `engine/memory_retrieval.py` for open questions.",
+    "verify": "1. Follow the intended live steps in Settings and Agent Lens.\n   - expected: Memory model settings persist and Agent Lens reflects live stimulus scoring.\n   - observed: Recorded during implementation.\n2. Run targeted tests: `python -m pytest tests/test_memory_retrieval_associative.py tests/test_memory_api.py`.\n   - expected: Endpoint tests pass with full output.\n   - observed: Recorded during implementation.",
+    "acceptance": [
+      {
+        "text": "Browser: Settings modal saves and loads custom Memory Model configuration cleanly, defaulting to localhost LM Studio (`http://localhost:1234/v1`, format `lmstudio`, model `lmstudio-community/lfm3-1.7b`).",
+        "done": true
+      },
+      {
+        "text": "Browser: Settings modal provides a live diagnostic Test Connection button for the dedicated memory worker with latency reporting.",
+        "done": true
+      },
+      {
+        "text": "Browser: `window.memoryLLMClient` initializes with the configured memory model and enforces `reasoning: \"off\"`.",
+        "done": true
+      },
+      {
+        "text": "Browser: Agent Lens stimulus input drives immediate retrieval preview update without mutating character state.",
+        "done": true
+      },
+      {
+        "text": "Browser: Agent Lens displays candidate score explanations and rejected runner-ups when expanded.",
+        "done": true
+      },
+      {
+        "text": "Unit: Open questions surface into Lane 4 when a matching entity or concept enters the situation context.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/config.ts",
+      "static/js/ui/settings-view.ts",
+      "static/js/agent-lens.ts",
+      "engine/memory_retrieval.py",
+      "tests/test_memory_retrieval_associative.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: \n1. Settings modal -> Connection tab -> \"Memory Model\" section.\n2. Left sidebar -> Lens tab -> Agent Lens -> Recall Sandbox controls.\n\nCurrent availability: Planned / ready for implementation.\n\nLive steps when available:\n1. Open Settings modal, configure Memory Model (e.g. local LM Studio endpoint `http://localhost:1234/v1` with a fast 1.7B/2B model), and save.\n2. Open Agent Lens on Kayla, set hypothetical area to Cafeteria, and type \"hey jake, want olives with that\" into the stimulus bar.\n   - expected: Agent Lens immediately refreshes the memory preview, shows the Jake/olives associative memory winning the top slot, and displays its score breakdown chips.\n3. Toggle between \"Legacy\" and \"Associative\" in the sandbox controls.\n   - expected: Legacy view displays the old flat padded list; Associative view displays the clean lane-budgeted recall without zero-score filler."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-331",
+  "kind": "task",
+  "number": 331,
+  "title": "Behavior Action - LLM-Generated Response",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-23",
+  "updated": "2026-08-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Behavior-side twin of task-330: new behavior action type `llm_respond` (name TBD)\nin `_execute_behavior_actions()` so simple NPCs (shopkeepers, merchants, mirrors)\ncan generate a spoken reply from instructions in the behavior's parameters, without\nbeing full agents. Same browser-side-LLM architecture as task-330 - read that file\nfirst for the constraint and sketch; this task is the executor + editor wiring on\nthe behavior path.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "motivation_tommy_s_examples": "- A shopkeeper whose haggling replies vary with what the customer actually said.\n- Any `simple_npc` that should react to `on_speech_heard` with characterful\n  dialogue beyond canned messages.",
+      "behavior_specific_differences_vs_task_330": "- Executor lives in `engine/npc_behaviors.py` `_execute_behavior_actions()`\n  (flat-dict action shape: `{type: 'llm_respond', instructions, fallback_message}`,\n  NOT `{type, params}` like trigger effects).\n- Behaviors already carry conditions (`speech_matches`, `eq npc_state`, ...) and\n  priority/interval - the same password-gate pattern applies, but the action can\n  also be priority-stacked against other behaviors of the NPC.\n- Editor surface is BOTH the behaviors form (`inspector/behaviors-view.js` action\n  dropdown + param fields) and the behavior graph editor's Action node\n  (`shared/trigger-graph.js` NODE_DEFS.action - add type + dynamic fields).\n- Attribution question is simpler: the NPC speaks as itself via its normal speak\n  pipeline.",
+      "proposed_shape": "```json\n{\n  \"trigger\": \"on_speech_heard\",\n  \"priority\": 10,\n  \"conditions\": {\"type\": \"speech_matches\", \"value\": \"...\"},\n  \"actions\": [\n    {\"type\": \"llm_respond\", \"instructions\": \"You are a tired taco bell cashier.\",\n     \"fallback_message\": \"Welcome to Taco Bell.\", \"max_words\": 30}\n  ]\n}\n```",
+      "files_likely_touched": "- `engine/npc_behaviors.py` - action registration + pending-request enqueue\n- `static/js/inspector/behaviors-view.js` - form dropdown + fields\n- `static/js/shared/trigger-graph.js` - Action node type + fields\n- Shared frontend pickup/generation with task-330 (build once, both consume)",
+      "open_questions": "Same list as task-330 (attribution, memory, cooldown) plus:\n- Does an NPC mid-response block its other behaviors for a tick?\n- Interaction with `npc_action_interval` - respond immediately or next tick?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "audit 2026-08-31": "- NOT IMPLEMENTED; the llm_respond trigger effect + browser pipeline (task-330) already exist - only the behavior-action branch + editor dropdowns are missing. Effort S–M."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-331-behavior-action-llm-response.md"
+  }
+}

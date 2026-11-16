@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "bug-47",
+  "kind": "bug",
+  "number": 47,
+  "title": "Kraktooth scenario persisted as live-world dump (76 validator issues)",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-316",
+      "task-408"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO - see task-408 acceptance.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "evidence_2026_09_23": "`python tools/validate_scenario.py --input data/scenarios/kraktooth_goblin_camp.json`\n→ **76 issues**: 23 `player_*` anchor nodes missing `description`, and 53\n`logic_trigger` nodes with a missing `target` and/or no incoming `triggers` edge.\nThe same 76 issues are present in the pre-edit backup, i.e. they are not caused by\nthis session's work. This contradicts task-408's 2026-09-20 progress note (\"validator\nwent 78 issues → 0\"), which suggests the trigger fixes there are not in the currently\ncommitted file - most likely overwritten by a live-world persist (the file carries\n`persist: true`)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/world/bug-47-kraktooth-scenario-persisted-as-live-world-dump-76-validator-issues.md"
+  }
+}

@@ -10,7 +10,7 @@ related: ["'task-207'", "'task-208'", "'task-210'", "'task-211'", "'task-212'", 
 
 **Filed**: 2026-08-11
 **Priority**: High
-**Status**: Done — shipped in v1.4.0
+**Status**: Done - shipped in v1.4.0
 
 ---
 
@@ -20,7 +20,7 @@ related: ["'task-207'", "'task-208'", "'task-210'", "'task-211'", "'task-212'", 
 
 ## Why
 
-The arousal vitals need to manifest as visible/influential character states. These are modeled as conditions with periodic effects, symptoms, and combat mods — no new architecture.
+The arousal vitals need to manifest as visible/influential character states. These are modeled as conditions with periodic effects, symptoms, and combat mods - no new architecture.
 
 ## How
 
@@ -29,15 +29,15 @@ The arousal vitals need to manifest as visible/influential character states. The
   - `overstimulated` (Pleasure -3, Energy -1, excludes satisfied/numb)
   - `nipple_hard` (periodic Arousal +1, known), `blushing` (visual only), `wetness` (periodic Arousal +2, not known unless exposed)
   - `sensitized` (edging stack), `satisfied`
-- **`stack` field required** — the catalog's `stack` (accumulate/refresh/noop) governs re-application; `sensitized` should `accumulate` (stacks), arousal states likely `refresh`. `excludes` → use the existing `CONDITION_EXCLUSIONS` map (`player.py`).
+- **`stack` field required** - the catalog's `stack` (accumulate/refresh/noop) governs re-application; `sensitized` should `accumulate` (stacks), arousal states likely `refresh`. `excludes` → use the existing `CONDITION_EXCLUSIONS` map (`player.py`).
 - Threshold checks in `tick_turn()` (`engine/tick_manager.py:83`): apply/remove arousal-state conditions based on Arousal value (0-15 baseline, 15-30 warming, 30-50 aroused, 50-90 highly, 90+ frantic).
 - Condition → vital feedback loops via `periodic` (already supported by `conditions.process_tick()`, called from `tick_turn()` line 108).
 - **Combat mods verified**: combat does `attack + attack_mod − target_defense_mod`, so aroused/highly_aroused/frantic `attack_mod`/`defense_mod` penalties will work if the catalog fields match the existing schema.
 
 ## Files
 
-- `engine/player.py` — condition definitions (`CONDITION_DEFINITIONS` at `player.py:30`)
-- `engine/tick_manager.py` — threshold checks (`tick_turn()` at line 83)
+- `engine/player.py` - condition definitions (`CONDITION_DEFINITIONS` at `player.py:30`)
+- `engine/tick_manager.py` - threshold checks (`tick_turn()` at line 83)
 
 ## Steps to verify
 
@@ -48,7 +48,7 @@ The arousal vitals need to manifest as visible/influential character states. The
 
 ## Related
 
-- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §2, §4, Phase 2
+- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §2, §4, Phase 2
 
 ## What
 

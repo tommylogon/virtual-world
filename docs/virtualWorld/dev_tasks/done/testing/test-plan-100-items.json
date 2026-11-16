@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "test-plan-100-items",
+  "kind": "task",
+  "number": null,
+  "title": "Test Plan: 100+ Click/Verify Items - SUPERSEDED",
+  "status": "done",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [
+      "task-587"
+    ],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "This file was a **presence checklist**: 215 steps, each with a \"Test\", an\n\"Expected Result\" and a hardcoded `✓`. It recorded no world, no write model and\nno run - the summary's \"225 passed\" was a transcription, not a measurement, and\nno run was ever stamped to a commit.\nIt has been superseded by **`docs/virtualWorld/testing/manual-test-plan.md`**\n(task-587), which keeps every one of these steps but gives each one:\n- a **phase** and a scratch world it runs in (`data/saves/<run-id>/`, never\n  `data/scenarios/`),\n- `pre` / `action` / `expect` / `may-write` / `evidence` fields,\n- a gate (`tools/test_plan_gate.cjs`) that voids the run if `git status` is dirty\n  outside the scratch world,\n- named blind spots and a first run recorded honestly (not a row of `✓`).\nThe 215 rows live on under the same `N.M` ids so links and harnesses keep\nresolving. Do not restore this checklist.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": {
+    "mode": "superseded",
+    "by": "task-587",
+    "reason": "",
+    "at": ""
+  },
+  "extra": {
+    "group": "Tech Debt & Testing",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/testing/test-plan-100-items.md"
+  }
+}

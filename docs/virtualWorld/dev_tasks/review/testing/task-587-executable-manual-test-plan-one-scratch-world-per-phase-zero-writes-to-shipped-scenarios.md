@@ -144,10 +144,10 @@ Executing manual verification on live or template scenarios risks data contamina
 ## How
 
 1. Structure the 224 manual verification steps into distinct phases (Phases 0 through 10) in docs/virtualWorld/testing/manual-test-plan.md.
-2. Each step specifies: id, pre (scratch/continue), ction, expect, may-write boundary (
+2. Each step specifies: id, pre (scratch/continue), action, expect, may-write boundary (
 othing / scratch-only / scratch+assets), and observable evidence.
 3. Boot each test phase with _scenario_source unset under a temporary data/saves/<run-id>/ directory.
-4. Implement 	ools/test_plan_gate.cjs to enforce that git status --porcelain is clean after every phase and void runs if shipped files are touched.
+4. Implement tools/test_plan_gate.cjs to enforce that git status --porcelain is clean after every phase and void runs if shipped files are touched.
 
 ## Browser UI and intended live verification
 
@@ -182,9 +182,9 @@ ode tools/test_runner.cjs --suite full).
 ## Files
 
 - docs/virtualWorld/testing/manual-test-plan.md
-- 	ools/test_plan_gate.cjs
-- 	ools/test_runner.cjs
-- 	ools/test_helpers.cjs
+- tools/test_plan_gate.cjs
+- tools/test_runner.cjs
+- tools/test_helpers.cjs
 
 
 ## Blocker Note (2026-10-19)

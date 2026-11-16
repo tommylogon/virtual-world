@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-182",
+  "kind": "task",
+  "number": 182,
+  "title": "Move Output Clarity - Arrival Area Name",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make move results name the destination so the agent doesn't have to guess where\nit ended up. Currently `routes/action.py:96-108` builds the \"You move\" message\nfrom the exit's `action_text` and the (often bare) area `description` line, but\n**never includes the destination area's name** - the name is only in the first\nsentence of the description, which is inconsistent.\n\nEvidence from `event_log_2026-08-02T12-00-06.txt`:\n- Kaelen: `\"You move to ...\"` then `\"You have arrived at ...\"` where the second\n  line is the area description without a name prefix - the model has to infer the\n  room name from prose (`The first thing that hits you...`).\n- After a successful move the model's own narration said \"she stepped into the\n  kitchen\" without a ground-truth name to confirm against, contributing to vague\n  area references.",
+    "why": "TODO",
+    "how": "### 1. `routes/action.py` - move handler (lines 96-108)\n- Add the destination area name explicitly. Prefer:\n  - `to_area.get_property(\"display_name\")` if present, else `to_area.get_property(\"name\")`.\n- Render: `\"You move {direction} - {destination name}. {description first sentence}\"`.\n  Keep `action_text`/`arrival` prefix handling so old format consumers (obsidian\n  docs, tests) aren't broken - append the name rather than replace.\n\n### 2. Verify the message reaches the agent prompt\n- Confirm `move` messages flow into the player's `system_messages` / history that\n  `agent-engine.js` observe reads (they do via the same message pipeline as other\n  actions - just verify in the log that the name now shows up).\n\n### 3. (Nice-to-have) `You have arrived at <name>`\n- Keep the existing `\"You have arrived at...\"` line but prefix the name:\n  `\"You have arrived at the Kitchen.\"` - trivial but high value for the model's\n  spatial grounding.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_modified": "- `routes/action.py`\n- `tools/test_all.cjs` (assert destination name present in move output)\n- `docs/virtualWorld/` (if move format is documented anywhere)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-182-move-output-clarity.md"
+  }
+}

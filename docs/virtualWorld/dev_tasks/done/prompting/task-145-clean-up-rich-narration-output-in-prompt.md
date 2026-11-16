@@ -7,7 +7,7 @@ priority: medium
 
 # Review Rich Narration / Area Description Output Quality
 
-**Status**: In Review — implemented (verified 2026-08-08 code audit; moved from todo). Hybrid approach per the task's Fix Option 1: `buildNarratedRoomContext()` (`prompt-builder.js:831`) builds the full room context and replaces only the `Description:` line with LLM narration; the old full-replacement rich-observation path is gone. AI-narration of action results also lives in `agent-engine.js`. Pending: visual/E2E review of the hybrid output.
+**Status**: In Review - implemented (verified 2026-08-08 code audit; moved from todo). Hybrid approach per the task's Fix Option 1: `buildNarratedRoomContext()` (`prompt-builder.js:831`) builds the full room context and replaces only the `Description:` line with LLM narration; the old full-replacement rich-observation path is gone. AI-narration of action results also lives in `agent-engine.js`. Pending: visual/E2E review of the hybrid output.
 
 **Filed**: 2026-07-30
 **Priority**: Low

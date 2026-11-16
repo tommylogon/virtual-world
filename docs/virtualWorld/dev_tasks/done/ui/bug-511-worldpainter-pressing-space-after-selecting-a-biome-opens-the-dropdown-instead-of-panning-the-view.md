@@ -23,7 +23,7 @@ In the fullscreen worldpainter, choosing a biome from the dropdown leaves the co
 - [x] Live proof (Playwright, `localhost:4465`): hold Space after picking a biome
       → Konva stage `draggable()` is `true`; released → `false`; same with the
       select focused by Tab.
-- [x] No other fullscreen tool binds Space-to-pan — `rg "code === 'Space'"` finds
+- [x] No other fullscreen tool binds Space-to-pan - `rg "code === 'Space'"` finds
       only `static/js/worldpainter/editor.js`.
 
 ## Notes

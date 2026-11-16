@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-607",
+  "kind": "task",
+  "number": 607,
+  "title": "Damage reduction needs a selectable mode: flat, dice reduction, or percentage",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-604",
+      "task-606",
+      "task-654"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**DECIDED 2026-09-30 by Tommy:** default to **flat** number reduction, and\nexpress it the way weapon damage already is -- **a field you can type `d8`, or\n`20`, or such**.\n\nThis replaces the three fixed modes I originally filed (flat / dice / percentage)\nwith something better: one field evaluated by the **same expression parser the\nweapon damage field already uses**. That means:\n\n- `20` -- flat subtraction, which is the default and preserves current behaviour\n  so no existing scenario changes silently.\n- `d8` -- dice reduction, dropping the worst N damage rather than a flat amount.\n- and anything else that parser already accepts, which is the point: the grammar\n  is not a new invention that needs three branches, it is the one the rest of the\n  combat vocabulary uses.\n\nThe scale problem this was filed for still stands and is what the expression\nbuys room for: flat subtraction has no scale-invariant answer, so a leviathan\nand a 1cm spider need the same field to mean different relative things. A\npercentage is the natural third form if the expression grammar grows one.\n\nNo clamp, no new evaluator -- reuse the weapon-damage path.\n\n`damage = max(1, damage - target_defense)` is flat subtraction, and flat\nsubtraction has no scale-invariant answer:\n\n- `gribbas_good_knife` (`1d4+2`, 3-6) against `defense >= 2` floors to 1 on most\n  rolls - there is no gradient between \"armor helped a bit\" and \"armor erased\n  the weapon\".\n- Against a 1-damage spider bite, `-3` hits the `max(1, ...)` floor and does\n  nothing.\n- Against a tank shell, `-3` is noise.\n\n**Which mode is correct is a setting, not a ruling.** Per Tommy, damage\nreduction should be *optional* and selectable between three modes, because the\nright answer differs by world and the existing content already implies more than\none:\n\n| mode | formula | suits |\n|---|---|---|\n| **flat** | `dmg - defense` (today) | low-variance, armour-as-minimum-damage; fine for small-scale duels |\n| **dice reduction** | `dN - defense`, i.e. remove dice rather than points | makes armour lose *rerolls* instead of flat value; keeps variance |\n| **percentage** | `dmg * (1 - dr)` | the only scale-invariant form - 40% blunts a knife and a cannon equally |\n\nPercentage is what makes task-606's titanic tier work, but it changes the feel\nof every existing encounter, so it must be a choice rather than a replacement.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Armor damage reduction calculates as percentage attenuation rather than flat subtraction.",
+        "done": true
+      },
+      {
+        "text": "Non-linear formula ensures defense scales smoothly against both light and heavy attacks.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/combat.py",
+      "tests/test_combat.py"
+    ],
+    "custom": {
+      "resolution_2026_09_30": "Per Tommy: `defense` becomes a **damage expression** in the same grammar the\nweapon-damage field already uses, so an author types `20` or `d8` and both mean\nwhat they look like. Default stays flat, so nothing changes silently.\n\n**`parse_damage` learned a bare `d8`.** The old pattern required a leading count,\nso `d8` evaluated to `(0, 0, 0)` -- an armour that silently reduced nothing, and\n`d8` is both the shorthand an author reaches for and what this task asks for. It\nnow also honours a signed bonus, which the old pattern dropped by reading the\nsign group as unsigned. Verified directly:\n\n    20 -> (0,0,20)      'd8' -> (1,8,0)      'D8' -> (1,8,0)\n    '2d6+3' -> (2,6,3)   '2d6-1' -> (2,6,-1) 'd' -> 0   'colossal' -> 0\n\n**Aggregation keeps the two forms apart.** An int takes the cheap path and sums\nflat, exactly as before; a dice value is collected separately as `defense_dice`\nand **rolled per hit** by `combat._apply_damage_reduction`. Summing dice across\nan outfit at aggregation time would roll once and subtract the same number from\nevery later swing, so the dice form never enters the flat sum.\n\n**One implementation for all three sites.** `combat.py` had three copies of\n`damage = max(1, damage - target_defense)`; they now call one helper.\n\n**Authored content, per Tommy's point that a mechanic with nothing exercising it\nshould get content rather than a test fixture:**\n\n- `data/library/items/padded_gambeson.json` -- a quilted gambeson with\n  `defense: \"d8\"`, semantically motivated: padding absorbs a variable amount\n  per swing rather than a fixed one. Passes the library lint.\n- `data/library/characters/straw_practice_dummy.json` -- a durable training\n  target, so a glancing hit does not end the experiment. Also lint-clean.\n\n`tools/lint_library.py` reports 0 errors with both in place.",
+      "what_blocked_the_live_end_to_end_and_what_it_turned_up": "Two things, and the second is worth more than the demo would have been.\n\n**1. The bare-hands damage is too small to observe.** With no weapon, a hit does\nabout 1 damage and the `max(1, ...)` floor absorbs the entire reduction, so\n`d8` and `3` are indistinguishable. That is the cliff this task exists to\nremove, met in the most literal possible way.\n\n**2. Equipping through the API does nothing -- filed as task-654.** Writing\n`{equipped: {hand: ['item_spear']}}` to `POST /api/players/<name>` returns 200 and\nchanges nothing in combat: every attack still read *\"attacks with bare hands\"*.\n`_best_weapon_node` reads the **graph edges** (`EDGE_CARRYING` / `EDGE_EQUIPPED`);\n`player.equipped` is a second source of truth the API will happily write without\ncreating the edge. So `player.equipped` is a phantom field -- it shows in the\ninspector and is inert in both combat and damage reduction.\n\nThat is the same class as task-292 (a piece of armour that declares\n`equip_slots` but has no `equip` action) and task-632 (a field that serializes\nand is never populated). It is also the reason a proper test of 607 needs\ntask-654 fixed first, not 607.\n\nAlso noticed while checking: **three equip-slot names in use in one world** --\n`hand_right` (4 characters), `main_hand` (1), `torso` (1) -- while the four weapon\nitems all declare `equip_slots: [\"hand\"]`. One of those three is mine (`main_hand`,\nguessed), but `hand_right` against a declared `hand` is not. Recorded in task-654\nrather than chased here.\n\n- [x] A world/engine config selects the DR mode; the default preserves today's\n      flat behaviour so no existing scenario changes behaviour silently\n      (`combat.damage_reduction_mode` in `data/engine_config.json`, default\n      `flat`, choices `flat|dice|percentage`).\n- [x] All three modes implemented and unit-tested against the same fixtures\n      (`tests/test_defense_axes.py`).\n- [x] Percentage mode is scale-invariant: 40% reduces a 4, 10, 100 and 675 HP\n      blow to 2, 6, 60 and 405.\n- [x] The `max(1, ...)` floor is deliberate and documented per mode, not an\n      accident of the flat implementation (flat/percentage floor at 1; dice mode\n      floors at one surviving damage die).\n- [x] The combat log reports which mode produced the number (`−2 flat` /\n      `−40%` / `[N dice stripped]`).\n- [x] Interactive: the mode is read at call time inside `_dr_mode`, so switching\n      it mid-session re-resolves the next armed hit with no restart.\n- [ ] **Live-browser end-to-end still blocked by task-654** (equipping through\n      the API writes `player.equipped` without creating the graph edge, so an\n      armed hit cannot be set up through the API). Recorded, not claimed.",
+      "resolution_2026_10_02": "The mode selector is implemented on top of the earlier expression work.\n\n- `engine/runtime_config.py` gains `combat.damage_reduction_mode` (string, with\n  `choices`), surfaced automatically in Settings → Engine Config.\n- `engine/combat.py`:\n  - `flat` (default) - subtract the expression value; a dice expression is\n    rolled per hit.\n  - `dice` - `_adjust_damage_dice` strips DR dice from the *incoming* damage\n    roll before it is made (at least one die survives), so armour removes\n    variance instead of points. The post-roll helper is a no-op in this mode so\n    the two never both fire.\n  - `percentage` - the expression is read as a percent of the blow,\n    `damage - round(damage * pct / 100)`, scale-invariant.\n- All three DR call sites (weapon dice, flat weapon, bare hands) route through\n  the same helpers; the log tags the mode.\n- Content: `padded_gambeson` (dice expression, flat mode),\n  `plate_cuirass` / `duelists_leathers` (the task-604 axes)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-607-damage-reduction-must-be-percentage-not-flat-subtraction.md"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-89",
+  "kind": "task",
+  "number": 89,
+  "title": "Character Inspector Polish",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-21",
+  "updated": "2026-07-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Remaining polish items from task-17 (Editable Characters). All superseded by organic improvements - the equip picker works via `+` button and right-click context menus, inventory has its own tab, container inspection works via right-click → Open Container, and the dedicated paperdoll task covers the rest.\n\n### What's actually in place\n- ✅ Right-click context menus on inventory items (Inspect, Equip, Drop, Open Container, Put in Container)\n- ✅ Right-click context menus on paperdoll slots (Inspect, Open Container, Unequip)\n- ✅ `+` button on each paperdoll slot opens equip picker filtered by compatible items\n- ✅ Stack expansion popup for layered slots (+N more badge)\n- ✅ Inventory grid with its own tab\n- ✅ Open Container via right-click navigates to item inspector\n\n### What was deferred/superseded\n- Container contents inline expand in inventory - not needed, right-click → Open Container covers it\n- Click empty slot → equip picker - `+` button does this\n- Swap option - unequip + re-equip from inventory works, paperdoll task will improve this\n- Drag-and-drop - not important, paperdoll task covers future UX improvements",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector.js` - all four items",
+      "static/css/style.css` - drag-and-drop visual feedback (if implemented)",
+      "**Deferred**: Post-merge feature branch. This branch is refactoring/testing only."
+    ],
+    "custom": {
+      "items": "### 1. Container contents expandable in inventory\n\n**Deferred:** Right-click → Open Container on any container item navigates to the item inspector instead. Inline expand not needed.\n\n### 2. Click empty paperdoll slot → open equip picker\n\n**Superseded:** The `+` button on each slot does this. The dedicated paperdoll task will improve the UX.\n\n### 3. Swap option on equipped items\n\n**Superseded:** Right-click context menu has Unequip. Quick unequip + re-equip from inventory covers the use case. Paperdoll task handles future improvements.\n\n### 4. Drag-and-drop from inventory to paperdoll\n\n**Deferred:** Not a priority. Paperdoll task covers future drag-and-drop if needed.",
+      "refactoring_impact_july_2026": "Inspector is 10+ files in static/js/inspector/. Container contents display modifies item-view.js and inventory-view.js. Empty slot picker and swap/drag-drop modify paperdoll-view.js. Each change scoped to its view module."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Characters Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-07-30"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-89-character_inspector_polish.md"
+  }
+}

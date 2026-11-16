@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-367",
+  "kind": "task",
+  "number": 367,
+  "title": "scenario-status-chip-commit",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_built": "- `static/js/ui/scenario-status.js` - top-bar chip `📦 <scenario> · ●` where the ●\n  (dirty dot) appears only when `edit_seq != commit_seq`; chip holds **Commit** only.\n- `POST /api/scenario/commit` - writes live world into the scenario source file\n  (`data/scenarios/<name>.json`), resets `_commit_seq`.\n- `GET /api/scenario/status` - dirty flag via edit/commit sequence compare.\n- **Consolidation (same day)**: the chip previously had a second [🌀 Restart]\n  button (duplicate of the toolbar Restart) - removed; toolbar keeps the only Restart.\n  Chip = status + Commit only.\n- Tests: `tests/test_scenario_commit.py` (5).",
+      "note": "Original audit text mentioned \"[💾 Commit] and [🌀 Restart]\" - Restart stayed in the\ntoolbar per the two-Restart consolidation; see task-368 for the menu wording."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-367-scenario-status-chip-commit.md"
+  }
+}

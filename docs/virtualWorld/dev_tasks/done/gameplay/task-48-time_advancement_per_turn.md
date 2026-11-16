@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-19
 **Priority**: High
-**Status**: In Review — implemented (code-verified 2026-08-11). Time advances once per full turn: `advance_clock(1)` inside `tick_turn()` at `engine/tick_manager.py:446`; per-request `_action_time_consumed` flag (`tick_manager.py:59`, reset at `routes/action.py:141`) suppresses per-action advances.
+**Status**: In Review - implemented (code-verified 2026-08-11). Time advances once per full turn: `advance_clock(1)` inside `tick_turn()` at `engine/tick_manager.py:446`; per-request `_action_time_consumed` flag (`tick_manager.py:59`, reset at `routes/action.py:141`) suppresses per-action advances.
 
 ## What
 
@@ -23,9 +23,9 @@ Time advances in 4 places per agent step:
 | Source | File | Line | Advance |
 |--------|------|------|---------|
 | Observe phase: `ApiClient.getAreaDescription()` → `get_area_description()` calls `apply_action("look")` | `virtual_world_engine.py` | 827 | 5 min |
-| Decision speech: `ApiClient.action("speak ...")` — no `apply_action` called → default fallback fires | `app.py` | 505 | 5 min |
-| Decision action: `ApiClient.action("examine ...")` — same, no `apply_action` → default fallsback | `app.py` | 505 | 5 min |
-| Reaction speech: `ApiClient.action("speak ...")` — same pattern | `app.py` | 505 | 5 min |
+| Decision speech: `ApiClient.action("speak ...")` - no `apply_action` called → default fallback fires | `app.py` | 505 | 5 min |
+| Decision action: `ApiClient.action("examine ...")` - same, no `apply_action` → default fallsback | `app.py` | 505 | 5 min |
+| Reaction speech: `ApiClient.action("speak ...")` - same pattern | `app.py` | 505 | 5 min |
 
 The default fallback at `app.py:505` is:
 ```python
@@ -37,9 +37,9 @@ This runs for **every** `POST /api/action` that doesn't explicitly set `_action_
 
 ## Desired Behavior
 
-- Actions within a turn happen in a "burst" — time only advances when the full turn cycle completes
+- Actions within a turn happen in a "burst" - time only advances when the full turn cycle completes
 - 1 tick (5 min) per turn, not per action
-- `tick_turn()` (called at turn change via `/api/turn/apply`) already handles vitals decay — time advance should be coupled with it
+- `tick_turn()` (called at turn change via `/api/turn/apply`) already handles vitals decay - time advance should be coupled with it
 
 ## What Needs to Change
 
@@ -49,7 +49,7 @@ Remove `advance_clock(1)` from `app.py:505` and instead call `advance_clock(1)` 
 
 **Risks**: Human players typing commands one-at-a time would never see the clock advance until they click "End Turn" (or equivalent). Currently every `look` or `go` bumps time.
 
-### Option B: Selective default — skip for speech/examine
+### Option B: Selective default - skip for speech/examine
 
 ```python
 # In app.py, after the try block:
@@ -88,9 +88,9 @@ This way, during a full turn cycle (multiple agent steps), time only advances on
 
 ## Files
 
-- `app.py:505` — default `advance_clock(1)`, needs gating or removal
-- `virtual_world_engine.py:2911` — `tick_turn()`, candidate for explicit time advance
-- `agent-engine.js:254` — `getAreaDescription()` in observe phase (triggers extra `apply_action("look")`)
+- `app.py:505` - default `advance_clock(1)`, needs gating or removal
+- `virtual_world_engine.py:2911` - `tick_turn()`, candidate for explicit time advance
+- `agent-engine.js:254` - `getAreaDescription()` in observe phase (triggers extra `apply_action("look")`)
 
 ## How
 

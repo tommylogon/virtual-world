@@ -1,0 +1,49 @@
+{
+  "id": "task-306",
+  "kind": "task",
+  "number": 306,
+  "title": "Warn on Empty Triggers",
+  "status": "review",
+  "area": "triggers",
+  "priority": "medium",
+  "created": "2026-08-19",
+  "relations": {
+    "related": [
+      "bug-532",
+      "task-305",
+      "task-307",
+      "task-503"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-305-warn-way-missing-authoring-fields]]",
+      "[[task-307-warn-mechanic-tags-missing-values]]",
+      "[[bug-532-a-message-effect-exposes-both-a-message-field-and-success-fail-message-with-contradictory-precedence]]",
+      "[[task-503-behavior-mode-compile-honesty-stop-dropping-no-branch-actions]]"
+    ]
+  },
+  "sections": {
+    "what": "Editor warning on triggers that are empty - no effects, or empty success/fail messages.",
+    "acceptance": [
+      {
+        "text": "Trigger editor warns author when saving a trigger with no conditions or effects.",
+        "done": true
+      },
+      {
+        "text": "Linter flags empty trigger definitions in scenario files.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/shared/trigger-editor.js",
+      "tools/validate_scenario.py"
+    ],
+    "custom": {
+      "idea": "Editor warning on triggers that are empty - no effects, or empty success/fail messages.",
+      "implemented": "- `engine/trigger_validator.py` - `empty_trigger` (no effects at all) in `validate_trigger_props`; `empty_effect_message` for `message` effects with blank text.\n- Surfaced in the left panel `#validation-section` via `/api/triggers/validate`.\n- Tests: `TestEmptyTriggerWarnings` (no-effects + empty-message cases).\n\n**Verified**: full suite 980 passed (+9 validator tests).\n\n**Follow-up (2026-08-19)**: a message effect is only flagged when `message`, `success_message`, and `fail_message` are all empty - the editor stores trigger messages in `success_message`/`fail_message` (mirrored into the first effect's params; the runtime fills `message` from `success_message`, `trigger_system.py:105`). This stops false positives on triggers like the Valerius painting. Warning text now names the trigger + source node. Suite now 986 passed.",
+      "notes": "- Authoring-time validation in the trigger editor, same pattern as the existing tag validation warnings.\n- Catches triggers that silently do nothing (no effects) or produce blank narration (empty messages).\n- Family of warnings: `task-305` (ways), `task-306` (this), `task-307` (mechanic tags).",
+      "related": "- `developer ideas.md` line 13\n- Trigger editor (`static/js/shared/trigger-editor.js`), `engine/trigger_validator.py`"
+    }
+  }
+}

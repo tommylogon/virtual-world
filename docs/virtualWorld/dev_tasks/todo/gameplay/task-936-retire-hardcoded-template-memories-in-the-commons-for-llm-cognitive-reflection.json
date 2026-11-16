@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-936",
+  "kind": "task",
+  "number": 936,
+  "title": "Retire hardcoded template memories in The Commons for LLM cognitive reflection",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-824",
+      "task-854",
+      "task-935"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Eliminate the hardcoded, deterministic template f-string memories currently injected by The Commons, replacing them with genuine LLM-driven cognitive reflection or a zero-write policy:\n\n1. **Remove Hardcoded F-String Injections**:\n   - Delete the hardcoded memory generation blocks in `routes/action_handlers.py` (lines 1956-1975 and lines 1992-2008) that inject rigid strings like `Saw message from {actor_name} in #{channel_name}: \"{msg_text}\"` and `Texted {matched_name}: \"{msg_text}\"`.\n   - Commons communication state is message ledger state (`engine/commons.py`), not cognitive character memory.\n2. **LLM Cognitive Reflection / Reaction**:\n   - When memories are enabled, incoming Commons messages are delivered to the recipient's turn prompt context as part of conversation history.\n   - The recipient character's own LLM evaluates the messages during their regular turn reaction phase or background reflection (`AgentMemory.reflect`), deciding:\n     - Whether the message is emotionally or narratively salient.\n     - What the character actually thought or felt about it.\n     - The wording, importance, and tags of the resulting memory in the character's authentic voice.\n3. **Strict Fallback Policy (No Fake Memories)**:\n   - If an incoming message is not evaluated by an LLM (such as simple scripted NPCs or unreflected chat chatter), record **nothing**.\n   - No robotic template f-strings are ever inserted to stand in for cognition.",
+    "why": "Currently, The Commons forces rigid, automated strings into `player.memories` whenever any message is posted or texted. This bypasses character personality, emotions, and intelligence entirely: every character records identical, robotic memory entries for every chat line regardless of context. VirtualWorld simulation invariants dictate that character cognitive state belongs to the player model and agent reflection, not hardcoded route side effects. Either memories are generated through genuine LLM cognition, or nothing should be written.",
+    "how": "Partly implemented in commons-agent.ts / commons-api.ts: hardcoded 'I read the conversation:' dump was removed, read_chat now triggers topic-based recall + Intermediator synthesis, and remember accepts entities + memory_emotions. Remaining work: optional automatic post-turn cognitive reflection via interpreter when the character skips calling remember on an important exchange.",
+    "verify": "1. In browser UI, send a message in The Commons and inspect character memories.\n   - expected: No deterministic template memories added to recipient player object.\n   - observed: Hardcoded f-string added immediately by backend route.\n2. Trigger an autonomous LLM turn for the recipient character with conversation context present.\n   - expected: LLM generates in-character memory only when deemed salient by the model.\n   - observed: Memory already populated by route before LLM runs.\n3. Run test suite: `pytest tests/test_commons.py` and `pytest tests/test_action_handlers.py`.\n   - expected: All tests pass without asserting template memory strings.",
+    "acceptance": [
+      {
+        "text": "Hardcoded f-string memory writes deleted from `routes/action_handlers.py`.",
+        "done": false
+      },
+      {
+        "text": "Commons message delivery does not inject unreflected memories into `player.memories`.",
+        "done": false
+      },
+      {
+        "text": "Recipient LLM agents perceive incoming Commons messages in their observation prompt and generate in-character memories through normal cognitive paths.",
+        "done": false
+      },
+      {
+        "text": "If no cognitive reflection occurs, zero memory records are created.",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes anywhere in task cards, code, or documentation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/action_handlers.py",
+      "static/js/agent-engine.ts",
+      "static/js/agent/prompt-builder/conversation-context.ts",
+      "engine/agent_memory.py",
+      "tests/test_action_handlers.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: The Commons drawer, Event Stream, and Character Inspector -> Mind / Memories tab.\n\nCurrent availability: Posting to a channel or texting a character in Commons instantly writes hardcoded template strings into character memory lists without LLM reflection.\n\nLive steps when available:\n1. Open The Commons in the browser UI and post a message to `#general`: *\"Who left the lantern burning near the hay bales?\"*\n   - expected: Message appears in `#general` chat.\n2. Immediately inspect the author and recipient characters in Character Inspector -> Mind / Memories tab before an LLM turn runs.\n   - expected: Memory list contains no hardcoded template entries like `Saw message from...`.\n3. Advance simulation turn so the recipient LLM agent perceives the message.\n   - expected: Recipient agent acts, and if they find the fire hazard notable, generates an in-character memory (e.g. *\"Worried about someone starting a fire near the barn\"*) in their authentic voice.\n4. If a character ignores the message or takes a turn without finding it memorable, inspect their memory list.\n   - expected: Zero memories recorded for that message.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "Removed 'I read the conversation: ...' dump from static/js/commons/commons-agent.ts, added topic-based retrieveMemories + Intermediator synthesizeConsciousThought on read_chat, and upgraded remember tool + CommonsApi.storeMemory with entities and memory_emotions."
+  ],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/gameplay/task-936-commons-retire-hardcoded-template-memories-for-llm-cognition.md"
+  }
+}

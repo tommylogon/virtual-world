@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "id": "task-852",
+  "kind": "task",
+  "number": 852,
+  "title": "Persona UI improvement plan: workspace, doll navigation, markings, state integration",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-16",
+  "updated": "2026-10-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-844",
+      "task-847",
+      "task-848",
+      "task-830"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Deliver the Persona improvement plan P1-P5: workspace redesign, paperdoll navigation with front/back views, region-linked markings, body-state integration, personality/narrative polish - no duplicate truth, no readerless fields.",
+    "why": "The Persona tab read as a database form: a 720px max-width column of\nbordered inputs. The user's review (2026-10-16) asked for a polished,\ncohesive authoring workspace where the doll is central and the body is\nsuper useful AND stunning - real hierarchy, state clarity, region\nnavigation, and markings - without duplicating systems or inventing\nreaderless fields.",
+    "how": "Blueprint: user-provided Persona UI Improvement Plan (P1-P5). Order:\nworkspace layout -> doll navigation (front/back, keyboard, no artwork\nrequired) -> region-linked markings (multiple per region, canonical\nstore) -> body-state integration (sensitivity verified end-to-end,\ninjuries/bleeding/coverage read-only, task-851 seeded wounds wired) ->\npersonality/narrative polish -> regression.\n\nNon-goals (hard): no second doll/region catalog, no duplicate editors\nin the region panel, no fields without consumers, sensitivity never\ncompiles to prose, no pregnancy/identity work (846/850 stay out).",
+    "verify": "1. Live path above (Mind > Persona), steps 1-6.\n   - expected: wide workspace + header + chips that follow the real state.\n   - observed: NOT verified live. On :4444 over HTTP only: the served\n     static/js/inspector/mind-view.js contains the new code, and\n     GET /api/players/Arix/record answers (prose_stale true, structured false).\n     Earlier pass (pre-chip-wiring): full-width pane and header seen live.\n2. `python tools/ts_convert.py check`.\n   - expected: green.\n   - observed: green 2026-10-16 after the chip/dirty/stale and layout edits\n     (build:ts, typecheck, lint, module:check, unit all ok).\n3. `python -m pytest tests/test_character_appearance.py tests/test_character_record.py`.\n   - expected: green.\n   - observed: 110 passed 2026-10-16. Two premise errors in the uncommitted\n     test_compile_region_linked_markings were fixed first (it passed a Player\n     where a node was needed, and asserted lower-case prose that is capitalised).\n4. Identity pick-lists: `python -m pytest tests/test_character_appearance.py tests/test_character_record.py tests/test_emote.py`.\n   - expected: green, including TestIdentitySuggestions (every pronouns option\n     resolves in engine.pronouns; species list = SPECIES_PROFILES; GET /record\n     serves the lists; custom values round-trip unchanged).\n   - observed: 127 passed 2026-10-16; ts_convert.py check green after the edit.\n     Not verified in a browser. The server on :4444 predates the route change\n     (GET /record has no `suggestions` yet), so it needs a restart.\n5. Live region/navigation acceptance (pending figure asset, P2).\n\n6. P2 paperdoll navigation (front/back, keyboard, region selection polish).\n   - expected: navigate-mode doll swaps front/back faces over the same slot grid, arrow keys move selection, selected area drives the region panel.\n   - observed (start): P2 started 2026-10-16. Already in the tree (uncommitted): paperdoll-view.ts takes opts.facing and hides the back slot on the front face / held-item slots on the back face; style.css has data-facing grid templates; mind-view.ts has front/back buttons, arrow-key handler and _navAreas(). Verifying and polishing these now; nothing here is live-verified yet.\n   - observed (trace): the face filter was declared twice (paperdoll-view hid slots, mind-view _navAreas had its own order list). On the back face the waist slot was still rendered although the back grid template has no waist cell, so it would auto-place outside the figure. Arrow keys cycled a flat list, not the grid; a state push rebuilds the modal and dropped doll focus, which would break keyboard use.\n   - observed (change): AREA_FACE + areasForFacing() now live once in paperdoll-view.ts (back: back; front only: waist, lhand, rhand, hand_l, hand_r) and feed both the renderer and the Persona tab. Arrows move to the nearest visible slot in that direction (read from the rendered grid), F/B flip, Esc clears. Selection is aria-pressed, the doll has a focus ring and survives a modal re-render. New tools/unit/test_paperdoll_facing.js (6 tests) is wired in tools/unit/run.cjs.\n   - observed (gates): ts_convert.py check green; node tools/unit/run.cjs 727 passed, 0 failed (the 6 paperdoll facing tests ran). NOT verified in a browser (spatial arrows, focus ring, face flip need eyes); server restart not needed for P2 (static files only).\n   - open decision: appearance.body.butt/hips are linked to the waist area (front only), so they are reachable from the doll on the front face only. Showing waist on the back too would need a 7th row in the back template and would show genitals/balls on the back view, so it was left as is.\n<!-- p2-log -->\n\n7. P3-P5 polish pass (markings, state integration, personality/narrative polish).\n   - expected: markings format/parse cleanly into modifications[]; sensitivity, injured, bleeding, and missing conditions display on side rows with baseline slider; personality chips carry positive/adverse tones; multi-line narrative fields render as textareas.\n   - observed: verified across tools/unit/test_persona_mind.js, tests/test_character_appearance.py, and tests/test_body_baseline.py. All 778 unit tests pass; python ts_convert.py check gate green; zero em-dashes.",
+    "acceptance": [
+      {
+        "text": "(implemented, gate green) Full-width pane.",
+        "done": true
+      },
+      {
+        "text": "(implemented, gate green) Character header: name, one-liner, badges; source = base_description.",
+        "done": true
+      },
+      {
+        "text": "(implemented, gate green) State chips: unsaved when a sheet field is edited, saved after save/re-read, uncompiled from the server prose_stale flag or unsaved edits; edits survive re-render; compile refuses while unsaved.",
+        "done": true
+      },
+      {
+        "text": "(implemented, gate + pytest green) Identity fields stay free text and offer a pick-list (pronouns, gender, sexuality, species). Pronouns reach narration via player record resolution.",
+        "done": true
+      },
+      {
+        "text": "Responsive pass for the P1 layout (breakpoints added at 920px and 640px).",
+        "done": true
+      },
+      {
+        "text": "Paperdoll navigation front/back + region selection polish (P2). Implemented; ts_convert check + unit runner green (6 facing tests).",
+        "done": true
+      },
+      {
+        "text": "Region-linked markings, multiple per region (P3).",
+        "done": true
+      },
+      {
+        "text": "Body-state integration incl. task-851 wiring (P4).",
+        "done": true
+      },
+      {
+        "text": "Personality/narrative polish (P5): textareas for biography, arc, overview, secrets; tone tags for likes, dislikes, fears, turn-offs.",
+        "done": true
+      },
+      {
+        "text": "Regression + responsive pass.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/inspector/mind-view.ts (generated mind-view.js): header, state chips, dirty/stale logic, form-sync on re-render, compile guard, persona styles in _personaCss(), textareas, tone chips",
+      "static/css/style.css (paperdoll back-face rules from P2)",
+      "static/js/inspector/paperdoll-view.ts (AREA_FACE, areasForFacing, navigate aria) and mind-view.ts (facing/keyboard wiring, focus kept across re-render)",
+      "tools/unit/test_paperdoll_facing.js, tools/unit/test_persona_mind.js, tools/unit/run.cjs (loads paperdoll-view.js and mind-view.js)",
+      "tests/test_character_appearance.py (fixed the P3 markings test; TestIdentitySuggestions)",
+      "engine/character_appearance.py (IDENTITY_SUGGESTIONS + identity_suggestions(): the one place for the pick-list options)",
+      "routes/player_ops.py (GET /record serves `suggestions`)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Mind dashboard → Persona tab.\n\nCurrent availability: P1 (workspace layout) is implemented and passes the\nstatic gates; it has NOT been verified in a browser. Full-width pane, header\n(name, base_description one-liner, badges) and the saved / unsaved /\nuncompiled chips are in the code. P2-P5 are not part of this pass.\n\n\nLive steps when available:\n1. Mind > Persona on a character whose prose is stale.\n   - expected: wide workspace, character header (name, one-liner from\n     base_description, badges); chips read ✓ saved + ⚠ uncompiled;\n     actions on the right.\n   - observed: not verified live in this pass (see Steps to verify).\n2. Type in any sheet field (text input or chip pill add/remove).\n   - expected: chip flips to ● unsaved and ⚠ uncompiled. Typing in the\n     chip draft box, the marking draft box, or moving a sensitivity slider does\n     NOT mark the sheet unsaved (those do not write the record).\n   - observed: not verified live.\n3. With unsaved edits, switch to the Mind tab and back, or wait for a state push.\n   - expected: the edits are still in the form and the chip still says unsaved.\n   - observed: not verified live.\n4. With unsaved edits, press compile.\n   - expected: message says to save first; nothing is compiled (compile reads\n     the saved block).\n   - observed: not verified live.\n5. Press save block, then compile.\n   - expected: after save the chip reads ✓ saved and stays ⚠ uncompiled\n     (the server flags the prose stale on every save); after compile it clears.\n   - observed: not verified live.\n6. Narrow the window below 920px, then below 640px.\n   - expected: doll column stacks above the sheet and stops being sticky; below\n     640px the header stacks and chips and actions left-align.\n   - observed: not verified live.\n\n\n7. Identity fields: click into pronouns, gender, sexuality, species (restart the\n   server first: the vocabulary comes from GET /record).\n   - expected: each shows a native pick-list; picking an entry fills the field\n     and flips the chips to unsaved; typing a value not in the list is accepted;\n     after save and reload an existing custom value (e.g. xe/xem) still displays.\n     Note: the browser filters a datalist by the current text, so clear the field\n     to see every option. occupation and age have no list.\n   - observed: not verified live.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-852-persona-ui-improvement-plan-workspace-doll-navigation-markings-state-integration.md"
+  }
+}

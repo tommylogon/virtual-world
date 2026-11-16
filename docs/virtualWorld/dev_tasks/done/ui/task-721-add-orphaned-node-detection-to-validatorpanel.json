@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-721",
+  "kind": "task",
+  "number": 721,
+  "title": "Add orphaned node detection to ValidatorPanel",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-06",
+  "updated": "2026-10-06",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a new validation pass that detects orphaned nodes (nodes with zero incoming/outgoing edges) and reports them as warnings in ValidatorPanel with code 'orphaned_node'.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: orphaned_node warnings exist and group by type.\n- observed (2026-10-10 live): API returns 4 orphaned_node warnings, e.g. item_creel_1791283157194_961, item_goblin_bone_club_8z7w; engine/trigger_validator.py _validate_orphaned_nodes (line 229/252) emits the code.",
+    "acceptance": [
+      {
+        "text": "orphaned nodes detected (4 found live). - [x] code 'orphaned_node', severity warning, carries source_node_id + node_type. - [x] grouped under their type in the panel; the task-720 filter applies.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "related_files": "- `engine/trigger_validator.py`: add orphan detection pass.\n- `static/js/validator-panel.ts`: render orphaned nodes in results list.\n- `templates/index.html`: no markup change needed (reuses existing result rendering)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-721-add-orphaned-node-detection-to-validatorpanel.md"
+  }
+}

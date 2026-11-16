@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "id": "task-313",
+  "kind": "task",
+  "number": 313,
+  "title": "Relative facing map (forward/left/right/back)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-19 (as an idea stub; rewritten 2026-09-27 into a spec)",
+  "updated": "2026-08-19 (as an idea stub; rewritten 2026-09-27 into a spec)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "A character has no orientation, so \"to your left\" resolves to nothing. The words\n`left` and `right` are already accepted by the parser and then fail, and `back` /\n`forward` are handled only by a transit branch that no area can reach. The user\nexperience is that relative movement words are typed, accepted, and dead.",
+    "how": "**Facing is the heading of travel, and it persists until the character moves\nagain.** When a character crosses a way into an area, stamp the entry way on the\ncharacter and derive `facing` as the direction of travel (coming from the south\nmeans travelling north, so you face north). Standing still, examining things, or\ntalking does not change it. There is no turn-in-place verb; facing changes only by\nmoving, which keeps the model to one piece of state.\n\nResolve the four words by rotating `facing` on the cardinal ring\n(`N → E → S → W → N`):\n\n| word | result |\n| --------- |\n| `forward` | `facing` |\n| `right` | one step clockwise |\n| `left` | one step counter-clockwise |\n| `back` | opposite of `facing` |\n\nThen look up the resulting cardinal as an ordinary direction, i.e. hand the\nresolved cardinal to the same exit resolution that \"go north\" uses today. This is\nwhat makes it additive: \"go left\" becomes \"go <cardinal>\", and the area's own\nhandles are untouched.",
+    "verify": "- Unit: a four-way area; enter from the south, assert `go left` resolves to the\n  west way and `go right` to the east way; repeat entering from the west and\n  assert the rotation.\n- Unit: `facing` survives a non-movement turn and updates on the next crossing.\n- Unit: relative words in a spawn-point area return the \"no entry way\" message,\n  not a generic failure.\n- Unit: an area tagged `transit` in a fixture behaves identically to an untagged\n  one - the tag is gone, so it must be inert rather than load-bearing.\n- Full suite: compare against the ~60 failed / 3239 passed baseline.",
+    "acceptance": [
+      {
+        "text": "Crossing a way stamps the entry way and derived `facing` on the character;",
+        "done": false
+      },
+      {
+        "text": "the value survives turns where the character does not move.",
+        "done": false
+      },
+      {
+        "text": "`go left` / `go right` / `go forward` / `go back` resolve to the real",
+        "done": false
+      },
+      {
+        "text": "matching way, in an ordinary multi-way area, with no transit tag present.",
+        "done": false
+      },
+      {
+        "text": "The two worked examples from the original idea hold: entering from the",
+        "done": false
+      },
+      {
+        "text": "south, right is east and left is west; entering from the west, right is",
+        "done": false
+      },
+      {
+        "text": "south and left is north.",
+        "done": false
+      },
+      {
+        "text": "A way's own handle still resolves alongside the relative words - the",
+        "done": false
+      },
+      {
+        "text": "relative words alias, they never overwrite. The exits list in the area",
+        "done": false
+      },
+      {
+        "text": "description shows the authored handles, not `back`/`forward` replacements.",
+        "done": false
+      },
+      {
+        "text": "A character with no entry way (spawned in place, or a save predating this)",
+        "done": false
+      },
+      {
+        "text": "resolves cardinals normally and fails cleanly on relative words, with a",
+        "done": false
+      },
+      {
+        "text": "message that says why rather than a generic \"can't go there\".",
+        "done": false
+      },
+      {
+        "text": "`up` / `down` ways are never rotated; they stay literal and are not offered",
+        "done": false
+      },
+      {
+        "text": "as left/right/forward/back.",
+        "done": false
+      },
+      {
+        "text": "A way in a direction that is not a cardinal (a diagonal) does not become a",
+        "done": false
+      },
+      {
+        "text": "false left/right; the relative word is simply unresolved for that side.",
+        "done": false
+      },
+      {
+        "text": "The labs vent works: crawl into `Task 18 - ventilation shaft` from either",
+        "done": false
+      },
+      {
+        "text": "end, and `go back` returns the way you came in by. Both its exits are given",
+        "done": false
+      },
+      {
+        "text": "cardinals as part of this (`Shaft 1` has one, `Vent 2` has none today).",
+        "done": false
+      },
+      {
+        "text": "The transit machinery is gone: `is_transit_area`, `get_transit_roles`,",
+        "done": false
+      },
+      {
+        "text": "`resolve_transit_movement`, the `area_description.py` handle override, and",
+        "done": false
+      },
+      {
+        "text": "`data/library/tags/transit.json` are deleted, and no other module imports",
+        "done": false
+      },
+      {
+        "text": "them.",
+        "done": false
+      },
+      {
+        "text": "Per the standing rule, the relative-facing rules are documented in code",
+        "done": false
+      },
+      {
+        "text": "comments and in the user guide / technical docs - not only in this file.",
+        "done": false
+      },
+      {
+        "text": "This is exactly the kind of non-obvious behaviour that has been",
+        "done": false
+      },
+      {
+        "text": "misunderstood before.",
+        "done": false
+      },
+      {
+        "text": "`python tools/tasks.py validate` is clean.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "scoping_notes_2026_09_27_measured": "**1. Nothing records where a character came from.** Grepped the whole repo: no\n`facing`, `entered_from`, `origin_way`, `arrived_from`, or equivalent on a\ncharacter, a character node, or player state. `engine/movement.py` writes a\nturn event when a character changes area but does not stamp the entry way. So\nthere is no state for facing to derive from - that is the actual work, and it is\nwhat the transit tag has been quietly standing in for.\n\n**2. `left` and `right` already parse, then dead-end.** They are classified as\ntraversal words in `engine/movement.py` (`_APPROACH_CARDINAL_WORDS`), so\n\"go to the left\" is treated as crossing, not as an approach target. But the\ndirection string is then handed to `name_matcher.resolve_exit(area_id, direction)`\n(`movement.py`, `movement.py`), which looks for a way whose own handle is\nliterally `left`/`right`. No way is authored that way, so the words are accepted by\nthe parser and then fail to resolve. The vocabulary is already half-wired; only the\nresolver is missing.\n\n**3. The transit tag is dead *and* could not work as authored.** This was the\noriginal design (\"like the suggested transit tag on areas\") and it is being\ndropped. Three independent reasons:\n\n- **No area carries it.** An exhaustive search for the exact `\"transit\"` token\n across every `.json`/`.txt` under `data/` (excluding exports) matches exactly one\n file: the tag definition itself. Not the 90 `data/library/areas/` files, not any\n of the 24 scenarios. The other `transit`-ish matches in `data/` are the unrelated\n scheduler fields `transition_interval` / `transition_table`.\n- **It was attempted and failed quietly, in the labs vent.** The motivating case\n is real and still sitting in content: `data/scenarios/labs.json`,\n `Task 18 - ventilation shaft`, is a two-way area -\n `Shaft 1` (`\"cardinal\": \"north\"`) to `Task 18 - Room 3`, and `Vent 2` to\n `Task 18 - Room 4` - with `\"tags\": []`. That is exactly the shape\n `get_transit_roles` was written for (`len(ways) == 2`, one is `back`, the other\n `forward`). The author plainly expected back/forward to work in a crawl-through\n shaft, and it did nothing, because the gate it required was never set. Note also\n that it is authored **asymmetrically**: `Shaft 1` carries a cardinal and `Vent 2`\n carries none. Both need one for facing to work, whichever you crawled in through.\n- **It is on the wrong node type.** `data/library/tags/transit.json` declares\n `applies_to: [\"ways\"]`, but the only consumer,\n `is_transit_area` (`engine/character_spatial.py`), returns `False`\n unless `area_node.type == \"area\"` and then looks for the tag on the **area**.\n Tag on a way can never satisfy the check that reads it.\n- **So `get_transit_roles` always returns `None`.** Therefore the\n `handle = \"back\"` / `handle = \"forward\"` override in\n `engine/area_description.py` never fires in any shipped content, and\n `resolve_transit_movement` (`engine/matching.py`) never resolves\n anything. The feature has never run.\n\nBecause nothing depends on it, retiring the gate is free: no content migration, no\nback-compat shim. **Scope now includes deleting `is_transit_area`,\n`get_transit_roles`, `resolve_transit_movement`, the `area_description.py`\noverride, and `data/library/tags/transit.json`.** The transit tag should not be\nreintroduced as an opt-in for relative facing - relative facing is the default.\n\n**4. The transit branch is also the wrong shape for this feature, independent of\nthe tag.** Three problems to carry over correctly rather than delete blindly:\n\n- It **replaces** a way's handle instead of aliasing it. For relative facing,\n \"left\" must resolve *in addition to* the way's own cardinal/narrative handle,\n never instead of it - otherwise a room loses the name of the door you can see.\n- It **hardcodes two ways** (`len(ways) < 2` and\n `len(forward_candidates) != 1` both bail). Left/right have to pick among *all*\n the ways in an area by cardinal, which is the general case.\n- It derives \"back\" from the way a character is **AT** (`get_character_at_way`),\n not from where it came in. Those are different situations and both should feed\n facing: AT a way means examining it, not arriving through it.\n\n**5. Facing must derive from the entry way, per the standing decision that exterior\nways stay cardinals** and only narrative/entry ways act as entry features. If\nfacing were derived from any cardinal way, it would fight the map editor's\ncardinal layout instead of complementing it.",
+      "non_goals": "- A turn-in-place / \"face north\" verb, or a compass shown in the UI.\n- Diagonal-aware rotation (an 8-way ring is a separate decision).\n- Rotating `engine/timeskip.py` `HEADING_WORDS` - belief travel is a separate\n path and stays cardinal-only.\n- Re-authoring the 90 library areas. Nothing in the library needs to change,\n which is the main payoff of dropping the tag. The one content edit this task\n does carry is the two exits on the labs ventilation shaft.",
+      "result_2026_09_30_implemented_and_verified_in_a_browser": "All acceptance criteria are met. `engine/facing.py` owns the ring and the\nrotation; `player.facing` / `player.entered_from_way` hold the state; the\ntransit machinery and the tag are gone.\n\n### The scoping notes were right, and one was load-bearing\n\nNotes 1–3 verified as written on re-measurement: no facing state existed, the\nfour words were already in `_APPROACH_CARDINAL_WORDS` and dead-ended at\n`resolve_exit`, and the transit tag had no reader that could ever match.\n\n**What the notes did not say, and which would have shipped a dead feature:** the\nauthored `cardinal` never reached the graph. `serialization_legacy` read the\nexit *key* (which in labs is the label `\"Shaft 1\"`, not a heading) and never\nlooked at `exit_info[\"cardinal\"]`, so the cardinals authors had already filled\nin reached neither the graph nor anything else. Two further gaps behind it:\n\n- **Only `world_compile` wrote `cardinal` onto edges.** `movement.connect_areas`\n  and the `create_way` effect wrote `direction` only, so reading `cardinal`\n  alone would have made facing work in compiled zones and fail silently\n  everywhere else. `facing.edge_cardinal()` reads `cardinal` then falls back to\n  `direction`, and it is the single reader both the stamper and the resolver use.\n- **labs.json holds connectivity twice** - a legacy `areas` block *and* a\n  pre-built `graph` - and the loader uses the `graph`. Filling in the `areas`\n  cardinals changed nothing observable, which is rule 1's failure mode caught in\n  the act. The four `Vent 2` connection edges in the `graph` needed the\n  cardinals too.\n\n### Changes\n\n- **`engine/facing.py`** (new) - `CARDINAL_RING`, `RELATIVE_WORDS`,\n  `normalize_cardinal`, `cardinal_opposite`, `rotate`, `edge_cardinal`,\n  `explain_unresolved`, `resolve_for_player`.\n- **`engine/movement.py`** - stamps `facing`/`entered_from_way` on a crossing,\n  from the edge's cardinal rather than the typed word (a narrative handle still\n  gets a heading); `connect_areas` gained `cardinal1`/`cardinal2`.\n- **`engine/matching.py`** - `resolve_exit` tier 1b resolves the relative word\n  and hands the cardinal to ordinary exit resolution. After the exact-handle\n  tier, so an authored `back` still wins.\n- **`engine/serialization_legacy.py`** - carries `cardinal` through, deriving the\n  far side by opposition (`return_cardinal` overrides).\n- **Deleted** - `is_transit_area`, `get_transit_roles`,\n  `resolve_transit_movement`, the `area_description.py` handle override, the\n  `room-context.js` prompt rename (which was the same bug on the agent side),\n  `trigger_validator`'s `\"transit\"` entry, and `data/library/tags/transit.json`.\n- **Content** - `labs.json`: `Vent 2` cardinals on both the `areas` entries and\n  the four `graph` edges. That is the whole content change; no library area\n  needed one, which is the payoff of dropping the tag.\n- **Docs** - the \"Relative facing\" section of\n  `Gameplay/Character Spatial Position.md`, plus a superseded-by note on\n  task-224 (which shipped in 2026-08 and never ran) so the next reader does not\n  re-implement it.\n\n### Tests\n\n`tests/test_facing.py` (52 tests) covers the ring and both worked examples, the\naliasing, every off-ring `None`, the messages, `edge_cardinal`'s fallback, the\nstamping, rotation through real `move_to_area` calls, persistence round-trip,\nthe tag being inert, and **the real labs vent crawled in from both ends**. The\ntransit tests in `test_character_spatial.py` were **ported, not deleted** - they\nstood a character *AT* a way, which the scoping notes correctly call a different\nsituation from arriving through one.\n\n### Live browser verification\n\nNot unit tests. Drove the real labs scenario in a browser via the engine-command\noverride (`#command-input`) on a fresh instance:\n\n- Crawled into `Task 18 - ventilation shaft` from `Task 18 - Room 3`; in the\n  shaft the exits list read **`[Vent 2]`** and **`[Shaft 1]`** - the authored\n  handles, with no `back`/`forward` substitution anywhere.\n- `go left` from Room 3 while facing north resolved to **`Door 3`** (west, then\n  refused as locked) while `go back` took **`Shaft 1`** (south) - two different\n  doors from one position, which is the rotation working.\n- `go left` inside the shaft answered *\"'left' would be east from here (you are\n  facing south), and there is no east exit.\"* rather than \"can't go there\".\n- The event stream recorded the resolution outright:\n  **`matched 'back' as exit 'Shaft 1' (north of facing south)`**\n\n### Known limits, deliberately\n\n`up`/`down` and diagonals are never rotated (an eight-way ring is its own\ndecision); a way with no cardinal is never rotated; facing is client-visible\nstate on the `Player`, not an area property, so two characters in one room can\nface differently - which is the point.",
+      "related": "- `developer ideas.md` lines 20–23\n- `engine/character_spatial.py`, `engine/movement.py`, `engine/matching.py`\n- Decision: exterior ways stay cardinals; only narrative/entry ways act as entry\n features."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "relates": "`engine/character_spatial.py`, `engine/movement.py`, `engine/matching.py`,"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-313-relative-facing-map.md"
+  }
+}

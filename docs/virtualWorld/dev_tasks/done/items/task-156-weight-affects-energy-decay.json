@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-156",
+  "kind": "task",
+  "number": 156,
+  "title": "Weight Affects Energy Decay",
+  "status": "done",
+  "priority": "low",
+  "area": "items",
+  "tags": [
+    "items",
+    "weight",
+    "vitals",
+    "movement"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make carried weight affect energy cost, at least on movement. Carrying a heavy load should drain energy faster when moving.",
+    "why": "`ACTION_COSTS[\"move\"]` is a flat `{time: 1, energy: 1}` (virtual_world_engine.py:82) and movement applies it directly (engine/movement.py:245). Total carried weight is never factored in, so a character hauling a hundred kilos moves at the same energy cost as one carrying nothing.",
+    "how": "- Compute total carried weight from `EDGE_CARRYING` edges to the player node\n- Add a weight threshold multiplier to the move energy cost: e.g. baseline `energy` cost scales up beyond a comfortable weight limit\n- Either in `TickManager.apply_action` (engine/tick_manager.py:23) or in `movement.py` where `apply_action(\"move\", ...)` is called\n- Consider a `carry_limit` / `max_carry_weight` on the player (ties into encumbrance)\n- Keep it configurable per character (a strong character carries more with less penalty)",
+    "verify": "- [ ] Heavily loaded character loses more energy per move\n- [ ] Empty-handed character matches current cost (no regression)\n- [ ] Weight thresholds are sensible (light load no penalty)\n- [ ] Container contents count toward carried weight",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_to_modify": "1. `engine/tick_manager.py` - weight-modulated move cost\n2. `engine/movement.py` - pass carried weight into the move action cost\n3. `player.py` - optional carry capacity field",
+      "related": "- [[todo/items/task-155-item-uses-affect-weight|task-155: Item uses affect weight]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-156-weight-affects-energy-decay.md"
+  }
+}

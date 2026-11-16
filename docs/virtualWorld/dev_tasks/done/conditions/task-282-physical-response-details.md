@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Low
-**Status**: Planned — task-209 (Arousal State Conditions & Threshold Triggers)
+**Status**: Planned - task-209 (Arousal State Conditions & Threshold Triggers)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
 
 ## What
 
-A local, self-evident physical marker of arousal — a periodic Arousal feed with a visible tell. Minor, known, low-stakes.
+A local, self-evident physical marker of arousal - a periodic Arousal feed with a visible tell. Minor, known, low-stakes.
 
 ## Proposed schema
 
@@ -43,17 +43,17 @@ A local, self-evident physical marker of arousal — a periodic Arousal feed wit
 - **Saves/checks**: none.
 - **Combat**: neutral.
 - **Movement**: full speed.
-- **Periodic**: `Arousal +1` per tick — a steady, small feed into the arousal loop.
-- **Lifecycle**: `stack: "noop"` (already hard — nothing more to apply). Ends on calming or release. Applied by touch/arousal triggers.
+- **Periodic**: `Arousal +1` per tick - a steady, small feed into the arousal loop.
+- **Lifecycle**: `stack: "noop"` (already hard - nothing more to apply). Ends on calming or release. Applied by touch/arousal triggers.
 
 ## Perception
 
-`known: True` — self-evident, visible.
+`known: True` - self-evident, visible.
 
 ## Integration points space
 
-- `engine/player.py` — `CONDITION_DEFINITIONS` entry.
-- `engine/conditions.py` — `process_tick` Arousal feed.
+- `engine/player.py` - `CONDITION_DEFINITIONS` entry.
+- `engine/conditions.py` - `process_tick` Arousal feed.
 - Source: nipple/touch actions (Nipple & Erogenous Zone design Phase 2).
 
 ## Testing (proposed)
@@ -65,7 +65,7 @@ A local, self-evident physical marker of arousal — a periodic Arousal feed wit
 ## Open questions / things to work out
 
 - Is a gentle Arousal feed enough value to be a condition, or is it pure flavor? (task-209 lists it, so keep as authored.)
-- `stack: "noop"` — confirm re-stimulation doesn't need to escalate anything.
+- `stack: "noop"` - confirm re-stimulation doesn't need to escalate anything.
 
 ## Why
 

@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "id": "task-561",
+  "kind": "task",
+  "number": 561,
+  "title": "Building-type taxonomy: pick a kind for a cell",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-497",
+      "task-560",
+      "task-562",
+      "task-566"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The author wants to select a *building type* per cell - residential, religious,\nshopping mall, market, fast food, mansion, castle - and have it be the cell's\nidentity, so a painted town is more than a column of coordinates. Extend the\ntaxonomy with a settlement vocabulary, so a cell painted `inn` compiles with the\nright tags, prose and distribution. Pairs with task-560: a type without a name is\n`Building 3,4`, and a name without a type is a label with no behaviour.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**Building types are biomes, not features.** A building is a *place* - a",
+        "done": true
+      },
+      {
+        "text": "cell with an identity and prose - so it belongs in `biomes`. The file already",
+        "done": false
+      },
+      {
+        "text": "had `town`, `village`, `building`, `ruin` and `gate` as **features**, which",
+        "done": false
+      },
+      {
+        "text": "meant painting \"building\" put a cell the compiler read as a *road*: it merged",
+        "done": false
+      },
+      {
+        "text": "with the street and described itself as a thoroughfare. Those feature entries",
+        "done": false
+      },
+      {
+        "text": "are left alone (removing them is a separate decision) and the real vocabulary",
+        "done": false
+      },
+      {
+        "text": "is added as biomes.",
+        "done": false
+      },
+      {
+        "text": "**31 types across 9 categories** - residential, religious, commercial,",
+        "done": true
+      },
+      {
+        "text": "civic, craft, industrial, military, rural, transport - from the Millbrook map",
+        "done": false
+      },
+      {
+        "text": "and the author's own list: cottage, tenement, inn, tavern, brothel, shrine,",
+        "done": false
+      },
+      {
+        "text": "temple, chapel, shop, market, fast_food, mall, bank, warehouse, smithy,",
+        "done": false
+      },
+      {
+        "text": "workshop, mill, town_hall, watch_house, infirmary, school, library, stable,",
+        "done": false
+      },
+      {
+        "text": "barn, orchard, cemetery, ferry_landing, and the coarse picks `residential`,",
+        "done": false
+      },
+      {
+        "text": "`castle`, `mansion`, `ruin`.",
+        "done": false
+      },
+      {
+        "text": "**Three tag families, so a later task can ask the question an author has**:",
+        "done": true
+      },
+      {
+        "text": "`building`+`settlement` (it is a made place), a category (the coarse pick),",
+        "done": false
+      },
+      {
+        "text": "and purposes - `sleeps`, `food`, `drink`, `hygiene`, `trade`, `craft`,",
+        "done": false
+      },
+      {
+        "text": "`worship`, `medical`, `storage`, `transport` (what a character might want it",
+        "done": false
+      },
+      {
+        "text": "for; task-566).",
+        "done": false
+      },
+      {
+        "text": "**A building is exempt from the wild-country contract, deliberately.** The",
+        "done": true
+      },
+      {
+        "text": "validator demanded a forage tag and resource/hostile distribution for every",
+        "done": false
+      },
+      {
+        "text": "biome; nobody forages berries off a smithy's wall and no wildlife spawns in a",
+        "done": false
+      },
+      {
+        "text": "bank, so `biomes.validate` now skips those checks for a record tagged",
+        "done": false
+      },
+      {
+        "text": "`building`. Written as a documented exemption, not an omission.",
+        "done": false
+      },
+      {
+        "text": "**The palette is pickable.** 47 biomes in one column is unusable, and the",
+        "done": true
+      },
+      {
+        "text": "question when painting a settlement is \"which *building*\", so the vocabulary",
+        "done": false
+      },
+      {
+        "text": "endpoint now ships `tags` and the editor groups the biome list into a",
+        "done": false
+      },
+      {
+        "text": "Buildings section sorted by category (disabled separator options, since",
+        "done": false
+      },
+      {
+        "text": "`select` cannot nest and a header must not be paintable).",
+        "done": false
+      },
+      {
+        "text": "**`terrain: \"urban\"`, which is currently a no-op on purpose.** The prose",
+        "done": true
+      },
+      {
+        "text": "classifier has classes for forest/rock/water/farm and falls through to",
+        "done": false
+      },
+      {
+        "text": "`open`; giving buildings a new class would apply to wilderness cells too.",
+        "done": false
+      },
+      {
+        "text": "A building reads as `open` until a settlement register is designed.",
+        "done": false
+      },
+      {
+        "text": "**Tests.** `tests/test_biomes.py` now states the contract as it actually",
+        "done": true
+      },
+      {
+        "text": "is: *every wild* biome is forageable and has distribution rules, and a",
+        "done": false
+      },
+      {
+        "text": "building is exempt. A building is still a biome - the exemption is not a",
+        "done": false
+      },
+      {
+        "text": "way to smuggle in a record with no name or no surface.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "verified": "`biomes.validate()` is clean on the shipped 47-biome taxonomy, and a tavern cell\ncompiles to an area tagged `['building', 'settlement', 'commercial', 'food',\n'drink']` (see task-560's verification) - the hook task-566 needs is already\ncarried on the node.",
+      "not_here": "- **A type does not yet change what a place *does*** - no entering a building\n  (task-563), no generated interior (task-567), no `urban` prose register.\n- **The stale feature entries are still there**, so `building` and `town` are\n  paintable in two senses. Worth a decision: drop them, or keep them as paintable\n  *districts* (a `town` cell being a knot of streets is a reasonable thing)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-561-building-type-taxonomy-pick-a-kind-for-a-cell.md"
+  }
+}

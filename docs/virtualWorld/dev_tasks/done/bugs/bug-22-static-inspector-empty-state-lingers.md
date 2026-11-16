@@ -7,7 +7,7 @@ priority: medium
 
 # Bug 22: Static inspector empty-state lingers above every render
 
-**Status**: In Review — implemented + browser-verified 2026-08-23
+**Status**: In Review - implemented + browser-verified 2026-08-23
 
 ## Symptom
 
@@ -19,7 +19,7 @@ placeholder never went away for the rest of the session.
 
 `templates/index.html` shipped the `.inspector-empty` placeholder as **static
 markup inside `#inspector-panel`**. Since the task-216 lit migration, the panel
-is rendered via `window.Lit.render()`, which only manages its own part range —
+is rendered via `window.Lit.render()`, which only manages its own part range -
 **lit never removes DOM children it doesn't own**. So the static div survived
 every render, with lit content appended after it.
 
@@ -29,16 +29,16 @@ child.
 
 ## How
 
-1. `templates/index.html` — removed the static placeholder from
+1. `templates/index.html` - removed the static placeholder from
    `#inspector-panel` **and from all 7 library-modal editors**
    (`item-lib-editor`, `lib-char/area/trait/cond/beh/way-editor`), which had
    the identical latent bug (lit-render targets with static placeholders).
-2. `static/js/inspector/panel.js` — `render()` now clears pre-lit children
+2. `static/js/inspector/panel.js` - `render()` now clears pre-lit children
    once (`panel.dataset.litBound` guard) before lit takes ownership, so any
    future static markup can't regress this.
-3. `static/js/main.js` `init()` — after the existing `window.Lit` wait, renders
+3. `static/js/main.js` `init()` - after the existing `window.Lit` wait, renders
    the lit empty-state (`Inspector.hide()`) if the panel is still empty, so
-   boot shows the placeholder (now with the 🌍 World Lore button — the static
+   boot shows the placeholder (now with the 🌍 World Lore button - the static
    version had silently diverged and lacked it).
 
 Empty-states now have a single source of truth: the lit templates

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-13",
+  "kind": "task",
+  "number": 13,
+  "title": "Unify Item Inspector and Library Editors",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The two item editors evolved independently but have organically converged through other tasks. As of 2026-07-30:\n\n| Feature | Inspector | Library |\n|---------|-----------|---------|\n| Tags (TagMultiselect) | ✅ | ✅ |\n| State dropdown (current_state) | ✅ | ✅ |\n| AI Improve | ✅ | ✅ |\n| AI Generate | ❌ (use create-item modal) | ✅ |\n| Trigger list with Edit/Remove | ✅ (InspectorTriggers) | ✅ (now matches) |\n| Container contents | ✅ | ✅ |\n| Save to / Refresh from library | ✅ | ✅ |\n| Move to room/container | ✅ (n/a in lib) | - |\n| Graph physics toggle | ✅ (n/a in lib) | - |\n\n### What was done\n- Refactored `item-library.js._refreshEditorWithTriggers()` to render trigger cards matching `InspectorTriggers.buildTriggersHtml()` - same card style, effect detail summary, condition display\n- Added `_editTrigger(idx)` to library - re-opens TriggerEditor with existing data (previously only had Remove)\n- Added `_buildEffectDetail(effects)` shared helper for consistent effect summary across both editors\n- Generate is not a goal for inspector - the create-item modal handles that flow\n- Both editors now use `TriggerEditor.show()` with the same effect/condition/trigger type lists\n\n### Remaining non-goals\n- Unlock edges management - obsolete, removed\n- Graph physics toggle - doesn't belong in library\n- Move to container - doesn't belong in library (templates aren't placed)",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open a world item with tags and at least one trigger in the Item Inspector,\n   then open the matching template in Library Browser.\n   - expected: both editors show the same tag picker, current-state control,\n     trigger summary, and Edit/Remove actions; the inspector also keeps its\n     world-only move and physics controls.\n   - observed: the card's 2026-07-30 implementation record says the two\n     trigger-card renderers now match; no browser comparison is recorded.\n2. Edit an existing trigger in Library Browser, save it, and reopen the entry.\n   - expected: the same trigger editor opens with the prior condition/effect\n     values and the saved card updates in place.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Graph → select an item → Item Inspector; Library menu →\nLibrary Browser → Items → select the matching template.\n\nCurrent availability: The card records both editors as implemented with\nmatching tag, state, trigger, container, AI Improve, and library-sync surfaces.\nThe feature comparison was recorded from code on 2026-07-30; a fresh visual\ncomparison is not recorded.\n\nLive steps when available:\n1. Open the same item as a world node and as a library template; compare its\n   tags, state, trigger cards, and container contents.\n   - expected: shared fields and trigger summaries use the same controls and\n     labels; world-only move/physics controls remain only in the inspector.\n2. In Library Browser, edit an existing trigger, save, reopen the item, and\n   use Remove on a second trigger.\n   - expected: Edit reopens the configured trigger and Remove deletes only the\n     selected trigger; the inspector still offers the same trigger editor.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-07-30"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-13-unify_item_inspector_and_library.md"
+  }
+}

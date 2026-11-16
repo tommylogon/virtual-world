@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-26",
+  "kind": "task",
+  "number": 26,
+  "title": "Vector Embeddings & RAG Preparation",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Prepare the memory and lore systems for future vector-embedding-based retrieval (RAG). Do **not** implement embeddings yet - this doc describes what the data model needs to support and the architectural decisions to make now so the RAG path is smooth later.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "superseded_by_2026_08_29": "The concrete RAG architecture proposed here was NOT adopted; the shipped design diverged:\n\n| This doc proposed | What actually shipped |\n|-------------------|-----------------------|\n| Two-tier stores (world_lore + per-character) | ONE store `Player.memories[]` (task-178); world_lore is a separate world-level prompt block, not embedded |\n| Embed `content` field | Field is `text` (`content` doesn't exist) |\n| Tag convention `character:`/`room:`/`action:`/`item:` | Tags are single-word concepts only; entities live in a separate `entity_ids` array |\n| FAISS in-memory index (recommended) | No-dependency JSON `data/embeddings.json` + pure-python brute-force cosine |\n| `GET /api/memories/export` for bulk index build | Not built - moot, embeddings are generated incrementally per-memory browser-side |\n| `embedding_hash` cache column | Not built - vector store keys by `<char>::<memory_id>`, so identity/dedup is free |\n| EntityIndex-driven BFS for KNOWN ROUTES | EntityIndex deleted; spatial comes from `engine/spatial_memory.py` (task-136/task-178) |",
+      "revisited_by_task_685_2026_10_04": "Memory dynamics (task-685..691) touched the RAG surface again, so this record gets a\nsecond dated entry. Nothing here is outstanding - the table above still stands, and the\none idea in this doc that had NOT been implemented is now implemented and extended.\n\n| This doc proposed | Where it ended up |\n|-------------------|-------------------|\n| \"Hybrid scoring: combine vector similarity + importance + recency\" (§RAG Architecture #4) | **Shipped, and larger than proposed** - `/memories/retrieve` (task-690) scores keyword + entity-graph match + exponential recency + `effective_importance` (availability × confidence) + emotion match, and reserves seat time for beliefs. Vector similarity still merges in client-side (`memory-context.js`) |\n| An \"Indexing memories…\" progress UI | Not needed in that form - embeddings are incremental per write (fire-and-forget) and silent by design; the **Memory Mind** (task-691) is the surface that shows what retrieval returns |\n| `embedding_hash` column to skip re-embedding unchanged text | Solved differently, no column: the store keys by `<char>::<mem_id>` (identity is free) and `EmbeddingClient` has an in-memory dedupe cache for repeated prompt-poll embeds |\n| ~5 embedding calls per tick estimate | Actual: one per stored memory write (react phase) + one per prompt-build query, deduped; server search stays brute-force cosine over a small file |\n| `GET /api/memories/export` for bulk index build | Still not built; still unnecessary - vectors are upserted as memories are written, never bulk-rebuilt |\n\nOpen questions, answered:\n\n1. **\"World lore embedded globally or per character?\"** - Neither. Lore stayed a\n   separate world-level prompt block; only `Player.memories[]` is embedded, per\n   character, keyed `char::mem_id`. Cross-character search is *possible* at the store\n   level (`search(character=None)`) but deliberately not exposed in the UI.\n2. **\"A 'test retrieval' button in the inspector?\"** - Answered by what shipped: the\n   `=== I REMEMBER ===` block is now a four-section character model (EVENTS / WHAT I\n   BELIEVE / HOW I SEE PEOPLE / WHAT I EXPECT) and the turn-feedback line reports what\n   was recalled and why (\"recalled N · keyword / semantic / recent\"). The Memory Mind\n   shows the same view per character.\n3. **\"How large can the index grow?\"** - Still open, but one fact worth recording: the\n   store is ONE file with ONE model + dims for every character (mixed vector spaces are\n   rejected by design - confirmed live on 2026-10-04 when a 768-dim nomic config was\n   refused by a store holding 1024-dim qwen3 vectors). A per-character dims story\n   would need a per-character index or a re-embed; noted here rather than filed.\n\nStill deliberately not adopted: the `character:`/`room:`/`action:`/`item:` tag\nconvention (entities live in `entity_ids`), FAISS/SQLite/numpy indexes (JSON file),\nand the lore-embedding path.\n\n---\n\n\n\n**Filed**: 2026-07-16 (updated 2026-07-20)\n**Priority**: Low (future)\n**Status**: Superseded (moved 2026-08-29) - this was a *preparation* doc, never meant to\nimplement embeddings. The intent is now fully covered by [[task-91 - activate cosine\nsimilarity in MemoryStore|task-91]] (embeddings are live). Remaining prep items were\ndropped as unnecessary rather than left outstanding (see \"Superseded by\" below). Kept\nas a historical record only.\n\n---",
+      "current_data_model_to_be_built_by_proper_memory_editor_md": "### World Lore entries\n```python\n{\n  \"id\": \"lore_001\",\n  \"title\": \"The Kingdom of Rocheveron\",\n  \"content\": \"The kingdom of Rocheveron is in the north, ruled by King Aldric...\",\n  \"category\": \"geography\",\n  \"tick_created\": 0,\n  \"importance\": 4,\n  \"tags\": [\"location:Rocheveron\", \"character:King_Aldric\"],\n  \"source\": \"manual\"\n}\n```\n\n### Per-Character Memories\n```python\n{\n  \"id\": \"mem_001\",\n  \"type\": \"observation\",\n  \"tick\": 42,\n  \"timestamp\": \"Day 1, 14:30\",\n  \"content\": \"Tommy was in the Kitchen cooking eggs.\",\n  \"location\": \"Kitchen\",\n  \"importance\": 3,\n  \"tags\": [\"character:Tommy\", \"room:Kitchen\", \"action:cooking\"],\n  \"source\": \"auto\"\n}\n```\n\n### Shared Fields Compatible with Embedding\nBoth have:\n- `id` - unique identifier\n- `content` - the text to embed\n- `importance` - weighting for retrieval scoring\n- `tags` - metadata for filtered retrieval\n\n---",
+      "rag_architecture_future": "### Components Needed\n\n1. **Embedding model** - calls an OpenAI-compatible API (same LLM endpoint or a dedicated embedding model like `text-embedding-3-small`)\n2. **Vector index** - in-memory or file-based (FAISS, Chroma, or a simple numpy-based index) since this is a single-user desktop app with no server-side persistence requirement\n3. **Retrieval pipeline** - on prompt build, embed the current context, query the index, return top-K matches\n4. **Hybrid scoring** - combine vector similarity + importance + recency for ranking\n\n### Data Flow\n\n```\nCharacter prompt assembly (_buildMemoryContext):\n  1. Embed current room description + recent events → query vector\n  2. Search world_lore index → top 3 lore entries\n  3. Search character memories index → top 5 memories\n  4. Merge results, format into prompt\n```\n\n### Storage Strategy (Choices)\n\n| Approach | Pro | Con | Recommended? |\n|----------|-----|-----|-------------|\n| **In-memory FAISS index** | Fast, no dependencies | Rebuilt on reload, memory use | ✅ Yes |\n| **SQLite + sqlite-vec** | Persistent, queryable | Dependency, complexity | Maybe later |\n| **File-based numpy + pickle** | Simple, zero dependencies | No incremental updates | Fallback |\n| **External vector DB (Chroma/Pinecone)** | Feature-rich | Overkill for single-user | No |\n\n### Embedding calls\n\nEstimate ~5 embedding calls per tick (1 for query + 3 for each character's memory search):\n- Use the same OpenAI-compatible endpoint as the LLM\n- Cache embeddings for unchanged entries (hash the content, skip re-embed if same)\n- Batch embedding calls where possible\n\n---",
+      "preparation_work_do_now_no_embedding_code": "These changes make the RAG path smooth without implementing anything AI-embedding related:\n\n### 1. Unique IDs on every entry\n\n✅ Already covered - both lore and memory entries have `id` fields.\n\n### 2. Content field is the canonical text to embed\n\n✅ `content` field exists on both. Keep it clean - no markdown, no formatting, just plain text for the embedding target.\n\n### 3. Tags as structured metadata\n\n✅ Tags are simple strings. For RAG, add a convention:\n- `character:<name>` - entity references\n- `room:<name>` - location references\n- `action:<verb>` - action type references\n- `item:<name>` - item references\n\nThis allows filtered retrieval (e.g., \"only memories involving Tommy\").\n\n### 4. Importance as a retrieval multiplier\n\nThe `importance` field (1-5) should be available as a scoring multiplier during vector search. No code needed now, just ensure it's stored.\n\n### 5. API endpoint for batch export\n\nAdd one endpoint (not urgent):\n- `GET /api/memories/export` - returns all lore + all character memories as JSON\n- Used by the future embedding pipeline to build the initial index\n\n### 6. Embedding hash cache column\n\nAdd an optional `embedding_hash` field to both entry types:\n\n```python\n\"embedding_hash\": None  # md5 of content; set to None initially\n```\n\nWhen RAG is implemented, the system checksums the content, compares to `embedding_hash`, and only re-embeds changed entries. This field can be added now with a default `None` and ignored until needed.\n\n---",
+      "when_ready_to_implement": "1. Choose an embedding model (start with the same LLM provider's embedding endpoint)\n2. Add `embedding_cache.py` - handles embedding calls + hash-based caching\n3. Add `vector_index.py` - wraps FAISS or numpy-based index with add/search/delete\n4. Add `GET /api/memories/search?q=<text>` - for testing retrieval quality\n5. Hook into `_buildMemoryContext()` in `agent-engine.js`\n6. Add embedding progress UI (toast: \"Indexing memories...\")\n\n---",
+      "open_questions": "- Should world lore be embedded once globally, or re-embedded per-character context?\n- Should we support cross-character memory search (Tommy remembers something about Miki)?\n- How large can the total index grow before performance degrades? Estimate ~1000 entries max for a single scenario.\n- Should we provide a \"test retrieval\" button in the inspector to debug what the RAG would return?"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Agent AI & Behavior",
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/task-26-vector_embeddings_rag_prep.md"
+  }
+}

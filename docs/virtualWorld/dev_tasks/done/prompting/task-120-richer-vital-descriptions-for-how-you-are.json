@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-120",
+  "kind": "task",
+  "number": 120,
+  "title": "Richer Vital Descriptions for \"HOW YOU ARE\"",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace flat vital statements like `\"You are hungry.\"` with narrative descriptions that convey intensity and physical sensation.\n\n### Current\n```\n=== HOW YOU ARE ===\nYou are hungry. You are thirsty.\n```\n\n### Target examples\n- Hunger: *\"Your stomach growls emptily.\"* / *\"A dull ache of hunger gnaws at you.\"* / *\"You feel faint from lack of food.\"*\n- Thirst: *\"Your throat is dry and sticky.\"* / *\"Your lips are cracked from thirst.\"* / *\"You desperately need water.\"*\n- Bladder: Already updated with tiered thresholds - keep but make more sensory\n- Energy: *\"Your legs tremble with exhaustion.\"* / *\"You feel alert and rested.\"*\n- Temperature: *\"The cold seeps into your bones.\"* / *\"Sweat beads on your forehead.\"*\n\n### Scope\n- `static/js/agent/prompt-builder.js` - `describeVitals()` function\n- Multiple narrative tiers per vital (matched to current threshold system)\n- Keep + add to existing threshold logic, don't replace",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-120-richer-vital-descriptions.md"
+  }
+}

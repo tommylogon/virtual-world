@@ -75,20 +75,20 @@ the payload preview).
 Reviewing the whisper path against the current sound propagation showed the
 volume→audience mapping was only half-specified, so it was checked and corrected:
 
-- **`engine/speech.py` — a directed whisper now has a defined audience.** It was
+- **`engine/speech.py` - a directed whisper now has a defined audience.** It was
   target-only (task-248). It now also reaches anyone standing in the same area
   who is a **friend or better** with the speaker (`WHISPER_EAVESDROP_BAND`,
   reusing the `closeness_band` ladder in `engine/relationships.py` so the two
   cannot drift). A stranger at the same table still hears nothing, and nothing
   crosses a wall (whisper penetration is already 0). The event records
-  `whisper_audience`. An undirected whisper stays room-wide — that existing
+  `whisper_audience`. An undirected whisper stays room-wide - that existing
   contract is unchanged.
 - **Menu wording made the distinction real.** "Talk to X" was misleading: it set
   no target, so it was a room-wide line that merely sat under someone's name.
   The person menu now offers **Whisper to X** (directed) and **Say aloud
   (everyone hears)** (undirected) as two explicit choices.
 - **`Speak…` kept as an option.** It focuses the speech row *without* changing
-  the selected volume — "just let me say something" is distinct from picking a
+  the selected volume - "just let me say something" is distinct from picking a
   volume, so `talkFocus` is live again rather than dead.
 - **`teach` added to `parseCmd`'s `VERBS`.** The Teach submenu drafts
   `teach skill:X to Y`; without the verb listed, `parseCmd` returned it as speech
@@ -113,11 +113,11 @@ event names the audience).
 
 ## Files
 
-- `static/js/agent/turn-scene-view.js` — `buildPersonMenu`, nested/talk menus,
+- `static/js/agent/turn-scene-view.js` - `buildPersonMenu`, nested/talk menus,
   area speech entries.
-- `static/js/agent/human-turn-composer.js` — `_pendingSpeechTarget`, talk-volume
+- `static/js/agent/human-turn-composer.js` - `_pendingSpeechTarget`, talk-volume
   handler, directed-whisper target, teach parsing.
-- `static/js/agent/action-normalizer.js` — `wake`/`release` target cases.
+- `static/js/agent/action-normalizer.js` - `wake`/`release` target cases.
 
 ## Why
 

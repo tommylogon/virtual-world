@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-295",
+  "kind": "task",
+  "number": 295,
+  "title": "Trigger Effect to Spawn a Character",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a `spawn_character` trigger effect so triggers and behaviours can introduce an\nNPC/character node at runtime (and optionally a live agent) - e.g. a quest NPC arrives\nat an area, or a summon/summoned-beast appears.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [x] `python -m pytest tests/ -q -k \"not mcp and not emote\"` → 976 passed, 1 skipped\n- [x] `node --check` on all touched JS files - clean\n- [x] `py_compile` on all touched Python - clean\n- [x] Unit tests: `test_spawn_character_from_library` + `test_spawn_character_unknown_id` pass",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_implemented": "- `engine/effects.py` - new `_hydrate_character()` (reads `data/library/characters/<id>.json`,\n  builds a `Player` from the library dict) and `handle_spawn_character()` (hydrates, applies\n  overrides, registers via `game_state.add_player()`, places in area, preserves active player).\n- `engine/trigger_system.py` - added `\"spawn_character\"` to `EFFECT_TYPES`.\n- `engine/trigger_validator.py` - added `CHARACTER_EFFECTS`, `_character_exists()`,\n  `_library_character_exists()`, and validation branch.\n- `static/js/shared/trigger-types.js` - added `spawn_character` to `EFFECT_TYPES`.\n- `static/js/shared/trigger-editor.js` - param fields (character_id, display_name, area, message)\n  in both the HTML template and the read-back/save logic.\n- `static/js/inspector/behaviors-view.js` - added `spawn_character` to `BEHAVIOR_ACTION_TYPES`,\n  form fields, and read-back logic.\n- `static/js/shared/trigger-graph.js` - added `spawn_character` to trigger-mode effect dropdown\n  and behavior-mode action dropdown, with dynamic param fields.\n- `tests/test_trigger_system.py` - two new tests: `test_spawn_character_from_library`\n  (hydrates Jake Halloway, places in area) and `test_spawn_character_unknown_id` (no-op).",
+      "params": "- `character_id` - library file name (e.g. `jake`)\n- `display_name` / `name` - optional name override\n- `description` - optional description override\n- `area` - optional area name override (blank = triggering actor's current area)\n- `message` - optional narration, supports `{character_name}`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-295-spawn-character-trigger-effect.md"
+  }
+}

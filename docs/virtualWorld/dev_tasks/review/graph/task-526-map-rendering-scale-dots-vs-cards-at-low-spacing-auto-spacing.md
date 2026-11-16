@@ -17,7 +17,7 @@ the name does not shrink with the map pitch the way the padding does. So one
 global pitch cannot serve both a 6×8 camp and a 200×133 world: at the old 40px
 default the cards overlap into what looks like a physics blob, and the only fix
 was dialling the spacing control to ~200 by hand. Make the map view
-scale-aware — compact dots below a spacing threshold, full cards above it — and
+scale-aware - compact dots below a spacing threshold, full cards above it - and
 derive the default pitch from the painted extent, with the manual stepper kept
 as the override.
 
@@ -31,7 +31,7 @@ as the override.
       a `dot` sized from the *cell* (`mapDotSize`, 55% of the pitch, clamped
       6–28px), so it always fits its own cell at any pitch and stays visible when
       a 200-cell world is zoomed out. 140 is where the clamped card box still
-      fits its cell — the switch happens where the boxes stop colliding.
+      fits its cell - the switch happens where the boxes stop colliding.
 - [x] **Names are hidden while compact**, through the existing label LOD
       (`_nodeLabelPolicy`), so a dot does not carry a name wider than its cell.
       The tooltip, inspector, search and badges still identify every place.
@@ -39,7 +39,7 @@ as the override.
       and Levels at every pitch: those layouts are not a cell lattice and have no
       overlap to solve.
 - [x] **Auto pitch derived from the painted extent.** `paintedExtent()` measures
-      the drawn cells (areas only — ways sit on the lattice between them and a
+      the drawn cells (areas only - ways sit on the lattice between them and a
       hand-authored area has no cell), then `autoMapSpacing()` aims for
       `AUTO_SPAN_PX` (1600px) across the longest side, clamped to 24–300px and
       rounded to a tidy multiple. No painted cells → `null`, and the current
@@ -61,19 +61,19 @@ as the override.
       now what auto-on means until the stepper says otherwise.
 - [x] **The art follows the pitch in the whole-world view.** Also found by
       running it: a layer's rect is in **px**, so an auto-pitch left every picture
-      drawn at the old scale over areas laid out at the new one — the bug-52
+      drawn at the old scale over areas laid out at the new one - the bug-52
       shape reached from the other side, and the ordinary per-scope reconcile
       cannot help because the whole-world view has no single grid.
       `reconcileAllForGapChange()` re-derives **every** mounted reference from
       *its own* scope's grid and offset, then reframes the camera (the previous
       framing was computed for the old pitch). It writes nothing: this is a load
-      path, so `fitToPaintedGrid` — which persists the fitted rect — is the wrong
+      path, so `fitToPaintedGrid` - which persists the fitted rect - is the wrong
       call here and is still used only for a deliberate manual nudge.
 - [x] **Tests.** `tools/unit/test_graph_layout_engine.js`: the two-ended clamp,
       the threshold in both directions, the dot staying inside its cell, the
       extent measurement, and the auto pitch fitting a small zone and a big one
       (including "nothing painted → no opinion"). The old "never below 1"
-      assertion was replaced — it pinned the bug.
+      assertion was replaced - it pinned the bug.
 
 ## Notes from the real data
 
@@ -89,7 +89,7 @@ Every one of them lands in dots mode, which is the honest answer rather than a
 tuned one: a 20-cell-wide map at a card pitch would be 2800px of canvas, so
 there is no pitch at which *both* the whole map is on screen and the cards do
 not overlap. Cards need ~140px/cell, so they come back by raising the pitch one
-notch — which is what the stepper and its `A` button are for.
+notch - which is what the stepper and its `A` button are for.
 
 The draw cost is why the dot is not "a smaller card": the label LOD already
 existed for dense maps (task-527's subject), and this reuses it rather than
@@ -106,11 +106,11 @@ Whole world, Map layout, 137 painted areas over 430 nodes:
 | reload | 55 auto | dots | unchanged (idempotent) |
 
 The art check is the interesting one: before the whole-world reconcile, the
-pictures stayed at the 260px scale — one image covering everything — while the
+pictures stayed at the 260px scale - one image covering everything - while the
 areas moved to 55. After it, each zone's picture is re-derived from its own grid
 at 55 and its dots sit on its own cells.
 
-## Reopened 2026-10-08 — back to inprogress (auto spacing is not working)
+## Reopened 2026-10-08 - back to inprogress (auto spacing is not working)
 
 Auto pitch does not land where this file says it does. This file records
 `AUTO_SPAN_PX = 1600` with a `24–300px` clamp; the shipped constants are

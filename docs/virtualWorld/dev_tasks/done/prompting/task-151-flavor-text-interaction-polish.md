@@ -22,16 +22,16 @@ Polish the interaction layer so that attempts to interact with objects that only
 ## How
 
 ### 1. Descriptive-target fallback for "use X on Y" ✅
-**File**: `engine/item_actions.py` — `_descriptive_target_failure()`
+**File**: `engine/item_actions.py` - `_descriptive_target_failure()`
 
 When a use-on-target doesn't match a real item/exit, the system now scans the area description, item descriptions, and way descriptions for the target phrase. If found, it returns an in-character failure:
 
-> "You try to use the multitool on chandelier, but it doesn't budge — it's part of the scenery, not something you can interact with."
+> "You try to use the multitool on chandelier, but it doesn't budge - it's part of the scenery, not something you can interact with."
 
 The attempt is logged as a turn event so other characters in the room can witness it.
 
 ### 2. Descriptive-target fallback for "examine X" ✅
-**File**: `engine/item_actions.py` — `_describe_flavor_target()`
+**File**: `engine/item_actions.py` - `_describe_flavor_target()`
 
 When examining an object that only appears in descriptive text, the system pulls the surrounding sentence and returns it as flavor text:
 
@@ -40,7 +40,7 @@ When examining an object that only appears in descriptive text, the system pulls
 ### 3. Deduplicate WITNESSED entries ✅
 **File**: `static/js/agent/prompt-builder.js`
 
-A speech line heard from another room is no longer shown twice — once as a local event (`[Kayla] said: ...`) and once as heard speech (`[Heard] Kayla said: ...`). Deduplication uses a `(speaker, text)` key.
+A speech line heard from another room is no longer shown twice - once as a local event (`[Kayla] said: ...`) and once as heard speech (`[Heard] Kayla said: ...`). Deduplication uses a `(speaker, text)` key.
 
 ### 4. Always render WITNESSED header ✅
 **File**: `static/js/agent/prompt-builder.js`
@@ -75,10 +75,10 @@ Added `tests/test_descriptive_targets.py` (6 tests):
 
 ## Files Modified
 
-1. `engine/item_actions.py` — added `_descriptive_target_failure()`, `_describe_flavor_target()`
-2. `static/js/agent/prompt-builder.js` — dedupe WITNESSED, always render header, remove debug logs
-3. `static/js/agent-engine.js` — remove debug logs
-4. `tests/test_descriptive_targets.py` — new test file
+1. `engine/item_actions.py` - added `_descriptive_target_failure()`, `_describe_flavor_target()`
+2. `static/js/agent/prompt-builder.js` - dedupe WITNESSED, always render header, remove debug logs
+3. `static/js/agent-engine.js` - remove debug logs
+4. `tests/test_descriptive_targets.py` - new test file
 
 ---
 

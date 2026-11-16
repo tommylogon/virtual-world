@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-20
 **Priority**: Medium
-**Status**: In Review — implemented 2026-08-20
+**Status**: In Review - implemented 2026-08-20
 
 ## How
 
@@ -44,7 +44,7 @@ Context:
 ## Notes
 
 - Should only flip edges where direction is meaningful to reverse (not `connection`, `triggers`, etc.).
-- The edge type itself should probably stay the same — only source/target swap.
+- The edge type itself should probably stay the same - only source/target swap.
 - Backend endpoint needed: `POST /api/graph/edge/flip` (or reuse `edge/update` with a `flip` flag).
 - Frontend: add menu item in `static/js/graph/context-menu.js` edge context menu, wire through `api.js` and `graph-manager.js`.
 

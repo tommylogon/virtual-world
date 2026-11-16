@@ -38,7 +38,7 @@ So `whisper psst` became `say psst` → normal level. `shout hey` became `say he
 ```
 
 - `shout` and `whisper` now pass through untouched to the speech handler
-- `yell` maps to `shout` (semantically correct — yelling IS shouting)
+- `yell` maps to `shout` (semantically correct - yelling IS shouting)
 
 ## Steps to verify
 
@@ -65,8 +65,8 @@ Added 5 regression tests to `tests/test_sound.py` (class `TestSpeechCommandParsi
 
 ## Files Modified
 
-1. `routes/action.py` — removed `shout`/`whisper` from alias map, changed `yell` → `shout`
-2. `tests/test_sound.py` — added `TestSpeechCommandParsing` regression tests
+1. `routes/action.py` - removed `shout`/`whisper` from alias map, changed `yell` → `shout`
+2. `tests/test_sound.py` - added `TestSpeechCommandParsing` regression tests
 
 ---
 

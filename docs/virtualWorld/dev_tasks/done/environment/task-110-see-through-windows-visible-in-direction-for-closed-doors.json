@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-110",
+  "kind": "task",
+  "number": 110,
+  "title": "See-Through Windows (visible_in_direction for closed doors)",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-26",
+  "updated": "2026-07-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`visible_in_direction` text (the custom \"what you see beyond\" description on room→door edges) was only shown when the door state was `\"open\"`. Windows - doors you can see through but not walk through - were impossible without building the description into the door node's `description` field, which conflates the door itself with what's visible beyond it.",
+    "why": "TODO",
+    "how": "Added `see_through` boolean property on door nodes. When `true`:\n\n1. **`visible_in_direction` shown regardless of state** - `engine/area_description.py:300-302` checks for `see_through` in the `else` branch (door not open). If both `see_through` and `visible_in_direction` are set, renders the peek-through text instead of the door's description + state.\n\n2. **Light spills through** - `engine/lighting.py:54` now includes `see_through` doors alongside open doors for light propagation.\n\n3. **Documentation** - Windows section added to `Doors & Connections.md` with:\n   - Properties table (current_state, see_through, description, cost, visible_in_direction, auto_close)\n   - Four patterns: decorative, see-through, skill-gated, light spill\n   - Movement flow: windows are closed doors; use `requires_open` trigger with impossible condition to prevent accidental auto-open\n   - Light spill mechanics",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "usage": "```json\n// Door node\n{\n  \"id\": \"way_bedroom_window\",\n  \"type\": \"way\",\n  \"name\": \"bedroom_window\",\n  \"properties\": {\n    \"current_state\": \"closed\",\n    \"description\": \"A large window overlooking the garden.\",\n     \"visible_in_direction\": \"Through the window you see the moonlit garden below.\",\n    \"see_through\": true,\n    \"cost\": {\"energy\": 3, \"time\": 2}\n  }\n}\n\n// Room→door edge\n{\n  \"direction\": \"north\",\n \n}\n```\n\nExit renders as: `[north] Through the window you see the moonlit garden below.`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "implemented": "2026-07-26",
+      "files": "`engine/area_description.py`, `engine/lighting.py`, `docs/virtualWorld/World Building/Doors & Connections.md`"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-110-see-through-windows.md"
+  }
+}

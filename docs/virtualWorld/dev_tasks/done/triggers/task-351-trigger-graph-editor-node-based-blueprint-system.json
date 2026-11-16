@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-351",
+  "kind": "task",
+  "number": 351,
+  "title": "Trigger Graph Editor - Node-Based Blueprint System",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the current form-based trigger editor with a **node-graph editor** (Unreal Blueprint-style) where triggers are visually constructed by connecting nodes. The resulting trigger graph can be saved as a **blueprint** and attached to any item, way, or character.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_verified_2026_09_22_phase_1_closed_phases_2_3_re_filed_as_task_442": "This task's core deliverable - the node-based trigger graph editor - **shipped in Phase 1**\nand is in daily use. Its remaining plan (Phase 2 browser, Phase 3 engine integration) is\nreal, unstarted work, so it has been **re-filed as [[dev_tasks/todo/triggers/task-442-trigger-blueprint-runtime-compile-and-browser|task-442]]**\nrather than left to sit in the in-progress column as one open-ended task.\n\n- **Phase 1 - done.** `static/js/shared/trigger-graph.js`: node renderer + sockets, drag-to-\n  connect, right-click menu with search, inline field editing, SVG bezier wires,\n  serialize/deserialize, blueprint I/O (`:1667-1765`), compile-to-engine (`:1984`),\n  compile-to-behaviors (`:1832`), inspector + library-editor integration. Blueprint\n  storage is real (`POST /api/library/triggers`, `routes/library_routes.py:48-60`;\n  `data/library/triggers/` holds the six seeded templates plus scratch files).\n- **One Phase-1 claim was false and is corrected below:** `reduce_uses` does not exist in\n  the codebase - the effect registry has `adjust_uses` only\n  (`engine/effect_handlers/equipment.py:182`), and it already accepts a negative delta.\n- **Phase 2 residual** - the dedicated searchable blueprint browser (the directory and\n  templates already exist) → task-442, slice 3.\n- **Phase 3** - not started: no Python handles blueprints at all; condition branching and\n  AND/OR/NOT are dropped or forced on compile → task-442, slices 1–2.\n- Task-388 owns the editor's UI/UX work and the compile-honesty defects (#9–#11); this\n  task is not superseded by it.\n\n### Prior state (2026-09-21)\n\n**Phase 1 is genuinely implemented** (the file's \"12 of 12\" is honest, bar one\nfalse entry): node renderer and sockets, drag-to-connect, right-click context menu\nwith search, inline field editing, SVG bezier wires, serialize/deserialize,\nblueprint save/load/export/import, inspector and library-editor integration, and\ncompile-to-engine - all in `static/js/shared/trigger-graph.js` (`_serializeGraph`\n`:1622`, `compileToEngine` `:1984`, `compileToBehaviors` `:1832`, blueprint I/O\n`:1667-1765`, sockets/wires `:1299-1503`). The blueprint storage claim is accurate:\n`POST /api/library/triggers` (`routes/library_routes.py:48-60`, `triggers` in\n`REGISTRY_TYPES` `routes/library_ops.py:16`) writing per-entry files under\n`data/library/triggers/` (`routes/helpers.py:155-202`). The six seeded template\nblueprints exist (the directory now holds nine files - the six templates plus\nthree scratch ones).\n\n**One Phase-1 claim is false:** `reduce_uses` does not exist anywhere in the\ncodebase (grep finds it only in generated docs and this file). The effect registry\nhas `adjust_uses` only (`engine/effect_handlers/equipment.py:182`,\n`engine/triggers/constants.py:75,115`), and it accepts a negative delta\n(`:75-78`), so `reduce_uses` is either redundant or never added.\n\n**Phase 2 - Blueprint Library: partially done by accident.** The two unticked\ncheckboxes (directory exists, templates seeded) are actually satisfied. What\nremains is the **dedicated searchable blueprint browser** - today there is only\nthe in-editor `_loadBlueprint` picker (`trigger-graph.js:1714-1750`, a raw floating\ndiv).\n\n**Phase 3 - Engine Integration: not started.** No Python handles blueprints at\nall (`grep blueprint *.py` → 0 hits). Specifically missing: runtime compile of a\nblueprint to graph edges and trigger nodes; condition branching (YES/NO) compiled\nto engine conditions - `_traceGraph` (`:2082-2113`) AND-folds conditions and keeps\nonly a NO-branch message as `fail_message`, dropping every other NO effect; and\nAND/OR/NOT logic in branches - `compileToEngine` always emits `{operator:'and'}`\n(`:1996`). Those latter two are also recorded as task-388 defects #9-#11.\n\n**Relationship to task-388:** task-388 supersedes this editor's **UI/UX** work\n(pan/zoom now exists at `:1113-1219`, so this file's \"no pan/zoom\" complaints are\nstale) but explicitly leaves this task's Phase 2 browser and Phase 3 runtime\ncompile open. So this task is not superseded as a whole; its residual scope is\nreal and currently unowned.\n\n**Filed**: 2026-07-27  \n**Priority**: High  \n**Status**: In Progress (Phase 1 mostly complete)  \n**Updated**: 2026-07-31  \n\n---",
+      "architecture": "```\n                  ┌───────────────────────┐\n                  │   TriggerGraphEditor   │\n                  │  (static/js/shared/    │\n                  │   trigger-graph.js)    │\n                  └───────┬───────────────┘\n                          │ builds / edits\n                  ┌───────┴────────────────┐\n                  │   Trigger Blueprint    │\n                  │  (JSON serializable)   │\n                  └───────┬────────────────┘\n                          │ compiled to\n                  ┌───────┴────────────────┐\n                  │   Graph Edge + Node    │\n                  │  (existing engine      │\n                  │   format)              │\n                  └────────────────────────┘\n```",
+      "node_types": "### Trigger Node (entry point)\n- One per graph\n- Sockets: `output` (bottom)\n- Properties: trigger type (on_use, on_take, on_tick, etc.)\n\n### Condition Node\n- Sockets: `input` (top), `output_yes` (bottom), `output_no` (right)\n- Properties: condition type + params (temperature_below, has_item, state_equals, etc.)\n\n### Effect Node\n- Sockets: `input` (top)\n- Properties: effect type + params (message, spawn_item, adjust_environment, etc.)",
+      "blueprint_system": "- Blueprints stored in `data/library/triggers/*.json`\n- Blueprint editor with name, description, tags\n- Attach blueprint to item: creates graph edges + trigger nodes in world\n- Detach/swap blueprints on existing items",
+      "implementation_plan": "### Phase 1 - Core Node Graph (current)\n- [x] `trigger-graph.js` - Node renderer, socket system, drag-to-connect wires\n- [x] Node creation via right-click context menu with search\n- [x] Inline field editing on nodes (no side panel)\n- [x] Wire routing (SVG bezier curves)\n- [x] Property panels (click node → edit params)\n- [x] Serialize graph to JSON blueprint format\n- [x] Deserialize JSON to rendered graph\n- [x] Blueprint export/import (JSON file save/load)\n- [x] Integration with item inspector (🧩 Graph button opens editor)\n- [x] Integration with library editor (🧩 Graph button opens editor)\n- [x] Compile graph to engine trigger format\n- [x] Added trigger types: `on_use_on`, `on_toggle_on`, `on_toggle_off`, `on_depleted`\n- [x] Added effect types: `adjust_uses` with `node_id` field - ⚠️ **CORRECTED 2026-09-22:** `reduce_uses` does **not** exist anywhere (`grep` finds it only in docs); `adjust_uses` covers it via a negative delta (`engine/effect_handlers/equipment.py:182`)\n- [x] Added condition types: `uses_above`\n- [x] Added `target_tag` field for `on_use_on` trigger nodes\n- [x] Blueprint save to API/library (server-side blueprint storage via `data/library/triggers/` + generic library CRUD)\n- [x] Template blueprints (6 pre-built: on_use→message, on_examine→reveal name, on_tick→warm room, on_use_on tag→message, on_toggle_on→set_state, on_depleted→message)\n\n### Phase 2 - Blueprint Library\n- [ ] `data/library/triggers/` directory\n- [ ] Blueprint browser (similar to item library)\n- [ ] Template blueprints (on_use → message, on_tick → adjust_environment, etc.)\n\n### Phase 3 - Engine Integration\n- [ ] Compile blueprint → graph edges + trigger nodes at runtime\n- [ ] Compile condition branching (YES/NO paths) to engine conditions\n- [ ] Support for AND/OR condition logic in branches\n\n---",
+      "status_update_2026_07_31": "**Phase 1 completion: 12 of 12 items implemented**\n\n✅ Done:\n- Node renderer & socket system\n- Drag-to-connect wires\n- Right-click context menu with search\n- Inline field editing (in node bodies, no side panel)\n- Wire routing (SVG bezier curves)\n- Serialize/deserialize to JSON blueprint\n- Blueprint save to API/library (server-side blueprint storage via `data/library/triggers/` + `/api/library/triggers` generic CRUD; `Save Blueprint` / `Load Blueprint` picker / `Export` / `Import file` in the editor toolbar)\n- Integration with item inspector & library editor\n- Compile graph to engine trigger format\n- Added trigger/effect/condition types (on_use_on, on_toggle_on, on_toggle_off, on_depleted, adjust_uses, ~~reduce_uses~~, uses_above, target_tag) - ⚠️ `reduce_uses` never existed; see the correction above\n- Template blueprints (6 seeded: on_use→message, on_examine→reveal name, on_tick→warm room, on_use_on tag→message, on_toggle_on→set_state, on_depleted→message)\n\n❌ Remaining (Phase 2 & 3, not started):\n- Phase 2: Blueprint browser (dedicated UI beyond the editor picker)\n- Phase 3: Runtime compile of blueprints → graph edges + trigger nodes; condition branching (YES/NO); AND/OR condition logic\n\n**Phase 2 & 3**: Not started",
+      "follow_up_2026_09_02": "UX/viewport overhaul research for this editor filed as [[task-388-trigger-graph-editor-overhaul]]\n(todo/ui): pan + zoom (currently absent, and Fit corrupts the coordinate model), wire deletion and\nYES/NO branch coloring, cycle prevention, undo/multi-select, and compile-honesty findings\n(fan-out and behavior NO-branch wires are silently dropped on save; behavior priority is derived\nfrom node Y position, overriding the editable Priority field). Those compile findings should be\nresolved as part of this task's Phase 3 engine work."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Triggers & Effects]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-351-trigger-graph-editor.md"
+  }
+}

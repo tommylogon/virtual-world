@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "bug-581",
+  "kind": "bug",
+  "number": 581,
+  "title": "ResponseParser.parseReaction and parseResultReaction drop target on directed speech and whispers",
+  "status": "review",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-933",
+      "task-728"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`ResponseParser.parseReaction()` and `ResponseParser.parseResultReaction()` in `static/js/agent/response-parser.ts` do not extract or return the `target` field (`p.speech_target` or `p.target` for directed speech/whispers), even though both `AgentEngine.stepCharacter` (`line 1132`) and `AgentEngine.draftTurnForCharacter` (`line 796`) read `parsed.target`.\n\nAs a result, when an LLM emits a directed whisper or speech (`{\"speech\": \"...\", \"volume\": \"whisper\", \"target\": \"kayla jenkins\"}`), `ResponseParser` silently drops `target`, so the `#htc-say-target` chip (`to kayla jenkins ×`) in the Human Turn Composer never renders on LLM drafts and autonomous directed whispers lose their target recipient.",
+    "why": "`ActionNormalizer.normalizeStructuredAction(p)` consumes `p.target` for physical actions, while `ResponseParser.parseReaction()` omitted `target` from its returned `ParsedReaction` object.",
+    "how": "1. In `static/js/agent/response-parser.ts`:\n   - Add `target?: string | null` to `ParsedReaction`.\n   - Add helper `extractSpeechTarget(p)` that returns `p.speech_target` if present, or `p.target` when `p.speech` / `p.whisper` is present (and `p.action` is either empty/wait or `p.item` already supplied the physical object).\n   - Include `target: extractSpeechTarget(p)` in the return objects of both `parseReaction()` and `parseResultReaction()`.",
+    "verify": "1. Run `node tools/unit/run.cjs test_directed_mode`.\n   - expected: `ResponseParser.parseReaction` preserves `target` on directed speech/whispers.",
+    "acceptance": [
+      {
+        "text": "`ResponseParser.parseReaction` and `parseResultReaction` return `target` for directed speech/whispers.",
+        "done": true
+      },
+      {
+        "text": "`#htc-say-target` chip renders when the Director LLM drafts a targeted line.",
+        "done": true
+      },
+      {
+        "text": "Zero em-dashes in code or task files.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/agent/response-parser.ts",
+      "tools/unit/test_directed_mode.js"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/bugs/bug-581-response-parser-drops-target-on-directed-speech-and-whispers.md"
+  }
+}

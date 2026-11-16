@@ -22,7 +22,7 @@ When an agent/game event declares a feeling or emote whose label is not in engin
 - The keyword map stays the fast path and is never overridden.
 - A world with no embedding provider pays nothing and breaks nothing.
 
-## Implementation — 2026-09-28 (WT-C)
+## Implementation - 2026-09-28 (WT-C)
 
 ### What was already there
 
@@ -36,16 +36,16 @@ the goal, already working.
 What was missing was the **server** half. `engine/emotion.py map_label` was
 keyword-only, and `felt_from_llm` rejected anything that was not a `BASELINES`
 key outright. So the goal's actual gap was: an emotion reaching the engine
-without passing through the browser — a trigger effect, a background agenda, a
-saved decision — had no semantic path at all.
+without passing through the browser - a trigger effect, a background agenda, a
+saved decision - had no semantic path at all.
 
 ### Files
 
-- `engine/emotion.py` — `DIM_ANCHORS`, `resolve_label_semantic`,
+- `engine/emotion.py` - `DIM_ANCHORS`, `resolve_label_semantic`,
   `semantic_labels_enabled`, `reset_anchor_cache`; `map_label` and
   `felt_from_llm` fall through to the semantic resolver.
-- `engine/runtime_config.py` — the `emotion.semantic_labels` gate.
-- `tests/test_emotion_semantic_bridge.py` — **new**, 24 tests.
+- `engine/runtime_config.py` - the `emotion.semantic_labels` gate.
+- `tests/test_emotion_semantic_bridge.py` - **new**, 24 tests.
 
 `DIM_ANCHORS` mirrors the JS mapper phrase for phrase, and a test asserts every
 anchor dimension exists in the JS file and in `BASELINES`, so the two cannot
@@ -65,13 +65,13 @@ itself the explicit choice. What the gate governs is *automatic* provider use.
 ### A real bug the existing tests caught
 
 Wiring `felt_from_llm` to the full `map_label` broke
-`tests/test_emotion.py::test_unknown_label_rejected` — and it was right to.
+`tests/test_emotion.py::test_unknown_label_rejected` - and it was right to.
 `map_label` substring-matches, and **"hangry" contains "angry"**, so a declared
 feeling was being resolved by coincidence into an emotion the model never named.
 That is precisely the "a creative LLM can't invent dimensions" guarantee the old
 exact `label not in BASELINES` check was protecting.
 
-`felt_from_llm` therefore uses `resolve_label_semantic` **only** — the semantic
+`felt_from_llm` therefore uses `resolve_label_semantic` **only** - the semantic
 bridge or nothing, never a coincidental substring. The recall path
 (`/emotions/map`) keeps its pre-existing substring behaviour, which is fine
 there: it is a recall heuristic over authored vocabulary, not a deliberate
@@ -86,7 +86,7 @@ declaration by a model. Both behaviours are pinned by tests.
   trusted.
 - The **default** provider's failure is remembered, so a world with no embedding
   model pays one attempt rather than one per label. A caller-supplied
-  `embed_fn` is *not* memoised — its failures are the caller's to see again.
+  `embed_fn` is *not* memoised - its failures are the caller's to see again.
 - Anchor vectors are embedded once and reused; `reset_anchor_cache()` clears
   them when the provider changes.
 
@@ -96,7 +96,7 @@ Nothing. No hub file was touched.
 
 ### Verify
 
-`python -m pytest tests/ -q -k "emotion or affect"` — 91 tests. The new file
+`python -m pytest tests/ -q -k "emotion or affect"` - 91 tests. The new file
 covers: the gate is off by default and never reaches the provider when off; the
 keyword path wins over the embedder and a novel label falls through to it; a
 distant label stays unresolved; resolution never invents a dimension; intensity

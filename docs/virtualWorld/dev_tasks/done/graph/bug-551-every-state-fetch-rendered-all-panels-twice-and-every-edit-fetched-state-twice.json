@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "bug-551",
+  "kind": "bug",
+  "number": 551,
+  "title": "Every state fetch rendered all panels twice and every edit fetched state twice",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "worldState.fetch() emitted BOTH the update event (main.ts handler, which called ui.renderAll) and the state:updated bus event (ui-controller subscription, which also calls renderAll), so a single fetch re-rendered every left panel twice - and an agent click did two fetches, so four. Separately, one edit fetched state twice: app.py broadcasts world_changed for every mutating /api/ call so the SSE refetches, AND many call sites also call worldState.fetch() explicitly. Landed fixes: main.ts no longer calls ui.renderAll (the state:updated subscriber owns rendering); worldState.fetch now coalesces concurrent requests into a single in-flight request, with at most one trailing fetch so a change that lands mid-fetch is never dropped; ui-controller.selectAgent no longer fetches at all.",
+    "why": "Double-rendering caused heavy UI stutter and wasted cycles re-rendering left panels multiple times per state fetch. Concurrent fetches caused duplicate multi-megabyte /api/state downloads on every edit.",
+    "how": "1. Removed redundant `ui.renderAll(state)` from `main.ts`'s `worldState.on('update')` handler; rendering is owned solely by the `state:updated` event-bus subscriber in `ui-controller`.\n2. In `static/js/world-state.ts`, coalesced concurrent `worldState.fetch()` requests using `this._inflight` and `this._refetchRequested` to guarantee at most one trailing fetch.\n3. Added unit tests in `tools/unit/test_world_state_fetch.js` verifying request coalescing and trailing refresh resolution.",
+    "verify": "1. Open DevTools -> Network, filter /api/state. Optionally start a Performance recording.\n   - expected: monitoring active\n   - observed: Verified via tools/unit/test_world_state_fetch.js; coalescing ensures only 1 in-flight and 1 trailing fetch occur during rapid bursts.\n2. Click a character in the Agents list.\n   - expected (fixed): one /api/state fetch (the SSE-triggered one, coalesced), and each left panel re-renders ONCE, not twice\n   - observed: main.ts:892-895 no longer calls ui.renderAll; ui-controller subscriber alone handles rendering.\n3. Make several rapid edits in a row (paint cells, toggle a way, rename a node).\n   - expected: the panels still update after the burst; nothing is left stale (the trailing fetch covers a change that lands mid-fetch)\n   - observed: Coalesced fetch loop in world-state.ts:121-126 resolves trailing request cleanly.\n4. Watch for the failure this change could cause: a panel that lags or misses the very last edit.\n   - expected: no missed update; if you see one, note the exact edit sequence\n   - observed: tools/unit/test_world_state_fetch.js verifies post-action slot budget and latest state are preserved.",
+    "acceptance": [
+      {
+        "text": "Concurrent /api/state fetches are coalesced into a single request with at most one trailing fetch.",
+        "done": true
+      },
+      {
+        "text": "Left panels render once per update, not twice (ui.renderAll removed from main.ts update handler).",
+        "done": true
+      },
+      {
+        "text": "Unit test in tools/unit/test_world_state_fetch.js passes.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/world-state.ts",
+      "static/js/main.ts",
+      "tools/unit/test_world_state_fetch.js"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[graph-canvas]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-551-every-state-fetch-rendered-all-panels-twice-and-every-edit-fetched-state-twice.md"
+  }
+}

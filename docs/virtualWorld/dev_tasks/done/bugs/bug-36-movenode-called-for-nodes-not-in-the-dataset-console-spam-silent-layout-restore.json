@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-36",
+  "kind": "bug",
+  "number": 36,
+  "title": "`moveNode` called for nodes not in the DataSet: console spam + silent layout-restore failure",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `npm run lint` and `npm run typecheck` clean.\n- Manual: open the goblin camp, lock the background layout, trigger a world\n  refetch and a cluster/un-cluster → no `moveNode does not exist` lines; positions\n  still restore for present nodes; cluster round-trip returns nodes to prior\n  positions.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "Two loops restore a saved position snapshot and call `network.moveNode(id, x, y)`\nfor **every** id in the snapshot, with no check that the node still exists in the\ncurrent DataSet:\n\n- `static/js/graph/graph-background.js` `_applyPositions`, called from\n  `setLocked(true)` and `_onWorldRefetched()`.\n- `static/js/graph/focus.js` `_unCluster`, replaying `GraphFocus._savedPositions`\n  (a snapshot of all nodes taken when the cluster was formed).\n\nvis-network's `NodesHandler.moveNode` **logs** the problem rather than throwing,\nso the `try { net.moveNode(...) } catch (e) { /* node gone */ }` wrapper never\nsilenced it, and `focus.js` had no guard at all. The snapshots can contain ids no\nlonger in the rendered node set - after a world refetch, a projection change, or\na filtered view.",
+      "fix_2026_09_22": "Both loops now filter against the live DataSet before moving, matching the\nalready-correct `network-manager.js` pattern:\n\n- `graph-background.js:_applyPositions` builds\n  `new Set(net.body?.data?.nodes?.getIds?.() || [])` and skips absent ids.\n- `focus.js:_unCluster` does the same for `_savedPositions`.\n\n`network.body?.data` is optional-chained, so it is safe before init. The move is\nskipped rather than wrapped, because the failure is a `console.error`, not an\nexception."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-36-movenode-called-for-absent-nodes.md"
+  }
+}

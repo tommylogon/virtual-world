@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: In Review — implemented (code-verified 2026-08-11). Existing rooms injected into AI area generation at `main.js:259-262`.
+**Status**: In Review - implemented (code-verified 2026-08-11). Existing rooms injected into AI area generation at `main.js:259-262`.
 
 ---
 
@@ -54,18 +54,18 @@ Respond ONLY with raw JSON matching the form fields. No markdown.
 
 ## Toggle Option
 
-See separate task: `toggle_room_context_generation.md` — a toggle should control whether room context is included, since some users may want standalone generation.
+See separate task: `toggle_room_context_generation.md` - a toggle should control whether room context is included, since some users may want standalone generation.
 
 ## Audit
 
 **Status**: Ready to test
 **How to test**:
 - Open the create modal, select Area, type an AI prompt, ensure "🧠 Use world context" is checked. Click Generate. Verify the generated room fits the existing world theme.
-- Check the network request to the LLM — verify existing areas and their descriptions are included in the prompt.
+- Check the network request to the LLM - verify existing areas and their descriptions are included in the prompt.
 
 ## Files
 
-- `static/js/main.js` — add room context to AI generation in create modal
+- `static/js/main.js` - add room context to AI generation in create modal
 
 ## How
 

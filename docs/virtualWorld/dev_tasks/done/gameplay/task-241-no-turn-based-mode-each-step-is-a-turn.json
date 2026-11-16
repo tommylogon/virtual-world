@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-241",
+  "kind": "task",
+  "number": 241,
+  "title": "No-Turn-Based Mode - Each Step Is a Turn",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "In \"no turn based\" mode - where you manually select one agent and step it\n(Step Once, or the loop repeats that same selected agent) - each step must\nbehave like turn-based mode running with only that one character:\nonce the stepped character's turn finishes, end the turn (`applyTurn`) so the\ngame clock advances and per-turn systems (vital decay, condition ticks, trait\ntick effects, turn-triggered triggers) fire exactly as they do in turn-based\nmode.\n\nExample: 4 characters in a scenario, turn-based **off**. Select agent \"Lyrie\"\nand click Step Once. Lyrie acts, then the turn is ended as if she were the only\ncharacter in the turn queue - time advances and new-turn effects play.\n\nThe bug this fixes: with turn-based off, Step Once currently runs the action but\nnever ends the turn, so time does not advance and anything that waits for a new\nturn never fires.",
+    "why": "TODO",
+    "how": "- `static/js/agent/turn-queue.js`: extracted the wrap-complete block of\n  `advance()` (`turnNumber++`, `ApiClient.applyTurn()`, `ApiClient.clearTurnEvents()`)\n  into a reusable `async endTurn()`, exported on `TurnQueue`. `advance()` now\n  calls `endTurn()` when a full cycle wraps.\n- `static/js/agent-engine.js`:\n  - `stepOnce()`: when `!config.turnBased` and a `config.controllingPlayer` is\n    selected, calls `TurnQueue.endTurn()` and re-renders after the step -\n    behaves like turn-based with a single-character queue.\n  - `start()` loop: same - each non-turn-based step ends the turn before the\n    next iteration, so the repeated loop advances the clock per step too.\n- Backend unchanged: `/api/turn/apply` → `tick_turn()` already applies decay +\n  ticks for all characters.",
+    "verify": "- `node --check` passes on both edited files; 941 pytest pass.\n- Browser (live, 127.0.0.1:4444): turn-based off, `controllingPlayer='rat'`,\n  `stepOnce()` → `time_ticks` 21→22 and `turnNumber` 0→1. Turn ends, clock\n  advances, decay tick ran.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "`dev_tasks/developer ideas.md` (on no turn based eash step should be a turn)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-241-no-turn-based-step-is-turn.md"
+  }
+}

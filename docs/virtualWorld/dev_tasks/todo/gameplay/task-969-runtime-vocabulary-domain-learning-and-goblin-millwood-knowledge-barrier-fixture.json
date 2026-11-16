@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-969",
+  "kind": "task",
+  "number": 969,
+  "title": "Runtime vocabulary/domain learning and Goblin/Millwood knowledge-barrier fixtures",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "languages",
+    "knowledge",
+    "teaching",
+    "fixtures"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "later",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-967",
+      "task-968"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-197",
+      "task-734",
+      "task-966"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Wire runtime learning of foreign vocabulary and domain knowledge into teach, speech context, and examine/read manuals, and author verified character/scenario fixtures exercising word-level language barriers (Goblin/Japanese exchange student) and asymmetrical Millwood domain expertise/ignorance (Sammy, Kayla, Zoe).",
+    "why": "Static competence sheets go stale quickly unless characters can learn words and craft/trade facts in play, and AGENTS.md rule 8 requires concrete authored fixtures alongside mechanism tests. Extending the existing CraftingSystem.teach command, examine/read grants, and _teach_* hooks avoids inventing new one-off subsystems while proving both target settings end-to-end.",
+    "how": "1. Extend CraftingSystem.teach() (engine/crafting.py lines 368-406) and routes/action_handlers.py (lines 1118-1127) to handle lang:<language>:<word_or_phrase> (requiring the teacher to know that language/word and adding it to the student's known_words) and domain:<id> (seeding semantic knowledge and nudging novice familiarity on co-located instruction).\n2. Add optional readable-manual / phrasebook grants in engine/items/examine_actions.py and contextual object-pointing word acquisition alongside _teach_names_from_speech/_teach_places_from_speech in engine/speech.py (bounded so strangers cannot bulk-dump whole dictionaries from one overheard monologue).\n3. Author concrete reference fixtures across Millwood (data/library/characters/sammy.json, kayla.json, zoe.json: Sammy skateboarding expert vs computing ignorant, Kayla law/language expert vs physics/DIY ignorant, Zoe silicone_molding/DIY expert vs sports ignorant, plus school/parent semantic seeds) and a Goblin/foreign-exchange barrier fixture (e.g. gribba.json plus automated scenario test proving asymmetrical speech masking and runtime word acquisition).",
+    "verify": "1. Run pytest covering teach lang:<id>:<word>, teach domain:<id>, examine phrasebook/manual learning, and full Goblin/exchange-student speech masking plus Millwood Sammy/Kayla/Zoe domain asymmetry fixtures.\n2. Verify python tools/lint_library.py passes after updating character fixtures.",
+    "acceptance": [
+      {
+        "text": "teach command (CraftingSystem.teach / routes/action_handlers.py) supports teaching foreign known_words (lang:<id>:<word>) and semantic domain lessons between co-located characters.",
+        "done": false
+      },
+      {
+        "text": "Examining/reading authored bilingual phrasebooks, manuals, or pointed single-word object lessons updates listener known_words or semantic memory cleanly.",
+        "done": false
+      },
+      {
+        "text": "Millwood character fixtures (Sammy, Kayla, Zoe) and Goblin/bilingual exchange fixtures carry concrete domain competence, explicit ignorant blind spots, and partial known_words verified end-to-end by tests.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/crafting.py",
+      "routes/action_handlers.py",
+      "engine/speech.py",
+      "engine/items/examine_actions.py",
+      "data/library/characters/sammy.json",
+      "data/library/characters/kayla.json",
+      "data/library/characters/zoe.json",
+      "data/library/characters/gribba.json"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Human Turn / Agent Turn Composer (teach and read/examine actions), Character Inspector -> Mind -> Persona (Languages & Domains updates at runtime), and Prompt Lens.\n\nCurrent availability: CraftingSystem.teach in engine/crafting.py (lines 368-406) and routes/action_handlers.py (lines 1118-1127) only accept recipes and skill:<name>, and shipped characters in data/library/characters/ have 0 language lexicons or domain expertise/ignorance profiles.\n\nManual verification steps:\n1. Load Sammy, Kayla, Zoe, or a Goblin/exchange-student pair in a test scenario and inspect Persona Languages/Domains plus Prompt Lens before interaction.\n   - expected: Sammy shows skateboarding competence and computing ignorance; Kayla shows legal/language competence and DIY/physics ignorance; Zoe shows silicone_molding/DIY competence and sports ignorance; partial foreign speakers show initial known_words only.\n2. Execute 'teach lang:english:silicone to Kenji' (or have Zoe demonstrate/teach DIY curing to Kayla) when co-located.\n   - expected: Target character's live known_words or domain/semantic memory updates and persists across save/load, and subsequent WITNESSED speech or examine output reflects the newly learned term."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Features/crafting]]",
+      "[[Features/read-write]]",
+      "[[Features/talk-speak]]",
+      "[[Characters/Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

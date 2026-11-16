@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "task-480",
+  "kind": "task",
+  "number": 480,
+  "title": "Skill growth, abilities as mutable stats, and proficiency",
+  "status": "review",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-476",
+      "task-519"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give characters a progression model: use-based skill advancement (rolling a skill can raise it), abilities as mutable stats changed by play, and an optional proficiency term so the sheet expresses trained + ability separately. Also define setting skill packs so a new setting can grant its own skills to the relevant characters on top of the base list.",
+    "why": "Skills were completely static, preventing characters from improving proficiencies through practice and repeated successful actions.",
+    "how": "Added `skill_growth` toggle, tracking per-skill attempt/success counters and advancing proficiency when threshold curves are met.",
+    "verify": "1. Run `python -m pytest tests/test_skill_progress.py` and review the cases for\n   pack idempotence, zero proficiency, successful-use thresholds, failed-use\n   handling, caps, opt-in, and stat adjustment.\n   - expected: progress advances only on successful checks with growth enabled;\n     proficiency 0 adds no modifier and invalid stat adjustments are ignored.\n   - observed (card record, 2026-09-24): 17 focused skill-progress tests\n     passed; the task's setting-authorship follow-up remains.\n2. In a disposable scenario with `skill_growth` enabled, use `find Survival`\n   until one character reaches the configured threshold; then inspect Bio →\n   Skills and the event stream.\n   - expected: the skill value rises once, the improvement is logged, and the\n     progress counter resets; a failed check does not advance it.\n   - observed: no browser run is recorded; the mechanism is currently verified\n     by the focused test module.",
+    "acceptance": [
+      {
+        "text": "**Setting skill packs:** `data/library/skill_packs.json` +",
+        "done": false
+      },
+      {
+        "text": "`engine/skill_progress.py`; `apply_pack` raises skills only toward the pack",
+        "done": false
+      },
+      {
+        "text": "value (idempotent, never lowers unless asked) and `validate` flags unknown",
+        "done": false
+      },
+      {
+        "text": "skills, non-positive values and over-cap values.",
+        "done": false
+      },
+      {
+        "text": "**Proficiency:** an optional, separate term (`player.proficiency`, default",
+        "done": false
+      },
+      {
+        "text": "merged into `engine/checks.skill_modifiers` as a `proficiency` source, so",
+        "done": false
+      },
+      {
+        "text": "the sheet expresses trained value and proficiency independently; 0 is exactly",
+        "done": false
+      },
+      {
+        "text": "the pre-task-480 result (task-472 left the term out).",
+        "done": false
+      },
+      {
+        "text": "**Use-based advancement:** `record_use` counts *successful* uses, raises",
+        "done": false
+      },
+      {
+        "text": "the skill at the threshold, resets the counter on a raise, caps at `MAX_SKILL`,",
+        "done": false
+      },
+      {
+        "text": "and ignores failures.",
+        "done": false
+      },
+      {
+        "text": "**Opt-in:** `SkillSystem.skill_check` grows a skill only when the world",
+        "done": false
+      },
+      {
+        "text": "sets `skill_growth`; the threshold is configurable; with no world (or the flag",
+        "done": false
+      },
+      {
+        "text": "off) nothing changes, so no existing save or soak moves.",
+        "done": false
+      },
+      {
+        "text": "**Abilities as mutable stats:** the `adjust_stat` effect trains or drains",
+        "done": false
+      },
+      {
+        "text": "a core ability in play, clamped to [1, 30], reusing the player's existing key",
+        "done": false
+      },
+      {
+        "text": "casing, and ignoring unknown stats.",
+        "done": false
+      },
+      {
+        "text": "**Persistence:** `proficiency` and `skill_progress` serialize and load.",
+        "done": false
+      },
+      {
+        "text": "Deterministic; no LLM.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/skills.py",
+      "models/player.py",
+      "tests/test_skill_progress.py"
+    ],
+    "custom": {
+      "progress_2026_09_24": "Implemented and tested; moving to review.\n\n- **`data/library/skill_packs.json`** (new) + **`engine/skill_progress.py`** -\n  `apply_pack` / `proficiency_bonus` / `record_use` / `growth_enabled` /\n  `growth_threshold` + `validate`.\n- **`player.py` / `engine/serialization.py`** - `proficiency` (default 0) and\n  `skill_progress` (default `{}`) fields, serialized and restored.\n- **`engine/checks.py`** - proficiency merged into the one modifier pipeline as\n  its own source (default 0 ⇒ no change).\n- **`engine/skills.py` / `virtual_world_engine.py`** - `SkillSystem` takes an\n  optional `game_state`; `skill_check` grows the skill only behind\n  `skill_growth`, logging the improvement. Existing two-arg constructions are\n  unaffected.\n- **`engine/effect_handlers/vitals.py`** - new `adjust_stat` effect registered in\n  the dispatch map.\n- **`tests/test_skill_progress.py`** (17) - pack apply/idempotence/validate,\n  proficiency inert-by-default and in the breakdown, growth threshold/failure/\n  cap, opt-in on/off and no-world, and `adjust_stat` clamping/casing/unknown.\n\nRemaining for this task: authoring follow-ups only - a scenario would set\n`skill_growth` and apply packs on load, and richer pack vocabulary is data.",
+      "browser_ui": "Intended UI home: Character Inspector → Bio → Skills for the skill value;\nGame command input → `find Survival` → event stream for the roll and growth\nmessage.\n\nCurrent availability: Skill progression and proficiency are implemented and\ncovered by `tests/test_skill_progress.py`. The inspector currently displays\nnumeric skills, but this card does not claim that it displays `proficiency` or\nthe per-skill progress counter. Use a disposable scenario with\n`skill_growth: true` and a low test threshold; the default path remains\nunchanged when growth is off.\n\nLive steps when available:\n1. Load that fixture with one character below the Survival cap and an area\n   where `find Survival` succeeds. Record the displayed Survival value, run\n   successful `find Survival` checks until the configured threshold is reached,\n   then reopen the character's Skills section.\n   - expected: the character's Survival value increases once, the event stream\n     reports the growth, and the progress counter resets at the raise.\n2. Repeat one failed `find Survival` check, then load the same fixture with\n   `skill_growth` disabled and run a successful check.\n   - expected: a failed check does not advance progress; with growth disabled,\n     neither the skill value nor progress changes.\n3. Inspect the roll breakdown for a character with proficiency 0 and one with\n   a non-zero proficiency value.\n   - expected: zero proficiency adds no modifier; the other character shows a\n     separate `proficiency` source in the same check breakdown.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-480-skill-growth-abilities-as-mutable-stats-and-proficiency.md"
+  }
+}

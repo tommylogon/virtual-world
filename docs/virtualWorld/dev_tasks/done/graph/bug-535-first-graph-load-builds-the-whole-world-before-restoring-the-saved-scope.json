@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "bug-535",
+  "kind": "bug",
+  "number": 535,
+  "title": "First graph load builds the whole world before restoring the saved scope",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "On refresh the graph was built twice: GraphNetwork.init called GraphNetwork.loadGraphData() before graphManager._restoreScopeFilterOnce() ran, so the first load was always the whole world and the saved scope was applied a moment later. Fixed: restore the scope before the first load.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-535-first-graph-load-builds-the-whole-world-before-restoring-the-saved-scope.md"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-100",
+  "kind": "task",
+  "number": 100,
+  "title": "Graph View Overlays - Light, Heat, Sound, Triggers, Cardinal",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-07-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The graph currently shows one view - the structural room/door/item/character relationships. Add a view selector with different visual overlays to show environmental data, trigger propagation, and spatial relationships.",
+    "why": "TODO",
+    "how": "### Frontend\n\n- `static/js/graph/network-manager.js` - add `applyOverlay(mode)`, per-overlay restyle functions, per-view legend builder\n- `static/js/graph-manager.js` - extend `setViewMode()` to handle overlay modes without hiding vis.js canvas\n- `templates/index.html` - add overlay view buttons to graph toolbar (dropdown or compact buttons)\n- `static/css/style.css` - styles for overlay indicator, per-view legend variants\n\n### How It Works\n\nEach overlay:\n1. Gets node/edge DataSets from `graphManager.network.body.data`\n2. Computes colors from `worldState.rooms`, `worldState.graph.nodes`, `worldState.graph.edges`\n3. Calls `nodes.update()` and `edges.update()` to apply colors/visibility\n4. Swaps legend content to match current view\n\nSwitching back to Structural view clears the overlay by force-reloading graph data (which preserves node positions thanks to the save/restore in `loadGraphData`).",
+    "verify": "- Each overlay renders without errors\n- Switching between overlays is instant\n- Switching back to Structural restores original colors\n- Light overlay colors match computed spill values\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/network-manager.js` - add overlay functions (~150 lines)",
+      "static/js/graph-manager.js` - extend setViewMode (~20 lines)",
+      "templates/index.html` - add overlay buttons (~5 lines)",
+      "static/css/style.css` - overlay legend variants (~20 lines)"
+    ],
+    "custom": {
+      "key_design_decision": "All 5 overlays are computed **entirely on the frontend** from existing `worldState` data. No API endpoints needed. The engine's Python `get_ambient_light()` is for runtime gameplay (room descriptions, examine, narration) - the graph view is a visualization tool for builders.",
+      "view_types": "### 1. Structural View (current default)\nRooms → ways → items, characters. Shows graph topology with type-based coloring.\n\n### 2. Light Overlay\n- Area nodes colored by computed light level (spill through open/see_through ways included)\n- Items with `state: lit` glow orange\n- Color ramp: `pitch_black` → black, `dim` → dark indigo, `normal` → default gray, `bright` → golden, `blinding` → white\n- Spill math reimplemented in JS: for each open/see_through door, darker room gets `brighter * 0.5` boost\n\n### 3. Heat Overlay\n- Area nodes colored by temperature (below freezing → ice blue, cool → blue, comfortable → green, warm → orange, hot → red, blazing → deep red)\n- Heat sources (items with `state: lit`, fireplaces) glow\n- Propagation through open ways with linear falloff\n\n### 4. Sound Overlay\n- Area nodes colored by noise level (silent → dark, quiet → dim, moderate → normal, loud → bright, deafening → white)\n- Sound-emitting items highlighted\n- Propagation through open ways with distance falloff\n\n### 5. Trigger Overlay\n- Nodes with trigger edges highlighted, others dimmed to 20% opacity\n- Trigger edges shown with purple color and trigger type label\n- Non-trigger edges dimmed/hidden\n\n### 6. Cardinal Overlay\n- Way nodes labeled with cardinal direction (N/S/E/W/NE/NW/SE/SW)\n- Area positions arranged geographically using existing cardinal layout\n- Useful for spatial navigation planning and debugging",
+      "dependencies": "None - everything is frontend-only from existing state data. Task-80 (light spill system) backend code is not required.",
+      "implementation_summary_2026_07_31": "All overlays fully implemented and verified:\n\n| Component | Location |\n|-----------|----------|\n| `applyOverlay()` dispatcher | `network-manager.js:713` |\n| Light overlay + spill propagation | `network-manager.js:488` (`_applyLightOverlay()`), `:406` (`_computeAmbientLight()`) |\n| Heat overlay | `network-manager.js:515` (`_applyHeatOverlay()`) |\n| Sound overlay | `network-manager.js:541` (`_applySoundOverlay()`) |\n| Trigger overlay | `network-manager.js:560` (`_applyTriggerOverlay()`) |\n| Cardinal overlay | `network-manager.js:610` (`_applyCardinalOverlay()`) |\n| Overlay view buttons (dropdown) | `templates/index.html:115-121` |\n| Legend updates per mode | `network-manager.js:650` (`_updateOverlayLegend()`) |\n| Clear/reset overlay | `network-manager.js:637` (`_clearOverlay()`) |"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-07-31"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-100-graph-view-filters.md"
+  }
+}

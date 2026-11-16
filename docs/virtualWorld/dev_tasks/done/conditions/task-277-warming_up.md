@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: Planned — task-209 (Arousal State Conditions & Threshold Triggers)
+**Status**: Planned - task-209 (Arousal State Conditions & Threshold Triggers)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
 
 ## What
 
-First arousal band. Arousal is building — mild Stimulation gain each tick. Applied when Arousal crosses into the 15–30 band.
+First arousal band. Arousal is building - mild Stimulation gain each tick. Applied when Arousal crosses into the 15–30 band.
 
 ## Proposed schema
 
@@ -49,13 +49,13 @@ First arousal band. Arousal is building — mild Stimulation gain each tick. App
 
 ## Perception
 
-`known: True` — an early, honest signal of desire.
+`known: True` - an early, honest signal of desire.
 
 ## Integration points space
 
-- `engine/player.py` — `CONDITION_DEFINITIONS` entry.
-- `engine/tick_manager.py` — threshold checks in `tick_turn()` (apply/remove by Arousal).
-- `engine/conditions.py` — `process_tick` periodic feedback into Stimulation/Arousal.
+- `engine/player.py` - `CONDITION_DEFINITIONS` entry.
+- `engine/tick_manager.py` - threshold checks in `tick_turn()` (apply/remove by Arousal).
+- `engine/conditions.py` - `process_tick` periodic feedback into Stimulation/Arousal.
 
 ## Testing (proposed)
 

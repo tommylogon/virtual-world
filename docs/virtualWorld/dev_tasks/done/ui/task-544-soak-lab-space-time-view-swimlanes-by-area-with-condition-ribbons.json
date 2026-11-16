@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "id": "task-544",
+  "kind": "task",
+  "number": 544,
+  "title": "Soak lab space-time view - swimlanes by area, with condition ribbons",
+  "status": "done",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-543",
+      "the",
+      "data",
+      "task-542",
+      "boundary"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Answer the question a line chart cannot: **did those two ever share a room?**",
+    "why": "The Soak Lab's existing charts all answer \"is the average holding up\", which is\nthe least interesting question a soak can ask. The question a soak actually\nexists to answer is \"who was where, when, and what decided it\", and no chart\nbefore this one could show it: a heatmap aggregates characters away, so it can\nnever reveal that two characters shared a room.",
+    "how": "Pure geometry in `static/js/soak/soak-spacetime.ts`, drawn by the existing\ndependency-free SVG helpers, wired into the Soak Lab as a Space-Time tab\n(`soak-ui.ts` `renderSpacetime`, selected via `[data-pane=\"spacetime\"]`).\nGeometry and windowing are the parts that can be wrong in ways a screenshot will\nnot reveal, so they are pure functions with unit tests.",
+    "verify": "1. `node tools/unit/run.cjs` includes `test_soak_spacetime.js`.\n   - expected: the geometry test file runs and every case passes.\n   - observed: 62 cases in `test_soak_spacetime.js` pass; the suite reports 780 passed, 0 failed (57 test files).\n2. The Space-Time tab is reachable and renders.\n   - expected: the pane is selected and `renderSpacetime()` draws swimlanes.\n   - observed: `static/js/soak/soak-ui.ts:1326` dispatches `case 'spacetime': renderSpacetime(); break;`; the pane is bound at line 937 via `[data-pane=\"spacetime\"]`; `bindSpacetime()` is called at line 1505.\n3. The module is a pure geometry layer, so its behaviour is testable without a browser.\n   - expected: lane order, windowing, row packing, collision detection and the why-over-time bucketing are all pure functions.\n   - observed: `soak-spacetime.ts` exports `laneOrder`, `clipToWindow`, `packRows`, `findCollisions`, `collisionsByArea`, `buildLayout`, `whyOverTime`, `renderSwimlanes`, `renderHeatmap`, `filterCharacter`, `collisionsFor`; 62 cases cover them.\n4. A 30-day run renders without freezing.\n   - expected: windowed or aggregated, with the visible range only.\n   - observed: NOT demonstrated live. The mechanism is in place (`clipToWindow` plus `buildLayout` windowing, with a 900-interval density guard at `soak-ui.ts:687` and a 6-hour default window), and the unit tests pin the windowing, but no 30-day run was rendered in a browser here. This is the one acceptance item resting on mechanism rather than observation.",
+    "acceptance": [
+      {
+        "text": "A run with recorded telemetry renders swimlanes: area lanes on the y axis,",
+        "done": true
+      },
+      {
+        "text": "time on the x, one band per character from its presence intervals.",
+        "done": false
+      },
+      {
+        "text": "Two characters present in the same area at the same time are visually",
+        "done": true
+      },
+      {
+        "text": "distinguishable as an overlap.",
+        "done": false
+      },
+      {
+        "text": "Deaths appear on the band at the correct tick with their cause.",
+        "done": true
+      },
+      {
+        "text": "Condition ribbons render beneath each band, and a per-character collapse is",
+        "done": true
+      },
+      {
+        "text": "identifiable without reading a number.",
+        "done": false
+      },
+      {
+        "text": "A 30-day run renders without freezing - windowed or aggregated, with the",
+        "done": true
+      },
+      {
+        "text": "visible range only.",
+        "done": false
+      },
+      {
+        "text": "The lane ordering is spatial where a layout exists, and stable across",
+        "done": true
+      },
+      {
+        "text": "refreshes.",
+        "done": false
+      },
+      {
+        "text": "A run with no telemetry shows a clear empty state, not an empty axis.",
+        "done": true
+      },
+      {
+        "text": "Pure-JS unit tests for the geometry (lane assignment, overlap detection,",
+        "done": true
+      },
+      {
+        "text": "windowing), in the existing `tools/unit/test_*.js` style.",
+        "done": false
+      },
+      {
+        "text": "`node tools/unit/run.cjs` green, `npm run lint` and `npm run typecheck` clean.",
+        "done": true
+      },
+      {
+        "text": "Per the standing rule, documented in the user guide / technical docs.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/soak/soak-spacetime.ts` (and emitted `.js`) - pure geometry and renderers",
+      "static/js/soak/soak-ui.ts` - the Space-Time tab, `renderSpacetime`, density guard, integrity alerts",
+      "tools/unit/test_soak_spacetime.js` - 62 geometry cases",
+      "docs/virtualWorld/UI & Settings/Soak Lab.md` - the feature page"
+    ],
+    "custom": {
+      "why_not_lines_or_a_plain_heatmap": "The Soak Lab already has `renderLineChart`, `renderDonut`, `renderBarChart`,\n`renderVerticalBars` and a histogram, and the line charts are all **vitals over\ntime**. Those answer \"is the average holding up\", which is the least interesting\nquestion in a soak:\n\n- An average Energy line is close to useless. It hides the exact thing a soak\n  exists to catch - one character collapsing while the mean stays flat.\n- A time × area **heatmap** shows where the world is busy, which is genuinely\n  useful, but it is strictly less informative than swimlanes: it aggregates\n  characters away, so it cannot show *who* was where or reveal a meeting.",
+      "the_view": "**A space-time swimlane diagram.** x = time, y = area ordered spatially, one band\nper character.\n\n- Each character's band is drawn per presence interval, so a long stay is a long\n  bar and a commute is a short one. Built from task-543's intervals, so it renders\n  at any zoom from the same records.\n- **Overlapping bands in the same area-lane are a collision** - two characters in\n  one room. That is the thing the view exists to surface, and it is invisible in\n  every chart currently in the lab.\n- **Deaths** marked on the band at the tick they occurred, with cause.\n- **Condition ribbons** beneath each character: a second, thinner strip per\n  character showing condition state over time (hungry / tired / sick / injured).\n  This is what replaces the average line - you see *who* was suffering and when,\n  not that the mean moved 2 points.\n- **Churn is legible**: a character oscillating between two lanes shows a\n  zigzag, which reads instantly as a behavioural problem.\n\nCompanion panels, cheap from the same data:\n\n- **`why` breakdown - the core panel, not an extra.** `why` is what makes a soak\n  answerable: it is the only field that says *which rule drove the behaviour*, and\n  the whole request is \"who did what why where\". Render it as a ranked\n  distribution of `why` values, grouped by prefix so the nine background rules\n  compete against each other on one axis - and stacked over time, so you can see\n  a rule start dominating. Without it the view answers \"who was where\" but not\n  \"what decided it\".\n- **Action composition** - a stacked bar or donut of action `kind` per character,\n  and/or a stacked area over time. Answers \"what are they spending their time on\".\n  Note this is coarser than the `why` breakdown: `kind` is *what*, `why` is\n  *why*, and the second is the one worth ranking.\n- **Occupancy heatmap** - time × area, as a compact overview for a long run. Keep\n  it as the zoomed-out companion to the swimlanes, not instead of them.",
+      "implementation_notes": "- Draw on the existing dependency-free SVG helpers in `static/js/soak/soak-charts.js`\n  (it already has line/bar/vertical-bar/donut plus a `histogram` and a\n  `niceTicks`/`scaleFor` helper). A swimlane is rectangles and one axis, so it\n  fits that house style - no charting dependency needed, and no `Chart.js` in the\n  app's runtime path.\n- The lane axis needs an **area ordering that is stable across a run**, ideally\n  spatial (from the graph layout) with rooms alphabetised as a fallback. An\n  alphabetical axis puts a camp's storehouse and longhouse far apart and destroys\n  the spatial read.\n- Render lazily and windowed: a 30-day run is tens of thousands of intervals.\n  Aggregate to the visible time range and only draw what fits.\n- The existing lab polls; follow whatever cadence the vitals charts use rather\n  than introducing a second polling path.",
+      "non_goals": "- Capturing the data - task-543. This task renders what exists and shows an empty\n  state until then.\n- Replacing the existing vitals charts. They answer a different question and\n  should stay.\n- A graph-view or node-link visualisation of the same data. The space-time\n  diagram is the one that answers the question; a force graph would not.\n- Interactivity beyond hover and zoom. Resist building a general analysis tool\n  here - pick one question and answer it well.",
+      "browser_ui": "Intended UI home: Soak Lab → Space-Time view.\n\nCurrent availability: the swimlane view, condition ribbons, why breakdown,\noccupancy heatmap and collisions table are implemented and wired to the\ntelemetry payload, and the geometry is unit-tested. What is not demonstrated\nhere is a live browser run against a 30-day soak, which is the one acceptance\nitem that needs a real run rather than a fixture.\n\nLive steps when available:\n\n1. Open a recorded soak run in the space-time view and inspect area lanes and character timelines.\n   - expected: Each character’s presence occupies the correct area lane and time interval.\n\n2. Inspect two co-present characters and a condition change.\n   - expected: Their intervals overlap in time and condition ribbons mark the corresponding periods.\n\n3. Open a run whose telemetry was off, and one with no presence intervals.\n   - expected: A clear empty state, not an empty axis.\n\n4. Widen the time range to the whole run.\n   - expected: The view stays responsive; if more than 900 intervals are visible the density guard warns.\n\nThis section defines the intended access point and acceptance path. Current availability records the present state.",
+      "reconnaissance_2026_10_20_verdict_fixed": "Newer work (commits in the soak lane) implemented the space-time swimlane view that this card asked for.\n\n- `static/js/soak/soak-spacetime.ts` (and emitted `.js`) exists: 34,566 bytes, declares `@module soak-spacetime` and `@contributes pure lane/row/overlap geometry, the swimlane renderer, the occupancy heatmap and the why-over-time stack`.\n- It is wired into `static/js/soak/soak-ui.ts` line 1326 (`case 'spacetime': renderSpacetime(); break;`) and the tab pane is selected at line 937 (`[data-pane=\"spacetime\"]`).\n- Pure-JS geometry tests exist: `tools/unit/test_soak_spacetime.js` (26,532 bytes).\n- Companion panels (occupancy heatmap, why-over-time stack, action composition) are present in the module.\n\nEvidence counts: 1 spacetime module, 1 wired render call site, 1 geometry test file. Card moved to done."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-544-soak-lab-space-time-view-swimlanes-by-area-with-condition-ribbons.md"
+  }
+}

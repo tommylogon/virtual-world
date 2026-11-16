@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-117",
+  "kind": "task",
+  "number": 117,
+  "title": "Log Race Condition - Concurrent LLM Response Interleaving",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When multiple LLM agent calls complete at the same tick, their responses can get interleaved/concatenated into a single log entry. Observed in both the event log and mansion log:\n\n```\n🤖[08:50] LLM [\"Examine the fireplace...\", \"Check the Dusty Bookshelf...\"]{\"inner_monologue\":\"Oh! Oh dear...\"}\n```\n\nTwo separate LLM responses (a plan JSON array + an inner_monologue JSON object) were merged. This corrupts the log display and could affect downstream processing.\n\n### Root cause\n\nBoth subagents were dispatched at the same tick, and their streaming/finish callbacks wrote to the same event stream target without synchronization. Likely in:\n\n- `static/js/event-stream.js` - `logRawLLM()` and `finishStreaming()` use the same stream span; concurrent calls overwrite each other\n- `static/js/llm-client.js` - concurrent `chat()` calls share `_onChunk` callback\n\n### Scope\n\n- `static/js/event-stream.js` - streaming span isolation per call\n- `static/js/llm-client.js` - concurrent call handling\n- `static/js/agent-engine.js` - dispatch of concurrent agent steps",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/task-117-log-race-condition.md"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-111",
+  "kind": "task",
+  "number": 111,
+  "title": "Remove Map View",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-27",
+  "updated": "2026-07-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The map view (SVG-based cardinal direction room layout) is broken, unused, and architecturally nonsensical. Remove it entirely - button, module, CSS, dead code in graph-manager, and test references.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Server starts without errors\n- Graph/Outline buttons still work in the toolbar\n- No 404s for the removed JS file\n- No CSS references to map-view classes\n- No JS references to `GraphMapView` or `_renderMapView`",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_to_remove": "- `static/js/graph/map-view.js` - entire module (214 lines)",
+      "files_to_edit": "### `templates/index.html`\n- Remove line 113 - the Map toolbar button\n- Remove line 564 - `<script src=\"/static/js/graph/map-view.js\">`\n\n### `static/js/graph-manager.js`\n- Remove `'map'` case from `setViewMode()` (line 558) - just keep the `'outline'` branch\n- Remove `'map'` case from `_renderCurrentView()` (line 567)\n- Remove the dead `_renderMapView()` method entirely (lines 571+)\n\n### `static/css/style.css`\n- Remove all map-view CSS (the `/* ===== Map View ===== */` block, lines 960-975)\n\n### `tools/test_ui.cjs`\n- Remove the map view setViewMode test (lines 332-335)\n\n### `docs/virtualWorld/dev_tasks/todo/task-82-map-view-and-directions.md`\n- Move to `done/archive/` (its core work is moot with map view removed)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-111-remove-map-view.md"
+  }
+}

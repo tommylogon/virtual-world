@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-407",
+  "kind": "task",
+  "number": 407,
+  "title": "Graph edge indexing, boundary case normalization, cached exits",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-19",
+  "updated": "2026-09-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make edge lookup and exit building cheap and predictable, and lowercase ids\n**once at the boundary** instead of on every call.",
+    "why": "- `get_edges_for_source` (`graph.py:130`) and `get_edges_for_target` (`:140`)\n  scan the entire edge list and call `.lower()` on both endpoints of every\n  edge per call. `add_edge` (`:98`) and `remove_edge` (`:107`) do the same to\n  dedupe/remove.\n- `build_exits_for_area` is recomputed on demand, reached through the\n  `current_area` property (`engine/legacy_compat.py:57`).\n- Measured over 100 ticks in the goblin soak: ~876 exit rebuilds and ~1M\n  `str.lower()` calls **per tick**. Nodes already have a case-insensitive\n  `_id_index` (`graph.py:57`); edges do not, and the existing lowercase index is\n  not used by the hot lookups.",
+    "how": "1. **Edge indexes.** Maintain edges keyed by lowercased `source` and `target`\n   (and by type), updated in `add_edge` / `remove_edge` / `load_from_dict` /\n   `clear`. `get_edges_for_*` consult the index instead of scanning\n   `self.edges`.\n2. **Normalize at the boundary.** Normalize id case once on insert/load/save so\n   hot paths compare pre-normalized keys and never call `.lower()` per edge.\n3. **Exits cache.** Cache `build_exits_for_area(area)` results, invalidated on\n   any mutation that can change exits (node/edge add/remove/load).",
+    "verify": "- Unit: index correctness after add/remove/load; exits-cache invalidation.\n- Profile: same 100-tick run before/after (ranking only).\n- Full suite excluding `test_mcp_*`.",
+    "acceptance": [
+      {
+        "text": "`get_edges_for_source` / `_target` no longer iterate `self.edges` or call",
+        "done": false
+      },
+      {
+        "text": "`.lower()` per edge.",
+        "done": false
+      },
+      {
+        "text": "Indexes and the exits cache stay correct across add/remove/load; save/load",
+        "done": false
+      },
+      {
+        "text": "round-trips equal.",
+        "done": false
+      },
+      {
+        "text": "The exits cache invalidates on every mutation that changes exits (test with a",
+        "done": false
+      },
+      {
+        "text": "deliberately mutated edge).",
+        "done": false
+      },
+      {
+        "text": "Per-tick `.lower()` calls drop by orders of magnitude, with profiler",
+        "done": false
+      },
+      {
+        "text": "evidence.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "non_goals": "- Changing edge types, spatial-edge semantics, or trigger behaviour.\n- Removing the `current_area` property from the public API (task-411/task-401\n  own the longer-term decision).",
+      "progress_2026_09_19": "Implemented.\n\n- `graph.py`: `_edges_by_source` / `_edges_by_target` / `_spatial_edges` indexes\n  keyed on lowercased endpoints; `get_edges_for_source` / `get_edges_for_target`\n  consult them and never call `.lower()` per edge. A `_indexed_edge_count`\n  length check forces a lazy rebuild if external code mutates `self.edges`\n  directly (a few effect handlers still do). `_revision` is bumped on every\n  mutation for cache invalidation.\n- `engine/area_description.py`: `build_exits_for_area(..., include_hidden=True)`\n  is cached and invalidated on graph revision. **The game-facing default\n  (`include_hidden=False`) is deliberately not cached**, because it depends on\n  per-player discovery state (`Player.discovered_exits`) that changes without a\n  graph mutation.\n\nVerified: full suite 2835 passed (excluding pre-existing `test_mcp_*`); the\ntrigger/exit cost that dominated the old profile is gone from the hot path.\n\n### Second pass - 2026-09-19 (lighting + edge moves)\n\n- `remove_edge` / `remove_edges_for_node` now unindex only the removed edges\n  (`_unindex_edge`) instead of rebuilding every index; `triggers` edges still\n  rebuild because the trigger index is a set of sources.\n- `retarget_edge(edge, new_type, new_target, properties)` added: one operation\n  for a pure move. Unequip uses it (`equipped` → `carrying`) instead of\n  remove + add.\n- `engine/items/take_drop_actions.py`: direct `self.graph.edges.remove(...)`\n  calls replaced with `graph.remove_edge(...)` so the indexes stay correct.\n- `engine/lighting.py`: effective light is `max(base, best_item)` (the summed\n  form was dead arithmetic the ceiling discarded), and every area's light is\n  recomputed once per tick into a revision-keyed stamp read by the hot paths.\n- Measured: one-week soak **56s → 181 ticks/s** (was 9m49s / 17.1 t/s), 23/23\n  alive, identical vitals/trace (behaviour unchanged). Suite runtime 78s → ~25s.\n- **Done (third pass):** take/drop now capture and retarget their placement\n  edge in place, and their capacity/hand checks run before any mutation so a\n  failed take cannot orphan the item. `logging_events.record_turn_event` was\n  also rebuilding the whole turn-event list per append (O(n²) headless); it now\n  prunes only on turn change and caps at 2,000."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "nothing. Additive; keeps the public graph API.",
+      "evidence": "goblin soak profile (`graph.py:98–155`; `engine/legacy_compat.py:57`)."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-407-graph-edge-indexing-case-normalization-and-exits-cache.md"
+  }
+}

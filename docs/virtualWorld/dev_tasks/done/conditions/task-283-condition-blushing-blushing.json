@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-283",
+  "kind": "task",
+  "number": 283,
+  "title": "Condition: Blushing (`blushing`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A **visual-only** signal - the character is visibly flushed with embarrassment or arousal. Notably, task-209 defines it as having **no mechanical effect**; it exists for appearance/perception.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"blushing\": {\n    \"name\": \"Blushing\", \"description\": \"A hot flush spreads across your face.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [],\n    \"attack_mod\": 0, \"defense_mod\": 0, \"speed_mult\": 1.0,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {},\n    \"ends_on\": [\"calm\"],\n    \"known\": True,\n    \"symptoms\": {1: \"Your cheeks are burning red.\"},\n    \"stack\": \"noop\",\n    \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: none.\n- **Saves/checks**: none.\n- **Combat**: neutral.\n- **Movement**: full speed.\n- **Periodic**: **none** - no drains or feeds. Purely cosmetic.\n- **Lifecycle**: `stack: \"noop\"`; `default_duration: None` (couple of turns); ends on calming down.",
+      "perception": "`known: True` and **observer-visible** - the value is that *other* characters/agents can perceive the blush even if the character tries to hide it. This is a perception/social signal, not a self-state.",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry.\n- Observer perception - does the room/agent description surface a blushing character's state to others?\n- Applied by embarrassment/elevated-arousal triggers.",
+      "testing_proposed": "- [ ] No vitals change while blushing (pure cosmetic).\n- [ ] Visible to observers in the room/agent prompt.\n- [ ] Clears after calming.",
+      "open_questions_things_to_work_out": "- Confirmation this is purely cosmetic (no perception/concentration penalty for embarrassment).\n- How other characters perceive it - same `perceived_conditions` path or an observer-facing line?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-283-blushing.md"
+  }
+}

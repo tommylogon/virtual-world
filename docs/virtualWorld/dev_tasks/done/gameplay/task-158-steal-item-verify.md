@@ -26,9 +26,9 @@ Already implemented. `steal_item` in engine/item_actions.py:556 does a `Sleight 
 - [x] Can't steal from characters in other areas
 - [x] Stealing equipped items works (EDGE_EQUIPPED is checked)
 
-**Verified 2026-08-02** — all checks pass via `tests/test_item_actions.py::TestStealItem`. One bug found and fixed: the success path did not remove the `EDGE_EQUIPPED` edge when stealing an equipped item (item ended up equipped on the victim AND carried by the thief). Fixed in `engine/item_actions.py` — success now removes both `EDGE_CARRYING` and `EDGE_EQUIPPED`.
+**Verified 2026-08-02** - all checks pass via `tests/test_item_actions.py::TestStealItem`. One bug found and fixed: the success path did not remove the `EDGE_EQUIPPED` edge when stealing an equipped item (item ended up equipped on the victim AND carried by the thief). Fixed in `engine/item_actions.py` - success now removes both `EDGE_CARRYING` and `EDGE_EQUIPPED`.
 
-**Status: DONE** — moved to `done/gameplay/`.
+**Status: DONE** - moved to `done/gameplay/`.
 
 ## Why
 

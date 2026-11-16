@@ -80,4 +80,4 @@ Rules:
 
 - engine/character_prompt.py
 - engine/vitals.py
-- 	ests/test_vitals.py
+- tests/test_vitals.py

@@ -39,7 +39,7 @@ TODO
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this task retires or relocates a documentation page and updates wikilinks; it does not change the live graph or connection UI.
+Intended UI home: Not applicable - this task retires or relocates a documentation page and updates wikilinks; it does not change the live graph or connection UI.
 
 Current availability: Ways.md covers current way behavior and Graph System.md covers node/edge structure, while Connections.md retains stale door terminology and unique area-way-area and state-color details. The page consolidation is not claimed as complete.
 

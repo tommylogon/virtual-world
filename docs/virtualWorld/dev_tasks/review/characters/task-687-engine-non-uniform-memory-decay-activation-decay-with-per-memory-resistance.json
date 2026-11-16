@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-687",
+  "kind": "task",
+  "number": 687,
+  "title": "Engine: non-uniform memory decay (activation decay with per-memory resistance)",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-685",
+      "task-686",
+      "task-688",
+      "task-689",
+      "task-690",
+      "task-707"
+    ],
+    "parent": "task-685",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the flat trait-gated salience subtraction in `AgentMind.apply_decay`\nwith activation decay in `memory_dynamics.apply_decay`, so that *what* a memory\nis decides how fast it fades:\n\n- Rate = `memory.decay_per_tick` runtime-config (new, small default 0.01)\n  × trait `memory_decay_per_tick` multiplier (when the character has one) ×\n  source factor (preconceived never; background ×0.5 - both unchanged).\n- Resistance factors multiply the step down: base importance ≥ 8 → ×0.4,\n  ≥ 6 → ×0.7; any `memory_emotions` intensity ≥ 7 → ×0.6;\n  `1 − 0.1 × min(reinforcements, 6)`; category semantic/belief/procedural → ×0.3.\n- Decays `activation` toward 0; removal only when activation ≤ 0.01 AND the\n  memory is unimportant (base < 6, no reinforcements, not manual/preconceived).\n  Removal still evicts the observation index entry (task-425 re-enchantment\n  preserved).\n- Same tick hook (`tick_manager`), same trait gates; no second scheduler.",
+    "why": "A uniform flat salience subtraction treated trivial observations (e.g. seeing a rock) identically to traumatic or emotionally charged experiences (e.g. nearly dying in a trap), resulting in characters forgetting critical life events at the same rate as mundane scenery. Non-uniform activation decay factors in memory importance, emotional intensity, reinforcement count, source type, and memory category so salient and formative memories resist decay while background noise fades gracefully.",
+    "how": "1. In engine/memory_dynamics.py, implement apply_decay(memories, config) calculating per-tick decay rate multiplied by character traits and source factors (preconceived 0.0, background 0.5, auto 1.0).\n2. Calculate resistance multipliers: base importance >= 8 (0.4x), >= 6 (0.7x), emotion intensity >= 7 (0.6x), reinforcements (1 - 0.1 * min(reinforcements, 6)), category semantic/belief/procedural (0.3x).\n3. Reduce activation toward 0; prune only when activation <= 0.01 and base importance < 6 with zero reinforcements.\n4. Hook into tick_manager without adding a secondary scheduler; respect memory.decay_per_tick: 0 as a freeze config.",
+    "verify": "1. Run decay unit tests comparing high-importance emotional memories against low-importance plain memories.\n   - expected: Emotional/high-importance memories retain strictly higher activation over identical tick counts; plain memories reach eviction threshold first.\n   - observed: Tested via tests/test_memory_decay.py.\n2. Verify source factor handling (preconceived vs background vs auto).\n   - expected: Preconceived memories never decay; background memories decay at half rate.\n   - observed: Confirmed in unit test assertions.\n3. Test decay freeze via config override (memory.decay_per_tick = 0).\n   - expected: No memory loses activation during tick simulation.\n   - observed: Verified via configuration tests.",
+    "acceptance": [
+      {
+        "text": "Unit: two memories, identical except one importance-9 emotional and one importance-3 plain - after N decay steps the important one's activation is strictly higher, and the plain one is removed first.",
+        "done": false
+      },
+      {
+        "text": "Unit: `preconceived` never loses activation; `background` decays at half the rate of `auto`.",
+        "done": false
+      },
+      {
+        "text": "Wiring: the decay pass runs from the existing tick path and returns a removed count consumed by the tick manager as today.",
+        "done": false
+      },
+      {
+        "text": "Config: `memory.decay_per_tick: 0` freezes all decay; the trait path still decays when the config is 0 (trait behaves as today's baseline).",
+        "done": false
+      },
+      {
+        "text": "Important memories are never deleted by decay (asserted).",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/memory_dynamics.py (apply_decay)",
+      "engine/agent_mind.py",
+      "engine/tick_manager.py",
+      "tests/test_memory_decay.py"
+    ],
+    "custom": {
+      "open_questions": "- Is 0.01/tick the right default? One soak (task-466-style harness) should\n  measure how many memories a typical 500-tick scenario loses. The freeze\n  hatch exists, but the default should be defensible, not arbitrary.",
+      "browser_ui": "Intended UI home: select a character → Mind → Memories → compare one high-importance emotional memory with one low-importance plain memory before and after simulation time advances.\n\nCurrent availability: the card proposes activation decay based on per-memory resistance, category, source, and `memory.decay_per_tick`; the tick path/config wiring is part of acceptance and is not claimed complete here.\n\nLive steps when available:\n1. Load two memories that differ only as specified: importance-9 emotional versus importance-3 plain. Record activation in `/api/state` and open both in Mind.\n2. Advance the same number of ticks for both entries and inspect the updated details.\n   - expected: the important memory's activation remains strictly higher; the plain memory reaches the removal/retention rule first, according to this card's chosen floor policy.\n3. Repeat with `preconceived`, `background`, and `auto` sources.\n   - expected: preconceived activation never falls; background decays at half the auto rate.\n4. Set `memory.decay_per_tick` to zero, advance ticks, and reopen Mind.\n   - expected: no memory loses activation; the configured zero is read by the live tick decay pass.\n5. Compare the tick result with `/api/state` and the tick/event summary.\n   - expected: the removed count consumed by the tick manager matches actual removals.\n\nThis section is not a claim that the non-uniform decay path is wired today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-687-engine-non-uniform-memory-decay-activation-decay-with-per-memory-resistance.md"
+  }
+}

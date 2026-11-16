@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "id": "task-465",
+  "kind": "task",
+  "number": 465,
+  "title": "Turn mode dial: fold Simultaneous into the mode dropdown + add Simultaneous per room",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-101",
+      "task-437",
+      "task-955"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Remove the separate Simultaneous Mode toggle and make the turn mode dropdown the single dial (Sequential / Random / Initiative / Simultaneous / Simultaneous per room). Add the frontend per-room variant: rooms resolve independently while characters inside a room act in order. Engine-level intent/effect and the per-room sync barrier stay with task-437/task-101.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: one turn-mode dial with 5 modes; no separate Simultaneous toggle.\n- observed (2026-10-10 live): #agent-turn-order options = Sequential / Random / Initiative / Simultaneous / Simultaneous per room; no separate Simultaneous checkbox.",
+    "acceptance": [
+      {
+        "text": "The separate 🌊 Simultaneous Mode checkbox is gone; `#agent-turn-order`",
+        "done": true
+      },
+      {
+        "text": "is the single turn-mode dial with Sequential / Random / Initiative /",
+        "done": false
+      },
+      {
+        "text": "Simultaneous / Simultaneous per room, always visible (no longer hidden",
+        "done": false
+      },
+      {
+        "text": "under the Turn-Based toggle).",
+        "done": false
+      },
+      {
+        "text": "`config.turnOrder` stores the dial value; `config.simultaneousMode` is a",
+        "done": true
+      },
+      {
+        "text": "derived getter (legacy boolean setting folded in). Picking a simultaneous",
+        "done": false
+      },
+      {
+        "text": "variant forces Turn-Based Mode off; enabling Turn-Based while a",
+        "done": false
+      },
+      {
+        "text": "simultaneous variant is selected switches back to Sequential.",
+        "done": false
+      },
+      {
+        "text": "New pure module `static/js/agent/simultaneous.js` (`VWSimultaneous`):",
+        "done": true
+      },
+      {
+        "text": "mode vocabulary, `cooldownFor`, `groupByRoom`, `roomCooldown`,",
+        "done": false
+      },
+      {
+        "text": "`firstReadyRoom`, `tickCountdowns`.",
+        "done": false
+      },
+      {
+        "text": "`agent-engine.js` `_simultaneousRoomStep`: per-room countdowns; the first",
+        "done": true
+      },
+      {
+        "text": "ready room runs its autonomous, living characters sequentially, then the",
+        "done": false
+      },
+      {
+        "text": "room's cadence (its fastest member's) restarts. `_simultaneousStep` uses",
+        "done": false
+      },
+      {
+        "text": "the shared cooldown helper.",
+        "done": false
+      },
+      {
+        "text": "Help text and the settings sync updated.",
+        "done": true
+      },
+      {
+        "text": "Tests: `tools/unit/test_simultaneous.js` (11 tests); JS unit/lint/typecheck green.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "not_in_scope": "- The engine-level intent/effect model and the cross-room sync barrier remain\n  task-101 / task-437. This is the frontend dial + the per-room experiment."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

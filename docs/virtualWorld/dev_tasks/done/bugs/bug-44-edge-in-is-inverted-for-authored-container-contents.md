@@ -33,7 +33,7 @@ Root cause: `Graph.normalize_edges` relabelled legacy `contains` edges to `in`
 already treat a legacy `contains` edge as its reversed `in`), so every migrated
 edge came out backwards. The library authoring paths
 (`_spawn_library_item_node`, `place_library_item`, `serialization_template`,
-`generate_scenario`) were already writing the canonical direction — the damage
+`generate_scenario`) were already writing the canonical direction - the damage
 was done entirely in that migration, then frozen into saves.
 
 Fix in `graph.py`:
@@ -60,8 +60,8 @@ data migration is required.
 
 ## Files
 
-- `graph.py` — `normalize_edges` contains-reversal + `normalize_in_edge_directions`
-- `tests/test_spatial_edges.py` — direction coverage
+- `graph.py` - `normalize_edges` contains-reversal + `normalize_in_edge_directions`
+- `tests/test_spatial_edges.py` - direction coverage
 
 ## Why
 

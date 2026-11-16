@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "id": "bug-41",
+  "kind": "bug",
+  "number": 41,
+  "title": "Loading a savegame keeps the previous scenario source so Commit can write into the wrong file",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-365",
+      "task-368"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "Extract one helper (e.g. `_adopt_loaded_world(app, data)`) that both routes call after\n`load_from_dict`, so the two paths cannot diverge again. A savegame is a runtime\nsnapshot, not a scenario source, so the load-game path should:\n\n1. Clear `world._scenario_source = None` (do not inherit the previously open scenario).\n2. Set `world._scenario_name` from the save payload, and do not imply a writable\n   source.\n3. Set `world._commit_seq = getattr(world, '_edit_seq', 0)`.\n4. Persist the autosave slot (`save_autosave`) so a restart matches the loaded state,\n   unless `TESTING`.\n\nKeep `/api/load`'s existing `persist:true` scenario-load branch unchanged.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Load a savegame while a scenario is open: `_scenario_source` is `None` and the",
+        "done": true
+      },
+      {
+        "text": "chip reflects the loaded world, not the stale scenario.",
+        "done": false
+      },
+      {
+        "text": "With a stale source previously attached, Commit after a savegame load cannot",
+        "done": true
+      },
+      {
+        "text": "overwrite any scenario file. (The commit target is derived from",
+        "done": false
+      },
+      {
+        "text": "`_scenario_source`, which is now cleared, so there is nothing to overwrite.)",
+        "done": false
+      },
+      {
+        "text": "`_commit_seq == _edit_seq` after load, so the dirty dot starts clean.",
+        "done": true
+      },
+      {
+        "text": "Restarting the server after a savegame load restores the loaded state.",
+        "done": true
+      },
+      {
+        "text": "(`_adopt_loaded_world` calls `save_autosave` unless `TESTING`.)",
+        "done": false
+      },
+      {
+        "text": "`POST /api/load` with a `_save_metadata` payload keeps its current behavior",
+        "done": true
+      },
+      {
+        "text": "(source cleared), and the `persist:true` scenario-load branch is untouched.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/saveload.py` - `load_game` (331-344), `load_world` (75-124), new shared helper",
+      "engine/serialization.py` - `load_from_dict` name handling (440-450)",
+      "tests/test_saveload.py` - regression coverage for the load-game path"
+    ],
+    "custom": {
+      "symptom": "Load savegame **B** while scenario **A** is open. The world contents become B, but the\nsave/load model is now internally inconsistent:\n\n- `world._scenario_source` still points at scenario A's file.\n- `world._scenario_name` is overwritten from B's payload.\n- The scenario chip (task-367) and `GET /api/scenario/status` therefore report one name\n  while the commit target is a different scenario.\n- `POST /api/scenario/commit` (or an editor \"Commit Scenario\") then writes **B's\n  runtime state** into **A's scenario file**, destroying A's authored content.\n- `_edit_seq`/`_commit_seq` are not synced, so the chip's dirty dot is unreliable.\n- The boot autosave slot is not refreshed, so a server restart can restore pre-load\n  state.",
+      "root_cause": "`POST /api/load-game/<filename>` (`routes/saveload.py:331-344`) only does\n`_push_undo_snapshot` + `app.world.load_from_dict(data)`.\n\n`load_from_dict` (`engine/serialization.py:440-450`) sets `_scenario_name` from the\npayload but never touches `_scenario_source`; the attribute is only changed by\n`set_scenario_source` (`virtual_world_engine.py:781-793`).\n\nCompare the savegame branch of `POST /api/load` (`routes/saveload.py:92-118`), which\ndeliberately sets `app.world._scenario_source = None` when `_save_metadata` is present,\nand syncs `_commit_seq`. That route got the semantics right; the dedicated load-game\nroute did not, and the two have drifted apart.",
+      "fix_2026_09_24": "One helper, `_adopt_loaded_world(app, data, *, autosave=True)` (`routes/saveload.py`),\nnow runs after `load_from_dict` in every runtime-snapshot path:\n\n- clears `world._scenario_source = None`,\n- sets `world._scenario_name` from the payload (never the stale scenario),\n- sets `world._commit_seq = world._edit_seq`,\n- refreshes the boot autosave (`save_autosave`) unless `TESTING`.\n\nCallers: `/api/load`'s `_save_metadata` branch (autosave on) and its ephemeral\nbranch (autosave off), and `/api/load-game/<filename>` - so the two routes can no\nlonger drift apart (the drift that caused the bug). The `persist:true`\nscenario-load branch is unchanged.\n\nTests (`tests/test_saveload.py::TestLoadGameAdoption`, 5): stale source cleared on\nload-game; name taken from the payload not the stale scenario; `_commit_seq`\nsynced; `/api/load` with `_save_metadata` clears the source; autosave refreshed\n(and *not* written for ephemeral loads)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-41-loading-a-savegame-keeps-the-previous-scenario-source-so-commit-can-write-into-the-wrong-file.md"
+  }
+}

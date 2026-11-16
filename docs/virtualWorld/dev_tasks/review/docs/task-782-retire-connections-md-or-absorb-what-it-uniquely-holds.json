@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-782",
+  "kind": "task",
+  "number": 782,
+  "title": "Retire Connections.md or absorb what it uniquely holds",
+  "status": "review",
+  "priority": "low",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "World Building/Connections.md (renamed from Doors & Connections) is a legacy architecture note that still describes a door node type and stale line numbers. Ways.md now covers the way behaviour and authoring surface, and Graph System.md covers the node and edge model, so most of it is duplicated or wrong. Decide the two things it still uniquely holds, the area-way-area four-edge layout and the graph state colours, then move them into Graph System.md (or Ways.md) and delete the page, retargeting inbound wikilinks and regenerating Connected blocks.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable - this task retires or relocates a documentation page and updates wikilinks; it does not change the live graph or connection UI.\n\nCurrent availability: Ways.md covers current way behavior and Graph System.md covers node/edge structure, while Connections.md retains stale door terminology and unique area-way-area and state-color details. The page consolidation is not claimed as complete.\n\nWhy no browser UI: the deliverable is vault content and links. Browser interaction cannot show whether all note references resolve or whether the obsolete page's unique facts were preserved.\n\nAlternative verification steps:\n1. Compare the four-edge area-way-area layout and graph state colors in Connections.md with the current Graph System.md/Ways.md destination before retiring the old page.\n   - expected: both unique facts have one accurate home; no stale `door` node claim is copied forward.\n2. Retarget every inbound wikilink and regenerate the affected `## Connected` blocks.\n   - expected: no surviving link points at the retired page and the destination notes list their current connections.\n3. Run `npm run precommit`.\n   - expected: vault guards report no broken links, duplicate notes, or stale generated Connected blocks.\n\nThis section is not a claim that planned documentation changes are complete today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/docs/task-782-retire-connections-md-or-absorb-what-it-uniquely-holds.md"
+  }
+}

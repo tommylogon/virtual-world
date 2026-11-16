@@ -9,7 +9,7 @@ priority: medium
 
 **Filed:** 2026-09-19  
 **Depends on:** task-399 (background runner); task-408 (clean scenario data);
-**task-406** (standing-item `on_tick` — see below).
+**task-406** (standing-item `on_tick` - see below).
 
 ## What
 
@@ -45,7 +45,7 @@ paths. Instead use the existing generic counter effect:
 which is purpose-built for gauges and works on any node type. `uses` stays what
 it is for actual consumables.
 
-### Dependency on task-406 — SATISFIED
+### Dependency on task-406 - SATISFIED
 
 A plant standing in a room is not carried and not lit/on, so it used to never be
 ticked (`tick_manager` only ticked carried/equipped and lit/on items). **task-406
@@ -55,7 +55,7 @@ already handled, so there is no double-fire. The growth trigger is buildable now
 
 ### Tag trap: the plant must not be tagged as food
 
-Consumption mechanics do **not** consult tags — `_consume_here`
+Consumption mechanics do **not** consult tags - `_consume_here`
 (`engine/background_simulation.py`) decrements `count` if >1, else `uses` if >1,
 and otherwise **removes the node**; `handle_consume_item` and crafting remove at
 `uses <= 0`. Tags only decide how consumption *finds* a target
@@ -70,10 +70,10 @@ consumed one at a time, the node removed on the last one).
 
 The mechanism needed two condition types that did not exist:
 
-- `parameter_reached` — compares a gauge in the node's `parameters` dict
+- `parameter_reached` - compares a gauge in the node's `parameters` dict
   (`key`, `value`, `op`, default `gte`). There was only `uses_reached`, which keys
-  on `uses` — the very field that must not hold the counter.
-- `contains_count` — counts what a container holds, optionally filtered by
+  on `uses` - the very field that must not hold the counter.
+- `contains_count` - counts what a container holds, optionally filtered by
   name/id. `op: "lt"` is the produce cap.
 
 Both are implemented in `engine/triggers/condition_tree.py`, registered in
@@ -83,25 +83,25 @@ Both are implemented in `engine/triggers/condition_tree.py`, registered in
 ## Slices (widened 2026-09-21: this is renewable world sources, not only food)
 
 A **spawner is a renewable source that produces entities without consuming
-itself.** Two independent axes — trigger (`on_tick` passive vs `on_use` active)
+itself.** Two independent axes - trigger (`on_tick` passive vs `on_use` active)
 and product (item vs character):
 
 |  | produces an item | produces a character |
 |---|---|---|
 | `on_tick` | berry bush, mushroom log | rabbit hole, deer trail |
-| `on_use` | fishing spot, snare → caught rabbit | — |
+| `on_use` | fishing spot, snare → caught rabbit | - |
 
-1. **Passive item sources** — plants. **DONE** (see below): no engine work beyond
+1. **Passive item sources** - plants. **DONE** (see below): no engine work beyond
    the two conditions and the `per: "minute"` mode.
-2. **Active item sources** — fishing spot, snare: `on_use` + `skill_check` →
+2. **Active item sources** - fishing spot, snare: `on_use` + `skill_check` →
    `spawn_item`. No new engine work; data only.
-3. **`tagged_count` condition** — count tagged entities in an area. Required for
+3. **`tagged_count` condition** - count tagged entities in an area. Required for
    slice 4: `contains_count` counts items *inside* a node, but a rabbit hole's
    rabbits are loose, so nothing caps them and an `on_tick` spawner floods the map.
-4. **Character sources** — library creature templates (rabbit, deer), spawn cap,
+4. **Character sources** - library creature templates (rabbit, deer), spawn cap,
    and a **death path that yields a carcass**. A cap without a death path is a
    dead end: the fourth rabbit ends the population forever. Kill/hunt resolves on
-   the creature; the carcass is what a dead creature drops — do **not** give a
+   the creature; the carcass is what a dead creature drops - do **not** give a
    trail a direct "survival check → carcass" shortcut, or the node becomes a meat
    dispenser the moment the player watches it.
 
@@ -122,7 +122,7 @@ and product (item vs character):
 ## Acceptance
 
 - [x] A **7-day** background-only soak of the goblin camp ends with all 23 alive, or
-  every death is attributable to an authored cause and documented — not supply
+  every death is attributable to an authored cause and documented - not supply
   collapse. (slice 1: 23/23 at both 1 and 15 min/tick)
 - [x] Food counts stabilize instead of monotonically falling to zero. (4 -> 50 over a week)
 - [x] A plant never exceeds 10 produce and never grows past its cap; growth resets
@@ -132,13 +132,13 @@ and product (item vs character):
   [[`test_mature_plant_spawns_produce_and_resets`,
   `test_plant_itself_is_not_food`]]
 
-## Progress — 2026-09-24 (verification + the hydrate path)
+## Progress - 2026-09-24 (verification + the hydrate path)
 
 The core (slice 1) was already authored and soaked; this lands the missing unit
 verification and fixes the **library-hydrate path** the soak did not exercise
 (the scenario embeds its bushes directly).
 
-- **`engine/effects.py` — two real bugs in `_hydrate_item` /
+- **`engine/effects.py` - two real bugs in `_hydrate_item` /
   `_materialize_spawn_triggers`:**
   1. `parameters` was dropped on hydrate, so a spawned plant came up with no
      growth gauge at all (the same class of bug task-410 fixed for the other
@@ -147,7 +147,7 @@ verification and fixes the **library-hydrate path** the soak did not exercise
      `effect_params`) was not carried onto the hydrated trigger edge, so a
      hydrated plant's growth trigger had no conditions and no effects and would
      never grow. It is now carried, and `conditions` is only emitted when the
-     source actually has them — an empty `{}` masked the singular fallback in
+     source actually has them - an empty `{}` masked the singular fallback in
      `execution.py` and made the trigger fire unconditionally.
 - **`tests/test_renewable_plants.py`** (4): a hydrated bush grows by game-minute,
   a mature plant spawns produce and resets growth, the 10-produce cap holds and
@@ -182,7 +182,7 @@ Two blockers found and fixed on the way, both broader than plants:
   any container was unreachable and the background tier could starve beside a full
   store. It now traverses every spatial relation (`in`/`on`/`under`/`behind`/
   `beside`/`at`) plus one level of nesting, and `_areas_with` (which decides where
-  a forager *travels*) does the same — otherwise nobody walks to the forest.
+  a forager *travels*) does the same - otherwise nobody walks to the forest.
 - **`_is_consumable`'s action fallback accepted `eat` OR `drink`**, so a hungry
   character ate a water skin and Hunger was satisfied. Intent is now threaded
   from the need/consume kind, so food is not drink.

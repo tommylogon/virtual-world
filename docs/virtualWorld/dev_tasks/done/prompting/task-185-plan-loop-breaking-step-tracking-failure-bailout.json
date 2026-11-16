@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-185",
+  "kind": "task",
+  "number": 185,
+  "title": "Plan Loop-Breaking - Step Tracking & Failure Bailout",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Break the \"replan → re-echo the same step\" loop seen throughout\n`event_log_2026-08-02T12-00-06.txt`:\n\n- Lyrie replanned ~24 times, nearly every plan repeating *\"wrap my Short Forest Cape\n  snugly over my Soft Linen Shift\"* / *\"use Create Flame to start a warming fire\"* even\n  though both repeatedly failed.\n- Kaelen replanned ~20 times, always *\"light the stove with kindling\"* while the stove\n  didn't exist and `take twigs` kept failing.\n\nRoot cause: plans are static string arrays (`plan-manager.js`). No step is ever\nmarked complete, \"PLAN FOLLOW\" references a *\"next step\"* that nothing defines\n(`prompt-builder.js:774`), and `_shouldReplan` (`agent-engine.js:547-553`)\nregenerates an identical plan when it fires. So the model re-attempts step 1 every\nturn, forever.",
+    "why": "TODO",
+    "how": "### 0. Stop writing raw system strings to character memory\n- `agent-engine.js:327`: replace `storeMemory(charName, \\`${finalAction} →\n  ${outputText}\\`)` with (a) keeping the action+result in **system state** (a\n  per-character `lastActionFact` or the existing `config.lastActionResult`) and\n  (b) letting the reaction phase synthesize the character memory. Investigation\n  Notes in `prompt-builder.js:191-306` must read from system state, not from parsed\n  `player.memories[]` strings.\n\n### 1. `static/js/agent-engine.js` - track plan step progress (system state)\n- Add `this._planProgress[charName]` (int index into `_plans[charName]`).\n- After an action succeeds, mark the current step done: best-effort match of the\n  executed action against the current plan step (verb + item names overlap), and if\n  matched (or if the step's intent was satisfied) advance the index.\n- Reset progress to 0 on new plan / replan.\n\n### 2. `static/js/agent/prompt-builder.js` - surface step position\n- `buildPlanContext` / `buildDecisionPrompt` PLAN FOLLOW should read\n  `VW.agent._planProgress` and render:\n  `\"Your plan (step {N+1} of {M}): 1. ... 2. ... (completed) 3. ... (CURRENT)\"`.\n  This tells the model exactly which step to execute next.\n\n### 3. Failure bailout - don't replay impossible steps\n- Track consecutive failures per step: `this._planFailures[charName][stepIndex]`\n  (system state).\n- When the same step fails ≥ 3 times, mark it `[BLOCKED: <last error>]` (system\n  marker), advance the index past it, and write a **character-POV high-importance\n  memory** (see rule 2 above).\n- Include all `[BLOCKED]`/completed info in the next `PlanManager.generate` prompt\n  (`plan-manager.js:74-93`) so a replan does **not** regenerate the same broken step.\n\n### 4. `static/js/agent/plan-manager.js` - feed failures into regeneration\n- Before generating, collect `_planFailures` + `_planProgress` and append:\n  `\"Your previous plan failed on these steps: ... - do not repeat them; find an\n  alternative or pursue a different goal.\"`\n\n### 5. Replan trigger sanity\n- `_shouldReplan` (line 547) is fine, but make it also fire when the *current* step\n  is blocked (index not advancing after N turns), so the agent isn't stuck holding a\n  dead plan.\n\n### 6. Repeat-tracking - fix the gap, don't duplicate\n- `prompt-builder.js:258-260` only warns to move on for `examine` repeats:\n  `actionInfo.filter(a => a.verb === 'examine' && a.count >= 3)`. Lyrie's repeated\n  `use create flame on dry leaves` was *counted* but never warned about.\n- Extend the warning to **all known verbs** and make it **failure-aware** (count only\n  attempts whose result matches the failure signals from\n  `task-186-agent-validation-and-feedback`): \"You've tried '<action>' 3 times and it\n  failed - pick a different approach.\"\n- **No new counter system:** reuse the existing `actionCounts` map in\n  `prompt-builder.js:193` (or the plan-level `_planFailures` for step blocking).\n  One count per concern - action-attempts live in the investigation-notes builder,\n  plan-step failures live in `_planFailures`. Do not add a third parallel counter.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "design_principle_system_knowledge_vs_character_knowledge": "These are two different stores and must stay separate (they should agree, but never\nbe the same content):\n\n| | System state | Character memory |\n|---|---|---|\n| Owned by | `agent-engine.js`, `player.py` (facts) | MemoryStore / `player.memories[]` (narrative) |\n| Examples | `_plans`, `_planProgress`, `_planFailures`, `visited_areas`, `discovered_items`, action results, \"what haven't I done\" candidates | \"I conjured a small flame in the frozen hollow - it felt nice, but I was scared of setting the forest on fire.\" |\n| Form | exact, authoritative, machine-readable | subjective, first-person, emotional, LLM-synthesized |\n| Drives | loop-breaking, novelty mechanics, suggestions | what the model \"remembers\" and reasons from |\n\n**Current violation:** `agent-engine.js:327` stores raw system strings as character\nmemory - `storeMemory(charName, \\`${finalAction} → ${outputText}\\`, ...)`. The\ncharacter should never \"remember\" `use create flame on dry leaves → no purchase`.\nThat fact belongs in system state; the character gets a synthesized narrative memory\nfrom the observe/reaction phase (that's where `_generateRichObservation` /\n`buildResultReactionPrompt` come in).\n\n**Rules for this task:**\n1. All counters/plan state are **system state** - never written to `storeMemory` raw.\n2. When the system marks a step `[BLOCKED]`, the *memory* written must be a\n   character-POV thought, e.g. *\"I've tried to light the stove three times and it\n   won't catch. Maybe it needs real fuel.\"* - not `\"plan step 2 is not achievable\"`.\n3. If system facts and character memory diverge (e.g. emote claimed success after a\n   failure - see `task-186-agent-validation-and-feedback` emote gating), **system wins**\n   and corrects the memory.",
+      "files_modified": "- `static/js/agent-engine.js`\n- `static/js/agent/prompt-builder.js`\n- `static/js/agent/plan-manager.js`\n- `docs/virtualWorld/AI & Narration/` (agent planning doc if present)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-185-plan-loop-breaking.md"
+  }
+}

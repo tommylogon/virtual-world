@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-792",
+  "kind": "task",
+  "number": 792,
+  "title": "Feature Map as guide index; coverage as generated ledger",
+  "status": "done",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Split the Feature Map into a clean, themed **guide index** ('here be features - what you can do in viwo, for play and creation') and move the coverage machinery - status (wired/authored/planned), the % documented, the module join - into a generated report. Then retire the generated Features/ stubs (convert `feature_pages.py` from scaffold+gate to report-only, and settle whether that folder is dropped or hand-written).",
+    "why": "The map does two jobs at once - a newcomer's guide and a coverage denominator - and the ledger columns make the guide unreadable. The 77 generated `Features/*.md` stubs are the 'coverage lie' we agreed to kill: they look like docs and carry one link.",
+    "how": "Rewrite `Feature Map.md` as a themed index (one line per feature, link to the feature page). Keep status in the generated `docs/design/feature-index.md`. Add the missing **Crafting** row (it is wired, `crafting.*`, but has no row). Strip the scaffold/`--check`-page behaviour from `feature_pages.py` down to a report.",
+    "verify": "1. Read Feature Map.md as a newcomer.\n   - expected: a clean themed list of what you can do, no ledger columns.\n   - observed: TODO\n2. Run `python tools/feature_pages.py --check`.\n   - expected: no longer fails on a missing generated stub.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Feature Map reads as a guide index, not a ledger",
+        "done": false
+      },
+      {
+        "text": "coverage status lives only in the generated report",
+        "done": false
+      },
+      {
+        "text": "Crafting appears as a feature",
+        "done": false
+      },
+      {
+        "text": "feature_pages.py no longer scaffolds or gates stub pages",
+        "done": false
+      }
+    ],
+    "files": [
+      "docs/virtualWorld/Feature Map.md",
+      "docs/design/feature-index.md",
+      "tools/feature_pages.py",
+      "tools/feature_index.py"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/docs/task-792-feature-map-as-guide-index-coverage-as-generated-ledger.md"
+  }
+}

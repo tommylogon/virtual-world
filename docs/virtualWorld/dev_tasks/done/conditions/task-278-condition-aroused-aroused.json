@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-278",
+  "kind": "task",
+  "number": 278,
+  "title": "Condition: Aroused (`aroused`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Mid arousal band (Arousal 30–50). Notable Stimulation gain, measurable combat distraction, and auto-failed perception/concentration checks.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"aroused\": {\n    \"name\": \"Aroused\", \"description\": \"Clearly aroused. Hard to focus; a little careless.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [\"perception\", \"concentration\"],\n    \"auto_fail_saves\": [],\n    \"attack_mod\": -2, \"defense_mod\": -2, \"speed_mult\": 1.0,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {\"Stimulation\": 2},\n    \"ends_on\": [\"calm\", \"threshold_drop\"],\n    \"known\": True,\n    \"symptoms\": {1: \"Heat pools low in your belly and it's hard to think straight.\"},\n    \"stack\": \"refresh\",\n    \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: none hard.\n- **Saves/checks**: auto-fails `perception` and `concentration` checks (`auto_fail_checks`).\n- **Combat**: `attack_mod −2`, `defense_mod −2`.\n- **Movement**: full speed.\n- **Periodic**: `Stimulation +2` per tick.\n- **Lifecycle**: `stack: \"refresh\"`. Applied at Arousal 30–50; replaced at 50 (`highly_aroused`) or 90 (`frantic`); removed below 30.",
+      "perception": "`known: True` - the agent knows they're aroused.",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry.\n- `engine/tick_manager.py` - threshold checks in `tick_turn()`.\n- `engine/conditions.py` - `auto_fails_checks(player, \"perception\"/\"concentration\")`, combat mods, `process_tick` periodic.",
+      "testing_proposed": "- [ ] Arousal 30–50 → `aroused`; crossing 50 or 90 transitions; dropping below 30 removes.\n- [ ] Perception/concentration checks auto-fail.\n- [ ] `attack_mod`/`defense_mod −2` apply.\n- [ ] `Stimulation +2`/tick feedback.",
+      "open_questions_things_to_work_out": "- Do `perception`/`concentration` checks exist in the engine's check system, and will `auto_fail_checks` pick them up (same pathway as `sight`/`hearing`)?\n- Confirm the Stimulation→Arousal feed and handoff to `highly_aroused`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-278-arousal-state.md"
+  }
+}

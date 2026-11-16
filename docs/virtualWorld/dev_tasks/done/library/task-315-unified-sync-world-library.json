@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-315",
+  "kind": "task",
+  "number": 315,
+  "title": "Unified Sync World → Library",
+  "status": "done",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One **\"Sync World to Library\"** flow covering items, ways, areas, and characters:\n\n1. **List view** of every world entity, each with a status badge:\n   - `new` - no matching library entry → offer to add it\n   - `diff` - matching entry exists with different values → click to review\n   - `synced` - identical (skipped)\n2. **Click an entity** → DiffModal with all properties as sections, per-section\n   checkboxes. Actions: **Skip** / **Update** (merge checked sections into the\n   existing entry) / **Create New** (save as new/duplicate entry).\n3. **Nested items**: walk the real graph relations (`in`, `carrying`, `equipped`,\n   container contents) recursively. Each contained item is synced as its **own**\n   standalone library entry (so `box of cards` → `cards` exists in the library),\n   and the parent's `contents` in the library entry holds those item definitions.\n4. Both directions usable: world→library sync AND the library browser can\n   sync/save to a nested `cards` entry.",
+    "why": "TODO",
+    "how": "- **Restore the toolbar button** → opens the new unified sync view.\n- **`syncAllWorld()`** orchestrator + `worldSyncList` view (reuses DiffModal per entity).\n- **Shared world→library payload builder per type**, extracted/reused. Ways need\n  one (extract `way-view.js`'s builder). Items get the contents recursion.\n- **Backend**: `POST /api/library/sync/from-world` returning computed per-entity\n  diffs in one round-trip (fast list render); existing save endpoints do the writes.\n- **Key-order-stable comparison** (`canonicalize`) so identical data isn't flagged.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "background_root_cause": "The toolbar **\"📋 Sync to Library\"** button used to call `addAllWorldItemsToLibrary()` →\n`syncAllWorldItems()`. Commit `db090445` (2026-07-31) silently repurposed it to\n`openLibraryBrowser()` (just opens the library modal, no sync). Later work added\nper-tab sync buttons for items / characters / areas, but:\n\n- the toolbar button was never re-wired,\n- **ways have no world→library sync at all**,\n- each sync runs as a modal-per-entity sequence (no unified list),\n- nested items (a container's contents) are **not** synced as their own library\n  entries, and the library entry only gets a stale `contents` id list,\n- comparison used naive `JSON.stringify` (key-order sensitive) → false diffs.",
+      "done_core_2026_08_19": "- **Restored** the toolbar \"📋 Sync to Library\" button → opens the unified sync view\n  (no longer opens the library browser). \"📚 Library\" is the separate browser button.\n- **New `static/js/world-sync.js`** (`WorldSync`): collects every world entity\n  (items via graph nodes, ways via graph nodes, areas, characters) and renders a\n  list with status badges - `new` (no match), `differs` (content differs), `synced ✓`.\n  Match by `library_id` → slug → name.\n- Filter tabs (All / Items / Ways / Areas / Characters) with counts summary.\n- Clicking an entity routes to the existing single-entity DiffModal save flow:\n  item → `itemLib.saveWorldItem`, way → `wayView._saveToLibrary`,\n  area → `libraryBrowser.saveAreaByName`, character → new `saveCharacterByName`\n  (added, no-prompt, reuses `_saveCharacterWithDiffModal`). Those flows already\n  implement Skip (cancel) / Update (merge checked sections) / Create New (duplicate).\n- **Key-order bug fixed everywhere**: added shared `canonicalizeJSON` + `jsonDeepEqual`\n  to `shared/json-utils.js`, used by WorldSync status computation; `diff-modal.js`\n  was already fixed earlier in the session (its own `canonicalize`).\n- Modal HTML added to `index.html`; `world-sync.js` script included and registered\n  on `VW.worldSync` in `main.js`.",
+      "verified": "- Backend suite: **1018 passed, 1 skipped, 71 deselected**.\n- `jsonDeepEqual`: key-order-insensitive deep equality confirmed via node check.\n- Nested pipeline confirmed via node harness (box-of-cards): container embeds full\n  recursive `contents` definitions; contained items that are their own graph nodes\n  get a standalone sync entry AND are saved as their own library entries; cyclic\n  container references are blocked (depth + seen guards).\n- JS syntax clean on all edited files.\n- **Pending**: browser E2E of the sync modal (toolbar button → list → click → DiffModal).",
+      "nested_items_done_2026_08_19": "- **`ItemLibrary._buildWorldItemPayload(nodeId)`** (item-library.js): canonical\n  recursive builder - a container's `contents` now embeds the **full definitions**\n  (recursively) of contained items, not just `{id, name}` refs. Returns\n  `{payload, nested}` with depth + cycle guards (`seen` set, max depth 8).\n- **`ItemLibrary._saveNestedChildren(nestedIds)`**: after saving a container, each\n  contained item that is its own graph node is also saved as its own standalone\n  library entry (recursively). This is the box-of-cards case: `box_of_cards` embeds\n  playing cards inside it AND `playing_cards` exists as a reusable library entry.\n- Both `saveWorldItem` and `syncAllWorldItems` now route through\n  `_buildWorldItemPayload` + `_saveNestedChildren`.\n- **WorldSync** (`world-sync.js`) uses the shared builder, restores `library_id` for\n  matching, and registers contained graph-node items as standalone entries in the\n  list (`this._nested`), so the box AND its cards both appear with their own badges.\n- The library browser can now also sync/save to the nested `playing_cards` entry\n  (it's a standalone entry with full schema + DiffModal on save).",
+      "round_trip_endpoint_done_2026_08_19": "- **`GET /api/library/all`** (library_routes.py) returns one or more registries in a\n  single HTTP round-trip. Optional `?types=items,ways` narrows the set; default\n  returns every `REGISTRY_TYPES` member.\n- **`ApiClient.getLibraryTypes(types)`** (api.js) wraps it.\n- **WorldSync.open()** now makes **one** request for items/ways/areas/characters\n  instead of 4 parallel `getLibraryType` calls. Diff computation stays client-side\n  (reuses the shared builders + `jsonDeepEqual`), so there's no builder drift between\n  the server and the browser.\n- Test: `test_library_all_returns_multiple_registries_in_one_round_trip` (subset +\n  default). Suite: **8 passed** in `test_library_refresh.py`, **1018 passed** overall.",
+      "remaining_future": "- **Ways sync-all button** in the library Ways tab (WorldSync now covers ways from\n  the unified view, but the tab itself still has no sync button).",
+      "order": "1. Restore toolbar button → unified sync view (this task, in progress)\n2. Build unified list with status badges\n3. Wire per-entity DiffModal skip/update/create-new\n4. Backend diff endpoint\n5. Nested-item recursion (follow-up / separate task)",
+      "related": "- `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md` (Phase 2)\n- `docs/virtualWorld/dev_tasks/done/items/task-95-idempotent-sync-to-library.md`\n- `docs/virtualWorld/dev_tasks/done/items/task-127-library-diff-sync.md`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/library/task-315-unified-sync-world-to-library.md"
+  }
+}

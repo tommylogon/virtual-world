@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-507",
+  "kind": "task",
+  "number": 507,
+  "title": "Structured appearance & personality fields for characters (optional, LLM-fillable)",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-828",
+      "task-733"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add OPTIONAL structured appearance/personality fields to characters, alongside the existing prose. Two authoring modes must both work: (a) prose-only (personality + base_description), or (b) full structured fields. Curated, mechanic-backed set only: appearance {height_cm, weight_kg, build, hair{color,length,style}, eyes{color}, skin{tone}} and personality {likes, dislikes, fears, kinks, turn_offs}. Reference other entities by id (never display name). After fields are set, run 'generate description' ONCE to render prose (description already auto-generates from base_description + equipment, so structured fields feed it); structured is source of truth where present, prose is the narrative layer and stays the LLM voice. LLM-fill flow: send the model the JSON schema of all fields plus the character card/personality/description and have it populate them; the rest hand-authored. Mechanics to unlock: contact lenses set hair/eyes, haircut, weight gain/loss (Hunger/traits/items), kinks -> arousal spike, turn_offs -> disgust / negative arousal (maps to engine.emotion axes), likes/dislikes/fears -> targeting by gifts/threats/dialogue. Reuse graph-editor (WorldGraph) field names where they overlap so authored persons import cleanly. Fields optional + defaulted, so existing prose-only library characters and saves are unaffected (migration). Grow per-feature; do not dump the full editor catalog (media/mbti/alignment have no runtime mechanic).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "first_slice_2026_09_28_wt_c": "The task says \"grow per-feature; do not dump the full editor catalog\", so this\nis the first slice: the schema, the optionality, the render-prose-once flow, and\n**one** mechanic proven end to end. Everything else stays unbuilt on purpose.\n\n### Where it lives, and why\n\n**On the character graph node**, not on the `Player`. Adding a Player attribute\nmeans `player.py`, a hub file. The node is also where task-457 wants the\ncharacter definition to end up, so the two tasks point the same way - the\nstructured block lands on the node and 457's migration carries it for free\ninstead of it becoming a third place to look.\n\nConsequence, stated plainly: **the library/scenario import path will not carry\nthis until WT-0 wires it** (`routes/library_ops.py` is a hub). Today the feature\nis reachable through the API, not through scenario authoring.\n\n### Files\n\n- `engine/character_appearance.py` - **new**. Schema, validation, storage, prose,\n  the mechanic, and the LLM schema.\n- `routes/player_ops.py` + `routes/players.py` - four routes (below).\n- `tests/test_character_appearance.py` - **new**, 61 tests.\n\n| route | purpose |\n|---|---|\n| `GET /api/players/<n>/record` | the block, plus the schema, plus rendered prose |\n| `PUT /api/players/<n>/record` | validate and store, then render once |\n| `DELETE /api/players/<n>/record` | drop the block, restoring prose-only |\n| `GET|POST /api/players/<n>/affect` | affect deltas for a stimulus id |\n\n### Decisions worth naming\n\n- **References are ids, never display names**, enforced by a slug pattern.\n  A display name is a presentation choice: a rename silently orphans every\n  reference, and two characters may share a name. Ids resolve to names only at\n  the display edge, and an id that will not resolve **stays visible** rather than\n  disappearing - a kink that quietly vanishes is a bug report with no cause.\n- **Rejection beats silent dropping.** A bad entry fails the whole field with a\n  400 naming the offender. A character who mysteriously does not respond to a\n  kink is far harder to notice than a rejected request.\n- **Prose-only is the normal case, not a half-configured one.** No record means\n  `{}`, empty prose, no affect - a library character reads and renders exactly as\n  before. A test pins that.\n- **The route will not clobber a hand-written `base_description`.** The task\n  makes structured the source of truth, but replacing a paragraph someone wrote\n  by hand is not a decision a PUT endpoint gets to make silently.\n- **A structured *personality* renders no prose.** Personality is not appearance,\n  and a kink must not end up in a visual description.\n\n### The one mechanic\n\n`affect_for_stimulus(node, stimulus_id)` - a kink raises arousal, a turn-off\nraises disgust/anger/fear and pushes arousal down, mapping onto real\n`engine.emotion` axes. Returns `{}` for an unknown stimulus, a prose-only\ncharacter, or a character who is simply neutral, so a trigger can apply the\nresult unconditionally. A test drives the deltas through `emotion.spike` and\nasserts the character actually moves.\n\n**A sign bug worth recording.** The first cut had one `AFFECT_AXES` table and\napplied turn-offs with a negated sign. Negating turns \"disgust up, arousal down\"\ninto \"disgust down, arousal up\" - the exact opposite of a turn-off - because the\nsign of an axis is *semantic* here, not an arithmetic consequence of which list\nit came from. Now two tables, `KINK_AXES` and `TURN_OFF_AXES`, with no sign\nflipping. A test pins that a turn-off raises disgust and lowers arousal.\n\n`fears` shares its id vocabulary with task-552's `fear_tags`; `likes` /\n`dislikes` are present with their stated mechanic (gift and dialogue targeting)\nbut no consumer is wired yet, which is the honest state of a per-feature slice.\n\n### Handed to WT-0\n\n- **`routes/library_ops.py`** - import and export the structured block, so a\n  scenario can author it. Until then the feature is API-only.\n\n### Not built, deliberately\n\nThe rest of the task's list - contact lenses / haircut / weight-change as\nmechanics, the likes/dislikes targeting consumer, and a graph-editor field-name\nalignment - each needs its own slice. `media` / `mbti` / `alignment` are absent\nand a test asserts they stay absent.\n\n### Verify\n\n`python -m pytest tests/test_character_appearance.py -q` - 61 tests. Prose-only\nis the default and is pinned; validation rejects display names, unknown keys,\nimplausible numbers and non-object groups; storage sets/replaces/clears without\ntouching the Player; prose renders every appearance field (a field that cannot\nreach the prose has no purpose, and there is a test per field); the mechanic\nraises arousal for a kink and disgust for a turn-off and reaches the affect map;\nthe schema covers exactly the curated set; and the four routes round-trip."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-507-structured-appearance-personality-fields-for-characters-optional-llm-fillable.md"
+  }
+}

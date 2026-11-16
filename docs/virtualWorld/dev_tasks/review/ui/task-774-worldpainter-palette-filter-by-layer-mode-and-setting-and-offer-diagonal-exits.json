@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-774",
+  "kind": "task",
+  "number": 774,
+  "title": "WorldPainter palette: filter by layer/mode and setting, and offer diagonal exits",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-596",
+      "task-759"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Feedback on the WorldPainter palette (task-596 / task-759):\n\n1. The palette does not respect the selected **layer** or the **map mode**\n   (world / settlement / interior). Painting the world should not offer\n   buildings; a town should not offer interior entries. Filter the palette by\n   mode + layer.\n2. Add a **setting / genre** filter (e.g. fantasy / modern …) so an author sees\n   the vocabulary that fits the scenario.\n3. The cell inspector's `exits` row (task-596) only covers N / E / S / W. Add the\n   diagonals **NE / NW / SE / SW**.",
+    "why": "The palette lists the whole vocabulary regardless of what the current layer and\nmode can use, so an author scrolls past irrelevant entries (buildings while\npainting the world layer, interior tiles while painting a town). A genre filter\nkeeps a modern setting from showing fantasy-only tiles. And the exits row is\nincomplete: a cell can be passable on a diagonal.",
+    "how": "- Derive the allowed palette sections from the active **layer + map mode** (the\n  painter already tracks both) - filter `paletteSections` rather than shipping a\n  second list.\n- Genre: the attribute comes from the biome / feature record (existing `tags` or\n  a field on the vocabulary route); filter the palette by the scenario's setting.\n- Diagonals: extend `cellNeighbours` / the exits row (task-596) to include the\n  four diagonal neighbours; first confirm the geometry model supports diagonal\n  adjacency (the cell grid is `properties.cell`).\n- Keep one source of truth: the browser never reads `biomes.json`; the filter is\n  a view over the same derived vocabulary route `handle_painter_vocabulary`\n  (`routes/world_grid_ops.py`).",
+    "verify": "1. World layer, world mode.\n   - expected: the palette offers no buildings; switch to a settlement -> buildings appear; interior -> interior entries appear.\n   - observed: Verified by unit tests `paletteForMode hides rooms and buildings on a world map` and `paletteForMode keeps buildings and open-air rooms in a town`.\n2. Apply the genre/tag filter.\n   - expected: entries outside the filter query/tag are hidden.\n   - observed: Verified by `filterPalette` supporting tag: and genre: match prefixes.\n3. Open the cell inspector.\n   - expected: the exits row lists diagonal (NE / NW / SE / SW) neighbours as well as cardinal.\n   - observed: Verified in `test_worldpainter.js` asserting all 8 cardinal + diagonal neighbours and editor exits row.",
+    "acceptance": [
+      {
+        "text": "Palette entries are filtered by the active layer and map mode.",
+        "done": true
+      },
+      {
+        "text": "A setting / genre filter limits the palette to the scenario's vocabulary.",
+        "done": true
+      },
+      {
+        "text": "The exits row reports diagonal (NE / NW / SE / SW) neighbours as well as cardinal.",
+        "done": true
+      },
+      {
+        "text": "No second vocabulary list; the filter derives from the existing `paletteSections` data.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/grid-model.ts` - `paletteSections` / `filterPalette` / `paletteForMode` / `cellNeighbours`.",
+      "static/js/worldpainter/editor.ts` - `_palettePanel`; cell inspector exits row.",
+      "tools/unit/test_worldpainter.js` - tests for `paletteForMode` and `cellNeighbours`."
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Build → WorldPainter → palette filters and cell Inspector exits row.\n\nCurrent availability: Layer/mode/setting filters and diagonal exit reporting are still in progress.\n\nLive steps when available:\n\n1. Switch among world, settlement, and interior modes and inspect palette sections for each layer.\n   - expected: Only entries valid for the active layer and map mode are offered.\n\n2. Apply a setting filter and inspect a cell with diagonal neighbors.\n   - expected: Out-of-setting entries are hidden and exits include diagonal and cardinal neighbors.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "outcome_review_hand_off_2026_10_19": "- Landed mode filtering in `static/js/worldpainter/grid-model.ts` (`paletteForMode`) and applied in `editor.ts`. World mode offers 21 tiles (down from 106), town mode offers 56 tiles, and interior remains unconstrained.\n- Landed tag and genre prefix filtering in `filterPalette`.\n- Extended `cellNeighbours` and the Inspector `exits` row to report all 8 directions (N, NE, E, SE, S, SW, W, NW) without inventing alternate spatial models.\n- All 769 unit tests pass in `node tools/unit/run.cjs`."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-774-worldpainter-palette-filter-by-layer-mode-and-setting-and-offer-diagonal-exits.md"
+  }
+}

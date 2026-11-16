@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-31",
+  "kind": "bug",
+  "number": 31,
+  "title": "Save-load filename path traversal + two adjacent hardening fixes",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "pytest: request `/api/load-game/<encoded traversal>` → 400/404, no file access\noutside saves dir (tmp_path test); `/api/state` failure injection returns JSON\nnot 500 TypeError; boot without env var shows debugger off in log line.\n\n\ndev nnotes: no idea what this means? can a agent or player potentially dlevte server files?\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "1. **Path traversal** - `routes/saveload.py:129-152`: `/api/load-game/<filename>`\n   and its DELETE do `os.path.join(saves_dir, filename)` on the raw URL segment.\n   `..%2F..%2F` style input escapes the saves dir (Windows backslash encoding\n   too). Note `_save_game`/`_save_scenario` already sanitize correctly via\n   `routes/helpers.py:228,250` - reuse exactly that helper on the load/delete\n   side.\n\n   **RESOLVED (verified 2026-08-30):** `load_game`/`delete_save_game` now route\n   through `_safe_save_path` (saveload.py:42) which rejects `..`, non-`.json`,\n   and basename/path mismatches; the remaining `os.path.join` sites are fed by\n   `os.listdir` or `os.path.basename`, so no traversal is possible. Item closed.\n2. **Guaranteed-500 error path** - `routes/action_handlers.py:118-119`:\n   `handle_get_state` catches an exception inside the handler then falls off\n   the end returning None → Flask raises TypeError → 500 for a handled error.\n   Return a proper error JSON + status.\n\n   **RESOLVED (2026-08-30):** `handle_get_state` now returns\n   `jsonify({\"error\": str(e)}), 500` on failure.\n3. **debug=True by default** - `app.py:134`: Werkzeug debugger exposed means\n   arbitrary code execution for anything local that can reach :4444. Gate on\n   env var (`VW_DEBUG=1`) or config default False.\n\n   **RESOLVED (2026-08-30):** `app.run` now uses\n   `debug=os.environ.get('VW_DEBUG') == '1'`; debugger only enabled with\n   `VW_DEBUG=1`.\n\nMCP server trust model (localhost agent can delete saves etc.) is explicitly\nOUT of scope here - local-trust is a documented decision.",
+      "fix_sketch": "- saveload: resolve final path, assert `Path(path).resolve().is_relative_to(\n  Path(saves_dir).resolve())` before any file op (Python 3.9+: use os.path\n  commonpath or parent check).\n- get_state: return jsonify(error=...) status 500 after logging.\n- app.run: debug flag read once at startup."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-31-saveload-path-traversal-plus-error-path-hardening.md"
+  }
+}

@@ -30,7 +30,7 @@ Tags are currently `list[str]` (e.g. `["food", "fruit"]` or `["two_handed", "met
 ]
 ```
 
-This lets the system distinguish **category tags** (fantasy, magical, book, table — what the item *is* thematically) from **mechanical tags** (two_handed, equip_all_slots, toggleable — what the item *does* in the engine).
+This lets the system distinguish **category tags** (fantasy, magical, book, table - what the item *is* thematically) from **mechanical tags** (two_handed, equip_all_slots, toggleable - what the item *does* in the engine).
 
 ---
 
@@ -71,13 +71,13 @@ def has_tag(tags, name):
 
 ## Files to Touch
 
-### Backend — Engine checks (16+ locations)
+### Backend - Engine checks (16+ locations)
 
 All locations that currently do `"<tag>" in tags` or `"<tag>" not in tags`:
 
 | File | Lines | Tag(s) checked |
 |---|---|---|
-| `graph.py` | 101, 121, 141 | General `get_items_by_tag()`, `get_characters_by_tag()`, `get_tagged_items_in_area()` — currently does `tag in [t.lower() for t in node_tags]` |
+| `graph.py` | 101, 121, 141 | General `get_items_by_tag()`, `get_characters_by_tag()`, `get_tagged_items_in_area()` - currently does `tag in [t.lower() for t in node_tags]` |
 | `engine/toggleable_items.py` | 26-28 | `"toggleable"` |
 | `engine/equipment.py` | 108-113 | `"two_handed"` |
 | `engine/trigger_system.py` | 618 | `"food"`, `"drink"`, `"openable"` in `_get_available_actions()` |
@@ -85,15 +85,15 @@ All locations that currently do `"<tag>" in tags` or `"<tag>" not in tags`:
 | `engine/item_actions.py` | 230 | Tag display in inventory |
 | `engine/traits.py` | 372, 419 | Area tags, inventory tag aggregation |
 
-### Backend — Serialization
+### Backend - Serialization
 
 | File | What |
 |---|---|
-| `engine/serialization.py` | Both import paths (lines 297, 452) — ensure tags convert to dicts |
-| `routes/items_registry.py` | Line 72 — `lib_item.get('tags', [])` used to build props |
-| `routes/library_routes.py` | Lines 150, 213 — library item serialization |
+| `engine/serialization.py` | Both import paths (lines 297, 452) - ensure tags convert to dicts |
+| `routes/items_registry.py` | Line 72 - `lib_item.get('tags', [])` used to build props |
+| `routes/library_routes.py` | Lines 150, 213 - library item serialization |
 
-### Frontend — Tag display and editing
+### Frontend - Tag display and editing
 
 | File | What |
 |---|---|
@@ -104,7 +104,7 @@ All locations that currently do `"<tag>" in tags` or `"<tag>" not in tags`:
 
 ### Library JSON files
 
-All item definitions in `data/library/items/*.json` — ~30+ files. Tags must be updated to dict format:
+All item definitions in `data/library/items/*.json` - ~30+ files. Tags must be updated to dict format:
 
 ```diff
 - "tags": ["food", "fruit"]
@@ -117,7 +117,7 @@ All item definitions in `data/library/items/*.json` — ~30+ files. Tags must be
 
 1. **Add backward-compat shim** in deserialization (convert `list[str]` → `list[dict]` automatically)
 2. **Add `has_tag()` helper** and replace all engine checks
-3. **Update library JSON files** to use dict format (can be done incrementally — old format still works via shim)
+3. **Update library JSON files** to use dict format (can be done incrementally - old format still works via shim)
 4. **Update frontend** to read/write dict format
 5. **Remove shim** after all data is migrated
 

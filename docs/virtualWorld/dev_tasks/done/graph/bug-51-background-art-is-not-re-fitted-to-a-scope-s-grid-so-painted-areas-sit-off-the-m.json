@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "bug-51",
+  "kind": "bug",
+  "number": 51,
+  "title": "Background art is not re-fitted to a scope's grid, so painted areas sit off the map",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-523",
+      "task-524",
+      "task-528"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- `_reconcileReferenceArt()` re-applies `_applyReferenceLayout` for the layer\n  that *is* the loaded scope's reference, on every world refetch\n  (`_onWorldRefetched`) and on every scope switch (new `refreshForScope()`).\n- The scope switch needed its own hook: `setScopeFilter` loads a **subgraph** and\n  never emits `state:updated`, so the reconcile was silently skipped there - the\n  first version of this fix did nothing until that was found.\n- Cost control: a signature of `scopeId | pitch | offset` short-circuits the\n  request, so the frequent `state:updated` (after every paint stroke) costs\n  nothing. Only the *loaded* scope is touched - in the whole-world view there is\n  no single grid to fit to.\n- Hand placement is unaffected: a zone drag (task-523) moves the grid itself and\n  the scope offset is added on top of the derived rect, and a reference carrying\n  its own cell rect still wins over the whole-grid fit.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "symptom": "Hand-placed areas were put on painted cells in the WorldPainter (goblin camp,\n21 of them) and showed up in the graph in a tight cluster beside the background\nart instead of on top of it.",
+      "cause_the_areas_were_right_all_along": "Measured on the goblin camp (`deep_woods_2`, grid 20×10, map pitch 40px):\n\n| thing | value |\n|---|---|\n| `area_animal_pens` cell (11,7) | canvas (440, 280) |\n| `area_camp_entrance` cell (8,1) | canvas (320, 40) |\n| `area_chiefs_den` cell (5,2) | canvas (200, 80) |\n| camp's art rect | **(−150, 344) 6000 × 2011** |\n\nEvery placed area was exactly on the painted lattice, and the grid origin is\nalready cell-centred (`paintedGridRect` starts half a cell before cell 0, and the\npainter draws every marker at `cell*CELL + CELL/2`), so there was no half-cell\ndrift either. The **art** was the wrong thing: a 6000×2011 rect is 150×50 cells -\na leftover from an older, much larger grid, stored in **pixels**.\n\nA layer rect is saved in px, so it goes stale whenever the grid changes shape,\nthe map pitch changes, or a world whose maps were fitted to a different grid is\nopened. `_applyReferenceLayout` - the derived answer: the reference's own cell\nrect, or a fit to the whole grid - was only ever reached from\n`fitToPaintedGrid`, which is called from a pitch change and from a manual\n\"fit to painted grid\" menu action. **Nothing re-derived the art on load**, so the\ndrift was permanent until someone happened to press the button.",
+      "verified": "The camp's art became `x −20, y 46, 800 × 268` - the 20×10 grid's `800 × 400`\nrect with the image letterboxed inside it exactly as the painter does (the\npicture's aspect is 2.98, so it is 800 × 268 centred vertically). 20 of the 21\nplaced areas fall inside the image band; the rest sit in the empty rows above and\nbelow it, which is also what the painter shows.\n\n**Note for the author:** the browser caches `static/js`, so this fix needs a hard\nrefresh (Ctrl+F5) - a normal reload kept serving the old file."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "fixed": "2026-09-27"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-51-background-art-is-not-re-fitted-to-a-scope-s-grid-so-painted-areas-sit-off-the-map.md"
+  }
+}

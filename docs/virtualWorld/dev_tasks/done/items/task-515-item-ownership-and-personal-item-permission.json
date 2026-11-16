@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-515",
+  "kind": "task",
+  "number": 515,
+  "title": "Item ownership and personal-item permission",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-20",
+      "task-450"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let an item be personally owned so others cannot casually take or use it -\nGribba's treasured Good Knife \"nobody else may touch\" - while keeping an\nexplicit, contested steal path.",
+    "why": "- No owner/permission field exists on items. `steal_item`\n  (`engine/items/transfer_actions.py:96`) resolves any carried or worn item in\n  the target's inventory and contests Sleight of Hand vs Perception;\n  `give_item` (line 16) transfers unconditionally.\n- `locked`/`current_state` (task-20, task-97) is a key-lock, not ownership.\n  `bound` is a player state, not an item binding.\n- Motivating cases: Gribba's Good Knife; likely also Vekka's folded map,\n  Krikka's hidden cove finds and Zikka's trophy leather strips.\n\nTODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A node marked owned cannot be taken/given/used by a non-owner through the",
+        "done": false
+      },
+      {
+        "text": "normal verbs; tested with a clear refusal message.",
+        "done": false
+      },
+      {
+        "text": "The owner can always take/use/give it away.",
+        "done": false
+      },
+      {
+        "text": "`steal` still functions as the override and is tested.",
+        "done": false
+      },
+      {
+        "text": "Gribba's Good Knife is the worked example.",
+        "done": false
+      },
+      {
+        "text": "Implemented as a node property rather than a new edge type, or the new edge",
+        "done": false
+      },
+      {
+        "text": "is justified.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposal": "- An item-level ownership marker (`owner` = character id/name, or tag\n  `personal` plus `owner`), set at authoring or spawn.\n- A non-owner `take`/`give`/`use` refuses with a clear message; the owner is\n  always allowed. Decide whether an absent/incapacitated owner or a successful\n  Social/Intimidation check lifts the refusal.\n- Keep `steal_item` as the contested override (ownership may raise the\n  difficulty or add a \"you would be caught\" gate) rather than blocking it\n  outright.\n- Reveal the owner on examine only when known (task-339 stranger naming).",
+      "non_goals": "- A full property/faction law system.\n- Locked containers and keys (task-20)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-515-item-ownership-and-personal-item-permission.md"
+  }
+}

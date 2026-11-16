@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "task-477",
+  "kind": "task",
+  "number": 477,
+  "title": "Put combat and grapple on the central check system",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-472",
+      "task-475"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Migrate attack rolls and grapple onto engine/checks.resolve and checks.opposed so combat inherits ability modifiers, condition-driven advantage/disadvantage and the degree/critical ladder, replacing the bespoke rolling in engine/combat.py and engine/grapple.py; expose the d20 breakdown in the combat log.",
+    "why": "Combat and grapple are the last two places in the engine that roll their own\nd20, and that means they are the last two places where a condition can fail to\ndo what it says. A blinded attacker, a frightened grappler and an exhausted\nguard all resolve differently depending on which roller they meet, and the\nreader of the combat log is shown a bespoke breakdown that no other subsystem\nproduces. Putting both on `engine/checks.py` makes the ability modifier, the\ncondition-driven advantage, the auto-fail and the degree ladder a property of\nthe character rather than a property of which verb was used, and it means a\ncombat roll and a non-combat roll of the same kind are comparable - which is\nthe only way to tune a difficulty curve against real play.",
+    "how": "The central system is already in place and already used elsewhere; this is a\nmigration, not a design.\n\n- `engine/checks.py:resolve()` (:354) takes a player, a `kind` (a skill name,\n  an ability, or a label a condition can gate such as `\"attack\"`), a `dc`, and\n  advantage/disadvantage flags. It derives the ability and skill modifiers\n  itself, adds condition-driven advantage and auto-fail from the character's\n  conditions, rolls the d20 (`roll_d20`), and returns a `CheckResult` carrying\n  `faces`, `kept`, `mode`, `modifiers`, `total`, `success`, `tier` and a\n  human-readable `message`. The degree/critical ladder is `_degree()` (:342):\n  `crit_success` on a kept 20, `crit_fail` on a kept 1, otherwise\n  `strong_success` / `success` / `fail` against the DC.\n- `engine/checks.py:opposed()` (:429) rolls two checks and returns\n  `(attacker_result, defender_result, attacker_wins)`, with ties to the\n  defender. It is the shape theft-vs-Perception and social-vs-Insight already\n  use.\n- A worked example of a non-combat caller: `engine/traversal.py:230` calls\n  `checks.resolve(player, kind=skill, dc=dc, roll_fn=roll_fn, ...)` and uses\n  the result directly. `engine/crafting.py:591` and `engine/skills.py` use the\n  same path.\n\nMeasured 2026-10-20: `engine/combat.py` and `engine/grapple.py` contain **0**\ncalls to `checks.resolve` or `checks.opposed`. `engine/combat.py` imports only\n`ability_mod` from `engine.checks` (:334) and still rolls its own d20 through\n`self.skills.roll_dice(1, 20, attack_stat_mod + attack_mod)` (:344), keeping\nthe raw roll in `attack_raw` (:350) and comparing it against `defense_total`\n(:358). `engine/grapple.py` does the same in `_grappler_grab_check()`\n(:124-136) with `self.skills.roll_dice(1, 20, 0)`.\n\nThe remaining change:\n\n1. **Attack and defence.** Replace the `roll_dice` pair in `engine/combat.py`\n   with two `checks.resolve()` calls - one for the attacker with\n   `kind=\"attack\"` (or the relevant ability) and one for the defender with\n   `kind=\"defense\"` - and compare the two `CheckResult.total` values instead of\n   `attack_roll >= defense_total`. The attacker's STR and the defender's DEX\n   modifiers must come from the resolver, not from a local computation, so a\n   condition that alters a save or a skill is honoured.\n2. **Grapple.** Replace the grab check in `engine/grapple.py:_grappler_grab_check()`\n   with `checks.resolve(grappler, kind=\"Athletics\", dc=dc)` and the escape\n   check in `escape()` with the same. Where the grapple is a genuine contest\n   between two characters, use `checks.opposed()` so the degree of both sides\n   is visible.\n3. **Advantage must land exactly once.** `checks.resolve()` already ORs the\n   caller's advantage flag with the condition-derived one\n   (`advantage = bool(advantage or cond_adv)`, engine/checks.py:383) and\n   cancels the two against each other. The migration must therefore *not* also\n   apply condition advantage locally, or a blinded attacker would get\n   advantage twice.\n4. **The d20 breakdown in the log.** The bespoke breakdown already exists in\n   the combat log (`engine/combat.py:479-482` and the HIT/MISS variants at\n   :492, :544, :591, :603): \"Attack d20(...) + STR + mod = ... vs d20(...) +\n   DEX = ...: HIT\". The migration should keep that shape but source every\n   number from the `CheckResult`, so the log shows the same fields the central\n   resolver shows - d20, modifier, total, degree (`tier`) and the critical\n   branch - and adds the condition source for an advantaged roll, the way\n   `checks.resolve()` already does (`[advantage: <condition>]`).\n5. **One roller.** After the migration, `engine/combat.py` and\n   `engine/grapple.py` should import nothing from `engine.checks` except the\n   resolver functions, and should hold no local d20 logic.",
+    "verify": "1. Central resolver exists\n   - expected: `engine/checks.py` exposes `resolve()` and `opposed()`, and the\n     degree ladder distinguishes crit success, crit fail, strong success,\n     success and fail.\n   - observed: PASS 2026-10-20 by inspection - `engine/checks.py:354`\n     `resolve()`, `:429` `opposed()`, `:342` `_degree()` (kept 20 -> crit_success,\n     kept 1 -> crit_fail, `total - dc >= 5` -> strong_success).\n2. Combat migrated\n   - expected: an attack resolves through `checks.resolve()` and the log shows\n     d20, modifier, total, degree and any critical branch; the bespoke roller\n     is gone.\n   - observed: NOT run live. Measured 2026-10-20: `rg` for `checks.resolve`\n     and `checks.opposed` in `engine/combat.py` and `engine/grapple.py` returns\n     0 hits; `engine/combat.py:334` imports only `ability_mod` and `:344`\n     still calls `self.skills.roll_dice(1, 20, ...)`.\n3. Grapple migrated\n   - expected: the grab check and the escape check resolve through the central\n     resolver, and an opposed grapple shows both sides' rolls and modifiers.\n   - observed: NOT run live. Measured 2026-10-20: `engine/grapple.py:128`\n     still rolls `self.skills.roll_dice(1, 20, 0)` inside\n     `_grappler_grab_check()`; no call to `checks.resolve` or `checks.opposed`\n     exists in the file.\n4. Condition advantage lands once\n   - expected: a condition that grants advantage changes a combat roll once,\n     through the central path, and the log names the condition responsible.\n   - observed: NOT run live - this is the behaviour the migration has to\n     produce, and it does not exist yet. The mechanism it must use is present:\n     `engine/checks.py:381-384` reads condition advantage and auto-fail, and\n     `:396-402` puts the source condition in the message.\n5. Same inputs, same result class\n   - expected: the same character and the same check resolve to the same\n     result class inside and outside combat.\n   - observed: NOT run live. Measured 2026-10-20: the comparison cannot be made\n     because combat does not call the central resolver at all.",
+    "acceptance": [
+      {
+        "text": "`engine/checks.py` exposes one central resolver pair - `resolve()` (:354)",
+        "done": true
+      },
+      {
+        "text": "and `opposed()` (:429) - that computes ability modifiers,",
+        "done": false
+      },
+      {
+        "text": "condition-driven advantage/disadvantage, auto-fail, and the",
+        "done": false
+      },
+      {
+        "text": "degree/critical ladder.",
+        "done": false
+      },
+      {
+        "text": "`engine/combat.py` resolves its attack and defence rolls through",
+        "done": false
+      },
+      {
+        "text": "`checks.resolve()` instead of its own `skills.roll_dice(1, 20, ...)`.",
+        "done": false
+      },
+      {
+        "text": "`engine/grapple.py` resolves the grab check and the escape check through",
+        "done": false
+      },
+      {
+        "text": "`checks.resolve()` / `checks.opposed()` instead of its own d20.",
+        "done": false
+      },
+      {
+        "text": "A condition that grants advantage affects a combat or grapple roll",
+        "done": false
+      },
+      {
+        "text": "exactly once, through the central path, and the log names the condition",
+        "done": false
+      },
+      {
+        "text": "responsible.",
+        "done": false
+      },
+      {
+        "text": "The combat log shows the d20, the modifier, the total, the degree and the",
+        "done": false
+      },
+      {
+        "text": "critical branch for every attack and grapple.",
+        "done": false
+      },
+      {
+        "text": "Identical inputs resolve to the same result class whether they are made",
+        "done": false
+      },
+      {
+        "text": "inside or outside combat (the central resolver is the only roller).",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/checks.py` - `resolve()` (:354), `opposed()` (:429), `_degree()",
+      "(:342); the condition advantage and auto-fail block is at :381",
+      "engine/combat.py` - `ability_mod` import (:334), the bespoke d20 (:344),",
+      "the raw-roll bookkeeping (:350), the hit comparison (:358) and the combat",
+      "log entries (:479, :492, :544, :591, :603)",
+      "engine/grapple.py` - `_grappler_grab_check()` (:124), the grab roll (:128),",
+      "the escape check (:318)",
+      "engine/skills.py` - `roll_dice()` (:33), the thin delegate to",
+      "engine.checks",
+      "engine/traversal.py` - the worked example of a non-combat caller of",
+      "checks.resolve()` (:230)",
+      "engine/crafting.py` - the other worked example (:591)",
+      "engine/npc_behaviors.py` - `process_simple_npcs()` (:464), where a hostile",
+      "or a grappler's next turn is taken",
+      "tests/test_checks.py` - the central resolver's own regression, to extend",
+      "tests/test_combat.py` - combat regression, to extend",
+      "tests/test_grapple.py` - grapple regression, to extend"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: game view → choose **Attack** or **Grapple** against a valid target → inspect the resulting combat event/log detail and character conditions.\n\nCurrent availability: the card proposes moving combat and grapple from bespoke rolls to `checks.resolve`/`checks.opposed`, including ability modifiers, advantage/disadvantage, degree/critical results, and a visible d20 breakdown. This unified check presentation is not claimed as implemented.\n\nLive steps when available:\n1. In a scratch combat, attack a target with a known ability modifier and record the event log.\n   - expected: the log shows the d20, modifier, final result, degree, and any critical branch used by the central check resolver.\n2. Add a condition that grants advantage, then repeat the attack with the same seed and character state.\n   - expected: the condition contributes through the central check path and the log identifies the advantage result; the bespoke combat roller is not also applied.\n3. Grapple the same target with known opposed modifiers, then repeat with a disadvantage condition.\n   - expected: attacker and defender rolls/modifiers and opposed degree are visible; disadvantage affects the appropriate side once.\n4. Compare attack/grapple outcomes with the same central check configuration outside combat.\n   - expected: identical inputs resolve through the same degree/critical ladder and produce the same result class.",
+      "reconnaissance_2026_10_20_still_valid": "Re-checked the cited code on 2026-10-20. Newer tasks 472 (central dice/checks) and 479 (surface skill/DC/dice breakdown) landed, but combat and grapple have not been migrated:\n\n- `engine/combat.py` and `engine/grapple.py` contain 0 calls to `checks.resolve` or `checks.opposed`.\n- `engine/combat.py` imports only `ability_mod` from `engine.checks` (line 334) and still rolls its own d20 (`attack_raw`, `defense_raw`, `random.randint` for stun).\n- `engine/checks.py` exposes `resolve()` (line 354) and `opposed()` (line 429) which combat does not call.\n\nVerdict: card accurate as written. Kept in todo."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Combat System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-477-put-combat-and-grapple-on-the-central-check-system.md"
+  }
+}

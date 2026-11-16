@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-421",
+  "kind": "task",
+  "number": 421,
+  "title": "Light propagation barrier parity with sound",
+  "status": "done",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-20",
+  "updated": "2026-09-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The world now has two propagation systems with **different barrier semantics**:\n\n- **Sound** (`engine/sound.py`) respects way state: open 0.5 / see-through 0.75\n  / closed 1 / locked·blocked 1 / hidden 2.\n- **Light** (`engine/lighting.py`) does not. `_neighbour_light` /\n  `_best_spill` / `recompute_area_lights` spill light to neighbour areas with no\n  check on the connecting way.\n\nSo a lit room bleeds a full light contribution through a **closed, locked**\ndoor. That is physically wrong, it makes the light level of a corridor\ndepend on rooms it cannot actually see into, and it will quietly break any\nfuture stealth or darkness mechanic that trusts area light level.",
+    "how": "1. Apply the same barrier table to light spill as to sound. A locked door should\n   produce approximately zero spill; a closed door a small fraction; an\n   open or see-through way most of it.\n2. Put the barrier table in **one** place and have both modules import it, so the\n   two systems cannot drift apart again. If sound and light genuinely need\n   different values, that is fine - but it must be two named tables side by\n   side, not one hard-coded and one absent.\n3. Keep the existing caching behaviour: `recompute_area_lights()` stamps on the\n   graph revision. Barrier state (door open/closed) must therefore be part of the\n   revision or the cache key, or the stamp will be stale when a door moves.\n4. Preserve the \"effective light = highest single source, not the sum\" rule from\n   the lighting work. This task changes *spill*, not the aggregation rule.",
+    "verify": "- Unit: barrier gating for open / see-through / closed / locked.\n- Unit: cache invalidation on a door state change.\n- Regression: existing lighting tests still pass with the aggregation rule\n  unchanged.",
+    "acceptance": [
+      {
+        "text": "Light spill through a locked/closed way is gated by the same barrier values as",
+        "done": false
+      },
+      {
+        "text": "sound, with a fixture test: two areas joined by one door, door open vs closed",
+        "done": false
+      },
+      {
+        "text": "vs locked → three distinct spill results.",
+        "done": false
+      },
+      {
+        "text": "A single shared barrier table exists; changing a value changes both systems.",
+        "done": false
+      },
+      {
+        "text": "Light recomputation still happens on the revision stamp, and opening/closing a",
+        "done": false
+      },
+      {
+        "text": "door invalidates it.",
+        "done": false
+      },
+      {
+        "text": "No change to the per-area \"highest single active source\" aggregation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "non_goals": "- Line-of-sight / shadow casting within an area (that would be a sight channel,\n  task-418, and is not needed now).\n- Changing how light is authored on items or areas.\n- Fixing bug-30 (sound path selection) - separate concern.",
+      "progress_2026_09_28_in_review": "### The task's premise was stale, and the real defect was narrower\n\n`lighting.py` did **not** spill light through a locked or closed door. Both\n`_best_spill` and `recompute_area_lights` had a binary gate -\n`current_state == \"open\" or see_through` - so a solid door already blocked spill\ncompletely. Measured before changing anything, in a two-room fixture with one\ndoor and a blinding neighbour:\n\n| state | sound barrier | ambient light in the dark room |\n|---|---|---|\n| open | 0.5 | 40 |\n| closed | 1.0 | 10 (no spill) |\n| locked | 1.0 | 10 (no spill) |\n| blocked | 1.0 | 10 (no spill) |\n| closed + `see_through` | 0.75 | **40 - as much as an open door** |\n\nSo the claim that \"a lit room bleeds a full light contribution through a closed,\nlocked door\" is false on `master`. What was actually wrong, and worse in practice,\nis three other things:\n\n1. **A see-through way leaked exactly as much as an open one.** A window is not a\n   missing door, and sound rated a window *worse* than an open doorway (0.75 vs\n   0.5) - so the two systems disagreed about the one thing a window is.\n2. **A closed door leaked nothing at all.** A shut door has a frame. Zero is a\n   discontinuity, not a model, and it made a lit corridor and a sealed one\n   differ by no amount at all.\n3. **The light cache never noticed a door move.** `recompute_area_lights` stamped\n   `graph.get_revision()`, but mutating a way's `current_state` in place does not\n   bump the revision - and `engine/effect_handlers/ways.py:handle_set_way_view`\n   does exactly that (`way_node.properties.update(changes)` then\n   `self.graph.nodes[way_id] = way_node`, a plain dict assignment). So sealing a\n   door left every area reading the light it had before it was sealed. Verified:\n   revision stayed at 7 across the mutation and the cached reading did not move.\n\n### What landed\n\n**`engine/barriers.py`** - one module holding one shared **state ladder**\n(`open → see_through → closed → locked → blocked → hidden`) and two named tables\nover it, which is what the task permits: \"two named tables side by side, not one\nhard-coded and one absent.\"\n\nThe numbers are **not** shared, and forcing them to be would be wrong. Sound's\nbarrier is a *cost* (summed along the cheapest route, higher is worse); light's\nis a *transmission* (the fraction of a lit neighbour that reaches you, higher is\nbetter). So:\n\n| state | sound cost | light transmission |\n|---|---|---|\n| open | 0.5 | 1.0 |\n| see_through | 0.75 | 0.75 |\n| closed | 1.0 | 0.25 |\n| locked | 1.0 | 0.1 |\n| blocked | 1.0 | 0.0 |\n| hidden | 2.0 | 0.0 |\n\nWhat cannot drift anymore is the part that had: which states exist, and the\nresolution order. A test asserts both tables are non-increasing along the shared\nladder, so a state added to one and forgotten in the other fails.\n\n**`engine/sound.py`** now delegates to the shared table. **Its behaviour is\nunchanged, byte for byte** - including the slightly surprising part of the\nexisting order that the existing tests pin: a *declared* solid state gates the\nper-door `sound_barrier` override, so `{\"closed\", see_through: True,\nsound_barrier: 2}` is 2.0, while `{\"closed\", see_through: True}` is 0.75. I got\nthis wrong on the first attempt (I made the solid state win over `see_through`,\nwhich changed three existing sound tests) and reverted it rather than edit sound\ntests to match a change this task did not authorise.\n\n**`engine/lighting.py`** replaces the binary gate with the shared transmission,\nin both `_best_spill` and `recompute_area_lights`, and the per-area \"highest\nsingle source\" aggregation (task-407) is untouched - pinned by its own test.\n\n**The cache.** `get_ambient_light` now validates the stamp against\n`(graph revision, barrier signature)`, where the signature is a sorted\nfingerprint of every way's `current_state`, `see_through` and the two per-door\noverrides. It is sorted so a differently-ordered node dict still hits the cache,\nand it is compared, never parsed. This closes the in-place-mutation gap without\neither an O(V) walk on every read or a change to `graph.py`.\n\n**Per-door `light_barrier`** is a *transmission*, matching the word: 0.1 means \"a\ntenth of the light gets through\". Copying the sound number's meaning would have\nmade the override read backwards.\n\n**Engine Config** gains `light.way_open` / `_see_through` / `_closed` / `_locked` /\n`_blocked` / `_hidden` in `DEFAULTS` and the schema, alongside the existing\n`sound.way_*` set.\n\n### New tests - `tests/test_light_barriers.py` (27)\n\nOpen/closed/locked producing **three distinct spill results** (measured on the\nspill contribution, since a pitch-black room floors the ambient reading and a\nlocked door legitimately passes almost nothing); the same three doors moving the\nroom's reading; a closed door leaking a little; blocked and hidden admitting\nnothing; a window no longer worth as much as a missing door; `see_through`\noutranking state in **both** systems; a shut window rated as a window unless the\nauthor gave it mass; sound reading the shared table and keeping its numbers; a\nconfigured value moving its own system and not the other; both tables on one\nladder; the per-door override direction; an unrecognised state being passable;\nclosing and re-opening a door invalidating the cache; the signature being stable\nand order-independent; the cache staying warm on untouched doors; the\nhighest-single-source rule; and the module importing with no graph loaded.\n\n### A pre-existing order-dependent suite bug, found and fixed\n\nThe new tests passed alone and failed in a full run, which is never a sign about\nthe new tests. `tests/test_engine_config.py::test_sound_and_light_reflect_override`\nsaves `sound.way_open = 0.9`, and its `isolated_config` fixture restored the\nconfig *path* but not the in-memory `_values` - so every later test in the\nsession, in any file, read 0.9. `engine/sound.py` and `engine/lighting.py` tests\nwere order-dependent on `master` and nobody had noticed because they pass in\nisolation. Fixed by snapshotting and restoring `_values` in the fixture. The new\ntest file also pins its own defaults, so it does not depend on that fix holding.\n\n### Still open\n\n- A per-way state change in any writer other than\n  `engine/effect_handlers/ways.py` is caught by the barrier signature, so no\n  further `graph.py` change is needed. If someone later adds a cheaper cache, the\n  signature is the thing that must be kept."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "relates": "`engine/lighting.py`, `engine/sound.py`, task-418 (awareness"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-421-light-barrier-parity-with-sound.md"
+  }
+}

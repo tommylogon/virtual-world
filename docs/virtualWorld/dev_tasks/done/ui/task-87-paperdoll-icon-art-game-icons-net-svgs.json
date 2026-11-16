@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-87",
+  "kind": "task",
+  "number": 87,
+  "title": "Paperdoll Icon Art - game-icons.net SVGs",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-21",
+  "updated": "2026-07-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The paperdoll in the Equipment tab currently uses text labels only. Add SVG icon art from game-icons.net (CC0/CC BY 3.0) to make each slot visually distinctive with fantasy/RPG-themed icons.",
+    "why": "Paperdoll has 13 slots in CSS grid human silhouette, each showing a text label (\"Head\", \"Neck\", \"Torso\", etc.) and the equipped item name. No visual icons.",
+    "how": "1. Create `static/icons/` directory\n2. Save each SVG file with `fill=\"currentColor\"`\n3. Update inspector.js paperdoll rendering to reference SVGs inline or via `<img>` tags\n4. CSS: slot icon color from `var(--text-dim)` when empty, `var(--accent)` when filled",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/icons/` - SVG icon files",
+      "static/js/inspector/paperdoll-view.js` - slot-to-icon mapping",
+      "virtual_world/readme.md` - attribution section"
+    ],
+    "custom": {
+      "icons_selected": "| Slot | Icon | Author | License |\n|------|------|--------|---------|\n| Head | visored-helm | Lorc | CC BY 3.0 |\n| Neck | gem-necklace | Lorc | CC BY 3.0 |\n| Arms | forearm | Delapouite | CC BY 3.0 |\n| Torso | breastplate | Lorc | CC BY 3.0 |\n| Hands | gauntlet | Delapouite | CC BY 3.0 |\n| Legs | leg-armor | Delapouite | CC BY 3.0 |\n| Feet | boots | Lorc | CC BY 3.0 |\n| Back | backpack | Delapouite | CC BY 3.0 |\n| Waist | belt-armor | Delapouite | CC BY 3.0 |\n| Hand Left | mailed-fist | Lorc | CC BY 3.0 |\n| Hand Right | mailed-fist | Lorc | CC BY 3.0 |\n| Accessory | diamond-ring | Delapouite | CC BY 3.0 |\n\nAll SVGs saved to `static/icons/` with `fill=\"currentColor\"` for theme compatibility.",
+      "attribution": "All icons sourced from [game-icons.net](https://game-icons.net) under CC BY 3.0.\n- Lorc: https://lorcblog.blogspot.com\n- Delapouite: https://delapouite.com & contributors",
+      "icon_files": "SVGs saved to `static/icons/` with `fill=\"currentColor\"` for dark theme compatibility.\nEach icon maps to a paperdoll slot in `static/js/inspector/paperdoll-view.js`.",
+      "attribution_in_readme": "The project readme now includes the following section:\n```\n\n## Icons\n\nIcons used in this project are from [game-icons.net](https://game-icons.net/).\nAuthors: Lorc, Delapouite & contributors\nLicense: CC BY 3.0\n```",
+      "status_update_july_2026": "- `static/icons/` directory now contains the game-icons.net archive with license and icon files\n- SVGs are available in the archive - need to extract individual SVG files to `static/icons/` with `fill=\"currentColor\"` modification for dark theme\n- Paperdoll view at `static/js/inspector/paperdoll-view.js` - still needs to be updated to reference SVGs instead of text labels\n- Readme attribution section added and pushed\n\n**TODO**: Extract SVGs from archive, modify `fill` attributes, wire into paperdoll-view.js"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Equipment & Paperdoll]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-87-paperdoll_icon_art.md"
+  }
+}

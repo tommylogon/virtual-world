@@ -22,7 +22,7 @@ Move the GIMP goal editor out of the character editor's Bio tab and into the Min
 
 ## Why
 
-task-808 authored the goal editor inside the character editor; the Mind panel is becoming the single mind surface (task-714 display; task-729 / task-787 relocation). Goal display already lives in the panel (task-714); only its editing half is still split, so today a designer reads goals in the Mind panel and writes them in the Bio tab. One mind, one editor — same rule task-756 applies to emotions and task-729 to relationships.
+task-808 authored the goal editor inside the character editor; the Mind panel is becoming the single mind surface (task-714 display; task-729 / task-787 relocation). Goal display already lives in the panel (task-714); only its editing half is still split, so today a designer reads goals in the Mind panel and writes them in the Bio tab. One mind, one editor - same rule task-756 applies to emotions and task-729 to relationships.
 
 ## How
 

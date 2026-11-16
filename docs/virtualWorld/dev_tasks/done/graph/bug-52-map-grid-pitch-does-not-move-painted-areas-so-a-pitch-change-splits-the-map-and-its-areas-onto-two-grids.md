@@ -15,7 +15,7 @@ priority: high
 
 The author raised **Map grid** from 40 to 260. The background image grew to the
 new pitch; the areas stayed where they were, so the map and its areas ended up on
-two different grids — exactly what `graph-background.js` warns about in its
+two different grids - exactly what `graph-background.js` warns about in its
 `_mapUnitsPerCell` comment.
 
 ## Cause
@@ -31,7 +31,7 @@ That flag is **not** the author's doing: `tools/build_scenario.py:81`,
 `setdefault("central_gravity_enabled", False)` on every area they emit. All 21
 areas of the goblin camp carried it, so the lattice placed *none* of them and they
 kept whatever pitch they were last saved at (40px), while
-`_mapUnitsPerCell()` — which reads the current pitch — re-fitted the art to 260.
+`_mapUnitsPerCell()` - which reads the current pitch - re-fitted the art to 260.
 
 Measured on the goblin camp before the fix: pitch 260, art `5200 × 1743`
 (= 20 × 260, letterboxed), areas still at 40px/cell.
@@ -43,7 +43,7 @@ Measured on the goblin camp before the fix: pitch 260, art `5200 × 1743`
   the position, and the art is drawn to those cells. The exemption still stands
   for a node with no cell, so a hand-positioned way/item is untouched.
 - `hasPaintedCoords(properties)` is the new predicate, and **`cell` is the
-  discriminator, not the numbers** — a node dragged in the graph also has numeric
+  discriminator, not the numbers** - a node dragged in the graph also has numeric
   `x`/`y` (canvas units), and treating it as painted would scale it a second time.
   The first version of the fix checked the numbers and the regression test caught
   exactly that.
@@ -52,7 +52,7 @@ Measured on the goblin camp before the fix: pitch 260, art `5200 × 1743`
   that the Map layout multiplies by the pitch again. A "save layout to world" in
   Map mode would therefore have drifted the map further on every save. Painted
   nodes are now skipped there, and the log says how many were left on their cells.
-  (Checked the saved world: no drift had happened yet — all 21 areas were exactly
+  (Checked the saved world: no drift had happened yet - all 21 areas were exactly
   `cell * 40`.)
 
 ## Steps to verify
@@ -61,21 +61,21 @@ Measured on the goblin camp before the fix: pitch 260, art `5200 × 1743`
   `cell * pitch` with physics off, while a frozen area *without* a cell is left
   alone; plus the `hasPaintedCoords` discrimination cases.
 - `tools/unit/run.cjs`: the `vm` sandbox had no `setTimeout`, which
-  `_applyGridLayout` needs for its redraw — added synchronous stubs (and
+  `_applyGridLayout` needs for its redraw - added synchronous stubs (and
   `clearTimeout`/`setInterval`/`clearInterval`) rather than making every test
   care.
 
 ## Verified
 
 Live against the author's server, goblin camp loaded, Map layout, pitch 260:
-`nodePitch {x: 260, y: 260}` and `artWidth 5200` — the areas and the art on one
+`nodePitch {x: 260, y: 260}` and `artWidth 5200` - the areas and the art on one
 grid, matching each other.
 
 ## Also answered here
 
 **The map pitch is global, not per scope.** One `config.graphMapSpacing` for the
 whole world, read by both `GraphLayoutEngine.mapSpacing()` (the lattice) and
-`_mapUnitsPerCell()` (the art). It is also **Map-layout only** — in Graph layout
+`_mapUnitsPerCell()` (the art). It is also **Map-layout only** - in Graph layout
 the areas sit on their saved positions and the toolbar says so, so raising the
 pitch there does nothing by design.
 

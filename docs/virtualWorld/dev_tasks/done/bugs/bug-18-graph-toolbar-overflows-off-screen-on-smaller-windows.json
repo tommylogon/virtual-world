@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-18",
+  "kind": "bug",
+  "number": 18,
+  "title": "Graph Toolbar Overflows Off-Screen on Smaller Windows",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "repro_live_markup": "The toolbar is one `.editor-toolbar` with several `.toolbar-group` rows. The\nmiddle group is very wide - 11 controls in a row:\n\n```html\n<div class=\"toolbar-group\">\n    <button id=\"btn-physics\">â¸ Physics</button>\n    <button id=\"btn-cardinal\">ðŸ-ºï¸ Map</button>\n    <button>âŠž Fit</button>\n    <input id=\"graph-search\" class=\"graph-search\" type=\"text\" placeholder=\"ðŸ” Search nodes...\">\n    <button>ðŸ“– Legend</button>\n    <button>ðŸ·ï¸ Tags</button>\n    <button id=\"btn-edge-labels\">ðŸ· Labels</button>\n    <button id=\"btn-triggers\">ðŸ”© Triggers</button>\n    <button id=\"btn-items\">ðŸ“¦ Items</button>\n    <button class=\"view-toggle\">ðŸ”® Graph</button>\n    <div class=\"toolbar-dropdown\"><button>ðŸ“Š Overlays â–¾</button>...</div>\n    <button>ðŸ–¨ï¸ Print</button>\n</div>\n```",
+      "root_cause": "`static/css/style.css`\n\n```css\n.editor-toolbar {\n    display: flex; gap: 6px; flex-shrink: 0;\n    flex-wrap: wrap;            /* already present */\n}\n.toolbar-group { display: flex; align-items: center; gap: 4px; }\n.toolbar-btn   { white-space: nowrap; }\n```\n\n`flex-wrap: wrap` only wraps *whole groups*. The groups themselves are `flex`\nrows whose buttons are `white-space: nowrap` and cannot shrink, so any single\n`toolbar-group` wider than the screen overflows past the right edge - the big\nmiddle group is clearly it.",
+      "fix_options": "1. **Scroll strip (simplest):** allow inner groups to scroll when too wide -\n   `overflow-x: auto` on `.editor-toolbar` (buttons stay reachable, one row).\n2. **Wrap within groups:** make `.toolbar-group` also `flex-wrap: wrap` so the\n   buttons inside a wide group flow to multiple lines (uses vertical space but\n   everything is visible).\n3. **Shrinkable search input:** give `.graph-search` a `min-width: 0` +\n   `flex: 0 1 auto` so it can shrink instead of forcing the row wide.\n\nVerify the toggle buttons (physics, cardinal, items, triggers, legend, labels,\noverlays) remain usable at common small widths (~1024px, ~1280px) either way."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Done - confirmed by Tommy 2026-08-30.",
+    "area_note": "UI - graph editor toolbar",
+    "legacy_area": "UI - graph editor toolbar",
+    "inline_meta": {
+      "observed": "`toolbar for graph overflows out of screen on smaller screens`"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-18-graph-toolbar-overflow-small-screen.md"
+  }
+}

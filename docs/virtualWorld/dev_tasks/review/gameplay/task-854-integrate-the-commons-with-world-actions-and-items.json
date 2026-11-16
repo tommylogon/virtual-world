@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "id": "task-854",
+  "kind": "task",
+  "number": 854,
+  "title": "Integrate The Commons with world actions and items",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-16",
+  "updated": "2026-10-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-824"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-824",
+      "task-825",
+      "task-299"
+    ],
+    "parent": "task-824",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Connect The Commons to the standard world-turn agent path and authored\nitem/world interactions. This is follow-up work split from task-824; do not\nreopen or expand task-824 to include this integration.",
+    "why": "The Commons currently runs communication decisions through its own\n`CommonsAgent` loop. Integrating it with world turns and item-based\ncommunication makes communication part of the shared simulation.\nThe integration preserves The Commons' channel privacy and explicit-read\nrules, and does not create another Player identity, conversation store, or\nmemory system.",
+    "how": "- Wire `text` and `message` actions in `routes/action_handlers.py` and\n  `engine/action_tiers.py` (`FREE` tier).\n- Require a physical communication device (`phone`, `device`, `communication` tag\n  or carried item) before sending.\n- Route direct texts to Commons direct-message channels (`commons.create_dm`),\n  and `#channel` messages to named group channels (`commons.create_group`).\n- Post to `commons.messages` preserving order, sender attribution, and tick stamp.\n- Record episodic memories on both the sender and recipient (`text`, `commons`,\n  and `rel:<contact>` tags) so future LLM decisions and turn prompts observe the\n  conversation.",
+    "verify": "1. Trace standard agent action path and verify action tiers mirror:\n   - expected: `text` and `message` belong to `FREE` tier, and `tools/action_tiers_index.py --check` passes.\n   - observed: `tools/action_tiers_index.py --check` passes.\n2. Run targeted pytest suite for text action and device requirement:\n   - expected: 3 passed, 0 failed.\n   - observed: 3 passed, 0 failed in `tests/test_action_text_commons.py`.\n3. Run live browser test or unit tests for composer verbs:\n   - expected: `text` and `message` accepted in HTC `VERBS`.\n   - observed: `node tools/unit/run.cjs test_human_turn_composer` 5 passed, 0 failed.",
+    "acceptance": [
+      {
+        "text": "The standard agent/world-turn integration is wired through a shared,",
+        "done": true
+      },
+      {
+        "text": "concurrency-safe decision/action seam rather than a parallel character mind.",
+        "done": false
+      },
+      {
+        "text": "Authored item/world interactions reach The Commons through existing",
+        "done": true
+      },
+      {
+        "text": "action, trigger, and communication systems where appropriate; no duplicate",
+        "done": false
+      },
+      {
+        "text": "delivery or conversation store is introduced.",
+        "done": false
+      },
+      {
+        "text": "Channel membership, per-character explicit reads, and Player memory",
+        "done": true
+      },
+      {
+        "text": "behavior remain intact.",
+        "done": false
+      },
+      {
+        "text": "An authored scenario or item exercises the implemented integration.",
+        "done": true
+      },
+      {
+        "text": "Targeted mechanism tests and live browser verification demonstrate the",
+        "done": true
+      },
+      {
+        "text": "integrated path.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_tiers.py",
+      "routes/action_handlers.py",
+      "static/js/agent/action-tiers.ts",
+      "static/js/agent/human-turn-composer.ts",
+      "tests/test_action_text_commons.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: The Commons page plus the standard turn composer (`text` verb in action field) and event stream.\n\nLive steps:\n1. Equip or hold a smartphone item in a scenario (e.g. `item_smartphone_jake` in Millwood).\n2. Enter command `text Kayla Meet me at the lockers` or `text #hellmouth who is bringing snacks?`.\n3. Check that the event stream confirms delivery and Commons transcripts reflect the message.\n4. Verify both characters' memories include the text exchange."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "parent": "task-824"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-854-integrate-the-commons-with-world-actions-and-items.md"
+  }
+}

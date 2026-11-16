@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "id": "task-580",
+  "kind": "task",
+  "number": 580,
+  "title": "Unmade-scope Generate affordance and generation preview",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "task-398"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expose task-398's deterministic generation through the UI: a Generate action on an unmade scope card that carries a recipe, and a preview of the patch the recipe would apply (areas, items, and any missing tag candidates from the report) before anything is written.",
+    "why": "The generation engine is done; the surface is not. task-398 landed\n`apartment.v1`, `engine/generation_recipes.py` holds the recipe and\n`engine/library_nodes.py` the public materialisation service, and\n`tests/test_apartment_recipe.py` covers determinism, no-duplicate re-runs,\nsave/reload and manual-edit survival. What is missing is the last hop - the\nauthor clicks something and sees what will change before it changes.\n\nThat hop matters more than a button. Generation writes a set of areas, items\nand ways into the world graph, and a hand edit made afterwards has to win. The\npreview is the mechanism that makes that guarantee legible to an author: they\nsee the exact patch, the seed and the recipe version, then confirm. Without\nthe preview, \"Generate\" is a button that mutates the world with no stated\ncontract, and the manual-edit-survival guarantee becomes something the author\nhas to trust rather than something they can check.\n\nThe reason it is still open is a design collision, not missing work. The\nsurface this card originally planned for has been ruled out by newer work (see\nthe plan position below), so the open question is *where* the affordance\nlives, not *what* it does.",
+    "how": "The backend work is specified by the 2026-10-02 note above and does not need\nre-deciding. Three things have to land, and the first is a choice, not a\nconstruction:\n\n1. **Settle the surface.** The scope card is `static/js/graph/scope-tree.ts`,\n   and task-592 (newer, still open) has deliberately ruled a `Generate` button\n   out there - see the plan position below. The alternative home is the\n   per-scope `⚙ Generate` in the WorldPainter\n   (`static/js/worldpainter/editor.ts`), which is where scope building already\n   lives. Recommend the WorldPainter: it is the surface the rule already points\n   at, and it avoids re-adding a button another card deliberately removed.\n2. **Add a preview endpoint** on `routes/world_grid_ops.py` that builds the\n   patch from `engine/library_nodes.py` **without writing**, returning areas,\n   items, ways, seed and recipe version plus the report's missing tag\n   candidates. A dry-run path through the same materialisation service, not a\n   second implementation of it, so the preview cannot drift from what Apply\n   does.\n3. **Add the button and the preview modal** on the chosen surface, plus the\n   no-op-on-made-scope guard: a second press on an already-made scope explains\n   itself rather than erroring or writing a second node set.\n\nGeneration must continue to go through `engine/library_nodes.py`, never a\nUI-side mutation of the graph, so a hand edit in the editor still wins\nafterwards.",
+    "verify": "1. Confirm the scope-tree Generate button is ruled out and the WorldPainter\n   is where scope building already happens.\n   - expected: the surface choice is settled before any button is added.\n   - observed: CONFIRMED as a live constraint. `static/js/graph/scope-tree.ts`\n     carries the rule in its own header comment: *\"There is no Generate button\n     here. Generating a scope is task-398's recipe flow and lives in the\n     WorldPainter; a card that offered one would be a promise the graph does\n     not keep.\"* The row instead renders a `🖌 Paint` jump\n     (`scope-tree.ts:316-323`) that calls `VW.worldPainter.open(row.id)`.\n     The surface is therefore **not** free to choose without a decision.\n2. Confirm the generation engine and its tests are in place.\n   - expected: the recipe, the materialisation service and the determinism\n     tests exist, so only the surface is missing.\n   - observed: CONFIRMED. `engine/generation_recipes.py` and\n     `engine/library_nodes.py` exist and `tests/test_apartment_recipe.py`\n     covers determinism, no-duplicate re-runs, save/reload and manual-edit\n     survival.\n3. Confirm there is no preview endpoint yet.\n   - expected: a dry-run that builds the patch without writing.\n   - observed: NOT DONE. No preview path exists on `routes/world_grid_ops.py`;\n     the recipe is reachable only through the materialisation service's\n     writing path.\n4. Confirm no Generate affordance exists on a scope row.\n   - expected: the button is absent today, which is why this card is open.\n   - observed: CONFIRMED. `scope-tree.ts` renders a `🖌 Paint` jump, not a\n     Generate button, per the rule quoted in step 1.\n5. Live: open the WorldPainter on an unmade scope, generate it, and inspect the\n   result and the event stream.\n   - expected: the three areas from `apartment.v1` appear, Hallway 3 can walk\n     into all of them, and a second attempt creates no duplicates.\n   - observed: not run. The affordance does not exist yet, so there is nothing\n     to exercise.",
+    "acceptance": [
+      {
+        "text": "An unmade `apartment_3b` in Pines shows `Generate`; generating it from the UI",
+        "done": false
+      },
+      {
+        "text": "produces the same three areas `tests/test_apartment_recipe.py` produces, and",
+        "done": false
+      },
+      {
+        "text": "Hallway 3 can walk into all of them.",
+        "done": false
+      },
+      {
+        "text": "The preview lists the recipe's areas and items and the report's missing tag",
+        "done": false
+      },
+      {
+        "text": "candidates before confirmation.",
+        "done": false
+      },
+      {
+        "text": "Confirming twice creates no duplicate nodes, ways or items.",
+        "done": false
+      },
+      {
+        "text": "A made scope offers no `Generate`.",
+        "done": false
+      },
+      {
+        "text": "A manual edit to a generated item, then a reload, survives; a second",
+        "done": false
+      },
+      {
+        "text": "generation attempt does not erase it.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/scope-tree.ts` - the scope row, the \"no Generate button",
+      "here\" rule (`:23-24`), and the `🖌 Paint` jump (`:307-323`) that stands in",
+      "for it today",
+      "static/js/worldpainter/editor.ts` - the alternative home, where scope",
+      "building already lives",
+      "routes/world_grid_ops.py` - where the dry-run preview endpoint belongs",
+      "engine/generation_recipes.py` - the `apartment.v1` recipe",
+      "engine/library_nodes.py` - the public materialisation service the preview",
+      "and Apply must both go through",
+      "tests/test_apartment_recipe.py` - determinism, no-duplicate re-runs,",
+      "save/reload, manual-edit survival"
+    ],
+    "custom": {
+      "why_this_is_needed": "task-397 step 5 (the `Generate` affordance on an unmade scope card) and the\npreview half of task-398 are the last two items both tasks left open, because\nboth depended on a generator existing. `apartment.v1` landed in task-398, so\nthis is now unblocked. The backend is done: `engine/generation_recipes.py` holds\nthe recipe and `engine/library_nodes.py` the public materialisation service, and\n`tests/test_apartment_recipe.py` covers determinism, no-duplicate re-runs,\nsave/reload and manual-edit survival. Only the surface is missing.",
+      "requirements": "- A `Generate` action appears on a scope card **only** when the scope is unmade\n  and carries a `recipe`. A made scope must not offer it.\n- The preview is a *preview*: it renders the patch (areas, items, ways, the seed\n  and recipe version) and the report's missing tag candidates, and writes\n  nothing until the user confirms.\n- A second press on an already-made scope is a no-op with an explanation, not an\n  error and not a second node set.\n- Generation goes through `engine/library_nodes.py`, never a UI-side mutation of\n  the graph, so a hand edit in the editor still wins afterwards.",
+      "non_goals": "- Chunk eviction or scope unloading (task-401).\n- Authoring new recipes; `apartment.v1` is the one this hangs off.",
+      "blocked_in_the_inspector_ui_lane_2026_10_02": "Not attempted. The surface this task needs does not live in this lane's files\n(`static/js/inspector/**`, `static/js/help/**`, `templates/index.html`): the\n\"scope card\" is `static/js/graph/scope-tree.js` and the alternative home\n(the per-scope `⚙ Generate`) is `static/js/worldpainter/editor.js`.\n\n`static/js/graph/scope-tree.js` is being changed by the **in-progress\ntask-592**, which *deliberately* replaced the scope-row Generate with a\n**🖌 Paint** jump (\"generating lives in the painter, per scope-tree.js's own\nrule - no Generate button on a scope row\"). Re-adding a Generate there now\nwould directly collide with that live work and reverse its documented decision.\nImplementing instead in the WorldPainter means editing another cluster's owned\nfile.\n\nWhen this task is picked up it needs: (1) a preview endpoint on\n`routes/world_grid_ops.py` that builds the patch from `engine/library_nodes.py`\nwithout writing, returning areas/items/ways/seed/recipe version plus the\nreport's missing tag candidates; (2) the Generate button + preview modal on the\nchosen surface; (3) the no-op-on-made-scope guard. Recommend resolving the\nscope-tree vs painter ownership question with task-592 first.",
+      "plan_position_2026_10_20_the_planned_surface_was_ruled_out_by_newer_work": "**This card's original approach no longer holds as written, and the reason is\ntask-592** - a *newer* card, still open, that deliberately removed the surface\nthis card planned to use.\n\nThe card was filed 2026-09-28 to put a `Generate` action on an unmade scope\ncard, and to preview the patch before it is written. task-592 (the outline\nhierarchy card) carries a rule that forbids exactly that:\n\n- `static/js/graph/scope-tree.ts:23-24` states it in the file's own header:\n  *\"There is no Generate button here. Generating a scope is task-398's recipe\n  flow and lives in the WorldPainter; a card that offered one would be a\n  promise the graph does not keep.\"*\n- task-592's own acceptance records it as a carried-over rule: *\"**No Generate\n  button on a scope row.** What a row *may* offer is the honest 'open in\n  WorldPainter' jump.\"* The row renders `🖌 Paint`\n  (`scope-tree.ts:316-323`), which calls `VW.worldPainter.open(row.id)`.\n\nSo the scope card is **not** available as the home for this affordance, and\nre-adding a Generate there would reverse a documented decision made by a card\nthat is itself still in flight. The 2026-10-02 note in this card already\ncaught the collision; what was missing was the *decision*, and the decision now\nhas an obvious answer:\n\n**The WorldPainter already owns the surface.** `static/js/worldpainter/editor.ts`\ncarries a per-scope `⚙ Generate` today (`:564` renders the report beside it,\n`:607` warns `⚠ N to fix before Generate`, `:1516` refuses to place a second\narea on an occupied cell). That is the surface task-592's rule points at and\nthe surface this card's own 2026-10-02 note identified as the alternative.\n\n**What the newer work changed, precisely:**\n\n| | Original plan (2026-09-28) | After task-592 (2026-10-20) |\n|---|---|---|\n| Surface | a `Generate` action on the unmade scope card | the per-scope `⚙ Generate` in the WorldPainter |\n| Scope row | gains a button | gains only the `🖌 Paint` jump, and must keep it that way |\n| Preview | a modal on the scope card | a modal on the WorldPainter's Generate |\n| Backend | unchanged - `engine/library_nodes.py` is still the materialisation path | unchanged |\n\n**What this card still owns, unchanged:** the *preview*. The WorldPainter's\n`⚙ Generate` writes the patch; nothing today shows the author the patch first.\nA dry-run path that builds the same patch without writing, plus the no-op\nguard on an already-made scope, is the remaining work - and it belongs on the\nWorldPainter's Generate, not on a scope row.\n\n**Verdict: the approach is narrowed, not replaced.** The card survives as a\ndistinct piece of the plan, with its surface moved. It should not be closed,\nand it should not be re-litigated as \"add a button to the scope card\".",
+      "browser_ui": "Intended UI home: Outline/Scopes → select the unmade `apartment_3b` scope in Pines → its Generate action and recipe preview. The preview is the confirmation surface before generation changes the world.\n\nCurrent availability: The card describes task-398's deterministic recipe but no Generate control or preview is claimed as implemented.\n\nLive steps when available:\n1. Load Pines, select the unmade `apartment_3b` scope, and open its generation preview.\n   - expected: Generate is offered; the preview lists the recipe's three areas, items, and missing tag candidates before any node is written.\n2. Generate the scope once, then inspect the graph and select Hallway 3.\n   - expected: the same three areas as `tests/test_apartment_recipe.py` exist, with the recipe's ways and items, and Hallway 3 has a walkable connection into each generated area.\n3. Confirm generation a second time and compare node, way, and item IDs with the first result.\n   - expected: no duplicate areas, ways, or items appear.\n4. Edit one generated item's description, reload Pines, and request generation again.\n   - expected: the manual edit survives reload and the second generation does not overwrite it; a made scope no longer offers Generate.",
+      "reconnaissance_2026_10_20_still_valid": "Re-checked on 2026-10-20. No Generate affordance on an unmade scope card and no generation preview modal exist:\n\n- `static/js/graph/scope-tree.ts` explicitly states (line 23) \"There is no Generate button here\" and (line 307) building a scope is the WorldPainter's affordance.\n- `rg` for \"Generate\" in `scope-tree.ts` returned only those two comment lines.\n\nVerdict: card accurate. Kept in todo. The scope-tree vs painter ownership question noted in the card is still unresolved."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-580-unmade-scope-generate-affordance-and-generation-preview.md"
+  }
+}

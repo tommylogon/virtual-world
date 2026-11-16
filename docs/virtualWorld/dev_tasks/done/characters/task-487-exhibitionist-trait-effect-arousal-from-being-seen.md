@@ -10,19 +10,19 @@ priority: low
 **Filed:** 2026-09-23
 **Related:** task-213, task-547
 
-## Blocked (2026-09-27) — no "being seen" signal exists
+## Blocked (2026-09-27) - no "being seen" signal exists
 
 Re-measured before implementing: this is not a one-line trait consumer. Nothing in
 the engine records that one character *observed* another, and nothing distinguishes
 a public observation from a covert one.
 
-- `engine/background_social.py` reads `attention_seeker` in exactly two places —
+- `engine/background_social.py` reads `attention_seeker` in exactly two places -
   `action_weights()` boosts `chat`/`joke`/`flirt` ×1.3 and `ignore_weight()` drops
   the ignore weight ×0.6. That is *seeking* attention, not *receiving* it.
 - The nearest existing signal is `process_bystander_reactions()` in
   `engine/npc_behaviors.py`, which already runs perception checks, but returns only
   reaction **strings**, skips every non-`simple_npc` character, and is capped by
-  `max_reactions` (default 1) — so the observer set is never actually available.
+  `max_reactions` (default 1) - so the observer set is never actually available.
 - "Publicly exposed" has no meaning today: `is_exposed()` in
   `engine/body_parts.py` answers *is this body part covered*, not *is anyone
   present to see it*.
@@ -38,18 +38,18 @@ Wire the exhibitionist trait effect, which is currently defined but inert (effec
 
 ## Acceptance
 
-- [x] **`exhibitionist` gains a live consumer** — `TraitSystem.has_effect(p,
+- [x] **`exhibitionist` gains a live consumer** - `TraitSystem.has_effect(p,
       "exhibitionist")` is read by `apply_exhibitionism`, which grants
       arousal/pleasure when the character has been seen.
-- [x] **It needs an *audience*** — an unseen touch grants nothing. The trait's
+- [x] **It needs an *audience*** - an unseen touch grants nothing. The trait's
       whole meaning is the being-seen, not the sensation, and this is the
       negative case it turns on.
-- [x] **Public beats covert** — a public sighting is worth full, a covert one
+- [x] **Public beats covert** - a public sighting is worth full, a covert one
       half. `is_exposed` cannot answer this (it answers "is this body part
       covered"), which is exactly why task-547 had to exist.
 - [x] **A `behavior_prompt` is added** so the agent references the trait, in both
       the runtime definition and the library entry.
-- [x] **Only active when `world.mature_content` is on** — the effect returns on
+- [x] **Only active when `world.mature_content` is on** - the effect returns on
       the first missing pleasure vital, creating nothing; the picker hiding is
       untouched because the trait already declared `mature: true`.
 - [x] **Tests**: 11 in `tests/test_exhibitionist.py`, including that a non-carrier
@@ -57,21 +57,21 @@ Wire the exhibitionist trait effect, which is currently defined but inert (effec
       path record), and that the effect is **reached from the real intimacy
       action** rather than merely callable.
 
-## Implementation — 2026-10-02 (WT-characters-engine)
+## Implementation - 2026-10-02 (WT-characters-engine)
 
 ### Files
 
-- `engine/pleasure_actions.py` — `apply_exhibitionism`, called from
+- `engine/pleasure_actions.py` - `apply_exhibitionism`, called from
   `execute_intimacy_action` right after the observation pass.
-- `engine/traits.py` — `behavior_prompt` on `exhibitionist`.
-- `data/library/traits/exhibitionist.json` — the same prompt, so the library
+- `engine/traits.py` - `behavior_prompt` on `exhibitionist`.
+- `data/library/traits/exhibitionist.json` - the same prompt, so the library
   entry and the runtime definition cannot drift (a test checks it).
-- `tests/test_exhibitionist.py` — **new**, 11 tests.
+- `tests/test_exhibitionist.py` - **new**, 11 tests.
 
 ### The blocker was already gone, and already in the right place
 
-The "Blocked" note above says task-547 has to exist first. It does, and — worth
-recording because it is the good case — the record it built is written **at
+The "Blocked" note above says task-547 has to exist first. It does, and - worth
+recording because it is the good case - the record it built is written **at
 exactly the point this effect needs it**:
 
 ```
@@ -111,7 +111,7 @@ python -m pytest tests/test_exhibitionist.py -q                              # 1
 failed on both, `Compare-Object` empty.
 
 
-### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`
 
 Each case: one `exhibitionist` (or not), one seeded sighting, then the effect.
 
@@ -128,7 +128,7 @@ Each case: one `exhibitionist` (or not), one seeded sighting, then the effect.
 ```
 
 The +7 on the real path is the touch itself (+3) plus the public sighting (+4),
-and the exhibitionist's line is in the action's own output — so the effect is
+and the exhibitionist's line is in the action's own output - so the effect is
 reached from the intimacy path, not merely callable.
 
 Note the fourth row: a public sighting with **no trait** grants nothing and says

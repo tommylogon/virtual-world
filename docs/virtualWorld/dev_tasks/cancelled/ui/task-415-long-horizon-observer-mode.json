@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-415",
+  "kind": "task",
+  "number": 415,
+  "title": "Long-horizon observer mode",
+  "status": "cancelled",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-19",
+  "updated": "2026-09-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let the user **watch** a long-running world, **follow** a character, and **drop\nin** to interact - the \"experience it, don't just measure it\" goal.\nexample if tha tof humanoid agents https://github.com/humanoidagents/humanoidagents",
+    "why": "TODO",
+    "how": "1. **Observer view.** Live world clock, notable events drawn from the trace,\n   alive/dead counts and key vitals, and who is currently attended (task-411).\n2. **Follow a character.** Pin a character as an anchor (promote via task-412);\n   show their recent trace and memories as the world runs.\n3. **Drop in.** Switch from observer to embodied human for the pinned character\n   without breaking a running batch; then return to observer (demote).\n4. **Honest background display.** Background spans are shown from structured\n   trace entries (\"slept 8h, drank, travelled to …\"), never prose the engine\n   invented.",
+    "verify": "- A browser/manual pass over a long run: watch, follow, drop in, return.\n- Assert the displayed background facts match trace entries for the character.",
+    "acceptance": [
+      {
+        "text": "Watch a week-scale run with the clock and notable events streaming.",
+        "done": false
+      },
+      {
+        "text": "Follow → drop in → return works without duplicating actions or memories.",
+        "done": false
+      },
+      {
+        "text": "Background facts displayed come only from trace entries (no fabricated prose).",
+        "done": false
+      },
+      {
+        "text": "The view stays responsive while a server-side batch is running.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "non_goals": "- A new rendering engine.\n- Editing the world from observer mode."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "dropped": "2026-09-19 - deferred for now; revisit once 411/412/414 exist.",
+      "depends on": "task-340 (event stream v2), task-333 (human turn panel),",
+      "note": "ties existing UI work together; does not replace those tasks."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/ui/task-415-long-horizon-observer-mode.md"
+  }
+}

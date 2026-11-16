@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "bug-511",
+  "kind": "bug",
+  "number": 511,
+  "title": "Worldpainter: pressing space after selecting a biome opens the dropdown instead of panning the view",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "In the fullscreen worldpainter, choosing a biome from the dropdown leaves the control focused, so the next space press is consumed as 'open the focused dropdown' rather than panning the view. Find where the key handler should suppress the browser default for space and blur the dropdown after a selection, and confirm the same bug does not exist in the other fullscreen tools.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open WorldPainter, choose a biome from the value picker, hold Space over the\n   canvas, then release it; inspect the active element and Konva stage's\n   `draggable()` value.\n   - expected: the picker blurs to `BODY`; Space sets `draggable()` true only\n     while held, then returns it to false.\n   - observed (2026-09-30): Playwright on localhost:4465 confirmed this after a\n     biome pick.\n2. Tab-focus the value or brush select and repeat the Space hold/release.\n   - expected: the browser does not open the select; canvas panning still arms\n     only while Space is held.\n   - observed (2026-09-30): Playwright confirmed the Tab-focused case; source\n     search found the Space-to-pan binding only in `editor.js`.",
+    "acceptance": [
+      {
+        "text": "The value/brush `<select>` blurs on change, so the next Space reaches the",
+        "done": true
+      },
+      {
+        "text": "pan handler (`document.activeElement` is BODY after a pick).",
+        "done": false
+      },
+      {
+        "text": "The key handler suppresses the browser default for Space while a toolbar",
+        "done": true
+      },
+      {
+        "text": "`<select>` has focus, so panning still arms even for a select reached by Tab.",
+        "done": false
+      },
+      {
+        "text": "Live proof (Playwright, `localhost:4465`): hold Space after picking a biome",
+        "done": true
+      },
+      {
+        "text": "→ Konva stage `draggable()` is `true`; released → `false`; same with the",
+        "done": false
+      },
+      {
+        "text": "select focused by Tab.",
+        "done": false
+      },
+      {
+        "text": "No other fullscreen tool binds Space-to-pan - `rg \"code === 'Space'\"` finds",
+        "done": true
+      },
+      {
+        "text": "only `static/js/worldpainter/editor.js`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "The key handler is `state._keyDown` in `static/js/worldpainter/editor.js`; the\nblur is in `_valueControl` (value picker) and the brush select's change handler.",
+      "browser_ui": "Intended UI home: WorldPainter → biome value picker / brush picker → map canvas.\n\nCurrent availability: The biome-pick and Tab-focused flows were live-checked\nwith Playwright on 2026-09-30. The task also records that no other fullscreen\ntool binds Space to pan.\n\nLive steps when available:\n1. Choose a biome, hold Space over the Konva canvas, and release; read\n   `document.activeElement` and `stage.draggable()` at each point.\n   - expected: focus is `BODY` after selection; draggable is true while held\n     and false after release.\n2. Tab to the value picker, hold Space, and release; repeat for the brush picker.\n   - expected: Space does not open either select and pans only during the hold.\n3. Open each other fullscreen tool and repeat the Space hold over its canvas.\n   - expected: no unrelated fullscreen tool has a Space-to-pan handler.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-511-worldpainter-pressing-space-after-selecting-a-biome-opens-the-dropdown-instead-of-panning-the-view.md"
+  }
+}

@@ -108,7 +108,7 @@ share the cap, so the nearest/high-priority win and the rest stay background.
 - Unit: cap enforcement, eviction determinism, hysteresis, serialization.
 - A populated fixture (e.g. 200 characters) proving the set stays bounded.
 
-## Progress — 2026-09-28 (in `review`)
+## Progress - 2026-09-28 (in `review`)
 
 ### This task and task-418 are one piece of work, and 411 is the half 418 delegates to
 
@@ -118,7 +118,7 @@ says attendance derives from awareness channels, then task-418 (filed later,
 the `AwarenessChannel` seam. 411's hand-off target, task-412, is **cancelled**.
 
 So the two tasks describe the same module. Rather than build 411 against a spec
-418 is about to replace — the churn the amendment explicitly warns about — 411 is
+418 is about to replace - the churn the amendment explicitly warns about - 411 is
 built as the half 418 delegates to:
 
 - **418 supplies the channels.** `AwarenessChannel` is the seam it specifies, and
@@ -128,7 +128,7 @@ built as the half 418 delegates to:
 
 `tests/test_attention.py` includes a second channel implementation (`_RopeChannel`,
 standing in for a future `comms`) precisely so the seam is proven to work without
-comms, magic or sight existing — 418's own acceptance line.
+comms, magic or sight existing - 418's own acceptance line.
 
 **Recommendation, not mine to make: 411 and 418 should be closed into one task.**
 Shipping both as written would duplicate `engine/attention.py`. Posted to the
@@ -142,12 +142,12 @@ serialised form does either. Hysteresis moved onto the **channel threshold** the
 amendment asked for: entering needs strength ≥ `aware_threshold`, staying needs
 ≥ `aware_threshold - ENTER_MARGIN`. A character balanced on the boundary is
 promoted once and then kept, so a door swinging in the draught cannot make the set
-churn. The asymmetry is one-way and tested both ways — a newcomer below the floor
+churn. The asymmetry is one-way and tested both ways - a newcomer below the floor
 does not sneak in when somebody else leaves.
 
 ### Three decisions the tests forced, none of which were free
 
-**Awareness orders, the cap decides — awareness does not filter.** This is the
+**Awareness orders, the cap decides - awareness does not filter.** This is the
 one a reader assumes the opposite of, so it is stated in the module and pinned by
 `test_awareness_orders_rather_than_filters`. A character behind a locked door is
 ranked below everybody the door cannot separate them from; they end up backgrounded
@@ -179,7 +179,7 @@ value, making it a knob whose *meaning* moves when somebody turns it.
 not to depend on bug-30 being fixed. It was (2026-09-22, `propagate_sound` is a
 least-cost Dijkstra walk), so the dependence is real and satisfied rather than
 assumed. The consequence is tested: a locked door only demotes somebody when
-**no** quiet alternate reaches them — shut the door but leave a window, and they
+**no** quiet alternate reaches them - shut the door but leave a window, and they
 stay aware; shut both and they go.
 
 ### What the model reads, and what it does not
@@ -187,7 +187,7 @@ stay aware; shut both and they go.
 `select()` takes the roster as an argument (`{id: {area_id, recency}}`) rather
 than reading a global, so the selection is a pure function of its arguments and
 testable with no engine running. Awareness is **seeded from the anchors' and the
-already-attended characters' areas**, not from every area in the world — probing
+already-attended characters' areas**, not from every area in the world - probing
 all 200 would be 200 graph walks to answer a question about a handful of rooms,
 which is the cost this task exists to bound. A 200-character star fixture proves
 the set stays at the cap, and `channel_walks` is exposed so a test can assert the
@@ -196,7 +196,7 @@ cache holds rather than inferring it from timing.
 **A live bug this task's own test caught.** `AttentionBudget._channel_signature`
 called `channel.signature()` without passing the graph, so `SoundChannel` fell
 back to its stateless short form and the cache key reduced to the graph revision
-alone — the exact task-421 trap, reproduced a second time because the same mistake
+alone - the exact task-421 trap, reproduced a second time because the same mistake
 is easy to make twice. A door closing would have served a stale aware set
 forever. Fixed, and the test asserts on the awareness *value* and the walk count
 rather than the attended set, precisely because a broken cache would still have
@@ -205,14 +205,14 @@ produced the right attended set when the cap had room.
 ### Serialisation
 
 `to_state` carries the budget, the anchors, the humans, the pinned and the
-attended set — and `DERIVED_KEYS` names what must **never** be saved: awareness is
+attended set - and `DERIVED_KEYS` names what must **never** be saved: awareness is
 derived from the graph and goes stale the moment a door moves, so a save that looks
 resumable while quietly disagreeing with its world is worse than one that clearly
 re-derives. `from_state` returns the inputs rather than mutating the budget, so
-two budgets with different caps can read the same save — a save is a fact about a
+two budgets with different caps can read the same save - a save is a fact about a
 world, not about the reader's settings.
 
-### New tests — `tests/test_attention.py` (31)
+### New tests - `tests/test_attention.py` (31)
 
 The amended acceptance rather than the original: no hop parameter anywhere; the
 cap holding at every population from 0 to 200; byte-identical sets for a fixed
@@ -231,7 +231,7 @@ worked example (23 goblins and a human, cap 8).
 ### Not done here
 
 Nothing calls `select()`. Feeding the attended set into the tick loop is
-task-399/409 (WT-C) and the time advance is task-414 (WT-0) — both outside this
+task-399/409 (WT-C) and the time advance is task-414 (WT-0) - both outside this
 lane, and 411's own non-goals say so. The module is a selector with no caller
 until one of those lands.
 

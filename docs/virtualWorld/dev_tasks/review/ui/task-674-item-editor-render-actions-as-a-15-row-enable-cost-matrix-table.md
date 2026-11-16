@@ -31,7 +31,7 @@ Current availability: The current item action settings are described as two stac
 
 Live steps when available:
 1. At 1600×1000, open an item with action settings and inspect the Actions section using visual layout and keyboard table navigation.
-   - expected: one table has 15 action rows—examine, take, use, open, close, eat, drink, read, light, activate, equip, unequip, throw, break, drop—and columns for enabled, Energy, Hunger, Thirst, HP, and skill/DC; row/column headers are announced as headers.
+   - expected: one table has 15 action rows-examine, take, use, open, close, eat, drink, read, light, activate, equip, unequip, throw, break, drop-and columns for enabled, Energy, Hunger, Thirst, HP, and skill/DC; row/column headers are announced as headers.
 2. Toggle Take and inspect Drop, then toggle Equip and inspect Unequip.
    - expected: the inverse-action coupling is visible in the table, and the existing save-on-change behavior persists each toggle/cost.
 3. Expand the triggers disclosure below the matrix.

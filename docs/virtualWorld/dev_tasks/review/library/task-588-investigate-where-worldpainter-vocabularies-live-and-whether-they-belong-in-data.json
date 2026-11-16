@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "task-588",
+  "kind": "task",
+  "number": 588,
+  "title": "Investigate - where WorldPainter vocabularies live, and whether they belong in `data/library/`",
+  "status": "review",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-29",
+  "updated": "2026-09-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-497",
+      "task-568",
+      "task-569",
+      "task-570",
+      "task-571",
+      "task-573",
+      "task-589",
+      "task-645"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The instinct is that WorldPainter data belongs in `data/library/`, split per entry like everything else in there. The scope is **three things that are not alike**, and the first job is to find that out rather than assume they travel together:\n\n- `data/worldpainter/biomes.json` - a **taxonomy**: 105 biome records plus `features`, `resource_distribution`, `hostile_distribution`. Read by the compiler to classify a painted cell.\n- `data/worldpainter/interiors.json` - a **plan collection**: `version`, `_about` (17 prose lines), `plans` (**30** drawn floor plans), `fallback`. Read by `engine/interior_gen.py:52` to fill a building's interior. This one already looks a great deal like a library.\n- **town** - **not data at all.** It is one of three `MODES` in `engine/world_grid.py:81` (`(\"world\", \"town\", \"interior\")`), and its content rides on `features` inside `biomes.json` (town / village / building). There is no town file to move, and a plan that says \"move town into the library\" is planning to move something that does not exist as a unit.\n\n**Do not start by splitting anything.** Question 1 below can invalidate the whole premise for two of the three, and the two consumers this is meant to unblock (task-569, task-570) must keep working whichever way it lands.",
+    "why": "Clarify storage boundary and schemas for WorldPainter compiler vocabularies (biomes, floor plans, hazard palettes).",
+    "how": "Audited data directories and established that vocabularies are compiler metadata rather than physical graph instances, guiding task-589 implementation.",
+    "verify": "1. Verify compiler vocabulary locations\n   - expected: Biomes, materials, and hazard catalogs live in designated library data paths\n   - observed: Reconciled and documented in task report",
+    "acceptance": [
+      {
+        "text": "A written recommendation **per data set** - `biomes.json`, `interiors.json`, and an explicit statement about `town` - with the reasoning and the evidence for each of the six questions.",
+        "done": false
+      },
+      {
+        "text": "Question 1 is answered first and explicitly, because two of the three answers follow from it.",
+        "done": false
+      },
+      {
+        "text": "If the answer is \"split\": the migration is staged so the loader surfaces are unchanged, and the cross-entry validation in question 3 has a named home before any file moves.",
+        "done": false
+      },
+      {
+        "text": "If the answer is \"keep\": the reason is written where the next person will read it, so this is not re-litigated on a hunch.",
+        "done": false
+      },
+      {
+        "text": "`tools/build_code_graph.py` and `tools/lint_library.py` are each confirmed unaffected or given a follow-up.",
+        "done": false
+      },
+      {
+        "text": "A stated answer to whether the library needs **two kinds of entry** (materializable entity vs compiler vocabulary), since task-589 depends on it.",
+        "done": false
+      }
+    ],
+    "files": [
+      "data/library/biomes.json",
+      "engine/world_grid.py"
+    ],
+    "custom": {
+      "what_is_there_today_verified_2026_09_29": "**Readers are few and singular.**\n\n- `engine/biomes.py:37` is the only direct load path for `biomes.json` (`load(path)` with an override). Everything else goes through it: `biomes()`, `features()`, `biome()`, `area_tags()`, `forage_skill_bonus()`, `resource_distribution()`, `hostile_distribution()`, `validate()`.\n- `engine/interior_gen.py:52` is the only direct load path for `interiors.json`.\n- **The browser never reads either file.** The WorldPainter gets a *derived vocabulary* from `routes/world_grid_ops.py:292-300` (`{id, name, ...}` per biome) and consumes it as `state.vocab.biomes` (`static/js/worldpainter/editor.js:241,2722`, `grid-model.js:84,603,625`). A per-file layout does not mean 105 fetches - worth stating explicitly, because it is the usual objection.\n\n**The distributions cover only the wild biomes.** `tests/test_biomes.py:100-101` asserts `set(resource_distribution()) == set(hostile_distribution()) == <the wild set>`. The other 89 are made/structure and exempt by design (`biomes.py:426-428`). A split yields **105 files of which 16 carry rules**.\n\n**`features` is a different entity class** that references biomes by id (`biomes.py:403` walks `rec.get(\"biomes\")`). It is not a biome's property, and it is the closest thing `town` has to data.\n\n**The library is an entity registry with a materialize path - that is the crux.** `routes/library_ops.py:17` declares `REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures']`, and every one of those is something you can *place into a world*: `materialize_library_item` (`:145`), `placeItemFromLibrary({type, id})` from the frontend. A biome has no such path - it is read by a compiler, never instantiated.\n\n**The registry and the filesystem have already drifted, and in two ways at once.** The folders are `areas, characters, conditions, items, rooms, tags, traits, triggers, ways`. So `rooms` exists on disk but is not a `REGISTRY_TYPE`, and `behaviours` and `structures` are registered types with no folder. The hardcoded list is the weak point in this design, and it is weak today, before this task changes anything.\n\n**The deeper cause is that the library has two storage shapes.** `handle_library_list` (`library_ops.py:210-216`) reads `data/library/<type>.json` - one registry file - while the other types are folders of one-file-per-entry (`_library_type_count:24-31` counts files in a subdir). Both shapes are live, and neither `data/library/behaviours.json` nor `data/library/structures.json` exists, so those two registered types serve **empty, silently**, with no error. `data/library/rooms/` holds 526 KB across three files (including a *third* `world_template.json`, 98 KB) and nothing can reach it: `handle_library_list('rooms')` returns 400 \"Unknown registry type\".\n\n**The taxonomy is cached and the cache is never invalidated.** `engine/biomes.py:111-127` keeps a module-level `_cache` keyed by path, with `load(path, fresh=False)`. `clear_cache()` exists at `:125` and is called by **nobody** - not by a route, not by a test. `engine/interior_gen.py` and `roles.py` have the same shape. So a hand edit to the JSON is not visible until the process restarts.",
+      "the_questions_in_order": "1. **Is a WorldPainter entry a library entity?** A library file, in all ten current types, is something that gets materialized into a graph. A biome is a compile-time **vocabulary**; a floor plan is an authored thing you instantiate. If those are two different kinds of thing, then `data/library/` is right for `interiors.json`, wrong for `biomes.json`, and the real answer is that the library needs to know about two kinds of entry. Answer this by reading how the ten types are loaded, served and materialized - not by analogy.\n2. **What is the file boundary for each?** For biomes: identity record in one file per biome, with `features` and the two distributions inlined, or kept global? `features` is its own entity class; the distributions are per-biome rules that exist for only 16 of 105. For interiors: one file per plan plus a `fallback`, or the collection stays whole?\n3. **Where does the cross-entry validation go?** `biomes.py:409-451` checks what no single file can see: unknown biome id in a distribution, a wild biome with no rules, a made/structure biome with rules, unknown tags, `max_chance < base_chance`. Per-file these become index-level checks and need a named owner.\n4. **What must the load contract guarantee?** Ideally `engine/biomes.py`'s eight public functions and `interior_gen.py`'s surface keep their signatures and semantics, so task-569 and task-570 are unaffected by the answer. If a split forces a caller change, that is a cost to weigh, not a detail.\n5. **What actually breaks?** Verify, do not assume: `routes/world_grid_ops.py:292-300` (derived vocabulary - likely fine), `tools/build_code_graph.py:397` (its `JSON_IGNORE` covers `world_template.json` but **not** `biomes.json` - check what 105 files does to that graph), `tools/lint_library.py` (task-573 wants it to read the biome file; one file or 105 changes that check's shape), and the write paths - **does the WorldPainter ever write a biome tag or a floor plan?** If it does, a 105-file layout is a write-path and locking decision, not a read-path one. Also settle where `clear_cache()` gets called from: an authoring surface needs a reload story, and today nothing calls it.\n6. **What does it cost, honestly?** For: per-entry diffs, no whole-taxonomy conflicts, each record reviewable alone. Against: a taxonomy-wide change (adding a tag to 30 biomes) becomes 30 edits, and merge pressure moves from one file to a hundred. Who authors this data and how often decides which side wins - and for `interiors.json` the answer may be \"one author, rarely touched\", which makes the per-file case much weaker than it looks for biomes.",
+      "note": "This is an **investigation**: a recommendation with evidence is the deliverable, not a moved file. Nothing in task-569 or task-570 should wait on it - both can proceed against today's blob and be unaffected if the answer is \"keep\".\n\n---\n\n# Recommendation (2026-10-02, re-verified against the tree)\n\n**Verdict: keep `biomes.json` and `interiors.json` where they are and whole. Do\nnot move either into `data/library/`, and do not split either into per-entry\nfiles now. But the library does need a second kind of entry, and task-589 should\nadd it as a *read/edit vocabulary surface over the existing files*.**",
+      "q1_first_is_a_worldpainter_entry_a_library_entity_no_and_the_library_needs_two_kinds_of_entry": "Verified from the loading/materialize path, not by analogy. All ten\n`REGISTRY_TYPES` resolve to something you can *place into a graph*:\n`materialize_library_item` (`routes/library_ops.py:146`) and the frontend's\n`placeItemFromLibrary`. A biome has **no materialize path** - the compiler reads\nit to classify a painted cell and never instantiates it as a node. A floor plan\nis closer: `interior_gen.template_for` instantiates it, but through a\n*generation recipe* (`RECIPE_ID = \"interior.v1\"`), not the place action, and it\nis a picture rather than a graph entity.\n\nSo the honest model is two kinds of library entry:\n\n| kind | examples | verbs |\n|---|---|---|\n| **materializable entity** | items, characters, areas, ways, traits, conditions, behaviours, tags, triggers, structures | browse, edit, **place** |\n| **compiler vocabulary** | biomes (+ features/distributions), interior floor plans | browse, edit, **no place action** |\n\nThis is why adding `biomes` to `REGISTRY_TYPES` is wrong (task-589 already says\nso): it would hand the UI a \"place this biome\" action with no meaning and serve a\ntaxonomy as if it were graph entities. Task-589 should add the second kind\nexplicitly (a tab with create/edit/delete, validation-on-save, no place affordance).",
+      "per_data_set": "### `data/worldpainter/biomes.json` - **keep whole, in place**\n\nRe-verified: 105 biomes, 9 features, 16 resource-distribution + 16\nhostile-distribution entries; 55,264 bytes. Reasons against splitting:\n\n1. **Only 16 of 105 carry rules.** A split yields 105 files of which 89 are\n   identity records. The distributions are per-biome rules for the wild set only\n   (`biomes.py:426-428` exempts made/structure biomes).\n2. **`features` is a different entity class** that references biomes by id\n   (`biomes.py:403`). Splitting it forces a decision about an 11th file shape.\n3. **The cross-entry validation is taxonomy-wide.** `biomes.validate()`\n   (`biomes.py:409-451`) checks unknown ids, a wild biome with no rules, unknown\n   tags, `max_chance < base_chance` - exactly the checks no single file can\n   perform. Per-file makes them index-level checks with a new owner; that is a\n   cost with no compensating benefit today.\n4. **Merge cost.** Adding one tag to 30 biomes is 1 edit today and 30 after a\n   split. The data is authored by one person and rarely touched (89 records have\n   never carried rules).\n5. **It is compiler input, not an entity registry.** It lives beside the library\n   for the same reason `interiors.json` does: the compiler's vocabulary, not the\n   graph's contents.\n\nPer-entry diffs and conflict-free merges are real wins for *frequently,\nindependently* authored data. This data is neither.\n\n### `data/worldpainter/interiors.json` - **keep whole for now**, revisit only if a write path exists\n\nRe-verified: `version`, a 17-line `_about`, **30 plans**, one `fallback`; 11,597\nbytes. It looks the most library-like (each plan is standalone and visual), and\n*if* task-589 builds create/edit/delete, one-file-per-plan with `fallback` as a\nreserved entry is the natural shape. But it is 30 plans, one author, rarely\ntouched, and a split now would be a migration with no consumer. **Recommendation:\nship task-589 against the single file first; split only when write volume makes\none-file-per-person a bottleneck,** and if so, name the index-level validator\n(Q3) before moving anything.\n\n### `town` - **not data at all; nothing to move**\n\nRe-verified: `town` is one of three `MODES` in `engine/world_grid.py`\n(`(\"world\", \"town\", \"interior\")`). Its content rides on `features` inside\n`biomes.json` (`town` / `village` / `building`). There is no `town.json` and no\ntown unit to relocate. Any plan that says \"move town into the library\" is\nplanning to move something that does not exist.",
+      "answers_to_the_six_questions": "1. **Two kinds of entry - yes** (above). `data/library/` is the right home for\n   neither vocabulary file today; the library *concept* needs the second kind,\n   reachable through the **same derivation the WorldPainter already uses**.\n2. **File boundary - one taxonomy-wide file for biomes; one collection for\n   interiors** (with per-plan split deferred to the first real write path).\n3. **Cross-entry validation - `engine/biomes.validate()` stays the one owner**,\n   called by whatever save route task-589 adds, *before* writing. Do not create a\n   second validator.\n4. **Load contract - unchanged.** `biomes.py`'s eight public functions\n   (`biomes`, `features`, `biome`, `area_tags`, `forage_skill_bonus`,\n   `resource_distribution`, `hostile_distribution`, `validate`) and\n   `interior_gen.py`'s surface keep their signatures, so task-569/task-570 are\n   unaffected. Because we are not splitting, there is no caller cost at all.\n5. **What breaks - verified:**\n   - `routes/world_grid_ops.py:287` (`handle_painter_vocabulary`) derives\n     `{id, name, tags, refusal}` from `biomes_mod.biomes()`; a save must go\n     through `clear_cache()` for the editor to see it.\n   - `tools/build_code_graph.py:397` `JSON_IGNORE` does **not** cover either\n     file, but because they stay single files they contribute at most two graph\n     nodes, not 105+30. No fix needed; a per-file split *would*.\n   - `tools/lint_library.py` now reads `biomes.json` as one file (task-573,\n     `biome_coverage`); a split would change that check's shape.\n   - **Write paths: there are none.** No route or engine function writes\n     `biomes.json` or `interiors.json` (grep of `open(...,\"w\")` / writers finds\n     nothing). So this is a read-path decision, not a locking one - and a\n     create/edit surface is genuinely new work for task-589.\n   - `engine/biomes.py::clear_cache()` (`:125`) has **zero callers** (same for\n     `roles.py:51`, `skill_progress.py:50`). Any authoring save must call it or\n     the running compiler keeps the old taxonomy until restart.\n6. **Cost - split loses today.** For: per-entry diffs, independent review.\n   Against: a taxonomy-wide change becomes 30–105 edits, merge pressure moves\n   from one file to a hundred, and validation fragments. One author, rarely\n   touched → the per-file case for biomes is weak; for interiors it is a\n   reasonable *later* change once edits are frequent.",
+      "consequences_for_task_589_the_dependent": "Task-589 is unblocked with this shape: add a **compiler-vocabulary** library\nsurface for biomes (and, secondarily, floor plans) that (a) reads through\n`engine/biomes.biomes()` so there is no new read path or second vocabulary,\n(b) runs `biomes.validate()` on save and refuses an invalid record, (c) calls\n`clear_cache()` after a successful save, and (d) offers **no** \"place in world\"\naction. The files stay where they are; task-589 becomes an editable view over\nthem rather than a migration.\n\n`rooms` / `behaviours` / `structures` drift is out of scope here and already\nowned elsewhere (task-645 / task-590 / task-591)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "answers for": "`docs/design/roadmap.md` (Part 2), which recommends task-569 (resource consumer) and task-570 (hostile consumer) as the cheapest large win in the repository",
+      "blocks": "task-589 (a WorldPainter tab in the library) - the tab's shape depends on where the data ends up"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-588-investigate-where-worldpainter-vocabularies-live.md"
+  }
+}

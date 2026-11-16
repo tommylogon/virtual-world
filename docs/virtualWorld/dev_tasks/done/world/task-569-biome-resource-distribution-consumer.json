@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "task-569",
+  "kind": "task",
+  "number": 569,
+  "title": "Biome resource distribution consumer",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Wire data/worldpainter/biomes.json resource_distribution (line 1818) into a spawner that places items into compiled areas. The data is authored and validated (engine/biomes.py:397-416) but has ZERO runtime consumers -- a repo-wide grep finds only the data, the loader, the validator and the tests. Blocked by the item-affinity vocabulary task and by task-504 (quantity/pooled nodes). Populate GenerationReport.unresolved_tags (generation.py:48) when a tag resolves to nothing. task-497 is filed done but its acceptance criteria read as behaviour; its own note admits no engine behaviour change. Trust the code, not the folder.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A painted area's `resource_distribution` places resolved library items into",
+        "done": true
+      },
+      {
+        "text": "compiled areas: `spawner.spawn_resources` is called from",
+        "done": false
+      },
+      {
+        "text": "`world_compile.compile_grid`, and `handle_generate_scope` supplies the item",
+        "done": false
+      },
+      {
+        "text": "`LibraryIndex`, so the production Generate path composes resources.",
+        "done": false
+      },
+      {
+        "text": "A tag that resolves to nothing places no item and is counted in",
+        "done": true
+      },
+      {
+        "text": "`GenerationReport.unresolved_tags` (never substituted).",
+        "done": false
+      },
+      {
+        "text": "Deterministic for a seed; provenance-stamped so it unloads with its scope.",
+        "done": true
+      },
+      {
+        "text": "Verified 2026-10-09: `rg resource_distribution` finds live callers in",
+        "done": true
+      },
+      {
+        "text": "`engine/world/spawner.py` and `engine/world_compile.py`; `pytest",
+        "done": false
+      },
+      {
+        "text": "tests/test_biome_spawner.py` → 11 passed.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_2026_10_09": "Done. The \"implemented\" body below is the shipped behaviour; pooled-node\n(`quantity`/`harvest`) resources are a named follow-up, not part of this task.",
+      "implemented_2026_10_02": "- New `engine/world/spawner.py::spawn_resources(area_nodes, index, ...)`:\n  for each area whose `properties.biome` declares a `resource_distribution`,\n  picks `per_area` weighted entries, resolves each entry's tags to library\n  items carrying **all** of them (`LibraryIndex.candidates(require_all=...)`),\n  and stages the item subtree (via `engine.library_nodes.build_item_subtree`)\n  plus a normal `in` edge, stamped with `generated` provenance so it unloads\n  with its scope (task-584). Deterministic for a seed. A tag (or missing\n  container content) that resolves to nothing places **no** item and is counted\n  in the returned `unresolved_tags` - never substituted.\n- `world_compile.compile_grid` gained `spawn_index` / `resources_per_area`:\n  when an index is supplied it invokes the spawner and feeds `unresolved_tags`\n  into `GenerationReport` (and a note).\n- `routes/world_grid_ops.handle_generate_scope` builds the item `LibraryIndex`\n  and passes it, so the production Generate button now composes resources.\n  `{resources_per_area: N}` is accepted; default 1 per area.\n\nTests: `tests/test_biome_spawner.py` (9) - resolved placement + provenance,\nseed determinism, a dead tag reported not substituted, no-biome no-op, the\ncompile-integration path populating `unresolved_tags`, and compile-without-index\nunchanged.\n\n**Not done / blocked:** task-569's own note also mentions task-504\n(quantity/pooled nodes). Pooled resources are placed as normal item nodes; if\nthe resource should be a pool (`quantity` + `harvest`), the library entry's own\nshape decides and `build_item_node` does not carry `quantity`/`harvest` today.\nFiled as a follow-up rather than guessed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-569-biome-resource-distribution-consumer.md"
+  }
+}

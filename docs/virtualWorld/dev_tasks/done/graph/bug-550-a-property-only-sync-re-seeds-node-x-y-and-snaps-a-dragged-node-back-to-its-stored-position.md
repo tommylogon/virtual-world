@@ -27,13 +27,13 @@ TODO
 
 1. Load a map-mode scope. Drag a loose node (an item or a character) somewhere new and let it settle.
    - expected: it stays where you dropped it
-   - observed: operator 2026-10-12 — it stays put
+   - observed: operator 2026-10-12 - it stays put
 2. Cause a property change for that same node so a sync update is pushed (e.g. toggle a nearby way open/closed, light an item, or change a character emotion / state).
    - expected (fixed): the node does NOT jump back to its stored properties.x/y or its cell; only its label/colour changes in place
-   - observed: operator 2026-10-12 — no snap back. The reported defect is fixed.
+   - observed: operator 2026-10-12 - no snap back. The reported defect is fixed.
 3. Move a painted area to a different cell (WorldPainter).
    - expected: that node DOES relocate (a real cell change must still reposition it)
-   - observed: TODO — code path guarantees it (x/y are kept when _cellSig changes) and is unit-adjacent, but not clicked live
+   - observed: TODO - code path guarantees it (x/y are kept when _cellSig changes) and is unit-adjacent, but not clicked live
 4. Sanity check the persistence path this card describes.
    - expected: dragging a frozen (physics-off) node survives a reload; dragging a physics-on node does not persist
    - observed: TODO

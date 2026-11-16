@@ -81,4 +81,4 @@ Migrated location records to canonical area ID keys, updated character and item 
 - engine/world_compile.py
 - engine/movement.py
 - models/player.py
-- 	ests/test_movement.py
+- tests/test_movement.py

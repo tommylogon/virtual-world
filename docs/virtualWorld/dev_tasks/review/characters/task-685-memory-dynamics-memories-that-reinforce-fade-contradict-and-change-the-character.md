@@ -93,7 +93,7 @@ Static flat memory lists accumulate hundreds of disconnected text strings that n
 - engine/player.py
 - engine/reflection.py
 - static/js/inspector/mind-view.ts
-- 	ests/test_memory_dynamics.py
+- tests/test_memory_dynamics.py
 - docs/virtualWorld/AI & Narration/Memory Dynamics.md
 
 ## Browser UI and intended live verification

@@ -1,53 +1,53 @@
-# Environment Roadmap — grouped plan (2026-08-31)
+# Environment Roadmap - grouped plan (2026-08-31)
 
 Refactor of the environment todo queue into **four groups**. Design sources:
 `docs/virtualWorld/Environment/Time & Weather.md` (canonical specs for forecast/moon/wind/humidity/
 area-status/trigger integration), `docs/virtualWorld/Scenario Workflows & UI Audit.md` (#12/#13).
 
 Groups:
-- **📍 AREAS** — presence (360), area conditions (233, *reframed*), bulk selection (378), env presets (379), sounds-heard-here (173)
-- **🕐 TIME & DATES** — calendar (228), default turn (301 — **done**)
-- **🌦 WEATHER & SKY** — forecast (227), moon (229), trigger/GM integration (234), wind (231), humidity (232), + the **Sun/Moon/Weather top-bar widget**
+- **📍 AREAS** - presence (360), area conditions (233, *reframed*), bulk selection (378), env presets (379), sounds-heard-here (173)
+- **🕐 TIME & DATES** - calendar (228), default turn (301 - **done**)
+- **🌦 WEATHER & SKY** - forecast (227), moon (229), trigger/GM integration (234), wind (231), humidity (232), + the **Sun/Moon/Weather top-bar widget**
 - **📍 Authoring glue** items ride under AREAS (bulk + presets).
 
 ---
 
-## Group 1 — 📍 AREAS: presence & place
+## Group 1 - 📍 AREAS: presence & place
 
-### 1.1 Presence window (task-360) — REDESIGNED: **per-area presence ledger**
+### 1.1 Presence window (task-360) - REDESIGNED: **per-area presence ledger**
 
 Decision (Tommy, 2026-08-31): keep the registry **per area**, not per character.
-`world.area_presence: {area_id: {char_name: entry_tick}}` — who is here and since when.
+`world.area_presence: {area_id: {char_name: entry_tick}}` - who is here and since when.
 
 - On movement entry → write `area_presence[new_area][char] = time_ticks`; remove char from the old area's map.
 - **Window = entry_tick → their next turn.** Witnessed events are the current turn's
   `turn_events` in that area with `evt.tick >= entry_tick`, excluding the character's own rows
   (existing area+actor filter stays as the base).
 - **Random initiative is fine**: if your turn was last in round N and first in round N+1, the
-  window between them is genuinely tiny — you learn (almost) nothing, and **that is correct**.
+  window between them is genuinely tiny - you learn (almost) nothing, and **that is correct**.
   No sub-tick/initiative resolution needed in v1.
 - **Leaving for a new room**: the new room's presence map decides the window from the moment
-  you enter it — fresh start, fresh knowledge.
+  you enter it - fresh start, fresh knowledge.
 - **Back-and-forth is memory's job**: re-entering resets the window; the character's existing
   memory system keeps what they knew. **Never auto-replay old events.**
 - **The `_areaEventLog` frontend accumulator stays a designer log** (inspector "room events")
-  but is **dropped from the perception path** — agent prompts never fall back to it.
+  but is **dropped from the perception path** - agent prompts never fall back to it.
 
 Engine/JS touched: `virtual_world_engine.py` (+`area_presence`, serialization),
 `engine/movement.py` (entry hook), `static/js/agent/prompt-builder/room-context.js`
-(witnessed filter — remove the fallback), `static/js/event-stream.js` (keep log, stop feeding
+(witnessed filter - remove the fallback), `static/js/event-stream.js` (keep log, stop feeding
 prompts), tests.
 
 ```
-WITNESSED (v1 window — what you can actually know since you walked in):
+WITNESSED (v1 window - what you can actually know since you walked in):
  [Tick 4] Butcher moved to Kitchen
  [Tick 4] a voice said: "hey, where did you go?"      ← addressed-to-you mark kept
-(hidden: everything before your entry_tick — no stale rows, ever)
+(hidden: everything before your entry_tick - no stale rows, ever)
 ```
 
-### 1.2 Area conditions (task-233 — reframed from "statuses")
+### 1.2 Area conditions (task-233 - reframed from "statuses")
 
-Tommy: "it's honestly sounding a lot more like area conditions" — agreed. Model it on the
+Tommy: "it's honestly sounding a lot more like area conditions" - agreed. Model it on the
 **player-conditions machinery** (catalog + multi-instance + periodic/ends_on/known), scoped to
 areas:
 
@@ -58,13 +58,13 @@ areas:
   apply_condition to characters inside), `propagation` (spread through open ways), `ends_on`.
 - Trigger integration: `apply_area_condition` / `clear_area_condition` effects,
   `area_has_condition` condition. Serialization survives saves.
-- **Phased series** (registry → catalog → tick hook → triggers → description) — deliberately
+- **Phased series** (registry → catalog → tick hook → triggers → description) - deliberately
   NOT one PR; sequenced after the weather group (forecast can impose area conditions).
 
-### 1.3 Bulk selection (task-378 / audit #12) — ✅ greenlit
+### 1.3 Bulk selection (task-378 / audit #12) - ✅ greenlit
 
 Shift-click (and rubber-band) multi-select on the graph + an **action bar**:
-`[🏷 Tag] [🗂 Env preset] [⚠ State] [🗑 Delete] [↔ Move]` — undo-safe, no new storage.
+`[🏷 Tag] [🗂 Env preset] [⚠ State] [🗑 Delete] [↔ Move]` - undo-safe, no new storage.
 
 ```
    Graph canvas                  Action bar (appears on selection ≥ 2)
@@ -86,37 +86,37 @@ Read-only block in the area inspector fed by the existing engine sound helpers +
 
 ```
 Area inspector → Environment
-  Light 80 · Temp 21° · Air fresh · Smell —
+  Light 80 · Temp 21° · Air fresh · Smell -
   🔇 Sounds heard here:
     📣 Jukebox (loud, repeating)  ·  🔔 Phone ring (faint, from: Order Counter)
 ```
 
 ---
 
-## Group 2 — 🕐 TIME & DATES
+## Group 2 - 🕐 TIME & DATES
 
-### 2.1 Calendar (task-228) — S
+### 2.1 Calendar (task-228) - S
 
 `game_day / game_month / game_year` derived from `time_ticks`; calendar config
 (`minutes_per_day`, `days_per_month`, `months_per_year`) stored in world state and exposed via
 `/api/state` (per `Time & Weather.md`). Game Clock group shows the date: `Day 3 of 27 · Aug 2084`.
 
-### 2.2 Default turn duration (task-301) — ✅ DONE (default 5 → 1 minute)
+### 2.2 Default turn duration (task-301) - ✅ DONE (default 5 → 1 minute)
 
 ---
 
-## Group 3 — 🌦 WEATHER & SKY (the big session)
+## Group 3 - 🌦 WEATHER & SKY (the big session)
 
-### 3.1 Forecast engine (task-227) — L, gated OFF by default
+### 3.1 Forecast engine (task-227) - L, gated OFF by default
 
 `engine/forecast.py` per `Time & Weather.md`: modes `authored | deterministic | random |
 hybrid`, entries (`offset`, `weather`, `wind`, `temperature_mod`, `light_mod`, `air`,
 `message`), granularities hourly/weekly/yearly, applied as the **environmental baseline** each
 `tick_turn()`; `forecast_override` (GM/trigger) supersedes with `duration_ticks` auto-revert.
-**Default mode: `authored` with ZERO entries = no behavioral change** — existing per-area envs
+**Default mode: `authored` with ZERO entries = no behavioral change** - existing per-area envs
 and tests stay stable until a scenario authors a schedule.
 
-### 3.2 Moon phases (task-229) — M, on top of 2.1
+### 3.2 Moon phases (task-229) - M, on top of 2.1
 
 Deterministic 30-day cycle from `game_day` → `get_moon_phase()` exposed in `/api/state` +
 `moon_phase` condition. Night-light bonus applied only in `lighting.py`'s outdoor night path,
@@ -153,7 +153,7 @@ Trigger types: `on_turn_start`, `on_turn_end`, `on_dawn`, `on_dusk`, `on_day`, `
 `date_equals`, `moon_phase_equals`, `weather` (exists, read-only today).
 (GM panel = the World Sky panel above; no separate GM UI.)
 
-### 3.5 Wind (task-231) + humidity (task-232) — M each
+### 3.5 Wind (task-231) + humidity (task-232) - M each
 
 Env keys `wind` / `humidity` with the `Time & Weather.md` effect tables; **defaulted kwargs**
 on `effective_temperature` (never break its 6 callers); air/humidity propagation; Engine Config
@@ -173,7 +173,7 @@ keys so values are tunable live.
 ## Sequencing & risks
 
 1. **Now:** 1.1 presence window (small, self-contained) + 1.3 bulk selection (unblocks 1.4) + 1.5 sounds block. Low risk each.
-2. **Next session:** Group 3 (weather & sky) as one coherent build — forecast first (gated no-op), then clock/date, moon bonus (day-pinned tests), then trigger/GM integration, wind/humidity last. **Risk watch:** the tick hook must be a no-op for unauthored worlds; moon bonus only in the outdoor-night branch; `effective_temperature` kwargs defaulted.
+2. **Next session:** Group 3 (weather & sky) as one coherent build - forecast first (gated no-op), then clock/date, moon bonus (day-pinned tests), then trigger/GM integration, wind/humidity last. **Risk watch:** the tick hook must be a no-op for unauthored worlds; moon bonus only in the outdoor-night branch; `effective_temperature` kwargs defaulted.
 3. **After:** 1.2 area conditions (phased; the biggest new subsystem), 1.4 env presets/zone apply.
 4. **Parked forever-ish:** 301 global re-pace done as default-only; 233 stays in AREAS group (phased).
 

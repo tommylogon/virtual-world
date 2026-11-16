@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-472",
+  "kind": "task",
+  "number": 472,
+  "title": "Central dice and check resolution",
+  "status": "done",
+  "priority": "high",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-471",
+      "task-470",
+      "task-468",
+      "task-159"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One place that answers what to roll, what modifies it, and how good the result is. Dice expressions, d20 with advantage/disadvantage (both cancel), the six ability scores and the skill->ability map, one auditable modifier pipeline (ability mod + skill/stat + traits + condition effects), degrees of success and criticals, opposed checks, and named DC bands. Call sites stop re-inventing pieces; SkillSystem.skill_check/saving_throw become thin adapters keeping their old tuple/message format, and skill checks finally include the ability modifier.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "`python -m pytest tests/test_checks.py tests/test_skills.py -q` → 63 passed.\nTargeted checks/skills/conditions/foraging/movement/grapple → 241 passed.\n\nAlso fixed a soak flake found here: `engine/foraging._candidate_entries` now\nrestricts candidates to entries satisfying `want_tags`, so a food search cannot\nspawn a herb the character then cannot eat (15/15 repeat runs clean).",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "progress_2026_09_23_landed_review": "`engine/checks.py` + `tests/test_checks.py`; `SkillSystem` now delegates.\n\n- [x] **Dice**: `roll_dice`, `parse_dice` (`\"2d6+3\"`, `\"d20\"`, flat `\"4\"`), `roll`,\n      and `roll_d20` with **advantage/disadvantage** (two d20, keep high/low; both\n      cancel). An injectable `roll_fn` keeps `SkillSystem.roll_dice` patchable.\n- [x] **Abilities**: `ability_mod` (`(score-10)//2`, never clamped), `STAT_NAMES`,\n      `SKILL_ABILITY` (the 5e skill→ability map, 18 skills), `SKILL_NAMES`.\n- [x] **Modifier pipeline**: `skill_modifiers` / `save_modifiers` collect ability\n      mod + skill/stat value + trait mods into one auditable list; `resolve(...)`\n      adds arbitrary extras with their sources.\n- [x] **Conditions feed the roll**: a condition definition may carry\n      `check_advantage`, `check_disadvantage` or `auto_fail_checks` naming skills,\n      abilities or `\"attack\"`/`\"*\"` (with aliases: dexterity→DEX, sight/hearing→\n      Perception, willpower/concentration/self_control→WIS). `restrained` now\n      actually gives attacks disadvantage, as its description always claimed.\n- [x] **Outcomes**: `success`/`fail`, `strong_success` (margin ≥ 5),\n      `crit_success`/`crit_fail` on a kept 20/1, and `auto_fail`. `dc_band`\n      preserves the legacy labels; `DCS` gives named DCs.\n- [x] **Opposed checks**: `opposed(a, b, kind=...)` with ties to the defender -\n      the shape theft-vs-Perception and social-vs-Insight need.\n- [x] **Adapters**: `SkillSystem.skill_check` / `saving_throw` keep their\n      `(success, total, message)` tuple and message format, so all existing call\n      sites (combat, movement, crafting, ghost, triggers, items) gained ability\n      mods + condition advantage + auto-fail for free. `tests/test_skills.py`'s\n      62 exact-math/message assertions still pass unchanged.",
+      "remaining": "- [ ] Migrate combat (`engine/combat.py`) and grapple onto `resolve`/`opposed`\n      so attack rolls get advantage from conditions too.\n- [ ] Use `DCS`/`dc_band` at the remaining hardcoded call sites (ghost/movement\n      still pass literal 15s).\n- [ ] Surface the skill+band and the d20 breakdown in the player prompt/narration.\n- [ ] Optional: the six abilities are currently read but never *changed* by play;\n      no proficiency term yet (the skill value is the trained number).",
+      "review_2026_09_23_landed_closed": "Verified: `tests/test_checks.py tests/test_skills.py` -> 63 passed (the 62 exact-math/message assertions unchanged), plus the 289-passed chain slice. Remaining bullets are owned: combat/grapple migration and the leftover literal DCs (task-477), prompt/narration surfacing (task-479), mutable abilities + proficiency (task-480). Closing."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-472-central-dice-and-check-resolution.md"
+  }
+}

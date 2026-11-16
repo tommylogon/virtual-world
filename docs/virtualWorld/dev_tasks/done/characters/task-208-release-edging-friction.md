@@ -10,7 +10,7 @@ related: ["'task-207'", "'task-209'", "'task-210'", "'task-211'", "'task-212'", 
 
 **Filed**: 2026-08-11
 **Priority**: High
-**Status**: Done — shipped in v1.4.0
+**Status**: Done - shipped in v1.4.0
 
 ---
 
@@ -30,7 +30,7 @@ The arousal meter needs a payoff path (release), a frustration path (edging), an
 
 ## Files
 
-- `engine/tick_manager.py` — `tick_turn()` hooks: `_check_release_threshold`, `_trigger_release_event`, `_apply_edging_effect`, `_apply_clothing_friction`
+- `engine/tick_manager.py` - `tick_turn()` hooks: `_check_release_threshold`, `_trigger_release_event`, `_apply_edging_effect`, `_apply_clothing_friction`
 
 ## Steps to verify
 
@@ -40,7 +40,7 @@ The arousal meter needs a payoff path (release), a frustration path (edging), an
 
 ## Related
 
-- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §4 Release/Edging, §6 friction, Phase 1
+- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §4 Release/Edging, §6 friction, Phase 1
 
 ## What
 

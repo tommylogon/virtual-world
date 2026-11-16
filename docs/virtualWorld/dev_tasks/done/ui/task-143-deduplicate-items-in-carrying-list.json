@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-143",
+  "kind": "task",
+  "number": 143,
+  "title": "Deduplicate Items in Carrying List",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The `Carrying:` list in prompts shows duplicate entries. Items equipped and carried (or items with multiple edge types) appear once per edge:\n\n```\nCarrying: Reinforced Wool Trousers, Reinforced Wool Trousers, Wool Blend Undershirt & Drawers, Wool Blend Undershirt & Drawers, ...\n```\n\nThis wastes tokens and makes the LLM think there are two of each item.",
+    "how": "Deduplicate by item node ID, not by name. `getInventory()` should track seen source IDs and skip duplicates:\n\n```js\nconst seen = new Set();\nfor (const edge of ...) {\n    if (seen.has(edge.source)) continue;\n    seen.add(edge.source);\n    ...\n}\n```",
+    "verify": "1. Load a scratch scenario where one item has both `carrying` and `equipped`\n   edges to a character; select that character and expand Agent Lens → `Room\n   context (observe / decide)`.\n   - expected: the same item node appears once in the `Carrying` list.\n   - observed: the task records ID-based deduplication in `worldState.getInventory()`;\n     visual verification is still pending.\n2. Add a second, distinct item node with the same display name and refresh the\n   preview.\n   - expected: both distinct item nodes remain represented; only the duplicate\n     edge for one node is collapsed.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/world-state.js` - `getInventory()",
+      "static/js/agent/prompt-builder.js` - downstream consumer",
+      "static/js/agent-engine.js` - downstream consumer"
+    ],
+    "custom": {
+      "cause": "`worldState.getInventory()` iterates all edges matching the character node ID and pushes `itemNode.name` for each match. If an item has both a `carrying` and `equipped` edge to the same character, its name is added twice.",
+      "browser_ui": "Intended UI home: Graph → select a character → Agent Lens → inventory/context\npreview; Character Inspector → Inventory for the visible item list.\n\nCurrent availability: `worldState.getInventory()` deduplicates by source item\nID before returning names. The card explicitly leaves visual verification\npending; the UI should still preserve two different item IDs that share a name.\n\nLive steps when available:\n1. Load a disposable scenario with one item connected to the character by both\n   `carrying` and `equipped`; select the character and inspect Agent Lens →\n   `Room context (observe / decide)` and Inspector → Inventory.\n   - expected: that item appears once in each list.\n2. Add a second item node with the same display name but a different ID, refresh\n   the state, and inspect the same two surfaces again.\n   - expected: two same-named physical items remain visible, while the\n     carried-and-equipped item remains a single entry.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-143-deduplicate-carrying-list.md"
+  }
+}

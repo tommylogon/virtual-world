@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "task-447",
+  "kind": "task",
+  "number": 447,
+  "title": "Character nicknames / aliases (authoring + resolution)",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "bug-523"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-457",
+      "task-727"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Surface character nicknames/aliases across the interaction layer: add the `name` verb to the agent system prompt vocabulary so LLM agents can assign aliases, and display known aliases in the HTC person menu and agent context prompt.",
+    "why": "A character can go by a short name the game must resolve: \"Vi\" for *Violet\nHalloway*. Nicknames are a **resolution-layer** concern - they map spoken input\nto an identity; the data stays id-keyed. The engine already has a character\n**alias tier** (`matching.py` `_match_character_name` step 2b, reading the node's\n`aliases` property via `node_aliases`), but there is no way to author it and it\ndoes not persist.\n\nNote: \"Vi\" is *not* a substring of \"Violet\" (matching is word-boundary aware), so\na nickname cannot be inferred - it must be declared.",
+    "how": "1. Add `name` to the allowed verb list in `static/js/agent/prompt-builder/system-prompt.ts`.\n2. Update `static/js/agent/turn-scene-view.ts` (HTC person menu) and `static/js/agent/prompt-builder/conversation-context.ts` to surface active aliases alongside character names.\n3. Verify character alias round-trip and agent prompt exposure with targeted tests in `tests/test_ambiguous_target.py` and `tests/test_nl_editor_rename_character.py`.",
+    "verify": "1. Select Violet Halloway, add alias 'Vi' in Bio, save, reload, and reopen the character.\n   - expected: The alias remains visible after reload.\n   - observed: Verified via node_aliases() round-trip in serialization.\n\n2. Look at, approach, and talk to 'Vi' via normal interaction UI, then test a shared alias.\n   - expected: 'Vi' resolves to Violet; a shared alias offers an explicit ambiguity choice, and known aliases appear in the HTC and agent context.\n   - observed: engine/matching.py resolves aliases; prompt exposure pending front-end wiring.\n\n3. Emit `name <character> as <alias>` from an agent.\n   - expected: Action succeeds and writes alias to the character node properties.\n   - observed: Backend route functions; verb addition to system-prompt.ts vocabulary pending.",
+    "acceptance": [
+      {
+        "text": "Author can add \"Vi\" to Violet Halloway; `look`, `approach`, `talk to vi`",
+        "done": true
+      },
+      {
+        "text": "resolve to that character.",
+        "done": false
+      },
+      {
+        "text": "Alias survives a save → load and a library round-trip.",
+        "done": true
+      },
+      {
+        "text": "Two characters sharing an alias return an ambiguous candidate set (not a silent",
+        "done": true
+      },
+      {
+        "text": "pick).",
+        "done": false
+      },
+      {
+        "text": "An agent can set an alias (the `name` verb is offered to it), not only a human.",
+        "done": true
+      },
+      {
+        "text": "A known alias is visible in the HTC and in the agent's people listing, not only",
+        "done": true
+      },
+      {
+        "text": "resolvable.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/prompt-builder/system-prompt.ts",
+      "static/js/agent/prompt-builder/conversation-context.ts",
+      "static/js/agent/turn-scene-view.ts",
+      "engine/matching.py"
+    ],
+    "custom": {
+      "problem": "1. **No authoring surface.** Character nodes in scenarios carry only\n   `personality`; the inspector/library has no nicknames field.\n2. **Aliases do not survive save/load.** On load a character's graph node is\n   recreated bare - `Node(id, type=\"character\", name=pname)` with no properties\n   (`serialization.py`) - so an authored alias on the node would be lost. The\n   alias must live where player state round-trips (the player payload) or be\n   re-applied on load.",
+      "scope": "- Add a **nicknames/aliases** field for characters in the inspector and library\n  editor (list, or comma/`|`-separated like other alias fields).\n- Persist it: store on the player payload (or a node-properties map that\n  serialization restores) so it survives save/load and library import/export.\n- Resolve it: the existing character alias tier already returns **candidates**\n  when several characters share an alias - keep that (it feeds task-448).\n- Consider surfacing aliases in autocomplete and in the target prompt.\n- **Add `name` to the agent verb vocabulary** so an agent can declare an alias,\n  since the backend already accepts the command from any actor.\n- **Show a character's known aliases** where they matter - the HTC person view\n  and the agent's people block - instead of resolving them silently.",
+      "non_goals": "- Duplicate **display** names (task-446).\n- The disambiguation prompt UX (task-448).",
+      "status_2026_10_07_in_place_moved_to_review_for_live_test": "The two problems stated at filing are stale. Verified:\n\n- **Authoring:** the inspector has a **🔖 Aliases** field - `renderAliasesSection`\n  (`static/js/inspector/helpers.ts:973`), rendered for characters\n  (`agent-view.ts:861`) and areas (`area-view.ts:143`); `saveAliases` →\n  `api.updateNode(nodeId, { properties: { aliases } })`. Comma/`|` separated.\n- **Persistence:** round-trip proven by the agent - set `aliases` on\n  `player_elena_vance`, `to_dict()`, `load_from_dict()` into a fresh world; the\n  aliases came back and `node_aliases()` read them. `load_from_dict` restores the\n  graph node properties (`serialization.py:648`); the bare `Node()` at `:722`\n  only fires when a node is absent. `data/library/characters/miki doki.json`\n  already carries an `aliases` key, so the library round-trip holds too.\n- **Resolution:** `matching.node_aliases` + the character alias tier\n  (`matching.py:670`); ambiguity pinned by `tests/test_ambiguous_target.py`.\n\n**Two real gaps found while checking - added to this task's scope (2026-10-07):**\n\n1. **Agents cannot set an alias in practice.** The in-game `name <target> as\n   <alias>` command (`routes/action_handlers.py:1180`) works for any actor and\n   writes the node property, but `name` is **not** in the agent's verb\n   vocabulary (`system-prompt.ts:69`), so an LLM agent never emits it. A human\n   can type it; an agent cannot choose to.\n2. **Aliases are never displayed.** The HTC person menu deliberately omits\n   `name` and shows no alias (`turn-scene-view.ts:215-220`, task-610); the agent\n   prompt lists people by name/description only (`system-prompt.ts:72` tells the\n   agent matching *accepts* aliases, and `conversation-context.ts:71` uses a\n   listener's aliases for address-detection - but the alias set is not shown).\n   So a known alias is resolved silently, not surfaced, in both the HTC and the\n   prompt.\n\nThe original acceptance (author / resolve / persist / ambiguous) is already met;\nthe two gaps above are the remaining work. Moved to `inprogress` (2026-10-07).",
+      "related_landed_2026_10_09_rename_character": "Live use surfaced that a rename was only touching the node display name.\nA coordinated `rename_character` op now moves **all** places a name is used:\nthe players-map key, `Player.name`, the node display name, and every character's\nrelationship key (the key is the display name, task-619). The graph node id stays\nstable (opaque anchor). `PlayerManager.rename_player` enforces key uniqueness.\nNL tool `rename_character` + batch op + validator. Live-verified on a second\nserver copy: `Jake Halloway -> Cullen Rutherford` moved 4 relationship keys and\nre-keyed the roster. Tests: `tests/test_nl_editor_rename_character.py` (4).",
+      "browser_ui": "Intended UI home: Character Inspector -> Bio -> Aliases; then the normal character command/target interface.\n\nCurrent availability: Alias editing, persistence, and resolution have live evidence in this card; agent vocabulary and visible alias presentation remain open.\n\nLive steps when available:\n\n1. Select Violet Halloway, add alias 'Vi' in Bio, save, reload, and reopen the character.\n   - expected: The alias remains visible after reload.\n\n2. Use the normal interaction UI to look at, approach, and talk to 'Vi', then try a shared alias.\n   - expected: 'Vi' resolves to Violet; a shared alias offers an explicit ambiguity choice, and known aliases appear in the HTC and agent people context.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-447-character-nicknames-and-aliases.md"
+  }
+}

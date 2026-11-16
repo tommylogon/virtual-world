@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "bug-593",
+  "kind": "bug",
+  "number": 593,
+  "title": "Wire engine/fear.py react() into live turns and fix frightened self-defense and cowardly trigger timing",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "fear",
+    "frightened",
+    "traits",
+    "combat",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-590",
+      "task-742",
+      "task-552",
+      "task-484"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Wire engine/fear.py (react / release_absent_fears) into live interactive turns and tick processing, allow cornered self-defense under frightened_block in combat.py, and give traits.cowardly a pre-damage witness/threat trigger.",
+    "why": "engine/fear.py (apply_frightening, release_absent_fears, react) is only called from background_social.py, timeskip.py, and soak.py - never during live interactive play or tick_manager.py ticks. Meanwhile engine/combat.py (lines 258-264) blocks attacking a feared source even when cornered or grappled in self-defense, and traits.cowardly (engine/traits.py) listens only on 'takes_damage' (activities.py:547-550) with no behavior_prompt or witness-danger trigger.",
+    "how": "1. Invoke fear.react() (apply_frightening and release_absent_fears) in live area transitions and engine/tick_manager.py turn/tick processing (reusing the same helper already called by soak/timeskip/background_social) so fear_tags apply and clear cleanly during live turns.\\n2. Update frightened_block usage in engine/combat.py (lines 258-264) and engine/conditions.py (lines 121-145) so when the feared character is actively grappling or recently attacked by that target (or cannot flee), self-defense proceeds at the frightening attack_mod penalty rather than leaving the defender helpless.\\n3. Add pre-damage fear trigger (e.g. threat/combat witness save_on hook) and behavior_prompt to traits.py ('cowardly', where currently only 'takes_damage' triggers) so cowardly characters react to imminent violence, not solely after taking HP damage.",
+    "verify": "1. Run pytest covering engine/fear.py, engine/conditions.py, engine/traits.py, and live turn execution in VirtualWorld verifying fear_tags apply in interactive play.\\n2. Test that a frightened character actively attacked/grappled by their fear source can retaliate/defend while frightened attack_mod penalties still apply, and test cowardly pre-damage save triggers.",
+    "acceptance": [
+      {
+        "text": "Live /api/action and engine/tick_manager.py execution invokes engine/fear.react() / release_absent_fears() on arrival and turn advance so fear_tags triggers function in interactive play, not only in soak/timeskip.",
+        "done": false
+      },
+      {
+        "text": "frightened_block in engine/conditions.py / combat.py allows a cornered or actively attacked/grappled character to defend themselves (with disadvantage/penalty) rather than unconditionally blocking self-defense against their attacker.",
+        "done": false
+      },
+      {
+        "text": "cowardly trait in engine/traits.py defines pre-damage witness/threat save_on hooks (beyond takes_damage alone) and behavior_prompt guidance.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/fear.py",
+      "engine/conditions.py",
+      "engine/combat.py",
+      "engine/traits.py",
+      "engine/tick_manager.py",
+      "routes/action_handlers.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal (active 'frightened' condition badge on character status) and Event Stream turn log.\\n\\nCurrent availability: engine/fear.py and traits.cowardly exist but react() is never invoked during live turn resolution in routes/action_handlers.py or tick_manager.py.\\n\\nManual verification steps:\\n1. Place a character with fear_tags or cowardly trait in an area where a matching threat enters or attacks.\\n2. Advance one turn or move into the room and inspect the character's conditions and combat response.\\n   - expected: fear.react() fires the fear condition automatically on exposure, cowardly characters save on witnessed danger as well as damage, and a frightened character being attacked or grappled can still attempt desperate self-defense."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Animal Fear]]",
+      "[[Rules Engine/Conditions System]]",
+      "[[Characters/Traits System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

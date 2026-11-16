@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "task-195",
+  "kind": "task",
+  "number": 195,
+  "title": "Humidity in Areas",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Humidity, flooding, and smoke should exist as environmental states in an area. Today an area has no way to express \"humid\", \"flooding\", or \"full of smoke\", so those conditions cannot drive gameplay.",
+    "how": "- Model as a condition on the area: `\"humid\"`, `\"flooding\"`, `\"full of smoke\"`.\n- Needs a concrete mechanical effect to be worth adding - candidates: drying speed, `effective_temp`, stealth.\n- Pick 1–2 uses before adding; do not add a bare flag with no gameplay payoff.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/area_description.py` - represent humidity/flood/smoke conditions on an area",
+      "engine/conditions.py` - define the condition types and their effects"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/environment/task-195-humidity-in-areas.md"
+  }
+}

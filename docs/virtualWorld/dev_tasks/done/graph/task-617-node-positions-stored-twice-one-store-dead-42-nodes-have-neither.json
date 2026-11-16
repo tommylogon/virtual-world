@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-617",
+  "kind": "task",
+  "number": 617,
+  "title": "Node positions stored twice, one store dead; 42 nodes have neither",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Two position stores exist (hand-authored 2-key and runtime 5-key); one is dead and 42 nodes have no position in either. The store in use does not persist.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "corrected_by_measurement_2026_09_30": "The filed claim was \"two position stores, one dead; 42 nodes have neither\". In\nthe loaded world the shape is different:\n\n| measurement | value |\n|---|---|\n| nodes | 239 (98 item, 99 logic_trigger, 20 way, 19 area, 3 character) |\n| position keys present in the whole graph | **`x` and `y` only**, on 138 nodes |\n| nodes using a `position` / `pos` object | **0** |\n| nodes with neither store | **101** |\n\nTwo corrections:\n\n1. **There is only one position store in use here**, not two with one dead. The\n   hand-authored 2-key store and the runtime 5-key store described in the finding\n   are not both present in this world's data -- so either the second store is\n   world-specific, or the finding conflated a schema with a populated instance.\n2. **The orphan count is 101, not 42** -- but **99 of those are `logic_trigger`**\n   nodes, which are logic rather than place and arguably should carry no\n   coordinate at all. The genuinely unexpected orphans are the remaining 2\n   `item` nodes.\n\nSo the useful part of this finding is narrower than filed: *do items need a\nposition, and if so why are 2 missing?* The \"two stores\" and \"42 orphans\" framing\ndoes not survive contact with the data.",
+      "my_correction_above_was_itself_a_wrong_world_artefact_retracting_it": "I measured this in `world_template` (239 nodes: 98 item, 99 logic_trigger) and\nconcluded there was only one position store, 101 orphans, and 99 of them\ntriggers. **That measurement described the other world, not this task's.** The\noriginal finding was recorded against `kraktooth_goblin_camp`, and loading it\nreproduces the filed numbers exactly:\n\n| | `world_template` (what I measured) | `kraktooth_goblin_camp` (what was filed) |\n|---|---|---|\n| nodes | 239 | **636** (205 area, 351 way, 29 logic_trigger, 28 item, 23 character) |\n| with `x`/`y` | 138 | **594** |\n| orphans | 101 | **42** |\n| orphans are | 99 `logic_trigger` + 2 item | **all 42 `item`** |\n\nSo the filed claim stands: **42 nodes have neither position store, and every one\nof them is an `item`.** My \"correction\" was me making the exact error this audit\nhas spent the session retracting -- judging a claim against whichever world was\nloaded. I had written the method warning into `AGENTS.md` and then committed the\nmistake inside the same hour.\n\nThe remaining open question is the same one I raised, and it is sharper in this\nworld: 28 items exist and **42** lack a position, so the count does not even\nmatch the item total -- some items do have one. What the layout does with an\nitem that has no coordinate is the thing worth checking next.",
+      "resolved_2026_10_02_wt_graph_render": "**The two stores, named.** In the *main* world graph there is only one node\nposition store: `node.properties.x`/`y` (2-key, hand-authored/durable). The\n`{id, type, x, y, props}` 5-key store the finding describes is the **trigger\nflow graph** in `data/library/triggers/*.json` (`static/js/shared/trigger-graph.js`),\na different canvas, not the world graph. The runtime store is\n`graph_background.positions` (`{id:{x,y}}` from `GraphBackground._capturePositions`),\nthe layout-lock snapshot that falls back to IndexedDB.\n\n**The surviving open question, answered.** On `kraktooth_goblin_camp` today\nthere are 52 nodes with no stored `properties.x/y` (equipped/carried items,\n`in`-held items, and `logic_trigger` nodes). The derived\n`GraphRelativeLayout.layoutPositions()` places **all of them** relative to their\nholder/area: measured 0 at the origin and 0 non-finite, in both the graph and\nMap layouts. The layout **derives** their position from the graph rather than\nreading a snapshot, which is the documented design (`relative-layout.js`), so\nthe coordinate-less nodes are not a defect.\n\n**The real bug: the store does not persist hidden nodes.** `_capturePositions()`\nand `persistPositionsToWorld()` both read `network.getPositions()`, and\nvis's `getPositions()` **omits hidden nodes**. Items and logic_triggers are\nhidden by default (31 triggers hidden on this world), so neither\n`graph_background.positions` nor the durable `properties.x/y` write ever\nrecorded their positions.\n\n**Fix** (`static/js/graph/graph-background.js`): a shared `_allNodePositions()`\nreads `network.body.nodes` (hidden nodes included), filtered to ids still in the\nDataSet, and both capture paths use it. (The `.js` is the live source of truth\nhere - it has been edited 5× since `graph-background.ts` was last regenerated and\ncontains bug-52's painted-coords skip the `.ts` lacks; `npm run build:ts` would\nregress it, so the fix went into the `.js`.)\n\n**Evidence** (Playwright, `kraktooth_goblin_camp` on port 4464):\n`getPositions()` 627 vs dataset 658, hidden 31;\n`GraphBackground.persistPositionsToWorld()` => `{saved: 195, failures: 0,\nskippedPainted: 463}`; `195 + 463 = 658`, i.e. every node. The old\n`getPositions()` path would have saved `627 - 463 = 164` - exactly the 31 hidden\ntriggers missing.\n\n**Operator verification (2026-10-10) - confirmed.** The persist path covers hidden\nnodes as described. The hand-edit hazard recorded above is no longer live: the\ncurrent `graph-background.ts` now carries `persistPositionsToWorld` with the same\npainted-coords guard (`isPainted` via `hasPaintedCoords`) as the `.js`, verified\n2026-10-10, so a `npm run build:ts` no longer regresses it."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-617-node-positions-stored-twice-one-store-dead-42-nodes-have-neither.md"
+  }
+}

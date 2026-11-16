@@ -14,7 +14,7 @@ priority: high
 
 Reloading the app while the graph is filtered to **world scope** (whole world
 loaded) blocks the UI while images load. User-reported interaction: hard refresh
-(F5) at world scope. Not yet reproduced independently by the filing agent — this
+(F5) at world scope. Not yet reproduced independently by the filing agent - this
 ticket records the measured ingredients and the mechanism class; a live profile
 is still required to name the exact blocking call (§ "What still needs to be
 measured").
@@ -69,11 +69,11 @@ Candidate fixes (to be chosen after a profile):
       their scope (unit tests + earlier live checks).
 
 **Note:** the user reported the app runs "a whole lot better" after deleting the oversized
-autosave and the server-side fixes, so the freeze may already be gone — but a profile is the
+autosave and the server-side fixes, so the freeze may already be gone - but a profile is the
 honest closer, not an assumption. The flat stabilization budget cannot be tuned cleanly at
 `init()` (the node count is not known until data arrives), so that lever needs its own change.
 
-## Measured cause (2026-10-09) — it is the vis.js physics solver, not the images
+## Measured cause (2026-10-09) - it is the vis.js physics solver, not the images
 
 After the server fixes (gzip + duplicate-key removal + image cache headers), the
 user restarted the server and hard-refreshed, and **Firefox still shows "This page
@@ -82,15 +82,15 @@ is slowing down Firefox"** at whole-world scope. That warning is a long-running
 
 The dominant client cost is the graph layout, not image decode:
 
-- `static/js/graph/network-manager.ts:316` — `stabilization: { iterations: 100,
+- `static/js/graph/network-manager.ts:316` - `stabilization: { iterations: 100,
   fit: false }`, a fixed budget for every graph size.
 - Physics is **left enabled** after stabilization; nothing disables it on load
   (the only disable is `graph-background.ts:2153`, for a specific mode). So the
-  solver keeps running on the main thread indefinitely over 2739 nodes —
+  solver keeps running on the main thread indefinitely over 2739 nodes -
   continuous CPU, periodically tripping Firefox's slow-script warning.
 - `static/js/graph/relative-layout.ts` seeds positions after
   `stabilizationIterationsDone` (vis `'stabilizationIterationsDone'` handler),
-  i.e. the derived layout already owns positions — the solver need not keep
+  i.e. the derived layout already owns positions - the solver need not keep
   running for a static view.
 - `relative-layout._parents()` also walks `parentOf` per node over the edge list
   (`relative-layout.ts:346-354`), an O(nodes × edges) pass mitigated by caches;
@@ -108,20 +108,20 @@ the report), but the asset size (task-754) still matters when they are on.
    stabilization when the graph has ≥ 500 nodes (`LARGE_GRAPH_PHYSICS_CEILING`).
    Small graphs keep live physics. Pending a live check.
 2. **Scale the iteration budget** with node count instead of a flat 100
-   (`network-manager.ts:316`) — still open; the 100-iteration stabilization is the
+   (`network-manager.ts:316`) - still open; the 100-iteration stabilization is the
    remaining load-time cost on a large graph.
 3. **Do not render the whole world:** the scope design (task-397) is "load one
    world scope at a time"; whole-world rendering of 2739 nodes is the root.
 
-### Correction (2026-10-09, later) — it is the CARDINAL map path, not "physics over 2739"
+### Correction (2026-10-09, later) - it is the CARDINAL map path, not "physics over 2739"
 
-Retracted: fix #1 above was a bad call — a node-count heuristic that overrides the
+Retracted: fix #1 above was a bad call - a node-count heuristic that overrides the
 user's Physics setting and ignores the layout mode. Reverted.
 
 The real cause, from the user's own model (areas should sit on coordinates; only
 items/characters should settle): the **cardinal** map layout path left areas and
 ways `physics: true, fixed: {x:false,y:false}` (`layout-engine.ts:124-173`), so the
-solver simulated every area and way — hundreds of pinned-by-intent nodes dragged
+solver simulated every area and way - hundreds of pinned-by-intent nodes dragged
 off their anchors (and off the background art) with a full solver pass every frame.
 The **grid** path already pins them (`:678-688`, `:723`); the cardinal path did not.
 

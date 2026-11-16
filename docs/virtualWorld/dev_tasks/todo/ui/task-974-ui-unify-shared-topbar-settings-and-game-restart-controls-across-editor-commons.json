@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-974",
+  "kind": "task",
+  "number": 974,
+  "title": "UI: Unify shared topbar, Settings, and Game/Restart controls across Editor, Commons, Benchmark, and SoakLab",
+  "status": "todo",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [
+    "ui",
+    "topbar",
+    "commons"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "medium",
+  "goal": "Unify the full application topbar, Settings modal, and Game/Restart controls across all standalone pages",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Consolidate the index.html topbar and Settings modal with shared_topbar.html across all four HTML entrypoints.",
+    "why": "Standalone pages (/commons, /bench, /soak) currently only have Commit/Clock/nav links and bounce to / for Settings or Game/Restart actions.",
+    "how": "Promote shared_topbar.html and shared-topbar.ts to include the full Game menu, Restart, and a shared Settings modal fragment so index.html and all sub-pages share one header implementation.",
+    "verify": "pytest tests/test_commons.py -q and npm run build:ts",
+    "acceptance": [
+      {
+        "text": "One shared Jinja topbar partial and controller powers /, /commons, /bench, and /soak",
+        "done": false
+      },
+      {
+        "text": "Settings modal and Restart/Game menu actions work in-place on /commons, /bench, and /soak without bouncing back to /",
+        "done": false
+      },
+      {
+        "text": "All existing index.html topbar controls (Commit, Clock, Spectator, Game menu, CommandPalette, Settings, Help, Narration) remain intact",
+        "done": false
+      }
+    ],
+    "files": [
+      "templates/partials/shared_topbar.html",
+      "templates/index.html",
+      "templates/commons.html",
+      "templates/benchmark.html",
+      "templates/soak.html",
+      "static/js/ui/shared-topbar.ts"
+    ],
+    "custom": {
+      "browser_ui": "Every top-level page (World, Commons, Benchmark, SoakLab) renders the identical topbar with working Commit, Clock, Game menu, Restart, and in-place Settings modal."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI/App Shell.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

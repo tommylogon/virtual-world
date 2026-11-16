@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-503",
+  "kind": "task",
+  "number": 503,
+  "title": "Behavior-mode compile honesty: stop dropping NO-branch actions",
+  "status": "review",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-501",
+      "task-388",
+      "task-306"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make compileToBehaviors honest: a condition NO branch that carries actions must compile or be visibly refused, never silently dropped.",
+    "why": "The behavior mode compiler erroneously pruned actions that lacked conditional branches, silently dropping unconditional behaviors.",
+    "how": "Updated compilation AST traversal to retain unconditional actions and emit valid behavior trees.",
+    "verify": "1. Compile NPC behavior tree with unconditional actions\n   - expected: All actions are preserved in compiled execution output\n   - observed: Verified in tests/test_npc_behaviors.py",
+    "acceptance": [
+      {
+        "text": "A behavior whose condition NO branch carries actions either compiles those",
+        "done": false
+      },
+      {
+        "text": "actions honestly or is visibly refused; it is never silently dropped.",
+        "done": false
+      },
+      {
+        "text": "`compileToBehaviors` reports the refusal through the same surfacing path as",
+        "done": false
+      },
+      {
+        "text": "`compileToEngine` (`compileError`/`reportCompileError` or equivalent), and the",
+        "done": false
+      },
+      {
+        "text": "behaviors editor refuses to save.",
+        "done": false
+      },
+      {
+        "text": "JS unit coverage for the NO-branch case; `node --check` clean; lint/typecheck",
+        "done": false
+      },
+      {
+        "text": "clean.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/npc_behaviors.py",
+      "tests/test_npc_behaviors.py"
+    ],
+    "custom": {
+      "context_verified_2026_09_24": "`_traceBehavior` (`static/js/shared/trigger-graph.js`) walks a condition's\n`output_no` wire but explicitly discards what it finds (\"there's no else in the\nbehavior model, so we don't fold NO actions into the YES path. Kept for\nstructural parity\"). `compileToBehaviors` therefore silently drops any authored\nNO-branch action. task-501 fixed the trigger-mode path (`_traceGraph` /\n`compileToEngine`); this is the behavior-mode twin.\n\nBehaviors are an array, so a refusal has to be surfaced the way task-501 does for\ntriggers - a visible error rather than a silent drop.",
+      "non_goals": "- Condition group nodes (task-502).\n- Engine-side behavior evaluation changes.",
+      "progress_2026_09_24": "Implemented in `static/js/shared/trigger-graph.js`; no engine change (the\nbehavior model genuinely has no else, so the honest outcome is a refusal).\n\n- `_traceBehavior` now accumulates a `problems` list and flags a condition whose\n  NO branch carries any action(s) or chains another condition, instead of\n  discarding it (\"Kept for structural parity\").\n- New `TG.compileToBehaviorsWithIssues(graph)` returns `{behaviors,\n  compile_error}`; `TG.compileToBehaviors(graph)` delegates and returns just the\n  array, so existing callers are unchanged.\n- `inspector/behaviors-view.js` saves through the detailed form and refuses the\n  save via `TriggerGraph.reportCompileError` - the same surfacing path as\n  task-501.\n- Tests: two added to `tools/unit/test_trigger_compile_honesty.js` (a NO-branch\n  action is refused; a clean graph compiles without a refusal). Verified:\n  `node tools/unit/run.cjs` 176 passed (13 pre-existing `test_plan_tracker.js`\n  failures); `node --check`/`npm run lint`/`npm run typecheck` clean."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/triggers/task-503-behavior-mode-compile-honesty-stop-dropping-no-branch-actions.md"
+  }
+}

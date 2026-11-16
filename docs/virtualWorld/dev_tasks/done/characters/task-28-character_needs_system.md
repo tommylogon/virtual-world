@@ -6,7 +6,7 @@ status: done
 priority: medium
 ---
 
-# Character Needs System Expansion — Review
+# Character Needs System Expansion - Review
 
 ## Files Modified
 
@@ -20,9 +20,9 @@ priority: medium
 
 ## Bugs Found & Fixed During Verification
 
-1. **engine `load_from_dict` vitals replace vs merge** — template has both `player` + `players` keys, so `_load_from_template_format` is skipped. The main load path used `p.vitals = pdata.get("vitals", {})` which **replaced** the Player init defaults (Bladder/Sanity/Entertainment/Temperature lost). Fixed to `{**p.vitals, **pdata.get("vitals", {})}`.
-2. **engine `to_dict()` missing `decay_rates`** — engine serialized players inline (not via `Player.to_dict()`) so `decay_rates` was never in API responses. Added `getattr(p, 'decay_rates', {})`.
-3. **inspector Temperature display raw float** — `vitals[v]` used raw float (37.30000001°C) instead of rounded `val`. Fixed to `${val}`.
+1. **engine `load_from_dict` vitals replace vs merge** - template has both `player` + `players` keys, so `_load_from_template_format` is skipped. The main load path used `p.vitals = pdata.get("vitals", {})` which **replaced** the Player init defaults (Bladder/Sanity/Entertainment/Temperature lost). Fixed to `{**p.vitals, **pdata.get("vitals", {})}`.
+2. **engine `to_dict()` missing `decay_rates`** - engine serialized players inline (not via `Player.to_dict()`) so `decay_rates` was never in API responses. Added `getattr(p, 'decay_rates', {})`.
+3. **inspector Temperature display raw float** - `vitals[v]` used raw float (37.30000001°C) instead of rounded `val`. Fixed to `${val}`.
 
 ## Verification Results
 
@@ -43,7 +43,7 @@ priority: medium
 **Status**: Ready to test
 **How to test**:
 - Load any scenario, open the inspector panel, click a player. Verify vitals show Bladder, Sanity, Entertainment bars under "Mental" and Temperature with °C suffix.
-- Check the left sidebar mini-bars — Bladder, Sanity, Entertainment, Temperature should appear.
+- Check the left sidebar mini-bars - Bladder, Sanity, Entertainment, Temperature should appear.
 - Click Step. Observe alert messages (e.g. "Tommy: Bladder full (15)") when Bladder ≤ 15.
 - Check `/api/state` returns `Bladder`, `Sanity`, `Entertainment`, `Temperature`, and `decay_rates` for all players.
 

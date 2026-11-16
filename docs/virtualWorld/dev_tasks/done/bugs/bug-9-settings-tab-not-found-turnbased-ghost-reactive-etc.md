@@ -12,8 +12,8 @@ User cannot see a tab or section in the Settings modal that contains turn-based 
 
 These settings exist in the Settings modal under the "Automation & Advanced" tab (`tab-automation`), which is the second of two tabs (alongside "Connection"). If the tab button is not rendering or the user can't find it, possible causes:
 
-1. CSS issue hiding the `.tab-btn` for `data-tab="tab-automation"` (unlikely — both tabs use the same class)
-2. The button is visible but the label "Automation & Advanced" is not descriptive enough — user may be looking for a "Provider" or "Behavior" tab label
+1. CSS issue hiding the `.tab-btn` for `data-tab="tab-automation"` (unlikely - both tabs use the same class)
+2. The button is visible but the label "Automation & Advanced" is not descriptive enough - user may be looking for a "Provider" or "Behavior" tab label
 3. Tab switching or tab rendering issue where the pane content doesn't show
 
 ## Investigation
@@ -24,7 +24,7 @@ These settings exist in the Settings modal under the "Automation & Advanced" tab
 
 ## Files
 
-- `templates/index.html:179-182` — settings tab buttons
-- `templates/index.html:207-228` — Automation & Advanced tab content (turn-based, ghost, reactive, LLM logs all here)
-- `static/js/ui/settings-view.js` — `switchTab()` logic
-- `static/css/style.css:673-721` — tab button and pane styles
+- `templates/index.html:179-182` - settings tab buttons
+- `templates/index.html:207-228` - Automation & Advanced tab content (turn-based, ghost, reactive, LLM logs all here)
+- `static/js/ui/settings-view.js` - `switchTab()` logic
+- `static/css/style.css:673-721` - tab button and pane styles

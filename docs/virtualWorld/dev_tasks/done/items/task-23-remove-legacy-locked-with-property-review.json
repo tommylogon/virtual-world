@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-23",
+  "kind": "task",
+  "number": 23,
+  "title": "Remove Legacy `locked_with` Property - Review",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-12 (updated 2026-07-20)",
+  "updated": "2026-07-12 (updated 2026-07-20)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open any room in the inspector (e.g. Living Area) - verify **no 🔑 badge** appears on locked exits\n2. Open a door inspector - verify no errors in console about `lockedWith`\n3. Create a trigger: `on_use_on` on a key item with `unlock_way` effect targeting a locked door - verify the door unlocks when using the key\n4. Type `use brass_key on front_way` - verify it unlocks via trigger (legacy `locked_with` is not consulted)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "changes_made": "### Engine (`virtual_world_engine.py`)\n\n- Way unlock path (`_create_locked_with_unlocks()`) is a **no-op** - door unlocking is handled entirely by triggers (`on_use_on` → `unlock_way` effect)\n- The remaining `locked_with` check (`line 2563`) is for **item-to-item lockboxes** only (e.g. locked chest with a key), not ways - kept as-is because that's a separate feature\n\n### Frontend (`inspector.js`)\n\n- Removed the 🔑 hint badge that displayed `locked_with` on exit names in the room inspector (was display-only, now meaningless)\n- Removed dead `lockedWith` variable read in door inspector (`line 1736` - declared but unused)\n\n### Tools (`tools/game_tools.py`)\n\n- Updated `tool_get_state` to show generic \"Try using a key item on it\" hint instead of checking `locked_with` property\n\n### Not Changed\n\n- **Scenario JSON files** (`manison2.json`, `heist.json`, `corsair.json`, `manison.json`) - still have stale `locked_with` data. Harmless, the engine ignores it. Can be cleaned up separately.\n- **Item-to-item lockboxes** in engine - still uses `locked_with` for chest/container key matching. Separate feature, not related to ways.\n- **Documentation** (`GAME_MECHANICS_GUIDE.md`) - still references `locked_with`. Should be updated when documentation is overhauled."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Connections]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-23-remove_locked_with.md"
+  }
+}

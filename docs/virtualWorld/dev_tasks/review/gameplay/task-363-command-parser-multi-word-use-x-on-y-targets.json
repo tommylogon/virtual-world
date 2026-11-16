@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-363",
+  "kind": "task",
+  "number": 363,
+  "title": "Command Parser - Multi-Word `use X on Y` Targets",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-104",
+      "task-244"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix the parser so `use [item] on [target]` works with multi-word targets. Today\n`routes/action.py:180-181` takes only the **single token** after `on` as the\ntarget and dumps the rest into `params`:\n\n```python\ntarget_name = tokens[on_idx + 1] if on_idx + 1 < len(tokens) else \"\"\nparams = ' '.join(tokens[on_idx + 2:]) if on_idx + 2 < len(tokens) else None\n```\n\nEvidence from `event_log_2026-08-02T12-00-06.txt`:\n- `use create flame on dry leaves` → target `\"dry\"` → `\"You try to use the create flame on dry, but there's no purchase on it - it's purely decorative.\"`\n- `use create flame on dried flower crown` → target `\"dried\"`, params `\"flower crown\"` → **`\"You use the create flame on the dried, inscribing: \"flower crown\".\"`** - it *inscribed* text onto her crown via the `params` path (`engine/item_actions.py:862-870`) instead of trying to ignite it.\n\nMulti-word item/target names are everywhere in this world (`Short Forest Cape`,\n`Dried Flower Crown (Crushed)`, `Stovepipe Leather Boots (Pair)`), so this\nbreaks real interactions.",
+    "why": "",
+    "how": "### 1. `routes/action.py` - `use` handler (lines 172-188)\n- Resolve the target as the **full remainder** after `on` when the rest is\n  unquoted: `target_name = ' '.join(tokens[on_idx + 1:])`.\n- Only populate `params` when the tokenizer returned explicit **quoted tokens**\n  (check `tokenize_command` in `routes/helpers.py` - confirm quotes merge into a\n  single token). Rule:\n  - If there are quoted tokens after `on` → first quoted token(s) = target,\n    remaining quoted tokens = `params` (inscribing, etc.).\n  - Otherwise → target = `' '.join(tokens[on_idx+1:])`, `params = None`.\n- Never let `params` take precedence over a real target. Guard `on_idx + 1 >=\n  len(tokens)` → \"Use <item> on what?\".\n\n### 2. Audit other \"on\"/\"with\" parsers for the same truncation\n- `rest ... on ...` (line 327-341): already joins the full remainder - verify,\n  leave as-is.\n- `attack ... with ...` (line 380-391): `weapon_name` already joins remainder -\n  verify, leave as-is.\n- `put X in Y` / `steal X from Y` (lines 238-255): `cmd.find` slicing - already\n  full remainder - verify.\n- `wear X under Y` (line 277-282): already splits on `\" under \"` - verify.\n\n### 3. Tests\n- Add cases to an existing test (`tools/test_all.cjs` or backend tests) covering:\n  - `use create flame on dry leaves` → target = `dry leaves`\n  - `use create flame on dried flower crown` → target = `dried flower crown` (no inscribe)\n  - `use key on cellar_way` still resolves\n  - quoted multi-word target still works if that path is kept",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Command parser resolves entity targets visible across multi-window viewports.",
+        "done": true
+      },
+      {
+        "text": "Ambiguous cross-window matches prompt for clarification.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/command_parser.py"
+    ],
+    "custom": {
+      "files_modified": "- `routes/action.py`\n- `routes/helpers.py` (only if `tokenize_command` needs quoted-token awareness)\n- `tools/test_all.cjs` (or backend test file)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-363-command-parser-multiwindow-targets.md"
+  }
+}

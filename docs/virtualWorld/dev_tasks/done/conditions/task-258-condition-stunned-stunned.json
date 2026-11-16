@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-258",
+  "kind": "task",
+  "number": 258,
+  "title": "Condition: Stunned (`stunned`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Reeling from a blow or effect. Can't act or move, fails STR/DEX saves. A fresh stun **extends the countdown** (`stack: refresh`).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [ ] Stun blocks actions/movement; speech allowed.\n- [ ] Fresh stun refreshes/extends the countdown, not a new instance.\n- [ ] Auto-expires after `default_duration` ticks (or extended duration).\n- [ ] `defense_mod -5` applies.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "schema_catalog_entry": "```python\n\"stunned\": {\n    \"name\": \"Stunned\", \"description\": \"Reeling. Can't act or move; fails STR/DEX saves. A fresh stun extends the countdown.\",\n    \"blocks_actions\": True, \"blocks_movement\": True, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [\"STR\", \"DEX\"],\n    \"attack_mod\": 0, \"defense_mod\": -5, \"speed_mult\": 0.0,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {}, \"ends_on\": [\"duration\"],\n    \"known\": True, \"symptoms\": {}, \"stack\": \"refresh\", \"default_duration\": 2,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown": "- **Gates**: blocks actions and movement; speech remains open.\n- **Saves/checks**: auto-fails STR/DEX.\n- **Combat**: `defense_mod -5` (helpless while stunned).\n- **Movement**: `speed_mult: 0.0`; keeps grip.\n- **Periodic**: none.\n- **Lifecycle**: `stack: \"refresh\"` - re-application extends duration (fresh stun perpetuates). `default_duration: 2` ticks; ends on `duration` only.",
+      "perception": "`known: True` - self-evident.",
+      "integration_points": "- `player.py:71-80` - catalog entry.\n- `engine/conditions.py` - combat mods, saves, speed.\n- `process_tick` countdown.\n- Chance-to-stun hooks (task-165 done) that apply this.",
+      "open_questions_things_to_work_out": "- Should damage end stun early (add `damage` to `ends_on`)? Currently only timed.\n- Confirm the extension math when a fresh stun is applied to an existing one."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Existing catalog"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-258-stunned.md"
+  }
+}

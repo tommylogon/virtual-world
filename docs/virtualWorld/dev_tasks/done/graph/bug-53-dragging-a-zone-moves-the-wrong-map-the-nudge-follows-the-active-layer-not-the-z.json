@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "bug-53",
+  "kind": "bug",
+  "number": 53,
+  "title": "Dragging a zone moves the wrong map: the nudge follows the active layer, not the zone's own art",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-523",
+      "bug-51",
+      "bug-52"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "One source, one answer, the same as everywhere else:\n\n- `_referenceLayerFor(scopeId, payload)` picks the layer that **is** that scope's\n  art by matching the scope's reference image, never by panel selection.\n- `_gridPayloadFor(scopeId)` caches the scope's grid payload (the reconcile and\n  both fits populate it), so the drag re-places the art synchronously without a\n  request per mousemove; the cache is dropped on world refetch, so a grid from\n  another scenario can never place a picture.\n- `_reapplyZoneArt(scopeId)` re-places the art from the grid rect and the *live*\n  offset through the same `_applyReferenceLayout` the load path uses, so nodes and\n  art stay in step by construction. `_nudgeActiveLayer` is gone.\n- The offset itself is still what gets persisted (`setScopeOffset`); the painter's\n  cell coordinates are never touched.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "symptom": "The author dragged the **West woods** zone to reposition it. The result looked\nwrong: the two background maps ended up stacked instead of aligned, and the\ngoblin camp's picture appeared to have followed the drag.",
+      "cause": "`_startZoneDrag` moved the picture with `_nudgeActiveLayer(...)`, which reads\n`_active()` - the layer **selected in the panel**. The layer list holds every\nscope's map at once, so \"active\" is a UI selection and says nothing about which\nzone is being dragged. Dragging west_woods could therefore shove the goblin camp's\nart anywhere, and the zone's own map stayed behind. That is exactly the stacked\npair in the screenshot.\n\nHand-nudging the rect was also the wrong *mechanism*: since bug-51 the art is\n**derived** from the grid plus the scope offset on every load, so a nudged rect is\ndiscarded on the next render - two sources of truth that disagree, and the drag's\nown movement lost on reload.",
+      "verified": "Live, on the author's world, dragging west_woods: the offset moved\n(-4.39, -3.26) → (-0.71, -1.42) cells and the **west woods** art followed,\n(-1271, 889) → (-315, 1367), while the **goblin camp** art stayed exactly where it\nwas at (-1467, -634). The zone was then put back to the author's own offset."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "fixed": "2026-09-27"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-53-dragging-a-zone-moves-the-wrong-map-the-nudge-follows-the-active-layer-not-the-zone-s-own-art.md"
+  }
+}

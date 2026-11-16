@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-75",
+  "kind": "task",
+  "number": 75,
+  "title": "Triggers Lost on New Item Creation",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When creating a new item via the \"Create New Item\" modal (graph toolbar → 📦 Item → fill form + triggers → create), triggers are sent to the backend in the request data but are silently discarded. They never become graph edges, so they never appear in the inspector panel.",
+    "why": "TODO",
+    "how": "Added trigger processing to `build_item_legacy` (before the final `return jsonify(...)`):\n\n1. Reads `data.get('triggers', [])`\n2. For each trigger, creates a `logic_trigger` node\n3. Creates a `triggers` edge from the item to the trigger node\n4. Handles both old format (`effect_type`/`effect_params`) and new format (`effects`/`conditions` arrays)",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "app.py`: Added ~30 lines of trigger edge creation in `build_item_legacy"
+    ],
+    "custom": {
+      "root_cause": "`/api/build/item` (`build_item_legacy` in `app.py:1261`) never reads the `triggers` field from the request body. The code handles location edges (room/container/character placement) but completely ignores the trigger data.\n\nThe `build_item_from_library` endpoint already correctly creates `logic_trigger` nodes + `triggers` edges, but `build_item_legacy` was never updated with similar logic."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-75-triggers_lost_on_create_item.md"
+  }
+}

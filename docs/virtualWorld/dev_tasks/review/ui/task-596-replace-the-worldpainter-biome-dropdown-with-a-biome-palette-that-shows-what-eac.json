@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "task-596",
+  "kind": "task",
+  "number": 596,
+  "title": "Replace the worldpainter biome dropdown with a biome palette that shows what each entry is and does",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The current single dropdown hides the difference between palette entry types. Replace it with a visible palette that can be filtered or grouped by kind - buildings, biomes, roads, ways - and that offers the information a person actually needs at paint time: what each entry is, what it does, and what it connects to. Two questions the palette must answer without opening anything else: 'what is the difference between a bridge and a road?' and 'where is the exit from here?'. Related to the palette: the inspector has no reach from a painted cell to the exits and ways touching it.",
+    "why": "A plain text dropdown concealed biome colors, environmental properties, and generated vegetation types.",
+    "how": "Replaced dropdown with a visual biome palette swatch bar showing biome swatch colors, tooltips, and associated tags.",
+    "verify": "1. Open WorldPainter tool and inspect biome selector\n   - expected: Visual palette displays swatches with tooltip descriptions and tags\n   - observed: Biome palette renders and selects active paint swatch",
+    "acceptance": [
+      {
+        "text": "The palette is grouped by kind (real `<optgroup>`s) and filterable by name",
+        "done": true
+      },
+      {
+        "text": "or id (already shipped by task-561/task-647); the picker now also shows a",
+        "done": false
+      },
+      {
+        "text": "**colour swatch** of what will be painted.",
+        "done": false
+      },
+      {
+        "text": "A per-tile detail line says what the entry **is** and **does**, from the",
+        "done": true
+      },
+      {
+        "text": "vocabulary the compiler reads: prose, kind (place/building/not-a-place),",
+        "done": false
+      },
+      {
+        "text": "ground material, and - on the road layer - the terrain it crosses and the",
+        "done": false
+      },
+      {
+        "text": "phrase you arrive with.",
+        "done": false
+      },
+      {
+        "text": "\"What is the difference between a bridge and a road?\" is answered without",
+        "done": true
+      },
+      {
+        "text": "opening anything else: *Bridge - A span carries the road over the gap ·",
+        "done": false
+      },
+      {
+        "text": "crosses river, stream, ravine, chasm · \"cross the bridge\"* vs *Road - A",
+        "done": false
+      },
+      {
+        "text": "worn track cut through the land · crosses sparse_forest, dense_forest,",
+        "done": false
+      },
+      {
+        "text": "farmland, hills*.",
+        "done": false
+      },
+      {
+        "text": "\"Where is the exit from here?\" is answered by the cell inspector's new",
+        "done": true
+      },
+      {
+        "text": "`exits` row: the passable neighbours N/E/S/W with their kind, so a solid",
+        "done": false
+      },
+      {
+        "text": "neighbour reads as a wall and the map edge reads as an edge.",
+        "done": false
+      },
+      {
+        "text": "Vocabulary payload extended with `descriptions`/`surface` on biomes and",
+        "done": true
+      },
+      {
+        "text": "`tags`/`biomes`/`entry_phrase`/`exit_phrase`/`descriptions` on features",
+        "done": false
+      },
+      {
+        "text": "(same records the compiler reads, so the preview cannot drift).",
+        "done": false
+      },
+      {
+        "text": "Live proof (Playwright, `localhost:4465`): detail strings above; cell",
+        "done": true
+      },
+      {
+        "text": "(14,8) panel reads `exits  N: empty · E: empty · S: road · W: road`.",
+        "done": false
+      },
+      {
+        "text": "Unit test `cellNeighbours names the exits around a cell (task-596)`.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor.ts",
+      "static/js/worldpainter/canvas-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: WorldPainter → terrain/road paint palette; after painting a cell, inspect it with the cell inspector. The palette answers what an entry is and does; the cell inspector answers which exits touch that cell.\n\nCurrent availability: The task records a live pass on localhost:4465: bridge and road detail text was visible, and the cell at (14,8) showed `N: empty · E: empty · S: road · W: road`.\n\nLive steps when available:\n1. Open WorldPainter, choose the road layer, and select Bridge; then select Road without opening another panel.\n   - expected: the palette shows each entry's colour swatch, description, kind, terrain crossings, and arrival phrase; the bridge text distinguishes an elevated span from a worn track.\n2. Filter the palette by a name fragment and then by an ID fragment.\n   - expected: only entries whose name or ID matches remain, and their swatches and descriptions stay attached to the correct option.\n3. Paint or select cell (14,8), open its cell inspector, and read the `exits` row.\n   - expected: N and E read empty, S and W read road; a solid neighbour reads as a wall and the map boundary as an edge.\n4. Switch from road to biome layer and inspect a biome entry.\n   - expected: its prose and surface come from the compiler vocabulary record, matching the palette content rather than a second UI-only definition.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-596-replace-the-worldpainter-biome-dropdown-with-a-biome-palette-that-shows-what-each-entry-is-and-does.md"
+  }
+}

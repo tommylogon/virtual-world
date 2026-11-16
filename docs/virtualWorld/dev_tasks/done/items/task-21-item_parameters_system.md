@@ -6,7 +6,7 @@ status: done
 priority: medium
 ---
 
-# Item Parameters System — Dynamic Properties Displayed in Triggers
+# Item Parameters System - Dynamic Properties Displayed in Triggers
 
 **Filed**: 2026-07-17
 **Priority**: High
@@ -16,19 +16,19 @@ priority: medium
 
 ## What
 
-Items now support dynamic template variables in trigger messages. The primary use case — grandfather clock showing current game time — is live and working.
+Items now support dynamic template variables in trigger messages. The primary use case - grandfather clock showing current game time - is live and working.
 
 ## Engine (virtual_world_engine.py)
 
 Task 16 (`_render_template()`) was already fully implemented. The engine already had:
 
-- **`_render_template(text, context)`** at line 4236 — replaces `{variable}` placeholders from context dict, plus `{param:<key>}` for item parameters
-- **Context building** in `_execute_triggers()` at line 1338 — already included `game_time`, `player_name`, `area_name`, `item_name`, `item_state`, `time_ticks`, `turn_number`, `player_hp`, `player_energy`, `player_sanity`, `area_light`, `area_temp`, `area_smell`
+- **`_render_template(text, context)`** at line 4236 - replaces `{variable}` placeholders from context dict, plus `{param:<key>}` for item parameters
+- **Context building** in `_execute_triggers()` at line 1338 - already included `game_time`, `player_name`, `area_name`, `item_name`, `item_state`, `time_ticks`, `turn_number`, `player_hp`, `player_energy`, `player_sanity`, `area_light`, `area_temp`, `area_smell`
 
 **What was added to the engine:**
 
-1. **`item_description`** — added to context at line 1348
-2. **`item_params`** — added to context at line 1351-1352, reads `item_node.properties.parameters` dict. This enables `{param:<key>}` syntax in trigger messages (e.g., `{param:format}`).
+1. **`item_description`** - added to context at line 1348
+2. **`item_params`** - added to context at line 1351-1352, reads `item_node.properties.parameters` dict. This enables `{param:<key>}` syntax in trigger messages (e.g., `{param:format}`).
 
 The `{param:<key>}` pattern is handled by `_render_template()`'s regex substitution: `re.sub(r"\{param:(\w+)\}", ...)` looks up the key in `context["item_params"]`.
 
@@ -70,7 +70,7 @@ Parameters are stored in node properties as `{"parameters": {"key1": "value1", "
 3. The output should show the current game time (e.g., "The clock reads 08:15:00...") instead of a hardcoded "08:15"
 4. Open the Inspector panel and click on the grandfather clock node
 5. Scroll to the "Parameters" section to see/edit key-value pairs
-6. Add a parameter like `chime: bong` — it becomes accessible via `{param:chime}` in trigger messages
+6. Add a parameter like `chime: bong` - it becomes accessible via `{param:chime}` in trigger messages
 
 ## Available Template Variables
 
@@ -94,7 +94,7 @@ Parameters are stored in node properties as `{"parameters": {"key1": "value1", "
 
 ## Note
 
-No new API endpoints were needed — the existing `api.updateNode()` (which calls `PATCH /api/graph/node/{id}`) already supports updating arbitrary node properties, including `parameters`.
+No new API endpoints were needed - the existing `api.updateNode()` (which calls `PATCH /api/graph/node/{id}`) already supports updating arbitrary node properties, including `parameters`.
 
 ## Why
 

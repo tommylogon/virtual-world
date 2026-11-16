@@ -142,7 +142,7 @@ Added route POST /api/scopes/<scope_id>/place_area updating node cell and proper
 ## Files
 
 - 
-outes/world_grid_ops.py
+routes/world_grid_ops.py
 - engine/world_scopes.py
 - static/js/worldpainter/grid-model.ts
-- 	ests/test_world_grid_routes.py
+- tests/test_world_grid_routes.py

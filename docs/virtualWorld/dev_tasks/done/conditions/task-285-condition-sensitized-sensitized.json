@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-285",
+  "kind": "task",
+  "number": 285,
+  "title": "Condition: Sensitized (`sensitized`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The edging stack. Repeated stimulation near the edge makes the character progressively more sensitive - every touch hits harder. Stacks by design.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"sensitized\": {\n    \"name\": \"Sensitized\", \"description\": \"Your skin is raw with wanting. Every touch echoes.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [\"concentration\"],\n    \"auto_fail_saves\": [],\n    \"attack_mod\": -1, \"defense_mod\": -1, \"speed_mult\": 0.95,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {\"Stimulation\": 1},   # escalating per stack level\n    \"level_periodic\": {\n        1: {\"Stimulation\": 1},\n        2: {\"Stimulation\": 2},\n        3: {\"Stimulation\": 3},\n    },\n    \"ends_on\": [\"release\", \"rest\"],\n    \"known\": True,\n    \"symptoms\": {\n        1: \"A lingering ache of want.\",\n        2: \"Needier than before. Tingling and raw.\",\n        3: \"Barely contained. Any touch is electric.\",\n    },\n    \"stack\": \"accumulate\",   # the edging stack - each edge-approach adds a level\n    \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: none hard.\n- **Saves/checks**: auto-fails `concentration` (distracting need).\n- **Combat**: light `attack_mod`/`defense_mod −1` and slight speed dip - distractible.\n- **Periodic**: escalating `Stimulation` feed by stack level (via `level_periodic`).\n- **Lifecycle**: `stack: \"accumulate\"` - the whole point is that edging **stacks** sensitivity. Ends on release or rest (dropping off once the edge resolves).",
+      "perception": "`known: True` - self-evident, escalating symptoms.",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry (leverage `level_periodic`/`level_speed_mult`).\n- `engine/conditions.py` - `process_tick`, symptoms.\n- Edging/closeness mechanics (task-208 release-edging-friction, task-94 closeness-as-behavioral-gate).\n- Release/climax clears the stack and typically hands off to `satisfied`.",
+      "testing_proposed": "- [ ] Repeated edge-approaches raise the stack level (accumulate, not noop).\n- [ ] Stimulation feed scales with level.\n- [ ] Concentration checks auto-fail; light combat mods.\n- [ ] Release/rest clears the stack.",
+      "open_questions_things_to_work_out": "- Exact accumulation trigger: does reaching a closeness threshold once bump the level, or per tick in the edge zone (task-208 friction)?\n- Cap - is there a maximum stack (e.g. level 3) before forced release/overstimulation (`overstimulated` interplay)?\n- Does high `sensitized` push toward `frantic` or `overstimulated`? (Sensitivity feeding either is a design lever.)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-285-heightened-sensitivity.md"
+  }
+}

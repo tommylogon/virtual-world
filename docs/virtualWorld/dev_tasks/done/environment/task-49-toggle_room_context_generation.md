@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Low
-**Status**: In Review — implemented (code-verified 2026-08-11). `gen-use-context`/`lib-gen-use-context` checkboxes in create-modal + item library (`create-modal.js:105/163/236`, `item-library/ai-generation.js:174/242`), read by `main.js:241/426`.
+**Status**: In Review - implemented (code-verified 2026-08-11). `gen-use-context`/`lib-gen-use-context` checkboxes in create-modal + item library (`create-modal.js:105/163/236`, `item-library/ai-generation.js:174/242`), read by `main.js:241/426`.
 
 ---
 
@@ -49,15 +49,15 @@ Default to **checked** (context included), since this is the more useful behavio
 
 **Status**: Ready to test
 **How to test**:
-- Open the create modal for Area or Item — verify a "🧠 Use world context" checkbox exists and is checked by default.
-- Open the Item Library, click Generate — verify a "🧠 Use room context" checkbox exists.
-- Uncheck and generate — verify the AI prompt excludes room/world context.
+- Open the create modal for Area or Item - verify a "🧠 Use world context" checkbox exists and is checked by default.
+- Open the Item Library, click Generate - verify a "🧠 Use room context" checkbox exists.
+- Uncheck and generate - verify the AI prompt excludes room/world context.
 
 ## Files
 
-- `static/js/main.js` — check context toggle before including room context in prompts
-- `static/js/item-library.js` — check context toggle before including room context in prompts
-- `templates/index.html` — add toggle checkbox to create modal forms
+- `static/js/main.js` - check context toggle before including room context in prompts
+- `static/js/item-library.js` - check context toggle before including room context in prompts
+- `templates/index.html` - add toggle checkbox to create modal forms
 
 ## How
 

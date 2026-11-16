@@ -22,18 +22,18 @@ Reads from buildRows/areaMap/featureMap, so the data is already in the payload.
 
 ## Acceptance
 
-- [x] `gridModel.cellInfo(payload, x, y)` — a pure function of the payload, so it
+- [x] `gridModel.cellInfo(payload, x, y)` - a pure function of the payload, so it
       is unit-tested without a canvas. Returns `{x, y, key, biome, road,
       elevation, area, child, painted, empty}`. The `feature` layer is
       `{cellKey: child_scope_id}`, so the readable name is resolved from the
       scope's own `placements` card; a child id with no card still names
       something rather than printing `undefined`.
-- [x] **Hover** — the grid HUD carries a `wp-cellinfo` readout, updated from the
+- [x] **Hover** - the grid HUD carries a `wp-cellinfo` readout, updated from the
       pointer. Konva fires `mousemove` per pixel, so the DOM is only touched when
       the cell *or its content* changed (a `state.cellInfoKey` guard). An empty
       cell says "nothing here" rather than printing three blank fields.
 - [x] **A 🔍 Inspect tool** in the tool rail, and a **right-click inspects on any
-      tool** — "what is this?" should never need a tool switch, and the
+      tool** - "what is this?" should never need a tool switch, and the
       right-click handler previously only swallowed the event.
 - [x] **The panel** (`wp-cellpanel`, under the grid) lists biome / road /
       elevation / area / sub-zone and offers only what applies to that cell:
@@ -46,7 +46,7 @@ Reads from buildRows/areaMap/featureMap, so the data is already in the payload.
 - [x] Verified live in the browser: hovering (11,7) of the goblin camp reads
       `(11,7) 📍 Animal Pens`; right-click opens the panel with the area row and
       the `📍 Move Animal Pens` / `🗑 Unplace` / `🔎 Open area` actions; an empty
-      cell reads `(18,2) — nothing here`.
+      cell reads `(18,2) - nothing here`.
 
 ## Notes
 

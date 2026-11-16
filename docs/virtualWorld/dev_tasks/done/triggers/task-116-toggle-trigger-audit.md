@@ -17,8 +17,8 @@ priority: medium
 
 Ensure that all trigger effect messages from backend actions (especially toggle on/off) are:
 
-1. **In the event stream** — visible to the human player in the UI
-2. **Fed to the agents** — included in the LLM prompt context via "WHAT HAPPENED" or equivalent
+1. **In the event stream** - visible to the human player in the UI
+2. **Fed to the agents** - included in the LLM prompt context via "WHAT HAPPENED" or equivalent
 
 Currently, the `on_toggle_on` trigger for the flashlight (message: *"You click the flashlight on. A bright beam cuts through the dark."*) does not appear in the log output. Only the base `toggle_item_status` message ("You turn the flashlight on.") shows.
 
@@ -34,11 +34,11 @@ Currently, the `on_toggle_on` trigger for the flashlight (message: *"You click t
 
 ### Scope
 
-- `engine/toggleable_items.py` — trigger execution and result building
-- `engine/trigger_system.py` — `_execute_triggers` method, edge discovery, effect execution
-- `routes/action.py` — result passing to frontend
-- `static/js/event-stream.js` — rendering of action results
-- `static/js/agent/prompt-builder.js` — inclusion in LLM context
+- `engine/toggleable_items.py` - trigger execution and result building
+- `engine/trigger_system.py` - `_execute_triggers` method, edge discovery, effect execution
+- `routes/action.py` - result passing to frontend
+- `static/js/event-stream.js` - rendering of action results
+- `static/js/agent/prompt-builder.js` - inclusion in LLM context
 
 ## Why
 

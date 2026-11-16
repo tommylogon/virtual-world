@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-128",
+  "kind": "task",
+  "number": 128,
+  "title": "One-Way Ways/Doors",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Ways (doors, passages) that can only be traversed in one direction - e.g. a one-way door, a jump-down ledge, a slide, a portal that only goes one way.\n\n---",
+    "why": "TODO",
+    "how": "### Backend\n\n- `movement.py:connect_areas` - added `one_way` parameter; sets `one_way: True` on way node properties\n- `movement.py:move_to_area` - checks `way_node.properties.one_way` + compares `current_area.name` against `area_from`; raises `ValueError` with message if traversing from wrong side\n- `npc_behaviors.py:_get_path_to_area` - BFS skips one-way ways when current node is not the source area\n- `npc_behaviors.py:_get_nearest_player_to` - same BFS skip\n- `npc_behaviors.py:slasher_hunt` - checks one-way before moving; returns descriptive message if blocked\n- `routes/graph.py:build_connect_legacy` - accepts `one_way` in POST data, passes to way node props\n- `virtual_world_engine.py:connect_areas` - passes through `one_way` parameter\n- `mcp_server.py:connect_areas` - exposes `one_way` parameter in MCP tool\n\n### Frontend\n\n- `way-view.js` - checkbox toggle in way inspector: `➡️ One-way (traversable only from area A → B)`\n- `way-view.js` - `one_way` included in library save payload\n- `network-manager.js` - one-way ways rendered with blue border (`#58a6ff`) and ` →` label suffix\n- `network-manager.js` - tooltip shows `➡️ One-way (from <area_from>)`\n\n### Files changed\n\n- `engine/movement.py` - 2 changes (connect_areas param, move_to_area check)\n- `engine/npc_behaviors.py` - 3 changes (two BFS checks, slasher_hunt check)\n- `routes/graph.py` - 1 change (accept one_way in POST)\n- `virtual_world_engine.py` - 1 change (pass through one_way)\n- `mcp_server.py` - 1 change (one_way param + body)\n- `static/js/inspector/way-view.js` - 2 changes (checkbox + library save)\n- `static/js/graph/network-manager.js` - 2 changes (node rendering + tooltip)",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "related": "- [[todo/gameplay/task-99-room-grids-and-movement|task-99: Room grids and movement]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-07-30"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-128-one-way-ways.md"
+  }
+}

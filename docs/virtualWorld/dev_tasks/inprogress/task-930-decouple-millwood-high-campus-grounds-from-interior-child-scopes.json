@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "task-930",
+  "kind": "task",
+  "number": 930,
+  "title": "Decouple Millwood High Campus Grounds from Interior Child Scopes",
+  "status": "inprogress",
+  "priority": "medium",
+  "area": "",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "status_done": "**Assigned**: Juno\n**Date**: 2026-11-05\n**Relates to**: `millwood__public_school`, `millwood_high_1f_3`, `millwood_high_2f_2`\n\n---",
+      "1_context_problem": "Before splitting Millwood High into vertical multi-storey child scopes (`millwood_high_1f_3` and `millwood_high_2f_2`), the parent scope `millwood__public_school` held both interior rooms and 9 legacy hand-placed landmark area nodes (`area_cafeteria`, `area_millwood_high_gym`, `area_chemistry_lab`, `area_school_library`, `area_arts_annex_studio`, `area_detention_room`, `area_lockers`, `area_school_courtyard`, `area_school_entrance`).\n\nWhen 1F and 2F were compiled from their authentic blueprint image crops:\n- 1F compiled authentic chambers for the Cafeteria, Gym, and Classrooms.\n- The parent scope still retained duplicate hand-placed interior rooms on its own 35x20 grid, causing duplicate rooms across scopes.\n\n---",
+      "2_goals_acceptance_criteria": "- [ ] In `millwood__public_school`, unplace all interior landmark area nodes (`area_chemistry_lab`, `area_cafeteria`, `area_millwood_high_gym`, `area_school_library`, `area_arts_annex_studio`, `area_detention_room`, `area_lockers`).\n- [x] Retain exterior landmark nodes on campus: `area_school_courtyard` and `area_school_entrance`.\n- [x] Clean parent grid layout so it represents strictly the exterior grounds (courtyard, pathways, front steps).\n- [x] Verify the building entrance portal at `(12, 17)` cleanly transitions players into `millwood_high_1f_3` (First Floor).\n- [x] Drive all changes interactively through the live browser UI via Playwright (NO script bypasses).\n- [ ] Run `⚙ Generate` on `millwood__public_school` in the UI and confirm clean preflight with 0 blockers.\n- [x] Commit updated world state to `data/scenarios/Millwood.json` and verify with `git status`.\n\n---",
+      "3_execution_log": "- Task created: 2026-11-05."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/inprogress/task-930-decouple-millwood-campus-grounds-from-interior-floors.md"
+  }
+}

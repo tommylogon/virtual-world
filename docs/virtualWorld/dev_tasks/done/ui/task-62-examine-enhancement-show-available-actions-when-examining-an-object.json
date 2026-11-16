@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-62",
+  "kind": "task",
+  "number": 62,
+  "title": "Examine Enhancement - Show Available Actions When Examining an Object",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When a player examines an object, the result should include not only the object's description but also a list of **available actions** the player can perform on it. This helps players discover what they can do with items without trial-and-error guessing.\n\nFor example:\n```\n> examine grandfather_clock\n\nAn old grandfather clock ticks steadily in the corner. It is tall with an intricately carved wooden face.\n\nAvailable actions:\n  [examine] Look at the clock closely\n  [open] Open the glass door\n  [use key] Insert a key (requires: brass_key)\n  [toggle] Toggle the chime\n```",
+    "why": "### Examine result (`virtual_world_engine.py:1326`)\n\nThe `get_item_desc()` method returns:\n1. Item description from `item_node.properties.description`\n2. Optional skill check results\n3. Trigger outputs (from `on_examine` triggers)\n4. Container contents (if any)\n\nNo action hints are included.\n\n### Item actions property\n\nItems have an `actions` list (e.g., `[\"examine\"]`) and `action_costs` in their properties. But these are used by the engine for validation, not surfaced to the player.\n\n### Available actions per item\n\nAn item's available actions depend on:\n- The item's `actions` list (statically defined)\n- The item's `current_state` (e.g., a closed container can be \"open\", an open one can be \"close\")\n- The player's inventory (e.g., \"use key\" is available only if the player has a matching key)\n- The item's triggers (e.g., `on_toggle_on`/`on_toggle_off` implies toggle is available)\n- Area conditions (light level, player state)",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - `get_item_desc()`, new `_get_available_actions()",
+      "static/js/event-stream.js` - (optional) render clickable action buttons in examine output",
+      "world_template.json` - add action metadata for template items"
+    ],
+    "custom": {
+      "proposed_design": "### Phase 1: Determine available actions in the backend\n\nAdd a method `_get_available_actions(item_node, player)` that returns a list of action descriptors:\n\n```python\n[\n    {\"action\": \"examine\", \"label\": \"Look at the clock closely\", \"enabled\": True},\n    {\"action\": \"open\", \"label\": \"Open the glass door\", \"enabled\": False, \"reason\": \"It's already open\"},\n    {\"action\": \"use brass_key\", \"label\": \"Insert a key\", \"enabled\": True},\n    {\"action\": \"toggle\", \"label\": \"Toggle the chime\", \"enabled\": True},\n]\n```\n\nRules for determining available actions:\n- `examine` - always available (it's the current action)\n- `take` - available if item is in room and not too heavy\n- `drop` - available if item is carried\n- `open`/`close` - available if item has openable state and isn't already in that state\n- `use` - available if item has triggers for `on_use` or `on_use_on`\n- `use [target]` - available if player has a matching item in inventory and target has relevant triggers\n- `toggle` - available if item has `on_toggle_on`/`on_toggle_off` triggers\n- `eat`/`drink` - available if item has food/drink tags\n\n### Phase 2: Append to examine output\n\nModify `get_item_desc()` to append available actions:\n\n```python\ndesc += \"\\n\\nAvailable actions:\"\nfor action in actions:\n    status = \"\" if action[\"enabled\"] else f\" ({action['reason']})\"\n    desc += f\"\\n  [{action['action']}] {action['label']}{status}\"\n```\n\n### Phase 3: (Future) Make actions clickable in the frontend\n\nIn the examine output displayed in the event stream, render actions as clickable buttons that populate the command input. This would require changes to the event stream rendering in `static/js/event-stream.js`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-62-examine_shows_actions.md"
+  }
+}

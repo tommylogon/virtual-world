@@ -54,7 +54,7 @@ New `tools/stream_read.cjs` (or similar) following `tools/log_lint.cjs` conventi
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — the deliverable is a standalone Node CLI that reads an exported JSON/JSONL file without the app or browser.
+Intended UI home: Not applicable - the deliverable is a standalone Node CLI that reads an exported JSON/JSONL file without the app or browser.
 
 Current availability: The event-record format is owned by task-777; this reader depends on task-777 and is not claimed as implemented.
 

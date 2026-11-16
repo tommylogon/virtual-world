@@ -10,8 +10,8 @@ priority: high
 **Filed:** 2026-09-22
 **Hub for:** task-466 (interrupt & relevance evaluator), task-467 (belief-based
 travel + maps), task-468 (interrupt-capable background agendas)
-**Depends on:** task-436 (duration on tasks — the substrate), task-414 (server-side
-batch advance + world lock — the transport), task-399/409 (soak policies),
+**Depends on:** task-436 (duration on tasks - the substrate), task-414 (server-side
+batch advance + world lock - the transport), task-399/409 (soak policies),
 task-466 (interrupts), task-412 (promotion + summary/memory), task-437 (deterministic
 resolution order).
 
@@ -24,7 +24,7 @@ is interrupted the moment something relevant happens to the player, at which poi
 the human controller takes over again at that tick.
 
 The player's character is **never frozen and never protected**. Vitals decay, the
-environment applies, and biology fires — wait two hours in a forest with no food or
+environment applies, and biology fires - wait two hours in a forest with no food or
 water and you can die. That is the point: the timeskip removes *decisions*, not
 *consequences*.
 
@@ -40,7 +40,7 @@ stasis mode; the only dial is *what policy stands in for you*.
 Per [[Simulation Model]], the human's character runs the same action flows as
 everyone else. During a skip the engine swaps the human's controller for a
 deterministic policy and runs every other character at soak/background fidelity.
-Nothing about the rules changes — only who chooses.
+Nothing about the rules changes - only who chooses.
 
 - **Zero LLM calls inside a skip.** Policies are scripted and deterministic.
 - The skipped character's policy is a **valid but suboptimal** policy, so anything a
@@ -53,7 +53,7 @@ Nothing about the rules changes — only who chooses.
 
 | Intent | Agency during skip | Typical ends |
 |---|---|---|
-| **Idle / wait** | none — no eating, no wandering, no involuntary suppression | duration; vital/involuntary/threat interrupt |
+| **Idle / wait** | none - no eating, no wandering, no involuntary suppression | duration; vital/involuntary/threat interrupt |
 | **Leisure / mingle** | deterministic maintenance + social: eat/drink (carried or bought), roam the current area, socialise | duration; threat/discovery interrupt |
 | **Search** | systematic scan of the area and its containers for a type/tag/specific item | found; budget out; interrupt |
 | **Explore** | move into the frontier (undiscovered exits), preferring unexplored areas | interest-tag match; discovery; threat; budget |
@@ -79,14 +79,14 @@ set for v1:
 - **Vitals / conditions:** a meter crossing its danger threshold, a new condition, a
   hazard the character cannot passively survive.
 - **Involuntary actions:** biology firing (bladder, itch, etc.) ends the skip and
-  hands control back — "master of self control" is not a free pass.
+  hands control back - "master of self control" is not a free pass.
 - **Discovery:** an item/way/area/character matching a declared search target, an
   interest tag (`Player.interest_tags`), or a known goal.
 - **Travel-specific:** an interesting item or way, an animal or enemy, a vital floor,
   or arriving at the believed destination (found or found-not-there).
 
 On interrupt: stop at the tick boundary, keep the policy's trace, present the
-situation as the normal prompt. No special state is needed — the world is simply at
+situation as the normal prompt. No special state is needed - the world is simply at
 that minute.
 
 ## Transport, lock and jobs
@@ -99,7 +99,7 @@ that minute.
   Cancel stops at a tick boundary and still returns the elapsed summary.
 - Concurrency: hold the same lock the normal step path uses; reject a skip while a
   turn/step/LLM call is in flight and reject step/turn while a skip runs (queue or
-  409 — pick one and document it); one active skip at a time.
+  409 - pick one and document it); one active skip at a time.
 - Persistence: **one autosave at the end** (or on cancel), never per tick. A page
   reload mid-skip abandons the job at the last completed tick boundary.
 - Seed the RNG so a skip is reproducible.
@@ -120,7 +120,7 @@ does **not** leave the area and does not make risky choices. Threat/discovery
 interrupts still apply.
 
 ### Search
-A target spec — specific item id, item type, or tag — plus an area scope. The policy
+A target spec - specific item id, item type, or tag - plus an area scope. The policy
 works the area and its containers using existing look/examine/item-reach rules,
 respecting hidden/discovery gating and any perception requirement. Success ends the
 skip (or raises an interrupt); budget-out ends it with partial findings recorded in
@@ -134,9 +134,9 @@ exhaustion. Shares the heading/frontier primitive with belief-based travel.
 ### Travel / fast-travel
 Two primitives:
 
-1. **Known route** — a discovered path through the graph: duration is the sum of the
+1. **Known route** - a discovered path through the graph: duration is the sum of the
    route's task durations (task-436), not an arbitrary number of turns.
-2. **Belief / heading** — "go west 2h"; the destination is a belief in memory
+2. **Belief / heading** - "go west 2h"; the destination is a belief in memory
    (task-403), not a node. Resolve by heading + budget, discovering whatever lies
    that way, and validate the belief on arrival. Maps and directions gained from
    dialogue, items or hearsay write the knowledge that upgrades a belief into a known
@@ -154,7 +154,7 @@ skip, opt-in.
 
 The human gets exactly one bounded `Player.add_memory(source: "timeskip")` entry
 built with the task-412/399 consolidation template, so the next prompt knows what
-happened — including that vitals decayed. Repeated resume must not duplicate it. NPCs
+happened - including that vitals decayed. Repeated resume must not duplicate it. NPCs
 get their normal consolidation.
 
 ## UI
@@ -162,7 +162,7 @@ get their normal consolidation.
 - The intent entry points (top bar, command palette, and commands): `wait`, `mingle`,
   `search`, `explore`, `travel`.
 - A real dialog per intent: duration presets (1 h, 4 h, until dawn/dusk/morning),
-  custom minutes, and — for travel/explore — a heading or target, with the resolved
+  custom minutes, and - for travel/explore - a heading or target, with the resolved
   clock and an estimate ("8 h ≈ 480 min · 23 characters · a few seconds").
 - Progress panel with Cancel; suppress the normal turn-feed animation and post one
   summary entry instead of replaying hundreds of turns. Accessible result card.
@@ -217,22 +217,22 @@ get their normal consolidation.
 - Unit: cancel at minute K returns a K-minute summary and a usable world.
 - Integration: `/api/world/timeskip` validation, clamping, conflict handling (409),
   summary shape.
-- Manual: goblin camp, "wait until morning" — overnight deaths/arrivals in the
+- Manual: goblin camp, "wait until morning" - overnight deaths/arrivals in the
   summary and the next prompt reflects elapsed time and decay.
 
 ## Evidence (starting points)
 
-- `virtual_world_engine.py:54` — `time_per_tick_minutes` (the frame dial; skip forces 1).
-- `engine/tick_manager.py:173` — `tick_turn()` decay/conditions/environment for all.
-- `engine/tick_manager.py:797–806` — simple-NPC + background-sim calls (the soak path).
-- `engine/background_simulation.py` — due-scheduler for background characters.
-- `engine/activities.py` — duration/blocking activities (sleep is the existing precedent).
-- `engine/trace.py` — the fact log the summary/memory is built from.
-- `engine/items/transfer_actions.py` — `steal_item` (the theft interrupt source).
-- `engine/soak_runner.py` / `tools/soak_sim.py` — the job + N-tick loop to mirror.
-- `routes/action_handlers.py:1129–1132` — the current `tick_turn()` call site.
+- `virtual_world_engine.py:54` - `time_per_tick_minutes` (the frame dial; skip forces 1).
+- `engine/tick_manager.py:173` - `tick_turn()` decay/conditions/environment for all.
+- `engine/tick_manager.py:797–806` - simple-NPC + background-sim calls (the soak path).
+- `engine/background_simulation.py` - due-scheduler for background characters.
+- `engine/activities.py` - duration/blocking activities (sleep is the existing precedent).
+- `engine/trace.py` - the fact log the summary/memory is built from.
+- `engine/items/transfer_actions.py` - `steal_item` (the theft interrupt source).
+- `engine/soak_runner.py` / `tools/soak_sim.py` - the job + N-tick loop to mirror.
+- `routes/action_handlers.py:1129–1132` - the current `tick_turn()` call site.
 
-## Progress 2026-09-22 — engine + HTTP slice landed (in progress)
+## Progress 2026-09-22 - engine + HTTP slice landed (in progress)
 
 `engine/timeskip.py`, `engine/interrupts.py`, `routes/timeskip_ops.py`,
 `POST /api/world/timeskip` (registered in `routes/action.py`), 25 tests.
@@ -251,11 +251,11 @@ get their normal consolidation.
 - [x] Frontend: "⏩ Wait / Timeskip…" menu item + dialog (intent, duration preset/custom, target, heading, watch tags) posts to the route, renders the summary and refreshes `worldState`.
 - [x] Concurrency: one skip at a time, and `/api/action`, `/api/turn/apply` and `/api/llm_respond` return 409 while a skip runs (`timeskip.is_running()`), so nothing interleaves with the skip's clock.
 - [x] Travel: the span derives from the route length, no-route and already-there are refused, and it continues through intermediate areas instead of stopping at the first doorway.
-- [x] Search modes: name (`target`), tag (`watch_tags`), "type" (`target_type` — the library has no type taxonomy, items are tagged); Explore defaults its watch tags to the character's own `interest_tags`.
+- [x] Search modes: name (`target`), tag (`watch_tags`), "type" (`target_type` - the library has no type taxonomy, items are tagged); Explore defaults its watch tags to the character's own `interest_tags`.
 - [x] Spans can be `until dawn/dusk/noon/night/midnight` off the world clock.
 - [x] Summary appends notable world events (deaths, fights, arrivals) from turn events, filtered by area.
 - [x] **No active character = world advance**: `engine/timeskip.advance_world()` runs the clock with everyone in soak (no policy, no interrupts, no resume memory); `POST /api/world/timeskip` returns `mode:"world"`, and the dialog hides intent/target/tags and offers **"Advance world"**.
-- [x] The **human's turn composer** has a "⏩ timeskip" button — the natural home — alongside the More-menu and command-palette entries; `mode:"character"` on the result.
+- [x] The **human's turn composer** has a "⏩ timeskip" button - the natural home - alongside the More-menu and command-palette entries; `mode:"character"` on the result.
 - [ ] Turn-composer entry should be styled/labelled for "skip time" with a duration quick-pick rather than opening the full dialog.
 - [ ] Progressive progress + Cancel while running (needs the job runner).
 - [ ] Long spans via a soak-runner-style job (the route caps at 1,440 min).

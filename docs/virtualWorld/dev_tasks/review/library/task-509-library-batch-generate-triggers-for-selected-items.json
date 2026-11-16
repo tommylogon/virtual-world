@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "id": "task-509",
+  "kind": "task",
+  "number": 509,
+  "title": "Library - batch-generate triggers for selected items",
+  "status": "review",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-508",
+      "task-506",
+      "task-424"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let the author **select N library items and run the trigger suggester across the\nwhole selection**, with a reviewable diff before anything is written - instead of\nopening each of the 505 items and clicking \"⚡ Suggest\" one at a time.",
+    "why": "The pieces exist but are strictly per-item:\n\n- The suggester buttons live in the node/editor pane\n  (`static/js/inspector/trigger-helpers.js:154-155`), and the item editor calls\n  them for the open item (`static/js/item-library.js:628`).\n- The one multi-item selection the library has is for **placement only**:\n  `_multiSelect` / `_checkedIds` are switched on by `openForRoom`\n  (`item-library.js:59-69, 162-174, 192-196`) and clear on close.\n- `static/js/shared/trigger-suggest-diff.js` already exists to review a proposed\n  trigger set, and `trigger-helpers.js` even has a *batch* endpoint - but only for\n  the several trigger types of **one** node (`trigger-helpers.js:564`).\n\nSo nothing can say \"these 65 tag-only edible items need consumption triggers -\nsuggest them all and show me the diff\". That is exactly the job task-506 needs.",
+    "how": "- **Selection mode** that is independent of placement: an action bar appears when\n  items are checked (\"N selected\"), reusing `_checkedIds` and `renderList`'s\n  `_multiSelect` path rather than inventing a second selection model.\n- **Two run buttons** in the action bar:\n  - `⚡ Suggest triggers (N)` - the offline heuristic\n    (`ItemLibraryTriggerSuggester`), instant, no LLM.\n  - `✨ Suggest (AI) (N)` - queued through the existing per-item AI route with\n    bounded concurrency and a progress indicator.\n- **Review before write.** Heuristic and AI results both stage into the existing\n  diff view (`trigger-suggest-diff.js`); nothing is persisted until Apply. The\n  review lists per-item `before → after`.\n- **Policy for already-authored items** (the 13 that have triggers): default\n  **skip and report**, with an opt-in \"replace existing\" that only applies to the\n  checked set. Never silently overwrite hand-authored content.\n- **Policy for the depletion contract:** the batch must not fight task-508 - until\n  508 decides, do not emit hand `adjust_uses` (the suggester's current contract),\n  and once 508 lands, emit exactly what it specifies.\n- **Report:** `N applied · M skipped (already authored) · K failed`, with the\n  failed ids listed so the author can retry.",
+    "verify": "- JS unit (`tools/unit/run.cjs`): selecting N items yields N staged sets; existing\n  triggers are skipped by the default policy; re-run is idempotent.\n- Manual: run over the 65 tag-only edible items; Apply writes one `on_eat`/`on_drink`\n  per item, reviewed in the diff, and `python tools/tasks.py validate`-style lint\n  still passes for the library.",
+    "acceptance": [
+      {
+        "text": "Checking items in the library shows a bulk bar; running the heuristic on the",
+        "done": false
+      },
+      {
+        "text": "selection produces one trigger set per item, visible in the diff, and writes",
+        "done": false
+      },
+      {
+        "text": "nothing until Apply.",
+        "done": false
+      },
+      {
+        "text": "The AI path processes the selection without freezing the UI, shows progress,",
+        "done": false
+      },
+      {
+        "text": "and degrades gracefully when the AI is unavailable (offer the heuristic).",
+        "done": false
+      },
+      {
+        "text": "Items that already have `on_eat`/`on_drink` (or any triggers) are skipped by",
+        "done": false
+      },
+      {
+        "text": "default and counted in the report; \"replace existing\" is explicit.",
+        "done": false
+      },
+      {
+        "text": "A re-run on already-suggested items is idempotent (no duplicate triggers).",
+        "done": false
+      },
+      {
+        "text": "The batch respects the task-508 depletion decision.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/item-library.ts` - the per-item \"Suggest\" buttons (`:633-634`) and",
+      "suggestTriggers()` (`:760`), plus the selection state `_multiSelect` /",
+      "_checkedIds` and the `openForRoom` placement path",
+      "static/js/shared/trigger-suggest-diff.js` - `TriggerSuggestDiff`, the",
+      "per-item before/after review surface the batch would stage into",
+      "static/js/shared/trigger-suggest-ai.js` - the AI suggester, including the",
+      "uses_above 0` guard that assumes task-508's auto-decrement",
+      "static/js/item-consumable-triggers.js` - the depletion-trigger authoring",
+      "that shares the same guard",
+      "engine/items/consume_actions.py` - `_spend_uses`, the auto-decrement the",
+      "batch must not duplicate",
+      "data/library/items/` - the 2,208 item records the batch would write back"
+    ],
+    "custom": {
+      "non_goals": "- Redesigning the library UI (task-510).\n- Per-item nutrition/restore tuning (task-506).\n- Authoring triggers for non-item node kinds (ways/areas keep their per-node path).",
+      "reconnaissance_2026_10_02_not_started_dependency_resolved": "- **task-508 is settled (fork A, in review):** the engine auto-decrements\n  `uses` on `eat`/`drink` (`engine/items/consume_actions.py::_spend_uses`), and\n  `trigger-suggest-ai.js:122` / `consumable-triggers.js` already assume that.\n  So the batch must **not** emit hand `adjust_uses` - the existing heuristic\n  output is already correct, and the `uses_above 0` guard is meaningful. No\n  policy fork remains.\n- Existing per-item pieces to reuse: `static/js/item-library.js`\n  `suggestTriggers` (`:613-700`, heuristic + AI into\n  `TriggerSuggestDiff`), the hidden `lib-item-triggers` field,\n  `_refreshEditorWithTriggers`, `_multiSelect`/`_checkedIds` (`:59-69`,\n  `:162-196`), and `static/js/shared/trigger-suggest-diff.js`.\n- Plan: a selection action bar (independent of `openForRoom` placement) that\n  runs `ItemLibraryTriggerSuggester` per checked id, stages one set per item\n  into `TriggerSuggestDiff`, persists only on Apply via\n  `ApiClient.saveLibraryItem`, default-skips items that already have triggers\n  (opt-in \"replace existing\"), and reports\n  `N applied · M skipped · K failed`. Idempotent by diffing against the item's\n  current triggers.\n- This touches `static/js/item-library.js` (already modified here for task-636)\n  and `static/js/shared/trigger-suggest-diff.js`; coordinate with\n  `wt/items-library` before landing both.",
+      "browser_ui": "Intended UI home: Library Browser → check several item rows → selection action bar → **Suggest triggers (N)** or **Suggest (AI) (N)** → per-item diff → Apply. Selection reuses the library's existing checked-item state.\n\nCurrent availability: the card describes the single-item “⚡ Suggest” flow and proposes batch selection, progress, diff review, and explicit replacement. Batch trigger generation is not claimed as available today.\n\nLive steps when available:\n1. In Library Browser, select three items: one without triggers, one with `on_eat`, and one with another authored trigger. Inspect the selection bar and run the offline heuristic.\n   - expected: the bar reports three selected; the diff proposes triggers for the empty item and skips/counts the two already-authored items by default.\n2. Review every before/after row without applying.\n   - expected: no library entry changes before Apply; each suggested trigger is associated with the correct item.\n3. Apply, close and reopen the Library Browser, then run the heuristic on the same selection again.\n   - expected: the applied data persists and the rerun creates no duplicate triggers.\n4. Repeat with AI unavailable and then with AI enabled; watch progress while the browser remains responsive.\n   - expected: unavailable AI offers the heuristic path; enabled AI reports per-selection progress and its result appears in the same review diff before write.\n5. Select an item with existing depletion triggers and inspect its proposed diff.\n   - expected: task-508's depletion decision is preserved; replacement requires an explicit opt-in.",
+      "reconnaissance_2026_10_20_still_valid": "Re-checked on 2026-10-20. The multi-select state exists (`_multiSelect`, `_checkedIds` in `static/js/item-library.js`) but only for placement; no bulk suggest-triggers action bar and no per-item staging across a selection:\n\n- `rg` for \"Suggest triggers\" / batch suggest in `static/js/item-library.js` returned 0 hits.\n- `static/js/shared/trigger-suggest-diff.js` still single-set oriented.\n\nVerdict: card accurate. Kept in todo."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "508 - the depletion contract must be settled first, or a batch run"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-509-library-batch-generate-triggers-for-selected-items.md"
+  }
+}

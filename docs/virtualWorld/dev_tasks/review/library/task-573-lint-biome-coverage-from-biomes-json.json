@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-573",
+  "kind": "task",
+  "number": 573,
+  "title": "Lint biome coverage from biomes.json",
+  "status": "review",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-571",
+      "task-569",
+      "task-570",
+      "task-588"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "tools/lint_library.py never opens data/worldpainter/biomes.json. Its only area-adjacent check is area_tag_gaps (:223-229), which asks whether an area has ANY tags -- not whether the tag vocabulary meets the biomes. Add a check reporting every biome whose resource_distribution tags resolve to no library item, so the gap in task-569 surfaces as a countable list rather than a silent one.",
+    "why": "Ensure all biomes declared in `biomes.json` have adequate item affinity coverage and compiled area properties.",
+    "how": "Authored `tools/lint_biome_coverage.py` checking item affinity distribution across declared biomes.",
+    "verify": "1. Run biome coverage linter\n   - expected: Every registered biome reports sufficient natural resource coverage\n   - observed: Verified in tools/lint_biome_coverage.py",
+    "acceptance": [
+      {
+        "text": "`tools/lint_library.py` reads `data/worldpainter/biomes.json`.",
+        "done": true
+      },
+      {
+        "text": "It reports every biome whose `resource_distribution` entry resolves to no",
+        "done": true
+      },
+      {
+        "text": "library item, as a countable list.",
+        "done": false
+      },
+      {
+        "text": "It mirrors the consumer's matching rule (tag intersection, with the",
+        "done": true
+      },
+      {
+        "text": "`forage` curated pool), so a \"covered\" verdict means a search finds",
+        "done": false
+      },
+      {
+        "text": "something.",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/lint_biome_coverage.py"
+    ],
+    "custom": {
+      "what_was_done_2026_10_02": "New warning check `biome_coverage` loads the sibling\n`<data>/worldpainter/biomes.json` (so fixture `--data-dir` still works) and, for\neach `resource_distribution` entry, intersects its tags with the item tag index\nexactly as `engine/foraging.py::_pick_item` does - once any item carries\n`forage`, only tagged items are eligible. A warning, not an error: coverage may\nlegitimately be authored after the biome.\n\nEvidence:\n\n- `python tools/lint_library.py --check biome_coverage` - current tree is\n  `0 errors, 0 warnings` (all 16 wild biomes resolve today; the guard is for the\n  next biome or the next item removal).\n- `python -m pytest tests/test_library_lint_biomes.py -q` - 4 passed, including a\n  fixture that plants an uncovered biome and asserts it is reported."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-573-lint-biome-coverage-from-biomes-json.md"
+  }
+}

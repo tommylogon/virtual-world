@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-301",
+  "kind": "task",
+  "number": 301,
+  "title": "Default Time per Turn: 1 Minute Instead of 5",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "Change the default time per turn from 5 minutes to 1 minute.",
+      "notes": "- Risky as a silent *global* default change - it re-paces every existing scenario and anything tuned around the 5-minute tick (vital decay rates, starvation timelines, activity durations).\n- Prefer a **per-scenario** clock setting instead (which is exactly `task-300`), and let authors opt into 1-minute turns.\n- If a global default change is still wanted, it should be an explicit, documented decision with decay rates re-balanced around it.",
+      "related": "- `developer ideas.md` line 8\n- `task-300` (scenario clock start time), `task-304` (centralized config)",
+      "resolution_2026_09_02": "Cancelled in favour of the per-scenario path this task itself recommended:\ntask-300's clock settings plus `GET/POST /api/settings/time_per_tick` already\nlet each scenario opt into 1-minute turns without re-pacing every other\nscenario. A global default change is deliberately not made."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Environment",
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/task-301-default-turn-duration-one-minute.md"
+  }
+}

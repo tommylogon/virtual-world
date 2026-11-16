@@ -5,19 +5,19 @@ status: done
 priority: medium
 ---
 
-# Trigger Editor — Group Effects by Target Type
+# Trigger Editor - Group Effects by Target Type
 
 **Filed**: 2026-08-10
 **Priority**: Medium
-**Status**: In Review — implemented 2026-08-10, no backend changes, JS syntax valid, full test suite unaffected
+**Status**: In Review - implemented 2026-08-10, no backend changes, JS syntax valid, full test suite unaffected
 
 ---
 
 ## How
 
-- `static/js/shared/trigger-editor.js` — added `_buildGroupedEffectOpts()` and `_buildGroupedCondOpts()` helpers; both render `<optgroup>` labels. Updated `show()`, `_addEffectRow()`, and `_buildConditionRowEl()` to use grouped options.
-- `static/js/inspector.js` — added `group` property to all 20 effect types and all 15 condition types (in both `_addTriggerToNode` and `_editTriggerFromNode`).
-- `static/js/item-library.js` — added `group` property to all 25 `ItemLibrary.EFFECT_TYPES` and all 15 `ItemLibrary.CONDITION_TYPES`. `_addConditionRow` uses the same grouped rendering.
+- `static/js/shared/trigger-editor.js` - added `_buildGroupedEffectOpts()` and `_buildGroupedCondOpts()` helpers; both render `<optgroup>` labels. Updated `show()`, `_addEffectRow()`, and `_buildConditionRowEl()` to use grouped options.
+- `static/js/inspector.js` - added `group` property to all 20 effect types and all 15 condition types (in both `_addTriggerToNode` and `_editTriggerFromNode`).
+- `static/js/item-library.js` - added `group` property to all 25 `ItemLibrary.EFFECT_TYPES` and all 15 `ItemLibrary.CONDITION_TYPES`. `_addConditionRow` uses the same grouped rendering.
 - `node --check` passes on all 3 files.
 - 824 tests pass, zero regressions.
 
@@ -35,7 +35,7 @@ priority: medium
 
 | Group | Label | Conditions |
 |-------|-------|------------|
-| `general` | ⚙️ General | — Always fire —, random_chance, time_of_day, speech_matches, state_equals |
+| `general` | ⚙️ General | - Always fire -, random_chance, time_of_day, speech_matches, state_equals |
 | `character` | 🧍 Character | vital, has_trait, skill_check, save_throw |
 | `item` | 📦 Item | is_equipped, has_item, uses_reached |
 | `area` | 🌍 Area/Environment | area_temp, weather |
@@ -72,9 +72,9 @@ Note: some effects are cross-cutting (set_state, set_description work on any nod
 
 ## Implementation
 
-- `static/js/inspector.js` — add `group` property to effect types in both `_addTriggerToNode` and `_editTriggerFromNode`
-- `static/js/item-library.js` — add `group` property to `ItemLibrary.EFFECT_TYPES`
-- `static/js/shared/trigger-editor.js` — add `_buildGroupedEffectOpts()` helper, render `<optgroup>` labels in the effect `<select>`; update `_addEffectRow()` to use grouped options
+- `static/js/inspector.js` - add `group` property to effect types in both `_addTriggerToNode` and `_editTriggerFromNode`
+- `static/js/item-library.js` - add `group` property to `ItemLibrary.EFFECT_TYPES`
+- `static/js/shared/trigger-editor.js` - add `_buildGroupedEffectOpts()` helper, render `<optgroup>` labels in the effect `<select>`; update `_addEffectRow()` to use grouped options
 
 ## Verification
 

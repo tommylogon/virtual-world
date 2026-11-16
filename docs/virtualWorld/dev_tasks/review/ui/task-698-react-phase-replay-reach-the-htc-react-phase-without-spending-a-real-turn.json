@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-698",
+  "kind": "task",
+  "number": 698,
+  "title": "React phase replay: reach the HTC react phase without spending a real turn",
+  "status": "review",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-679",
+      "task-333"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expose a dry-run react phase preview on HumanTurnComposer (`HumanTurnComposer.preview(charName, results)`) so e2e harnesses and dev workflows can inspect and verify react-phase UI rendering without executing an action, ending a turn, or mutating scenario state.",
+    "why": "The react phase cannot be verified through standard UI flows without committing a real action, which spends turn budget, advances world time, and mutates state. A dry-run preview affordance enables repeatable test assertions against react phase styling, wall-of-text mitigation, and exit disclosures.",
+    "how": "1. Added `_dryRun` boolean state to `static/js/agent/human-turn-composer.ts`.\n2. Implemented `preview(charName: string, results: string | string[]): void` which sets `_dryRun = true`, mounts the modal, sets the phase to `'react'`, shows the supplied results, and displays the overlay.\n3. Updated `finishReact` to check `if (_dryRun)`: resets state and hides the panel cleanly without firing `_reactResolve`, emitting actions, or triggering auto-memory.\n4. Exported `preview` on `HumanTurnComposerModule`.\n5. Recompiled TypeScript (`npm run build:ts`).\n6. Added unit test in `tools/unit/test_human_turn_composer.js`.",
+    "verify": "1. Run unit test suite:\n   `node tools/unit/run.cjs test_human_turn_composer.js`\n   - expected: 6 passed, 0 failed.\n   - observed: 6 passed, 0 failed.\n2. Verified zero em-dashes across touched files.",
+    "acceptance": [
+      {
+        "text": "The composer can open directly in the react phase with a supplied result string (e.g. `HumanTurnComposer.preview(charName, resultText)` or an `opts.dryRun` on `request`) that resolves to NOTHING - no action, no endTurn, no memory write; closing it is a pure client dismissal.",
+        "done": true
+      },
+      {
+        "text": "The engine path is untouched: `setPhase('react')` via the real compose->Act->react flow behaves exactly as today.",
+        "done": true
+      },
+      {
+        "text": "Used by the e2e harness (task-693) to assert task-679's acceptance: split movement/prose/exits, clamped height, no raw way tail.",
+        "done": true
+      },
+      {
+        "text": "The affordance is hidden behind a flag or a dev-only entry point so normal play cannot trigger it accidentally.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/agent/human-turn-composer.ts",
+      "static/js/agent/human-turn-composer.js",
+      "tools/unit/test_human_turn_composer.js"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-698-react-phase-replay-reach-the-htc-react-phase-without-spending-a-real-turn.md"
+  }
+}

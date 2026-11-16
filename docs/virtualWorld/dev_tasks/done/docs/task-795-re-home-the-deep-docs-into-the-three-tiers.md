@@ -19,11 +19,11 @@ wiki: "[[Feature Map]]"
 
 ## What
 
-Re-home the existing deep docs — `Environment/Light System.md`, `Rules Engine/Combat System.md`, `Characters/Vitals System.md`, `Library System/Tags System.md` and the rest — into the feature / mechanic / system tiers, refactoring and incorporating where needed.
+Re-home the existing deep docs - `Environment/Light System.md`, `Rules Engine/Combat System.md`, `Characters/Vitals System.md`, `Library System/Tags System.md` and the rest - into the feature / mechanic / system tiers, refactoring and incorporating where needed.
 
 ## Why
 
-These are already the notes the Feature Map links to, but they predate the tiers. Move and reshape; do not rewrite from scratch — the content is largely right, the shape is not.
+These are already the notes the Feature Map links to, but they predate the tiers. Move and reshape; do not rewrite from scratch - the content is largely right, the shape is not.
 
 ## How
 

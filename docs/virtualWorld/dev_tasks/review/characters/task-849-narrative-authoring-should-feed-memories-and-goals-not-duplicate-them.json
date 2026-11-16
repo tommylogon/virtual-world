@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-849",
+  "kind": "task",
+  "number": 849,
+  "title": "Narrative authoring should feed memories and goals, not duplicate them",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-16",
+  "updated": "2026-10-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-404",
+      "task-704",
+      "task-725",
+      "task-733",
+      "task-734",
+      "task-822",
+      "task-829"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Resolve the narrative/biography/arc vs memories/goals overlap: authored narrative seeds or links runtime memory and goal entries through existing systems, with one store per fact.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: TODO\n   - observed: TODO\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: TODO\n   - observed: TODO\n3. Run the targeted regression test for the mechanism.\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind -> Memories and Goals panels.\n\nCurrent availability: Planned; narrative authoring feeds runtime memory and goal records via single-store architecture.\n\nLive steps when available:\n1. Open Character Inspector -> Mind for a character with authored narrative backstory.\n   - expected: Backstory milestones appear as linked memory records without duplicating standalone narrative text blocks.\n2. Inspect the Goals tab.\n   - expected: Long-term character motivations link directly to active goal nodes.\n3. Edit a narrative milestone in the editor and save.\n   - expected: The underlying memory or goal record updates in place without orphaned duplicates.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them.md"
+  }
+}

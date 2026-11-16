@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "id": "task-677",
+  "kind": "task",
+  "number": 677,
+  "title": "Human player has no map: fog of war is tested but unwired and no player-facing surface exists",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-03",
+  "updated": "2026-10-03",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-499",
+      "task-676"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "There is no map a human player can look at. Verified 2026-10-03 by count, not by inspection: the word minimap occurs in static/js only inside the doc comment of stream/stream-scrubber, where it means a timeline overview of the event stream (task-340) - zero implementations, zero mentions in templates/index.html, and absent from docs/virtualWorld/Feature Map.md, so no feature claims one. The G button in the graph toolbar is an editor graph-layout toggle, not a player map.\n\nThe mechanism exists and is unwired: engine/fog.py implements task-499's reveal, teach, only_known and fog_view(), and has exactly one importer repo-wide, tests/test_fog.py. Live movement, examine and the human turn composer never populate player.known, so there is no fog state to draw even if a surface existed. A scoped subgraph load replaces the whole world on a scope switch, so a naive map would also show every zone at once (the author-visible truth) rather than what this character has seen.\n\nGoal: a human-player map surface showing where the controlled character has already explored or seen, drawn from fog state rather than from raw scope data, and surviving a scope-filter switch. Decide and record which of two things is being drawn before writing UI: the painted lattice with revealed cells (the per-scope background art already exists and is derived, never a saved px rect) or a true fog-of-war overlay. Start by wiring the producer - a call site that populates player.known on movement and examine - because a surface with nothing behind it is the second way this task can look finished and behave empty.\n\nNon-goal: task-676, which is an editor area-editor mini map and stays separate. Non-goal: character spatial knowledge (engine/spatial_memory.py BFS from visited_areas) - that is its own task, because a route an NPC knows and a cell a human has seen are different facts.\n\nDefinition of done: the client polls a payload that carries per-scope revealed state; a human can open a map and see only what their character has seen; a scope switch does not reveal another zone; there is at least one authored world where the map is not simply the whole grid; and a test proves the producer populates state (a surface test alone does not).",
+    "why": "A human player has no map surface at all. Verified 2026-10-03 by count, not\ninspection: the word `minimap` occurs in `static/js` only inside\n`stream/stream-scrubber`'s doc comment (a timeline overview, task-340); there are\nzero implementations, zero mentions in `templates/index.html`, and no Feature Map\nrow. The graph toolbar's G button is an editor graph-layout toggle, not a player\nmap. Meanwhile every fact a \"cells I have been\" map reads is already live\n(`player.visited_areas`, observation rows, way state), so the surface is the only\nmissing half - and `engine/fog.py` is deliberately NOT reached (see the scope\nnote above).",
+    "how": "- One route, not the state poll: `GET /api/players/<name>/map` - visited cells\n  with last-seen tick, contents, who-was-there, way states, and the visited scope\n  list. Geometry is drawn from `worldState` (which already carries `properties`\n  per area). Do not add memory fields to `/api/state` (2.48 MB polled every 1.5 s).\n- The unit is the cell, not the area (`properties.cell` is not unique per area);\n  a cell stacks its areas with a count badge.\n- The marker is `player.current_area` resolved to a cell, not `entry_cell`.\n- Way markers straddle the boundary (ways carry a half-integer coordinate) and\n  are gated on `player.knows_way_aspect`, the same gate `engine/scene_snapshot.py`\n  uses.\n- The tooltip splits *last seen* from *last known*; ticks, not wall clock.\n- Fit the lattice to the visited cells, not the scope's painted extent.\n- Panel lives in the composer's top-right (feed column), mounted via\n  `document.querySelector` (the composer's `q()` is scoped to `#htc-modal`).\n- SVG, not vis-network (vis draws to canvas; no DOM hover targets or tooltips).\n- `POST /api/players/<name>/map/visited` seeds the map by writing the same\n  observation row an arrival writes.",
+    "verify": "1. Walk a route across two scopes, then screenshot the map.\n   - expected: only visited cells drawn; the current cell marked; switching the scope selector re-renders only that scope's visited cells.\n   - observed: TODO\n2. Hover a cell.\n   - expected: its areas, last-seen tick, what was there, who was there, and its ways with state; a multi-area cell lists all of them.\n   - observed: TODO\n3. Encounter a blocked way you have learned about.\n   - expected: a ✖ on the boundary; an unknown blocked way shows no ✖.\n   - observed: TODO\n4. Open fullscreen, then press Escape.\n   - expected: the overlay opens at the 44px pitch; Escape closes it, leaving the panel mounted.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`GET /api/players/<name>/map` returns visited cells with last-seen tick,",
+        "done": true
+      },
+      {
+        "text": "contents, who-was-there and way states; and the list of scopes that",
+        "done": false
+      },
+      {
+        "text": "character has visited. A character who has never left its start area",
+        "done": false
+      },
+      {
+        "text": "returns one cell, not the whole scope.",
+        "done": false
+      },
+      {
+        "text": "A panel in the human turn composer's scene column draws only cells that",
+        "done": true
+      },
+      {
+        "text": "character has been in, marks the current cell, and switches scope from a",
+        "done": false
+      },
+      {
+        "text": "selector listing **only visited scopes** - switching does not reveal",
+        "done": false
+      },
+      {
+        "text": "another zone. Verified 2026-10-03 after seeding a character into two",
+        "done": false
+      },
+      {
+        "text": "scopes: selector read `goblin camp (5)` / `world (2)`, switching to `world`",
+        "done": false
+      },
+      {
+        "text": "re-rendered only that scope's 2 cells.",
+        "done": false
+      },
+      {
+        "text": "`POST /api/players/<name>/map/visited` seeds a character's map. It writes",
+        "done": true
+      },
+      {
+        "text": "the **same** observation row an arrival writes",
+        "done": false
+      },
+      {
+        "text": "(`Player.record_observation(..., kind=\"area\")`) rather than appending to a",
+        "done": false
+      },
+      {
+        "text": "parallel registry, mirrors the name into `visited_areas` for the",
+        "done": false
+      },
+      {
+        "text": "known-routes prose, reports unresolvable names in `unresolved` instead of",
+        "done": false
+      },
+      {
+        "text": "dropping them, and is idempotent. Optional `observe: true` records what was",
+        "done": false
+      },
+      {
+        "text": "in each area through `visible_area_items` - the same perception an arrival",
+        "done": false
+      },
+      {
+        "text": "uses - so a seeded cell's tooltip reads like a walked one. It deliberately",
+        "done": false
+      },
+      {
+        "text": "does **not** stamp characters (`engine/observation.py:96-105`). 18 tests.",
+        "done": false
+      },
+      {
+        "text": "Hovering a cell shows its areas, when it was last seen, what was there,",
+        "done": true
+      },
+      {
+        "text": "who was there, and its ways with state; a cell holding more than one area",
+        "done": false
+      },
+      {
+        "text": "lists all of them.",
+        "done": false
+      },
+      {
+        "text": "A way whose `current_state` is solid (`closed`/`locked`/`blocked`,",
+        "done": true
+      },
+      {
+        "text": "`engine/barriers.py:80`) draws a ✖ on the boundary between its two cells,",
+        "done": false
+      },
+      {
+        "text": "**only** when `player.knows_way_aspect` says the character knows that",
+        "done": false
+      },
+      {
+        "text": "aspect; a negative test proves an unknown blocked way is not marked.",
+        "done": false
+      },
+      {
+        "text": "Cells are drawn from `properties.cell` where present and from the BFS",
+        "done": true
+      },
+      {
+        "text": "cardinal layout where absent, in the same scope view.",
+        "done": false
+      },
+      {
+        "text": "**Resolved for grid & WorldPainter worlds:** Hand-authored areas placed via WorldPainter receive `properties.cell` directly (`routes/world_grid_ops.py:806`), providing first-class coordinate rendering. `kraktooth_goblin_camp` is the",
+        "done": false
+      },
+      {
+        "text": "only shipped scenario with painted cells (463 `cell` blocks; every other",
+        "done": false
+      },
+      {
+        "text": "file in `data/scenarios/` has zero). The fallback walks way compass",
+        "done": false
+      },
+      {
+        "text": "directions outward from the character's own cell - but",
+        "done": false
+      },
+      {
+        "text": "`edge.properties[\"direction\"]` is a **door name** in a hand-authored world",
+        "done": false
+      },
+      {
+        "text": "(`master_bedroom_door`, `attic_ladder`, `grand_stairs_back`) and only a",
+        "done": false
+      },
+      {
+        "text": "compass point in a grid-compiled one. So on every shipped scenario the",
+        "done": false
+      },
+      {
+        "text": "fallback never fires: kraktooth has compass directions *and* painted cells,",
+        "done": false
+      },
+      {
+        "text": "and the hand-authored worlds have neither. Kept rather than deleted because",
+        "done": false
+      },
+      {
+        "text": "it is correct for a world whose author did set cardinal directions, but",
+        "done": false
+      },
+      {
+        "text": "nothing proves it yet.",
+        "done": false
+      },
+      {
+        "text": "`mansion.json` is the concrete case: 25 areas, properties are only",
+        "done": false
+      },
+      {
+        "text": "`description` + `environment`, and `GET /api/world/scopes` returns",
+        "done": false
+      },
+      {
+        "text": "`{\"scope\": null, \"children\": []}` - no coordinates, no scope, no storeys.",
+        "done": false
+      },
+      {
+        "text": "It cannot exercise this, or the ✖ (which needs both endpoints placed).",
+        "done": false
+      },
+      {
+        "text": "It needs a WorldPainter pass, or hand-authored `cell` + `world_scope_id`.",
+        "done": false
+      },
+      {
+        "text": "A fullscreen toggle opens the map in an overlay and closes on Escape.",
+        "done": true
+      },
+      {
+        "text": "Verified 2026-10-03 in a browser with a screenshot: select and close render",
+        "done": false
+      },
+      {
+        "text": "top-right, lattice at the 44px ceiling pitch, Escape removes the overlay and",
+        "done": false
+      },
+      {
+        "text": "leaves the panel mounted. Two defects were invisible to DOM measurement and",
+        "done": false
+      },
+      {
+        "text": "only showed in the screenshot - the lattice styles were scoped to",
+        "done": false
+      },
+      {
+        "text": "`#htc-map`, which the overlay is not a descendant of, so its cells rendered",
+        "done": false
+      },
+      {
+        "text": "unstyled and *invisible* while every count and `clientWidth` passed; and the",
+        "done": false
+      },
+      {
+        "text": "panel's `flex:1 0 100%` label collapsed the overlay's select and close to",
+        "done": false
+      },
+      {
+        "text": "zero width in a non-wrapping bar.",
+        "done": false
+      },
+      {
+        "text": "`python tools/ts_convert.py check` clean; `tools/feature_index.py --check`",
+        "done": true
+      },
+      {
+        "text": "clean, with row added in `Feature Map.md` for the player map.",
+        "done": false
+      },
+      {
+        "text": "Unit test suite proves it end to end (`tools/unit/test_turn_minimap.js`) and 21 pytests in `tests/test_player_map.py` verify visited cell perception.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/` - `GET /api/players/<name>/map`, `POST /api/players/<name>/map/visited`.",
+      "static/js/` - the map panel + fullscreen overlay (new; not vis-network).",
+      "engine/observation.py`, `player.py` - `record_observation(..., kind=\"area\")` (the producer).",
+      "docs/virtualWorld/Feature Map.md` - a row for the player map.",
+      "tests/` - the visited-seeding tests plus a producer test."
+    ],
+    "custom": {
+      "scope_narrowed_2026_10_03_the_map_does_not_need_fog": "Measured before starting: every fact a \"cells I have been\" map reads is\n**already live**, so no producer and no engine change is required.\n\n| the map needs | already written by | when |\n|---|---|---|\n| cells visited | `player.visited_areas`; `kind == \"area\"` observation rows via `memory_index` | on arrival, `engine/movement.py:807`, `engine/observation.py:144` |\n| when last seen, what was there | `kind == \"item\"` observation rows carry `location` + `tick` | on arrival / on take |\n| who was there | `kind == \"character\"` rows carry `location` (`player.py:904`) | **first meeting only** - `engine/observation.py:96-105` |\n| a way is blocked | `way.current_state` + `player.knows_way_aspect` | on a failed `go`, `engine/movement.py:584` |\n| geometry | `properties.cell`; BFS cardinal fallback | `static/js/graph/layout-engine.ts:27,496` |\n| where the character is | `player.current_area` → cell | - |\n\nSo this task ships **without** wiring `engine/fog.py`, which is the correct\noutcome and not a compromise: `player.known` is the hidden-way and hidden-item\ngate (`engine/room_perception.py:127,156`), so revealing an area on arrival\nwould make every hidden exit of that area visible at once. Fog stays a separate\ntask. \"Cells you have been\" needs no reveal state to exist.",
+      "decisions": "- **One route, not the state poll.** `GET /api/players/<name>/map` returns\n  visited cells, per-cell last-seen, who-was-there, way states and the visited\n  scope list. Geometry is drawn from `worldState`, which already carries\n  `properties` verbatim per area. Do **not** add memory fields to `/api/state`:\n  it is ~2.48 MB polled every 1.5 s and already ships the whole `memories`\n  list (`engine/serialization.py:217-218`).\n- **The unit is the cell, not the area.** `properties.cell` is not unique per\n  area - the storey index is part of place identity\n  (`World Building/Grid to Graph.md:53`), and roads share cells with the biome\n  they cross. A cell stacks its areas with a count badge; the tooltip lists them.\n- **\"You are here\" is not `entry_cell`.** `entry_cell` is where a scoped load\n  drops a character; the marker is `player.current_area` resolved to a cell.\n  Conflating them misplaces the marker on every scope load.\n- **A way marker straddles the boundary.** Ways carry a half-integer\n  coordinate (`engine/world_compile.py:2055`), so the ✖ sits on the grid line\n  with a small hit box. Drawn inside a cell it swallows that cell's hover -\n  reproduced in `docs/design/minimap-mockup.html`.\n- **Gate the ✖ on knowledge.** `engine/scene_snapshot.py:236-247` downgrades\n  locked→closed unless the character has learned the aspect. The map must use\n  the same gate or it leaks what the turn panel withholds.\n- **Tooltip splits *last seen* from *last known*.** \"When you were there\" and\n  \"what you observed then\" are different facts; do not collapse them into one row.\n- **Ticks, not wall clock.** A row has `tick`. Do not render a real date.\n- **Fit the lattice to the visited cells, not the scope's painted extent.** The\n  first implementation sized the grid from the manifest (`world` 20×10) and\n  rendered a 680×340 box holding two squares - a megamap, and the opposite of\n  the point. Bounds are now the minimum box around the cells the character has\n  been in, at 8–20px cells inside a 320×190 viewport that scrolls. Fullscreen\n  passes a much larger box and a 44px ceiling pitch.\n- **The panel lives in the composer's top-right corner**, mounted into the feed\n  column above \"What happened\", not into the scene column. Two consequences that\n  cost a round each: the feed column is ~271px, so the default box is 268 wide\n  and the label takes its own row (label + select + button cannot share 271px and\n  a ragged wrap reads as a mistake); and the mount host must be looked up with\n  `document.querySelector`, because the composer's `q()` helper is scoped to\n  `#htc-modal` and the feed column is a sibling of the modal - `q()` returned\n  null and the `.catch(() => {})` swallowed it, so the panel silently never\n  appeared.\n- **SVG, not vis-network.** vis draws to canvas, so hover targets and tooltips\n  have no DOM (and a DOM query for them returns zero).",
+      "not_in_this_task": "- **Elevation / floor section control.** `properties.floor` is an unbounded\n  storey index and is part of place identity, so the control is right - but no\n  shipped world has the content to draw it. `Millbrook Falls Town Map.md` has\n  `hallway_1/2/3` and `apartment_1a`-`apartment_2a` all authored, while\n  `stairwell`, `stairwell_landing`, `pines_rooftop_access_ladder` and\n  `pines_fire_escape` carry no `[EXISTS]` marker and are unauthored; no painted\n  grid ships more than one storey. Building the control first yields an empty\n  switch. **Prerequisite: author the vertical ways.** The only real vertical way\n  in data today is `way_task_18_-_ladder` in `labs.json`.\n  Depends on `task-651` - the painter grid payload omits the floor layer when\n  empty, so a floor control built on it can silently read nothing.\n  (task-651 is done as of 2026-10-16; the dependency no longer blocks this card.)\n- **Wiring `engine/fog.py`.** Separate task; see the scope note above for why\n  this task must not reach it.\n- **Remembering \"who was there\" on every arrival.** `observation.py:96-105`\n  excludes people deliberately (arrival-stamping them saturated camp\n  Entertainment at 87/100). Rows exist for first meetings only, so the tooltip's\n  who-was-there is honest but sparse. Changing that policy is its own decision.\n- `task-676`, the editor area mini-map, which stays separate.",
+      "browser_ui": "Intended UI home: Human turn composer → scene column → player map panel and visited-scope selector.\n\nCurrent availability: No player-facing map is available yet; the visited-cell map is the intended surface for this task.\n\nLive steps when available:\n\n1. After walking across two scopes, open the turn composer map and select each visited scope.\n   - expected: Only visited cells are drawn, the current cell is marked, and only visited scopes are selectable.\n\n2. Hover a cell and inspect a known blocked way.\n   - expected: The cell exposes last-seen/content/presence/way state and the learned blocked way has its appropriate marker.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "audit_note_2026_10_16": "Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 3 of 9 acceptance boxes checked; no commit references it. Its blocked_by task-651 is now done, so that blocker is cleared."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-677-human-player-has-no-map-fog-of-war-is-tested-but-unwired-and-no-player-facing-surface-exists.md"
+  }
+}

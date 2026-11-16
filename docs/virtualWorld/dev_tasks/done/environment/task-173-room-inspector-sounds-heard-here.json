@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-173",
+  "kind": "task",
+  "number": 173,
+  "title": "Room Inspector Sounds Heard Here",
+  "status": "done",
+  "priority": "low",
+  "area": "environment",
+  "tags": [
+    "environment",
+    "sound",
+    "ui"
+  ],
+  "created": "2026-08-03",
+  "updated": "2026-08-03",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a \"Sounds heard here\" section to the room/area inspector showing which sounds reach this area from adjacent areas. Follow-up from task-12 (sound propagation), which built the engine propagation but never added the inspector display.",
+    "why": "Task-12's original design listed a frontend item: *\"In the room inspector, show 'Sounds heard here' section listing sounds from adjacent areas.\"* It was never built - the inspector only shows the room's own `noise` environment value.",
+    "how": "- In `static/js/inspector/area-view.js`, add a \"Sounds heard here\" block alongside the existing environment display.\n- Data source: a small backend route (e.g. `GET /api/areas/<area_id>/sounds`) that calls `engine.sound.get_sound_sources_in_area` on adjacent areas and filters by `get_areas_hearing_sound_source` reachability, returning `{pattern, direction, level}` entries. (Or compute client-side if the graph data is already available in `worldState` - prefer reusing existing state, mirroring how light/heat overlays work.)\n- Display: `You hear {pattern} from the {direction}` per entry, or \"Nothing audible from adjacent areas.\" when empty.\n- Read-only display; no editing needed.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/area-view.js` - new section.",
+      "Optional backend route for the sound query (or reuse graph data client-side).",
+      "static/js/world-state.js` / `static/js/api.js` - data plumbing if a route is added."
+    ],
+    "custom": {
+      "notes": "- Mirror the existing environment info pattern in area-view.js (temperature/light/noise rows) for visual consistency.\n- Pure read-only view - this is a debugging/authoring aid, not a gameplay surface."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-173-room-inspector-sounds-heard-here.md"
+  }
+}

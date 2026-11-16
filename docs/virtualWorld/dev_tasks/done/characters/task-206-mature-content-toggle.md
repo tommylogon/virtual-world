@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-11
 **Priority**: High
-**Status**: Done — shipped in v1.4.0
+**Status**: Done - shipped in v1.4.0
 
 ---
 
@@ -29,9 +29,9 @@ The pleasure/arousal system must be fully gated behind a global opt-in flag so t
 
 ## Files
 
-- `virtual_world_engine.py` — world attribute `mature_content`
-- `routes/settings.py` — GET/POST `/api/settings/mature_content`
-- `static/js/config.js` + `static/js/api.js` + settings UI — toggle
+- `virtual_world_engine.py` - world attribute `mature_content`
+- `routes/settings.py` - GET/POST `/api/settings/mature_content`
+- `static/js/config.js` + `static/js/api.js` + settings UI - toggle
 - Every pleasure-system touchpoint above
 
 ## Steps to verify
@@ -42,7 +42,7 @@ The pleasure/arousal system must be fully gated behind a global opt-in flag so t
 
 ## Related
 
-- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §Additions #6
+- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §Additions #6
 
 ## What
 

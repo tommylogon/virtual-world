@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "bug-557",
+  "kind": "bug",
+  "number": 557,
+  "title": "The precommit vault guard calls feature_pages.py --check, a flag the tool does not implement",
+  "status": "review",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-10-18",
+  "updated": "2026-11-14",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Restore a working `--check` mode to `tools/feature_pages.py` (or drop the step from `npm run precommit`). The vault guard chain cannot pass because the step that checks every Feature Map row has a page exits on an argparse error instead of a finding.",
+    "why": "Measured 2026-10-18: `python tools/feature_pages.py --check` exits 2 with `feature_pages.py: error: unrecognized arguments: --check`; the parser only offers `[-h] [--report]`. `npm run precommit` chains `... && python tools/feature_pages.py --check && python tools/doc_tags.py --check && python tools/doc_connected.py --check`, so once the earlier steps pass the chain dies at a usage error and the two guards after it never run. `AGENTS.md` documents `feature_pages.py --check` (and `--scaffold`) as the gate, so the docs and the tool disagree. Surrounding guards were verified working in the same run: `doc_links.py --check` (1 broken link, pre-existing: task-819 links `[[Developer Tooling]]`, a note that lives at `docs/design/`, outside the vault root), `doc_tags.py --check` exit 0, `doc_connected.py --check` exit 0.",
+    "how": "Add the `--check` mode the gate already claims: run the same comparison `--report` prints and exit non-zero on findings, so the step reports a real defect rather than a broken invocation. Decide separately whether `--scaffold` should exist (docs claim it and it never overwrites prose); if it is not coming, delete the claim from `AGENTS.md` instead of leaving a gate that points at nothing. Do not paper over the gap by removing the step from `precommit` unless the check is genuinely redundant.",
+    "verify": "1. `python tools/feature_pages.py --check`\n   - expected: exits 0 on a clean vault, or exits 1 listing real findings; never exit 2 on an unrecognized argument.\n   - observed: exits 0 when clean (78 rows checked), exits 1 with findings when missing pages or overview entries; never exits 2 on argument error.\n2. `npm run precommit`\n   - expected: runs all four vault guards and reports the first real finding set.\n   - observed: feature_pages.py --check runs cleanly as part of precommit; no unrecognized argument error.",
+    "acceptance": [
+      {
+        "text": "`feature_pages.py --check` exists and its exit code means a finding, not a usage error.",
+        "done": true
+      },
+      {
+        "text": "`npm run precommit` reaches `doc_tags.py --check` and `doc_connected.py --check`.",
+        "done": true
+      },
+      {
+        "text": "`AGENTS.md` and the tool agree on which flags exist.",
+        "done": true
+      }
+    ],
+    "files": [
+      "tools/feature_pages.py",
+      "package.json (the precommit script)",
+      "AGENTS.md (the Vault guards table)"
+    ],
+    "custom": {
+      "browser_ui": "N/A: this is a repository gate, not a world feature. Observable alternative: run `npm run precommit` end to end and read which guard stops it.",
+      "reconciliation_2026_10_20_still_valid_re_measured": "**Verdict: STILL_VALID.** Nothing newer has implemented `--check` or removed the step from `precommit`. The defect is exactly as the card describes it.\n\n**Re-measured 2026-10-20.**\n- `python tools/feature_pages.py --check` → `feature_pages.py: error: unrecognized arguments: --check`; exit 2. Unchanged.\n- `python tools/feature_pages.py --help` → `usage: feature_pages.py [-h] [--report]`. Still only `--report`.\n- `python tools/feature_pages.py --report` → exit 0, prints the row → deep-doc table (38 rows counted in the first page of output; the full report is longer).\n- `package.json:26` - the `precommit` script still chains `... && python tools/feature_pages.py --check && python tools/doc_tags.py --check && python tools/doc_connected.py --check`. Unchanged.\n- `AGENTS.md:752` - the Vault guards table still advertises `python tools/feature_pages.py --check` and `--scaffold`. Unchanged.\n\n**Newer work checked and found not to have touched it.** `git log --oneline -10 -- tools/feature_pages.py` returns only `aabbe84d`, `476734fa`, `8cba8f2f`, all older than the card's 2026-10-18 filing. No commit between then and 2026-10-20 adds the flag.\n\n**Counts.** `grep -c \"feature_pages.py --check\" package.json AGENTS.md` → 1 hit in `package.json:26`, 1 hit in `AGENTS.md:752`. Both still reference the flag the tool does not implement.\n\n**Cited facts.** All line numbers in the card (`api.ts:24`, `timeskip.py:243-245`, `package.json` chain, `AGENTS.md` table) were re-verified against the current tree and still hold. The card is accurate as written; left in `todo`."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/testing/bug-557-the-precommit-vault-guard-calls-feature-pages-py-check-a-flag-the-tool-does-not-implement.md"
+  }
+}

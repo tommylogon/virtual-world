@@ -36,7 +36,7 @@ authoring surface the art shows, not another dropdown.
 The vocabulary is now 106 biomes + features + roads + interiors behind one
 `<select>`. task-596 answered "bridge vs road?" and "where is the exit?" in a
 single detail line, but the list is still a scroll, and it cannot show what the
-mockups show — illustrated tiles and a panel with neighbours, climate, resources
+mockups show - illustrated tiles and a panel with neighbours, climate, resources
 and creatures. `docs/design/world-environment-taxonomy.md` §"Gap analysis"
 records the exact shortfall: no tile grid, no detail panel, no climate
 matrix, and the records lack the `resources` / `creatures` / `climate_range` /
@@ -58,20 +58,20 @@ without leaving the canvas.
   `routes/world_grid_ops.py:287`) so it ships the new fields from
   `engine/biomes.biomes()`; the palette consumes the same derivation the editor
   already uses (task-588 Q5). No second copy of the vocabulary.
-- **Category rail** derived from the existing `terrain` / tag sets — Ecosystems,
+- **Category rail** derived from the existing `terrain` / tag sets - Ecosystems,
   Terrain & Water, Human & Special, Roads, Interiors. No new taxonomy file; a new
   biome lands in a category by its tags.
 - **Tiles** render the colour swatch already computed for the palette, the name,
   a kind glyph (place / building / not-a-place / road), and the one-line "is"
   string task-596 already composes.
-- **Detail panel** composes the fields the record carries — prose, kind, ground
+- **Detail panel** composes the fields the record carries - prose, kind, ground
   surface, engine tags, entry/exit phrase, natural/unlikely neighbours,
   transition biomes, and climate (temperature / rainfall / elevation, task-758).
-  A field the record does not carry renders as "unknown" — never invented. Until
+  A field the record does not carry renders as "unknown" - never invented. Until
   task-758 lands, the panel shows the subset that exists (prose, kind, surface,
   tags, crossings, entry/exit).
 - **Resources / Creatures / Hazards are read from their registries, not copied
-  onto the biome** — resources and creatures by tag-intersection with the
+  onto the biome** - resources and creatures by tag-intersection with the
   `data/library/resource_distribution/` and `hostile_distribution/` tables
   (task-718/569), hazards from `data/worldpainter/hazards.json` (task-745). The
   panel links to those entries; it does not duplicate them, and it shows nothing
@@ -114,10 +114,10 @@ without leaving the canvas.
 - [x] Tiles show colour + name; the grid is grouped by a rail derived from
       `terrain`/tags and is searchable by name and id. (The `kind` is shown in
       the detail panel, not yet as a per-tile glyph.)
-- [ ] The detail panel renders every field the record carries and invents none —
+- [ ] The detail panel renders every field the record carries and invents none -
       done for the fields that exist now; the resources/creatures/hazards panels
       wait on the task-718/745 registries.
-- [ ] The vocabulary route serves the task-758 climate/neighbour fields — waits
+- [ ] The vocabulary route serves the task-758 climate/neighbour fields - waits
       on task-758 (the `terrain` field it did need is now served).
 - [x] Picking a tile sets the value and drops focus (Space still pans, bug-511);
       `Esc` in the search closes; the search box keeps focus while typing.
@@ -130,16 +130,16 @@ without leaving the canvas.
 
 Shipped in two parts, no new module:
 
-- `static/js/worldpainter/grid-model.ts` — pure view-model: `paletteSections`
+- `static/js/worldpainter/grid-model.ts` - pure view-model: `paletteSections`
   (rail derived from `terrain` + `tags`: wild terrain → rooms by purpose →
   buildings by category → structure), `filterPalette`, `flattenPalette`,
   `paletteTile`, `tileKind`, `tileDetail`, `detailRows`. `@contributes` updated.
-- `static/js/worldpainter/editor.ts` — `_valueControl` is now a read-out (swatch
+- `static/js/worldpainter/editor.ts` - `_valueControl` is now a read-out (swatch
   + current tile + one-line detail) with a button that opens `_palettePanel`:
   rail + search + tile grid + detail panel. Open state, category and query live
   on `state` so a render rebuilds where the author left it. `_biomePalette` and
   `_tileDetail` were removed (logic moved to the view-model).
-- `routes/world_grid_ops.py` — `handle_painter_vocabulary` now ships `terrain`,
+- `routes/world_grid_ops.py` - `handle_painter_vocabulary` now ships `terrain`,
   which the rail derivation needs.
 
 **Verified:** `npm run build:ts` clean; `npm run typecheck` clean;
@@ -148,13 +148,13 @@ passed** (was 636; +8 palette tests); `pytest tests/test_world_grid_routes.py`
 → 53 passed. Live browser pass still owed.
 
 **Deferred (named, not silent):** per-tile kind glyph, climate matrix, and the
-resources/creatures/hazards panels — the last wait on task-718/745 registries;
+resources/creatures/hazards panels - the last wait on task-718/745 registries;
 the climate/neighbour rows wait on task-758; both are tracked, not dropped.
 
 ## Files
 
-- `static/js/worldpainter/grid-model.ts` — palette view-model (+ emitted `.js`)
-- `static/js/worldpainter/editor.ts` — `_valueControl`, `_palettePanel`
-- `routes/world_grid_ops.py` — `handle_painter_vocabulary` ships `terrain`
-- `tools/unit/test_worldpainter.js` — 8 view-model tests
+- `static/js/worldpainter/grid-model.ts` - palette view-model (+ emitted `.js`)
+- `static/js/worldpainter/editor.ts` - `_valueControl`, `_palettePanel`
+- `routes/world_grid_ops.py` - `handle_painter_vocabulary` ships `terrain`
+- `tools/unit/test_worldpainter.js` - 8 view-model tests
 

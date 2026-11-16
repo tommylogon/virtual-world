@@ -1,6 +1,6 @@
 ---
 id: 188
-title: Trigger Validator — Broken Reference Detection + Editor Alerts
+title: Trigger Validator - Broken Reference Detection + Editor Alerts
 status: done
 priority: high
 created: 2026-08-10
@@ -10,9 +10,9 @@ type: task
 area: triggers
 ---
 
-# Trigger Validator — Broken Reference Detection + Editor Alerts
+# Trigger Validator - Broken Reference Detection + Editor Alerts
 
-**Status**: In Review — implemented 2026-08-10. New `engine/trigger_validator.py` (`TriggerValidator(graph, library_dir)`) + `validate_triggers()` / `validate_trigger_props()` facades + `GET /api/triggers/validate` route. Frontend: `static/js/validator-panel.js` (`window.ValidatorPanel`, auto-refresh via `appEvents` `state:updated` debounced 2 s) + validation section in left panel (`index.html`) + inline ⚠ Validate button in `InspectorTriggers.renderTriggersHTML()` (`trigger-helpers.js`). 27 tests in `tests/test_trigger_validator.py` — all pass. Suite: 814 passed, 1 skipped, 71 deselected, 13 pre-existing failures (unrelated: `TestUnifiedEffectTargeting` 8, `TestGiveItemEffect` 4, `test_way_connect_repair.py` 2 — reproduce with validator code stashed). Browser-verified live: panel shows `item_glasses_case` → `missing_effect_item` (spawns `item_professors_note`, absent from graph + library), 🔍 button opens inspector + graph focus, inline per-node validation works.
+**Status**: In Review - implemented 2026-08-10. New `engine/trigger_validator.py` (`TriggerValidator(graph, library_dir)`) + `validate_triggers()` / `validate_trigger_props()` facades + `GET /api/triggers/validate` route. Frontend: `static/js/validator-panel.js` (`window.ValidatorPanel`, auto-refresh via `appEvents` `state:updated` debounced 2 s) + validation section in left panel (`index.html`) + inline ⚠ Validate button in `InspectorTriggers.renderTriggersHTML()` (`trigger-helpers.js`). 27 tests in `tests/test_trigger_validator.py` - all pass. Suite: 814 passed, 1 skipped, 71 deselected, 13 pre-existing failures (unrelated: `TestUnifiedEffectTargeting` 8, `TestGiveItemEffect` 4, `test_way_connect_repair.py` 2 - reproduce with validator code stashed). Browser-verified live: panel shows `item_glasses_case` → `missing_effect_item` (spawns `item_professors_note`, absent from graph + library), 🔍 button opens inspector + graph focus, inline per-node validation works.
 
 ## What
 
@@ -28,14 +28,14 @@ Triggers silently no-op when they reference nodes/items that don't exist (e.g. e
 
 - `TriggerValidator(graph, library_dir)` in `engine/trigger_validator.py`; iterates all `triggers` edges + `logic_trigger` nodes; validates conditions, effects, branches (`on_fail` / `on_success`), per-node filter (`node_id=`), severity-sorted output.
 - Checks:
-  - Error `dangling_trigger_edge` — edge targets missing trigger node
-  - Error `trigger_edge_wrong_target_type` — target not `logic_trigger`
-  - Warning `stale_trigger_copy` — trigger id embeds a node prefix (`item_`, `way_`, `area_`) different from its actual source
-  - Error `missing_effect_node` — set_state / set_hidden / rename / adjust_uses / add_tag / remove_tag / set_environment / description / unlock_way target a non-existent node
-  - Error/warning `missing_effect_item` — spawn_item / give_item / remove_item / consume_item target absent from graph + `data/library/items/<id>.json`
-  - Warning `tag_not_in_world` — `has_tag` / `target_has_tag`
-  - Warning `condition_missing_item` — `has_item` / `has_items` / `is_equipped`
-  - Warning `condition_missing_node` — `state_equals`
+  - Error `dangling_trigger_edge` - edge targets missing trigger node
+  - Error `trigger_edge_wrong_target_type` - target not `logic_trigger`
+  - Warning `stale_trigger_copy` - trigger id embeds a node prefix (`item_`, `way_`, `area_`) different from its actual source
+  - Error `missing_effect_node` - set_state / set_hidden / rename / adjust_uses / add_tag / remove_tag / set_environment / description / unlock_way target a non-existent node
+  - Error/warning `missing_effect_item` - spawn_item / give_item / remove_item / consume_item target absent from graph + `data/library/items/<id>.json`
+  - Warning `tag_not_in_world` - `has_tag` / `target_has_tag`
+  - Warning `condition_missing_item` - `has_item` / `has_items` / `is_equipped`
+  - Warning `condition_missing_node` - `state_equals`
   - Warning `teleport_missing_area`
   - Warning `unknown_trigger_type` / `unknown_condition_type` / `unknown_effect_type`
 - Facades on the engine: `validate_triggers()` and `validate_trigger_props()`.
@@ -53,11 +53,11 @@ Triggers silently no-op when they reference nodes/items that don't exist (e.g. e
 
 ## Steps to verify
 
-- [x] Validator catches all error/warning classes — 27 tests in `tests/test_trigger_validator.py`
-- [x] API endpoint returns `{"issues", "count"}` — `curl http://127.0.0.1:4444/api/triggers/validate` verified live
-- [x] Panel renders count badge + severity + message + 🔍 jump button — Playwright snapshot
-- [x] 🔍 opens owner node in inspector + graph focus — Playwright verified (`item_glasses_case`)
-- [x] Inline ⚠ Validate shows per-node issues — Playwright verified
+- [x] Validator catches all error/warning classes - 27 tests in `tests/test_trigger_validator.py`
+- [x] API endpoint returns `{"issues", "count"}` - `curl http://127.0.0.1:4444/api/triggers/validate` verified live
+- [x] Panel renders count badge + severity + message + 🔍 jump button - Playwright snapshot
+- [x] 🔍 opens owner node in inspector + graph focus - Playwright verified (`item_glasses_case`)
+- [x] Inline ⚠ Validate shows per-node issues - Playwright verified
 - [x] Real-world catch: `labs.json` stale trigger copy + missing ways; live template `item_glasses_case` → `item_professors_note`
 - [ ] Confirm the 13 failing tests are pre-existing (re-run full suite after committing; validator code stashed reproduces same 13)
 - [x] Full suite with changes: 814 passed, 1 skipped, 71 deselected, 13 failed (pre-existing)

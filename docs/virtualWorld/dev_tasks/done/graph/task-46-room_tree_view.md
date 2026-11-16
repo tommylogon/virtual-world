@@ -12,7 +12,7 @@ priority: medium
 
 ## What
 
-Add a collapsible tree view to the existing Analyze button showing all rooms, their descriptions, exits, items, and characters present — a hierarchical overview of the complete world state.
+Add a collapsible tree view to the existing Analyze button showing all rooms, their descriptions, exits, items, and characters present - a hierarchical overview of the complete world state.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ Add a collapsible tree view to the existing Analyze button showing all rooms, th
   - Characters/players currently in the room
 - Use same inspector panel as existing analysis
 - CSS: tree lines, indentation, expand/collapse icons
-- No dependencies — pure DOM manipulation, no build step
+- No dependencies - pure DOM manipulation, no build step
 
 ## UI Mock
 
@@ -52,8 +52,8 @@ Add a collapsible tree view to the existing Analyze button showing all rooms, th
 
 ## Files
 
-- `static/js/graph-manager.js` — rewrite `showAnalysis()` with tree rendering + toggle
-- `static/css/style.css` — add tree indentation, toggle, and item styles
+- `static/js/graph-manager.js` - rewrite `showAnalysis()` with tree rendering + toggle
+- `static/css/style.css` - add tree indentation, toggle, and item styles
 
 ## Why
 

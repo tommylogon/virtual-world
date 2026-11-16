@@ -44,26 +44,26 @@ const openWord = doorTags.includes('outdoor') || doorTags.includes('exterior') ?
 `tests/test_open_sky.py` gained `TestTheClientReader` (the fifth reader, which the
 guard's own `READERS` list was missing):
 
-- `test_the_reader_accepts_both_canonical_spellings` — the JS predicate accepts
+- `test_the_reader_accepts_both_canonical_spellings` - the JS predicate accepts
   `outdoor` and `exterior`.
-- `test_the_reader_does_not_accept_the_retired_spelling` — `'natural'` is gone
+- `test_the_reader_does_not_accept_the_retired_spelling` - `'natural'` is gone
   from the reader, so it can only ever be dead code.
-- `test_no_inline_tag_test_anywhere_in_the_reader` — exactly one `openWord`
+- `test_no_inline_tag_test_anywhere_in_the_reader` - exactly one `openWord`
   predicate line; a second hand-written spelling test anywhere in the file
   fails.
 
 Measured live, `kraktooth_goblin_camp` loaded on port 4444 (1278 ways, 1013
 tagged `outdoor`): the JS predicate and the engine's
 `engine/area_tags.OPEN_SKY_TAGS` agree on **1278 of 1278 ways, 0 disagreements**.
-The card's own live step — a character standing in a compiled outdoor area whose
-exit line says `is clear` — could not be run as written: the compiled ways in
+The card's own live step - a character standing in a compiled outdoor area whose
+exit line says `is clear` - could not be run as written: the compiled ways in
 this scenario carry no `visible_in_direction`, so no compiled exit reaches the
 `openWord` branch at all (the compiled exits that do render are see-through or
 closed). The predicate agreement is measured across every way instead, which is
 the stronger statement of the same invariant.
 
 `npm run build:ts` clean; `tests/test_open_sky.py`, `tests/test_way_tags.py`,
-`tests/test_world_compile.py` — 162 passed.
+`tests/test_world_compile.py` - 162 passed.
 
 ## Verified 2026-10-21
 

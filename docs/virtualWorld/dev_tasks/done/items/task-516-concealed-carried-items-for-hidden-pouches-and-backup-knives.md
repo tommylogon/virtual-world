@@ -12,8 +12,8 @@ priority: medium
 
 ## What
 
-Define concealed-on-person items — hidden from onlookers and loot but drawable
-by the owner — distinct from authoring-hidden world nodes. Motivating gear:
+Define concealed-on-person items - hidden from onlookers and loot but drawable
+by the owner - distinct from authoring-hidden world nodes. Motivating gear:
 Zikka's hidden backup knife and Krikka's hidden pouch of favourite shiny finds.
 
 ## Context
@@ -77,7 +77,7 @@ Model chosen: a new `concealed: true` property, deliberately distinct from
 - **Others:** `get_visible_equipment` skips `concealed` nodes, so `examine
   <character>` does not show a concealed worn item. Carried (non-equipped) items
   were never listed for other characters, so a hidden pouch is already unseen.
-- **Steal:** `steal_item` refuses a concealed item ("they keep it hidden —
+- **Steal:** `steal_item` refuses a concealed item ("they keep it hidden -
   search them first"). `search <character>` (new verb, Perception dc 12) clears
   `concealed` on everything the target carries/wears; a failure reveals nothing.
 - **Drawing reveals:** `equip_item` pops `concealed`, the documented choice that
@@ -89,7 +89,7 @@ Model chosen: a new `concealed: true` property, deliberately distinct from
 
 **Acceptance:**
 - [x] Concealed carried item invisible to others' examine, available to owner.
-- [x] Revealing (equipping) ends concealment — documented choice.
+- [x] Revealing (equipping) ends concealment - documented choice.
 - [x] Steal/search path has an explicit rule (`search <name>` then steal) and a
       test (`tests/test_concealed_items.py`, 11 passed).
 - [x] Zikka's backup knife and Krikka's hidden pouch authored on the model.

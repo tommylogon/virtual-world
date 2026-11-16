@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-41",
+  "kind": "task",
+  "number": 41,
+  "title": "Prevent Double-Click on Step Button",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Clicking the Step (⏭) button rapidly while a step is in progress queues up multiple `stepOnce()` calls, causing overlapping agent turns and confused state. The step button should be disabled while a step is in progress.",
+    "why": "`config.busy` is already set during `step()` and `updateButtons()` already disables the button based on `config.busy || config.running`. But `stepOnce()` only checks `config.running`, and the button disable happens after the first `await` - so rapid double-clicks before the async yield can slip through.",
+    "how": "Add `config.busy` check to `stepOnce()`:\n\n```js\nif (config.busy || config.running) { ... return; }\n```",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.js` - add `config.busy` check in `stepOnce()"
+    ],
+    "custom": {
+      "audit": "**Status**: Ready to test\n**How to test**:\n- Click the Step (⏭) button rapidly multiple times. Verify only one step executes per click - the button should disable during execution and no overlapping agent turns occur."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Inspector Panels]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-41-prevent_double_step_click.md"
+  }
+}

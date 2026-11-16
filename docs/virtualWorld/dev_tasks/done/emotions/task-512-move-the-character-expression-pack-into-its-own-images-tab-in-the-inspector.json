@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-512",
+  "kind": "task",
+  "number": 512,
+  "title": "Move the character Expression Pack into its own Images tab in the inspector",
+  "status": "done",
+  "priority": "medium",
+  "area": "emotions",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-445"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The Expression Pack (profile/full-body art per emotion, plus the ✂️ sheet\nsplitter) currently renders inside the character inspector directly under the\nname, so it pushes the actual stats/relations down and clutters the panel. Give\ncharacter art its own **Images** tab in the inspector so the overview stays\nabout who the character is, and art/upload/split live one click away.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: a character Images tab holds the Expression Pack + sheet splitter; overview no longer inlines it.\n- observed (2026-10-10 live): tabs = Inventory/Bio/Images/Advanced; #data-tab=Images visible with 'EXPRESSION PACK / Profile / Full body / Split sheet' + expression cards (neutral..) + NOW.",
+    "acceptance": [
+      {
+        "text": "A new inspector tab (**Images**) for character nodes holds the Expression Pack card grid (`InspectorHelpers.renderExpressionSection`) and the sheet splitter.",
+        "done": true
+      },
+      {
+        "text": "The character overview no longer renders the Expression Pack inline under the name; the existing behaviour (upload by click/drag-drop, `NOW` badge, per-expression profile/full) is unchanged once the tab is open.",
+        "done": true
+      },
+      {
+        "text": "Tab is character-only (agent-view is character-only; other node types have their own tab sets) and the inspector remembers the selected tab across selection changes.",
+        "done": true
+      },
+      {
+        "text": "`templates/index.html` script tags and the inspector tab registration stay consistent; JS unit tests (`node tools/unit/run.cjs`), `npm run lint`, and `npm run typecheck` stay green.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_2026_10_02": "`static/js/inspector/agent-view.js`: `TABS = ['Inventory','Bio','Images','Advanced']`;\nthe inline Expression Pack under the header is removed and replaced by\n`AV._renderImagesTab` (a `data-tab=\"Images\"` div calling\n`InspectorHelpers.renderExpressionSection`). `_activeTab` is module-level, so a\nchosen tab survives a re-render. Docs updated in\n`docs/virtualWorld/UI & Settings/Inspector Panels.md`.\n\nLive check (server `VW_PORT=4463`, Playwright, `showAgent` then click Images):\n\n```\nTABS [\"Inventory\",\"Bio\",\"Images\",\"Advanced\"]\nBEFORE {\"exprExists\":true,\"visibleOnOverview\":false,\"imagesTabDivExists\":true}\nAFTER  {\"visible\":true,\"cards\":12,\"splitter\":true,\"addBtn\":true,\n        \"tabStyles\":[... Images display:\"\" ...]}\nPERSIST_ACROSS_RERENDER {\"imagesVisibleAgain\":true}\n```\n\nScreenshot: `review-verify/512-images-tab.png`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/emotions/task-512-move-the-character-expression-pack-into-its-own-images-tab-in-the-inspector.md"
+  }
+}

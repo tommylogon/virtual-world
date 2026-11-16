@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-373",
+  "kind": "task",
+  "number": 373,
+  "title": "changes-since-source-panel",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_built": "### Backend (`routes/saveload.py`)\n- **`GET /api/scenario/diff`** extended beyond areas/players to the full group set:\n  `added/removed/changed_areas`, `added/removed/changed_items`,\n  `added/removed/changed_ways`, `added/removed_players`. Item/way drift is\n  fingerprinted over the graph nodes (name + current_state + description),\n  keyed by node id so a rename doesn't show as remove+add.\n- **`POST /api/scenario/diff/apply`** - per-group action:\n  - `{\"commit\": [\"areas\"|\"items\"|\"ways\"|\"players\"]}` merges the live values of\n    that group INTO the source file (atomic tmp+replace write, resets commit_seq).\n  - `{\"discard\": [...]}` restores that group FROM source INTO the live world,\n    with a labeled undo snapshot pushed first (undoable). Areas restore\n    description/environment/tags onto the live nodes (no remove/re-add churn);\n    items/ways re-add from source; players only re-add (runtime memories never\n    touched).\n\n### Frontend (`static/js/ui/changes-panel.js`, new)\n- Modal grouped by section: Rooms / Items / Ways / Players, each row shows\n  count badge + up-to-4 names (kind-colored: green add / red del / amber chg).\n- Per-section [💾 Commit] and [↩️ Discard] buttons, [💾 Commit All], [🔄 Refresh].\n- Entry: 🎮 Game ▾ → \"🔄 Changes since source…\".\n\n### Tests\n- `tests/test_scenario_diff.py` (+5): item/way drift groups, commit-section\n  (source file gains node), discard-section (live node removed + undo label),\n  empty-body 400. Full suite 2511 passed.",
+      "note": "The audit text asked for \"per-group Commit/Discard; reuse sync-diff internals\".\nCommit is per-section (not per-node) for v1 - per-node commit would be\ncheckboxed UI over the same apply endpoint; noted as a possible v2."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-373-changes-since-source-panel.md"
+  }
+}

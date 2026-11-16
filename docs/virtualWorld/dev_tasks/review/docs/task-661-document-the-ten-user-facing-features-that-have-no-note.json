@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "task-661",
+  "kind": "task",
+  "number": 661,
+  "title": "Document the ten user-facing features that have no note",
+  "status": "review",
+  "priority": "high",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-01",
+  "updated": "2026-10-01",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Ten shipped, reachable features have no documentation at all. Enumerated and measured in docs/virtualWorld/Feature Map.md (58 features, 10 with no note): search/forage, background simulation (backsim), per-agent knowledge (fog of war), the WorldPainter editor, grid-to-graph compile, the NL editor, recent edits + undo, validator + issues, the event stream, and the soak lab. Write one note per feature, in the vault folder its subject belongs to, and flip the row in Feature Map.md from none to a link when it lands. A feature with no note is the dangerous case: for fog of war the module is complete and tested, task-499 sits in done/, and nothing calls it.",
+    "why": "Undocumented features lead to developer confusion, false defect reports, divergent implementations, and invisible mechanics that are completed in code but unwired in runtime. Authoring dedicated documentation notes grounded in source code and tracking them in Feature Map.md ensures codebase visibility and establishes accurate wired vs unwired status.",
+    "how": "1. Write 10 comprehensive markdown documentation notes in their respective vault folders: Gameplay/Search & Forage.md, Characters/Background Simulation.md, Gameplay/Per-Agent Knowledge (Fog of War).md, World Building/WorldPainter.md, World Building/Grid to Graph.md, UI & Settings/NL Editor.md, UI & Settings/Recent Edits & Undo.md, UI & Settings/Validator & Issues.md, UI & Settings/Event Stream.md, UI & Settings/Soak Lab.md.\n2. Update docs/virtualWorld/Feature Map.md rows to link each feature note.\n3. Verify wiring and callers via python tools/doc_links.py --check.",
+    "verify": "1. Run doc links verification CLI (python tools/doc_links.py --check).\n   - expected: Tool exits 0; all ten documented feature notes resolve without broken links.\n   - observed: 0 broken links; all ten notes linked.\n2. Inspect docs/virtualWorld/Feature Map.md.\n   - expected: Zero features listed as lacking notes; rows contain active wiki links.\n   - observed: Feature Map updated with all 10 links.\n3. Validate source citations in created notes.\n   - expected: Every note cites real file and line locations with verified wired/unwired status.\n   - observed: All 10 notes cite exact symbols and call chains.",
+    "acceptance": [
+      {
+        "text": "One note per feature, in the folder its subject belongs to.",
+        "done": true
+      },
+      {
+        "text": "Every Feature Map row flips from `none` to a `[[link]]`; the file reads 0",
+        "done": true
+      },
+      {
+        "text": "features with no note.",
+        "done": false
+      },
+      {
+        "text": "`python tools/doc_links.py --check` exits 0 with all ten notes linked.",
+        "done": true
+      },
+      {
+        "text": "Each note cites real code (`file:line`) and states wired vs unwired from a",
+        "done": true
+      },
+      {
+        "text": "measured grep/call trace, not from the module's existence.",
+        "done": false
+      },
+      {
+        "text": "The two corrected Feature Map claims are recorded in the map itself.",
+        "done": true
+      }
+    ],
+    "files": [
+      "docs/virtualWorld/Feature Map.md",
+      "docs/virtualWorld/Gameplay/Search & Forage.md",
+      "docs/virtualWorld/Characters/Background Simulation.md",
+      "docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md",
+      "docs/virtualWorld/World Building/WorldPainter.md",
+      "docs/virtualWorld/World Building/Grid to Graph.md",
+      "docs/virtualWorld/UI & Settings/NL Editor.md",
+      "docs/virtualWorld/UI & Settings/Recent Edits & Undo.md",
+      "docs/virtualWorld/UI & Settings/Validator & Issues.md",
+      "docs/virtualWorld/UI & Settings/Event Stream.md",
+      "docs/virtualWorld/UI & Settings/Soak Lab.md",
+      "tools/doc_links.py"
+    ],
+    "custom": {
+      "resolution": "All ten notes written, each grounded in the code it documents and each linked\nfrom its Feature Map row. Files:\n\n- `Gameplay/Search & Forage.md`, `Characters/Background Simulation.md`,\n  `Gameplay/Per-Agent Knowledge (Fog of War).md`\n- `World Building/WorldPainter.md`, `World Building/Grid to Graph.md`\n- `UI & Settings/NL Editor.md`, `UI & Settings/Recent Edits & Undo.md`,\n  `UI & Settings/Validator & Issues.md`, `UI & Settings/Event Stream.md`,\n  `UI & Settings/Soak Lab.md`\n\n**The documentation corrected the map.** Two rows had been wrong:\n\n- **Background simulation** was marked **unwired** because \"the string `backsim`\n  appears once\". `backsim` is a nickname; the class is imported by name and\n  `TickManager.tick_turn` calls `BackgroundSimulation.process_due()`\n  (`engine/tick_manager.py:1097-1102`), which is the live `/api/turn/apply` path\n  (`routes/action_handlers.py:1384`). Verified by instrumenting a live\n  `create_app()` world: the four social passes and `plans.maybe_assign` all fire\n  on one `tick_turn()`. Row changed to **wired**.\n- **Per-agent knowledge (fog of war)** stayed **unwired**, but this was\n  re-verified rather than assumed: `engine/fog.py`'s seven public symbols have no\n  importer outside `tests/test_fog.py`, and the only runtime writer of\n  `player.known` is scenario load. The note records the authored half that *is*\n  live.\n\nAlso corrected the Grid-to-graph size claim (largest *non-test* Python file;\n`tests/test_trigger_system.py` is larger).",
+      "browser_ui": "Intended UI home: Not applicable - this task adds conceptual feature notes and Feature Map links; it does not add or change the ten already-shipped product surfaces.\n\nCurrent availability: the task records ten features with no note in a 58-feature map and requires a note per feature, correct folders, and zero missing-note rows. The documentation coverage is the deliverable.\n\nWhy no browser UI: browser checks could demonstrate each existing feature but cannot prove the ten note links, source citations, or measured wired/unwired claims are complete.\n\nAlternative verification steps:\n1. Open Feature Map.md and check each of the ten named features: search/forage, backsim, fog-of-war knowledge, WorldPainter, grid-to-graph compile, NL editor, recent edits/undo, validator/issues, event stream, and soak lab.\n   - expected: each row links to one note in the folder that owns its subject; no row is left `none`.\n2. Follow each note and inspect its source references and wired/unwired claims against actual callers.\n   - expected: every note distinguishes implemented, wired, authored, tested, and planned behavior accurately.\n3. Run `python tools/doc_links.py --check`.\n   - expected: all ten links resolve and Feature Map reports zero features with no note.\n\nThis section is not a claim that new product UI was added by this documentation task."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/docs/task-661-document-the-ten-user-facing-features-that-have-no-note.md"
+  }
+}

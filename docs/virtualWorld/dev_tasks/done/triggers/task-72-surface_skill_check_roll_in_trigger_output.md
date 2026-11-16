@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-19
 **Priority**: Medium
-**Status**: Done — verified 2026-08-03. Option A implemented: `_last_skill_check_msg` set in the skill_check condition paths (engine/trigger_system.py:287, 579) and appended to trigger outputs then reset (`:1252-1254`).
+**Status**: Done - verified 2026-08-03. Option A implemented: `_last_skill_check_msg` set in the skill_check condition paths (engine/trigger_system.py:287, 579) and appended to trigger outputs then reset (`:1252-1254`).
 
 ## What
 
@@ -69,8 +69,8 @@ Instead of the engine adding the roll message, configure the trigger's `fail_mes
 
 ## Files
 
-- `virtual_world_engine.py:1131-1135` — `_evaluate_trigger_condition`
-- `virtual_world_engine.py:3920-3943` — `skill_check()`
+- `virtual_world_engine.py:1131-1135` - `_evaluate_trigger_condition`
+- `virtual_world_engine.py:3920-3943` - `skill_check()`
 
 ## Steps to verify
 

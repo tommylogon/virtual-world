@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-102",
+  "kind": "task",
+  "number": 102,
+  "title": "Progressive Item Status - Multi-Use Activation",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-07-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-155",
+      "task-103"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Some items need multiple uses to activate (like a generator requiring 15 successful repairs). This is already achievable with the existing trigger system by stacking `on_use` triggers that check a counter condition. This task formalizes the pattern as a first-class feature with UI feedback.",
+    "why": "Items with multiple charges or consumable uses needed progressive status descriptors reflecting remaining uses.",
+    "how": "### Backend\n- Add `progress_to_state` map to items: `{10: \"humming\", 15: \"on\"}`\n- Add `on_use_progressive` to trigger types\n- Trigger system passes current uses count to condition checks\n\n### Frontend\n- Progress bar in item inspector (current_uses / max_uses)\n- Status indicator based on threshold\n- Message feedback per use increment",
+    "verify": "- Item with 15 max_uses, verify state changes at threshold\n- Progress survives save/load\n- Visual progress bar updates on each use",
+    "acceptance": [
+      {
+        "text": "Consumable item decrements uses counter upon each successful use.",
+        "done": true
+      },
+      {
+        "text": "Item visual description updates dynamically based on remaining uses threshold.",
+        "done": true
+      }
+    ],
+    "files": [
+      "item.py` - progress_to_state field?",
+      "engine/trigger_system.py` - on_use_progressive type",
+      "engine/effects.py` - threshold-based effects",
+      "static/js/inspector/item-view.js` - progress bar UI",
+      "static/js/inspector/trigger-helpers.js` - new trigger type in editor"
+    ],
+    "custom": {
+      "what_already_exists": "- Items have `uses` and `max_uses` fields\n- Triggers can fire on `on_use` with conditions\n- Items have `state` field (current status)\n- The trigger system supports condition checks",
+      "the_pattern_already_possible": "A generator item with 15 uses:\n1. Item has `max_uses: 15, uses: 0`\n2. Trigger `on_use` with condition `uses >= 15` → effect `set_state: \"on\"`\n3. Trigger `on_use` with condition `uses < 15` → effect `message: \"You turn the crank. ${15 - uses} more turns needed.\"`\n4. Each `use` increments `uses` counter\n5. At 15, the state flips to \"on\"",
+      "what_this_task_adds": "### 1. Formalize Progressive State UI\nIn the item inspector:\n- Show current uses vs max as a progress bar\n- Display current state + next state at threshold\n- Visual indicator when item is \"charging\" vs \"charged\"\n- ETA: \"15 more turns until powered on\"\n\n### 2. New Trigger Condition: `on_use_progressive`\n- Fires repeatedly as item is used\n- Passes current progress as context\n- Can have different effects at different thresholds:\n  - `threshold: 5` → message \"The generator hums...\"\n  - `threshold: 10` → message \"Lights flicker...\"\n  - `threshold: 15` → effect `set_state: \"on\"`\n\n### 3. Persistence\n- Uses/progress survives save/load\n- Status persists across room changes\n- Visual state reflects progress even when inspector is closed",
+      "browser_ui": "Intended UI home: select the generator/repairable item → use the normal `repair` action repeatedly → inspect its status/progress after each successful use and the final activation event.\n\nCurrent availability: stacked `on_use` triggers can compose this behavior, but the card proposes first-class progress feedback. The UI feedback is not claimed as implemented.\n\nLive steps when available:\n1. Load the generator requiring 15 successful repairs and inspect its starting status.\n   - expected: the UI shows the required count and current count (0/15) without implying the generator is active.\n2. Perform 14 successful repairs, reopening the item/status detail after each or after the batch.\n   - expected: progress advances exactly once per successful repair; the generator remains inactive at 14/15.\n3. Attempt one failed/invalid repair, then perform the fifteenth successful repair.\n   - expected: the failed attempt does not increment progress; the fifteenth successful repair activates the generator once and shows completion feedback.\n4. Save/reload and inspect the item again.\n   - expected: progress and activation state round-trip without replaying already-counted triggers.\n\nThis section is not a claim that first-class progressive item feedback exists today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Item States & Toggleables]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-102-progressive-item-status-multi-use.md"
+  }
+}

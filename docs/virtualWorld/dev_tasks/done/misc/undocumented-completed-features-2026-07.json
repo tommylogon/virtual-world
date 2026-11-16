@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "undocumented-completed-features-2026-07",
+  "kind": "task",
+  "number": null,
+  "title": "Completed Features Without Dedicated Task Docs",
+  "status": "done",
+  "priority": "medium",
+  "area": "misc",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "These features were implemented in earlier sessions but never had standalone dev task docs. All are done.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "1_area_event_log_backend_synced": "- **Files**: `virtual_world_engine.py`, `static/js/world-state.js`, `static/js/event-stream.js`\n- **What**: Backend `turn_events` now sync into frontend `_roomEventLog` on every `fetch()`. Inspector shows who did what in each room with timestamps.",
+      "2_resize_handles": "- **Files**: `static/css/style.css`, `static/js/main.js`\n- **What**: Drag-to-resize for left panel width and event stream height. `#left-resize-handle` and event section divider.",
+      "3_natural_error_messages": "- **Files**: `virtual_world_engine.py`\n- **What**: Error messages like \"You search for X but cannot find it. Items you can see: a, b, c\" instead of raw `item_X` IDs.",
+      "4_narration_prompts_player_or_ai": "- **Files**: `static/js/agent-engine.js`, `templates/index.html`, settings modal\n- **What**: Narration mode toggle: none / player narrate / AI narrate. `/api/settings/narration` endpoint.",
+      "5_import_chub_ai_characters": "- **Files**: `routes/players.py`, character import modal\n- **What**: Import character cards from Chub.ai format into the world as `character` nodes with full stats/vitals.",
+      "6_load_save_progress": "- **Files**: `routes/saveload.py`, `engine/serialization.py`\n- **What**: Scenario save/load with `game_log`, `turn_events`, `log_revision`, `ghost_mode`, `narration_mode` preserved across sessions.",
+      "7_item_trigger_editor_visual_consistency": "- **Files**: `static/js/inspector.js`\n- **What**: Trigger display and modals updated to use same section-header styling and card-based layout as behavior editor.",
+      "8_agent_inspector_emotion_state_area_editing": "- **Files**: `static/js/inspector.js`\n- **What**: Emotion dropdown with intensity slider, state dropdown, room dropdown added to agent inspector panel."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/misc/undocumented-completed-features-2026-07.md"
+  }
+}

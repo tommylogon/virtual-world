@@ -82,6 +82,25 @@ node block AND re-compile or mark prose stale):
     - expected: new `tests/test_persona_growth.py` passes.
     - observed: 2026-10-15 - 13 passed.
 
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector -> Mind -> Persona / Appearance tab.
+
+Current availability: Implemented in `engine/character_appearance.py` and `engine/effect_handlers/persona.py`.
+
+Live steps when available:
+1. Open Character Inspector -> Mind -> Persona tab on a character.
+   - expected: Structured persona appearance fields (hair, scars, tattoos, piercings) are rendered.
+2. In Play Mode, trigger an item or effect that modifies an appearance field (e.g. hair dye or scar trigger).
+   - expected: The effect executes and updates the character's persona properties.
+3. Inspect the Persona tab again.
+   - expected: The updated value is reflected in the UI and in the compiled prose description.
+4. Toggle Play Mode off.
+   - expected: Transient changes are reset.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Acceptance
 
 - [x] `set_persona_field` / `add_persona_id` / `remove_persona_id` /
@@ -98,6 +117,25 @@ node block AND re-compile or mark prose stale):
   `advance_age` now shifts the 735 birth tick too - proven in
   `test_advance_age_moves_the_clock_too`.)
 - [x] `tests/test_persona_growth.py` proves add/remove/compile round-trip.
+
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector -> Mind -> Persona / Appearance tab.
+
+Current availability: Implemented in `engine/character_appearance.py` and `engine/effect_handlers/persona.py`.
+
+Live steps when available:
+1. Open Character Inspector -> Mind -> Persona tab on a character.
+   - expected: Structured persona appearance fields (hair, scars, tattoos, piercings) are rendered.
+2. In Play Mode, trigger an item or effect that modifies an appearance field (e.g. hair dye or scar trigger).
+   - expected: The effect executes and updates the character's persona properties.
+3. Inspect the Persona tab again.
+   - expected: The updated value is reflected in the UI and in the compiled prose description.
+4. Toggle Play Mode off.
+   - expected: Transient changes are reset.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 
 ## Acceptance
 

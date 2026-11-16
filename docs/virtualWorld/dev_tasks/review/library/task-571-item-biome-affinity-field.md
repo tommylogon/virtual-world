@@ -21,18 +21,18 @@ No library item declares which biomes or area tags it belongs in. A repo-wide gr
 
 ## Why
 
-Wilderness area planning matched zero items because wilderness tags did not intersect with item general tags. Adding an explicit ffinity list to item schemas and population indexing allows natural resource distribution into wilderness biomes without polluting item role tags.
+Wilderness area planning matched zero items because wilderness tags did not intersect with item general tags. Adding an explicit affinity list to item schemas and population indexing allows natural resource distribution into wilderness biomes without polluting item role tags.
 
 ## How
 
-Added optional ffinity list on the item schema in engine/library_nodes.py, threaded through 
-outes/library_ops.py and 
-outes/graph_ops.py. Updated engine/population.py to union ffinity and 	ags when indexing domains for area population. Authored 	ools/backfill_item_affinity.py deriving affinities for 361 raw natural resource item templates from their existing tags.
+Added optional affinity list on the item schema in engine/library_nodes.py, threaded through 
+routes/library_ops.py and 
+routes/graph_ops.py. Updated engine/population.py to union affinity and tags when indexing domains for area population. Authored tools/backfill_item_affinity.py deriving affinities for 361 raw natural resource item templates from their existing tags.
 
 ## Acceptance
 
-- [x] Item schema accepts optional ffinity array of biome tags.
-- [x] engine/population.py considers ffinity when matching items to areas.
+- [x] Item schema accepts optional affinity array of biome tags.
+- [x] engine/population.py considers affinity when matching items to areas.
 - [x] Wilderness natural resources (herbs, ore, wood, fish, berries) carry appropriate wilderness affinity tags.
 - [x] Population planner populates wilderness cells from matching affinity pool.
 
@@ -50,8 +50,8 @@ outes/graph_ops.py. Updated engine/population.py to union ffinity and 	ags when
 - engine/library_nodes.py
 - engine/population.py
 - 
-outes/graph_ops.py
+routes/graph_ops.py
 - 
-outes/library_ops.py
-- 	ools/backfill_item_affinity.py
-- 	ests/test_population.py
+routes/library_ops.py
+- tools/backfill_item_affinity.py
+- tests/test_population.py

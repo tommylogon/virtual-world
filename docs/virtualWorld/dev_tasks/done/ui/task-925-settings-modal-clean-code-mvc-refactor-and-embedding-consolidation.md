@@ -13,6 +13,10 @@ related: ["task-909", "task-910", "task-304"]
 **Status:** done
 **Related:** task-909, task-910, task-304
 
+<!-- deps:start -->
+**Related:** [[task-909-dedicated-memory-model-client-and-agentlens-live-retrieval-comparison-sandbox]], [[task-910-backend-provider-profiles-and-env-credentials-persistence]], [[task-304-centralized-config-menu]]
+<!-- deps:end -->
+
 ## What
 
 Refactor the Settings modal and configuration pipeline to follow Clean Code and MVC principles:

@@ -25,7 +25,7 @@ Region merging is one global switch per scope, but a high-school plan needs diff
       overrides the scope's `merge same-biome` checkbox. A ten-cell corridor
       painted with merging off is still one corridor, not ten anonymous rooms.
 - [x] **A terrace of cottages is three cottages.** Every `building` record is
-      `merge: never` without 31 records having to say so —
+      `merge: never` without 31 records having to say so -
       `biomes_mod.merge_rule` reports a building as never-merge from the `building`
       tag. Adjacent `cottage` cells stay three areas with the merge switch **on**.
 - [x] **Everything else follows the switch**, unchanged from before: two
@@ -33,8 +33,8 @@ Region merging is one global switch per scope, but a high-school plan needs diff
       wilderness scope compiles identically to how it did before this task, so no
       existing map changes shape.
 - [x] The rules are **per kind, resolved in one place** (`_regions`, via
-      `always_merge` / `never_merge` / `default_merge`), so a half-merge — a run
-      broken in the middle — is impossible.
+      `always_merge` / `never_merge` / `default_merge`), so a half-merge - a run
+      broken in the middle - is impossible.
 - [x] The rule is **vocabulary, not code**: a modder adding a `cellar` or a
       `subway` writes `merge: always` on the record and gets the behaviour.
 

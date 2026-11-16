@@ -12,7 +12,7 @@ priority: medium
 
 ## What
 
-Make precise grid resize discoverable: the Grid... dialog (w/h/scale/Apply) verified working in both directions by real keyboard input (168x112 -> 120x80 -> 168x112, no confirm needed on an unpainted scope), but it renders as a small strip at the very bottom of a tall scrolling modal, far below the canvas and the Grid... button. The ✥ grid adjust mode (drag frame + E/S/SE handles) is the affordance an author finds first and cannot size precisely (verified live: status hint only says 'drag the frame to move the scope on the graph map, drag the E/S/SE handles to resize' — it never mentions the dialog). Fix options: surface the w/h fields in the adjust-mode HUD or near the canvas, or open the dialog directly from the grid-dims label (160x100 - 1 cell = 1 turn).
+Make precise grid resize discoverable: the Grid... dialog (w/h/scale/Apply) verified working in both directions by real keyboard input (168x112 -> 120x80 -> 168x112, no confirm needed on an unpainted scope), but it renders as a small strip at the very bottom of a tall scrolling modal, far below the canvas and the Grid... button. The ✥ grid adjust mode (drag frame + E/S/SE handles) is the affordance an author finds first and cannot size precisely (verified live: status hint only says 'drag the frame to move the scope on the graph map, drag the E/S/SE handles to resize' - it never mentions the dialog). Fix options: surface the w/h fields in the adjust-mode HUD or near the canvas, or open the dialog directly from the grid-dims label (160x100 - 1 cell = 1 turn).
 
 ## Acceptance
 
@@ -34,8 +34,8 @@ missing:
 
 Both are now done:
 
-- the dims readout is a `_btn` that calls `_openGridDialog(p)` — the same dialog
-  the toolbar uses — with the title "Set the exact grid size…". So the exact
+- the dims readout is a `_btn` that calls `_openGridDialog(p)` - the same dialog
+  the toolbar uses - with the title "Set the exact grid size…". So the exact
   numbers are one click from the canvas HUD.
 - the adjust-mode status now reads "…drag the E/S/SE handles to resize; click the
   size (or ▦ Grid…) to type exact numbers."
@@ -48,7 +48,7 @@ opens the exact-size dialog. Built source: `editor.js:1651` (the `_btn`) and
 `:1201` (the hint).
 
 **Follow-up observation, not part of this task:** the WorldPainter modal is taller
-than the viewport — the status line and Child scopes sit below the fold, so the
+than the viewport - the status line and Child scopes sit below the fold, so the
 whole modal needs a browser zoom-out to see at once. That is the "tall modal"
 context the task was filed around; the discoverability fix (size control at the
 top of the canvas) does not depend on it, but the modal height is its own issue.

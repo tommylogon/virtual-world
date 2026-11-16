@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "id": "task-701",
+  "kind": "task",
+  "number": 701,
+  "title": "Pursuit template library: reusable undertakings as versioned entries",
+  "status": "review",
+  "priority": "high",
+  "area": "library",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-694",
+      "task-2",
+      "task-409",
+      "task-426",
+      "task-699",
+      "task-807"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Provide reusable, character-agnostic pursuit templates that characters can choose, be offered, or be assigned. A template is like a recipe for a longer undertaking: it says what the character is trying to do, where and when it applies, what they need or must know, how progress is checked, and when to stop. The bound pursuit instance adds the character's own reason and target. A template does not force an LLM agent to comply.\n\nKeep the meanings separate:\n\n- A **Goal** explains the desired outcome and the character's reason.\n- A **Mission** is an external request; accepting it may create a pursuit.\n- A **Pursuit template** is reusable authored content; an **active pursuit** belongs to one character.\n- A **Schedule** is a calendar rule that can prompt or time a pursuit.\n- A **short-term plan** works out the current approach to the pursuit.\n- An **Activity** is the visible, ongoing process at a location (for example, sleeping on a bed).\n- A **world recipe** defines how a transformation resolves; an Activity may enact it.",
+    "why": "Without a reusable, validated library, longer undertakings remain hardcoded in the\nbackground planner and cannot be selected or authored consistently across\ncharacters. The template must describe the undertaking while the bound pursuit\nkeeps the actor-specific reason and world references.",
+    "how": "Added a declared plan-step vocabulary in `engine/plan_steps.py` and extended\n`engine/pursuit_templates.py` to validate shared condition leaves, supplies,\nprogress and stop-condition records, recipe references, timing fields, step\nfields, bindings, and Activity references. Added `meal`, `scout-and-report`, and\n`sleep-at-venue` entries alongside the existing catalog. The existing generic\nlibrary writer and pursuit-template loader preserve arbitrary authored fields.\n\nTwo defects were found and fixed while authoring the structured fields, both of\nwhich made authored data silently inert:\n\n1. `engine/background_plans.py:build_plan` rebuilt the plan from four of the\n   instance's keys and discarded `requirements`, `supplies`, `timing`,\n   `progress`, `stop_conditions`, `duration` and `recipe`. A template that\n   authored `stop_conditions` validated, bound, and then had the field dropped\n   before the runner ever saw it. `build_plan` now passes every structured field\n   through.\n2. The authored `requirements` used `{\"type\": \"in_area\", \"target\": \"self\"}`. The\n   condition evaluator builds its context key as `f\"{target}_area\"`, and the NPC\n   behaviour context sets `npc_area` and never `self_area`, so the leaf compared\n   `None` against an area name and was permanently False. The entries now use the\n   default `npc` target, which reads the acting character's area.\n\nThe `sleep-at-venue` progress check was also corrected: it first read\n`state_equals: sleeping`, but bed nodes carry `current_state: \"normal\"` and the\nleaf needs an `item_node` in context that a pursuit check does not supply, so it\ncould never be true. It now checks the rested Energy threshold, and the meal\nprogress check reads Hunger in the direction the engine uses (high Hunger is\nhungry, so \"fed\" is a low value).\n\nThe UI browser's declared tab type still omits `pursuit_templates`.",
+    "verify": "1. Run `python -m pytest tests/test_pursuit_templates.py`.\n   - expected: validation rejects unsupported leaves, unresolved bindings and\n     Activity ids; binding and registry save/load preserve authored values; a\n     bound bed ID reaches the existing Activity runner; the structured fields\n     survive into the live plan.\n   - observed: 34 passed. `test_sleep_at_venue_template_binds_the_exact_activity_target_item`\n     and `test_item_id_parameter_reads_the_named_assignment_property` assert the\n     `bed_id` binding is read and emitted as `target_item`. In\n     `test_sleep_pursuit_starts_activity_on_the_bound_existing_bed`, the\n     background caller advances the character to the Bed Room, starts the\n     `sleeping` Activity on the exact graph bed node, and preserves the active\n     pursuit. `test_timing_reads_the_worlds_own_clock`,\n     `test_timing_reads_the_existing_world_date`,\n     `test_timing_reads_sun_from_the_existing_on_day_interval` and the\n     fail-closed timing tests cover existing clock values.\n     `test_structured_fields_reach_the_plan_not_just_the_instance` asserts\n     `build_plan` passes requirements/supplies/timing/progress/stop_conditions\n     through with bindings expanded, and\n     `test_requirements_use_the_context_key_a_background_actor_sets` pins the\n     `in_area` target to the `npc_area` key the behaviour context actually sets.\n     The registry tests cover all seven entries and a save/load round trip.\n2. Check the authored timing and pursuit templates against the acceptance list.\n   - expected: date, time, season, forecast/weather, moon, sun and daylight are\n     read from the existing world clock; authored examples resolve real world\n     references and their observable behavior is verified.\n   - observed: partial. `timing_matches` reads date, hour, season, forecast\n     state, moon phase, and an hour-derived sun/daylight band; no runtime\n     selector caller was found. `test_scout_and_report_template_runs_end_to_end`\n     verifies travel to the scout area and back and the pursuit completion log,\n     but there is no report interaction or report fact to verify. The meal\n     template starts the existing eating Activity but has no world-recipe\n     reference or recipe execution. The Kraktooth content lane was live-checked:\n     Vekka's pursuit and plan render in Mind Layers and `/api/state`; the water\n     skin and dagger IDs resolve, while the backpack is held by the Eldenford\n     Merchant and the report condition is explicitly not checkable. Gribba's\n     06:00 `eat` schedule and James's travel/sleep plan also render and appear in\n     `/api/state`; James's bed ID resolves to a bed in Hut Sleeping Corner.\n     The schedule's `eat` value is accepted and persisted; the current scheduler\n     only starts blocking Activities for `work` and `rest`, so this entry does\n     not itself force an eating Activity or emit an explicit reminder.\n     On the current integration branch, live ticks 59–71 left James's plan at\n     index 0 and `activity` null. His `needs:hunger` travel oscillated between\n     `Road (world 15,5)` and `Road (world 16,6)`, so the survival cascade kept\n     preempting the authored sleep plan. This does not invalidate the isolated\n     sleep mechanism test, but the Kraktooth runtime path still does not reach\n     bed activity. The library browser still has no `pursuit_templates` tab,\n     and this lane's file boundary excludes `static/js/**`.\n3. Re-run the lane's neighbouring suites after the `build_plan` change.\n   - expected: no regression in the background runner, activity duration, or the\n     trigger condition evaluator that the shared leaf vocabulary is read from.\n   - observed: `python -m pytest tests/test_pursuit_templates.py\n     tests/test_background_plans.py tests/test_activity_duration.py\n     tests/test_trigger_system.py` → 205 passed. `CONDITION_TYPES` is 41 on this\n     branch (master added `owns` and `known` for task-705), and every leaf the\n     authored entries carry is in that set.",
+    "acceptance": [
+      {
+        "text": "A `pursuit_templates` library registry loads and saves versioned entries using the existing library machinery. The partial `engine/pursuit_templates.py` slice and `data/library/pursuit_templates/` are incorporated rather than duplicated.",
+        "done": true
+      },
+      {
+        "text": "The template and bound pursuit instance together represent purpose and character reason, requirements and knowledge, parameters, timing windows, place/route, supplies, short-term steps, progress checks, duration or stop conditions, and optional world-recipe references.",
+        "done": true
+      },
+      {
+        "text": "Templates contain no character-specific proper names; every actor, item, area, person, and time bound to a pursuit instance resolves through the world and the actor's knowledge.",
+        "done": true
+      },
+      {
+        "text": "Requirements use the shared condition vocabulary (task-705); unsupported or unknown requirements fail closed.",
+        "done": true
+      },
+      {
+        "text": "Schedule conditions can read the existing game date, time, season, forecast/weather, moon, sun, and daylight. No new clock/calendar is introduced.",
+        "done": true
+      },
+      {
+        "text": "Activities are references to the existing Activity system, not schedule-template records: a sleep pursuit reaches a valid bed and starts a visible sleeping Activity there; an interruption or invalid bed is handled through the actor's current decision rules.",
+        "done": true
+      },
+      {
+        "text": "A small authored set exercises the range in Kraktooth and the existing fixture worlds: Mikka's haul, gather/return, Vekka's scout-and-report, sleep-on-a-specific-bed, and a meal pursuit that invokes a world recipe. Add templates when content needs them; do not target a fixed catalog count such as 200. *(4 of 5 authored and tested; the meal entry exists and starts the existing `eating` Activity but cannot invoke a world recipe  -  task-703 owns the recipe store and no `recipes` library or `cooking` activity exists yet.)*",
+        "done": false
+      },
+      {
+        "text": "The template browser uses the existing library editor. Save/load and validation preserve authored fields without a second source of truth. *(The backend registry round-trips and reloads through `routes/library_ops.write_library_entry`; the library browser UI declares no `pursuit_templates` tab. That gap is shared with `structures`, which the browser also omits, so it is a general browser limitation rather than this card's defect  -  see Remaining blockers.)*",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/plan_steps.py",
+      "engine/pursuit_templates.py",
+      "engine/background_plans.py",
+      "data/library/pursuit_templates/*.json",
+      "tests/test_pursuit_templates.py"
+    ],
+    "custom": {
+      "current_slice": "The registry loads seven JSON entries and binds actor-specific values into a\ncharacter-side instance. Typed steps and the structured purpose, requirements,\nsupplies, timing, progress, stop, duration, and recipe fields are validated,\ncarried through `instantiate` into the bound instance, and passed on by\n`build_plan` into the live plan with their bindings already expanded. This is\nstill only the content and binding layer; it does not make the authored plans\nexecutable by every actor, and no runtime consumer yet reads the structured\nfields off the plan.",
+      "remaining_blockers": "Four acceptance gaps remain, none of them fixable inside this card's scope:\n\n1. **No library browser tab.** `static/js/library-browser.ts` declares eight tab\n   types and omits both `pursuit_templates` and `structures`. The backend\n   registry (`routes/library_ops.REGISTRY_TYPES`) already accepts\n   `pursuit_templates`, so only the UI list is missing. Because `structures`\n   shares the identical gap, this is a general library-browser limitation and\n   belongs in its own card rather than being bolted on here; adding it means\n   editing the `.ts` source, the tab HTML in `templates/index.html`, and a\n   `ts_convert.py` rebuild.\n2. **No runtime consumer of the structured fields.** `build_plan` now passes\n   `requirements`, `supplies`, `timing`, `progress`, `stop_conditions`,\n   `duration` and `recipe` onto the plan, but no runner reads them off it yet.\n   Enforcing them  -  invalidating a plan when a requirement stops holding,\n   honouring a timing window, advancing a progress check, stopping on a stop\n   condition  -  is task-702's executor work.\n3. **No timing selector caller.** `timing_matches` is a prompt input for\n   selection and has no caller; the selector that would use it is task-704.\n4. **The meal entry cannot invoke a world recipe.** There is no `recipes`\n   directory under `data/library/` and no `cooking` activity, so the entry\n   starts the existing `eating` Activity instead. task-703 owns the recipe store.\n\nSeparately, the saved scenario has no physical route to James's bed: a\nbreadth-first walk over `connection` edges from his `area_world_15_5` visits\n1,962 nodes and cannot reach `area_fisherman_s_hut_1_1`, where the bound bed is\nlocated. Fixing this requires a graph connection outside the character-content\nlane. In the integrated live scenario, hunger preempted his plan for 12\nconsecutive ticks; the engine's survival precedence is working correctly, but\nthis content does not demonstrate arrival at the bed.\n\nDo not start task-702 until task-701 is accepted; task-702 remains blocked by\ntask-700 and task-701."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "clarified": "2026-10-05"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries.md"
+  }
+}

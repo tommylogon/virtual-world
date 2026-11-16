@@ -21,7 +21,7 @@ Extend beyond-visibility from per-adjacent-way to a chained line of sight: an ob
 - The "contents vs name/description only" question is decided and recorded.
 - `tests/test_beyond_visibility.py` and the lighting tests still pass.
 
-## Progress — 2026-09-28 (in `review`)
+## Progress - 2026-09-28 (in `review`)
 
 `engine/beyond_visibility.py` gains `sightline_run()` and
 `chained_sightline_summary()`. The existing depth-1 `build_beyond_suffix` is
@@ -32,8 +32,8 @@ explicit call the description builder can make.
 
 **1. Depth cap: 3, configurable as `sightline.depth`.** A run of three open
 doorways is a corridor you can see down; a run of four is almost always a plan
-that has lost sight of its own exits. Higher values *compound* — each step reports
-that room's contents — so a depth of five is effectively an inventory of the
+that has lost sight of its own exits. Higher values *compound* - each step reports
+that room's contents - so a depth of five is effectively an inventory of the
 building. The cap is a taste decision, so it lives in Engine Config where it can
 be argued with, and is clamped so a negative value is a disabled sightline rather
 than a crash.
@@ -43,7 +43,7 @@ its exits, its description, or anything past it.**
 
 - *Contents are included* because excluding them would be inconsistent with the
   depth-1 behaviour task-201 established, and would make a corridor report **less**
-  the further you could see — backwards.
+  the further you could see - backwards.
 - *Exits and descriptions are excluded* because those are what would let a
   character navigate a floor they have not walked. That is task-499's fog of war,
   and a sightline that handed over the exits would undo it without anyone having
@@ -60,10 +60,10 @@ and reports an empty world. The turn-break is better than an explicit check
 because the graph already encodes it: the edge out of a room names the direction
 its way lies in, so looking east from a room whose only east way leads back the
 way you came finds a way you have already seen and the run stops. No special case
-needed — and a test asserts a corner stops it.
+needed - and a test asserts a corner stops it.
 
 **A floor step breaks the chain on the way that CARRIES the new storey**, so the
-room beyond the stairway is not reported — the line of sight left the floor it
+room beyond the stairway is not reported - the line of sight left the floor it
 started on, and the stairway is where it left. A stairway *between* two rooms is
 still visible across; nothing beyond it is.
 
@@ -72,11 +72,11 @@ never declared a storey has not claimed a different one, and treating "unknown" 
 "different" would blank every hand-authored corridor in the game. That is a real
 population, not a theoretical one.
 
-The solid states are read through `engine.barriers.declared_state` — the shared
-ladder from task-421 — so a new way state cannot be "open by omission" here the
+The solid states are read through `engine.barriers.declared_state` - the shared
+ladder from task-421 - so a new way state cannot be "open by omission" here the
 way it would have been for light and sound. A test walks all six.
 
-### New tests — `tests/test_sightlines.py` (22)
+### New tests - `tests/test_sightlines.py` (22)
 
 A full open run and its per-step depth/direction; the cap at 3 and its
 configurability, including a nonsense value and a negative one; a floor step up

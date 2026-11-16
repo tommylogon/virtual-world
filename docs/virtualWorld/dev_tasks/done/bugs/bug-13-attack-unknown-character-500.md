@@ -1,7 +1,7 @@
 # Bug 13: Attack on an unknown character → 500 (`get_player` AttributeError)
 
-**Found**: 2026-08-06 (mansion sim — The Butcher `attack the man`)
-**Fixed**: 2026-08-06 — verified live + regression tests
+**Found**: 2026-08-06 (mansion sim - The Butcher `attack the man`)
+**Fixed**: 2026-08-06 - verified live + regression tests
 **Status**: Done
 
 ## Symptom

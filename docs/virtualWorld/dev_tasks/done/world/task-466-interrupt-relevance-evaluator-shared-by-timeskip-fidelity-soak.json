@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-466",
+  "kind": "task",
+  "number": 466,
+  "title": "Interrupt & relevance evaluator (shared by timeskip, fidelity, soak)",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-464",
+      "task-411",
+      "task-418",
+      "task-399",
+      "task-403"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One deterministic relevance/interrupt evaluator shared by timeskip actions (task-464), attention/fidelity tiers (task-411/418), soak deferral (task-399) and memory salience (task-403). Given a character and a tick's world deltas plus trace events, decide what they notice and must react to: threat (attack/steal/grapple/hostile approach), vital or condition threshold crossings, involuntary-action firing, discoveries matching interest tags or known goals, arrivals and sounds carried by awareness channels. Emits structured interrupt reasons (why-tags) and never calls an LLM. Stopping at a tick boundary means the post-interrupt state is an ordinary world state.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "`python -m pytest tests/test_timeskip.py -q` → 41 passed (11 pure evaluator cases incl. area/actor filtering).",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "progress_2026_09_22_engine_evaluator_landed_review": "`engine/interrupts.py` + `tests/test_timeskip.py` (pure-unit cases).\n\n- [x] `snapshot(gs, player)` / `evaluate(before, after, events, watch_tags, target, intent)` and struct `Interrupt(kind, why, detail, salient)`.\n- [x] Death; threat (hostile condition or theft/attack marker in log + turn events); vital danger-band **crossings only** (drives above / resources below / HP); involuntary bladder; discovery by interest tag or name; arrival on travel.\n- [x] Consumed by `engine/timeskip.advance` as the interrupt that hands control back.\n- [ ] Wire the same evaluator into the attention/fidelity tiers (411/418) and soak deferral (399) - the reason it is shared.\n- [x] Events are filtered to the character's area and exclude their own actions; global log lines only count when they name the character, and `HOSTILE_ACTIONS` labels count without a marker. (Otherwise a fight elsewhere could interrupt a skip.)\n- [ ] Sound/awareness-channel inputs (task-418) beyond log/turn events.\n- [ ] A `salience` consumer for task-403 memory ranking.",
+      "review_2026_09_23_shared_evaluator_closed": "Verified: `tests/test_timeskip.py` (41 passed) plus `tests/test_soak_chain.py` (5 passed) and the 289-passed soak/timeskip/fear/forage/loot/checks/skills/conditions slice. The soak-deferral consumer the shared evaluator was waiting for now lives in `engine/soak.py` promotion (`_promote_reason`). Remaining bullets are owned by other tasks: attention/fidelity tiers (task-411, task-418), sound/awareness channels (task-418), salience consumer for memory ranking (task-403). Closing."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-466-interrupt-relevance-evaluator-shared-by-timeskip-fidelity-soak.md"
+  }
+}

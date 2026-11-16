@@ -7,13 +7,13 @@ priority: medium
 
 # Way Inspector: Target Editing & Direction Display
 
-**Status**: Done — verified 2026-08-03. Connections + directions shown in the way inspector (static/js/inspector/way-view.js), Reconnect button wired to /api/graph/way/reconnect (routes/graph.py:431). Endpoint renamed from door/reconnect to way/reconnect.
+**Status**: Done - verified 2026-08-03. Connections + directions shown in the way inspector (static/js/inspector/way-view.js), Reconnect button wired to /api/graph/way/reconnect (routes/graph.py:431). Endpoint renamed from door/reconnect to way/reconnect.
 
 **Priority**: Medium
 
 ## What
 
-The door inspector (`_showDoor`) currently shows a door's name, state, description, tags, and triggers — but **doesn't show which rooms it connects to** or allow changing them. This makes it impossible to fix miswired doors from the UI.
+The door inspector (`_showDoor`) currently shows a door's name, state, description, tags, and triggers - but **doesn't show which rooms it connects to** or allow changing them. This makes it impossible to fix miswired doors from the UI.
 
 ## Requirements
 
@@ -55,8 +55,8 @@ Need a new `reconnectDoor` method on the API client.
 
 ## Files
 
-- `static/js/inspector.js` — extend `_showDoor()` with connection display + target editing
-- `static/js/api.js` — add `reconnectDoor()` method
+- `static/js/inspector.js` - extend `_showDoor()` with connection display + target editing
+- `static/js/api.js` - add `reconnectDoor()` method
 
 ## Why
 

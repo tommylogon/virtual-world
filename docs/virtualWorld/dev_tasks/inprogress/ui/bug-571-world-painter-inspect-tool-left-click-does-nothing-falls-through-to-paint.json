@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "bug-571",
+  "kind": "bug",
+  "number": 571,
+  "title": "World Painter: inspect tool left-click does nothing (falls through to paint)",
+  "status": "inprogress",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-05",
+  "updated": "2026-11-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The inspect tool (shortcut I) is defined in TOOLS array but not handled in onCellClick in editor-canvas.ts. Left-click in inspect mode falls through to paintAt() which tries to paint on the cell. Right-click (contextmenu) correctly calls inspectCell().",
+    "why": "User expects inspect tool to show cell details on click, but it paints instead. This is a regression - the tool exists in UI but the click handler is missing.",
+    "how": "Add an inspect case in onCellClick (editor-canvas.ts) before the paintAt fallback. The case should call inspectCell(p, x, y) to set state.inspected and trigger softRender which shows the cell panel.",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: TODO\n   - observed: TODO\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: TODO\n   - observed: TODO\n3. Run the targeted regression test for the mechanism.\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Select inspect tool (I key or toolbar button)",
+        "done": false
+      },
+      {
+        "text": "Left-click a cell on the grid",
+        "done": false
+      },
+      {
+        "text": "Cell panel opens showing cell info (biome, road, floor, structure, area, sub-zone, exits, name)",
+        "done": false
+      },
+      {
+        "text": "Right-click on any tool still works as before",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor-canvas.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: World Painter editor (any scope with grid)\n\nCurrent availability: Always\n\nLive steps when available:\n1. Open World Painter for a scope with has_grid=true\n2. Select Inspect tool (I key or 🔍 Inspect button)\n3. Left-click any cell on the grid\n4. Observe: cell panel should open with cell details\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Painter]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/inprogress/ui/bug-571-world-painter-inspect-tool-left-click-does-nothing-falls-through-to-paint.md"
+  }
+}

@@ -70,4 +70,4 @@ ode_id, and self.
 - engine/effects.py
 - static/js/shared/trigger-editor.js
 - engine/trigger_system.py
-- 	ests/test_triggers.py
+- tests/test_triggers.py

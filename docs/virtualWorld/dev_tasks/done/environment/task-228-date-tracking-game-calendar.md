@@ -19,9 +19,9 @@ Add a game calendar (day / month / year) derived from `time_ticks`. Expose it in
 
 ## What Already Exists
 
-- `TickManager.time_ticks` — monotonically increasing counter
-- `time_per_tick_minutes = 5` — each tick = 5 game minutes
-- `clock_start_hour = 8`, `clock_start_minute = 0` — day starts at 08:00
+- `TickManager.time_ticks` - monotonically increasing counter
+- `time_per_tick_minutes = 5` - each tick = 5 game minutes
+- `clock_start_hour = 8`, `clock_start_minute = 0` - day starts at 08:00
 
 ## How
 
@@ -69,16 +69,16 @@ Add `game_day`, `game_month`, `game_year`, `calendar_config` to `/api/state` res
 
 ### UI Display
 
-Event stream header format: `"Day {day}, Month {month}, Year {year} — {HH:MM} — {weather}"`
+Event stream header format: `"Day {day}, Month {month}, Year {year} - {HH:MM} - {weather}"`
 
 ## Files
 
-1. `engine/tick_manager.py` — add `game_day`, `game_month`, `game_year` properties
-2. `virtual_world_engine.py` — add `calendar_config` defaults
-3. `routes/state.py` — expose calendar fields in `/api/state`
-4. `engine/serialization.py` — save/load calendar config
-5. `static/js/world-state.js` — parse new fields
-6. `static/js/event-stream.js` — display date in header
+1. `engine/tick_manager.py` - add `game_day`, `game_month`, `game_year` properties
+2. `virtual_world_engine.py` - add `calendar_config` defaults
+3. `routes/state.py` - expose calendar fields in `/api/state`
+4. `engine/serialization.py` - save/load calendar config
+5. `static/js/world-state.js` - parse new fields
+6. `static/js/event-stream.js` - display date in header
 
 ## Dependencies
 

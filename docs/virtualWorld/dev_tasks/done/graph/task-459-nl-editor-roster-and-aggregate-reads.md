@@ -17,7 +17,7 @@ Give the NL editor real read coverage of the cast and contents: a list_character
 ## Acceptance
 
 - [x] `list_nodes` tool: `kind`, `tags`/`tag` (+ `require_all_tags`), `area`
-      (nodes with an `in` edge to it — "who is in area X"), `name_contains`,
+      (nodes with an `in` edge to it - "who is in area X"), `name_contains`,
       with a total `count` and `page`/`page_size`/`pages` (`static/js/nl-editor/tools.js`).
 - [x] Selector core `OverlayGraphView.matchNodes` is shared with
       `update_matching_nodes`, so the reviewed affected set and a roster read

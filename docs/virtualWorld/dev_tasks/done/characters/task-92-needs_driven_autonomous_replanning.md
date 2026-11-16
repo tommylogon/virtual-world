@@ -10,18 +10,18 @@ priority: medium
 
 **Filed**: 2026-07-22
 **Priority**: High
-**Status**: In Review — implemented 2026-08-21, moved from todo/
+**Status**: In Review - implemented 2026-08-21, moved from todo/
 
 ## Implemented (2026-08-21)
 
-- `plan-tracker.js` — `criticalNeeds(vitals)` (Energy/Hunger/Thirst ≤25, Sanity/Social <25, Bladder ≥90) +
+- `plan-tracker.js` - `criticalNeeds(vitals)` (Energy/Hunger/Thirst ≤25, Sanity/Social <25, Bladder ≥90) +
   crossing-gated `shouldReplan`: fires when needs CROSS into critical, re-nudges every 5 turns while still
   critical (the old code re-fired every turn → plan churn). Trackers reset in `reset()`.
-- `plan-manager.js` — plan regen prompt gains a `=== CRITICAL NEEDS ===` directive forcing the new plan to
+- `plan-manager.js` - plan regen prompt gains a `=== CRITICAL NEEDS ===` directive forcing the new plan to
   address the most urgent need first.
 - **Deliberate deviations from the humanoidagents pattern**: (a) no separate "should you change your plan?"
-  LLM call — a full plan regen on threshold-crossing achieves the outcome with ONE call instead of two;
-  (b) `analyzeActivity()` dropped — consumables/rest/sleep already restore vitals mechanically via item
+  LLM call - a full plan regen on threshold-crossing achieves the outcome with ONE call instead of two;
+  (b) `analyzeActivity()` dropped - consumables/rest/sleep already restore vitals mechanically via item
   actions and activities, so an LLM need-satisfaction judge would be redundant token burn.
 - Verified: node --check clean; suite 1048 passed / same 3 pre-existing failures.
 
@@ -29,7 +29,7 @@ priority: medium
 
 ## What
 
-Vitals currently exist and decay, but they're purely descriptive — the agent sees "You are hungry" in the prompt but has no mechanism to autonomously change course. In humanoidagents, when basic needs drop below a threshold, the agent asks itself "Should I change my plan?" and replans via LLM.
+Vitals currently exist and decay, but they're purely descriptive - the agent sees "You are hungry" in the prompt but has no mechanism to autonomously change course. In humanoidagents, when basic needs drop below a threshold, the agent asks itself "Should I change my plan?" and replans via LLM.
 
 This task ports that pattern: when vitals hit critical thresholds, the agent triggers an LLM call to replan the next N steps.
 
@@ -37,7 +37,7 @@ This task ports that pattern: when vitals hit critical thresholds, the agent tri
 
 ## Evidence
 
-humanoidagents `humanoid_agent.py:136-165` — core loop:
+humanoidagents `humanoid_agent.py:136-165` - core loop:
 
 ```python
 def get_agent_action_retrieval_based(self, curr_time):
@@ -54,7 +54,7 @@ def get_agent_action_retrieval_based(self, curr_time):
         # ... parse response, call change_plans() if yes
 ```
 
-humanoidagents `humanoid_agent.py:95-133` — change_plans:
+humanoidagents `humanoid_agent.py:95-133` - change_plans:
 ```python
 def change_plans_helper(LLM, suggested_change, existing_plan):
     prompt = f"""
@@ -64,7 +64,7 @@ def change_plans_helper(LLM, suggested_change, existing_plan):
     """
 ```
 
-**Virtual_world currently:** `prompt-builder.js:507-562` — `describeVitals()` generates text like "You are hungry." but it's just injected into the prompt. No conditional replanning happens.
+**Virtual_world currently:** `prompt-builder.js:507-562` - `describeVitals()` generates text like "You are hungry." but it's just injected into the prompt. No conditional replanning happens.
 
 ---
 
@@ -106,7 +106,7 @@ After an action completes, ask the LLM whether the action addressed each critica
 
 ### 4. Wire replan check into the agent turn loop
 
-In `agent-engine.js`, after building context but before sending to the LLM for the action decision, insert the replan check. Only replan when vitals are actually critical — not every turn.
+In `agent-engine.js`, after building context but before sending to the LLM for the action decision, insert the replan check. Only replan when vitals are actually critical - not every turn.
 
 ---
 

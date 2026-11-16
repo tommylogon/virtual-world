@@ -46,26 +46,26 @@ self.discovered_items = set()          self.visited_areas = set()
 ## How
 
 One knowledge/memory **record** (prose + data + `kind` + salience + rehearsal),
-with a **lifecycle curve per kind** — not a binary "episodic decays, semantic
+with a **lifecycle curve per kind** - not a binary "episodic decays, semantic
 does not":
 
-- **episodic** — an event: tick, emotion weight, decays/reinforces fast (task-685).
-- **procedural** — a recipe or a skill you practiced. Decays with **disuse**, and
+- **episodic** - an event: tick, emotion weight, decays/reinforces fast (task-685).
+- **procedural** - a recipe or a skill you practiced. Decays with **disuse**, and
   rehearsal resets it: cook pancakes for 15 years then stop, and yes, you lose
   the recipe. This corrects an earlier overreach in this task ("semantic never
   fades"). The repo already counts successful uses toward a skill raise
-  (`player.py`, skill uses) — decay-by-disuse is the other half.
-- **semantic** — a fact about the world ("the smith is down that road"): does not
+  (`player.py`, skill uses) - decay-by-disuse is the other half.
+- **semantic** - a fact about the world ("the smith is down that road"): does not
   fade on a clock; it is **invalidated by change** (the road closed, the smith
   died), not by time.
 
-**capability** (skills/traits) is unchanged — learned ability is not a memory,
+**capability** (skills/traits) is unchanged - learned ability is not a memory,
 though its *practice history* is procedural.
 
 **Derived indexes stay derived.** `discovered_exits` and `visited_areas` are a
 view over the graph (what the character has perceived), not memories; task-724's
 rule says a derived value is not persisted as its own store. `discovered_items`
-is the same — a set of node ids already in the graph. `known_way_aspects` is the
+is the same - a set of node ids already in the graph. `known_way_aspects` is the
 spatial/route memory and is the one that *is* a memory (see task-736).
 
 ## Why not one flat list
@@ -79,7 +79,7 @@ they should not age at the same rate. The model unifies the *shape*; the
 
 - Migration: existing `known`/`crafting_known`/`known_way_aspects` becomes
   semantic records; `discovered_*`/`visited_areas` are dropped as derived. What
-  writes the first semantic records — a projector, or the same add path?
+  writes the first semantic records - a projector, or the same add path?
 - Does recall (task-690) score semantic knowledge, or only episodic? A recipe
   should surface by relevance, not by recency.
 - Idempotency: re-deriving semantic records from authored content must not

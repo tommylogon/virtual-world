@@ -5,17 +5,17 @@ area: characters
 priority: medium
 ---
 
-# Memory Deletion — Cannot Delete Individual Memories from Character Inspector
+# Memory Deletion - Cannot Delete Individual Memories from Character Inspector
 
 **Filed**: 2026-07-17
 **Priority**: High
-**Status**: Done — verified 2026-08-03. All four fix items in code: DELETE endpoint `routes/memories.py:66-75`, `api.js:332` `deletePlayerMemory`, guard logs `console.warn` instead of silent exit (`static/js/inspector/memory-view.js:150-158`), ID backfill on restore (`engine/serialization.py:179`, `player.py:352`). File references are stale (app.py:1648 / inspector.js / api.js:240 predate the routes/ + inspector/ split).
+**Status**: Done - verified 2026-08-03. All four fix items in code: DELETE endpoint `routes/memories.py:66-75`, `api.js:332` `deletePlayerMemory`, guard logs `console.warn` instead of silent exit (`static/js/inspector/memory-view.js:150-158`), ID backfill on restore (`engine/serialization.py:179`, `player.py:352`). File references are stale (app.py:1648 / inspector.js / api.js:240 predate the routes/ + inspector/ split).
 
 ---
 
 ## What
 
-The character inspector in the UI shows a 🗑 delete button for each memory entry, but clicking it fails to delete the memory. The backend DELETE endpoint exists and works, but the frontend call encounters an issue — likely the entry ID being empty or mismatched, or the frontend state not syncing properly after deletion.
+The character inspector in the UI shows a 🗑 delete button for each memory entry, but clicking it fails to delete the memory. The backend DELETE endpoint exists and works, but the frontend call encounters an issue - likely the entry ID being empty or mismatched, or the frontend state not syncing properly after deletion.
 
 ## Why
 
@@ -60,7 +60,7 @@ _deleteMemory(charName, entryId) {
 const id = m.id || `mem_${i}`;
 ```
 
-The memory ID is displayed using a fallback `mem_${i}` if `m.id` is missing. But the delete button sends `m.id || ''` — so if `m.id` is undefined/null, the entryId is an empty string, and the guard `if (!entryId) return;` silently aborts.
+The memory ID is displayed using a fallback `mem_${i}` if `m.id` is missing. But the delete button sends `m.id || ''` - so if `m.id` is undefined/null, the entryId is an empty string, and the guard `if (!entryId) return;` silently aborts.
 
 ## Root Cause
 
@@ -85,16 +85,16 @@ However, some memories (especially those loaded from save data or created by the
 ## How
 
 1. **Ensure all memories have IDs**: Backfill missing IDs in `player.py` constructor or `add_memory()`
-2. **Fix the frontend guard**: The `if (!entryId) return;` guard should not silently fail — it should log a warning or attempt to match by index
+2. **Fix the frontend guard**: The `if (!entryId) return;` guard should not silently fail - it should log a warning or attempt to match by index
 3. **Add migration**: For existing saves, add IDs to any memory entries that lack them on `from_dict()` restore
 4. **Verify**: Delete button sends the correct entry ID, and refresh after delete succeeds
 
 ## Files
 
-- `player.py` — ensure `id` field on all memories during init/restore
-- `virtual_world_engine.py` — memory restore in `from_dict()`, add ID backfill
-- `static/js/inspector.js` — `_deleteMemory()`, improve guard and error handling
-- `static/js/api.js` — `deletePlayerMemory()`, add error handling
+- `player.py` - ensure `id` field on all memories during init/restore
+- `virtual_world_engine.py` - memory restore in `from_dict()`, add ID backfill
+- `static/js/inspector.js` - `_deleteMemory()`, improve guard and error handling
+- `static/js/api.js` - `deletePlayerMemory()`, add error handling
 
 ## Steps to verify
 

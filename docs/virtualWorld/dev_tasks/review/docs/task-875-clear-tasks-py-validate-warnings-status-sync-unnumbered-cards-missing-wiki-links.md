@@ -17,7 +17,7 @@ Bring task-card frontmatter and filenames in line with tools/tasks.py validate, 
 
 ## Why
 
-Task-card frontmatter and naming conventions are consumed by 	ools/tasks.py, dependency graph builders, and wiki cross-referencing. When frontmatter statuses disagree with directory locations (e.g. status: review sitting in done/), cards lack unique IDs, or cards lack wiki: links, automated tooling fails to index work items accurately, produces validation noise, and hides connections between task execution and domain documentation.
+Task-card frontmatter and naming conventions are consumed by tools/tasks.py, dependency graph builders, and wiki cross-referencing. When frontmatter statuses disagree with directory locations (e.g. status: review sitting in done/), cards lack unique IDs, or cards lack wiki: links, automated tooling fails to index work items accurately, produces validation noise, and hides connections between task execution and domain documentation.
 
 ## How
 
@@ -66,8 +66,8 @@ This section defines intended access and live acceptance. It is not a claim that
 
 ## Files
 
-- 	ools/tasks.py
-- 	ools/doc_links.py
+- tools/tasks.py
+- tools/doc_links.py
 - docs/virtualWorld/dev_tasks/
 
 ## Outcome & Review Hand-off (2026-10-19)
@@ -76,6 +76,6 @@ Moved to
 eview/. Delivered and verified:
 1. Synchronized all frontmatter statuses with directory locations.
 2. Backfilled canonical wiki: links across 90 open task cards without vault documentation links.
-3. Normalized 21 legacy underscore bug files (ug_1 through ug_21) to standard ug-<n> format.
+3. Normalized 21 legacy underscore bug files (bug_1 through bug_21) to standard bug-<n> format.
 4. python tools/tasks.py validate reports 0 errors and 0 missing wiki warnings.
 5. Unit tests pass 762/762.

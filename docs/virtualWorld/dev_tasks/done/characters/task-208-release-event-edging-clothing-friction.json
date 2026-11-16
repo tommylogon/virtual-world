@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-208",
+  "kind": "task",
+  "number": 208,
+  "title": "Release Event, Edging & Clothing Friction",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-11",
+  "updated": "2026-08-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-207",
+      "task-209",
+      "task-210",
+      "task-211",
+      "task-212",
+      "task-213",
+      "task-215"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The arousal meter needs a payoff path (release), a frustration path (edging), and a passive source (clothing friction). None exist yet.",
+    "how": "- Release event in `tick_turn()`: when `Stimulation >= 65` AND `Arousal >= 40` → trigger cascade (Energy -20, Entertainment +30, Hygiene -10, Sanity +15, Stimulation reset to 5, Arousal -30, apply `satisfied` 20t + `overstimulated` 5t).\n- Edging in `tick_turn()`: when `50 <= Stimulation < 65`, add `sensitized` (level 1, 10t) stacks + Arousal +1.\n- Clothing friction: per tick sum `friction` over equipped items → small Arousal trickle (0-3/tick).",
+    "verify": "- [ ] Release fires only above threshold, applies correct vital deltas + conditions\n- [ ] Edging adds `sensitized` stacks without releasing\n- [ ] Friction trickle present with equipped clothing, absent when naked",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/tick_manager.py` - `tick_turn()` hooks: `_check_release_threshold`, `_trigger_release_event`, `_apply_edging_effect`, `_apply_clothing_friction"
+    ],
+    "custom": {
+      "related": "- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §4 Release/Edging, §6 friction, Phase 1"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-208-release-edging-friction.md"
+  }
+}

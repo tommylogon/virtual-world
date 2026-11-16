@@ -23,7 +23,7 @@ Replace the global hostile notion with per-character fear tags. Characters carry
 
 - TODO
 
-## Progress 2026-09-23 — core landed (review)
+## Progress 2026-09-23 - core landed (review)
 
 - [x] `Player.fear_tags` (mirrors `interest_tags`): persisted in `to_dict`, save/load and the serialization dict.
 - [x] `engine/fear.py`: `fear_sources(gs, player)` finds co-located characters (by `traits` + character-node tags), items the area holds, and the area's own tags whose tags intersect `fear_tags`; `apply_frightening` applies the source-gated `frightened` condition (source name + kind, 30 game minutes → ticks).

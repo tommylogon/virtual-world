@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-192",
+  "kind": "task",
+  "number": 192,
+  "title": "Trigger to Change a Way's Target/Direction/Description",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Want elevators/vehicles/portals that repoint connections dynamically. A way currently points at a fixed area; nothing lets a trigger rewire where a connection leads without manually editing the graph.",
+    "how": "- A way IS a node (`type=\"way\"`); areas connect to it via `EDGE_CONNECTION` edges (graph.py:294).\n- The way carries `current_state`, `description`, `tags`, `see_through`, etc.\n- Repointing = graph surgery on the connection edges off the way node + mutating its description/state.\n- Elevator = an area whose connected way changes by floor.\n- Car = a room whose way target changes by location.\n- Portal = way target changes by time or conditions.\n- Defer a full vehicle queue system for later.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/trigger_system.py` - new trigger type that repoints a way's connections",
+      "engine/effects.py` - effect that rewires edges off a way node",
+      "graph.py` - helper for reconnecting connection edges safely",
+      "virtual_world_engine.py` - wiring the new trigger/effect into the engine"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-192-trigger-changes-way-target.md"
+  }
+}

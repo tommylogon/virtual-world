@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-74",
+  "kind": "task",
+  "number": 74,
+  "title": "Trigger Effect Improvements - adjust_vital, set_state, Memory, TurnQueue",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Four fixes/improvements applied across multiple files:\n\n1. **adjust_vital Stat dropdown** - free-text stat field replaced with `<datalist>` of common vitals\n2. **set_state Node ID / State dropdowns** - Node ID defaults to \"self\", state uses datalist of common states\n3. **Area observation memory** - spatial context stored as memory each step for agent recall\n4. **Scenario load turnQueue bug** - stale characters from previous scenario persisted in initiative order after reload\n\n---",
+    "why": "TODO",
+    "how": "### 1. adjust_vital - Stat datalist\n\n**Files**: `item-library.js`, `inspector.js`\n\n**What changed**:\n- ADD overlay (item-library.js line 591, inspector.js line 1107): `<input class=\"eff-vital-stat\">` now has `list=\"eff-vital-stat-list\"`\n- EDIT overlay (inspector.js line 1243): same change\n- Global datalist `eff-vital-stat-list` created in body with options: HP, Energy, Bladder, Sanity, Entertainment, Temperature\n- Datalist created once per overlay (guarded by `document.getElementById`)\n\n**Why**: Agents need to adjust vitals like HP, Energy, Bladder, Sanity, etc. Free-text was error-prone.\n\n### 2. set_state - Node ID default \"self\" + State datalist\n\n**Files**: `item-library.js`, `inspector.js`\n\n**What changed**:\n- ADD overlays: Node ID input defaults to `value=\"self\"` with `list=\"eff-state-node-list\"`\n- ADD overlays: New State input defaults to `value=\"on\"` with `list=\"eff-state-val-list\"`\n- EDIT overlays: same with `${ep.node_id || 'self'}` fallback\n- State datalist `eff-state-val-list`: on, off, open, closed, locked, unlocked, lit, unlit, broken, pristine, activated, deactivated, hidden, visible\n- Node ID datalist `eff-state-node-list`: populated from `worldState.graph.nodes` keys\n- Save functions (`_saveTrigger`, `_saveTriggerToNode`): when node_id is empty or \"self\", substitutes `'self'` (engine interprets as current item)\n\n**Why**: set_state without a node ID should target the current item (\"self\"). States are limited to known values.\n\n### 3. Area observation memory\n\n**File**: `agent-engine.js` line 207\n\n**What changed**:\n- After building room context each step, a concise spatial snapshot is stored as memory:\n  ```\n  At {room name}. Exits: north → Living Area (open); south: A wooden door (closed)\n  ```\n- Memory type: `'observation'`, importance: 4\n\n**Why**: Previously, the agent saw room descriptions each step but couldn't recall where exits or locations were between steps (e.g., \"where is the outhouse?\").\n\n### 4. Scenario load turnQueue bug\n\n**Files**: `agent-engine.js`, `main.js`\n\n**What changed**:\n- `agent.reset()` now clears `this.turnQueue`, `this.currentTurnIndex`, `this.turnNumber`\n- `worldState.on('update', ...)` auto-initializes turnQueue when empty and players exist\n\n**Root cause**: `reset()` did not clear the turn queue. On scenario load, `uploadWorld()` called `agent.reset()` then `worldState.fetch()`, but the old queue survived. `stepOnce()` only re-initialized when `turnQueue.length === 0`, which was never true with stale names. So the old scenario's characters appeared in initiative order.\n\n**Why it's fixed now**: `reset()` clears the queue → `_renderInitiative` shows nothing → on worldState update, queue auto-initializes from current `worldState.players` → correct characters appear.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-74-trigger_effect_improvements.md"
+  }
+}

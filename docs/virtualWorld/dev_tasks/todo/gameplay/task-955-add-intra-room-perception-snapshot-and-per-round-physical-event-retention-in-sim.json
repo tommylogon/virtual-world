@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-955",
+  "kind": "task",
+  "number": 955,
+  "title": "Add intra-room perception snapshot and per-round physical event retention in simultaneous turns",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "turn-order",
+    "simultaneous",
+    "standoff",
+    "pacing"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-101",
+      "task-465",
+      "task-953",
+      "bug-588",
+      "bug-590",
+      "bug-592",
+      "task-956",
+      "task-959",
+      "task-960"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Capture a shared pre-resolution intra-room perception snapshot in simultaneous/simultaneous_room rounds and retain high-salience physical turnEvents (weapon equip/draw, attack/combat, disarm, loud sound_source, item landing) across the round so concurrent actors react to what physically occurred rather than racing past transient state changes.",
+    "why": "As noted in task-101, simultaneous_room executes actors inside the same room sequentially with no pre-resolution snapshot. When fast physical state transitions occur inside a single round (e.g., an item is picked up, used offensively, disarmed, and discarded), actors later in the round see only the final aftermath and have no consistent simultaneous snapshot or opportunity to perceive transient physical events that unfolded around them.",
+    "how": "1. Extend static/js/agent/sim-round.ts and static/js/agent/simultaneous.ts to capture a shared pre-resolution intra-room perception snapshot (room entities, visible held items from bug-588, ways, and arrivals) before executing state-mutating room turns, so characters deciding in the same round perceive a consistent pre-resolution world state.\\n2. Update static/js/agent/turn-queue.ts and static/js/agent-engine.ts so high-salience physical events occurring during a simultaneous round (weapon draw, attack, combat, disarm, loud sound_source, or cross-area throw landing) remain visible to room witnesses for their immediate reaction window instead of disappearing behind subsequent turns.\\n3. Keep TurnQueue.endTurn() cycle invariants unchanged (ticks and vital decay run once per full round) and add JS unit tests for intra-room snapshot consistency and simultaneous event retention.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs covering intra-room snapshot assembly in sim-round.ts and event retention across simultaneous turns in simultaneous.ts and turn-queue.ts.\\n2. Verify TurnQueue endTurn cycle vital decay and tick accounting remain unchanged.",
+    "acceptance": [
+      {
+        "text": "In simultaneous and simultaneous_room modes, intra-room decisions can share a pre-resolution room snapshot so witnesses decide against the same observed standoff state rather than racing sequentially past brief armed moments.",
+        "done": false
+      },
+      {
+        "text": "High-salience room events (weapon draw/brandish, attack, disarm, shot/loud noise, cross-area throw landing) trigger an immediate reaction/observation opportunity or preserve witness turnEvents across the beat rather than vanishing inside a multi-step rapid resolution.",
+        "done": false
+      },
+      {
+        "text": "TurnQueue endTurn cycle semantics and human turn composer gating stay intact across sequential, simultaneous, and simultaneous_room modes, covered by JS unit tests.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/simultaneous.ts",
+      "static/js/agent/sim-round.ts",
+      "static/js/agent/turn-queue.ts",
+      "static/js/agent-engine.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Simultaneous Turn Controls (`static/js/agent/simultaneous-controls.ts`), Turn Order Panel (`static/js/agent/turn-queue.ts`), and Human Turn Composer when switching turn modes.\n\nCurrent availability: Simultaneous per room (`task-465` / `task-101` progress note) parallelizes across rooms but runs characters sequentially within one room with no pre-resolution snapshot or mid-beat reaction capture.\n\nManual verification steps:\n1. Open a multi-character confrontation scene in Simultaneous / Simultaneous per room mode (e.g., character A draws/holds a pistol, character B disarms them, character C & D enter or witness).\n2. Inspect Turn Order Panel, Prompt Preview, and Event Stream across the round.\n   - expected: Witnesses in the area observe the standoff peak / weapon state rather than seeing only post-disarm calm state, and rapid disarm/attack steps pause or surface as an explicit reaction beat without corrupting TurnQueue state."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]",
+      "[[Features/turn-based-modes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

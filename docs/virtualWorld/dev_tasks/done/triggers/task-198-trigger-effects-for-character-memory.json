@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-198",
+  "kind": "task",
+  "number": 198,
+  "title": "Trigger Effects for Character Memory",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Triggers can modify the world (items, conditions, environment) but cannot touch `Player.memories[]`. We want trigger effects that let in-world events surface, suppress, or strengthen a character's memories - without requiring authors to track individual memory IDs at scale.\n\nNarrative injection is already covered by the `message` effect. This task adds the *memory-state* operations: surface existing memories, suppress them, and reinforce them through repeated exposure.\n\n---",
+    "how": "Three new effect types, all targeting memories by **tag or keyword filter**,\nnever by individual ID:\n\n### `surface_memory`\n\nForce a matching memory into the agent's active recall for the current turn.\n\n- params:\n  - `tags` (list[str]) - memories tagged with ALL of these are surfaced\n  - `keywords` (str) - text substring match (case-insensitive)\n  - `importance_min` (int, default 0) - minimum importance threshold\n  - `salience_boost` (int, default 3) - temporary relevance bump for matching\n    memories this turn (written into the memory entry as `salience_override`)\n- Matching: tag AND (keyword OR all). If `tags` is empty, match on keywords\n  alone. If both are empty, no-op.\n- Multiple matches: surface the highest-importance one, then also mark all\n  matches with the salience boost so the prompt builder weights them higher.\n- Output: a `message`-style narrative line is also emitted: *\"A memory surfaces:\n  <text>\"* (uses the matched memory's text).\n\n### `suppress_memory`\n\nMark matching memories as inaccessible for the current turn.\n\n- params:\n  - `tags` (list[str])\n  - `keywords` (str)\n  - `duration` (int, default 1) - turns to keep suppressed; 0 = permanent until\n    `unblock_memory` fires\n  - `scope` (str, default `\"self\"`) - `\"self\"` or explicit character name\n- Suppressed memories are excluded from `get_relevant_memories()` and from the\n  prompt builder's memory context while the suppression is active.\n- A memory can carry multiple active suppressions (stack as list); all must\n  expire before it surfaces again.\n- No output message by default (narrative: the character just can't recall).\n\n### `unblock_memory`\n\nRemove an active suppression from matching memories.\n\n- params:\n  - `tags` (list[str])\n  - `keywords` (str)\n  - `scope` (str, default `\"self\"`)\n- Clears all matching active suppressions immediately.\n- No-op if no matching suppressions exist (silent).\n\n### Engine-level `reinforce_memory` (automatic, not a trigger effect)\n\nWhen a memory is surfaced via `surface_memory` or recalled naturally by the\nprompt builder, bump its `importance` by 1 (capped at 10). This is the\nspaced-repetition signal - memories that keep coming up organically grow\nstronger. Implemented as a post-recall hook inside `get_relevant_memories()` in\n`player.py`, not as a trigger effect. Trigger effects should not directly modify\nimportance; the engine does it based on actual recall frequency.\n\n---",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "player.py` - extend `add_memory` to accept optional `tags` list; add",
+      "suppress_memory` / `unblock_memory` / `clear_expired_suppressions` methods;",
+      "update `get_relevant_memories` to respect `salience_override` and",
+      "suppressions`; add reinforce hook (importance +1 on recall, cap 10).",
+      "engine/effects.py` - add `handle_surface_memory`, `handle_suppress_memory`,",
+      "handle_unblock_memory`.",
+      "engine/trigger_system.py` - register the three new effect types in",
+      "EFFECT_TYPES`.",
+      "tests/test_memory_effects.py` - new test file covering:",
+      "surface_memory by tag, by keyword, by both",
+      "surface_memory with no matches is silent no-op",
+      "suppress blocks get_relevant_memories for duration",
+      "suppress with duration=0 persists until unblock",
+      "unblock removes suppression",
+      "reinforce bumps importance on recall, caps at 10",
+      "salience_override resets each turn",
+      "multiple overlapping suppressions",
+      "docs/virtualWorld/Rules Engine/Memory System.md` - document the three new",
+      "effect types and the reinforce mechanic.",
+      "---"
+    ],
+    "custom": {
+      "memory_entry_shape": "Extend `Player.memories[]` entries with two new optional fields:\n\n```python\n{\n    \"id\": \"abc12345\",\n    \"text\": \"...\",\n    \"tick\": 42,\n    \"timestamp\": 1700000000.0,\n    \"importance\": 5,          # 1-10, engine bumps on reinforce\n    \"type\": \"observation\",    # existing\n    \"tags\": [\"watcher\", \"keycard\"],  # existing, list[str]\n    \"salience_override\": 0,   # NEW: >0 means temporarily weighted higher this turn\n    \"suppressions\": [],       # NEW: list of {\"until_tick\": N} or [{\"source\": \"...\"}]\n}\n```\n\n`salience_override` is reset to 0 at the start of each turn (in\n`advance_clock` / turn-init). `suppressions` is checked in\n`get_relevant_memories()` - entries with an active suppression are excluded\nfrom results.\n\n---",
+      "out_of_scope": "- ID-based memory removal (rejected: unauthorable at scale).\n- Memory editor UI changes (separate task).\n- Embedding-based memory retrieval (separate task; keyword matching is the\n  matching mechanism here)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-198-trigger-add-remove-memory.md"
+  }
+}

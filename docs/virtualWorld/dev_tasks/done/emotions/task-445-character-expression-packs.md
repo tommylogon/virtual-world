@@ -9,11 +9,11 @@ priority: medium
 
 **Filed**: 2026-09-22
 **Priority**: Medium
-**Status**: Done — implemented 2026-09-22
+**Status**: Done - implemented 2026-09-22
 
 ## Shipped
 
-A character node carries live art keyed by emotion or action — a
+A character node carries live art keyed by emotion or action - a
 SillyTavern-style pack:
 
 ```
@@ -50,7 +50,7 @@ unchanged.
 ## Follow-ups (not done)
 
 - Action keys (`attack`, `sleeping`) are stored and selectable but nothing
-  drives them at runtime yet — a "current expression" hook is needed, analogous
+  drives them at runtime yet - a "current expression" hook is needed, analogous
   to `emotion.current`.
 - The graph thumbnail still uses the full-body `neutral` rather than the
   current emotion.

@@ -40,7 +40,7 @@ Kraktooth's `Eldenford Elder` alone has `people`, `goblins`, `harvest`, `the_roa
 fears can never fire.
 
 Saves live in `data/scenarios/` (`routes/saveload.py:692`); there is no
-`data/saves/`. The tag registries themselves are not vocabulary sources — a fear
+`data/saves/`. The tag registries themselves are not vocabulary sources - a fear
 tag matching only `data/library/tags/ghostly.json` is still dead, exactly as the
 runtime ignores a bare registry entry.
 

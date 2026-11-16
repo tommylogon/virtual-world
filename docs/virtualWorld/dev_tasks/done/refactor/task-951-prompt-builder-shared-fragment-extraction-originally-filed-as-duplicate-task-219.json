@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-951",
+  "kind": "task",
+  "number": 951,
+  "title": "Prompt Builder Shared Fragment Extraction (originally filed as duplicate task-219)",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-08-13",
+  "updated": "2026-08-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The prompt builder had already been split from a monolithic `prompt-builder.js` into 6 modules (helpers, character-state, memory-context, room-context, system-prompt, turn-prompts). However, `turn-prompts.js` still contained large inline strings duplicated across phases: emote rules, memory instructions, ghost/dead flavor text, JSON schema examples, and plan guidance.\n\nThis task extracts those shared fragments into two new registries so they become a single source of truth.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `node --check` passes on all 8 prompt-builder files\n- `tools/test_llm.cjs`: 16/19 passed (3 failures are pre-existing LLM endpoint routing issues, unrelated to prompt text)\n- External call sites (`agent-engine.js`, `plan-manager.js`) untouched - same exported function signatures\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/prompt-builder/context-sections.js` - new",
+      "static/js/agent/prompt-builder/schema-fragments.js` - new",
+      "static/js/agent/prompt-builder/turn-prompts.js` - refactored",
+      "static/js/agent/prompt-builder/system-prompt.js` - uses `EMOTE_RULES_SYSTEM",
+      "static/js/agent/prompt-builder/index.js` - updated manifest",
+      "templates/index.html` - added 2 script tags",
+      "docs/virtualWorld/dev_tasks/dev_Task_sequence.md` - bumped to 219"
+    ],
+    "custom": {
+      "what_was_implemented": "**New files:**\n- `static/js/agent/prompt-builder/context-sections.js` - shared context-fragment registry with `buildContextBlock()` and `buildPlanGuide()`\n- `static/js/agent/prompt-builder/schema-fragments.js` - shared instructional text + JSON schema fragments with `buildJsonExample()`\n\n**Modified files:**\n- `static/js/agent/prompt-builder/turn-prompts.js` - refactored to use `PromptBuilder.buildContextBlock()`, `PromptBuilder.buildPlanGuide()`, `PromptBuilder.EMOTE_RULES_*`, `PromptBuilder.MEMORY_INSTRUCTION_*`, and `PromptBuilder.buildJsonExample()`\n- `static/js/agent/prompt-builder/system-prompt.js` - last emote-rules bullet now uses `PromptBuilder.EMOTE_RULES_SYSTEM` from `schema-fragments.js`\n- `templates/index.html` - added script tags for `context-sections.js` and `schema-fragments.js` (load before system-prompt.js and turn-prompts.js)\n- `static/js/agent/prompt-builder/index.js` - updated manifest to document 8 files\n\n**Flags preserved from Claude's review:**\n1. `includeMemory` in reaction prompt builds `memoryInstruction` but never inserts it - preserved as commented-out line (would change model behavior if uncommented)\n2. `MEMORY_INSTRUCTION_REACTION` vs `MEMORY_INSTRUCTION_REACT` differ by \"of the room\" - kept as two named constants, marked `FLAG:` in comments\n\n---"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-951-prompt-builder-shared-fragment-extraction.md"
+  }
+}

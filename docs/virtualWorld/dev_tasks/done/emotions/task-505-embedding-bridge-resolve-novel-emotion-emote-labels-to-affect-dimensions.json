@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "task-505",
+  "kind": "task",
+  "number": 505,
+  "title": "Embedding bridge: resolve novel emotion/emote labels to affect dimensions",
+  "status": "done",
+  "priority": "medium",
+  "area": "emotions",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-350",
+      "task-96"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When an agent/game event declares a feeling or emote whose label is not in engine.emotion.LABEL_TO_DIM, resolve it semantically to the nearest affect dimension via the configured embedding provider (LM Studio, browser EmbeddingClient) and post {mapped:{dim:delta}} to /api/players/<name>/emotions/map, instead of the current graceful no-op. Keeps creative LLM vocabulary from being silently dropped, so events/decisions translate into the affect map and therefore select the correct expression portrait.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A novel emotion label declared by an agent or a game event lands on a real",
+        "done": false
+      },
+      {
+        "text": "affect dimension instead of being dropped.",
+        "done": false
+      },
+      {
+        "text": "A label that genuinely resolves to nothing is still a graceful no-op.",
+        "done": false
+      },
+      {
+        "text": "The keyword map stays the fast path and is never overridden.",
+        "done": false
+      },
+      {
+        "text": "A world with no embedding provider pays nothing and breaks nothing.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_2026_09_28_wt_c": "### What was already there\n\nThe **browser** half of this bridge was complete before this task:\n`static/js/shared/emotion-mapper.js` resolves keyword → substring → embedding\nagainst `DIM_ANCHORS`, and both callers (`prompt-builder/room-context.js:81`,\n`prompt-builder/memory-context.js:114`) post the result as `{mapped:{dim:delta}}`\nto `/api/players/<name>/emotions/map`. That is the \"post {mapped:...}\" half of\nthe goal, already working.\n\nWhat was missing was the **server** half. `engine/emotion.py map_label` was\nkeyword-only, and `felt_from_llm` rejected anything that was not a `BASELINES`\nkey outright. So the goal's actual gap was: an emotion reaching the engine\nwithout passing through the browser - a trigger effect, a background agenda, a\nsaved decision - had no semantic path at all.\n\n### Files\n\n- `engine/emotion.py` - `DIM_ANCHORS`, `resolve_label_semantic`,\n  `semantic_labels_enabled`, `reset_anchor_cache`; `map_label` and\n  `felt_from_llm` fall through to the semantic resolver.\n- `engine/runtime_config.py` - the `emotion.semantic_labels` gate.\n- `tests/test_emotion_semantic_bridge.py` - **new**, 24 tests.\n\n`DIM_ANCHORS` mirrors the JS mapper phrase for phrase, and a test asserts every\nanchor dimension exists in the JS file and in `BASELINES`, so the two cannot\ndrift into resolving the same label differently.\n\n### The gate, and why it is off by default\n\nThe keyword map covers the authored vocabulary and costs a dict lookup. A\nsemantic miss costs an embedding call and, on a world with no embedding model,\na model-load attempt. So `emotion.semantic_labels` defaults to **false** and\n`resolve_label_semantic` returns `None` before touching a provider. It is a\ndocumented tunable with a Settings label, not a hidden default.\n\nAn injected `embed_fn` bypasses the gate deliberately: supplying an embedder is\nitself the explicit choice. What the gate governs is *automatic* provider use.\n\n### A real bug the existing tests caught\n\nWiring `felt_from_llm` to the full `map_label` broke\n`tests/test_emotion.py::test_unknown_label_rejected` - and it was right to.\n`map_label` substring-matches, and **\"hangry\" contains \"angry\"**, so a declared\nfeeling was being resolved by coincidence into an emotion the model never named.\nThat is precisely the \"a creative LLM can't invent dimensions\" guarantee the old\nexact `label not in BASELINES` check was protecting.\n\n`felt_from_llm` therefore uses `resolve_label_semantic` **only** - the semantic\nbridge or nothing, never a coincidental substring. The recall path\n(`/emotions/map`) keeps its pre-existing substring behaviour, which is fine\nthere: it is a recall heuristic over authored vocabulary, not a deliberate\ndeclaration by a model. Both behaviours are pinned by tests.\n\n### Failure handling\n\n- `embeddings.embed` returns a **zero vector** when the model fails to load. A\n  zero vector cosines to 0 against everything, so accepting it would silently\n  resolve every unknown label to whichever dimension happened to be first.\n  Zero vectors are rejected outright, and a mismatched anchor count is not\n  trusted.\n- The **default** provider's failure is remembered, so a world with no embedding\n  model pays one attempt rather than one per label. A caller-supplied\n  `embed_fn` is *not* memoised - its failures are the caller's to see again.\n- Anchor vectors are embedded once and reused; `reset_anchor_cache()` clears\n  them when the provider changes.\n\n### Handed to WT-0\n\nNothing. No hub file was touched.\n\n### Verify\n\n`python -m pytest tests/ -q -k \"emotion or affect\"` - 91 tests. The new file\ncovers: the gate is off by default and never reaches the provider when off; the\nkeyword path wins over the embedder and a novel label falls through to it; a\ndistant label stays unresolved; resolution never invents a dimension; intensity\nscaling and the explicit `max_intensity` still apply; malformed input is still\n`None`; a raising embedder, a zero-vector embedder and a short anchor batch are\nall non-fatal; the default provider is tried once and a caller's embedder is\nretried; anchors are embedded once; and the \"hangry\"/\"angry\" coincidence is\nrejected on the LLM path while still accepted on the recall path."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/emotions/task-505-embedding-bridge-resolve-novel-emotion-emote-labels-to-affect-dimensions.md"
+  }
+}

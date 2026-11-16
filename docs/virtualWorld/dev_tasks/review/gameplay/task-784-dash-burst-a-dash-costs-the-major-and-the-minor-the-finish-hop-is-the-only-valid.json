@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-784",
+  "kind": "task",
+  "number": 784,
+  "title": "Dash burst: a dash costs the major AND the minor; the finish hop is the only valid follow-up",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-783"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A dash is a two-hop burst, and it is paid for by **both** the major (the initiate)\nand the minor (the finish hop). The finish hop is the **only** valid action\ndirectly after a dash, and a character with no minor cannot start a dash at all.\nThe rule is enforced once, in the engine, so humans, LLM agents and any budgeted\nactor share it; the human turn panel offers Dash on a way and then offers the\nfinish.",
+    "why": "`go` and `dash` are both MAJOR and the budget is `major: 1` (task-352), so a dash\nspent the only major and a second hop was refused: *\"You have no major action left\nthis turn.\"* That made the intended two-hop dash impossible for a human, and it\nsilently broke the agent's own `dash -> go` chain (`CHAIN_RULES`, task-104): the\nchained `go` hit the same wall and `_runChainFollowUp` swallowed the error. `dash`\nwas also missing from the scene menu entirely, so a human had no way to start one.",
+    "how": "- **Engine rule** - `engine/action_tiers.apply_action_gate(slots, verb, burst)` is\n  the one implementation. A dash needs a major *and* a minor\n  (`can_initiate_dash`) and spends the major; the finish (`go`/`dash`/`climb`/\n  `crawl`/`jump`) spends the minor and clears the burst; `wait` aborts without\n  spending the minor (so a dead-end dash is never a soft-lock); any other action\n  while armed is refused.\n- **State** - `Player.burst_pending` (runtime only, like `turn_slots`). Armed by\n  the dash handler *after* the hop succeeds (a blocked dash raises first, so it is\n  left unarmed with its major spent); cleared by the finish/abort and at the turn\n  boundary (`tick_manager` slot reset). Published in `/api/state`, popped from a\n  scenario save.\n- **Route** - `routes/action_handlers.py` `_slot_gate` calls the gate; the dash\n  handler arms on success. This is the single choke point every budgeted actor\n  (the human composer and the agent submit) goes through, so agents are fixed for\n  free.\n- **Client** - `turn-scene-view.ts`: a **Dash** entry in `buildWayMenu` (disabled\n  when the minor is missing), and while armed the way menu becomes the finish\n  (\"Finish dash -> X\") plus \"Stop here (wait)\", with a matching hint. The human\n  composer's existing step loop re-opens after the dash and shows that menu, so\n  the \"second turn to choose the finish\" falls out of it.\n- **NPCs** - simple NPCs (`behaviors.py` dash) and the soak/background sim keep no\n  slot budget (`_act` is need-driven and travels with `move_to_area`, never a\n  dash), so they dash as a plain hop and are unaffected; the rule lives in the\n  shared engine table, not the browser.",
+    "verify": "1. Run `python -m pytest tests/test_dash_burst.py tests/test_dash_burst_route.py`.\n   - expected: 11 passed - the two-slot cost, the finish-only window, the abort,\n     and the route wiring (arm / refuse / finish / clear).\n   - observed: 11 passed.\n2. Run `python tools/ts_convert.py check`.\n   - expected: gate green.\n   - observed: gate green.\n3. Run `python -m pytest tests/test_dash_burst.py tests/test_dash_burst_route.py tests/test_action_tiers.py tests/test_serialization.py tests/test_movement.py`.\n   - expected: 92 passed.\n   - observed: 92 passed.",
+    "acceptance": [
+      {
+        "text": "A dash needs both a major and a minor; without the minor it cannot start.",
+        "done": true
+      },
+      {
+        "text": "The finish hop costs the minor and is the only valid action right after a dash.",
+        "done": true
+      },
+      {
+        "text": "One engine implementation shared by humans and agents; the agent `dash -> go`",
+        "done": true
+      },
+      {
+        "text": "chain works again.",
+        "done": false
+      },
+      {
+        "text": "The human scene menu offers Dash, then the finish (or an abort).",
+        "done": true
+      },
+      {
+        "text": "Live browser pass: start a human turn, dash a way, confirm the panel offers",
+        "done": false
+      },
+      {
+        "text": "the finish and the budget pips drop major then minor.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_tiers.py` - `apply_action_gate`, `can_initiate_dash`,",
+      "BURST_INITIATE` / `BURST_FINISH_VERBS` / `BURST_ABORT_VERBS`.",
+      "player.py` - `burst_pending`.",
+      "engine/tick_manager.py` - clear the burst on the turn reset.",
+      "engine/serialization.py` - publish `burst_pending`; pop it from a save.",
+      "routes/action_handlers.py` - the gate call + arming on a successful dash.",
+      "static/js/agent/turn-scene-view.ts` (+ `.js`) - Dash entry, burst finish menu, hint.",
+      "tests/test_dash_burst.py`, `tests/test_dash_burst_route.py`."
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-784-dash-burst-a-dash-costs-the-major-and-the-minor-the-finish-hop-is-the-only-valid-follow-up.md"
+  }
+}

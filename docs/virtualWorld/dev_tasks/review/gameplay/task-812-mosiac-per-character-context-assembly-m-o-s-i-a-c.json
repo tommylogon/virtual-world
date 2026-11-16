@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "task-812",
+  "kind": "task",
+  "number": 812,
+  "title": "MOSIAC: per-character context assembly (M O S I A C)",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-702",
+      "task-691",
+      "task-714",
+      "task-809",
+      "task-810",
+      "task-811",
+      "task-801"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "For one character and one turn, assemble the decision context: M and I from GIMP, O, S, and the moment's A and C.",
+    "why": "This is the runtime state machine that feeds the actor. It is where the letters actually become one object the soak policy or the LLM reads.",
+    "how": "Read the character's GIMP (active goals, motivation, intention), their obligations and schedules, compute attention (salience) and choices (the gated verb set). Emit one context object.",
+    "verify": "1. In the 🧠 Mind panel (`InspectorMindView`), open one character's context.\n   - expected: the six letters, read from real state (M and I from the goal layer, O the obligations, S the schedule, A the salient vitals, C the affordable verbs).\n   - observed: VERIFIED 2026-10-13, live on localhost:4444. The panel's \"MOSIAC - the decision context\" block rendered M/I/O/S/A/C: Intention \"obligation to Elder Mara\", Obligations \"Burn the warrant\", Schedule \"08:00 patrol at Gate\", Attention \"nothing pressing\", Choices \"activity 12 / free 27 / major 31 / minor 19\". M was empty because that goal carries no authored motivation - the honest empty, not a blank filled in.\n2. The same context is what the LLM prompt renders.\n   - observed: VERIFIED 2026-10-13. `PromptBuilder.buildMosiacContext(player)` returns `=== YOUR MIND (MOSIAC) ===` with the same letters; it is registered as a context section and included in the think/decide prompt (`turn-prompts.ts`), reading `Player.mosiac` from state rather than re-deriving it.",
+    "acceptance": [
+      {
+        "text": "The context carries all six letters from real sources.",
+        "done": true
+      },
+      {
+        "text": "The same context is what the LLM prompt renders.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/mosiac.py",
+      "engine/serialization.py",
+      "static/js/inspector/mind-view.ts",
+      "static/js/agent/prompt-builder/character-state.ts",
+      "static/js/agent/prompt-builder/context-sections.ts",
+      "static/js/agent/prompt-builder/turn-prompts.ts"
+    ],
+    "custom": {
+      "progress_2026_10_13": "- `engine/mosiac.assemble(gs, player)` reads the six letters from `Player.goals` / `obligations` / `schedule`, the vitals and the clock, and the tier table against `turn_slots`. Shipped on the player payload as `mosiac`.\n- Mind panel: a MOSIAC block at the top of the left column.\n- LLM: a `mosiac` context section, included in the think/decide prompt.\n- `tests/test_mosiac.py`: 5 tests (attention salience and its empty case, all six letters from state, the fallbacks, a spent tier dropping its verbs)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-812-mosiac-per-character-context-assembly-m-o-s-i-a-c.md"
+  }
+}

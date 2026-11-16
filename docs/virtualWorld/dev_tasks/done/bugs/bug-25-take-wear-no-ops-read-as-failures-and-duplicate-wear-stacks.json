@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "bug-25",
+  "kind": "bug",
+  "number": 25,
+  "title": "take/wear no-ops read as failures and duplicate-wear stacks",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `tests/test_item_actions.py::TestTakeAlreadyHeld` (carried / worn / worn+stale\n  carry edge), `tests/test_equipment_system.py` layering tests.\n- `tests/test_item_actions.py::TestGiveItem::test_give_worn_item_transfers_and_unequips`.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "original_defect_2026_08_24_taco_bell": "1. miki, already carrying the Mystery Cream Sauce, submitted `take` again and got\n   a *search-failure* string (\"You search for ... but can't find it here. Items\n   you can see: ...\"), with the hint listing **characters**.\n2. miki spawned wearing one Blue Butterfly Earring and carrying a second; `wear`\n   appended the found copy to the worn stack → \"Blue Butterfly Earring over Blue\n   Butterfly Earring\".",
+      "fix_shipped": "- `engine/items/take_drop_actions.py` - `take_item` checks carried/equipped roots\n  first and returns a soft no-op (\"You're already carrying/wearing the X.\"); the\n  not-found hint lists items only, never characters.\n- `engine/equipment.py` - `equip_item` refuses a second instance of the same-named\n  worn item (\"You're already wearing the X.\").\n- Tests: `TestTakeAlreadyHeld`, `test_cannot_wear_second_copy_of_same_item`,\n  `test_equip_same_item_twice_refused`.",
+      "why_it_was_reopened_and_the_reframe_2026_09_22": "The 2026-08-30 reopen repro was:\n\n```\n[Tick 3] John two > take jumpsuit\n[Tick 4] World You're already carrying the Jumpsuit.\n[Tick 5] John two > equip jumpsuit\n[Tick 6] World You're already wearing the Jumpsuit.\n```\n\nThose are the *fixed* messages - the code path is not the bug. The contradictory\ncarrying-then-wearing sequence can only occur when the character holds **two\nsame-named instances** (one carried, one worn) or one node with both a `CARRYING`\nand an `EQUIPPED` edge. `equip_item` removes the `CARRYING` edge, so in normal\nplay a node cannot hold both; the state comes from duplicate spawns/dressing and\nfrom load/legacy paths that add `CARRYING` without clearing `EQUIPPED`.\n\nTwo follow-ups landed here:\n\n- **Engine hardening:** `take` now scans `EQUIPPED` before `CARRYING`, so a worn\n  item with a stale carry edge reports the truthful \"already wearing\" (test:\n  `test_take_worn_item_with_stale_carry_edge_prefers_wearing`).\n- **Give transfer:** handing over a **worn** item now also removes its dangling\n  `EDGE_EQUIPPED` edge (and multi-slot markers), not just `CARRYING`\n  (`engine/items/transfer_actions.py`).\n\nThe remaining data-side root cause (two same-named item nodes on one character)\nis split out to **task-450** (`todo/items/`), which also adds a carried+equipped\ninvariant at the load boundary."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-25-take-worn-items-confusing-no-ops.md"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-299",
+  "kind": "task",
+  "number": 299,
+  "title": "Long-Distance Communication (Phones, Walkie-Talkies, Radios)",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-599",
+      "task-965"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Triggers and mechanics to allow long-distance communication - phones,\nwalkie-talkies, radios, or magic messages; some audio only, some carrying\nvisible data. Speech is routed through an item property instead of area\nadjacency: `speak`/`whisper`/`shout` currently broadcast to the area (plus\nadjacent rooms through open doors), and a device channel would reach people by\nchannel membership rather than proximity.\n\nThe suggested MVP: items with a `comms_channel` tag or property; `speak` while\nusing or holding the item relays to everyone holding an item on the same\nchannel, regardless of distance.\n\nThe alternative approach is a device parent item with contact subitems, so you\n\"use the phone to call James rather than speaking to a channel. That would\ninitiate an activity of being on the phone; talking should sometimes be allowed\nalongside other actions, and some items should permit that. The far end needs\nhandling too: in the phone example the target should, on their turn, get \"your\nphone is calling\", and the phone should have an \"answer phone\" subitem or\nsimilar.",
+    "why": "Current speech (engine/speech.py, routes/action.py) broadcasts to the area and adjacent rooms through open doors only. The design (2026-09-23) establishes composition over verbs (device as parent with child part items, no per-item named verbs), use of generic `uses` for charge/degradation (no device-specific power field), non-portable parts, and a directed channel model where only the caller's directed utterance relays to the paired endpoint while the caller's room still hears them physically (muffled unless speakerphone). This enables phones/walkie-talkies/radios/magic messaging without expanding the verb enum and without duplicating power systems. Reconnaissance confirms no comms_channel relay for carried devices exists yet.",
+    "how": "Follow the agreed design, extend existing systems.\n\n1. **Composition/parts**: model devices as parent items with child part items (using existing item part/component model, task-493). Parts omit `take` in `actions` to remain non-portable/usable. No new edge type required.\n2. **Channel system**: add support for `comms_channel` on devices/parts (or equivalent property). When speaking while using/holding a device on a channel, relay directed utterance to endpoints on same channel regardless of distance.\n3. **Directed call model**: implement call initiation/answering via existing actions on device parts (e.g. \"use phone - call james\", \"answer phone\"). An ongoing call is an activity/condition that does not skip turns (coexists with other actions). Caller room still hears physical utterance; relayed room audio only when `speakerphone` state is enabled.\n4. **Relay extension**: extend engine/speech.py `on_speech` to handle carried/comms devices and directed routing to paired endpoints. Use generic `uses` for charge; depleted device cannot relay. Ringing already uses `sound_source` + `current_state: \"ringing\"`.\n5. **Integration**: wire through routes/action.py speech verbs without adding new verbs; respect task-491 (action-verb single source of truth). Ensure parts are addressable as needed and follow task-494 for chained actions where applicable.",
+    "verify": "1. After the runtime exists, load the paired-radio scratch scenario described\n   in Browser UI and intended live verification; send Alice's message to Bob,\n   then reply from Bob's disconnected area.\n   - expected: delivery is directed to the paired endpoint and the reply\n     returns over that connection; characters on another channel receive\n     nothing.\n   - observed: not run - this card is design-only and has no runtime path yet.\n2. Repeat with speakerphone disabled and enabled, then with the radio part\n   depleted.\n   - expected: local room audio follows the speakerphone setting and a depleted\n     device cannot relay; no device-specific power field is introduced.\n   - observed: not run - this is a future acceptance recipe, not current\n     behavior.",
+    "acceptance": [
+      {
+        "text": "Devices are composed as parent items with child part items; parts non-portable/usable via existing gates; no device-specific power property.",
+        "done": false
+      },
+      {
+        "text": "Speech while using/holding device on `comms_channel` relays directed to endpoints on same channel regardless of distance.",
+        "done": false
+      },
+      {
+        "text": "Caller room hears physical utterance; relayed room audio only when speakerphone enabled. Ongoing call does not skip turns.",
+        "done": false
+      },
+      {
+        "text": "Depleted device cannot relay; charge uses generic `uses`/`on_depleted`. No new verbs added.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/speech.py` - extend on_speech relay for comms_channel and carried devices; directed routing and speakerphone handling",
+      "engine/sound.py` - reuse sound_source/current_state for ringing",
+      "routes/action.py` - integrate speech verbs with device/part actions",
+      "Item models and action system - support device composition (child parts), non-portable parts (omit take), uses for charge/depletion",
+      "Scenario/library data - paired-radio/phone examples for testing (as needed)",
+      "engine/item_actions.py`, related action resolution per task-491/task-493/task-494 as required"
+    ],
+    "custom": {
+      "notes": "- New channel system: speech routed through an item property instead of area adjacency. `speak`/`whisper`/`shout` currently broadcast to the area (+adjacent rooms through open doors).\n- Suggested MVP: items with a `comms_channel` tag/property; `speak` while using/holding the item relays to everyone holding an item on the same channel, regardless of distance.\n- alternative approach of item like phone having a subitem that is contacts like call James, so you should do \"use phone - call james\" that then would call that person, initating a activity of being on the phone, but we should sometimes be allowed to talk and do other actions, some items might now allow it.  how it handles on the othe rend too, in the phone example the target should on their turn get \"your phone is calling\" and as such the phone should have a subitem like answer phone\" or something like that",
+      "design_decisions_2026_09_23_discussion": "- **Composition over verbs.** A device (phone/radio) is a parent item whose capabilities are *child part items*, each with its own triggers/state/`uses`. No per-item named verbs - the verb set stays the fixed engine enum (see task-491).\n- **No `power` property.** Charge/degradation is the generic `uses` (+ `on_depleted`); no device-type-specific fields on the base item (see task-493).\n- **Non-portable parts.** A part omits `take` in `actions`, so it cannot be taken/dropped/put while staying reachable/usable (the gate already exists at `take_drop_actions.py:388-393`). No new edge type required.\n- **A call is a directed channel, not area propagation.** Only the caller's directed utterance relays to the partner endpoint; the caller's room still hears them *physically* (muffled unless `speakerphone`). A `speakerphone` state is the explicit opt-in that captures room audio. Ringing already works via `sound_source` + `current_state: \"ringing\"`; the `on_speech` relay (`engine/speech.py:362-390`) needs extending to **carried** items.\n- **An ongoing call** is an activity/condition that does **not** skip turns - talking and other actions coexist.\n- **Open:** default speech isolation (muffled vs speakerphone), and whether individual parts are separately addressable (`use phone battery`).",
+      "related": "- `task-491` - action-verb single source of truth\n- `task-493` - item part/component model\n- `task-494` - container examine reveal + chained action\n- `task-352` - action economy (concurrency while on a call)\n- `developer ideas.md` line 6\n- `engine/sound.py`, `routes/action.py` speech verbs (`speak`/`shout`/`whisper`/`scream`)",
+      "browser_ui": "Intended UI home: Game view → selected character's command input and the\nresulting event stream; device-specific actions should be presented through the\nexisting item/action interaction.\n\nCurrent availability: Design only. The task's notes settle device composition\nand directed relay behavior, but no long-distance communication runtime or live\nbrowser flow is implemented yet.\n\nLive steps when available:\n1. Load a scratch scenario with Alice and Bob in disconnected areas. Give each\n   a working radio device with matching channel parts, and give Cara a radio on\n   a different channel. Select Alice and use the action offered for her radio\n   to address Bob, then send “meet at the east gate”.\n   - expected: Alice's local room hears only the physical utterance; Bob gets\n     the directed message while Cara gets none.\n2. Reply as Bob from the other area, then repeat with the radio's speakerphone\n   state enabled and disabled.\n   - expected: Alice receives Bob's reply over the same directed connection;\n     local bystanders hear the relayed room audio only when speakerphone is\n     explicitly enabled.\n3. Leave the paired device depleted or remove its communication part and\n   attempt the same send again.\n   - expected: the item/action system reports the unavailable device state and\n     does not deliver a remote message.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today.",
+      "reconnaissance_2026_10_20": "- Measured: speech uses area adjacency (engine/speech.py). No comms_channel relay for carried devices found.\n- Count: 0 references to comms_channel in code.\n- Verdict: STILL_VALID. Design-only, no runtime wiring. Status remains todo."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

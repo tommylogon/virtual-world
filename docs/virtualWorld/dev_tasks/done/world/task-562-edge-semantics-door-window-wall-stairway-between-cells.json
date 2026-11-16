@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "id": "task-562",
+  "kind": "task",
+  "number": 562,
+  "title": "Edge semantics: door, window, wall, stairway between cells",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-560",
+      "task-561",
+      "task-563",
+      "task-564",
+      "task-525",
+      "task-552"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Painting a plan needs to say how two cells connect, not only what each cell is. A\nJapanese high-school plan (brown hallways that merge, 4 gray cells that merge into\none classroom, yellow blanks that are impassable, blue windows that show outside but\ndo not open, a red stairway to the next storey) exposed that walls, windows and\ndoors are properties of the **boundary**, while every painted cell compiled to an\narea and every adjacency became an open way. Also: cells that are not places.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**The vocabulary decides what a cell is to movement.**",
+        "done": true
+      },
+      {
+        "text": "`biomes.cell_kind()` reads a `not_a_place` tag plus a namespaced",
+        "done": false
+      },
+      {
+        "text": "`cell_kind:` tag - `place` / `solid` / `see_through` / `passable` - so the",
+        "done": false
+      },
+      {
+        "text": "compiler asks a question instead of knowing that `wall` is special. A",
+        "done": false
+      },
+      {
+        "text": "modder can add a `hedge` without touching the compiler. Four values ship:",
+        "done": false
+      },
+      {
+        "text": "`wall`, `void` (both `solid`, because they read differently to an author and",
+        "done": false
+      },
+      {
+        "text": "identically to movement, and inventing a distinction the engine cannot act on",
+        "done": false
+      },
+      {
+        "text": "would be a lie in the data), `window`, `door`.",
+        "done": false
+      },
+      {
+        "text": "**Cells that are not places never compile to areas.** The wall that *was* a",
+        "done": true
+      },
+      {
+        "text": "room is the reason a floor plan read as its own inverse.",
+        "done": false
+      },
+      {
+        "text": "**A wall works by occupying a cell**; the rooms either side are no longer",
+        "done": true
+      },
+      {
+        "text": "adjacent, so no way exists. **A door** occupies the same cell, so its route",
+        "done": false
+      },
+      {
+        "text": "is built explicitly, joining the places on **opposite** sides - the only",
+        "done": false
+      },
+      {
+        "text": "reading available, since any three of four cardinal neighbours contain an",
+        "done": false
+      },
+      {
+        "text": "opposite pair.",
+        "done": false
+      },
+      {
+        "text": "**A door with a place on one side leads nowhere, and the report says so.**",
+        "done": true
+      },
+      {
+        "text": "Invisible in the node counts, and nearly always a mis-painted door.",
+        "done": false
+      },
+      {
+        "text": "**A passable cell between two storeys is a `stairwell`, not a `door`.** The",
+        "done": true
+      },
+      {
+        "text": "storey is the stronger signal; a \"door\" that quietly climbed a floor would be",
+        "done": false
+      },
+      {
+        "text": "a lie in the pass message.",
+        "done": false
+      },
+      {
+        "text": "**A window is not a route but its place knows about it** - recorded in",
+        "done": true
+      },
+      {
+        "text": "`properties.windows` with the direction it faces. A window with a place on",
+        "done": false
+      },
+      {
+        "text": "two sides is a passage in disguise; one with none is a window onto nothing,",
+        "done": false
+      },
+      {
+        "text": "which is still a window.",
+        "done": false
+      },
+      {
+        "text": "**A storey step is a `climb`, not a stride.** Every way carries `kind`",
+        "done": true
+      },
+      {
+        "text": "(`open`/`door`/`stairs`) and `floor_step` (the storeys the edge crosses), so",
+        "done": false
+      },
+      {
+        "text": "task-525's gate and task-563's `in` read a number rather than re-derive one.",
+        "done": false
+      },
+      {
+        "text": "The pass message says which, too.",
+        "done": false
+      },
+      {
+        "text": "**The storey is part of a region's identity.** Found by compiling the",
+        "done": true
+      },
+      {
+        "text": "two-storey plan: merging is 8-neighbour and was storey-blind, so a classroom",
+        "done": false
+      },
+      {
+        "text": "above a classroom became one place with a staircase inside it.",
+        "done": false
+      },
+      {
+        "text": "**Four cardinals, not eight**, for \"which place does this window face\" and",
+        "done": true
+      },
+      {
+        "text": "\"which two places does this door join\" - a diagonal place is a corner of the",
+        "done": false
+      },
+      {
+        "text": "room, not the other side of a wall. (Found by the end-to-end run: a window in",
+        "done": false
+      },
+      {
+        "text": "an outside wall was claiming the room across the corridor.)",
+        "done": false
+      },
+      {
+        "text": "**Authorable and visible.** Structure is its own palette section, has its own",
+        "done": true
+      },
+      {
+        "text": "colours (a hash colour would make a wall look like a biome), and the cell",
+        "done": false
+      },
+      {
+        "text": "inspector says \"not a place - solid, nothing passes it\".",
+        "done": false
+      },
+      {
+        "text": "**The report counts structure**, since it is invisible in the node counts,",
+        "done": true
+      },
+      {
+        "text": "and **names unknown biome ids** with a WARNING.",
+        "done": false
+      },
+      {
+        "text": "**Tests.** `tests/test_world_compile.py` (a wall separating two rooms while a",
+        "done": true
+      },
+      {
+        "text": "door joins others, a void, a dead door, a window, a window that is really a",
+        "done": false
+      },
+      {
+        "text": "passage, a storey step, a stairwell, a door with places all round, a region",
+        "done": false
+      },
+      {
+        "text": "never spanning two storeys, the sealed-room rescue, and the whole plan",
+        "done": false
+      },
+      {
+        "text": "end-to-end); `tests/test_biomes.py` (the vocabulary reads, and the wild-country",
+        "done": false
+      },
+      {
+        "text": "contract is now \"wild country\" in name); `tools/unit/test_worldpainter.js`",
+        "done": false
+      },
+      {
+        "text": "(the cell kind through the vocabulary, and the four colours).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "two_decisions_i_got_wrong_first": "- **An unknown biome id was going to read as `solid`**, so a typo in a\n  hand-edited taxonomy would delete the author's cells - a wall where their\n  classroom was. It reads as a `place` now, with a WARNING in the compile report.\n  Failing loudly in the report beats failing silently in the data.\n- **\"A door with places on three sides is ambiguous\" was dead code**: with four\n  cardinal neighbours, any three contain an opposite pair, so the opposite-pair\n  rule always decides. Removed rather than left as a claim that cannot happen.",
+      "not_here": "- **A wall still does not block island linking** - a sealed room gets one rescue\n  way to the nearest place. Deliberate (`link_islands` is a reachability\n  guarantee), and making a sealed room unreachable belongs with task-563.\n- **Windows are not yet perception.** A place records them; nothing looks through\n  one, because what is on the other side is scenery rather than a place. That is\n  its own piece of work.\n- **A building cell is still not a door.** Entering one with `in` from any side is\n  task-563; this gives it the edge to hang on.\n- **Merge rules are still one toggle** for the scope, not per kind - task-564.\n- The high school plan has no *room* vocabulary yet: `classroom`, `hallway` and\n  `stairway` are not in the taxonomy, so the tests use real ids and the plan test\n  accepts the WARNING. A room/interior vocabulary is worth filing."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-562-edge-semantics-door-window-wall-stairway-between-cells.md"
+  }
+}

@@ -53,12 +53,12 @@ A read-path split, already documented in **task-724** (same finding, verified wi
 - The **Player** never receives it on load. `player.py:186` declares
   `self.personality` and `to_dict` publishes it, but the live world creates the
   Player with no value copied from the node, so `_serialize_player`
-  (`engine/serialization.py:150`) — which does not emit the field at all — is a
+  (`engine/serialization.py:150`) - which does not emit the field at all - is a
   co-factor, not the whole story.
 - The **inspector reads the Player**: `agent-view.ts:832` `${player.personality}`,
   `:839` `${player.base_description}`, `:841` `${player.description}`. So it reads
   the empty home. The same is true of the LLM prompt (`room-context.ts`
-  `player.personality` / `player.description`) — personality and appearance are
+  `player.personality` / `player.description`) - personality and appearance are
   silently absent from every prompt, which is the other half of task-724.
 
 Note the internal inconsistency, which is the giveaway: the inspector already
@@ -72,7 +72,7 @@ guard, so a missing field renders the string `undefined`. Lines 839 and 841 use
 `|| ''`, which is why the descriptions are blank rather than `undefined`. The
 guard is worth fixing regardless of which home wins.
 
-## Fix — blocked on task-724's decision, not on implementation effort
+## Fix - blocked on task-724's decision, not on implementation effort
 
 task-724 lists the two options and owns the choice:
 
@@ -95,7 +95,7 @@ Do not do both, and do not add a third copy.
 - [ ] No new copy of the data is introduced.
 - [ ] `node tools/unit/run.cjs` and `npm run build:ts` pass.
 
-## Fix landed (2026-10-07) — awaiting restart verification
+## Fix landed (2026-10-07) - awaiting restart verification
 
 Decision recorded in task-724: the character node is the persisted home for
 authored definition; the Player reads it. First landing:

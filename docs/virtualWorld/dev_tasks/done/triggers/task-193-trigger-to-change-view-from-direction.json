@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "task-193",
+  "kind": "task",
+  "number": 193,
+  "title": "Trigger to Change View-from-Direction",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "What you see through a way should change dynamically. Today the view through a connection is static; a trigger cannot update the scene the player perceives when looking through a door, window, or opening.",
+    "how": "- This is way METADATA - `see_through`, `description`, and visibility rules live in `area_description.py`, not on the edge itself.\n- A trigger can mutate that way metadata so the same connection shows a different scene based on state.\n- Overlaps idea #14 (dynamically changing views); coordinate so they share the same mechanism.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/area_description.py` - expose way metadata (see_through, visibility) as trigger-mutable state",
+      "engine/trigger_system.py` - trigger type that changes the view-from-direction"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-193-trigger-changes-view-from-direction.md"
+  }
+}

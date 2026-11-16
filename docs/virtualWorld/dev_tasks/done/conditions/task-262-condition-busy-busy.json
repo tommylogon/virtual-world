@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-262",
+  "kind": "task",
+  "number": 262,
+  "title": "Condition: Busy (`busy`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Occupied with a persistent multi-turn activity. Non-blocking and interruptible; the activity carries the flavor + regen mix rather than this condition. Shared across all activities that need an \"occupied\" marker.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [ ] Being `busy` does not prevent acting (interruptible by design).\n- [ ] Ending an activity clears the `busy` marker.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "schema_catalog_entry": "```python\n\"busy\": {\n    \"name\": \"Busy\", \"description\": \"Occupied with something. Interruptible.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [],\n    \"attack_mod\": 0, \"defense_mod\": 0, \"speed_mult\": 1.0,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {}, \"ends_on\": [\"stop\"],\n    \"known\": True, \"symptoms\": {}, \"stack\": \"noop\", \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown": "- **Gates**: **none** - busy does not block action/movement/speech on its own.\n- **Saves/checks**: none.\n- **Combat**: neutral.\n- **Movement**: full speed.\n- **Periodic**: none.\n- **Lifecycle**: `stack: \"noop\"`, `default_duration: None`, ends on `stop` (end the activity → clear the marker).",
+      "perception": "`known: True` - rendered as \"occupied\".",
+      "integration_points": "- `player.py:111-120` - catalog entry. Uses `\"busy\"` for `rest`/`sleep`/`wait`/`bathe`/`meditate`/`sit`/`lie down`.\n- `engine/activities.py` - applies/removes `busy` as activities start/finish; the activity stores flavor + regen separately.\n- Interruptibility: ending an activity calls `end_conditions`/`end_instances(\"stop\")`.",
+      "open_questions_things_to_work_out": "- Does `busy` actually gate anything, or is it purely informational now? (Activities themselves, not the condition, likely own interrupt behavior.)\n- Duplicated `busy` instances from stacked activities - does `stack: \"noop\"` leave stale markers?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Existing catalog"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-262-busy.md"
+  }
+}

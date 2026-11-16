@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "task-813",
+  "kind": "task",
+  "number": 813,
+  "title": "MOSIAC: Obligations - the missing letter's data",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-807"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-700",
+      "task-691",
+      "task-714"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give Obligations a home: the data for what a character owes (missions, promises, duties, appointments), and how an obligation spawns an Intention.",
+    "why": "Obligations are the most demanded letter across the profiles and the least built. An obligation is an input that generates an intention, not a peer of one.",
+    "how": "A `Player.obligations` list (character-private, beside `goals`): each record is `{id, charge, status, from, due, reward, goal_id}`. `status` is one of `OBLIGATION_STATUSES` (offered / accepted / refused / forgotten / done). An obligation is an **input**: it sits `offered` until the character answers it, and only `accept` spawns a goal (the intention it generates), linked back via `goal_id`. `engine/goals.respond_obligation` does the answering; `expire_obligations` forgets one past its `due` tick. The `obligation` verb (free) answers one at runtime.",
+    "verify": "1. In the app, offer a character a mission, then accept it.\n   - expected: a goal appears, tied to the mission, in the 🧠 Mind panel (`InspectorMindView`).\n   - observed: VERIFIED 2026-10-12, live on localhost:4444. Offered `Deliver the sealed letter` (from Elder Mara) on the character record, then `obligation accept deliver_the_sealed_letter`. The obligation became `accepted` with a `goal_id`, and a goal spawned: `{what: \"Deliver the sealed letter\", status: active, intention: \"obligation to Elder Mara\"}`. The panel's new \"Obligations - what they owe\" block showed the charge + `accepted` badge, and the goal showed too.\n2. Refuse a mission.\n   - expected: no goal is spawned.\n   - observed: VERIFIED 2026-10-12. `obligation refuse burn_the_warrant` set the obligation to `refused` and left the goal count unchanged (4 -> 4); no goal spawned.",
+    "acceptance": [
+      {
+        "text": "An obligation can be accepted, altered, refused or forgotten.",
+        "done": true
+      },
+      {
+        "text": "Accepting spawns a goal; the obligation is the record.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/goals.py",
+      "engine/serialization.py",
+      "engine/action_tiers.py",
+      "routes/action_handlers.py",
+      "routes/player_ops.py",
+      "player.py",
+      "static/js/inspector/mind-view.ts"
+    ],
+    "custom": {
+      "progress_2026_10_12": "- `engine/goals.py`: `OBLIGATION_STATUSES`, `normalize_obligations`, `offer_obligation`, `find_obligation`, `respond_obligation` (accept spawns a goal), `expire_obligations`, `describe_obligations`.\n- `Player.obligations`; serialized in the players block, normalised on load, stripped in `lite`; the editor patch accepts `obligations`.\n- The `obligation` verb (free): bare lists, `accept|refuse|forget <charge>` answers.\n- Mind panel: an \"Obligations - what they owe\" section.\n- `tests/test_goals.py`: accept spawns a goal, refuse spawns none, expiry by tick, a scenario round-trip, and a wiring test through the dispatcher.",
+      "browser_ui": "Intended UI home: Select the character → Inspector → Mind → “Obligations - what they owe”; answer through the character command input with the `obligation` verb.\n\nCurrent availability: The obligation block and `obligation accept` / `obligation refuse` commands were live-verified on localhost:4444 on 2026-10-12, as recorded above.\n\nLive steps when available:\n1. Select a character with the offered `deliver_the_sealed_letter` obligation, open Mind, and enter `obligation accept deliver_the_sealed_letter`.\n   - expected: the obligation changes to `accepted`, has a `goal_id`, and the spawned active goal appears in the same character's Mind panel.\n2. For a separate offered `burn_the_warrant` obligation, enter `obligation refuse burn_the_warrant` and inspect Mind.\n   - expected: the obligation shows `refused` and the character's goal count does not increase.\n3. Save and reload, then reopen Mind for the character.\n   - expected: obligation status and the accepted obligation's linked goal are read back from the character record.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-813-mosiac-obligations-the-missing-letter-s-data.md"
+  }
+}

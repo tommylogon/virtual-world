@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-362",
+  "kind": "task",
+  "number": 362,
+  "title": "Resistance & Weapon Rework",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace per-type resistance tags (`fire_resistant`, `cold_resistant`, etc.) with a single `resistance` tag whose values live in the `resistances` property dict. Add weapon dice, skill, and damage type support.",
+    "why": "TODO",
+    "how": "### 1. Tag Library\n- **Create** `data/library/tags/resistance.json` - single `resistance` tag\n- Remove per-type tag lookups from engine (no files to delete - they never existed as JSON)\n\n### 2. Engine: `engine/equipment_bonuses.py`\n- Remove `TAG_RESISTANCES` dict (per-type tag → damage_type mapping)\n- Change resistance detection: `\"resistance\" in tags` gates reading the `resistances` property dict\n- Add weapon properties: `damage_dice` (str like \"1d6\"), `damage_type` (str), `damage_skill` (str)\n\n### 3. Engine: `engine/combat.py`\n- Parse `damage_dice` format (e.g. \"1d6+2\") for weapon attacks\n- Add `damage_type` to attack log messages\n- Look up skill bonus from `damage_skill` instead of just STR for damage mod\n- Apply resistance check when damage_type is set\n\n### 4. UI: `static/js/inspector/item-view.js`\n- Change tag onChange: `resistance` tag triggers resistance UI (was per-type list)\n- Add weapon dice field, skill select, damage type select when `weapon` tag active\n- Remove per-type resistance tag checks\n\n### 5. UI: `static/js/item-library.js`\n- Same tag onChange changes as item-view\n- Add weapon dice/skill/type fields in editor and save payload\n- Keep `damage` as a fallback (flat damage)\n\n### 6. Tests\n- Update `test_equipment_system.py` if needed\n- Update `test_combat.py` for new weapon properties",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status": "**Status**: In Review - implementation complete 2026-08-05. Single `resistance` tag + `resistances` dict (data/library/tags/resistance.json exists), no per-type tags remain in engine/frontend; combat.py parses damage_dice + damage_type + damage_skill + resisted_damage; item-view.js + item-library.js wired for resistance/weapon fields. Moved from inprogress.",
+      "files_modified": "- `data/library/tags/resistance.json` (new)\n- `engine/equipment_bonuses.py`\n- `engine/combat.py`\n- `static/js/inspector/item-view.js`\n- `static/js/item-library.js`\n- `docs/virtualWorld/Items & Inventory/Items Overview.md`\n- `docs/virtualWorld/Items & Inventory/Equipment & Paperdoll.md`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-362-resistance-weapon-rework.md"
+  }
+}

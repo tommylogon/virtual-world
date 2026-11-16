@@ -5,9 +5,9 @@ area: bugs
 priority: medium
 ---
 
-# Bug 30 — Sound propagation uses FIFO BFS over weighted barriers: finds first path, not quietest
+# Bug 30 - Sound propagation uses FIFO BFS over weighted barriers: finds first path, not quietest
 
-**Status:** Done — fixed 2026-09-22.
+**Status:** Done - fixed 2026-09-22.
 
 ## Found
 
@@ -20,7 +20,7 @@ could beat a farther mostly-open corridor even when its total weight was worse.
 
 Resolution of the dev note ("sound should be like a shockwave, not only the
 cheapest path"): sound is a pressure wave that takes every path, so the loudness
-a listener perceives is set by the **strongest (least-damped) route** — which is
+a listener perceives is set by the **strongest (least-damped) route** - which is
 exactly a shortest-path (Dijkstra) walk. FIFO-first was wrong for the shockwave
 model too.
 

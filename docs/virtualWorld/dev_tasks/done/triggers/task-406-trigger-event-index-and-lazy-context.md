@@ -16,7 +16,7 @@ priority: high
 ## What
 
 Make trigger dispatch **event-driven across every node type**, give standing
-items a real tick path, and stop paying for triggers that do not exist — without
+items a real tick path, and stop paying for triggers that do not exist - without
 changing what any trigger does.
 
 ## Why
@@ -28,14 +28,14 @@ changing what any trigger does.
      (the goblin scenario has 0; its 11 triggers are `on_drink` / `on_eat` / …),
      so the whole sweep is waste.
    - `on_turn_start` / `on_turn_end` / time-of-day / moon triggers on an
-     **item** never fire — only area/way/character are swept.
+     **item** never fire - only area/way/character are swept.
 2. **Item `on_tick` is inconsistent, not absent** (corrects an earlier claim).
    `engine/tick_manager.py` fires `on_tick` for exactly two item states:
    - carried or equipped items (`:635–643`);
    - items sitting in an area with `current_state` in `("lit", "on")`
      (`:665–692`, the burn-down path).
 
-   A **standing** item — a bush, nest, shrine — that is neither carried nor lit
+   A **standing** item - a bush, nest, shrine - that is neither carried nor lit
    is never ticked, so an `on_tick` growth/regrowth trigger on it does nothing.
    Carried and lit items keep working and must not be double-fired.
 3. `_execute_triggers` (`engine/triggers/execution.py:277`) builds the full
@@ -43,7 +43,7 @@ changing what any trigger does.
    (line 378). On the common no-match path all of that work is discarded.
 4. Two context keys read the expensive `game_state.current_area` legacy
    property (`:341`, `:371`), which rebuilds an `Area` and its exits on every
-   access (`engine/legacy_compat.py:57`) — so building a discarded context can
+   access (`engine/legacy_compat.py:57`) - so building a discarded context can
    rebuild the exits of the active area.
 
 ## How
@@ -71,7 +71,7 @@ changing what any trigger does.
 - A standing, non-lit, non-carried item with an `on_tick` trigger is ticked
   exactly once per tick.
 - Carried/equipped and lit/on items keep firing exactly as today (no double
-  fire) — `test_carried_item_fires_on_tick` still passes.
+  fire) - `test_carried_item_fires_on_tick` still passes.
 - An item carrying an `on_turn_start`/`on_turn_end` or time-of-day trigger now
   fires.
 - No behaviour change for area/way/character triggers; existing trigger tests
@@ -93,7 +93,7 @@ changing what any trigger does.
   index stays correct across add/remove/load.
 - Profile: before/after `cProfile` over 100 ticks (ranking only, not timing).
 
-## Progress — 2026-09-19
+## Progress - 2026-09-19
 
 Implemented.
 
@@ -116,11 +116,11 @@ Verified: 255 targeted tests + full suite (2835 passed, excluding pre-existing
 `test_mcp_*`). One-week background soak: 10,080 ticks in 9m49s (17.1 t/s),
 23/23 alive.
 
-## Progress — 2026-09-24
+## Progress - 2026-09-24
 
 Closed the verification gap: the implementation shipped without the acceptance
 tests named below. Added `TestTriggerEventIndex` in `tests/test_trigger_system.py`
-— standing item fires `on_tick` exactly once; carried and lit/on items are not
+- standing item fires `on_tick` exactly once; carried and lit/on items are not
 double-fired; an item `on_turn_start` trigger now fires; a no-match
 `_execute_triggers` call returns `[]` without touching `game_state.current_area`
 (asserted with an exploding stub); and the graph trigger index stays correct

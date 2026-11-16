@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "id": "task-451",
+  "kind": "task",
+  "number": 451,
+  "title": "Multiple background images per scenario with easy placement and layering",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-39",
+      "the",
+      "fix",
+      "that",
+      "had",
+      "to",
+      "survive",
+      "this",
+      "change",
+      "task-408",
+      "scenario",
+      "naming"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let a scenario carry **several** reference images at once - a regional map, a floor plan, a\nhand-sketched thumbnail - and make them pleasant to arrange: select one, drag it, scale it,\nrotate it, set its order and opacity, hide it, without fighting the graph.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Several images in one scenario, each with its own transform, opacity, crop, order,",
+        "done": true
+      },
+      {
+        "text": "visibility and label (verified: two layers restored with per-layer opacity 0.5/0.2,",
+        "done": false
+      },
+      {
+        "text": "order and visibility intact).",
+        "done": false
+      },
+      {
+        "text": "Layer panel with select / reorder / visibility / rename / remove, handles only on the",
+        "done": true
+      },
+      {
+        "text": "selected layer (verified live; opacity for the active layer is the 🎚 slider in the",
+        "done": false
+      },
+      {
+        "text": "on-canvas hint rather than a panel slider).",
+        "done": false
+      },
+      {
+        "text": "On-canvas per-layer handles, unchanged feel from the single-image version (rotated to",
+        "done": true
+      },
+      {
+        "text": "135°, resized, cropped to w=0.05 in the harness).",
+        "done": false
+      },
+      {
+        "text": "Selection with overlapping images, plus alt-click cycling (`l-over → l-under → l-over`).",
+        "done": true
+      },
+      {
+        "text": "Snapping to layers and node bounds (a layer 5 units off a node bound snapped exactly).",
+        "done": true
+      },
+      {
+        "text": "Images remain files on disk referenced by path.",
+        "done": true
+      },
+      {
+        "text": "World-first persistence with the per-scenario cache as fallback, and an empty list",
+        "done": true
+      },
+      {
+        "text": "clearing the screen.",
+        "done": false
+      },
+      {
+        "text": "Migration from the legacy block without a visible jump (the live kraktooth block loaded",
+        "done": true
+      },
+      {
+        "text": "as one layer).",
+        "done": false
+      },
+      {
+        "text": "A locked layer is selectable but not draggable, and shows no handles.",
+        "done": true
+      },
+      {
+        "text": "Backend contract tested: `tests/test_graph_background_layers.py` (5 tests) covers the",
+        "done": true
+      },
+      {
+        "text": "list form, the empty list, malformed input, and the legacy merge.",
+        "done": false
+      },
+      {
+        "text": "Format and UX documented in the vault (`World Building/Graph System.md`).",
+        "done": true
+      },
+      {
+        "text": "JS unit coverage: `tools/unit/test_graph_background.js` (9 tests) covers the legacy",
+        "done": true
+      },
+      {
+        "text": "migration, the bug-39 emptiness predicate, hit sorting, rotation-aware hit testing,",
+        "done": false
+      },
+      {
+        "text": "snapping and the screen→graph conversion. The runner (`tools/unit/run.cjs`) existed but was",
+        "done": false
+      },
+      {
+        "text": "wired to neither npm nor `AGENTS.md`, which is how two `test_describe_vital.js` expectations",
+        "done": false
+      },
+      {
+        "text": "rotted for two weeks - both are now wired (`npm run unit`), documented, and green.",
+        "done": false
+      },
+      {
+        "text": "**One-undo-step granularity is per settled change**, because the debounced save posts",
+        "done": false
+      },
+      {
+        "text": "the whole block once. Node-layout saving still uses the batched endpoint.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implemented_2026_09_22_all_four_slices": "**Model + storage.** The world block `graph_background` is now\n`{ layers: [{id, label, image, rect, rotation, crop, opacity, locked, visible}], positions,\nlayoutLocked }`. Array order is z-order. Images stay files under\n`static/images/backgrounds/` referenced by path; only a failed upload falls back to a data\nURL. A legacy single-image block migrates on read, with its `locked` becoming\n`layoutLocked` (the node-layout freeze) because that was what it always meant.\n`routes/graph_ops.py` accepts the list form and replaces the block; the old partial-merge\nform is kept for compatibility.\n\n**Architecture fix that made moving possible at all.** The images paint in a layer that is\nthe container's first child, beneath the transparent vis canvas - and the canvas owns pointer\nevents, so **nothing inside the paint layer can ever be clicked**. The previous build put its\nhandles and its drag target in there, which is why maps could not be dragged. Now the paint\nlayer is purely visual and an above-canvas interact layer carries one hit box per visible\nlayer plus the active layer's handles.\n\n**Interaction.** Click a map to select it (topmost wins), drag to move, alt-click to cycle\ndown through overlapping layers, corner handles to scale (shift keeps the aspect ratio), the\npurple dot to rotate (shift snaps to 15°), amber inner handles to crop, arrow keys to nudge\n(shift = 10 units). Snapping pulls edges and centres onto the other layers and the node\nbounds; alt/shift during a move bypasses it. Handles are counter-scaled to a constant\non-screen size (verified 10px and 14px at scale 0.112), so they stay usable zoomed out.\n\n**Layer panel** (top right, while editing): select, visibility, lock, rename, send\nback/bring forward, remove, remove all, add. Rows are drag-reorderable, and reordering is\napplied on **drop** rather than live, because the panel is rewritten by `_render()`.\n\n**Persistence.** World first, IndexedDB (`graph_assets`, keyed by scenario name) as\nfallback, and an empty layer list clears the screen - bug-39's contract, now enforced for the\nlist form as well.\n\n### Two bugs found and fixed while building this\n\n1. Hit boxes were created but never given geometry (`_placeBox` was called only for the paint\n   frame), so in the real UI they were zero-size and unclickable. The synthetic-event tests\n   passed anyway, which is exactly why the geometry was checked against the frames\n   afterwards (now 45x34 matching, offset 0,0).\n2. Alt-click cycling used `network.DOMtoCanvas`, which does **not** invert the transform used\n   to place the layers - it put the cursor ~2,500 graph units from the map under it. Replaced\n   with `_clientToGraph()`, derived from the same transform `_syncView` applies.",
+      "converted_to_typescript": "`static/js/graph/graph-background.ts` is now the source; `graph-background.js` is **generated**\nby `npm run build:ts` and must not be hand-edited. `ApiClient` and `appEvents` were typed into\n`static/js/types/globals.d.ts` for it. The unit runner loads the emitted `.js`, so the two tracks\nstay compatible. See `docs/design/typescript-migration.md`.",
+      "notes_and_open_questions": "- **Restart required**: the new block shape needs the updated `handle_save_background` in\n  `routes/graph_ops.py`; until the app is restarted, background saves take the legacy merge\n  path and only the client copy holds the extra layers.\n- `positions` still lives on the background block although it is not per-image. Splitting it\n  into a scenario-level `graph_layout` would simplify the model and the migration.\n- A layer cannot yet point at a **library asset** (reusable across scenarios) rather than a\n  per-scenario uploaded file.\n- Per-layer opacity is only reachable for the *active* layer (the hint slider); a slider per\n  panel row would be a better fit for arranging several maps.\n- The interact layer clips to the graph container (`overflow: hidden`) so a stray hit box\n  cannot cover the inspector, which means handles very close to the container edge are\n  clipped. Panning before editing an edge case handles it."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-451-multiple-background-images-per-scenario-with-easy-placement-and-layering.md"
+  }
+}

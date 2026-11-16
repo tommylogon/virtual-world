@@ -13,7 +13,7 @@ related: ['bug-529', 'task-496', 'task-497', 'task-557', 'task-569', 'task-640',
 **Blocks:** task-759 (the palette detail panel renders these fields)
 
 **Design:** `docs/design/world-environment-taxonomy.md` §"Record shape (target
-schema per entry)". The record converges on *some* of that schema — not all of
+schema per entry)". The record converges on *some* of that schema - not all of
 it, because the rest belongs in separate registries (see "Deliberately not here").
 
 <!-- deps:start -->
@@ -42,16 +42,16 @@ fields. The design tasks already sent those elsewhere:
   (task-745), not a biome field.
 
 The palette (task-759) renders those three by reading the **registries** for the
-biome's tags — it does not copy them onto the biome record. Baking them in here
+biome's tags - it does not copy them onto the biome record. Baking them in here
 would re-centralise exactly what task-718 is trying to decentralise, and create a
 second source of truth for spawns.
 
 ## Why
 
-`biomes.json` records today are `{name, terrain, tags, surface, descriptions}` —
+`biomes.json` records today are `{name, terrain, tags, surface, descriptions}` -
 no climate, no neighbours. The improved palette (task-759) and the adjacency
-generator rule — *"a pine forest next to a mountain stream is normal; a tropical
-rainforest beside an arctic tundra is bizarre"* — have no data to render or
+generator rule - *"a pine forest next to a mountain stream is normal; a tropical
+rainforest beside an arctic tundra is bizarre"* - have no data to render or
 check. task-497 authored the taxonomy prose; the records never gained the
 per-entry fields. (`world-environment-taxonomy.md` §"Gap analysis" records this.)
 
@@ -67,7 +67,7 @@ per-entry fields. (`world-environment-taxonomy.md` §"Gap analysis" records this
   record whose `natural_neighbors` / `transition_biomes` ids do not resolve.
   Expose the new fields through the derivation `handle_painter_vocabulary`
   (`routes/world_grid_ops.py:287`) already uses, so task-759 needs no new read
-  path. `clear_cache()` exists and has zero callers — the save/reload story is
+  path. `clear_cache()` exists and has zero callers - the save/reload story is
   task-589's, not this.
 - **Climate vs the paint layer:** the `climate` field here is **per-biome
   descriptive ranges** for the panel. It is not the painted `climate` layer,
@@ -92,7 +92,7 @@ per-entry fields. (`world-environment-taxonomy.md` §"Gap analysis" records this
 ## Acceptance
 
 - [ ] Records carry authored `climate` + neighbour values, from the taxonomy
-      doc. **Deferred to the authoring surface (task-589)** — the doc's 170
+      doc. **Deferred to the authoring surface (task-589)** - the doc's 170
       entries are wilderness ecotypes that mostly are not shipped ids, and the
       doc gives no numbers, so authoring here would be invention. The schema and
       validation are the deliverable of this task (below); 589 is the right home
@@ -108,24 +108,24 @@ per-entry fields. (`world-environment-taxonomy.md` §"Gap analysis" records this
 ## Resolution (2026-10-09)
 
 Recon changed the picture: the records live in **`data/library/biomes/*.json`**
-(106 one-file entries), and the loaders already prefer those dirs — the bundled
+(106 one-file entries), and the loaders already prefer those dirs - the bundled
 `biomes.json` no longer carries `resource_distribution`/`hostile_distribution`.
 So the split task-718 describes is **already done at the data+loader level**; this
 task did not re-add any distribution key.
 
 Shipped:
 
-- `engine/biomes.py` — `_climate_problems` and `_neighbour_problems`, called from
+- `engine/biomes.py` - `_climate_problems` and `_neighbour_problems`, called from
   the per-biome loop in `validate()`. Present `climate` must be an object whose
   `temperature`/`rainfall`/`elevation` are `[min, max]` numbers with `min <= max`;
   present neighbour lists must be lists of non-empty strings. **Absent stays
   valid** (unknown, never guessed). Neighbour names are *not* forced to resolve to
-  a biome id — the doc uses soft nouns ("meadow"), and a resolution rule without a
+  a biome id - the doc uses soft nouns ("meadow"), and a resolution rule without a
   shipped wilderness vocabulary would be a second taxonomy.
-- `routes/world_grid_ops.py` — `handle_painter_vocabulary` passes `climate`,
+- `routes/world_grid_ops.py` - `handle_painter_vocabulary` passes `climate`,
   `natural_neighbors`, `unlikely_neighbors`, `transition_biomes` (and `terrain`)
   through the one derivation.
-- `static/js/worldpainter/grid-model.ts` — `detailRows` renders authored climate
+- `static/js/worldpainter/grid-model.ts` - `detailRows` renders authored climate
   ranges and neighbour lists, and invents no row when the field is absent.
 
 **Verified:** `pytest tests/test_biomes.py` → 20 passed;
@@ -136,9 +136,9 @@ authored via task-589's vocabulary tab, not fabricated here.
 
 ## Files
 
-- `engine/biomes.py` — `_climate_problems`, `_neighbour_problems`
-- `routes/world_grid_ops.py` — `handle_painter_vocabulary` field passthrough
-- `static/js/worldpainter/grid-model.ts` — `detailRows` climate/neighbour rows
-- `tests/test_biomes.py` — 3 validation tests
-- `tools/unit/test_worldpainter.js` — detail-rows test
+- `engine/biomes.py` - `_climate_problems`, `_neighbour_problems`
+- `routes/world_grid_ops.py` - `handle_painter_vocabulary` field passthrough
+- `static/js/worldpainter/grid-model.ts` - `detailRows` climate/neighbour rows
+- `tests/test_biomes.py` - 3 validation tests
+- `tools/unit/test_worldpainter.js` - detail-rows test
 

@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-728",
+  "kind": "task",
+  "number": 728,
+  "title": "Directed control mode: a director reviews and edits an LLM character's turn before it acts",
+  "status": "review",
+  "priority": "low",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-07",
+  "updated": "2026-10-07",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-340",
+      "task-692",
+      "task-245",
+      "task-933"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a fourth character control mode, 'directed', beside npc / human / llm: the character's LLM still generates its turn (nudge -> action, speech, inner monologue, emote, emotion, memory) but does NOT act on its own. Instead the HTC modal opens pre-filled with the generated draft, the director may edit any field, review inner thoughts, then press Act to commit through the existing compose-then-commit path.",
+    "why": "Storytelling and narrative simulation often require curated steering without losing character initiative. An ensemble drama (like Millwood) benefits from characters having internal motivations drafted by LLMs, while allowing the director to adjust lines, tone, or actions before they enter the simulation.",
+    "how": "1. Extend `routes/player_ops.py` and `engine/serialization.py` to support string `\"directed\"` in `player.autonomy`.\n2. Update `StreamControlMode` in `static/js/stream/stream-control-mode.ts` with `'directed'`, cycle order `['human', 'directed', 'llm', 'npc']`, and badge `{ emoji: '🎬', label: 'Directed', title: '...' }`.\n3. Add prefill support (`TurnPrefill`, `#htc-thought-row`, `applyPrefill`) to `HumanTurnComposer` (`static/js/agent/human-turn-composer.ts`).\n4. In `AgentEngine` (`static/js/agent-engine.ts`), intercept think-decide phase when `events.getControlMode(charName) === 'directed'`, passing the draft to `HumanTurnComposer.request(charName, { prefill })` and applying the reviewed payload before action execution.",
+    "verify": "1. Run unit test `node tools/unit/run.cjs test_directed_mode`.\n   - expected: 3 passed, 0 failed.\n   - observed: 3 passed, 0 failed.\n2. Run serialization test `python -m pytest tests/test_serialization.py`.\n   - expected: 22 passed, 0 failed.\n   - observed: 22 passed, 0 failed.",
+    "acceptance": [
+      {
+        "text": "Control mode supports 'directed' beside 'human', 'llm', and 'npc'.",
+        "done": false
+      },
+      {
+        "text": "Badge vocabulary renders 🎬 Directed for directed characters.",
+        "done": false
+      },
+      {
+        "text": "Directed mode serializes on the player (`autonomy: \"directed\"`) and survives saves and reloads.",
+        "done": false
+      },
+      {
+        "text": "During an LLM step, think-decide generates a draft without immediate world submission, opening HumanTurnComposer with the draft prefilled.",
+        "done": false
+      },
+      {
+        "text": "Director can edit action, speech, emote, memory, or dismiss/end turn. Clicking Act commits the reviewed turn cleanly.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/player_ops.py",
+      "engine/serialization.py",
+      "static/js/stream/stream-control-mode.ts",
+      "static/js/agent/human-turn-composer.ts",
+      "static/js/agent-engine.ts",
+      "tools/unit/test_directed_mode.js"
+    ],
+    "custom": {
+      "the_flow_the_designer_described": "1. Press **Step**. The turn reaches a character in `directed` mode.\n2. The character's LLM runs its normal decide/nudge phase and produces a draft -\n   it wants to do X, say Y, thinks Z, feels W, and would remember V.\n3. **Nothing is submitted.** The HTC modal opens **pre-filled** with that draft.\n4. The director may edit any field (action, speech, inner monologue, emote, emotion, memory).\n5. Press **Act** -> the draft commits through the existing compose-then-commit\n   path, and the react phase follows as it does for a human turn.",
+      "why_this_is_a_fourth_mode_not_a_tweak": "`StreamControlMode.getControlMode` (`static/js/stream/stream-control-mode.ts`)\nanswers with four values: `'npc'`, `'human'`, `'llm'`, and `'directed'`. Directed mode is distinct: the LLM still runs (unlike `human`), but its output is intercepted instead of applied automatically (unlike `llm`). It uses the clapperboard badge 🎬 across stream, roster, and inspectors.",
+      "existing_seams_to_build_on_do_not_reinvent": "- **The draft shape already exists.** `ResponseParser.parseReaction`\n  (`agent-engine.ts`) returns `{inner, speech, speechVolume, action, emote, memory, emotion, target, parseError}`. Those are exactly the fields the director edits.\n- **Compose-then-commit already exists.** `human-turn-composer.ts` is explicitly\n  built on it: menu picks and typed input fill the draft, nothing fires until Act.",
+      "browser_ui": "Intended UI home: enable `directed` control for a character -> Human Turn Composer opens with that character's generated draft -> edit fields -> press **Act** to commit through the existing compose-then-commit flow.\n\nLive steps:\n1. Set one character (e.g. Jake) to `directed` mode via roster or inspector.\n2. Advance a turn. Observe that the HTC modal opens pre-filled with the drafted action, speech, emote, memory, and thought.\n3. Edit speech or action and click Act.\n4. Verify the event stream and character action match the edited draft."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-728-directed-control-mode-a-director-reviews-and-edits-an-llm-character-s-turn-before-it-acts.md"
+  }
+}

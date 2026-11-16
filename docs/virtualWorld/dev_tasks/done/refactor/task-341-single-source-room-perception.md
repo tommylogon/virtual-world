@@ -5,9 +5,9 @@ area: refactor
 priority: medium
 ---
 
-# Task 341 — Single-source room perception invariants (agent path + panel path)
+# Task 341 - Single-source room perception invariants (agent path + panel path)
 
-**Status:** In Review — implemented 2026-08-24, full suite 1129 passed.
+**Status:** In Review - implemented 2026-08-24, full suite 1129 passed.
 Went slightly beyond the filed proposal: item visibility, people
 enumeration, and area resolution are single-sourced too, not just the
 three invariants. Browser E2E pending.
@@ -16,26 +16,26 @@ three invariants. Browser E2E pending.
 
 New module `engine/room_perception.py` owns the shared invariants:
 
-- `resolve_area_node(graph, area_name)` — name-based (normalized:
+- `resolve_area_node(graph, area_name)` - name-based (normalized:
   lowercase, apostrophes dropped, `_`/`-` as spaces), canonical
   constructed id as validated fallback (bug-26).
-- `normalize_requires(value)` — none/nothing/no → "" (bug-24).
+- `normalize_requires(value)` - none/nothing/no → "" (bug-24).
 - `way_visible_to(player, player_manager, viewer_name, way_node,
-  area_name, direction)` — hidden ways: slasher or `(area, direction)`
+  area_name, direction)` - hidden ways: slasher or `(area, direction)`
   in `discovered_exits` (bug-23). Viewer is a parameter: the agent path
   passes active_player, the panel passes the viewing character.
-- `visible_area_items(graph, area_id, include_hidden)` — the hidden-item
+- `visible_area_items(graph, area_id, include_hidden)` - the hidden-item
   filter both paths duplicated.
-- `characters_in_area(graph, area_id, exclude_name)` — people enumeration.
+- `characters_in_area(graph, area_id, exclude_name)` - people enumeration.
 
 Consumers rewired:
 
-- `scene_snapshot.py` — area resolution, items loop, people loop, hidden
+- `scene_snapshot.py` - area resolution, items loop, people loop, hidden
   way rule, requires normalization all delegate now.
-- `area_description.py` — `get_current_area_id`, `get_area_items`,
+- `area_description.py` - `get_current_area_id`, `get_area_items`,
   `build_exits_for_area` area resolution + hidden rule delegate. Output
   shapes untouched (prose identical, exits dict identical).
-- `movement.py` — both requires reads (passage gate + traversal-only
+- `movement.py` - both requires reads (passage gate + traversal-only
   open/close refusal) use `normalize_requires`.
 
 Contract test `tests/test_room_perception_contract.py`: one fixture world
@@ -56,7 +56,7 @@ Two renderers answer "what does this character perceive in this room":
 - **Panel path**: `engine/scene_snapshot.py` (`/api/scene/<player>`, JSON chips)
 
 The panel legitimately needs structured data (available_actions, per-way
-discovered state, YOU strip) — this is NOT a "merge the renderers" task.
+discovered state, YOU strip) - this is NOT a "merge the renderers" task.
 The problem is the *invariants* get re-implemented in the panel path and
 drift. Four incidents, one root cause:
 
@@ -72,16 +72,16 @@ drift. Four incidents, one root cause:
 Extract the drifting invariants into one small module (e.g.
 `engine/room_perception.py`) and make BOTH paths call it:
 
-1. `resolve_area_node(graph, area_name)` — name-based lookup with
+1. `resolve_area_node(graph, area_name)` - name-based lookup with
    constructed-id fallback (bug-26 fix, already proven in scene_snapshot).
-2. `way_visible_to(player, way_node, area_name, direction)` — the hidden
+2. `way_visible_to(player, way_node, area_name, direction)` - the hidden
    way rule: slasher sees all, else `(area, direction)` in
    discovered_exits (bug-23; mirror of build_exits_for_area).
-3. `normalize_requires(value)` — none/nothing/no → `""` (bug-24).
+3. `normalize_requires(value)` - none/nothing/no → `""` (bug-24).
 
 Consumers: `scene_snapshot.py`, `area_description.py`
 (`build_exits_for_area`), and `movement.py` (requires gate reads the
-normalized value). Keep each renderer's OUTPUT shape untouched — no
+normalized value). Keep each renderer's OUTPUT shape untouched - no
 prompt prose changes, no panel payload changes.
 
 ## Contract test

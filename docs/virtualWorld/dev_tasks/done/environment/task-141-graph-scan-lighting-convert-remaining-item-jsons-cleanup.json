@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-141",
+  "kind": "task",
+  "number": 141,
+  "title": "Graph-scan lighting - convert remaining item JSONs + cleanup",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the dual system of `player.item_statuses` + `effect_target/effect_amount` toggle tracking with a single emergent approach: items hold their own state (`current_state: \"lit\"` / `\"unlit\"`) and the lighting engine scans the graph to calculate room brightness.\n\n**Engine (steps 1–5) is already done.** What remains is converting item JSONs that still use legacy patterns, removing stale code, and covering gaps.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Toggle each converted item on/off → correct light contribution\n2. Drop/pick up a lit lamp → room lighting adjusts immediately\n3. Area transitions → no stale deltas\n4. Per-tick fuel drain → depleted auto-off → `on_depleted` fires\n5. Serialization round-trip → state preserved (already on graph nodes)\n6. Graph overlay shows accurate light level\n7. Library editor shows `light_level` for `light_source` items",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_what_s_done": "| Step | Component | Status |\n|------|-----------|--------|\n| 1 | `engine/lighting.py` - `get_item_light_contribution()` graph scan | ✅ Done |\n| 2 | `engine/toggleable_items.py` - simplified to state-flip only | ✅ Done |\n| 3 | `engine/tick_manager.py` - tick drain via graph scan | ✅ Done |\n| 4 | `engine/item_actions.py:use_item()` - toggleable redirect | ✅ Done |\n| 5 | `engine/effects.py:handle_set_state()` - defaults to item_node | ✅ Done |\n| 6 | Legacy `item_statuses` cleanup | ✅ Done (removed from player.py and routes/players.py) |\n| 7 | Item JSON conversions | ✅ Done (2026-08-02) |\n| 8 | Legacy `effect_target: room:light` parallel path removed | ✅ Done |\n| 9 | `items_registry` copies light/heat/sound props | ✅ Done |\n| 10 | `get_item_light_contribution` tests | ✅ Done (7 tests) |\n\n**Updated**: 2026-08-02\n\n**Status: DONE** - moved to `done/environment/`. Remaining steps A–F below are all implemented.\n\n---",
+      "remaining_work": "### A. Convert item JSONs to toggleable/graph-scan pattern\n\nEach item must have:\n- `light_level` (string enum or number 0–100)\n- `current_state` (`\"unlit\"` by default)\n- `toggleable` tag (if player can turn on/off)\n- `on_toggle_on` / `on_toggle_off` / `on_depleted` triggers\n- `on_tick` → `adjust_uses` for fuel drain while lit (if finite uses)\n- `heat_source` tag + `target_temperature`/`heating_rate` (if it emits heat)\n\n#### Items using legacy `effect_target: room:light:+N` (old system, no toggleable)\n\n| File | Uses | light_level | heat_source | Problem |\n|------|------|-------------|-------------|---------|\n| `oil_lamp.json` | 20 | `\"dim\"` | ✅ | Has BOTH `light_level` and `effect_amount` - dual path |\n| `candle_attic.json` | 5 | ❌ missing | ❌ | No `light_level`, uses `room:light:+25` |\n| `silver_candle.json` | 15 | ❌ missing | ❌ | No `light_level`, uses `room:light:+50` |\n| `candle_stub.json` | 1 | ❌ missing | ❌ | No `light_level`, uses `room:light:+15` |\n| `phone.json` | -1 | ❌ missing | ❌ | No `light_level`, uses `room:light:+35` |\n\n#### Items using `on_use` → `set_environment` (not toggleable)\n\n| File | Uses | Current state | Problem |\n|------|------|---------------|---------|\n| `lamp.json` | -1 | `\"unlit\"` | `on_use` → `set_environment light:70`. Needs `toggleable`, `light_level`, toggle triggers |\n| `desk_lamp.json` | -1 | `\"unlit\"` | Same as lamp.json |\n\n#### Items missing `light_level` or `toggleable`\n\n| File | light_level | toggleable | Notes |\n|------|------------|-----------|-------|\n| `unlit_torch.json` | ❌ missing | ❌ missing | Has `heat_source` |\n| `candle_24cfcc0e.json` | ❌ missing | ❌ missing | Bare: uses:8, only description |\n| `bundle_of_candles.json` | ❌ missing | ❌ missing | Uses `on_light` trigger type |\n| `light_stone.json` | ❌ missing | ❌ missing | `current_state: \"normal\"`, only message triggers |\n| `everflame_ember.json` | ❌ missing | ❌ missing | `heat_source`, uses:1, only on_use message |\n\n### B. Remove stale legacy code\n\n- `player.py:113` - `self.item_statuses = {}` still initialized (never read by engine)\n- `routes/players.py:281` - still deserializes `item_statuses`\n- `engine/item_actions.py:547-569` - legacy `effect_target`/`effect_stat`/`effect_amount` handler still runs for non-toggleable items (creates parallel lighting path)\n\n### C. Frontend: graph overlay ignores item lights\n\n`static/js/graph/network-manager.js:392-443` (`_computeAmbientLight()`) only reads `environment.light` from area nodes - does **not** account for lit items in the area. Should either add item contributions or mark as visual-only.\n\n### D. Frontend: library editor missing `light_level` field\n\nThe world item inspector (`item-view.js:286-296`) already shows `light_level` when `light_source` tag is present. The library editor (`item-library.js`) is missing it.\n\n### E. Missing test coverage\n\n`get_item_light_contribution()` in `lighting.py:41` has **zero** test coverage. Should add tests for:\n- Lit item in area contributes light\n- Lit item in character's inventory contributes light\n- Unlit item doesn't contribute\n- Item without `light_source` tag doesn't contribute\n- Stacking multiple lit items\n- Clamping at 100\n\n### F. flashlight.json missing fuel drain\n\n`flashlight.json` has no `on_tick` → `adjust_uses` trigger, so it never drains battery after the initial use-decrement in `toggleable_items.py`.\n\n---",
+      "files_to_touch": "| File | Change |\n|------|--------|\n| `data/library/items/oil_lamp.json` | Remove legacy `effect_amount`/`effect_target`, add `toggleable` + triggers |\n| `data/library/items/candle_attic.json` | Convert to toggleable pattern |\n| `data/library/items/silver_candle.json` | Convert to toggleable pattern |\n| `data/library/items/candle_stub.json` | Convert to toggleable pattern |\n| `data/library/items/phone.json` | Convert to toggleable pattern |\n| `data/library/items/lamp.json` | Convert to toggleable pattern |\n| `data/library/items/desk_lamp.json` | Convert to toggleable pattern |\n| `data/library/items/unlit_torch.json` | Add `light_level`, `toggleable`, triggers |\n| `data/library/items/candle_24cfcc0e.json` | Add `light_level`, `toggleable`, triggers |\n| `data/library/items/bundle_of_candles.json` | Add `light_level`, `toggleable`, triggers |\n| `data/library/items/light_stone.json` | Add `light_level`, `toggleable`, triggers |\n| `data/library/items/everflame_ember.json` | Add `light_level`, `toggleable`, triggers |\n| `data/library/items/flashlight.json` | Add `on_tick` → `adjust_uses` trigger |\n| `player.py` | Remove `item_statuses` field |\n| `routes/players.py` | Remove `item_statuses` serialization |\n| `engine/item_actions.py` | Remove legacy `effect_target` handler (lines 547-569) |\n| `static/js/graph/network-manager.js` | Add item light contributions to `_computeAmbientLight()` |\n| `static/js/item-library.js` | Add `light_level` dropdown when `light_source` tag present |\n| `tests/test_lighting.py` | Add tests for `get_item_light_contribution()` |\n\n---"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-141-graph-scan-lighting-item-conversions.md"
+  }
+}

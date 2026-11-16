@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-12",
+  "kind": "task",
+  "number": 12,
+  "title": "Sound Propagation Between Rooms",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Sounds propagate between adjacent areas. A character playing loud music in the living room can be heard in the kitchen - with propagation reduced by door/way state.",
+    "why": "Originally filed as \"sounds are room-local\". That is no longer true - a full propagation system exists.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/sound.py` (new, built) ✅",
+      "engine/narration.py`, `engine/tick_manager.py`, `static/js/agent/prompt-builder.js` (wiring) ✅",
+      "engine/area_description.py`, room inspector - the two unbuilt display items above, if desired later."
+    ],
+    "custom": {
+      "implementation_approach_b_built_in_propagation": "**`engine/sound.py`** - graph-scan sound propagation:\n- `SPEECH_LEVELS` (whisper 0 / normal 1 / shout 2 / scream 3) and `WAY_BARRIERS` (open 0 / closed 1 / locked+blocked+hidden 2).\n- `get_way_barrier` - see-through ways (windows, grates) are partial (0.5).\n- `get_area_noise_level` - base environment noise minus `sound_absorbing` tagged items.\n- `propagate_sound` - BFS through `EDGE_CONNECTION` edges, accumulating barriers per path; returns hearing areas with remaining penetration + direction.\n- `get_areas_hearing_speech` / `get_areas_hearing_sound_source` - ambient-noise-dampened entry into propagation.\n- `get_sound_sources_in_area` - active items tagged `sound_source` with `sound_level` / `sound_pattern`.\n- `format_heard_narration` - direction-aware \"You hear X from the north.\"\n\n**Wiring:**\n- `engine/narration.py:125-178` - `broadcast_speech` propagates speech to adjacent hearing areas and stores entries in each listener's `recent_hearing`.\n- `engine/tick_manager.py:375-411` - `_process_sound_sources()` emits item sound sources and distributes to hearing areas.\n- `static/js/agent/prompt-builder.js:552-554` - `recent_hearing` fed into agent prompts (cross-room sound awareness).\n- `engine/tick_manager.py:225` - sleeping characters wake from loud/dripping/scratches noise.\n- Tests: `tests/test_sound.py` (incl. `TestSpeechCommandParsing`, propagation cases).",
+      "not_built_optional_nice_to_haves_recorded": "- **`look` output** - area description only renders the room's own noise (\"The area is noisy with X sounds.\", `engine/area_description.py:229`); it does NOT add \"You can hear music from the living room.\" lines for heard sounds from adjacent areas. Agent awareness covers this via prompts.\n- **Room inspector \"Sounds heard here\" section** - no such UI exists.",
+      "related": "- Project decision: sound propagation lives in the Python backend (drives NPC awareness, narration, triggers).\n- `todo/environment/task-174-fire-mechanic-heat-source.md` (F6) and task-170 fire work use the same graph-scan pattern.\n- task-152 (whisper/shout alias + sound-source fixes) builds on this system."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Environment/Light System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-12-sound_propagation.md"
+  }
+}

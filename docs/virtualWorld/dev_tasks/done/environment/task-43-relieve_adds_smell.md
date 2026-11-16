@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-17
 **Priority**: Low
-**Status**: In Review — implemented (code-verified 2026-08-11). Exact append logic at `routes/action.py:275`: `env["smell"] = (existing + "; urine" if existing else "urine")`; `engine/area_description.py:343` consumes the smell.
+**Status**: In Review - implemented (code-verified 2026-08-11). Exact append logic at `routes/action.py:275`: `env["smell"] = (existing + "; urine" if existing else "urine")`; `engine/area_description.py:343` consumes the smell.
 
 ---
 
@@ -31,7 +31,7 @@ env["smell"] = "urine"
 - **Already smells of something else** (e.g. `"smoke"`, `"dust"`) → append: `"smoke, urine"`
 - **Already smells of urine** (you pissed here before) → do nothing, the point is made. Not `"urine, urine, urine"`.
 - **Already has urine among other smells** (e.g. `"smoke, urine"`) → do nothing, don't add another "urine"
-- **Cleaning up** — if a cleaning action or trigger sets smell back to something else, that should naturally override. That's separate from this fix.
+- **Cleaning up** - if a cleaning action or trigger sets smell back to something else, that should naturally override. That's separate from this fix.
 
 ## Desired Logic
 
@@ -46,7 +46,7 @@ if "urine" not in current:
 
 ## Files
 
-- `app.py` — line 221, the `relieve` handler
+- `app.py` - line 221, the `relieve` handler
 
 ## Why
 

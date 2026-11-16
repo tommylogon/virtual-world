@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-595",
+  "kind": "task",
+  "number": 595,
+  "title": "Cap how far the worldpainter view can be zoomed out",
+  "status": "done",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Zoom-out currently has no floor, so the view can be reduced to an unusable state. Clamp the minimum zoom to a level where the painted grid and at least one biome remain legible, and show a disabled zoom control (or snap back) rather than letting the user reach the clamp.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: zoom-out floor is legible, the minus control disables at it.\n- observed (2026-10-10 live, goblin_camp painter): 40 clicks on the painter's minus -> button.disabled === true (floor holds).",
+    "acceptance": [
+      {
+        "text": "The zoom floor is a legibility floor: `MIN_SCALE = 0.25` (a cell stays",
+        "done": true
+      },
+      {
+        "text": "5.5px, so the lattice `_drawGridLines` still draws; the old 0.12 put a cell",
+        "done": false
+      },
+      {
+        "text": "under 3px and dissolved the grid into paint blobs).",
+        "done": false
+      },
+      {
+        "text": "The `−` control disables at the floor rather than silently doing nothing.",
+        "done": true
+      },
+      {
+        "text": "Every zoom path clamps (`_zoomBy`, wheel handler, `_fitGrid`) and calls",
+        "done": true
+      },
+      {
+        "text": "`_syncZoomButtons()`.",
+        "done": false
+      },
+      {
+        "text": "Live proof (Playwright, `localhost:4465`): 30 clicks on `−` →",
+        "done": true
+      },
+      {
+        "text": "`stage.scaleX() === 0.25`, `−` `disabled === true`, screenshot legible.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "The floor existed at 0.12; the ticket's \"no floor\" premise was stale, but the\nfloor was not legible and the control never reflected it. Both are now true."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-595-cap-how-far-the-worldpainter-view-can-be-zoomed-out.md"
+  }
+}

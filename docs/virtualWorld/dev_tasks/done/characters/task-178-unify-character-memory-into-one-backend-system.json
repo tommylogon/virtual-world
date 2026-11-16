@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-178",
+  "kind": "task",
+  "number": 178,
+  "title": "Unify Character Memory Into One Backend System",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-346",
+      "task-403"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Character memory is fragmented across **four** parallel systems, three of which\nduplicate each other and two of which are effectively dead:\n\n| # | System | Where | Status |\n|---|--------|-------|--------|\n| 1 | `Player.memories` (structured list, CRUD via `/api/players/<name>/memories*`) | backend | **keep as canonical store** |\n| 2 | `AgentMemory` (`player._memory` kv + `_plan`, `engine/agent_memory.py`) | backend | **dead - zero live callers** (only delegators + `__init__` import) |\n| 3 | `MemoryStore` (`static/js/memory-store.js`, embeddings + cosine retrieval) | **browser localStorage** | **delete** - the agent's real recall work lives in per-browser localStorage |\n| 4 | `EntityIndex` (`static/js/entity-index.js` → synced as `Player.knowledge`) | browser + backend field | **delete** - spatial half already exists backend-side, backend sync is write-only junk |\n\n### Confirmed facts from the audit\n\n- **System 2 is dead code.** `remember/recall/plan/recall_all` are delegated by\n  `virtual_world_engine.py:484-495` but nothing calls those delegates anywhere\n  in the tree (routes, API, or frontend). Delete it; a \"fact\" is just a memory\n  with `type: \"fact\"`.\n- **System 3 does the real agent recall** - thoughts, speech, actions, emotes,\n  observations, reactions are all stored via `memory-manager.storeMemory` →\n  `MemoryStore` → `localStorage[\"memories_<char>\"]`, retrieved by\n  `prompt-builder.js:239-246` with cosine + keyword + importance + recency +\n  entity boost. It survives refresh but is per-browser, invisible, and its\n  embeddings regenerate every page load.\n- **System 4's spatial half already exists on the backend** (task-136):\n  `Player.visited_areas` (movement.py:231), `Player.discovered_items`\n  (item_actions.py:60), `Player.discovered_exits` (narration.py:319) - all\n  persisted (`serialization.py:446-447`). The EntityIndex re-invented a worse,\n  browser-local copy of this, and its `extractEntities` regex (`entity-index.js:197-205`)\n  treated any word after \"the/a/an\" as an item → junk like\n  `items: [\"object\",\"proud\",\"tester\"]`.\n- **`Player.knowledge` is write-only.** `memory-manager.js:161-171` syncs the\n  EntityIndex there; nothing server-side reads it, the frontend restores from\n  localStorage instead. Pure dead weight in save files.\n- **`Player.world_knowledge` is a duplicate of `reflection` memories.**\n  `memory-manager.reflect()` (`memory-manager.js:30-81`) adds each LLM insight\n  as a `reflection` memory (importance 8) AND appends it to `world_knowledge`\n  (capped at 50 lines). Same content twice. Delete the blob, keep the memories.\n- **🌍 World Lore (`world_lore`) is a separate world-level system - NOT touched.**\n  Shared structured lore (`virtual_world_engine.py:93-94`), CRUD via\n  `/api/world/lore*` (`routes/world_lore.py`), injected into every prompt as\n  `=== WORLD LORE (common knowledge) ===` (`prompt-builder.js:448-452`).\n- **MCP memory tools are developer/tooling access, not in-world agent memory.**\n  `mcp_server.py:309-349` CRUDs `Player.memories` via `_api()`. Keep them,\n  pointing at the same unified store - no change beyond the schema.",
+    "how": "### Backend\n\n- `engine/serialization.py` - delete `memory` (`:51`, `:166-168`),\n  `knowledge` (`:60`, `:183`), `world_knowledge` (`:59`, `:182`). Add\n  `embedding`/`entity_ids`/`source` to the memories round-trip.\n- `routes/memories.py` - add:\n  - `POST /api/players/<name>/memories/retrieve` - cosine + keyword +\n    importance + recency + entity-boost (port of `memory-store.js:106-155`)\n  - `POST /api/players/<name>/memories/reflect` - LLM summarize importance ≥ 6\n    → `reflection` memories only (no `world_knowledge` write)\n  - existing CRUD unchanged\n- `engine/spatial_memory.py` (new) - BFS over the real graph seeded from\n  `visited_areas`, emitting the `=== KNOWN ROUTES FROM HERE ===` block\n  (replaces `entity-index.js:169-187` `buildSpatialContext`). Reads graph\n  directly → no extraction, no junk.\n- `engine/agent_memory.py` - delete. Remove `__init__` export\n  (`engine/__init__.py:10`) and `virtual_world_engine.py:30,117,482-495`\n  delegators.\n- No new discovery tracking - `visited_areas`/`discovered_items`/\n  `discovered_exits` already feed Entertainment novelty; `KNOWN ROUTES` just\n  reads `visited_areas`.\n\n### Frontend\n\n- `static/js/agent/memory-manager.js` - `storeMemory` POSTs to backend\n  (embedding computed server-side); `reflect` calls the reflect endpoint;\n  delete `updateEntityIndex`/`syncEntityIndex` and the `world_knowledge`\n  append (`:69-74`).\n- `static/js/agent-engine.js` - `_generateRichObservation` (`:476-490`)\n  optionally extracts `entity_ids` and passes them to `storeMemory` (rich\n  observations currently lack entity links). Rich Memories toggle logic\n  (`:191-202`) unchanged.\n- `static/js/agent/prompt-builder.js` - `buildMemoryContext` (`:202-408`)\n  retrieves from backend; spatial block (`:207-214`) calls the new spatial\n  endpoint. Preserve: `=== I REMEMBER ===`, `=== KNOWN ROUTES ===`,\n  `=== MY INVESTIGATION NOTES ===`, repeat-failure warnings, \"what I haven't\n  done\" (all read `player.memories`, now the merged list).\n- Delete `static/js/memory-store.js`, `static/js/entity-index.js`, the\n  `getMemoryStore` global (`memory-store.js:272-283`), `VW.entityIndex` wiring\n  (`main.js:50-58`), localStorage persistence, and the `memories_*` clear block\n  in `saveload-view.js:217-223` (restart-scenario already wipes - start fresh).\n- Remove `world_knowledge` reads: `plan-manager.js:54`, `memory-view.js:168,178`,\n  `agent-view.js:988,1061`, `library-browser.js:438,486,549`.\n- `static/js/inspector/agent-view.js` char-card export (`:1036-1044`) reads the\n  merged list.\n\n### Tests\n\n- New `tests/test_spatial_memory.py` - routes built from `visited_areas` + graph.\n- Extend memory route + serialization tests for `embedding`/`entity_ids`/`source`.\n- Verify Entertainment-novelty tests still pass (discovery system untouched).\n- Full suite: `python -m pytest tests/ -q -k \"not mcp and not emote\"`.",
+    "verify": "- [x] No `_memory` / `knowledge` / `world_knowledge` remains in `.py` or `.js`\n- [x] `memory-store.js` and `entity-index.js` deleted, no dangling references\n- [x] Agent prompt still shows I REMEMBER / KNOWN ROUTES / INVESTIGATION NOTES\n- [x] Bio Memories tab + MCP memory tools work against the unified list\n- [x] Reflection writes `reflection` memories (no world_knowledge blob)\n- [x] Rich Memories toggle still generates narrative observations into the unified store\n- [x] Full pytest suite passes",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status": "**Filed**: 2026-08-04\n**Priority**: High\n**Status**: Done - verified 2026-08-04. 481 tests pass. All four systems unified into\n`Player.memories[]`; dead code deleted; verified live with the Valerius scenario (Lyrie run\nproduced one clean `reaction` memory per turn with LLM-chosen importance + `entity_ids`).",
+      "target_state": "```\nPlayer.memories[]          ← THE ONE store (Sys 1 + Sys 3 + reflection), richer schema\nPlayer.visited_areas       ← keep (task-136) - powers KNOWN ROUTES\nPlayer.discovered_items    ← keep (task-136) - \"saw item X in area Y\" recall\nPlayer.discovered_exits    ← keep (task-136)\nPlayer.world_lore          ← UNTOUCHED (world-level, not per-character)\nPlayer.world_knowledge     ← DELETE (duplicate of reflection memories)\nPlayer._memory             ← DELETE (Sys 2, dead)\nPlayer.knowledge           ← DELETE (write-only EntityIndex junk)\nstatic/js/memory-store.js  ← DELETE\nstatic/js/entity-index.js  ← DELETE\nlocalStorage memories_* / entity_index_* keys ← gone (reset-scenario already clears; start fresh)\n```",
+      "memory_schema_merged": "```json\n{\n  \"id\": \"mem_...\",\n  \"text\": \"...\",\n  \"type\": \"observation|action|speech|thought|reflection|reaction|emote|location|...\",\n  \"tick\": 128,\n  \"timestamp\": 1750000000,\n  \"importance\": 4,\n  \"location\": \"Kitchen\",\n  \"entity_ids\": [\"item_brass_key\", \"area_study\"],\n  \"embedding\": [0.12, ...],\n  \"tags\": [],\n  \"source\": \"auto|manual\"\n}\n```\n\nSerialization already round-trips `memories` (`serialization.py:58,176-181`).\n`entity_ids` is the \"saw item X in area 2\" mechanism (port of the\n`memStore.add(..., entity_ids)` calls at `agent-engine.js:365,388,455`).",
+      "rich_memories_task_124_flows_into_the_unified_store_automatically": "The \"🖋️ Rich Memories\" toggle (`config.richMemories`, `config.js:33`,\n`index.html:255`) is **part of System 3**, not a separate system - it only\ncontrols *how* an observation is generated, not *where* it's stored.\n\nFlow today (`agent-engine.js`):\n1. On area change (`:191-202`): if `config.richMemories`, call\n   `_generateRichObservation()` - an async fire-and-forget LLM call\n   (`:476-490`) that writes a first-person narrative observation.\n2. It stores via `AgentMemory.storeMemory(..., 'observation')` →\n   `MemoryStore` → **localStorage**.\n3. Template mode stores the fast, past-tense snapshot instead (also\n   `observation` type, same store).\n\n**Unification impact:** none on the feature itself - once `storeMemory` POSTs\nto the backend, rich and template observations both land in\n`Player.memories` as `type: \"observation\"` with `source: \"auto\"`. The toggle\nkeeps working untouched. Only change: `_generateRichObservation` should\noptionally attach `entity_ids` from `extractEntities` (it currently doesn't -\nrich observations lose the entity links that template reactions get at\n`agent-engine.js:365,388,455`).",
+      "implementation_notes_completed_2026_08_04": "- Backend: `engine/agent_memory.py` deleted; `engine/spatial_memory.py` added;\n  `serialization.py` drops `_memory`/`knowledge`/`world_knowledge`, memories now\n  round-trip `entity_ids`/`source`. `routes/players.py` `/knowledge` GET/PUT\n  removed; `mcp_server.py` knowledge tools removed.\n- `visited_areas` stores **area names** (`movement.py:231`), not node ids -\n  `SpatialMemory.build_known_routes` matches on names.\n- Reflect stays frontend-driven (LLM is browser-side per task-99): `reflect()`\n  fetches memories from backend, LLM summarizes, POSTs insights to\n  `/memories/reflect` which stores `type=reflection, importance=8`.\n- `storeMemory` is now fire-and-forget POST to `/memories/entry`; entity_ids are\n  the current area node id (`agent-engine._currentAreaEntityId`).\n- `app.py` autosave hook now skips in TESTING mode (prevents tests polluting\n  `data/autosave.json`). New tests: `test_memory_api.py` (5), `test_spatial_memory.py` (6).\n- Full suite: 472 passed, 1 skipped (461 pre-existing + 11 new)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-178-unify-memory-systems.md"
+  }
+}

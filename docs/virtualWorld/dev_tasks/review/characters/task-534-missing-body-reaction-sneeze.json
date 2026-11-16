@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "id": "task-534",
+  "kind": "task",
+  "number": 534,
+  "title": "Missing body reaction - sneeze",
+  "status": "review",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-207",
+      "task-213",
+      "task-253",
+      "task-486"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "`sneeze` reachable as a reaction, matching the `itch`/`goosebumps` pattern.",
+        "done": true
+      },
+      {
+        "text": "`sneeze` present in **both** `SPEECH_TRIGGERS` and `EMOTE_TRIGGERS`.",
+        "done": true
+      },
+      {
+        "text": "Non-erotic: `\"mature\": false` in the catalog entry, so it is never gated",
+        "done": true
+      },
+      {
+        "text": "behind `mature_content`.",
+        "done": false
+      },
+      {
+        "text": "Each new reaction has tests in task-166's existing style.",
+        "done": true
+      },
+      {
+        "text": "The module header lists the new types and the set is no longer stale.",
+        "done": true
+      },
+      {
+        "text": "Regressions guarded for `goosebumps` (and `itch` already had one).",
+        "done": true
+      },
+      {
+        "text": "Documented in the user guide / technical docs per the standing rule:",
+        "done": true
+      },
+      {
+        "text": "`docs/virtualWorld/Rules Engine/Conditions System.md` (catalog table) and",
+        "done": false
+      },
+      {
+        "text": "`docs/virtualWorld/AI & Narration/Agent Engine.md` (new \"Involuntary",
+        "done": false
+      },
+      {
+        "text": "Reactions\" section covering the full body-reaction set and the",
+        "done": false
+      },
+      {
+        "text": "no-roll-on-conditioned-emotes rule).",
+        "done": false
+      },
+      {
+        "text": "Tests run - `node tools/unit/run.cjs` **624 passed / 0 failed** (2026-10-08),",
+        "done": true
+      },
+      {
+        "text": "including the four new `test_involuntary.js` sneeze cases.",
+        "done": false
+      },
+      {
+        "text": "Condition catalog regression checked - `tests/test_conditions.py`,",
+        "done": true
+      },
+      {
+        "text": "`tests/test_more_conditions.py`, `tests/test_condition_catalog.py`:",
+        "done": false
+      },
+      {
+        "text": "**92 passed** (2026-10-08).",
+        "done": false
+      }
+    ],
+    "files": [],
+    "custom": {
+      "correction_2026_09_27_the_task_was_two_thirds_wrong": "This task was filed claiming **goosebumps, sneeze and itch** were all missing.\nRe-measured before implementing: **only `sneeze` was missing.**\n\n| | condition | emote trigger | test | status |\n|---|---|---|---|---|\n| `itch` | `CONDITION_DEFINITIONS` in `player_conditions.py`, `data/library/conditions/itch.json` | `EMOTE_TRIGGERS` in `involuntary.js` | `test_involuntary.js` (pre-existing) | **already done** |\n| `goosebumps` | `CONDITION_DEFINITIONS` in `player_conditions.py` | `EMOTE_TRIGGERS` in `involuntary.js` | - | **already done** |\n| `sneeze` | - | - | - | **genuinely missing** |\n\nThe original claim rested on a bad regex search that missed\n`engine/player_conditions.py` entirely and matched \"pitch\"/\"switch\" inside\n`pitch_black` and `switch` statements. Both reactions are complete: condition\ndefinition, tiered `symptoms`, non-mature catalog entry, emote pool, and for\n`itch` a unit test. `goosebumps` also has a body-state descriptor at\n`engine/equipment.py`.\n\nThe \"do not create two sources of truth\" concern in the old draft applies to\n`goosebumps`: the `equipment.py` string and the condition are the same state\ndescribed twice, but that is pre-existing and consistent (one is a narration\ndescriptor, the other a mechanical condition) - so it was left alone.",
+      "what_shipped": "**`sneeze`** added as the third body-reaction condition, matching its two\nsiblings exactly:\n\n- `data/library/conditions/sneeze.json` - catalog entry. `\"mature\": false`, so it\n  is never gated behind `mature_content`; `ends_on: [\"blow_nose\", \"cure\",\n  \"duration\"]`; short `default_duration: 3`, `stack: \"refresh\"`.\n- `engine/player_conditions.py` - the runtime definition, under the same\n  \"Involuntary body-reaction flavor conditions (task-166)\" comment block as\n  `itch` and `goosebumps`.\n- `static/js/agent/involuntary.js` - added to **both** tables:\n  - `SPEECH_TRIGGERS`: `{ type: 'sneeze', chance: 0.55 }` - a sneeze is an onset\n    rather than a pause, but it is spliced the same way as a cough: the line\n    survives and the sound interrupts it.\n  - `EMOTE_TRIGGERS`: three suffixes.\n  - The module header, which **enumerated the delivered set** and would\n    otherwise have become the next stale comment, now lists the full body-reaction\n    set and states that these conditions are non-erotic, `mature: false`, and\n    applied by content rather than by this module.\n\n**Deliberately not added:** a driver. `itch` and `goosebumps` are applied by\ntriggers or actions in content; `sneeze` follows the same pattern. Inventing an\nenvironment rule (dust, allergens) would have been content design, not this task.\nA condition nothing applies simply never fires, which is the same as its\nsiblings today.",
+      "tests_added_tools_unit_test_involuntary_js": "- a sneeze interrupts speech **without replacing the line**\n- a sneeze emote is pronoun-rendered, no unrendered `{they}`\n- **regression** guard: `goosebumps` still drives an emote, so a future rework of\n  the body-reaction table cannot silently break the two that predate this task\n- a conditioned sneeze **always** fires, and **never** appears in the random\n  baseline at any roll - a sneeze is a state, not a tic\n\n> The last test records a non-obvious property worth knowing: condition-driven\n> **emotes have no chance roll at all** (`involuntary.js`, the `EMOTE_TRIGGERS`\n> loop) - the condition's presence fires the pool unconditionally. Only the\n> *speech* path and the random baseline roll. An earlier draft of this test\n> assumed otherwise and was wrong.",
+      "non_goals": "- The mature traits - task-487 and task-488 own `exhibitionist` and `single_track`.\n- Any new vitals or conditions beyond what `sneeze` needs.\n- Deciding what *applies* `sneeze` in content - that belongs to whoever authors\n  the scenario, exactly as for `itch` and `goosebumps`.\n- Reworking the chance / `NERVOUS_BOOST` tuning - task-166 settled it.",
+      "related": "- task-213 (done) - origin; its body-reaction accounting listed all three as\n  missing, which was wrong for `itch` and `goosebumps`\n- task-166 (done) - the involuntary-action system this extends",
+      "browser_ui": "Intended UI home: Character Inspector → Bio → Conditions editor; Game command\ninput → `speak <line>` → event stream for the character's reaction.\n\nCurrent availability: The `sneeze` condition and speech/emote reactions are\nimplemented and the card records unit and catalog checks. No scenario content\nautomatically applies `sneeze`; the browser check must add that condition to a\ndisposable character explicitly.\n\nLive steps when available:\n1. Add the `sneeze` condition to a disposable character in the Conditions\n   editor, then have that character speak one line with the existing `speak`\n   action; inspect the event stream.\n   - expected: the spoken line remains present and a sneeze interruption or\n     sneeze emote is rendered in the character's voice.\n2. Remove `sneeze` and have the same character speak again; repeat with the\n   `itch` and `goosebumps` conditions as controls.\n   - expected: without `sneeze`, no sneeze reaction is emitted; each control\n     still produces its own existing reaction. The browser flow does not imply\n     that a dust/allergen driver exists.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-534-missing-body-reaction-sneeze.md"
+  }
+}

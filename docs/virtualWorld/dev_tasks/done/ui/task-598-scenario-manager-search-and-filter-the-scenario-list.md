@@ -31,7 +31,7 @@ The scenario list is unfiltered, so finding one save among many requires scrolli
 - [x] Not a second pattern: same styling/affordance as the library search.
 - **Tags are deliberately omitted**: the manager has no scenario-level tag
   dimension. The `tags` keys in scenario JSON are per-node (player/area tags),
-  not a scenario property, and `GET /api/scenarios` returns no tags — so there
+  not a scenario property, and `GET /api/scenarios` returns no tags - so there
   is nothing to filter on without inventing scenario metadata.
 
 ## Verification (live browser, 2026-10-02)
@@ -52,7 +52,7 @@ Screenshot: `review-verify/598-scenario-filters.png` (Areas=none, 2 of 22).
 
 ## Files
 
-- `static/js/ui/scenario-manager.js` — filter state, `scenarioSearchScore`,
+- `static/js/ui/scenario-manager.js` - filter state, `scenarioSearchScore`,
   `scenarioMatchesFilters`, select controls, Reset.
 
 ## Why

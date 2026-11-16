@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "bug-590",
+  "kind": "bug",
+  "number": 590,
+  "title": "Make ThreatDetector target-, weapon-, and disarm-aware and remove duplicate scan in plan-manager.ts",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "threat-detector",
+    "npc-behavior",
+    "planning",
+    "combat"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-956"
+    ],
+    "blocked_by": [
+      "bug-588",
+      "bug-592",
+      "task-959"
+    ],
+    "depends_on": [],
+    "related": [
+      "bug-587",
+      "task-952",
+      "task-955",
+      "bug-592",
+      "bug-593",
+      "task-956",
+      "bug-595",
+      "bug-598",
+      "task-957",
+      "task-959",
+      "task-960",
+      "bug-605"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Upgrade ThreatDetector to account for visible held weapons, event target attribution (who threatens whom), observer relationship affinity toward the holder, and disarm/drop de-escalation, and remove the stale duplicate threat scan in static/js/agent/plan-manager.ts.",
+    "why": "static/js/agent/threat-detector.ts checks otherPlayer.traits.hostile, closeness < -20, and whether person.name appeared as actor of action === 'attack', blindly labeling that actor 'hostile toward you'. In multi-party confrontations where an ally disarms an aggressor (or briefly holds a weapon), ThreatDetector either ignores armed state altogether or falsely flags the intervening ally as hostile toward the observer and locks turns in danger even after the weapon is dropped/disarmed. Meanwhile static/js/agent/plan-manager.ts (lines 221-237) duplicates an older loop omitting turnEvents. (Note: the separate attack vs combat turn-event string mismatch across ThreatDetector, _vitalsScene, and interrupts.py is tracked in its own dedicated bug.)",
+    "how": "1. Extend threat evaluation in static/js/agent/threat-detector.ts to inspect: (a) who the target of any violent turnEvent is (actor -> target, normalized across 'combat', 'attack', and 'disarm'), (b) visible held weapons/hazards from players_in_area (blocked_by bug-588) vs unarmed disarm/restraint actions, (c) observer closeness/trust toward the holder (an ally holding a disarmed weapon creates alarm/context without falsely labeling the ally 'hostile toward you'), and (d) de-escalation events (drop, disarm, throw, release).\\n2. Remove the duplicated hostile-actor scan in static/js/agent/plan-manager.ts (lines 221-237) that omits turnEvents so plan invalidation delegates cleanly to ThreatDetector.\\n3. Add JS unit tests covering friend-disarming-aggressor standoffs, visible held firearm escalation, third-party hostility toward bystanders, and post-disarm/drop de-escalation.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs with ThreatDetector unit tests covering visible held weapons, target-specific attacks, ally disarming third party, and post-drop/throw de-escalation.\n2. Verify plan-manager.ts no longer duplicates its own narrower threat loop.",
+    "acceptance": [
+      {
+        "text": "ThreatDetector distinguishes armed posture and event target (actor vs target) plus observer relationship affinity instead of treating every attack/disarm event or negative closeness as indiscriminate hostility toward charName.",
+        "done": false
+      },
+      {
+        "text": "Armed weapons visibly held by nearby actors (from bug-588 players_in_area holding data) escalate threat context accurately and distinguish an ally intervening/disarming a third aggressor from an attack aimed at charName.",
+        "done": false
+      },
+      {
+        "text": "Dropping, throwing, or disarming the weapon or switching to non-hostile post-resolution turnEvents downgrades or clears the immediate danger alert cleanly rather than locking subsequent calm turns in IMMEDIATE DANGER.",
+        "done": false
+      },
+      {
+        "text": "Duplicated hostile-actor scan in static/js/agent/plan-manager.ts (lines 221-237) is removed in favor of calling ThreatDetector so plan invalidation and decide threats share one rule set.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/threat-detector.ts",
+      "static/js/agent/plan-manager.ts",
+      "static/js/agent-engine.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal DECIDE/PLAN prompt header alert (`IMMEDIATE DANGER`) and Event Stream turn log.\n\nCurrent availability: ThreatDetector in static/js/agent/threat-detector.ts runs a 4-line flat scan over traits.hostile, closeness < -20, and turnEvents attack actor while plan-manager.ts duplicates a narrower version without turnEvents.\n\nManual verification steps:\n1. Run a scene where NPC C attacks NPC B or brandishes a weapon toward B while NPC B (close ally of A) disarms C and drops/throws the weapon.\n2. Inspect A's DECIDE/PLAN prompts during the standoff and on the following turn after disarming.\n   - expected: During the standoff, A sees accurate target- and weapon-aware threat framing (distinguishing the aggressor from ally B holding a disarmed weapon); after disarm/drop, the immediate danger lock clears cleanly."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/NPC Behavior System]]",
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-150",
+  "kind": "task",
+  "number": 150,
+  "title": "Prompt Builder Bug Fixes",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-31",
+  "updated": "2026-07-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix 6 confirmed bugs in the prompt-builder.js and agent pipeline that prevent cross-room awareness, cause duplicate inventory, and break memory parsing.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- ✅ All 21 sound propagation tests pass\n- Manual testing needed:\n  - Verify no empty WITNESSED headers\n  - Verify no duplicate inventory items\n  - Verify Investigation Notes appears after examining items\n  - Verify cross-room hearing works (characters hear speech from adjacent rooms)\n  - Verify first-turn observe prompt uses appropriate wording\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "bugs_fixed": "### P0-1: WITNESSED header empty rendering ✅\n**Problem**: Filter happened after length check, causing empty `=== WITNESSED ===` header when all events belonged to the character.\n\n**Fix**: Filter before length check in `prompt-builder.js:542-549`\n\n### P0-2: Duplicate inventory items ✅\n**Problem**: `getInventory(charName, ['carrying', 'equipped', 'carried_by'])` returned duplicates because equipped items satisfied multiple edge types.\n\n**Fix**: Deduplicate by item ID in `world-state.js:128-142` (source-level fix benefits all callers)\n\n### P1-1: Memory parser separator mismatch ✅\n**Problem**: Parser looked for colon (`:`) but action memories used arrow (` → `) separator, so Investigation Notes never rendered.\n\n**Fix**: Try arrow first, then colon for backward compatibility. Strip leading emoji/icon from action part. `prompt-builder.js:195-222`\n\n### P1-2: Unify memory-passing pattern ✅\n**Problem**: `buildResultReactionPrompt` called `buildMemoryContext` internally while sibling functions received it as a parameter, causing potential inconsistency.\n\n**Fix**: Added `memoryNL` parameter to function signature, removed internal call. Updated caller in `agent-engine.js:361`.\n\n### P2-1: First-turn observe wording ✅\n**Problem**: Hardcoded \"Based on what has happened this turn\" even when nothing happened (first turn).\n\n**Fix**: Conditional wording based on `lastResult` existence in `prompt-builder.js:729-747`\n\n---",
+      "files_modified": "1. `static/js/agent/prompt-builder.js`\n   - Fixed WITNESSED filter order (line 542-549)\n   - Fixed memory parser to handle arrow separator (line 195-222)\n   - Added memoryNL parameter to buildResultReactionPrompt (line 793)\n   - Fixed first-turn observe wording (line 729-747)\n\n2. `static/js/world-state.js`\n   - Deduplicate inventory by item ID (line 128-142)\n\n3. `static/js/agent-engine.js`\n   - Pass memoryNL to buildResultReactionPrompt (line 361)\n\n---",
+      "related": "- Task 149: Sound Propagation System (provides the data that feeds into WITNESSED)\n- Agent pipeline architecture (prompt-builder.js, agent-engine.js, world-state.js)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-150-prompt-builder-bug-fixes.md"
+  }
+}

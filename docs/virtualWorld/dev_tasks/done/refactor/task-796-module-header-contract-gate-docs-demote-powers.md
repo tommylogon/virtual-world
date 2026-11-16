@@ -23,7 +23,7 @@ Settle the front-end module header contract: keep `@docs` as the gated module ->
 
 ## Why
 
-`@powers` is free-text prose (266 distinct strings across 156 modules) that `feature_index.py --check` pretends to check — a module can name the wrong feature and nothing catches it, because nothing runtime-linked reads it. `@docs` is a real path to a vault note and `js_module_index.py` already fails on a dead/folder target. The useful half is the join; the gate is theatre.
+`@powers` is free-text prose (266 distinct strings across 156 modules) that `feature_index.py --check` pretends to check - a module can name the wrong feature and nothing catches it, because nothing runtime-linked reads it. `@docs` is a real path to a vault note and `js_module_index.py` already fails on a dead/folder target. The useful half is the join; the gate is theatre.
 
 ## How
 

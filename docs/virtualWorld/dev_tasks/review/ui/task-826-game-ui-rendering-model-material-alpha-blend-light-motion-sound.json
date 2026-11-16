@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "task-826",
+  "kind": "task",
+  "number": 826,
+  "title": "Game UI rendering model: material, alpha, blend, light, motion, sound",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-15",
+  "updated": "2026-10-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-824"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the current web-dashboard rendering model with a game-UI rendering\nmodel. The app today is flat colour fills, 1px borders and 4px radii. A game\nUI is layered images with alpha, composited with blend modes, lit from one\ndirection, animated with weight, and sounded. This task establishes that\nrendering model and the asset pipeline that feeds it.\n\nThis is not a reskin. It is a change in how surfaces are constructed.",
+    "why": "The current UI reads as a developer instrument, not a world. The palette is\nGitHub dark verbatim (`--bg: #0d1117`, `--bg-card: #161b22`,\n`--border: #30363d`, `--accent: #58a6ff`, `--text-dim: #8b949e`), radii are\n4px/6px/999px, and shadows are material-style (`0 8px 24px rgba(0,0,0,.5)`).\nNothing in the app is an image.\n\nDesign north stars, deliberately separate:\n\n- **Disco Elysium** for the UI - portrait cards, skill voices, the thought\n  cabinet. Best existing reference for the inspector and mind panel.\n- **Dwarf Fortress** for the simulation - already cited in\n  `docs/design/long-horizon-simulation-progress.md` for identity continuity.\n- **UnReal World** for the diegetic HUD - almost no chrome, the world is the\n  interface.\n\nDo not try to make one game be both north stars. They are different problems.",
+    "how": "### The measurement (2026-10-15, `static/css/style.css`, 108 KB)\n\n| technique | count |\n|---|---|\n| `url(...)` of any kind | **0** |\n| `mix-blend-mode` | **0** |\n| `radial-gradient` | **0** |\n| `backdrop-filter` | **0** |\n| `mask-image` | **0** |\n| `text-shadow` | **0** |\n| `feTurbulence` (SVG noise) | **0** |\n| `border-image` | **0** |\n| `will-change` | **0** |\n| `linear-gradient` | 6, all `rgba(88,166,255,0.04)` accent tints |\n| `@keyframes` | 4 (pulse, spin, fade, pulse) |\n| `::before` / `::after` | 6 / 8 |\n| audio files in `static/` | **0** |\n\nZero background images. The entire UI is boxes with borders. That is a\ndifferent rendering model, not a styling gap - no amount of asset shopping\nfixes it.\n\n### The ten layers\n\nBuild bottom-up. Each layer assumes the one below it.\n\n**1. Material, not colour.** A panel is never `background: #161b22`. It is a\nmaterial - parchment, leather, stone, iron - composited from stacked layers:\n\n```css\n.panel {\n  background-image:\n    url('/static/ui/materials/stone.png'),   /* the material */\n    radial-gradient(...),                     /* light source */\n    linear-gradient(...);                     /* edge shading */\n  background-blend-mode: multiply, screen, normal;\n}\n```\n\n`background-blend-mode` composites a texture under a light gradient under a\nvignette in one element, with no extra DOM. There is currently one radial\ngradient in the entire app and it is a hover hint.\n\n**2. The frame is the identity.** A 9-slice frame is not decoration, it is\n*what material the panel is*. The mechanism is `border-image`:\n\n```css\n.frame-stone {\n  border-image-source: url('/static/ui/frames/stone.png');\n  border-image-slice: 32 fill;   /* `fill` keeps the centre - without it the\n                                    centre is transparent and the material is lost */\n  border-image-width: 32px;\n  border-image-repeat: round;    /* `stretch` looks wrong on textures */\n}\n```\n\nThe frame also carries state. A selected panel is a *different frame* - lit,\nor with a corner boss - not the same frame with a blue border. Selection is\ncurrently `border: 1px solid var(--accent)`, which is the web way.\n\n**3. Alpha and blend.** This is where \"alive\" comes from, and it is entirely\nabsent.\n\n- `mix-blend-mode: overlay` - a grain texture at ~4% opacity over the whole\n  app. One tileable 512×512 noise PNG. Highest ratio of effect to effort in\n  the entire list.\n- `mix-blend-mode: multiply` - shadows and grime that darken what is beneath\n  rather than painting black over it.\n- `mix-blend-mode: screen` - light, glow, fire, magic. Additive.\n- `mix-blend-mode: soft-light` - subtle colour grading; a cold cast on the\n  inspector, a warm one on the chat.\n- `backdrop-filter: blur() saturate()` - frosted glass over a live world.\n  Modals currently use flat `rgba(0,0,0,0.5)` scrims.\n- SVG filters - `feTurbulence` generates noise procedurally with no asset;\n  `feDisplacementMap` warps; `feSpecularLighting` gives a real bevel with a\n  real light direction. These are what make a flat div read as beaten metal.\n- The vignette: a radial gradient, transparent centre to dark corners,\n  `pointer-events: none`, fixed, over everything. Eight lines of CSS.\n\n**4. Light, with one direction.** Pick top-left and never break it. Then:\nevery panel's top edge is lit and its bottom edge is in shadow; every bevel\nis a gradient rather than a `box-shadow`; every raised element has a 1px light\ntop and a 1px dark bottom; a hover is the light moving toward you, not a\ncolour change.\n\n`box-shadow` is a blurred rectangle. A gradient edge is a surface catching\nlight. That difference *is* the difference between a webpage and an\ninterface. Also: `filter: drop-shadow()` follows the alpha channel while\n`box-shadow` follows the border box - for anything transparent or irregular\n(an icon, a portrait, a torn frame edge) `drop-shadow` is correct and\n`box-shadow` draws a rectangle of blur behind it. There is one `filter:` in\nthe whole app.\n\n**5. Depth without shadows.** Game UIs get depth from parallax and occlusion,\nnot blur. The frame sits above the fill and the fill carries its own inner\nshadow at the top. A portrait overlaps its frame's bottom edge so the frame\ncasts a shadow *onto* the portrait. Stacked panels offset 2–3px with a hard\n1px shadow, not a soft 24px one. `clip-path` cuts real shapes - a shield, a\nbanner, a scroll end.\n\n**6. Motion with weight.** `transition: all .15s` is the webpage tell.\n\n- Different easings per intent: `cubic-bezier(.34,1.56,.64,1)` (back-out) for\n  things that arrive, `cubic-bezier(.4,0,.2,1)` for things that leave,\n  `steps()` for mechanical things.\n- Anticipation and overshoot - a button presses *in* before it pops.\n- Compositor-only properties. Animate `transform` and `opacity`, never\n  `width`, `top` or `box-shadow`. Zero `will-change` declarations suggests\n  layout-property animation somewhere and it is janking.\n- Idle life. A torch flickers, a banner breathes, a critical vital bar pulses.\n  A game UI is never fully still. The four current keyframes are a spinner\n  and a tab fade.\n\n**7. Feedback and juice.** The layer with nothing to do with visuals and\neverything to do with feel: number popups that float up and fade, a state\nflash on a panel edge when a character acts, small screen shake on major\nevents only, hit-stop (a ~60ms freeze on impact). None of this exists; the\nturn advances and a span changes text.\n\n**8. Sound is half the interface.** Zero audio files. Every interaction in a\ngame UI has a sound and the sound is what makes it feel physical.\n\n| event | sound |\n|---|---|\n| hover a control | soft tick |\n| press / commit | click with weight |\n| error / invalid | dull thud |\n| turn passes | chime |\n| character speaks | soft blip |\n| message received | notification |\n| vital critical | low pulse, looping |\n| panel open | cloth or wood slide |\n\nThe Web Audio API can synthesise most of this procedurally - oscillators,\nnoise buffers, filters - so half the list needs no assets. A ~200-line audio\nmodule with `ui.click()`, `ui.error()`, `ui.turn()` and a mute toggle gets\nmost of the way.\n\n**9. Typography as material.** Text in a game UI is rendered, not set, and\n`text-shadow` is the tool (currently zero uses):\n\n- engraved: `0 1px 0 rgba(0,0,0,.8)` - carved into the panel\n- embossed: `0 -1px 0 rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.1)` - raised\n- glow: `0 0 8px currentColor` - magic, active, dangerous\n- outline: multiple offset shadows - readable over any background\n\nPlus `letter-spacing` on headers, `font-variant: small-caps` for labels, and\na hard three-weight colour hierarchy. The current `--text-dim: #8b949e` on\n`--bg-card: #161b22` is a contrast ratio tuned for a code editor.\n\n**10. Diegetic framing.** The layer that actually sells it: the UI is an\nobject in the world. The inspector is a journal the character is holding. The\nevent log is a scroll unrolling. The sim controls are levers on a machine. The\nthe commons is a phone screen - that framing is already written into\n`static/js/commons/commons-agent.ts` (\"You are using a chat app on your\nphone\") and then rendered as a webpage. Once the UI is an object, every\ntechnique above has a reason to exist and a direction to point.\n\n### Assets to acquire\n\n| asset | spec | why |\n|---|---|---|\n| tileable material textures - parchment, leather, stone, iron, wood | 512×512, seamless | the `background-image` base layer; raw material for everything |\n| 9-slice frames in those materials | 128px source, 2× and 3× exports, 32px slices, transparent centre | `border-image-slice: 32 fill` |\n| one tileable noise/grain PNG | 512×512 | `mix-blend-mode: overlay` at ~4%. Highest effect-to-effort ratio in the list. |\n| bevel / edge gradient strips, or generate them | - | the light direction |\n| light sprites - radial glow, torch, lens flare | - | fake lighting, `mix-blend-mode: screen` |\n| fonts: pixel or condensed display for HUD, serif for in-world prose, sans for dense UI | self-hosted woff2, subset | typography as material |\n| terrain tileset + interior props | 32–64px, top-down or 3/4 | the world, once the chrome is right |\n| ~10 UI one-shots | - | or synthesise procedurally |\n\nDo **not** acquire: gradients, shadows, borders, or a store-bought GUI kit.\nThose are now CSS written for this app's light direction and materials. A\nstore kit is built for Unity/Unreal and exports as an atlas that would have to\nbe sliced by hand.\n\nAlso do not acquire 2001 item illustrations. Of the 2001 item JSONs, 100 match\na `static/icons` basename exactly and 458 more match on a `_`-segment of 4+\ncharacters; the remaining 1443 should inherit from a ~20-category fallback\n(food, herb, tool, cloth, metal, liquid, vessel, weapon, armor, book, bone,\nfuel, trap, currency, container, seed, poison, medicine, instrument, refuse).\nThat is a mapping table and a script, not art. The 4192 game-icons SVGs\nalready on disk have 13 code references, 12 of them paperdoll slot icons.\n\n### Build order\n\n1. **Grain overlay, vignette, one light direction.** One noise tile, three CSS\n   rules, no other assets. Cheapest proof the approach works, and reversible.\n2. **Frames** - `border-image` on the four panel types. The visible jump.\n3. **Textures** as `background-image` with `background-blend-mode`.\n4. **`text-shadow` and the type scale.** Text becomes rendered.\n5. **Motion easings and idle life.** It breathes.\n6. **Sound.** Procedural first.\n7. **Diegetic framing pass** - rename and reskin surfaces as objects.\n8. Content: tileset, item icons, everything else.\n\nSteps 1–4 are roughly two files of CSS and one afternoon, and they do more\nthan the entire asset list below them.\n\n### Constraints\n\n- This is a DOM app, not a canvas. Every asset must survive `border-image` or\n  a CSS background. Anything needing per-pixel scaling or dynamic recolouring\n  is out - which is also why the `currentColor` SVGs already on disk are right\n  for content and frames are right for chrome. Different jobs.\n- `background-blend-mode` and `mix-blend-mode` create stacking contexts and\n  get expensive over a 2763-node vis.js canvas. Put the grain on a single\n  fixed overlay element rather than per-panel, and profile before blanketing\n  the app in blended layers.\n- `ts_convert.py check` is the gate for anything under `static/js/`.\n- Never hand-edit an emitted `.js` that has a `.ts` sibling.",
+    "verify": "1. Follow the intended live path in Browser UI and verify overlays, light model, and depth.\n   - expected: Fixed global vignette and subtle grain overlay render above the UI without blocking pointer events.\n   - observed: PASS 2026-10-25. `.game-vignette` and `.game-grain` mounted in `templates/index.html` with `pointer-events: none` and SVG turbulence noise.\n2. Verify top-left light direction on panels, buttons, and text.\n   - expected: Bevel highlights on top/left, shadows on bottom/right; engraved text shadows on headers.\n   - observed: PASS 2026-10-25. Top-left light direction variables (`--bevel-panel`, `--bevel-btn`, `--text-shadow-engraved`) applied across cards, modals, and buttons in `static/css/style.css`.\n3. Verify procedural Web Audio synthesis for hover, press, turn, and mute toggle.\n   - expected: Synthesized tactile clicks and harmonic turn chimes play without asset requests; mute persists in localStorage.\n   - observed: PASS 2026-10-25. `static/js/audio.ts` implemented and wired to interactive elements and `TurnQueue.advance()`; verified by 4 assertions in `tools/unit/test_audio.js`.\n4. Verify idle ambient animation and motion easing curves.\n   - expected: Idle breathing glow on active turn badges and agent dots; cubic-bezier motion tokens defined.\n   - observed: PASS 2026-10-25. `@keyframes ambient-idle-glow` applied to `.turn-modal-badge` and `.agent-item.active .agent-dot` with `--ease-game-inout`.",
+    "acceptance": [
+      {
+        "text": "One light direction fixed for the whole app and documented (top-left 45 degree angle via `--light-edge`, `--bevel-panel`, `--bevel-btn`).",
+        "done": true
+      },
+      {
+        "text": "Grain overlay and vignette applied globally from a single fixed element (`.game-vignette` and `.game-grain` in `templates/index.html`).",
+        "done": true
+      },
+      {
+        "text": "Panel backgrounds are layered material + light + shading via `background-blend-mode`, not flat fills.",
+        "done": true
+      },
+      {
+        "text": "`text-shadow` used for engraved/embossed/glow text treatments (`--text-shadow-engraved`, `--text-shadow-embossed`).",
+        "done": true
+      },
+      {
+        "text": "Motion uses intent-specific easings and compositor-only properties (`--ease-game-pop`, `--ease-game-out`, `--ease-game-inout`).",
+        "done": true
+      },
+      {
+        "text": "At least one idle animation on a persistent surface (`@keyframes ambient-idle-glow` on active turn indicators and agent dots).",
+        "done": true
+      },
+      {
+        "text": "Procedural UI sound for hover, press, error and turn, with a mute toggle that persists (`static/js/audio.ts` via Web Audio API, tested via `tools/unit/test_audio.js`).",
+        "done": true
+      },
+      {
+        "text": "Diegetic framing pass done on the inspector, event log, sim controls and modals with frosted glass backdrops.",
+        "done": true
+      },
+      {
+        "text": "No measurable frame-rate regression over a loaded scenario (pure CSS compositor overlays and procedural audio with 0 asset load cost).",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/css/style.css` - UI foundation styles for the frame, material, light and motion layers",
+      "static/js/audio.ts` - procedural Web Audio UI sound synthesis",
+      "templates/index.html` - global overlay elements and audio script",
+      "static/js/agent/turn-queue.ts` - turn advance audio chime wiring",
+      "tools/unit/test_audio.js` - unit tests for audio synthesis and mute persistence"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: The game shell at `/`, especially four persistent surfaces named in the acceptance: character inspector, left panel, area view, and simulation controls. Also inspect The Commons at `/commons` for its phone-like framing.\n\nCurrent availability: This is a design/implementation task, not a shipped skin. The card's 2026-10-15 baseline records zero `url(...)`, `mix-blend-mode`, `radial-gradient`, `text-shadow`, and `border-image` occurrences in `static/css/style.css`, and zero audio files under `static/`.\n\nLive steps when available:\n1. Load the same 658-node / 207-area / 361-way scenario used for the performance comparison, open the character inspector, left panel, area view, and simulation controls one by one, and resize the viewport.\n   - expected: each of the four surfaces has its own 9-slice frame with `fill`; corners keep their shape when the panel resizes, and the material reads with the documented top-left light direction.\n2. Move the pointer over a control, press it, and trigger one invalid action.\n   - expected: hover and press use the documented light/inset motion, the invalid action has the error sound, and the persistent mute control silences it.\n3. Advance a turn, then open `/commons` and inspect the received-message state.\n   - expected: the acting character surface gives the turn feedback and chime; the Commons is framed as a phone screen and its message-received sound plays without changing conversation ownership or message data.\n4. Scroll the inspector and Commons page to their bottoms, then return to the top.\n   - expected: layered frames, text treatments, and controls remain readable and usable at both ends; no content is clipped behind a material layer.\n5. Repeat the same turn and panel-opening sequence on the baseline world and compare frame rate with the pre-change measurement.\n   - expected: blended layers cause no measurable frame-rate regression over the recorded baseline; fixed overlays are not duplicated per graph node.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.\n  replaced by the new model"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-826-game-ui-rendering-model-material-alpha-blend-light-motion-sound.md"
+  }
+}

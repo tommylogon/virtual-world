@@ -52,7 +52,7 @@ Live steps when available:
 1. Open Mind → Memories for a character with a long memory list and select a memory; activate Fullscreen.
    - expected: the panel fills the viewport, the memory list and detail have usable space, and the selected character/title remain unchanged.
 2. Switch to Mind, Perception, and People while fullscreen; scroll to the bottom of each tab.
-   - expected: every tab remains reachable, no body content is cut off, and the panel—not the page behind it—owns scrolling.
+   - expected: every tab remains reachable, no body content is cut off, and the panel-not the page behind it-owns scrolling.
 3. Exit fullscreen with the control and with Escape, then reopen Mind from the inspector.
    - expected: the panel returns to its original modal size, the opener receives focus, and reopening does not create a second Mind instance.
 4. Resize the browser while fullscreen and after exit.

@@ -19,7 +19,7 @@ Pack logic for simple NPCs so multiple of the same type can coordinate together 
 
 ## Notes
 
-- Exploratory — flagged "maybe not, we'll see". The idea is recorded for later evaluation. 
+- Exploratory - flagged "maybe not, we'll see". The idea is recorded for later evaluation. 
 - MVP if it ever gets picked up: a shared `pack` tag/property on group members, packmate awareness (detect nearby packmates in the same area), and a coordinated-target behavior rule ("attack the same target as the nearest packmate").
 - Full pack AI (formation, flanking, role assignment) is intentionally out of scope for the MVP.
 
@@ -28,15 +28,15 @@ Pack logic for simple NPCs so multiple of the same type can coordinate together 
 - `developer ideas.md` line 1
 - NPC behavior system (`engine/npc_behaviors.py`)
 
-## MVP implemented — 2026-09-28 (WT-C)
+## MVP implemented - 2026-09-28 (WT-C)
 
 The three pieces the Notes section specifies, and none of the part it puts out
 of scope.
 
 ### Pack identity is a tag, not a field
 
-`pack:<name>` in the character's existing `tags`. No `Player.pack` attribute —
-that is `player.py`, a hub file — and `tags` is already where the shipped data
+`pack:<name>` in the character's existing `tags`. No `Player.pack` attribute -
+that is `player.py`, a hub file - and `tags` is already where the shipped data
 puts what a character *is* (`"goblin"`, `"rat"`). Pack names are lowercased, so
 `pack:Sewer` and `pack:sewer` are one pack, for the same reason
 `player_manager.relationship_key` lowercases.
@@ -46,22 +46,22 @@ which task-552 proved was the load-bearing detail for `fear_tags`.
 
 ### Files
 
-- `engine/pack.py` — **new**. `pack_of`, `packmates_in`, `coordinated_target`,
+- `engine/pack.py` - **new**. `pack_of`, `packmates_in`, `coordinated_target`,
   `call_for_help`, `on_call_cooldown`, `pack_summary`.
-- `engine/npc_behaviors.py` — `_apply_pack_signal` / `_nearest_threat`, called
+- `engine/npc_behaviors.py` - `_apply_pack_signal` / `_nearest_threat`, called
   at the top of the `process_simple_npcs` loop.
-- `tests/test_pack_logic.py` — **new**, 32 tests.
+- `tests/test_pack_logic.py` - **new**, 32 tests.
 
 ### The three pieces
 
-- **Awareness** — `packmates_in(gs, player, areas=0)`: same-area by default,
+- **Awareness** - `packmates_in(gs, player, areas=0)`: same-area by default,
   and `areas` widens it by walking the **area graph** through
   `_build_exits_for_area`, not by a flat distance. A packmate in the next room
   is one exit away, not "within N" of anything.
-- **The coordinated target** — the *nearest* packmate's `pack_target`, not a
+- **The coordinated target** - the *nearest* packmate's `pack_target`, not a
   majority vote. A pack that has to agree before it acts is not a pack, it is a
   committee.
-- **The call** — `call_for_help` reaches `PACK_CALL_RANGE` (one room) further
+- **The call** - `call_for_help` reaches `PACK_CALL_RANGE` (one room) further
   than sight and **stamps `pack_target` on every listener**. That stamp is the
   point: without it a "pack" is a crowd standing near each other, and the
   coordinated-target rule has nothing to converge on. Throttled per pack so a
@@ -83,7 +83,7 @@ which task-552 proved was the load-bearing detail for `fear_tags`.
 **A mechanic nobody has authored must be inert.** That is the lesson from
 task-552, where a fear system existed, worked, and had never been asked a
 question. Nothing in `data/library` or a scenario carries a `pack:` tag yet, so
-no pack exists in any shipped content and the whole surface is dormant — which
+no pack exists in any shipped content and the whole surface is dormant - which
 is the correct answer, and a test pins that a character with no pack tag sees
 nobody, calls nobody, and is on no cooldown.
 
@@ -102,8 +102,8 @@ Nothing. No hub file was touched.
 
 ### Verify
 
-`python -m pytest tests/test_pack_logic.py -q` — 32 tests. And
-`tests/ -q -k "npc or pack or simple or background"` — 221 pass, no failures.
+`python -m pytest tests/test_pack_logic.py -q` - 32 tests. And
+`tests/ -q -k "npc or pack or simple or background"` - 221 pass, no failures.
 
 Covering: a pack tag names the pack and a bare `pack:` does not; names are
 case-insensitive; another pack is not a packmate; a dead packmate does not call;

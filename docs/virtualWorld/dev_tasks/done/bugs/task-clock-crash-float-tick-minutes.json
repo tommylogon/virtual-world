@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-clock-crash-float-tick-minutes",
+  "kind": "task",
+  "number": null,
+  "title": "Clock Crash - Float time_per_tick_minutes Breaks /api/state",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`GET /api/state` crashed with `ValueError: Unknown format code 'd' for object of type 'float'` (`engine/tick_manager.py:77`), taking down the whole frontend (500 on state fetch).",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "root_cause": "`time_per_tick_minutes` is stored as a float (`routes/settings.py:91` casts to `float`, so even \"5\" becomes 5.0). `get_current_time()` computed `total_minutes = time_ticks * time_per_tick_minutes` → float, then `f\"{hours:02d}\"` with float `hours` (result of float `//`) crashes - Python's `d` format code rejects floats.",
+      "fix": "`engine/tick_manager.py`:\n- `get_current_time()`: convert to whole seconds first (`int(total_minutes * 60) % 86400`), then derive hours/minutes/seconds with integer `//` and `%`. Fractional minutes now roll into real seconds (e.g. 2.5 min/tick → `12:02:30`) instead of being truncated.\n- `rest()`: `ticks = max(1, int(minutes // time_per_tick_minutes))` - the float `//` result was also going to break `range(ticks)` for longer rests.",
+      "verification": "- Live: `/api/state` returns 200 again (was 500).\n- Unit: `test_get_current_time_with_float_tick_minutes` in `tests/test_engine_init.py` - 97 ticks × 2.5 min from 08:00 → `12:02:30`; 16/16 engine-init tests pass.\n- Manual math check for 5.0 (16:05:00), 2.5 (12:02:30), 7 (19:19:00).",
+      "files_changed": "- `engine/tick_manager.py` - float-safe clock + rest tick count\n- `tests/test_engine_init.py` - regression test"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Tech Debt & Testing",
+    "status_note": "In Review - implemented 2026-08-09, `/api/state` verified 200 again, regression test added.",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/task-clock-crash-float-tick-minutes.md"
+  }
+}

@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: High
-**Status**: Done — verified 2026-08-03. `api.createItem` (static/js/api.js:106) sends the `area` field; backend `build_item_legacy` (routes/graph.py:229) resolves the area node by name — including the non-standard-ID fallback loop (routes/graph.py:111-113) — and attaches the item via a `location` edge (migrated to `in` by `normalize_edges`).
+**Status**: Done - verified 2026-08-03. `api.createItem` (static/js/api.js:106) sends the `area` field; backend `build_item_legacy` (routes/graph.py:229) resolves the area node by name - including the non-standard-ID fallback loop (routes/graph.py:111-113) - and attaches the item via a `location` edge (migrated to `in` by `normalize_edges`).
 
 ---
 
@@ -49,8 +49,8 @@ function addItemViaGraph() {
 
 ### Investigation Needed
 
-1. **Check `api.createItem()` in `api.js`** — Does the API call pass the room to the backend?
-2. **Check the backend endpoint** in `app.py` — Does `createItem` correctly attach the item to the specified room via graph edges?
+1. **Check `api.createItem()` in `api.js`** - Does the API call pass the room to the backend?
+2. **Check the backend endpoint** in `app.py` - Does `createItem` correctly attach the item to the specified room via graph edges?
 3. **Check if the room parameter is being dropped** somewhere in the chain.
 
 ### Possible Root Causes
@@ -69,9 +69,9 @@ function addItemViaGraph() {
 
 ## Files
 
-- `static/js/api.js` — verify `createItem()` payload structure
-- `app.py` — verify backend `createItem` endpoint
-- `static/js/main.js` — verify the data object construction
+- `static/js/api.js` - verify `createItem()` payload structure
+- `app.py` - verify backend `createItem` endpoint
+- `static/js/main.js` - verify the data object construction
 
 ## How
 

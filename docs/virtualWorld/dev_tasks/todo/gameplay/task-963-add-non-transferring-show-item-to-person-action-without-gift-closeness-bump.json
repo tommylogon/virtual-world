@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "task-963",
+  "kind": "task",
+  "number": 963,
+  "title": "Add non-transferring show item to person action without gift closeness bump",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "items",
+    "social",
+    "action-verbs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-959"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a non-transferring show <item> to <person> action so characters can display phone messages, photos, notes, badges, or objects without giving away ownership or triggering give_item's +5 gift closeness bonus.",
+    "why": "engine/items/transfer_actions.py (give_item, lines 95-120) is the only way to hand someone an object and always transfers possession plus adds +5 mutual closeness, while engine/items/examine_actions.py only surfaces observations to the acting viewer. Characters cannot show someone a text message, photograph, ID card, or item in hand without handing over the object itself.",
+    "how": "1. Implement show_item(world, actor_name, item_name, target_name) sharing item readability/description extraction from examine_actions.py while keeping carry/equipped ownership untouched (never calling give_item's transfer or +5 closeness bump).\\n2. Mark the shown item as examined/seen for target (and optionally reveal if it was concealed), fire relevant on_examine/reveal hooks, and deliver a structured perception/hearing entry + turn_event to the recipient.\\n3. Register show in engine/action_verbs.py, routes/action_handlers.py, PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions.ts.",
+    "verify": "1. Run pytest verifying show_item preserves ownership, skips give_item's +5 closeness bump, and delivers item description/contents to the target character's perception.",
+    "acceptance": [
+      {
+        "text": "show (show <item> to <person>) is registered in engine/action_verbs.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts.",
+        "done": false
+      },
+      {
+        "text": "Showing an item retains possession/ownership on the actor, adds zero +5 gift closeness, reveals visible item details/readable text/media captures to the recipient (and same-area witnesses unless discreet), and records structured perception/turn events.",
+        "done": false
+      },
+      {
+        "text": "Covered by pytest verification for phone screen/note/weapon inspection without item transfer.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "engine/items/transfer_actions.py",
+      "engine/items/examine_actions.py",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal item brackets (`show <item> to <person>`) and Event Stream turn log.\\n\\nCurrent availability: engine/items/transfer_actions.py give_item (lines 95-120) always transfers possession and grants +5 mutual closeness; examine_actions.py inspects items for the actor alone.\\n\\nManual verification steps:\\n1. Carry a handwritten note, phone photo, or badge in the same area as Character B and run `show <item> to B`.\\n2. Check item carrier ownership, closeness value, and B's next turn memory/perception.\\n   - expected: Actor retains the item, closeness does not artificially jump +5, and B perceives the item's description/text."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Item & Action Model]]",
+      "[[Characters/Relationships System]]",
+      "[[Commands]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

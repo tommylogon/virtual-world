@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-148",
+  "kind": "task",
+  "number": 148,
+  "title": "Equipment Slot Detail Modal",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When clicking on an equipment slot in the paperdoll inspector (e.g. \"Torso\", \"Head\", \"Legs\"), open a modal/popup that shows the full layer stack for that slot, the bonuses each item provides, and allows unequip/reorder actions - making character design and gear inspection easier.\n\n---",
+    "why": "Currently, clicking a filled equipment slot in the paperdoll inspects the **outermost** item node. To see what's beneath layers, you hover over tiny `↳` indicators or click a `📋 layers` badge. There's no consolidated view of a slot's entire layer stack with bonuses, and unequipping inner layers requires multiple steps.\n\n---",
+    "how": "**Completed**: 2026-07-31\n\n### Changes\n\n| File | Change |\n|------|--------|\n| `routes/settings.py` | Added `/api/settings/equip_slots` endpoint to expose EQUIP_SLOTS config |\n| `static/js/world-state.js` | Added `equipSlots` property and `fetchEquipSlots()` method |\n| `static/js/main.js` | Fetch equip slots config on app init |\n| `static/js/inspector/paperdoll-view.js` | Added `showSlotModal()` function with layer list, bonuses, totals, and actions |\n\n### Features\n\n- Clicking a filled equipment slot opens a modal showing the full layer stack\n- Modal displays: slot label, layer count vs max_depth (or ∞ for unlimited), per-item bonuses, aggregated totals\n- Actions: unequip individual items, move layers up/down, unequip all, equip new item\n- Bonus display: defense, insulation, damage, weight, resistances\n- Layer reordering via `_moveLayer()` helper (client-side array swap)\n- Item names are clickable to open the item inspector\n- Accessories section now clickable - opens the same modal for the accessory slot (unlimited capacity)",
+    "verify": "1. Open a character's Inventory tab, click a filled Torso slot, and read the\n   slot detail modal from the innermost item through the outermost item.\n   - expected: each layer shows its item, depth, bonus summary, and slot total;\n     the header reports used/max capacity.\n   - observed: the 2026-07-31 implementation record lists these controls; no\n     live browser observation is recorded here.\n2. Move an inner layer up, unequip a different inner item, equip a replacement,\n   and reopen the slot modal after each refresh.\n   - expected: the selected item changes position or is removed without\n     removing a neighboring layer; the paperdoll and modal show the updated\n     stack.\n3. Click an item name, then repeat for `hand_left`, `hand_right`, and the\n   unlimited Accessories slot.\n   - expected: item names open their item inspector and each slot uses its own\n     capacity/action rules.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "requirements": "### 1. Slot Click → Modal\n- Clicking a filled paperdoll slot opens a **slot detail modal** (not the item inspector)\n- The modal is anchored near the clicked slot or centered\n- Clicking an empty slot does nothing (or shows \"nothing equipped here\")\n\n### 2. Modal Content\n- **Header**: Slot label + slot graphic\n- **Layer list**: Items listed innermost (closest to skin) → outermost, with:\n  - Item name (clickable to inspect the item node)\n  - Item description preview\n  - Per-item **bonus summary** (defense, insulation, damage, resistances, etc.)\n  - Layer depth indicator (e.g. \"Layer 1/5\", \"Layer 3/5\")\n- **Totals**: Aggregated bonuses for the slot (summed defense, insulation, etc.)\n- **Slot capacity**: \"X / Y equipped\" (max_depth from EQUIP_SLOTS)\n\n### 3. Actions\n- **Unequip** button per item - pops that specific item (not just outermost)\n- **Move up / Move down** buttons - reorders layers within the slot\n- **Unequip all** button - clears the entire slot\n- **Equip item** button - opens the existing equip picker filtered to this slot\n\n### 4. Bonus Display\nShow all relevant aggregate bonuses from the slot's items:\n\n| Bonus | Display |\n|-------|---------|\n| `defense` | 🛡️ +X Defense (per item + total) |\n| `insulation` | 🌡️ +X°C Insulation (per item + total) |\n| `resistances` | ⚡ Fire: X, Cold: Y (per type) |\n| `damage` (weapon slots) | ⚔️ X + YdZ damage |\n| `weight` | ⚖️ Total weight |\n\n### 5. Integration\n- Modal data sourced from `worldState.players[name].equipped[slot]`\n- Item details resolved via `worldState.graph.nodes[itemId].properties`\n- After unequip/reorder, refresh via `worldState.fetch()` then re-render the paperdoll\n- Works for both left-hand (`hand_left`) and right-hand (`hand_right`) slots\n\n---",
+      "implementation_sketch": "### Files to create/modify\n\n| File | Change |\n|------|--------|\n| `static/js/inspector/paperdoll-view.js` | Add `showSlotModal(charName, slot)` function. Replace slot-click handler. |\n| `templates/index.html` | Add slot detail modal HTML (can use existing modal pattern). |\n| `static/js/ui/settings-view.js` or new file | Modal rendering/bonus aggregation logic. |\n\n### Data flow\n\n```\nClick \"Torso\" slot\n  → paperdoll-view.js: showSlotModal(\"Lyrie\", \"torso\")\n    → Reads player.equipped.torso = [\"item_undershirt\", \"item_vest\", \"item_coat\"]\n    → For each item ID, looks up worldState.graph.nodes[id].properties\n    → Aggregates bonuses (defense, insulation, resistances)\n    → Renders modal with layers + bonuses\n    → User clicks \"Unequip\" on \"vest\"\n      → runAction('unequip vest')\n      → worldState.fetch() → re-render paperdoll + modal\n```\n\n### Bonus aggregation\n\nReuse the logic from `engine/equipment_bonuses.py`'s `aggregate_bonuses()` - but do it client-side from `worldState` data:\n\n```js\nfunction getSlotBonuses(nodeProperties) {\n    return {\n        defense: nodeProperties.defense || 0,\n        insulation: nodeProperties.insulation || 0,\n        resistances: nodeProperties.resistances || {},\n        damage: nodeProperties.damage || 0,\n        damage_dice: nodeProperties.damage_dice || null,\n    };\n}\n```\n\n---",
+      "related": "- [[done/prompting/task-123-equipment-description-in-prompts|task-123: Equipment description in prompts]]\n- `engine/equipment.py` - EQUIP_SLOTS config with max_depth\n- `engine/equipment_bonuses.py` - aggregate_bonuses() for server-side bonus calc\n- `static/js/inspector/paperdoll-view.js` - existing paperdoll rendering",
+      "browser_ui": "Intended UI home: Character Inspector → Inventory → Paperdoll → click a filled\nequipment slot.\n\nCurrent availability: The card records `showSlotModal()` with layer order,\nbonus totals, capacity, unequip/reorder/equip actions, and clickable item names\nas implemented on 2026-07-31. It does not record a browser run.\n\nLive steps when available:\n1. Open a character with at least three layers in Torso, click Torso, and read\n   each layer and the total row.\n   - expected: order runs skin-to-outer layer, each bonus is attributed to its\n     item, and the modal shows the slot's total and `X / Y equipped`.\n2. Move the second layer down, unequip the innermost item, then equip another\n   torso item from the filtered picker.\n   - expected: only the chosen layer changes; the refreshed paperdoll and modal\n     agree on the new stack.\n3. Repeat the slot click on left hand, right hand, and Accessories.\n   - expected: hand slots remain separate and Accessories reports unlimited\n     capacity.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-148-equipment-slot-detail-modal.md"
+  }
+}

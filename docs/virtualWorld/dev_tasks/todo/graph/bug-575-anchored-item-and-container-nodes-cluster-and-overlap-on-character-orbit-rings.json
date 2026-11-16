@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "bug-575",
+  "kind": "bug",
+  "number": 575,
+  "title": "Anchored item and container nodes cluster and overlap on character orbit rings",
+  "status": "todo",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-485",
+      "task-771"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Items anchored to a character (or to a container like a backpack or coat) render severely cramped and overlapping on the graph canvas. Node diamonds collide with each other and text labels overlap into an unreadable knot.\n\nTwo distinct problems cause this behavior:\n\n1. **Overly Aggressive Nested Scaling (`nestedScale: 0.45`) in Relative Layout**:\n   In `static/js/graph/relative-layout.ts`, items orbiting a container carried by a character (depth 2) have their orbit radius and node spacing scaled down by `nestedScale = 0.45`:\n   - `minRadius` drops from 130px to ~58.5px.\n   - `spacing` drops from 92px to ~41.4px.\n   Because diamond nodes are ~30px wide with text labels spanning 100-200px, packing 4 to 8 items on a 58px radius circle causes guaranteed diamond collisions and label overlap.\n   Furthermore, container items (like `Backpack` or `Heavy Fur-Lined Coat`) sit on the character's direct ring, meaning the container's child item orbit directly collides with the character's other equipped gear (boots, vest, brooch).\n\n2. **Misleading UI Controls for Spacing**:\n   The View menu exposes a prominent stepper labeled **MAP GRID** (`[-] 560 [+] [A]`), which authors naturally assume controls map graph node spacing. However, this setting only adjusts the padding between *areas* in the Map layout, with zero effect on item orbit radii.\n   The actual setting controlling item distance (`graphItemEdgeLength`) is buried inside `Settings -> Graph` (slider \"Hug Parent <-> Stretched\", defaulted to 60px). Even at maximum stretch, the 0.45 nested multiplier keeps container contents squashed.",
+    "why": "Characters and containers routinely hold 5 to 15 items (clothing, weapons, tools, documents). If the orbit radius cannot accommodate item counts and containers do not push outward to clear the parent character, the graph becomes a cluttered visual pile that prevents selecting, inspecting, or reading items.",
+    "how": "1. In `static/js/graph/relative-layout.ts`:\n   - Increase `ORBIT.nestedScale` from 0.45 to a dynamic scaling factor based on child count (or minimum 0.75) so containers with 4+ items expand outward.\n   - Dynamic label-aware radius: ensure `minRadius` scales proportionally with node label length and child count so diamonds never sit closer than 65px center-to-center.\n   - Outward container repulsion: push container hubs (`Backpack`, `Coat`) outward radially along their angle so their child orbits do not intersect the carrier's primary equipment ring.\n2. In `static/js/graph/toolbar.ts` and `templates/index.html`:\n   - Clarify the **Map grid** label to **Area pitch (Map layout)** so authors are not misled into thinking it spaces character items.\n   - Expose an **Item spread** stepper or shortcut in the View menu (or graph toolbar) alongside edge label size, directly adjusting `config.graphItemEdgeLength`.",
+    "verify": "1. In the graph view, inspect a character carrying 8+ items and at least one container with 4+ contents.\n   - expected: All node diamonds and text labels are legible without overlapping collisions.\n   - observed: Severe collision; container contents overlap each other and intersect the character's primary equipment ring.\n2. In the View dropdown, adjust the Map grid stepper.\n   - expected: Tooltip and label clarify that it only controls area spacing, or an Item spread control is provided.\n   - observed: Map grid stepper has no effect on item clustering.\n3. Run relative layout unit tests: `node tools/unit/run.cjs`.\n   - expected: All unit tests pass.",
+    "acceptance": [
+      {
+        "text": "Item nodes orbiting characters and containers do not overlap each other's diamond bounds.",
+        "done": false
+      },
+      {
+        "text": "Nested container rings (depth >= 2) scale radius dynamically to fit child count without squashing into a 58px clump.",
+        "done": false
+      },
+      {
+        "text": "Container hubs are pushed radially outward to prevent intersecting the carrier's primary equipment ring.",
+        "done": false
+      },
+      {
+        "text": "View menu clarifies Area pitch vs Item spread controls.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/relative-layout.ts",
+      "static/js/graph/separation.ts",
+      "templates/index.html",
+      "static/js/graph-manager.ts",
+      "tools/unit/test_relative_layout.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Main graph canvas -> Character node clusters with carried/contained items, and View dropdown menu.\n\nCurrent availability: Reproducible on `localhost:4444` (e.g. `science_annex_investigation` or `millwood_high_1f` with character `Kaelen Voss` or `Jane two`). Carried items and container contents cluster into a dense overlapping knot.\n\nLive steps when available:\n1. Load a scenario with a fully equipped character carrying nested containers (e.g. `Kaelen Voss` with Backpack and Coat).\n   - expected: Character node renders with equipped items and container items spread out cleanly.\n2. Inspect the character's direct equipment ring.\n   - expected: Equipped item diamonds and labels have sufficient angular spacing with zero overlapping text.\n3. Inspect container nodes (`Backpack`, `Heavy Fur-Lined Coat`).\n   - expected: Container items orbit their container on a sufficiently large circle that clears both the container and adjacent character gear.\n4. Open the View dropdown menu and adjust the **Item spread** control.\n   - expected: Item orbits expand or contract smoothly in real time.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/graph/bug-575-anchored-item-and-container-orbit-clustering.md"
+  }
+}

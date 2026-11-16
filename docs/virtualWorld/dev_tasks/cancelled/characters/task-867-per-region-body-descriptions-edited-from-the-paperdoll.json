@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-867",
+  "kind": "task",
+  "number": 867,
+  "title": "Per-region body descriptions edited from the paperdoll",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-18",
+  "updated": "2026-10-18",
+  "horizon": "next",
+  "effort": "",
+  "goal": "Every paperdoll region can carry a description, edited from the doll and rendered into the looks prose by Compile.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-865"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-848",
+      "task-847",
+      "task-852",
+      "task-744"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The paperdoll already knows the body regions (`InspectorPaperdoll.AREA_TO_REGIONS`), the Persona tab already reads region status there, and `body.modifications` is already region-linked as `area::text` (`static/js/inspector/mind-view.ts:1288`). But no region can carry a description, so the source's genitalia / body-part descriptions have nowhere to go.\n\nThis card adds a per-region description field to the block and edits it from the doll.",
+    "why": "Intimate and regional detail is intrinsic appearance. It belongs in the structured block, and the region map is already the natural editor. If it is typed straight into `base_description` prose, the next Compile treats it as stale and clobbers it. The block is state; the prose is its projection.",
+    "how": "1. Add a `body.regions` group to the appearance schema (region id -> text), beside the existing `body.modifications[]`, mirroring the region-linked shape (`area::text`).\n2. Open a text field on a paperdoll region click; write the region's text to `body.regions[<region>]`.\n3. Compile: `render_record_prose` (`engine/character_appearance.py`) renders each region's text into the looks prose.\n4. Do not write region text directly into `base_description` / `description`.\n5. Serve the new group in `schema_for_llm` so import / LLM fill can populate it.",
+    "verify": "1. Click a paperdoll region and add text, then save.\n   - expected: `body.regions[<region>]` holds the text.\n   - observed: TODO\n2. Run Compile.\n   - expected: the rendered looks prose includes the region text.\n   - observed: TODO\n3. Save the scenario and reload.\n   - expected: the region text survives; no direct write landed in `description`.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Each paperdoll region can carry a description.",
+        "done": false
+      },
+      {
+        "text": "Compile includes region descriptions in the looks prose.",
+        "done": false
+      },
+      {
+        "text": "Nothing writes region text directly into `description` / `base_description`.",
+        "done": false
+      },
+      {
+        "text": "The region text round-trips a scenario save / load.",
+        "done": false
+      },
+      {
+        "text": "The field is served in `schema_for_llm`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_appearance.py",
+      "static/js/inspector/mind-view.ts",
+      "static/js/inspector/paperdoll-view.ts",
+      "tests/test_character_appearance.py"
+    ],
+    "custom": {
+      "browser_ui": "The paperdoll is the surface. Live steps: open a character's Persona tab, click a body region, type a description, save, run Compile, confirm the prose includes it; reload and confirm the region text round-trips.",
+      "retracted_2026_10_18": "Duplicate. Per-region authored data is already `task-733` (`appearance` includes `genitalia`), `task-848` (region selection and inline body editing on the doll) and `task-744` slice 4 (per-region authored data whose description composes into appearance prose).\n\nThe one delta survives and is folded into `task-733`: region prose must be rendered by `render_record_prose`, never typed straight into `base_description`, or the next Compile treats it as stale."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/characters/task-867-per-region-body-descriptions-edited-from-the-paperdoll.md"
+  }
+}

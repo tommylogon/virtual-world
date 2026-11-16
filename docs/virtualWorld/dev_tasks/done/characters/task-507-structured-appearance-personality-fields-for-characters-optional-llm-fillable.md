@@ -23,7 +23,7 @@ Add OPTIONAL structured appearance/personality fields to characters, alongside t
 
 - TODO
 
-## First slice — 2026-09-28 (WT-C)
+## First slice - 2026-09-28 (WT-C)
 
 The task says "grow per-feature; do not dump the full editor catalog", so this
 is the first slice: the schema, the optionality, the render-prose-once flow, and
@@ -33,7 +33,7 @@ is the first slice: the schema, the optionality, the render-prose-once flow, and
 
 **On the character graph node**, not on the `Player`. Adding a Player attribute
 means `player.py`, a hub file. The node is also where task-457 wants the
-character definition to end up, so the two tasks point the same way — the
+character definition to end up, so the two tasks point the same way - the
 structured block lands on the node and 457's migration carries it for free
 instead of it becoming a third place to look.
 
@@ -43,10 +43,10 @@ is reachable through the API, not through scenario authoring.
 
 ### Files
 
-- `engine/character_appearance.py` — **new**. Schema, validation, storage, prose,
+- `engine/character_appearance.py` - **new**. Schema, validation, storage, prose,
   the mechanic, and the LLM schema.
-- `routes/player_ops.py` + `routes/players.py` — four routes (below).
-- `tests/test_character_appearance.py` — **new**, 61 tests.
+- `routes/player_ops.py` + `routes/players.py` - four routes (below).
+- `tests/test_character_appearance.py` - **new**, 61 tests.
 
 | route | purpose |
 |---|---|
@@ -61,12 +61,12 @@ is reachable through the API, not through scenario authoring.
   A display name is a presentation choice: a rename silently orphans every
   reference, and two characters may share a name. Ids resolve to names only at
   the display edge, and an id that will not resolve **stays visible** rather than
-  disappearing — a kink that quietly vanishes is a bug report with no cause.
+  disappearing - a kink that quietly vanishes is a bug report with no cause.
 - **Rejection beats silent dropping.** A bad entry fails the whole field with a
   400 naming the offender. A character who mysteriously does not respond to a
   kink is far harder to notice than a rejected request.
 - **Prose-only is the normal case, not a half-configured one.** No record means
-  `{}`, empty prose, no affect — a library character reads and renders exactly as
+  `{}`, empty prose, no affect - a library character reads and renders exactly as
   before. A test pins that.
 - **The route will not clobber a hand-written `base_description`.** The task
   makes structured the source of truth, but replacing a paragraph someone wrote
@@ -76,7 +76,7 @@ is reachable through the API, not through scenario authoring.
 
 ### The one mechanic
 
-`affect_for_stimulus(node, stimulus_id)` — a kink raises arousal, a turn-off
+`affect_for_stimulus(node, stimulus_id)` - a kink raises arousal, a turn-off
 raises disgust/anger/fear and pushes arousal down, mapping onto real
 `engine.emotion` axes. Returns `{}` for an unknown stimulus, a prose-only
 character, or a character who is simply neutral, so a trigger can apply the
@@ -85,7 +85,7 @@ asserts the character actually moves.
 
 **A sign bug worth recording.** The first cut had one `AFFECT_AXES` table and
 applied turn-offs with a negated sign. Negating turns "disgust up, arousal down"
-into "disgust down, arousal up" — the exact opposite of a turn-off — because the
+into "disgust down, arousal up" - the exact opposite of a turn-off - because the
 sign of an axis is *semantic* here, not an arithmetic consequence of which list
 it came from. Now two tables, `KINK_AXES` and `TURN_OFF_AXES`, with no sign
 flipping. A test pins that a turn-off raises disgust and lowers arousal.
@@ -96,19 +96,19 @@ but no consumer is wired yet, which is the honest state of a per-feature slice.
 
 ### Handed to WT-0
 
-- **`routes/library_ops.py`** — import and export the structured block, so a
+- **`routes/library_ops.py`** - import and export the structured block, so a
   scenario can author it. Until then the feature is API-only.
 
 ### Not built, deliberately
 
-The rest of the task's list — contact lenses / haircut / weight-change as
+The rest of the task's list - contact lenses / haircut / weight-change as
 mechanics, the likes/dislikes targeting consumer, and a graph-editor field-name
-alignment — each needs its own slice. `media` / `mbti` / `alignment` are absent
+alignment - each needs its own slice. `media` / `mbti` / `alignment` are absent
 and a test asserts they stay absent.
 
 ### Verify
 
-`python -m pytest tests/test_character_appearance.py -q` — 61 tests. Prose-only
+`python -m pytest tests/test_character_appearance.py -q` - 61 tests. Prose-only
 is the default and is pinned; validation rejects display names, unknown keys,
 implausible numbers and non-object groups; storage sets/replaces/clears without
 touching the Player; prose renders every appearance field (a field that cannot

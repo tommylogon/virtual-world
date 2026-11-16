@@ -35,27 +35,27 @@ was also missing from the scene menu entirely, so a human had no way to start on
 
 ## How
 
-- **Engine rule** — `engine/action_tiers.apply_action_gate(slots, verb, burst)` is
+- **Engine rule** - `engine/action_tiers.apply_action_gate(slots, verb, burst)` is
   the one implementation. A dash needs a major *and* a minor
   (`can_initiate_dash`) and spends the major; the finish (`go`/`dash`/`climb`/
   `crawl`/`jump`) spends the minor and clears the burst; `wait` aborts without
   spending the minor (so a dead-end dash is never a soft-lock); any other action
   while armed is refused.
-- **State** — `Player.burst_pending` (runtime only, like `turn_slots`). Armed by
+- **State** - `Player.burst_pending` (runtime only, like `turn_slots`). Armed by
   the dash handler *after* the hop succeeds (a blocked dash raises first, so it is
   left unarmed with its major spent); cleared by the finish/abort and at the turn
   boundary (`tick_manager` slot reset). Published in `/api/state`, popped from a
   scenario save.
-- **Route** — `routes/action_handlers.py` `_slot_gate` calls the gate; the dash
+- **Route** - `routes/action_handlers.py` `_slot_gate` calls the gate; the dash
   handler arms on success. This is the single choke point every budgeted actor
   (the human composer and the agent submit) goes through, so agents are fixed for
   free.
-- **Client** — `turn-scene-view.ts`: a **Dash** entry in `buildWayMenu` (disabled
+- **Client** - `turn-scene-view.ts`: a **Dash** entry in `buildWayMenu` (disabled
   when the minor is missing), and while armed the way menu becomes the finish
   ("Finish dash -> X") plus "Stop here (wait)", with a matching hint. The human
   composer's existing step loop re-opens after the dash and shows that menu, so
   the "second turn to choose the finish" falls out of it.
-- **NPCs** — simple NPCs (`behaviors.py` dash) and the soak/background sim keep no
+- **NPCs** - simple NPCs (`behaviors.py` dash) and the soak/background sim keep no
   slot budget (`_act` is need-driven and travels with `move_to_area`, never a
   dash), so they dash as a plain hop and are unaffected; the rule lives in the
   shared engine table, not the browser.
@@ -85,11 +85,11 @@ was also missing from the scene menu entirely, so a human had no way to start on
 
 ## Files
 
-- `engine/action_tiers.py` — `apply_action_gate`, `can_initiate_dash`,
+- `engine/action_tiers.py` - `apply_action_gate`, `can_initiate_dash`,
   `BURST_INITIATE` / `BURST_FINISH_VERBS` / `BURST_ABORT_VERBS`.
-- `player.py` — `burst_pending`.
-- `engine/tick_manager.py` — clear the burst on the turn reset.
-- `engine/serialization.py` — publish `burst_pending`; pop it from a save.
-- `routes/action_handlers.py` — the gate call + arming on a successful dash.
-- `static/js/agent/turn-scene-view.ts` (+ `.js`) — Dash entry, burst finish menu, hint.
+- `player.py` - `burst_pending`.
+- `engine/tick_manager.py` - clear the burst on the turn reset.
+- `engine/serialization.py` - publish `burst_pending`; pop it from a save.
+- `routes/action_handlers.py` - the gate call + arming on a successful dash.
+- `static/js/agent/turn-scene-view.ts` (+ `.js`) - Dash entry, burst finish menu, hint.
 - `tests/test_dash_burst.py`, `tests/test_dash_burst_route.py`.

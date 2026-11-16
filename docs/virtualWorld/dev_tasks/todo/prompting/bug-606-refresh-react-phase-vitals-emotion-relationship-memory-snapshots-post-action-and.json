@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "bug-606",
+  "kind": "bug",
+  "number": 606,
+  "title": "Refresh React-phase vitals/emotion/relationship/memory snapshots post-action and fix stale turn-prompts.ts examples",
+  "status": "todo",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [
+    "prompting",
+    "react-phase",
+    "agent-engine",
+    "emotions",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-596",
+      "task-948",
+      "task-949"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Recompute vitalsNL, emotionNL, relationshipNL, and read-only memoryNL from freshPlayer/freshState before buildResultReactionPrompt executes, and align turn-prompts.ts lines 239/241 examples with the canonical emotion contract.",
+    "why": "In static/js/agent-engine.ts (lines 1692-1712), after an action mutates the world and `await worldState.fetch()` retrieves `freshPlayer` and `freshRoom`, line 1712 still feeds the stale pre-action `vitalsNL`, `emotionNL`, `relationshipNL`, and `memoryNL` computed at turn start (lines 1442-1445) into `buildResultReactionPrompt`. Additionally, static/js/agent/prompt-builder/turn-prompts.ts mixes `emotion_toward` (line 237) with legacy `\"emotion\":null` in the silent/noop JSON examples (lines 239, 241).",
+    "how": "1. In static/js/agent-engine.ts around lines 1692-1713, rebuild `vitalsNL`, `emotionNL`, and `relationshipNL` from `freshPlayer` and `freshState` after `await worldState.fetch()`, and refresh `memoryNL` read-only (`{ preview: true, area: freshPlayer?.current_area }`) when the character moved or the room/stimulus changed.\n2. Update static/js/agent/prompt-builder/turn-prompts.ts lines 236-242 so silent and noop examples use the canonical emotion field shape matching line 237 and StructuredFormats.agentReact (`bug-596`).\n3. Add JS unit coverage verifying post-action state deltas propagate into result-reaction prompts.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs verifying post-action vitals/emotion/location updates reach buildResultReactionPrompt instead of pre-action turn-start snapshots, and turn-prompts.ts has zero inconsistent legacy `\"emotion\":null` examples.",
+    "acceptance": [
+      {
+        "text": "Result-reaction prompts pass refreshed vitalsNL, emotionNL, relationshipNL, and memoryNL derived from freshPlayer/freshState after worldState.fetch() rather than stale pre-action turn-start strings.",
+        "done": false
+      },
+      {
+        "text": "static/js/agent/prompt-builder/turn-prompts.ts replaces legacy hardcoded `\"emotion\":null` examples (lines 239, 241) with the canonical emotion contract aligned with line 237 and StructuredFormats.agentReact.",
+        "done": false
+      },
+      {
+        "text": "JS unit tests verify post-action vitals/emotion/location changes appear inside buildResultReactionPrompt during a multi-phase turn.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.ts",
+      "static/js/agent/prompt-builder/turn-prompts.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Raw LLM trace and Prompt Preview for the result-reaction phase (`agent-engine.ts` -> `buildResultReactionPrompt`).\n\nCurrent availability: agent-engine.ts line 1712 passes turn-start vitalsNL, emotionNL, relationshipNL, and memoryNL from lines 1442-1445 into buildResultReactionPrompt even after fetching freshPlayer/freshRoom post-action; turn-prompts.ts lines 239 and 241 still emit legacy `\"emotion\":null` examples.\n\nManual verification steps:\n1. Trigger an action that changes vitals, location, or emotions (e.g. eat food, take damage, move room) in reactive mode.\n2. Inspect the result-reaction prompt sent to the LLM in Agent Lens / Raw LLM capture.\n   - expected: React prompt shows post-action vitals, updated emotions/relationships, and refreshed memory context (via preview:true or current room cues) alongside consistent JSON examples."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

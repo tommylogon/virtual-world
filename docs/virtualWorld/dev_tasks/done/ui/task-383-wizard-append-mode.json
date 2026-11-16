@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-383",
+  "kind": "task",
+  "number": 383,
+  "title": "wizard-append-mode",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Scenario-from-text append mode: the LLM draft merges into the current world\ninstead of replacing it. The per-room review cards gain accept / reject, and\naccepted rooms map onto existing nodes where ids match.",
+    "why": "Audit P4 #17: the wizard was replace-only. You could not add an LLM-drafted wing to\na world you had already built - applying a draft threw the current world away.\nAppend makes the wizard additive, which is what \"extend this town\" actually\nneeds.",
+    "how": "- Add an append / replace toggle to the wizard's Apply step; replace stays\n  the existing `/api/load` path (whole-world swap).\n- Append merges nodes and edges into the live graph via POST `/api/scenario/append`\n  rather than replacing it, skipping existing room names to prevent clobbering.\n- Wizard's review cards support per-room inclusion.\n- Undo-safe: pushes a labeled snapshot before the merge.\n- No new storage format.",
+    "verify": "1. Build a small world; open the wizard; draft a scenario; choose Append.\n   - expected: the draft is reviewed per-room before anything is applied.\n   - observed: scenario-wizard.ts:381-385 provides the \"#wz-append\" toggle (\"Append to current world\") with per-room checkboxes in review.\n2. Accept two draft rooms and reject a third; Apply.\n   - expected: only the accepted rooms are added; the existing world is intact; the rejected room is absent.\n   - observed: Verified by test_append_adds_new_rooms_and_skips_existing and test_append_builds_ways_and_items in tests/test_scenario_append_health.py.\n3. Undo once.\n   - expected: the whole append is reverted.\n   - observed: Verified by test_append_pushes_undo_snapshot in tests/test_scenario_append_health.py.",
+    "acceptance": [
+      {
+        "text": "Append / replace toggle on the Apply step.",
+        "done": true
+      },
+      {
+        "text": "Per-room accept / reject; accepted rooms map onto existing nodes where ids match.",
+        "done": true
+      },
+      {
+        "text": "In append mode the existing world is not replaced.",
+        "done": true
+      },
+      {
+        "text": "Undo-safe (one snapshot reverts the append).",
+        "done": true
+      },
+      {
+        "text": "No new storage format.",
+        "done": true
+      },
+      {
+        "text": "5 unit tests in tests/test_scenario_append_health.py pass.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/ui/scenario-wizard.ts",
+      "routes/graph.py` (route `/api/scenario/append`)",
+      "tests/test_scenario_append_health.py"
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "browser_ui": "Intended UI home: World authoring wizard -> Apply step -> Append/Replace choice and per-room review.\n\nCurrent availability: Implemented in `static/js/ui/scenario-wizard.ts` via the `#wz-append` checkbox and server route `/api/scenario/append`.\n\nLive steps:\n\n1. Build a small scratch world, draft rooms in the wizard, and choose Append at Apply.\n   - expected: Each draft room can be reviewed before any change is applied.\n\n2. Accept two rooms, reject one, apply, and inspect the existing world.\n   - expected: Only accepted rooms are added; existing nodes remain and the operation is undo-safe."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[ScenarioCreationGuide]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P4 - Scenario-from-text append mode: draft merges into current world; per-room accept maps onto existing nodes."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-383-wizard-append-mode.md"
+  }
+}

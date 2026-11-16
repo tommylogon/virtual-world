@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-08-18  
 **Priority**: Low  
-**Status**: In Review — implemented 2026-08-18, unit + integration tests pass (971 total). Toggling an allowed action **on** now also enables its inverse (`take`→`drop`, `equip`→`unequip`, and back), deduplicated, across every item write path (inspector/build endpoints, library placement/import/refresh, scenario deserialization, `spawn_item` effects) plus read-time normalization so existing items surface the inverse immediately. Frontend action-grid toggle mirrors the pair in the UI and creates the inverse's base `on_*` trigger hook.
+**Status**: In Review - implemented 2026-08-18, unit + integration tests pass (971 total). Toggling an allowed action **on** now also enables its inverse (`take`→`drop`, `equip`→`unequip`, and back), deduplicated, across every item write path (inspector/build endpoints, library placement/import/refresh, scenario deserialization, `spawn_item` effects) plus read-time normalization so existing items surface the inverse immediately. Frontend action-grid toggle mirrors the pair in the UI and creates the inverse's base `on_*` trigger hook.
 
 ---
 
@@ -30,13 +30,13 @@ When a designer enables an allowed action on an item, also enable its inverse au
 
 ## How
 
-- `engine/item_actions.py` — new `INVERSE_ACTIONS` map + `normalize_item_actions()` helper (string or list → deduped list with inverses).
-- `routes/graph.py` — normalize `actions` in `update_node` and `build_item_legacy`.
-- `routes/library_routes.py` — normalize in library placement, character/area item import, and `_refresh_item` (both selective and blind refresh).
-- `engine/serialization.py` — normalize in scenario item deserialization and container contents.
-- `engine/effects.py` — normalize `actions` in the `spawn_item` effect.
-- `engine/trigger_system.py` — normalize in `_get_available_actions` (read-time safety net).
-- `static/js/inspector/item-view.js` — `INVERSE_ACTIONS` client-side; `_toggleAction` adds/removes the inverse and ensures the inverse's base trigger.
+- `engine/item_actions.py` - new `INVERSE_ACTIONS` map + `normalize_item_actions()` helper (string or list → deduped list with inverses).
+- `routes/graph.py` - normalize `actions` in `update_node` and `build_item_legacy`.
+- `routes/library_routes.py` - normalize in library placement, character/area item import, and `_refresh_item` (both selective and blind refresh).
+- `engine/serialization.py` - normalize in scenario item deserialization and container contents.
+- `engine/effects.py` - normalize `actions` in the `spawn_item` effect.
+- `engine/trigger_system.py` - normalize in `_get_available_actions` (read-time safety net).
+- `static/js/inspector/item-view.js` - `INVERSE_ACTIONS` client-side; `_toggleAction` adds/removes the inverse and ensures the inverse's base trigger.
 
 ## Steps to verify
 

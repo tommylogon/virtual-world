@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "id": "task-654",
+  "kind": "task",
+  "number": 654,
+  "title": "player.equipped and the equipment graph edges are two sources of truth; the API writes only the first",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "POST /api/players/<name> with {equipped: {...}} returns 200 and updates player.equipped, but creates NO EDGE_CARRYING/EDGE_EQUIPPED edge. Everything that actually reads equipment reads the EDGES: engine/combat.py _best_weapon_node (weapon selection) and engine/equipment_bonuses.get_equipment_nodes (defense, insulation, resistances). So a client that equips a character through the API gets a silent no-op in combat and in damage reduction -- equipped items appear in the inspector and do nothing. Found while live-verifying task-607, and then confirmed properly by taking a weapon rather than writing the field.\n\n**Confirmed by driving the app.** `take Rusty Hatchet` -> \"You take the rusty\nhatchet with your hand right.\" -> the next attacks read *\"attacks Kiala with Rusty\nHatchet!\"*, so `take` writes the real slot AND the graph edge. Writing the field\ninstead leaves the attacker fighting bare-handed. The two states are visible side\nby side on the same character:\n\n    equipped: { \"hand\":        [\"item_spear\"],           <- API write: inert\n               \"hand_right\":  [\"item_rusty_hatchet\"] }  <- take: live\n\n**There IS an equipment UI, and I was wrong to say otherwise.** I first claimed\n\"no equipment UI exists\" from a single screenshot of the inspector, which was\nscrolled to the middle. Re-checked by enumerating the whole panel: it has **26\nsections**, and two of them are exactly this:\n\n    ðŸ§  Equipment      âš”ï¸ 1dd+8 piercing  âš–ï¸ Carry Load: ...\n    ðŸŽ’ Inventory      (0 carried, 1 worn) Nothing carri...\n\nSo the equipped hatchet is visible, and the inventory count (\"0 carried, 1 worn\")\ncorrectly reflects what `take` did. The equipment surface exists and works; the\nAPI write is the broken path, not the feature.\n\nThe retraction is recorded because it is the same error as Â§61, Â§20, Â§626, Â§639\nand task-620: judging a surface from one viewport instead of walking it. I made\nit again immediately after writing the rule into `AGENTS.md` and being told about\nit three times.\n\n**Separate observation, spotted in the same pass:** the Equipment section renders\nthe hatchet's damage as **`1dd+8 piercing`** -- a doubled `d`. Weapon damage is\n`1d6` in the data, so `1dd+8` is either a display bug or a doubled parser token\nin the readout. Worth its own look, and it is the kind of thing only visible by\nreading the panel.\n\n**Also confirmed while checking: the declared slot and the used slot disagree.**\nAll four weapon items in this world declare `equip_slots: [\"hand\"]`. `take`\nequips into **`hand_right`**. So the vocabulary an author writes is not the\nvocabulary the game uses, which is why a `hand` write is inert and a `hand_right`\none is not. Either the API writes the edges too, or the two fields are reconciled somewhere, or player.equipped should not be writable directly. Same class as task-292 (apron declares equip_slots but has no equip action) and task-632 (a field that serializes but is never populated).\n\n**Second reproduction, from the other direction (2026-10-01, task-660\nverification).** This task says the API writes `player.equipped` without the\nedges. The inverse also holds: **deleting a graph node leaves `player.equipped`\npointing at it.** A duplicated item node was removed with\n`DELETE /api/graph/node/heavy_black_boots_061fbea7` → `200 {\"status\":\"success\"}`,\nand immediately afterwards:\n\n    equipped: { \"feet\": [\"heavy_black_boots\", \"heavy_black_boots_061fbea7\"], ... }\n\nThe stale id survived the node. Nothing reconciles the two structures in either\ndirection, so they diverge silently and the field keeps pointing at something\nthat no longer exists.\n\nImpact is bounded but real. `is_exposed` (`engine/body_parts.py:260`) does\n`graph.get_node(outer_id)` and `continue`s on `None`, so a dangling id degrades\nto \"treated as uncovered\" rather than raising - which means it changes\ncoverage maths silently. The equipment readout counts it as worn. The only\nrecovery is the manual write this task is already complaining about, i.e. the\nAPI route that creates the original divergence.\n\nStrengthens the case in the paragraph above: neither structure should be\nindependently writable. Whichever is authoritative, the other should be derived\nor reconciled on change.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "An `equipped` payload written through the API updates the graph edges as",
+        "done": true
+      },
+      {
+        "text": "well as the dict - every real item gets an `equipped` edge (item →",
+        "done": false
+      },
+      {
+        "text": "character) carrying its `slot`, and the `carrying` edge is dropped.",
+        "done": false
+      },
+      {
+        "text": "The same writer returns items a later payload no longer claims to",
+        "done": true
+      },
+      {
+        "text": "`carrying`, so nothing is orphaned out of the graph.",
+        "done": false
+      },
+      {
+        "text": "Slot markers (`__multi_slot_<id>`) stay dict-side and never become edges.",
+        "done": true
+      },
+      {
+        "text": "Entries that resolve to no item node are **reported**, not silently",
+        "done": true
+      },
+      {
+        "text": "dropped.",
+        "done": false
+      },
+      {
+        "text": "The payload is normalised against the canonical slot set, so a partial",
+        "done": true
+      },
+      {
+        "text": "write no longer deletes the slots it did not mention.",
+        "done": false
+      },
+      {
+        "text": "The inverse direction holds: deleting an item node prunes the dangling id",
+        "done": true
+      },
+      {
+        "text": "from every character's `equipped`, instead of leaving the readout counting",
+        "done": false
+      },
+      {
+        "text": "a worn item that no longer exists and `is_exposed` reading a missing node",
+        "done": false
+      },
+      {
+        "text": "as \"uncovered\".",
+        "done": false
+      },
+      {
+        "text": "Both real readers - `combat._best_weapon_node` and",
+        "done": true
+      },
+      {
+        "text": "`equipment_bonuses.get_equipment_nodes` - agree with the inspector, and an",
+        "done": false
+      },
+      {
+        "text": "API write and a real `take` leave the same shape.",
+        "done": false
+      },
+      {
+        "text": "Regression tests in `tests/test_equipment_api_edges.py` (12 tests).",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_2026_10_02_wt_characters_engine": "### Files\n\n- `engine/equipment.py` - `EquipmentSystem.set_equipped_payload` (the single\n  writer) and `prune_dangling_equipped` / `prune_all_dangling_equipped`.\n- `virtual_world_engine.py` - `set_equipped_payload` delegate.\n- `routes/player_ops.py` - `POST /api/players/<name>` and\n  `POST /api/players/import` route through the writer.\n- `routes/library_ops.py` - the library character loader does too.\n- `routes/graph_ops.py` - `DELETE /api/graph/node/<id>` prunes an item's\n  dangling `equipped` ids.\n- `tests/test_equipment_api_edges.py` - **new**, 12 tests.\n\n### The decisions\n\n1. **The edges are the load-bearing store and the dict is the read cache**, so\n   the writer goes dict + edges and the existing `_sync_equipped_from_graph` is\n   the authority check. That reuses the seam already in the module rather than\n   adding a reconciliation path beside it.\n2. **Not `take_item`'s auto-equip logic.** `take` is a *verb* with hands, a\n   two-handed rule and a stow-the-previous-item rule; an API payload has none of\n   that. Reusing the slot assignment would have made a data write depend on\n   which hand happened to be free.\n3. **The payload wins wholesale.** An `equipped` mapping is a complete statement\n   of what is worn, so slots it omits are emptied and their items return to\n   `carrying`. Partial-merge semantics were rejected because the previous state\n   of a slot is exactly what a payload cannot describe.\n4. **Pruning is on delete, not on read.** `is_exposed` degrades a missing node to\n   \"uncovered\", so the dangling id was silently changing coverage maths. Fixing\n   it at the only moment it can be introduced keeps the readers unchanged.\n\n### A second bug found while closing this\n\nThe library loader assigned `player.equipped` twice: once raw at the top, then\nagain after resolving names to node ids. The first was dead. The second ran on\n`cdata.get('equipped') or {}`, so **a library character with no `equipped` block\nhad its equipment cleared on import** - the raw assignment above it had been\npreserving it up to that point. Both are gone; the resolved payload now goes\nthrough the writer.\n\n### The declared-slot / used-slot disagreement\n\nLeft as-is and **not** a bug in the engine. The library's weapon items declare\n`hand_right` (6 of them), matching `EquipmentSystem.EQUIP_SLOTS` and `take`'s\nhand logic; only the scenario the report was written against used `hand`. Three\nlibrary items declare slots outside the vocabulary (`bottom`, `ears`,\n`shoulders`), which `equip_item` refuses with \"Unknown slot\". That is a data\nproblem in three item files and belongs with the item library, not with the\ntwo-sources-of-truth bug.\n\n### Verify\n\n```\npython -m pytest tests/test_equipment_api_edges.py -q      # 12 passed\npython -m pytest tests/test_equipment_system.py tests/test_library_character_import.py \\\n  tests/test_character_loadout_check.py tests/test_auto_dress.py tests/test_armor_wear.py \\\n  tests/test_activities.py tests/test_edge_known.py -q      # 130 passed\n```\n\nThe five failures in `test_scenario_data_integrity.py` / `test_character_identity.py`\nare the documented pre-existing baseline and are unrelated.\n\n### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`\n\nThe reporting interaction for this task was an API call, so the API was driven\ndirectly rather than through the inspector (which the task's own note already\nsettled: the Equipment surface exists and works; the API write was the broken\npath).\n\n1. Created `item_live_task654_hatchet` (`damage: 1d6+3`, `equip_slots:\n   [hand_right]`) and put it in `Blizzard Forest Clearing`.\n2. Moved `rat` into the same area, made Kaelen the active player.\n3. **Equipped it with no other writer involved** -\n   `POST /api/players/Kaelen%20Voss {\"equipped\": {\"hand_right\":\n   [\"item_live_task654_hatchet\"]}}` → `200 {\"status\": \"updated\"}`.\n4. **The graph edges existed immediately** (`GET /api/graph/edges`):\n\n       equipped: item_live_task654_hatchet slot=hand_right\n\n   and no `carrying` edge for it - worn, not held.\n5. **Combat used it.** `POST /api/action {\"command\": \"attack rat\"}` →\n   `Kaelen Voss attacks rat with Live Task654 Hatchet!` - i.e. the weapon was\n   reachable by `combat._best_weapon_node`, which is the reader that was blind\n   to the API write.\n6. **Clearing the slot demotes rather than orphans.**\n   `POST ... {\"equipped\": {\"hand_right\": []}}` → the `equipped` edge is gone and\n   `carrying: item_live_task654_hatchet` is back.\n   (Combat still reaches it, correctly: `_best_weapon_node` scans `carrying` and\n   `equipped` by design, so a carried weapon is still a usable one. The claim\n   under test - that the API write is inert - is disproved by step 5.)\n7. **The inverse.** With the item equipped again,\n   `DELETE /api/graph/node/item_live_task654_hatchet` → `200`, and\n   `equipped.hand_right` went from `item_live_task654_hatchet` to empty rather\n   than keeping an id for a node that no longer exists.\n\nLive world returned to its prior state afterwards (rat moved back to the\nKitchen, Kaelen active, no test nodes left)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-654-player-equipped-and-the-equipment-graph-edges-are-two-sources-of-truth-the-api-writes-only-the-first.md"
+  }
+}

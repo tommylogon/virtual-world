@@ -102,6 +102,6 @@ button press into the prose fields.
 
 - static/js/inspector/mind-view.ts
 - 
-outes/players.py
+routes/players.py
 - 
-outes/player_ops.py
+routes/player_ops.py

@@ -209,6 +209,6 @@ id, validator and lint wiring.
 
 - engine/serialization.py
 - engine/world_scopes.py
-- 	ools/validate_scenario.py
-- 	ools/lint_library.py
-- 	ests/test_area_identity.py
+- tools/validate_scenario.py
+- tools/lint_library.py
+- tests/test_area_identity.py

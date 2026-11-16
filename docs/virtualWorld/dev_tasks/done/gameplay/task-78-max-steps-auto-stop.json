@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-78",
+  "kind": "task",
+  "number": 78,
+  "title": "Max Steps Auto-Stop",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-20",
+  "updated": "2026-07-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a numeric input next to the Run Simulation button that limits how many turns run before auto-stopping. Prevents infinite credit consumption when letting simulation run unattended.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "| File | Change |",
+      "|------|--------|",
+      "| `templates/index.html:47` | Added `<input type=\"number\" id=\"sim-max-steps\" value=\"10\" min=\"0\">` after step button |",
+      "| `static/css/style.css:178-183` | `.sim-max-steps` styling (40px wide, matches button height, terminal font) |",
+      "| `static/js/config.js:50-51` | `config.maxSteps = 10`, `config.stepsRun = 0` |",
+      "| `static/js/agent-engine.js:530-535` | `start()` reads input value, resets counter, checks `stepsRun >= maxSteps` per iteration, calls `stop()` |",
+      "| `static/js/ui-controller.js:275-276,294-303` | Disables input while running; updates step-display to show `Step: X/Y (N left)` |"
+    ],
+    "custom": {
+      "behavior": "- **Default**: 10 - user can edit the number freely\n- **0** = unlimited (legacy behavior, runs until manually paused)\n- Input is disabled while simulation is running\n- Step display switches to `Step: 3/10 (7 left)` during sim, reverts to `Step: idx/total` when stopped\n- On auto-stop: logs \"Agent stopped.\", re-enables play button and input"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "completed": "2026-07-20"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-78-max_steps_auto_stop.md"
+  }
+}

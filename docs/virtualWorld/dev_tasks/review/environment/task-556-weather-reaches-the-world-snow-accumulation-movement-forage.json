@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "id": "task-556",
+  "kind": "task",
+  "number": 556,
+  "title": "Weather reaches the world: snow accumulation, movement, forage",
+  "status": "review",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-553"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-232",
+      "task-553"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give snowy weather a consequence: accumulate snow on an area and let it change surface presentation, movement cost and forage, instead of being a label that only dims the light.\n\nDepends on task-553 (snow needs a real per-area temperature to be worth\nsimulating).\nDesign: `docs/design/weather-world-integration.md` §2.5, §5.",
+    "why": "A weather state that only dims the light is decoration: the forecast could say\n`snowy` for a month and nothing in the world would differ from `foggy` except a\nnumber in `WEATHER_LIGHT_MULT`. Snow should *settle* - be a thing the ground\ncarries, that slows a walk and hides a cache, and that lingers and thaws rather\nthan blinking out with the forecast entry that made it. That is what makes the\ngenerated field (task-763) worth having, and it is what the design doc's layering\n(world -> clock/season -> forecast -> interior physics -> presentation) implies.",
+    "how": "`engine/weather_forecast.py` owns the model: a depth in centimetres, an\naccumulation and a melt rate, thresholds, and the pure helpers\n(`advance_snow_depth`, `snow_movement_energy`, `snow_forage_dc_penalty`,\n`snow_depth_prose`). The depth is written to\n`area.properties.environment[\"snow_depth\"]` - the block that already carries\n`temperature` and `weather`, so it serialises with the node and needs no new save\npath - for open-sky areas only, and only while it is above zero.\n\nThree readers consult the **depth**, not the weather word: `move_to_area` charges\nits energy, `find_or_spawn` adds it to the search DC, and `weather_description`\nnarrates it. So a clearing sky decays the snow over hours instead of wiping it.",
+    "verify": "1. Run `python -m pytest tests/test_snow_accumulation.py`.\n   - expected: 14 passed - mechanism (accumulate/melt/clamp), the forecast write,\n     the thaw removing the key, and both readers (movement energy, forage DC).\n   - observed: 14 passed.\n2. Run the touched-engine regression set (movement, foraging, weather narration\n   and types, wind direction).\n   - expected: no new failures.\n   - observed: 130 passed.\n3. Load a world, author `snowy` weather over 3 hours, then clear it.\n   - expected: depth rises to 9.0 cm, then falls to 7.5 cm (decays, not wiped),\n     and a long clear removes the key.\n   - observed: in-process E2E - 9.0, 7.5, key gone; the loaded test world already\n     ships a 36-tick `snowy` override, so its exterior areas pile up snow with no\n     authoring change.",
+    "acceptance": [
+      {
+        "text": "Snowy weather over an exterior area changes what that area is like, not",
+        "done": true
+      },
+      {
+        "text": "just how bright it is - it settles a depth the area carries.",
+        "done": false
+      },
+      {
+        "text": "Clearing weather decays snow rather than clearing it instantly - depth",
+        "done": true
+      },
+      {
+        "text": "falls at `SNOW_MELT_CM_PER_HOUR`, and the key is dropped only at zero.",
+        "done": false
+      },
+      {
+        "text": "Movement and forage actually respond - deep snow adds move energy",
+        "done": true
+      },
+      {
+        "text": "(`snow_movement_energy`) and raises the forage DC (`snow_forage_dc_penalty`).",
+        "done": false
+      },
+      {
+        "text": "A saved world reloads with its snow intact - depth is in",
+        "done": true
+      },
+      {
+        "text": "`area.properties.environment`, serialised by `Node.to_dict`.",
+        "done": false
+      },
+      {
+        "text": "`dry`/`clear` worlds are bit-for-bit unchanged - the key is never written",
+        "done": true
+      },
+      {
+        "text": "below 1 cm, and an interior area never gains it.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/weather_forecast.py` - the snow model: `SNOW_ACCUM_CM_PER_HOUR`,",
+      "`SNOW_MELT_CM_PER_HOUR`, `SNOW_MAX_CM`, the depth thresholds, and the pure",
+      "`advance_snow_depth` / `snow_movement_energy` / `snow_forage_dc_penalty` /",
+      "`snow_depth_prose` helpers.",
+      "virtual_world_engine.py` - `_apply_forecast_env` advances the depth per",
+      "open-sky area, per tick.",
+      "engine/movement.py` - `move_to_area` charges the destination's snow energy.",
+      "engine/foraging.py` - `find_or_spawn` adds the depth to the search DC.",
+      "engine/area_description.py` - `weather_description` narrates the depth.",
+      "tests/test_snow_accumulation.py` - mechanism, wiring and reader tests."
+    ],
+    "custom": {
+      "measured_2026_09_27_snowy_is_a_string_with_three_readers": "Every occurrence of snow in the backend:\n\n| Where | What it does |\n|---|---|\n| `engine/weather_forecast.py:26` | `snowy` is in `WEATHER_STATES` |\n| `engine/weather_forecast.py:49` | `WEATHER_LIGHT_MULT` gives snowy `0.6` - it dims the light |\n| `routes/action_handlers.py:483` | a perception skill DC of `18` for `snowy` - the same value as `foggy` |\n\nThat is the whole of it. Snow **does not accumulate**, does not touch\n`properties.surface`, does not gate movement, does not change forage, and does not shift temperature. A blizzard and a fog bank are the same event with a different word. The world's own surface vocabulary has no winter in it.\n\nThe same is true of the other weather states in a weaker form: `rainy` and `stormy` reach the world only through humidity, which is itself only ever *asserted* by a forecast entry - there is no water cycle producing it.",
+      "what_to_change": "1. A per-area accumulated value (`snow_depth`, or a boolean if accumulation\n   proves too heavy - see the open question below) written when the weather is `snowy`, and decayed when it is not. Exterior areas only, consistent with\n   `_apply_forecast_env`'s `apply_scope`.\n2. Read it where the world actually cares:\n   - **surface** - presentation and the `properties.surface` material\n   - **movement** - a cost or a rule, not just a longer DC\n   - **forage** - `engine/foraging.py` already keys off area tags, so this is\n     likely a tag effect rather than new code\n3. Keep the accumulation on the *area*, not the weather state, so it survives a\n   forecast change the way a real world does (snow does not vanish the moment\n   the sky clears).",
+      "decision_accumulate_do_not_boolean": "The acceptance below decides the open question for us: \"clearing weather\n**decays** snow rather than clearing it instantly\" is a statement a boolean\ncannot satisfy - a boolean has no partial state and no thaw rate. So the depth\nis a float in centimetres, and it lives on the **area**, not the weather state,\nso it survives the forecast entry that made it exactly the way real snow does.\n\nDepth is written to `area.properties.environment[\"snow_depth\"]` - the same block\nthat already carries `temperature` and `weather` - so it serialises with the\nnode and needs no new save path. The key is only written when the depth is above\nzero and is **removed** when it melts to zero, so a world that never snows is\nbit-for-bit unchanged.",
+      "browser_ui": "Intended UI home: exterior area with snowfall → inspect area surface/environment → move and forage in the game view → advance to clearing weather and inspect snow depth.\n\nCurrent availability: the card marks snow accumulation, hourly melt, movement energy, forage DC, and save/load persistence as implemented. It records state/mechanism evidence; a fresh live browser run is not claimed here.\n\nLive steps when available:\n1. Load an exterior area under snowy weather and inspect its environment properties before and after one simulation hour.\n   - expected: snow depth accumulates on that area and is stored in its `environment` properties.\n2. Change the forecast to clear and advance one hour at a time.\n   - expected: depth decays at `SNOW_MELT_CM_PER_HOUR`; the snow key remains until depth reaches zero.\n3. Move through shallow and deep snow and forage in the same area.\n   - expected: deep snow adds `snow_movement_energy` and snow adds `snow_forage_dc_penalty` to the corresponding actions.\n4. Save/reload mid-snowfall and inspect the surface and state.\n   - expected: depth and resulting movement/forage effects persist after reload.\n\nThis section is not a claim that the full snow loop has been freshly browser-verified today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/environment/task-556-weather-reaches-the-world-snow-accumulation-movement-forage.md"
+  }
+}

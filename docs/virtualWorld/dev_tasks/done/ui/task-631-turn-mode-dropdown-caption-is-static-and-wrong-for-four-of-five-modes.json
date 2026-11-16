@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-631",
+  "kind": "task",
+  "number": 631,
+  "title": "Turn-mode dropdown caption is static and wrong for four of five modes",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Selecting any turn mode leaves the caption reading 'Characters act one at a time' (the Sequential description). The agent list IS correctly ordered by initiative; only the caption is wrong.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. In Agent controls, select Sequential, Random, Initiative, Simultaneous, and Simultaneous per room in turn.\n   - expected: captions read respectively “Characters act one at a time”; “Characters act in a shuffled order, reshuffled each round”; “Each character rolls d20 + DEX; highest acts first”; “Independent 5–120 second cooldowns, jittered per character”; and “Rooms resolve independently; order within a room”.\n   - observed: `config.ts` contains all five mode-specific descriptions; this card has no browser observation of the dropdown after each selection.\n2. Reload with each mode selected.\n   - expected: the selected mode and its matching caption restore together.\n   - observed: not recorded in this card.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent controls → Turn-Based Mode checkbox and Turn mode dropdown (`#agent-turn-order`) → descriptive caption immediately below the checkbox.\n\nCurrent availability: `config.ts` contains mode-specific descriptions for sequential, random, initiative, simultaneous, and simultaneous-per-room. This card does not record a live browser observation of all five selected modes.\n\nLive steps when available:\n1. Open Agent controls and select each mode in `#agent-turn-order`, reading the caption after every selection.\n   - expected: Sequential says “Characters act one at a time”; Random says “Characters act in a shuffled order, reshuffled each round”; Initiative says “Each character rolls d20 + DEX; highest acts first”; Simultaneous describes independent 5–120 second cooldowns; Simultaneous per room says rooms resolve independently with order within a room.\n2. Switch between sequential and simultaneous-per-room while watching the Turn Order controls.\n   - expected: the caption updates immediately and the mode's supported controls update without changing the separate initiative ordering data.\n3. Reload with each mode selected in turn.\n   - expected: the saved mode is restored and its matching caption appears, never the static sequential caption for another mode.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-631-turn-mode-dropdown-caption-is-static-and-wrong-for-four-of-five-modes.md"
+  }
+}

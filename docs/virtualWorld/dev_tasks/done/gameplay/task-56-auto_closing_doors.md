@@ -9,17 +9,17 @@ priority: medium
 
 **Filed**: 2026-07-17
 **Priority**: Low
-**Status**: Done — immediate auto-close shipped (engine/movement.py auto_close boolean); the tick-delay variant was never built. Audited 2026-08-03
+**Status**: Done - immediate auto-close shipped (engine/movement.py auto_close boolean); the tick-delay variant was never built. Audited 2026-08-03
 
 ---
 
 ## What
 
 Doors that automatically close after use. Examples:
-- **Convenience store door** — swings shut behind you
-- **Unbalanced door** — slowly drifts closed on its own
-- **Swing door / saloon door** — double swinging door that always returns to closed
-- **Spring-loaded door** — snaps shut immediately
+- **Convenience store door** - swings shut behind you
+- **Unbalanced door** - slowly drifts closed on its own
+- **Swing door / saloon door** - double swinging door that always returns to closed
+- **Spring-loaded door** - snaps shut immediately
 
 ## Approaches
 
@@ -34,7 +34,7 @@ Implementation:
 
 ### Option B: Trigger-based
 
-Already possible using existing trigger system — players can create an `on_enter` or `on_exit` trigger on the door that fires `set_state` to `closed`. But this requires manual setup per door.
+Already possible using existing trigger system - players can create an `on_enter` or `on_exit` trigger on the door that fires `set_state` to `closed`. But this requires manual setup per door.
 
 Expose this as a checkbox in the door inspector: "Auto-close" that creates the trigger automatically.
 
@@ -53,16 +53,16 @@ Add `auto_close` to the door connection edge instead of the door node, so each s
 
 ## Files Likely Affected
 
-- `virtual_world_engine.py` — auto-close logic in movement handler
-- `static/js/inspector.js` — auto-close property in door inspector
-- `static/js/main.js` — auto-close option in connection modal
-- `static/js/graph-manager.js` — property passthrough
-- `world_template.json` / templates — default property
+- `virtual_world_engine.py` - auto-close logic in movement handler
+- `static/js/inspector.js` - auto-close property in door inspector
+- `static/js/main.js` - auto-close option in connection modal
+- `static/js/graph-manager.js` - property passthrough
+- `world_template.json` / templates - default property
 
 ## Open Questions
 
 - Should auto-close only fire when a player passes through, or also NPCs?
-- Should a door that's `locked` still auto-close? (Probably not — it should remain locked)
+- Should a door that's `locked` still auto-close? (Probably not - it should remain locked)
 - What about `blocked` or `broken` state ways?
 
 ## Why

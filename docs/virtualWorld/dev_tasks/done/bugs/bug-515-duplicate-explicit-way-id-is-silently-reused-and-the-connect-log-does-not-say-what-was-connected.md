@@ -45,37 +45,37 @@ refusal. This is distinct from bug-16, which was the no-id case.
 
 ## How
 
-- `routes/graph_ops.py` — capture whether the way existed before `add_node` and
+- `routes/graph_ops.py` - capture whether the way existed before `add_node` and
   return `created`, `way_id`, `way_name`, `area_from`, `area_to`,
   `area_from_id`, `area_to_id`.
-- `static/js/main.js` — new `connectSummary(res, payload)` builds the log line:
+- `static/js/main.js` - new `connectSummary(res, payload)` builds the log line:
   - created: `Connected "<A>" <-> "<B>" via way '<name>'`
-  - reused: `Way '<name>' already existed — rewired "<A>" <-> "<B>" (no new way created)`
-- `static/js/graph/event-handlers.js` — the task-376 wizard uses the same helper.
-- `eslint.config.js` — `connectSummary` added to the cross-file globals list.
+  - reused: `Way '<name>' already existed - rewired "<A>" <-> "<B>" (no new way created)`
+- `static/js/graph/event-handlers.js` - the task-376 wizard uses the same helper.
+- `eslint.config.js` - `connectSummary` added to the cross-file globals list.
 
 ## Steps to verify
 
 `tests/test_way_connect_repair.py::test_build_connect_reports_created_and_areas`
-— first connect with `way_id: door1` reports `created: true` and the two area
+- first connect with `way_id: door1` reports `created: true` and the two area
 names; a second connect with the same id reports `created: false` and the same
 areas; exactly one `door1` node exists.
 
 ## Verification
 
-- `python -m pytest tests/test_way_connect_repair.py -q` — 6 passed.
-- `npm run lint`, `npm run typecheck` — clean.
-- `node tools/unit/run.cjs` — 465 passed.
+- `python -m pytest tests/test_way_connect_repair.py -q` - 6 passed.
+- `npm run lint`, `npm run typecheck` - clean.
+- `node tools/unit/run.cjs` - 465 passed.
 - Live browser check of the new log line: pending.
 
-## Live verification — 2026-10-02 (port 4471)
+## Live verification - 2026-10-02 (port 4471)
 
 - Backend unchanged and green: `python -m pytest tests/test_way_connect_repair.py tests/test_saveload.py tests/test_scene_snapshot.py -q` → 52 passed.
 - Client log lines via the live global `connectSummary` (the helper `connectRoomsViaGraph` logs, main.js:233):
 
 ```
 created: Connected "Kitchen" <-> "Study" via way 'door1'
-reused:  Way 'door1' already existed — rewired "Kitchen" <-> "Study" (no new way created)
+reused:  Way 'door1' already existed - rewired "Kitchen" <-> "Study" (no new way created)
 ```
 
 Both name the two areas and the way; the bare "Connected rooms" string is gone.
@@ -91,10 +91,10 @@ No page errors.
 
 ## Files
 
-- `routes/graph_ops.py` — `handle_build_connect_legacy` response
-- `static/js/main.js` — `connectSummary`, `connectRoomsViaGraph`
-- `static/js/graph/event-handlers.js` — `onAddEdge` success log
-- `eslint.config.js` — globals
+- `routes/graph_ops.py` - `handle_build_connect_legacy` response
+- `static/js/main.js` - `connectSummary`, `connectRoomsViaGraph`
+- `static/js/graph/event-handlers.js` - `onAddEdge` success log
+- `eslint.config.js` - globals
 - `tests/test_way_connect_repair.py`
 
 ## What

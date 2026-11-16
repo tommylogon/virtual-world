@@ -39,7 +39,7 @@ Split the weighted fish/scrap/trash water-resource tables out of biomes.json int
 
 ## Status (2026-10-09)
 
-The migration is **done at the data + loader level** — boxes 1, 2, 3 and 5
+The migration is **done at the data + loader level** - boxes 1, 2, 3 and 5
 verified against the tree. The only open work is the authoring tab, which is
 owned by **task-589** (this card does not need to be re-done).
 

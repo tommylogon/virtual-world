@@ -6,7 +6,7 @@ status: done
 priority: medium
 ---
 
-# Paperdoll Icon Art — game-icons.net SVGs
+# Paperdoll Icon Art - game-icons.net SVGs
 
 **Filed**: 2026-07-21
 **Priority**: Medium
@@ -74,17 +74,17 @@ License: CC BY 3.0
 ## Status Update (July 2026)
 
 - `static/icons/` directory now contains the game-icons.net archive with license and icon files
-- SVGs are available in the archive — need to extract individual SVG files to `static/icons/` with `fill="currentColor"` modification for dark theme
-- Paperdoll view at `static/js/inspector/paperdoll-view.js` — still needs to be updated to reference SVGs instead of text labels
+- SVGs are available in the archive - need to extract individual SVG files to `static/icons/` with `fill="currentColor"` modification for dark theme
+- Paperdoll view at `static/js/inspector/paperdoll-view.js` - still needs to be updated to reference SVGs instead of text labels
 - Readme attribution section added and pushed
 
 **TODO**: Extract SVGs from archive, modify `fill` attributes, wire into paperdoll-view.js
 
 ## Files
 
-- `static/icons/` — SVG icon files
-- `static/js/inspector/paperdoll-view.js` — slot-to-icon mapping
-- `virtual_world/readme.md` — attribution section
+- `static/icons/` - SVG icon files
+- `static/js/inspector/paperdoll-view.js` - slot-to-icon mapping
+- `virtual_world/readme.md` - attribution section
 
 ## Steps to verify
 

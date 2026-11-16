@@ -31,7 +31,7 @@ WorldPainter's reference image only has image/opacity/visible and is auto-fitted
       (+3 pure geometry: `fitReferenceRect`, `referenceHandleDrag`,
       `referenceHandlePoints`).
 
-## Progress — 2026-09-25
+## Progress - 2026-09-25
 
 Rect is stored in cells (not px) so the painter (22px/cell) and the graph map
 layout (`mapSpacing` px/cell) can each draw it in their own space and still

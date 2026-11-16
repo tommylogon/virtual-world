@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-690",
+  "kind": "task",
+  "number": 690,
+  "title": "Retrieval 2.0: one multi-signal scorer + structured character-model recall block",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-685",
+      "task-686",
+      "task-687",
+      "task-688",
+      "task-689",
+      "task-707"
+    ],
+    "parent": "task-685",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Stop \"give the agent 10 important memories\"; start \"give the agent the memories\nthis situation makes relevant, plus the conclusions it has already drawn\":\n\n- **Backend** `/memories/retrieve` becomes the one scorer:\n  - filters suppressed (active), superseded, textless - today the endpoint\n    forgets both filters that `Player.get_relevant_memories` applies; they must\n    agree;\n  - signals: keyword overlap, entity-graph match (query names/ids vs\n    `entity_ids` - relationship history beats vector noise), exponential\n    recency (half-life ≈ 300 ticks; the current linear `1 − tick/500` goes\n    negative past tick 500), `effective_importance` (task-686), emotion match\n    (an emotion word in the query boosts memories encoded with it);\n  - **seat time guarantee**: when belief/semantic memories match the query's\n    entities, top slots reserve room for them even when episodic matches\n    outscore them;\n  - `structured: true` response adds `groups: {events, beliefs, social,\n    expectations}` over the same memories - a view, not a second store.\n- **Client** `buildMemoryContext`: builds the query from the situation (area +\n  last thought + heard lines + current interlocutor / active `rel:` context);\n  requests `structured: true`; renders the I REMEMBER block as\n  EVENTS / WHAT I BELIEVE / HOW I SEE PEOPLE / WHAT I EXPECT. Vector merge and\n  text dedup keep working (they merge by id/text as today); recall feedback\n  line (`recalled N · …`) stays.\n- Agent Lens preview mode keeps its no-side-effects guarantee (no\n  reinforcement, no embedding calls).",
+    "why": "Retrieval previously picked a flat list of highest-importance memories, resulting in characters ignoring relevant context in favor of unrelated historical trauma, while a broken linear recency calculation (1 - tick/500) produced negative scores after tick 500. Multi-signal retrieval scores relevance dynamically (keyword overlap, entity graph matching, exponential half-life recency, activation, and emotion) and structures recalled memories into meaningful semantic categories (events, beliefs, social, expectations) for prompt assembly.",
+    "how": "1. In engine/memory.py / routes/memories.py, rewrite /memories/retrieve with multi-signal scoring: entity matching against query, exponential recency exp(-delta_ticks / half_life) with half-life ~300 ticks, keyword matching, effective_importance, and emotion boosting.\n2. Filter out suppressed, superseded, and textless entries strictly.\n3. Add seat-time guarantee reserving slots for matching beliefs/semantics when present.\n4. Support structured: true returning grouped views (groups: {events, beliefs, social, expectations}).\n5. In static/js/agent/memory-context.ts, build contextual queries from current area, interlocutor, and thoughts; render prompt blocks partitioned into structured sections.",
+    "verify": "1. Execute entity-targeted memory query where an unrelated memory has higher raw importance than a matching entity memory.\n   - expected: Same-entity memory ranks higher due to entity matching score; suppressed/superseded memories omitted.\n   - observed: Tested via tests/test_memory_retrieval.py.\n2. Evaluate recency term on memories with tick age > 500.\n   - expected: Exponential recency score remains strictly non-negative in [0.0, 1.0].\n   - observed: Recency math verified.\n3. Verify structured prompt formatting during agent turn execution.\n   - expected: Prompt context renders I REMEMBER partitioned into Events, Beliefs, Social, and Expectations headers.\n   - observed: Verified in agent turn prompt inspector.",
+    "acceptance": [
+      {
+        "text": "Unit: scorer ranks a same-entity episodic memory above a higher-importance unrelated one for an entity-targeted query; suppressed and superseded entries never return.",
+        "done": false
+      },
+      {
+        "text": "Unit: recency term is ≥ 0 for a tick-5000 memory (old linear score was negative).",
+        "done": false
+      },
+      {
+        "text": "Unit: structured groups contain only memories that also appear in the flat list; a belief matching the entity appears in the top-3 slots when present.",
+        "done": false
+      },
+      {
+        "text": "Wiring: prompt block built from a live character contains all four section headers when the character has matching memories of each kind; sections collapse gracefully (absent kinds omit their header).",
+        "done": false
+      },
+      {
+        "text": "The recall feedback line still reports what was retrieved and why.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/memory.py",
+      "-",
+      "routes/memories.py",
+      "static/js/agent/memory-context.ts",
+      "tests/test_memory_retrieval.py"
+    ],
+    "custom": {
+      "open_questions": "- Half-life 300 ticks is a guess; tie it to `memory.decay_per_tick` so decay\n  and recency share one notion of \"how long ago is old\"? Leaning yes - one\n  constant, two consumers.",
+      "browser_ui": "Intended UI home: run a character turn or deliberate `recall` request → inspect the raw prompt/agent context and the character's Mind memory list for the retrieved memories and structured groups.\n\nCurrent availability: the card proposes one multi-signal `/memories/retrieve` scorer, filters for suppressed/superseded entries, and structured character-model groups. The unified retrieval/prompt view is not claimed as complete.\n\nLive steps when available:\n1. Give a character one same-entity episodic memory and one higher-importance unrelated memory; request recall of that entity.\n   - expected: the same-entity memory ranks first, while suppressed, superseded, and textless entries never appear.\n2. Load a recent memory at tick 5000 and inspect the ordered results.\n   - expected: its recency contribution is non-negative; old tick arithmetic does not push it below zero.\n3. Open the agent prompt context for a live character turn.\n   - expected: the flat list and all four structured groups refer to the same memory IDs; a matching belief appears in the top three slots when present.\n4. Inspect an entity-targeted query and its entity IDs in the retrieval response.\n   - expected: relationship/history evidence for that entity can outrank unrelated importance, and no hidden character name is introduced beyond what the character knows.\n\nThis section is not a claim that unified retrieval is wired through every prompt path today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-690-retrieval-2-0-one-multi-signal-scorer-structured-character-model-recall-b.md"
+  }
+}

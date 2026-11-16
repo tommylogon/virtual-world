@@ -19,7 +19,7 @@ Found while implementing task-559, which added the *narration* of weather. The
 narration now works; these are the two mechanical gaps underneath it. Same
 symptom, two independent causes.
 
-## Cause 1 — `WEATHER_LIGHT_MULT` is dead data — **FIXED 2026-09-27**
+## Cause 1 - `WEATHER_LIGHT_MULT` is dead data - **FIXED 2026-09-27**
 
 `engine/weather_forecast.py` defined the weather → light multiplier
 (`clear` 1.0 … `stormy` 0.3). A search for every reference to the name across
@@ -28,26 +28,26 @@ nothing else**. Nothing applied it.
 
 So weather did not change the light level in any world, hand-authored or
 painted. `LightingSystem._own_light` read `env["weather"]` at `:172` but only
-to decide whether the *moon* was obscured — not to scale the ambient light.
+to decide whether the *moon* was obscured - not to scale the ambient light.
 
 A midday thunderstorm and a midday clear sky were equally bright.
 
 **Shipped:** `weather_light_mult()` in `engine/weather_forecast.py` is the
 reader (returns `1.0` for unset/unknown, so a world with no forecast is
 completely unaffected), and `LightingSystem._own_light` now scales the
-**time-of-day curve** by it — not an authored `environment.light`, because a
+**time-of-day curve** by it - not an authored `environment.light`, because a
 hand-set value is a light source and a torch does not care that it is raining.
 Seven tests in `tests/test_lighting.py::TestWeatherDimsTheSky`, including the
 two "must not" cases (no forecast, authored light) and the no-double-dip
 against the storm-nulled moon bonus.
 
-## Cause 2 — a compiled painted area is neither `outdoor` nor `exterior` — **FIXED 2026-09-30**
+## Cause 2 - a compiled painted area is neither `outdoor` nor `exterior` - **FIXED 2026-09-30**
 
 The card's warning that another session owned `world_compile.py` and
 `biomes.json` had resolved by the time this was picked up: the taxonomy grew
 51 → 105 biomes and three of them (`porch`, `courtyard`, `balcony`) now declare
 `outdoor`. That fixed *half* the problem and is exactly why the rest was still
-broken — and why the remaining half was not the card's picture any more.
+broken - and why the remaining half was not the card's picture any more.
 
 **The real shape of the bug was one fact with four readers.** "Is this area
 under the open sky?" was asked four ways, and the spellings disagreed:
@@ -60,8 +60,8 @@ under the open sky?" was asked four ways, and the spellings disagreed:
 | `tick_manager` (wind Energy drain) | `"exterior" in tags` | `is_open_sky(...)` |
 | `virtual_world_engine._apply_forecast_env` | `"exterior" in tags` | `is_open_sky(...)` |
 
-A painted area was tagged `outdoor` by its biome, and the forecast — the thing
-this bug is named for — was looking for the literal `exterior`. So it was skipped,
+A painted area was tagged `outdoor` by its biome, and the forecast - the thing
+this bug is named for - was looking for the literal `exterior`. So it was skipped,
 every turn, silently.
 
 ### Decisions taken, deliberately
@@ -70,7 +70,7 @@ every turn, silently.
 retired cheaply on disk: `data/worldpainter/biomes.json` authors write
 `outdoor`, and a few hundred hand-authored library areas carry `exterior` by
 hand. So `engine/area_tags.py::is_open_sky` is the one predicate, it accepts
-either, and `compile_grid` writes exactly one — asserted by a test, because
+either, and `compile_grid` writes exactly one - asserted by a test, because
 emitting both is the cheap fix that re-creates the trap.
 
 **Where does the compiler get the fact?** From the scope's **mode**, not the
@@ -82,14 +82,14 @@ away.
 
 ### What changed
 
-- **`engine/area_tags.py`** (new) — `OPEN_SKY_TAGS`, `is_open_sky()`. One home
+- **`engine/area_tags.py`** (new) - `OPEN_SKY_TAGS`, `is_open_sky()`. One home
   for the fact, with the history in the docstring.
-- **`engine/world_compile.py`** — `compile_grid` writes `outdoor` onto every
+- **`engine/world_compile.py`** - `compile_grid` writes `outdoor` onto every
   area of a `world`-mode scope.
 - **`engine/lighting.py`**, **`engine/environment_propagation.py`**,
-  **`engine/tick_manager.py`**, **`virtual_world_engine.py`** — all four read
+  **`engine/tick_manager.py`**, **`virtual_world_engine.py`** - all four read
   through the predicate.
-- **`tests/test_open_sky.py`** (new, 35 tests) — the predicate, every reader
+- **`tests/test_open_sky.py`** (new, 35 tests) - the predicate, every reader
   agreeing on either spelling, a real `town`/`interior` compile staying
   untagged, a real `world` compile being tagged, exactly one spelling written,
   and the forecast reaching a painted area while staying out of interiors.
@@ -103,7 +103,7 @@ Compiled a painted world through the app's own
 `world` mode), then ran one `POST /api/turn/apply`:
 
 - Header went 36 → **45 areas**, and the nine new areas carry
-  `["forest", "woods", "outdoor"]` — written by the compiler, once.
+  `["forest", "woods", "outdoor"]` - written by the compiler, once.
 - After one turn, **all 9** had `weather: "snowy"`, `humidity: "humid"`,
   `temperature: 19.6`. Before this change a compiled painted world received
   none of it, ever.
@@ -125,7 +125,7 @@ neither**:
 | `exterior` | `virtual_world_engine.py:1288` (forecast `apply_scope`), `environment_propagation.py:133,139` (heat reservoirs), `tick_manager.py:129` |
 
 `engine/world_compile.py` builds an area's tags from the biome record
-(`biomes_mod.area_tags`) plus `feature` for a child scope — and **no biome
+(`biomes_mod.area_tags`) plus `feature` for a child scope - and **no biome
 record in `data/worldpainter/biomes.json` declares `outdoor` or `exterior`**.
 Re-verified after the taxonomy grew from 16 to 51 biomes: still neither tag.
 
@@ -139,8 +139,8 @@ stream structure threshold trade transport water woods …
 **⚠ Note on coordinates.** `engine/world_compile.py` and
 `data/worldpainter/biomes.json` are being edited concurrently (the taxonomy
 grew 16 → 51 biomes during this investigation). The line numbers below were
-valid when measured and will drift; the *facts* — no biome declares the tags,
-the compiler derives its tags from the biome record — re-verify with:
+valid when measured and will drift; the *facts* - no biome declares the tags,
+the compiler derives its tags from the biome record - re-verify with:
 
 ```powershell
 python -c "import json;d=json.load(open('data/worldpainter/biomes.json'));\
@@ -149,17 +149,17 @@ t=set();[t.update(r.get('tags',[])) for r in d['biomes'].values()];\
 ```
 
 Because another session owns those two files right now, cause 2 should be
-picked up **after** that work lands, or by whoever owns it — not in parallel.
+picked up **after** that work lands, or by whoever owns it - not in parallel.
 
 Consequences for any WorldPainter world, every turn:
 
 - **The forecast is never applied.** `apply_scope` defaults to `exterior`
   (`runtime_config.py:59`) and `virtual_world_engine.py:1288` skips every node
-  without that tag — so `_apply_forecast_env` writes nothing, and no area ever
+  without that tag - so `_apply_forecast_env` writes nothing, and no area ever
   gets a `weather`/`wind`/`humidity` value.
 - **No diurnal light.** `is_outdoor_area` is False, so the area's light is the
   static `env.light` (default 80) at every hour.
-- **No moon** (that half is now moot — it was dead code anyway, see task-559).
+- **No moon** (that half is now moot - it was dead code anyway, see task-559).
 - **Heat reservoirs are wrong.** An exterior area is meant to be an infinite
   heat sink; a painted area is instead a finite body that exchanges heat with
   its neighbours like a room.
@@ -183,7 +183,7 @@ outdoor = str(record.get("mode") or "world") == "world"
    computed at `:670`. This alone restores the forecast, the diurnal light and
    the heat-reservoir behaviour for painted worlds.
 2. **Decide the spelling.** `outdoor` and `exterior` are two words for one
-   fact — the exact trap `surface` vs `floor` and `base_temperature` vs
+   fact - the exact trap `surface` vs `floor` and `base_temperature` vs
    `temperature` exist to avoid. Emitting both is the cheap fix and keeps every
    reader working; unifying is the right fix and touches `lighting.py`,
    `environment_propagation.py`, `tick_manager.py`, the forecast and the

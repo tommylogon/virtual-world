@@ -9,7 +9,7 @@ wiki: "[[Gameplay/Turn Queue & Human Turns]]"
 # task-728: Directed control mode: a director reviews and edits an LLM character's turn before it acts
 
 **Filed:** 2026-10-07
-**Related:** task-340, task-692, task-245
+**Related:** task-340, task-692, task-245, task-933
 
 ## What
 

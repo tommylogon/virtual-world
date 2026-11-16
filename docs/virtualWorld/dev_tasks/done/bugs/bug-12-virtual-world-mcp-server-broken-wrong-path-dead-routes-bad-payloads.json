@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "bug-12",
+  "kind": "bug",
+  "number": 12,
+  "title": "Virtual World MCP server broken (wrong path, dead routes, bad payloads)",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-08-05",
+  "updated": "2026-08-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The `virtual-world` MCP server (FastMCP proxy to the Flask API on `:4444`) was broken and\nunusable. Three separate issues:\n\n1. The server was not registered in the opencode config at all, and the kilo config pointed\n   at a non-existent Python interpreter - so the MCP process never even spawned.\n2. `reconnect_way` called a dead route (`/api/graph/door/reconnect`), renamed to\n   `/api/graph/way/reconnect` backend-side but never updated in the MCP server.\n3. `set_player_memories` and `set_world_lore` sent bare lists as the JSON body, but the\n   routes expect a wrapper object - both 4xx/5xx'd at runtime.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "mcp_server.py:452` - `reconnect_way` → `/api/graph/way/reconnect",
+      "mcp_server.py:306` - `set_player_memories` → `{\"memories\": memories}",
+      "mcp_server.py:528` - `set_world_lore` → `{\"lore\": entries}",
+      ".opencode/opencode.jsonc` - added `virtual-world` MCP server entry",
+      ".kilo/kilo.jsonc:7` - fixed Python path"
+    ],
+    "custom": {
+      "root_cause": "1. **Config**: `.kilo/kilo.jsonc` used `C:\\ProgramData\\miniconda3\\python.exe` which does not\n   exist (real interpreter is `C:\\Users\\TommySlaatbraaten\\miniconda3\\python.exe`). The\n   project's opencode config (`.opencode/opencode.jsonc`) had no `virtual-world` entry at all,\n   so the server was never loaded in opencode sessions.\n2. **Route**: `routes/graph.py:451` registers `/api/graph/way/reconnect` (renamed in\n   task-58), but `mcp_server.py:452` still called the old `/api/graph/door/reconnect` → 404.\n3. **Payloads**: `routes/memories.py:28` reads `data.get(\"memories\")` and\n   `routes/world_lore.py:23-25` reads `data.get(\"lore\")` - both require an object body.\n   `mcp_server.py:306` and `:528` sent the raw list instead → AttributeError/400.",
+      "verification": "- `mcp_server` imports cleanly with `C:\\Users\\TommySlaatbraaten\\miniconda3\\python.exe`\n- Both config files parse as valid JSON\n- All 47 MCP endpoint calls matched against registered Flask routes (0 missing)\n- Flask server health OK on `:4444`",
+      "note": "MCP servers load at editor startup - a session restart is required for the new config to\ntake effect."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-12-virtual-world-mcp-broken.md"
+  }
+}

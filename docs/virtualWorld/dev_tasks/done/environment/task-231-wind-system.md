@@ -68,8 +68,8 @@ for item in equipped_items:
 ### Item Resistance Properties
 
 Items can declare:
-- `"wind_resistance": 50` — resists 50% of wind chill
-- `"water_resistance": 30` — resists 30% of wet insulation penalty
+- `"wind_resistance": 50` - resists 50% of wind chill
+- `"water_resistance": 30` - resists 30% of wet insulation penalty
 
 These are **percentage values** (0–100). A raincoat might have `water_resistance: 80`, a windbreaker `wind_resistance: 60`, a leather jacket both at `40`.
 
@@ -106,13 +106,13 @@ if wind in ("gale", "storm", "hurricane"):
 
 ## Files
 
-1. `engine/environment_propagation.py` — wind multiplier on heat propagation rate
-2. `engine/equipment_bonuses.py` — wind chill resisted by wind_resistance %, wet penalty resisted by water_resistance %
-3. `engine/equipment.py` — track `wet` state on equipped items
-4. `engine/tick_manager.py` — wind energy drain, wind extinguishing logic
-5. `engine/effects.py` — `set_environment` / `adjust_environment` support `wind` key; `set_wet` effect for items
-6. `engine/area.py` — add `wind` to default environment dict
-7. `engine/serialization.py` — save/load `wind`, `wet`, `wind_resistance`, `water_resistance`
+1. `engine/environment_propagation.py` - wind multiplier on heat propagation rate
+2. `engine/equipment_bonuses.py` - wind chill resisted by wind_resistance %, wet penalty resisted by water_resistance %
+3. `engine/equipment.py` - track `wet` state on equipped items
+4. `engine/tick_manager.py` - wind energy drain, wind extinguishing logic
+5. `engine/effects.py` - `set_environment` / `adjust_environment` support `wind` key; `set_wet` effect for items
+6. `engine/area.py` - add `wind` to default environment dict
+7. `engine/serialization.py` - save/load `wind`, `wet`, `wind_resistance`, `water_resistance`
 
 ## Dependencies
 

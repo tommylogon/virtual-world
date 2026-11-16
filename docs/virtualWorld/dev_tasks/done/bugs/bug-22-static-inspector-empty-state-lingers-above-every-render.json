@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-22",
+  "kind": "bug",
+  "number": 22,
+  "title": "Static inspector empty-state lingers above every render",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "1. `templates/index.html` - removed the static placeholder from\n   `#inspector-panel` **and from all 7 library-modal editors**\n   (`item-lib-editor`, `lib-char/area/trait/cond/beh/way-editor`), which had\n   the identical latent bug (lit-render targets with static placeholders).\n2. `static/js/inspector/panel.js` - `render()` now clears pre-lit children\n   once (`panel.dataset.litBound` guard) before lit takes ownership, so any\n   future static markup can't regress this.\n3. `static/js/main.js` `init()` - after the existing `window.Lit` wait, renders\n   the lit empty-state (`Inspector.hide()`) if the panel is still empty, so\n   boot shows the placeholder (now with the 🌍 World Lore button - the static\n   version had silently diverged and lacked it).\n\nEmpty-states now have a single source of truth: the lit templates\n(`inspector.js hide()`, `_emptyTemplate`, `library-browser._showEditorEmpty`,\n`item-library.open`).",
+    "verify": "Playwright against live server (fresh reload):\n- Boot: exactly one `.inspector-empty`, lit-rendered, has World Lore button.\n- `showNode(player_elena_vance)`: empty count 0, `.inspector-header` present.\n- `hide()` → empty back (1); `showNode` → gone (0). Round trip clean.\n- Item library: `open()` renders one placeholder; `showEditor()` replaces it\n  (0 empty, real editor children present).\n- Console: 0 errors.\n\n`node --check` on panel.js + main.js.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "symptom": "Selecting a node in the right panel showed the real inspector *below* the\n\"Select a node or agent to inspect\" placeholder instead of replacing it. The\nplaceholder never went away for the rest of the session.",
+      "root_cause": "`templates/index.html` shipped the `.inspector-empty` placeholder as **static\nmarkup inside `#inspector-panel`**. Since the task-216 lit migration, the panel\nis rendered via `window.Lit.render()`, which only manages its own part range -\n**lit never removes DOM children it doesn't own**. So the static div survived\nevery render, with lit content appended after it.\n\nNot `unsafeHTML`'s fault: agent-view's `unsafeHTML(html)` sits at a lit-managed\nposition and replaces correctly. The leftover was purely the pre-lit static\nchild."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-22-static-inspector-empty-state-lingers.md"
+  }
+}

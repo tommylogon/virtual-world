@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "task-803",
+  "kind": "task",
+  "number": 803,
+  "title": "Disposition value gates: traits and morality as hard exclusions",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-800"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-704",
+      "task-799",
+      "task-800",
+      "task-801",
+      "task-802",
+      "task-804",
+      "task-805",
+      "task-806"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Hard gates that REMOVE options (honest excludes theft, nonviolent excludes attack, loyal excludes betraying an ally), as distinct from weights that merely lower a score.\n\nAdds to `engine/disposition.py`: `VALUE_GATES` (a flag -> excluded verb-classes table), plus `gated_verbs`, `is_gated` and `filter_actions`. Flags are read from the character's `traits` and an authored `morals` map. The gate table includes one real library trait (`prudish` excludes `flirt`) so a gate can fire against authored content today, alongside the illustrative moral flags.",
+    "why": "A weight says \"rather not\"; a gate says \"cannot\". Personality must never make an impossible action *possible*, and morality is an exclusion, not a preference. So a gate is applied after the capability gates (budget, prerequisites, location) and only ever removes a candidate - it is never a score delta.",
+    "how": "Declared in `engine/disposition.py`. `_flags` reads truthy keys from `player.traits` and `player.morals`; the moral flags (`honest` / `nonviolent` / `loyal`) are authored character data rather than capability traits, while `prudish` is a real `data/library/traits/` id so that gate is reachable now. `filter_actions` subtracts only, so it can never add a verb the capability gate denied. The caller is the resolver that builds a candidate set (task-804); until that lands the functions are exercised by tests, not by a live turn.",
+    "verify": "1. Open the action menu for a character carrying `honest`, beside a stealable item.\n   - expected: the steal verb is ABSENT from the menu, not present as a low-score option.\n   - observed: NOT DONE as an action-menu check - the menu and candidate set are task-804 / task-702. The engine gate is proven: `filter_actions(honest, [\"steal\",\"take\",\"look\"]) == [\"take\",\"look\"]`.\n2. A character with no value traits, same room.\n   - expected: the verb present, so the gate is trait-driven and not global.\n   - observed: PASS as a mechanism - `gated_verbs(_FakePlayer()) == set()`; `filter_actions(plain, ...)` returns the list unchanged.\n3. In the 🧠 Mind panel, a character's value-gated verbs are visible.\n   - observed: VERIFIED 2026-10-13, live on localhost:4444. The \"Disposition - what they weigh\" block renders \"excluded by values: flirt, bully\" when `disposition.gated` is non-empty, and the \"Actions - what they can choose (16, 1 excluded)\" block strikes the gated verb's row (verified: with `gated: ['bully']` the \"bully social.weight.bully\" row is line-through). The action-menu *removal* still needs the resolver's candidate set.",
+    "acceptance": [
+      {
+        "text": "A gate removes the option; it is never only a score penalty (`filter_actions` drops the verb).",
+        "done": true
+      },
+      {
+        "text": "Gates never enable an action the capability gate denied (`filter_actions` is a pure subtraction; `test_a_gate_only_subtracts_and_never_enables`).",
+        "done": true
+      },
+      {
+        "text": "`tests/test_disposition.py` 26 passed; the gate still reports \"35 scores across 4 decisions, no drift\".",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/disposition.py` (the `VALUE_GATES` table and the filter)",
+      "tests/test_disposition.py` (the gate tests)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: character Bio traits/morals → Human Turn action choices or character decision trace → inspect the actions still offered after hard gates.\n\nCurrent availability: the task records `filter_actions` as pure subtraction and tested that a gate cannot enable an action denied by capability. A live caller/UI filter is not claimed unless the character action path consumes these gates.\n\nLive steps when available:\n1. Give a character the `honest` flag and a valid opportunity to steal; open its available-action list and run the decision.\n   - expected: theft is absent from the choices, not merely scored lower; no steal action is emitted.\n2. Give a nonviolent character a valid attack target and a loyal character a betrayal option.\n   - expected: attack and betraying an ally are removed by their respective gates; unrelated permitted actions remain.\n3. Test the authored `prudish` trait with a flirt action while a separate capability gate denies another action.\n   - expected: `flirt` is removed by the trait gate; the disposition layer never adds the capability-denied action back.\n4. Inspect the resolved choices in the agent prompt/action UI and compare them with the event stream.\n   - expected: the LLM is offered only the filtered actions and cannot execute a gated verb through a different surface.\n\nThis section is not a claim that the gates are wired to every live action surface today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions.md"
+  }
+}

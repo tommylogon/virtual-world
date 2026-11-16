@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-16
 **Priority**: Medium
-**Status**: Done — fully executed (app.py is a slim register_* dispatcher over routes/ modules; audited 2026-08-03)
+**Status**: Done - fully executed (app.py is a slim register_* dispatcher over routes/ modules; audited 2026-08-03)
 
 ---
 
@@ -18,7 +18,7 @@ priority: medium
 Split `app.py` (1560 lines, 69 routes in one `register_routes()` function) into per-domain modules under a `routes/` package. Each module exports a `register_<domain>_routes(app)` function that the main `register_routes()` calls.
 
 **Approach: sub-register functions (not Blueprints).**
-This keeps every route handler unchanged — no need to rewrite `app.world` → `current_app.world` or handle conditional registration differently. Each route function still captures `app` by closure, exactly as it does today. The split is purely organizational.
+This keeps every route handler unchanged - no need to rewrite `app.world` → `current_app.world` or handle conditional registration differently. Each route function still captures `app` by closure, exactly as it does today. The split is purely organizational.
 
 ---
 
@@ -44,7 +44,7 @@ routes/
 ```
 
 Also:
-- `routes/helpers.py` — shared helpers: `load_registry`, `save_registry`, `_save_world_template`
+- `routes/helpers.py` - shared helpers: `load_registry`, `save_registry`, `_save_world_template`
 
 ---
 
@@ -53,7 +53,7 @@ Also:
 | File | Lines (est.) | Routes |
 |---|---|---|
 | `app.py` | ~90 | 0 (just factory) |
-| `routes/helpers.py` | ~40 | — |
+| `routes/helpers.py` | ~40 | - |
 | `routes/pages.py` | ~20 | 4 |
 | `routes/action.py` | ~280 | 3 |
 | `routes/registry.py` | ~140 | 7 |
@@ -122,7 +122,7 @@ def register_routes(app):
 The LLM routes have an `if app.config["LLM_ENABLED"]:` guard. In the module, move the conditional inside `register_llm_routes(app)` and register both variants conditionally just like current code.
 
 ### Step 6: Update imports
-- `app.py`: remove imports only used by routes (items, areas, etc.) — but keep if used in `create_app()`
+- `app.py`: remove imports only used by routes (items, areas, etc.) - but keep if used in `create_app()`
 - Each route module: import what it needs (Flask, engine classes, helpers)
 
 ### Step 7: Verify
@@ -140,7 +140,7 @@ The LLM routes have an `if app.config["LLM_ENABLED"]:` guard. In the module, mov
 | Circular imports | Each module only imports Flask + helpers + domain classes. No module imports another route module. The `register_routes()` dispatcher is the only integration point. |
 | Flask debug reload misses new files | Flask monitors imported modules by default. Since `register_routes()` imports from `routes.*`, any change in those files triggers reload. |
 | Nested helper `handle_registry_post` uses `request` closure | It's defined inside `register_routes()` and captures `request` by closure. Moving it to module scope works because Flask's `request` is a proxy that works outside route context. |
-| `take_action` captures `add_output` closure | `add_output` is defined inside the route function. Moving the function to a module doesn't affect this — closures work the same way. |
+| `take_action` captures `add_output` closure | `add_output` is defined inside the route function. Moving the function to a module doesn't affect this - closures work the same way. |
 | Dead code `_build_narration_context_for_current_area` | It's defined but never called. Leave it in the original location (move with action.py) or remove. Recommend moving as-is to avoid behavioral changes. |
 
 ---

@@ -5,9 +5,9 @@ area: ui
 priority: medium
 ---
 
-# Task 333 — Human Turn Panel v2: scene-first redesign
+# Task 333 - Human Turn Panel v2: scene-first redesign
 
-**Status:** In Review — Phase 1 implemented 2026-08-24 (scene snapshot
+**Status:** In Review - Phase 1 implemented 2026-08-24 (scene snapshot
 endpoint + discovery flags + scene-first composer); pytest 1100 green;
 pending browser E2E (needs server on :4444). Phases 2–4 still todo.
 
@@ -19,22 +19,22 @@ database form, not a game interface:
 - 7 labeled fields (action/item/target/relation/speech/volume/emote/memory)
   that force the player to know verb vocabulary and type exact names.
 - The context area renders the **LLM persona prompt** ("You are jake
-  halloway. Personality: ...") — that text is for the model, not the player —
+  halloway. Personality: ...") - that text is for the model, not the player -
   and it truncates, so it's noise that also hides usable info.
 - The area bar reads "0 items · 0 people · 0 exits" in rooms that have all
-  three — wrong data source, so the one piece of real orientation info lies.
-- No answer to "what have I found, what do I see, who is here" — the three
+  three - wrong data source, so the one piece of real orientation info lies.
+- No answer to "what have I found, what do I see, who is here" - the three
   questions every player asks every turn.
 - Speech+emote is the most common human turn in practice, but it's buried
   among fields sized for every possible action equally.
 
-Goal: easier, faster, more natural turns for human players — and a shape
+Goal: easier, faster, more natural turns for human players - and a shape
 that still works when a second human joins later.
 
 ## Concept: scene-first panel
 
 > **Turn-system semantics:** the queue, the human-turn gate (and that it has
-> **no timeout** — the sim waits indefinitely for a human), the deliberate
+> **no timeout** - the sim waits indefinitely for a human), the deliberate
 > always-available command-line override, and the three "whose turn is it"
 > indicators are documented in
 > `docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md` (task-338). The panel
@@ -42,7 +42,7 @@ that still works when a second human joins later.
 
 Replace the form-first modal with three zones:
 
-### 1. Scene view (top) — answers "where am I, what/who is here"
+### 1. Scene view (top) - answers "where am I, what/who is here"
 
 - Render the current area the way the engine already describes it: exits
   (clickable → `go`), items visible here (clickable), characters present
@@ -53,22 +53,22 @@ Replace the form-first modal with three zones:
   Picking one fills (or directly submits) the structured action.
 - Discovery-aware: things you've examined/taken get a subtle marker;
   `current_state: "hidden"` items only appear after a successful search.
-- Data source: existing graph queries + area_description output — no new
+- Data source: existing graph queries + area_description output - no new
   engine state. The area-bar counts must be fixed to read the same source.
 
-### 2. One-box input (middle) — say and act without mode-switching
+### 2. One-box input (middle) - say and act without mode-switching
 
 - Single input, MUD-style but forgiving: text starting with a known verb
   parses into the structured action (autocomplete on item/character names
   from the live scene, not a static list); anything else is speech at the
   current volume.
 - Volume (say/whisper/shout/scream) as a compact toggle next to the box;
-  emote as a second small inline field — the two things humans actually do
+  emote as a second small inline field - the two things humans actually do
   every turn get permanent, tiny controls.
 - Advanced fields (relation, memory, raw JSON) collapse into an expander
   for the rare turns that need them. JSON mode stays for power use.
 
-### 3. Character strip (bottom) — your own state, not your persona
+### 3. Character strip (bottom) - your own state, not your persona
 
 - Vitals, active conditions, carried/worn items (clickable → drop/unequip/
   use). The persona prompt moves out of the player's face entirely; if the
@@ -80,7 +80,7 @@ Replace the form-first modal with three zones:
 ## Design decisions round 2 (2026-08-23, Tommy's answers)
 
 - **Look vs Examine split (corrected by Tommy 2026-08-24)**: Look at an
-  item, way, area, or character is FREE — and it is not an action at all.
+  item, way, area, or character is FREE - and it is not an action at all.
   The panel delivers look results as HOVER PREVIEWS on the scene chips
   (hover = what you would see; no turn end, no server action). **Examine
   remains a normal turn-ending action** in the context menus. Deep
@@ -120,30 +120,30 @@ Replace the form-first modal with three zones:
 
 ## Phasing
 
-1. **Phase 1 — scene view + click-to-target.** Fix area-bar data source;
+1. **Phase 1 - scene view + click-to-target.** Fix area-bar data source;
    render scene entities with context menus that fill the EXISTING form
    fields (form hidden behind a "detailed" toggle). Lowest risk, biggest
    usability jump.
    - **Endpoint gap (found via v2.3 mockup)**: `TriggerSystem
      ._get_available_actions()` (trigger_system.py:1406) is not exposed by
-     any route — the data-driven menu contract needs a per-entity
+     any route - the data-driven menu contract needs a per-entity
      available-actions fetch (or fold into a scene-snapshot endpoint).
      Mockup reference: `docs/design/human-turn-panel-v2-mockup.html` v2.3.
-2. **Phase 2 — one-box input.** Verb parser + live-name autocomplete;
+2. **Phase 2 - one-box input.** Verb parser + live-name autocomplete;
    speech-default behavior.
-3. **Phase 3 — character strip + discovery markers.** Vitals/conditions/
+3. **Phase 3 - character strip + discovery markers.** Vitals/conditions/
    inventory strip; seen/taken/hidden states in the scene view.
-4. **Phase 4 — multi-human prep.** Turn queue display, per-player panels,
+4. **Phase 4 - multi-human prep.** Turn queue display, per-player panels,
    speech targeting (@character).
 
 ## Notes
 
-- Keep the structured action schema untouched — this is purely the human
+- Keep the structured action schema untouched - this is purely the human
   front door; agents keep their own path.
 - The event-stream grouping bug (bug_22) interacts with turn flow display;
   fix there first or together.
 - Current modal file is the reference for submit semantics (Act vs End
-  Turn, JSON preview, datalists) — reuse its API calls.
+  Turn, JSON preview, datalists) - reuse its API calls.
 
 ## Files likely touched
 
@@ -168,9 +168,9 @@ Design decisions locked in from Tommy's playtest of
   give X **to** Y, steal X **from** Y, use X **on** Y.
 - **Carried/worn chips get context menus** (examine/use/eat/drink/drop,
   remove for worn).
-- **Feed shows results only** — never the in-progress draft.
+- **Feed shows results only** - never the in-progress draft.
 - **Human react phase (gap found, corrected)**: agents' react is NOT just
-  memory — after the action result returns, react produces inner monologue,
+  memory - after the action result returns, react produces inner monologue,
   felt-emotion update, reactive speech, reactive emote, THEN memory
   (agent-engine.js:568-597, `buildResultReactionPrompt` feeds the result in).
   Humans currently get none of it: no result-processing step, no emotion
@@ -182,12 +182,12 @@ Design decisions locked in from Tommy's playtest of
   composer memory field persisted as manual addition. Optional later: LLM
   "inner voice" suggestion the human can accept/edit/toss.
 - **Lock/unlock stays trigger-based (task-336 cancelled)**: unlock already
-  has many author paths — item `on_use` (buttons), `on_use_on` keycards,
+  has many author paths - item `on_use` (buttons), `on_use_on` keycards,
   way-level triggers checking inventory. No engine verbs; panel menus map
   Lock/Unlock picks onto `use_on <candidate> on <way>` drafts (or examine)
   and render availability from trigger presence + way state.
 - **React boundaries (locked with Tommy)**: react = say + emote + optional
-  memory ONLY — no second world interaction, or the turn never ends.
+  memory ONLY - no second world interaction, or the turn never ends.
   Manual memory sits on top of an automatic deterministic line so multi-
   human tables don't depend on diligent journaling. Reacts ride the same
   witnessed-event pipes as agent speech/emotes → works for a future
@@ -199,7 +199,7 @@ Tommy's corrections + final nice-to-have pass on
 `docs/design/human-turn-panel-v2-mockup.html` (all now in the mockup):
 
 - **Look = hover previews, not an action** (correction above). Hovering any
-  chip — area button, people, things, ways, carried/worn — shows a look
+  chip - area button, people, things, ways, carried/worn - shows a look
   card with the entity's description/state; footer reads "free look · no
   turn cost". Examine stays in menus as the turn-ending version.
 - **Activities**: character strip shows an active activity chip
@@ -209,7 +209,7 @@ Tommy's corrections + final nice-to-have pass on
   Serving Window with view-to-far-side text, Roof Hatch gated by climbing
   AND jammed (Force-it-open disabled with reason), Swinging Door closes
   behind you (toast on go). Chip markers: ⛰ climb-gated, 🔧 jammed.
-- **Darkness**: header 🌙 toggle degrades the scene — dimmed chips,
+- **Darkness**: header 🌙 toggle degrades the scene - dimmed chips,
   swapped dark description ({param} substitution still applies), look
   cards collapse to "...something / too dark to make out much".
 - **Stranger masking**: clerk renders as "the woman behind the counter"
@@ -229,52 +229,52 @@ Tommy's corrections + final nice-to-have pass on
   tyler)' condition chip to your condition row.
 
 Still open from earlier logs: endpoint gap for data-driven menus
-(`TriggerSystem._get_available_actions()` exposure) — Phase 1 blocker.
+(`TriggerSystem._get_available_actions()` exposure) - Phase 1 blocker.
 
 ## Mockup feedback log (2026-08-24, v2.5)
 
-Engine-behavior corrections from Tommy — the earlier task text/mockup was
+Engine-behavior corrections from Tommy - the earlier task text/mockup was
 stale documentation, the engine is the source of truth:
 
-- **Doors auto-open on go** — no open→go two-step. Go succeeds through any
+- **Doors auto-open on go** - no open→go two-step. Go succeeds through any
   closed way unless locked, blocked, or needing force. Menu label says
   '(opens as you go)' on closed ways instead of disabling them.
-- **Dash bursts through closed doors** — dash auto-opens closed ways
+- **Dash bursts through closed doors** - dash auto-opens closed ways
   mid-stride; a locked way still stops it (and consumes the turn, no
   burst phase granted).
-- **Locked is hidden knowledge** — no 🔒 on chips or hover cards until
+- **Locked is hidden knowledge** - no 🔒 on chips or hover cards until
   the character examines the way or fails to go through; the panel then
   remembers per-way ('knownLocked') and later menus show the lock.
   Implementation note for Phase 1: the scene snapshot needs this
   discovered-state flag exposed alongside way state, or the panel will
   leak locks.
-- **Force-open is NOT a separate action** — going on a jammed way rolls
+- **Force-open is NOT a separate action** - going on a jammed way rolls
   the skill check inline: d20+mod vs DC in the result text; success
   bursts through AND un-jams the way; failure bounces and eats the turn.
   No 'Force' menu entry anywhere; jammed ways just say '(force check)'
   on their Go entry.
-- **Closable is a way property** — not all ways can be closed; the Close
+- **Closable is a way property** - not all ways can be closed; the Close
   menu entry is omitted entirely when `closable: false` (Serving Window
   demo), and the hover card notes why.
-- **Blocked is a live gate** — while a Grappled condition is active,
+- **Blocked is a live gate** - while a Grappled condition is active,
   every Go entry renders disabled with the block reason.
 
 ## Mockup addendum (2026-08-24, v2.6)
 
-- **Windows are full ways too** — open, close, AND go (walk/climb
+- **Windows are full ways too** - open, close, AND go (walk/climb
   through), same auto-open-on-go rule as doors. Serving Window now demos:
   see-through even while shut (view-to-far-side on hover), Open/Close in
   its menu, Go '(opens as you go)'. The `closable: false` demo moved to
-  the Dining Archway — an open arch is the natural non-closable way.
+  the Dining Archway - an open arch is the natural non-closable way.
 
 ## Mockup addendum (2026-08-24, v2.7)
 
-- **Menus never pre-leak mechanics** — Go labels are clean ('Go up →
+- **Menus never pre-leak mechanics** - Go labels are clean ('Go up →
   Rooftop'), no 'opens as you go' / 'force check' hints. Discovered-state
   flags (`knownLocked` / `knownJammed`) unlock the hints only after
   the character examines the way or fails to go through it: then chips
   show 🔒/🔧, menus show 'locked' / 'needs force', hover explains in
-  diegetic wording. Result text still shows the roll — that's the feed,
+  diegetic wording. Result text still shows the roll - that's the feed,
   not a menu.
 
 ## Implementation log (2026-08-24, Phase 1)
@@ -283,31 +283,31 @@ Phase 1 (scene view + click-to-target) implemented against the v2.7
 mockup contract:
 
 **Backend**
-- `engine/scene_snapshot.py` — new read-only module: one-call scene
+- `engine/scene_snapshot.py` - new read-only module: one-call scene
   payload per player (area + light/dark, people with stranger masking via
   `unknown_display_name()`/`has_met`, visible items excluding
   `current_state: hidden` with their real `available_actions`
   from `TriggerSystem._get_available_actions()`, ways reporting only
   DISCOVERED state, and the you-strip: vitals/conditions/carrying/worn/
   activity/recent memories).
-- `routes/scene.py` + app.py registration — `GET /api/scene/<player>`
+- `routes/scene.py` + app.py registration - `GET /api/scene/<player>`
   (the endpoint gap this task flagged is closed).
 - Way discovery (v2.7 rules): `Player.known_way_aspects`
   ({(area, direction): set}) + `learn_way_aspect`/`knows_way_aspect`.
   Set by examining a way (engine/items/examine_actions.py) and by failed
   go attempts on locked/blocked ways and failed needs_open checks
   (engine/movement.py). The snapshot reports locked/blocked state ONLY
-  when discovered — otherwise plain closed. No leaks.
+  when discovered - otherwise plain closed. No leaks.
 
 **Frontend**
-- `static/js/agent/turn-scene-view.js` (new) — chips for area/people/
+- `static/js/agent/turn-scene-view.js` (new) - chips for area/people/
   things/ways; hover = free-look card (no turn cost); click = data-driven
   context menu that FILLS THE DRAFT via the composer fields (compose-
   then-commit; never submits). Darkness degrades client-side
   (dimmed chips, 'something'/'too dark to make out much'). Way menu labels
-  stay clean per v2.7 — no 'opens as you go'/'force check' pre-hints;
+  stay clean per v2.7 - no 'opens as you go'/'force check' pre-hints;
   known_locked/needs_force hints appear only after discovery.
-- `human-turn-composer.js` — scene section replaces the lying area-bar
+- `human-turn-composer.js` - scene section replaces the lying area-bar
   counters AND the LLM persona-prompt dump (#htc-context hidden); the old
   field grid collapses behind a 'Detailed' toggle; JSON mode unchanged;
   submit path untouched (same promise contract).
@@ -316,9 +316,9 @@ mockup contract:
 
 **Known gaps (deliberate, later phases)**
 - Unmet strangers: Examine can't resolve masked names server-side, so the
-  menu offers Talk-to first — feeds task-339.
+  menu offers Talk-to first - feeds task-339.
 - Carried/worn strip, react phase, digest/interject = Phase 3 / task-334.
-- Lock/unlock has no verbs (task-336 cancelled) — unlock rides
+- Lock/unlock has no verbs (task-336 cancelled) - unlock rides
   use-on keycards; menus omit lock entries.
 - known_way_aspects is runtime-state (mirrors discovered_exits precedent,
   not serialized in Player.to_dict yet).
@@ -331,22 +331,22 @@ app import smoke OK. Browser E2E still to do (server needed).
 
 ## Browser-test fixes (2026-08-24, first E2E round)
 
-- **scene unavailable (reading 'getScene')** — turn-scene-view.js called
+- **scene unavailable (reading 'getScene')** - turn-scene-view.js called
   `window.ApiClient`; api.js declares a top-level `class ApiClient`
   which is a global *binding*, not a window property. Fixed to bare
   `ApiClient` (like the rest of the app).
-- **Non-turn mode passed the turn to the next character on Act/End** —
+- **Non-turn mode passed the turn to the next character on Act/End** -
   `_humanTurn`'s `else if (!config.turnBased)` branch rotated
   `controllingPlayer` through the roster. Removed: turn handoff is a
   turn-based concept; in non-turn mode the human keeps control.
-- **Correction to the log below**: unmet strangers CAN be examined —
+- **Correction to the log below**: unmet strangers CAN be examined -
   `_match_character_name` (engine/matching.py) resolves exact/substring/
   fuzzy names, aliases, AND description words, so drafting the masked
   label ('the woman behind the counter') resolves server-side. The panel
   now always offers Examine with the display label; no task-339 blocker
   here (task-339 stays about the acquaintance mechanic itself).
 
-- **500 on /api/scene (area_node_id)** — the accessor lives on the
+- **500 on /api/scene (area_node_id)** - the accessor lives on the
   VirtualWorld facade (`world.area_node_id` → NodeIDHelper), not on
   PlayerManager; the test mock had masked the difference. Fixed via a
   getter chain in scene_snapshot with the canonical format as fallback;
@@ -355,7 +355,7 @@ app import smoke OK. Browser E2E still to do (server needed).
 
 ## Full redesign implemented (2026-08-24, same day)
 
-Tommy called it: no incremental phasing — build the whole mockup. The
+Tommy called it: no incremental phasing - build the whole mockup. The
 panel is now the v2.7 three-zone layout:
 
 - **human-turn-composer.js rewritten** as the full panel: header (title ·
@@ -383,7 +383,7 @@ panel is now the v2.7 three-zone layout:
   more action slot) → deterministic auto-memory line → react (say/emote/
   memory bound to the result) → pass. Execution extracted to
   _executeHumanReply. Correction: the old claim that /api/action drops
-  the memory field was wrong — client-side _storeReactionMemory always
+  the memory field was wrong - client-side _storeReactionMemory always
   stored it.
 - **Stranger meeting fixed at the root**: the panel bypassed
   get_area_description, so panel-only players never registered meetings
@@ -393,7 +393,7 @@ panel is now the v2.7 three-zone layout:
   task-339 for the full findings.
 
 **Verification**: pytest 1100 green (one flaky run raced the live
-server's autosave write — passed clean on rerun); node --check on all six
+server's autosave write - passed clean on rerun); node --check on all six
 touched JS files; live scene smoke against the autosave world. Browser
 E2E of the full panel still to do.
 

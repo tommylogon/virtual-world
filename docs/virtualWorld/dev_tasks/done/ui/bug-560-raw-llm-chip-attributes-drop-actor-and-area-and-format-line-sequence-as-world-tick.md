@@ -58,7 +58,7 @@ and calls it twice, so the old name had to go everywhere or the build failed.
 Updated: the three call sites in `event-stream.ts`, the two in
 `stream-raw-llm.ts`, and the interface. The persistence restore's legacy
 fallback (`stream-persistence.ts:101-104`) still matches `/\[Tick\s+(\d+)\|/`,
-which now means "world tick" — correct, and it only runs for pre-task-777 saves
+which now means "world tick" - correct, and it only runs for pre-task-777 saves
 that carry no `data-seq`.
 
 Docs that named the old method are updated to match the new behaviour:
@@ -68,7 +68,7 @@ section now lists three, not two, and the file/role table), and
 
 Measured live on port 4444, `kraktooth_goblin_camp` loaded: `_tickLabel` returns
 `Tick 0 | 08:00`, stamps `data-seq` 4, and all 4 `.bubble-tick` bubbles in the
-stream read `[Tick 0 | 08:00]` — one meaning of "Tick" across the whole stream.
+stream read `[Tick 0 | 08:00]` - one meaning of "Tick" across the whole stream.
 
 ## Verified 2026-10-21 (working tree, uncommitted)
 
@@ -80,7 +80,7 @@ stream read `[Tick 0 | 08:00]` — one meaning of "Tick" across the whole stream
   filters on.
 - Tick: `_chipBubble`'s header renders `[Tick ${tick} | ${tickToTime(tick)}]`
   with `tick = VW?.state?.tick` (`:74`, `:56`), and every other row now renders
-  the same thing through the renamed `_tickLabel` — see the "Fixed 2026-10-21"
+  the same thing through the renamed `_tickLabel` - see the "Fixed 2026-10-21"
   section. The line sequence id is on `data-seq` and is read by the export and
   the restore, never parsed out of the label.
 - Export: `event-log-export.ts:219` sets `icon: isRaw ? undefined : ...`, so a raw

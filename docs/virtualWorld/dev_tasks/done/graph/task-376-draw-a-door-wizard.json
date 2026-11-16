@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-376",
+  "kind": "task",
+  "number": 376,
+  "title": "draw-a-door-wizard",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- `ui/create-modal.js` - `Way Name` field; a 10-entry cardinal `<datalist>` on\n  both direction inputs (suggestions only, directions stay free text); a\n  `One-way (Area A → B only)` checkbox in Way Behavior that disables + clears\n  the B → A direction and explains the guard; Area B now defaults to the\n  *second* area.\n- `main.js` / `graph/event-handlers.js` - forward `name` + `one_way`; both\n  callers reject `room1 === room2` with a toast.\n- `routes/graph_ops.py` - `handle_build_connect_legacy` uses an authored\n  `name`, falling back to the historical `\"{room}-{dir}\"`.\n\n### Bug found while doing it\n\nBoth area selects defaulted to the first area, so submitting the form untouched\nproduced a **self-referential way** (Area A == Area B). Fixed by defaulting\nArea B to the second area *and* rejecting the same-area case at submit.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "what_already_existed_measured_not_assumed": "The GUI half of this already shipped: `ui/create-modal.js::_buildConnectionForm`\n(the \"Connect Rooms\" modal) posts to `POST /api/build/connect` →\n`routes/graph_ops.py::handle_build_connect_legacy`, which creates the way node\nplus the 4 connection edges. Counting the 22 visible controls in that form on a\nlive instance found the three real gaps the audit lists:\n\n| Audit asks for | State before | Evidence |\n|---|---|---|\n| select two areas | present | `conn-roomA` / `conn-roomB` |\n| way node + 4 edges + defaults | present | `handle_build_connect_legacy` |\n| hidden | present | `conn-state` option `👻 Hidden` |\n| **name** | **missing** | `hasName: false`, no name field |\n| **cardinal** | **missing** | `conn-dir1`/`conn-dir2` were free-text `INPUT` |\n| **one-way** | **missing** | `hasOneWay: false` |\n\n`one_way` was fully honoured by the engine all along - `movement.py:541`\n(`raise ValueError(f\"The {direction} is one-way - you can't go back that way.\")`),\n`npc_behaviors.py:776/849/888`, and the Way inspector's own checkbox\n(`way-view.js:334`). Only the *create* form lacked it, so this is wiring\nexisting machinery, not a new mechanic.",
+      "verification_live_browser_not_unit_tests": "Second instance on port 4445 (the running 4444 server was left alone; it has no\nauto-reload and holds a play session).\n\nCreated a door through the actual UI (`connectRoomsViaGraph`, not\n`openCreateModal` bare - the latter takes no submit callback and silently does\nnothing, which is what made my first attempt look like a failure):\n\n- ways went **20 → 21**, header `21 ways · 240 loaded`, stream logged\n  `Connected rooms`.\n- New node `way_abandoned_hunter's_cabin_east`: `name: \"Rope Ladder\"` (the\n  authored name won), `one_way: true`, `area_from: \"Abandoned Hunter's Cabin\"`,\n  `area_to: \"Bathroom\"`, `current_state: open`.\n- Way inspector → **Passage** tab shows `ONE-WAY` checked and `east` as the\n  command from the cabin; the **Behavior** tab has no one-way row, so it is\n  worth knowing it lives on Passage.\n- Console clean apart from one 404 that was my own bad `fetch('/api/graph')`.\n\nGates: `npm run lint` clean · `npm run typecheck` clean · `node tools/unit/run.cjs`\n465 passed / 0 failed · `pytest tests/test_movement.py test_way_connect_repair.py\ntest_way_orientation_cleanup.py test_way_gates.py test_way_blocking.py\ntest_area_id_case.py` → 107 passed.",
+      "known_pre_existing_issue_not_introduced_here": "The Way inspector's one-way input id is built from a JS-escaped node id, so a\nnode id containing an apostrophe yields `way_abandoned_hunter\\'s_cabin_east` -\na literal backslash in the id. Harmless for lookup but it breaks naive\n`getElementById`. Untouched."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P3 - Draw-a-door wizard: select two areas → creates way node + 4 connection edges (connect_areas behavior) with name/cardinal/hidden/one-way options."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-376-draw-a-door-wizard.md"
+  }
+}

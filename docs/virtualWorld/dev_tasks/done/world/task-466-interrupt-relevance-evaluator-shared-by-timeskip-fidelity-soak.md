@@ -18,14 +18,14 @@ One deterministic relevance/interrupt evaluator shared by timeskip actions (task
 
 - TODO
 
-## Progress 2026-09-22 — engine evaluator landed (review)
+## Progress 2026-09-22 - engine evaluator landed (review)
 
 `engine/interrupts.py` + `tests/test_timeskip.py` (pure-unit cases).
 
 - [x] `snapshot(gs, player)` / `evaluate(before, after, events, watch_tags, target, intent)` and struct `Interrupt(kind, why, detail, salient)`.
 - [x] Death; threat (hostile condition or theft/attack marker in log + turn events); vital danger-band **crossings only** (drives above / resources below / HP); involuntary bladder; discovery by interest tag or name; arrival on travel.
 - [x] Consumed by `engine/timeskip.advance` as the interrupt that hands control back.
-- [ ] Wire the same evaluator into the attention/fidelity tiers (411/418) and soak deferral (399) — the reason it is shared.
+- [ ] Wire the same evaluator into the attention/fidelity tiers (411/418) and soak deferral (399) - the reason it is shared.
 - [x] Events are filtered to the character's area and exclude their own actions; global log lines only count when they name the character, and `HOSTILE_ACTIONS` labels count without a marker. (Otherwise a fight elsewhere could interrupt a skip.)
 - [ ] Sound/awareness-channel inputs (task-418) beyond log/turn events.
 - [ ] A `salience` consumer for task-403 memory ranking.

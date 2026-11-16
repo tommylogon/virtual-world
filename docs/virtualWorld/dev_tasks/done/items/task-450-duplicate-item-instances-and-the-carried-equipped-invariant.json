@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "task-450",
+  "kind": "task",
+  "number": 450,
+  "title": "Duplicate item instances and the carried+equipped invariant",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-22, split out of bug-25. (Renumbered from 445 to avoid the",
+  "updated": "2026-09-22, split out of bug-25. (Renumbered from 445 to avoid the",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "1. **Find the duplication source.** Identify where a character can end up with\n   two same-named item nodes (dressing, library population, scenario assembly,\n   or the `kraktooth` character duplication tracked in task-408) and stop it at\n   the source rather than deleting copies after the fact.\n2. **Enforce the invariant at the engine boundary.** An item node must never\n   hold both `EDGE_CARRYING` and `EDGE_EQUIPPED` to the same character. Audit\n   every `EDGE_CARRYING` add site (grep `type=EDGE_CARRYING`) and make\n   equip/transfer/load converge on exactly one edge per item→owner; add a\n   load-time normalizer/validator warning when both are present in a save or\n   scenario.\n3. **Expose the state, don't paper over it.** With the invariant enforced, the\n   bug-25-class confusion disappears; no new user-facing string is needed.",
+    "why": "bug-25 (take/wear no-op messaging) was closed by the engine-side wording fix, but\nits live repro only happens when one character holds **two same-named item\ninstances** (one carried, one worn) - or a single instance carries both a\n`CARRYING` and an `EQUIPPED` edge. The messages are then technically correct\n(`take` → \"already carrying\", `equip` → \"already wearing\") yet read as a\ncontradiction, and the LLM spirals.\n\nEvidence: playtest \"John two / Jane three\" (2026-08-30), plus the original\ntaco_bell case where miki spawned wearing one Blue Butterfly Earring and carrying\na second. Scenario names suggest population/dressing duplication; `equip_item`\nremoves the `CARRYING` edge, so a single node normally cannot hold both - the\nboth-edge state comes from load/legacy/test paths that add `CARRYING` without\nremoving `EQUIPPED` (`serialization_legacy.py`, `routes/library_ops.py`,\n`engine/dressing.py` + `equip_item` when seeding).",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A save or scenario that contains an item with both edges loads with exactly",
+        "done": false
+      },
+      {
+        "text": "one (equipped wins) and logs a single warning.",
+        "done": false
+      },
+      {
+        "text": "Dressing/population a character who already wears an item does not create a",
+        "done": false
+      },
+      {
+        "text": "second same-named node; a test asserts one node per equipped item.",
+        "done": false
+      },
+      {
+        "text": "`take`/`equip` on any legitimate state never produce the carrying-vs-wearing",
+        "done": false
+      },
+      {
+        "text": "contradiction.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "non_goals": "- Changing the bug-25 take/equip wording (already shipped).\n- Character-node dedup (tracked separately in task-408).",
+      "resolution_2026_10_02": "**Duplication source found: `auto_dress` did not check worn names before\nhydrating.** `_hydrate_item(always_fresh=True)` mints a new node per call;\n`equip_item` then refuses an already-worn name, and the except block drops the\nfreshly-minted node into the room. So dressing an already-dressed character a\nsecond time left a second same-named item on the floor (the taco_bell \"one worn,\none carried\" shape). Fixed by collecting the character's worn names first and\nskipping any candidate whose name matches - the module docstring already claimed\nthis idempotence, but the code did not implement it.\n\n**Invariant enforced at the load boundary.** `WorldGraph.normalize_item_hold_state()`\nremoves a `carrying` edge whenever the same item→character pair also has an\n`equipped` edge (equipped wins, since demoting would make a worn item leave the\nbody), and logs exactly one aggregated warning. It runs inside\n`WorldGraph.load_from_dict()` and again in `Serialization.load_from_dict()` so\nboth the graph shape and the legacy loader are covered.\n\n**Audited add sites:** `equip_item` already removes `carrying` after adding\n`equipped`; `transfer_actions` retarget edges; `library_ops` import/population\nadds only `carrying` (it does not create equipped edges), so no both-edge state\narises there. The remaining sources are save/scenario data written by older\npaths, which the load normalizer repairs.\n\n**Acceptance:**\n- [x] A save/scenario with both edges loads with exactly one (equipped) and logs\n      one warning (`tests/test_carry_equip_invariant.py`).\n- [x] Dressing a character who already wears an item creates no second node\n      (same test file; asserts node count is unchanged and the room gains\n      nothing).\n- [x] `take`/`equip` on a legitimate state cannot reach the contradiction,\n      because the state is repaired before any verb runs."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-450-duplicate-item-instances-and-carry-equipped-invariant.md"
+  }
+}

@@ -13,12 +13,12 @@ wiki: "[[Library System/Library System Overview]]"
 
 ## What
 
-Name-resolution drift is this repo's most common bug class, and today's import bug (bug-521) produced exactly one server-side trace — a generic warning — while the updateCharacter response echoed `"player":"zombie"` for a call targeting `zombie__c4d808`. So a resolver that silently rewrites its target is invisible at the moment it happens. The fix is logging only, and the file option is off by default, so nothing about behaviour changes: `VW_LOG=<path>` (or `--log-file`) routes the root logger to a file so an agent without the launching terminal can read server evidence; every mutating route logs the resolved identity at INFO when input name and stored key differ (`set_player_area('zombie__c4d808' -> key 'zombie', area 'Old Dwarven Ruins')`); responses that echo an identity echo the RESOLVED one, not the input; and the import/refresh paths in `routes/library_ops.py` log the pre/post key when `_unique_key` suffixes a duplicate. Reuse the existing resolver rather than adding a second one — the log records what the resolver actually returned, so a future drift guard has a source of truth to check against.
+Name-resolution drift is this repo's most common bug class, and today's import bug (bug-521) produced exactly one server-side trace - a generic warning - while the updateCharacter response echoed `"player":"zombie"` for a call targeting `zombie__c4d808`. So a resolver that silently rewrites its target is invisible at the moment it happens. The fix is logging only, and the file option is off by default, so nothing about behaviour changes: `VW_LOG=<path>` (or `--log-file`) routes the root logger to a file so an agent without the launching terminal can read server evidence; every mutating route logs the resolved identity at INFO when input name and stored key differ (`set_player_area('zombie__c4d808' -> key 'zombie', area 'Old Dwarven Ruins')`); responses that echo an identity echo the RESOLVED one, not the input; and the import/refresh paths in `routes/library_ops.py` log the pre/post key when `_unique_key` suffixes a duplicate. Reuse the existing resolver rather than adding a second one - the log records what the resolver actually returned, so a future drift guard has a source of truth to check against.
 
 ## Acceptance
 
-Today's import bug (bug-521) produced exactly one server-side trace — a generic
-warning — and the updateCharacter response echoed `"player":"zombie"` for a call
+Today's import bug (bug-521) produced exactly one server-side trace - a generic
+warning - and the updateCharacter response echoed `"player":"zombie"` for a call
 targeting `zombie__c4d808`. Name-resolution drift is this repo's most common bug
 class; the logs should show it at the moment it happens.
 
@@ -26,12 +26,12 @@ class; the logs should show it at the moment it happens.
       agent without the launching terminal can read server evidence.
 - [ ] Every mutating route logs the resolved identity when input name and stored
       key differ, at INFO: `set_player_area('zombie__c4d808' -> key 'zombie',
-      area 'Old Dwarven Ruins')` — a resolver that silently rewrites its target
+      area 'Old Dwarven Ruins')` - a resolver that silently rewrites its target
       must be visible.
 - [ ] Responses that echo an identity echo the RESOLVED one, not the input.
 - [ ] The import/refresh paths (routes/library_ops.py) log the pre/post key when
       `_unique_key` suffixes a duplicate.
-- [ ] Does not change any behavior — logging only, and the file option is
+- [ ] Does not change any behavior - logging only, and the file option is
       off by default.
 
 ## Why
@@ -56,7 +56,7 @@ file option is off by default so nothing about the simulation moves.
 ## Steps to verify
 
 1. Boot with `VW_LOG=<path>` (running scratch server `bgp_1466dac35001af08VXchVqCYVD`,
-   port 4444, autosave world — already up, logging to `vwlog2.txt`).
+   port 4444, autosave world - already up, logging to `vwlog2.txt`).
    - expected: `Server logging to <path>` appears in the log.
    - observed: `2026-10-16 22:35:55,690 INFO __main__: Server logging to
      C:\Users\Tommy\AppData\Local\Temp\kilo\vwlog2.txt`
@@ -85,9 +85,9 @@ file option is off by default so nothing about the simulation moves.
 
 ## Files
 
-- `app.py` — `--log-file` / `VW_LOG` support.
-- `routes/player_ops.py` — `_log_resolved_identity` + 8 call sites.
-- `routes/library_ops.py` — `import_character` pre/post key log.
+- `app.py` - `--log-file` / `VW_LOG` support.
+- `routes/player_ops.py` - `_log_resolved_identity` + 8 call sites.
+- `routes/library_ops.py` - `import_character` pre/post key log.
 
 ## Browser UI and intended live verification
 

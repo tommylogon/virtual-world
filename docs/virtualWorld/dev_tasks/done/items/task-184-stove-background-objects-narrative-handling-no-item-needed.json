@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-184",
+  "kind": "task",
+  "number": 184,
+  "title": "Stove & Background Objects - Narrative Handling (no item needed)",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Background objects referenced only in descriptions (the Kitchen stove, the loose\ntile, the moon, the fireplace) should be handled **by narrative responses, not by\nimplementing real items for every one of them**. `examine stove` should reveal\nsomething like *\"You examine the stove, but it does not seem to be of any use\"*,\nthe character should **remember that** (as a character memory), and `stove` must\nresolve against the room description - **not** against *Stovepipe Leather Boots\n(Pair)*.\n\nOriginally filed as \"implement a stove item\". Decision (2026-08-02): **do not\nimplement the item.** The engine already has the narrative fallbacks; the real bug\nis that name matching resolves `stove` → `Stovepipe Leather Boots (Pair)` (via raw\nsubstring) *before* the fallback ever runs.",
+    "why": "TODO",
+    "how": "### 1. Rely on the name-matching fix (dependency)\n- `task-183-name-matching-aliases` must land first: word-boundary matching in\n  `_match_item_name` / `_match_exit_direction` (engine/matching.py) so `stove` no\n  longer matches inside `stovepipe`. Real targets are not blocked - word-boundary\n  precision replaces substring greediness, and the alias tier covers synonyms.\n- Ordering guarantee: exact → word-boundary → alias → exit → player → **flavor last**.\n  Flavor is the last resort and returns in-character text, never an error, so it\n  cannot block genuine attempts.\n\n### 2. Make the examine flavor message clearly \"of no use\"\n- `_describe_flavor_target` currently echoes the raw sentence (\"You examine stove.\n  The stove is out…\"). For background objects that offer no interaction, append a\n  no-use note so the model doesn't keep trying: e.g.\n  `\"…- it does not seem to be of any use.\"` Keep the echoed sentence (it's the\n  grounding the character should remember).\n- Do **not** add a generic \"not usable\" suffix to every flavor hit - doors/trees in\n  descriptions may still be genuinely interesting. Only append the no-use note for\n  obvious inert objects (stove, furniture, decor) OR keep it simple: always append,\n  since flavor targets by definition can't be acted on. Decide during implementation\n  with the kitchen stove as the test case.\n\n### 3. Character memory of the narrative result\n- After `examine stove` → flavor response, the character should remember\n  *\"I examined the stove - it seems to be of no use\"*, not a raw system string.\n  Per the system-vs-character separation (see `task-185-plan-loop-breaking` design\n  principle), the flavor response is already narrative - ensure it flows into the\n  character-facing memory via the observe/reaction synthesis, not as\n  `examine stove → <raw result>`.\n- The turn event logged by `_descriptive_target_failure` (record_turn_event, line\n  1008) already lets other characters witness the failed attempt - keep that.\n\n### 4. Test cases (backfill into the matching/parser tests)\n- `examine stove` → flavor text about the stove, **never** the boots description.\n- `use kindling on stove` → \"…doesn't budge / part of the scenery\", **never**\n  \"You use the Stovepipe Leather Boots (Pair).\"\n- `use create flame on stove` → same narrative failure (stove is inert), while\n  `use create flame` (alone) spawns a lit ember per `task-174-fire-mechanic-heat-source`.\n- A real target still works: `use key on cellar_way`, `take twigs` (→ kindling\n  via alias), `door` still matches `front door` - proving word-boundary matching\n  doesn't block genuine attempts.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_no_item_is_needed_existing_fallbacks_verified": "| Path | Function | Behavior today |\n|---|---|---|\n| `examine <flavor target>` | `_describe_flavor_target` (`engine/item_actions.py:181-222`) | Returns \"You examine X. <sentence from area/item/way description>\" |\n| `use <item> on <flavor target>` | `_descriptive_target_failure` (`engine/item_actions.py:948-1014`) | Returns \"You try to use the X on Y, but it doesn't budge - it's part of the scenery / purely decorative\" (randomized reasons) |\n\nBoth scan the area description + visible item descriptions + way descriptions for\nthe target phrase (word-boundary aware), and both are reached **only after** real\nitem/exit/character resolution fails. So the stove narrative already works - it just\nnever gets reached because substring matching hijacks `stove` first.",
+      "out_of_scope": "- Implementing `item_stove` / `data/library/items/stove.json` (rejected).\n- Warmth/heating interactions - revisit only if a *real* stove item is ever wanted\n  (then it follows `task-174-fire-mechanic-heat-source` patterns).",
+      "files_modified": "- `engine/item_actions.py` - `_describe_flavor_target` no-use note (optional, small)\n- `engine/matching.py` - via `task-183-name-matching-aliases` (word-boundary)\n- Tests: backend matching/parser test file + `tools/test_all.cjs`",
+      "related": "- `task-183-name-matching-aliases` (prerequisite)\n- `task-181-command-parser-multiwindow-targets` (multi-word `use X on Y` targets)\n- `task-174-fire-mechanic-heat-source` (Create Flame as `use` alone)\n- `task-160-parameterized-actions-in-prompts` (agent emits clean structured targets;\n  fixes emission, not resolution)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-184-stove-implementation.md"
+  }
+}

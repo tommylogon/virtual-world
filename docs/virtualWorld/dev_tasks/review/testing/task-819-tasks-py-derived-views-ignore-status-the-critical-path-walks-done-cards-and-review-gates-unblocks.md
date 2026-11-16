@@ -42,7 +42,7 @@ Decide the `review` semantics explicitly, then apply in `tools/tasks.py`. Filter
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this card changes task-tree derived views and CLI scheduling output, not a game browser surface.
+Intended UI home: Not applicable - this card changes task-tree derived views and CLI scheduling output, not a game browser surface.
 
 Current availability: the card identifies completed/review cards contaminating the critical path and `unblocks` counts. Status-aware path and scheduling rules are planned; no new player UI is intended.
 

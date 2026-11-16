@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-147",
+  "kind": "task",
+  "number": 147,
+  "title": "Threat-Aware Autonomous Replanning",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "NPCs ignore active lethal threats in their room. When The Butcher (a killer with a cleaver) enters the Foyer, teenagers keep executing stale plans like `examine coat_rack` instead of fleeing, hiding, or fighting. This is the threat-side counterpart to task-92 (vitals-driven replanning).\n\nThree root causes:\n1. **No replan trigger for threats** - Plans are followed for up to 10 turns. A soft prompt line (\"if a threat appeared, ignore the plan\") fails because the LLM treats standing threats differently from changes.\n2. **No code-level threat injection in the DECIDE prompt** - The prompt says \"Your plan guides you\" without awareness of the killer in the room.\n3. **Ambiguous emote wording in memory** - Emotes like \"slides into the sewer passage\" describe departure, causing other NPCs to believe the threat has left.\n\n---",
+    "why": "TODO",
+    "how": "### 1. Add `_getThreatAlert()` to AgentEngine (`agent-engine.js`) ✅ DONE\n\nScans `state.players_in_area` and checks for each other player:\n- **Hidden/stealthed** - skip (assassin not yet revealed)\n- **`traits.hostile`** - immediate threat\n- **Directional relationship** - `other.relationships[charName].closeness < -20`\n- **Recent attack** - `turn_events` where `actor === otherName && action === 'attack'`\n\nReturns a prepend string: `\"⚠️ IMMEDIATE DANGER: {names}...\"` or `null`.\n\n### 2. Add `_shouldReplan()` to AgentEngine ✅ DONE\n\nUnified replan triggger - checks threats, critical vitals, and stale plan (10-turn cycle):\n\n### 3. Wire into `step()` before DECIDE phase ✅ DONE\n\nInsert replan check **after** observation resolves, **before** decision prompt is built. Removed the old end-of-turn plan generation block (now handled by `_shouldReplan`).\n\nPrepends `threatAlert` to the DECIDE prompt if present.\n\n### 4. Add threat detection to PlanManager.generate() ✅ DONE\n\nAdds threat scan before the plan prompt. Injects threat warning into the prompt if hostile actors are detected.\n\n### 5. Update prompt-builder.js ✅ DONE (external prepend)\n\nThreat alert is prepended externally in `agent-engine.js` rather than passed as a parameter. Cleaner separation: the prompt builders remain pure, the threat alert is injected as a system-level override above the prompt.\n\n### 6. Fix emote memory storage ✅ DONE\n\nWhen storing emotes from movement actions (`go ...`), prefixes with `\"arrives: \"` so other characters read it as arrival, not departure.\n\n### 7. Auto-decrement relationships on attack (backend, `engine/combat.py`) ✅ DONE\n\nWhen character A attacks character B, drops `B.relationships[A].closeness` by 30 points (capped at -100). Also increments `interaction_count` and sets `last_interaction_tick`. Fixed a separate bug where the method was named `_player_attack` but called as `player_attack` - renamed to `player_attack` to match.\n\n---",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "related": "- **task-92**: Needs-driven replanning (vitals). Same mechanism, different trigger.\n- **`.kilo/plans/1785445107697-threat-aware-replanning.md`**: Full implementation plan with code blocks.\n\n---",
+      "prerequisite_hostile_trait_done": "A new `hostile` trait was added as the threat marker, separate from the existing `is_slasher`/`slasher` traits which control undead/slasher mechanics (no vital decay, slasher hunt AI, dark vision, special combat).\n\n**Backend:**\n- `engine/traits.py` - Added `HOSTILE = \"hostile\"` constant and `\"hostile\"` trait definition\n- `data/scenarios/mansion.json` - Added `\"hostile\": true` to The Butcher's traits\n\n**Design decisions:**\n- `hostile` is purely for AI threat detection - no gameplay side effects\n- `is_slasher` remains for undead mechanics (no vital decay, slasher hunt, etc.)\n- A character can have both, either, or neither\n- Threat detection logic checks `traits.hostile` first, then directional relationships, then recent attack events\n- Hidden/stealthed characters are skipped regardless of traits\n\n---",
+      "sequence_flow": "```\nAgent's turn starts\n    ↓\nFetch state, build context\n    ↓\nCheck: _shouldReplan()?\n    ├── No → continue with current plan\n    └── Yes → call PlanManager.generate()\n                ↓\n         New plan replaces _plans[charName]\n                ↓\n    ↓\nBuild DECIDE prompt with threatAlert prepended\n    ↓\nLLM decides action\n    ↓\nExecute action, store emote with arrival prefix if movement\n    ↓\nREACT phase (unchanged)\n```\n\n---",
+      "test": "1. Hard reload, load mansion scenario\n2. Start agent mode, advance until The Butcher enters the Foyer\n3. Verify: Kyrie replans, action is survival (flee/hide/fight/warn) NOT examine\n4. Verify: Sammy also reacts to threat, NOT examine rug\n5. Test edge cases:\n   - Set a character to `hidden` state - verify undetected\n   - Trigger attack event - verify target replans\n   - Friendly NPC with high relationship - verify no false positive"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/NPC Behavior System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-147-threat-aware-autonomous-replanning.md"
+  }
+}

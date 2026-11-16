@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-392",
+  "kind": "task",
+  "number": 392,
+  "title": "EDGE_KNOWN - Graph-Native Ability/Spell Knowledge",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-03",
+  "updated": "2026-09-03",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a new graph edge `EDGE_KNOWN` that represents a character's knowledge of an ability/spell/power item. This lets authors and systems express “Lyrie CAN create flame” without requiring the spell to be physically carried or equipped. The graph remains the source of truth; no parallel character registry is introduced.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `pytest tests/ -q` green, including new tests for `EDGE_KNOWN` resolution, casting from known abilities, and serialization round-trip.\n- Manual: import/create an ability item, mark it known for a character, verify `use <spell>` works without the item being in inventory/equipment/area.\n- Manual: verify known abilities do not appear in room listings or other characters' examine output.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "current_state_verified": "- Intrinsic-ability detection already exists: `engine/equipment.py:15-17` defines `INTRINSIC_ABILITY_TAGS = frozenset({\"spell\",\"ability\",\"innate\",\"intrinsic\",\"power\"})`.\n- Current spell model: spells are item nodes attached via `EDGE_CARRYING` / `EDGE_EQUIPPED`, then hidden from other characters' appearance narratives via `_is_intrinsic_ability()` / `_drop_intrinsic_abilities()`.\n- Item lookup (`player_manager.find_item_node`) checks only `EDGE_CARRYING` / `EDGE_EQUIPPED` and area `EDGE_IN` / container contents. There is **no known/learned lookup**.\n- `use_item()` requires resolving an item node first; there is no casting path from abstract knowledge.\n- UI/inspector has no control for setting a “known” relationship between character and item.",
+      "proposed_schema": "```python\n# graph.py\nEDGE_KNOWN = \"known\"  # ability/spell item → character\n```\n\nDirection matches existing item→character edges (`carrying`, `equipped`):\n\n```\nitem_Create_Flame ──known──► player_Lyrie\n```\n\nThis keeps querying symmetric with current patterns:\n\n```python\n# Existing\nget_edges_for_target(player_id, EDGE_CARRYING)  # inventory\nget_edges_for_target(player_id, EDGE_EQUIPPED)   # worn/held\n\n# New\nget_edges_for_target(player_id, EDGE_KNOWN)       # known abilities\n```",
+      "implementation_plan": "### Backend\n\n1. **Graph constant** (`graph.py`)\n   - Add `EDGE_KNOWN = \"known\"`\n   - Ensure it is included in `resolve_edge_types` / legacy migration docs if needed.\n\n2. **Item resolution** (`engine/player_manager.py:119-173`)\n   - Extend `find_item_node` to check `EDGE_KNOWN` edges after `EDGE_CARRYING` / `EDGE_EQUIPPED` and area/container lookups.\n   - Priority order: carried/equipped → area/container → known. This preserves physical-item precedence.\n\n3. **Cast / use flow** (`engine/items/use_actions.py`)\n   - Allow `use_item()` to succeed when the item is resolved via `EDGE_KNOWN`.\n   - Preserve current behavior for physical items; known abilities should not gain weight/capacity effects.\n   - Optional: add a `cast` verb alias that explicitly targets known abilities first.\n\n4. **Area description / inspector filters** (`engine/area_description.py`, inspector modules)\n   - Known abilities should not appear in room listings or other characters' examine output. The existing intrinsic-ability filter already handles most of this for ability-tagged items; verify it still works when the item is only `EDGE_KNOWN` and not physically present.\n\n5. **Serialization / save-load**\n   - Generic edge serialization already covers `EDGE_KNOWN`; no special-case save logic should be needed. Add a regression test.\n\n### UI / Frontend\n\n6. **Inspector “Known By” / “Knows” control**\n   - Add a relationship picker in the item/character inspector to create/remove `EDGE_KNOWN` between a character and an ability item.\n   - Reuse the existing library search/select components where possible.\n\n7. **Selectors / autocomplete**\n   - Update `cast`, `use`, and ability-prompt selectors to include known abilities that are not currently carried.\n   - Keep carried/equipped items first in the list.\n\n8. **Prompt / narration**\n   - Ensure ability lookups in prompts reflect known-but-not-carried spells.\n   - Do not reveal known abilities to other characters; they remain invisible unless the caster uses them.",
+      "notes": "- This is intentionally graph-native. No `Player.known_abilities[]` registry, no parallel store.\n- Intrinsic-ability tag filtering remains useful for presentation hiding, even when the item is not physically present.\n- Future work: `EDGE_KNOWN` can also be used for techniques, languages, recipes, and bestowed powers - not just spells.",
+      "progress": "- [x] Graph constant added\n- [x] Item resolution extended\n- [x] Use flow supports known abilities\n- [x] Examine resolves known abilities\n- [x] Scene snapshot includes known_abilities\n- [x] Frontend graph support\n- [x] Inspector known abilities picker\n- [x] Autocomplete includes known abilities\n- [x] Prompt context shows known abilities\n- [x] Tests added - **8/8 green** (the round-trip test below was the missing one)\n- [x] No `cast` verb - uses `use` / `use_on`\n- [x] Abilities hidden from other characters' examine/room listings\n- [x] Serialization round-trip test added (was required by Verification, was absent)\n- [x] Inspector picker duplicate-offer bug fixed\n- [ ] Manual QA: full playtest of `use <known ability>` end-to-end",
+      "outcome_verified_2026_09_21": "Closed. The feature is present and exercised; two gaps this file itself implied\nwere closed while triaging it.\n\n**Verified in the repo:** `EDGE_KNOWN` (`graph.py:478`, item→character\ndirection); resolution in `find_item_node` (`engine/player_manager.py:148-151`);\nthe use flow needs no known-specific branch because `use_item` resolves via\n`find_item_node` first (`engine/items/use_actions.py:29-36`) and the\nreturn-to-location block is `is_carrying`-guarded (`:176-183`); examine\n(`engine/items/examine_actions.py:235`); scene snapshot\n(`engine/scene_snapshot.py:315-319,329`); frontend edge type\n(`static/js/graph/edge-types.js:28,55,78`); inspector picker\n(`static/js/inspector/agent-view.js:2049+`); autocomplete\n(`engine/autocomplete.py:41-45`); prompt context\n(`static/js/agent/prompt-builder/contextual-actions.js:117-128`).\n\n**Two things fixed here rather than left:**\n\n1. **The picker re-offered abilities you already had.** It compared a *name* list\n   (`worldState.getInventory`) against node **ids** (`allItems.includes(id)`), so\n   the graph branch never filtered and \"Know\" would add a duplicate `known` edge.\n   Fixed by adding `worldState.getInventoryIds()` and comparing ids - names are\n   not identity (two abilities can share one). The library branch now uses\n   `properties.library_id` provenance instead of name matching. Same bug fixed in\n   `_showAddItemPicker`, and `_showContainerPicker` was deduping containers by\n   name (two \"Bag\"s collapsed into one, then resolved via\n   `getNodeByIdentifier(name)` to whichever came first).\n2. **The serialization round-trip test** this file's own Verification required did\n   not exist. Added: `tests/test_edge_known.py::test_known_edge_survives_save_load`.\n\n**Known deviation, deliberately accepted:** the plan wanted carried/equipped →\narea/container → known, but implementation is carried/equipped → **known** →\narea → container (`engine/player_manager.py:142-151`), so a known ability shadows\na same-named physical item. The only priority test covers carrying over known.\nLeft as-is: a character who *knows* a spell expecting the room's same-named object\nis the rarer case, and changing the order would alter `find_item_node` for every\ncaller. Recorded here so it is a decision rather than an accident.\n\n**Still outstanding:** the manual browser playtest of `use <known ability>`. No\nautomated test drives `use_item()` end-to-end, and the inspector routes it relies\non (`routes/graph.py:80-82,108-110`) have no route-level test either."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Character backstory from `data/library/characters/Lyrie.json` - spells are currently forced to exist as carried/equipped intrinsic-ability items. We want a graph-native “character knows this spell” relationship instead of pretending every spell is a physical inventory slot."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-392-edge-known-abilities.md"
+  }
+}

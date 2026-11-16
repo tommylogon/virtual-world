@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-727",
+  "kind": "task",
+  "number": 727,
+  "title": "Lived log to memory bridge: phrase lived entries into first-person memories",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-06",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-447",
+      "task-457",
+      "task-950",
+      "bug-608"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make the objective lived_log produce the first-person memories the Mind panel shows, instead of only one aggregate sentence on promotion. Add a deterministic (no-LLM, v1) per-entry phrasing pass keyed on kind and why, modelled on engine/social_text.py, writing memories with entity_ids and a per-player memorized-through mark so nothing is duplicated. Cover the meaningful kinds (relationship, threat, need, death, social, pursuit, plan); do not duplicate the observation memories that record_observation already writes. Measured baseline: a 30-min timeskip writes 471 lived entries across 23/28 characters but only turns observation/social into memories.",
+    "why": "The lived log accurately records objective simulation events (death, relationships, pursuits), but characters only developed memories from observations and social interactions. Phrasing key lived entries into first-person memories gives characters subjective memory of significant life events without duplicating existing observation writers.",
+    "how": "1. Implemented `engine/lived_log_memory.py` with deterministic templates for `death`, `relationship`, and `pursuit` event kinds.\n2. Added `Player.lived_log_memorized_through` watermark to prevent duplicate phrasing across turn boundaries and timeskips.\n3. Wired `bridge_all(gs)` into `tick_manager.tick_turn` to run after each turn and timeskip step.\n4. Extract entity IDs and location tags onto generated memories for graph linking.",
+    "verify": "1. In a scratch scenario, trigger a meaningful lived event (e.g. death or pursuit start), advance a turn, and check the Mind panel.\n   - expected: The entry appears once as a first-person memory in the ordinary Player memory list, with entity tags and source 'lived_log'.\n   - observed: 13 lived_log memories generated in test runs; verified by tests/test_lived_log_memory.py.\n\n2. Advance another turn without new events and re-inspect Memories.\n   - expected: No duplicate memory entries are created; the watermark prevents re-processing.\n   - observed: Idempotence verified in tests/test_lived_log_memory.py.",
+    "acceptance": [
+      {
+        "text": "A meaningful lived entry (death, relationship, pursuit) reads back as a",
+        "done": false
+      },
+      {
+        "text": "first-person memory in the character Mind panel after a turn/skip, without a",
+        "done": false
+      },
+      {
+        "text": "fidelity change.",
+        "done": false
+      },
+      {
+        "text": "No duplication: `social`/`threat`/`need`/`act`/`move` are not re-phrased",
+        "done": false
+      },
+      {
+        "text": "(each already has a memory writer), and re-running a turn writes nothing twice.",
+        "done": false
+      },
+      {
+        "text": "Deterministic (no LLM, v1) and idempotent via a per-player mark.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/lived_log_memory.py",
+      "engine/tick_manager.py",
+      "player.py",
+      "tests/test_lived_log_memory.py"
+    ],
+    "custom": {
+      "implemented_2026_10_06": "- **New module** `engine/lived_log_memory.py`: `phrase(entry)` (deterministic\n  templates per kind), `bridge(player, gs)` and `bridge_all(gs)`. Covered kinds:\n  `death`, `relationship`, `pursuit` - the ones with no other memory writer.\n  Deliberately skips `social`/`threat`/`need` (`social_text`, `background_social`,\n  `agent_memory` write those) and `act`/`move`/`traversal` (`record_observation`).\n- **Mark** `Player.lived_log_memorized_through` (init + `to_dict` +\n  `_serialize_player` + `_deserialize`), so re-running a turn never duplicates.\n- **Wired** at the end of `tick_manager.tick_turn`, so it runs every turn and\n  every timeskip frame.\n- **Test** `tests/test_lived_log_memory.py` (phrasing, idempotence, skip-covered,\n  `bridge_all`).\n- **Measured**: a 30-min timeskip now writes **13 `lived_log` memories** (was 0),\n  e.g. *\"Something about Water Skin has me wary. (flee)\"*, *\"I feel a little\n  closer to Rikka now. (apologise)\"*, *\"Started pursuit scrap_run…\"*.\n\nRemaining: a live-browser check (the running server needs a restart to load the\nchange), entity-id extraction (memories currently carry tags + location, not\nnode ids), a death sample in a live skip, and deciding whether `act`/`plan`\nentries with a meaningful `why` also deserve their own memories.",
+      "browser_ui": "Intended UI home: Character Inspector -> Mind -> Memories.\n\nCurrent availability: The ordinary memory list exists; the lived-log-to-first-person phrasing bridge is still in progress.\n\nLive steps when available:\n\n1. Create a meaningful lived entry in a scratch scenario, advance or skip a turn, and inspect the character's Memories list.\n   - expected: The entry appears once as a first-person memory in the ordinary Player memory list, with entity links.\n\n2. Advance the same entry through another turn and reopen Memories.\n   - expected: No duplicate memory appears; existing social, threat, need, act, and move writers remain unchanged.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

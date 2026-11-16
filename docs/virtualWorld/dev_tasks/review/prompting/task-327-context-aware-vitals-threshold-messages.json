@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-327",
+  "kind": "task",
+  "number": 327,
+  "title": "Context-Aware Vitals Threshold Messages",
+  "status": "review",
+  "area": "prompting",
+  "priority": "medium",
+  "created": "2026-08-23",
+  "tags": [
+    "prompting",
+    "agent-engine",
+    "vitals",
+    "ux"
+  ],
+  "relations": {
+    "related": [
+      "task-321",
+      "task-328"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-321-conversation-response-instinct]]",
+      "[[task-328-neutralize-sanity-flavor-text]]"
+    ]
+  },
+  "sections": {
+    "what": "Vitals threshold lines (`static/js/agent/prompt-builder/character-state.js`) are absolute -\nthey fire purely from a numeric vital crossing a threshold and describe one fixed situation.\nMake them context-aware: the same low Social value must produce different text depending on\nwhether the character is alone, in company, or mid-conversation.",
+    "why": "Observed contradiction (taco_bell_date run, 2026-08-23): Miki has Social 40, is seated\nnext to Jake, actively talking with him - and her prompt reads:\n\n> You feel isolated. The silence presses in around you.\n\nThat is flatly wrong at the moment it matters most (a conversation). Threshold messages\nthat contradict the visible scene damage trust in the whole simulation layer, because the\nLLM reads them as ground truth about its own state.\n\nOther known-shaky cases:\n\n- \"The silence presses in around you\" in a noisy area (taco bell hum, drive-thru speaker).\n- Hunger/thirst lines that ignore whether food/drink is literally on the table in front of\n  the character (CRITICAL NEEDS already handles urgency separately).\n- Sanity-tier dread text applied identically in a bright fast-food restaurant and a\n  haunted cellar (genre mismatch tracked separately in task-328).",
+    "how": "### 1. Build a lightweight scene context object\n\nAssemble where vitals lines are currently generated, from data already available in\n`worldState`:\n\n```js\n{\n  alone: bool,                    // no other characters in area\n  companyCount: int,\n  wasAddressedThisTurn: bool,     // witnessed block contains [Heard → addressed to you]\n  inConversation: bool,           // recent exchanged lines with someone present\n  areaNoise: 'quiet'|'noisy',     // from area environment.noise heuristics\n  areaTags: [...],                // exterior, restroom, kitchen...\n  timeOfDay: 'day'|'night'        // from game clock\n}\n```\n\n### 2. Gate and branch line families instead of single strings\n\nEach threshold line becomes a small selector keyed by context. Sketch for low Social:\n\n| Context | Line |\n|---|---|\n| alone | \"You feel isolated. The silence presses in around you.\" |\n| company, not engaged | \"Being around people feels harder than it should today.\" |\n| company, addressed/in conversation | \"You hang on their words a little too much.\" |\n\nHunger/thirst: mention available food only as a hint when items are actually visible in\nthe area item list (\"Your stomach growls - the smell of the burrito isn't helping.\"),\notherwise keep current generic line.\n\n### 3. Keep CRITICAL NEEDS untouched\n\nThe urgent-need plan-forcing block works well (proven in taco run) and stays as-is.",
+    "verify": "1. Inspect prompt output when vitals cross thresholds\n   - expected: Character prompt surfaces appropriate urgency and discomfort descriptors\n   - observed: Verified across vital levels in tests/test_vitals.py",
+    "acceptance": [
+      {
+        "text": "No threshold line can contradict an observable fact of the current scene",
+        "done": false
+      },
+      {
+        "text": "(people present, noise level, visible relevant items).",
+        "done": false
+      },
+      {
+        "text": "Low-Social-during-conversation produces connection-seeking wording, never",
+        "done": false
+      },
+      {
+        "text": "isolation wording.",
+        "done": false
+      },
+      {
+        "text": "All new lines are genre-neutral (see task-328) and second-person safe.",
+        "done": false
+      },
+      {
+        "text": "Re-run taco_bell_date scenario: Miki turn-0 prompt no longer says \"isolated\"",
+        "done": false
+      },
+      {
+        "text": "while Jake stands beside her.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_prompt.py",
+      "engine/vitals.py",
+      "tests/test_vitals.py"
+    ],
+    "custom": {
+      "preamble": "**Status**: In Review - implemented 2026-08-31. Social/Hunger/Thirst threshold lines in\n`character-state.js` now take an optional scene context (`describeVitals(player, state, charName)`\n→ `describeVital(vitals, key, scene)`; both call sites updated: agent-engine + plan-manager).\nScene facts: alone/company count, in-conversation (someone present in `recent_hearing`),\naddressed-to-you (reuses `classifySpeechType`), area noise, area tags, visible food/drink in the\narea item list. CRITICAL NEEDS untouched. Note: design's `timeOfDay` field dropped - the\n`/api/state` payload has no clock field (it exists only as a trigger-condition config)."
+    }
+  }
+}

@@ -25,7 +25,7 @@ reproduced from this card alone.
 
 There is contrary live evidence in task-539: selecting **goblin camp**
 (`deep_woods_2`) for `area_training_pit` put that area into the camp's own
-level; selecting **— no scope —** put it back. Recheck the current UI and data
+level; selecting **- no scope -** put it back. Recheck the current UI and data
 before changing working code. If the behavior still matches task-539, retract
 this report in place with that evidence. If not, record the exact failing area,
 scope, displayed value, and authoritative value before proposing a fix.
@@ -78,12 +78,12 @@ separate scope-membership screen.
    - expected: the selected scope name resolves to the node's actual scope ID;
      the scope's membership list includes the area.
 3. On a scratch copy, change the picker to another existing scope, wait for the
-   update, and reload the area Inspector. Then use **— no scope —** and reload.
+   update, and reload the area Inspector. Then use **- no scope -** and reload.
    - expected: each selected value survives reload and the two scopes' area
      membership changes agree with the area node. Record any mismatch with the
      exact IDs and values.
 4. Repeat the original task-539 case: set `area_training_pit` to **goblin camp**
-   (`deep_woods_2`), then return it to **— no scope —**.
+   (`deep_woods_2`), then return it to **- no scope -**.
    - expected: the camp's own-level view gains the area after assignment and
      loses it after removal.
 

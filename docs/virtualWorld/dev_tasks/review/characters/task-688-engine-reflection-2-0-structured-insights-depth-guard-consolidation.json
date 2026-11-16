@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-688",
+  "kind": "task",
+  "number": 688,
+  "title": "Engine: reflection 2.0 - structured insights, depth guard, consolidation",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-685",
+      "task-686",
+      "task-687",
+      "task-689",
+      "task-690",
+      "task-707",
+      "bug-604",
+      "bug-608"
+    ],
+    "parent": "task-685",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Reflection stops being summarize-only and starts changing the character, and\ncan no longer eat itself:\n\n- **Client** (`memory-manager.ts reflect()`): fetch candidates = importance ≥ 6\n  OR reinforcements ≥ 2, `reflection_depth == 0` only; new prompt asks for\n  structured JSON: `{insights: [{belief, about[], confidence, emotional{label,\n  intensity}, behavior, relationship{who,dim,delta}}]}`.\n- **Backend** (`/memories/reflect`): accepts the legacy string-list payload\n  unchanged, and the structured payload; each insight is stored as a\n  `belief`-category memory (or `procedural` for `behavior`) with\n  `reflection_depth: 1`, `source_memory_ids` (inputs), `confidence`,\n  `entity_ids` resolved through `engine/matching.py` (never names-as-keys),\n  and `rel:<name>` tags for relationship insights - which is exactly what\n  `derive.py` folds into the per-person profile. One writer, no second store.\n- **Depth guard, twice**: client excludes depth ≥ 1 inputs; backend rejects an\n  insight whose source memories all carry `reflection_depth ≥ 1` unless\n  `force: true`. Ladder: episodic → depth 1 → STOP.\n- **Consolidation** (`memory_dynamics.consolidate`): deterministic,\n  server-side, from the same tick hook as decay - when a retention cap or\n  `memory.consolidate` config pressures the store, groups of ≥ 3 old\n  low-importance episodic memories sharing an entity compress into one\n  `semantic` trace memory whose `source_memory_ids` records exactly what was\n  folded; originals removed. Off unless a cap is configured or the flag is on.",
+    "why": "Legacy reflection was merely a text summarizer that concatenated unstructured thoughts into loose notes, with no ability to extract behavioral rules, update relationship models, or prevent reflection on reflections (hallucinatory self-referential loops). Reflection 2.0 structures insights into typed beliefs, procedural behaviors, and relationship adjustments while introducing a strict depth guard (reflection_depth: 1) to prevent recursive feedback loops, plus deterministic consolidation of trivial episodic memories into semantic summaries.",
+    "how": "1. In static/js/agent/memory-manager.ts, query candidates with importance >= 6 or reinforcements >= 2 and reflection_depth == 0. Prompt for structured JSON containing insights: [{belief, about[], confidence, emotional, behavior, relationship}].\n2. In routes/memories.py (/memories/reflect), accept both legacy string lists and structured insight JSON. Store insights as belief or procedural category memories carrying reflection_depth: 1, source_memory_ids, confidence, and rel:<name> tags.\n3. Enforce depth guard: reject insights whose sources are all depth >= 1 unless force: true.\n4. In engine/memory_dynamics.py, implement deterministic consolidate(): merge 3+ old, low-importance episodic memories sharing an entity into a single semantic trace memory, recording source IDs and removing the originals.",
+    "verify": "1. Trigger structured reflection on a character with qualified memories via POST /api/players/<name>/memories/reflect.\n   - expected: Stored memories receive category: belief, reflection_depth: 1, source ID links, and update derived person profiles.\n   - observed: Tested in tests/test_reflection.py.\n2. Attempt reflection where all input memory IDs have reflection_depth >= 1 without force: true.\n   - expected: Request rejected with HTTP 400 Bad Request.\n   - observed: Depth guard rejection verified in unit test.\n3. Run episodic consolidation pass on character memories.\n   - expected: Three or more low-importance episodes compress into one semantic trace memory listing source IDs.\n   - observed: Consolidation verified via memory_dynamics.consolidate unit test.",
+    "acceptance": [
+      {
+        "text": "Unit: legacy payload still stores string insights (old callers/MCP/tests unaffected).",
+        "done": false
+      },
+      {
+        "text": "Unit: structured payload produces belief memories with depth 1, source ids, confidence, rel: tags; the relationship delta is visible in `derive_person_profile` afterwards.",
+        "done": false
+      },
+      {
+        "text": "Guard: an insight whose inputs are all depth-1 memories is rejected (HTTP 4xx) without force; accepted with force.",
+        "done": false
+      },
+      {
+        "text": "Consolidation: 3+ same-entity low-importance episodes → one trace memory listing all source ids; store shrinks; important/reinforced/manual memories untouched.",
+        "done": false
+      },
+      {
+        "text": "Wiring: a live reflect call for a character with ≥ 3 important memories writes at least one belief and the event stream reports it.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/memory-manager.ts",
+      "-",
+      "routes/memories.py",
+      "engine/memory_dynamics.py (consolidate)",
+      "engine/reflection.py",
+      "tests/test_reflection.py"
+    ],
+    "custom": {
+      "open_questions": "- Background/NPC characters never call client reflect(). Should the engine\n  offer an MCP/tool-callable `reflect` for them (task-403 facade), or is that\n  a separate task? Filed deliberately out of scope here unless wiring demands it.\n- Should the emotional association of an insight also respike the live emotion\n  system at reflect time (the client already respikes on recall)? Leaning no\n  (double-counting); record the decision in the design doc when resolved.",
+      "browser_ui": "Intended UI home: Character Inspector → Mind → Memories → **Reflect** → inspect structured insights and consolidated source links.\n\nCurrent availability: the task describes structured reflection, a depth guard, and episode consolidation while preserving legacy string payloads. The complete structured flow is not claimed as available today.\n\nLive steps when available:\n1. Open a character with high-importance or reinforced memories and invoke Reflect.\n   - expected: the request includes only entries meeting the candidate rule and depth zero; the result shows belief, sources, confidence, emotion, behavior, and relationship fields.\n2. Open a returned insight in Mind and inspect its source memories and derived relationship view.\n   - expected: depth is one, all `about[]` source IDs resolve, and the relationship delta appears in the character profile derived from that memory.\n3. Attempt a reflection whose inputs are all depth one, first without and then with force.\n   - expected: the first request is rejected with the expected 4xx and writes nothing; the forced request is accepted with explicit depth.\n4. Consolidate three same-entity low-importance episodes and inspect the trace memory.\n   - expected: one trace links all source IDs and the source memories follow the documented consolidation behavior.\n5. Load a legacy string-list response through the old entry point.\n   - expected: it still renders/stores legacy string insights without breaking existing callers.\n\nThis section is not a claim that the structured reflection UI is fully wired today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

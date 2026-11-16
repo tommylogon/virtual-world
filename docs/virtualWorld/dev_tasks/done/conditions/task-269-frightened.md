@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
 
 ## What
 
-Terrified of a specific thing. You can't fight it off and won't go back near it. The most source-aware condition — each instance carries `source` + `source_type` (way/area/item/character) that gate the matching action.
+Terrified of a specific thing. You can't fight it off and won't go back near it. The most source-aware condition - each instance carries `source` + `source_type` (way/area/item/character) that gate the matching action.
 
 ## Schema (catalog entry)
 
@@ -35,7 +35,7 @@ Terrified of a specific thing. You can't fight it off and won't go back near it.
 
 ## Behavior breakdown
 
-- **Gates**: none hard at the condition level — the **source** gates actions via `frightened_block`:
+- **Gates**: none hard at the condition level - the **source** gates actions via `frightened_block`:
   | `source_type` | Gate |
   |---|---|
   | `way` | Won't use that passage again |
@@ -46,7 +46,7 @@ Terrified of a specific thing. You can't fight it off and won't go back near it.
 - **Combat**: `attack_mod -2`.
 - **Movement**: full speed except source-gated areas/ways.
 - **Periodic**: none.
-- **Lifecycle**: `stack: "noop"`; `default_duration: None` (persistent until source is dealt with / removed). `ends_on: []` — no action auto-ends it.
+- **Lifecycle**: `stack: "noop"`; `default_duration: None` (persistent until source is dealt with / removed). `ends_on: []` - no action auto-ends it.
 
 ## Perception
 
@@ -54,9 +54,9 @@ Terrified of a specific thing. You can't fight it off and won't go back near it.
 
 ## Integration points
 
-- `player.py:195-204` — catalog entry.
-- `engine/conditions.py` — `frightened_block(player, source_type, source_id, source_name)` (line 123); `perceived_conditions` special-cases `frightened` with a source.
-- `save` trigger effect (`{"type": "save", "params": {"stat": "WIS", "dc": 12, ...}}`) — applies `frightened` with the node's name as source.
+- `player.py:195-204` - catalog entry.
+- `engine/conditions.py` - `frightened_block(player, source_type, source_id, source_name)` (line 123); `perceived_conditions` special-cases `frightened` with a source.
+- `save` trigger effect (`{"type": "save", "params": {"stat": "WIS", "dc": 12, ...}}`) - applies `frightened` with the node's name as source.
 - `save_on` trait events: crawl/climb/jump → `"way"`, enter_area/loud_noise → `"area"`, see_item → `"item"`, combat takes_damage → `"character"`.
 
 ## Steps to verify

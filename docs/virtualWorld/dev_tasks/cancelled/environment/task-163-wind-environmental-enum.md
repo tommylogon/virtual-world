@@ -29,7 +29,7 @@ Environment props are `temperature`, `light`, `air`, `smell`, `noise` (area.py:1
 ### Effects
 
 - Wind accelerates heat propagation between connected areas (especially exterior areas): stronger wind → faster temperature equalization
-- Wind affects effective temperature (wind chill in cold areas, cooling in hot areas) — extend `equipment_bonuses.effective_temperature` or add a wind modifier
+- Wind affects effective temperature (wind chill in cold areas, cooling in hot areas) - extend `equipment_bonuses.effective_temperature` or add a wind modifier
 - High wind drains more Energy per move for exterior areas (ties into vitals)
 - Strong wind may extinguish or reduce light/heat sources, and can be a `sound_source`/noise factor
 
@@ -39,11 +39,11 @@ Environment props are `temperature`, `light`, `air`, `smell`, `noise` (area.py:1
 
 ## Files to Modify
 
-1. `area.py` — wind default
-2. `engine/environment_propagation.py` — wind affects propagation rate
-3. `engine/equipment_bonuses.py` — wind chill on effective temperature
-4. `engine/effects.py` — wind in set/adjust environment
-5. `routes/graph.py` + area editor JS — wind field
+1. `area.py` - wind default
+2. `engine/environment_propagation.py` - wind affects propagation rate
+3. `engine/equipment_bonuses.py` - wind chill on effective temperature
+4. `engine/effects.py` - wind in set/adjust environment
+5. `routes/graph.py` + area editor JS - wind field
 
 ## Steps to verify
 

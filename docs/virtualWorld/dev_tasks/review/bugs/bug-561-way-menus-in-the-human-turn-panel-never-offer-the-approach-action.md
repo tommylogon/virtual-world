@@ -48,9 +48,15 @@ Current availability: Verified in unit tests and python engine tests.
 
 Live steps when available:
 1. Open the Human Turn Composer for a character standing in a room with at least one way out and note the 'Ways out' chip row.
-2. Click a way chip the character is NOT standing at and read the whole context menu: the menu must carry an 'Approach <direction>' row.
-3. Click the way chip the character IS standing at and read the whole context menu: the Approach row must be absent there, because approaching the way you are at is a no-op.
-4. Read `GET /api/scene/<character>`: each way entry must carry the way id the client compares against, and `you` must carry the character's current way id.
+   - expected: the 'Ways out' chip row renders the available ways in the scene.
+2. Click a way chip the character is NOT standing at and read the whole context menu.
+   - expected: the menu carries an 'Approach <direction>' row.
+3. Click the way chip the character IS standing at and read the whole context menu.
+   - expected: the Approach row is absent, because approaching the current way is a no-op.
+4. Read `GET /api/scene/<character>`.
+   - expected: each way entry carries the way id, and `you` carries the character's current way id.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 
 ## Steps to verify
 

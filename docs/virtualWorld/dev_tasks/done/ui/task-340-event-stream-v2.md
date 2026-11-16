@@ -5,9 +5,9 @@ area: ui
 priority: medium
 ---
 
-# task-340 — Event Stream v2: who/what/where/outcome/debug/story
+# task-340 - Event Stream v2: who/what/where/outcome/debug/story
 
-**Status**: In Review — implemented 2026-08-24, all touched files pass `node --check`,
+**Status**: In Review - implemented 2026-08-24, all touched files pass `node --check`,
 event-stream.js back under the 600-line rule (587). Browser E2E pending (user tests live).
 
 Design source: `docs/design/event-stream-design-recommendation.md` (2026-08-18) +
@@ -34,7 +34,7 @@ delegate on the bus:
 ## What was already live from the old doc
 
 Actor filter wiring, XSS escaping, area filter + scope banner, turn cards, skill badges,
-game-clock labels, parse-error viewer (task-238) — verified before starting.
+game-clock labels, parse-error viewer (task-238) - verified before starting.
 
 ## New features
 
@@ -54,12 +54,12 @@ game-clock labels, parse-error viewer (task-238) — verified before starting.
 - **Prune notifications**: ContextWindowManager pruning emits ✂ `msg-prune` (once per
   signature, not per call).
 - **Collapsed LLM chips**: request/response payloads render one-line chips (click to
-  expand) with ~token meters (amber ≥7k). Reordering became moot — the outcome reads
+  expand) with ~token meters (amber ≥7k). Reordering became moot - the outcome reads
   above a one-line chip.
 - **Phase pills**: observe/think/decide/act/react get colored pills per phase.
 - **Area transitions**: trackAction's existing area-change detection also emits a
   `─── actor · A → B ───` divider (area-filter aware via data-stream-area).
-- **Time gaps**: ≥30 unlogged game-minutes emit `— N minutes pass —`; day rollover noted.
+- **Time gaps**: ≥30 unlogged game-minutes emit `- N minutes pass -`; day rollover noted.
 - **Turn-queue strip**: pinned strip shows up-next order; human slot glows pink 🎤.
   Rendered on advanceTurn from VW.agent.turnQueue.
 - **Timeline scrubber**: sticky minimap, colored density segments, click-to-jump,
@@ -67,7 +67,7 @@ game-clock labels, parse-error viewer (task-238) — verified before starting.
 - **Stream search**: filter-bar input hides non-matching cards + match count.
 - **Story mode**: ▤ / ▥ / 📖 buttons toggle cards/compact/story (persisted in
   localStorage). Story strips mechanics and renders serif small-caps scene lines,
-  italic inner voice, dialogue, narration — the session as readable fiction.
+  italic inner voice, dialogue, narration - the session as readable fiction.
 - **Reflection styling**: 🧠 memory reflections auto-rerouted to purple reflection rows.
 - **Persistence debts partially paid**: cap 500→2000 (DOM keeps 5000); area filter now
   survives reloads. Structured event store still open (see follow-ups).
@@ -76,13 +76,13 @@ game-clock labels, parse-error viewer (task-238) — verified before starting.
 ## Deliberate deviations from the mockup/demo
 
 - LLM-detail-after-outcome ordering NOT done via buffering (llm-client logs
-  synchronously around the call) — solved by collapse instead.
+  synchronously around the call) - solved by collapse instead.
 - Recalled-memory annotation API exists (window._lastRecallStats consumed if set fresh)
-  but nothing SETS it yet — needs a small memory-context.js hook (follow-up).
+  but nothing SETS it yet - needs a small memory-context.js hook (follow-up).
 - Provenance chips on triggers not wired (needs backend node-id threading).
 - Heard-from labels skipped (backend sound.py change, diminishing returns).
 
-## Round 3 — soft failures lied about success (found via the ✕/✓ badges)
+## Round 3 - soft failures lied about success (found via the ✕/✓ badges)
 
 User question "did Miki understand she couldn't use the can?" exposed an engine bug:
 contextual failures (`_contextual_failure` in use/consume/take actions) RETURNED their
@@ -98,7 +98,7 @@ now expect pytest.raises; eat-rock test likewise). Full suite: **1100 passed, 1 
 Net effect for agents: failure prose unchanged AND success=false now flows to the plan
 tracker (she stops retrying dead ends) and to the stream (✕ not ✓).
 
-## Round 2 — fidelity fixes after first live look
+## Round 2 - fidelity fixes after first live look
 
 - **Turn cards no longer fragment via system chatter**: only user commands and hard
   errors close a card; engine system rows (match info, skill text) stay inside the
@@ -116,7 +116,7 @@ tracker (she stops retrying dead ends) and to the stream (✕ not ✓).
   new stream/* modules.
 - Legacy callers confirmed working via delegates: main.js:748 restoreLog, main.js:779
   _persistLog interval, inspector area-view EventBus.getActionIcon.
-- Pending: browser E2E (server was down per AGENTS.md no-start rule) — run a few turns,
+- Pending: browser E2E (server was down per AGENTS.md no-start rule) - run a few turns,
   confirm cards stay whole, chips expand, scrubber jumps, story mode reads well,
   reload keeps area filter + more scrollback.
 

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-453",
+  "kind": "task",
+  "number": 453,
+  "title": "Save-format schema version and load-time compatibility/migration",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-439",
+      "task-446",
+      "task-365"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give the save/scenario payload an explicit **format schema version** and make load\ncheck it, so a file written before a breaking format change can never load silently\nwrong.\n\n`_save_metadata.version` (from `APP_VERSION`, `routes/helpers.py:321`) is the **saving\napp's** version, not a format marker. There is no compatibility check on either load\npath (`POST /api/load`, `POST /api/load-game`). With `task-446` (id-first node\nidentity, in progress) and `task-439` (canonical area identity) changing how players\nand areas are keyed, an old name-keyed save file already in `saves/` can be read\nthrough new code and produce colliding or mis-attributed entries.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Scenario save files include schema version metadata.",
+        "done": true
+      },
+      {
+        "text": "Load-time migration pipeline updates legacy schema structures automatically.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/serialization.py",
+      "tests/test_serialization.py"
+    ],
+    "custom": {
+      "proposed_shape": "- Add `SCHEMA_VERSION` (single source, e.g. alongside `version.py`), stamped into\n  `_save_metadata` / `_autosave_meta` and into scenario payloads written by\n  `to_scenario_dict`/commit.\n- On load, compare the file's schema version against the current one:\n  - equal → load as today;\n  - older and a registered migration exists → migrate in memory, load, and report\n    \"migrated from vN\" to the caller/UI;\n  - older with no migration, or newer than the app → refuse with a clear error\n    (do not partially load).\n- Keep `version` (app build) for display; keep it separate from `schema_version`.\n- Migrations must be read-old/write-new and must not rewrite the source file unless a\n  save/commit happens.",
+      "acceptance_as_planned": "Outcome and the one deviation (an unstamped payload is current-format, not v1)\nare recorded under **Resolution** below.",
+      "resolution_2026_10_02": "A schema field already existed but was a half-measure: `save_autosave` hard-coded\n`'schema_version': 2` (initial release, `170d5f1`) and `load_autosave_if_exists`\nhad an inline bladder v1→v2 migration - but **nothing read it on the load\nroutes**, `_save_game` never stamped it, and `to_scenario_dict` never stamped it.\n\nImplemented:\n\n- `version.py` - `SCHEMA_VERSION = 2`, documented as the payload *format* version,\n  distinct from `APP_VERSION` (app build). No more magic `2`.\n- `engine/schema.py` (new) - `schema_version_of`, `migrate`, `SchemaError`, and a\n  `SCHEMA_MIGRATIONS` registry. `migrate` returns `(data, from_version)`, applies\n  registered migrations in memory (read-old/write-new; never rewrites the\n  source), refuses a version newer than the app, and refuses an older version\n  with no registered step.\n- `routes/helpers.py` - `save_autosave` and `_write_autosave_slot` and\n  `_save_game` all stamp `SCHEMA_VERSION`; the autosave boot path now calls\n  `migrate()` instead of its inline bladder block, so the one gate is shared.\n- `routes/saveload.py` - `/api/load` and `/api/load-game` migrate before\n  `load_from_dict`; a refusal is a 400 with the specific reason, a migration\n  returns `schema_notice`.\n- `engine/serialization.py` - `to_scenario_dict` stamps `schema_version` too.\n- `static/js/ui/saveload-view.js` - `doLoadGame` / import-apply toast\n  `schema_notice`, so a migration is visible.\n- `tests/test_save_schema.py` - 12 cases: reader, same-version no-op, explicit\n  v1 migration, newer refusal, stamping on save/autosave, and both load routes.\n\n### Decision: an *unstamped* payload is current-format, not v1\n\nThe acceptance said \"missing … migrates or is refused\". The evidence says\notherwise, and blindly migrating is actively harmful here: `save_autosave` has\nstamped `schema_version: 2` since the initial public release - the same commit\nthat introduced the bladder migration - while `_save_game` and\n`to_scenario_dict` wrote current-format payloads **without** the field. So an\nunstamped file is a current-format save/scenario, and assuming v1 would invert\nthe Bladder vital of every existing one. `LEGACY_SCHEMA_VERSION` is therefore\n`SCHEMA_VERSION`: missing loads as current, an **explicit** older version\nmigrates/refuses, a newer one is refused. This keeps the real safety property\n(after a breaking change, a stamped old file can never be read as current) while\nnot corrupting the files that predate the field.\n\n### Verification\n\n- `python -m pytest tests/test_save_schema.py tests/test_saveload.py -q` → 45 passed.\n- Full suite A/B against a clean `master` worktree: **identical failure-name\n  set** (15 both sides); my run 6623 passed vs 6607 baseline.\n- Live (port 4471, real `api.loadGame` + `SaveLoadView.doLoadGame`):\n  - `schema_version: 1` file → `{\"status\":\"success\",\"schema_notice\":\"Migrated save from schema v1 to v2.\"}` and the toast `ℹ️ Migrated save from schema v1 to v2.` rendered.\n  - `schema_version: 999` file → `{\"error\":\"This file was written by a newer version (schema v999); this app reads up to schema v2. Update the app to load it.\"}` (400), world untouched.\n- `node tools/unit/run.cjs` 485 passed; `npm run lint`, `npm run typecheck` clean.\n\n### Acceptance\n\n- [x] New saves carry an explicit `schema_version` distinct from `version`.\n- [x] An explicitly older save/scenario is migrated with a visible notice, or\n      refused with a specific error (newer); never read as current.\n- [x] A save from a newer schema version is refused rather than misread.\n- [x] Existing autosave/scenario boot behavior is unchanged for same-version\n      files (stamped 2 → no-op; A/B-identical).\n- [ ] Migration of a legacy **name-keyed** payload cooperating with\n      task-439/task-446 is **not** done here - this task provides the gate and\n      the registry; the name-keyed migration is content that belongs with those\n      tasks. No checked-in file needs it today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-453-save-format-schema-version-and-load-time-compatibility-migration.md"
+  }
+}

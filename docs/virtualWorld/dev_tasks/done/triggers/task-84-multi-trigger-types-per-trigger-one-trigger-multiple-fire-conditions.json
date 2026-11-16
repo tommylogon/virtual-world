@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-84",
+  "kind": "task",
+  "number": 84,
+  "title": "Multi Trigger Types Per Trigger - One Trigger, Multiple Fire Conditions",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-21",
+  "updated": "2026-07-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Currently each trigger has a single `trigger_type` (e.g. `on_use`). A trigger should be able to fire on **multiple** trigger types - e.g. both `on_use` AND `on_examine`, or `on_open` AND `on_close`. This avoids duplicating the same effects/conditions across separate trigger entries.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - `_execute_triggers()` array support",
+      "static/js/inspector.js` - edit trigger overlay UI",
+      "static/js/item-library.js` - add trigger overlay UI"
+    ],
+    "custom": {
+      "example": "Instead of two identical triggers:\n```json\n{\"trigger_type\": \"on_use\", \"effects\": [{\"type\": \"message\", \"params\": {\"message\": \"The drawer rattles.\"}}]}\n{\"trigger_type\": \"on_examine\", \"effects\": [{\"type\": \"message\", \"params\": {\"message\": \"The drawer rattles.\"}}]}\n```\n\nOne trigger:\n```json\n{\"trigger_type\": [\"on_use\", \"on_examine\"], \"effects\": [{\"type\": \"message\", \"params\": {\"message\": \"The drawer rattles.\"}}]}\n```",
+      "engine_changes": "### `virtual_world_engine.py` - `_execute_triggers()` (line ~1405)\n\nChange the trigger type filtering to support arrays:\n\n```python\ntp = trigger_edge.properties.get(\"trigger_type\", \"\")\n\n# Support multiple trigger types via array\nif isinstance(tp, list):\n    if trigger_type not in tp:\n        continue\nelif tp == \"on_use_on\" and target_name:\n    # existing logic\n    ...\nelif tp != trigger_type and not (tp.startswith(\"on_use_on\") and trigger_type == \"on_use_on\"):\n    continue\n```\n\nBackward compatible - existing string `trigger_type` values work unchanged.",
+      "ui_changes": "### `inspector.js` - Edit Trigger overlay (line ~1294)\n\nReplace single `<select>` with a **multi-select or checkbox group**. Options:\n1. **`<select multiple>`** - simple, Ctrl+click for multiple selection, styled with `height: auto`\n2. **Tag-based selector** - click \"+Add type\" to append chips, better UX but more code\n\nThe save function (`pullTriggerData`) must store `trigger_type` as:\n- A **string** if only one type selected (backward compat)\n- An **array** of strings if multiple selected\n\n### `item-library.js` - Add Trigger overlay (line ~581)\n\nSame change as inspector.js.\n\n### Data migration\n\nExisting triggers with string `trigger_type` continue working. New triggers with multiple types are stored as `trigger_type: [\"on_use\", \"on_examine\"]`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-84-multi_trigger_types.md"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "bug-4",
+  "kind": "bug",
+  "number": 4,
+  "title": "Initiative list shows \"ACTING\" on first character before any turn is taken",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Before clicking \"Step\" or \"Start\", the first character in the initiative list shows `▶️ Kaelen Voss ⚡ ACTING`. No turn has been taken yet - the character is \"up next\", not \"acting\".",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "static/js/ui-controller.js:176",
+      "---",
+      "_Audited 2026-08-03 - duplicate file consolidated into this record._"
+    ],
+    "custom": {
+      "root_cause": "`TurnQueue.initialize()` sets `currentTurnIndex = 0`. The `_renderInitiative()` function in `ui-controller.js` treats any character at `currentTurnIndex` as \"current\" and displays \"⚡ ACTING\" regardless of whether any turns have actually been processed.\n\nWhen `currentTurnIndex = 0` and `turnNumber = 0`, the character at index 0 hasn't had their turn yet - they're the next character up. The UI shouldn't show \"ACTING\" until `step()` has actually started processing them.",
+      "fix": "In `_renderInitiative()` (`ui-controller.js:176`), change the status text for the current character when `agent.turnNumber === 0` (no full rounds completed) and no characters have been processed yet:\n\n```\nconst statusStr = isCurrent\n  ? (agent.turnNumber === 0 ? 'up next' : (isNpc ? 'ACTING...' : '⚡ ACTING'))\n  : (isDone ? 'done' : 'waiting');\n```"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-4-initiative-shows-acting-before-turns.md"
+  }
+}

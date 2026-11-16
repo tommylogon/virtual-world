@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-649",
+  "kind": "task",
+  "number": 649,
+  "title": "A known-bad reference image is still offered: eldenford - wrong orientatoin.webp",
+  "status": "done",
+  "priority": "low",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The WorldPainter reference-image picker lists 19 backgrounds including 'eldenford - wrong orientatoin.webp' -- a file whose name says it is the wrong orientation. It sits next to the correct eldenford.webp, so an author tracing over the map can pick the wrong one and get a mirrored map. Either rename it out of the directory or have the picker mark it.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "The known-bad reference is no longer offered by the picker.",
+        "done": true
+      },
+      {
+        "text": "The file is moved, not deleted, so the decision is reversible.",
+        "done": true
+      },
+      {
+        "text": "The endpoint was hit live to prove it.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_done_2026_10_02": "`static/images/backgrounds/eldenford - wrong orientatoin.webp` was moved (via\n`git mv`) to `static/images/backgrounds/_rejected/`. `_background_urls`\n(`routes/world_grid_ops.py`) now skips non-file entries, so a subfolder is never\nlisted and the bad image cannot be traced over by mistake. The rejected copy is\nstill in the tree if the author wants it.\n\nEvidence, live on port 4461:\n\n    GET /api/world/painter/backgrounds\n    -> 17 images, none matching \"wrong orient\"\n    -> /static/images/backgrounds/eldenford.webp still present\n\n`python -m pytest tests/test_painter_backgrounds.py -q` - 1 passed.",
+      "verified_2026_10_09": "Re-confirmed: `static/images/backgrounds/_rejected/eldenford - wrong\norientatoin.webp` exists (moved, not deleted) and\n`tests/test_painter_backgrounds.py` passes. Closed to `done`.",
+      "sweep_of_the_backgrounds_directory_2026_09_30_leaving_this_one_to_tommy": "`/api/world/painter/backgrounds` lists 19 files in `static/images/backgrounds`,\nnearly all ~4 MB. Beyond the known-bad entry, the sweep found:\n\n| file | size | note |\n|---|---|---|\n| `eldenford - wrong orientatoin.webp` | 4,158,067 | named as wrong; sits beside the correct `eldenford.webp` |\n| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611-1790163792966.webp` | 4,063,401 | **byte-identical pair** with the row below |\n| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611.webp` | 4,063,401 | |\n| `valerious-house-interior-1790164455523.webp` | 2,951,917 | timestamped variant of `valerious-house-interior.webp` |\n| `deep_forest-1790288542838.webp` | 4,083,322 | timestamped variant |\n\n**Not actioned deliberately.** Deleting or renaming these is a judgement about\nwhich reference art the author wants to keep, and a wrong guess destroys work.\nTwo things worth deciding separately:\n\n1. Whether the reference picker should filter. It is a *reference* list used\n   while tracing a grid by eye, so a wrong-orientation image in it does real\n   damage -- the author traces faithfully onto a mirrored map. Marking rejected\n   art (a `rejected: true` sidecar, or a `_rejected/` subdirectory the endpoint\n   skips) is safer than deletion and is reversible.\n2. Roughly 4 MB of exact duplicates is dead weight in the repo regardless of\n   which are kept."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/library/task-649-a-known-bad-reference-image-is-still-offered-eldenford-wrong-orientatoin-png.md"
+  }
+}

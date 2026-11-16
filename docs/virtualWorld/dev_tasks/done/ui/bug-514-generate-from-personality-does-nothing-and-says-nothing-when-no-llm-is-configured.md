@@ -22,7 +22,7 @@ Both generators open with 'if (!player || !AIGenerator.isConfigured()) return;'.
 - [x] A programmatic call with no provider toasts immediately rather than
       silently returning.
 
-## Fix — 2026-10-02
+## Fix - 2026-10-02
 
 The half-right part: `AIGenerator.isConfigured()` *does* toast
 ("Configure API key and model in Settings first."), and did so since the initial
@@ -35,10 +35,10 @@ produced the toast.
 
 Changes in `static/js/inspector/agent-view.js`:
 
-- `AV._isAiConfigured()` — a side-effect-free provider read
+- `AV._isAiConfigured()` - a side-effect-free provider read
   (`config.apiKey && config.model`), safe to call during render.
 - Both **✨/😨 Generate from Personality** buttons now render `disabled` with a
-  title ending "— No AI provider configured. Add an API key and model in
+  title ending "- No AI provider configured. Add an API key and model in
   Settings first." when no provider is set, and stay enabled otherwise.
 - `_generateInterestTags` / `_generateFearTags` now call
   `AIGenerator.isConfigured()` at the very top, so a programmatic invocation

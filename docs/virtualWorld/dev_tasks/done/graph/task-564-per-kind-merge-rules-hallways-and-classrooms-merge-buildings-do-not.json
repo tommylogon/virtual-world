@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "id": "task-564",
+  "kind": "task",
+  "number": 564,
+  "title": "Per-kind merge rules: hallways and classrooms merge, buildings do not",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-561",
+      "task-562",
+      "task-496"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Region merging is one global switch per scope, but a high-school plan needs different rules per kind in the same grid: a run of hallway cells merges into one corridor, 4 classroom cells merge into one room, and adjacent building cells never merge (a terrace of houses is several buildings, not one). The machinery already exists (world_compile._regions with an identity function); it needs the identity to carry a per-kind merge rule instead of the whole scope sharing one toggle. Also decide what the 'merge' control means once this lands - a default per mode, with the toggle as an override.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**A run of `hallway` is one corridor, whatever the merge switch says.**",
+        "done": true
+      },
+      {
+        "text": "`merge: always` is declared on the record (`hallway`, `corridor`) and",
+        "done": false
+      },
+      {
+        "text": "overrides the scope's `merge same-biome` checkbox. A ten-cell corridor",
+        "done": false
+      },
+      {
+        "text": "painted with merging off is still one corridor, not ten anonymous rooms.",
+        "done": false
+      },
+      {
+        "text": "**A terrace of cottages is three cottages.** Every `building` record is",
+        "done": true
+      },
+      {
+        "text": "`merge: never` without 31 records having to say so -",
+        "done": false
+      },
+      {
+        "text": "`biomes_mod.merge_rule` reports a building as never-merge from the `building`",
+        "done": false
+      },
+      {
+        "text": "tag. Adjacent `cottage` cells stay three areas with the merge switch **on**.",
+        "done": false
+      },
+      {
+        "text": "**Everything else follows the switch**, unchanged from before: two",
+        "done": true
+      },
+      {
+        "text": "`dining_hall` cells are two rooms with merging off and one with it on. A",
+        "done": false
+      },
+      {
+        "text": "wilderness scope compiles identically to how it did before this task, so no",
+        "done": false
+      },
+      {
+        "text": "existing map changes shape.",
+        "done": false
+      },
+      {
+        "text": "The rules are **per kind, resolved in one place** (`_regions`, via",
+        "done": true
+      },
+      {
+        "text": "`always_merge` / `never_merge` / `default_merge`), so a half-merge - a run",
+        "done": false
+      },
+      {
+        "text": "broken in the middle - is impossible.",
+        "done": false
+      },
+      {
+        "text": "The rule is **vocabulary, not code**: a modder adding a `cellar` or a",
+        "done": true
+      },
+      {
+        "text": "`subway` writes `merge: always` on the record and gets the behaviour.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "- The earlier draft of this called for 4 classroom cells to merge into one room.\n  That is the *scope switch's* job, not a per-kind rule: a room's footprint is\n  what the author paints, and making rooms merge unconditionally would make it\n  impossible to have a study next to a bedroom. Rooms follow the switch; only\n  circulation (shape, not count) and buildings (a plot, not a run) are per-kind."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-564-per-kind-merge-rules-hallways-and-classrooms-merge-buildings-do-not.md"
+  }
+}

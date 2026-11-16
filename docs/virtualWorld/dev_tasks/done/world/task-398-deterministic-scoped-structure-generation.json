@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "id": "task-398",
+  "kind": "task",
+  "number": 398,
+  "title": "Deterministic scoped structure generation",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-08",
+  "updated": "2026-09-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Generate an unmade world scope into normal VirtualWorld graph nodes: real\nareas, real ways, relevant furniture/items, and optionally inhabitants. The\ngenerator must be deterministic, reviewable, editable after generation, and\nsafe to invoke exactly once. AI assistance is optional and may enrich a plan;\nit is never required for topology or baseline item placement.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Generating Apartment 3B creates a walkable three-area interior from Hallway",
+        "done": false
+      },
+      {
+        "text": "3 using normal movement and way rules.",
+        "done": false
+      },
+      {
+        "text": "Generated items are physically placed through normal spatial edges and can",
+        "done": false
+      },
+      {
+        "text": "be looked at/taken/used.",
+        "done": false
+      },
+      {
+        "text": "Same seed + recipe version + clean fixture yields the same patch.",
+        "done": false
+      },
+      {
+        "text": "A second generation attempt makes no duplicate nodes/ways/items.",
+        "done": false
+      },
+      {
+        "text": "Missing tag candidates are visible in the preview/report.",
+        "done": false
+      },
+      {
+        "text": "Save/reload preserves generated nodes, provenance, and scope state.",
+        "done": false
+      },
+      {
+        "text": "A later manual edit to a generated item survives reload and cannot be erased",
+        "done": false
+      },
+      {
+        "text": "by a second generator invocation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "generator_contract": "Each generation recipe returns a **graph patch**, not a parallel world format:\n\n```python\nGenerationPatch(\n    nodes: list[Node],\n    edges: list[Edge],\n    area_scope_assignments: dict[str, str],\n    generated_manifest_updates: dict,\n    report: GenerationReport,\n)\n```\n\nApplying the patch must use the existing graph node/edge conventions:\n\n- areas use `type=\"area\"`;\n- passages use normal `way` nodes and four connection edges where bidirectional;\n- items use normal library-spawned item nodes and spatial edges;\n- triggers remain normal logic-trigger nodes/edges;\n- generated node ids are stable, scoped, and collision checked, e.g.\n  `area_pines_3b_bedroom` and `way_pines_hall_3_to_3b`.\n\nEvery generated node receives provenance:\n\n```json\n{\n  \"generated\": {\n    \"scope_id\": \"pines_apartment_3b\",\n    \"recipe_id\": \"apartment.v1\",\n    \"seed\": \"pines:3b:v1\",\n    \"generated_at_tick\": 0\n  }\n}\n```\n\nOnce applied, a scope changes from `unmade` to `materialized`. Re-running must\nbe rejected by default; an explicit future regenerate/variant flow must never\noverwrite manual edits.",
+      "first_recipe_pines_apartment_3b": "Use one small, authored apartment recipe as the proof:\n\n- entry/living-kitchen area, bedroom, bathroom;\n- an external way from Hallway 3 and internal ways between rooms;\n- a minimal domain-tagged furniture set;\n- a tag-aware population pass for furniture contents and loose items;\n- either `vacant` or one explicitly requested resident seed. Do not silently\n  manufacture an LLM character.\n\nThe recipe should use the existing profile as authored context, but profile\ntext is input data, not executable instruction.",
+      "tag_aware_population_rules": "Task-9 already owns the reusable area → furniture → item tag-chain engine.\nThis task must call a stable planning/apply API from that task rather than\nduplicate library selection in a building generator. The engine must not call\nroute-private helpers such as `_spawn_library_item_node`; extract a public\nlibrary/graph materialization service usable by both the route and generator.\n\nFor this prototype, create a deliberately small approved tag vocabulary, for\nexample `residential`, `bedroom`, `bathroom`, `kitchen`, `storage`, and\n`display`, and a matching fixture/template inventory. Candidate selection must\nalso use room archetype, furniture `placement_roles`, weights, exclusion tags,\nand per-archetype budgets/capacities; raw tag intersection alone would put\nplausible-but-wrong things in rooms. Pre-index library candidates by tag/role\ninstead of scanning the full library for every placement. Pines currently has no\narea-domain tags, so demonstrating \"relevant items\" without this data would\nbe fake. The generator report must say when a requested tag has no eligible\nlibrary candidates; it may not substitute unrelated items silently.",
+      "editor_workflow": "1. Select an unmade scope.\n2. Preview: recipe, seed, proposed area/way/item counts, unresolved tag pools,\n   and boundary ways.\n3. Apply after user confirmation.\n4. Show a generation report and focus the new graph projection.\n\nAI enrichment, if later enabled, produces a staged proposal using the existing\nnatural-language editor; deterministic validation and user apply remain the\nauthority.",
+      "non_goals": "- Generating all of Millbrook, district road layout, or wilderness grids.\n- LLM-only generation or unreviewed mutation.\n- Chunk unloading (task-401).",
+      "progress_2026_09_24_the_patch_contract": "The generation **contract** is implemented; the first concrete recipe\n(Pines Apartment 3B, below) is still to build.\n\n- **`engine/generation.py`** (new) - `GenerationPatch(nodes, edges,\n  area_scope_assignments, generated_manifest_updates, report)` and\n  `GenerationReport`; `provenance(scope_id, recipe_id, seed, tick)` and\n  `is_generated(node)`; `apply_patch(graph, manifest, patch, *,\n  allow_regenerate=False)`.\n  - **Once-only guard**: the target scope flips `unmade → materialized`; a\n    second apply raises unless `allow_regenerate=True`, so a re-run cannot\n    duplicate nodes or erase a manual edit.\n  - **Collision-safe**: all node-id collisions are checked *before* any\n    mutation, so a rejected apply leaves the graph untouched. A hand-authored\n    node at a generated id is refused; with `allow_regenerate`, generated ids\n    are replaceable and hand-authored ones are preserved.\n  - `area_scope_assignments` merge into each scope record's `area_ids`.\n- **`tests/test_world_compile.py`** covers the contract: materialize-once,\n  second-apply rejected with the manual edit intact, and refusal to clobber a\n  hand-authored node.\n\nThe grid recipe that consumes this contract lives in `engine/world_compile.py`\n(task-496) - see that task's progress note. The Pines Apartment 3B recipe\n(three areas from Hallway 3, tag-aware furniture population) is the next slice\nhere, and it should call task-9's `engine/population.py` planner rather than\nre-selecting from the library.",
+      "progress_2026_09_28_the_apartment_v1_recipe": "`engine/generation_recipes.py` (new) + `engine/library_nodes.py` (new) +\n`engine/population.py` (indexed) + `routes/library_ops.py` (delegates) +\n22 tests in `tests/test_apartment_recipe.py`.\n\n### The public materialisation service the task asked for\n\nThe task says: \"The engine must not call route-private helpers such as\n`_spawn_library_item_node`; extract a public library/graph materialization\nservice usable by both the route and generator.\"\n\n`materialize_library_item` already existed but was not enough, and the reason is\nworth stating: it takes a Flask `app`, mutates a graph, and mints ids from\n`time.time()` + `random.randint`. Fine for \"a player picks up an item\",\nunusable for a generator, which must be able to name the node it wants, build it\nwithout a graph, and get the same result for the same seed.\n\nSo `engine/library_nodes.py` holds the property mapping - **one definition of\nwhat a library item node is** - and offers two shapes:\n\n- `build_item_node(library_id, entry, node_id, extra)` → a `Node`, no graph, no\n  clock, no RNG.\n- `build_item_subtree(...)` → that node plus its contents and triggers, with\n  ids derived from `node_id` and position (`<id>_content_0`,\n  `trigger_<id>_<type>_0`).\n\n`routes/library_ops.py::_spawn_library_item_node` now delegates its property\nmapping to it and keeps its own clock-based id and graph mutation, so route\nbehaviour is byte-identical while there is only one definition. That file also\nnow imports `RELATION_EDGE_TYPES` from the engine instead of keeping a third\ncopy.\n\n`missing_content_ids` is **returned, not logged**: a recipe has to be able to say\n\"this entry references something that does not exist\" in its report rather than\nquietly shipping a box with nothing in it.\n\n### The recipe\n\nThree areas (living-kitchen, bedroom, bathroom) with per-room archetype, domain\ntags and budgets - a bathroom with six loose items reads as a storeroom and a\nkitchen with three reads as empty. One external way in from Hallway 3, two\ninternal ways, all bidirectional, all real `way` nodes. Population goes through\ntask-9's `plan_population` with a per-room `random.Random(f\"{seed}:{room}\")`, so\nthe seed a scope record carries is the only randomness.\n\n**No resident.** The task says \"either `vacant` or one explicitly requested\nresident seed. Do not silently manufacture an LLM character\", so `apartment.v1`\ntakes no resident argument and generates a vacant apartment. Tested.\n\n### The library index is now indexed\n\n`LibraryIndex.candidates` walked every entry in the library for every placement.\nIt now walks the `by_tag` postings for the requested domains. The old filter kept\nan entry only when it carried at least one domain tag, so the union of those\npostings is exactly the old candidate set - same answer, no per-placement full\nscan. A 525-entry library is 12 tags' worth of reads instead of 525.\n\n### One bug my own tests caught\n\n`build_item_subtree` had two overlapping parameters (`extra` and `provenance`)\nand the top-level item node got neither while its children and triggers got\n`provenance`. A generated child missing the `generated` fragment would read as\nhand-authored - precisely the state a later regenerate is allowed to overwrite,\nso a generated subtree would have been half-protected. Collapsed to one\nparameter applied to the whole subtree.\n\n### Verified\n\nSame seed → byte-identical patch, node for node and edge for edge. Different\nseed → a different population (otherwise determinism would be trivial). A second\napply is refused and leaves the graph untouched; no duplicate nodes; a manual\nedit to a generated item survives a refused second generate. Every generated\nnode carries provenance. Items hang off an area or a container by a normal\nspatial relation, so `examine`/`take` find them by the existing lookup. An\nempty library makes the report say so instead of substituting.\n\nGate: 61 failed / 4311 passed - the same 61 pre-existing failures.\n\n### Still open\n\n- **Editor preview UI.** `GenerationReport.unresolved_tags` and `notes` already\n  carry what the task requires to be visible; the preview → confirm → apply\n  *surface* is not built. It is a `Generate` button, which is exactly what\n  task-397's scope tree deliberately does not offer yet.\n- `routes/graph_ops.py` still keeps its own `RELATION_EDGE_TYPES` copy. It is not\n  my file and the duplication is harmless, so I left it rather than editing\n  another lane's file.\n- Save/reload of generated nodes + provenance + scope state is covered for the\n  pool and the `at` edge in `tests/test_serialization.py`, but not yet for a\n  generated subtree. Worth adding with the preview surface."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-397; task-323 and task-324 for tag-validated library"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-398-deterministic-structure-generation.md"
+  }
+}

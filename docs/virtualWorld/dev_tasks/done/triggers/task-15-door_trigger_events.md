@@ -10,13 +10,13 @@ priority: medium
 
 **Filed**: 2026-07-17 (updated 2026-07-21)
 **Priority**: High
-**Status**: Complete — Move to Review
+**Status**: Complete - Move to Review
 
 ---
 
 ## What
 
-Triggers need to target and modify arbitrary nodes (items, ways, areas, characters) — not just the trigger's source node or current room. Already proven: `front_way` `on_open` → `set_state` on `item_fireplace` works. This card expands to a full cross-entity effect system.
+Triggers need to target and modify arbitrary nodes (items, ways, areas, characters) - not just the trigger's source node or current room. Already proven: `front_way` `on_open` → `set_state` on `item_fireplace` works. This card expands to a full cross-entity effect system.
 
 ## Complete
 
@@ -28,8 +28,8 @@ Triggers need to target and modify arbitrary nodes (items, ways, areas, characte
 | `adjust_uses` | `node_id`, `delta` (int) | ✅ | ✅ | `{ node_id: "item_lockbox", delta: -1 }` |
 | `set_environment` (cross-room) | `node_id`, `light`, `temp`, `noise`, `smell`, `air` | ✅ | ✅ | Target any room |
 | `set_description` | `target`, `value` | ✅ | ✅ | Replace full description |
-| `append_description` | `target`, `text` | ✅ | ✅ | NEW — appends text with `\n` separator |
-| `end_scenario` / `restart_scenario` | — | ✅ | ✅ | Stop/restart game |
+| `append_description` | `target`, `text` | ✅ | ✅ | NEW - appends text with `\n` separator |
+| `end_scenario` / `restart_scenario` | - | ✅ | ✅ | Stop/restart game |
 | `rename` | `new_name`, `node_id` | ✅ | ✅ | Rename items |
 | `unlock_way` | `way_id` | ✅ | ✅ | |
 | `spawn_item` / `remove_item` | `item_id` | ✅ | ✅ | |
@@ -39,7 +39,7 @@ Triggers need to target and modify arbitrary nodes (items, ways, areas, characte
 | Condition | Engine | Frontend | Notes |
 |-----------|--------|----------|-------|
 | `has_item` | ✅ | ✅ | Searchable from all world + library items |
-| `state_equals` | ✅ | ✅ | NEW: target field in UI — `{ target: "item_fireplace", value: "lit" }` or just `{ value: "lit" }` for trigger source |
+| `state_equals` | ✅ | ✅ | NEW: target field in UI - `{ target: "item_fireplace", value: "lit" }` or just `{ value: "lit" }` for trigger source |
 | `random_chance` | ✅ | ✅ | |
 | `skill_check` | ✅ | ✅ | |
 | `uses_reached` | ✅ | ✅ | |
@@ -86,14 +86,14 @@ Effects:
 4. Set Text to Append: `"\nSomeone has written in this book."`
 5. Save the trigger
 6. In the game, fire the trigger (e.g. `use` or `examine`)
-7. Examine the target item — its description should now include the appended text
+7. Examine the target item - its description should now include the appended text
 
 ### 2. `state_equals` with cross-entity target
 1. Open any item's trigger editor
 2. Add condition type: **Node state equals** (`state_equals`)
 3. You should see a **Target node** input (optional) plus the **Value** input
 4. Set Target to `item_fireplace` and Value to `lit`
-5. Save — this condition now checks the fireplace's state, not the trigger source
+5. Save - this condition now checks the fireplace's state, not the trigger source
 6. (The front door → fireplace example in the template already uses this)
 
 ### 3. Existing cross-entity effects still work
@@ -101,28 +101,28 @@ Effects:
 - `set_environment` with `node_id` targeting a different room
 - `set_hidden` to reveal/hide items anywhere
 
-## Files Changed (this batch — 2026-07-21)
+## Files Changed (this batch - 2026-07-21)
 
-- `virtual_world_engine.py` — added `append_description` effect handler
-- `static/js/inspector.js` — `state_equals` target field in condition editor + `append_description` effect UI
-- `static/js/item-library.js` — `state_equals` target field + `append_description` effect type + node datalists
-- `static/js/main.js` — `append_description` in AI prompt
-- `static/js/prompt-docs.js` — docs for `append_description` + updated `state_equals`
-- `dev_tasks/inprogress/task-15-way_trigger_events.md` — updated status to complete
+- `virtual_world_engine.py` - added `append_description` effect handler
+- `static/js/inspector.js` - `state_equals` target field in condition editor + `append_description` effect UI
+- `static/js/item-library.js` - `state_equals` target field + `append_description` effect type + node datalists
+- `static/js/main.js` - `append_description` in AI prompt
+- `static/js/prompt-docs.js` - docs for `append_description` + updated `state_equals`
+- `dev_tasks/inprogress/task-15-way_trigger_events.md` - updated status to complete
 
 ### Previous batches (2026-07-20)
-- `virtual_world_engine.py` — `set_hidden`, `adjust_uses`, `end_scenario`, `restart_scenario` effects
-- `static/js/inspector.js` — has_item search, locked state/checkbox, removed unlock UI
-- `static/js/item-library.js` — has_item search, locked checkbox, new effect types
-- `static/js/agent-engine.js` — cancel step, scenario_ended detection, abort controller
-- `static/js/ui-controller.js` — cancel button visibility
-- `static/js/main.js` — `cancelStep()` global
-- `static/js/api.js` — `resetWorld()` method
-- `static/js/graph-manager.js` — removed unlock context menu
-- `static/js/prompt-docs.js` — new effect docs
-- `app.py` — scenario_ended flags in API responses
-- `templates/index.html` — cancel button
-- `world_template.json` — locked state handling
+- `virtual_world_engine.py` - `set_hidden`, `adjust_uses`, `end_scenario`, `restart_scenario` effects
+- `static/js/inspector.js` - has_item search, locked state/checkbox, removed unlock UI
+- `static/js/item-library.js` - has_item search, locked checkbox, new effect types
+- `static/js/agent-engine.js` - cancel step, scenario_ended detection, abort controller
+- `static/js/ui-controller.js` - cancel button visibility
+- `static/js/main.js` - `cancelStep()` global
+- `static/js/api.js` - `resetWorld()` method
+- `static/js/graph-manager.js` - removed unlock context menu
+- `static/js/prompt-docs.js` - new effect docs
+- `app.py` - scenario_ended flags in API responses
+- `templates/index.html` - cancel button
+- `world_template.json` - locked state handling
 
 ## Why
 

@@ -17,17 +17,17 @@ priority: medium
 
 ## What
 
-`visible_in_direction` text (the custom "what you see beyond" description on room→door edges) was only shown when the door state was `"open"`. Windows — doors you can see through but not walk through — were impossible without building the description into the door node's `description` field, which conflates the door itself with what's visible beyond it.
+`visible_in_direction` text (the custom "what you see beyond" description on room→door edges) was only shown when the door state was `"open"`. Windows - doors you can see through but not walk through - were impossible without building the description into the door node's `description` field, which conflates the door itself with what's visible beyond it.
 
 ## How
 
 Added `see_through` boolean property on door nodes. When `true`:
 
-1. **`visible_in_direction` shown regardless of state** — `engine/area_description.py:300-302` checks for `see_through` in the `else` branch (door not open). If both `see_through` and `visible_in_direction` are set, renders the peek-through text instead of the door's description + state.
+1. **`visible_in_direction` shown regardless of state** - `engine/area_description.py:300-302` checks for `see_through` in the `else` branch (door not open). If both `see_through` and `visible_in_direction` are set, renders the peek-through text instead of the door's description + state.
 
-2. **Light spills through** — `engine/lighting.py:54` now includes `see_through` doors alongside open doors for light propagation.
+2. **Light spills through** - `engine/lighting.py:54` now includes `see_through` doors alongside open doors for light propagation.
 
-3. **Documentation** — Windows section added to `Doors & Connections.md` with:
+3. **Documentation** - Windows section added to `Doors & Connections.md` with:
    - Properties table (current_state, see_through, description, cost, visible_in_direction, auto_close)
    - Four patterns: decorative, see-through, skill-gated, light spill
    - Movement flow: windows are closed doors; use `requires_open` trigger with impossible condition to prevent accidental auto-open

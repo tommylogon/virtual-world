@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-669",
+  "kind": "task",
+  "number": 669,
+  "title": "Backfill @docs headers on the 162 baselined Python modules",
+  "status": "review",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-02",
+  "updated": "2026-10-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-576",
+      "task-578"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "task-576 put the @module/@contributes/@docs contract and its guard over engine/ and routes/, and documented 18 core modules. The remaining 162 live in docs/design/py-module-baseline.txt. Each needs a real @module/@contributes/@docs header naming the note that documents it (or an explicit @docs none with a one-line reason for a thin registrar or pure utility). The guard already fails a NEW Python module without the header, so this is a ratchet-down of existing debt, not a new mechanism. Work in batches and remove each path from the baseline as it lands; use python tools/js_module_index.py --check to confirm.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable - this task adds machine-readable documentation headers to Python source modules; it does not change player or authoring behavior in the browser.\n\nCurrent availability: 162 Python module paths are recorded in `docs/design/py-module-baseline.txt`. The task's stated guard is `python tools/js_module_index.py --check`; this is a source-contract maintenance task, not a UI feature.\n\nWhy no browser UI: a browser interaction cannot prove that every Python module declares the correct `@module`, `@contributes`, and `@docs` relationship or an intentional `@docs none` reason.\n\nAlternative verification steps:\n1. Add the header to one baselined module, pointing it at the note that documents that module, or use `@docs none` with the required one-line reason for a thin registrar/utility.\n   - expected: the header describes that file's actual responsibility and the baseline entry for that exact path is removed.\n2. Run `python tools/js_module_index.py --check` after each batch and inspect the remaining baseline paths.\n   - expected: the completed paths no longer appear as missing contracts; an unrelated module is not removed from the baseline.\n3. Open the named documentation note and inspect its `## Connected` block.\n   - expected: the module-to-note relationship resolves to an existing note and the generated connection is current.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/docs/task-669-backfill-docs-headers-on-the-162-baselined-python-modules.md"
+  }
+}

@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -37,21 +37,21 @@ Magically (or socially) compelled by someone. You can't bring yourself to hurt t
 
 - **Gates**: none hard (no `blocks_*`).
 - **Saves/checks**: none.
-- **Combat**: neutral stat mods — the "can't hurt the charmer" is a **behavioral/source gate**, not a stat mod (mirroring `frightened`'s source-held gating). The charmer is tracked in `source`.
+- **Combat**: neutral stat mods - the "can't hurt the charmer" is a **behavioral/source gate**, not a stat mod (mirroring `frightened`'s source-held gating). The charmer is tracked in `source`.
 - **Movement**: full speed.
 - **Periodic**: none.
 - **Lifecycle**: `stack: "noop"`; `default_duration: None`; `ends_on: []`.
 
 ## Perception
 
-`known: False` — hidden. No symptoms defined yet, so the agent currently gets **nothing** from `charmed`. This is deliberate for subtle compulsion, but "nothing" may need review.
+`known: False` - hidden. No symptoms defined yet, so the agent currently gets **nothing** from `charmed`. This is deliberate for subtle compulsion, but "nothing" may need review.
 
 ## Integration points
 
-- `player.py:205-214` — catalog entry.
-- `engine/conditions.py` — `perceived_conditions` (hidden; no symptoms → no line).
+- `player.py:205-214` - catalog entry.
+- `engine/conditions.py` - `perceived_conditions` (hidden; no symptoms → no line).
 - Source: charmer (`source`), likely `source_type: "character"`.
-- Behavior/action gating: blocking attacks on the charmer is similar to `frightened_block` but not yet wired — needs an explicit gate or prompt-level handling.
+- Behavior/action gating: blocking attacks on the charmer is similar to `frightened_block` but not yet wired - needs an explicit gate or prompt-level handling.
 
 ## Steps to verify
 

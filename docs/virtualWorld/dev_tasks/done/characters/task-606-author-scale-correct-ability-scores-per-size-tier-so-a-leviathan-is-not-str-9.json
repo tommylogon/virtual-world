@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "id": "task-606",
+  "kind": "task",
+  "number": 606,
+  "title": "Author scale-correct ability scores per size tier so a leviathan is not STR 9",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-605",
+      "task-653"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**DECIDED 2026-09-30 by Tommy:** use the **D&D numbers until D&D stops making\nsense**, and the result has to work across **fantasy, modern, sci-fi, horror and\nromance** -- anything.\n\nSo 5e is the *baseline curve*, not the ceiling:\n\n| tier | 5e reference | STR | CON |\n|---|---|---|---|\n| tiny | Rat, Sprite | 2-3 | 9-10 |\n| small | Goblin | 8 | 10 |\n| normal | Human commoner | 10-13 | 10-12 |\n| huge | Ogre, Troll | 18-19 | 14-16 |\n| giant | Hill Giant, Giant Ape | 21-23 | 16-21 |\n| titanic | Ancient Black Dragon 27, **Tarrasque 45** | 27-45 | 22-25 |\n\nThe requirement that decides the work: a sci-fi hull or a horror entity must fit\nthe same curve, and a romance scene must not need a leviathan. So the tiers are\nthe spine and the values inside a tier are the authoring surface -- a starship\nis `giant`, a ghost is `small` and takes no space (see task-652), a housecat is\n`tiny`.\n\nNothing clamps ability scores today, so STR 35 is storable immediately. This\ntask is authoring plus whatever the curve still cannot express.\n\n5e has canonical stat blocks matching the existing 6 tiers (tiny rat STR2, small goblin STR8, normal human 10-13, huge ogre 19, giant hill-giant 21, titanic ancient-black-dragon 27 / tarrasque 45). No ability score is clamped, so STR 35 is storable today -- the gap is purely authored data.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**The 5e curve exists as data**, per size tier, as reference points plus a",
+        "done": true
+      },
+      {
+        "text": "tolerance - `engine/abilities.py::SIZE_TIER_REFERENCE`, matching the",
+        "done": false
+      },
+      {
+        "text": "decided table exactly (tiny 2-3, small 8, normal 10-13, huge 18-19, giant",
+        "done": false
+      },
+      {
+        "text": "21-23, titanic 27-45 for STR; and the CON values beside them).",
+        "done": false
+      },
+      {
+        "text": "**It is not a clamp.** A leviathan at STR 9 was storable before and still",
+        "done": true
+      },
+      {
+        "text": "is; what is new is that the authoring API **reports** it",
+        "done": false
+      },
+      {
+        "text": "(`scale_warnings` in the update response) and that the curve is **readable**",
+        "done": false
+      },
+      {
+        "text": "(`GET /api/abilities/curve`) so an author never picks a number blind.",
+        "done": false
+      },
+      {
+        "text": "**The library is authored.** 67 of 70 characters now carry a `size` and 35",
+        "done": true
+      },
+      {
+        "text": "a `species`, derived from tags they already had. Five tiers are in use",
+        "done": false
+      },
+      {
+        "text": "(tiny 3, small 18, normal 41, huge 4, giant 1) instead of one.",
+        "done": false
+      },
+      {
+        "text": "**No character contradicts its own size**, and no character with a size is",
+        "done": true
+      },
+      {
+        "text": "missing STR/CON unless it is inanimate.",
+        "done": false
+      },
+      {
+        "text": "**No authored number was lost** - checked against `git show HEAD:<file>`",
+        "done": true
+      },
+      {
+        "text": "for every one of the 67 rewritten files, not against a hand-written list.",
+        "done": false
+      },
+      {
+        "text": "**The two stat-key vocabularies are one.** 31 files wrote `str`/`dex`,",
+        "done": true
+      },
+      {
+        "text": "37 wrote `STR`/`DEX`, and a lowercase block left the character with **no",
+        "done": false
+      },
+      {
+        "text": "readable STR at all**. `normalize_stat_block` folds either case at all six",
+        "done": false
+      },
+      {
+        "text": "writers and is the only spelling the library now stores.",
+        "done": false
+      },
+      {
+        "text": "Tests in `tests/test_abilities.py` (35 tests) including the curve's own",
+        "done": true
+      },
+      {
+        "text": "self-consistency and the API wiring.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_2026_10_02_wt_characters_engine": "### Files\n\n- `engine/abilities.py` - **new**. `SIZE_TIER_REFERENCE`, `SIZE_TIER_DEFAULTS`,\n  `MASS_SCALED_ABILITIES`, `TOLERANCE`, `ABILITIES`, `stats_for_size`,\n  `ability_range`, `tolerance_band`, `scale_issues`, `is_scale_correct`,\n  `is_inanimate`, `normalize_stat_block`, `describe_curve`.\n- `engine/effects.py`, `engine/serialization.py`, `routes/player_ops.py` (×3),\n  `routes/library_ops.py` - the six stat writers, all folding.\n- `routes/player_ops.py` - `scale_warnings` on the update response.\n- `routes/players.py` - `GET /api/abilities/curve`.\n- `data/library/characters/*.json` - 67 files authored.\n- `tests/test_abilities.py` - **new**, 35 tests.\n\n### The bug underneath the task\n\n`the butcher` is authored `str: 18, con: 20`. The loader did\n`p.stats = lib_data.get(\"stats\", {})`, which replaced the uppercase defaults and\nthen failed every `stats.get(\"STR\", 10)` in the engine - so it fought at **STR\n10**, and its CON 20 never reached the engine either.\n\n31 of the 70 library files spell abilities in lowercase and 37 in uppercase, with\nno overlap. So the task's premise - \"the gap is purely authored data\" - was\nhalf right: it was *also* a vocabulary bug in shipped data, and the honest form\nof \"a leviathan is not STR 9\" is that several characters were **no** STR at all.\n33 characters had no readable STR or CON when the pass started.\n\n### The decisions\n\n1. **Reference points plus a tolerance, not exclusive boxes.** A tier is a\n   *bucket*: 5e's `small` contains both a goblin (STR 8) and an imp. Encoding the\n   goblin as a range flagged every wolf in the category - a wolf at STR 12 is not\n   a wolf that fails to be a wolf. The band is the reference widened by a factor\n   of two, so the check fires on a `titanic` at STR 9 and on a creature with no\n   stat block, and stays quiet on everything 5e itself would place there. **A\n   flag is only worth having if it is rare and true.**\n2. **No clamping, ever.** A clamp silently destroys the information that the\n   block was wrong. The write is accepted and the author is told, which is why\n   the acceptance criterion is \"reported, not refused\".\n3. **Inanimate things are exempt.** The Straw Practice Dummy is `giant` with\n   `STR 1` **on purpose** - the whole point of it is that it cannot fight back.\n   The curve describes what a *body* can do, and checking a training frame\n   against it reported deliberate authoring as a defect.\n4. **Only STR and CON scale.** The mental abilities have nothing to do with how\n   much of you there is. A band on INT is an invitation to author a dragon at\n   INT 3.\n5. **Authored data beats inference, everywhere in the pass.** A stat block is a\n   number somebody wrote; a size derived from a tag is a guess about the same\n   fact. Where they disagreed (`Croak-Mother`: tagged `frog`, STR 10/CON 14) the\n   numbers won. And a creature whose tags say only \"animal\" - `rat`,\n   `whiskers`, `Shadow-Pelt` - got **no size at all** rather than a guessed one.\n6. **The library files were rewritten in the canonical spelling.** The pass was\n   casing-aware precisely because it was not: a naive fill added `STR: 11` beside\n   an author's `str: 18` and, since the engine prefers the canonical spelling, the\n   *fill* would have won and the author's number would have been thrown away. One\n   spelling of one fact is the only way that cannot happen.\n\n### Not done here\n\n- **No stat block was rewritten** where one existed. A character whose stats\n  disagree with its size is reported, and fixing it is the author's call - the\n  library has none left.\n- **`size_from_stats` is a tooling choice, not engine behaviour.** The engine\n  never infers a size from stats; that was only ever this one-off authoring pass.\n- **task-605's `size_*` trait fallback** is untouched and still read first.\n\n### Verify\n\n```\npython -m pytest tests/test_abilities.py -q                          # 35 passed\npython -m pytest tests/test_abilities.py tests/test_species.py \\\n  tests/test_size_property.py tests/test_library_character_import.py \\\n  tests/test_character_loadout_check.py tests/test_combat.py \\\n  tests/test_occupancy.py tests/test_health_model.py -q              # 198 passed\n```\n\n**Full suite compared by failure NAME against the clean-master baseline**: 15\nfailed on both, `Compare-Object` empty - across a 67-file data change, so the\nauthoring moved nothing that anything else notices.\n\n`test_species.py::test_every_library_character_still_loads_and_behaves_identically`\nwas updated by this task and is worth reading: it originally asserted that *no*\nlibrary character declares a species, which was true when task-549 landed and\nfalse the moment this pass set 35. Its actual point - that declaring a species\ndenies nothing by accident - is unchanged and still asserted.\n\n### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`\n\n**1. The curve is readable** - an author picking a size no longer guesses:\n\n```\nGET /api/abilities/curve\n  tiers      : tiny, small, normal, huge, giant, titanic\n  titanic STR: reference 27-45   tolerated 13.5-90\n```\n\n**2. The task's own sentence, through the authoring API** - a leviathan at STR 9\nis *reported, not refused*:\n\n```\nPOST /api/players/LiveLeviathan {\"size\":\"titanic\",\"stats\":{\"STR\":9,\"CON\":9,...}}\n  -> 200 {\"status\": \"updated\",\n          \"scale_warnings\": [\n            \"STR 9 is far from what a titanic creature should have\n             (reference 27-45, tolerated 13.5-90)\",\n            \"CON 9 is far from what a titanic creature should have\n             (reference 22-25, tolerated 11-50)\"]}\n```\n\n**3. Counter-case**, so the warning is not simply always-on: the same write for\na `huge` ogre at STR 19 / CON 15 returns `status: updated` with **no**\n`scale_warnings` key at all.\n\n**4. The shipped bug is gone.** `the butcher` is authored `str: 18, con: 20`\n(lowercase). Before this task the engine read **STR 10** for it, because the\nblock replaced the uppercase defaults and then failed every\n`stats.get(\"STR\", 10)`. Written through the API in lowercase and read back from\n`/api/state`:\n\n```\nauthored lower-case str:18 -> engine reads STR=18 CON=20 attack_bonus=3\n```\n\nLive world returned to its prior state afterwards (probe characters removed)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-606-author-scale-correct-ability-scores-per-size-tier-so-a-leviathan-is-not-str-9.md"
+  }
+}

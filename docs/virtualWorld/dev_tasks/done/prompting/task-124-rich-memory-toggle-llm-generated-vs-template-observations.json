@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-124",
+  "kind": "task",
+  "number": 124,
+  "title": "Rich Memory Toggle - LLM-Generated vs Template Observations",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a setting under LLM/Agent config that controls how observations are stored:\n\n- **Template mode** (current, but in past tense): Fast, consistent, low token cost.\n  ```\n  [5 minutes ago] 👁️ Saw the Blizzard Forest Clearing - freezing and bright, smelled like pine.\n  ```\n\n- **LLM-generated mode** (rich): Uses the LLM to write a narrative observation in past tense. Higher quality, more tokens, slower.\n  ```\n  [5 minutes ago] 👁️ I stood at the edge of the Blizzard Forest Clearing, the wind cutting through my coat. A path led toward a two-story house through the driving snow. An axe sat embedded in a stump - useful, if I come back for it.\n  ```\n\n### Implementation\n\n- The setting controls whether `agent-engine.js:185` uses the template or dispatches an LLM call to generate the observation\n- LLM-generated observations should be stored asynchronously (fire-and-forget after the main step completes)\n- Configuration field in the LLM settings UI (e.g. `\"rich_memories\": true/false`)\n- Both modes should produce past-tense output\n\n### Scope\n- `static/js/agent-engine.js` - observation storage at line 185, added `_generateRichObservation()`\n- `static/js/config.js` - added `richMemories` config field with persistence\n- `static/js/ui/settings-view.js` - populate form for the toggle\n- `templates/index.html` - toggle UI in Agent Behavior settings group\n\n### Implementation Notes\n- Template observation stored immediately (fast path) regardless of mode\n- When `richMemories` is on, an async fire-and-forget LLM call generates a narrative version and stores it as an additional `observation` memory\n- No blocking - agent step continues without waiting for the LLM call\n- Failures silently caught (non-critical)\n- Both modes produce past-tense output",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "completed": "2026-07-30"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-124-rich-memory-toggle.md"
+  }
+}

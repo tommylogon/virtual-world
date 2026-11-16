@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "id": "task-753",
+  "kind": "task",
+  "number": 753,
+  "title": "Reduce /api/state server build time: gzip done, but the payload still takes 5-6s to serialize",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-531",
+      "image",
+      "decode",
+      "on",
+      "refresh",
+      "task-752",
+      "nl",
+      "overlay",
+      "tokens",
+      "task-439",
+      "area",
+      "identity"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`GET /api/state` was 13.35 MB / 9.2 s on the 627-area camp world. First-pass fixes\n(shipped 2026-10-09) took it to **7.87 MB / 6.6 s**, and gzip took the wire to\n**0.49 MB**:\n\n- gzip added in `app.py` `after_request` (API JSON, when the client accepts it).\n- `handle_get_state` drops `rooms` (an exact duplicate of `areas` - `serialization.py`\n  emits the same dict under both keys) and `areas_by_id` (no HTTP consumer; the\n  browser reads `worldState.areas`). `to_dict` is unchanged, so\n  `tests/test_area_identity.py` still sees `areas_by_id`.\n\nWhat remains is **server build time (~5–6 s)**, which gzip does not address - it is\nPython assembling and encoding the payload. Dominant contributors measured:\n\n- `graph` ~3.2 MB / 2739 nodes / 6285 edges (`graph.to_dict()`).\n- `areas` ~2.8 MB (full per-area records).\n- `world_scopes` ~1.3 MB, `world_index` ~0.47 MB.\n\nAlso relevant: `worldState.startPolling` refetches the **full** state every 1.5 s in\nspectator mode (`world-state.ts:105`); a 5 s build stacks requests, so the server is\nalways mid-serialize. An in-flight guard was added (skip a tick while a fetch is\noutstanding), but the build time is the root cause.",
+    "why": "TODO",
+    "how": "1. Profile `to_dict`/`jsonify` to split build vs encode (the two together are the 5 s).\n2. Scope or trim the payload: send `graph` and `areas` for the active scope (or a\n   slim area projection: id/name/tags only) and fetch detail on demand\n   (`get_node`/area inspector already do this).\n3. Consider making the spectator poll condition on `log_revision`/SSE `world_changed`\n   rather than a blind 1.5 s full fetch.",
+    "verify": "- expected: /api/state no longer pays the 5-6s build on an unchanged poll.\n- observed (2026-10-10 live): GET /api/state -> 118ms then 124ms, content-encoding gzip, 522768 bytes (0.52MB). Remaining lever (a mutating call still rebuilds) noted in the card.",
+    "acceptance": [
+      {
+        "text": "Build cost split observed: the ~5-6 s is `to_dict` + `jsonify` assembly, which the",
+        "done": true
+      },
+      {
+        "text": "cache skips on an unchanged poll (cold vs cached measured above).",
+        "done": false
+      },
+      {
+        "text": "Unchanged `/api/state` no longer pays the build; wire stays 0.49 MB gzipped.",
+        "done": true
+      },
+      {
+        "text": "No feature regression: cached bytes are byte-identical to a fresh build; the",
+        "done": true
+      },
+      {
+        "text": "`/api/state` test set passes (`test_area_identity`, `test_emotion`, `test_memory_api`,",
+        "done": false
+      },
+      {
+        "text": "`test_mcp_state_players`, ...).",
+        "done": false
+      },
+      {
+        "text": "A *mutating* call still rebuilds fully (~6 s on the camp). Slicing the payload to the",
+        "done": false
+      },
+      {
+        "text": "active scope (plan step 2) is the remaining lever; spectator SSE-conditional polling",
+        "done": false
+      },
+      {
+        "text": "is task-715.",
+        "done": false
+      },
+      {
+        "text": "`tests/test_area_identity.py` and the affected suites pass.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_10_09": "Added a **revision-keyed response cache** for `/api/state`:\n\n- `app.py` - `app._state_revision` is bumped on every mutating `/api/` call\n  (POST/PUT/PATCH/DELETE, including `/api/soak`, which advances the world);\n  `app._state_cache` holds the assembled JSON per variant (`std` / `lite` / `+full`).\n- `routes/action_handlers.py handle_get_state` - returns the cached bytes when the\n  revision is unchanged; otherwise assembles, caches, and returns. The cache is\n  disabled under `TESTING` so a test that mutates the world directly cannot read\n  stale bytes.\n\nMeasured on a fresh copy (4445), 8.19 MB payload:\n\n| call | total |\n|---|---|\n| cold (build + gzip) | 0.47 s |\n| cached | 0.21 s |\n| after a mutation (cold again) | 0.43 s |\n| cached again | 0.25 s |\n\nSo an unchanged poll (the spectator 1.5 s case) skips the `to_dict` + `jsonify`\nassembly entirely; the residual ~0.2 s is gzip of the 8 MB body. On the 627-area\ncamp (~6 s build) that build is skipped whenever the world is unchanged."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-753-reduce-api-state-server-build-time-gzip-done-but-the-payload-still-takes-5-6s-to-serialize.md"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-161",
+  "kind": "task",
+  "number": 161,
+  "title": "Armor and Equipment Uses Reduced on Hit",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [
+    "items",
+    "equipment",
+    "combat",
+    "durability"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-155"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Reduce armor/equipment uses when the wearer takes a hit, giving items durability without introducing new systems or values.",
+    "why": "Combat already reduces *weapon* uses on a hit (engine/combat.py:115-117), but armor and other worn equipment never take wear. A vest that absorbed a dozen hits is as good as new, so durability has no downside.",
+    "how": "- In `player_attack` (engine/combat.py:47), when the target takes a hit, decrement `uses` on their equipped armor/defense items\n- Respect `uses > 0` (skip infinite-use items, `uses = -1`)\n- When armor reaches 0 uses, it breaks: log a message, remove from equipped slots, fire `on_break` trigger if present\n- Optionally scale the absorbed defense by remaining uses (weaker as it degrades) - keep it optional to avoid over-engineering\n- Reuse the existing `uses` field so no new schema is needed",
+    "verify": "- [ ] Armor uses decrease when the wearer is hit\n- [ ] Armor breaks at 0 uses and is removed from equipment\n- [ ] Infinite-use armor is unaffected\n- [ ] Weapon durability behavior unchanged",
+    "acceptance": [
+      {
+        "text": "Equipped armor degrades durability or uses when absorbing damage.",
+        "done": true
+      },
+      {
+        "text": "Broken armor provides no defense bonus until repaired.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/combat.py",
+      "tests/test_combat.py"
+    ],
+    "custom": {
+      "files_to_modify": "1. `engine/combat.py` - decrement equipped armor uses on hit, break at 0\n2. `engine/equipment.py` - helper to find equipped defense items and remove broken ones",
+      "related": "- [[todo/items/task-155-item-uses-affect-weight|task-155: Item uses affect weight]]",
+      "browser_ui": "Intended UI home: equip armor in Character Inventory/Paperdoll → take a controlled hit in combat → inspect the armor's remaining uses/durability and the combat log.\n\nCurrent availability: the card proposes consuming equipment uses when its wearer takes a hit. No durability-on-hit behavior is claimed as implemented.\n\nLive steps when available:\n1. Equip one armor item with a known `uses` count, record the count, then have the wearer receive a hit with a known damage result.\n   - expected: the armor's uses decrease by the documented amount and the combat log identifies the armor interaction; the wearer takes damage after the existing defense rules.\n2. Repeat with an attack that misses.\n   - expected: a missed attack does not consume a use if the design ties wear to an actual hit.\n3. Continue until the item reaches zero uses and inspect Inventory/Paperdoll.\n   - expected: the item follows the generic `uses` depletion behavior and no separate durability counter is introduced.\n4. Save/reload and inspect the armor and wearer.\n   - expected: remaining uses and equipment state persist without duplicating the item.\n\nThis section is not a claim that armor wear on hit is implemented today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-161-armor-equipment-uses-on-hit.md"
+  }
+}

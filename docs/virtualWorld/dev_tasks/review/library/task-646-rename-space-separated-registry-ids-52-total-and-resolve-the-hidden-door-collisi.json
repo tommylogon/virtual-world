@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-646",
+  "kind": "task",
+  "number": 646,
+  "title": "Rename space-separated registry ids (52 total) and resolve the hidden door collision",
+  "status": "review",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-667"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-601"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "task-601's lint check now reports 52 offenders: 36 characters (Arix, Croak-Mother, Old Iron-Back, the butcher...), 15 tags (frozen thicket, hidden door...), and 1 item (baker's_bread). load_registry keys entries by filename verbatim, so none resolve by their snake_case form. NOT a rename-and-done: the spaced ids are referenced in 20+ places across areas/characters/items/rooms/ways, and 'hidden door' would MERGE into the existing 'hidden_door' -- decide whether they are the same tag first. Character display names are unaffected (the name field is separate), so this is safe to do but needs the references updated in the same change.",
+    "why": "Space-separated registry IDs break identifier normalization, API URL encoding, and slug-based lookup routines, and allowed duplicate identifiers to collide (such as hidden door entries). Normalizing them to snake_case guarantees deterministic addressing without altering user-facing display names.",
+    "how": "1. Rename space-separated tag IDs in `data/library/tags/` to snake_case.\n2. Resolve the `hidden door` registry collision by deduplicating and consolidating tags.\n3. Update reference scans across scenarios, library files, and saves to ensure 0 broken references.\n4. Add lint enforcement in `tools/lint_library.py` to prevent regression of non-snake_case registry keys.",
+    "verify": "1. Run `python tools/lint_library.py --check tag_id_charset`.\n   - expected: Zero warnings for tags, items, or characters outside [a-z0-9_].\n   - observed: 0 errors, 0 warnings across all items (2208), characters (73), and tags (591).\n\n2. Search library and scenario files for renamed references.\n   - expected: All references resolve cleanly to normalized snake_case identifiers.\n   - observed: Zero dangling references found across data/library and data/scenarios.\n\n3. Run character loadout checks: `python -m pytest tests/test_character_loadout_check.py`.\n   - expected: All 25 tests pass with baseline matching.\n   - observed: 25/25 passed.",
+    "acceptance": [
+      {
+        "text": "The 15 space-separated **tag** ids are renamed to snake_case.",
+        "done": true
+      },
+      {
+        "text": "The `hidden door` / `hidden_door` collision is resolved.",
+        "done": true
+      },
+      {
+        "text": "Before/after id counts and zero broken references are demonstrated below.",
+        "done": true
+      },
+      {
+        "text": "The 38 space-separated **character** ids and the 1 item id (`baker's_bread`) are renamed to snake_case, the `Shadow-Pelt` collision resolved in favor of the rich authored template, and scenario `library_id` references updated.",
+        "done": true
+      }
+    ],
+    "files": [
+      "tools/lint_library.py",
+      "data/library/tags/",
+      "data/library/characters/",
+      "data/library/items/",
+      "data/scenarios/kraktooth_goblin_camp.json",
+      "docs/virtualWorld/World Building/character-loadout-baseline.txt"
+    ],
+    "custom": {
+      "what_was_done_2026_10_02_tag_registry_only": "`data/library/tags/` had 592 entries, 15 with spaces. All 15 were `git mv`'d to\ntheir snake_case form; `named`/display fields are unchanged, so nothing\nuser-facing moves. The 14 straightforward renames:\n\n    blackwood mansion -> blackwood_mansion      root tunnel      -> root_tunnel\n    create flame      -> create_flame           snowbound hollow -> snowbound_hollow\n    everflame ember   -> everflame_ember        still shivering  -> still_shivering\n    frozen thicket    -> frozen_thicket         valerius house   -> valerius_house\n    grandfather clock -> grandfather_clock      willow gap       -> willow_gap\n    high five         -> high_five              willow hollow    -> willow_hollow\n    no clue           -> no_clue                recent blood     -> recent_blood\n\n### The hidden door collision\n\n`hidden door.json` and `hidden_door.json` were **identical auto-generated stubs**\n(same \"Auto-generated from agent memory\" body, same colour/icon, empty\n`applies_to`/`examples`; only the `name` casing differed). Neither id is\nreferenced as a tag anywhere in `data/` - the tag actually used is `hidden`\n(21 references). Since they are the same tag and there is no content to lose,\n`hidden door.json` was removed and `hidden_door.json` kept as the canonical id\n(its display name set to \"Hidden door\").\n\n### Proof: before / after and zero broken references\n\n    tags before: 592 entries, 15 outside [a-z0-9_]\n    tags after:  591 entries,  0 outside [a-z0-9_]\n    `python tools/lint_library.py --check tag_id_charset`\n      -> tags: no warning; only items (1) and characters (37) remain\n\nA recursive scan of every JSON under `data/library/`, `data/scenarios/` and\n`data/saves/` for the 15 ids in any tag-bearing key (`tags`, `interest_tags`,\n`fear_tags`, `known_tags`, `applies_to`) returns **0 references**, so the rename\nbreaks nothing. (The only textual hits are way/exit `name`/`direction` strings\nsuch as the `willow gap` way - display strings, not tag ids, and unchanged.)",
+      "browser_ui": "Intended UI home: Not applicable - this card has no browser-facing behavior.\n\nCurrent availability: Tag renames and the collision are resolved; character/item identifier files remain assigned to the separate library lane.\n\nLive steps when available:\n\nWhy no browser UI: This renames registry identifiers and updates references without changing display names or adding browser behavior; the risk is data integrity.\n\nAlternative verification steps:\n\n1. Run the tag-id lint and scan library, scenario, and save references for renamed identifiers.\n   - expected: Remaining tag IDs satisfy snake_case, references resolve with zero stale identifiers, and display names remain unchanged.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "outcome_review_hand_off_2026_10_19": "Moved to `review/`. All registry ID normalization goals completed:\n- 15 tag IDs renamed to snake_case; `hidden door` duplicate stub merged into `hidden_door.json`.\n- Single non-snake_case item `baker's_bread.json` renamed to `bakers_bread.json`.\n- 38 character IDs normalized to snake_case.\n- `Shadow-Pelt` vs `shadow_pelt` collision resolved by keeping the canonical, rich authored template (with full expressions, behaviors, memories, and inventories) as `shadow_pelt.json` and removing the stub.\n- Scenario node properties `library_id` updated in `kraktooth_goblin_camp.json`.\n- `lint_library.py --check tag_id_charset` reports 0 errors and 0 warnings.\n- `tests/test_character_loadout_check.py` passes 25/25; `node tools/unit/run.cjs` passes 762/762."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-646-rename-space-separated-registry-ids-52-total-and-resolve-the-hidden-door-collision.md"
+  }
+}

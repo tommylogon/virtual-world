@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-90",
+  "kind": "task",
+  "number": 90,
+  "title": "Delayed Event Queue - Schedule Trigger Effects N Ticks Later",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-21",
+  "updated": "2026-07-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add the ability to schedule a trigger effect to fire N ticks in the future. This is the single biggest missing causality mechanism - it enables curses, poisons, timed puzzles, summoned creature durations, and any \"X happens Y turns from now\" scenario. Currently every effect is immediate; the world can't remember to do something later.",
+    "why": "TODO",
+    "how": "### Data model\n\nA queue on the engine:\n\n```python\nself.delayed_events = []  # list of {fire_tick, trigger_source, params, label}\n```\n\nEach entry:\n- `fire_tick` - absolute `time_ticks` value when this fires\n- `target_node_id` - the item/node to fire triggers on  \n- `trigger_type` - e.g. `\"on_delayed\"` (a new trigger type added to TRIGGER_TYPES)\n- `label` - human-readable summary shown in event logs\n\n### Processing\n\nIn `tick_turn()`, after existing per-tick processing:\n\n```python\ndue = [e for e in self.delayed_events if e.fire_tick <= self.time_ticks]\nself.delayed_events = [e for e in self.delayed_events if e.fire_tick > self.time_ticks]\nfor event in due:\n    node = self.graph.get_node(event.target_node_id)\n    if node:\n        outputs = self._execute_triggers(node, event.trigger_type)\n        self.record_turn_event('__system__', 'delayed', event.label)\n```\n\n### New trigger effect: `schedule_trigger`\n\nParams:\n- `delay_ticks` - int, ticks from now to wait\n- `target` - item/node name or ID (defaults to the current trigger's parent item)\n\nUsage in trigger JSON:\n\n```json\n{\n  \"trigger_type\": \"on_take\",\n  \"effects\": [{\"type\": \"schedule_trigger\", \"params\": {\"delay_ticks\": 5, \"target\": \"cursed_ring\"}}]\n}\n```\n\nThe target item then needs a corresponding trigger:\n\n```json\n{\n  \"trigger_type\": \"on_delayed\",\n  \"effects\": [\n    {\"type\": \"message\", \"params\": {\"message\": \"The cursed ring pulses with dark energy!\"}},\n    {\"type\": \"damage\", \"params\": {\"amount\": 5}}\n  ]\n}\n```\n\nThis separation keeps `schedule_trigger` as pure scheduling - it just queues a trigger fire. What actually happens is defined by the target item's `on_delayed` trigger, reusing all existing effect types.\n\n### New TRIGGER_TYPE: `on_delayed`\n\nAdded to `TRIGGER_TYPES` in `virtual_world_engine.py`. Fired by the delayed event queue. Any item can have `on_delayed` triggers.\n\n### Serialization\n\nAdd `delayed_events` to `to_dict()` and `load_from_dict()` so scheduled events survive save/load.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - `delayed_events` queue, processing in `tick_turn()`, `schedule_trigger` effect handler, `on_delayed` in TRIGGER_TYPES, serialization",
+      "static/js/item-library.js` - show `schedule_trigger` in effect type list if needed"
+    ],
+    "custom": {
+      "why_the_engine_must_do_it": "The LLM handles character minds - but it cannot reliably fire an effect 5 turns later across context windows and turns. Only the engine can guarantee delayed causality. This is world-physics, not narrative.",
+      "use_cases_this_enables": "| Scenario | How |\n|----------|-----|\n| Cursed item | Pick up → 5 ticks later → take damage + message |\n| Poisoned food | Eat → 3 ticks later → `sick` (or `poisoned`) instance with `source: <food>` and a `periodic` override - see the condition reference examples in [[review/characters/task-trait-condition-system-v2\\|task: Trait & Condition System v2]] |\n| Timed door | Pull lever → 10 ticks later → door slams shut |\n| Summon duration | Summon creature → 20 ticks later → creature vanishes |\n| Time bomb | Activate → 8 ticks later → explosion (area damage + environment change) |\n| Ritual completion | Place 3 items on altar → after all placed, 2 ticks → ritual fires |\n| Patrol timing | NPC reaches checkpoint → 15 ticks later → next patrol cycle |",
+      "not_in_scope": "- Visual countdown UI (could be added later)\n- Recurring/delayed intervals (use existing `on_tick` for that)\n- Cancel/remove scheduled event (can be added later)\n\n**Deferred**: Post-merge feature branch. This branch is refactoring/testing only.",
+      "refactoring_impact_july_2026": "TickManager (engine/tick_manager.py) processes per-tick logic. Create engine/event_queue.py - delayed event queue. Wire into TickManager.tick_turn(). Event data: {tick_trigger, effect_type, effect_params, target_node_id}. Follow existing trigger effect patterns from engine/effects.py."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-90-delayed_event_queue.md"
+  }
+}

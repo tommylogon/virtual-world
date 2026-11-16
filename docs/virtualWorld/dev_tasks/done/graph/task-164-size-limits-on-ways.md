@@ -13,14 +13,14 @@ area: graph
 
 ## What
 
-Add size requirements to ways. A small tunnel can't fit a large character, and a normal-sized character may need to crawl — tying into stateful actions where a character is set to `busy` while passing through certain ways.
+Add size requirements to ways. A small tunnel can't fit a large character, and a normal-sized character may need to crawl - tying into stateful actions where a character is set to `busy` while passing through certain ways.
 
-## Status — implemented 2026-08-06 via task-187
+## Status - implemented 2026-08-06 via task-187
 
 This task is **superseded by [[dev_tasks/review/gameplay/task-187-character-size-passage-movement|task-187]]**, which delivered size limits on ways with a simpler design:
 
 - **Implemented**: way `max_size` property (tiny…titanic dropdown in the way inspector), size-gated movement in `move_to_area` (1 tier over → auto-crawl, ≥2 tiers over → blocked).
-- **Variance**: size is a mutually-exclusive **trait** (`size_*`, six tiers) rather than a character property; crawling is a per-move modifier (flavor + gating, no cost scaling — the way's `cost.time` is a duration hint for task-131, not per-action clock advancement) rather than a stateful `busy` action — the stateful, interruptible mid-crawl (with rollback/stuck states) is explicitly deferred in task-187's design.
+- **Variance**: size is a mutually-exclusive **trait** (`size_*`, six tiers) rather than a character property; crawling is a per-move modifier (flavor + gating, no cost scaling - the way's `cost.time` is a duration hint for task-131, not per-action clock advancement) rather than a stateful `busy` action - the stateful, interruptible mid-crawl (with rollback/stuck states) is explicitly deferred in task-187's design.
 - **Tested**: `tests/test_movement.py::TestSizePassage` (10 tests).
 
 ## Original Problem
@@ -47,17 +47,17 @@ Ways have no size concept (engine/movement.py:46 `connect_areas` sets state/desc
 
 ## Files to Modify
 
-1. `engine/movement.py` — size gate on move_to_area
-2. `engine/movement.py` / `engine/tick_manager.py` — crawl as stateful action
-3. `routes/graph.py` + way editor JS — size field
-4. `player.py` — character size field
+1. `engine/movement.py` - size gate on move_to_area
+2. `engine/movement.py` / `engine/tick_manager.py` - crawl as stateful action
+3. `routes/graph.py` + way editor JS - size field
+4. `player.py` - character size field
 
 ## Steps to verify
 
 - [x] Large character blocked by tiny way
 - [x] Small character passes freely
-- [x] Normal character crawls (per-move, no cost scaling — stateful busy crawl deferred)
-- [ ] Interrupted crawl leaves a sensible state (deferred — no stateful crawl in v1)
+- [x] Normal character crawls (per-move, no cost scaling - stateful busy crawl deferred)
+- [ ] Interrupted crawl leaves a sensible state (deferred - no stateful crawl in v1)
 
 ## Related
 

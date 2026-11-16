@@ -5,17 +5,17 @@ status: done
 priority: medium
 ---
 
-# Library Conflict-Aware Sync — Phase 1: Items + Ways
+# Library Conflict-Aware Sync - Phase 1: Items + Ways
 
 ## Why
 
-"Save to Library" does a silent overwrite. If you save a world item that happens to share a name with a library entry, the library version gets replaced entirely — tags, triggers, properties and all. This is how the hand_lamp lost its proper definition.
+"Save to Library" does a silent overwrite. If you save a world item that happens to share a name with a library entry, the library version gets replaced entirely - tags, triggers, properties and all. This is how the hand_lamp lost its proper definition.
 
 ## How
 
 Replace silent overwrite with a diff modal (same pattern as graph-editor's selective import at `graph-editor/js/ui.js:3700-3780`). Sections that match are skipped; differing sections are highlighted green; user picks which to update or saves as a duplicate.
 
-## Status: ✅ Done — moved to review/
+## Status: ✅ Done - moved to review/
 
 
 
@@ -24,12 +24,12 @@ Replace silent overwrite with a diff modal (same pattern as graph-editor's selec
 Items and ways only. Characters and rooms come in Phase 2 (see task-95).
 
 ### Backend
-- `routes/library_routes.py` — added `'ways'` to `REGISTRY_TYPES`. Existing generic CRUD at `/api/library/ways` handles listing, saving, and deleting way entries. No separate endpoint needed.
+- `routes/library_routes.py` - added `'ways'` to `REGISTRY_TYPES`. Existing generic CRUD at `/api/library/ways` handles listing, saving, and deleting way entries. No separate endpoint needed.
 - Way entries stored in `data/library/ways/<id>.json`
 
 ### Frontend
 
-**1. `static/js/shared/diff-modal.js`** — reusable diff modal component
+**1. `static/js/shared/diff-modal.js`** - reusable diff modal component
 ```
 DiffModal.show(current, incoming, sections, options)
   → returns null (cancel) | { action: 'update', sections: [...] } | { action: 'duplicate', name, id, sections }
@@ -45,14 +45,14 @@ DiffModal.show(current, incoming, sections, options)
 
 **Way sections:** name, description, state, pass_message, needs_open, auto_close, see_through, tags, triggers
 
-**2. `item-library.js:saveWorldItem()`** — refactored with DiffModal
+**2. `item-library.js:saveWorldItem()`** - refactored with DiffModal
 - Uses `ApiClient.getLibraryType('items')` instead of broken `/api/registry/items/<id>` individual fetch
 - No existing entry → saves directly (still respects `locked_fields`)
 - Existing entry → shows DiffModal with 13 flat sections
 - "Update Selected" → merge checked sections, `locked_fields` enforced (library values win for locked fields)
 - "Save as Duplicate" → new entry with world data
 
-**3. `way-view.js`** — added library save
+**3. `way-view.js`** - added library save
 - `_saveToLibrary(nodeId)` method + green button in footer
 - Wraps way properties + triggers → saves to `/api/library/ways`
 - Same DiffModal flow when entry already exists

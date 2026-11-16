@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "task-967",
+  "kind": "task",
+  "number": 967,
+  "title": "Listener-side language comprehension barrier masking speech and text before prompt assembly",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "languages",
+    "speech",
+    "perception",
+    "prompting"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-969"
+    ],
+    "blocked_by": [
+      "task-966"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-733",
+      "bug-597",
+      "task-949",
+      "task-968"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Enforce word-level foreign-language comprehension barriers at the perception boundary before LLM prompt assembly: tag speech (SpeechBroadcaster.broadcast_speech, turn_events) and readable item inscriptions with lang, mask unknown words per listener outside their known_words while preserving speech_level/emote/recognized anchors, and surface outgoing language competence constraints in speaker prompts.",
+    "why": "Instruction-only roleplay prompts ('pretend you only know 10 English words') fail whenever plaintext speech reaches === WITNESSED === because the LLM understands its own weights automatically. As clarified for goblin camps and Japanese high-school / exchange-student scenarios, comprehension boundaries must be filtered per listener before prompt assembly so characters genuinely act on fragments, tone, and body language rather than omnisciently parsing foreign sentences.",
+    "how": "1. Add lang resolution and utterance tagging in engine/speech.py (broadcast_speech) and routes/action_handlers.py (say/whisper/shout/scream/sing) plus an optional active language or inline phrase tag, preserving existing speech_level and whisper_target rules.\n2. Implement a deterministic per-listener comprehension filter (shared helper used for recent_hearing in engine/speech.py, speaker turn_events formatting / room-context.ts WITNESSED assembly, and ActionInterpreter context from bug-597): if listener is native/fluent in utterance.lang, pass text through; otherwise reveal only tokens/phrases in listener.known_words (plus recognized character/place names) and mask unknown tokens while keeping speech_level, speaker label, and emote intact.\n3. Gate written text in engine/items/examine_actions.py (inscriptions and authored text blocks on examine/read) on listener language competence and literate flag so illegible foreign writing does not leak plaintext.\n4. Update static/js/agent/prompt-builder/ to inject speaker language competence (active language, fluency, exact known_words list when speaking a partial foreign tongue) and preserve listener-filtered WITNESSED lines.",
+    "verify": "1. Run pytest covering same-room speech, cross-room hearing, turn_events, whisper audience, and examine/read inscriptions across native, fluent, broken (known_words), none, and illiterate listeners.\n2. Run npm run build:ts and JS unit tests verifying room-context.ts WITNESSED rendering never leaks unmasked foreign speech when listener competence is partial.",
+    "acceptance": [
+      {
+        "text": "SpeechBroadcaster.broadcast_speech and speech turn_events carry a normalized lang field defaulted from the speaker or explicit command.",
+        "done": false
+      },
+      {
+        "text": "Listeners below fluent/native receive per-listener comprehension-masked speech in WITNESSED (preserving speech_level, emote, recognized known_words, and known proper names while masking unknown foreign words before LLM prompt assembly).",
+        "done": false
+      },
+      {
+        "text": "Written inscriptions on examine/read check listener literacy and language/known_words before returning plaintext.",
+        "done": false
+      },
+      {
+        "text": "Speaker prompt context surfaces active language, fluency, and known_words bounds without duplicating perception masking in PromptBuilder.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/speech.py",
+      "engine/narration.py",
+      "engine/items/examine_actions.py",
+      "routes/action_handlers.py",
+      "static/js/agent/prompt-builder/room-context.ts",
+      "static/js/agent/prompt-builder/system-prompt.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal / Prompt Lens (WITNESSED and speech prompts), Event Stream turn output, and Human Turn Composer speech/language indicator.\n\nCurrent availability: engine/speech.py broadcasts un-tagged speech verbatim to every listener's recent_hearing and turn_events, and static/js/agent/prompt-builder/room-context.ts (lines 781-842) renders plaintext lines straight into === WITNESSED ===.\n\nManual verification steps:\n1. Place two characters in the same room: Kenji (Japanese native; English broken with known_words=['bathroom', 'wait', 'hungry']) and Sarah (English native; Japanese none).\n2. Have Sarah say 'Wait here while I check the hallway upstairs'.\n3. Inspect Kenji's Prompt Lens / Turn Modal === WITNESSED === block and Event Stream.\n   - expected: Kenji sees only recognized known words ('Wait') alongside masked unknown words ('???') plus Sarah's speech_level and emote; plaintext unknown words do not reach Kenji's LLM prompt.\n4. Repeat with an authored item inscription written in Japanese for both characters via examine/read.\n   - expected: Kenji reads it cleanly while Sarah sees only script/unintelligible text cues plus any recognized known words."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Narration System]]",
+      "[[Features/talk-speak]]",
+      "[[Features/read-write]]",
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

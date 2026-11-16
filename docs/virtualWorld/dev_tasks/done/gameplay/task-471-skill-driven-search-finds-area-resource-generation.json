@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-471",
+  "kind": "task",
+  "number": 471,
+  "title": "Skill-driven search finds (area resource generation)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-470",
+      "task-468",
+      "task-399",
+      "task-464",
+      "task-9"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "An area need not be hand-stocked to be worth searching. What a search turns up depends on the skill used (Survival -> herbs/fruit/roots/grubs, History -> old things, Religion -> relics, Perception -> scraps/tools/coins) and the area modifies both the chance and the flavour: a forest favours Survival, a ruin favours History/Religion, and an item already present (an old religious statue in a forest) raises the weight of the matching kind of find. Finds are ordinary library items spawned as fresh copies, one skill check, and a per-area daily cap so a long soak cannot turn one wood into a loot pinata.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "`python -m pytest tests/test_search_loot.py -q` → 6 passed; targeted\nsearch/soak/actions regression → 289 passed.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "progress_2026_09_23_core_landed_review": "- [x] `engine/foraging.py`: `SKILL_TABLES` (survival / perception / history /\n  religion → weighted tag entries), `AREA_SKILL_BONUS` (forest/woods/shore/ruin/\n  temple/road/battlefield → skill affinity, which also lowers the search DC), and\n  `find_or_spawn(gs, player, area, skill=, want_tags=, rng=)` - one skill check,\n  weighted entry pick, a library item by tags, spawned as a fresh copy with an\n  `in` edge to the area; `forage:found` trace + log.\n- [x] **Area/item modifiers**: affinity lowers the DC (floor 6); area tags that\n  match an entry and any matching item already present add weight, so a relic in\n  a forest favours religious/forest finds.\n- [x] **Cap**: `MAX_FINDS_PER_AREA_PER_DAY` (3) tracked per area per in-game day\n  on the area node, so a long soak can't farm one wood.\n- [x] **Gate**: only an area with a plausible tag (forest/shore/ruin/road/…) can\n  yield; a bare interior stays barren. Template areas are tagged `exterior`, so\n  existing soak behaviour is unchanged.\n- [x] **Wiring**: soak forage falls back to a spawn when the area holds no food\n  (`BackgroundSimulation._forage_spawn`, best coverage skill via\n  `best_skill_for`); the player `find <skill>` command uses it too, while\n  `find <tag>` keeps the old tag listing.\n- [x] 8 library item templates (`wild_berries`, `medicinal_herb`,\n  `edible_root`, `fat_grub`, `scrap_iron`, `old_coin`, `dwarf_chisel`,\n  `stone_idol`) so the tables draw from real content.",
+      "remaining": "- [ ] Explicit `find <skill>` UI affordance/help text; the verb currently takes\n  the skill name as its argument.\n- [ ] A per-area authoring override (node property) and a JSON library surface\n  for tables, instead of the code constant.\n- [ ] Hints/HUD feedback for \"what could be found here\" so the player learns it.",
+      "update_2026_09_23_junk_is_a_real_outcome_survival_not_guaranteed": "- [x] A **strong** result (margin ≥ 5 over the DC) delivers what was asked for\n  (`want_tags`-matching entries only). A **bare** success includes junk: the\n  skill's table *plus* a junk entry (tags junk/scrap/debris). So a\n  Survival/Nature-trained goblin reliably eats where a low-skill child mostly\n  turns up sticks, and a strongly-skilled searcher does better than a lucky one.\n- [x] Three junk library items so the entry has content (`bundle_of_twigs`,\n  `chipped_stone`, `sodden_bark`).\n- [x] Soak no longer stalls on a useless find: it spends the search time and\n  looks elsewhere next turn instead of standing still.\n- [ ] Follow-up: grouped items (`task-473`) - a 50-use meat pile, relational herb\n  piles - so wild finds can be tidied into stacks.",
+      "update_2_the_forage_mechanics_tag_curated_pool": "Tags are **additive** (faction, setting, type, mechanics all live together). The\nmechanics tag **`forage`** marks \"this can turn up when someone searches the\nwilds\". `_pick_item` prefers `forage`-tagged candidates whenever any exist, so a\n`tool` entry picks a findable chisel instead of a coffee grinder or nail polish,\nand a food entry cannot surface a cauldron. If nothing is tagged yet it falls\nback to the plain tag match, so untagged libraries keep working. Biome\npreference stays in the tables (`AREA_SKILL_BONUS`), not on the items.\n\nCurated wild pool (12): `wild_berries`, `bush_of_berries`, `edible_root`,\n`fat_grub`, `medicinal_herb`, `scrap_iron`, `old_coin`, `dwarf_chisel`,\n`stone_idol`, `bundle_of_twigs`, `chipped_stone`, `sodden_bark`.\n\nTo make any item findable, add `forage` to its tags - that is the whole authoring\nstep alongside the area's biome tag. Remaining: more religion/history content\n(one relic today), and finer `tool`/`food` distribution.",
+      "review_2026_09_23_core_closed": "Verified: `tests/test_search_loot.py` -> 6 passed, plus the forage/soak slice (289 passed) and the junk/strong-result rules in the two updates above. Remaining authoring/UX items (the `find <skill>` affordance, findable-here hints, and a per-area table override + JSON surface) are filed as **task-483**; grouped items are **task-473**. Closing."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-471-skill-driven-search-finds-area-resource-generation.md"
+  }
+}

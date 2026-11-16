@@ -12,6 +12,10 @@ related: ["task-903"]
 **Filed:** 2026-10-31
 **Related:** task-903
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]]
+<!-- deps:end -->
+
 ## What
 
 Check id-list entries (`fears`, `interests`, `traits`) against the library's authoritative tag registry (`data/library/tags/`). Surface unmatched tags as "free tags" while offering autocompletion against canonical library tags.
@@ -36,5 +40,5 @@ A typo in a tag slug (e.g. `arachnid` instead of `spider` or `spiders`) prevents
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

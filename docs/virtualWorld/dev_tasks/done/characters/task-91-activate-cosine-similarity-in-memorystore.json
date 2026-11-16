@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "task-91",
+  "kind": "task",
+  "number": 91,
+  "title": "Activate Cosine Similarity in MemoryStore",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-22",
+  "updated": "2026-07-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The embedding infrastructure exists (embedding generation, cache, `/api/embeddings` endpoint, `cosineSimilarity()`) but is **dormant** - the `retrieve()` method gives a flat `0.3` boost for any memory that has an embedding, instead of computing actual cosine similarity against the query.\n\nThis task activates semantic retrieval, making memory recall dramatically more relevant for agents.\n\n---",
+    "why": "TODO",
+    "how": "### 1. Fix `retrieve()` to accept and use query embedding for cosine similarity\n\nChange signature from:\n```js\nretrieve(query, maxResults = 5, entityBoost = false)\n```\nto:\n```js\nretrieve(query, maxResults = 5, queryEmbedding = null, entityBoost = false)\n```\n\nIn the scoring loop, when `queryEmbedding` AND `m.embedding` are both available, compute actual cosine similarity:\n```js\nif (queryEmbedding && m.embedding) {\n    simScore = MemoryStore.cosineSimilarity(queryEmbedding, m.embedding);  // 0-1\n}\n```\n\nKeep the flat `0.3` fallback when memory has an embedding but no query embedding was provided.\n\n### 2. Update `buildContext()` call to `retrieve()`\n\nLine 169 changes from:\n```js\nconst mems = this.retrieve(query, maxResults, queryEmbedding);\n```\nThe `queryEmbedding` param is currently consumed as `entityBoost`. Fix so it's passed as the proper `queryEmbedding` parameter, and `entityBoost` stays as its own arg.\n\n### 3. Update all other callers of `retrieve()`\n\nCheck `prompt-builder.js:138` and any other places that call `retrieve()` - they should continue working with the new signature defaults.\n\n### 4. (Optional) Backend `get_relevant_memories()` in `player.py:287-308`\n\nCurrently keyword-only. If the backend ever needs semantic retrieval, add the same fix - but this is lower priority since the frontend MemoryStore is what actually feeds agent prompts.\n\n---",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "re_verified_live_with_a_real_provider_2026_10_04_task_685": "The last open item - *not yet verified with a real embedding provider* - is now closed\nend-to-end against LM Studio in the browser, during the memory-dynamics work:\n\n- **Embedding E2E**: `text-embedding-nomic-embed-text-v1.5@f32` → 768-dim vector\n  through the app's own `EmbeddingClient`; then switched to\n  `text-embedding-qwen3-embedding-0.6b` → 1024 dims to match the existing store\n  (`GET /api/memory/embeddings/stats`: model + dims + count all correct, count grew\n  98 → 99 as new memories were written).\n- **The 409 dim-conflict guard fired for real**: a 768-dim config against a store\n  holding 1024-dim vectors is silently refused client-side - the mixed-vector-space\n  protection in the scope above is not theoretical.\n- **Write path confirmed live**: react-phase LLM memories (\"Entering a cold living\n  room\", \"The cold air is still coming in\") embedded automatically after store.\n- **Read path confirmed live**: `buildMemoryContext` embedded the query and merged\n  cosine hits; the turn-feedback line reported \"recalled N · query … (K keyword · V\n  semantic · R recent)\".\n\nWhat task-685 changed on top of this (none of it contradicts the scope above):\n\n- Vector hits now **reinforce** the memory they recalled, via a new\n  `POST /memories/reinforce` endpoint (`memory-context.js` fires it after the merge) -\n  semantic recall became part of the reinforcement loop, not just a read.\n- The keyword/multi-signal scorer (`/memories/retrieve`, task-690) is now the primary\n  ranker; the vector merge at 2× weight is one input among several, and the recall\n  block is grouped (EVENTS / WHAT I BELIEVE / HOW I SEE PEOPLE / WHAT I EXPECT).\n\nKnown gaps above that remain open: no mass re-embed job (still one-off via the\ninspector), and the redundant `embedding` field vs `data/embeddings.json` geometry -\nunchanged by task-685.\n\n**Known gaps (2026-08-29)**:\n- No backfill: only memories stored after the embed path existed get vectors.\n  Pre-existing memories stay `embedding: null`. The inspector's Semantic section can\n  generate one-off, but there is no mass re-embed job.\n- Redundant geometry live on both sides: the `embedding` field per memory object AND\n  the separate `data/embeddings.json` vector store (`<Character>::<memory_id>`) are\n  not reconciled by a single source of truth.\n- The ✨ Gen Memory editor seed path is now aligned (2026-08-29) to emit structured\n  `{text, importance, tags, emotions}` like runtime react memories, and auto-embeds.",
+      "new_scope_2026_08_23": "1. **Settings → Embedding section**: enable toggle, Base URL (e.g.\n   `http://localhost:11434/v1`), model name (`nomic-embed-text`,\n   `text-embedding-3-small`, ...), dimensions (blank = auto-detect from first\n   response), optional API key, Test button. Persisted in browser config (IndexedDB),\n   same pattern as LLM connection settings. API keys never sent to backend.\n2. **Embedding client** (`static/js/shared/embedding-client.js`): POST\n   `{baseUrl}/embeddings`, batch input, dimension auto-detect, graceful null on any\n   failure (system degrades to keyword-only recall).\n3. **Lightweight vector store** (backend): `data/embeddings.json` keyed by\n   `{character}|{memory key}`, pure-python cosine search - no new dependencies,\n   no sentence-transformers. Endpoints in `routes/memories.py`:\n   - `POST /api/memory/embeddings` - bulk upsert `{items: [{key, vector}]}`\n   - `POST /api/memory/embeddings/search` - `{character, vector, k}` → top-k keys + scores\n4. **Write path**: `AgentMemory.storeMemory()` embeds the memory text after a\n   successful store and upserts the vector (fire-and-forget).\n5. **Read path**: `buildMemoryContext()` embeds the recall query, searches, merges\n   cosine-scored memories into the existing candidate pool (keyword scoring stays as\n   fallback when embeddings are disabled/unavailable).\n6. Legacy root-level `embeddings.py` / `/api/embeddings` (sentence-transformers) is\n   superseded - removal tracked separately.\n\nPrior art: `F:\\AI\\Aura\\Diary` (rag_utils.py - query embedding → top-k similar events;\nnomic-embed via local LM Studio endpoint).",
+      "what_to_expect_on_your_next_run": "**Event stream: nothing new appears** - both systems are silent by design. Silence =\nworking (or disabled; check Settings → 🧬 Embedding shows model + dims after Test).\nFailure mode is invisible too: dead endpoint = silent keyword-only fallback, which is\nwhy you Test Connection first. Ollama CORS gotcha: may need `OLLAMA_ORIGINS=*`.\n\n**Behavioral fingerprint** - agents act on meaning-matched memories with zero word\noverlap:\n- *Taco Bell*: Miki's thought drifts to \"tonight feels unfinished\" → she returns to\n  the booth unprompted (the hidden-object memory shares no keywords with her thought).\n- *Mansion*: an agent in the study recalls the calling card found in the hall -\n  cross-area resonance; the deduction chain should connect in fewer turns.\n\n**In exports**: read `=== I REMEMBER ===` blocks in prompt echoes - memories listed\nthat share no vocabulary with their surroundings are semantic hits (they enter at\n2× cosine weight).\n\n**Not yet**: pre-existing memories have no vectors (only new ones embed); inspector-\nadded backstory and reflections bypass storeMemory (backfill = follow-up); recall is\nper-character by design. If nothing happens after two runs with a green test,\ntune the 0.35 threshold / 2× weight in `memory-context.js`.\n\n---",
+      "scoring_after_fix": "The retrieve scoring would become:\n\n| Component | Weight | Description |\n|-----------|--------|-------------|\n| `simScore` | ×5 | Cosine similarity (0-1) between query and memory embedding |\n| `kwScore` | ×3 | Keyword overlap ratio |\n| `recencyBoost` | ×2 | Linear decay over 500 ticks |\n| `importanceBoost` | ×2 | 0.1-1.0 scale |\n| `entityBoost` | +2.0 | If entity_ids match current room |\n\nThis mirrors humanoidagents' approach but keeps all 5 signals instead of just 3.\n\n---",
+      "test": "1. Load a world with a character that has embedded memories\n2. Call `MemoryStore.retrieve()` with a query that has semantic overlap with a memory but zero keyword overlap (e.g. query \"rest\" for a memory about \"slept in the bedroom\")\n3. Verify the memory scores higher than without cosine sim"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "`static/js/memory-store.js:96-145` - `retrieve()`:",
+    "```js",
+    "let simScore = 0;",
+    "if (m.embedding) {",
+    "simScore = 0.3;  // flat boost, NOT cosine sim",
+    "}",
+    "```",
+    "The `cosineSimilarity()` static method at line 15 exists but is **never called**.",
+    "Compare humanoidagents `generative_agent.py:260-264`:",
+    "```python",
+    "query_embedding = self.LLM.get_embeddings(query)",
+    "scores = cosine_similarity([query_embedding], memory_item_embeddings)[0]",
+    "```",
+    "Also: `buildContext()` at line 149-177 generates a `queryEmbedding` but passes it as the third `entityBoost` parameter to `retrieve()` - so the query embedding is completely ignored during scoring.",
+    "---"
+  ],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-91-activate_cosine_similarity_retrieval.md"
+  }
+}

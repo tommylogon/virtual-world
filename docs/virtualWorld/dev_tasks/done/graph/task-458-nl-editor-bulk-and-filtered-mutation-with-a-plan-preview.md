@@ -18,7 +18,7 @@ Add a deterministic bulk staging op so one intent ('give all goblins darkvision'
 
 - [x] `update_matching_nodes` op in the batch vocabulary
       (`routes/graph_ops.py`: `_BATCH_PHASE`, `_apply_batch_op`,
-      `_select_nodes`, `_apply_node_patch`) — one intent, one reviewable op.
+      `_select_nodes`, `_apply_node_patch`) - one intent, one reviewable op.
 - [x] Selector by `kind`/`type`, `tags`/`tag` (+ `require_all_tags`),
       `area`/`area_id` (via `in` edge), `name_contains`, or explicit `ids`.
 - [x] Explicit affected-entity list before Apply: the frontend tool resolves

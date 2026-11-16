@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-206",
+  "kind": "task",
+  "number": 206,
+  "title": "Mature Content Toggle",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-11",
+  "updated": "2026-08-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The pleasure/arousal system must be fully gated behind a global opt-in flag so the base game stays a standard survival RPG. Without a toggle, the new vitals, intimacy verbs, and adult traits leak into every scenario.",
+    "how": "- **No config.toml in this repo.** Settings follow the `ghost_mode` pattern (verified): a world attribute (`app.world.mature_content`, default `False`) + `/api/settings/mature_content` GET/POST routes + frontend toggle persisted in IndexedDB via `config.js`. Mirror the existing `ghost_mode` wiring: `routes/settings.py:13-35`, `static/js/config.js:43-98`, `static/js/api.js:299-310`.\n- Check the flag everywhere the erotic system touches:\n  - `tick_turn()` (`engine/tick_manager.py:83`): skip arousal/stimulation/pleasure decay + threshold checks\n  - `routes/action.py`: disable intimacy verbs entirely\n  - `player.py` condition application: never apply `aroused`, `nipple_hard`, `wetness`, etc.\n  - NPC perception: ignore sexual states\n  - Trait list/UI: adult traits hidden or greyed out",
+    "verify": "- [ ] With flag OFF: no arousal vitals appear, intimacy verbs rejected, no adult traits in list\n- [ ] With flag ON: system fully active\n- [ ] Toggling is respected across tick, actions, and NPC reactions",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - world attribute `mature_content",
+      "routes/settings.py` - GET/POST `/api/settings/mature_content",
+      "static/js/config.js` + `static/js/api.js` + settings UI - toggle",
+      "Every pleasure-system touchpoint above"
+    ],
+    "custom": {
+      "related": "- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §Additions #6"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-206-mature-content-toggle.md"
+  }
+}

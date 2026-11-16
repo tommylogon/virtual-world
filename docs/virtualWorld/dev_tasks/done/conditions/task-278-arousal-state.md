@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: Planned — task-209 (Arousal State Conditions & Threshold Triggers)
+**Status**: Planned - task-209 (Arousal State Conditions & Threshold Triggers)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
@@ -49,13 +49,13 @@ Mid arousal band (Arousal 30–50). Notable Stimulation gain, measurable combat 
 
 ## Perception
 
-`known: True` — the agent knows they're aroused.
+`known: True` - the agent knows they're aroused.
 
 ## Integration points space
 
-- `engine/player.py` — `CONDITION_DEFINITIONS` entry.
-- `engine/tick_manager.py` — threshold checks in `tick_turn()`.
-- `engine/conditions.py` — `auto_fails_checks(player, "perception"/"concentration")`, combat mods, `process_tick` periodic.
+- `engine/player.py` - `CONDITION_DEFINITIONS` entry.
+- `engine/tick_manager.py` - threshold checks in `tick_turn()`.
+- `engine/conditions.py` - `auto_fails_checks(player, "perception"/"concentration")`, combat mods, `process_tick` periodic.
 
 ## Testing (proposed)
 

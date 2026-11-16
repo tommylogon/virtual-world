@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-302",
+  "kind": "task",
+  "number": 302,
+  "title": "Graph Editor: Keep Siblings Open When Drilling In",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "Changed `revealItemsForNode()` in `static/js/graph/network-manager.js` to keep previously revealed items visible when drilling into a child node. `_revealedItemIds` is now a `Map<parentId, Set<childItemIds>>` instead of a flat Set. When clicking a new parent, the old parent's children are cleared; when drilling into a child of the current parent, siblings stay open. Empty click or toggling items back on still clears everything.\n\nAlso changed the default so items are hidden by default (`_showItems = false` in `graph-manager.js`, 📦 button starts inactive) per user preference.",
+    "verify": "- JS syntax check passed (`node --check network-manager.js`)\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "Graph editor optimization: when drilling into a parent node, keep its siblings open instead of hiding them.\n\nExamples:\n- Click an area → shows all items in that area. Click one of those items → currently hides the other items; want them to stay open.\n- Same for clicking a character, or an item with items inside it.\n- Default for \"hide items unless clicking parent\" should be **off**, not on.",
+      "notes": "- Pure editor/UX optimization for the graph view (vis.js layout in the map editor).\n- Complements `task-303` (hide areas with no characters) and `task-312` (graph search filter).",
+      "related": "- `developer ideas.md` line 9\n- Map editor code (`static/js/` graph/map editor modules)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-302-graph-editor-keep-siblings-open.md"
+  }
+}

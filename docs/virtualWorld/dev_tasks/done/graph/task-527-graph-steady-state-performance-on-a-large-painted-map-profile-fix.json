@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-527",
+  "kind": "task",
+  "number": 527,
+  "title": "Graph steady-state performance on a large painted map (profile + fix)",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-26",
+  "updated": "2026-09-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-400",
+      "task-523"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "With a compiled zone loaded in Map mode (physics off), the surrounding UI panels (scope picker, inspector, WorldPainter) become very slow. Backend endpoints measured fast (scope subgraph ~32ms/1.1MB, grid ~1ms), so the cost is browser main-thread work: building ~1k vis nodes/edges, and rendering their labels/edges. Node/edge generation itself is quick; the drag is steady-state. Profile with the browser Performance panel on a large scope, find the per-frame or per-interaction hot path (redraws, hover, relative-layout tick, afterDrawing sync, tooltips), and fix it. Label LOD (graphLabelMaxNodes/graphLabelMinScale) and the 🔤 Names toggle have landed and should be measured first. Note: an earlier hypothesis (GraphRelativeLayout's 120ms follow timer) was wrong and reverted - do not re-suspend it in grid mode, that strands coords-less items/characters at the origin.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolved_2026_10_02_wt_graph_render": "**Profile (before).** `kraktooth_goblin_camp` (658 nodes / 821 edges) on port\n4464, Map layout, Chrome DevTools CPU profile (`Profiler.start/stop` via CDP)\nover hover + wheel-zoom + pan:\n\n- Idle was **~20fps**: 41 `requestAnimationFrame`s in 2s with **82\n  `afterDrawing`** events - vis was redrawing non-stop.\n- `network.physics.options.enabled === true`, `simulatorRunning === true`,\n  `graphManager._physicsEnabled === true` **in Map mode**.\n- Interaction profile: 19178 samples; 75.6% in vis's canvas draw\n  (`value @ vis-network.min.js:33`), `fill`/`stroke`/`save`/`clearRect` next.\n- Forced `loadGraphData()` rebuild: 1026 / 1726 / 2066 ms.\n\n**Root cause.** `GraphManager.toggleCardinalLayout()` set\n`this._physicsEnabled = true` (and persisted it) on **entering Map**, and\n`loadGraphData` restores physics when that flag is set (network-manager.js\n~711). So Map ran the solver continuously on 658 nodes, which forced a redraw\nevery physics tick and starved the inspector / scope picker / WorldPainter -\nexactly the steady-state drag reported. (It also let nodes drift off the painted\ncells, the drift task-618's edge fix had to compensate for.)\n\n**Fix** (`static/js/graph-manager.js`): entering Map now defaults physics\n**off** (`this._physicsEnabled = !this._cardinalLayout`) and no longer persists\nthat mode-default; Graph mode re-enables it. An explicit toolbar toggle still\nwins and is what gets persisted, so a reload starts in Graph with the user's own\npreference. The painted lattice already owns positions; the derived relative\nlayout still seeds coordinate-less items (verified separately - 52 orphans, 0 at\nthe origin, both layouts).\n\n**Profile (after).**\n\n| metric | before | after |\n|---|---|---|\n| idle rAF frames / 2s | 41 (~20fps) | 117 (~58fps) |\n| idle `afterDrawing` / 2s | 82 | 19 |\n| map `physicsEnabled` | true | false |\n| interaction CPU samples | 19178 | 5191 (−73%) |\n| forced `loadGraphData()` (median) | ~1.7s | ~0.9s |\n\nThe remaining 19 redraws/2s are the deliberate `GraphRelativeLayout` follow\ntimer; the task's warning not to suspend it in grid mode is respected. JS unit\ntests: 486 passed / 0 failed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-527-graph-steady-state-performance-on-a-large-painted-map-profile-fix.md"
+  }
+}

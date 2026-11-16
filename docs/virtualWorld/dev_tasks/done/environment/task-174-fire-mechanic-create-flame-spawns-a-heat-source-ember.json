@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-174",
+  "kind": "task",
+  "number": 174,
+  "title": "Fire Mechanic - Create Flame spawns a Heat-Source Ember",
+  "status": "done",
+  "priority": "high",
+  "area": "environment",
+  "tags": [
+    "environment",
+    "fire",
+    "heat",
+    "triggers",
+    "gameplay"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-03",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make Lyrie's `Create Flame` spell actually work: casting it spawns a fire/ember item in the room that radiates heat for ~3 turns then burns out. Previously: `use Create Flame` → \"Something happens.\" - no ember, no warmth.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Live simulation (throwaway script): spawn ember → `on_tick` 3→2→1→0 → `on_depleted` returns \"The everflame ember gutters and dies.\" → tick_manager marks unlit and removes the node.\n- Backend suite: `python -m pytest tests/ -q -k \"not mcp and not emote\"` → 431 passed, 1 skipped.\n- Doc: `docs/virtualWorld/Environment/Temperature System.md` documents the heat-source mechanic (heat_source tag, environment_propagation.py, tick_manager).",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "root_causes_all_fixed": "1. `use_item` called `_execute_triggers` without `game_state` → `spawn_item` silently no-op'd.\n2. Create Flame trigger's `message` effect had empty params → default \"Something happens.\".\n3. `everflame_ember` spawned `unlit`; heat only applied for `lit`/`on` states.\n4. Tick loop only depleted carried/equipped lit items - a dropped ember never burned down.\n5. `handle_message` with empty message emitted the vague \"Something happens.\".",
+      "changes_all_verified_in_current_code": "### 1. `engine/item_actions.py` - pass `game_state` to trigger execution ✅\n`_exec_triggers` helper (`item_actions.py:28-42`) threads the world as `game_state` into every `_execute_triggers` call - `spawn_item`/`consume_item`/`set_environment` effects now work everywhere.\n\n### 2. Rewire Create Flame `on_use` trigger (`world_template.json`) ✅\n`use Create Flame` spawns `everflame_ember` **lit** (`\"current_state\": \"lit\"`, world_template.json:4028) and emits: *\"A small flame flickers in your palm and settles into a glowing ember at your feet. It radiates warmth and will burn for about 15 minutes.\"* (see also task-170 Issue 4).\n\n### 3. `data/library/items/everflame_ember.json` ✅\n`uses: 3` (≈3 ticks × 5 min = ~15 min), `current_state: \"lit\"`, `light_level: \"dim\"`, `target_temperature: 30`, `heating_rate: 0.5`, `heat_source`/`fire` tags, `on_tick` (decrement uses) + `on_depleted` (\"gutters and dies.\") triggers. Description states it burns ~15 minutes.\n\n### 4. `engine/tick_manager.py` - burn down area-lit items ✅\nDedicated \"Area lit items burn down\" loop (`tick_manager.py:330-361`): scans each area's `EDGE_IN` items with state `lit`/`on`, skips `uses == -1` (permanent sources like the stove), runs `on_tick` (with `game_state`), and on depletion sets `unlit`, fires `on_depleted`, and removes the node.\n\n### 5. `engine/effects.py` - empty message → no output ✅\n`handle_message` returns `[]` for empty messages (effects.py:81-85) instead of \"Something happens.\".",
+      "files_modified": "- `engine/item_actions.py`\n- `engine/tick_manager.py`\n- `engine/effects.py`\n- `data/scenarios/world_template.json` (Create Flame trigger + ember spawn)\n- `data/library/items/everflame_ember.json`\n- `docs/virtualWorld/Environment/Temperature System.md`",
+      "related": "- task-170 (fire spawn & content fixes) - follow-up gaps this left behind; all landed.\n- `docs/virtualWorld/dev_tasks/done/environment/task-12-sound_propagation.md` - same graph-scan propagation pattern."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-174-fire-mechanic-heat-source.md"
+  }
+}

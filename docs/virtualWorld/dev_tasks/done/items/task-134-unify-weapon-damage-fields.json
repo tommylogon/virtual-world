@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-134",
+  "kind": "task",
+  "number": 134,
+  "title": "Unify Weapon Damage Fields",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-30 (updated 2026-07-30)",
+  "updated": "2026-07-30 (updated 2026-07-30)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Combine the two separate `damage` (flat) and `damage_dice` fields on weapon items into a single `damage` field that accepts dice notation like `\"2d6+3\"` or a flat number `\"8\"`.\n\n---",
+    "why": "Weapons currently have two fields:\n- `damage`: flat number (e.g. `8`)\n- `damage_dice`: dice string (e.g. `\"1d6\"`)\n\nThis is confusing and inconsistent. The system uses `damage_dice` if available, otherwise falls back to `damage`. Having a single field simplifies the item schema and the parsing logic.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "requirements": "- Replace `damage` + `damage_dice` with a single `damage` field\n- Accept formats: `\"2d6+3\"`, `\"1d8\"`, `\"5\"` (bare number = flat damage)\n- Parse in `engine/equipment_bonuses.py` (already has `parse_dice()`)\n- Update all weapon items in `data/library/items/` to use the new format\n- Update any references in the codebase\n- Migration: existing items with `damage_dice` should be read and migrated",
+      "what_was_changed": "- `engine/equipment_bonuses.py` - `parse_dice()` renamed to `parse_damage()`, handles both dice strings and flat numbers. `aggregate_bonuses()` reads unified `damage` field.\n- `engine/combat.py` - removed duplicate `_parse_dice()` method, uses `parse_damage()` from equipment_bonuses. Removed `import re`.\n- `data/library/items/iron_shortsword.json` - combined `damage: 8, damage_dice: \"1d6\"` → `damage: \"1d6\"`\n- `data/library/items/heavy_club.json` - combined `damage: 10, damage_dice: \"1d8\"` → `damage: \"1d8\"`\n- `data/library/items/lumber_axe.json` - combined `damage: 0, damage_dice: \"1d6\"` → `damage: \"1d6\"`\n- `data/scenarios/combat_pit.json` - all weapon entries updated\n- `static/js/item-library.js` - replaced separate Flat Damage + Damage Dice inputs with a single \"Damage\" field. Save/load/sync/diff all use unified field.\n- `static/js/inspector/item-view.js` - replaced separate Flat Damage + Damage Dice inputs with single Damage field."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-134-unify-weapon-damage-fields.md"
+  }
+}

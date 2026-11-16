@@ -2,11 +2,11 @@
 group: Graph & Area UX
 ---
 
-# Stale & Phantom Way Connection Edges — Self-Healing Reconnect
+# Stale & Phantom Way Connection Edges - Self-Healing Reconnect
 
 **Filed**: 2026-08-09  
 **Priority**: High  
-**Status**: In Review — implemented 2026-08-09, 4 new route tests pass, full suite 761 passed (same 11 pre-existing give-item failures).
+**Status**: In Review - implemented 2026-08-09, 4 new route tests pass, full suite 761 passed (same 11 pre-existing give-item failures).
 
 ---
 
@@ -22,10 +22,10 @@ Some ways ended up wired to **three areas instead of two**, and edges pointed at
 
 ## Fixes
 
-- `routes/graph.py` — `build_connect_legacy`: remove any existing connection edges for the way id (case-insensitive) before adding the 4, so re-connecting is idempotent.
-- `routes/graph.py` — `reconnect_way`: find the way's connection edges and match the canonical edge **case-insensitively** so view/cardinal props survive a reconnect even with legacy mixed-case ids.
-- `graph.py` — new `_normalize_edge_endpoints()` called at the end of `load_from_dict`: remaps every edge's source/target to the canonical stored node id (case-insensitive resolve). Saves reloading legacy worlds self-heal phantom endpoints.
-- `static/js/inspector/way-view.js` — `_parseConnections` now prefers the way's `area_from` / `area_to` props (resolved to area nodes) when choosing side A/B, so stale 3rd-area edges no longer surface the wrong pair in the inspector.
+- `routes/graph.py` - `build_connect_legacy`: remove any existing connection edges for the way id (case-insensitive) before adding the 4, so re-connecting is idempotent.
+- `routes/graph.py` - `reconnect_way`: find the way's connection edges and match the canonical edge **case-insensitively** so view/cardinal props survive a reconnect even with legacy mixed-case ids.
+- `graph.py` - new `_normalize_edge_endpoints()` called at the end of `load_from_dict`: remaps every edge's source/target to the canonical stored node id (case-insensitive resolve). Saves reloading legacy worlds self-heal phantom endpoints.
+- `static/js/inspector/way-view.js` - `_parseConnections` now prefers the way's `area_from` / `area_to` props (resolved to area nodes) when choosing side A/B, so stale 3rd-area edges no longer surface the wrong pair in the inspector.
 
 ## Manual repair workflow (how to fix a broken way in the editor)
 
@@ -40,8 +40,8 @@ Also: `tools/fix_way_edges.py` scans a world file or the live server (`--live`) 
 
 ## Files Changed
 
-- `routes/graph.py` — idempotent connect, case-insensitive reconnect prop preservation
-- `graph.py` — `_normalize_edge_endpoints` on load
-- `static/js/inspector/way-view.js` — `_parseConnections` prefers area_from/area_to
-- `tools/fix_way_edges.py` — new dry-run/apply repair scanner
-- `tests/test_way_connect_repair.py` — new route tests
+- `routes/graph.py` - idempotent connect, case-insensitive reconnect prop preservation
+- `graph.py` - `_normalize_edge_endpoints` on load
+- `static/js/inspector/way-view.js` - `_parseConnections` prefers area_from/area_to
+- `tools/fix_way_edges.py` - new dry-run/apply repair scanner
+- `tests/test_way_connect_repair.py` - new route tests

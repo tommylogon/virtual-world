@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-37",
+  "kind": "task",
+  "number": 37,
+  "title": "LLM Memory Context: Relative Time Instead of Ticks",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "LLM-facing memory context (episodic memories in `=== I REMEMBER ===`, reflection prompts, debug output) displayed raw tick numbers like `[Tick 42]`. These now show human-readable relative time like `[5 minutes ago]` or `[2 hours ago]`, giving the LLM a sense of recency.",
+    "why": "TODO",
+    "how": "- Added `EventBus.tickToRelative(tick)` - converts a tick to \"just now\" / \"X minutes ago\" / \"X hours ago\" / \"X days ago\" based on current world tick and `time_per_tick_minutes`\n- Replaced `[Tick N]` in 4 LLM-facing locations:\n  - `agent-engine.js` reflection summarization prompt\n  - `agent-engine.js` `_buildMemoryContext()` episodic memory list\n  - `agent-engine.js` world knowledge insight (hardcoded `[just now]`)\n  - `memory-store.js` debug output",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/event-stream.js` - added `tickToRelative()` method",
+      "static/js/agent-engine.js` - 3 `[Tick N]` → relative time",
+      "static/js/memory-store.js` - 1 `[Tick N]` → relative time"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-37-memory_context_relative_time.md"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "id": "task-605",
+  "kind": "task",
+  "number": 605,
+  "title": "Make size a real character property tied to the graph editor character form",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-606",
+      "task-653"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**DECIDED 2026-09-30 by Tommy:** add a **separate `size` property to character\nnodes**.\n\n`engine/size.py` has 6 tiers (`tiny, small, normal, huge, giant, titanic`) and\nways carry a `max_size` gate, but size lives as a `size_*` **trait**: 0 of 69\nlibrary characters and 0 world characters carry one, and `size_tier()` is called\nfrom exactly one place -- the passage gate. A prefixed trait key is invisible in\nthe graph editor and cannot be filtered or sorted on, so it is promoted to a\nfirst-class character property surfaced in the graph editor character form.\n\nOpen question carried forward, not blocking: whether the 6 tiers still span the\nrange once the occupancy rule below is in play. A 1cm spider and a\nworld-consuming leviathan are both ends, and 6 buckets may not cover both\nwithout something between `small` and `normal`.\n\nengine/size.py has 6 tiers (tiny..titanic) as a size_* TRAIT, but 0 of 69 library characters and 0 world characters carry one, and size_tier() is called from exactly one place: the way max_size passage gate. Promote size to a character property surfaced in the graph editor character form.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`size` is a first-class character property, not only a trait",
+        "done": true
+      },
+      {
+        "text": "The `size_*` trait keeps working, so task-187 worlds are unchanged",
+        "done": true
+      },
+      {
+        "text": "The property wins when both are present, and an unrecognised value falls",
+        "done": true
+      },
+      {
+        "text": "back rather than being stored",
+        "done": false
+      },
+      {
+        "text": "Loaded from a library definition, validated against the six tiers",
+        "done": true
+      },
+      {
+        "text": "Serialized in the `/api/state` player payload",
+        "done": true
+      },
+      {
+        "text": "Settable from the graph editor character form",
+        "done": true
+      },
+      {
+        "text": "A bad value is refused with 400 and does not clobber a good one",
+        "done": true
+      },
+      {
+        "text": "Covered by regression tests pinning the precedence",
+        "done": true
+      },
+      {
+        "text": "Verified live in the browser",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30": "`engine/size.py` gained `size_name(player)`, which resolves in this order:\nthe `size` property, then a `size_*` trait, then `normal`. `size_tier()` is now\na lookup over that, so both existing readers (way `max_size` gating, and\ntask-653's occupancy) read one function.\n\n`Player.size` is `None` until authored. **That is load-bearing and I got it\nwrong first time**: defaulting it to `\"normal\"` made the property outrank every\nhand-authored trait, and two `TestSizePassage` tests failed because the way gate\nhad silently stopped working. `None` means \"not authored\", which is what lets\nthe trait fallback fire.\n\nAlso changed: `effects.py` loads `size` from a library definition and validates\nit against the six tiers; `serialization.py::_serialize_player` publishes it (the\ninspector reads `player.size` from the state payload, and without this the\ncontrol reverted to \"not set\" on every render); `player_ops.py` accepts\n`size` on `POST /api/players/<name>`, rejecting anything outside the six with a\n400; and the character inspector's vitals block gained a **Size** dropdown\ncarrying a tippy that says what the two consumers do with it.\n\n**Verified live**, full round trip through the real endpoint:\n\n| step | result |\n|---|---|\n| initial | `null` (not authored) |\n| set `giant` | 200 |\n| read back from `/api/state` | `\"giant\"` |\n| control re-renders | `<option value=\"giant\" selected>`, \"not set\" deselected |\n| set `colossal` | **400** |\n| value after the bad write | still `giant` -- a refused write does not clobber |\n| clear (`null`) | back to the trait fallback |\n\n8 regression tests in `tests/test_size_property.py` pin the precedence\nexplicitly, including the case that broke it: trait-only, property-only, both,\nunrecognised-with-trait, unrecognised-without, case/whitespace, no player, and\nevery tier resolving to its own index.\n\n**Not done here, deliberately:** the 6 tiers still may not span the range once\noccupancy is in play -- a 1cm spider and a world-consuming leviathan are both\nends. Left as the open question on this task rather than guessed at.\n\n- TODO"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-605-make-size-a-real-character-property-tied-to-the-graph-editor-character-form.md"
+  }
+}

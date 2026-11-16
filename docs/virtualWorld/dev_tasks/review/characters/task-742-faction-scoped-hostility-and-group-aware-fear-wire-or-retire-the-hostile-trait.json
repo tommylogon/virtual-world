@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "id": "task-742",
+  "kind": "task",
+  "number": 742,
+  "title": "Faction-scoped hostility and group-aware fear; wire or retire the hostile trait",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-552",
+      "bug-593",
+      "task-956",
+      "bug-594",
+      "bug-595"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make hostility group-scoped and fear group-aware. Today the real aggro engine is the slasher/is_slasher trait (engine/traits.py:394-407) -> npc_behaviors.slasher_hunt (npc_behaviors.py:747) -> target filter not is_slasher (npc_behaviors.py:824-830), tick hook tick_manager.py:599, combat bonus combat.py:383-404; the mansion uses it. The hostile trait (traits.py:408-414) is documented as dangerous flee or fight but only tints social tone and the fear shout weight (background_social.py:325 and 1278); its HOSTILE effect constant is read nowhere else. Replace the boolean trait exclusion with a group/faction relation so a creature is hostile to a set of groups (everyone except my faction), hostility exemption is same-faction so lich-A undead fight lich-B undead while each ignores its own, and fear exemption is same-group (undead do not fear undead) as a separate criterion. Goblins fear zombies via the goblin fear_tags, independent of whether the zombie is hostile. Decide whether to wire the hostile trait to this relation or deprecate it, since two names for dangerous is the confusion. Acceptance: the zombie/lich/goblin cases; the mansion slasher behaviour must not regress. Relates to task-390 (faction logic, done), task-550 (faction tags, done), task-619 (fear writes relationships).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Hostility is a **relation between groups**, not a per-character boolean trait.",
+        "done": false
+      },
+      {
+        "text": "A creature declares the groups it hunts (or \"everyone except my faction\").",
+        "done": false
+      },
+      {
+        "text": "Same-faction creatures ignore each other: two `faction:lich_a` zombies do not",
+        "done": false
+      },
+      {
+        "text": "target each other, while `lich_a` and `lich_b` undead are hostile to each",
+        "done": false
+      },
+      {
+        "text": "other. `slasher_hunt._get_nearest_player_to` filters on the relation instead of",
+        "done": false
+      },
+      {
+        "text": "`not is_slasher(target)`.",
+        "done": false
+      },
+      {
+        "text": "Fear is **group-aware** and independent of hostility: a character does not fear",
+        "done": false
+      },
+      {
+        "text": "a source in its own group (undead do not fear undead), by a criterion separate",
+        "done": false
+      },
+      {
+        "text": "from the hostility exemption.",
+        "done": false
+      },
+      {
+        "text": "A goblin with a matching `fear_tag` (`undead`) reacts to a zombie (flee / hide",
+        "done": false
+      },
+      {
+        "text": "/ shout) with no `hostile` on the zombie - the reaction comes from the",
+        "done": false
+      },
+      {
+        "text": "goblin's tags, not the zombie's.",
+        "done": false
+      },
+      {
+        "text": "The `hostile` trait is either wired to the relation (its documented \"flee or",
+        "done": false
+      },
+      {
+        "text": "fight\" becomes real) or deprecated; the two names for \"dangerous\" do not both",
+        "done": false
+      },
+      {
+        "text": "remain half-wired.",
+        "done": false
+      },
+      {
+        "text": "The mansion's `slasher` behaviour is unchanged (regression test).",
+        "done": false
+      },
+      {
+        "text": "Tests: a mechanism test for target selection + fear-source grouping, and a",
+        "done": false
+      },
+      {
+        "text": "micro-scenario exercising each of the zombie / lich-a-vs-lich-b / goblin",
+        "done": false
+      },
+      {
+        "text": "cases.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "- Real aggro engine today: `slasher`/`is_slasher` trait (`engine/traits.py:394-407`)\n  -> `npc_behaviors.slasher_hunt` (`npc_behaviors.py:747`) -> target filter\n  `not is_slasher` (`npc_behaviors.py:824-830`); tick hook `tick_manager.py:599`;\n  combat bonus `combat.py:383-404`. The mansion uses it.\n- `hostile` trait (`traits.py:408-414`): effect constant `HOSTILE` is read only\n  by `background_social._traits` (`:325`, `:1278`) for social tone and the fear\n  \"shout\" weight.\n- Fear path that writes relationships for non-characters (the `Water Skin`\n  case) is task-619's other half.",
+      "browser_ui": "Intended UI home: author faction/group relations and fear tags on the\ncharacters' existing definition surfaces, then run the scratch encounter from\nthe game view and inspect the event stream and character Mind state. Hostility\nand fear remain separate criteria in the simulation.\n\nCurrent availability: the card documents the existing mansion slasher hunt and\nthe current `hostile` trait's limited consumers. Group-scoped hostility and\nsame-group fear exemption are planned; this card does not claim those rules are\nlive.\n\nLive steps when available:\n1. Load a scratch encounter with two zombies in `faction:lich_a`, one zombie in\n   `faction:lich_b`, and one goblin with `fear_tags: [undead]`. Start the sim\n   and inspect the event stream after a hunt tick.\n   - expected: each lich-a zombie ignores the other lich-a member but may\n     target lich-b; the target decision follows the group relation, not a\n     blanket `is_slasher` exclusion.\n2. Let the goblin encounter a zombie whose hostility relation does not target\n   the goblin. Observe the goblin's action and event.\n   - expected: the goblin flees, hides, or shouts due to its own `undead` fear\n     tag, independently of whether the zombie targets it.\n3. Add a same-group undead fear source and repeat the encounter.\n   - expected: the goblin/undead same-group exemption follows the separately\n     configured fear-group rule; it does not change hostility targets.\n4. Inspect authored character values and the event stream after the run.\n   - expected: faction hostility, fear-group membership, and `fear_tags` are\n     read from their intended sources; the old `hostile` trait is either wired\n     to the relation or absent as a competing half-rule.\n\nThese steps describe the intended encounter and observable branches. They do\nnot claim faction-scoped hostility is implemented today.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Character Creation & Archetypes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

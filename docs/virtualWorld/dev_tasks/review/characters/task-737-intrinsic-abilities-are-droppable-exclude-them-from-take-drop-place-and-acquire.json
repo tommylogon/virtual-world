@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "task-737",
+  "kind": "task",
+  "number": 737,
+  "title": "Intrinsic abilities are droppable: exclude them from take/drop/place and acquire them by grant/revoke",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-10-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-352",
+      "task-733",
+      "task-537"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Treat intrinsic abilities (INTRINSIC_ABILITY_TAGS: spell/ability/innate/intrinsic/power) as non-physical everywhere, not just in appearance: exclude them from the physical-possession verbs (take, drop, place, put, stow, give, steal) and model acquisition as grant/revoke through a physical carrier (hacking chip, spellbook, implant). Today an ability can be dropped on the ground and picked up by anyone.",
+    "why": "TODO",
+    "how": "An ability is **non-physical**, so the physical-possession verbs do not apply:\n\n- Exclude intrinsic abilities from `take`, `drop`, `place`, `put`, `stow`, `give`,\n  `steal`. Refuse with a clear message (\"your invisibility is not a thing you set\n  down\"), not a generic failure.\n- Acquisition is **grant / revoke**, not take/drop. A physical **carrier** (hacking\n  chip, spellbook, scroll, implant) is a normal item - you take/drop/equip the\n  *carrier*; equipping/installing **grants** the intrinsic ability node, removing it\n  **revokes** it. Two layers: carrier (physical) vs ability (intrinsic).\n- Activation is `use` / `toggle` (task-352), not held/dropped.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`drop` / `place` of an intrinsic ability is refused with a clear message.",
+        "done": false
+      },
+      {
+        "text": "`take` / `give` / `steal` of an intrinsic ability is refused.",
+        "done": false
+      },
+      {
+        "text": "A carrier item grants the ability on equip/install and revokes it on removal",
+        "done": false
+      },
+      {
+        "text": "(a test proves the grant/revoke round-trip).",
+        "done": false
+      },
+      {
+        "text": "Intrinsic abilities stay out of other characters' examine/appearance (already",
+        "done": false
+      },
+      {
+        "text": "true via `_drop_intrinsic_abilities`).",
+        "done": false
+      },
+      {
+        "text": "The verb set and the tier source are documented; `npm run build:ts` and the",
+        "done": false
+      },
+      {
+        "text": "unit runner pass.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "grounding_measured_2026_10_07": "Ability-ness is a **tag** (`engine/equipment.py:16`):\n\n```python\nINTRINSIC_ABILITY_TAGS = frozenset({\"spell\", \"ability\", \"innate\", \"intrinsic\", \"power\"})\n```\n\nIt is consulted in exactly two places today:\n\n- `_is_intrinsic_ability` / `_drop_intrinsic_abilities` (`engine/equipment.py:603`) -\n  hides abilities from a character's **visible appearance** so others do not see them\n  in examine/equipment narrative.\n- `engine/items/take_drop_actions.py:737` - the **take** path checks the tags only to\n  make an ability **skip hand slots** (\"skip straight to carrying\"). It does **not**\n  forbid possession.\n\n**The hole:** `drop_item` (`take_drop_actions.py:837`) and `place_item`\n(`place_actions.py:124`) never check the tag. So an intrinsic ability in a\ncharacter's possession can be **`drop`-ped into the area and `take`-n by anyone** -\nViolet dropping her invisibility on the ground. Latent, because no content authors\nabilities yet.",
+      "relationship_to_352": "Abilities are the case that *requires* the per-item cost override: an ability's\n`use` may be free or minor while a physical tool's is major, so its tier comes from\n`action_costs.<verb>.tier`, with the ability tag supplying the default\n(`task-352`). Because the verb set differs (no take/drop; use/toggle/grant/revoke),\nthe ability's cost table is over that different verb set.",
+      "open_questions": "- Is `grant`/`revoke` its own verb, or is it the effect of `equip`/`unequip` on a\n  carrier? (Recommend the latter - no new verb.)\n- Do abilities occupy a containment slot on the character at all, or are they purely\n  tag-marked nodes owned by the character? Confirm the containment model before\n  excluding the verbs.",
+      "browser_ui": "Intended UI home: in a scratch scenario, interact with an intrinsic ability\nthrough the normal character action/command surface, and manage its physical\ncarrier through Inventory/Equipment. The ability itself is not a ground item;\nthe spellbook, chip, or implant is.\n\nCurrent availability: the card reports that an intrinsic ability can currently\nbe dropped and taken. The proposed carrier grant/revoke interaction is not\nclaimed as implemented.\n\nLive steps when available:\n1. Give a character one intrinsic ability and one physical carrier item that\n   grants it. Open Inventory and inspect both records.\n   - expected: the carrier is listed as a physical item; the intrinsic ability\n     is not presented as a carried object.\n2. Attempt `take`, `drop`, `place`, `put`, `stow`, `give`, and `steal` against\n   the intrinsic ability through the normal command/action surface.\n   - expected: each physical-possession verb returns a clear non-physical\n     refusal and does not create an item on the ground or in another\n     character's inventory.\n3. Equip/install the carrier, then remove it. Inspect the character's abilities\n   and the carrier's equipment state after each operation.\n   - expected: installing grants the intrinsic ability; removal revokes it;\n     the carrier remains the physical object whose ownership changes.\n4. Examine the character from another character before and after carrier\n   removal.\n   - expected: the intrinsic ability does not leak into another character's\n     appearance or carried-item list.\n\nThese steps define the intended action and Inventory/Equipment behavior; they\ndo not claim carrier-based grant/revoke exists today.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Character Creation & Archetypes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-737-intrinsic-abilities-are-droppable-exclude-them-from-take-drop-place-and-acquire-them-by-grant-revoke.md"
+  }
+}

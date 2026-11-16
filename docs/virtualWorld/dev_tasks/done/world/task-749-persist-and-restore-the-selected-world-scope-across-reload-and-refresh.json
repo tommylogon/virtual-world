@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "id": "task-749",
+  "kind": "task",
+  "number": 749,
+  "title": "Persist and restore the selected world scope across reload and refresh",
+  "status": "done",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "world",
+      "scope",
+      "hierarchy",
+      "and",
+      "projection",
+      "task-439",
+      "canonical",
+      "area",
+      "identity",
+      "task-451",
+      "background",
+      "layers"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Selecting a world scope in the graph filter does not survive a page reload or\napp refresh: the graph reverts to whole world. Make the selected scope persist\nand be restored on load.\n\nCurrent state (measured):\n\n- The selection lives only in memory - `graphManager._scopeFilter`\n  (`static/js/graph-manager.ts:132` declared, `:183` initialised to `null`),\n  set by `setScopeFilter` (`:545`) from the picker `#graph-scope-filter`\n  (`:498`) and the scope tree (`static/js/graph/scope-tree.ts:341-342`).\n- It is reset on scenario switch (`graph-manager.ts:534`) and never written to\n  any store, so a refresh loses it.\n- Sibling view preferences *do* persist via `localStorage`, so the pattern\n  already exists: `vw_graphShowImages` / `vw_graphNodeLabels`\n  (`graph-manager.ts:223,268`), `vw_area_filter` (`stream-filters.ts:151`),\n  `vw_stream_mode` (`event-stream.ts:92`).\n\nScope: persist the selected scope **per scenario**, and restore it after the\nscope manifest loads. Must not leak a scope id from one world into another - the\nsame reasoning `graph-background` uses for its per-scenario key\n(`_scenarioKey`). A restored id that no longer exists (renamed/deleted scope)\nmust fall back to whole world, not error.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Persisted keyed by scenario and restored on load, re-applying `setScopeFilter`",
+        "done": true
+      },
+      {
+        "text": "(`_restoreScopeFilterOnce` sets `_scopeFilter` before `GraphNetwork.loadGraphData`).",
+        "done": false
+      },
+      {
+        "text": "Reloading at a selected scope returns to that scope.",
+        "done": true
+      },
+      {
+        "text": "A different scenario does not restore the previous world's scope (per-scenario key;",
+        "done": true
+      },
+      {
+        "text": "the restore runs once per page load, and a scenario switch resets `_scopeFilter`",
+        "done": false
+      },
+      {
+        "text": "without touching the other scenario's key).",
+        "done": false
+      },
+      {
+        "text": "A stored id that no longer resolves falls back to whole world without error (validated",
+        "done": true
+      },
+      {
+        "text": "against `_scopeSummaries`; `network-manager` also drops an unresolvable id and clears",
+        "done": false
+      },
+      {
+        "text": "the key).",
+        "done": false
+      },
+      {
+        "text": "Whole-world selection still restores whole world (picking it clears the key).",
+        "done": true
+      },
+      {
+        "text": "Live: pick a scope, refresh, confirm it returns to the scope and the picker/breadcrumb agree.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_10_09": "Persisted per scenario in `localStorage` under `vw_graphScope_<scenario name>`\n(same identity source as `graph-background._scenarioKey`).\n\n- `graph-manager.ts` - `_scopeStorageKey` / `_persistScopeFilter` / `_restoreScopeFilterOnce`;\n  `setScopeFilter` now persists (whole world clears the key); `loadGraphData` restores\n  once per page load, before the subgraph fetch, validated against `_scopeSummaries`.\n- `graph/network-manager.ts` - the stale-scope fallback also clears the saved key, so an\n  unresolvable id cannot loop across reloads.\n- Guard: `tools/unit/test_graph_scope_tree.js` asserts the calls are wired."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-749-persist-and-restore-the-selected-world-scope-across-reload-and-refresh.md"
+  }
+}

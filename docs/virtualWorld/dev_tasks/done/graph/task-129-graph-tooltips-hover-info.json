@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-129",
+  "kind": "task",
+  "number": 129,
+  "title": "Graph Tooltips & Hover Info",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Show useful environment information in graph node tooltips on hover - temperature, light level, air quality, and other area properties - so users don't have to open the inspector to see area conditions at a glance.\n\n---",
+    "why": "Currently, hovering a graph node shows only the node name and type (via vis-network's built-in tooltip). To see temperature, light level, or other environment data you must open the inspector panel. For worldbuilding and debugging, surface-level data should be visible on hover.\n\n**Note**: General UI tooltips already exist (HTML `title` attributes + Tippy.js) - this task is specifically about enhancing graph node tooltips with environment data.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "requirements": "- **Area nodes**: tooltip shows temperature, light level, air status on hover\n- **Item nodes**: tooltip shows weight, tags (armor/clothing/weapon), equip_slots\n- **Character nodes**: tooltip shows current area, vitals summary (HP/Energy), state\n- **Door/Way nodes**: tooltip shows state (open/closed/locked), to/from areas\n- Format: compact, multi-line, readable at a glance\n- Use vis.js `title` or custom tooltip rendering",
+      "feature_tooltips_separate_from_graph": "Global feature explanation tooltips:\n- `title` or `data-tooltip` attributes on UI controls explaining what they do\n- Vital tooltips: explain what each vital does on hover in the inspector\n- Settings tooltips: explain embedding provider, ghost mode, etc.",
+      "related": "- [[done/graph/task-100-graph-view-filters|task-100: Graph view filters]]\n- `static/js/graph/network-manager.js`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-129-graph-tooltips-environment-info.md"
+  }
+}

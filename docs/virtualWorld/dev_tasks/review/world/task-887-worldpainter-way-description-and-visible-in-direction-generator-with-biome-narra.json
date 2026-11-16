@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "task-887",
+  "kind": "task",
+  "number": 887,
+  "title": "WorldPainter Way Description and Visible-in-Direction Generator with Biome Narrative Pools",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-19",
+  "updated": "2026-10-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Biome narrative phrase pools defined with at least 3-5 variations per major biome transition.",
+        "done": true
+      },
+      {
+        "text": "`engine/world_compile.py` assigns non-empty `description` to compiled way nodes and `visible_in_direction` to their connection edges.",
+        "done": true
+      },
+      {
+        "text": "Phrasing uses deterministic variation (no uniform repetition across every tile).",
+        "done": true
+      },
+      {
+        "text": "World Issues report for compiled scopes drops way description/direction notices.",
+        "done": true
+      },
+      {
+        "text": "Targeted tests verify compiled ways carry valid `description` and `visible_in_direction`.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "context_and_problem": "When WorldPainter compiles painted grid cells into areas and ways (`engine/world_compile.py`), generated ways currently lack:\n1. `description` on the way node itself.\n2. `visible_in_direction` on the connection edges (`area -> way`).\n\nAs a result:\n- The World Validator reports over 4,000 `info` notices (`way_missing_description` and `way_missing_view_direction`).\n- In-game narration for moving between painted cells falls back to bare room names (\"You go north to Deep Woods (12, 14)\") rather than rich, varied landscape transitions.\n- Generating identical static text for every way in a biome makes large zones feel repetitive.",
+      "target_architecture": "1. **Biome Narrative / View Direction Vocabulary:**\n   - Author `data/worldpainter/way_narratives.json` with dedicated pools for structural kinds (door, stairs, entrance) and major biome/terrain transitions (roads, woods, water, rocks, cultivated fields, urban, grassland, and specific combinations).\n   - Each entry provides 5 varied descriptions and 5 forward/reverse view cues.\n2. **Compiler Generation Logic:**\n   - In `engine/way_narratives.py` and `engine/world_compile.py` (`_way_edges`, `_gateway`, `_enter_way`, `emit_passage`, `sibling_seams`):\n     - Inspect source and destination cell biomes, roads, and storey steps.\n     - Deterministically select entries using `_stable_index` keyed on scope, way id, direction, and seed.\n     - Populate `node.properties[\"description\"]` and `edge.properties[\"visible_in_direction\"]`.\n3. **Validator Cleanup:**\n   - Compiler-generated fields resolve `way_missing_description` and `way_missing_view_direction` on WorldPainter compiled scopes cleanly.",
+      "verification_report": "- `tests/test_way_narratives.py`: 5/5 passed in 0.43s.\n- `tests/test_world_compile.py`: 119/119 passed in 1.75s.\n- `tests/test_module_index_py.py`: 5/5 passed in 0.25s.\n- `tests/test_trigger_validator.py`: 51/51 passed in 0.56s.\n- `node tools/unit/run.cjs`: 778/778 frontend tests passed."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/WorldPainter]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-887-worldpainter-way-description-and-visible-in-direction-generator-with-biome-narrative-pools.md"
+  }
+}

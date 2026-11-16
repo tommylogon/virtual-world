@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "task-579",
+  "kind": "task",
+  "number": 579,
+  "title": "Documentation panel in the inspector and library editor",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-578"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-575",
+      "task-521"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Surface the documentation covering the selected feature in the authoring UI, next to the\npanels an author already sees.",
+    "why": "TODO",
+    "how": "- Selecting a node or item calls the resolver once and renders the result. No polling, no\n  re-fetch on every keystroke.\n- **\"No documentation\" is a first-class state** and must render as a quiet, honest\n  \"this has no page yet\", not an error or an empty box. Most of the 505 library items\n  will be in that state at first.\n- Render the page title, a one-line summary, and an open action. Do **not** inline the\n  whole page body - the inspector is already dense, and a wall of markdown inside a\n  property panel makes the panel unusable.\n- In the inspector, resolve by the node's id (task-577). Where a node is a world object\n  rather than a library node, resolve by the module that renders it, so an area still\n  gets *something* useful.",
+    "verify": "- expected: DocPanel renders title + open action per selection, quiet empty state otherwise.\n- observed (2026-10-10 live): area -> 'Rooms & Areas' + 'Open documentation' (resolver GET /api/docs/resolve?module=static/js/inspector/area-view.js -> 200); items -> /api/docs/resolve?node=... -> 200; unlinked nodes -> 'No documentation yet'.",
+    "acceptance": [
+      {
+        "text": "The panel is appended through `panel.js`, so it reaches every node type",
+        "done": true
+      },
+      {
+        "text": "without per-view edits.",
+        "done": false
+      },
+      {
+        "text": "The resolver is called once per selection (`setSelection` -> one `_load`);",
+        "done": true
+      },
+      {
+        "text": "`section()` only repaints from cached state.",
+        "done": false
+      },
+      {
+        "text": "An empty result renders the quiet empty state; a resolver failure is",
+        "done": true
+      },
+      {
+        "text": "caught and shown as the same empty state (no toast, no throw).",
+        "done": false
+      },
+      {
+        "text": "`node tools/unit/run.cjs` covers the empty and populated states",
+        "done": true
+      },
+      {
+        "text": "(`tools/unit/test_doc_panel.js`, 6 tests) - **491 passed**.",
+        "done": false
+      },
+      {
+        "text": "New module has the contract header; script tag, run.cjs line, and",
+        "done": true
+      },
+      {
+        "text": "`python tools/js_module_index.py --check` clean (178 documented).",
+        "done": false
+      },
+      {
+        "text": "`npm run lint` and `npm run typecheck` clean.",
+        "done": true
+      },
+      {
+        "text": "[~] **Live-browser pass pending.** The selection->title/summary/open behaviour",
+        "done": false
+      },
+      {
+        "text": "is implemented and unit-tested but has not been exercised in a running",
+        "done": false
+      },
+      {
+        "text": "browser in this worktree; task-579 must not be called done until it has.",
+        "done": false
+      },
+      {
+        "text": "(`VW_PORT=4460 python app.py`, then select an item with a `docs` link.)",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_here_and_not_earlier": "The links already exist and are already checked - 152 of 179 JS modules carry an `@docs`\nheader, and `docs/design/js-module-index.md` is a generated Docs column. They are\ninvisible because nothing renders them, and this is the task that renders them. Adding a\npanel before task-578 would mean shipping a panel that can only link to a hardcoded list.",
+      "placement": "- **Inspector** - `static/js/inspector/panel.js` is the 78-line container; the views are\n  the 15 files beside it. The panel belongs in the container, so every node type gets it,\n  rather than being hand-added to 15 views.\n- **Library editor** - `static/js/item-library.js`, next to the existing trigger-helper\n  and validator affordances.\n- Do not duplicate the help-center pattern wholesale. `static/js/ui/help-center.js` is\n  tips and tours, aimed at a player or a first-time author; this is reference material for\n  the thing currently selected. Reuse the modal and the seen-tracking if it fits, but they\n  are not the same feature.",
+      "resolution_2026_10_02": "- New `static/js/inspector/doc-panel.js` (`window.DocPanel`): pure view-model\n  (`format`, `requestUrl`, `selectionForNode`) plus a DOM paint. It fetches the\n  resolver once per selection and renders title / summary / open action, or the\n  quiet \"No documentation yet.\".\n- `inspector/panel.js` appends `DocPanel.section()` to **every** render, so all\n  fifteen node views get it with no per-view edit.\n- `inspector.js` reports the selection: a materialised node resolves by\n  `properties.library_id`, otherwise by the view module that renders its type\n  (`area-view`, `item-view`, `way-view`, `agent-view`); `hide()` resets it.\n- `item-library.js` shows a resolution preview under its Documentation field for\n  the selected entry id.\n- Wired: script tag in `templates/index.html`, load line in `tools/unit/run.cjs`,\n  module contract header, regenerated `js-module-index.md`.",
+      "non_goals": "- Editing documentation from inside the editor. Authoring prose is a different tool and\n  this panel is a doorway to it, not a replacement for it.\n- Search across the corpus (see task-578's non-goals)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocked by": "task-578 (the resolver route)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-579-documentation-panel-in-the-inspector-and-library-editor.md"
+  }
+}

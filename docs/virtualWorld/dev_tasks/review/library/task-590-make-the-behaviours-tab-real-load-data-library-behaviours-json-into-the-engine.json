@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "task-590",
+  "kind": "task",
+  "number": 590,
+  "title": "Make the Behaviours tab real - load `data/library/behaviours/*.json` into the engine",
+  "status": "review",
+  "priority": "high",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-29",
+  "updated": "2026-09-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-291",
+      "task-357",
+      "task-586",
+      "task-645"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [
+      "library",
+      "2-0",
+      "untitled",
+      "unified",
+      "design",
+      "1-3",
+      "behaviours",
+      "tab",
+      "remove",
+      "the",
+      "type"
+    ],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The shipped Behaviours tab can search, create and save behaviour entries into `data/library/behaviours/`, and `engine/npc_behaviors.py:486` reads only `player.behaviors[]`. So the UI has a **live authoring path that produces files the engine ignores** - the exact divergence the same design doc records for traits, where the chosen fix was unify rather than remove. Fix the engine side instead of deleting a working editor.",
+    "why": "The shipped Behaviours tab can search, create and save behaviour entries into data/library/behaviours/, but previously engine/npc_behaviors.py read only inline player.behaviors[]. Deleting the tab would lose a functional authoring surface; loading behaviour templates into the engine mirrors the traits system architecture and enables reusable NPC behaviours across characters.",
+    "how": "Implemented engine/behaviors.py with load() / \neload() catalog caching for data/library/behaviours/*.json. Added behavior_refs: [id] on character templates, resolved during character import and refresh-to-world into player.behaviors with _library_id tracking. Wired cache invalidation into \nroutes/library_ops.py on behaviour save/delete. Authored data/library/behaviours/idle_hum.json.",
+    "verify": "1. Run library behavior tests\n   - expected: pytest tests/test_library_behaviors.py passes\n   - observed: 5 passed\n2. Run character import and refresh tests\n   - expected: pytest tests/test_library_character_import.py tests/test_library_refresh.py passes\n   - observed: 25 passed together",
+    "acceptance": [
+      {
+        "text": "A behaviour saved from the Behaviours tab **runs**. The regression test: write an entry, attach it to a character, tick, assert the action fired - and assert the negative, that an unresolvable ref is reported rather than ignored.",
+        "done": false
+      },
+      {
+        "text": "Every file in `data/library/behaviours/` is either consumed or reported at startup. A library folder the engine silently ignores is the failure mode this task exists to remove, and the test must fail if one reappears.",
+        "done": false
+      },
+      {
+        "text": "The `rat` behaviours in `world_template.json` are either migrated to `data/library/behaviours/` or documented as deliberately inline, and `tests/test_npc_behaviors.py:74-83` is updated to match.",
+        "done": false
+      },
+      {
+        "text": "`task-291`'s Phase 3 line and the design doc's §1.3 row are corrected to point here, so nobody executes \"remove the tab/type\" from a six-week-old plan.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/behaviors.py",
+      "-",
+      "routes/library_ops.py",
+      "engine/effects.py",
+      "data/library/behaviours/idle_hum.json",
+      "tests/test_library_behaviors.py"
+    ],
+    "custom": {
+      "verified_state_2026_09_29": "- **The tab is fully built, not a stub.** `templates/index.html:568` (`data-tab=\"behaviours\"`), pane `#lib-pane-behaviours` at `:697-714` with a search box, `VW.libraryBrowser.newEntry('behaviours')` and `saveEntry('behaviours')`. The `behaviours` type is in `REGISTRY_TYPES` (`library_ops.py:17`).\n- **Storage already works.** `load_registry`/`save_registry` (`routes/helpers.py:201-248`) map `behaviours` to `data/library/behaviours/` and write one file per entry, so a save from the tab really lands on disk. The directory is absent only because nothing has been saved yet.\n- **The engine never reads it.** `npc_behaviors.py:486` takes `getattr(player, 'behaviors', [])`, sorts by `priority` (`:505`), filters on `trigger` (`:507`), throttles by `interval` in game minutes (`_interval_ticks`, `:59`; used at `:512`), evaluates `conditions` through the trigger system (`:516`) and runs `_execute_behavior_actions` (`:522`).\n- **A behaviour record is therefore** `{trigger, interval, conditions, actions, priority}` - and the boot template already ships 11 of them on `rat` (`tests/test_npc_behaviors.py:74-83`).\n- **The precedent is one table row above.** Traits had the identical shape of problem - `data/library/traits/*.json` read only by UI pickers while the engine used a hardcoded `TRAIT_DEFINITIONS` - and was fixed by loading the library files into the engine at startup, with the hardcoded dict as fallback.",
+      "why_the_doc_s_recommendation_is_the_wrong_fix": "The doc's reasoning (\"behaviours are per-character data; no blueprint registry exists\") is factually right about the engine and wrong about the conclusion. \"No registry\" is the **defect**, not the argument for deletion: the UI already lets an author create one. Deleting the tab removes the authoring surface and leaves the engine exactly as unable to consume a reusable behaviour as it is today - and two characters with the same patrol still mean copy-pasted JSON. Unify keeps the tab, makes what it writes meaningful, and removes the divergence instead of hiding it.",
+      "open_questions": "1. **Reference or inline-merge?** Options: a character carries `behavior_refs: [id]` and the engine resolves them at load; or library behaviours are merged into `player.behaviors` as the traits catalog merges over `TRAIT_DEFINITIONS`. The second keeps the evaluator untouched but makes provenance unclear; the first is explicit and cheap. Pick one and say why.\n2. **What does a character do with a ref that does not resolve?** It must be reported, not silently dropped - the same rule `world_compile` follows for an unknown biome id (`biomes.py:74-79`). Startup report or tick-time warning?\n3. **Do the 11 `rat` behaviours migrate?** They are the only authored set in the tree and the natural first content. If they stay inline, the engine supports both and the question is which one the tab writes.\n4. **Reload on save.** `npc_behaviors` holds no registry cache today, so a save can be picked up on the next character load - confirm that, and if a cache appears, wire the invalidation the way conditions do (`reload_condition_library`).",
+      "what_was_done_2026_10_02": "**Reference or inline-merge - inline-merge at character load, chosen and recorded.**\nA character carries `behavior_refs: [id]`; hydration copies each resolved record\ninto `player.behaviors`, tagged with `_library_id`. The evaluator\n(`npc_behaviors.process_simple_npcs`) is untouched, no new `Player` field is\nintroduced, and saves keep working because behaviours were already serialized\ninline. The `_library_id` marker keeps provenance inspectable (Q1). An\nunresolvable ref is **collected and reported**, never dropped (Q2).\n\nNew module `engine/behaviors.py`:\n\n- `load()` / `reload()` - catalog of `data/library/behaviours/*.json`, cached by\n  directory, loaded at import like `traits.py::_load_trait_library`.\n- `resolve(refs)` / `merge_into(existing, refs)` - idempotent by `_library_id`.\n- `problems()` - every file that could not be consumed, reported at startup.\n\nWiring:\n\n- `routes/library_ops.py` - character **import** and **refresh-to-world** resolve\n  `behavior_refs`; the import response carries `behavior_warnings`. Saving or\n  deleting a `behaviours` entry reloads the catalog (`_reload_condition_catalog`\n  now handles both conditions and behaviours), so a tab save is picked up without\n  a restart (Q4).\n- `engine/effects.py` - the library-character spawn path resolves refs too.\n\nContent: `data/library/behaviours/idle_hum.json` is the first authored reusable\nentry (an `on_tick` message every 15 game minutes).\n\n**The `rat` tree stays inline, deliberately** (Q3, recorded in\n`tests/test_npc_behaviors.py::test_rat_template_behaviors_parse`): it is one\nbespoke creature coupled to its own patrol/forage loop, not a reusable entry.\nReusable behaviours are reached through `behavior_refs`.\n\nDocs corrected to point here: task-291 Phase 3 already carried the 2026-09-29\nnote; the design doc's §1.3 row, the type table (line 192), Phase 3 (line 260)\nand the open-decision (line 276) now say **unify, not remove**.\n\nEvidence:\n\n- `python -m pytest tests/test_library_behaviors.py -q` - 5 passed. Proves: a\n  referenced library behaviour runs on tick (`npc_state == \"foraging\"`), an\n  unresolvable ref is reported in `behavior_warnings`, and a malformed file is in\n  `problems()`.\n- The shipped-file guard fails if any `data/library/behaviours/*.json` is not in\n  the catalog.\n- `tests/test_npc_behaviors.py tests/test_library_character_import.py\n  tests/test_library_refresh.py` - all green (25 passed together)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "supersedes": "`docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md` §1.3, the \"Behaviours tab\" row, which says \"Remove the tab/type\""
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-590-make-the-behaviours-tab-real-load-data-library-behaviours-json-into-the-engine-the-traits-treatment.md"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-107",
+  "kind": "task",
+  "number": 107,
+  "title": "ID Rename Sync + Trigger Consistency",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-07-26",
+  "updated": "2026-07-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When renaming an entity, the node ID should optionally sync with the new name. And when it does, any trigger effect params that reference the old ID must be updated too - otherwise triggers silently break.\n\n---",
+    "why": "Two decoupled inputs in the inspector (every entity type: room, item, door, character):\n\n- **Name** - free-text display name, updates via `PATCH /api/graph/node/<id>` (just changes `node.name`)\n- **ID** - small editable text field showing `item_rusty_key`, calls `renameNode(oldId, newId)` on change, which hits `POST /api/graph/node/<id>/rename`\n\n`rename_node` in `routes/graph.py:97` handles the ID change:\n1. Creates a new `Node` with same type/name/properties but new ID\n2. Scans all edges - any with `edge.source == old_id` or `edge.target == old_id` gets updated to new ID\n3. Deletes old node\n\n### The gap\n\nStep 2 only updates **edge source/target** fields. But trigger effects store node IDs as string-valued **effect parameters** inside the trigger node's `properties` dict:\n\n| Effect | Param | Example |\n|--------|-------|--------|\n| `spawn_item` | `item_id` | `item_rusty_key` |\n| `remove_item` | `item_id` | `item_rusty_key` |\n| `set_state` | `node_id` | `way_kitchen_west` |\n| `set_environment` | `node_id` | `area_cellar` |\n| `unlock_way` | `way_id` | `way_kitchen_west` |\n\nThese are just strings nested in `trigger_node.properties[\"actions\"][N][\"item_id\"]`. The rename has no idea they exist - they become dead references.\n\n---",
+    "how": "TODO",
+    "verify": "1. Rename \"Rusty Key\" to \"Golden Key\" → ID changes from `item_rusty_key` to `item_golden_key`\n2. Verify trigger edge from `item_golden_key` to its `logic_trigger` still exists\n3. Verify trigger effect params (e.g. `spawn_item` with `item_id: item_rusty_key`) got updated to `item_golden_key`\n4. Verify the item still works (take/use triggers fire normally)\n5. Test rename to same ID as another node → 409 error shown properly\n6. Test name change that normalizes to same ID → no-op, no error",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "| File | Change |",
+      "|------|--------|",
+      "| `routes/graph.py` | Extended `rename_node` to scan all `logic_trigger` nodes and update `item_id`/`node_id`/`way_id` effect params that reference the old ID |",
+      "| `inspector/area-view.js` | Added 🔄 Sync ID button next to ID field |",
+      "| `inspector/item-view.js` | Same |",
+      "| `inspector/way-view.js` | Same |",
+      "| `inspector/agent-view.js` | Added editable name field, Node ID display with inline edit, and 🔄 Sync ID button |",
+      "| `inspector/helpers.js` | Added `InspectorHelpers.syncIdFromName(nodeId, displayName)` - derives `{prefix}_{sanitized}` from display name, no-ops if match, calls `renameNode` |",
+      "---"
+    ],
+    "custom": {
+      "proposed_solution": "### 1. \"Sync ID from Name\" button\n\nAdd a button in the inspector next to the manual ID field. When clicked:\n\n1. Normalize the display name into an ID: `.toLowerCase().replace(/\\s+/g, '_').replace(/[^a-z0-9_]/g, '')`\n2. Prefix with the node type: `{type}_` (e.g. `item_`, `area_`, `way_`, `player_`)\n3. If the generated ID matches the current ID, do nothing\n4. If it's different, call `renameNode` with the new ID\n5. After rename completes, call a new **scan triggers** step\n\nDon't make this automatic on name change - keep it a button. Reasons:\n- Name changes during typing would spam renames\n- Sometimes you want a stable ID even after rename (triggers reference it)\n- Rename is a heavyweight graph operation\n\n### 2. Trigger param scan after rename\n\nAfter `renameNode` succeeds, scan every `logic_trigger` node in the graph:\n\n```python\ndef update_trigger_references(graph, old_id, new_id):\n    for node in graph.nodes.values():\n        if node.type != \"logic_trigger\":\n            continue\n        actions = node.properties.get(\"actions\", [])\n        changed = False\n        for action in actions:\n            for param_key in (\"item_id\", \"node_id\", \"way_id\"):\n                if action.get(param_key) == old_id:\n                    action[param_key] = new_id\n                    changed = True\n        if changed:\n            node.updated = time.time()\n```\n\nRun this server-side as part of the rename flow (not a separate API call - piggyback on the existing endpoint).\n\n### 3. Where to add\n\n- **Backend**: Extend `routes/graph.py:rename_node` to call `update_trigger_references()` after the edge update\n- **Frontend**: Add a \"🔄 Sync ID\" button in each inspector view that has the ID field already:\n  - `inspector/area-view.js` (line 121 area)\n  - `inspector/item-view.js` (line 129 area)\n  - `inspector/way-view.js` (line 60 area)\n  - `inspector/agent-view.js` (add one - character panel currently may not show ID)\n\n---",
+      "implementation_notes": "- `syncIdFromName` extracts the prefix (`item_`, `area_`, `way_`, `player_`) from the current node ID, normalizes the display name, and only calls rename if the generated ID differs\n- Duplicate protection is handled by the existing backend 409 response - `renameNode` shows the error in the event stream\n- The trigger param scan runs inline in `rename_node` after the edge update, not as a separate API call\n\n---",
+      "edge_cases": "- **Duplicate generated ID**: If `item_sword` already exists and you rename \"Sword\" → the generated ID `item_sword` conflicts. Current API returns 409. The button should show an error message and not change anything.\n- **No-op**: If the normalized ID matches the current ID, button does nothing (name change didn't affect the sanitized form).\n- **Trigger on the renamed node itself**: If the renamed item has its own triggers (e.g. `item_rusty_key` with an `on_take` trigger), those trigger edges reference the old ID. The edge-update step in `rename_node` already handles this - trigger edges are just `Edge(source=item_id, target=trigger_node_id, type=\"triggers\")`, so they get updated.\n- **Characters**: Player characters are referenced by **name** in the `players` dict, not by node ID. Renaming the player node ID shouldn't break player logic, but player node IDs are largely unused. Low risk.\n\n---"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "implemented": "2026-07-26",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-107-id-rename-sync-and-trigger-consistency.md"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-60",
+  "kind": "task",
+  "number": 60,
+  "title": "Edit Display Name and ID for Rooms, Items, Doors",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Users can edit the display name of areas, items, and ways in the inspector panel, but the underlying IDs are not editable. This means renaming something can create inconsistencies or require destructive recreate workflows. Id's are also not editable in the library or the seperate modals for creatig new enteties.",
+    "why": "### Area Inspector (`inspector.js:_showRoom()` line 455)\nThe room name is editable via an inline `<input>` that calls `api.updateNode(nodeId, {name: this.value})`. The room's node ID (used in graph edges, API calls, etc.) is not editable.\n\n### Item Inspector (`inspector.js:_showItem()` line 644)\nThe item display name is editable via an `<input>` that calls `_updateItemProp(escId, 'name', this.value)`. The item node ID is not editable.\n\n### Way Inspector (`inspector.js:_showDoor()` - need to verify)\nSame pattern: display name editable, ID not.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector.js` - add editable ID field to room/item/door inspectors",
+      "app.py` - add `updateNodeId` API endpoint or extend `updateNode",
+      "static/js/api.js` - add `updateNodeId()` method"
+    ],
+    "custom": {
+      "proposed_change": "Add an editable ID field to each inspector, alongside the display name:\n\n### Pattern for all three inspectors\n\nUnder the header (or in a Properties section), show:\n\n```\nID: [editable input with current ID]   (changes: lowecase, no spaces)\nName: [editable display name]\n```\n\n### When ID changes:\n\n1. Update the node's ID in the graph database\n2. Update all edges referencing the old ID to point to the new ID\n3. Refresh the graph view\n\n### Backend API\n\nEither:\n- **Option A**: Add an `api.updateNodeId(nodeId, newId)` endpoint\n- **Option B**: Have the existing `api.updateNode(nodeId, data)` accept a new `id` field and handle the migration server-side\n\nRecommended: Option A, to keep concerns separated and make the migration explicit.\n\n### UX considerations\n\n- Enforce lowercase, no spaces for IDs (with inline validation)\n- Show a warning if the new ID conflicts with an existing node\n- Auto-update the inspector view after ID change"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-60-edit_display_name_and_id.md"
+  }
+}

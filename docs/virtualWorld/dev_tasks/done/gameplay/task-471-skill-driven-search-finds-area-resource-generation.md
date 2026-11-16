@@ -18,12 +18,12 @@ An area need not be hand-stocked to be worth searching. What a search turns up d
 
 - TODO
 
-## Progress 2026-09-23 — core landed (review)
+## Progress 2026-09-23 - core landed (review)
 
 - [x] `engine/foraging.py`: `SKILL_TABLES` (survival / perception / history /
   religion → weighted tag entries), `AREA_SKILL_BONUS` (forest/woods/shore/ruin/
   temple/road/battlefield → skill affinity, which also lowers the search DC), and
-  `find_or_spawn(gs, player, area, skill=, want_tags=, rng=)` — one skill check,
+  `find_or_spawn(gs, player, area, skill=, want_tags=, rng=)` - one skill check,
   weighted entry pick, a library item by tags, spawned as a fresh copy with an
   `in` edge to the area; `forage:found` trace + log.
 - [x] **Area/item modifiers**: affinity lowers the DC (floor 6); area tags that
@@ -55,7 +55,7 @@ An area need not be hand-stocked to be worth searching. What a search turns up d
 `python -m pytest tests/test_search_loot.py -q` → 6 passed; targeted
 search/soak/actions regression → 289 passed.
 
-## Update 2026-09-23 — junk is a real outcome (survival not guaranteed)
+## Update 2026-09-23 - junk is a real outcome (survival not guaranteed)
 
 - [x] A **strong** result (margin ≥ 5 over the DC) delivers what was asked for
   (`want_tags`-matching entries only). A **bare** success includes junk: the
@@ -66,10 +66,10 @@ search/soak/actions regression → 289 passed.
   `chipped_stone`, `sodden_bark`).
 - [x] Soak no longer stalls on a useless find: it spends the search time and
   looks elsewhere next turn instead of standing still.
-- [ ] Follow-up: grouped items (`task-473`) — a 50-use meat pile, relational herb
-  piles — so wild finds can be tidied into stacks.
+- [ ] Follow-up: grouped items (`task-473`) - a 50-use meat pile, relational herb
+  piles - so wild finds can be tidied into stacks.
 
-## Update 2 — the `forage` mechanics tag (curated pool)
+## Update 2 - the `forage` mechanics tag (curated pool)
 
 Tags are **additive** (faction, setting, type, mechanics all live together). The
 mechanics tag **`forage`** marks "this can turn up when someone searches the
@@ -83,7 +83,7 @@ Curated wild pool (12): `wild_berries`, `bush_of_berries`, `edible_root`,
 `fat_grub`, `medicinal_herb`, `scrap_iron`, `old_coin`, `dwarf_chisel`,
 `stone_idol`, `bundle_of_twigs`, `chipped_stone`, `sodden_bark`.
 
-To make any item findable, add `forage` to its tags — that is the whole authoring
+To make any item findable, add `forage` to its tags - that is the whole authoring
 step alongside the area's biome tag. Remaining: more religion/history content
 (one relic today), and finer `tool`/`food` distribution.
 

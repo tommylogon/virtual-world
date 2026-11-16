@@ -131,10 +131,10 @@ Library characters drop critical item stats (equip_slots, damage, damage_type, d
 ## Files
 
 - 
-outes/library_ops.py (handle_library_import_character, materialize_library_item)
+routes/library_ops.py (handle_library_import_character, materialize_library_item)
 - engine/equipment.py
 - data/library/characters/
-- 	ests/test_library.py
+- tests/test_library.py
 
 ## Browser UI and intended live verification
 

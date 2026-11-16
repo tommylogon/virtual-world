@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-638",
+  "kind": "task",
+  "number": 638,
+  "title": "Many areas are named after grid coordinates and 'Bridge' repeats 7+ times",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-439"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-624",
+      "task-646"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Names embed '(world N,M)' and reuse common nouns, so several areas are indistinguishable by name. Tommy has confirmed this is the wrong call.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_2026_09_30_this_is_a_data_migration_and_it_is_bigger_than_filed": "In `kraktooth_goblin_camp`:\n\n| | value |\n|---|---|\n| areas | 205 |\n| name contains a coordinate | **51** - `Road (world 10,4)`, `Sparse Forest (world 10,5)`, `Bridge (world 10,6)` |\n| area has a `display_name` property | **0** |\n| **ways whose name carries a coordinate** | **326** - the interior scheme: `Sparse Forest (Eldenford interior 10,3)` |\n| ways carrying both `area_from` and `area_from_id` | 326 |\n\nTwo things this changes:\n\n1. **The display half is already done.** `display_area_name()` (task-624) uses an\n   authored `display_name` when present and otherwise strips a trailing\n   coordinate, so narration already reads \"you're in Road\". Verified live:\n   seven movement commands, zero leaks. The remaining work here is purely the\n   stored name.\n\n2. **The `display_name` escape hatch is currently unused** - 0 of 205 areas set\n   it. So the mechanism exists and nothing uses it, which is this audit's house\n   pattern again (mechanic built, content absent).\n\n**On the naming itself.** Tommy has already said coordinates in a name is the\nwrong call, and the duplication is the sharper problem: `Road (world 10,4)` and\n`Road (world 10,5)` are two distinct places called \"Road\", and the sidebar in the\npainted world shows five separate `Road` entries with no way to tell them apart.\nRenaming is not cosmetic -- `area_from` on 326 ways holds these strings as the\n*resolved endpoint*, so a rename has to update those references too. That is the\nsame cross-registry coupling flagged in task-646, and it argues for doing 638 and\n646 as one change rather than two.",
+      "triage_2026_10_02_wt_graph_render_blocked_not_attempted": "Checked the two things that would have to be true for a safe stored-name rename,\nand neither holds yet, so this is left in `todo` with `blocked_by: [task-439]`\nand `related: [task-646]` rather than migrated:\n\n1. **The lookup layer is still name-keyed, and task-439 owns fixing that.**\n   `engine/serialization.py` writes `rooms_serialized[node.name]`, and\n   `Player.current_area` holds display names (23 distinct values in this\n   scenario). Replacing coordinate names with shorter, reuse-prone nouns\n   (\"Bridge\", \"Road\") before task-439 lands would make two areas collide in the\n   save - exactly the failure 439 exists to prevent. 439 is still `todo`.\n2. **The rename moves three stores together** - the area `name`, the 326\n   `area_from`/`area_to` endpoint strings, and the 102 that already hold ids -\n   plus the task-646 registry-id surface in the library cluster. That is the\n   filer's own \"do 638 and 646 as one change\" and needs a coordinated session,\n   not a unilateral edit from the graph lane.\n\n**What is already true (so the user-visible half is not blocked):**\n\n- The display half shipped with task-624: `display_area_name()`\n  (`engine/matching.py:72`) strips a trailing `(world N,M)` / `(Eldenford\n  interior N,M)` suffix, so narration reads \"you are in Road\", not \"Road\n  (world 10,4)\".\n- The WorldPainter picker that this note calls \"the sidebar\" **already\n  disambiguates**: `_areaBar()` (`static/js/worldpainter/editor.js:1383-1433`)\n  groups areas by scope, appends `(x,y)` to each placed area\n  (`a.name + ' (' + x + ',' + y + ')'`), and renders placed areas as\n  `📍 <name> (x,y)` chips. Graph/sidebar node lists render the raw node name,\n  which for compiled areas already carries the coordinate suffix. So the\n  \"five indistinguishable Road entries\" reading does not reproduce in the\n  current UI; the surviving issue is the stored name itself, which is 439/646's.\n\nNo code or scenario data was changed by this lane.",
+      "browser_ui": "Intended UI home: open the world map/graph at the `world` scope → inspect area labels at map zoom and open the Area Inspector for similarly named areas and the repeated Bridge entries.\n\nCurrent availability: the card records coordinate-based area names and seven repeated “Bridge” names, and notes the user confirmed this is the wrong naming choice. A corrected naming pass is not claimed as complete.\n\nLive steps when available:\n1. Load the corrected scenario and zoom the world graph until labels for the affected areas are visible together.\n   - expected: each label is a meaningful in-world place name, not a `(world N,M)` coordinate, and the seven Bridge locations are distinguishable without opening each node.\n2. Select each affected area and compare its Inspector name, ID, description, and neighboring ways.\n   - expected: each name identifies the correct area and its exits still connect to the same opaque node IDs; renaming does not alter geography.\n3. Search the world graph for “Bridge” and inspect every result.\n   - expected: repeated bridge structures have distinct contextual names and do not resolve to the same area by display-name matching.\n4. Save and reload the scenario and reopen the map.\n   - expected: names remain stable, readable, and attached to the same node IDs.\n\nThis section is not a claim that the affected area names have been corrected today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Building Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-638-many-areas-are-named-after-grid-coordinates-and-bridge-repeats-7-times.md"
+  }
+}

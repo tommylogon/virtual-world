@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "id": "bug-518",
+  "kind": "bug",
+  "number": 518,
+  "title": "NPC action results render as 'You' in the turn feed because result rows carry no actor",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-692",
+      "task-340"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Carry the performing actor on result rows so turn-feed stops attributing every NPC action to the human.",
+    "why": "Action-result rows in the turn feed previously lacked an explicit performing actor field. The parser defaulted unassigned rows to the human player (You), misattributing NPC actions in multi-actor turn feeds.",
+    "how": "Emit result rows with the actor, the way action rows already do. This is\nthe same fix surface as task-692's director pass, which is why the two\nare related - a narration row that carries its actor makes this\nunrepresentable rather than merely fixed.",
+    "verify": "1. Run turn feed unit tests\n   - expected: node tools/unit/run.cjs passes turn feed scope tests\n   - observed: 828 passed, 1 failed - the sole failure is the pre-existing\n     `test_plan_grounding.js :: carried items satisfy use/take even when absent\n     from the area`; every `test_turn_feed_scope.js` case is green\n2. Verify NPC action result row attribution live\n   - expected: an NPC action-result row carries its actor and renders in\n     `.tf-other`, not as `You`\n   - observed: live LLM turn, Arix's `dash meat racks` result rendered\n     `🔎 Arix   No exit 'meat racks'. Visible exits: south passage` in\n     `tf-group tf-other`\n3. Verify a human action still reads `You` live\n   - expected: the controlled character's own result row renders in `.tf-you`\n   - observed: `Gribba` running `look` rendered `🔎 You   Bright light floods\n     the area...` in `tf-group tf-you` (after the `activePlayerName` fix; before\n     it the same row rendered `🔎 Gribba` in `tf-other`)",
+    "acceptance": [
+      {
+        "text": "Reproduce: an NPC performs an action in a live session; assert the",
+        "done": false
+      },
+      {
+        "text": "🔎 result row displays that NPC's name, not `You`.",
+        "done": false
+      },
+      {
+        "text": "A human action still displays `You`.",
+        "done": false
+      },
+      {
+        "text": "Assert the attribution comes from a carried actor, not from a name",
+        "done": false
+      },
+      {
+        "text": "comparison against `activePlayer` - a test that renames the active",
+        "done": false
+      },
+      {
+        "text": "player mid-session and re-checks.",
+        "done": false
+      },
+      {
+        "text": "No regression in the `tf-you` / `tf-other` grouping, which also keys",
+        "done": false
+      },
+      {
+        "text": "off `isPlayer`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/turn-feed.ts",
+      "static/js/agent-engine.ts",
+      "static/js/event-stream.ts` (the 4th `actor` argument on `log`)",
+      "tools/unit/test_turn_feed_scope.js"
+    ],
+    "custom": {
+      "measured_2026_10_04_from_a_live_htc_trace_mansion_scenario": "Three consecutive NPC actions, all attributed to `You`:\n\n    ▶️ sammy lopez   eat granola_bar\n    🔎 You           You eat the granola_bar.\n\n    ▶️ kayla jenkins  use lighter\n    🔎 You           You light the lighter. The area is now dim.\n\nThe actors are known - the `▶️ action` row immediately above each one\nnames them, because `events.log(\\`[Action] ${finalAction}\\`,\n\"msg-action\")` is emitted inside the per-character loop in\n`static/js/agent-engine.ts`.",
+      "cause": "`static/js/agent/turn-feed.ts:560-563`:\n\n    const playerName = ... worldState.data.activePlayer ... : 'You';\n    const isPlayer = !parsed.actor || parsed.actor === 'You' || parsed.actor === playerName;\n    const actorKey = parsed.actor || '???';\n    const displayActor = isPlayer ? 'You' : observerName(parsed.actor);\n\n`!parsed.actor` makes an actor-less row count as the player's. The\nresult row is logged as `events.log(outputText, 'msg-result', {...})`\n(`agent-engine.ts:790`) - plain text with no actor prefix - so\n`parsed.actor` is empty, `isPlayer` is true, and the NPC's action is\nrendered as the human's.\n\nNote the fallback `worldState.data.activePlayer` is a **display name**,\nso this compares against the active player's name and inherits every\nname-matching concern from `engine/matching.py` (task-619 records the\nsame field being stored in two shapes).",
+      "implemented_2026_10_06": "Two halves, because the actor was available at the emit site and thrown away at\nthe read site:\n\n- **`static/js/agent/turn-feed.ts`** - the `result` branch of `parseEntry` now\n  returns `actor: structuralActor` (the row's stamped actor) instead of a\n  hardcoded `null`. A row with no actor (a human action, or a system row) still\n  resolves to `null` and renders as `You`.\n- **`static/js/agent-engine.ts`** - the five `msg-result` emissions now pass the\n  performing character as the 4th `actor` argument of `events.log`\n  (`event-stream.ts:211` `log(text, className, meta?, actor?)`), so attribution\n  comes from a **carried actor**, not a name comparison against `activePlayer`.\n  Note: the actor had to be the 4th argument, not a key in `meta` - the bus\n  carries `actor` at the top level (`event-stream.ts:218`) and the feed reads\n  `data.actor` (`turn-feed.ts:57`); a `meta.actor` would be silently ignored.\n\nSites updated: the human-reply result (`:486`), action rejected (`:742`), noop\n(`:752`), the main per-character result (`:790`), and the retry result (`:1302`).\n\n**Regression test** added to `tools/unit/test_turn_feed_scope.js`: an NPC result\nrow carries its actor, an actor-less result row stays `null` (→ `You`). Unit\nrunner green: **618 passed, 0 failed**.\n\nNot yet verified in a live LLM turn (that needs a real NPC action); the parse\nfix - the exact defect - is covered by the unit test.",
+      "browser_ui": "Intended UI home: Event stream → the action-result row inside the active turn card. It must use the actor carried by that result row, then apply the existing `tf-you` / `tf-other` grouping.\n\nCurrent availability: implemented on 2026-10-06 and re-verified at code and unit level on\n2026-10-21 (see below). The live LLM turn is the only thing still unobserved: the\nparse fix is covered by a unit test, but no real NPC action has been driven\nthrough a browser session since the change.\n\nLive steps:\n\n1. Settings -> Agent Settings -> enable `⏭️ Turn-Based Mode`, turn mode\n   `Sequential`. An API key is required, because NPC turns are LLM calls.\n2. Load a scenario with NPCs (for example `kraktooth_goblin_camp`, active player\n   `Gribba`). The human turn composer (`#htc-modal`) opens for the controlled\n   slot; `Turn: 0` with the modal open is correct, not a hang.\n3. Press `⏭ end turn`. NPCs take their slots.\n4. When the composer reopens, read the right-hand `What happened` feed\n   (`#htc-feed-lines`).\n   - expected: the NPC's action-result row sits in a purple-left `.tf-group.tf-other`\n     headed by the NPC's name and does not say `You`; your rows sit in the\n     blue-left `.tf-group.tf-you` and say `You`.\n5. Act once yourself (`Act`) and confirm your own result row still says `You`.\n6. Rename the controlled character mid-session:\n   `await ApiClient.updateCharacter('Gribba', {new_name: 'Gribba Two'})`, then\n   end another turn.\n   - expected: NPC attribution is unchanged, because it follows the actor\n     carried by the result row, not a display-name comparison.\n7. Read-only console dump of the feed groups:\n   ```js\n   [...document.querySelectorAll('#htc-feed-lines .tf-group')].map(g => ({\n     group: g.className,\n     actor: g.querySelector('.tf-actor')?.innerText,\n     text: g.innerText.slice(0, 100)\n   }))\n   ```\n\nThis section defines intended access and live acceptance. It is not a claim that\nthe live steps have been run.",
+      "verified_2026_10_21": "- `static/js/agent/turn-feed.ts:284` returns `actor: structuralActor` on the\n  `result` branch; a row with no actor still yields `null` and renders as `You`.\n- All five `msg-result` emissions in `static/js/agent-engine.ts` pass the\n  performing character as the 4th argument of `events.log` (`:537`, `:824`,\n  `:834`, `:872`, `:1488`). `static/js/event-stream.ts:217-218` puts that value on\n  the bus payload as a top-level `actor`, not inside `meta`.\n- `node tools/unit/run.cjs` - 782 passed, 0 failed. The bug-518 cases are in\n  `tools/unit/test_turn_feed_scope.js` (\"an NPC result row is attributed to its\n  actor, not to You\", \"an actor-less result row still reads as the player\").\n- Not verified: a live LLM turn. That needs the server plus a real NPC action, so\n  the browser acceptance above is still open.",
+      "verified_2026_10_22_live_and_a_second_defect_it_exposed": "The parse fix was correct, but the `playerName` it compares an actor against was\nitself broken, and a live human action is what showed it.\n\n- The read site resolved the controlled character as\n  `worldState.data.activePlayer`. That key does not exist: the payload key is\n  `active_player` and the supported accessor is the `worldState.activePlayer`\n  getter (`static/js/world-state.ts:327`). `playerName` therefore always fell\n  back to `'You'`, so once result rows began carrying an actor, a human's own\n  result row (`actor: 'Gribba'`) no longer matched and rendered as `Gribba` in a\n  `tf-other` group. The actor-carrying fix turned an NPC misattribution into a\n  human misattribution on the same lookup.\n- Fix: `activePlayerName()` resolves through `worldState.activePlayer`, falls\n  back to a camelCase `data.activePlayer` for older states, and returns `null`\n  when unknown. Both feed renderers (`renderStructured`, `renderDetailedFeed`)\n  use it, so a human actor resolves to `You` again and an NPC actor cannot.\n\nLive evidence. Isolated server in a detached worktree at HEAD plus this fix\n(port 4455), scenario `kraktooth_goblin_camp`, real LLM turns through OpenRouter:\n\n- NPC turn, Arix acting autonomously. A real `msg-result` row, grouped\n  `tf-other`:\n\n      ▶️ Arix   dash meat racks\n      🔎 Arix   No exit 'meat racks'. Visible exits: south passage\n\n- Human turn, the controlled character `Gribba` executing `look`. Grouped\n  `tf-you`:\n\n      ▶️ You   look\n      🔎 You   Bright light floods the area, illuminating every detail...\n\n- Rendering was read through `TurnFeed.render` into a detached host (the\n  function the composer drives through `#htc-feed-lines`), so the grouping and\n  the actor substitution are the production code path, not a re-implementation.\n\nRemaining gaps, stated plainly:\n\n- The mid-session rename is covered at unit level (the resolver follows the new\n  name) and not by a second live LLM turn.\n- A `render`-level unit test could not be written: `tools/unit/run.cjs` loads\n  `static/js/agent/turn-feed.js`, and `tools/unit/test_graph_background.js`\n  replaces `window.document` with a two-method stub and never restores it, so\n  every later test file that renders DOM loses `document.createElement`. That\n  leak is a harness defect in its own right, not part of this bug."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/bug-518-npc-action-results-render-as-you-in-the-turn-feed-because-result-rows-carry-no-actor.md"
+  }
+}

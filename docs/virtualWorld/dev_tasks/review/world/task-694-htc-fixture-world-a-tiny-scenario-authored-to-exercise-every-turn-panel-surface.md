@@ -18,15 +18,15 @@ TODO
 ## Acceptance
 
 A small world (10-20 areas) authored ONCE so the harness (task-693) can exercise
-everything the human turn panel does. Content before instrumentation — the fixture
+everything the human turn panel does. Content before instrumentation - the fixture
 is what makes the checks real.
 
 - [ ] Painted `cell` + `world_scope_id` on every area, so the minimap lattice draws
-      (mansion cannot — see task-677's UNMET note).
+      (mansion cannot - see task-677's UNMET note).
 - [ ] TWO characters sharing a display name in one area, and two sharing a
-      nickname across areas — exercises the engine's `__suffix` uniquing, the
+      nickname across areas - exercises the engine's `__suffix` uniquing, the
       duplicate-import path (bug-521) and task-448's chooser.
-- [ ] One hidden way behind a false wall, one locked door, one blocked way —
+- [ ] One hidden way behind a false wall, one locked door, one blocked way -
       exercises bug-23's negative and the way-knowledge gate.
 - [ ] One scripted simple NPC with the zombie's behavior shapes (message, damage on
       enter, go-toward-noise) and one human-controlled character with

@@ -15,7 +15,7 @@ type: task
 
 ## What
 
-Replace ad-hoc weather with a **forecast schedule** system. The scenario designer (or GM) defines environment properties at any game time as a authored schedule — hourly detail, weekly averages, or yearly climate patterns. Triggers and API calls can temporarily override the forecast for story moments.
+Replace ad-hoc weather with a **forecast schedule** system. The scenario designer (or GM) defines environment properties at any game time as a authored schedule - hourly detail, weekly averages, or yearly climate patterns. Triggers and API calls can temporarily override the forecast for story moments.
 
 This is not a weather simulation. It is a **time-aware environment overlay** that `tick_turn()` applies each turn.
 
@@ -92,9 +92,9 @@ Stored in world state as `forecast_schedule`:
 ```
 
 Period lengths:
-- `hourly`: 1440 minutes (1 day) — entries repeat daily
-- `weekly`: 10080 minutes (7 days) — entries repeat weekly
-- `yearly`: 525600 minutes (365 days) — entries repeat yearly (or cycle through seasons)
+- `hourly`: 1440 minutes (1 day) - entries repeat daily
+- `weekly`: 10080 minutes (7 days) - entries repeat weekly
+- `yearly`: 525600 minutes (365 days) - entries repeat yearly (or cycle through seasons)
 
 ## Engine Module
 
@@ -143,15 +143,15 @@ In `tick_turn()`, after `advance_clock(1)`:
 
 ## Files
 
-1. `engine/weather_forecast.py` — new module
-2. `engine/tick_manager.py` — call forecast each turn, apply overrides, fire change events
-3. `virtual_world_engine.py` — initialize forecast from world state, expose helper
-4. `routes/settings.py` — `GET/POST /api/settings/forecast`, `GET/POST /api/settings/forecast-override`
-5. `routes/state.py` — expose `forecast_schedule` and `forecast_override` in `/api/state`
-6. `engine/effects.py` — add `forecast_override` effect to trigger system
-7. `engine/trigger_validator.py` — validate forecast override params
-8. `static/js/world-state.js` — parse new state fields
-9. `docs/virtualWorld/Environment/Time & Weather.md` — update design doc
+1. `engine/weather_forecast.py` - new module
+2. `engine/tick_manager.py` - call forecast each turn, apply overrides, fire change events
+3. `virtual_world_engine.py` - initialize forecast from world state, expose helper
+4. `routes/settings.py` - `GET/POST /api/settings/forecast`, `GET/POST /api/settings/forecast-override`
+5. `routes/state.py` - expose `forecast_schedule` and `forecast_override` in `/api/state`
+6. `engine/effects.py` - add `forecast_override` effect to trigger system
+7. `engine/trigger_validator.py` - validate forecast override params
+8. `static/js/world-state.js` - parse new state fields
+9. `docs/virtualWorld/Environment/Time & Weather.md` - update design doc
 
 ## Dependencies
 

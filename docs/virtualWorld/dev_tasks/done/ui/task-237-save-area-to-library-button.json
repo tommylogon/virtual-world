@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-237",
+  "kind": "task",
+  "number": 237,
+  "title": "Save Area to Library Button",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "\"Save area to library\" so a designed area in a scenario exports to\n`data/library/areas/` as a reusable entry, mirroring items and characters.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: an area can be saved to the library from the inspector.\n- observed (2026-10-10 live, Animal Pens): header carries '📚 Save to Library' (area-view.ts -> libraryBrowser.saveAreaByName).",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implemented": "- `static/js/library-browser.js` - `saveAreaByName(areaName)` →\n  `_saveAreaWithDiffModal(areaName, payload)` (DiffModal with Skip/Update/Create-New);\n  registry write verified.\n- `static/js/inspector/area-view.js` (header) - `📚 Save to Library` button →\n  `libraryBrowser.saveAreaByName(name)`.\n- `static/js/graph-manager.js` + `graph/context-menu.js` - right-click area context menu\n  item `📚 Save to Library` → same.\n- What is captured: area description, environment (light/temp/air/smell/noise), tags,\n  exits (via authoring data), placed items, triggers (via diff sections).\n- Upsert semantics: DiffModal; duplicate names handled via the modal's Save-as-Duplicate.",
+      "notes": "Task-357 (structure save/load connected areas) is the recursive bundle; this is the\nsingle-area special case. Verify browser: context-menu save → diff modal → library entry.",
+      "browser_ui": "Intended UI home: Area Inspector header → 📚 Save to Library; Graph → right-click\nan area → 📚 Save to Library; then Library Browser → Areas.\n\nCurrent availability: The inspector button and graph context-menu action both\ncall `saveAreaByName()` and open DiffModal. The card records a live check that\nAnimal Pens displayed the inspector button; registry write and create/update\nchoice are not recorded as live results.\n\nLive steps when available:\n1. Open Animal Pens in the area Inspector and click 📚 Save to Library; read\n   the DiffModal sections for description, environment, tags, exits, placed\n   items, and triggers.\n   - expected: the proposed entry contains only that area's authored bundle\n     and offers Skip / Update / Create New.\n2. Choose Create New, then open Library Browser → Areas and select the new\n   entry; repeat from Graph's area context menu on the same area.\n   - expected: the new area entry can be read back with the fields just\n     reviewed, and both entry points produce the same payload.\n3. Save an area with an existing library name and choose Update, then choose\n   Skip in a second attempt.\n   - expected: Update replaces that named entry; Skip leaves its stored data\n     unchanged.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-237-save-area-to-library.md"
+  }
+}

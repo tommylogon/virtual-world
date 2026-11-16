@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-608",
+  "kind": "task",
+  "number": 608,
+  "title": "Derived values render indistinguishably from authoritative ones",
+  "status": "cancelled",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A derived display must declare itself. The human-turn modal renders strangers as 'the woman'/'the man' with no signal that they are unknown, that names exist, or that talking reveals them -- a competent first-time reader takes it for a broken name lookup. Same class as way labels showing raw node names. Every surface this audit misread was one that showed a fact without showing where the fact came from.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "cancellation_rests_on_a_retracted_premise": "Cancelled 2026-09-30. This task's stated basis is the finding that \"the\nhuman-turn modal renders strangers as 'the woman'/'the man' with no signal that\nthey are unknown, that names exist, or that talking reveals them\".\n\n**That finding was retracted.** Hovering a person in the turn modal reveals:\n\n    the woman\n    A nervous goblin squire in worn leathers, clutching a simple staff.\n    (female)\n    recognized - but you don't know their name yet\n\nso the surface *does* declare the knowledge state, in words, on hover. The\naudit's Â§61 (\"derived values render indistinguishably from authoritative ones\")\nwas withdrawn for the same reason, and this task was written from that\nwithdrawn claim.\n\nKeeping a task whose entire goal statement is a disproof of a retracted finding\nleaves the backlog asserting something the audit has already taken back.\n\n### The residual that is real, and where it lives\n\nÂ§61 kept a narrower observation after the retraction, and it is not a defect\nworth a ticket on its own:\n\n> The modal's **hover layer** declares itself well - direction, cost, knowledge\n> state, free-look status, resolved names. Its **at-rest labels** do not:\n> `the woman` Ã-2 for two different people, and the raw way-node name on the\n> movement chip.\n\nOf those two, the coordinate half is **already fixed** under task-624\n(`display_area_name` strips the `(world N,M)` suffix, verified live: \"You follow\nthe path north toward Road - you're in Road\"). What remains is that two\ndifferent people share the label `the woman`, which is the *intended* anonymity\nmechanic rather than a defect - the hover disambiguates by description and\ngender, and the name arrives through interaction.\n\nIf someone later wants that tightened, the right change is in the hover copy\n(disambiguate the two), not in a claim that the modal fails to declare itself."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/ui/task-608-derived-values-render-indistinguishably-from-authoritative-ones.md"
+  }
+}

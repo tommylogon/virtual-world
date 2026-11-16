@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-1",
+  "kind": "task",
+  "number": 1,
+  "title": "Conditions System (Character Status Effects)",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Characters need a proper conditions/status effects system. Currently states are limited to: awake, sleeping, dead, unconscious. A conditions system should support: awake, dead, asleep, unconscious, paralysed, blind, deaf, sick, poisoned, grappled, restrained - where multiple conditions can apply simultaneously with independent effects.",
+    "why": "### Player state (`player.py`)\n\n```python\nself.state = \"awake\"  # single string, one at a time\n```\n\nStates are mutually exclusive. A character cannot be simultaneously \"sleeping\" and \"poisoned\" - the state system doesn't support this.\n\n### State-based restrictions (`virtual_world_engine.py`)\n\nVarious actions check `self.player.state`:\n```python\nif self.player.state in [\"sleeping\", \"unconscious\", \"bound\"]:\n    raise ValueError(\"You can't use items while ...\")\n```",
+    "how": "### Engine\n- **`player.py`**: `state` replaced with `conditions` set. Backward-compatible `state` property.\n- **`engine/conditions.py`**: `ConditionsSystem` with `apply_condition`, `remove_condition`, `has_condition`, `can_act`, `process_tick()`.\n- **`engine/effects.py`**: `handle_apply_condition`, `handle_remove_condition` effect handlers.\n- **`engine/trigger_system.py`**: `apply_condition`, `remove_condition` in EFFECT_TYPES.\n- **`engine/tick_manager.py`**: `conditions.process_tick()` called each cycle. Periodic poison/sick/exhausted effects applied.\n- **Constants**: `CONDITION_HIERARCHY`, `BLOCKING_CONDITIONS`, `PERIODIC_CONDITIONS`, `CONDITION_EXCLUSIONS`, `CONDITION_DEFAULT_TIMERS` in `player.py`.\n\n### Frontend\n- **`static/js/inspector/agent-view.js`**: Condition badges in status row with per-condition colors.\n\n### Tests\n- **`tests/test_conditions.py`**: 38 tests covering hierarchy, exclusions, periodic effects, timers, emotions, backward-compat state, serialization.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "player.py` - replace `state` with `conditions` set",
+      "virtual_world_engine.py` - update all state checks, add condition processing, add trigger effects",
+      "static/js/inspector.js` - display conditions in agent inspector",
+      "static/js/api.js` - condition update API"
+    ],
+    "custom": {
+      "proposed_design": "### Conditions set\n\nReplace single `state` string with a set of conditions:\n\n```python\nself.conditions = {\"awake\"}  # set of strings, multiple can apply\n```\n\n### Predefined conditions\n\n| Condition | Effect | Removes |\n|-----------|--------|---------|\n| awake | Normal state | asleep, unconscious |\n| asleep | Can't act, recovery | takes damage, noise |\n| unconscious | Can't act, no recovery | time, healing |\n| dead | Perma-death | everything |\n| paralysed | Can't move | time, healing |\n| blind | Can't see | time, healing |\n| deaf | Can't hear | time, healing |\n| sick | Vitals decay faster | medicine |\n| poisoned | HP drain over time | antidote |\n| grappled | Can't move away | break free action |\n| restrained | Can't use items | break free action |\n\n### Condition rules\n\n- Multiple conditions can coexist (\"poisoned\" + \"blind\" + \"restrained\")\n- Some conditions are mutually exclusive (can't be \"awake\" and \"asleep\")\n- Each condition can have a timer that auto-removes it\n- Each condition can have periodic effects (poisoned → -2 HP per tick)\n- Conditions can be inflicted by item effects, environment, NPC actions\n- Conditions can be cured by items, rest, time, or specific actions\n\n### Implementation\n\n1. Player state becomes `self.conditions = {\"awake\"}`\n2. Engine checks `\"asleep\" in self.conditions` instead of `self.state == \"sleeping\"`\n3. Add condition effects to the trigger system:\n   - New effect: `apply_condition` (applies \"poisoned\" for N ticks)\n   - New effect: `remove_condition` (removes \"poisoned\")\n   - New condition type: `has_condition` (check if character has condition)\n4. Add periodic condition processing in engine tick\n5. Add UI display in agent inspector (show all active conditions)\n\n### Frontend\n\nIn agent inspector, show conditions as labeled badges:\n\n```\n[Awake] [Poisoned ⏱ 5 turns] [Blind ⏱ 3 turns]\n```\n\nClick to inspect condition details. Show condition source and remaining duration."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-1-conditions_system.md"
+  }
+}

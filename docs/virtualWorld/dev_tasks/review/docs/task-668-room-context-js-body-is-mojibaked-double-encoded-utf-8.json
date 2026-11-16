@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "task-668",
+  "kind": "task",
+  "number": 668,
+  "title": "room-context.js body is mojibaked (double-encoded UTF-8)",
+  "status": "review",
+  "area": "docs",
+  "priority": "medium",
+  "created": "2026-10-02",
+  "links": {
+    "wiki": [
+      "[[World Building/Rooms & Areas]]"
+    ]
+  },
+  "sections": {
+    "what": "static/js/agent/prompt-builder/room-context.js is mojibaked throughout: 46 occurrences of the UTF-8-as-cp1252 marker (the em-dash renders as the three chars U+00E2 U+20AC U+201D) and damaged emoji in the blind/pitch-black warning strings. The whole file is not cleanly reversible (encode cp1252 fails at \\\\x8f and the emoji are lossy). Fix the file's encoding or rewrite the affected strings so comments and user-facing warnings read correctly. Discovered while fixing task-658; the contract header lines were corrected there, the body was not.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Human Turn scene/room context and the Agent Lens **Room context (observe / decide)** view; the room-context text and blind/dark warnings should render as normal Unicode in both the character-facing prompt context and visible panel.\n\nCurrent availability: the card identifies mojibake in the body of `static/js/agent/prompt-builder/room-context.js`, including em-dash markers and damaged emoji in blind/pitch-black warnings. The file's current browser output has not been rechecked in this turn.\n\nLive steps when available:\n1. Load a scene containing a blind character in a dark area and open its Room context in the Agent Lens; also inspect the Human Turn scene context for that character.\n   - expected: the warning text contains readable punctuation and symbols, not the literal `â€` sequence or replacement characters.\n2. Compare the visible context and the captured prompt text for the same scene.\n   - expected: both carry the same correctly decoded warning and room details; encoding repair does not alter masking or sensory facts.\n3. Switch to a lit scene and to a sighted character, then reopen the same views.\n   - expected: irrelevant blind/pitch-black warnings are absent and ordinary room context remains unchanged.\n\nThis section is not a claim that the corrected strings have been browser-verified today."
+    }
+  }
+}

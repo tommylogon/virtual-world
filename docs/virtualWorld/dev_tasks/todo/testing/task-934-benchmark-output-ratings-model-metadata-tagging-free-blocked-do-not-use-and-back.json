@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-934",
+  "kind": "task",
+  "number": 934,
+  "title": "Benchmark output ratings, model metadata tagging (Free, Blocked, Do Not Use), and backend registry persistence",
+  "status": "todo",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-845",
+      "task-894",
+      "task-906",
+      "task-907"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extend the Benchmark Lab (`templates/benchmark.html`, `static/js/benchmark/benchmark.js`, `routes/benchmark.py`) with output evaluation ratings, persistent model status tagging (`Free`, `Blocked / Credit Limits`, `Do Not Use`), and a centralized backend model registry:\n\n1. **Output Rating & Feedback System**:\n   - Add an interactive rating control (1 to 5 stars or qualitative score) to each model result card in the Benchmark matrix.\n   - Include an optional quick-feedback tag or note field (e.g. \"Great dialogue\", \"Broken JSON format\", \"Hallucinated inventory\", \"Repetitive phrasing\").\n   - Persist ratings and review notes directly into the saved run record (`data/model_bench/runs/<run_id>.jsonl`) so user evaluations remain visible when inspecting past benchmark runs.\n2. **Model Status & Reason Tagging**:\n   - Allow authors and testers to tag models with operational flags:\n     - **Free**: Model is free-tier or zero-cost (e.g. OpenRouter `:free` variants, local models), prioritizing them for high-volume sweeps and simulation testing.\n     - **Blocked / Credit Limits**: Model provider returned HTTP 402/429 credit exhaustion, or user flagged it as out of budget.\n     - **Do Not Use**: Model is unsuitable for turn generation due to a specific reason:\n       - `realtime`: Live audio, speech, or bidirectional streaming model incompatible with standard chat completion.\n       - `embeddings`: Vector embedding model mistakenly returned in provider model listings.\n       - `audio_video`: Audio, video, or image generation endpoint.\n       - `broken`: Frequent JSON syntax failure, repetitive loops, or chronic timeouts.\n       - `vision_only`: Image input model without text generation capability.\n       - `custom`: Custom note describing the issue.\n3. **Backend Persistence (`data/model_bench/model_registry.json`)**:\n   - Provide REST API endpoints in `routes/benchmark.py`:\n     - `GET /api/bench/models/metadata`: Returns metadata dictionary keyed by model ID.\n     - `POST /api/bench/models/metadata`: Updates status, free flag, tags, and do-not-use reasons for a model.\n     - `POST /api/bench/runs/<run_id>/rate`: Attaches output score and feedback to a specific model entry in a run file.\n4. **Cross-System Awareness & Filtering**:\n   - In Benchmark Lab sidebar:\n     - Color-coded badges beside models in the selection list (`[FREE]`, `[BLOCKED]`, `[DO NOT USE: <reason>]`).\n     - Toggles to \"Hide Blocked/Do Not Use\" and \"Show Only Free\".\n     - \"Select All Filtered\" automatically respects exclusions, skipping blocked and unsuitable models.\n   - In ViWo simulation engine and AutoSwarm:\n     - AutoSwarm and character LLM router read `data/model_bench/model_registry.json` (or `/api/bench/models/metadata`) to avoid routing turns to blocked or incompatible models, preventing simulation failures and wasted API calls.",
+    "why": "Currently, benchmark sweeps discover dozens of models from providers (such as OpenRouter, Google, or local gateways), many of which are embedding models, realtime audio models, out of credits, or produce broken outputs. Without persistent status tagging, users have to remember and manually uncheck unusable models on every refresh. Furthermore, testers have no way to record qualitative evaluations of model responses within benchmark runs to track which models produce high-quality character dialogue. Storing this metadata centrally on the backend ensures both the Benchmark Lab and ViWo runtime agents retain model status across sessions.",
+    "how": "1. In `routes/benchmark.py`:\n   - Define `REGISTRY_FILE = BENCH_DIR / \"model_registry.json\"`.\n   - Implement `GET /api/bench/models/metadata` returning stored metadata mapping.\n   - Implement `POST /api/bench/models/metadata` accepting `{ model_id, is_free, status, reason, notes }` and updating `model_registry.json` atomically.\n   - Implement `POST /api/bench/runs/<run_id>/rate` accepting `{ model, rating, feedback }`, loading the target JSONL file, updating the matching result entry in place, and saving.\n2. In `static/js/benchmark/benchmark.js` & `templates/benchmark.html`:\n   - Fetch model metadata during `init()` via `/api/bench/models/metadata`.\n   - In the model selection list, render status badges and filter controls:\n     - Filter checkbox: \"Hide Blocked / Do Not Use\".\n     - Filter checkbox: \"Show Only Free\".\n   - On each model card in the comparison grid:\n     - Add star rating buttons (1 to 5) and feedback input in the card footer.\n     - Add a quick-tag dropdown button in the card header allowing the user to mark the model as Free, Blocked, or Do Not Use (with a prompt for the reason).\n     - When a rating or status is changed, call the respective backend API endpoint and update local state immediately.\n3. In `engine/llm_client.py` and `tools/autoswarm/llm.py`:\n   - Check `data/model_bench/model_registry.json` if present; skip models where `status in ('blocked', 'do_not_use')` during automated fallback routing.",
+    "verify": "1. In the browser UI at `/bench`, inspect the model selection sidebar and comparison cards.\n   - expected: Shows model status badges, filter toggles, output rating controls, and model tagging dropdowns.\n   - observed: Models only display checkboxes and names; no ratings or metadata tags exist.\n2. Tag a model as Blocked or Do Not Use via the UI and verify persistence.\n   - expected: Sends POST to `/api/bench/models/metadata` and writes to `data/model_bench/model_registry.json`.\n   - observed: No metadata API or registry file exists.\n3. Rate an output in a benchmark run and verify run file updates.\n   - expected: Sends POST to `/api/bench/runs/<run_id>/rate` and updates the matching JSONL record.\n   - observed: No rating endpoint or card rater exists.\n4. Run python unit tests: `pytest tests/test_benchmark_routes.py`.\n   - expected: All route tests pass.",
+    "acceptance": [
+      {
+        "text": "Backend endpoints `GET /api/bench/models/metadata` and `POST /api/bench/models/metadata` manage persistent model metadata in `data/model_bench/model_registry.json`.",
+        "done": false
+      },
+      {
+        "text": "Backend endpoint `POST /api/bench/runs/<run_id>/rate` persists output ratings and review notes to run records.",
+        "done": false
+      },
+      {
+        "text": "Benchmark Lab sidebar renders status badges (`FREE`, `BLOCKED`, `DO NOT USE`) and filter controls to exclude unusable models.",
+        "done": false
+      },
+      {
+        "text": "Benchmark comparison cards render interactive rating controls and quick status tagging affordances.",
+        "done": false
+      },
+      {
+        "text": "Simulation LLM router and AutoSwarm respect blocked/do-not-use flags to prevent failed requests.",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes anywhere in task cards, code, or documentation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/benchmark.py",
+      "templates/benchmark.html",
+      "static/js/benchmark/benchmark.js",
+      "engine/llm_client.py",
+      "tools/autoswarm/llm.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Standalone Benchmark Lab at `/bench` (sidebar model list, model comparison cards, and past run inspection modal).\n\nCurrent availability: Benchmark Lab runs turn prompts across models and saves runs to `data/model_bench/runs/`. No output rating widget, model status tagging, or backend model registry exists today.\n\nLive steps when available:\n1. Navigate to `/bench` in the browser and load models from a provider (e.g. OpenRouter or local LM Studio).\n   - expected: Model list loads in the sidebar with filter checkboxes (\"Hide Blocked / Do Not Use\", \"Show Only Free\").\n2. Click the tag button on a model item in the sidebar (or on a result card) and set its status to \"Do Not Use\" with reason \"embeddings\".\n   - expected: Model displays a distinct `[DO NOT USE: embeddings]` badge. Toggling \"Hide Blocked / Do Not Use\" hides it from the list.\n3. Select a model, set status to \"Free\", and run a turn prompt benchmark.\n   - expected: Result card renders with a `[FREE]` badge and an interactive 1-5 star rating control in the card footer.\n4. Click 5 stars and enter feedback \"Crisp dialogue and valid JSON\", then refresh the page and open the run from Past Runs.\n   - expected: Saved run displays the 5-star rating and feedback note.\n5. Inspect `data/model_bench/model_registry.json` on disk.\n   - expected: The file contains the updated metadata entries for the tagged models.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Developer Tooling]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/testing/task-934-benchmark-output-ratings-and-model-metadata-tagging.md"
+  }
+}

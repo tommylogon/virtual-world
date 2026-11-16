@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-655",
+  "kind": "task",
+  "number": 655,
+  "title": "Equipment readout renders weapon damage as '1dd+8' (doubled d)",
+  "status": "review",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-654",
+      "task-607"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The character inspector's Equipment section and slot modal rendered weapon damage as `1dd+8 piercing` when `props.damage_dice` was authored as a string (such as `'1d8'`). The paperdoll code assumed `damage_dice` was an array `[count, sides, flat]` and indexed `dice[0]`, `dice[1]`, `dice[2]` directly onto string characters `'1'`, `'d'`, `'8'`, producing `'1dd+8'`.",
+    "why": "Weapon damage expressions can come from `properties.damage` or `properties.damage_dice` as strings (`\"1d8\"`, `\"1d6+2\"`, `\"8\"`), arrays (`[1, 8, 0]`), or integers. Indexing into a string as if it were a 3-element tuple corrupts the dice formula display and fabricates nonexistent modifiers.",
+    "how": "1. Added `parseDamage(value: unknown): [number, number, number]` in `static/js/inspector/paperdoll-view.ts` mirroring `engine/equipment_bonuses.py:parse_damage`, parsing string dice notation (`\"1d8\"`, `\"2d6+3\"`, `\"d8\"`, `\"1d4-1\"`), numeric strings, numbers, or tuple arrays into clean `[count, sides, bonus]` numbers.\n2. Centralized `formatDamage(dmg, dice, type)` to format parsed dice tuples and optional damage type cleanly without duplicating `'d'` or injecting phantom bonuses.\n3. Updated `P.computeEquipmentTotals` and `P.showSlotModal` to parse weapon damage before comparison and formatting.\n4. Added unit test coverage in `tools/unit/test_paperdoll_facing.js` verifying dice string parsing, flat damage parsing, array formats, and clean output formatting.",
+    "verify": "1. Run unit test suite:\n   - expected: unit test suite passes with 878 passed (3 new tests for damage parsing and formatting) and 1 pre-existing failure.\n   - observed: 878 passed, 1 failed.\n2. Run TypeScript build and check:\n   - expected: `npm run build:ts` and `npx tsc -p tsconfig.check.json --noEmit` exit with code 0.\n   - observed: 0 errors.",
+    "acceptance": [
+      {
+        "text": "Unified damage parsing handles string dice (`\"1d8\"`), arrays (`[1, 8, 0]`), flat values (`\"8\"`, `8`), and null/undefined.",
+        "done": true
+      },
+      {
+        "text": "Equipment section and slot modal format damage without doubled `'d'` or phantom `+8`.",
+        "done": true
+      },
+      {
+        "text": "Best weapon comparison correctly evaluates dice count, sides, and flat bonus.",
+        "done": true
+      },
+      {
+        "text": "Zero em-dash characters introduced.",
+        "done": true
+      },
+      {
+        "text": "Unit tests and TypeScript checks pass cleanly.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/inspector/paperdoll-view.ts",
+      "static/js/inspector/paperdoll-view.js",
+      "tools/unit/test_paperdoll_facing.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Select the character carrying Rusty Hatchet or a spear -> Inspector -> Inventory/Equipment section -> equipped weapon detail.\n\nCurrent availability: Shipped in `InspectorPaperdoll` (`paperdoll-view.ts`).\n\nLive steps:\n1. Open the inspector for a character equipped with Rusty Hatchet or Spear.\n   - expected: Equipment stat chip displays `1d6 slashing` or `1d8 piercing`, with no doubled `d` and no phantom modifiers.\n2. Click the slot to open the slot detail modal.\n   - expected: Per-layer damage and slot totals display cleanly formatted dice expressions."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-655-equipment-readout-renders-weapon-damage-as-1dd-8-doubled-d.md"
+  }
+}

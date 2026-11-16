@@ -23,13 +23,13 @@ Extend the existing character Mind view into one readable surface for why a char
 
 Additional surfaces the Mind panel should carry, raised while inspecting a live character:
 
-- **Emotional state and its cause** — the character's current emotion(s), and *what caused* the current emotional state (the triggering event or memory), so a designer can see **why** the character feels as they do, not only that they do. This is why the interaction-event memory gap (task-725) matters: with no event recorded, there is no cause to show.
-- **World knowledge** — a map of the locations the character knows or has visited (their known-locations / fog view), not just prose about places.
-- **Known recipes** — move the character's known recipes into Mind.
-- **General memories** — move the general memory list into Mind (currently surfaced elsewhere).
-- **Death, vitals, travel, feeling, resurrection, and perception** — when the character has died, been resurrected, or been driven by vitals (e.g. hunger to death), Mind should show a reason. Live repro: the Eldenford blacksmith died and his Mind contained nothing about why — no travel history, no feelings, no vitals driving him to death, and nothing about his reaction to being resurrected. He did not know he had died. Mind must surface these **when the memories exist**; the memories themselves are a separate gap (see the memory-coverage task filed 2026-10-06, related below).
+- **Emotional state and its cause** - the character's current emotion(s), and *what caused* the current emotional state (the triggering event or memory), so a designer can see **why** the character feels as they do, not only that they do. This is why the interaction-event memory gap (task-725) matters: with no event recorded, there is no cause to show.
+- **World knowledge** - a map of the locations the character knows or has visited (their known-locations / fog view), not just prose about places.
+- **Known recipes** - move the character's known recipes into Mind.
+- **General memories** - move the general memory list into Mind (currently surfaced elsewhere).
+- **Death, vitals, travel, feeling, resurrection, and perception** - when the character has died, been resurrected, or been driven by vitals (e.g. hunger to death), Mind should show a reason. Live repro: the Eldenford blacksmith died and his Mind contained nothing about why - no travel history, no feelings, no vitals driving him to death, and nothing about his reaction to being resurrected. He did not know he had died. Mind must surface these **when the memories exist**; the memories themselves are a separate gap (see the memory-coverage task filed 2026-10-06, related below).
 
-These are display requirements over existing runtime sources where those sources exist. Where the underlying memory/state does not yet carry the fact, the Mind panel cannot invent it — the companion task covers creating it.
+These are display requirements over existing runtime sources where those sources exist. Where the underlying memory/state does not yet carry the fact, the Mind panel cannot invent it - the companion task covers creating it.
 
 ## Acceptance
 
@@ -50,7 +50,7 @@ These are display requirements over existing runtime sources where those sources
 
 ## Current verified surface
 
-In the live Kraktooth goblin camp, the character inspector has four tabs: Inventory, Bio, Images, and Advanced. The Bio tab contains 27 inspector sections and 95 visible controls. Its 🧠 Mind button opens a separate **Memory Mind — Vekka** dashboard with memory totals, people derived from memories, a timeline and filterable memory list, memory detail, and activation/accessibility information. This task grows that existing memory-centered entry point into the broader character Mind described above; it does not repeat task-691's memory-dashboard work.
+In the live Kraktooth goblin camp, the character inspector has four tabs: Inventory, Bio, Images, and Advanced. The Bio tab contains 27 inspector sections and 95 visible controls. Its 🧠 Mind button opens a separate **Memory Mind - Vekka** dashboard with memory totals, people derived from memories, a timeline and filterable memory list, memory detail, and activation/accessibility information. This task grows that existing memory-centered entry point into the broader character Mind described above; it does not repeat task-691's memory-dashboard work.
 
 ## Sequencing and design references
 

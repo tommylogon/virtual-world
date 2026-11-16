@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-4",
+  "kind": "task",
+  "number": 4,
+  "title": "Grapple/Restrain System (Hook, Rope, Zipties, Handcuffs)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The Butcher's hook should be usable to grapple and restrain characters. This requires a new item subtype for restraint tools. Future items: rope, zipties, handcuffs, chains.",
+    "why": "TODO",
+    "how": "- New `restraint` property on items: `{\"type\": \"hook\", \"escape_dc\": 15, \"hp\": 20}`\n- Restrained characters get `state = \"bound\"` \n- Each tick, bound characters attempt a STR check vs escape_dc\n- If restraint HP is reduced to 0 (by damage), it breaks\n- The Butcher's lair (Slaughterhouse) has hooks/chains as environment restraints\n\n**Deferred**: Post-merge feature branch. This branch is refactoring/testing only.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "items_to_support": "1. **Hook** (Butcher): Can hook and drag characters\n2. **Future**: rope, zipties, handcuffs, chains, manacles",
+      "requirements": "1. **Grapple**: `use hook on [target]` - if in same room, target becomes grappled (can't move)\n2. **Restrain**: grappled targets can be tied to furniture/objects (chair, pipe, bed)\n3. **Escape**: restrained characters can attempt escape with STR/DEX skill check (DC based on item quality)\n4. **Drag**: grappled characters can be dragged through exits by the grappler\n5. **State effects**: `grappled`, `restrained`, `bound` states on the character\n6. **Break free**: NPCs can attempt to break free each tick",
+      "new_states": "```\nbound: Cannot move, cannot use items, cannot attack. Escape DC varies by restraint.\ngrappled: Cannot move. Can still use items/attack with penalties.\n```",
+      "design_agreed_2026_08_06_grab_drag_resist": "Two tasks land together: this one and `todo/gameplay/task-159-saves-and-reactions`.\n\n### 1. Grab\n\n- New action `grab <target>` (same area): two things happen:\n  - A **``grappled`` edge** (grappler node → target node) records WHO holds whom -\n    the single source of truth for the relationship, queryable in both directions\n    and visible in the graph editor (edge type `grappled`, ⛓️).\n  - The target gets the **``grappled`` condition** for the mechanical effects\n    (blocks movement, attack/defense mods, `ends_on: [\"escape\"]`).\n- Movement (`engine/movement.py`) enforces `BLOCKING_CONDITIONS` - grappled/restrained\n  characters can't walk off; the grappler's `go`/`dash` drags held targets (mechanical,\n  no mid-move resist).\n- **Relationship-gated + skill-based** (refined 2026-08-10): the grappler always rolls\n  a grab check (`d20 + Athletics` vs DC). The DC is\n  `10 + grabber_athletics + rel_mod + extra_targets - target_best_escape_skill`:\n  - Target's best escape skill is `max(Athletics, Acrobatics)` - subtracted from the\n    DC because a skilled target is harder to grab.\n  - Relationship modifier is linear: `-2 per 25 closeness` for friends (lowers DC),\n    `+2 per 25` for enemies (raises DC). Clamped to `[-8, +8]`.\n  - Friends no longer get a separate fumble check - the unified formula makes the\n    grab easy (low DC) but not automatic.\n- **Hand limit**: the grappler can hold at most one target per hand - 2 by default, 1\n  with `one_armed`/`disable_slot`. Each extra target **raises the grab DC by +2**\n  (harder to grab a third while already holding someone) but **lowers the escape DC\n  by -2** for each person currently held (the grip on each individual is weaker).\n- `release <target>` (or `release` alone) lets go; `release_all_for()` drops everyone\n  when the grappler is incapacitated (any `BLOCKING_CONDITIONS`), wired in\n  `tick_manager.tick_turn`.\n\n### 2. Move-with (drag)\n\n- Grappler's `go`/`dash` carries the grappled target along (drag).\n- **Drag is mechanical**: no mid-move resist roll, the grapple persists. The struggle is\n  the target's own turn.\n\n### 3. Escape\n\n- On their own turn, a grappled character rolls their best of Athletics / Acrobatics\n  vs DC = `10 + grabber_athletics + rel_mod - extra_targets - target_best_escape_skill`.\n  The grabber's extra held targets **lower** the escape DC by 2 each - each grip is\n  weaker when split across multiple people. Friends escape easily (low DC), enemies\n  wrench hard (high DC).\n- The decide prompt surfaces `State: grappled` + a nudge so the agent decides to\n  struggle or go willingly.\n- Future: restraints (hook/rope/zipties/handcuffs) raise the DC, have HP, and can be cut.\n\n### 3b. Edge-based tracking + sync (2026-08-08)\n\nThe relationship is a **``grappled`` edge** (grappler node → target node), replacing\nthe old `grappled_by` attribute and `grappling` condition entirely. The edge is\nauthoritative for WHO holds whom; the `grappled` condition stays for the mechanical\neffects. `GrappleSystem.sync()` (called each tick) reconciles edge ⇔ condition:\n- Legacy `grappling` condition instances → dropped (edges replace them).\n- A `grappled` condition with **no** matching edge → orphan, cleared (auto-heals old\n  saves like the \"Jane grappled by nobody\" labs bug).\n- A `grappled` edge whose target lacks the condition → condition re-added.\n- `serialization._grappled_by()` derives the `grappled_by` API field from the edge, so\n  the agent prompt keeps working unchanged.\n- Removing `grappled` via the inspector drops the edge in BOTH directions (holding or\n  being held).\n\n### 3c. Inspector condition editing (2026-08-08)\n\n- `state` is a **derived read-only label** (most significant condition) - the old\n  state dropdown was a selector and only ADDED, so it could never clear `grappled`.\n- Conditions are edited directly: `+ condition` select + `add_condition` /\n  `remove_condition` API fields on `POST /api/players/<name>`; each condition badge\n  has a ✕ Clear button. Removing `grappled` also releases the held targets.\n\n### 4. Emote contract (related fix)\n\n- Decision emotes are strictly **self-only body language** (what you do with your own\n  body); grabbing/pulling/escaping go through actions + saves, never narrated by emote.\n  This stops agents from claiming world changes (e.g. \"grabs Jake and drags him up the\n  stairs\") that the engine never granted - see the 2026-08-06 mansion sim bug.\n- Implemented as **prompt-contract guidance**, not a hard validator: the system prompt\n  now states \"If you want to GRAB, PULL, or DRAG someone, use the 'grab' action - never\n  narrate grabbing another character in your emote.\" A regex emote validator was\n  deliberately avoided (too fragile / false positives on legit emotes like \"winks at the\n  woman\").\n\n### 5. Restraint items\n\n- Restraint items are **already possible via triggers**: the `apply_condition` effect\n  (`effects.py:860`) applies `{\"condition\": \"restrained\", \"target\": \"self\"}` - a\n  `use_on` trigger on a hook/rope item can tie a target. The `restrained` condition is\n  defined in `player.py` and now **blocks movement** (`movement.py`). No new item\n  subtype needed; future rope/zipties/handcuffs are data, not code.\n- **Zip tie = a `restrained` instance** (see [[review/characters/task-trait-condition-system-v2|task: Trait & Condition System v2]] reference examples): `{\"condition\": \"restrained\", \"duration\": null, \"source\": \"zip_tie\", \"ends_on\": [\"escape\"]}` - permanent until the STR-save escape lands. The item's trigger just supplies `source`/`ends_on`; no new catalog entry per restraint.\n\n### 6. Grapple combat modifiers (2026-08-06)\n\n- A **grappled or restrained** attacker fights at `-4` attack.\n- A target **grappled by the attacker** takes `+4` attack (can't dodge).\n- Constants in `engine/combat.py` (`GRAPPLE_ATTACK_PENALTY` / `GRAPPLE_ATTACK_BONUS`).",
+      "implementation_status_2026_08_08": "Implemented + verified (backend + live):\n\n- `engine/grapple.py` - `GrappleSystem` (grab / escape / drag_all / release /\n  release_all_for / sync), DI-wired on the world (`virtual_world_engine.py`) with\n  `_grapple_grab`/`_grapple_escape`/`_grapple_release` facade methods.\n- Edge-based tracking: `grappled` edge (grappler → target) is the single source of\n  truth for the relationship; the `grappled` condition carries only the mechanical\n  effects. `sync()` reconciles edge ⇔ condition (drops legacy `grappling`\n  conditions, clears orphans, re-adds missing conditions).\n- Skill-based saves: `SkillSystem.saving_throw(player, \"Athletics\"/\"Acrobatics\", dc)`\n  (task-159), logged as `[Save] Athletics vs DC 9: roll 4 + 6 = 10 => success`.\n- Relationship-modulated DCs (friends −, enemies +) + hand limits (2, one-armed = 1) +\n  harder second grab (+2 DC per extra target).\n- Bidirectional `grappling` condition tracking + `sync()` orphan/desync repair, wired\n  into `tick_manager.tick_turn` (incapacitated grapplers auto-release).\n- `routes/action.py` - `grab <target>`, `escape`/`struggle`, `release [target]`.\n- `routes/players.py` - `add_condition` / `remove_condition` API fields (removing\n  `grappled` also releases held targets).\n- Inspector - `state` is a derived read-only label; conditions edited via\n  `+ condition` select and per-badge ✕ Clear buttons.\n- `engine/serialization.py` - players expose `conditions` + `grappled_by` so agents\n  see the held state (was silently missing from `/api/state`).\n- `tests/test_grapple.py` - 27 tests (grappler always rolls grab, escape always rolls\n  save, movement block, mechanical drag, release, sync orphan/desync repair, hand limits,\n  relationship DCs, best-escape-skill, DC formula, multi-target escape bonus). Suite: all pass.\n- `tests/test_combat.py` - grapple-modifier tests (grappled/restrained attacker\n  penalty, held-target bonus).\n\nRemaining: restraint items beyond the trigger approach (raised DC / HP for rope/zipties -\ndata work, not code), grappled penalties on non-combat skill checks (currently only\ncombat).",
+      "refactoring_impact_july_2026": "Engine is modular. Create engine/restrain.py following DI. Wire in virtual_world_engine.py. Use existing engine/effects.py for status effects. Commands in routes/action.py. May need new item node properties."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Combat System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-4-grapple_restrain_system.md"
+  }
+}

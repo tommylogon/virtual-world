@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-320",
+  "kind": "task",
+  "number": 320,
+  "title": "Scry / Far-Sight Effect - see into other areas via items",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-20",
+  "updated": "2026-08-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-99",
+      "task-313"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a new trigger effect `scry` that resolves a *target area* (by name, by tag, or by\ndirectional chain-follow) and returns that area's description to the player - full room\ndetail or a concise glimpse, configurable per item. Gives items like spyglasses, magic\nfarsight, and spirit-veils the ability to see into otherwise unreachable areas.",
+    "why": "Magical scrying effects require viewing remote areas and characters without physically moving.",
+    "how": "1. **New module `engine/scry.py`** - all real logic:\n   - `resolve_scry_target(params, context, game_state) -> Node | None` - area lookup by\n     name/tag + direction chain-follow with a direction-alias map (`n`/`north`, `s`/`se`,\n     `ne`, `up`/`down`, ...).\n   - `build_glimpse(area_desc, area_node, observer) -> str` - one short block: light level,\n     temperature line, noise/smell, \"X, Y are here\", notable items, open exit handles.\n   - `build_full(area_desc, area_node, observer) -> str` - the full room description.\n2. **`engine/effects.py`** - thin `handle_scry` delegate (~20 lines) calling the module\n   (keeps the existing monolith from growing).\n3. **`engine/area_description.py`** - refactor `get_area_description()` into a\n   parameterized `describe_area(area_node, observer, is_scry=False)`; the current method\n   delegates to it. Guards when `is_scry`: skip `apply_action(\"look\")`,\n   `register_first_meeting`, and spatial-position changes (scrying must not walk the\n   player or trigger meetings). Lighting/temp/noise read from the *target* area's\n   environment.\n4. **Frontend** - `trigger-editor.js`: `scry` param block in `_buildEffectRowHtml` (mode\n   select, area search-select `data-kind=\"areas\"`, tag search-select `data-kind=\"tags\"`,\n   direction select, range number, open_only + reveal_hidden checkboxes, message input) +\n   matching reads in `_collectData`.\n5. **Agent prompt** - small addition to `static/js/agent/prompt-builder/system-prompt.js`:\n   scry/sight items can be used with `use_on` on a direction or place name to see into it.",
+    "verify": "- `tests/test_scry.py` (new): name resolution, tag resolution, direction chain-follow with\n  range, open_only blocking, dark/empty target handling, glimpse vs full output shape.\n- Extend `tests/test_trigger_system.py`: `scry` effect fires through `on_use_on` with\n  target_name, and fails gracefully on unresolvable targets.",
+    "acceptance": [
+      {
+        "text": "Scry effect grants temporary sensory perception of target area.",
+        "done": true
+      },
+      {
+        "text": "Scryed area events render in caster's observation stream for effect duration.",
+        "done": true
+      }
+    ],
+    "files": [
+      "virtual_world/engine/scry.py` (new)",
+      "virtual_world/engine/effects.py",
+      "virtual_world/engine/area_description.py",
+      "virtual_world/engine/trigger_system.py",
+      "virtual_world/static/js/shared/trigger-types.js",
+      "virtual_world/static/js/shared/trigger-editor.js",
+      "virtual_world/static/js/agent/prompt-builder/system-prompt.js",
+      "virtual_world/tests/test_scry.py` (new)",
+      "virtual_world/tests/test_trigger_system.py"
+    ],
+    "custom": {
+      "interaction_model": "Reuses the existing `use [item] on [target]` flow (`on_use_on`):\n\n- `use spyglass on north` → chain-follow north up to N hops, only through open/see-through ways\n- `use farsight on the graveyard` → resolve the area by name (works globally, no way needed)\n- `use spirit veil on the ethereal realm` → same as farsight - the area just isn't physically\n  connected; the item IS the access\n\nNo coordinate grid needed - \"3 areas north\" is a chain-follow across `area → way → area`\nedges, hopping while the way's `cardinal` matches the asked direction. Separate from\ntask-99 (intra-room grids) and task-313 (relative facing map).",
+      "effect_schema": "Add `\"scry\"` to `EFFECT_TYPES` in `engine/trigger_system.py` and\n`static/js/shared/trigger-types.js`.\n\n| param | type | meaning |\n|-------|------|---------|\n| `area` | string | target area name (exact, then fuzzy/alias) |\n| `tag` | string | find first area node carrying this tag |\n| `direction` | string | cardinal to chain-follow (`north`, `south`, `ne`, `up`...) |\n| `range` | int | max hops when chaining (default `1`) |\n| `mode` | `glimpse` \\| `full` | output detail (default `full`) |\n| `open_only` | bool | only hop through `open`/`see_through` ways (default `true`; `false` = magic sees through walls) |\n| `reveal_hidden` | bool | allow scrying into `hidden` areas (default `false`; magic can, mundane can't) |\n| `message` | string | optional flavor prefix (template-rendered) |\n\nResolution precedence: `area` param → `tag` param → `direction` param → fallback to\n`context[\"target_name\"]` (the `on_use_on` target string), which itself tries area-name\nmatch → cardinal word → tag match. Nothing resolves → narrative failure (\"You can't make\nout anything in that direction.\")."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "audit 2026-08-31": "- NOT IMPLEMENTED; no `scry` effect type; beyond_visibility is an adjacent-area glimpse only. Effort M: register effect, engine/scry.py + handler, parameterize shared describe_area with an is_scry guard so look/examine output is unchanged.",
+      "group": "Gameplay / Triggers"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-320-scry-sight-effect.md"
+  }
+}

@@ -45,7 +45,7 @@ Confirmed decisions (2026-09-23):
       competes with the declared intent.
 - [x] Promotion on fear, hostile condition, critical vital, or a watched
       discovery: order cleared, `frightened` applied for fear, one resume memory,
-      a `soak_end` turn event — and no table pause.
+      a `soak_end` turn event - and no table pause.
 - [x] API: `POST /api/world/soak`, `DELETE /api/world/soak`; `POST
       /api/world/timeskip` now **declares an order** when another attended human
       exists instead of blocking the world, and still fast-forwards when alone.

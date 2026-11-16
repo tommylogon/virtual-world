@@ -11,12 +11,12 @@ revision: 3
 
 **Filed**: 2026-08-31
 **Completed**: 2026-08-31
-**Revision 2**: 2026-08-31 — flipped from "one-shot JSON plan" to a multi-turn
+**Revision 2**: 2026-08-31 - flipped from "one-shot JSON plan" to a multi-turn
 tool-calling loop after realizing the codebase already supports `tool_calls`
 in the message array (`static/js/context-window.js:51`), the message format is
 already OpenAI-compatible, and "heavily use existing library items" is the
-core goal — a tool loop is what makes that discoverable.
-**Revision 3**: 2026-08-31 — architectural audit & implementation:
+core goal - a tool loop is what makes that discoverable.
+**Revision 3**: 2026-08-31 - architectural audit & implementation:
 1. **Overlay Graph View for Read Tools**: Read tools query a merged view
    (`worldState` + `staging.js` additions - staged deletions) so multi-turn
    references to uncommitted staged nodes work seamlessly.
@@ -38,9 +38,9 @@ task-378 (bulk selection), task-324 (domain tags), item-library/ai-generation.js
 
 The editor today is *form-driven*: every create flow is a modal with discrete
 fields. For power users who already know the schema, that's fine. For anyone
-authoring a scenario from imagination — "add a flickering streetlight to Oak
+authoring a scenario from imagination - "add a flickering streetlight to Oak
 Street", "give Mira a worried personality and a locket she won't let go of",
-"connect the attic to a hidden library behind a bookshelf" — the gap between
+"connect the attic to a hidden library behind a bookshelf" - the gap between
 intent and form is the bottleneck.
 
 The first revision of this doc assumed a one-shot `classify → plan → preview →
@@ -48,11 +48,11 @@ apply` flow with a strict JSON plan schema. That was wrong for two reasons:
 
 1. **The user wants multi-turn.** "Find me a lantern in the library and put a
    candle inside." is a *follow-up* to "the library is too dark, give it some
-   mood lighting" — not a fresh request. The agent should remember that we
+   mood lighting" - not a fresh request. The agent should remember that we
    just added a chandelier, and which library it was.
 2. **The user wants library reuse, not raw generation.** The core workflow
    is: *search* the library, *pick* a fitting entry, *adapt* it, *place* it.
-   That is exactly what tool calling is for — the model issues a `search_library`
+   That is exactly what tool calling is for - the model issues a `search_library`
    tool call, sees the result, decides "actually I'll make a new variant", and
    issues a `create_node` tool call. A single JSON plan forces the model to
    guess about the library *before* it has looked.
@@ -68,21 +68,21 @@ results back.
 A chat-shaped surface (Cmd-L overlay + side panel) where the user types
 free-form authoring intent and an LLM agent **with tools** authors the world:
 
-- **Search & Read tools** — find existing graph nodes, library items, library areas,
+- **Search & Read tools** - find existing graph nodes, library items, library areas,
   library characters, tags. These read from an **Overlay View** (live graph +
   staged buffer) so uncommitted nodes are discoverable across multi-turn chats.
-- **Mutation tools** — create_node, update_node, delete_node, attach,
+- **Mutation tools** - create_node, update_node, delete_node, attach,
   detach, connect_areas, spawn_library_item, link_to_library. These
   append operations to a local staging buffer with deterministic IDs.
-- **Meta tools** — unstage_op, list_world_summary, list_library_summary,
+- **Meta tools** - unstage_op, list_world_summary, list_library_summary,
   request_clarification. Cheap conveniences for the agent to inspect state
   and interact with the user.
 
 The chat is genuinely multi-turn: the user can say "now do the same for
 the garden", "actually change the door to a gate", "wait, undo that", and
 the agent's response history is the source of truth. The agent can also
-*clarify* — "Oak Street isn't an area yet, did you mean Main Street or
-should I create Oak Street?" — by emitting a structured `request_clarification`
+*clarify* - "Oak Street isn't an area yet, did you mean Main Street or
+should I create Oak Street?" - by emitting a structured `request_clarification`
 tool call (which renders interactive choice chips in the UI) or assistant prose.
 
 The final **commit step** is a separate user action: the agent shows a

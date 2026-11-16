@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-177",
+  "kind": "task",
+  "number": 177,
+  "title": "Consolidate `hidden` Boolean into `current_state`",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "### Engine (backend)\n\n- `engine/item_actions.py:210` - examine un-hide: `cn.properties[\"hidden\"] = False` → `cn.properties[\"current_state\"] = \"normal\"` (only if it was `\"hidden\"`)\n- `engine/item_actions.py:439,466` - `not properties.get(\"hidden\", True)` → `properties.get(\"current_state\") != \"hidden\"`\n- `engine/matching.py:124,140,402,409` - same swap\n- `engine/player_manager.py:153` - same swap\n- `engine/area_description.py:97,199` - same swap (default flips to visible, matches intent)\n- `engine/narration.py:403` - same swap\n- `engine/effects.py:492` `handle_set_hidden` - set `current_state = \"hidden\"` / `\"normal\"` instead of the boolean; `handle_set_state` already covers it\n- `engine/effects.py:186,196` - spawn from library: map `hidden` → `current_state`\n- `engine/serialization.py:328,383,482` - on read: `\"hidden\": True` → `\"current_state\": \"hidden\"`; on write: emit `current_state` instead of boolean\n- `routes/graph.py:247`, `routes/library_routes.py:148,217`, `routes/items_registry.py:86,207` - `hidden` field → `current_state`\n\n### Frontend JS\n\n- `world-state.js:191,225` - `!node.properties?.hidden` → `node.properties?.current_state !== 'hidden'`\n- `prompt-builder.js:546,550,553,718` - same swap\n- `inspector/item-view.js:253` - replace \"Hidden\" checkbox with state dropdown (or wire to `current_state`)\n- `item-library.js:1129,1245,1270,1351` - `hidden` field → `current_state`\n- `main.js:315,484` - fix item format hints (`\"hidden\":false` → `\"current_state\":\"normal\"`)\n\n### Data migration\n\nScript to convert every item node with `\"hidden\": true` → `\"current_state\": \"hidden\"` (and `\"hidden\": false` → drop the key or set `\"current_state\": \"normal\"`) in:\n- `data/scenarios/labs.json`\n- `data/autosave.json`\n- `data/scenarios/world_template.json`\n- `data/library/items/*.json`\n\n### Tests\n\n- Update `tests/test_spatial_edges.py` and `TestSpatialRelationExamine` (they exercise `hidden` heavily)\n- New test: item with no `hidden`/`current_state` key is visible AND matchable/examinable (guards the asymmetry fix)\n- New test: examine a container un-hides contents by setting `current_state` off `\"hidden\"`\n- Verify full suite: `python -m pytest tests/ -q -k \"not mcp and not emote\"`",
+    "verify": "- [x] No `properties.get(\"hidden\"` / `properties[\"hidden\"]` remains in any `.py` under `engine/`, `routes/`\n- [x] No `\"hidden\":` remains in item nodes under `data/` (exits may keep `current_state: \"hidden\"`)\n- [x] No `.hidden` / `properties?.hidden` remains in `static/js/` for items\n- [x] Full pytest suite passes (455 passed, 1 skipped)\n- [x] Manual: Task 4 - Ink Pen/Painting/rug/toy_box visible in agent prompt; toy_soldiers only after examining toy_box (toy_soldiers set `current_state: \"hidden\"` in labs.json + autosave.json)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status": "**Filed**: 2026-08-04\n**Priority**: High\n**Status**: In Review - implementation complete (all engine reads use `current_state`, legacy `hidden` retained only as input-migration shim), full pytest suite passes (488 passed, 1 skipped). Moved from inprogress 2026-08-05.",
+      "bug": "Item visibility is the last straggler of the boolean→`current_state` migration. Doors were migrated in `c40eb1f5` (\"hidden is now a door state\") and item `locked` in `3d2c0f83` (task-97). Item `hidden` still lives as a separate boolean `properties[\"hidden\"]`, and the reads are **inconsistent**:\n\n| File | Default | Effect |\n|------|---------|--------|\n| `area_description.py:97,199` | `False` | visible unless explicitly hidden |\n| `narration.py:403` | `False` | visible unless explicitly hidden |\n| `item_actions.py:439,466` | `True` | **invisible unless explicitly unhidden** |\n| `matching.py:124,140,402,409` | `True` | **invisible unless explicitly unhidden** |\n| `player_manager.py:153` | `True` | **invisible unless explicitly unhidden** |\n\nSo an item with no `hidden` property is listed in room descriptions but is **unmatchable / unexaminable**. That asymmetry is a silent footgun.\n\nWorse: the UI already offers `hidden`/`visible` as valid item *states* (`item-library.js:714`, `trigger-editor.js:153`, `library-browser.js:227`), so setting an item's state to `hidden` in the editor does **nothing** - the engine only reads the boolean for item visibility.",
+      "canonical_rule": "An item is **visible** iff `current_state != \"hidden\"`. Default (missing/any other state) = visible. This kills the default-asymmetry bug.",
+      "notes": "- Glass-case case: a visible (`current_state != \"hidden\"`) item inside a container shows up in the initial prompt via the container loop (`world-state.js:225`). Correct.\n- Hidden lives on the content node, state on the container node - no collision (closed toy_box with hidden contents is fine)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview|Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-177-consolidate-hidden-into-current_state.md"
+  }
+}

@@ -9,11 +9,11 @@ priority: medium
 
 **Filed**: 2026-09-02
 **Priority**: High
-**Status**: Done (2026-09-22) — schedule part deferred to task-409
+**Status**: Done (2026-09-22) - schedule part deferred to task-409
 
 ---
 
-## Status — implemented (2026-09-22)
+## Status - implemented (2026-09-22)
 
 **Live game, simple-NPC tier.** Builds on the shipped phase 1 (`add_memory`,
 `set_emotion`, `set_flag`, `hide_in`/`hide_behind`/`hide_under`, `unhide`) and the
@@ -22,7 +22,7 @@ overlaps task-409 (background schedules/work) and the newer Schedule system, so 
 belongs there, not here.
 
 ### Already existed
-- `attack` behavior action (`engine/triggers/behaviors.py`) — delegates to
+- `attack` behavior action (`engine/triggers/behaviors.py`) - delegates to
   `CombatSystem.player_attack`; already shipped before this pass.
 - `character_has_tag` condition (`engine/triggers/condition_tree.py`).
 
@@ -32,15 +32,15 @@ belongs there, not here.
   (mark the intruder `hostile`, then `attack`). Idempotent; tolerates a
   comma-string `tags` field.
 - **Conditions** (`engine/triggers/condition_tree.py`):
-  - `player_has_tag` — resolves a target character and matches a tag on anything
+  - `player_has_tag` - resolves a target character and matches a tag on anything
     they carry (`EDGE_CARRYING`) or wear (`player.equipped`).
-  - `sight_holds` — same tag check, but only when the NPC shares the target's
+  - `sight_holds` - same tag check, but only when the NPC shares the target's
     area (`npc_area`) and the target is not `hidden`.
-  - `smell_detected` — matches an item tag in the area, with `range` hops of
+  - `smell_detected` - matches an item tag in the area, with `range` hops of
     neighbours via `_build_exits_for_area`; uses `room_perception.visible_area_items`.
-  - `sound_above` — reads `recent_hearing` and compares against the engine's
+  - `sound_above` - reads `recent_hearing` and compares against the engine's
     0–3 sound scale; a 0–1 authored `threshold` maps onto `threshold × 3`.
-  - `flag_equals` — compares a `flags[key]` value (phase 1 wrote these) with
+  - `flag_equals` - compares a `flags[key]` value (phase 1 wrote these) with
     coercion for `"true"`/`"false"`/numbers.
 - **Helpers**: `_player_item_tags`, `_area_id`, `_areas_within`,
   `_recent_sound_strength`.
@@ -51,7 +51,7 @@ belongs there, not here.
 - **Frontend**: `static/js/inspector/behaviors-view.js` exposes the five new
   conditions and two actions with field editors; `static/js/shared/trigger-types.js`
   lists the shared sensory conditions for item triggers.
-- **Tests**: `tests/test_npc_behavior_phase2.py` (22) — item-tag senses, sight
+- **Tests**: `tests/test_npc_behavior_phase2.py` (22) - item-tag senses, sight
   hidden/area gates, flags, sound thresholds, smell same-area + range expansion,
   add/remove tag idempotence, and the faction worked example.
 

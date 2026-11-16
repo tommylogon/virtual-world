@@ -32,7 +32,7 @@ Make hostility group-scoped and fear group-aware. Today the real aggro engine is
   a source in its own group (undead do not fear undead), by a criterion separate
   from the hostility exemption.
 - A goblin with a matching `fear_tag` (`undead`) reacts to a zombie (flee / hide
-  / shout) with no `hostile` on the zombie — the reaction comes from the
+  / shout) with no `hostile` on the zombie - the reaction comes from the
   goblin's tags, not the zombie's.
 - The `hostile` trait is either wired to the relation (its documented "flee or
   fight" becomes real) or deprecated; the two names for "dangerous" do not both

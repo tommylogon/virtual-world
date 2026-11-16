@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-960",
+  "kind": "task",
+  "number": 960,
+  "title": "Add firearms, magazine/chamber state, unload/reload actions, gunshot acoustics, and cross-way shooting",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "combat",
+    "firearms",
+    "sound",
+    "sightlines"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-518",
+      "bug-590",
+      "task-955"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extend the bow-only ranged combat foundation (task-518) with firearm chamber/magazine state, explicit unload and reload actions, gunshot sound propagation via engine/sound.py, and cross-way shooting across open/see-through sightlines.",
+    "why": "task-518 implemented same-area bow shooting in engine/combat.py (lines 693-725) using loose 'ammo' nodes in inventory and explicitly deferred range/magazine semantics. For modern firearm encounters, a gun needs loaded chamber/magazine capacity, explicit unload (emptying a confiscated pistol) and reload actions, audible gunshots through engine/sound.py, and firing along open sightlines (engine/beyond_visibility.py).",
+    "how": "1. Extend engine/combat.py ranged model (preserving task-518 bow path untouched): distinguish chambered/magazine-fed firearms from draw-and-loose bows via loaded_ammo/capacity (or attached magazine child node), enforcing click/empty failure when loaded_ammo == 0.\\n2. Register reload and unload verbs in engine/action_verbs.py and routes/action_handlers.py so characters can clear chamber/eject magazines (e.g. removing bullets from a disarmed pistol) or chamber fresh ammo/magazines.\\n3. Connect firearm discharge in engine/combat.py to engine/sound.py (emitting a transient gunshot sound event with directional heard_from / sound_pattern across propagate_sound, unless suppressed).\\n4. Support ranged targeting along open/see_through ways returned by engine/beyond_visibility.py (sightline_run) with range/cover modifiers alongside same-area targets.",
+    "verify": "1. Run existing tests/test_ranged_combat.py plus new pytest suite testing firearm unload/reload, empty click failure, gunshot sound_source propagation to adjacent rooms, and cross-way sightline targeting.",
+    "acceptance": [
+      {
+        "text": "Firearm items track loaded round capacity / detachable magazine state separate from abstract carried 'ammo', supporting explicit unload <weapon> and reload <weapon> character actions.",
+        "done": false
+      },
+      {
+        "text": "Firing a firearm (or explosive) emits a transient high-penetration gunshot sound wave through engine/sound.py (propagate_sound) alerting nearby areas and bystanders rather than firing silently.",
+        "done": false
+      },
+      {
+        "text": "Ranged attacks can resolve along clear open or see-through sightlines from engine/beyond_visibility.py (sightline_run) in addition to same-area targets while preserving bow/quiver behavior from task-518.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/combat.py",
+      "engine/sound.py",
+      "engine/beyond_visibility.py",
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "engine/items/transfer_actions.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal weapon action brackets (`reload`, `unload`), Inspector item properties, and Event Stream acoustic gunshot alerts.\\n\\nCurrent availability: task-518 implemented same-area bow firing in engine/combat.py (_is_ranged_weapon, _carried_ammo_node, _spend_ammo) with no unload/reload verbs, no gunshot sound propagation, and no cross-way sightline targeting.\\n\\nManual verification steps:\\n1. Equip a pistol/rifle with loaded ammo (and spare ammo/magazine) and run `unload <weapon>`, attempt attack while empty, then `reload <weapon>` and fire near an adjacent connected room.\\n   - expected: Empty chamber fails cleanly, reload loads carried ammo/mag into the weapon, unload ejects remaining round(s)/mag back to carried/item state, and firing broadcasts a loud gunshot sound wave to connected areas."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Combat System]]",
+      "[[Items & Inventory/Item & Action Model]]",
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

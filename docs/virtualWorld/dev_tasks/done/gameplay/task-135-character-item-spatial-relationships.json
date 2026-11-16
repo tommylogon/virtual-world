@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-135",
+  "kind": "task",
+  "number": 135,
+  "title": "Character ? Item Spatial Relationships",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When a character interacts with an item (examines it, uses it, stands on/near/under it), create a spatial edge between the character and that item � `character AT piano`, `character UNDER chandelier`, `character ON trap`. This gives other characters a sense of where people are positioned relative to objects in the room, beyond just \"they're in the same area.\"\n\n**Same problem class as transit areas** ([[review/gameplay/task-224-transit-areas-entry-relative-exits|task-224]]): in a text world there is no implicit geometry � you only get \"where am I relative to X?\" if the engine **stores a relation**. Task 135 = relations to **items in a room**. Task 224 = relations to **which exit you came from in a corridor**. Both are pun-intended *spatial relationships*.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implemented_2026_08_13": "See [[Gameplay/Character Spatial Position]] for full behavior tables.\n\n- **`engine/character_spatial.py`** � `approach_way` / `approach_item` / `approach_character`; one spatial edge per player; witness phrases; transit back/forward\n- **Physical actions walk you there** � open/close/go/use-on/give/steal/grab/attack/put do not require `examine` first\n- **`examine room`** clears position; **`look`** does not\n- **Serialization** � `at_way_id` + `spatial_position` on each player\n- **Agent Lens** � `room-context.js` people lines show spatial suffix; `system-prompt.js` rules updated\n- **Grab drag** � dragged characters AT arrival way\n\n### Remaining / polish\n\n- Tag transit areas in scenario data (Task 18 ventilation shaft)\n- Browser E2E verification\n- Optional: NPC behaviors set spatial position when they act\n\n---",
+      "requirements_original_design": "### Spatial relationship edge types (already exist in graph.py)\n| Edge type | Meaning | Example |\n|-----------|---------|---------|\n| `at` | Standing at/near, engaging with | `Jake AT piano`, `Butcher AT bookshelf` |\n| `on` | Standing on top of | `Jake ON trapdoor` |\n| `under` | Underneath | `Jake UNDER chandelier` |\n| `behind` | Behind | `Jake BEHIND counter` |\n| `beside` | Next to | `Jake BESIDE fireplace` |\n\n### How the correct edge type is determined\n\nItems can have tags that hint at their natural spatial position:\n\n| Tag | Default edge type | Example |\n|-----|-------------------|---------|\n| `in_roof` / `on_ceiling` | `under` | Chandelier, hanging lamp, ceiling fan |\n| `in_floor` / `on_ground` | `on` (or `at` if too big to stand on) | Trapdoor, rug, grate |\n| (no tag) | `at` | Default � examine or use sets `at` |\n\n- The player can override with explicit positioning in their action: `examine chandelier from below` ? `under`, `stand on rug` ? `on`\n- The action parser looks for spatial keywords (on/under/behind/beside/at) in the command and uses that as the edge type\n\n### Character AT way (doors, vents, transit)\n\n| Situation | Edge | Effect |\n|-----------|------|--------|\n| `open` / `close` / `go` / use-on door | `character AT way` | Walk to opening as part of the action |\n| `examine door` | `character AT way` | Look without opening |\n| Door open + you're AT it | (edge + task-201) | Beyond visibility from this viewpoint |\n| Transit area + AT entry | back / forward | [[review/gameplay/task-224-transit-areas-entry-relative-exits|task-224]] |\n\n### Witness + targeting\n\nPeople lines: `the stranger at the north`, `the woman beside the piano`. Stranger labels use `unknown_display_name()`; spatial suffix gives agents a **handle + position** for commands like `attack the man`, `examine the north`.",
+      "related": "- [[Gameplay/Character Spatial Position]] � **main reference**\n- [[Connections]]\n- [[AI & Narration/Agent Engine]]\n- [[review/ui/task-201-area-visibility-beyond-ways|task-201]]\n- [[review/gameplay/task-224-transit-areas-entry-relative-exits|task-224]]"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "canonical doc": "[[Gameplay/Character Spatial Position]]"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-135-character-item-spatial-relationships.md"
+  }
+}

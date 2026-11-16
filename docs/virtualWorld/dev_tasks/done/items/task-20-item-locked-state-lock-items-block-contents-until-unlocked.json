@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-20",
+  "kind": "task",
+  "number": 20,
+  "title": "Item Locked State - Lock Items, Block Contents Until Unlocked",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-17 (updated 2026-07-21)",
+  "updated": "2026-07-17 (updated 2026-07-21)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Items need a `locked` state that blocks contents from being revealed until unlocked. Locked items **still fire triggers** (`on_examine`, `on_take`, `on_use`) - so examine can give extra info, and a trapped chest can activate on pickup. Only contents (items inside) are hidden until unlocked.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - `get_item_desc()` locked_message appended (triggers still fire), `take_item()` locked check removed, container search locked guards",
+      "static/js/inspector.js` - lock icon in room list, locked_with/locked_message fields in item inspector",
+      "static/js/main.js` - lock icon in game output panel",
+      "world_template.json` - locked chest (master bedroom), locked cabinet (kitchen), with keys and contents"
+    ],
+    "custom": {
+      "what_was_implemented": "### 1. `virtual_world_engine.py` - `get_item_desc()` (line ~1875)\n\nAppends locked_message to description but **does not block triggers, skill checks, or available actions**. Only container contents are hidden when locked:\n\n```python\nif item_node.properties.get(\"locked\"):\n    locked_msg = item_node.properties.get(\"locked_message\", \"It's locked.\")\n    desc += f\"\\n{locked_msg}\"\n\n# ... skill checks run normally ...\n# ... on_examine triggers fire normally ...\n\n# Contents only revealed when unlocked\nif not item_node.properties.get(\"locked\"):\n    content_items = []\n    for ce in self.graph.get_edges_for_target(item_node.id, EDGE_CONTAINS):\n        ...\n```\n\nWhen locked: shows description + locked_message + **triggers fire** (can add info). Contents stay hidden.\n\n### 2. `virtual_world_engine.py` - `take_item()` (line ~2128)\n\n**No locked check.** Locked items can be taken if their `actions` include `\"take\"`. The `on_take` trigger fires normally - enabling trap scenarios (e.g., pressure plate under a locked chest).\n\n### 3. `virtual_world_engine.py` - Container search locked guard\n\nAdded locked container guards in **three search paths**:\n- `take_item()` room container search (skips contents of locked containers)\n- `take_item()` player inventory container search (skips contents of locked containers)\n- `_find_item_node()` both room and player inventory container searches\n\n### 4. `virtual_world_engine.py` - `use_item_on()` unlock flow (already existed)\n\nThe existing unlock flow at line ~2562 was already correct:\n```python\nif target_node and target_node.properties.get(\"locked\"):\n    lw = (target_node.properties.get(\"locked_with\") or '').lower().replace('_', ' ').replace('-', ' ')\n    ni = item_node.name.lower().replace('_', ' ').replace('-', ' ')\n    if lw and lw == ni:\n        target_node.properties[\"locked\"] = False\n        return f\"You use the {item_name} on the {matched_item}. The lock clicks open!\"\n    elif lw:\n        return f\"You try to use the {item_name} on the {matched_item}, but the key doesn't fit.\"\n```\n\n### 5. `static/js/inspector.js` - Lock icon in room list\n\nArea items list now shows 🔒 icon for locked items:\n```javascript\n`${i.properties?.locked ? '🔒 ' : '📦 '}${i.name}`\n```\n\n### 6. `static/js/inspector.js` - Locked_with + locked_message fields\n\nAdded to item inspector properties section:\n- **Locked With (key name)** - text input for `locked_with`\n- **Locked Message** - text input for `locked_message` (custom message when examining locked)\n\n### 7. `static/js/main.js` - Lock icon in game output\n\nLocked items show 🔒 in the game description panel.\n\n### 8. `world_template.json` - Locked containers added\n\n| Item | Area | Key | Content |\n|------|------|-----|---------|\n| `item_locked_chest` | Master Bedroom | `brass_key` (in grandfather clock) | `item_gold_coins` |\n| `item_locked_cabinet` | Kitchen | `cabinet_key` (in Living Area, hidden) | `item_canned_food` |",
+      "item_properties_schema": "```json\n{\n  \"locked\": true,\n  \"locked_with\": \"cabinet_key\",\n  \"locked_message\": \"The cabinet is locked tight. You'll need a small key.\"\n}\n```",
+      "test_steps": "### From a fresh reload (`Ctrl+R`):\n\n1. **Find a locked item** - Go to Kitchen, `examine locked_cabinet` → shows description + \"The cabinet is locked tight. You'll need a small key.\" + any `on_examine` triggers fire (if configured). Contents are NOT revealed.\n2. **Take a locked item** - `take locked_cabinet` works if the item has `\"take\"` in its actions. The `on_take` trigger fires normally.\n3. **Use a locked item** - `use locked_cabinet` fires `on_use` triggers normally (e.g., \"It's locked, you need a key.\").\n4. **Find the key** - Go to Living Area, `take cabinet_key` (hidden but findable via room items list)\n5. **Unlock with key** - Go back to Kitchen, `use cabinet_key on locked_cabinet` → \"The lock clicks open!\"\n6. **Verify unlocked** - `examine locked_cabinet` now shows contents and actions normally\n7. **Locked chest chain** - Examine grandfather clock → find brass key → take it → go to Master Bedroom → `use brass key on locked_chest` → unlocks\n8. **Container search** - While locked, searching room/inventory does NOT reveal items inside locked containers"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Item States & Toggleables]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-20-item_locked_state.md"
+  }
+}

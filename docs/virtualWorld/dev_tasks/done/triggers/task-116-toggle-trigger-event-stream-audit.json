@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-116",
+  "kind": "task",
+  "number": 116,
+  "title": "Toggle Trigger & Event Stream Audit",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Ensure that all trigger effect messages from backend actions (especially toggle on/off) are:\n\n1. **In the event stream** - visible to the human player in the UI\n2. **Fed to the agents** - included in the LLM prompt context via \"WHAT HAPPENED\" or equivalent\n\nCurrently, the `on_toggle_on` trigger for the flashlight (message: *\"You click the flashlight on. A bright beam cuts through the dark.\"*) does not appear in the log output. Only the base `toggle_item_status` message (\"You turn the flashlight on.\") shows.\n\n### Investigation needed\n\n- Trace the full call chain from `use_item` → `toggle_item_status` → `_execute_triggers` for toggles\n- Verify trigger edges exist in the graph for toggle items\n- Check if `_execute_triggers` is finding and executing the trigger effects\n- Verify `toggleable_items.py` properly appends trigger outputs to the result string\n- Check that the route handler (`routes/action.py`) sends the full multi-line result to the frontend\n- Verify event stream displays all lines of the action result\n- Verify agent prompt \"WHAT HAPPENED\" section includes trigger outputs\n\n### Scope\n\n- `engine/toggleable_items.py` - trigger execution and result building\n- `engine/trigger_system.py` - `_execute_triggers` method, edge discovery, effect execution\n- `routes/action.py` - result passing to frontend\n- `static/js/event-stream.js` - rendering of action results\n- `static/js/agent/prompt-builder.js` - inclusion in LLM context",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-116-toggle-trigger-audit.md"
+  }
+}

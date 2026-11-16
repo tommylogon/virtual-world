@@ -17,7 +17,7 @@ priority: medium
 
 ## What
 
-**Field-level locking** lets you mark specific item properties as "locked" — they're preserved during AI Improve, Refresh from Library, and Sync to Library. Plus a **Refresh from Library** button that resets unlocked fields from the library template.
+**Field-level locking** lets you mark specific item properties as "locked" - they're preserved during AI Improve, Refresh from Library, and Sync to Library. Plus a **Refresh from Library** button that resets unlocked fields from the library template.
 
 ## Concept
 

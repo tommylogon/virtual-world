@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "id": "task-751",
+  "kind": "task",
+  "number": 751,
+  "title": "Replace native alert/confirm/prompt popups with a promise-based in-app dialog",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-533",
+      "silent",
+      "no-op",
+      "diff-modal"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Native `alert()` / `confirm()` / `prompt()` popups are used throughout the front\nend. They ignore the app's theme and focus management, look nothing like the rest\nof the UI, and are the same blocking string-returning API everywhere. Replace them\nwith one reusable, promise-based in-app dialog.\n\nThis was triggered by the blueprint save flow: `trigger-graph._saveBlueprint`\n(`shared/trigger-graph.ts:2108-2122`) fires **two** `prompt()` calls in a row\n(name, then description), and the toolbar button is labelled \"💾 Blueprint\" so it\nis not even obvious it saves. A two-field modal fixes both problems at once.\n\nInventory (TS sources; the generated `.js` doubles each). Counts are approximate -\nsome `prompt(` matches in `agent/prompt-builder/*` are identifiers, not popups, so\ntriage per site:\n\n| Kind | Count | Notes |\n|---|---|---|\n| `confirm()` | 19 | boolean guard, maps 1:1 to `dialog.confirm` |\n| `prompt()` | 20 | needs a small form modal (fields + validate) |\n| `alert()` | 9 | maps to `toast(...)` in most cases, `dialog.alert` otherwise |\n\nHeaviest files: `shared/trigger-graph.ts` (16), `graph-manager.ts` (10),\n`library-browser.ts` (8), `ui/saveload-view.ts` (4), then\n`graph/context-menu.ts`, `graph/graph-background.ts`, `graph/node-operations.ts`,\n`inspector/agent-view.ts`, `inspector/area-view.ts`, `ui/scenario-manager.ts`,\n`ui/scenario-wizard.ts`, `ui/changes-panel.ts`, `item-library.ts`,\n`nl-editor/ui.ts`, `agent-lens.ts`, `inspector/memory-view.ts`,\n`inspector/lore-view.ts`, `inspector/helpers.ts`, `inspector/behaviors-view.ts`,\n`shared/diff-modal.ts`, `main.ts`, `config.ts`.",
+    "why": "TODO",
+    "how": "A single `shared/dialog.ts` module, promise-based, modelled on `DiffModal.show`\n(same overlay + Lit + `null`-on-cancel contract that already fits the codebase):\n\n- `dialog.confirm({ title, message, confirmLabel?, cancelLabel?, danger? })`\n  → `Promise<boolean>`\n- `dialog.prompt({ title, fields: [{ key, label, value?, placeholder?, type? }], confirmLabel? })`\n  → `Promise<Record<string,string> | null>`\n- `dialog.alert({ title, message })` → `Promise<void>`\n\nFocus-trapped; `Esc` cancels, `Enter` submits, backdrop click cancels. Publish as\n`VW.dialog`. `alert()` calls that are just \"it worked\" messages become\n`toastInfo`/`toastError` (`ui-helpers.ts`) - do not open a modal for those.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`VW.dialog` exists (confirm / prompt / alert), promise-based, focus-trapped,",
+        "done": true
+      },
+      {
+        "text": "`Esc`/`Enter`/backdrop handled, and covered by unit tests.",
+        "done": false
+      },
+      {
+        "text": "The blueprint save uses it: one modal with name + description; the toolbar",
+        "done": true
+      },
+      {
+        "text": "button makes clear it saves to the library.",
+        "done": false
+      },
+      {
+        "text": "**Not met:** ~48 native `alert`/`confirm`/`prompt` call sites across ~20 files",
+        "done": false
+      },
+      {
+        "text": "remain to migrate (`graph-manager.ts`, `library-browser.ts`, `trigger-graph.ts`,",
+        "done": false
+      },
+      {
+        "text": "`ui/saveload-view.ts`, ...). The module is ready; this is the mechanical bulk pass.",
+        "done": false
+      },
+      {
+        "text": "The pilot's success/failure `alert()`s became toasts, not modals.",
+        "done": true
+      },
+      {
+        "text": "`build:ts`, `typecheck`, `js_module_index --check` clean; unit passes (636).",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "plan": "1. Build `shared/dialog.ts` (+ `@module`/`@contributes` headers, script tag,\n   `js_module_index`), pilot it on the blueprint save (name + description in one\n   modal) and relabel the toolbar button so \"save\" is obvious.\n2. Migrate `confirm()` → `dialog.confirm` (19), then `prompt()` → `dialog.prompt`\n   (20, per-file), then the true `alert()`s (9; most → toast).\n3. One `build:ts` per batch; `typecheck` + unit.",
+      "resolution_2026_10_09": "Built the reusable module and piloted it; the 48-site bulk migration remains.\n\n- `static/js/shared/dialog.ts` → publishes `window.Dialog` (also `VW.dialog` via\n  `main.ts`). Promise-based `alert(opts)`, `confirm(opts) → boolean`,\n  `prompt({fields}) → Record<string,string>|null`. One overlay, focus-trapped:\n  `Esc` and backdrop cancel, `Enter` submits, `Tab` cycles in the card.\n  Registered: script tag in `templates/index.html`, `@module/@contributes/@docs`,\n  `js_module_index --write`.\n- **Blueprint pilot:** `trigger-graph._saveBlueprint` now opens one\n  `dialog.prompt` with name + description (was two native `prompt()`s), the\n  toolbar button is relabelled **💾 Save to library**, and the success/failure\n  `alert()`s became `toastInfo`/`toastError`.\n- Guard: `tools/unit/test_dialog.js` (API surface, dismissal rules, and that the\n  blueprint save routes through `dialog.prompt`).",
+      "browser_ui": "Intended UI home: Shared in-app dialog at existing alert/confirm/prompt call sites; use blueprint save as the representative path.\n\nCurrent availability: The reusable dialog and blueprint flow exist; many native popup call sites remain to migrate.\n\nLive steps when available:\n\n1. Open blueprint save and test confirm, cancel, Escape, Enter, and backdrop behavior.\n   - expected: One themed dialog collects fields, traps focus, returns the documented promise result, and preserves cancellation.\n\n2. Trigger a representative migrated alert/confirm and inspect focus after closing.\n   - expected: No browser-native popup appears and focus returns to the invoking control.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "audit_note_2026_10_16": "Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 4 of 5 acceptance boxes checked. static/js/shared/dialog.ts and the blueprint pilot are committed (c5034257, 2026-10-09). The open box is the bulk migration of about 48 native alert/confirm/prompt call sites, and nothing has touched it since."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-751-replace-native-alert-confirm-prompt-popups-with-a-promise-based-in-app-dialog.md"
+  }
+}

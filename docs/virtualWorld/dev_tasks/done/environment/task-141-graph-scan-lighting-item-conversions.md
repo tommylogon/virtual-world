@@ -5,7 +5,7 @@ status: done
 priority: medium
 ---
 
-# Task 141: Graph-scan lighting — convert remaining item JSONs + cleanup
+# Task 141: Graph-scan lighting - convert remaining item JSONs + cleanup
 
 ## What
 
@@ -19,11 +19,11 @@ Replace the dual system of `player.item_statuses` + `effect_target/effect_amount
 
 | Step | Component | Status |
 |------|-----------|--------|
-| 1 | `engine/lighting.py` — `get_item_light_contribution()` graph scan | ✅ Done |
-| 2 | `engine/toggleable_items.py` — simplified to state-flip only | ✅ Done |
-| 3 | `engine/tick_manager.py` — tick drain via graph scan | ✅ Done |
-| 4 | `engine/item_actions.py:use_item()` — toggleable redirect | ✅ Done |
-| 5 | `engine/effects.py:handle_set_state()` — defaults to item_node | ✅ Done |
+| 1 | `engine/lighting.py` - `get_item_light_contribution()` graph scan | ✅ Done |
+| 2 | `engine/toggleable_items.py` - simplified to state-flip only | ✅ Done |
+| 3 | `engine/tick_manager.py` - tick drain via graph scan | ✅ Done |
+| 4 | `engine/item_actions.py:use_item()` - toggleable redirect | ✅ Done |
+| 5 | `engine/effects.py:handle_set_state()` - defaults to item_node | ✅ Done |
 | 6 | Legacy `item_statuses` cleanup | ✅ Done (removed from player.py and routes/players.py) |
 | 7 | Item JSON conversions | ✅ Done (2026-08-02) |
 | 8 | Legacy `effect_target: room:light` parallel path removed | ✅ Done |
@@ -32,7 +32,7 @@ Replace the dual system of `player.item_statuses` + `effect_target/effect_amount
 
 **Updated**: 2026-08-02
 
-**Status: DONE** — moved to `done/environment/`. Remaining steps A–F below are all implemented.
+**Status: DONE** - moved to `done/environment/`. Remaining steps A–F below are all implemented.
 
 ---
 
@@ -52,7 +52,7 @@ Each item must have:
 
 | File | Uses | light_level | heat_source | Problem |
 |------|------|-------------|-------------|---------|
-| `oil_lamp.json` | 20 | `"dim"` | ✅ | Has BOTH `light_level` and `effect_amount` — dual path |
+| `oil_lamp.json` | 20 | `"dim"` | ✅ | Has BOTH `light_level` and `effect_amount` - dual path |
 | `candle_attic.json` | 5 | ❌ missing | ❌ | No `light_level`, uses `room:light:+25` |
 | `silver_candle.json` | 15 | ❌ missing | ❌ | No `light_level`, uses `room:light:+50` |
 | `candle_stub.json` | 1 | ❌ missing | ❌ | No `light_level`, uses `room:light:+15` |
@@ -77,13 +77,13 @@ Each item must have:
 
 ### B. Remove stale legacy code
 
-- `player.py:113` — `self.item_statuses = {}` still initialized (never read by engine)
-- `routes/players.py:281` — still deserializes `item_statuses`
-- `engine/item_actions.py:547-569` — legacy `effect_target`/`effect_stat`/`effect_amount` handler still runs for non-toggleable items (creates parallel lighting path)
+- `player.py:113` - `self.item_statuses = {}` still initialized (never read by engine)
+- `routes/players.py:281` - still deserializes `item_statuses`
+- `engine/item_actions.py:547-569` - legacy `effect_target`/`effect_stat`/`effect_amount` handler still runs for non-toggleable items (creates parallel lighting path)
 
 ### C. Frontend: graph overlay ignores item lights
 
-`static/js/graph/network-manager.js:392-443` (`_computeAmbientLight()`) only reads `environment.light` from area nodes — does **not** account for lit items in the area. Should either add item contributions or mark as visual-only.
+`static/js/graph/network-manager.js:392-443` (`_computeAmbientLight()`) only reads `environment.light` from area nodes - does **not** account for lit items in the area. Should either add item contributions or mark as visual-only.
 
 ### D. Frontend: library editor missing `light_level` field
 

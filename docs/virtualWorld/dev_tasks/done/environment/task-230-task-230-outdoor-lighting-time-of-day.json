@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-230",
+  "kind": "task",
+  "number": 230,
+  "title": "task-230-outdoor-lighting-time-of-day",
+  "status": "done",
+  "priority": "high",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-15",
+  "updated": "2026-08-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [
+      "task-80"
+    ],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Outdoor rooms get their ambient light from the current game time, weather, and moon phase - not from a static `environment.light` value. Indoor rooms default to pitch black. Light spill from open/transparent doors connects interior spaces to the outside.",
+    "why": "TODO",
+    "how": "### `get_time_of_day_light(hour, weather, moon_phase)`\n\nNew method in `engine/lighting.py`:\n\n```python\ndef get_time_of_day_light(self, hour: int, weather: str = \"clear\", moon_phase: dict = None) -> int:\n    if 5 <= hour < 18:\n        base = 80\n    elif (5 <= hour <= 6) or (18 <= hour <= 19):\n        base = 40\n    else:\n        base = 15\n        if moon_phase and moon_phase.get(\"light_bonus\"):\n            if weather in (\"stormy\", \"foggy\"):\n                base += moon_phase[\"light_bonus\"] // 2\n            else:\n                base += moon_phase[\"light_bonus\"]\n\n    weather_mult = {\"clear\": 1.0, \"cloudy\": 0.7, \"rainy\": 0.5, \"stormy\": 0.3, \"foggy\": 0.4, \"windy\": 0.8}.get(weather, 1.0)\n    return min(100, max(0, int(base * weather_mult)))\n```\n\n### `get_ambient_light()` Update\n\nIn `engine/lighting.py:74`:\n\n```python\ndef get_ambient_light(self, area_id: str, env: Optional[Dict] = None) -> int:\n    node = self.graph.get_node(area_id)\n    if not node:\n        return 80\n\n    is_outdoor = \"outdoor\" in node.properties.get(\"tags\", [])\n    \n    if is_outdoor:\n        hour = self._get_current_hour()\n        weather = self._get_current_weather()\n        moon = self._get_moon_phase()\n        base = self.get_time_of_day_light(hour, weather, moon)\n    else:\n        base = self.get_light_int(env, default=0)\n```\n\n### Transparent Doors\n\nDoors with `\"transparent\": true` in properties allow light spill without being open:\n- Spill multiplier: `×0.3` (vs `×0.5` for open doors)\n- Check `way_node.properties.get(\"transparent\")` in the spill logic",
+    "verify": "- Outdoor room at noon (clear) → light = 80\n- Outdoor room at midnight (new moon, clear) → light = 15\n- Outdoor room at midnight (full moon, clear) → light = 40\n- Indoor room with no doors → light = 0\n- Indoor room with open door to bright outdoor → light = 40\n- Indoor room with closed transparent door to bright outdoor → light = 24\n- Lit candle in indoor room → light = candle value",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/lighting.py` - `get_time_of_day_light()`, update `get_ambient_light()`, transparent door spill",
+      "engine/tick_manager.py` - expose current hour/weather/moon to lighting system",
+      "engine/weather_forecast.py` (task-227) - weather lookup",
+      "engine/moon.py` or weather_forecast helper (task-229) - moon phase lookup",
+      "engine/area_description.py` - outdoor light descriptions",
+      "graph.py` / `way.py` - `\"transparent\"` property on doors",
+      "engine/effects.py` - `set_environment` can set `\"transparent\"` on ways",
+      "static/js/graph/network-manager.js` - light overlay uses computed ambient light"
+    ],
+    "custom": {
+      "implemented_2026_08_21": "- `lighting.py`: `outdoor_light_for_hour(hour)` - piecewise-linear curve (deep night ~8, dawn ramp 5-8,\n  full day 9-16 at 85, dusk ramp 17-21, night again); `is_outdoor_area(area_id)` reads the area's\n  `outdoor` tag; `get_ambient_light(..., hour=None)` modulates outdoor base light when an hour is\n  available. An explicitly authored `environment.light` acts as a FLOOR (magically lit glade stays\n  bright at midnight), not a ceiling.\n- Wiring: `LightingSystem.hour_provider` callable set once in `VirtualWorld.__init__` to\n  `current_game_hour()` (ticks × time_per_tick + clock start, % 24) - ALL existing\n  `get_ambient_light` call sites get time-aware outdoor lighting with zero call-site changes.\n- Tests: `tests/test_realism_perception.py` - curve values (5) + outdoor/indoor/floor/provider cases (6).\n\n# Task 230: Time-of-Day Outdoor Lighting",
+      "light_levels_by_time_of_day": "Base values for outdoor rooms:\n\n| Time | Light (clear weather) |\n|------|----------------------|\n| 05:00–06:00 (dawn) | 40 (dim) |\n| 06:00–18:00 (day) | 80 (bright) |\n| 18:00–19:00 (dusk) | 40 (dim) |\n| 19:00–05:00 (night) | 15 (pitch_black) |",
+      "weather_modifier": "Applied as a multiplier to the base outdoor light:\n\n| Weather | Multiplier |\n|---------|-----------|\n| clear | 100% |\n| cloudy | 70% |\n| rainy | 50% |\n| stormy | 30% |\n| foggy | 40% |\n| windy | 80% |\n\nStormy and foggy weather also nullify or halve the moon phase bonus.",
+      "moon_phase_bonus": "Only at night (19:00–05:00), only for outdoor rooms:\n- Full moon: +25\n- Gibbous: +15\n- Quarter / waning: +10\n- Crescent: +5\n- New moon: +0",
+      "dependencies": "- **Blocked by**: task-227 (forecast provides weather), task-229 (moon phase)\n- **Blocks**: task-100 (graph light overlay needs computed light values)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "filed": "2026-08-15",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-230-outdoor-lighting-time-of-day.md"
+  }
+}

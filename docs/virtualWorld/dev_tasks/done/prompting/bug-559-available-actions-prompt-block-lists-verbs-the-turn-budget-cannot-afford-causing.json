@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "bug-559",
+  "kind": "bug",
+  "number": 559,
+  "title": "available actions prompt block lists verbs the turn budget cannot afford causing infinite llm rejection loops",
+  "status": "done",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-10-21",
+  "updated": "2026-10-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-352",
+      "task-491",
+      "bug-539"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When an agent character expends their major action budget (`major: 0`), `PromptBuilder.buildRoomContext` (`static/js/agent/prompt-builder/room-context.ts`) continues to list major action verbs under `=== AVAILABLE ACTIONS ===` (such as `attack`, `grab`, `lead`, `go`). The LLM selects one of these visible actions, which the engine immediately rejects with `\"You have no major action left this turn.\"` In the subsequent decision retry, the same prompt block is rebuilt with the same major verbs, causing a recursive rejection loop that consumes tens of thousands of tokens on a single tick.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "`PromptBuilder` filters `=== AVAILABLE ACTIONS ===` against `turnSlots(player)`: when `major <= 0`, major actions are omitted or explicitly marked unavailable.",
+        "done": true
+      },
+      {
+        "text": "If all action budgets (`major` and `minor`) are exhausted, the prompt explicitly instructs the LLM that only free actions, speech, or `wait` remain.",
+        "done": true
+      },
+      {
+        "text": "Unit tests in `tools/unit/test_turn_prompts.js` assert that exhausted budgets omit major verbs.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "steps_to_reproduce": "1. Start a turn with an AI character (e.g. Arix in Food Storage).\n2. Character executes a major action (e.g. `examine Glowing Mushroom Pouch`).\n3. Note that `player.turn_slots.major` is now `0`.\n4. Observe the prompt for the next action: `=== AVAILABLE ACTIONS ===` still includes `attack`, `grab`, `lead`, and directional exits like `go`.\n5. Character selects `go into camp`.\n6. Engine rejects with `\"You have no major action left this turn.\"`\n7. Loop re-runs repeatedly.",
+      "verified_2026_10_21_working_tree_uncommitted": "- `keep()` (`static/js/agent/prompt-builder/contextual-actions.ts:343-345`) drops\n  any suggested verb `affordable()` says the remaining slots cannot pay for.\n  Every major verb goes through it: `attack`, `grab`, `lead`, `give`, `steal`,\n  `escape`, `stand`, `examine`, `make`, and the requirement-gated\n  crawl/climb/jump. `wait` is appended unconditionally so the turn can always end.\n- The exhausted-budget note is emitted at `contextual-actions.ts:398-404` for\n  both the major-only and major+minor cases.\n- Exit lines gate too: `room-context.ts:472-503` only offers `go`/`dash`/`examine`\n  when `major > 0` and `approach` when `minor > 0`.\n- Wiring: `room-context.ts:885` passes `turnSlots(player)`, and `turn_slots` is in\n  the player payload (`engine/serialization.py:197`), so the values the prompt\n  filters on come from the same `/api/state` the gate enforces against.\n- `node tools/unit/run.cjs` - 782 passed, 0 failed, including the three bug-559\n  assertions in `tools/unit/test_turn_prompts.js`.\n- **Remaining:** the change is uncommitted. Live browser check on 2026-10-21:\n  confirmed working by the user, so the filter is observed in a real prompt and\n  no rejection loop was produced.",
+      "browser_ui": "UI home: the `📤` raw request chip in the event stream, which prints the full\nprompt body, plus the budget pips in the human turn composer (`#htc-modal`).\n\n1. Settings -> Agent Settings -> enable `⏭️ Turn-Based Mode` and\n   `🔬 Show Raw LLM`; set Turn mode to `Sequential`. An API key is required,\n   because the prompt only exists when an agent calls the model.\n2. Load a scenario and let the composer open for the controlled character.\n3. Spend the major action through `Act` (one `go`, `attack`, `grab` or `steal`\n   tier action), then use `⏭ end turn` without spending anything else. The\n   closing beat is an LLM call for that character with `major` at 0.\n4. Expand the `📤` chip for that call and find `=== AVAILABLE ACTIONS ===`.\n   - expected: no major verbs (`go`, `dash`, `attack`, `grab`, `lead`, `give`,\n     `steal`, `escape`, `stand`, `make`, or requirement-gated `crawl`/`climb`/\n     `jump`); the note `(Major actions exhausted this turn. You can still use\n     minor/free actions, speak, or wait.)` when minor remain, or the\n     major-and-minor wording when both are gone; and `wait - wait or hold\n     still` still present.\n   - If the closing beat does not fire, watch a second LLM call for the same\n     character in the same turn (the react phase) instead, and say which phase\n     you read.\n5. Read-only console extraction of the last such block:\n   ```js\n   [...document.querySelectorAll('.msg-bubble-rawllm')]\n     .map(b => b.querySelector('.rawllm-chip-body').innerText)\n     .filter(t => t.includes('=== AVAILABLE ACTIONS ==='))\n     .pop()\n     .split('=== AVAILABLE ACTIONS ===')[1]\n     .split('\\n===')[0]\n   ```"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/bug-559-available-actions-prompt-block-lists-verbs-the-turn-budget-cannot-afford-causing-infinite-llm-rejection-loops.md"
+  }
+}

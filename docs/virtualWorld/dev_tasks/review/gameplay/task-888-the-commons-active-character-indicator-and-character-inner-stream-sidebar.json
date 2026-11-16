@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "task-888",
+  "kind": "task",
+  "number": 888,
+  "title": "The Commons: active character indicator and character inner stream sidebar",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-20",
+  "updated": "2026-10-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-824",
+      "task-827",
+      "task-854",
+      "task-893"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Surface live character activity and inner cognition directly inside The Commons interface:\n1. **Top bar active/acting indicator:**\n   Add a live indicator to the top bar (`#commons-actor-chip`) that displays who is currently thinking/acting during a turn (e.g. `Acting: Jake Halloway...`), and who acted last once complete (e.g. `Last acted: Zikka (posted to #general)` or `Last acted: Gribba (read letters)`).\n2. **Right-hand slide-out \"Inner World\" drawer:**\n   Clicking any character name or avatar in The Commons (in the member list, participant pacing list, or message author headers) opens a right-hand slide-out drawer for that character.\n   The drawer presents:\n   - **Inner monologue stream:** The latest parsed `decision.inner` from recent communication turns.\n   - **Decision outcome:** The chosen action (`send_chat`, `read_chat`, `start_dm`, `start_group`, `think`), destination channel, and reasoning.\n   - **Subjective mood & vitals:** Current emotional state and relevant social vitals from the underlying `Player` model.\n   - **Recent communication memories:** Reflections saved to `player.memories[]` tagged with `conversation` or `chat`.\n   - Close button (`x`) and dismiss scrim.",
+    "why": "Today, The Commons is opaque during autonomous character activity:\n1. When **> Step Next** is clicked or unpaused background turns run, there is no top-level feedback showing who is taking a turn, who just acted, or what action was taken unless a public message happened to be posted. If a character chooses `read_chat` or `think`, the UI appears completely still with zero visible feedback.\n2. `CommonsAgent.stepOne()` parses `decision.inner` (the character's inner monologue) from the LLM response, but immediately drops it without storing it in `CommonsState` or rendering it in the DOM. Designers and players have no way to understand why a character posted what they did or what they thought about the messages they just read without opening external developer console logs.",
+    "how": "1. **Capture inner monologue and decisions in `CommonsState`:**\n   In `static/js/commons/commons-agent.ts`:\n   When `responseParser.parseCommunication(reply)` resolves, record the character's turn record in `CommonsState`:\n   `CommonsState.recordTurn(charName, { inner: decision.inner, action: decision.action, channelId: decision.channelId, text: decision.text, timestamp: Date.now() })`.\n   Set `CommonsState.actingCharacter = charName` while the LLM call is in flight, and update `CommonsState.lastActed = { charName, action: decision.action, timestamp: Date.now() }` on completion.\n2. **Top-bar actor status element:**\n   In `templates/commons.html` and `static/js/commons/commons-ui.ts`:\n   Add `#commons-actor-chip` in the top bar beside `#commons-status-chip`.\n   When an agent is acting: render `[pulsing icon] Acting: <CharacterName>...`.\n   When idle: render `Last acted: <CharacterName> (<action summary>)`.\n3. **Slide-out \"Inner World\" drawer:**\n   In `templates/commons.html`:\n   Add `<aside id=\"commons-inner-drawer\" class=\"commons-inner-drawer\" hidden>` containing:\n   - Header: Character avatar, name, current area, and close button (`x`).\n   - Inner Monologue section: Quotes the latest `inner` thought in a styled thought container.\n   - Decision badge: Action kind (`posted message`, `read 5 letters`, `reflected`), target channel/recipient.\n   - Recent reflections: List of recent chat memories from `Player.memories[]`.\n4. **Interaction wiring:**\n   In `static/js/commons/commons-ui.ts`:\n   Attach click handlers to character chips in `.commons-channel-members`, `#commons-participants-list`, and message headers in `.commons-message-author`. Clicking opens the drawer populated with that character's latest inner stream and memories.",
+    "verify": "1. Run unit test suite: `node tools/unit/run.cjs tools/unit/test_commons_agent.js` (780 passed across 57 files).\n2. Run backend test suite: `python -m pytest tests/test_commons.py` (17 passed).\n3. Verify `CommonsState.recordTurn` stores `inner_monologue` and updates `lastActed`.\n4. Navigate to `/commons` in the browser, trigger **Step Next**, and assert top-bar chip displays the acting character.\n5. Click a character name to verify the slide-out drawer renders their inner monologue and decision.",
+    "acceptance": [
+      {
+        "text": "Top bar displays the currently acting character during turn execution.",
+        "done": true
+      },
+      {
+        "text": "Top bar displays the last acted character and action summary when idle.",
+        "done": true
+      },
+      {
+        "text": "Silent actions (`read_chat`, `think`) update the actor indicator so turn progression is always visible.",
+        "done": true
+      },
+      {
+        "text": "Clicking any character name/avatar opens the \"Inner World\" drawer for that character.",
+        "done": true
+      },
+      {
+        "text": "The drawer displays the character's latest inner monologue and chosen communication action.",
+        "done": true
+      },
+      {
+        "text": "The drawer displays recent reflections/memories formed from communication.",
+        "done": true
+      },
+      {
+        "text": "Unit tests cover `recordTurn` and state transitions.",
+        "done": true
+      }
+    ],
+    "files": [
+      "templates/commons.html",
+      "static/css/commons.css",
+      "static/js/commons/commons-agent.ts",
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-ui.ts",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: `/commons` page header and a new right-hand slide-out drawer over `#commons-layout`.\n\nCurrent availability: live and verified.\n\n**Correction (2026-10-21): the verification was of behaviour, not legibility.**\nThe drawer opens and renders the right content, but it is a **white panel in a\ndark application** and its three content sections are unreadable. The dark-theme\noverride block in `static/css/commons.css` (from line 213) re-themes the whole\npage but contains **no** `.commons-drawer-*` rules, because the drawer's own\nrules were added later (from line 478) and win by source order. The section body\ntext inherits the page's light foreground (`rgb(230, 237, 243)`) on the\ndrawer's white background: **1.18:1 contrast**, against the 4.5:1 WCAG AA\nminimum. Only the identity block (name, presence, personality) is readable,\nbecause those rules are light-themed. Filed as task-893.\n\nLive steps verified:\n1. Open `/commons` and observe the top bar header.\n   - result: `#commons-actor-chip` indicates ready/idle state.\n2. Click **> Step Next**.\n   - result: `#commons-actor-chip` updates to show `Acting: <Name>...` while in flight, then updates to `Last acted: <Name> (<action>)` upon completion.\n3. Click on the acting character's name in the message feed, sidebar member list, or pacing participants.\n   - result: the right-hand \"Inner World\" drawer slides out showing their latest inner monologue quote, the action they chose, and recent reflections.\n4. Click the close button (`x`) or press Escape.\n   - result: the drawer closes cleanly without affecting active channel or scroll position."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-888-the-commons-active-character-indicator-and-character-inner-stream-sidebar.md"
+  }
+}

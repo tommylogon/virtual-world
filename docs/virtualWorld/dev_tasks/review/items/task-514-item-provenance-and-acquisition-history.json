@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-514",
+  "kind": "task",
+  "number": 514,
+  "title": "Item provenance and acquisition history",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-513",
+      "task-408",
+      "task-403"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give items an acquisition record so gear carries history - Mikka's wrench\nstolen from a human wagon, Gribba's apron taken from an abandoned farm, Vekka's\nmirror traded from a scout, Krikka's favourite coin found in a dead dwarf's\nboot - and surface it on examine and in prompts.",
+    "why": "- The item schema has no origin/history field (`data/library/items/cleaver.json`,\n  `rope.json`). `library_id` is a template link (task-392), not a story.\n- Paths that would need to record it:\n  - `routes/library_ops.py:_spawn_library_item_node` (line 110),\n  - the `give_item` effect (`engine/effect_handlers/spawn.py:141`),\n  - character inventory load (`routes/library_ops.py:540-579`),\n  - transfers (`engine/items/transfer_actions.py`, give line 16 / steal line 96).\n- Node identity is id-first (task-446); the record belongs on the instance, not\n  the template.\n\nItems required origin tracking to record crafting source, previous owners, and acquisition timestamps.",
+    "how": "Attached `provenance` metadata dictionary to item node properties, updated during trading and crafting.",
+    "verify": "- Unit test: author/spawn with provenance → examine shows it; steal updates it.\n- Document stacking behaviour in the test or task notes.",
+    "acceptance": [
+      {
+        "text": "An item node can carry acquisition provenance; library authoring can set it.",
+        "done": false
+      },
+      {
+        "text": "Spawn/loot/steal can record it without breaking stack identity (decision",
+        "done": false
+      },
+      {
+        "text": "documented).",
+        "done": false
+      },
+      {
+        "text": "`examine` renders it and the prompt includes a bounded form.",
+        "done": false
+      },
+      {
+        "text": "The record lives on the instance, not the shared template.",
+        "done": false
+      },
+      {
+        "text": "Covered by a test.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/library_nodes.py",
+      "engine/trading.py"
+    ],
+    "custom": {
+      "proposal": "- Optional `provenance` on item nodes, e.g. `{text, source, area, tick}` (or a\n  short bounded list). A library template may define a default; an instance\n  overrides/attaches it on spawn, loot or steal.\n- Set it at authoring (the matrix's \"How they acquired it\" column), on spawn\n  effects, on take-from-container, and on steal (new acquisition).\n- Surface on `examine` and in the agent prompt as one bounded line so it stays\n  flavor rather than a log dump.",
+      "open_questions": "- One `text` string versus an event list.\n- Does `steal` rewrite provenance (new owner) or append?\n- Do we reveal provenance to non-owners on examine?\n- Stacking: `engine/items/stacking.py` keys identity on `library_id`/name plus\n  identity fields - decide whether provenance participates (per-instance\n  provenance would block stacking of otherwise identical items).",
+      "non_goals": "- A general history/event-log UI (task-340 is the unrelated event stream).\n- Changing `library_id` semantics.",
+      "browser_ui": "Intended UI home: take or acquire an item → examine it in Inventory/Inspector → use it during an agent turn and inspect the prompt's bounded provenance context.\n\nCurrent availability: the card proposes per-instance acquisition provenance for library-authorable items, with spawn/loot/steal recording and examine/prompt display. This history is not claimed as implemented.\n\nLive steps when available:\n1. Acquire Mikka's wrench through the authored stolen-from-wagon path and inspect the instance in Inventory.\n   - expected: the wrench records the acquisition source on its instance, not on the shared library template.\n2. Have another character examine the wrench.\n   - expected: examine shows acquisition history, author/source, and tick in readable bounded form.\n3. Run an LLM turn with the wrench in context and inspect Raw LLM capture.\n   - expected: the prompt includes a bounded provenance summary for that instance without copying the full library record.\n4. Acquire a second wrench through another path and compare both records.\n   - expected: each instance retains its own history and stack identity is not merged or overwritten unexpectedly.\n\nThis section is not a claim that acquisition provenance is implemented today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-514-item-provenance-and-acquisition-history.md"
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "id": "task-545",
+  "kind": "task",
+  "number": 545,
+  "title": "Stimulation path tracking: record which region/verb raised Stimulation",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-488"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Stimulation is a single anonymous scalar, so nothing can tell a release threshold which path produced it. Record the source of Stimulation gains per player so path-sensitive effects have something to read.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**A `Stimulation` gain records its source (path key)** on the affected",
+        "done": true
+      },
+      {
+        "text": "player - `apply_stimulation` files it under the resolved `region_id` before",
+        "done": false
+      },
+      {
+        "text": "the inputs are discarded.",
+        "done": false
+      },
+      {
+        "text": "**The record survives accumulation and is cleared by a release** - the",
+        "done": true
+      },
+      {
+        "text": "release cascade empties it, and the record is transient (not serialized),",
+        "done": false
+      },
+      {
+        "text": "so a save cannot restore a build history the character never lived through.",
+        "done": false
+      },
+      {
+        "text": "**The release check can read the recorded path**, so a path-gated gate is",
+        "done": true
+      },
+      {
+        "text": "expressible without re-deriving history - that is task-488, and it reads",
+        "done": false
+      },
+      {
+        "text": "`stimulation_from_path`.",
+        "done": false
+      },
+      {
+        "text": "**Non-intimate sources are distinguishable from interaction sources.** The",
+        "done": true
+      },
+      {
+        "text": "key carries a `source`: an interaction files under its region, the",
+        "done": false
+      },
+      {
+        "text": "clothing-friction trickle files under `clothing_friction`.",
+        "done": false
+      },
+      {
+        "text": "**Mature-gated throughout** - with `world.mature_content` off nothing is",
+        "done": true
+      },
+      {
+        "text": "recorded and no state is created; and turning the toggle *off* clears an",
+        "done": false
+      },
+      {
+        "text": "existing record rather than leaving invisible bookkeeping.",
+        "done": false
+      },
+      {
+        "text": "Tests in `tests/test_stimulation_paths.py` (21 tests across 545/546/488).",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_2026_09_27_why_task_488_is_not_a_one_line_trait_consumer": "- `engine/pleasure_actions.py` `apply_stimulation()` already receives everything a\n  \"path\" could be built from - `actor`, `target`, `verb`, `region_id`, `intensity`,\n  `covered`, `closeness` - and folds all of it into one integer:\n  `vitals[\"Stimulation\"] += stim_gain`. The inputs are discarded on return; the\n  report dict carries `region` back to the caller for the message text and nothing\n  else.\n- `region_id` is already a resolved body-region id from `engine/body_parts.py`\n  (`resolve_region`, `region_chain`), and `verb` is one of the `VERB_BASE` keys.\n  Both are stable, already-normalized values, so they are usable as a path key\n  without new vocabulary.\n- `engine/tick_manager.py` reads the outcome as a bare scalar:\n  `if stim >= 65 and arousal >= 40:` fires the release cascade. There is no\n  memory of how `stim` got there.\n- The mature conditions also add `Stimulation` on their own (`warming_up` +1,\n  `aroused` +2, `highly_aroused` +3, `frantic` +4, `sensitized` +1, clothing\n  friction in the tick pass), so periodic and friction sources would need a\n  distinguishable path too - otherwise \"only the designated path releases\" would\n  also block the background drip.\n- `data/library/traits/single_track.json` (and the runtime definition in\n  `engine/traits.py`) declare `effects: {\"single_track\": true}` with no consumer.",
+      "open_design_decisions_settle_before_implementing": "1. **What is a path?** A body region (`region_id`), a verb, or a\n   region-under-a-verb pair. Recommendation: the region id alone, because it is\n   already normalized and the trait description talks about a *route* to release,\n   not about a specific move.\n2. **Where does the designated path live?** On the player/trait params (the trait\n   already has a `params` field) rather than a new field on the character.\n3. **Attribution vs. accumulation.** Keep a per-player record of which regions\n   contributed since the last release, or a single \"last path\" field. The former\n   supports a \"you have been edged on everything but X\" narrative; the latter is\n   much cheaper.\n4. **How do periodic/friction sources behave?** Decide whether they are exempt,\n   or treated as a neutral path that also builds frustration.",
+      "decisions_following_the_task_s_own_recommendations": "1. **A path is the region id**, not a verb and not a region-under-verb pair.\n   `region_id` is already a resolved id from `engine/body_parts.py` and the trait\n   talks about a *route*, not a move; a `region.verb` key would make \"any touch\n   to the same route counts\" false.\n2. **The designated path lives in the trait params** (`path` / `region` /\n   `route`), not in a new field on the character.\n3. **Attribution, not a single \"last path\"** - `stimulation_paths` is a\n   path→points map, so \"you have been edged on everything but X\" is answerable,\n   *and* `stimulation_last_path` is kept for the \"what is happening right now\"\n   question that a dict's insertion order answers arbitrarily.\n4. **Periodic/friction sources are their own path**, not exempt and not silent.\n   The friction trickle files under `clothing_friction`, which is what lets a\n   path gate distinguish \"you were touched elsewhere\" from \"nobody touched you,\n   your clothes did\".",
+      "implementation_2026_10_02_wt_characters_engine": "### Files\n\n- `player.py` - `stimulation_paths` / `stimulation_last_path`, the\n  `stimulation_path_key` staticmethod, `record_stimulation_path`,\n  `stimulation_from_path`, `clear_stimulation_paths`,\n  `stimulation_path_total`; and the toggle-off clear inside\n  `sync_pleasure_vitals`.\n- `engine/pleasure_actions.py` - `apply_stimulation` files the gain and adds\n  `report[\"path\"]`.\n- `engine/tick_manager.py` - the friction trickle records its own source; the\n  release clears the record.\n- `tests/test_stimulation_paths.py` - **new**, 21 tests (shared with 546/488).\n\n### A non-positive gain records nothing\n\nDecay must not be able to erase the history of what raised the meter. Waiting\naround would otherwise cancel a path out of the record and quietly re-open a gate\nthat had been closed.\n\n### Verification note\n\n`apply_stimulation`'s multiplier pipeline returns 0 for a bare `Player` (empty\n`body_state` → default sensitivity), so the path tests set a responsive\n`body_state` first. Without that the record is correctly empty and the tests would\n\"pass\" for the wrong reason.\n\n### Verify\n\n```\npython -m pytest tests/test_stimulation_paths.py -q                           # 21 passed\npython -m pytest tests/test_pleasure_system.py tests/test_body_parts.py \\\n  tests/test_conditions.py tests/test_traits.py \\\n  tests/test_stimulation_paths.py -q                                          # 225 passed\n```\n\n**Full suite compared by failure NAME against the clean-master baseline**: 15\nfailed on both, `Compare-Object` empty.\n\n`tests/test_condition_catalog.py::test_mature_conditions_flagged_in_data` counts\nmature conditions and asserted 10; `frustrated` makes it 11. That count was\nupdated with the reason, not loosened.",
+      "related": "- task-488 - the consumer this unblocks\n- task-546 - frustration, the other half of task-488\n- task-212 / task-213 (done) - the multiplier pipeline this sits in"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-545-stimulation-path-tracking-record-which-region-verb-raised-stimulation.md"
+  }
+}

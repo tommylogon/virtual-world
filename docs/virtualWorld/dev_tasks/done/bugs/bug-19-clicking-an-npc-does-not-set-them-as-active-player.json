@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-19",
+  "kind": "bug",
+  "number": 19,
+  "title": "Clicking an NPC Does Not Set Them as Active Player",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "root_cause": "Two click paths opened the inspector but never switched the active/controlling\nplayer:\n\n1. **Agent list** (`ui-controller.js` `renderAgentList`): rows for `simple_npc`\n   characters used `ui.showAgentAndFocus(name)` (inspector + camera only) while\n   normal agents used `selectAgent(name)` (sets active player via\n   `/api/players/active`, sets `config.controllingPlayer`, focuses node).\n2. **Graph click** (`graph/event-handlers.js` `onClick`): character node clicks\n   only called `VW.inspector.showNode(...)`, which renders the agent inspector\n   but never sets the active/controlling player.",
+      "fix": "- `renderAgentList`: NPC rows now call `selectAgent(name)` like every other\n  agent - click = set active + controlling player + open inspector + focus.\n  Removed the now-unused `ui.showAgentAndFocus` helper.\n- `GraphEventHandlers.onClick`: when the clicked node is a `character` backed by\n  a `worldState.players` entry, it calls `ui.selectAgent(name)`; everything else\n  keeps the plain inspector path.",
+      "verification": "- `node --check` passes on both edited files.\n- The shared `selectAgent` flow now also drives `config.controllingPlayer`, so\n  the sim's Step Once acts on the clicked NPC in non-turn-based mode (test-as-you-\n  build). Live browser re-check pending."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Done - confirmed by Tommy 2026-08-30.",
+    "area_note": "Graph editor - character interaction",
+    "legacy_area": "Graph editor - character interaction",
+    "inline_meta": {
+      "observed": "`clicking on a nc does not set them as active player`"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-19-click-npc-not-active-player.md"
+  }
+}

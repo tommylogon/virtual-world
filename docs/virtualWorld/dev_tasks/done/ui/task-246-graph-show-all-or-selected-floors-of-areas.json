@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-246",
+  "kind": "task",
+  "number": 246,
+  "title": "Graph - Show All or Selected Floors of Areas",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a graph filter to show all areas or a selected floor/subset of areas (e.g. basement /\nground / upper), so large multi-floor scenarios can be navigated without clutter.",
+    "why": "TODO",
+    "how": "- `static/js/graph-manager.js`: added `_floorFilter`/`_floorOptions` state,\n  `setFloorFilter()`, `refreshFloorOptions()`, `floorFilterActive()`.\n- `static/js/graph/network-manager.js`: in `loadGraphData()` when a floor is active, compute\n  the set of visible areas (floor match) and the child nodes directly linked to them; only\n  those render, and edges whose endpoints are hidden are skipped. Populates the picker after load.\n- `templates/index.html`: added the floor filter `<select>` to the graph toolbar.",
+    "verify": "- `node --check` on both JS files; `pytest` guard suites pass (62).\n- Live (world has floors 0 and -1): All floors → 51 nodes (areas on 0 and -1). Floor \"0\" →\n  only 0-floor areas + children. Floor \"-1\" → only the 1 cellar area + its 4 children.\n  Composes with item/trigger toggles.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes_open_questions": "- How floors are modelled: area `properties` tag (`floor`) vs by connected area group.\n  **Decided: area `properties.floor` (integer).** The picker derives available floors from area nodes on the graph.\n- UI: a floor picker in the graph toolbar (All / per-floor), filtering area+child nodes.\n  **Implemented: `<select id=\"floor-filter\">` in the graph toolbar,** next to Triggers/Items toggles.\n- Interaction with existing `_showItems`/`_showTriggers` toggles and the tag filter overlay:\n  floor filter should compose with them. **Done - composes at load time** (areas outside the\n  floor plus their unlinked children are omitted; edges to hidden endpoints skipped; the\n  items/triggers toggles still gate their respective node kinds).",
+      "browser_ui": "Intended UI home: Graph toolbar → menu → Show on canvas → Floors selector.\n\nCurrent availability: The floor picker is implemented and was live-verified on\na world with floors `0` and `-1`; its current accessible values are derived\nfrom area nodes' integer `properties.floor` values.\n\nLive steps when available:\n1. Open a multi-storey world, open the graph toolbar menu, and choose All\n   storeys; note the rendered node count. Then choose floor `0` and floor `-1`.\n   - expected: All shows 51 nodes in the recorded fixture; floor `0` shows only\n     ground-floor areas and their children; floor `-1` shows the cellar area\n     and its four children.\n2. While floor `-1` is selected, toggle Item nodes and Trigger nodes separately.\n   - expected: the floor filter composes with both visibility toggles and never\n     shows children of areas on another floor.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "`dev_tasks/developer ideas.md` (option to show all or select floors of areas only)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-246-graph-floor-filter.md"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-14",
+  "kind": "task",
+  "number": 14,
+  "title": "Action Costs to Time",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Actions currently cost energy and ticks uniformly. Different actions should take different amounts of game time: walking through a door might take 1 time unit, walking up a long staircase might take 5, examining an item might take 0 (free action).",
+    "why": "### Action cost system (`virtual_world_engine.py:68`)\n\n```python\nBASE_ACTION_COSTS = {\n    \"look\": {\"time\": 1, \"energy\": 0},\n    \"move\": {\"time\": 2, \"energy\": 3},\n    \"use\": {\"time\": 2, \"energy\": 3},\n    \"take\": {\"time\": 1, \"energy\": 2},\n    \"drop\": {\"time\": 1, \"energy\": 1},\n    \"examine\": {\"time\": 1, \"energy\": 0},\n    \"speak\": {\"time\": 1, \"energy\": 0},\n    \"attack\": {\"time\": 3, \"energy\": 8},\n    \"rest\": {\"time\": 5, \"energy\": -15},\n}\n```\n\nThese are fixed for all uses of the action type. A \"move\" always costs 2 time, whether walking through a door or climbing a long staircase.\n\n### `apply_action()` (`virtual_world_engine.py`)\n\n```python\ndef apply_action(self, action_type, cost_override=None, player=None):\n    cost = cost_override or self.BASE_ACTION_COSTS.get(action_type, {})\n    time_cost = cost.get(\"time\", 1)\n    energy_cost = cost.get(\"energy\", 0)\n    # ... applies costs\n```",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - check door/item for time_cost overrides in `apply_action()"
+    ],
+    "custom": {
+      "proposed_design": "### Per-door time costs\n\nAdd a `time_cost` property to door nodes:\n\n```json\n{\n  \"id\": \"door_stairs\",\n  \"type\": \"door\",\n  \"properties\": {\n    \"time_cost\": 5,\n    \"description\": \"A long winding staircase\"\n  }\n}\n```\n\nWhen a player moves through this door, the time cost overrides the default.\n\n### Per-action item costs\n\nThe existing `action_costs` property on items already supports per-action stat costs. Extend this to include time:\n\n```json\n{\n  \"action_costs\": {\n    \"use\": {\"Energy\": 5, \"time\": 3},\n    \"examine\": {\"Energy\": 0, \"time\": 1}\n  }\n}\n```\n\n### Per-action type config\n\nAllow the engine to differentiate time costs per action variant:\n- `move door`: base 2\n- `move stairs`: 5 (from door property)\n- `move across room`: 1\n\n### Time vs Ticks\n\nCurrently \"time\" IS ticks (each action advances the game clock). The time cost determines how many game-minutes pass. The distinction is:\n- **Time cost**: game minutes that pass\n- **Tick**: one unit of simulation (might be multiple actions)\n\nFor now, leave this as-is. Time cost = game minutes consumed.",
+      "audit": "**Status**: Partially implemented - items have `action_costs`, doors lack `time_cost`\n**Evidence**:\n- **Items ✅**: `action_costs` dict supported in frontend (`inspector.js:689-721` cost grid for Energy/Hunger/Thirst/HP) and engine (`apply_action()` at line 2520 reads `cost.get(\"time\")` per-action)\n- **Doors ❌**: No `time_cost` property on door nodes, no UI field in door inspector (`inspector.js:1543-1673`), no engine code to read per-door time cost override\n- **Time not in cost grid ❌**: The Action Costs UI (`inspector.js:694`) only shows Energy/Hunger/Thirst/HP - `time` is not editable per-item even though the engine supports it\n**How to test**: Open an item's inspector, scroll to \"Action Costs\" - grid shows Energy/Hunger/Thirst/HP per action. Open a door inspector - no time_cost field exists.",
+      "cancellation_reason": "**Cancelled 2026-07-20**: Variable per-action time costs don't fit the turn-based architecture. All actions happen within a single configurable turn duration (default 5 min). Time only advances on turn boundaries - individual actions can't consume time independently without breaking the multi-character sequential-action model. Action costs are now handled via the trigger system instead."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/task-14-action_costs_to_time.md"
+  }
+}

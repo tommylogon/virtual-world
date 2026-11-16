@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "task-911",
+  "kind": "task",
+  "number": 911,
+  "title": "LM Studio native API, model selector, and response speed telemetry",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-30",
+  "updated": "2026-10-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-910",
+      "task-909"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Complete native LM Studio integration, upgrade the main settings model selector to match the benchmark interface, and surface inference speed:\n\n1. **Native LM Studio Endpoint & Request Formatting:**\n   - Ensure the API format toggle (`openai` vs `lmstudio`) in settings properly routes requests through LM Studio native endpoint specifications where applicable.\n   - Support streaming completions with native token counting and stop reason handling.\n\n2. **Benchmark-Grade Model Selector in Settings:**\n   - Migrate the model selector UI from `static/js/benchmark/benchmark.js` into the main settings view (`static/js/ui/settings-view.ts`):\n     - Filter chips by model parameter size (`all`, `fast 1-3B`, `7-14B`, `20B+`, `embed`).\n     - Real-time text search filter input.\n     - Sort dropdown (`name-asc`, `name-desc`, `tier`).\n     - Badges indicating model weight and classification.\n\n3. **Inference Speed Telemetry:**\n   - Calculate tokens per second (t/s) and time-to-first-token (TTFT) for local completions.\n   - Display the speed metric under the collapsible LLM response payload details in the event stream (e.g. `142 tokens @ 48.2 tok/s`).",
+    "why": "Local LLM runtimes like LM Studio differ from standard hosted OpenAI endpoints in latency characteristics, reasoning token streaming, and parameter discovery. Providing tier filtering and live speed telemetry enables immediate verification of model performance and prevents silent slowdowns or misconfigurations.",
+    "how": "- In `static/js/llm-client.ts`, track request start time, first-token arrival timestamp, and token counter to compute tok/s.\n- In `static/js/agent/turn-feed.ts` and `static/js/ui/event-feed.ts`, render the performance stats in the payload summary strip.\n- In `static/js/ui/settings-view.ts`, port the search/filter/tier chip DOM and event listeners from `ui-controller.ts:renderModelList()` so the settings modal provides the full model list explorer.",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Settings]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-911-lm-studio-native-api-model-selector-and-response-speed-telemetry.md"
+  }
+}

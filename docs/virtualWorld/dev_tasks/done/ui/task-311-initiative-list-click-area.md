@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-19
 **Priority**: Low
-**Status**: In Review — implemented 2026-08-19 (clickable area in agent list)
+**Status**: In Review - implemented 2026-08-19 (clickable area in agent list)
 
 ---
 
@@ -19,7 +19,7 @@ In the initiative list, allow clicking the area name next to each agent to navig
 
 ## Implemented
 
-- `static/js/ui-controller.js` — the existing `agent-location` span is now clickable (dotted underline, stopPropagation so it doesn't select the agent row) and calls `graphManager._selectRoom(areaName)` to open the area in the inspector + focus it in the graph.
+- `static/js/ui-controller.js` - the existing `agent-location` span is now clickable (dotted underline, stopPropagation so it doesn't select the agent row) and calls `graphManager._selectRoom(areaName)` to open the area in the inspector + focus it in the graph.
 
 **Verified**: `node --check` clean; full suite 980 passed.
 

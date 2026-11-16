@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "id": "task-510",
+  "kind": "task",
+  "number": 510,
+  "title": "Library browser UI overhaul (items tab and modal)",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-509",
+      "task-508",
+      "task-506"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Modernize the Library Browser's **items pane**. It is the primary authoring surface\nfor the library items, and it is currently a fixed 800px modal built almost\nentirely out of inline styles, with a 300px scrolling list and a 240px editor -\nit does not scale and it does not help the author find what matters.\n\n> **Counted 2026-10-02:** `GET /api/library/items` returns **1,999** items -\n> 480 tagged food, 362 tools, 151 containers, 803 with triggers. The 505 in this\n> task (and in the acceptance text below) was accurate when filed on 2026-09-24\n> and is now roughly 4× stale, in the direction that hurts every sizing and\n> virtualization requirement listed here.\n>\n> **Mockup:** `docs/design/mockups/library-browser-react.html` - a self-contained\n> React design of the items pane (type chip bar with live counts, quality\n> presets, multi-select bulk bar, resizable split, keyboard + states). Verified\n> in a browser; it is a design artifact, not application code.",
+    "why": "The Library Browser is the authoring surface for 2,208 item records, and it is\nstill the shape it had when the library held a few hundred. Everything is\ninline-styled into a fixed 800px modal, the list is a plain div with a\n`max-height:300px` cap and no pagination, and eight flat tabs share one header\nstrip. The list is a substring match over name, description and tags; the type\ntaxonomy that `_getItemType` already knows is never surfaced as a filter.\n\nThat is not a cosmetic complaint. The two data facts the card measured are\nwhat make it a real gap: 294 items repeat a tag, so any count or badge built on\nthe raw tag list disagrees with the list it claims to describe, and 3 items have\nno description at all, so \"find me the undescribed items\" is a genuine\nauthoring pass that the current filter cannot express. An author with 2,208\nrecords and no way to filter by type, no way to see which records still need\ndescriptions, and a list that renders every row at once is the bottleneck.",
+    "how": "Four changes, in the order they unblock each other:\n\n1. **Move the inline styles into a stylesheet.** The library's controls carry\n   inline `style=` attributes and the `item-lib-*` / `library-modal` classes\n   appear in no stylesheet at all. Extract them to `static/css/style.css` or a\n   new `static/css/library.css`, using the existing design tokens (`--bg-*`,\n   `--border`, `--text-*`). The element ids (`item-lib-list`, `item-lib-editor`,\n   `item-lib-search`, `lib-sort`, `lib-item-count`, `place-items-btn`) must be\n   preserved - the items pane deliberately reuses the item-library ids for\n   backward compatibility.\n2. **Make the modal scale.** Widen and/or make the 800px modal resizable, let\n   the list fill the available height instead of capping at 300px, and make the\n   list/editor split resizable so the editor is not pinned at 240px.\n3. **Make the list scale.** Virtualize or paginate: 2,208 rows with inline\n   row styles is a rendering cost on every filter keystroke.\n4. **Expose the taxonomy the code already has.** `_getItemType` knows the item\n   type taxonomy; surface it as a filter alongside the existing type/quality\n   composition, and add a \"missing description\" filter for the 3 undescribed\n   items. Any tag count or badge must dedupe the repeated tags first, or the\n   numbers will not match the list.\n\nThe composition rule is deliberate: every filter stays single-select except the\nexisting presets, and type/quality keep composing. This is a query language\nthat is not wanted.",
+    "verify": "- `node tools/unit/run.cjs`, `npm run lint`, `npm run typecheck`,\n  `node --check` on changed modules, and `python tools/js_module_index.py --check`\n  (any new JS module needs its `@module`/`@contributes` header).\n- Manual: open the library over 505 items - scroll/search/filter stay smooth,\n  a filtered \"No triggers\" view is one click, and the placement flow still works.\n  (Re-measure against 1,999 items, not 505.)",
+    "acceptance": [
+      {
+        "text": "The library's inline `style=` attributes are gone from",
+        "done": false
+      },
+      {
+        "text": "`templates/index.html` and `static/js/item-library.ts`; the rules live in",
+        "done": false
+      },
+      {
+        "text": "a stylesheet and use the existing design tokens.",
+        "done": false
+      },
+      {
+        "text": "The modal is wider or resizable, the list fills the available height",
+        "done": false
+      },
+      {
+        "text": "rather than `max-height:300px`, and the list/editor split is resizable.",
+        "done": false
+      },
+      {
+        "text": "The list virtualizes or paginates and stays responsive while filtering",
+        "done": false
+      },
+      {
+        "text": "2,208 items.",
+        "done": false
+      },
+      {
+        "text": "The item type taxonomy from `_getItemType` is exposed as a filter, and",
+        "done": false
+      },
+      {
+        "text": "type and quality still compose.",
+        "done": false
+      },
+      {
+        "text": "A \"missing description\" filter surfaces the 3 undescribed items.",
+        "done": false
+      },
+      {
+        "text": "Every tag count and badge dedupes repeated tags, so a count matches the",
+        "done": false
+      },
+      {
+        "text": "list it describes.",
+        "done": false
+      },
+      {
+        "text": "The existing element ids (`item-lib-list`, `item-lib-editor`,",
+        "done": false
+      },
+      {
+        "text": "`item-lib-search`, `lib-sort`, `lib-item-count`, `place-items-btn`) and",
+        "done": false
+      },
+      {
+        "text": "the placement flow still work.",
+        "done": false
+      }
+    ],
+    "files": [
+      "templates/index.html` - the modal markup and its inline styles (`:887` is the",
+      "width:800px` container; the tab strip and controls are in the same block)",
+      "static/js/item-library.ts` - `renderList` and the row/badge building, the",
+      "filter and sort logic, `_getItemType` (the taxonomy to surface)",
+      "static/css/style.css` (or a new `static/css/library.css`) - where the",
+      "extracted rules go; `library-modal` and `item-lib-*` currently have no rules",
+      "anywhere"
+    ],
+    "custom": {
+      "design_acceptance": "- **Stylesheets, not inline.** Move the library's inline styles into\n  `static/css/style.css` (or a new `static/css/library.css` linked in\n  `templates/index.html`), keeping the existing element ids (`item-lib-list`,\n  `item-lib-editor`, `item-lib-search`, `lib-sort`, `lib-item-count`,\n  `place-items-btn`) and reusing design tokens (`--bg-*`, `--border`, `--text-*`).\n- **A layout that scales.** Wider and/or resizable modal, a list that fills the\n  available height instead of `max-height:300px`, and a resizable split between\n  list and editor so the editor is not pinned at 240px.\n- **A list that scales to 505+ items.** (Now 1,999 - see the note above.) Virtualize\n  or page the list; search, sort and selection stay responsive. Sticky\n  search/sort/filter header.\n- **Filtering that helps authoring**, not just substring search:\n  - by type (reuse `_getItemType`),\n  - by tag,\n  - and presets that tie into the current work: `No triggers`, `Edible/drinkable`,\n    `Has contents`, `Missing depletion` (once task-508 defines it).\n- **Multi-select bulk bar** (shared with task-509): \"N selected\" with bulk actions,\n  visible without entering the placement flow.\n- **Better rows**: consistent type icon + colour, trigger/contents/uses badges,\n  hover/selected/focus states all in CSS, and a readable name/description\n  hierarchy.\n- **Keyboard + states**: ↑/↓ to move, Enter to open, Escape to close, visible focus\n  rings; explicit empty, loading and error states.\n- **Accessibility**: labels on the search/sort controls, `role=\"listbox\"`/`option`\n  or an equivalent pattern for the list, focus trap while the modal is open.\n- **No regressions**: `openForRoom` placement, `📌 Place in Area`\n  (`place-items-btn`), `📋 Sync to Library`, and the other library tabs behave\n  exactly as before.",
+      "non_goals": "- Rewriting the item editor's logic or the trigger/contents editors.\n- Changing the library data model or the backend.\n- The other tabs (characters, areas, traits, conditions, behaviours, tags, ways)\n  - visual consistency only, no rework.",
+      "also_surfaced_by_the_audit_not_yet_ticketed": "Counted from the same response while designing the mockup - each of these is a\ndata-layer finding, not a UI one:\n\n- **294 of 1,999 items (15%) repeat a tag.** `acorn_coffee` is\n  `drink,drink,nut,forage`; `adze` is `tool,tool,metal,wooden`. Any tag filter,\n  tag badge or tag count built on this data must dedupe first, or the counts\n  disagree with the list they claim to describe.\n- **3 items have no description at all**, which is why an explicit\n  \"missing description\" filter is a real authoring pass rather than a nicety.\n- **Every filter is single-select except the presets.** Type and quality compose;\n  the mockup keeps that composition rather than adding a query language.",
+      "browser_ui": "Intended UI home: 📚 Library Browser → Items tab. The item list and editor share a resizable split; type chips, quality presets, multi-select bulk actions, and the existing placement flow belong on this surface.\n\nCurrent availability: The task's 2026-10-02 count measured 1,999 items; the React mockup is a design artifact, not application code. The items-pane overhaul remains planned.\n\nLive steps when available:\n1. Open the Items tab with the current 1,999-item library, resize the split, then search for a known item by display name and ID.\n   - expected: the list remains responsive while scrolling/filtering, the row result and detail editor stay synchronized, and neither pane is clipped at a narrow window width.\n2. Use the type chips to filter to food, then select “No triggers”.\n   - expected: counts update against the filtered 1,999-item library and the no-trigger filter is reachable in one click.\n3. Select several items and use one bulk action; then open an item and inspect its quality controls.\n   - expected: the multi-select bar names the selected count, the quality presets apply to the intended items, and the editor shows the selected record.\n4. Place one library item into a scratch world and return to the Library Browser.\n   - expected: the existing placement workflow still resolves the chosen item and the library record itself is not mutated by placement.",
+      "reconnaissance_2026_10_20_still_valid": "Re-checked on 2026-10-20. The items pane is still the fixed 800px inline-styled modal:\n\n- `templates/index.html:887` still reads `<div class=\"modal-content\" style=\"width:800px;\">`.\n- `data/library/items` now holds 2,209 JSON files (was 1,999 at the 2026-10-02 count) - the sizing/virtualization pressure grew.\n- No `static/css/library.css` exists; `static/css/` holds only `style.css` and `soak.css`.\n\nVerdict: card accurate; item count drifted upward (2,209 vs 1,999). Kept in todo."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "- `templates/index.html:483-527` - `width:800px` modal; every control carries",
+    "inline `style=` (search, sort, list cap `max-height:300px`, editor",
+    "`min-width:240px`); eight flat tabs share the header; the list is a plain",
+    "`#item-lib-list` div, not paginated or virtualized.",
+    "- `static/js/item-library.js:109-190` - `renderList` builds rows and badges with",
+    "inline styles (`:155-186`); filtering is a substring match over name/description/",
+    "tags only (`:114-120`); sort is name/type/recent only (`:123-128`).",
+    "- `_getItemType` (`:81-97`) already knows a type taxonomy that the UI never",
+    "surfaces as a filter.",
+    "- There is **no CSS for the library** - `static/css/` holds only `style.css` and",
+    "`soak.css` (linked at `templates/index.html:23-26`), and `library-modal` /",
+    "`item-lib-*` appear in no stylesheet.",
+    "- The items pane deliberately reuses the item-library IDs for backward",
+    "compatibility (`templates/index.html:500`), so IDs/classes must be preserved."
+  ],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-510-library-browser-ui-overhaul-items-tab-and-modal.md"
+  }
+}

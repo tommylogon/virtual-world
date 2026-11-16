@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-923",
+  "kind": "task",
+  "number": 923,
+  "title": "Experience field split into structured intimacy history and boundaries",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Split the monolithic `personality.experience` free-text field into structured sub-fields:\n- `intimacy_level`: coarse maturity tier (e.g. `none`, `romantic_only`, `experienced`, `veteran`)\n- `significant_partners`: past relationship references\n- `hard_limits`: non-negotiable boundaries\n- `soft_limits`: preferences open to negotiation with trust",
+    "why": "Lumping relationship history, intimacy milestones, and hard boundaries into one unstructured string makes it impossible for `engine/intimacy.py` and consent checks to reliably guard prompts or evaluate trust thresholds.",
+    "how": "- Update `engine/character_appearance.py` schema to support the structured intimacy sub-fields while maintaining backward compatibility with single-string `experience`.\n- Update the Intimacy fold in `static/js/inspector/mind-view.ts` with dedicated inputs.\n- Wire consent and boundaries checks in intimacy prompt generation to read `hard_limits` and `boundaries`.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Schema validates both legacy string and structured intimacy experience objects.",
+        "done": true
+      },
+      {
+        "text": "Hard limits and boundaries are evaluated directly during intimacy interactions.",
+        "done": true
+      },
+      {
+        "text": "Existing characters with string experience continue loading without error.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-923-experience-field-split-into-structured-intimacy-history-and-boundaries.md"
+  }
+}

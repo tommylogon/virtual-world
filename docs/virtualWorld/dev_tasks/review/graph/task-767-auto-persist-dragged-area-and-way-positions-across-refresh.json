@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-767",
+  "kind": "task",
+  "number": 767,
+  "title": "Auto-persist dragged area and way positions across refresh",
+  "status": "review",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-769",
+      "task-766"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When physics is off for an area or way and the user drags it, the position should\nsurvive a hard refresh without manually pressing Save layout. Persist only areas\nand ways (not characters or items), keyed to the scenario.",
+    "why": "A dragged authored placement should stay where it was put. Today a hard refresh\nre-seeds or re-simulates, throwing the drag away.",
+    "how": "- In `static/js/graph/relative-layout.ts` (`frozenDropOps`), filter to only areas and ways:\n  `if (node.type !== 'area' && node.type !== 'way') continue;`. Characters and items are never persisted.\n- For painted nodes (`hasPaintedCoords(props)`), canvas coordinates are converted back to cell coordinates using `engine.mapSpacing()` and `engine.offsetPxFor(node, null, pitch)`:\n  `cx = (bx - off.x) / pitch; cy = (by - off.y) / pitch;`.\n  The patch updates `properties.cell: { x: Math.round(cx * 100) / 100, y: Math.round(cy * 100) / 100 }` and does not overwrite `properties.x/y` engine units, eliminating bug-52 creep.\n- For unpainted areas and ways, persists `properties.x/y`.",
+    "verify": "1. Verified unit tests in `tools/unit/test_relative_layout.js` (test `dropping a painted node never overwrites its engine units`):\n   - dropping a painted way converts canvas coords (400, 800) at pitch 800 into `properties.cell: { x: 0.5, y: 1 }` without touching `properties.x/y`.\n   - dropping an unpainted way writes `properties.x/y: { x: 12.3, y: 56.8 }`.\n   - dropping a painted character produces zero ops (characters/items never persisted).\n2. Ran `node tools/unit/run.cjs test_relative_layout.js`: 30/30 passed.",
+    "acceptance": [
+      {
+        "text": "A dragged area/way survives a hard refresh with no manual Save layout.",
+        "done": true
+      },
+      {
+        "text": "No creep after repeated drag+refresh (bug-52 stays fixed).",
+        "done": true
+      },
+      {
+        "text": "Characters and items are not persisted.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/graph/relative-layout.ts` (`frozenDropOps`, `persistFrozenDrop`)",
+      "static/js/graph/relative-layout.js",
+      "tools/unit/test_relative_layout.js"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Structure & Graph Representation]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/graph/task-767-auto-persist-dragged-area-and-way-positions-across-refresh.md"
+  }
+}

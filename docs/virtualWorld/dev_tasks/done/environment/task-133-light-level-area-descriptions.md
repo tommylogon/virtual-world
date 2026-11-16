@@ -9,13 +9,13 @@ priority: medium
 
 **Filed**: 2026-07-30  
 **Priority**: Low  
-**Status**: In Review — implemented 2026-08-21, moved from todo/
+**Status**: In Review - implemented 2026-08-21, moved from todo/
 
 ## Implemented (2026-08-21)
 
 - `area_description.py` `get_area_description`: pitch_black still replaces everything (nothing to see);
   **dim now PREFIXES the room text** ("you can just make out the shapes… details lost in shadow") instead
-  of hiding the whole room — you can see rough shapes in dim light, which is realistic; bright adds
+  of hiding the whole room - you can see rough shapes in dim light, which is realistic; bright adds
   "illuminating every detail"; blinding adds a squint-and-watering-eyes prefix that applies even with
   darkvision (glare spares no one). Darkvision/ghost still ignores dim entirely.
 - Per-character carried/equipped light already contributed via `get_item_light_contribution` (existing).
@@ -26,7 +26,7 @@ priority: medium
 
 ## What
 
-Generate different area descriptions based on current light level — a room looks different in bright daylight vs pitch darkness vs dim torchlight. Characters in the same room with different light sources or darkvision see different descriptions.
+Generate different area descriptions based on current light level - a room looks different in bright daylight vs pitch darkness vs dim torchlight. Characters in the same room with different light sources or darkvision see different descriptions.
 
 ---
 
@@ -38,7 +38,7 @@ Currently area descriptions are static regardless of lighting. A room described 
 
 - **Light-level categories**: `pitch_black`, `dim`, `normal`, `bright`, `blinding`
 - Each category modifies the area description:
-  - **Pitch black**: "It's completely dark — you can't see anything. You hear [sounds] and feel [floor/objects]."
+  - **Pitch black**: "It's completely dark - you can't see anything. You hear [sounds] and feel [floor/objects]."
   - **Dim**: "In the dim light, you can just make out shapes of furniture..."
   - **Normal**: full description
   - **Bright**: "The bright light illuminates every detail. You notice [hidden detail]..."

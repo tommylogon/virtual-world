@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-364",
+  "kind": "task",
+  "number": 364,
+  "title": "Scenario from Text wizard",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_built": "- GUI entry: 🎮 Game ▾ → \"✨ Scenario from Text…\" (`templates/index.html`).\n- Wizard `static/js/ui/scenario-wizard.js`: premise → LLM draft (client-side\n  `AIGenerator.generate`) in world-TEMPLATE format → review cards (accept /\n  per-room ✨ Regen / item checkboxes / characters / lore) → Apply.\n- Apply rides the existing `POST /api/load`: undo snapshot, scenario file,\n  `TemplateLoader` build. No new backend route.\n- Backend extensions in `engine/serialization_template.py`:\n  - item `tags` + `light_level` / heat / sound props now survive\n    (previously silently dropped - light_source items lost their tag).\n  - `characters` list → multiple players (protagonist stays active).\n- Tests: `tests/test_template_loader.py` (5). Full suite 1286 passed.",
+      "known_follow_ups": "- Real-LLM quality pass (model from Settings; gpt-4.1-mini-class ok for\n  3–8 rooms).\n- Append-to-existing-world mode (currently replaces; undo restores).\n- Room-template palette + draw-a-door flow (filed separately / idea)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-364-scenario-from-text-wizard.md"
+  }
+}

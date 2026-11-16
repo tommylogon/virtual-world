@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: High
-**Status**: Todo (moved back from done 2026-08-03 — the documented scripted runner was never built; a separate Playwright harness exists in tools/test_all.cjs etc., but not the spec'd scenario.json + expect_contains flow)
+**Status**: Todo (moved back from done 2026-08-03 - the documented scripted runner was never built; a separate Playwright harness exists in tools/test_all.cjs etc., but not the spec'd scenario.json + expect_contains flow)
 
 ---
 
@@ -87,13 +87,13 @@ The default scenario should have a script covering:
 
 ## Files
 
-- `opencode_tools/test_runner.py` — new test runner script
-- `tests/test_scenarios.py` — or new test file
+- `opencode_tools/test_runner.py` - new test runner script
+- `tests/test_scenarios.py` - or new test file
 - Scenario test scripts: one per scenario
 
 ---
 
-## Resolution (2026-09-22) — retired
+## Resolution (2026-09-22) - retired
 
 The end-to-end regression intent is covered by existing suites, so the bespoke
 `scenario.json` + `test_runner.py` (`expect_contains`) flow is not being built:

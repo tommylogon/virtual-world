@@ -34,7 +34,7 @@ Implement a graph-based sound propagation system where speech and sound sources 
 
 | Way State | Barrier | Notes |
 |-----------|---------|-------|
-| Open | 0.5 | Open doorways attenuate sound — a chain of opens lets a normal voice reach only the adjacent room |
+| Open | 0.5 | Open doorways attenuate sound - a chain of opens lets a normal voice reach only the adjacent room |
 | See-through (window/grate) | 0.75 | Partial obstruction, more than an open doorway |
 | Closed | 1 | Door shut, not locked |
 | Locked/Blocked/Hidden | 2 | All treated as "closed" for sound |
@@ -91,25 +91,25 @@ Sound sources propagate like speech but:
 
 ---
 
-## Implementation — Complete
+## Implementation - Complete
 
 ### Phase 1: Core Sound Propagation (Backend) ✅
 
 1. ✅ Created `engine/sound.py` with full propagation system:
-   - `get_way_barrier(way_node)` — returns barrier value based on state
-   - `get_area_noise_level(area_node, graph)` — calculates effective noise with absorption
-   - `get_effective_penetration(speech_level, ambient_noise)` — applies noise dampening
-   - `propagate_sound(origin_area_id, penetration, graph, areas)` — BFS through graph
-   - `get_areas_hearing_speech(origin_area_id, speech_level, graph, areas)` — returns list
-   - `get_areas_hearing_sound_source(origin_area_id, sound_level, graph, areas)` — returns list
-   - `get_sound_sources_in_area(area_id, graph)` — finds active sound sources
-   - `format_heard_narration(sound_pattern, direction, is_speech)` — formats narration
+   - `get_way_barrier(way_node)` - returns barrier value based on state
+   - `get_area_noise_level(area_node, graph)` - calculates effective noise with absorption
+   - `get_effective_penetration(speech_level, ambient_noise)` - applies noise dampening
+   - `propagate_sound(origin_area_id, penetration, graph, areas)` - BFS through graph
+   - `get_areas_hearing_speech(origin_area_id, speech_level, graph, areas)` - returns list
+   - `get_areas_hearing_sound_source(origin_area_id, sound_level, graph, areas)` - returns list
+   - `get_sound_sources_in_area(area_id, graph)` - finds active sound sources
+   - `format_heard_narration(sound_pattern, direction, is_speech)` - formats narration
 
 2. ✅ Added speech level commands:
-   - `speak <text>` / `say <text>` — normal (default)
-   - `whisper <text>` — whisper
-   - `shout <text>` — shout
-   - `scream <text>` — scream
+   - `speak <text>` / `say <text>` - normal (default)
+   - `whisper <text>` - whisper
+   - `shout <text>` - shout
+   - `scream <text>` - scream
 
 3. ✅ Integrated with narration system:
    - Modified `broadcast_speech()` to accept `speech_level` parameter
@@ -122,7 +122,7 @@ Sound sources propagate like speech but:
    - `data/library/tags/sound_absorbing.json`
 
 5. ✅ Created comprehensive tests:
-   - `tests/test_sound.py` — 21 tests covering barriers, propagation, noise, sound sources
+   - `tests/test_sound.py` - 21 tests covering barriers, propagation, noise, sound sources
 
 ### Phase 2: Sound Sources (Items) ✅
 
@@ -158,30 +158,30 @@ Sound sources propagate like speech but:
    - Integrated with overlay view buttons in `templates/index.html`
 
 2. ✅ Sample items created:
-   - `alarm_clock.json` — sound_source item with piercing alarm
-   - `ringing_phone.json` — sound_source item with insistent ringing
-   - `heavy_curtains.json` — sound_absorbing item with absorption value 2
+   - `alarm_clock.json` - sound_source item with piercing alarm
+   - `ringing_phone.json` - sound_source item with insistent ringing
+   - `heavy_curtains.json` - sound_absorbing item with absorption value 2
 
 ---
 
 ## Files Created/Modified
 
 ### New Files
-- `engine/sound.py` — core sound propagation logic ✅
-- `data/library/tags/sound_source.json` — tag definition ✅
-- `data/library/tags/sound_absorbing.json` — tag definition ✅
-- `tests/test_sound.py` — unit tests (21 tests) ✅
-- `data/library/items/alarm_clock.json` — sample sound source ✅
-- `data/library/items/ringing_phone.json` — sample sound source ✅
-- `data/library/items/heavy_curtains.json` — sample sound absorber ✅
+- `engine/sound.py` - core sound propagation logic ✅
+- `data/library/tags/sound_source.json` - tag definition ✅
+- `data/library/tags/sound_absorbing.json` - tag definition ✅
+- `tests/test_sound.py` - unit tests (21 tests) ✅
+- `data/library/items/alarm_clock.json` - sample sound source ✅
+- `data/library/items/ringing_phone.json` - sample sound source ✅
+- `data/library/items/heavy_curtains.json` - sample sound absorber ✅
 
 ### Modified Files
-- `engine/narration.py` — added speech_level parameter, sound propagation ✅
-- `virtual_world_engine.py` — pass through speech_level ✅
-- `routes/action.py` — added whisper/shout/scream commands ✅
-- `engine/tick_manager.py` — added `_process_sound_sources()` method ✅
-- `engine/trigger_system.py` — added `sound_heard` condition type ✅
-- `static/js/graph/network-manager.js` — sound overlay (already existed) ✅
+- `engine/narration.py` - added speech_level parameter, sound propagation ✅
+- `virtual_world_engine.py` - pass through speech_level ✅
+- `routes/action.py` - added whisper/shout/scream commands ✅
+- `engine/tick_manager.py` - added `_process_sound_sources()` method ✅
+- `engine/trigger_system.py` - added `sound_heard` condition type ✅
+- `static/js/graph/network-manager.js` - sound overlay (already existed) ✅
 
 ---
 
@@ -198,7 +198,7 @@ Sound sources propagate like speech but:
 8. ✅ Normal noise reduces speech range appropriately
 9. ✅ Sound sources propagate through graph
 10. ✅ Sound sources in loud rooms are muffled
-11. ✅ Open doors cost 0.5 barrier — normal speech reaches only the adjacent room
+11. ✅ Open doors cost 0.5 barrier - normal speech reaches only the adjacent room
 12. ✅ See-through ways have partial obstruction (0.75 barrier)
 13. ✅ Locked/blocked/hidden doors all have barrier 2
 
@@ -272,8 +272,8 @@ scream Help!                 # Scream (pen=3, alerts 3 areas away)
 
 ## Dependencies
 
-- Task 100 (graph overlays) — for sound visualization ✅ (already existed)
-- Task 141 (lighting system) — similar graph-scan pattern ✅
+- Task 100 (graph overlays) - for sound visualization ✅ (already existed)
+- Task 141 (lighting system) - similar graph-scan pattern ✅
 
 ---
 
@@ -283,7 +283,7 @@ scream Help!                 # Scream (pen=3, alerts 3 areas away)
 - Sound sources can be toggleable items (use existing toggleable system)
 - Consider adding "sound_echo" for caves/large halls (future enhancement)
 - NPCs could have "hearing" trait (good/poor hearing) affecting perception (future)
-- Sound propagation is deterministic — same setup always produces same results
+- Sound propagation is deterministic - same setup always produces same results
 - Deduplication prevents spam when sound sources tick continuously
 
 ## Why

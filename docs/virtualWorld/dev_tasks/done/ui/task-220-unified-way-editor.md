@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-08-13  
 **Priority**: High  
-**Status**: In Review — implemented 2026-08-13, pending browser verify
+**Status**: In Review - implemented 2026-08-13, pending browser verify
 
 ---
 
@@ -29,7 +29,7 @@ Designers tab-hop in `way-view.js` (Info / Behavior / Connections / Tags / Trigg
 
 One inspector layout for a way that shows **shared passage properties** and **both area sides** with explicit command names per side. Single save writes way node + both connection edges atomically.
 
-Pairs with **way templates** (user-planned separately) — template picks pre-fill this form.
+Pairs with **way templates** (user-planned separately) - template picks pre-fill this form.
 
 ## UI mockup
 
@@ -44,7 +44,7 @@ Pairs with **way templates** (user-planned separately) — template picks pre-fi
 │ Triggers: [existing editor]                               │
 ├─ FROM Living Room ───────────────────────────────────────┤
 │ Command (go ___): [swinging door]                         │
-│ View when open: [textarea — visible_in_direction]           │
+│ View when open: [textarea - visible_in_direction]           │
 │ Cardinal: [optional ▼]                                    │
 ├─ FROM Kitchen ───────────────────────────────────────────┤
 │ Command (go ___): [enter]                                   │
@@ -68,7 +68,7 @@ Pairs with **way templates** (user-planned separately) — template picks pre-fi
 | visible_in_direction | **View when open (from this area)** |
 | requires (way) | **Required movement verb** (go / crawl / climb / jump) |
 
-Different commands per side are **first-class** — not bugs (stairs up vs down, jump across, narrative verbs).
+Different commands per side are **first-class** - not bugs (stairs up vs down, jump across, narrative verbs).
 
 ## Save behavior
 
@@ -85,7 +85,7 @@ One `saveWayPassage(wayId, payload)` that:
 Display inline ⚠ when:
 
 - `{param:key}` in description but key missing from way parameters
-- Tag on way looks wrong for type (e.g. `clearance` on jump pit — labs lesson)
+- Tag on way looks wrong for type (e.g. `clearance` on jump pit - labs lesson)
 - `requires: jump` but command doesn't match movement table (informational)
 - Parameter resolved preview differs from raw (show both)
 
@@ -95,13 +95,13 @@ Optional: warn if serialized `areas.exits` cache drifts from graph (until task-2
 
 ### Files
 
-- `static/js/inspector/way-view.js` — refactor Connections + Info into unified layout (or `way-passage-editor.js`)
-- `routes/graph.py` — optional batch endpoint `PATCH /api/ways/<id>/passage` if multi-edge save needs atomicity
+- `static/js/inspector/way-view.js` - refactor Connections + Info into unified layout (or `way-passage-editor.js`)
+- `routes/graph.py` - optional batch endpoint `PATCH /api/ways/<id>/passage` if multi-edge save needs atomicity
 - Reuse `InspectorWayView._updateCardinal` for opposite cardinal sync
 
 ### Out of scope
 
-- Way templates content (separate user track — this editor is the target surface)
+- Way templates content (separate user track - this editor is the target surface)
 - Pathfinding / movement engine changes
 - Graph topology validation (user reports no broken connections today)
 
@@ -117,7 +117,7 @@ Optional: warn if serialized `areas.exits` cache drifts from graph (until task-2
 
 ## Related
 
-- [[review/characters/task-8-npc_behavior_movement|task-8]] — NPC `go` uses these commands
+- [[review/characters/task-8-npc_behavior_movement|task-8]] - NPC `go` uses these commands
 - [[todo/ui/task-219-agent-lens-left-panel|task-219]]
 - [[todo/ui/task-221-way-authoring-ux-and-tooltips|task-221]]
 

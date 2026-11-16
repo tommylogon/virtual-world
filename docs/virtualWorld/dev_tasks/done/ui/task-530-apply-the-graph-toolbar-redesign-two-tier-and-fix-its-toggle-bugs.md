@@ -30,7 +30,7 @@ models (Do / Where / Look / Session) at equal weight:
 | `📊 Overlays ▾` is renamed to the active overlay, losing the word + caret for good (no way back) | `graph-manager.js:901-904` |
 | Levels state is a label suffix ("🌳 Levels on"), no `active`/`aria-pressed` | `network-manager.js:636-645` |
 | Levels silently wins over Map while Map still reads "🗺️ Map" and does nothing | `network-manager.js:431` (bug-48) |
-| Legend force-opens on every overlay change — including returning to the structural view — and has no close | `network-manager.js:1177`, `:1235-1239` |
+| Legend force-opens on every overlay change - including returning to the structural view - and has no close | `network-manager.js:1177`, `:1235-1239` |
 | KEEP flips state and persists with an empty query, where it does nothing | `focus.js:95` |
 | Paste Response opens with Manual Mode off and only fails on submit | `main.js:707-711` |
 | Cardinal is a *layout* listed as an overlay, and picking it silently switches Map on | `index.html:202` → `graph-manager.js:931-933` |
@@ -39,7 +39,7 @@ models (Do / Where / Look / Session) at equal weight:
 
 ## Acceptance
 
-### Behaviour — no self-renaming, no silent no-ops
+### Behaviour - no self-renaming, no silent no-ops
 
 - [x] The layout axis is a segmented `role="tablist"` (Graph · Map · Levels) with
       `aria-selected`; **all three keep fixed labels**, and clicking the already-selected
@@ -61,10 +61,10 @@ models (Do / Where / Look / Session) at equal weight:
       re-syncs when the setting is toggled in Settings.
 - [x] Physics is disabled **with a reason** whenever a layout or overlay owns node
       positions (Levels, any active overlay) or the node layout is explicitly locked.
-      One pure function decides it — no more five independent label writers.
+      One pure function decides it - no more five independent label writers.
       **Amended 2026-09-27:** the painted grid no longer counts. A painted lattice
       is Map mode's *starting arrangement*, not a freeze, and the grid path places no
-      way nodes at all — with physics unavailable they kept stale positions and every
+      way nodes at all - with physics unavailable they kept stale positions and every
       edge crossed the map. See "Map mode runs physics" in the notes.
 - [x] Nothing shows what is loaded: the scope chip now shows the active scope plus a
       live "N areas · M ways · K nodes" stat.
@@ -75,7 +75,7 @@ models (Do / Where / Look / Session) at equal weight:
 
 - [x] Three labelled zones (Do · Where · Look) with `➕ Build ▾`, `👁 View ▾` and
       `⋯ More ▾` popovers. Top-level controls drop from ~36 to **≤ 10**.
-- [x] The steppers (map pitch, edge-label size) move into View ▾ — they are settings,
+- [x] The steppers (map pitch, edge-label size) move into View ▾ - they are settings,
       not primary actions.
 - [x] Session actions (Copy Prompt, Paste Response) leave the main bar for More ▾.
       Deviation from the mockup, which wanted them in an agent/session area: there is no
@@ -118,14 +118,14 @@ Asked for in review, on the grounds that freezing the solver in Map mode leaves 
 graph looking broken. It did, and the cause was not the toggle: `_gridUpdates`
 (`layout-engine.js`) places **areas** (their painted cells) and items/characters, and
 **no way nodes at all**. With physics unavailable the ways kept whatever position they
-had last been saved at — in a painted scope, a clump far from the areas — so every
+had last been saved at - in a painted scope, a clump far from the areas - so every
 edge stretched across the map. The lattice is Map's *starting arrangement*, not a
 freeze, and the solver is the only thing that pulls those loose nodes in.
 
 Three changes, each revertible on its own:
 
 1. `physicsAvailability` no longer treats a painted grid as an owner of positions
-   (an explicit 🔒 Lock still does — that one *is* the user saying "these positions
+   (an explicit 🔒 Lock still does - that one *is* the user saying "these positions
    are intentional"). To revert: restore the `paintedGrid` case next to `mapLocked`.
 2. The load path restores the user's physics preference after any layout, instead of
    only when the layout was not a grid, and `_applyGridLayout` no longer clears
@@ -136,14 +136,14 @@ Three changes, each revertible on its own:
 3. **Areas on the painted lattice are now pinned** (`fixed: {x: true, y: true}` in
    `_gridUpdates`) while ways/items/characters stay free. Without this, letting
    physics run simply dragged the areas off their cells and left the map art behind
-   — strictly worse. Pinning is also what makes the change safe: the map stays
+   - strictly worse. Pinning is also what makes the change safe: the map stays
    aligned, and only the loose nodes move.
 
 Measured on `west_woods` (53 areas, 77 ways, 154 edges): mean way-to-area distance
 24px, mean edge 24px, longest edge 45px.
 
 Known limit, unchanged by this: at fit-all zoom on a scope this dense the way-node
-labels overlap into mush. That is rendering scale, not physics — see task-526.
+labels overlap into mush. That is rendering scale, not physics - see task-526.
 
 ## Why
 

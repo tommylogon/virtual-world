@@ -20,7 +20,7 @@ rendered as raw markup instead of a badge:
 ```
 
 Every row also showed its version tag as the same literal `<span style="font-size:9px;...">v1.3.0</span>`
-text. The storage is fine — `save.name` is `Autosave` and the metadata is correct; only
+text. The storage is fine - `save.name` is `Autosave` and the metadata is correct; only
 the rendering is wrong.
 
 ## Root cause
@@ -47,7 +47,7 @@ template (e.g. a conditional badged span before the name, a small muted span aft
 so the row no longer depends on an escaping opt-in.
 
 If the minimal change is wanted first, wrap the two values in the escaping escape hatch
-already used elsewhere in the repo — `window.Lit.unsafeHTML(badge)` /
+already used elsewhere in the repo - `window.Lit.unsafeHTML(badge)` /
 `window.Lit.unsafeHTML(versionBadge)` (precedent: `static/js/event-stream.js:493`).
 Do not route `save.name`/`save.filename` through `unsafeHTML`; those are user text.
 
@@ -64,9 +64,9 @@ for it.
 
 ## Files
 
-- `static/js/ui/saveload-view.js` — list template, badge construction (lines ~462-471)
+- `static/js/ui/saveload-view.js` - list template, badge construction (lines ~462-471)
 
-## Fix — 2026-09-24
+## Fix - 2026-09-24
 
 `badge` and `versionBadge` are now Lit templates (`saveLoadViewTag\`<span …>\``)
 instead of HTML strings, so Lit renders the elements rather than escaping them
@@ -78,14 +78,14 @@ built by the same `saveLoadViewTag` used for the row.
 Acceptance met by construction; the row markup cannot contain a raw `<span …>`
 string any more (only the two element templates, which Lit owns).
 
-## Second live verification — 2026-10-02 (port 4471)
+## Second live verification - 2026-10-02 (port 4471)
 
 Opened `#load-game-modal` and rendered the real list via
 `SaveLoadView.loadGameList()`:
 
 - `#save-game-list` visible text contains **no** literal `<span` (regex
   `/<span/i` → false).
-- The autosave row's text is `AUTOAutosavev1.3.0` — badge text with no markup —
+- The autosave row's text is `AUTOAutosavev1.3.0` - badge text with no markup -
   and the list holds **2 real `<span>` elements** (the AUTO badge and the
   version badge), so Lit rendered them as elements.
 - Row: `20261002 102656 · 08:00 · Kaelen Voss · world_template · 3 PCs · 19 areas · 560.2 KB`.

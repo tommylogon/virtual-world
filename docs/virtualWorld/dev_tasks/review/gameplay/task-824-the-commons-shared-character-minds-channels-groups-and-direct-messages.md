@@ -81,7 +81,7 @@ Player memory routes.
   writer/bridge only if a chat event needs that record. Do not add a
   Commons-specific memory, experience, or transcript store. Channel messages
   are the communication transcript, not a second character
-  memory. The Mind panel's “Timeline — the lived trace” currently renders the
+  memory. The Mind panel's “Timeline - the lived trace” currently renders the
   browser event stream's `detailedTimeline`, and “Conversation memory” renders
   `AgentEngine.getDisplayHistory`; neither is a durable replacement for
   `Player.memories[]` or `Player.lived_log`.

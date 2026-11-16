@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-81",
+  "kind": "task",
+  "number": 81,
+  "title": "July 20 Batch - Cross-Entity Effects, Inspector UI, Item Library",
+  "status": "done",
+  "priority": "medium",
+  "area": "misc",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "engine_virtual_world_engine_py": "- Added `set_hidden` effect - `{ node_id, hidden: true/false }`\n- Added `adjust_uses` effect - `{ node_id, delta: -1 }`\n- Added `end_scenario` effect - sets `scenario_ended` flag, stops agent\n- Added `restart_scenario` effect - sets flag, frontend auto-reloads via `/api/reset`\n- Added `locked` to item state dropdown options\n- `state_equals` condition checks `current_state` on trigger source node",
+      "inspector_inspector_js": "- **has_item condition**: datalist now includes world graph items + library items (was library-only)\n- **Locked checkbox**: added to item Properties section (🔒)\n- **Locked state**: added \"locked\" to item state dropdown\n- **Can Unlock section**: REMOVED from both item and door inspectors (legacy unlock system)\n- **`_buildUnlockHtml()`**, `_addUnlockEdge()`, `_saveUnlockEdge()`: all removed",
+      "item_library_item_library_js": "- **has_item condition**: same fix as inspector (world + library items)\n- **Locked checkbox**: added to library editor\n- **Place in World**: now supports containers and characters (not just areas)\n- **`_pickRoom()` replaced with `_pickTarget()`**: tabbed picker (Rooms / Containers / Characters) with search\n- **Button label**: \"📌 Place in Area\" → \"📌 Place in World\"",
+      "create_item_modal_main_js": "- Added **tags input field** (comma-separated)\n- Tags populated from AI generation result\n- Tags saved in the build item payload",
+      "agent_engine_agent_engine_js": "- **Cancel Step** button: ✕ appears when busy, interrupts LLM calls via AbortController\n- **`end_scenario` / `restart_scenario` detection**: checks `worldState.data?.scenario_ended` and `_restart_requested`, auto-restarts on restart flag\n- Cancel checks at 6 await points in `step()`\n- **`cancel()` method**: sets flag, aborts controller, resets state",
+      "ui_ui_controller_js_index_html": "- Cancel button (✕) in sim controls, shown when `config.busy || config.running`\n- `updateButtons()` shows/hides cancel button",
+      "api_api_js_app_py": "- `ApiClient.resetWorld()` - new method\n- `ApiClient.placeItemFromLibrary()` - now accepts `{ type, name/id }` for room/container/character\n- `app.py` `/api/build/item-from-library` - accepts `container`/`character` fields, creates appropriate edge\n- `/api/action` and `/api/state` - now return `scenario_ended` and `_restart_requested` flags",
+      "graph_context_menu_graph_manager_js": "- Removed \"🔓 Add Unlocks Edge\" from item and door context menus",
+      "prompt_docs_prompt_docs_js": "- Added `set_hidden`, `adjust_uses`, `end_scenario`, `restart_scenario` docs",
+      "task_tracking": "- **Cancelled**: task-14 (action_costs_to_time) - doesn't fit turn-based model\n- **Updated**: task-15 (way_trigger_events → cross-entity trigger effects)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/misc/task-81-july-20-batch.md"
+  }
+}

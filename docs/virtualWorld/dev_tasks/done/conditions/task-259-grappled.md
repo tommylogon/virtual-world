@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -44,12 +44,12 @@ Physically held by someone. Speed 0 until you escape. Source-gated: the active p
 
 ## Perception
 
-`known: True` but in `_PERCEPTION_SKIP` — not rendered as a symptom line.
+`known: True` but in `_PERCEPTION_SKIP` - not rendered as a symptom line.
 
 ## Integration points
 
-- `player.py:81-90` — catalog entry.
-- `engine/conditions.py` — speed, combat mods, `_PERCEPTION_SKIP`.
+- `player.py:81-90` - catalog entry.
+- `engine/conditions.py` - speed, combat mods, `_PERCEPTION_SKIP`.
 - Grapple/restrain system (task-4 done) that applies/removes it.
 - `end_instances("escape")` and grappler-incapacitation wiring to auto-release.
 

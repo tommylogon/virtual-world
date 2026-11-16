@@ -18,11 +18,11 @@ Finding something tucked away in the soak tier is a Perception check rather than
 
 - TODO
 
-## Progress 2026-09-23 — done (review)
+## Progress 2026-09-23 - done (review)
 
-- [x] `BackgroundSimulation._requires_search(node)` — true only when the item sits
+- [x] `BackgroundSimulation._requires_search(node)` - true only when the item sits
   inside/on another **item** (basket, larder, bush) via a reachable relation.
-- [x] `_forage_check(p, kind)` — `Perception` vs `DC 10`, swapped to the acting
+- [x] `_forage_check(p, kind)` - `Perception` vs `DC 10`, swapped to the acting
   character and restored after; fails **open** if the skill system is unavailable.
 - [x] A miss writes a `forage:fail` trace + log line and spends a new
   `forage` task (5 min, `ACTIVITY_INTERRUPTIBLE`/`LABELS`/`SKIP_TURNS`), and the

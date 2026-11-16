@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-899",
+  "kind": "task",
+  "number": 899,
+  "title": "agent-engine: 10 fixes for step/run lifecycle, state leaks, and race conditions",
+  "status": "done",
+  "priority": "high",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-22",
+  "updated": "2026-10-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix 10 issues in agent-engine.ts around step/run lifecycle, state leaks, and race conditions",
+    "why": "Found during code review: stepOnce missing cleanup, stale state leaking between runs, unbounded history growth, missing timeouts, duplicate fetch logic, controllingPlayer resolution scattered, turnNumber desync, max-steps counter wrong for single steps, reflection never fires in simultaneous mode, and null-check ordering bug",
+    "how": "Apply 10 targeted fixes in agent-engine.ts and turn-queue.ts",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: TODO\n   - observed: TODO\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: TODO\n   - observed: TODO\n3. Run the targeted regression test for the mechanism.\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "All 10 fixes applied and verified: stepOnce has finally block, paused state reset, dead character cleanup, sim deadlines cleared on stop, turnNumber synced, LLM timeout added, fetch deduplication, controllingPlayer centralized, stepsRun reset in stepOnce, per-char turn counter for reflection, null-check moved up",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.ts",
+      "static/js/agent/turn-queue.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: simulation controls (Run, Pause, Step Once)\n\nCurrent availability: always\n\nLive steps when available:\n1. Load any scenario with characters\n2. Click Run - verify it starts\n3. Click Pause - verify it pauses\n4. Click Step Once - verify single step executes without Already running\n5. Refresh page, click Step Once immediately - no Step cancelled\n6. Run until a character dies - verify no memory leak in console\n7. Run in simultaneous mode - verify reflection fires every 5 turns per character\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Agent Engine|Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-899-agent-engine-10-fixes-for-step-run-lifecycle-state-leaks-and-race-conditions.md"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "task-850",
+  "kind": "task",
+  "number": 850,
+  "title": "Identity additions: mbti, alignment, birthday, media - each with a named reader",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-16",
+  "updated": "2026-10-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-316",
+      "task-507",
+      "task-733"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add mbti, alignment, birthday to identity only with wired consumers (mbti prompt voice, alignment disposition-or-prompt reader, birthday calendar semantics vs age); no dead fields.\n\nExtended 2026-10-18 (folded in from the cancelled task-870): also add `media` (favourite films / music / books) and keep `potential_storylines`. `engine/character_appearance.py:21` excludes `media` / `mbti` / `alignment` on purpose, and `tests/test_character_appearance.py` enforces the ban (`:427`; a `media` key is rejected at `:140`), so this card must remove that exclusion and its test assertions deliberately. `media` and `potential_storylines` need a named reader too (agent prompt context is the obvious one); `potential_storylines` may ship authored-but-unread if recorded as such.",
+    "why": "A character's identity needs expressive hooks (MBTI, alignment, birthday, favourite media) that directly drive agent behavior, prompts, and world semantics rather than existing as dead metadata. MBTI and alignment calibrate the persona voice sent to LLM agents; birthday wires directly into the world calendar and character aging; favourite media items provide seeds for character memory, likes, and interest tags without inventing duplicate authoring channels.",
+    "how": "1. Lift the exclusion of `mbti`, `alignment`, and `media` from `engine/character_appearance.py` and adjust tests in `tests/test_character_appearance.py` that enforced the exclusion.\n2. Wire `mbti` and `alignment` into the character's compiled personality block and agent prompt context formatter (`agent_prompt.py` / `prompting.py`).\n3. Connect `birthday` to `engine/world_calendar.py` / `engine/character_lifecycle.py` so simulated game days advance age and calendar events when dates match.\n4. Project authored `media` entries into character `interest_tags` / likes and seed baseline memory facts during compilation/hydration, ensuring media items have active simulation consumers.\n5. Provide UI inputs for these fields in the Mind Dashboard Persona tab and Character Sheet editor.",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: Fields save, round-trip, compile into prompt context, and project media to interest tags.\n   - observed: TODO\n2. Inspect prompt generation via `python -m pytest tests/test_agent_prompt.py` or inspect `/api/players/<name>/record`.\n   - expected: Prompt voice receives MBTI and alignment cues.\n   - observed: TODO\n3. Run the targeted regression test for schema and serialization: `python -m pytest tests/test_character_appearance.py tests/test_character_record.py`.\n   - expected: All tests pass with new fields accepted and serialized.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`mbti`, `alignment`, `birthday`, and `media` fields are valid attributes on character nodes / persona blocks.",
+        "done": false
+      },
+      {
+        "text": "`engine/character_appearance.py` accepts the fields and no longer bans them.",
+        "done": false
+      },
+      {
+        "text": "MBTI and alignment are included in the prompt context / personality compilation for LLM agents.",
+        "done": false
+      },
+      {
+        "text": "Birthday is linked to the world calendar and lifecycle aging logic.",
+        "done": false
+      },
+      {
+        "text": "Media favorites compile/project into character memories or interest tags.",
+        "done": false
+      },
+      {
+        "text": "Schema validation and character record unit tests pass cleanly.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_appearance.py",
+      "engine/character_record.py",
+      "engine/agent_prompt.py",
+      "engine/world_calendar.py",
+      "static/js/inspector/mind-view.ts",
+      "tests/test_character_appearance.py",
+      "tests/test_character_record.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind -> Persona tab (and the full-page Character Sheet).\n\nCurrent availability: Planned; the Persona tab currently exposes appearance, core identity picklists, and personality, but mbti, alignment, birthday, and media inputs are not yet rendered in the live UI.\n\nLive steps when available:\n1. Open Character Inspector -> Mind -> Persona tab on a character.\n   - expected: Inputs for MBTI, Alignment, Birthday, and Favourite Media are present and editable.\n2. Enter values (e.g. MBTI 'INFP', Alignment 'Chaotic Good', Birthday 'Spring 14', Favourite Media 'The Old Wayfarer (book)'), save, and compile.\n   - expected: Save succeeds; the compiled personality prose / agent prompt preview includes the personality traits; the media item seeds an interest tag or memory fact.\n3. Advance the world calendar past the birthday.\n   - expected: Calendar event or age increment triggers as designed without crashing.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-850-identity-additions-mbti-alignment-birthday-each-with-a-named-reader.md"
+  }
+}

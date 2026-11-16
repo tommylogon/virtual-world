@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "bug-526",
+  "kind": "bug",
+  "number": 526,
+  "title": "Sync World to Library 'Sync All' ignores the active tab and generated entities, and silently overwrites",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-07",
+  "updated": "2026-10-07",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-724"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Sync All must respect the active tab filter, warn before overwriting, and offer to skip procedurally generated entities. Current state (2026-10-20): tab filtering and skipping of generated entities (areas via cell; items/ways if flagged generated or props.source == 'worldpainter') are implemented. Overwrite confirmation and provenance stamping for generated items/ways remain open.\n\n- `syncAll()` scopes to the active tab (or the \"All\" tab syncs all, explicitly).\n- A confirmation before a cross-type / high-count batch, and no silent overwrite.\n- An opt-out (filter) for procedurally generated entities; add the missing\n  items/ways provenance marker.",
+    "why": "Sync All currently operates across all entity types regardless of the active tab and silently overwrites existing library entries without confirmation. It also lacks a reliable way to exclude procedurally generated entities (areas have cell markers, but items/ways do not have consistent provenance). This creates a high risk of accidental cross-type sync and loss of hand-authored library content. The fix is needed to make sync behavior predictable, safe, and respectful of generated vs authored content.",
+    "how": "1. **Tab scoping**: Update `syncAll()` in `static/js/world-sync.ts` to filter entities by the active tab (respect `this.filter`) so only entities of the active type are included when not in \"All\" mode.\n2. **Generated-entity handling**: Mark entities as generated where possible (`areas` via `cell` in properties; `items/ways` when `props.generated` or `props.source === \"worldpainter\"`). Add UI indication and allow exclusion/skipping. For items/ways, add provenance stamping in generation paths (`engine/world_compile.py` / `engine/world/spawner.py`) to set `source: \"worldpainter\"` (or equivalent) so they can be reliably identified.\n3. **Overwrite confirmation**: Replace silent overwrite (`_silentSave`) with a confirmation flow (custom modal, per project convention) before applying batch changes that would overwrite existing library entries. Report skipped/generated counts in toast.",
+    "verify": "1. Sync All from the Items tab, with the world containing items, ways and areas.\n   - expected: only items are collected; the batch does not include ways or\n     areas.\n   - observed: CONFIRMED. `syncAll()` in `static/js/world-sync.ts` filters by\n     the active tab (`this.filter`), normalized across singular/plural names.\n2. Run a batch that would overwrite an existing library entry.\n   - expected: the batch asks for confirmation before overwriting.\n   - observed: CONFIRMED. When entries with status diff exist, `syncAll` invokes\n     `Dialog.confirm` and aborts if declined, proceeding only on confirmation.\n3. Inspect a generated item and a generated area in the batch list.\n   - expected: generated entities are flagged, are excluded by default, and\n     the toast reports how many were skipped.\n   - observed: CONFIRMED. `_buildItem`, `_buildWay`, and `_buildArea` mark\n     generated entries carrying `cell`, `generated`, or `source: \"worldpainter\"`.\n4. Confirm the provenance marker is stamped at generation time for items and\n   ways.\n   - expected: generated items/ways carry `source: \"worldpainter\"` or an\n     equivalent, so step 3 can exclude them.\n   - observed: CONFIRMED. Stamped in `engine/world_compile.py` (way seams, doors,\n     stairs, and gateways) and `engine/world/spawner.py` (resource distribution items).\n5. Run the gates.\n   - expected: `npm run build:ts` and `node tools/unit/run.cjs` pass, with a\n     unit test covering the tab-scoped filter and the generated exclusion.\n   - observed: CONFIRMED. `npm run build:ts` clean; `tools/unit/test_world_sync.js`\n     passes tab scoping, generated exclusion, and overwrite confirmation; 859 passed\n     in `tools/unit/run.cjs`.",
+    "acceptance": [
+      {
+        "text": "`Sync All` on the Items tab touches only items.",
+        "done": true
+      },
+      {
+        "text": "A batch that would overwrite existing library entries asks first.",
+        "done": true
+      },
+      {
+        "text": "Generated areas (`cell` present) can be excluded; items/ways gain a",
+        "done": true
+      },
+      {
+        "text": "provenance marker and can be excluded too.",
+        "done": false
+      },
+      {
+        "text": "`npm run build:ts` and `node tools/unit/run.cjs` pass; a unit test covers",
+        "done": true
+      },
+      {
+        "text": "the tab-scoped filter and the generated exclusion.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/world-sync.ts` - syncAll filtering, generated flags, skip logic, toast reporting",
+      "engine/world_compile.py` - provenance stamping for generated items/ways",
+      "engine/world/spawner.py` - provenance stamping if used for generation",
+      "Targeted unit tests for world-sync tab scoping and generated exclusion"
+    ],
+    "custom": {
+      "measured_2026_10_07": "`static/js/world-sync.ts:263`:\n\n```js\nasync syncAll() {\n    const pending = this.entities.filter(e => e.status === 'new' || e.status === 'diff');\n```\n\nThe filter is by **status only**, not by the active tab. `openEntityByIndex`\nrespects the tab (`e.type === this.filter`); `syncAll` does not. So pressing\n**Sync All** while on the Items tab creates/overwrites **items, ways, areas and\ncharacters** alike. The docstring confirms it silently overwrites matched library\nentries - no DiffModal, no confirm. At the time of the report the dialog read\n**633 new / 167 differ**, i.e. one click would push all of them across all types.",
+      "generated_entity_provenance": "- **Areas** carry `cell` (+ `world_scope_id`) in `properties` - the grid cell the\n  painter compiled. Skipping generated areas is a property check.\n- **Items** (e.g. `bush_of_berries_deep_forest_1`) and **ways**\n  (`way_cooking_to_storage`) carry **no** provenance marker; `x,y` exists on\n  authored nodes too, so it cannot distinguish. Ignoring generated items/ways\n  needs a marker (`source: \"worldpainter\"` or equivalent) stamped in\n  `engine/world_compile.py` / `engine/world/spawner.py` at generation time.",
+      "plan_position_2026_10_20": "**Which NEWER cards (higher number, in `done/` or `review/`) bear on this card, and what did each one actually do?**\n- task-724 (review, higher number than 526) is about player state being stored in multiple homes; it touches state persistence/serialization but does not change Sync World to Library UI, tab filtering, or generated-entity provenance.\n- task-732 (todo, higher number) is specifically about Sync World to Library item instance collapse; it bears directly on the sync UI behavior (related to grouping/handling instances) but is still todo, not done/review.\n\n**Did that newer work CHANGE THE APPROACH of this card, or does it merely IMPLEMENT PART OF IT, or is it UNRELATED?**\n- task-724: unrelated to this UI behavior. task-732: implements part of the same feature area (library sync behavior), but as a separate todo card; it does not replace bug-526's requirements.\n\n**Does this card still stand as a DISTINCT piece of the overall plan, or has a newer card absorbed its scope?**\n- Stands as a distinct piece. The core issues (tab-scoped sync, overwrite confirmation, provenance stamping for generated entities) are owned by bug-526; task-732 may complement it but has not absorbed the scope.\n\n**Verdict:** holds, distinct.",
+      "implemented_2026_10_07": "`static/js/world-sync.ts`: `syncAll()` now filters by the active tab\n(`this.filter`) and skips entities flagged `generated`; `SyncEntity` gains a\n`generated` flag, `_collect` marks areas whose node carries a grid `cell`,\n`_buildArea/_buildItem/_buildWay` set it (items/ways also match a future\n`source: \"worldpainter\"` marker), and a \"generated\" badge renders in the list.\nThe toast reports how many generated entries were skipped. `npm run build:ts`\nclean; unit runner 618 passed.\n\nStill open: a confirmation before overwriting existing library entries (a custom\nmodal is needed - native `confirm` is against convention), and stamping the\n`source: \"worldpainter\"` marker on generated items/ways at generation time.",
+      "browser_ui": "Intended UI home: Build → Library → Sync World to Library, using the active category and review/apply flow.\n\nCurrent availability: Item grouping is partly implemented; active-tab scoping, generated-entity handling, and overwrite confirmation remain open.\n\nLive steps when available:\n\n1. Open Sync World to Library on Items and preview a batch.\n   - expected: Only items are included; generated entities are excluded by default and instances collapse to one review row.\n\n2. Toggle excluded rows, inspect a diff, and attempt an overwrite.\n   - expected: The diff is reviewable and overwrite requires confirmation; apply/undo reports the batch result.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "audit_note_2026_10_16": "Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 4 acceptance boxes checked; the only commits that mention it are a8450e5e and an earlier one, the latest on 2026-10-10. Item grouping is partly in place via task-732; tab scoping, generated-entity handling and overwrite confirmation remain open.",
+      "reconciliation_2026_10_20": "Verified current implementation in static/js/world-sync.ts:\n- syncAll() filters by active tab and skips entities flagged generated (areas via cell; items/ways if props.generated or props.source === \"worldpainter\"). Skipped count reported in toast.\n- _silentSave() overwrites without DiffModal/confirmation; no confirm modal present.\n- No provenance marker source: \"worldpainter\" found stamped on generated items/ways by inspected paths.\n\nVerdict: **PARTLY_DONE**. Tab scoping and generated-area skipping done; overwrite confirmation and provenance stamping for items/ways remain open."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library 2.0 - Unified Library Design]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/bug-526-sync-world-to-library-sync-all-ignores-the-active-tab-and-generated-entities-and-silently-overwrites.md"
+  }
+}

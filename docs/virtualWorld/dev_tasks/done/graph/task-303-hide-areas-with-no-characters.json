@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-303",
+  "kind": "task",
+  "number": 303,
+  "title": "Hide Areas With No Characters",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "Added a \"🏘 Inhabited\" toggle button to the graph editor toolbar. When active, areas with no characters present are hidden. Clicking a way (door) reveals its connected areas, allowing navigation through uninhabited spaces. Clicking empty space clears the revealed areas.\n\nBackend: no changes needed - this is purely a frontend filter using existing graph data.\n\nFrontend (`static/js/`):\n- `graph-manager.js`: added `_showOnlyInhabitedAreas` flag (default false) and `_revealedAreaIds` set.\n- `graph/network-manager.js`: added `toggleInhabitedAreas()`, `revealAreasForWay()`, and `hideRevealedAreas()`. Modified `loadGraphData()` to filter out uninhabited areas when the toggle is on, computing linked non-area nodes the same way the floor filter does.\n- `graph/event-handlers.js`: way clicks call `revealAreasForWay()`; empty clicks call `hideRevealedAreas()`.\n- `templates/index.html`: added the 🏘 Inhabited button (starts `active` - on by default).",
+    "verify": "- JS syntax check passed\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "Graph editor toggle to hide areas with no characters present. On click, ways reveal the connected areas again.",
+      "notes": "- Editor optimization to reduce visual noise in large worlds (only inhabited areas stay visible by default).\n- Toggle button in the graph/map editor; clicking a way re-reveals its adjacent areas.\n- Complements `task-302` (siblings stay open) and `task-312` (graph search filter).",
+      "related": "- `developer ideas.md` line 10\n- Map editor code (`static/js/` graph/map editor modules)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-303-hide-areas-without-characters.md"
+  }
+}

@@ -5,15 +5,15 @@ area: bugs
 priority: medium
 ---
 
-# Bug 33 — Human-initiated speech lands outside turn cards in event stream
+# Bug 33 - Human-initiated speech lands outside turn cards in event stream
 
-**Status:** Done — fixed 2026-09-22.
+**Status:** Done - fixed 2026-09-22.
 
 ## Symptoms
 
 Speech/emotes issued by a human-controlled character via `/api/action` rendered
 as bare `💬 [Tick N] <name> says ...` entries BEFORE the next `▾ <name> [Turn N]`
-card opened — visually outside the turn grouping. Agent-initiated lines grouped
+card opened - visually outside the turn grouping. Agent-initiated lines grouped
 correctly inside their turn cards.
 
 ## Root cause
@@ -26,7 +26,7 @@ so the speech row is emitted with no open card and drops into the bare stream.
 
 ## Fix (2026-09-22)
 
-- `event-stream.js`: new `EventBus.beginActorTurn(charName)` — opens (or reuses)
+- `event-stream.js`: new `EventBus.beginActorTurn(charName)` - opens (or reuses)
   the turn card for an actor, safe to call repeatedly within a turn.
 - `agent-engine.js::_executeHumanReply`: calls `events.beginActorTurn(charName)`
   before speech/emote/action, so the human's whole turn groups under one card

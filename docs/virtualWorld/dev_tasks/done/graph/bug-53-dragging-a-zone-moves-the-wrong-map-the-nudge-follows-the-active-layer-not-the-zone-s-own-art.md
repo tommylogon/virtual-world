@@ -20,7 +20,7 @@ goblin camp's picture appeared to have followed the drag.
 ## Cause
 
 `_startZoneDrag` moved the picture with `_nudgeActiveLayer(...)`, which reads
-`_active()` — the layer **selected in the panel**. The layer list holds every
+`_active()` - the layer **selected in the panel**. The layer list holds every
 scope's map at once, so "active" is a UI selection and says nothing about which
 zone is being dragged. Dragging west_woods could therefore shove the goblin camp's
 art anywhere, and the zone's own map stayed behind. That is exactly the stacked
@@ -28,7 +28,7 @@ pair in the screenshot.
 
 Hand-nudging the rect was also the wrong *mechanism*: since bug-51 the art is
 **derived** from the grid plus the scope offset on every load, so a nudged rect is
-discarded on the next render — two sources of truth that disagree, and the drag's
+discarded on the next render - two sources of truth that disagree, and the drag's
 own movement lost on reload.
 
 ## How

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-64",
+  "kind": "task",
+  "number": 64,
+  "title": "New Item Not Attached to Selected Area",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When creating a new item via the \"Add New Item\" modal with a target room selected, the item is not always placed in the selected room. The user reports creating a \"leather chair\" intended for the \"living room\", but the item did not appear in that room.",
+    "why": "In `main.js:openCreateModal()` (line 396-407), the item form includes a target room selector:\n\n```html\n<label>Target Area</label>\n<select id=\"item-room\">${roomOptions}</select>\n```\n\nOn submit (line 448-449), the room value is collected:\n\n```js\nresult = {\n  room: document.getElementById('item-room')?.value,\n  name: ...\n};\n```\n\nThen passed to `api.createItem(data)` in `addItemViaGraph()` (line 202-208):\n\n```js\nfunction addItemViaGraph() {\n  openCreateModal('item', async (data) => {\n    if (!data.name) { alert('Item name required'); return; }\n    const res = await api.createItem(data);\n    // ...\n  });\n}\n```\n\n### Investigation Needed\n\n1. **Check `api.createItem()` in `api.js`** - Does the API call pass the room to the backend?\n2. **Check the backend endpoint** in `app.py` - Does `createItem` correctly attach the item to the specified room via graph edges?\n3. **Check if the room parameter is being dropped** somewhere in the chain.\n\n### Possible Root Causes\n\n- The `room` field is collected but not sent in the API payload (field name mismatch)\n- The backend creates the item node but doesn't create the `location`/`contains` edge to the room\n- The backend expects a different field name (e.g., `area_id` vs `room`)\n- The room name doesn't match the graph node's room name (case sensitivity, spaces)",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/api.js` - verify `createItem()` payload structure",
+      "app.py` - verify backend `createItem` endpoint",
+      "static/js/main.js` - verify the data object construction"
+    ],
+    "custom": {
+      "proposed_fix": "1. Add logging/debug to trace the data flow: form → JS object → API call → backend\n2. Fix any field name mismatches\n3. Ensure the backend creates the item-in-room edge\n4. Verify the room lookup matches the graph's room ID normalization"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-64-fix_item_not_attached_to_room.md"
+  }
+}

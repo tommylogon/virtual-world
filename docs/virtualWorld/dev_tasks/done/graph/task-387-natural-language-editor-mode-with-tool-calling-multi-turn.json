@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-387",
+  "kind": "task",
+  "number": 387,
+  "title": "Natural-Language Editor Mode (with tool calling + multi-turn)",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-08-31",
+  "updated": "2026-08-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The editor today is *form-driven*: every create flow is a modal with discrete\nfields. For power users who already know the schema, that's fine. For anyone\nauthoring a scenario from imagination - \"add a flickering streetlight to Oak\nStreet\", \"give Mira a worried personality and a locket she won't let go of\",\n\"connect the attic to a hidden library behind a bookshelf\" - the gap between\nintent and form is the bottleneck.\n\nThe first revision of this doc assumed a one-shot `classify → plan → preview →\napply` flow with a strict JSON plan schema. That was wrong for two reasons:\n\n1. **The user wants multi-turn.** \"Find me a lantern in the library and put a\n   candle inside.\" is a *follow-up* to \"the library is too dark, give it some\n   mood lighting\" - not a fresh request. The agent should remember that we\n   just added a chandelier, and which library it was.\n2. **The user wants library reuse, not raw generation.** The core workflow\n   is: *search* the library, *pick* a fitting entry, *adapt* it, *place* it.\n   That is exactly what tool calling is for - the model issues a `search_library`\n   tool call, sees the result, decides \"actually I'll make a new variant\", and\n   issues a `create_node` tool call. A single JSON plan forces the model to\n   guess about the library *before* it has looked.\n\nThe codebase already supports `tool_calls` in the OpenAI message array\n(`static/js/context-window.js:51` keeps them through pruning). The LLM\nclient's `chat(messages)` is already OpenAI-compatible. We just need to send\n`tools:`, parse `tool_calls` from the response, and feed `role: \"tool\"`\nresults back.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_natural_language_editor_mode_is": "A chat-shaped surface (Cmd-L overlay + side panel) where the user types\nfree-form authoring intent and an LLM agent **with tools** authors the world:\n\n- **Search & Read tools** - find existing graph nodes, library items, library areas,\n  library characters, tags. These read from an **Overlay View** (live graph +\n  staged buffer) so uncommitted nodes are discoverable across multi-turn chats.\n- **Mutation tools** - create_node, update_node, delete_node, attach,\n  detach, connect_areas, spawn_library_item, link_to_library. These\n  append operations to a local staging buffer with deterministic IDs.\n- **Meta tools** - unstage_op, list_world_summary, list_library_summary,\n  request_clarification. Cheap conveniences for the agent to inspect state\n  and interact with the user.\n\nThe chat is genuinely multi-turn: the user can say \"now do the same for\nthe garden\", \"actually change the door to a gate\", \"wait, undo that\", and\nthe agent's response history is the source of truth. The agent can also\n*clarify* - \"Oak Street isn't an area yet, did you mean Main Street or\nshould I create Oak Street?\" - by emitting a structured `request_clarification`\ntool call (which renders interactive choice chips in the UI) or assistant prose.\n\nThe final **commit step** is a separate user action: the agent shows a\ndiff-like preview of everything it staged, the user approves (or rejects,\nor asks for a tweak), and the mutations hit the graph. Staging is a\nlocal buffer; nothing mutates the live world until the user clicks Apply.\nThis makes the loop feel safe.",
+      "implementation_details": "The feature is implemented in `static/js/nl-editor/` and integrated into the app:\n- `static/js/nl-editor/staging.js`: `StagingBuffer` class with deterministic ID generator (`mintId`) and batch topological Apply.\n- `static/js/nl-editor/tools.js`: 20 tool definitions and `OverlayGraphView` merging live and staged states.\n- `static/js/nl-editor/agent-loop.js`: ReAct agent loop with context pruning and library-first system prompt.\n- `static/js/nl-editor/ui.js`: Side panel UI with message bubbles, tool chips, staged ops tray, and clarification options.\n- `static/js/nl-editor/index.js`: Controller singleton (`window.NLEditor`) wired to `worldState`.\n- `static/js/llm-client.js`: Added `tools` and `chatWithTools(messages, options)`.\n- `static/js/context-window.js`: Atomic tool-block preservation during pruning.\n- `static/js/ui/command-palette.js`: Added Cmd-L / Ctrl-L shortcut and palette action.\n- `static/js/ui/help-center.js`: Added coach tip in HelpCenter."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "revision": 3,
+    "inline_meta": {
+      "completed": "2026-08-31",
+      "revision 2": "2026-08-31 - flipped from \"one-shot JSON plan\" to a multi-turn",
+      "revision 3": "2026-08-31 - architectural audit & implementation:",
+      "sister docs": "task-9 (procedural placement), task-376 (draw-a-door wizard),"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md"
+  }
+}

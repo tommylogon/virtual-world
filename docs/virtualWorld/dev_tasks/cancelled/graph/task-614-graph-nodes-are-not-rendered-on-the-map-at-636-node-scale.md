@@ -18,7 +18,7 @@ Nodes do not appear on the map; hundreds of 40px-wide overlapping boxes make lab
 
 - TODO
 
-## Partially disconfirmed 2026-09-30 — left open, content-dependent
+## Partially disconfirmed 2026-09-30 - left open, content-dependent
 
 **At the scale of the loaded world the map is legible.** Screenshot
 `audit/82-graph-default.png`: 19 areas on a painted exterior plus a painted
@@ -45,7 +45,7 @@ on the 205-area case.
 **To settle it:** load `kraktooth_goblin_camp` and screenshot the map at default
 zoom. One screenshot decides this.
 
-## Retracted 2026-10-02 (wt/graph-render) — does not reproduce
+## Retracted 2026-10-02 (wt/graph-render) - does not reproduce
 
 Loaded `kraktooth_goblin_camp` (658 nodes / 207 areas / 361 ways) on port 4464,
 selected Map layout, and measured the **rendered DataSet**, not the DOM (vis
@@ -59,12 +59,12 @@ draws to a canvas). Nodes are rendered at every scope, with labels:
 
 Screenshots `scope-world.png` / `scope-goblin_camp.png` show readable labels
 ("Frozen Lake Clearing", "Camp Entrance", "Shivering Slums", "Deep Forest", …)
-on their painted art. So the filed claim — "Nodes do not appear on the map" — is
+on their painted art. So the filed claim - "Nodes do not appear on the map" - is
 false: they render, and at scope scale the map is legible.
 
 **Surviving nuance.** The whole-world view (658 nodes across four maps totalling
 ~40,000px) fits everything into one viewport, so at that zoom the dots and labels
-are sub-pixel — that is a fit-to-everything overview, not a render failure, and
+are sub-pixel - that is a fit-to-everything overview, not a render failure, and
 the app already provides the two controls that fix it: the scope picker
 (`setScopeFilter`, measured above) and the label LOD + 🔤 Names toggle. The
 non-area markers (items/characters) are deliberately small unlabelled glyphs in

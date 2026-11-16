@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-213",
+  "kind": "task",
+  "number": 213,
+  "title": "Mature Traits & Body Reactions (folded from design v3.1)",
+  "status": "done",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-11",
+  "updated": "2026-08-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-207",
+      "task-208",
+      "task-209",
+      "task-210",
+      "task-211",
+      "task-212",
+      "task-215",
+      "task-253"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The design calls for personality traits that modulate the pleasure system (`wired_differently`, `attention_seeker`, `exhibitionist`, `quick_recovery`, `sensory_memory`, `single_track`, `sex_addict`) plus a set of non-erotic \"body reactions\" (goosebumps, shivers, cough, sneeze, hiccup, itch).",
+    "how": "TODO",
+    "verify": "- [x] `wired_differently` multiplies the authored body parts - `tests/test_pleasure_system.py`\n- [x] `quick_recovery` halves the overstimulation bout - `tests/test_pleasure_system.py`\n- [ ] `sex_addict` doubles Entertainment decay at low arousal - **implemented at\n `engine/tick_manager.py` but untested.** Code presence was previously\n recorded here as if it were verification; it is not.\n- [ ] `sensory_memory` lingering sensitivity - implemented, untested\n- [ ] `attention_seeker` arousal when observed - implemented, untested\n- [x] Adult traits hidden when `mature_content` off - `routes/library_ops.py`\n- [ ] Body reactions work without the mature toggle - true for everything task-166\n shipped (they are condition-driven and independent of `mature_content`); the\n three missing ones are task-534.\n\nThe three untested traits are the honest gap in this task. They are cheap to cover\nand worth adding alongside task-534 rather than reopening 213.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_shipped": "Seven mature trait definitions at `engine/traits.py`, each `\"mature\": True`.\nFive have live consumers:\n\n| Trait | Consumer | Test |\n|-------|----------|------|\n| `wired_differently` | `engine/pleasure_actions.py` (`body_part_multipliers`) | `tests/test_pleasure_system.py` |\n| `quick_recovery` | `engine/tick_manager.py` | `tests/test_pleasure_system.py` |\n| `sensory_memory` | `engine/tick_manager.py` | **none** |\n| `sex_addict` | `engine/tick_manager.py` | **none** |\n| `attention_seeker` | `engine/background_social.py` | **none** |\n\n`body_part_multipliers` rides inside the standard `effects` dict rather than\ninventing a parallel schema key, and is consumed by the pleasure pipeline\n(task-212).\n\nMature gating works: `routes/library_ops.py` (`_filter_mature_entries`)\ndrops `mature: true` entries from the registries unless `mature_content` is on.\nThe definitions stay functional either way, so a save authored with the toggle on\nkeeps working when it is off.\n\n### Inert definitions\n\n`exhibitionist` (`engine/traits.py`) and `single_track` \ndefine their effect flags but **nothing reads them** - there is no\n`has_effect(..., \"exhibitionist\")` or `\"single_track\"` consumer anywhere in the\ntree. They are currently decorative: a character can be assigned either and\nnothing happens. Both were split out rather than left as silent no-ops here:\n\n- **task-487** - exhibitionist trait effect (arousal from being seen)\n- **task-488** - single_track trait effect (gate release to one path)",
+      "body_reactions_the_deferral_did_not_fully_land": "This task originally deferred all body reactions to task-166, on the reasoning that\nthey overlap heavily. task-166 shipped (2026-09-22) and covered most of them as\ncondition-driven speech interruptions in `static/js/agent/involuntary.js`:\n\n| Reaction | Status | Where |\n|----------|--------|-------|\n| hiccup | shipped | `involuntary.js` (`GENERIC_SPEECH` baseline) |\n| shiver | shipped | `involuntary.js` (`hypothermia` → shiver, 0.40) |\n| cough | shipped | `involuntary.js` (`sick` 0.35, `poisoned` 0.40) |\n| stutter / ramble / yelp | shipped (166's own scope) | `involuntary.js-52, 32` |\n| **goosebumps** | **already shipped** | condition at `engine/player_conditions.py`; emote pool in `involuntary.js` |\n| **itch** | **already shipped** | condition in `player_conditions.py` + `data/library/conditions/itch.json`; emote pool; unit test in `test_involuntary.js` |\n| **sneeze** | **missing** | no condition, no trigger - genuinely absent |\n\n> **Correction, 2026-09-27.** An earlier revision of this table said `goosebumps`\n> and `itch` were also missing, on the strength of a regex search that missed\n> `engine/player_conditions.py` entirely (and matched \"pitch\"/\"switch\" inside\n> `pitch_black` and `switch` statements). Re-measured: both were already complete.\n> Only `sneeze` ever was missing, and task-534 shrank to match.\n\nSo the deferral was correct in principle, but the receiving task took only one of\nthe items 213 flagged as \"what task-166 misses\" - the other two were never\nmissing at all (see the correction above). The one real gap, `sneeze`, is now\n**task-534**.",
+      "related": "- task-487 - exhibitionist trait effect (inert here)\n- task-488 - single_track trait effect (inert here)\n- task-534 - goosebumps / sneeze / itch, the body reactions 213 deferred and\n task-166 did not deliver\n- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §7, §Additions #2/#4\n- task-166 (done) - involuntary actions; covered hiccups, burps, yelps, stutters,\n shiver, cough, ramble\n- task-212 - verb multipliers (`body_part_multipliers` consumer)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Pleasure System",
+    "inline_meta": {
+      "closed": "2026-09-27"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-213-mature-traits.md"
+  }
+}

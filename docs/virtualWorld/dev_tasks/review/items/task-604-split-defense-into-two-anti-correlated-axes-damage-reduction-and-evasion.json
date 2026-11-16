@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "id": "task-604",
+  "kind": "task",
+  "number": 604,
+  "title": "Split defense into two anti-correlated axes: damage reduction and evasion",
+  "status": "review",
+  "priority": "high",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-607",
+      "task-606"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**DECIDED 2026-09-30 by Tommy:** split defence into **damage reduction** and an\n**evasion bonus**.\n\n- `damage_reduction` -- how much damage does not get through.\n- `evasion` -- a **signed** bonus applied on the attack side. Positive is harder\n  to hit, negative is easier. Heavy armour is meant to be *easier* to hit and\n  much harder to kill in, so plate needs a negative evasion, and an author\n  writing that has to be a deliberate act rather than an omission.\n\nBoth replace the single `defense` integer, which is currently spent only as\nflat damage reduction at `combat.py:250/260/367`. No evasion concept exists in\n`engine/` today.\n\nThe two axes are deliberately anti-correlated, so the palette has to make the\ntrade legible: a player choosing between light and heavy is trading \"how often I\nam hit\" against \"how much each hit matters\".\n\n'defense' is one integer spent only as flat damage reduction (combat.py:250/260/367). Add a signed 'evasion' field applied on the attack side, so heavy armor is easier to hit but far harder to kill in. No evasion concept exists in engine/ today.",
+    "why": "A single defense integer collapsed two fundamentally distinct defensive mechanics: how hard a target is to hit (evasion/agility) and how much incoming damage is absorbed when hit (damage reduction/armor). Under the single-integer model, heavy plate and nimble leather either had identical combat effects or made plate wearers impossible to hit. Splitting defense into signed evasion and damage_reduction allows meaningful trade-offs where heavy armor makes characters easier to hit but much harder to damage, while agile gear helps dodge strikes entirely.",
+    "how": "1. In engine/equipment_bonuses.py, aggregate damage_reduction (with backward-compatible fallback to defense) and signed evasion.\n2. In engine/combat.py, compute target_evasion and evaluate hit contest as attack_roll >= defense_roll + target_evasion.\n3. Support dice strings (e.g. 'd8') in damage reduction without type errors in decrement_armor_uses_on_hit.\n4. Author contrasting items: plate_cuirass (high DR, negative evasion) and duelists_leathers (low DR, positive evasion).",
+    "verify": "1. Run defense axes unit test suite (python -m pytest tests/test_defense_axes.py).\n   - expected: All tests pass covering evasion contest math, damage reduction absorption, and legacy defense backward compatibility.\n   - observed: Tested and verified in unit suite.\n2. Resolve a combat attack against a target wearing negative evasion armor (e.g. plate).\n   - expected: Attack roll hits against lowered threshold; combat log explicitly reports evasion modifier and reduced incoming damage.\n   - observed: Verified in combat roll logs.\n3. Load legacy item with only defense declared.\n   - expected: Item functions identically with defense mapped to damage_reduction and evasion defaulting to 0.\n   - observed: Confirmed in regression tests.",
+    "acceptance": [
+      {
+        "text": "An equipped item can carry a signed `evasion`; it is summed across worn",
+        "done": true
+      },
+      {
+        "text": "pieces and applied on the attack side (`attack_roll >= defense_roll +",
+        "done": false
+      },
+      {
+        "text": "evasion`). Positive is harder to hit, negative easier, omitted is 0.",
+        "done": false
+      },
+      {
+        "text": "`damage_reduction` is the canonical name for the old `defense` value, with",
+        "done": true
+      },
+      {
+        "text": "`defense` still read as an alias so the ~1800 existing items are unchanged.",
+        "done": false
+      },
+      {
+        "text": "`aggregate_bonuses` returns both axes (`damage_reduction`,",
+        "done": true
+      },
+      {
+        "text": "`damage_reduction_dice`, `evasion`) and keeps `defense`/`defense_dice` as",
+        "done": false
+      },
+      {
+        "text": "aliases for existing callers.",
+        "done": false
+      },
+      {
+        "text": "Library placement copies both axes (`library_nodes.py`) and scenario",
+        "done": true
+      },
+      {
+        "text": "assembly/sync round-trips them, so an authored axis is not silently lost.",
+        "done": false
+      },
+      {
+        "text": "Authored content exercising the trade: `plate_cuirass` (high DR, negative",
+        "done": true
+      },
+      {
+        "text": "evasion) and `duelists_leathers` (low DR, positive evasion).",
+        "done": false
+      },
+      {
+        "text": "Isolation tests: `tests/test_defense_axes.py` covers the axes, aliases,",
+        "done": true
+      },
+      {
+        "text": "and the evasion/miss contest.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/equipment_bonuses.py",
+      "engine/combat.py",
+      "engine/equipment.py",
+      "tests/test_defense_axes.py"
+    ],
+    "custom": {
+      "resolution_2026_10_02": "Implemented. The two axes are deliberately anti-correlated in the authored\nitems: plate is easier to hit and hard to kill in; leather is the reverse.\n\n- `engine/equipment_bonuses.py` reads `damage_reduction` (falling back to\n  `defense`) and a signed integer `evasion`, returning both plus legacy aliases.\n  Evasion is an int on purpose: a random per-hit contour would make a heavy suit\n  sometimes easy and sometimes hard to hit for no authored reason.\n- `engine/combat.py` computes `target_evasion` before the contest and compares\n  `attack_roll >= defense_roll + target_evasion`; the log names it\n  (`+ N evasion`) only when non-zero, so existing logs are unchanged.\n- `engine/equipment.py:decrement_armor_uses_on_hit` no longer calls `int()` on\n  `defense`, which would raise on a task-607 dice expression (`\"d8\"`).\n\nNot done here: the editor palette that makes the trade visible is a UI surface;\nthe data model and combat resolution now carry both values for it to render.",
+      "browser_ui": "Intended UI home: equip items with signed `evasion` and `damage_reduction` → resolve an attack → inspect the combat log and equipment detail.\n\nCurrent availability: the card records the signed evasion/damage-reduction split as decided and tested, including a legacy `defense` alias. The live UI should expose both axes distinctly without changing existing items.\n\nLive steps when available:\n1. Equip plate with negative evasion and nonzero damage reduction; have an attacker make a controlled attack.\n   - expected: negative evasion makes the wearer easier to hit while damage reduction lowers damage after a hit; these effects are reported separately.\n2. Equip a positive-evasion item and repeat with the same attack inputs.\n   - expected: positive evasion makes the target harder to hit and is applied on the attack side.\n3. Compare two armor pieces and the aggregate character defense in Inventory/Paperdoll.\n   - expected: evasion sums across worn pieces and damage reduction is aggregated independently; omitted evasion reads as zero.\n4. Load an old item using `defense` and inspect the result.\n   - expected: legacy defense maps to canonical damage reduction without changing the old item's behavior.\n\nThis section is not a claim that the live equipment display exposes both axes today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-604-split-defense-into-two-anti-correlated-axes-damage-reduction-and-evasion.md"
+  }
+}

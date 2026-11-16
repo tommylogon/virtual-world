@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "id": "task-488",
+  "kind": "task",
+  "number": 488,
+  "title": "Single Track trait effect: gate release to one path",
+  "status": "done",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-213",
+      "task-545",
+      "task-546"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Wire the single_track trait effect, which is currently defined but inert (effects: {single_track: true}, no consumer): gate the release path to a single predefined route so other stimulation only builds frustration. Tracked from task-213.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**`single_track` gains a live consumer that gates release to one designated",
+        "done": true
+      },
+      {
+        "text": "path** - it was `effects: {single_track: true}` with no consumer, and now",
+        "done": false
+      },
+      {
+        "text": "the release cascade asks `_release_gate` before firing.",
+        "done": false
+      },
+      {
+        "text": "**Other stimulation builds frustration/edging instead of triggering",
+        "done": true
+      },
+      {
+        "text": "release** - a refused build gets `frustrated` (task-546), so a gated",
+        "done": false
+      },
+      {
+        "text": "character is never left sitting at 65 with nothing to show for it.",
+        "done": false
+      },
+      {
+        "text": "**Only active when `world.mature_content` is on** - the gate lives inside",
+        "done": true
+      },
+      {
+        "text": "`_pleasure_tick`, which returns before it when the toggle is off, and the",
+        "done": false
+      },
+      {
+        "text": "designated route is read from the trait's own `mature: true` flag.",
+        "done": false
+      },
+      {
+        "text": "**Tests asserting a non-designated path does not release and the designated",
+        "done": true
+      },
+      {
+        "text": "path does** - plus that non-carriers and a trait with no named route are",
+        "done": false
+      },
+      {
+        "text": "both completely unaffected.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "blocked_2026_09_27_two_prerequisites_do_not_exist": "Re-measured before implementing: gating a release by path needs two things the\nengine cannot currently express.\n\n- **No path tracking.** `engine/pleasure_actions.py` `apply_stimulation()` already\n  receives `verb`, `region_id`, `intensity` and coverage, then folds all of it into\n  one integer on `vitals[\"Stimulation\"]` and discards the inputs. The release\n  check in `engine/tick_manager.py` reads a bare scalar\n  (`if stim >= 65 and arousal >= 40:`), with no memory of how the meter got there.\n- **No frustration state.** There is no frustration value, condition, or\n  accumulator anywhere. The only outlet for a full meter is the same release\n  cascade, so \"other stimulation builds frustration\" currently has nowhere to go.\n- Also unresolved: the mature arousal conditions and the clothing-friction trickle\n  add `Stimulation` on their own, so a \"designated path only\" gate has to decide\n  what it does with a background drip that is not on any path.\n\nBuild task-545 (path tracking) and task-546 (frustration) first; this task then\nbecomes a gate over the recorded path plus a consumer of the frustration state.",
+      "implementation_2026_10_02_wt_characters_engine": "The two blockers named in the \"Blocked\" note above are now built (task-545 path\ntracking, task-546 frustration), so this is the gate those two existed for.\n\n### Files\n\n- `engine/tick_manager.py` - `_release_gate`, `_single_track_designated`, and the\n  call site inside the release branch of `_pleasure_tick`.\n- `tests/test_stimulation_paths.py` - the gate tests.\n\n### The decisions\n\n1. **A gate, not a branch inside the cascade.** `_release_gate(p, stim)` returns\n   `(allowed, reason)`, and for anyone without the trait that is `(True, \"\")` -\n   the ordinary cascade is provably untouched, which is what the task asks for and\n   what makes it safe to add.\n2. **The designated route lives in the trait params** (`path`, or `region`, or\n   `route`), where the task said it would, rather than in a new field on the\n   character. This also means an author sets it on the trait instance:\n   `\"single_track\": {\"path\": \"genitals\"}`.\n3. **An unnamed route makes the trait inert.** \"Single track\" with no track named\n   is not a rule an engine can execute, and inventing one would gate every\n   character with the trait to an arbitrary region. `data/library/traits/\n   single_track.json` ships with `params: null`, so the trait is opt-in per\n   character rather than active-and-wrong for everyone who has it.\n4. **An ancestor route matches a more specific record.** Naming `torso` covers a\n   record under `genitals` (via `engine.body_parts.region_chain`), so an author is\n   not forced to know which sub-region the engine resolves for them. An exact\n   match is checked first, so naming the precise route is worth doing.\n5. **The gate reads the recorded path, not history** - `stimulation_from_path`,\n   which is task-545's whole point.\n\n### The bug the negative test caught\n\n`_single_track_designated` matched an ancestor route with\n`if key in region_chain(key)` - true for every key - instead of\n`if named in region_chain(key)`. It therefore returned the *first recorded path*\nwhatever the trait named, so the gate released every build and the trait was a\nno-op. Every positive assertion passes with that bug in place; only\n\"a non-designated path does not release\" catches it.\n\n### Verify\n\n```\npython -m pytest tests/test_stimulation_paths.py -q                           # 21 passed\npython -m pytest tests/test_pleasure_system.py tests/test_body_parts.py \\\n  tests/test_conditions.py tests/test_traits.py \\\n  tests/test_stimulation_paths.py -q                                          # 225 passed\n```\n\n**Full suite compared by failure NAME against the clean-master baseline**: 15\nfailed on both, `Compare-Object` empty.\n\n\n### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`\n\nEach case: a probe character with `mature_content` on, one `caress` applied, the\nmeter forced past the threshold, then `_pleasure_tick`.\n\n```\n=== task-545: the path is recorded and read by the gate ===\n  designated path        report.path='genitals'   conditions=['overstimulated', 'satisfied']\n   recorded paths: {}              <- cleared by the release, as designed\n\n=== task-488: the gate ===\n  designated path        report.path='genitals'   conditions=['overstimulated', 'satisfied']\n  WRONG path             report.path='mouth'      conditions=['frustrated']\n\n=== task-488: non-carriers and an unnamed route are untouched ===\n  no trait               report.path='mouth'      conditions=['overstimulated', 'satisfied']\n  trait, no route        report.path='mouth'      conditions=['overstimulated', 'satisfied']\n\n=== task-546: the ordinary cascade and the discharge ===\n  after a release, frustrated present? False\n  satisfied present? True\n```\n\nThe designated route releases; a wrong route produces `frustrated` and no\nrelease; a non-carrier and a trait with no named route are byte-identical to the\npre-change behaviour; and a release discharges the frustration it created."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-488-single-track-trait-effect-gate-release-to-one-path.md"
+  }
+}

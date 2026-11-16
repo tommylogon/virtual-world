@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "task-99",
+  "kind": "task",
+  "number": 99,
+  "title": "Area Grids - Movement Costs, Size/Shape, and Pathfinding",
+  "status": "review",
+  "priority": "low",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-07-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Currently areas are dimensionless nodes - you're either *in* a room or you're not. This task adds a 2D grid to areas, allowing movement costs, item positioning, and NPC pathfinding within areas.",
+    "why": "The scope-level grid now owns cell structure (engine/world_grid.py and engine/world_compile.py compile cells into area/way nodes with properties.cell), so duplicating world-scale grid into rooms is not required. What remains open is intra-area micro-positioning, per-tile movement costs, item/character cell positions inside an area, and NPC pathfinding within that area. Without that, area interiors remain dimensionless and movement costs cannot vary by terrain (rubble/water/stairs), and NPCs cannot plan short-range routes to exits/items/characters inside the same area. This task adds the minimal intra-area grid model and pathfinding so within-area behavior is modeled consistently with the existing movement system.",
+    "how": "Grounded in reconnaissance: reuse existing systems (engine/movement.py directional/door checks, Player manager location) and add an intra-area grid on areas plus A*.\n\n1. **Phase 1 - Data model + move_to**: extend area representation (room.py / area schema) to support an intra-area grid with width/height, tile types, tile costs, item/character positions, and exit cell coordinates. Add `move_to [x] [y]` and `move_to [item]` handling in engine/movement.py that reads tile costs and updates character cell position within the same area (respecting blocked/impassable tiles). Treat scope grid as source of truth for cell identity (properties.cell = \"<scope>:<x>,<y>\") where applicable.\n2. **Phase 2 - Pathfinding**: create engine/pathfinding.py implementing A* on the intra-area grid using per-tile costs; support 4-neighborhood by default with optional diagonal toggle if authored.\n3. **Phase 3 - Grid visualization**: add static/js/inspector/room-view.js grid view (toggleable) showing tile types, costs, character/item positions, and exit markers.\n4. **Phase 4 - NPC integration + procedural generation**: wire engine/npc_behaviors.py to use grid pathfinding for intra-area destinations; allow library/world templates to author intra-area grid data and ensure serialization persists it. Keep graph-level area identity unchanged.",
+    "verify": "1. A* pathfinding on various grid layouts\n   - expected: A* returns shortest path by tile costs on open, obstacle, and maze layouts.\n   - observed: Not run live; reconnaissance confirms scope grid exists but intra-area A* not implemented.\n\n2. Movement cost calculation\n   - expected: moving across tiles with different costs (floor/rubble/water/stairs) sums costs correctly and blocks impassable tiles (wall/blocked).\n   - observed: Not run live; movement.py does not currently read intra-area tile costs.\n\n3. NPC pathfinding integration\n   - expected: NPCs pathfind within area to exits/items/characters using same grid/cost rules; area-level graph location unchanged until exiting through a way.\n   - observed: Not run live; engine/npc_behaviors.py not wired to intra-area pathfinding.\n\n4. Serialization\n   - expected: intra-area grid + item/character positions survive save/load.\n   - observed: Not run live; intra-area grid not persisted/loaded today.",
+    "acceptance": [
+      {
+        "text": "Intra-area grid data model exists on areas with width/height, tiles, costs, item/character positions, and exit coords.",
+        "done": false
+      },
+      {
+        "text": "`move_to [x] [y]` and `move_to [item]` work within current area with per-tile movement costs and impassable tile blocking.",
+        "done": false
+      },
+      {
+        "text": "engine/pathfinding.py provides A* over intra-area grid used by engine/npc_behaviors.py for intra-area navigation.",
+        "done": false
+      },
+      {
+        "text": "Serialization persists intra-area grid and positions; reload restores them.",
+        "done": false
+      }
+    ],
+    "files": [
+      "room.py` - add intra-area grid field with tile data, item/character positions, exit coords",
+      "engine/movement.py` - add `move_to` coordinate/item handlers and movement cost calculation",
+      "engine/pathfinding.py` - new A* module for intra-area pathfinding",
+      "engine/npc_behaviors.py` - use pathfinding for NPC movement within area",
+      "virtual_world_engine.py` - wire new movement costs",
+      "static/js/inspector/room-view.js` - grid visualization",
+      "static/js/graph/` - optional grid overlay on areas",
+      "data/library/` / `world_template.json` / scenario areas - intra-area grid data (authored)",
+      "engine/world_grid.py`, `engine/world_compile.py` - scope grid substrate (read-only reference; do not duplicate world-scale grid)"
+    ],
+    "custom": {
+      "what_already_exists": "- Rooms have `exits` with `blocked` state\n- Movement is handled by `engine/movement.py` (directional, door-checking)\n- Player manager tracks which room each character is in\n- Some areas have environment properties (light, temp, etc.)",
+      "what_s_missing": "### 1. Area Grid Data Model\n\nAdd a grid field to areas:\n```python\nroom.grid = {\n    \"width\": 10,\n    \"height\": 10,\n    \"tiles\": [\n        [\"floor\", \"floor\", \"wall\", \"floor\", \"floor\", ...],\n        ...\n    ],\n    \"costs\": {\n        \"floor\": 1,\n        \"wall\": 99,  # impassable\n        \"rubble\": 3,\n        \"water\": 2,\n        \"carpet\": 1,\n        \"stairs\": 0  # exit point\n    },\n    \"items\": {\n        \"item_rusty_key\": {\"x\": 3, \"y\": 5},\n        \"item_candle\": {\"x\": 1, \"y\": 1}\n    },\n    \"characters\": {\n        \"player_traveler\": {\"x\": 0, \"y\": 0}\n    },\n    \"exits\": {\n        \"north\": {\"x\": 5, \"y\": 0},\n        \"south\": {\"x\": 5, \"y\": 9}\n    }\n}\n```\n\n### 2. Movement Within Rooms\n\n- `move_to [x] [y]` - move to specific grid coordinate within current room\n- `move_to [item]` - move adjacent to specified item\n- Movement cost depends on tile type (walking on rubble costs 3 AP)\n- Items/characters have positions within the grid\n\n### 3. Pathfinding (A*)\n\n- NPCs can pathfind across room grids to reach exits, items, or other characters\n- `engine/pathfinding.py` - A* implementation using tile costs\n- Consider diagonal movement (optional, user-configurable)\n\n### 4. Area Size/Shape\n\n- Area dimensions defined in `room.grid.width` and `room.grid.height`\n- Shape defined by tile types (walls define boundaries)\n- Exits positioned at specific grid edges\n- Procedural room generation from templates\n\n### 5. UI Considerations\n\n- Area grid view in inspector (toggleable)\n- Character/item positions visible on grid, draggable\n- Movement cost feedback (e.g. \"Moving there costs 3 energy\")",
+      "implementation_order": "1. **Phase 1**: Area grid data model + basic `move_to` command (engine + room.py)\n2. **Phase 2**: A* pathfinding (new engine module)\n3. **Phase 3**: Grid visualization in inspector (frontend)\n4. **Phase 4**: NPC pathfinding + procedural generation",
+      "plan_position_2026_10_20_the_approach_changed_the_card_survived": "**The approach changed, and the newer work is what changed it.** This card was\nfiled 2026-07-24 assuming areas would internally own 2D grids (`room.grid`).\nWorldPainter inverted that hierarchy: **world scopes own the 2D grid**\n(`engine/world_grid.py`), and the compiler (`engine/world_compile.py`) compiles\nthose cells *into* area and way nodes.\n\n| | Original plan (2026-07-24) | After WorldPainter / task-884 (2026-10-20) |\n|---|---|---|\n| Who owns the grid | each area, as `room.grid` | the world scope, in `engine/world_grid.py` |\n| How a position is expressed | an area-local grid index | `properties.cell` = `<scope>:<x>,<y>` on the area/way node |\n| What this card owns | the whole grid model | the **intra-area** layer only: micro-positioning, per-tile costs, A* |\n\nThe card must therefore **not** re-introduce a competing grid. It adds a\n*second, finer* layer underneath the scope grid, for movement inside one area -\nwhich the scope grid cannot express, because a scope cell is a place, not a\nposition within a place.\n\n**Measured 2026-10-20, to confirm the surviving scope is real:**\n\n- `engine/world_grid.py` exists, and `engine/world_compile.py` writes cell\n  coordinates onto compiled nodes (`:1048`, `:2022`, `:2162`, `:2787`).\n- A `room.grid`-style attribute does **not** exist: searching `engine/` for\n  `room.grid` or a bare `.grid` returns **0** hits. The duplication risk the\n  architectural note warns about is real and still live.\n- A* is **not** implemented: the only `heapq` use in `engine/` is\n  `engine/sound.py:174,216` (sound propagation), not pathfinding.\n- `engine/npc_behaviors.py` is not wired to any intra-area pathfinder.\n\n**Verdict: the approach is narrowed, not replaced.** The card remains a\ndistinct piece of the plan - the intra-area layer is unclaimed by anything\nnewer - but it is now a *sub-layer* of the scope grid rather than a\nreplacement for it. Its `## How` already reflects this (\"Treat scope grid as\nsource of truth for cell identity\"), and its `## Files` already flags\n`engine/world_grid.py` as a read-only reference: *\"do not duplicate world-scale\ngrid\"*. No rewrite is needed; the narrowing is already written down.",
+      "browser_ui": "Intended UI home: select an area → open its local grid/map view → move a character between cells and inspect item placement and NPC path movement within that area.\n\nCurrent availability: areas are currently dimensionless graph nodes according to this card. The 2D room grid, within-area movement costs, positioned items, and NPC pathfinding are planned; this section does not claim a grid UI exists today.\n\nLive steps when available:\n1. Open a scratch area's grid, place a character and an item in distinct cells, then move the character toward the item.\n   - expected: the character changes cell along a valid path and its movement cost reflects the crossed cells; the item remains at its authored position.\n2. Place an obstacle between the character and target, then request movement again.\n   - expected: pathfinding routes around the obstacle when a route exists and refuses movement when the grid truly blocks all routes.\n3. Give an NPC a destination in the same area and let its normal movement run.\n   - expected: the NPC follows the same grid path/cost rules as the controlled character; area-level graph location remains the same until it exits through a way.\n4. Reload the scenario and inspect the grid and item positions.\n   - expected: authored cell placement persists; runtime movement state follows its documented save behavior.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Rooms & Areas]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-99-room-grids-and-movement.md"
+  }
+}

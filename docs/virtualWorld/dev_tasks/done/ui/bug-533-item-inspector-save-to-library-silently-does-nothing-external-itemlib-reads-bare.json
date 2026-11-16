@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "id": "bug-533",
+  "kind": "bug",
+  "number": 533,
+  "title": "Item inspector 'Save to Library' silently does nothing: _external('itemLib') reads bare window, but the library is only published as VW.itemLib",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-50",
+      "rename",
+      "no-ops",
+      "task-446",
+      "node",
+      "identity"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "In the item inspector, the **📚 Save to Library** button does nothing - no event-log\nline, no console output, no backend request. User-reported on a goblin spear from\nthe world. Root cause confirmed by reading the load path.\n\nThe button (`static/js/inspector/item-view.ts:643`):\n\n    <button ... @click=${() => _external('itemLib')?.saveWorldItem(nodeId)}>📚 Save to Library</button>\n\n`_external` (`item-view.ts:133-136`) resolves names from **bare `globalThis`**:\n\n    const value = (globalThis as unknown as Record<string, unknown>)[name];\n    return (value === undefined ? null : value) as ...;\n\nBut the item library is published only under the `VW` namespace:\n\n- `static/js/main.ts:22` - `window.VW = {};`\n- `static/js/main.ts:81` - `VW.itemLib = itemLib;`\n\nBare `window.itemLib` / `globalThis.itemLib` is never set. So `_external('itemLib')`\nreturns `null`, and the optional-chaining call `?.` short-circuits: the click runs\nno code, logs nothing, and reaches no endpoint. A silent no-op, not an error.\n\nThe codebase already documents this exact trap at\n`static/js/library-browser.ts:39` - *\"a load-time snapshot (`window.itemLib`) was\nalways undefined\"* - so resurrecting `window.itemLib` is the wrong fix.\n\nSame latent failure at `item-view.ts:818`, which builds the save payload's trigger\nlist with `_external('itemLib')?._extractTriggersFromEdges(nodeId)` - with the\nreference null, the triggers array is silently empty.\n\nWorked example of the *working* pattern: `InspectorPanel` and `TagMultiselect` are\npublished **bare on `window`** (`inspector/panel.ts:85`, `window.InspectorPanel = …`),\nwhich is why `_external('InspectorPanel')` resolves and `_external('itemLib')` does\nnot. The mismatch is the bug: the resolver expects bare globals, the publisher uses\nthe `VW` namespace.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: clicking Save to Library reaches saveWorldItem (library read/diff).\n- observed (2026-10-10, live): VW.itemLib.saveWorldItem is a function, window.itemLib is undefined; clicking the button fired two GET /api/library/items (the diff modal) and opened the modal; no 'missing external' console.warn.",
+    "acceptance": [
+      {
+        "text": "The resolver matches the publisher: `_external` now falls back to `VW[name]`",
+        "done": true
+      },
+      {
+        "text": "(`static/js/inspector/item-view.ts:133`), so `_external('itemLib')` resolves `VW.itemLib`.",
+        "done": false
+      },
+      {
+        "text": "`_extractTriggersFromEdges` at `item-view.ts:818` resolves through the same",
+        "done": true
+      },
+      {
+        "text": "resolver, so the saved payload carries triggers.",
+        "done": false
+      },
+      {
+        "text": "A missing external is no longer swallowed silently: `_external` logs one",
+        "done": true
+      },
+      {
+        "text": "`console.warn` per name when neither `window[name]` nor `VW[name]` exists.",
+        "done": false
+      },
+      {
+        "text": "Audited call sites: `itemLib` was the only `VW`-namespace-only name;",
+        "done": true
+      },
+      {
+        "text": "`InspectorPanel`/`TagMultiselect`/`SearchSelect`/`TriggerTypes`/`reinitChoices`/",
+        "done": false
+      },
+      {
+        "text": "`hideInspectorPanel` all resolve (bare or via `VW`).",
+        "done": false
+      },
+      {
+        "text": "Live: clicking **Save to Library** on a world item reaches `saveWorldItem`",
+        "done": false
+      },
+      {
+        "text": "(library write or DiffModal + event-log line). Needs a reload.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Graph → select a world item → Item Inspector → 📚 Save to\nLibrary.\n\nCurrent availability: The resolver fix is implemented. A click after loading the\nupdated client opened the library diff modal and issued library reads on\n2026-10-10; the acceptance box for a completed save and trigger preservation is\nstill unchecked, so those outcomes are not claimed as verified.\n\nLive steps when available:\n1. Reload the app, select a world item that has at least one trigger edge, open\n   its Item Inspector, and click 📚 Save to Library; inspect the event stream,\n   console, and network requests.\n   - expected: `saveWorldItem` runs, the diff modal or save result opens, the\n     library API is reached, and no missing-external warning appears.\n2. Review the proposed library entry's trigger list, accept the save, then open\n   the same library entry in Library Browser.\n   - expected: the saved item contains the source trigger list and can be read\n     back; the item inspector reports the save result instead of silently doing\n     nothing.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-533-item-inspector-save-to-library-silently-does-nothing-external-itemlib-reads-bare-window-but-the-library-is-only-published-as-vw-itemlib.md"
+  }
+}

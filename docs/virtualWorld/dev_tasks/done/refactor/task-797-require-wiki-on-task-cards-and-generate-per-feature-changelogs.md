@@ -14,7 +14,7 @@ wiki: "[[Feature Map]]"
 
 ## What
 
-Make `wiki:` required on new task cards, and generate a `## Changelog` on each feature page from the tasks whose `wiki:` points at it — so every feature carries a real, dated history of what changed and why.
+Make `wiki:` required on new task cards, and generate a `## Changelog` on each feature page from the tasks whose `wiki:` points at it - so every feature carries a real, dated history of what changed and why.
 
 ## Why
 

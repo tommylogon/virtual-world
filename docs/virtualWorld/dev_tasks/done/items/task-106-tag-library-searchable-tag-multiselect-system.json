@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-106",
+  "kind": "task",
+  "number": 106,
+  "title": "Tag Library + Searchable Tag Multiselect System",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-26",
+  "updated": "2026-07-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Tags are currently freeform strings scattered across items, characters, and rooms with no central registry, no autocomplete, and no consistent UI. Every place that edits tags has its own duplicated input pattern. This task creates a proper tag library and replaces all tag inputs with a searchable multiselect component.\n\n**Why this matters:** Tags are becoming a core query system (see task-98 Phase 1). Triggers use `target_tag`, agents will use `interest_tags`, and the `find` command will search by tag. Without a library, tags drift - \"flammable\" vs \"flamable\", \"magic\" vs \"magical\" - and queries break silently.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "phase_1_tag_library_backend": "### 1.1 Create `data/library/tags/` directory\n\nPer-file JSON registry, same pattern as traits/conditions/behaviours:\n\n```json\n// data/library/tags/flammable.json\n{\n  \"id\": \"flammable\",\n  \"name\": \"Flammable\",\n  \"description\": \"Can be set on fire and burn\",\n  \"category\": \"physical\",\n  \"color\": \"#ff6600\",\n  \"icon\": \"🔥\",\n  \"applies_to\": [\"items\"],\n  \"examples\": [\"wooden chair\", \"curtains\", \"paper\"]\n}\n```\n\n```json\n// data/library/tags/magic.json\n{\n  \"id\": \"magic\",\n  \"name\": \"Magic\",\n  \"description\": \"Magical or enchanted\",\n  \"category\": \"essence\",\n  \"color\": \"#9944ff\",\n  \"icon\": \"✨\",\n  \"applies_to\": [\"items\", \"characters\", \"rooms\"],\n  \"examples\": [\"enchanted sword\", \"wizard\", \"arcane chamber\"]\n}\n```\n\nFields:\n- `id` - unique slug (lowercase, underscores)\n- `name` - display name\n- `description` - what this tag means\n- `category` - grouping category (physical, essence, location, state, faction, etc.)\n- `color` - hex color for UI badge\n- `icon` - emoji icon for UI badge\n- `applies_to` - which entity types this tag is valid for: `[\"items\"]`, `[\"characters\"]`, `[\"rooms\"]`, or combinations\n- `examples` - example usages for documentation/autocomplete hints\n\n### 1.2 Add `tags` to `REGISTRY_TYPES` in `routes/library_routes.py`\n\nAdd `'tags'` to the `REGISTRY_TYPES` list so it gets the generic CRUD routes automatically.\n\n### 1.3 Add `tags` tab to `LibraryBrowser` in `static/js/library-browser.js`\n\n- Add `tags` to the data object, `_getEditorConfigs()`, and all the id/count/search maps\n- Editor fields: name, description, category (select), color (color picker or text), icon (text), applies_to (multiselect checkboxes: items/characters/rooms), examples (textarea, one per line)\n- Icon: `🏷️`\n\n### 1.4 Tag validation endpoint\n\nNew route `GET /api/tags/validate` that checks a list of tag strings against the library and returns unknown/misspelled tags with suggestions:\n\n```json\nGET /api/tags/validate?tags=flammable,flamable,magik\n→ {\n  \"valid\": [\"flammable\"],\n  \"unknown\": [\n    {\"tag\": \"flamable\", \"suggestion\": \"flammable\"},\n    {\"tag\": \"magik\", \"suggestion\": \"magic\"}\n  ]\n}\n```\n\nUses simple Levenshtein or prefix matching for suggestions.\n\n### 1.5 Tag autocomplete endpoint\n\nNew route `GET /api/tags/search?q=flam` that returns matching tags from the library:\n\n```json\nGET /api/tags/search?q=flam\n→ [\n  {\"id\": \"flammable\", \"name\": \"Flammable\", \"icon\": \"🔥\", \"color\": \"#ff6600\"},\n  {\"id\": \"flame_retardant\", \"name\": \"Flame Retardant\", \"icon\": \"🛡️\", \"color\": \"#3366ff\"}\n]\n```\n\n### Files to touch (Phase 1)\n- `data/library/tags/` - new directory with seed files\n- `routes/library_routes.py` - add `'tags'` to REGISTRY_TYPES\n- `routes/tags.py` - new route module for validate + search endpoints\n- `routes/__init__.py` - register new route module\n- `static/js/library-browser.js` - add tags tab\n\n---",
+      "phase_2_searchable_tag_multiselect_component_frontend": "### 2.1 Create `static/js/shared/tag-multiselect.js`\n\nA reusable UI component class `TagMultiselect` that replaces all current tag inputs:\n\n```\n┌─────────────────────────────────────┐\n│ 🔥 flammable ✕  ✨ magic ✕  📦 metal ✕  │\n│ [type to search...            ▼]    │\n│ ┌─────────────────────────────┐     │\n│ │ 🔥 Flammable    (physical)  │     │\n│ │ ✨ Magic        (essence)   │     │\n│ │ 📦 Metal        (physical)  │     │\n│ │ 🪵 Wooden       (material)  │     │\n│ └─────────────────────────────┘     │\n└─────────────────────────────────────┘\n```\n\n**Features:**\n- Text input with debounced autocomplete dropdown (queries `/api/tags/search`)\n- Selected tags shown as colored badges with ✕ remove button\n- Dropdown shows icon + name + category, filtered by typed text\n- Click dropdown item to add, click ✕ to remove\n- Keyboard navigation: up/down arrows, enter to select, escape to close\n- If user types a tag that doesn't exist in library, show a \"+ Create 'tagname'\" option at bottom of dropdown\n- Optional `applies_to` filter (e.g., only show tags that apply to items)\n- Emits `change` event with current tag list\n\n**API:**\n```js\nnew TagMultiselect(containerElement, {\n  tags: ['flammable', 'magic'],     // initial tags\n  appliesTo: 'items',                // optional filter\n  allowNew: true,                    // allow creating new tags on the fly\n  placeholder: 'Search tags...',\n  onChange: (tags) => { ... }        // callback when tags change\n})\n```\n\n### 2.2 Replace tag inputs in Inspector views\n\n**`static/js/inspector/item-view.js`** - `_renderTagsSection()` at ~line 232:\n- Replace the current text input + badge pattern with `TagMultiselect`\n- Filter: `appliesTo: 'items'`\n\n**`static/js/inspector/agent-view.js`** - `_addTag()` at ~line 370:\n- Replace the current text input + badge pattern with `TagMultiselect`\n- Filter: `appliesTo: 'characters'`\n\n**`static/js/inspector/room-view.js`** - if it has tag editing:\n- Replace with `TagMultiselect`\n- Filter: `appliesTo: 'rooms'`\n\n### 2.3 Replace tag inputs in Library Browser\n\n**`static/js/library-browser.js`** - character and room editors:\n- Replace the `tags (comma-separated)` text field with `TagMultiselect`\n- On save, serialize as comma-separated or array\n\n### 2.4 Replace tag input in Trigger Editor\n\n**`static/js/shared/trigger-editor.js`** - if it has tag fields for `target_tag`:\n- Replace with `TagMultiselect` (single-select mode for `target_tag`)\n\n### Files to touch (Phase 2)\n- `static/js/shared/tag-multiselect.js` - new component\n- `static/js/inspector/item-view.js` - replace tag input\n- `static/js/inspector/agent-view.js` - replace tag input\n- `static/js/inspector/room-view.js` - replace tag input (if exists)\n- `static/js/inspector/helpers.js` - can remove `addTag`/`removeTag` (replaced by component)\n- `static/js/library-browser.js` - replace tag text fields\n- `static/js/shared/trigger-editor.js` - replace tag fields\n- `templates/index.html` - add script tag for new module\n\n---",
+      "phase_3_tag_propagation_validation": "### 3.1 Auto-register new tags\n\nWhen a tag is added to an item/character/room that doesn't exist in the library:\n- If `allowNew: true`, create a minimal entry in the tag library automatically\n- Fields: `id` (slug), `name` (humanized), `description` (empty), `category` (\"custom\"), `color` (auto from hash), `icon` (\"🏷️\"), `applies_to` (from context)\n- This keeps the library self-populating without manual data entry\n\n### 3.2 Tag validation on save\n\nWhen saving an item/character/room via API:\n- Backend validates all tags against the library\n- Returns warning for unknown tags (but doesn't block save)\n- Logs warning: `\"Tag 'flamable' not in library - did you mean 'flammable'?\"`\n\n### 3.3 Tag usage stats\n\nNew route `GET /api/tags/stats` that returns:\n```json\n{\n  \"flammable\": { \"items\": 12, \"characters\": 0, \"rooms\": 3 },\n  \"magic\": { \"items\": 8, \"characters\": 2, \"rooms\": 5 },\n  ...\n}\n```\n\nUseful for seeing which tags are actually used, and for cleaning up unused tags.\n\n### Files to touch (Phase 3)\n- `routes/tags.py` - add stats endpoint, validation logic\n- `engine/serialization.py` - add tag validation on save\n- `routes/helpers.py` - add tag auto-registration helper\n\n---",
+      "phase_4_tag_library_ui_polish": "### 4.2 Tag color coding in graph view\n\nTags with defined colors show as colored dots/badges on graph nodes:\n- Small colored circles on item/character/room nodes indicating their tags\n- Hover shows tag names\n- Filter graph by tag (click tag to highlight all nodes with that tag)\n\n### Files to touch (Phase 4)\n- `static/js/graph/` - add tag color indicators\n\n---",
+      "seed_data": "Initial tag library entries to create:\n\n### Physical\n| ID | Name | Icon | Color |\n|----|------|------|-------|\n| flammable | Flammable | 🔥 | #ff6600 |\n| metal | Metal | ⚙️ | #888888 |\n| wooden | Wooden | 🪵 | #8B4513 |\n| glass | Glass | 🫙 | #66ccff |\n| stone | Stone | 🪨 | #666666 |\n| cloth | Cloth | 👕 | #cc9966 |\n| liquid | Liquid | 💧 | #3399ff |\n| food | Food | 🍎 | #ff4444 |\n| organic | Organic | 🌿 | #44aa44 |\n| paper | Paper | 📄 | #eeeeee |\n\n### Essence\n| ID | Name | Icon | Color |\n|----|------|------|-------|\n| magic | Magic | ✨ | #9944ff |\n| cursed | Cursed | ☠️ | #660066 |\n| blessed | Blessed | ⛪ | #ffdd00 |\n| ghostly | Ghostly | 👻 | #aaaaff |\n| enchanted | Enchanted | 🔮 | #cc66ff |\n| eldritch | Eldritch | 👁️ | #440044 |\n\n### Location / Environment\n| ID | Name | Icon | Color |\n|----|------|------|-------|\n| indoor | Indoor | 🏠 | #cc8844 |\n| outdoor | Outdoor | 🌳 | #44aa44 |\n| exterior | Exterior | 🌤️ | #4488ff |\n| dark | Dark | 🌑 | #333333 |\n| wet | Wet | 💦 | #3399ff |\n| cold | Cold | ❄️ | #aaddff |\n| hot | Hot | 🌡️ | #ff4400 |\n| noisy | Noisy | 🔊 | #ffaa00 |\n| quiet | Quiet | 🤫 | #aaddaa |\n\n### Faction / Affiliation\n| ID | Name | Icon | Color |\n|----|------|------|-------|\n| faction_guard | Guard | 🛡️ | #0044aa |\n| faction_thief | Thief | 🗡️ | #444444 |\n| faction_noble | Noble | 👑 | #ffcc00 |\n| faction_cultist | Cultist | 🔮 | #660066 |\n| faction_merchant | Merchant | 💰 | #44aa44 |\n\n### State / Status\n| ID | Name | Icon | Color |\n|----|------|------|-------|\n| broken | Broken | 💔 | #cc0000 |\n| locked | Locked | 🔒 | #888800 |\n| hidden | Hidden | 👁️ | #666688 |\n| trap | Trap | ⚠️ | #ff0000 |\n| container | Container | 📦 | #cc8844 |\n| weapon | Weapon | ⚔️ | #cc4400 |\n| tool | Tool | 🔧 | #888800 |\n| key | Key | 🔑 | #ffcc00 |\n| light_source | Light Source | 💡 | #ffff00 |\n| wearable | Wearable | 👘 | #cc66cc |\n\n### Character Traits (as tags)\n| ID | Name | Icon | Color |\n|----|------|------|-------|\n| vampire | Vampire | 🧛 | #880000 |\n| werewolf | Werewolf | 🐺 | #444400 |\n| ghost | Ghost | 👻 | #aaaaff |\n| human | Human | 🧑 | #88aa88 |\n| elf | Elf | 🧝 | #44aa44 |\n| dwarf | Dwarf | ⛏️ | #884400 |\n| synthetic | Synthetic | 🤖 | #8888cc |\n| animal | Animal | 🐾 | #aa8844 |\n\n---",
+      "migration": "Existing tags on items/characters/rooms will continue to work. The tag library is advisory, not enforced - unknown tags are warned but not blocked. Over time, as users interact with the multiselect, tags naturally converge to library entries.\n\nOptional: a one-time `POST /api/tags/migrate` endpoint that scans all entities and auto-creates library entries for any tags not yet in the library.\n\n---",
+      "what_s_left": "### Phase 3 (only gap)\n- `engine/serialization.py` - tag validation on save not implemented\n\n### Phase 4 (not started)\n- `static/js/graph/` - tag color indicators on graph nodes\n\n---",
+      "files_left_to_touch": "### Backend\n- `engine/serialization.py` - tag validation on save\n\n### Frontend\n- `static/js/graph/` - tag color indicators\n\n---\n\n> **Completion note (2026-08-02):** The two remaining gaps are implemented.\n> - Phase 3b: `validate_tags_on_save()` added to `routes/helpers.py`; wired into `PATCH /api/graph/node/<id>` - warns (logs + `tag_warnings` in response) on unknown/misspelled tags, never blocks saves.\n> - Phase 4: graph tag panel in `static/js/graph/network-manager.js` - tag icons prepended to node labels (from the tag library), a clickable `🏷️ Tags` toolbar panel listing each used tag with its color dot/icon/count, click-to-filter highlight (matching nodes full opacity, others dimmed), and tag names in hover tooltips for area/character/item nodes. Toolbar button + CSS added in `templates/index.html` and `static/css/style.css`.",
+      "commit_history": "| Commit | What |\n|--------|------|\n| ✅ | Phase 1: Tag library + CRUD + search/validate endpoints |\n| ✅ | Phase 2: TagMultiselect component + item-view/agent-view migration |\n| ✅ | Phase 2b: Migrate remaining old tag inputs (library-browser, way-view, create-modal, helpers, inspector.js, agent-view) |\n| ✅ | Phase 3: Auto-registration in TagMultiselect + stats endpoint |\n| ✅ | Phase 3b: Tag validation on save (routes/helpers.py + PATCH node route) |\n| ✅ | Phase 4: Graph tag color indicators (tag panel, label icons, click-to-filter) |"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-08-02"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-106-tag-library-and-multiselect.md"
+  }
+}

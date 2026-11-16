@@ -12,6 +12,10 @@ related: ["task-903"]
 **Filed:** 2026-10-31
 **Related:** task-903
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]]
+<!-- deps:end -->
+
 ## What
 
 Add cross-field contradiction checks in `engine/character_appearance.py` that identify mutually exclusive items in character preferences:
@@ -39,5 +43,5 @@ Characters authoring identical tags in both positive and negative preference arr
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

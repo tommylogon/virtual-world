@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "bug-42",
+  "kind": "bug",
+  "number": 42,
+  "title": "Delete All saves also deletes the autosave slot",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-365"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "1. Exclude the autosave slot from Delete All (`saves.filter(s => !s.autosave)`), and\n   make that explicit in the confirm text (\"Delete all N saves? Autosave is kept.\").\n2. Add a single bulk endpoint (e.g. `POST /api/save-games/delete-all` with an\n   `include_autosave` flag) so the wipe is one request and can't half-complete.\n3. Deleting the autosave specifically, if it should be possible at all, belongs on the\n   autosave row itself (see task-455), not in the global wipe.",
+    "verify": "1. Open Save/Load, create one named save, and note the pinned `autosave.json`\n   row. Click Delete All and confirm; refresh the save list.\n   - expected: the named save is gone, `autosave.json` remains visible, and\n     the confirmation states the number of user saves and that autosave is kept.\n   - observed (2026-10-02): the client API deleted the named save in one bulk\n     request and returned `kept: [\"autosave.json\"]`; the save list retained it.\n2. Repeat with the Delete All confirmation cancelled.\n   - expected: both the named save and autosave remain.\n   - observed: the UI-cancel path is not recorded in the existing live evidence.",
+    "acceptance": [
+      {
+        "text": "Delete All removes user saves but leaves `saves/autosave.json` in place and",
+        "done": false
+      },
+      {
+        "text": "visible after the list refreshes.",
+        "done": false
+      },
+      {
+        "text": "The confirm text states the count and that autosave is kept.",
+        "done": false
+      },
+      {
+        "text": "A bulk delete is a single request; a mid-way failure does not leave a silently",
+        "done": false
+      },
+      {
+        "text": "partial wipe.",
+        "done": false
+      },
+      {
+        "text": "Cancelling either confirm deletes nothing.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/ui/saveload-view.js` - `confirmDeleteAllSaves` (524-537)",
+      "routes/saveload.py` - save-game routes (new bulk endpoint)",
+      "static/js/api.js` - client method for the bulk endpoint",
+      "tests/test_saveload.py` - bulk-delete + autosave-retention coverage"
+    ],
+    "custom": {
+      "symptom": "The modal tells the user \"🔄 Autosave is always current (pinned top)\". The **🗑 All**\nbutton contradicts that: after two confirms it deletes **every** file in `saves/`,\nincluding `autosave.json`. The safety net the messaging promises is gone, and there is\nno undo.\n\nTwo smaller problems in the same path:\n\n- It issues one `DELETE /api/save-game/<filename>` per save - an N+1 round trip that\n  also re-lists on each failure and can stop half-way, leaving a partial wipe.\n- The double `confirm()` cannot be cancelled differentially (no \"keep autosave\"\n  option), and deleting the autosave slot is not surfaced as its own choice.",
+      "root_cause": "`confirmDeleteAllSaves` (`static/js/ui/saveload-view.js:524-537`) lists all saves and\nloops `api.deleteSaveGame(saves[i].filename)` with no exclusion for\n`save.autosave === true`.",
+      "fix_2026_09_24": "- **`routes/saveload.py`** - new `POST /api/save-games/delete-all` with an\n  `include_autosave` flag (default false). It deletes every `.json` in the saves\n  dir in one pass, keeping `autosave.json` unless explicitly asked; a mid-way\n  `OSError` returns an error listing what was deleted, so the wipe is never\n  silently partial.\n- **`static/js/api.js`** - `deleteAllSaveGames(includeAutosave = false)`.\n- **`static/js/ui/saveload-view.js`** - `confirmDeleteAllSaves` now lists saves,\n  filters out the autosave row, states the count and that autosave is kept, and\n  makes a single bulk request (one confirm, not a non-differential double\n  confirm). An empty user-save set is a no-op with a toast.\n- **Tests** - `tests/test_saveload.py::TestDeleteAllSaves` (4): autosave kept and\n  listed in `kept`; `include_autosave: true` removes it; non-JSON files are\n  ignored; no saves is a no-op. `pytest tests/test_saveload.py` → 14 passed.",
+      "second_live_verification_2026_10_02_port_4471": "Drove the real client API against the running server:\n\n| step | saves |\n|---|---|\n| before | `autosave.json [auto]` |\n| `api.saveGame('bug42-temp')` | `autosave.json [auto]`, `bug42-temp_20261002_104238.json` |\n| `api.deleteAllSaveGames(false)` | `{\"status\":\"success\",\"deleted\":[\"bug42-temp_20261002_104238.json\"],\"kept\":[\"autosave.json\"]}` |\n| after | `autosave.json [auto]` |\n\nThe bulk wipe removed only the user save and listed the autosave in `kept`; one\nrequest, no partial state. No page errors.",
+      "browser_ui": "Intended UI home: Game menu → Save/Load → Delete All.\n\nCurrent availability: The bulk endpoint and client API were exercised live on\n2026-10-02; a click-through of the modal confirmation and cancel path is not\nrecorded in that evidence.\n\nLive steps when available:\n1. Open Save/Load, create a named save, confirm the pinned autosave row is\n   present, then click Delete All and read the confirmation before accepting.\n   - expected: confirmation names the number of user saves and explicitly says\n     autosave will be kept.\n2. Accept, let the save list refresh, and inspect the remaining rows.\n   - expected: the named save is removed and `autosave.json` remains.\n3. Create another named save, open Delete All, cancel, and reopen the list.\n   - expected: both saves remain; cancelling performs no delete request.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-42-delete-all-saves-also-deletes-the-autosave-slot.md"
+  }
+}

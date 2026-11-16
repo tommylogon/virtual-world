@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-382",
+  "kind": "task",
+  "number": 382,
+  "title": "scenario-setup-checklist",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "An onboarding checklist for a new scenario: premise -> map -> cast -> props ->\nhooks. Each row shows a done / not-done state and a button that opens the tool\nfor that step (Scenario from Text wizard, Command Palette / graph, create\ncharacter, Item Library, trigger creation).",
+    "why": "Audit P3 #16: New Scenario hands you a blank canvas with \"no checklist, no hint\nof what to build next\". The checklist turns an empty world into a guided\nsequence and makes \"what is left to build\" visible at a glance.",
+    "how": "- Step definitions in `static/js/ui/setup-checklist.ts`:\n  - premise: opens ScenarioWizard\n  - map: opens CommandPalette / graph\n  - cast: prefills command line with 'create character '\n  - props: opens Item Library\n  - hooks: prefills command line with 'add trigger '\n- Row actions launch each existing tool and close the checklist modal.\n- State is tracked per scenario name in session storage (`localStorage`), clearing cleanly across scenario resets.",
+    "verify": "1. Create or open a scenario and open Setup Checklist.\n   - expected: the checklist appears with the 5 setup stages.\n   - observed: SetupChecklist.open() in static/js/ui/setup-checklist.ts displays premise, map, cast, props, hooks stages.\n2. Tick completed steps.\n   - expected: steps toggle and state persists per-scenario.\n   - observed: Toggled states save into localStorage keyed by scenario name (vw_setup_checklist_<name>).\n3. Click each row's action.\n   - expected: it opens the right tool for that step.\n   - observed: Links wire to ScenarioWizard.open(), CommandPalette.open(), prefillCommand('create character '), VW.itemLib.open(), and prefillCommand('add trigger ').",
+    "acceptance": [
+      {
+        "text": "Checklist visible for a scenario; each step's state derived/tracked.",
+        "done": true
+      },
+      {
+        "text": "Row actions open the correct existing tool.",
+        "done": true
+      },
+      {
+        "text": "Ticks update as steps complete.",
+        "done": true
+      },
+      {
+        "text": "No new storage format (per-scenario localStorage only).",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/ui/setup-checklist.ts",
+      "templates/index.html` (line 60 dropdown item)"
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "browser_ui": "Intended UI home: Top navigation menu -> Setup Checklist (templates/index.html:60).\n\nCurrent availability: Implemented and available via `SetupChecklist.open()`.\n\nLive steps:\n\n1. Open Setup Checklist from top menu.\n   - expected: Checklist appears with the 5 stages and current scenario title.\n\n2. Click each row action.\n   - expected: Each step opens its authoring tool without creating duplicate backend state."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P3 - New-scenario onboarding checklist: premise -> map -> cast -> props -> hooks, each links to the right tool."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-382-scenario-setup-checklist.md"
+  }
+}

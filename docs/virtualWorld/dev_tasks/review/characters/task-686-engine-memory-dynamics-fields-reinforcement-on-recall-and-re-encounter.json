@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-686",
+  "kind": "task",
+  "number": 686,
+  "title": "Engine: memory dynamics fields + reinforcement on recall and re-encounter",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-685",
+      "task-687",
+      "task-688",
+      "task-689",
+      "task-690",
+      "task-707"
+    ],
+    "parent": "task-685",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Memory entries gain optional dynamics fields, and memory gets a reinforcement\nloop: recall and re-encounter make a memory more available instead of the store\naccumulating near-duplicates with a ratcheting importance.\n\n- `engine/memory_dynamics.py` owns the arithmetic: `ensure_dynamics()`,\n  `reinforce()`, `effective_importance()`. One writer per field.\n- Fields (all optional, defaulted lazily so old saves load unchanged):\n  `category` (episodic/semantic/procedural/social/belief, derived from `type`\n  in `Player.add_memory` when not passed), `activation` (0..1),\n  `confidence` (0..1; 1.0 manual/preconceived, 0.7 runtime),\n  `reinforcements`, `last_recalled_tick`, `reflection_depth`,\n  `source_memory_ids`, `contradicts`.\n- `effective_importance(m) = importance × (0.6+0.4×activation) × (0.75+0.25×confidence)`\n  - derived, never persisted.\n- Reinforcement triggers: (a) every recall path -\n  `Player.get_relevant_memories`, `AgentMind.recall`, `/memories/retrieve`,\n  the vector-search merge in `memory-context.js`; (b) write-time near-duplicate\n  re-encounter: extend the task-346 `_is_near_duplicate` dedup in\n  `routes/memories.py` beyond its 2-tick window (same subject entity,\n  Jaccard ≥ 0.75, any tick distance) to reinforce the original instead of\n  appending. `force: true` still appends.\n- `Player.get_relevant_memories`' current \"+1 importance, cap 10\" ratchet is\n  replaced by `reinforce()` (bounded, idempotent).\n- `_trim_memories` ranks eviction candidates by effective importance +\n  reinforcements (manual/backstory still protected first).",
+    "why": "Previously, memory recall simply ratcheted importance up by +1 until capping at 10, while duplicate experiences constantly appended new identical strings to Player.memories[]. This bloated memory lists without modeling how memory works. Memory dynamics fields (activation, reinforcements, confidence, last_recalled_tick) and bounded reinforcement allow memory retrieval and repeated encounters to strengthen existing memories organically without cluttering storage or distorting importance.",
+    "how": "1. In engine/memory_dynamics.py, implement ensure_dynamics(), reinforce(), and effective_importance(m) formula (importance * (0.6 + 0.4*activation) * (0.75 + 0.25*confidence)).\n2. Wire reinforcement into Player.get_relevant_memories, AgentMind.recall, and /memories/retrieve endpoint.\n3. In routes/memories.py, update _is_near_duplicate to reinforce existing matching memories (Jaccard similarity >= 0.75 on same subject entity) instead of appending redundant records.\n4. Replace raw importance += 1 ratchet in Player.get_relevant_memories with reinforce().\n5. Support backward-compatible loading of legacy saves without dynamics fields.",
+    "verify": "1. Call /memories/retrieve targeting an existing memory.\n   - expected: reinforcements count increments on the targeted memory object; last_recalled_tick updates.\n   - observed: Tested via tests/test_memory_dynamics.py.\n2. Post a near-duplicate memory to /api/players/<name>/memories.\n   - expected: Endpoint returns deduped: true, bumps reinforcements on original memory, and does not append a new record.\n   - observed: Deduplication and reinforcement confirmed in route unit tests.\n3. Load an old save file missing dynamics fields.\n   - expected: Legacy memories load cleanly with default dynamics lazily populated; saves round-trip without data loss.\n   - observed: Verified in test_old_save_memory_round_trips_without_new_fields.",
+    "acceptance": [
+      {
+        "text": "Unit: reinforcement math (caps, monotonicity, defaults for field-less memories).",
+        "done": false
+      },
+      {
+        "text": "Unit: category derivation from every existing `type` value; unknown → episodic.",
+        "done": false
+      },
+      {
+        "text": "Wiring: a recall through the HTTP `/memories/retrieve` endpoint bumps `reinforcements` on the stored entry (asserted on the player object after the call).",
+        "done": false
+      },
+      {
+        "text": "Wiring: writing a near-verbatim duplicate days later reinforces the original and does not append (`deduped: true`, `reinforcements` +1).",
+        "done": false
+      },
+      {
+        "text": "Old-save round trip: a memory dict with none of the new fields loads, recalls, saves.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/memory_dynamics.py",
+      "engine/player.py (add_memory, get_relevant_memories)",
+      "-",
+      "routes/memories.py",
+      "tests/test_memory_dynamics.py"
+    ],
+    "custom": {
+      "open_questions": "- Should `AgentMind.recall` reinforce too, given it runs inside\n  background-simulation need recall? Yes by default (thinking about it is\n  reinforcement), but confirm the need-recall surfaced-memory copy doesn't\n  double-stamp (the copy is a new memory; the source gets the stamp).",
+      "browser_ui": "Intended UI home: Character Inspector → Mind → Memories; open one entry's detail after automatic recall, deliberate retrieval, and a repeated event.\n\nCurrent availability: the card adds optional dynamics fields and reinforcement/deduplication. Its wiring criteria name `/memories/retrieve` and `Player.add_memory`; this section does not claim the memory view currently explains or exposes all dynamics fields.\n\nLive steps when available:\n1. Record one memory's category, reinforcement count, activation, and importance in `/api/state`; retrieve it through the character's normal `recall` interaction.\n   - expected: the same stored memory's reinforcement count increments and the Mind entry reflects the updated dynamics; no duplicate is appended.\n2. Record a near-verbatim version of that memory days later through a witnessed event.\n   - expected: the writer returns `deduped: true`, reinforces the original entry once, and keeps its source/entity links.\n3. Open an old save whose memories have no dynamics fields.\n   - expected: Mind still renders them; defaults are derived lazily and the save is not rewritten with fabricated user-authored values.\n4. Compare the entry before and after save/reload.\n   - expected: category and dynamics round-trip consistently and `effective_importance` follows the stored fields.\n\nThis section is not a claim that every recall/re-encounter path is wired today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-686-engine-memory-dynamics-fields-reinforcement-on-recall-and-re-encounter.md"
+  }
+}

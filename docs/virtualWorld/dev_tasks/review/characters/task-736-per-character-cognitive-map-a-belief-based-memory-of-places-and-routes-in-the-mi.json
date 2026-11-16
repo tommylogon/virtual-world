@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "id": "task-736",
+  "kind": "task",
+  "number": 736,
+  "title": "Per-character cognitive map: a belief-based memory of places and routes in the Mind panel",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-10-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-404",
+      "task-725",
+      "task-734",
+      "task-786"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give each character a mental map of the places they remember and the ways they know to reach them: a belief-based (not truth-based) projection of that character's place and route memory, rendered per character and shown in the Mind panel. It may be incomplete or wrong - the character believes the door is open, or that the mill is east. Reuse the existing spatial-memory data (known_way_aspects, discovered_exits, visited_areas) and the turn-minimap rendering; do not add a new store.",
+    "why": "TODO",
+    "how": "A **cognitive map** is the character's *beliefs* about geography, not the world's\ntruth:\n\n- **Belief-based, not truth-based.** It shows remembered areas and known ways.\n  It may be **incomplete** (an area never visited) or **wrong** (the character\n  believes a door is passable, or that the mill is east). This is the difference\n  from the human fog-of-war minimap (truth of exploration) and the world graph\n  (ground truth).\n- **Derived, not stored.** It is a projection of `known_way_aspects` /\n  `discovered_exits` / `visited_areas` (task-734: derived indexes stay derived).\n  No new per-character store.\n- **Routes = \"how to get there\".** Pick two remembered places and show the\n  route if the character knows one - a path within the known subgraph, using only\n  edges the character has traversed or been told about. A known place with no\n  known route renders as disconnected.\n- **The agent asks with `recall`** (free, task-352). The retrieval verb is `recall`\n  - by name (\"the hospital\"), by intent (\"somewhere a healer works\"), or by tag - and\n  it returns the known place and route, or an **honest negative** so the agent does\n  not hallucinate. `remember` is reserved for the passive `=== I REMEMBER ===` prompt\n  block; the deliberate action is `recall`. Do not use `remember` as the verb.\n- **Host and rendering.** Reuse `turn-minimap.ts`'s rendering; mount it in the\n  Mind panel (task-714/691) as the \"world knowledge (known-locations map)\" the\n  Mind panel already lists. The Mind panel is per character, so the map is too.",
+    "verify": "1. In a scratch scenario, select two characters who start in the same area.\n   Record each character's `visited_areas`, `discovered_exits`, and\n   `known_way_aspects` from `/api/state`, then open the first character's Mind\n   panel.\n   - expected: its map contains only that character's remembered areas and\n     known routes; areas present only in the world graph are absent.\n2. Move the first character through one connected area and way it did not know,\n   then reopen Mind and compare the map with the updated character state.\n   - expected: the newly visited area and learned way appear for that character\n     only; the second character's map is unchanged.\n3. Select two areas the first character knows and request the route using the\n   character's existing `recall` interaction.\n   - expected: a path is shown only when the character knows a connecting way;\n     an unknown route returns an honest negative instead of a path from the\n     world's full graph.\n4. Compare the character record before and after opening the map.\n   - expected: rendering does not add a cognitive-map field or otherwise write\n     a second persisted store; the view is derived from the existing spatial\n     memory fields.",
+    "acceptance": [
+      {
+        "text": "The Mind panel shows, for one character, the areas and ways *that",
+        "done": false
+      },
+      {
+        "text": "character* knows - not the world's full graph.",
+        "done": false
+      },
+      {
+        "text": "An area never visited by that character does not appear.",
+        "done": false
+      },
+      {
+        "text": "A route between two known places renders if the character knows one.",
+        "done": false
+      },
+      {
+        "text": "No new persisted store: it reads `known_way_aspects` / `discovered_exits` /",
+        "done": false
+      },
+      {
+        "text": "`visited_areas`.",
+        "done": false
+      },
+      {
+        "text": "`npm run build:ts` and `node tools/unit/run.cjs` pass.",
+        "done": false
+      },
+      {
+        "text": "Live: walk a character through several areas, open the Mind panel, and see",
+        "done": false
+      },
+      {
+        "text": "its map grow; confirm it differs from a second character's.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "grounding_measured_2026_10_07": "The spatial memory already exists and is written; it just has no view:\n\n- `engine/agent_memory.py` - `knows_way(way_id, aspect)`; it resolves the way's\n  sides and writes `Player.learn_way_aspect(area_name, direction, aspect)`, so\n  the real key is `known_way_aspects[(area, direction)]` (a bucket of aspects),\n  not `(way_id, aspect)`.\n- `engine/movement.py` - writes spatial memory on a crossing (\"spatial memory's\n  known-route\").\n- `discovered_exits` - the `(area, direction)` pairs the character has seen;\n  read by `narration.py` (unexplored exits) and `room-context.ts`.\n- `visited_areas` - areas entered.\n- `static/js/agent/turn-minimap.ts` - the existing \"where you've been\" renderer\n  (task-677), currently for the human turn panel.",
+      "relationship_to_task_734": "If knowledge is a memory record (734), then \"a place I remember\" and \"a way I\nknow\" are semantic/procedural records, and this map is their **visualization**.\nThe map and the memory model are one dataset in two views - not a second store.\n`known_way_aspects` is the memory; the map is the projection.",
+      "open_questions": "- Does the map include places known only by **hearsay** (someone told you), with\n  no visit? That needs a \"told about\" source on the record (734's `source`).\n- `known_way_aspects` carries aspects (states, hazards); does the map show edge\n  *attributes* (\"there is a locked gate here\"), or only existence?\n- **Stale beliefs** have no mechanic yet - a character cannot currently hold a\n  belief that is false against the graph. Decide whether the map may show a\n  remembered-but-now-wrong edge, or whether it must reconcile on next perception.\n- Scale: a large world visited over years is a big known subgraph; render a\n  neighbourhood or the whole known set?",
+      "browser_ui": "Intended UI home: select a character → open the existing Mind panel →\n**World knowledge / known-locations map**. The map belongs inside that\ncharacter's Mind view, beside the existing memory and knowledge content; it is\nnot a world-graph overlay or a separate character record.\n\nCurrent availability: per-character spatial memory and the turn-panel minimap\nrenderer exist. The Mind-panel cognitive map described here is planned; this\ncard does not claim that it currently renders there.\n\nLive steps when available:\n1. Load a scratch scenario with two characters in the same starting area and\n   at least two connected areas. Open Character A's Mind panel and inspect the\n   known-locations map before either character moves.\n   - expected: only areas and routes present in A's existing spatial-memory\n     fields appear; an unvisited destination from the world graph is absent.\n2. Move A across one way into the next area, then reopen the same Mind panel.\n   - expected: the newly visited area and traversed route appear in A's map.\n3. Select Character B, who did not move, and inspect the map.\n   - expected: B's map does not gain A's visit or route.\n4. Use `recall` for a route A has traversed and for a world route A has never\n   learned; compare each answer with the map and `/api/state` spatial-memory\n   fields.\n   - expected: the learned route is returned; the unknown route is not\n     inferred from ground-truth graph edges. Opening the map creates no new\n     persisted cognitive-map field.\n\nThese steps describe the intended Mind-panel access and acceptance. The map is\nplanned and has not been represented as available today.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Character Creation & Archetypes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel.md"
+  }
+}

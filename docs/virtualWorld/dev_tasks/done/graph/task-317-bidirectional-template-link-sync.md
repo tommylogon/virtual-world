@@ -5,14 +5,14 @@ area: graph
 priority: medium
 ---
 
-# Task 317 — Bidirectional Template-Link & Sync (World↔Library, unified)
+# Task 317 - Bidirectional Template-Link & Sync (World↔Library, unified)
 
 ## Status
 
 **DONE (2026-10-01)**, decided and implemented as one unit with **task-289**.
 
 Both halves are now in place, and the World→Library safety rules this card
-lists as "already implemented, must be preserved" were left exactly as they were —
+lists as "already implemented, must be preserved" were left exactly as they were -
 `_mergeEntry`/`_isEmpty` and the diff modal's clobber guard are untouched, and
 that is deliberate: the two directions share one idea (library = templates,
 world = linked instances) but not one file. Library→World is a **field
@@ -48,7 +48,7 @@ The two directions were built independently and behave inconsistently:
   (the old `routes/library_routes.py:482` returned 400 for areas/characters); it now
   covers all four types (`routes/library_ops.py:765-768`).
 - The sync modal (World→Library) originally did a **full overwrite**: a bare world
-  copy (empty description, no triggers) nuked the curated template — the `brass_key`
+  copy (empty description, no triggers) nuked the curated template - the `brass_key`
   incident. Fixed 2026-08-20 with a merge guard (empty world values no longer erase
   library data) + diff-modal clobber protection.
 - task-289/290 describe the Library→World half; nothing tracks the World→Library half.
@@ -61,7 +61,7 @@ The two directions were built independently and behave inconsistently:
    - `_silentSave` merges: non-empty world values win; empty world values ("" / [] / {})
      never erase library data (world-sync.js `_mergeEntry`).
    - Diff modal: a field where the library has data but the world copy is empty shows
-     as a guarded "clobber" — not pre-checked, amber ⚠, hover warning
+     as a guarded "clobber" - not pre-checked, amber ⚠, hover warning
      (diff-modal.js `clobber` flag).
 3. **Library→World generalization** (pull from 289/290): extend `refresh-to-world`
    to areas and characters; add `break-template-link`; per-type mutable-field whitelist.
@@ -71,15 +71,15 @@ The two directions were built independently and behave inconsistently:
 
 ## Scope
 
-World→Library (implemented 2026-08-20 — verify + keep):
+World→Library (implemented 2026-08-20 - verify + keep):
 - world-sync.js `_mergeEntry` + `_isEmpty` guard on bulk sync
 - diff-modal.js clobber detection / uncheck-by-default on empty-world-over-library
 
 Library→World (from 289/290):
-- ~~extend `refresh-to-world` to area + character~~ — done (`routes/library_ops.py:765-768`)
-- `break-template-link` endpoint + inspector UI — **not done** (no code matches)
-- per-type mutable-field whitelist — **not done** (inline per `_refresh_*`; no `engine/sync.py`)
-- variants + override tracking, `template_ref` migration (task-290) — **not started**
+- ~~extend `refresh-to-world` to area + character~~ - done (`routes/library_ops.py:765-768`)
+- `break-template-link` endpoint + inspector UI - **not done** (no code matches)
+- per-type mutable-field whitelist - **not done** (inline per `_refresh_*`; no `engine/sync.py`)
+- variants + override tracking, `template_ref` migration (task-290) - **not started**
 
 ## Steps to verify
 

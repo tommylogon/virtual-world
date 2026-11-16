@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-176",
+  "kind": "task",
+  "number": 176,
+  "title": "Conversation-History Agent Loop & Sound Barrier Attenuation",
+  "status": "done",
+  "priority": "medium",
+  "area": "",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Backend: `pytest tests/ -k \"not mcp and not emote\"` → green (442 passed, 1 skipped at the time of writing; barrier tests updated for 0.5/0.75).\n- Live: whisper reached only the adjacent room, normal speech died at the open-door chain boundary, react stayed silent between volumes, `wait` executed as a no-op, tags survived reload.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "1_conversation_history_agent_loop_reactive_mode": "Replaced the 3-stateless-calls-per-turn flow (observe → decide → react) with a **2-call conversation loop**:\n\n- **Think+Decide** (1 call): full room context → `{\"inner_monologue\",\"action\",\"say\",\"emote\"}` in one shot (reuses the existing combined builder + `_parseReaction`).\n- **Act**: execute the command/speech.\n- **React** (1 call): slim prompt (`\"Your surroundings are unchanged - see your observation above\"`) + WHAT HAPPENED → `{\"inner_monologue\",\"say\",\"emote\"}`.\n\nEvery prompt is pushed to the per-character history as a `user` message and every LLM reply as an `assistant` message - `[system, user, assistant, user, assistant, ...]`. The agent now sees its own earlier words in context, so the \"favorite colour changed between decide and react\" self-contradiction class of bug is impossible (the react call literally contains its own prior \"teal\" assistant message). Context window manager (9500 tokens / 30 msgs) prunes per call.\n\nWhy this matters: the old flow made each phase a fresh `[system, prompt]` call with no memory of the agent's own recent output.",
+      "2_sound_barrier_attenuation_engine_sound_py": "Open ways previously had **barrier 0** - a normal voice carried through *any* chain of open doors (a shout rang through an entire open map). New values:\n\n| Way state | Barrier |\n|---|---|\n| open | **0.5** |\n| see-through (window/grate) | **0.75** |\n| closed | 1 |\n| locked / blocked / hidden | 2 |\n\nResult: normal speech (pen 1) reaches only the adjacent room through open doors (1 − 0.5 = 0.5, second door = 0); shout carries ~4 open doors or one closed + one open; scream ~6 open doors or two closed + one open. Propagation still BFS over cumulative barriers, no distance cap. COMMANDS table + task-149 spec updated to match.",
+      "3_prompt_system_fixes_live_verified": "- **React defaults to silence** - inner_monologue + emote only; speak only if something genuinely demands it; explicitly told not to advance the plan in react (fixed the whisper→say→shout→scream rapid-fire escalation - one volume per turn now).\n- **`action` must be a command** - never prose; `wait` is the sanctioned do-nothing command (added to COMMANDS table + validator; no-op dispatch, turn still passes).\n- **Empty volume fields** - explicitly omitted, no `\"say\":\"\"`.\n- **Speech volume in event stream** - `💬 Jane doe whispers/shouts/screams: \"...\"` (was duplicated `[Jane doe] [Jane doe]` with no volume).\n- **Self-appearance in second person** - `secondPersonDesc()` converts \"A woman stands... her...\" → \"You are a woman who stands... your...\" (pronoun + verb-agreement handling).\n- **Rich item descriptions** - items render as `- Name: description` in good light (dim = names only, pitch black = none); restores the world_template-style narration that was lost in an earlier observe-context unification.\n- **Voice labels from tags** - cross-room heard speech uses the speaker's tags (`female`/`male`/`girl`/`boy`/...), e.g. \"a woman's voice said:\", instead of a physical description. `player.tags` now survives save/load round-trip (was dropped in `load_from_dict`).\n- **Memory fallback** - `=== I REMEMBER ===` always renders (\"You don't remember anything relevant right now.\").\n- **System hints aren't memories** - rejected-action feedback stays in `lastActionResult`; the persistent memory is character-POV, not `[System]` meta-text.\n- **Stranger rule moved to system prompt** (was observe-specific, mansion-specific wording).\n- **Rules trimmed** - removed redundant bullets (one-action-per-turn, \"go needs a destination\", sound prose duplicated in the COMMANDS table)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Live playtest of the sound-propagation test area. This session also fixed a pile of prompt/agent coherence bugs found while watching the run."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/task-176-conversation-history-agent-loop-and-sound-barriers.md"
+  }
+}

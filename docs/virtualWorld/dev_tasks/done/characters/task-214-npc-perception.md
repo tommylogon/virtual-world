@@ -9,11 +9,11 @@ priority: medium
 
 **Filed**: 2026-08-11
 **Priority**: Low
-**Status**: Done (2026-09-22) — simple-NPC tier
+**Status**: Done (2026-09-22) - simple-NPC tier
 
 ---
 
-## Status — implemented (2026-09-22)
+## Status - implemented (2026-09-22)
 
 **Live game, simple-NPC tier.** Simple NPCs have no LLM, so "the LLM sees the
 description" never applied to them; this gives them a mechanical floor for
@@ -27,32 +27,32 @@ mature-gated; generic stimuli are always active.
   `prudish` (`npc_reaction: disapprove`), `open_minded` (`approach`),
   `attracted` (mature: `approach` + sharper arousal reading).
 - **`engine/npc_behaviors.py`**:
-  - `calculate_perception_difficulty(npc, target, stimulus_type)` — base DC 10
+  - `calculate_perception_difficulty(npc, target, stimulus_type)` - base DC 10
     ± trait mods, ambient light (<20 → +10, >80 → −5), and the target's
     outer-layer `coverage` over the relevant region (covered skin reads harder).
-  - `check_perception(npc, dc)` — d20 + WIS mod + Perception trait mods, silent
+  - `check_perception(npc, dc)` - d20 + WIS mod + Perception trait mods, silent
     (no `[Save]` log spam on every reaction).
-  - `process_npc_reaction(npc, target, stimulus_type)` — perception roll, then
+  - `process_npc_reaction(npc, target, stimulus_type)` - perception roll, then
     reaction from traits: prudish → disapprove, attracted/open_minded →
     approach (open_minded only when Social > 50), generic → comment.
-  - `process_bystander_reactions(actor, target, stimulus_type)` — simple NPCs in
+  - `process_bystander_reactions(actor, target, stimulus_type)` - simple NPCs in
     the actor's area react, capped at one line per stimulus so a crowd does not
     flood the log. Dead and undead-ghost NPCs never react.
-  - `process_npcs_on_combat(context)` — the old `pass` stub now routes
+  - `process_npcs_on_combat(context)` - the old `pass` stub now routes
     `combat_actors` through the generic stimulus path (combat passes it in
     `engine/combat.py:219`).
 - **Hook**: `engine/pleasure_actions.execute_intimacy_action()` calls the
   bystander path after resolving an intimacy verb and appends any reaction line.
-- **Emissions** reuse the existing channels — `add_log_entry` +
-  `record_turn_event(..., "npc_reaction")` — no new event stream.
-- **Tests**: `tests/test_npc_perception.py` (20) — DC modifiers, reaction
+- **Emissions** reuse the existing channels - `add_log_entry` +
+  `record_turn_event(..., "npc_reaction")` - no new event stream.
+- **Tests**: `tests/test_npc_perception.py` (20) - DC modifiers, reaction
   selection, mature gate, bystander filtering (agent excluded, other area
   excluded, actor/target excluded), crowd cap, and the intimacy integration.
 
 ### Not done / future
 - Only simple NPCs react mechanically. If agent characters should also get a
   mechanical perception floor, extend `process_bystander_reactions` past the
-  `simple_npc` filter — but keep it advisory (a turn event the LLM can read),
+  `simple_npc` filter - but keep it advisory (a turn event the LLM can read),
   not a decision override.
 - "Nearby rooms → +5" distance penalty from the design is not implemented; v1
   considers only characters in the same area.

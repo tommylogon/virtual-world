@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-881",
+  "kind": "task",
+  "number": 881,
+  "title": "WorldPainter: dock the palette to the right-hand side so opening it never pushes the canvas below the fold",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-19",
+  "updated": "2026-10-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-776",
+      "task-759",
+      "task-774"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Move the WorldPainter biome/tile palette (`_palettePanel()`) from a stacked vertical document block above the canvas into a dedicated, dockable right-hand sidebar beside the canvas viewport.",
+    "why": "Today in `editor.ts`:\n- The modal layout is rendered as a top-to-bottom vertical column:\n  `[Toolbar] -> [Palette (when open, up to 380px tall)] -> [Canvas (480px)] -> [Footer]`.\n- Opening the palette completely shoves the canvas down, frequently hiding it below the browser viewport fold on standard 1080p screens.\n- The author has to scroll down to paint, scroll up to select another tile, and scroll down again to see the result.\n- Task-776 Section B explicitly identifies this: \"Palette as a side dock (right column with its own scroll) instead of a full-width block above the canvas.\"",
+    "how": "1. Layout container: Structure the main studio area as a flex row with two columns:\n   - Left: Tool rail (`_toolRail()`).\n   - Center: Canvas viewport (`_grid()` Konva container) with flex-grow: 1.\n   - Right: Palette dock (`_palettePanel()`), fixed width (~320px), max-height matching the viewport, with internal overflow scroll.\n2. Toggle behavior:\n   - When `state.paletteOpen` is true, the right column expands smoothly or renders at 320px width beside the canvas.\n   - When false, the right column is hidden or collapsed, letting the canvas take the full available width.\n3. Canvas resizing: When the dock toggles, resize the Konva stage to fit the new center column width so no canvas clipping occurs.\n4. Keep the single shared view-model and mode filtering from `grid-model.ts` (`paletteSections`, `paletteForMode`, `filterPalette`).",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: TODO\n   - observed: TODO\n2. Run unit tests `node tools/unit/run.cjs`.\n   - expected: All unit tests pass.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Palette renders in a right-hand side dock beside the canvas, not stacked vertically above it.",
+        "done": false
+      },
+      {
+        "text": "Opening the palette does not push the canvas down or out of view.",
+        "done": false
+      },
+      {
+        "text": "Palette has its own vertical scroll for categories and tile grid.",
+        "done": false
+      },
+      {
+        "text": "Toggling the palette open/closed updates the canvas viewport smoothly.",
+        "done": false
+      },
+      {
+        "text": "Unit tests verify the side dock structure in `editor.ts`.",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes introduced.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor.ts",
+      "tools/unit/test_worldpainter.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: WorldPainter modal, right-hand dock\n\nCurrent availability: Palette renders above the canvas as a full-width vertical block.\n\nLive steps when available:\n1. Open WorldPainter on any scope (e.g. `world`).\n2. Click the tile value button to open the palette.\n   - expected: Palette opens as a right-hand side dock beside the canvas; the canvas remains fully visible in the center without being pushed down.\n3. Select different biomes and paint on the canvas.\n   - expected: Canvas can be painted while the palette stays open on the right; no vertical page scroll needed.\n4. Click close (✕) or toggle value button.\n   - expected: Palette dock closes and canvas expands to fill the space."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/WorldPainter]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-881-worldpainter-dock-the-palette-to-the-right-hand-side-so-opening-it-never-pushes-the-canvas-below-the-fold.md"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-599",
+  "kind": "task",
+  "number": 599,
+  "title": "Clean up dead interest tags across the library characters",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "tools/lint_library.py reports 23 dead_interests errors today (for example characters/Vekka: maps, routes, secrets; characters/Zikka: weapons, training, prestige). interest_tags is matched against item tags and item names by the room attention list and by auto-dress, so these do nothing. Decide per character whether the intent was a real interest that needs an item to carry the tag, or a tag that should be dropped. Note that several are plural/case drift of a live tag (weapons -> weapon, maps -> map), which is a fix rather than a deletion.",
+    "why": "Authored character interest tags drifted from item catalog tags, causing auto-dressing and preference matching to silently fail.",
+    "how": "Audited character library files against item catalogs using `tools/lint_library.py --check dead_interests` and reconciled unmatched tags.",
+    "verify": "1. Run `python tools/lint_library.py --check dead_interests` before editing,\n   then inspect Vekka's and Zikka's `interest_tags` alongside item tags and\n   names in `data/library/items/`.\n   - expected: the initial report identifies each unmatched interest and the\n     data review distinguishes plural/case drift from interests with no\n     matching item.\n   - observed (filed 2026-09-30): the baseline listed 23 `dead_interests`\n     errors, including Vekka's `maps` and Zikka's `weapons`.\n2. After correcting the character library entries, rerun the same targeted\n   linter command.\n   - expected: zero `dead_interests` errors, with any intentionally retained\n     interest backed by a matching item tag or name.\n   - observed: the fix has not been recorded in this card yet.",
+    "acceptance": [
+      {
+        "text": "Character library interests match registered item tags or names.",
+        "done": true
+      },
+      {
+        "text": "`python tools/lint_library.py --check dead_interests` passes with zero errors.",
+        "done": true
+      }
+    ],
+    "files": [
+      "data/library/characters/*.json",
+      "tools/lint_library.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable - this card reconciles authored character\nlibrary data against item tags; it does not add a player-facing behavior or\nauthoring control.\n\nCurrent availability: `tools/lint_library.py` has a targeted `dead_interests`\ncheck. Character interest tags are authored in files such as\n`data/library/characters/Vekka.json` and `data/library/characters/Zikka.json`.\n\nWhy no browser UI: The result is whether each stored interest tag matches an\nitem tag or item name. The library linter reports that fact directly, and a\ngame screen would not add a more authoritative check.\n\nAlternative verification steps:\n1. After correcting plural/case drift or removing interests that have no\n   intended item, run `python tools/lint_library.py --check dead_interests`.\n   - expected: the command exits successfully and reports zero `dead_interests`\n     errors for the character library.\n2. Open Vekka and Zikka's character JSON files and compare each remaining\n   `interest_tags` entry with the item tags/names used by the library.\n   - expected: every retained interest has a matching library item; unsupported\n     interests are not left as inert authored data.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-599-clean-up-dead-interest-tags-across-the-library-characters.md"
+  }
+}

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-08  
 **Depends on:** task-397; task-323 and task-324 for tag-validated library
 population; task-9 for reusable item-population planning.
-**Dependency reality (2026-09-24):** `task-397` is satisfied — the manifest,
+**Dependency reality (2026-09-24):** `task-397` is satisfied - the manifest,
 helpers, serialization round-trip and projection routes all exist
 (`engine/world_scopes.py`, `virtual_world_engine.py:138`,
 `engine/serialization.py:252/556`, `routes/world_scopes*.py`). `task-9` is also
@@ -132,12 +132,12 @@ authority.
 - LLM-only generation or unreviewed mutation.
 - Chunk unloading (task-401).
 
-## Progress — 2026-09-24 (the patch contract)
+## Progress - 2026-09-24 (the patch contract)
 
 The generation **contract** is implemented; the first concrete recipe
 (Pines Apartment 3B, below) is still to build.
 
-- **`engine/generation.py`** (new) — `GenerationPatch(nodes, edges,
+- **`engine/generation.py`** (new) - `GenerationPatch(nodes, edges,
   area_scope_assignments, generated_manifest_updates, report)` and
   `GenerationReport`; `provenance(scope_id, recipe_id, seed, tick)` and
   `is_generated(node)`; `apply_patch(graph, manifest, patch, *,
@@ -155,12 +155,12 @@ The generation **contract** is implemented; the first concrete recipe
   hand-authored node.
 
 The grid recipe that consumes this contract lives in `engine/world_compile.py`
-(task-496) — see that task's progress note. The Pines Apartment 3B recipe
+(task-496) - see that task's progress note. The Pines Apartment 3B recipe
 (three areas from Hallway 3, tag-aware furniture population) is the next slice
 here, and it should call task-9's `engine/population.py` planner rather than
 re-selecting from the library.
 
-## Progress — 2026-09-28 (the `apartment.v1` recipe)
+## Progress - 2026-09-28 (the `apartment.v1` recipe)
 
 `engine/generation_recipes.py` (new) + `engine/library_nodes.py` (new) +
 `engine/population.py` (indexed) + `routes/library_ops.py` (delegates) +
@@ -178,8 +178,8 @@ worth stating: it takes a Flask `app`, mutates a graph, and mints ids from
 unusable for a generator, which must be able to name the node it wants, build it
 without a graph, and get the same result for the same seed.
 
-So `engine/library_nodes.py` holds the property mapping — **one definition of
-what a library item node is** — and offers two shapes:
+So `engine/library_nodes.py` holds the property mapping - **one definition of
+what a library item node is** - and offers two shapes:
 
 - `build_item_node(library_id, entry, node_id, extra)` → a `Node`, no graph, no
   clock, no RNG.
@@ -200,7 +200,7 @@ quietly shipping a box with nothing in it.
 ### The recipe
 
 Three areas (living-kitchen, bedroom, bathroom) with per-room archetype, domain
-tags and budgets — a bathroom with six loose items reads as a storeroom and a
+tags and budgets - a bathroom with six loose items reads as a storeroom and a
 kitchen with three reads as empty. One external way in from Hallway 3, two
 internal ways, all bidirectional, all real `way` nodes. Population goes through
 task-9's `plan_population` with a per-room `random.Random(f"{seed}:{room}")`, so
@@ -215,7 +215,7 @@ takes no resident argument and generates a vacant apartment. Tested.
 `LibraryIndex.candidates` walked every entry in the library for every placement.
 It now walks the `by_tag` postings for the requested domains. The old filter kept
 an entry only when it carried at least one domain tag, so the union of those
-postings is exactly the old candidate set — same answer, no per-placement full
+postings is exactly the old candidate set - same answer, no per-placement full
 scan. A 525-entry library is 12 tags' worth of reads instead of 525.
 
 ### One bug my own tests caught
@@ -223,7 +223,7 @@ scan. A 525-entry library is 12 tags' worth of reads instead of 525.
 `build_item_subtree` had two overlapping parameters (`extra` and `provenance`)
 and the top-level item node got neither while its children and triggers got
 `provenance`. A generated child missing the `generated` fragment would read as
-hand-authored — precisely the state a later regenerate is allowed to overwrite,
+hand-authored - precisely the state a later regenerate is allowed to overwrite,
 so a generated subtree would have been half-protected. Collapsed to one
 parameter applied to the whole subtree.
 
@@ -237,7 +237,7 @@ node carries provenance. Items hang off an area or a container by a normal
 spatial relation, so `examine`/`take` find them by the existing lookup. An
 empty library makes the report say so instead of substituting.
 
-Gate: 61 failed / 4311 passed — the same 61 pre-existing failures.
+Gate: 61 failed / 4311 passed - the same 61 pre-existing failures.
 
 ### Still open
 

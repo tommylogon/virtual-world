@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-628",
+  "kind": "task",
+  "number": 628,
+  "title": "Edge inspector stores the same fact under two keys and renders it twice",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A single connection fact is stored under two keys and rendered as 'south <-> south' with untyped properties.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Diagnosed: the \"name\" field holds an id in 210-420 places, so the two keys",
+        "done": true
+      },
+      {
+        "text": "disagree on most painted ways",
+        "done": false
+      },
+      {
+        "text": "The two readers that compare the name form resolve through a single helper",
+        "done": true
+      },
+      {
+        "text": "Both guards keep working for hand-authored ways that only carry a name",
+        "done": true
+      },
+      {
+        "text": "Regression-tested (no new failures; the one red test is pre-existing and",
+        "done": true
+      },
+      {
+        "text": "asserts this same invariant)",
+        "done": false
+      },
+      {
+        "text": "**Live-verified** by authoring the case the world lacked:",
+        "done": true
+      },
+      {
+        "text": "a one-way way whose name slot holds an id is now correctly refused",
+        "done": false
+      },
+      {
+        "text": "when travelling the reverse direction",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30_diagnosed_reader_side_fixed_data_migration_left": "### What is actually wrong\n\nThe filed claim (\"the same fact stored under two keys, rendered twice, untyped\nproperties\") was directionally right and the mechanism turned out to be sharper\nthan filed.\n\nMeasured over all 351 ways in `kraktooth_goblin_camp`:\n\n| | count |\n|---|---|\n| carry both `area_from` and `area_from_id` | **326** |\n| `area_from_id` resolving to a different string than `area_from` | **210** (420 counting `area_to`) |\n| carry an area **id** in the name slot, no id key | **21** |\n| carry neither | **4** |\n| dangling `area_from_id` | **0** |\n\nThe reason is not a stale name. **The \"name\" slot holds an id:**\n\n    area_from    = \"area_west_woods_10_14\"                    <- an id\n    area_from_id = \"area_west_woods_10_14\"\n      resolves to \"Sparse Forest (West woods 10,14)\"\n\nSo the field is untyped exactly as filed - it is sometimes a display name and\nsometimes an id, with nothing marking which.\n\n### Why that was a live bug\n\nTwo guards compared that value against `current_area.name`, so they could never\nmatch:\n\n- `engine/movement.py:543` - the **`one_way`** check\n- `engine/npc_behaviors.py:777` - the slasher's one-way block\n\nA name compared against an id is never equal, so both guards were permanent\nno-ops: **every one-way passage in a painted world behaved as if it were\ntwo-way**, and the NPC could never be blocked.\n\n### The fix\n\n`engine/matching.py` gains `way_endpoint_name(node, graph, which)`, which applies\nthe precedence the rest of the codebase already documents\n(`world_scopes._endpoint`: id first, then the name field, resolved either way)\nand returns something comparable with `Player.current_area`. Both readers now go\nthrough it. Hand-authored ways that only carry a name - 21 of them, e.g.\n`area_cooking_area`, `passage to food storage` - still resolve, because an\nunresolvable value is returned as it stands.\n\n### Live verification -- done, by authoring the case the world lacked\n\n`kraktooth_goblin_camp` ships with **zero** `one_way` ways, so the guard had\nnothing to exercise. I authored one on an existing painted way whose `area_from`\nslot holds an **id** -- the untyped case -- ran a control and a test against it\nthrough the real action endpoint, then removed the flag.\n\nWay `way_world_area_world_10_4_area_world_9_4` (`Road (world 10,4)` east to\n`Road (world 9,4)`), where `area_from = \"area_world_10_4\"` and\n`area_from_id = \"area_world_10_4\"`:\n\n| | `go east` | `go west` |\n|---|---|---|\n| **control** (`one_way` absent) | moved to Road (world 10,4) | moved to Road (world 9,4), both directions fine |\n| **test** (`one_way: true`) | moved to Road (world 10,4) | **\"The west is one-way -- you cannot go back that way.\"** |\n\nThe player's position was re-read after the refused move and was unchanged\n(`Road (world 10,4)`). The flag was removed afterwards (`PATCH` 200 both ways),\nso the world is back as it was.\n\n**This is the exact case the bug broke.** `way_endpoint_name` resolved\n`\"area_world_10_4\"` to `\"Road (world 10,4)\"`, which matched `current_area.name`\nand the comparison succeeded. Before the fix the guard compared\n`\"Road (world 10,4)\"` against the literal `\"area_world_10_4\"`, never matched, and\nthe player would have walked back through a one-way passage without complaint.\n\n### The stricter fix is already wanted by the repo\n\n`tests/test_scenario_data_integrity.py::test_way_endpoints_are_area_node_ids` is\n**red on master** with:\n\n    way endpoints must be area node ids so strict-id pathfinding works:\n    ('way_eldenford_interior_...', 'area_from', 'Sparse Forest (Eldenford interior 10,3)')\n\nA/B'd with `git stash`: identical with and without these changes, so it is\npre-existing - and it is the test asserting the invariant this task describes.\nThe durable fix is to make `area_from`/`area_to` hold ids everywhere, but that\nis a 326-way migration **coupled to the area renames in task-638/646**, since\n`area_from` currently holds the very strings those tasks would rewrite. They\nshould be one change.\n\n- TODO",
+      "partially_disconfirmed_2026_09_30_not_cancelled": "Narrowed by measurement, but **not** retracted: the storage half of the claim is\ncontradicted and the rendering half is untested, so this stays open. Recording\nboth so the next pass does not repeat the storage investigation.\n\n### Storage half: does not hold in this world\n\n`/api/graph/nodes` over all 20 way nodes:\n\n| property | ways carrying it |\n|---|---|\n| `area_from` | 19 |\n| `area_to` | 19 |\n| `cost` | 19 |\n| `current_state` | 20 |\n| `description` | 20 |\n| `x` / `y` | 19 / 19 |\n| `pass_message` | 17 |\n| `tags` | 10 |\n\n- `area_from` and `area_to` are **not** one fact under two keys -- they hold\n  distinct values (`{\"area_from\": \"Kitchen\", \"area_to\": \"Bathroom\"}`).\n- **Zero** way properties contain an `A <-> B` style string\n  (`/\\<->|->|â†”/` matches 0 of 20 nodes), so the \"renders as `south <-> south`\"\n  phrasing has nothing in the data to render from.\n\nThe \"two shapes in one field\" observation was recorded against\n`kraktooth_goblin_camp`, whose ways are generated by the world painter and named\n`A to B` with `cardinal` properties. This world uses door nodes with distinct\n`area_from`/`area_to`. **The claim may be specific to the painted world**, which\nwould make it a painter-output issue rather than a graph-schema one.\n\n### Rendering half: still unverified\n\nNot tested, because an edge cannot be selected in this environment:\n\n- vis.js renders to `<canvas>`, so `querySelectorAll('.vis-node')` returns zero\n  and there is no DOM element to click for an edge.\n- The graph search box (`#graph-search`) returned **no results** for\n  \"bathroom door\", so the node could not be reached that way either.\n\nSo \"the inspector renders the same fact twice with untyped properties\" is neither\nconfirmed nor contradicted. It needs either a painter-generated world or a\nprogrammatic node-selection path.\n\n### What would settle it\n\n1. Load `kraktooth_goblin_camp` (the painted world the claim was made against)\n   and select a way; or\n2. Add a way-selectable path to the harness so edge inspection is reachable\n   without canvas coordinates."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-628-edge-inspector-stores-the-same-fact-under-two-keys-and-renders-it-twice.md"
+  }
+}

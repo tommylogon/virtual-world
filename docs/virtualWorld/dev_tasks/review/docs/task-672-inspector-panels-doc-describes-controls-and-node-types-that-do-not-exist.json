@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "task-672",
+  "kind": "task",
+  "number": 672,
+  "title": "Inspector Panels doc describes controls and node types that do not exist",
+  "status": "review",
+  "area": "docs",
+  "priority": "medium",
+  "created": "2026-10-02",
+  "relations": {
+    "related": [
+      "task-251",
+      "task-512"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ]
+  },
+  "sections": {
+    "what": "Correct docs/virtualWorld/UI & Settings/Inspector Panels.md against measured behaviour. Three verified defects: (1) the Agent View section claims a 7-tab interface (Profile/Inventory/Behaviors/Memories/Lore/Agent/Relationships); actual is 4 tabs - Inventory, Bio, Images, Advanced. (2) The Item View section lists 7 actions; ALL_ACTIONS in item-view.js is 15 (examine take use open close eat drink read light activate equip unequip throw break drop). (3) The 'Inspector.js Dispatch' snippet switches on node types 'room' and 'door'; the live graph has 659 nodes with types area 207, way 361, item 34, logic_trigger 33, character 23, plan 1 - zero room, zero door. Real dispatch is inspector.js:67-89 on area/item/way/character/logic_trigger plus a by-name fallback; the snippet is also mis-cited as line 31 when showNode is line 50. Also record where Behaviors (conditional on the character having behaviours, agent-view.js:1143-1155) and World Lore (top menu templates/index.html:301 and inspector.js:42, not a tab) actually live, and that the Area View has 14 sections with zero input[type=range] so the documented environment sliders do not exist. Re-verify each count in a live browser before editing.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: select an area, item, way, and character in the graph → inspect the right-hand Inspector and compare the visible tabs/actions with `UI & Settings/Inspector Panels.md`.\n\nCurrent availability: the card records measured discrepancies: the character Inspector has 4 tabs (`Inventory`, `Bio`, `Images`, `Advanced`), the item Inspector exposes 15 actions, and the documentation dispatch example names obsolete `room`/`door` node types. The corrected page should match the live surfaces.\n\nLive steps when available:\n1. Open a character Inspector and count the visible tabs across the whole Inspector; open each tab and scroll to its bottom.\n   - expected: the doc lists the actual four tabs and describes their controls without truncating the panel to a partial viewport.\n2. Open an item Inspector and enumerate the available actions by interacting with its action menu; count all visible actions.\n   - expected: the doc lists all 15 current item actions and their real names.\n3. Select area, way, item, and character nodes; inspect the Inspector and the graph node `type` values in `/api/state`.\n   - expected: the doc's dispatch example uses the graph's actual node types and matches the renderer reached for each node.\n4. Re-read the corrected page while repeating the interactions above.\n   - expected: every described tab/action/type corresponds to a visible control or returned node value; no obsolete `room` or `door` renderer is presented as current.\n\nThis section is not a claim that the documentation is corrected or freshly browser-verified today."
+    }
+  }
+}

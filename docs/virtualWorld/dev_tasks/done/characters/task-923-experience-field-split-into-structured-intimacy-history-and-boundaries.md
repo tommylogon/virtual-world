@@ -12,6 +12,10 @@ related: ["task-903"]
 **Filed:** 2026-10-31
 **Related:** task-903
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]]
+<!-- deps:end -->
+
 ## What
 
 Split the monolithic `personality.experience` free-text field into structured sub-fields:
@@ -40,5 +44,5 @@ Lumping relationship history, intimacy milestones, and hard boundaries into one 
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

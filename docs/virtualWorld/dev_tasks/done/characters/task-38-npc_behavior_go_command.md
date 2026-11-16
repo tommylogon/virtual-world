@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: Done — `go` implemented with pathfinding in task-8 (2026-08-13). Behavior `go` uses `move_to_area()`; use `teleport` for instant relocation. `go` action type in `engine/trigger_system.py:1297` (`_execute_behavior_actions`), behavior editor entry with Target Area param in `static/js/inspector/behaviors-view.js:23/186/540`.
+**Status**: Done - `go` implemented with pathfinding in task-8 (2026-08-13). Behavior `go` uses `move_to_area()`; use `teleport` for instant relocation. `go` action type in `engine/trigger_system.py:1297` (`_execute_behavior_actions`), behavior editor entry with Target Area param in `static/js/inspector/behaviors-view.js:23/186/540`.
 
 ---
 
@@ -20,7 +20,7 @@ NPC behaviors support conditional actions triggered by events, but there is no "
 
 ## Why
 
-In `inspector.js:_showAgent()` (line 223-246), NPC behaviors are displayed with their triggers, conditions, and actions. The action types available for behaviors are the same as item actions (examine, take, use, etc.) — there's no movement action.
+In `inspector.js:_showAgent()` (line 223-246), NPC behaviors are displayed with their triggers, conditions, and actions. The action types available for behaviors are the same as item actions (examine, take, use, etc.) - there's no movement action.
 
 The behavior engine (in `virtual_world_engine.py`) processes NPC behavior actions but doesn't support a `go` / `move` / `go_to` action type that would move the NPC to a different room.
 
@@ -51,13 +51,13 @@ Add `go` to the available actions list when editing NPC behaviors. The behavior 
 
 **Status**: Ready to test
 **How to test**:
-- Open the inspector for an NPC with behaviors. Add a behavior action — verify "go" is available as an action type with a "Target Area" text field.
+- Open the inspector for an NPC with behaviors. Add a behavior action - verify "go" is available as an action type with a "Target Area" text field.
 - Set up a trigger (e.g. `on_tick`) with action type `go` targeting a room name. Advance time/steps. Verify the NPC moves to the target room.
 
 ## Files
 
-- `virtual_world_engine.py` — add `go` action handling in behavior processing
-- `static/js/inspector.js` — add `go` action option in behavior editor
+- `virtual_world_engine.py` - add `go` action handling in behavior processing
+- `static/js/inspector.js` - add `go` action option in behavior editor
 
 ## How
 

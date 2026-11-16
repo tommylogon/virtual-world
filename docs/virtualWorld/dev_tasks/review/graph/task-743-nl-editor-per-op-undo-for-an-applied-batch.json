@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-743",
+  "kind": "task",
+  "number": 743,
+  "title": "NL editor: per-op undo for an applied batch",
+  "status": "review",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-10-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-461",
+      "task-387",
+      "task-458"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Today an NL-editor Apply records exactly ONE undo snapshot (task-387), so a single Undo reverts the whole batch; undoing one applied op is not offered anywhere (no route, no UI). Add per-op undo. Design decision required: (a) push one snapshot per op inside handle_graph_batch (routes/graph_ops.py:1286) so N single-step undos step back through the batch - simple, but changes the one-snapshot contract and multiplies whole-world snapshots by batch size against _MAX_UNDO_DEPTH=10; or (b) inverse ops. Pick one, keep the batch atomic-Undo behaviour as an option if users rely on it, add the endpoint, and surface a per-row Undo in the staged list. This was carved out of task-461 (its validation gate and property diff are done); do not change task-387's default without deciding the contract.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open the NL editor and stage a batch containing two independent graph\n   operations, such as renaming one area and adding a tag to another node.\n   Apply the batch and inspect both nodes in the graph and their inspectors.\n   - expected: both operations are applied; the staged list records each\n     operation separately with its own Undo affordance.\n2. Click Undo on only the second operation's row, then inspect both nodes and\n   the remaining staged/applied rows.\n   - expected: only the second operation is reversed; the first operation\n     remains applied and the rest of the batch is not rolled back.\n3. Click Undo for the first operation and inspect both nodes again.\n   - expected: the first operation is then reversed, leaving the graph at its\n     pre-batch values.\n4. Repeat with a batch where the second operation fails validation.\n   - expected: a rejected operation has no Undo action and does not alter or\n     undo the successfully applied operation.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: NL editor → stage a multi-operation batch → Apply → the\napplied-operation rows in the staging tray. Each successful row owns its own\nUndo control; the existing global batch Undo contract must remain explicit.\n\nCurrent availability: task-387's batch Apply records one snapshot, so one Undo\nreverts the entire batch. Per-operation Undo is not currently offered by this\ncard's report. The implementation choice (per-operation snapshots or inverse\noperations) must be settled before changing that contract.\n\nLive steps when available:\n1. Stage two successful operations against different nodes and Apply. Count the\n   applied rows and verify the changed node values in their Inspectors.\n   - expected: two applied rows each have a distinct Undo control.\n2. Undo the second row only, then inspect both nodes and the first row.\n   - expected: the second change is reversed, the first remains, and only the\n     second row is marked undone/removed.\n3. Undo the first row and compare both node values with their pre-batch values.\n   - expected: the graph returns to its original state without creating extra\n     nodes or reverting unrelated edits.\n4. Run one invalid operation in the batch and inspect its row after Apply.\n   - expected: the invalid row explains its error and cannot undo a successful\n     sibling operation.\n\nThese steps describe the intended NL-editor surface. They do not claim\nper-operation Undo is available today.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/graph/task-743-nl-editor-per-op-undo-for-an-applied-batch.md"
+  }
+}

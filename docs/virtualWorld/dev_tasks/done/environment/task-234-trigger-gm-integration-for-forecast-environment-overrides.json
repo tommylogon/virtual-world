@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-234",
+  "kind": "task",
+  "number": 234,
+  "title": "Trigger & GM Integration for Forecast & Environment Overrides",
+  "status": "done",
+  "priority": "high",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-15",
+  "updated": "2026-08-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expand `set_environment` / `adjust_environment` to support all new environment keys (`weather`, `wind`, `humidity`, `transparent`). Add `forecast_override` and `adjust_forecast` trigger effects so the GM (or scenario triggers) can temporarily override the authored forecast schedule. Add time-of-day/moon trigger conditions (`on_dawn`, `on_dusk`, `on_full_moon`, `on_blood_moon`). Add `on_turn_start` / `on_turn_end` trigger types for areas/characters. Add API endpoints and a basic GM control panel.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `set_environment weather=stormy` changes area weather immediately\n- `forecast_override weather=stormy duration_ticks=60` locks global weather for 60 turns then reverts\n- `adjust_forecast temperature_mod_delta=+3` shifts current forecast entry\n- Per-area override `target: \"area:room_42\"` only affects that room\n- `adjust_weather +1` cycles weather forward one step\n- `on_dawn` triggers once at 05:00\n- `on_full_moon` triggers on game_day % 30 in 20–24 range\n- `on_blood_moon` triggers when GM sets `blood_moon: true`\n- `on_turn_start` fires before vitals decay\n- `on_turn_end` fires after clock advance\n- API endpoints return correct current state",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/effects.py` - add `forecast_override`, `adjust_forecast`, expand `set_environment` keys",
+      "engine/trigger_system.py` - register new effect types + time/moon conditions + `on_turn_start`/`on_turn_end` trigger types",
+      "engine/trigger_validator.py` - validate new params + time/moon conditions",
+      "engine/tick_manager.py` - forecast override revert logic, `_fire_turn_triggers()` for turn start/end",
+      "engine/weather_forecast.py` - expose override-aware lookup, moon phase helper",
+      "routes/settings.py` - new forecast endpoints",
+      "routes/state.py` - expose forecast + override in state",
+      "static/js/settings-view.js` - weather/forecast GM panel",
+      "static/js/world-state.js` - parse new fields"
+    ],
+    "custom": {
+      "terminology_glossary": "These terms are used throughout the engine and trigger system. They are distinct concepts:\n\n| Term | Definition |\n|------|-----------|\n| **tick** | A unit of game time. Each tick = `time_per_tick_minutes` (default: 5 minutes). `time_ticks` is a monotonically increasing counter. `advance_clock(1)` advances time by 1 tick. |\n| **tick_turn()** | The full processing cycle that runs when a turn ends. Calls `conditions.process_tick()`, vitals decay, environmental effects, heat propagation, sound sources, NPC behavior, then `advance_clock(1)`. This is what `/api/turn/apply` invokes. |\n| **turn** | One complete player action cycle: player takes action → `tick_turn()` runs → `/api/turn/clear` increments `turn_number`. One turn = one `tick_turn()` call = +1 tick = +5 game minutes. |\n| **turn_number** | An integer incremented by `clear_turn_events()` AFTER `tick_turn()` completes. Used for logging, event tracking, and turn-gated conditions. |\n| **step** | An NPC movement step or activity progress step. Not a global time concept - NPCs may take multiple steps per turn. |\n\n### `on_tick` trigger type - clarification\n\n`on_tick` is currently an **item trigger type** that fires during `tick_turn()`. Despite the name, it fires **once per turn**, not once per time tick. It exists so lit items (torches, embers) can burn down and fire `on_depleted` when their `uses` reach 0.\n\nRenaming `on_tick` is not feasible (100+ references in data files). Instead:\n- Keep `on_tick` as the item trigger name (documented as \"fires once per turn cycle\")\n- Add `on_turn_start` and `on_turn_end` for areas/characters/NPCs that need turn-gated hooks",
+      "trigger_effect_expansions": "### `set_environment` - New Keys\n\nCurrently supports: `light`, `temperature`, `air`, `smell`, `noise`.\n\nAdd support for:\n- `weather` - set `environment.weather` on a area\n- `wind` - set `environment.wind` (none / breeze / wind / gale / storm / hurricane)\n- `humidity` - set `environment.humidity` (dry / humid / wet / flooding)\n- `transparent` - set `\"transparent\": true/false` on a way node\n\n### `adjust_environment` - New Keys\n\nSame additions as `set_environment`, but incrementally:\n- `adjust_weather` - cycle weather by N steps\n- `adjust_wind` - cycle wind by N steps\n- `adjust_humidity` - cycle humidity by N steps\n\n### `forecast_override` Effect\n\nTemporarily lock the forecast (globally or per-area):\n\n```json\n{\n    \"type\": \"forecast_override\",\n    \"params\": {\n        \"weather\": \"stormy\",\n        \"wind\": \"gale\",\n        \"temperature_mod\": -5,\n        \"duration_ticks\": 60,\n        \"target\": \"global\"\n    }\n}\n```\n\n- `duration_ticks`: auto-reverts after this many turns. `null` = permanent until manually cleared.\n- `target`: `\"global\"` applies to all areas; `\"area:<id>\"` applies to one area.\n\n### `adjust_forecast` Effect\n\nShift the current forecast entry:\n\n```json\n{\n    \"type\": \"adjust_forecast\",\n    \"params\": {\n        \"temperature_mod_delta\": +3,\n        \"light_mod_delta\": -10,\n        \"duration_ticks\": 120\n    }\n}\n```",
+      "time_of_day_moon_trigger_conditions": "### `on_dawn`\n\nTrue when current hour is 05:00–06:00. Fires once per dawn.\n\n### `on_dusk`\n\nTrue when current hour is 18:00–19:00. Fires once per dusk.\n\n### `on_day`\n\nTrue during daytime (06:00–18:00).\n\n### `on_night`\n\nTrue during nighttime (19:00–05:00).\n\n### `on_full_moon`\n\nTrue when `moon_phase.name == \"full_moon\"` (game_day % 30 in 20–24). Fires once per full moon night.\n\n### `on_blood_moon`\n\nA rare lunar event. True when a blood moon is active. Can be:\n- **GM-triggered**: `forecast_override` sets `blood_moon: true`\n- **Random**: state machine has low-probability transition (e.g., 5% on full moon night)\n- **Scenario-scripted**: trigger sets it for a specific night\n\nWhen active: red moonlight (`light_bonus: 30`, red-tinted description), undead aggression bonus.\n\nAll time/moon conditions fire **once per transition** using a last-fired cache.",
+      "turn_trigger_types": "New trigger types that fire at the start/end of each turn cycle:\n\n### `on_turn_start`\n\nFires at the beginning of `tick_turn()`, before conditions, vitals decay, or environmental effects are applied. Use for:\n- Applying forecast overrides to areas\n- Setting up area statuses that should affect the coming turn\n- Pre-turn narration\n\n### `on_turn_end`\n\nFires at the end of `tick_turn()`, after the clock has advanced and NPC behavior has run. Use for:\n- Cleanup triggers\n- Post-turn narration\n- Triggering area status propagation after environmental changes settle\n\n### Implementation\n\nIn `engine/tick_manager.py`:\n\n```python\ndef tick_turn(self, skip_npcs=False):\n    # ── on_turn_start ──\n    self._fire_turn_triggers(\"on_turn_start\")\n    \n    # ... existing tick_turn logic ...\n    \n    # ── on_turn_end ──\n    self._fire_turn_triggers(\"on_turn_end\")\n```\n\n`_fire_turn_triggers()` iterates all area nodes and fires the given trigger type on any node that has it registered. This is separate from the item `on_tick` loop - `on_turn_start`/`on_turn_end` fire on **areas, characters, and ways**, not just items.",
+      "api_endpoints": "### `GET /api/settings/forecast`\n\nReturns current forecast schedule + active overrides.\n\n### `POST /api/settings/forecast`\n\nUpdate the entire forecast schedule.\n\n### `POST /api/settings/forecast-override`\n\nSet or clear a forecast override:\n\n```json\n{\n    \"weather\": \"stormy\",\n    \"wind\": \"gale\",\n    \"duration_ticks\": 60,\n    \"target\": \"global\"\n}\n```\n\nPass `null` values to clear specific keys. Pass `\"clear_all\": true` to remove all overrides.\n\n### `GET /api/settings/weather`\n\nLegacy endpoint - returns current effective weather.",
+      "gm_control_panel_ui": "In `static/js/settings-view.js`, add a **Weather & Forecast** tab:\n- Current effective weather display\n- Forecast schedule editor\n- Quick-set buttons\n- Override timer\n- Moon phase display\n- Wind speed gauge",
+      "forecast_revert_logic": "In `tick_turn()`, after applying forecast:\n\n```python\noverride = world_state.get(\"forecast_override\")\nif override:\n    if override.get(\"duration_ticks\") is not None:\n        override[\"duration_ticks\"] -= 1\n        if override[\"duration_ticks\"] <= 0:\n            world_state.pop(\"forecast_override\", None)\n```",
+      "dependencies": "- **Blocked by**: task-227 (forecast engine), task-228 (calendar), task-229 (moon phase), task-231 (wind), task-232 (humidity), task-233 (area statuses)",
+      "implemented_audit_2026_09_02": "Mostly implemented before this audit: `set_environment` new keys\n(weather/wind/humidity/transparent), adjust cycling, `forecast_override` /\n`adjust_forecast` handlers, `on_turn_start`/`on_turn_end`\n(`_fire_turn_triggers`), time/moon triggers (`_fire_time_triggers`: on_dawn,\non_dusk, on_day, on_night, on_full_moon, on_blood_moon - one-shot per\ngame-day cache), and the GM panel (SkyScape World Sky panel: override\nweather/wind/humidity/duration + Set/Clear against\n`/api/settings/forecast-override`).\nThis audit registered all of those trigger types + effects in\n`TRIGGER_TYPES` / `EFFECT_TYPES` (they fired engine-side but were unregistered,\nso the validator and both editors rejected them), and added the full param\nblocks to the form and graph editors."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "filed": "2026-08-15",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-234-trigger-environment-forecast-overrides.md"
+  }
+}

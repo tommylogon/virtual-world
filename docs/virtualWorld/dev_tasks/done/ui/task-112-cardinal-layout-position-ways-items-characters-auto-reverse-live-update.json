@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-112",
+  "kind": "task",
+  "number": 112,
+  "title": "Cardinal Layout - Position Ways, Items, Characters; Auto-Reverse; Live Update",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-27",
+  "updated": "2026-07-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The cardinal layout (🗺️ Map button) was only positioning area nodes on the BFS grid. Everything else (ways, items, characters) was frozen at random vis.js positions - making the layout look broken. This task positions **all** node types, enables physics for items/characters, adds auto-reverse cardinal on way inspector, and live re-layout on cardinal change.",
+    "why": "TODO",
+    "how": "### `static/js/graph/layout-engine.js` - rewritten `applyCardinalLayout()`\n\n| Step | What it does |\n|------|-------------|\n| Area grid (kept) | Same BFS cardinal layout, rooms on 350×220 grid |\n| Way midpoints (new) | Each way node positioned at pixel midpoint between its two connected rooms using `area_from`/`area_to` properties |\n| Items near rooms (new) | Scans `location` edges from `worldState.graph.edges`, scatters items in 3-column grid below parent room, **physics enabled** (`physics: true`, `fixed: false`) |\n| Characters near rooms (new) | Same via `location` edges, stacked vertically to the right of their room, **physics enabled** |\n| Physics model (changed) | Global physics = ON. Areas/ways get per-node `physics: false` + `fixed: {x: true, y: true}` so they stay frozen. Items/chars settle naturally via edge springs. |\n\n### `static/js/graph-manager.js`\n\n- `toggleCardinalLayout()` - now sets `_physicsEnabled = true` always (was `false` when cardinal on), so `wasPhysics` triggers global physics re-enable after layout\n- Removed dead `_applyCardinalLayout()` duplicate (107 lines, never called)\n\n### `static/js/inspector/way-view.js` - auto-reverse cardinal + live re-layout\n\n- Added `OPPOSITE_CARDINAL` mapping (north↔south, east↔west, etc.)\n- Added `_updateCardinal()` helper - updates both A→B and B→A edges in one `Promise.all()`, then calls `worldState.fetch()`, then if cardinal layout is active, reloads the graph via `loadGraphData()`\n- Both cardinal dropdowns now call `InspectorWayView._updateCardinal()`\n\n### `static/css/style.css`\n\n- Removed all map-view CSS (`.map-view`, `.map-area-card`, etc. - dead from task-111)\n\n### `templates/index.html`\n\n- Removed Map button from view-toggle and its script tag (task-111)\n\n### `tools/test_ui.cjs`\n\n- Removed map view `setViewMode('map')` test (task-111)",
+    "verify": "- [ ] 🗺️ Map button places rooms on grid, ways at midpoints\n- [ ] Items appear below their parent room in columns\n- [ ] Characters appear to the right of their room\n- [ ] Changing cardinal in way inspector auto-sets opposite direction\n- [ ] Graph layout updates live when cardinal changes\n- [ ] Toggling Map off returns to normal force-directed graph\n- [ ] Items/characters have physics enabled and settle naturally\n- [ ] Server starts clean, no 404s",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Graph & Area UX",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-112-cardinal-layout-position-ways.md"
+  }
+}

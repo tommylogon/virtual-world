@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-19
 **Priority**: High
-**Status**: In Review — core + nested sync + round-trip endpoint implemented 2026-08-19, pending browser E2E
+**Status**: In Review - core + nested sync + round-trip endpoint implemented 2026-08-19, pending browser E2E
 
 ---
 
@@ -32,9 +32,9 @@ per-tab sync buttons for items / characters / areas, but:
 One **"Sync World to Library"** flow covering items, ways, areas, and characters:
 
 1. **List view** of every world entity, each with a status badge:
-   - `new` — no matching library entry → offer to add it
-   - `diff` — matching entry exists with different values → click to review
-   - `synced` — identical (skipped)
+   - `new` - no matching library entry → offer to add it
+   - `diff` - matching entry exists with different values → click to review
+   - `synced` - identical (skipped)
 2. **Click an entity** → DiffModal with all properties as sections, per-section
    checkboxes. Actions: **Skip** / **Update** (merge checked sections into the
    existing entry) / **Create New** (save as new/duplicate entry).
@@ -61,7 +61,7 @@ One **"Sync World to Library"** flow covering items, ways, areas, and characters
   (no longer opens the library browser). "📚 Library" is the separate browser button.
 - **New `static/js/world-sync.js`** (`WorldSync`): collects every world entity
   (items via graph nodes, ways via graph nodes, areas, characters) and renders a
-  list with status badges — `new` (no match), `differs` (content differs), `synced ✓`.
+  list with status badges - `new` (no match), `differs` (content differs), `synced ✓`.
   Match by `library_id` → slug → name.
 - Filter tabs (All / Items / Ways / Areas / Characters) with counts summary.
 - Clicking an entity routes to the existing single-entity DiffModal save flow:
@@ -89,7 +89,7 @@ One **"Sync World to Library"** flow covering items, ways, areas, and characters
 ## Nested items (done 2026-08-19)
 
 - **`ItemLibrary._buildWorldItemPayload(nodeId)`** (item-library.js): canonical
-  recursive builder — a container's `contents` now embeds the **full definitions**
+  recursive builder - a container's `contents` now embeds the **full definitions**
   (recursively) of contained items, not just `{id, name}` refs. Returns
   `{payload, nested}` with depth + cycle guards (`seen` set, max depth 8).
 - **`ItemLibrary._saveNestedChildren(nestedIds)`**: after saving a container, each

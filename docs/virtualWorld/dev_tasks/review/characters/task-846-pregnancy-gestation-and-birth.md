@@ -25,7 +25,7 @@ location.
 
 A 10-year soak that ages and kills but never births is half a
 demography. But pregnancy is its own consent-gated, content-heavy
-system (willingness, gestation tracking, infant behaviors) — it does
+system (willingness, gestation tracking, infant behaviors) - it does
 not belong inside the clock card.
 
 ## How
@@ -33,12 +33,29 @@ not belong inside the clock card.
 - Fertility by life stage (lifecycle engine owns stages; this card
   reads them).
 - Willingness as an explicit gate (boundaries/consent vocabulary from
-  the persona schema — never implied).
+  the persona schema - never implied).
 - Gestation as bounded per-character state (a due tick + stage, not an
-  event store — the 735 scale note applies here too).
+  event store - the 735 scale note applies here too).
 - Birth spawns via the existing spawn-character path (task-295) with
   `birth_tick` set to the birth tick, so the child enters the clock
   already.
+
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector -> Mind -> Bio / Lifecycle panel and Conditions tab.
+
+Current availability: Planned; lifecycle clock and reproductive cycles are implemented in tasks 735 and 928, while gestation and birth delivery pipeline are in progress.
+
+Live steps when available:
+1. In Character Inspector -> Mind -> Bio, observe the pregnancy status and gestation progress of an expecting character.
+   - expected: Gestation progress and estimated due date/stage are displayed.
+2. Advance world simulation ticks past the gestation duration.
+   - expected: A birth event fires, and the newborn character node is materialized at the parent's area.
+3. Select the newborn character in the Agents list.
+   - expected: Character Inspector shows valid node, birth tick, and relationship edge to the parent.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 
 ## Steps to verify
 
@@ -59,6 +76,6 @@ not belong inside the clock card.
 
 ## Files
 
-- `engine/lifecycle.py` — stages read here
-- `engine/spawn.py` or task-295 path — birth delivery
+- `engine/lifecycle.py` - stages read here
+- `engine/spawn.py` or task-295 path - birth delivery
 - `tests/test_pregnancy.py` (new)

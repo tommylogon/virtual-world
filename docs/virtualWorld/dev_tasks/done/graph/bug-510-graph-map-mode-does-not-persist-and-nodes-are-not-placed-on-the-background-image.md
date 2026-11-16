@@ -18,14 +18,14 @@ Two defects in one area. (1) Selecting map mode for the graph does not save - th
 
 - TODO
 
-## Fix / findings — 2026-10-02 (port 4471, Playwright)
+## Fix / findings - 2026-10-02 (port 4471, Playwright)
 
-### (1) Map mode did not persist — fixed
+### (1) Map mode did not persist - fixed
 
 Root cause: the Map layout lived only in `graphManager._cardinalLayout`, a
 runtime boolean. `config.graphLayoutMode` persisted **Levels** ('free'/'levels')
 but there was no key at all for Map, so a reload (and any full re-init) dropped
-straight back to Graph — exactly what the audit noted ("there is no key for
+straight back to Graph - exactly what the audit noted ("there is no key for
 layout mode").
 
 - `config.js` now loads/saves `graphCardinalLayout` (`graph_cardinal_layout`),
@@ -33,7 +33,7 @@ layout mode").
   independent axes.
 - `graph-manager.js` initialises `_cardinalLayout` from config (constructor and
   again in `init()`, after `config._initPromise`), and `_persistCardinalLayout()`
-  is called whenever the choice actually changes — `toggleCardinalLayout()` and
+  is called whenever the choice actually changes - `toggleCardinalLayout()` and
   the `setViewMode('graph')` clear.
 
 Live proof (real click on `#layout-segment [data-layout="map"]`):
@@ -44,12 +44,12 @@ Live proof (real click on `#layout-segment [data-layout="map"]`):
 | after click | map | true | "true" | true |
 | after reload | **map** | true | "true" | **true** |
 
-### (2) Nodes not on the background image — does not reproduce as filed
+### (2) Nodes not on the background image - does not reproduce as filed
 
 Measured on the current tree: the two background layers carry rects in graph
 units, and **236 of 238 placed nodes fall inside an image rect**. The two
 outliers are one area 193px below layer 0 (`Dark Cave`, y=1284 vs bottom 1090)
-and one logic-trigger 32px above its top edge (`on_examine → message`) — i.e.
+and one logic-trigger 32px above its top edge (`on_examine → message`) - i.e.
 nodes the layout engine placed relative to their holder, not a whole-canvas
 projection failure. The old audit picture (a node pile "below and to the left"
 of a single map band, four images at four scales) no longer matches: Map mode

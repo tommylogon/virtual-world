@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-162",
+  "kind": "task",
+  "number": 162,
+  "title": "Dash Movement Action",
+  "status": "done",
+  "priority": "low",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "movement",
+    "actions"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a `dash` action: run into another area and immediately get the option to run again - no inner monologue or other actions allowed between the two moves.",
+    "why": "Movement is one area per action (engine/movement.py `move_to_area`), and each agent action costs a full turn. There's no way to cover ground quickly, which makes chases and escape attempts tedious.",
+    "how": "### Command\n\n- Add a `dash <direction>` command in routes/action.py that calls `move_to_area` twice in a row\n- The intermediate step does NOT trigger agent decision/inner monologue - just a compact \"You dash through the doorway.\" line\n- Optionally a third+ move requires another dash command (player chooses to keep dashing)\n- Apply double (or scaled) energy cost for the dash - ties into task-156 weight/energy\n\n### Agent integration\n\n- Add `dash <direction>` to the allowed actions list in the prompt\n- The result reaction should treat the dash as a single turn (no decide phase between moves)",
+    "verify": "- [x] `dash north` moves ONE area (single fast hop)\n- [x] Agent immediately gets a second decision step to chain another `go`\n- [x] Energy surcharge is applied for the sprint\n- [x] Dash blocked by locked/closed doors as normal\n\n**Implemented 2026-08-02 (v1)** - `MovementSystem.dash_to_area(direction)` ran two `move_to_area` hops back-to-back (single action, no decision between), stopped gracefully if the second hop found no exit, and applied an extra energy surcharge. Wired as `dash <direction>` in `routes/action.py` and exposed to agents in the prompt command table.\n\n**Reworked 2026-08-06 (v2, chained sequential `go`s)** - dash is now a single fast hop (`engine/movement.py dash_to_area` = one `move_to_area` + sprint surcharge). The agent engine (`static/js/agent-engine.js`) detects a `dash` action, then runs `_runDashFollowUp`: an immediate second decision via `PromptBuilder.buildDashFollowUpPrompt` (new area context, pick one exit to `go` through or `wait`), validates and executes that move, and appends it to the action result before the reaction phase. The reaction context notes the player just sprinted into a new room. Backend tests in `tests/test_movement.py::TestDash` updated to single-hop expectations (5 tests).\n\n**Status: DONE** - moved to `done/gameplay/`.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_to_modify": "1. `routes/action.py` - `dash <direction>` command parsing ✅\n2. `engine/movement.py` - `dash_to_area()` (two moves, chained, compact single action) ✅\n3. `static/js/agent/prompt-builder.js` - dash added to allowed movement commands ✅",
+      "related": "- [[todo/items/task-156-weight-affects-energy-decay|task-156: Weight affects energy decay]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-162-dash-movement-action.md"
+  }
+}

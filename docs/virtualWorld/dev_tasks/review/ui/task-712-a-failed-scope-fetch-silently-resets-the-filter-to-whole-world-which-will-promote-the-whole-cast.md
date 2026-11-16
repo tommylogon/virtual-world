@@ -40,7 +40,7 @@ if (scopeId) {
 ```
 
 `getScopeSubgraph` throws on any non-OK response (`static/js/api.ts:240`), and a
-network failure rejects the fetch — so the catch covers both.
+network failure rejects the fetch - so the catch covers both.
 
 ## Why it is worse than a rendering bug
 
@@ -52,7 +52,7 @@ fine, it just looks like the whole world.
 ## Acceptance
 
 - [ ] A **404 / unknown scope** still falls back, because there is genuinely
-      nothing to show — but the user is told the scope went away rather than
+      nothing to show - but the user is told the scope went away rather than
       being handed a whole world with no explanation.
 - [ ] A **transient failure** (5xx, timeout, offline) does **not** clear the
       filter. It retries, or surfaces an error and leaves the selection intact.

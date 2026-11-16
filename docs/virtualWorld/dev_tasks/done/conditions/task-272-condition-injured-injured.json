@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-272",
+  "kind": "task",
+  "number": 272,
+  "title": "Condition: Injured (`injured`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A wounded body part (light/moderate/severe). Uses `level` for severity and `ends_on: [\"fix\"]` so healing removes it. Core to injury â†’ healing gameplay.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"injured\": {\n    \"name\": \"Injured\", \"description\": \"A wounded limb. Hurts and hampers you.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [],\n    \"attack_mod\": -1, \"defense_mod\": 0, \"speed_mult\": 0.95,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {},       # injured itself doesn't drain; bleeding does\n    \"ends_on\": [\"fix\"],\n    \"known\": True, \"symptoms\": {\n        1: \"Your wound throbs.\",\n        2: \"The injury aches with every move.\",\n        3: \"A deep, sharp pain radiates from the wound.\",\n    },\n    \"level_periodic\": {1: {}, 2: {\"Energy\": -1}, 3: {\"Energy\": -2, \"HP\": -1}},\n    \"stack\": \"refresh\",\n    \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: none hard, but severity should matter:\n  - **light (1)**: minor mods.\n  - **moderate (2)**: Energy drain, bigger attack penalty.\n  - **severe (3)**: bigger drains + HP bleed; possibly restricts that body part (a severe leg injury hampers movement to near crawl).\n- **Saves/checks**: maybe auto-fail physical checks tied to the injured part.\n- **Combat**: `attack_mod` penalty that scales with `level` (via `level_*` fields or per-instance override).\n- **Movement**: a leg injury â†’ `speed_mult`/`movement_mode` scaling; an arm injury â†’ attack/use penalties.\n- **Periodic**: light healing-drag or Energy cost based on `level`.\n- **Lifecycle**: `stack: \"refresh\"` - re-injuring the same part bumps level toward severe. Ends on `fix` (bandaging/healing) - per-instance `ends_on` (a `fix` ends only the injured instance).",
+      "perception": "`known: True` - the agent knows they're hurt; `symptoms` scale with severity.",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry (leverage `level_periodic`, `level_speed_mult` like `exhausted`).\n- Tie to **body-part targets** (task-253: body-part targeted injuries) - the injury should reference which part.\n- `engine/movement.py` - leg-injury movement gating.\n- Healing: `ends_on: [\"fix\"]` wired to bandage/heal actions and the `end_condition` effect.",
+      "testing_proposed": "- [ ] Injury levels 1/2/3 differ in drains, attack mods, speed.\n- [ ] Re-injuring the same part scales severity, not duplicates.\n- [ ] `fix` (heal/bandage) ends the instance.\n- [ ] Leg injury hampers movement; arm injury hampers attack/use.",
+      "open_questions_things_to_work_out": "- Body-part registry: does the injury track a specific part (source/part field), and which actions/checks that part gates?\n- Relationship to **bleeding**: `injured` for long-term healing, `bleeding` for acute HP loss, or combined?\n- Is \"severe injury\" just a high `level`, or a separate condition (e.g. a broken bone â†’ `prone` with `ends_on: [\"fix\"]`)?\n- `speed_mult 0.95` baseline vs. level-scaled - decide."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-272-injured.md"
+  }
+}

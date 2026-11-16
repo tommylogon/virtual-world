@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-72",
+  "kind": "task",
+  "number": 72,
+  "title": "Surface Skill Check Roll in Trigger Output",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-19",
+  "updated": "2026-07-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When a trigger condition is of type `skill_check`, the roll result message (e.g., `\"[Skill Check] Investigation vs DC 14 (medium): roll=15 + 2 = 17 => success\"`) is discarded by `_evaluate_trigger_condition`. The player sees the `success_message` or `fail_message` from the trigger but never sees the actual dice roll.",
+    "why": "`virtual_world_engine.py:1131-1135`:\n\n```python\nelif ctype == \"skill_check\":\n    skill = condition.get(\"skill\", \"Athletics\")\n    dc = int(condition.get(\"dc\", 10))\n    success, total, msg = self.skill_check(skill, dc)\n    return success  # ← msg discarded!\n```\n\n`skill_check()` at line 3940-3943 generates the message and writes it to `self.add_log_entry()`, but `_evaluate_trigger_condition` only returns the boolean `success`. The caller (`_execute_triggers`) has no way to surface the roll.\n\nAdditionally, when the condition fails and the trigger's `fail_message` is shown (lines 1298-1301, 1308-1311), the roll still isn't included in the output.",
+    "how": "### Option A: Store the roll message on the world instance\n\nAdd a `self._last_skill_check_msg` attribute that `skill_check()` sets and `_execute_triggers()` appends to outputs:\n\n```python\n# In skill_check:\nself._last_skill_check_msg = message\nreturn (success, total, message)\n\n# In _execute_triggers, after evaluating conditions:\nif ctype == \"skill_check\" and self._last_skill_check_msg:\n    outputs.append(self._last_skill_check_msg)\n```\n\nDrawback: stateful, could be stale if multiple skill checks run.\n\n### Option B: Change return type of `_evaluate_trigger_condition`\n\nReturn a tuple `(success, msg)` instead of bool. Update callers at lines 1294 and 1306 to handle the tuple.\n\nThis is cleaner but requires updating all condition evaluation callers.\n\n### Option C: Surface through trigger effect params\n\nInstead of the engine adding the roll message, configure the trigger's `fail_message` and `success_message` to include `{roll_result}` template variables. But the engine doesn't pass the roll as a template variable.\n\n**Recommendation**: Option A for simplicity. Store `self._last_skill_check_msg` and append it to trigger outputs when the condition type is `skill_check`.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py:1131-1135` - `_evaluate_trigger_condition",
+      "virtual_world_engine.py:3920-3943` - `skill_check()"
+    ],
+    "custom": {
+      "edge_cases": "- Multiple skill check conditions in one trigger: only the last roll is surfaced\n- Skill check in nested conditions (AND/OR): will surface per evaluation\n- Skill check passes and trigger has `success_message`: roll message should appear before the success message"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-72-surface_skill_check_roll_in_trigger_output.md"
+  }
+}

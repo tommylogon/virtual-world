@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-219",
+  "kind": "task",
+  "number": 219,
+  "title": "Agent Lens - Left Panel (Area + Agent Preview)",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-13",
+  "updated": "2026-08-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A **non-blocking** Agent Lens in the **left panel** (new tab or pin-able pane) that updates live while the inspector stays editable on the right.\n\n**Not** an inspector tab. **Not** a modal that covers the inspector.",
+    "why": "Level designers cannot see what an LLM agent (or human `look`) will receive until they run an agent step. Editing areas, ways, and items in the **right inspector** while guessing prompt output is slow and error-prone (labs doors, ladder views, jump pits, clearance doors).\n\nPlayers never stand *in* a way - perception is always **from an area**. Preview must reflect that.",
+    "how": "### New files\n\n- `static/js/agent-lens.js` - lens controller, mode switching, render\n- `static/js/agent-lens/area-preview.js` - area mode sections\n- `static/js/agent-lens/agent-preview.js` - full prompt assembly\n\n### Touch\n\n- `templates/index.html` - left tab + pane `#left-tab-lens`\n- `static/js/ui-controller.js` - `switchLeftTab('lens')`\n- `static/js/inspector.js` or graph click handlers - notify lens of selection change\n- Reuse `PromptBuilder.*` from `static/js/agent/prompt-builder/` (no duplicate string logic)\n\n### v1 scope\n\n- Area lens + Agent lens\n- Preview-only way state overrides (local override map, not persisted)\n- No LLM call\n\n### v1.1 / blocked on task-201\n\n- See-through toggles (`allow_see_character`, `allow_see_item`) in area lens\n- Beyond-way content in exits block",
+    "verify": "- [ ] Select Kitchen in graph → lens shows exits block matching `buildRoomContext` for Kaelen\n- [ ] Edit way `visible_in_direction` in inspector → lens updates without agent step\n- [ ] Select Lyrie → agent lens shows prompts from **her** area, not selected area\n- [ ] Inspector remains usable while lens tab is open\n- [ ] Toggle preview closed/open on exit → exits block changes, world state unchanged on refresh without save",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "ux": "### Placement\n\nAdd left tab: **👁 Lens** (alongside Agents / Initiative / Outline), or optional **pin open** floating pane docked to left panel bottom.\n\n```\n┌ LEFT ──────────┬ CENTER graph ─┬ INSPECTOR ────────┐\n│ 👁 Lens        │               │ Area / Way / Agent │\n│ (preview)      │               │ (edit as today)    │\n└────────────────┴───────────────┴────────────────────┘\n```\n\n### Context follows selection\n\n| User selects | Lens mode | Location for room context |\n|--------------|-----------|---------------------------|\n| **Area node** | Area lens | **This area** (even if no agent is here) |\n| **Agent** (list or graph) | Agent lens | Agent's **actual** `current_area` |\n| **Way node** | Way lens (optional v1.1) | Snippets for **each connected area** (\"From Kitchen…\", \"From Living Room…\") - still area viewpoints, not \"inside the way\" |\n| Nothing | Last context or empty state | - |\n\n### Area lens controls\n\n- **View as:** character dropdown (Kaelen, Lyrie, rat, active player)\n- **Way state preview:** toggle exits closed / open / locked **without saving** (preview only)\n- **Sections** (collapsible, copy button each):\n  1. Area description (light-filtered per character traits)\n  2. Items that catch your attention (`buildAttention` - same as agent)\n  3. People here (stranger labels, first-impression line)\n  4. **Exits block** - exact lines from `buildRoomContext` (`From where you stand…`)\n  5. Investigation notes / discovered items (if any for selected character)\n\n### Agent lens controls\n\nFull **next-turn prompt stack** for selected character (client-side, no LLM):\n\n| Block | Builder |\n|-------|---------|\n| System | `buildCharacterSystemPrompt` |\n| Room context | `buildRoomContext` from character's current area |\n| Vitals / emotion / relationships / memory | existing context helpers |\n| Think-decide user message | `buildReactionPrompt` |\n| Footer note | \"Reactive mode adds react prompt after action executes\" |\n| Last action result | `config.lastActionResult[charName]` |\n\nOptional: **\"Preview as if in…\"** area dropdown (hypothetical placement) - clearly labeled, does not move the character.\n\n### Live update\n\n- Debounce 300ms on inspector edits + `worldState.fetch()` completion\n- Subscribe to `appEvents` `state:updated` where available\n- Manual 🔄 refresh button",
+      "related": "- [[todo/ui/task-201-area-visibility-beyond-ways|task-201]] - see-through flags in lens\n- [[todo/ui/task-221-way-authoring-ux-and-tooltips|task-221]] - exit badges (`requires climb`, etc.) shown in lens\n- [[dev_tasks/level-design-workflow|Level design workflow hub]]",
+      "browser_ui": "Intended UI home: Left panel → 👁 Lens tab, beside Agents / Initiative / Outline.\n\nCurrent availability: The Lens tab and area/agent/way previews are recorded as\nimplemented on 2026-08-13. The card itself marks browser verification pending;\nthe UI path below is the acceptance recipe, not a fresh observation.\n\nLive steps when available:\n1. Select Kitchen in the graph, open the Lens tab, and expand Exits; edit the\n   Kitchen-to-Hall way's `visible_in_direction` text in the right Inspector.\n   - expected: the Lens exits preview changes after the state update without\n     running an agent or closing the Inspector.\n2. Select Lyrie in the Agents list while Kitchen remains selected in the graph.\n   - expected: Agent Lens switches to Lyrie's actual current area and prompt\n     context; the right Inspector stays usable while Lens remains open.\n3. In Area Lens, toggle one exit closed/open, then refresh the world state\n   without saving.\n   - expected: the previewed exit line changes, but the world way state and\n     graph remain unchanged.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-219-agent-lens-left-panel.md"
+  }
+}

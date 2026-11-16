@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-260",
+  "kind": "task",
+  "number": 260,
+  "title": "Condition: Restrained (`restrained`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Tied, bound, or held fast. Speed 0, attacks at disadvantage, DEX saves fail. Differentiated from `grappled` (grappled is person-held and has no DEX autofail; restrained is binding with a DEX autofail).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [ ] Restrained: speed 0, cannot act/move, DEX saves fail.\n- [ ] Combat mods `-2`/`-2` apply.\n- [ ] Escape ends the instance.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "schema_catalog_entry": "```python\n\"restrained\": {\n    \"name\": \"Restrained\", \"description\": \"Tied or held fast. Speed 0; attacks at disadvantage.\",\n    \"blocks_actions\": True, \"blocks_movement\": True, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [\"DEX\"],\n    \"attack_mod\": -2, \"defense_mod\": -2, \"speed_mult\": 0.0,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {}, \"ends_on\": [\"escape\"],\n    \"known\": True, \"symptoms\": {}, \"stack\": \"noop\", \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown": "- **Gates**: blocks actions and movement; speech open.\n- **Saves/checks**: auto-fails DEX.\n- **Combat**: `attack_mod -2` and `defense_mod -2` (easier to hit AND clumsier attacks).\n- **Movement**: `speed_mult: 0.0`; keeps grip.\n- **Periodic**: none.\n- **Lifecycle**: `stack: \"noop\"`, `default_duration: None`, ends on `escape` only.",
+      "perception": "`known: True` - self-evident.",
+      "integration_points": "- `player.py:91-100` - catalog entry.\n- `engine/conditions.py` - saves, speed, combat mods.\n- Rope/binding use flows, capture mechanics.",
+      "open_questions_things_to_work_out": "- Intentional overlap/contrast with `grappled` - when is a hold a grapple vs. a restraint (roots/traps/person?)?\n- Should escaping restraints be possible by strength without an explicit `escape` action name?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Existing catalog"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-260-restrained.md"
+  }
+}

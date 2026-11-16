@@ -11,7 +11,7 @@ priority: medium
 **Related:** task-399, task-495, task-401, task-411, task-418
 **Design:** `docs/design/worldpainter-knowledge-and-fog.md`
 
-**Overlaps task-401 and task-411.** task-401 already owns chunk load/evict (the actual materialisation), and task-411 (selector) + task-418 (awareness channels) own fidelity-tier selection. This task's only unique delta is using *zones* as the selection key and keeping WorldPainter-side zone records — consider folding it into 401/411 rather than tracking it separately.
+**Overlaps task-401 and task-411.** task-401 already owns chunk load/evict (the actual materialisation), and task-411 (selector) + task-418 (awareness channels) own fidelity-tier selection. This task's only unique delta is using *zones* as the selection key and keeping WorldPainter-side zone records - consider folding it into 401/411 rather than tracking it separately.
 
 ## What
 
@@ -20,10 +20,10 @@ Use zones (world_scopes) as the spatial key for the existing fidelity tiers (tas
 ## Acceptance
 
 - Fidelity-tier selection can key off a character's zone/scope (in addition to attention).
-- Distant zones hold only scope records; their areas/ways are materialised on approach and can be released — a test proves node count stays bounded as the world grows.
+- Distant zones hold only scope records; their areas/ways are materialised on approach and can be released - a test proves node count stays bounded as the world grows.
 - Promotion/demotion records survive materialise/release (`engine/trace.py`).
 
-## Progress — 2026-09-28 (in `review`)
+## Progress - 2026-09-28 (in `review`)
 
 ### Only the unique delta is built, as the task's own header asks
 
@@ -36,14 +36,14 @@ Agreed. So: **zones** (`engine/zones.py`, new) plus the zone key added to
 `engine/attention.py` (`zones_in_play=…`, opt-in). Nothing reimplements 401's
 chunking or 411/418's selection.
 
-**This is the third task in a cluster of duplicates** — 401 (chunk load/evict),
+**This is the third task in a cluster of duplicates** - 401 (chunk load/evict),
 411+418 (fidelity selection) and 500 all describe the same mechanism. Posted to
 the board with 411's.
 
 ### Acceptance 3 cannot be built as written, and that is a finding
 
 It names `engine/trace.py`. **That file does not exist**, and the task that owned
-promote/demote records — task-412 — is **cancelled**. `engine/soak.py` exists but
+promote/demote records - task-412 - is **cancelled**. `engine/soak.py` exists but
 is player soak orders (a bounded time-skip span), not per-zone materialisation, so
 it is not the same thing with another name.
 
@@ -57,7 +57,7 @@ used to be there.
 
 `select(..., zones_in_play=["zone_0", ...])` reads each character's
 `world_scope_id` and puts a character in a zone nobody is attending **below every
-other tier, including "recent"** — their recency is a fact about a zone the world
+other tier, including "recent"** - their recency is a fact about a zone the world
 is not paying attention to, and ranking them on it is how a whole distant zone
 quietly holds the budget.
 
@@ -80,18 +80,18 @@ A release is destructive and mostly irreversible, so the rules that stop one
 matter more than the happy path. Four, in the order they are checked, each with a
 test that fires it:
 
-1. **A zone with a character in it** is not released — its areas vanish under
+1. **A zone with a character in it** is not released - its areas vanish under
    their feet and `current_area` dangles. Occupancy is read off the graph (`in`
    edges), not passed in, so the rule cannot be satisfied by a caller that
    forgot.
 2. **A `baked` zone** is never released and never re-materialised. A baked zone
    compiles once and is hand-edited afterwards, so a release/materialise cycle
-   destroys the edits — **the clobber trap (task-496) wearing a different hat**.
+   destroys the edits - **the clobber trap (task-496) wearing a different hat**.
    This is the rule most worth having and the one a naive implementation misses.
 3. **A zone with hand-authored nodes in it** is not released unless every
    non-generated node is one the compiler can rebuild. Same reason, found by
    inspection rather than by policy.
-4. **A zone whose parent this store released** is not released — the gateway way
+4. **A zone whose parent this store released** is not released - the gateway way
    is emitted by whichever scope compiles second. Only a parent *this store*
    released blocks: a parent that was never materialised is the author's own
    doing, and refusing on that would fire on every scope whose parent has no grid
@@ -101,7 +101,7 @@ test that fires it:
 Two non-refusals that are also deliberate: releasing an already-released zone is
 a **no-op, not an error** (a second release is the normal way to confirm the
 first took, and raising there teaches callers to ignore the result), and a store
-with no injected compiler uses the **real** one — the injection point is for
+with no injected compiler uses the **real** one - the injection point is for
 tests, not a licence to have no behaviour.
 
 ### A bug this task's own test caught, and it is the one that matters
@@ -110,7 +110,7 @@ tests, not a licence to have no behaviour.
 (`<scope>:grid.v2`) when given none, and the release path was remembering the
 *store's* configured seed rather than the one the zone was actually built with. A
 re-materialise cycle would therefore have produced a **different zone wearing the
-old one's name** — same node ids, different contents, no error. That is worse than
+old one's name** - same node ids, different contents, no error. That is worse than
 not rebuilding at all, and it is invisible until you diff the two.
 
 The seed now comes from the **nodes' own provenance** before they are dropped,
@@ -118,7 +118,7 @@ and a zone not built from one seed is reported with `ambiguous_seed` rather than
 guessed. Tested both ways: a zone built with no seed rebuilds byte-identically,
 and a zone with two seeds in it says so.
 
-Provenance was the natural selector throughout — every compiled node already
+Provenance was the natural selector throughout - every compiled node already
 carries `properties.generated.scope_id` (`engine.generation.provenance`), so
 "release this zone" is "delete exactly the nodes that recipe produced for it". The
 same mechanism the design doc's 🧹 Ungenerate calls for, used as the runtime half
@@ -126,7 +126,7 @@ of a cycle. A hand-placed area carrying only `world_scope_id` is in the inventor
 too, or a zone holding only that kind would look empty and be released while
 still holding the thing that was there.
 
-### New tests — `tests/test_zones.py` (24) and +4 in `test_attention.py`
+### New tests - `tests/test_zones.py` (24) and +4 in `test_attention.py`
 
 The selection key (distant zone loses on recency as well as awareness; opt-in;
 unplaced; same-zone not demoted; demotes rather than promotes); provenance as the

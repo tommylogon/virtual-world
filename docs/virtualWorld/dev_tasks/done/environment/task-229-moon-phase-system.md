@@ -68,12 +68,12 @@ def get_moon_phase(game_day: int) -> dict:
 
 ## Files
 
-1. `engine/weather_forecast.py` — `get_moon_phase()` helper
-2. `engine/lighting.py` — `get_time_of_day_light()` consumes moon phase
-3. `routes/state.py` — expose `moon_phase`
-4. `engine/area_description.py` — mention moonlight in outdoor night descriptions
-5. `static/js/world-state.js` — parse `moon_phase`
-6. `static/css/style.css` — moon icon styling
+1. `engine/weather_forecast.py` - `get_moon_phase()` helper
+2. `engine/lighting.py` - `get_time_of_day_light()` consumes moon phase
+3. `routes/state.py` - expose `moon_phase`
+4. `engine/area_description.py` - mention moonlight in outdoor night descriptions
+5. `static/js/world-state.js` - parse `moon_phase`
+6. `static/css/style.css` - moon icon styling
 
 ## Dependencies
 

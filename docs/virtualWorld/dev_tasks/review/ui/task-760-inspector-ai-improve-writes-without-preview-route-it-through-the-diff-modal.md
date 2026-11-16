@@ -18,7 +18,7 @@ wiki: "[[UI Reference/Rendering & UI Modules]]"
 
 ## What
 
-InspectorHelpers.improveWithAI (static/js/inspector/helpers.ts) sends the LLM result straight to api.updateNode with no preview. The moment the model answers, description, actions, tags, uses, weight, current_state, action_costs and skill_check have already changed in the world. The same codebase already owns a preview widget — shared/diff-modal.ts — and the item library-refresh path uses it (InspectorItemView._refreshFromLibrary in static/js/inspector/item-view.ts, which calls DiffModal.show(...) then api.refreshFromLibrary). Improve is the one AI write path that skips it.
+InspectorHelpers.improveWithAI (static/js/inspector/helpers.ts) sends the LLM result straight to api.updateNode with no preview. The moment the model answers, description, actions, tags, uses, weight, current_state, action_costs and skill_check have already changed in the world. The same codebase already owns a preview widget - shared/diff-modal.ts - and the item library-refresh path uses it (InspectorItemView._refreshFromLibrary in static/js/inspector/item-view.ts, which calls DiffModal.show(...) then api.refreshFromLibrary). Improve is the one AI write path that skips it.
 
 ## Why
 
@@ -26,7 +26,7 @@ An LLM change to authored data is the case that most needs a before/after review
 
 ## How
 
-Route improveWithAI through DiffModal.show(current, incoming, sections, {direction: 'to-world'}) — the same call _refreshFromLibrary already makes. Build current from the node's live properties and incoming from the parsed LLM result through the existing apply() builder; reuse the item section list in item-view.ts and the way/area equivalents. Apply only the sections the user keeps, in a single api.updateNode call so the whole-world undo stack reverts it in one step (routes/saveload.py pushes one snapshot per graph update; undo is whole-world, not diff-based). Keep the existing locked_fields gate in buildPrompt/apply so locked fields never reach the proposal. Do not add a second validator: the accepted update still goes through the same endpoint and engine/trigger_validator.py path.
+Route improveWithAI through DiffModal.show(current, incoming, sections, {direction: 'to-world'}) - the same call _refreshFromLibrary already makes. Build current from the node's live properties and incoming from the parsed LLM result through the existing apply() builder; reuse the item section list in item-view.ts and the way/area equivalents. Apply only the sections the user keeps, in a single api.updateNode call so the whole-world undo stack reverts it in one step (routes/saveload.py pushes one snapshot per graph update; undo is whole-world, not diff-based). Keep the existing locked_fields gate in buildPrompt/apply so locked fields never reach the proposal. Do not add a second validator: the accepted update still goes through the same endpoint and engine/trigger_validator.py path.
 
 ## Steps to verify
 

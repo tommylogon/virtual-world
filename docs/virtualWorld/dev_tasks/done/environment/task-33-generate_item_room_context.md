@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: In Review — implemented (code-verified 2026-08-11). Item AI generation passes target room description via `_targetArea`/`roomDesc` (`item-library/ai-generation.js:175-178`), create modal via `main.js`.
+**Status**: In Review - implemented (code-verified 2026-08-11). Item AI generation passes target room description via `_targetArea`/`roomDesc` (`item-library/ai-generation.js:175-178`), create modal via `main.js`.
 
 ---
 
@@ -28,7 +28,7 @@ const formatHint = '{"name":"...","description":"...","actions":"examine,take,us
 
 The full prompt sent to the LLM is just the user's prompt + format hint. No room context is included.
 
-In `item-library.js:generateWithAI()` (not shown fully), same pattern — the AI gets just the item-level prompt with no context.
+In `item-library.js:generateWithAI()` (not shown fully), same pattern - the AI gets just the item-level prompt with no context.
 
 ## Proposed Change
 
@@ -67,8 +67,8 @@ Respond ONLY with raw JSON matching the form fields. No markdown.
 
 ## Files
 
-- `static/js/main.js` — add room context to item AI generation in create modal
-- `static/js/item-library.js` — add room context to library's AI generation
+- `static/js/main.js` - add room context to item AI generation in create modal
+- `static/js/item-library.js` - add room context to library's AI generation
 
 ## How
 

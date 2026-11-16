@@ -20,7 +20,7 @@ priority: medium
 All phases implemented and tested (13/13 tests passing):
 
 ### Phase 1: Quoted Parameter Parsing
-- `tokenize_command()` in `app.py` — handles `'` and `"` quotes
+- `tokenize_command()` in `app.py` - handles `'` and `"` quotes
 - 10 unit tests in `tests/test_tokenizer.py`
 - All command branches use tokenizer: `go`, `open`, `close`, `eat`, `drink`, `use`, `examine`, `take`, `drop`, `rest`, `toggle`, `attack`, `speak`
 
@@ -38,7 +38,7 @@ All phases implemented and tested (13/13 tests passing):
 - Emote command documented in COMMANDS table
 
 ### Phase 4: Backend `process_emote()`
-- `process_emote()` method in `virtual_world_engine.py` — LLM generates description, logs turn event
+- `process_emote()` method in `virtual_world_engine.py` - LLM generates description, logs turn event
 - `POST /api/emote` endpoint in `app.py`
 - 3 unit tests in `tests/test_emote.py` (returns description, logs room event, LLM failure fallback)
 

@@ -10,9 +10,9 @@ priority: medium
 **Filed:** 2026-09-21  
 **Depends on:** task-417 (co-presence gate), task-420 (one relationship write
 path), task-409 (background runner).  
-**Amends:** task-409 §4 — this is the mature form of "coarse meetings".  
+**Amends:** task-409 §4 - this is the mature form of "coarse meetings".  
 **Reference implementation:** the author's own `Aura/Diary`
-(`github.com/tommylogon/Aura`, `Diary/`) — the same design already proven at
+(`github.com/tommylogon/Aura`, `Diary/`) - the same design already proven at
 day granularity. Borrow the machinery, replace the chooser.
 
 ## Outcome (2026-09-21)
@@ -42,8 +42,8 @@ game minutes) that consumes their action credit and blocks other actions",
 because "without this a character takes ~1,000 interactions a week and the
 memory/relationship churn is meaningless".
 
-The daily cap (task-417) already does that job — measured at 6.2 social
-memories/character/day at 15 min/tick and 6.7 at 1 min/tick — while the activity
+The daily cap (task-417) already does that job - measured at 6.2 social
+memories/character/day at 15 min/tick and 6.7 at 1 min/tick - while the activity
 **broke the survival ladder at short ticks**:
 
 | 1 day, 1 min/tick | with activity | without |
@@ -55,7 +55,7 @@ A 10-game-minute conversation is 10 ticks at 1 min/tick, and a blocked character
 cannot eat, sleep or wash; worse, a conversation pays enough Entertainment that
 the "seek amusement" need stops firing (`needs:entertainment` 68 → 6 in a day),
 so the camp slowly stopped looking after itself. At 15 min/tick the duration
-rounded to **one tick** and never blocked a decision — the damage was completely
+rounded to **one tick** and never blocked a decision - the damage was completely
 invisible there, which is exactly how it first showed up as unexplained
 Hygiene 13.7 in a short-tick soak.
 
@@ -65,7 +65,7 @@ tested: the cooldown blocks an immediate second interaction and spaces the day's
 allowance out instead of letting it burst.
 
 **Trap worth remembering:** `ACTIVITY_INTERRUPTIBLE` is the set `_tick` calls
-`_maybe_end_by_duration` for. A type missing from it never expires —
+`_maybe_end_by_duration` for. A type missing from it never expires -
 `elapsed_ticks` runs past `duration_ticks` forever and the character is stuck
 `busy`. Adding `conversing` without it made every character permanently busy and
 they died of exhaustion inside two in-game days. `activities.py` now says so at
@@ -73,18 +73,18 @@ the set.
 
 ### What is implemented
 
-- `ACTIONS` — `chat`, `joke`, `compliment`, `tease`, `confide`, `flirt`,
+- `ACTIONS` - `chat`, `joke`, `compliment`, `tease`, `confide`, `flirt`,
   `apologise`, `bully`, each with a DC, a band gate, per-side vital bases, and a
   `hostile_variant` for the cold-band reading.
-- `action_weights` — from traits (`social_gain`, `impatient`, `patient`,
+- `action_weights` - from traits (`social_gain`, `impatient`, `patient`,
   `hostile`, `attention_seeker`), the closeness band and need pressure.
   `ignore_weight` is the separate "they don't engage" draw; **`ignore` costs
   nothing**, not even the cap, because charging for it would spend an introvert's
   budget on the behaviour that defines them.
-- `resolve_tier` — d20 + Persuasion + band modifier vs the DC, mapped to the six
+- `resolve_tier` - d20 + Persuasion + band modifier vs the DC, mapped to the six
   Diary tiers, with natural 1 and 20 pinned to the ends. Seeded per
   `(actor, target, tick, action)`, so a replay reproduces the same history.
-- `_reading` — the load-bearing sign rule: a `tease` between friends reads
+- `_reading` - the load-bearing sign rule: a `tease` between friends reads
   positive for both sides, the same tease at low closeness is an attack on the
   target, and `bully` is never warm however well it lands.
 - Failure tiers are damped relative to success (`TIER_SCALE`), or a camp becomes
@@ -93,7 +93,7 @@ the set.
   `entity_ids = [actor, target, area]` and `source="background"`, plus a trace
   entry per side with `why="social:<action>"`, and relationship deltas through
   `apply_relationship_delta` (task-420).
-- `perform(..., action=...)` can force an action — for scripted interactions and
+- `perform(..., action=...)` can force an action - for scripted interactions and
   for tests that must not depend on the seed.
 
 ### Not done here
@@ -104,7 +104,7 @@ perception, a character walking into a room pays twice. Folding it into the
 novelty curve needs a stable name → character-node-id mapping on `Player` (the
 pass here populates `entity_ids` with node ids, but the novelty call site cannot
 resolve one from a bare name). Filed as **task-434**. Invisible in a background
-soak — the rendering paths that call it only fire for the attended player — so it
+soak - the rendering paths that call it only fire for the attended player - so it
 matters for a human session, not for these numbers.
 
 Also still true, and not this task's business: a character walking into a room the
@@ -113,12 +113,12 @@ runs for the mover (task-425's deferred perception trigger).
 
 ## Status notes (2026-09-21)
 
-- **task-420 is done** — `engine/relationships.py` is the one write path, and
+- **task-420 is done** - `engine/relationships.py` is the one write path, and
   `band_at_least()` / `closeness_band()` exist for this task's outcome table and
   its `flirt`/`confide` gates.
 - **task-417 is absorbed here.** Its gate (same area, both background, capped per
   in-game day, deterministic pairing) is a *component* of this task, not a
-  separate deliverable — building it standalone would mean implementing pairing
+  separate deliverable - building it standalone would mean implementing pairing
   twice, since the mature form replaces the "symmetric meeting" with an action and
   an outcome. Do them together.
 - **Blocked on task-431.** The scenario bakes `decay_rates.Social = 0.050` against
@@ -126,7 +126,7 @@ runs for the mover (task-425's deferred perception trigger).
   in constant company: a week soak ends with all 23 characters in
   `social_breakdown` + `hallucinating`. With `--engine-decay`, Social pegs at
   99.2. Either way the passive gain currently dominates this task's Social deltas
-  — one way they land on an impossible vital, the other on a capped one. task-431
+  - one way they land on an impossible vital, the other on a capped one. task-431
   decides that balance; this task's *relationship*, *memory* and *trace* work is
   independent of it and can proceed.
 - **Fold `_grant_meeting_entertainment` in.** It is a second Entertainment path
@@ -135,7 +135,7 @@ runs for the mover (task-425's deferred perception trigger).
   populates `entity_ids` with `[actor_id, target_id, area_id]`, which is where the
   name → character-node-id mapping it needs gets settled. (Related known gap:
   a character walking into a room the *player* is already in is not perceived by
-  the player, because `observe_area` only runs for the mover — a perception
+  the player, because `observe_area` only runs for the mover - a perception
   trigger, deferred by task-425's non-goals.)
 
 ## What
@@ -153,12 +153,12 @@ No LLM in the tick. Deterministic, seeded, replayable.
 
 | Diary | ViWo |
 | --- | --- |
-| `event_selector` 6-tier outcomes | **keep** — d20 + modifier vs a per-action DC → critical failure … critical success |
-| `outcomes[tier].emotional_impact` map | **keep** — apply a *map* of deltas, per tier |
-| `prerequisites` incl. `has_relationship: {type, min_quality}` | **keep** — becomes co-presence + closeness-band + trait gates |
-| weighted random selection, LEADS_TO boosts | **keep** — becomes trait/need-weighted action bands |
-| `RELATIONSHIP_TYPES.decay_per_year` + time-since-last-event decay | **keep** — see the decay gap below |
-| `decision_utils.call_llm_for_choice` | **replace** — a weighted band draw; the background tier never calls an LLM |
+| `event_selector` 6-tier outcomes | **keep** - d20 + modifier vs a per-action DC → critical failure … critical success |
+| `outcomes[tier].emotional_impact` map | **keep** - apply a *map* of deltas, per tier |
+| `prerequisites` incl. `has_relationship: {type, min_quality}` | **keep** - becomes co-presence + closeness-band + trait gates |
+| weighted random selection, LEADS_TO boosts | **keep** - becomes trait/need-weighted action bands |
+| `RELATIONSHIP_TYPES.decay_per_year` + time-since-last-event decay | **keep** - see the decay gap below |
+| `decision_utils.call_llm_for_choice` | **replace** - a weighted band draw; the background tier never calls an LLM |
 | Neo4j, day granularity, milestone hazard functions, 1.3MB event tables | **do not import** |
 
 ## How
@@ -176,7 +176,7 @@ character:
 - high `closeness` band → `confide`/`flirt` unlocked, `bully` weighted ~0
 - low `closeness` band → `tease`/`joke` become hostile variants, `apologise` up
 
-**Selection is a weighted draw, not argmax** — argmax makes every character
+**Selection is a weighted draw, not argmax** - argmax makes every character
 repeat one action forever. The draw is a second roll; the outcome is computed,
 not drawn (see below), so dispositions stay stable instead of random-walking.
 
@@ -184,7 +184,7 @@ not drawn (see below), so dispositions stay stable instead of random-walking.
 
 Per action, a `success_dc`, modified by the actor's skill/stat against the
 *target's* resistance (use the existing `Persuasion`/`CHA` vs `WIS` and the
-closeness band — do not invent a second social stat). Roll d20 + modifier,
+closeness band - do not invent a second social stat). Roll d20 + modifier,
 mapped to the same six tiers:
 
 1 critical failure · 2 major failure · 3 minor failure · 4 success ·
@@ -198,17 +198,17 @@ someone in a low closeness band is success for the actor and **failure** for the
 target.
 
 **Sign rule (load-bearing):** the outcome's *sign* depends on the relationship
-band and traits — a tease between friends reads positive for both; a bully drops
+band and traits - a tease between friends reads positive for both; a bully drops
 closeness regardless of how it lands. A fixed "teaser +, target −" makes the
 camp monotonically miserable within a week.
 
 ### 3. Gates
 
-- **Co-presence** (task-417) — same area, no exceptions.
-- **Closeness band** — `flirt`/`confide` require a minimum band, which is
+- **Co-presence** (task-417) - same area, no exceptions.
+- **Closeness band** - `flirt`/`confide` require a minimum band, which is
   exactly the Diary's `has_relationship: {type, min_quality}` gate.
-- **Not already busy** — an interaction is a short activity (see §4).
-- **Need pressure** — Social/Entertainment low raises the odds of seeking
+- **Not already busy** - an interaction is a short activity (see §4).
+- **Need pressure** - Social/Entertainment low raises the odds of seeking
   company; this is what makes interactions respond to survival state.
 
 ### 4. Time cost
@@ -221,14 +221,14 @@ of an action: no activity, no memory, no relationship change.
 
 ### 5. Trace, memory, and `entity_ids`
 
-- **Trace is the authoritative record** (task: `engine/trace.py`) — one entry per
+- **Trace is the authoritative record** (task: `engine/trace.py`) - one entry per
   side, with `why="social:<action>"`, the counterpart, area and tick.
-- **Memory is the subjective layer** — one templated first-person entry per side,
+- **Memory is the subjective layer** - one templated first-person entry per side,
   tagged from the **existing narrative tag vocabulary** already in the camp data
   (`rivalry`, `fun`, `chaos`, `trade`, `secret`, `prestige`, `debt`), with
   `source="background"` so it is distinguishable from authored memories.
 - **Populate `entity_ids`** with `[actor_id, target_id, area_id]`. The field
-  exists in the schema and is **currently 0/17 used** — it is what makes "every
+  exists in the schema and is **currently 0/17 used** - it is what makes "every
   memory Vekka has about Rikka" a lookup instead of keyword search.
 - On promotion, the background trace span is summarized into a richer narrative
   memory by the LLM (the established trace→memory direction). Background text is
@@ -240,7 +240,7 @@ Seed every roll from `(actor_id, target_id, tick, action)` so a replay
 reproduces the same camp history, in the style already used by
 `background_simulation._interval`.
 
-## Memory retention (done — no longer a blocker)
+## Memory retention (done - no longer a blocker)
 
 `player.add_memory` used to drop the oldest memory past 200. It is now
 `memory.max_per_character` (default 0 = unlimited) and, when a limit is set,
@@ -251,7 +251,7 @@ here beyond tagging generated interaction memories with a distinct `source`.
 
 `player.py:196` already declares
 `{closeness, last_interaction_tick, interaction_count}`, but **nothing reads
-`last_interaction_tick` and nothing decays closeness** — the camp's data only
+`last_interaction_tick` and nothing decays closeness** - the camp's data only
 carries `closeness` and a stale `first_sighting`. So today a pair that never
 interacts keeps its value forever, and a week of social simulation would only
 ever ratchet.
@@ -261,7 +261,7 @@ band (a `rival`/`enemy` relationship should decay toward neutral slowly or not
 at all; a `friend` band decaying fastest). Apply it through
 `apply_relationship_delta` (task-420) so the cause is recorded. Note the
 existing closeness ladder at `player.py:594-616`
-(enemy/-50 rival/…/inseparable) already defines the bands — reuse it as the
+(enemy/-50 rival/…/inseparable) already defines the bands - reuse it as the
 outcome table's input rather than inventing new thresholds.
 
 ## Acceptance
@@ -272,7 +272,7 @@ outcome table's input rather than inventing new thresholds.
   between friends and negatively at low closeness.
 - Traits shift the *action distribution* measurably (an introvert picks `ignore`
   far more often than an extrovert over N interactions).
-- Selection is a weighted draw, not argmax — over 100 events a character shows
+- Selection is a weighted draw, not argmax - over 100 events a character shows
   more than one action.
 - Actions write trace entries with `why="social:<action>"` and populate
   `entity_ids`; memory `importance` and tags are set.
@@ -295,7 +295,7 @@ outcome table's input rather than inventing new thresholds.
 - Unit: weighted draw respects trait modifiers over N seeded samples.
 - Unit: outcome tiers map to the expected per-side deltas; the sign rule holds
   for friend vs low-closeness bands.
-- Unit: co-presence gate — no interaction across areas.
+- Unit: co-presence gate - no interaction across areas.
 - Unit: `_action_credit` is consumed and the activity blocks a second action.
 - Unit: trace + memory written per side, `entity_ids` populated, tags from the
   existing vocabulary.

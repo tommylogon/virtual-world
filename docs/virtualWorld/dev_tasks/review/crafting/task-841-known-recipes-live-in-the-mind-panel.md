@@ -14,7 +14,7 @@ related: ['task-691', 'task-734', 'task-831', 'task-840', 'task-842']
 
 ## What
 
-Known recipes are character knowledge — procedural memory — so they render
+Known recipes are character knowledge - procedural memory - so they render
 in the Mind panel (`static/js/inspector/mind-view.ts`), not in an
 inspector action list and never as a craft-execution surface.
 
@@ -23,7 +23,7 @@ level >= 1) + recipes carried on items (`properties.recipe` on a cookbook
 or note in inventory). Each row: recipe name, source tag (global / taught
 / discovered / cookbook / skill), skill + DC, duration. Clicking a row
 opens the library entry (read-only here). A `Make` button MAY appear on
-the row for the controlled character — it emits the same turn-modal
+the row for the controlled character - it emits the same turn-modal
 `Make X` command, it does not execute anything inline.
 
 No execution in this panel. The Mind panel reads knowledge; the turn
@@ -40,7 +40,7 @@ knowledge; the Mind panel already renders a `procedural` category color
 
 1. Mind panel `procedural` section gains a Recipes group reading
    `worldState.players[name].crafting_known` + derived skill/carried
-   sources (backend exposes one `known_recipes` list per character —
+   sources (backend exposes one `known_recipes` list per character -
    no new stores, just a projection).
 2. Row action (controlled character only): emit `Make X` to the turn
    system. Read-only for everyone else.
@@ -49,7 +49,7 @@ knowledge; the Mind panel already renders a `procedural` category color
 
 1. Teach a character a recipe, open Mind.
     - expected: recipe listed under procedural with its source tag.
-    - observed: 2026-10-16 — backend `known_recipes()` tested
+    - observed: 2026-10-16 - backend `known_recipes()` tested
       (global/skill/cookbook/taught/discovered sources); `GET
       /api/players/<n>/recipes` returns the projection; live on
       :4444 the panel renders 104 rows with source + skill/DC +
@@ -57,8 +57,8 @@ knowledge; the Mind panel already renders a `procedural` category color
 2. Click Make as the controlled character.
     - expected: identical to typing `Make X` in the turn modal (Activity
       starts or fail-closed missing list).
-    - observed: 2026-10-16 — live on :4444: Cullen (human) shows
-      104 Make buttons; Arix (LLM) shows 0 — read-only gate holds.
+    - observed: 2026-10-16 - live on :4444: Cullen (human) shows
+      104 Make buttons; Arix (LLM) shows 0 - read-only gate holds.
       Clicking Make runs the identical `/api/action` command path
       (proven live in 842: take → Make → Activity → Stop).
 
@@ -66,14 +66,14 @@ knowledge; the Mind panel already renders a `procedural` category color
 
 - [x] Known recipes render under procedural in the Mind panel with source.
   (Live: 104 rows with source + skill/DC/duration. Placed in
-  Perception beside knowledge — recipes are knowledge, not
+  Perception beside knowledge - recipes are knowledge, not
   memories; 734's folding can relocate it.)
 - [x] Make emits the turn command; panel executes nothing itself.
 - [x] Read-only for non-controlled characters.
 
 ## Files
 
-- `static/js/inspector/mind-view.ts` — Recipes group
+- `static/js/inspector/mind-view.ts` - Recipes group
 - Backend: `known_recipes` projection per character
 
 ## Browser UI and intended live verification

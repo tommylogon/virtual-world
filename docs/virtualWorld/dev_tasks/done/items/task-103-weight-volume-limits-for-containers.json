@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-103",
+  "kind": "task",
+  "number": 103,
+  "title": "Weight/Volume Limits for Containers",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-07-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Currently items can be freely put into any container regardless of size/weight. Add weight and volume limits to containers, with the simple rule: if an item weighs more than the container's capacity, it can't go in. More advanced physics (volume, shape) can come later.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_already_exists": "- Items have a `weight` field (numeric)\n- Items have a `container` property (boolean)\n- Items have a `contents` array (what's inside)\n- Container contents can be edited in the item library UI\n- Container items can be opened/closed via triggers",
+      "what_s_done_phase_1_ui": "- `max_weight_capacity` editable field shows in item inspector when the `container` tag is present (same pattern as weapon damage fields)\n- `current_weight` computed read-only display sums weight of all items inside the container via `EDGE_IN` edges in the graph\n- Fill progress bar (green / yellow / red at 50% / 80%) when `max_weight_capacity` is set\n- Both fields hidden when item doesn't have the `container` tag\n\n### Files changed\n- `static/js/inspector/item-view.js` - container capacity section, `_containerCurrentWeight`, `_containerFillBar`",
+      "what_s_done_phase_2_validation": "- `_check_container_capacity` helper in `ItemActions`: sums contents weight via `EDGE_IN` edges, compares against `max_weight_capacity`\n- Called from `put_item_in_container` - rejects with message before moving the item\n- Called from `move_item_node` API route (`/api/graph/item/<node_id>/move`) - inline check, returns 400 with error message\n- Message format: `\"The backpack can't hold that - it's too heavy (capacity: 3.5/10.0 kg).\"`\n- `BASE_CARRY_CAPACITY = 100.0` (kg) with trait `carry_capacity_mod` scaling (e.g. `strong_backed` = 2.0x), via `_check_player_capacity` in `ItemActions`\n\n### Files changed\n- `engine/item_actions.py` - added `_check_player_capacity`, `_check_container_capacity`, called in `put_item_in_container`, `take_item`, and `move_item`\n- `engine/traits.py` - `CARRY_CAPACITY_MOD` effect key + `strong_backed` trait\n- `routes/graph.py` - inline capacity check in `move_item_node`\n\n### Verified (via pytest - task-205 encumbrance tests)\n- [x] Heavily loaded character loses more energy per move (`TestEncumbranceMovement`)\n- [x] Empty-handed character matches current cost (no regression - light load test)\n- [x] Weight thresholds are sensible (light load no penalty at 20 kg / 100 kg cap)\n- [x] Container contents count toward carried weight (`TestCarryCapacity`)",
+      "what_s_done_phase_3_polish": "- `engine/effects.py` - `give_item` capacity checks (existing); `spawn_item` with `into: \"container\"` checks `max_weight_capacity` before `EDGE_IN` placement\n- Progress bar / weight meter color change near limit - container fill bar in item inspector; player carry bar in paperdoll (task-205)\n- Weight display in item library contents editor - per-item badges + total row (`item-library/contents-editor.js`)\n- Capacity UI in inspector paperdoll - carry load meter (task-205)\n- Encumbrance interaction with task-156/202 documented under task-205; movement tiers wired in `engine/movement.py`\n\n### Files changed (Phase 3, 2026-08-13)\n- `engine/effects.py` - `_check_container_capacity`, `spawn_item` `into: \"container\"` path\n- `static/js/inspector/item-view.js` - container fill bar\n- `tests/test_trigger_system.py` - spawn-into-container + give_item capacity tests\n\n### Simple Examples\n- Small pouch: `max_weight_capacity: 2` - can hold a key (0.1 kg) but not a sword (3 kg)\n- Backpack: `max_weight_capacity: 15` - can hold several items\n- Chest: `max_weight_capacity: 50` - can hold heavy items\n- Barrel: `max_weight_capacity: 100` - can hold liquids, ore, etc.",
+      "related": "- task-155: Item uses affect weight\n- task-156: Weight affects energy decay\n- task-202: Over-encumbrance counts as one size larger\n- task-205: Player carry capacity system (displays, trait interactions)"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Inventory]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-08-13"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-103-weight-volume-container-limits.md"
+  }
+}

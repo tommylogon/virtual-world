@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-36",
+  "kind": "task",
+  "number": 36,
+  "title": "Inspector: Show Game Time Instead of Ticks",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Inspector panels (memories, timeline, room event log, world lore) displayed raw tick numbers like `[Tick 42]` or `[T42]`. These now show `HH:MM` game time, matching the event stream format.",
+    "why": "TODO",
+    "how": "- Made `EventBus.tickToTime()` public (was `_tickToTime`)\n- Replaced tick displays in 5 inspector locations:\n  - Memory list entries\n  - Timeline entry badges\n  - Timeline detail phase line\n  - Area event log\n  - World lore entries\n- Replaced tick displays in 2 main.js locations:\n  - Save slot list\n  - Timeline popup header",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/event-stream.js` - renamed `_tickToTime` → `tickToTime",
+      "static/js/inspector.js` - 5 tick displays → `events.tickToTime(tick)",
+      "static/js/main.js` - 2 tick displays → `events.tickToTime(tick)"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Inspector Panels]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-36-inspector_game_time.md"
+  }
+}

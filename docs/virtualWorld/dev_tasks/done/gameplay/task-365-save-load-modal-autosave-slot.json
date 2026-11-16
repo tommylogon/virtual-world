@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-365",
+  "kind": "task",
+  "number": 365,
+  "title": "Save/Load modal + autosave slot",
+  "status": "done",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_built": "- `version.py` (APP_VERSION = \"1.0.0\"), stamped into every save's\n  `_save_metadata` and shown in the modal.\n- Autosave slot `saves/autosave.json` (keeps `_save_metadata`,\n  `autosave: True`), pinned to top of the save list; boot autosave unchanged.\n- Richer save/load modal (`static/js/ui/saveload-view.js`): per-save stats\n  (game time, turn, player, scenario, PCs, areas, size), auto badge, version\n  badge, overwrite-slot 💾, rename ✏️ (label + file), delete.\n- Backend: `_save_game` slot support, save + rename routes, traversal\n  hardening (`_safe_save_path`), list stats.\n- Tests: `tests/test_saveload.py` (10)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-365-save-load-modal-autosave-slot.md"
+  }
+}

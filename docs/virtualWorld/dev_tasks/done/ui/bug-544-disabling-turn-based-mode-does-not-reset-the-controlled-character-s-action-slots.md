@@ -11,7 +11,7 @@ blocks: [bug-518, task-610]
 **Filed:** 2026-10-11
 **Related:** task-518
 **Blocks:** bug-518 (needs a live NPC turn), task-610 (its intimacy-action
-follow-on verification is the same blocker — the controlled character cannot act).
+follow-on verification is the same blocker - the controlled character cannot act).
 
 <!-- deps:start -->
 **Blocks:** [[bug-518-npc-action-results-render-as-you-in-the-turn-feed-because-result-rows-carry-no-actor]], [[task-610-human-turn-modal-exposes-3-of-23-backend-character-to-character-actions]]
@@ -21,7 +21,7 @@ follow-on verification is the same blocker — the controlled character cannot a
 
 With Turn-based mode OFF, the controlled character's action slots
 (`Player.turn_slots`) are not refilled, so the human cannot act for that
-character — the action is refused even though a fresh turn was requested.
+character - the action is refused even though a fresh turn was requested.
 
 User-reported (live, 2026-10-11):
 
@@ -33,7 +33,7 @@ User-reported (live, 2026-10-11):
 5. **Observed:** actions are not reset; the player cannot act for the controlled
    character.
 
-This blocks **bug-518** (which needs a live NPC turn) and **task-610** — the
+This blocks **bug-518** (which needs a live NPC turn) and **task-610** - the
 intimacy action from the HTC person menu cannot be exercised because the
 controlled character has no action to spend (user, 2026-10-11). Same root cause,
 one card.
@@ -47,7 +47,7 @@ turn at all in that mode, and anything needing a live human or NPC turn
 
 ## How
 
-Candidate path, to confirm before fixing (not independently reproduced — the
+Candidate path, to confirm before fixing (not independently reproduced - the
 server was down during triage):
 
 - `Player.turn_slots` is refilled by `engine/tick_manager.py:tick_turn()`
@@ -60,7 +60,7 @@ server was down during triage):
 - The composer reads `worldState.players[char].turn_slots`
   (`static/js/agent/human-turn-composer.ts:234-247`).
 
-So the reset is expected on this path — the question is which link breaks. Check:
+So the reset is expected on this path - the question is which link breaks. Check:
 is `endTurn()` actually called in the user's flow (is `config.controllingPlayer`
 set?), does `applyTurn()` reach `tick_turn()`, and does the refetched state carry
 the reset slots for the character the panel is showing? Also note the mismatch
@@ -91,9 +91,9 @@ engine's `_slot_gate` and the client display are reading different states.
 
 First pass (2026-10-11) fixed the **empty-`turn_slots` sentinel read as "spent"**, client-side:
 
-- `agent/human-turn-composer.ts` — `turnSlots()` returns `null` for `{}`.
-- `agent/prompt-builder/room-context.ts` — `turnSlots()` returns `undefined` for `{}`.
-- `agent-engine.ts` — both slot checks end the turn only on a *published and
+- `agent/human-turn-composer.ts` - `turnSlots()` returns `null` for `{}`.
+- `agent/prompt-builder/room-context.ts` - `turnSlots()` returns `undefined` for `{}`.
+- `agent-engine.ts` - both slot checks end the turn only on a *published and
   expired* budget, never on `{}`.
 
 Second pass (2026-10-16): `stepOnce()` never set `config.controllingPlayer` in
@@ -108,11 +108,11 @@ Live verification passed: non-turn-based step now refills slots.
 
 ## Files
 
-- `static/js/agent-engine.ts` — `stepOnce` / `step` / `_humanTurn` slot checks.
-- `static/js/agent/human-turn-composer.ts` — `turnSlots()` / pip rendering.
-- `static/js/agent/prompt-builder/room-context.ts` — `turnSlots()`.
-- `engine/tick_manager.py`, `engine/action_tiers.py` — slot reset (unchanged; verified correct).
-- `routes/action_handlers.py` — `_slot_gate` (the lazy fill; unchanged).
+- `static/js/agent-engine.ts` - `stepOnce` / `step` / `_humanTurn` slot checks.
+- `static/js/agent/human-turn-composer.ts` - `turnSlots()` / pip rendering.
+- `static/js/agent/prompt-builder/room-context.ts` - `turnSlots()`.
+- `engine/tick_manager.py`, `engine/action_tiers.py` - slot reset (unchanged; verified correct).
+- `routes/action_handlers.py` - `_slot_gate` (the lazy fill; unchanged).
 
 ## Browser UI and intended live verification
 

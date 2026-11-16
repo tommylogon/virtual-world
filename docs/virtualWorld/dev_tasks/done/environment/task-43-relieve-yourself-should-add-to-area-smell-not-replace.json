@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-43",
+  "kind": "task",
+  "number": 43,
+  "title": "Relieve Yourself Should ADD to Area Smell, Not Replace",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The `relieve` command uses `env[\"smell\"] = \"urine\"` which outright replaces any existing room smell. If the room already smells of smoke, dust, or rotting food, that's lost.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "app.py` - line 221, the `relieve` handler"
+    ],
+    "custom": {
+      "current_code": "In `app.py:221`:\n```python\nenv[\"smell\"] = \"urine\"\n```",
+      "edge_cases_to_consider": "- **First time**: no smell → set to `\"urine\"`\n- **Already smells of something else** (e.g. `\"smoke\"`, `\"dust\"`) → append: `\"smoke, urine\"`\n- **Already smells of urine** (you pissed here before) → do nothing, the point is made. Not `\"urine, urine, urine\"`.\n- **Already has urine among other smells** (e.g. `\"smoke, urine\"`) → do nothing, don't add another \"urine\"\n- **Cleaning up** - if a cleaning action or trigger sets smell back to something else, that should naturally override. That's separate from this fix.",
+      "desired_logic": "```python\ncurrent = env.get(\"smell\", \"\")\nif \"urine\" not in current:\n    if current:\n        env[\"smell\"] = current + \", urine\"\n    else:\n        env[\"smell\"] = \"urine\"\n```"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Rooms & Areas]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-43-relieve_adds_smell.md"
+  }
+}

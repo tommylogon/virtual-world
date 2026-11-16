@@ -14,6 +14,10 @@ related: ["task-925", "task-845", "task-894"]
 **Status:** done
 **Related:** task-925, task-845, task-894
 
+<!-- deps:start -->
+**Related:** [[task-925-settings-modal-clean-code-mvc-refactor-and-embedding-consolidation]], [[task-845-llm-benchmark-harness-run-turn-prompt-across-models]], [[task-894-llm-benchmark-harness-capture-a-turn-prompt-for-one-character-run-across-selected-models-providers-score-speed-format-hallucinations-surface-a-run-dashboard]]
+<!-- deps:end -->
+
 ## What
 
 Complete the Settings modal MVC refactor started in task-925:

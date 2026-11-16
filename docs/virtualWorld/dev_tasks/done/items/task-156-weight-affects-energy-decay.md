@@ -29,9 +29,9 @@ Make carried weight affect energy cost, at least on movement. Carrying a heavy l
 
 ## Files to Modify
 
-1. `engine/tick_manager.py` — weight-modulated move cost
-2. `engine/movement.py` — pass carried weight into the move action cost
-3. `player.py` — optional carry capacity field
+1. `engine/tick_manager.py` - weight-modulated move cost
+2. `engine/movement.py` - pass carried weight into the move action cost
+3. `player.py` - optional carry capacity field
 
 ## Steps to verify
 

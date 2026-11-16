@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-470",
+  "kind": "task",
+  "number": 470,
+  "title": "Skill-checked foraging in the soak tier",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-468",
+      "task-469",
+      "task-399",
+      "task-464"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Finding something tucked away in the soak tier is a Perception check rather than a guarantee, so outcomes vary by character: a perceptive forager eats from a larder where a clumsy one searches, misses, and moves on. Open-area resources and carried food stay automatic (maintenance, not a puzzle); a miss costs the search time but not the item, so survival is not made flaky.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "`python -m pytest tests/test_foraging.py -q` → 5 passed. Targeted background/soak/\ntimeskip regression → 133 passed.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "progress_2026_09_23_done_review": "- [x] `BackgroundSimulation._requires_search(node)` - true only when the item sits\n  inside/on another **item** (basket, larder, bush) via a reachable relation.\n- [x] `_forage_check(p, kind)` - `Perception` vs `DC 10`, swapped to the acting\n  character and restored after; fails **open** if the skill system is unavailable.\n- [x] A miss writes a `forage:fail` trace + log line and spends a new\n  `forage` task (5 min, `ACTIVITY_INTERRUPTIBLE`/`LABELS`/`SKIP_TURNS`), and the\n  item is **not** consumed; `served` blocks a same-frame retry so the character\n  heads elsewhere next.\n- [x] Open-area resources, natural water and carried food stay automatic. This is\n  deliberate: a camp that starves beside a visible stew is not the game we want,\n  and it keeps the existing soak survival numbers stable.",
+      "design_note": "A world can therefore starve a poor forager *only* of hoarded food. If blanket\nforaging difficulty is ever wanted, the knob is `FORAGE_SKILL` / `FORAGE_DC`.",
+      "review_2026_09_23_closed": "Verified: `tests/test_foraging.py` -> 5 passed, plus the 289-passed chain slice. No open bullets; the design note is intentional and the difficulty knobs (`FORAGE_SKILL` / `FORAGE_DC`) stay documented in the file. Closing."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-470-skill-checked-foraging-in-the-soak-tier.md"
+  }
+}

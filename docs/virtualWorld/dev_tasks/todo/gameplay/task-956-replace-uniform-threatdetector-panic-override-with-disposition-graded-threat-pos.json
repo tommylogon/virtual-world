@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-956",
+  "kind": "task",
+  "number": 956,
+  "title": "Replace uniform ThreatDetector panic override with disposition-graded threat posture and acute shock freeze save",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "threat-detector",
+    "fear",
+    "fight-flight-freeze",
+    "conditions"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "bug-590"
+    ],
+    "depends_on": [],
+    "related": [
+      "bug-590",
+      "task-955",
+      "task-742",
+      "task-958"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the uniform forced panic prompt in ThreatDetector with disposition- and relationship-graded threat advisories, and implement a mechanical acute-shock freeze saving throw triggered by sudden lethal escalation.",
+    "why": "static/js/agent/threat-detector.ts (lines 63-65) broadcasts the identical coercive text ('IMMEDIATE DANGER: ... Your current plan is INVALID. You MUST flee, hide, fight, or warn others NOW') to every observer regardless of personality, relationship to victim/attacker, or nerve, while engine/player_conditions.py gives 'frightened' blocks_actions=False and blocks_movement=False with no mechanical freeze/hesitation save during live sudden danger (and involuntary.ts only injects text stutters).",
+    "how": "1. Parameterize ThreatDetector's output message and posture classification by character traits (brave, cowardly, hostile, protective, calm), closeness/affinity to aggressor vs threatened target, and relative capability (armed vs unarmed) instead of emitting 'Your current plan is INVALID. You MUST flee, hide, fight, or warn others NOW' uniformly.\\n2. Add an acute-shock / freeze mechanism on sudden lethal threat escalation (e.g. firearm drawn, sudden attack, loud blast) backed by a WIS/CON save modulated by courage traits and prior combat familiarity, applying a short-duration movement/action freeze or stunned condition from engine/player_conditions.py when failed (with natural recovery after 1 turn or damage).\\n3. Align client involuntary reaction cues (static/js/agent/involuntary.ts) with the condition state so physical freeze/flight hesitation reflects real engine state rather than prose-only stutter.",
+    "verify": "1. Run pytest for acute shock / freeze saving throws across trait profiles (brave, cowardly, calm) on sudden lethal threat.\\n2. Run npm run build:ts and JS unit tests verifying ThreatDetector tailors warning severity by traits and relationship context.",
+    "acceptance": [
+      {
+        "text": "ThreatDetector grades danger advisories by observer traits (brave, cowardly, calm, protective), relationship closeness to attacker vs target, and threat asymmetry instead of emitting a single forced 'MUST flee, hide, fight' prompt for all characters.",
+        "done": false
+      },
+      {
+        "text": "Sudden lethal escalation (armed threat, attack/combat, explosive sound) triggers a deterministic acute-shock/freeze saving throw that can impose a brief 1-turn hesitation/freeze condition modulated by character traits and combat familiarity.",
+        "done": false
+      },
+      {
+        "text": "Existing conditions in engine/player_conditions.py (frightened, stunned, BLOCKING_CONDITIONS) and ThreatDetector integrate cleanly without bypassing TurnQueue turn flow.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/threat-detector.ts",
+      "engine/fear.py",
+      "engine/player_conditions.py",
+      "engine/combat.py",
+      "static/js/agent/involuntary.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal prompt warning banner (ThreatDetector), condition badges in Character State strip, and Event Stream turn log.\\n\\nCurrent availability: static/js/agent/threat-detector.ts (lines 63-65) prints one static warning for every actor; engine/player_conditions.py defines frightened with blocks_actions=False and blocks_movement=False and no acute shock hesitation condition.\\n\\nManual verification steps:\\n1. Place a brave protective ally, a calm neutral bystander, and a cowardly/unarmed bystander in a room where a firearm is drawn or fired.\\n2. Inspect their danger prompt framing, saving throws, and applied conditions on turn resolution.\\n   - expected: Cowardly/shocked characters risk a brief acute freeze/hesitation save on lethal surprise, frightened non-combatants prioritize cover/flight context, and protective/brave characters receive accurate non-panic threat awareness without uniform override text."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Conditions System]]",
+      "[[Characters/Animal Fear]]",
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

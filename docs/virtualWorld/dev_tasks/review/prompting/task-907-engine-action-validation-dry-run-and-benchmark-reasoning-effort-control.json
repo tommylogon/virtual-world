@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-907",
+  "kind": "task",
+  "number": 907,
+  "title": "engine action validation dry run and benchmark reasoning effort control",
+  "status": "review",
+  "area": "prompting",
+  "priority": "high",
+  "created": "2026-10-26",
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ]
+  },
+  "sections": {
+    "what": "Replace benchmark.js ad-hoc validation with a read-only engine action validation endpoint, and add reasoning effort control to the Benchmark Lab UI and proxy.",
+    "why": "benchmark.js currently implements a disconnected 40-line string check that rejects valid actions (examine library, examine the bookshelf) and accepts invalid bare verbs (bare examine). Moving action validation to the real engine enforces single-source-of-truth MVC principles. In addition, reasoning effort cannot currently be configured or tested in benchmark sweeps.",
+    "how": "1. In routes/action_handlers.py, implement POST /api/action/validate that evaluates action syntax, _VERBS_NEEDING_TARGET, and target resolution against characters, areas, items (matching._match_item_name with difflib), and exits without mutating world state.\n2. In static/js/benchmark/benchmark.js, use ActionNormalizer.normalizeStructuredAction and query /api/action/validate for ground-truth verification.\n3. In templates/benchmark.html, add Reasoning Effort select dropdown.\n4. In routes/benchmark.py and benchmark.js, forward reasoning_effort, extra_body, and reasoning parameters to upstream chat completions.\n5. Verify live in browser via Playwright and run pytest suite.",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: Benchmark Lab loads with new Reasoning Effort dropdown; action validation passes examine library and examine the bookshelf, while rejecting bare examine.\n   - observed: Verified live in browser with Playwright on http://localhost:4444/bench. Reasoning Effort dropdown options confirmed; bare examine returned valid=False (missing_target); examine library returned valid=True (area); examine the bookshelf returned valid=True (item: bookshelf_item).\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: Navigate to /bench, select reasoning effort 'high', load past run, evaluate actions against /api/action/validate, click Export JSON.\n   - observed: Selected option 'high' on #bench-reasoning-effort, loaded past run, verified action chips and engine-grounded flags, clicked #bench-export-json and verified config.reasoning_effort == 'high'.\n3. Run the targeted regression test for the mechanism.\n   - expected: Pytest test_benchmark_routes.py passes with 12 tests, npm run build:ts compiles clean.\n   - observed: python -m pytest tests/test_benchmark_routes.py passed 12/12 in 7.00s; npm run build:ts exited 0.",
+    "acceptance": [
+      {
+        "text": "POST /api/action/validate correctly validates verbs needing target and resolves targets using engine matching",
+        "done": true
+      },
+      {
+        "text": "examine library, examine room, and examine the bookshelf validate as passing in /bench",
+        "done": true
+      },
+      {
+        "text": "bare examine without a target fails with clear missing target category",
+        "done": true
+      },
+      {
+        "text": "Reasoning Effort dropdown is present in /bench sidebar and forwarded in /api/bench/chat payload",
+        "done": true
+      },
+      {
+        "text": "Export JSON records reasoning_effort and engine-validated flags",
+        "done": true
+      },
+      {
+        "text": "Zero em-dashes and tests pass",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/action_handlers.py",
+      "routes/benchmark.py",
+      "templates/benchmark.html",
+      "static/js/benchmark/benchmark.js",
+      "tests/test_benchmark_routes.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: /bench\n\nCurrent availability: benchmark lab is live, action validation endpoint and reasoning effort control in development\n\nLive steps when available:\n1. Open http://localhost:4444/bench\n   - expected: Benchmark Lab loads with new Reasoning Effort dropdown.\n2. Run a model that outputs examine library or examine bookshelf\n   - expected: Action is validated through /api/action/validate and passes ground-truth check.\n3. Change Reasoning Effort to low or high and verify payload sent to upstream\n   - expected: Reasoning Effort is sent in /api/bench/chat request and recorded in export JSON.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  }
+}

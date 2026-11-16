@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-757",
+  "kind": "task",
+  "number": 757,
+  "title": "Enable noUnusedLocals and clear the unused-symbol backlog (three orphaned UI wirings restored)",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-756"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Turn on tsconfig noUnusedLocals (strict does not include it) so an orphaned local/type is a build error - the class that let _referenceControl vanish (0dc60c48). Clears ~59 unused locals + 2 unused types. Three are dropped wiring, restored not deleted: durabilityChip (paperdoll slot modal ReferenceError, silenced by a globals.d.ts declare), initScenarioNameEditor (missing from saveload-view's export so main.ts's guarded call was a no-op), renderVitalMetrics (never called by renderCharts; #soak-vital-metrics never rendered). Also removes the dead shadowed doorTags local (new system uses way tags) and the duplicate emotion plumbing in the memory-edit modal (home is the Mind view, task-756).",
+    "why": "`strict: true` does **not** include `noUnusedLocals`, so a local or type that is\ndeclared and never read compiles clean. That is exactly how `_referenceControl`\n(commit `0dc60c48`) survived as an orphaned function while the WorldPainter HUD\nsilently lost its image picker. The compiler knew; we told it not to say.",
+    "how": "- `tsconfig.json`: add `noUnusedLocals: true`. `tsconfig.check.json` is left\n  alone on purpose - it includes the generated `.js`, which would double every\n  finding; the `.ts` build is the gate.\n- Delete the unused locals/types. Three are **not** dead - they are dropped\n  wiring, restored instead:\n  - `durabilityChip` hoisted from `renderPaperdollEquipmentHtml` to module scope\n    in `inspector/paperdoll-view.ts`; the `showSlotModal` call was out of scope\n    and threw `ReferenceError`, silenced by `declare const durabilityChip` in\n    `globals.d.ts`. That declare is now dead but harmless.\n  - `initScenarioNameEditor` added to the `SaveLoadView` return object\n    (`ui/saveload-view.ts`) so `main.ts`'s guarded call resolves.\n  - `renderVitalMetrics()` called from the `vitals` case in `renderCharts()`\n    (`soak/soak-ui.ts`).\n- Remove the shadowed `doorTags` local (`room-context.ts`) - the new system\n  reads way tags, not area tags.\n- Remove the duplicate emotion plumbing in the memory-edit modal; its home is\n  the Mind view (task-756). The per-action intimacy intensities were literal\n  duplicates of `kissIntensity` (one `Intensity` select per action row), so they\n  are removed too; per-region behaviour lives backend-side\n  (`engine/pleasure_actions.py` + `where`).",
+    "verify": "- expected: noUnusedLocals on; the unused backlog cleared; the three dropped wirings restored (not deleted).\n- observed (2026-10-10): tsconfig.json has noUnusedLocals:true; npx tsc -p tsconfig.json --noEmit is clean (no TS6133/TS6196). Wirings restored in code (paperdoll-view durabilityChip hoisted, saveload-view initScenarioNameEditor exported, soak-ui renderVitalMetrics called); live reload check not run (page-load timeout on :4477).",
+    "acceptance": [
+      {
+        "text": "`noUnusedLocals` is on and the front-end build fails on a declared-but-unread local/type.",
+        "done": true
+      },
+      {
+        "text": "The 59 unused locals + 2 unused types are resolved.",
+        "done": true
+      },
+      {
+        "text": "The three dropped wirings are restored, not deleted.",
+        "done": true
+      },
+      {
+        "text": "Live: slot modal / scenario-name rename / soak vitals chips (needs a reload).",
+        "done": false
+      }
+    ],
+    "files": [
+      "tsconfig.json` - `noUnusedLocals: true",
+      "static/js/agent/**`, `static/js/inspector/**`, `static/js/shared/**`, `static/js/soak/**`, `static/js/ui/**`, `static/js/nl-editor/ghosts.ts`, `static/js/bug-report.ts`, `static/js/agent-engine.ts` - deletions",
+      "static/js/inspector/paperdoll-view.ts`, `static/js/ui/saveload-view.ts`, `static/js/soak/soak-ui.ts` - restored wiring",
+      "tools/window-usage-reviewed.json` - `way-view.js::Lit` verdict",
+      "tools/unit/test_worldpainter.js` - `_referenceControl` regression guard (earlier)"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-757-enable-nounusedlocals-and-clear-the-unused-symbol-backlog-three-orphaned-ui-wirings-restored.md"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-196",
+  "kind": "task",
+  "number": 196,
+  "title": "Use N Items on Target (quantity)",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-508",
+      "task-155"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Enable `use <count> <item> on <target>` syntax to consume or apply multiple pooled units in a single turn.",
+    "why": "Players want to express quantity when using items on a target: \"use 2 kindling in fireplace\", \"use 2 eggs on pan\". Today the use-on action only handles a single item, so these require repetitive single-item commands instead of a natural one-shot instruction. This is idea #8 from developer ideas.",
+    "how": "- Doable now with LLM response params - no engine rework.\n- Model emits a structured action: `{action:\"use_on\", item:\"eggs\", amount:2, target:\"pan\"}`.\n- Add amount/quantity parsing to the use-on action handler, defaulting to 1 when absent so existing behavior is unchanged.\n- Trigger/effect path consumes N uses of the item (decrement uses/item count by the parsed amount) and emits the right narrative.\n- Validate amount against available count before consuming; clamp or fail gracefully on overuse.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Command parser extracts quantity count for pooled item interactions.",
+        "done": true
+      },
+      {
+        "text": "Action deducts specified quantity from inventory stack.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/action.py` - accept and forward `amount` in the use-on action payload.",
+      "engine/item_actions.py` - parse amount, validate against item quantity, consume N uses, emit narrative.",
+      "static/js/agent/prompt-builder.js` - instruct the model to emit `amount` for use-on actions."
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-196-use-n-items-on-target.md"
+  }
+}

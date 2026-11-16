@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-32",
+  "kind": "task",
+  "number": 32,
+  "title": "Enhanced Item Creation: Multi-Target, Triggers, Prompt Preview",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-16",
+  "updated": "2026-07-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The \"Create New Item\" modal (main.js) and Item Library generation (item-library.js) need three enhancements:\n\n1. **Target selector** - choose Area, Container Item, or Character as the placement target\n2. **Trigger generation** - AI generates triggers but parse step discards them; all LLM prompts need up-to-date trigger docs\n3. **Prompt preview** - view and edit the assembled prompt before sending to the LLM",
+    "why": "### Trigger parsing missing in main.js (line 386-389)\n\nThe format hint includes triggers (`\"triggers\":[{\"trigger_type\":\"on_use\",\"effect_type\":\"message\",\"effect_params\":{\"message\":\"...\"}}]`) but the parsing only sets name, description, uses, weight, hidden - triggers are ignored.\n\n### LLM prompts inconsistent\n\n| Location | Function | Has triggers? | Has full docs? |\n|----------|----------|--------------|----------------|\n| `main.js:335` | `generateWithAI('item')` | Format hint only | No |\n| `item-library.js:1065` | `generateWithAI()` | Format hint + basic | No |\n| `item-library.js:~930` | `improveWithAI()` | Full docs + examples | Yes |\n\n### Single target type\n\nThe create modal only has a \"Target Area\" dropdown. There's no way to place items into containers or character inventories.\n\n### No prompt preview\n\nThe Generate button sends the prompt directly. Users can't see or edit what will be sent.",
+    "how": "TODO",
+    "verify": "- Create item → target room → AI generate with triggers → verify triggers populate\n- Create item → target container → verify `contains` edge\n- Create item → target character → verify `carried_by` edge\n- Prompt preview → edit text → verify modified prompt used",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "**NEW** `static/js/prompt-docs.js` - shared trigger documentation",
+      "static/js/main.js` - trigger parsing, system prompt, target selector, prompt preview",
+      "static/js/item-library.js` - use shared prompt docs, prompt preview",
+      "static/js/api.js` - if needed for new fields",
+      "app.py` - extend `/api/build/item",
+      "templates/index.html` - script load order for new file"
+    ],
+    "custom": {
+      "proposed_changes": "### 1. Shared trigger documentation\n\nExtract the trigger/effect/condition docs from `item-library.js:improveWithAI` into a new shared file `static/js/prompt-docs.js`, registered as `VW.PromptDocs.ITEM_GENERATION_SYSTEM`. Insert it in the script load order between `api.js` and `agent-engine.js`.\n\nBoth `main.js` and `item-library.js` reference this shared constant.\n\n### 2. Fix trigger parsing (main.js:386-389)\n\nAdd parsing for `data.triggers` → populate `#item-triggers-json` textarea after AI generation.\n\n### 3. Target type selector\n\nReplace the \"Target Area\" dropdown with a radio group:\n\n- 🏠 Area → select from rooms\n- 📦 Container Item → select from graph item nodes\n- 🧍 Character → select from graph character nodes\n\nThe target's description is passed to the LLM system prompt for context.\n\n### 4. Prompt preview\n\nAdd a `👁️` button next to Generate. Opens a modal showing the full assembled prompt in an editable textarea. On send, extracts the user portion and sends it.\n\n### 5. Backend extension\n\nExtend `POST /api/build/item` (app.py:1014) to accept `container` and `character` fields alongside `room`. Creates the appropriate edge type:\n- `room` → `location` edge (existing)\n- `container` → `contains` edge\n- `character` → `carried_by` edge"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-32-enhanced_item_creation.md"
+  }
+}

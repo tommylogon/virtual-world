@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-924",
+  "kind": "task",
+  "number": 924,
+  "title": "Batch persona sheet validation for character library import",
+  "status": "done",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903",
+      "task-843"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a bulk validation step in the character library import tool (`static/js/character-import.ts` and `engine/character_appearance.py`) to validate all characters in a scenario or folder, reporting missing required fields, unnormalized tags, or broken references in a single batch report.",
+    "why": "When importing a cast of 10+ characters from an external JSON pack or library folder, individual errors currently surface one-by-one upon inspection or compile, causing repetitive context switching.",
+    "how": "- Add `validate_persona_batch(characters: list[dict]) -> dict` returning per-character health status and issues.\n- Expose a \"Validate All Characters\" button in the library import dialog and Scenario Wizard.\n- Surface summary pills (e.g. `12 valid · 2 warnings · 1 error`).",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Batch validation analyzes all characters in a payload or library folder without stopping on the first failure.",
+        "done": true
+      },
+      {
+        "text": "Returns a structured health summary categorizing valid, warning, and broken characters.",
+        "done": true
+      },
+      {
+        "text": "Covered by unit tests in `tests/test_character_appearance.py`.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-924-batch-persona-sheet-validation-for-character-library-import.md"
+  }
+}

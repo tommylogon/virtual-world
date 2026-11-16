@@ -6,8 +6,8 @@ Next available numbers for new task/bug files.
 
 | Type | Highest number | Next available |
 |------|---------------|----------------|
-| task | 415           | 416            |
-| bug  | 35            | 36             |
+| task | 951           | 952            |
+| bug  | 584           | 585            |
 
 ## Naming convention
 
@@ -27,7 +27,7 @@ when adding a new task or bug.
 
 ## Renumber pass 2026-08-30
 
-Duplicate ids resolved — canonical/reference-bearing files kept their numbers; the
+Duplicate ids resolved - canonical/reference-bearing files kept their numbers; the
 duplicate side was renumbered (open/in-review sides; done-side renames only where wiki
 links forced it):
 
@@ -41,7 +41,7 @@ links forced it):
 - New work filed: task-364 (scenario wizard, review), task-365 (save modal/autosave,
   done), task-366 (knowledge manager, done), bug-34 (approach-vs-cross, review)
 - Filed 2026-09-02: task-388 (trigger/behavior graph editor overhaul, todo/ui),
-  task-389 + task-390 (NPC behavior phase 1/2, todo/characters — previously `task-xxx`
+  task-389 + task-390 (NPC behavior phase 1/2, todo/characters - previously `task-xxx`
   placeholders)
 - Filed 2026-09-07 (inprogress): task-393 (validator triage panel, ui),
   task-394 (graph search freeze + center, graph), task-395 (way-orientation bulk-fix, graph)
@@ -55,10 +55,10 @@ links forced it):
   task-413 (tick perf baseline/guard, testing), task-414 (batch advance +
   non-blocking human, gameplay), task-415 (long-horizon observer mode, ui)
 
-## Known historical duplicates (all terminal — left as-is)
+## Resolved historical duplicates
 
-- bug-12: `done/bugs/bug_12-virtual-world-mcp-broken.md` +
-  `cancelled/bug-12-error message on something.md`
-- task-219: `done/refactor/task-219-prompt-builder-shared-fragment-extraction.md` +
-  `done/ui/task-219-agent-lens-left-panel.md`
+- bug-12: kept `done/bugs/bug-12-virtual-world-mcp-broken.md`; renumbered cancelled stub
+  `cancelled/bug-12-error message on something.md` -> `cancelled/bug-584-trigger-system-execute-triggers-traceback.md`.
+- task-219: kept `done/ui/task-219-agent-lens-left-panel.md` (referenced across UI/gameplay docs);
+  renumbered `done/refactor/task-219-prompt-builder-shared-fragment-extraction.md` -> `done/refactor/task-951-prompt-builder-shared-fragment-extraction.md`.
 

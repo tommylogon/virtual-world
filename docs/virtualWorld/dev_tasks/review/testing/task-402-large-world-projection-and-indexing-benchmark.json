@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "task-402",
+  "kind": "task",
+  "number": 402,
+  "title": "Large-world projection and indexing benchmark",
+  "status": "review",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-09-08",
+  "updated": "2026-09-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-401"
+    ],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Prove the scale claims with generated fixture data before treating a\nmillion-node world as supported. A passing Pines slice proves user semantics;\nit does not test transport, memory, or asymptotic behavior.",
+    "why": "Every scale claim in this repo is currently an assertion. The world compiler\nis written to handle scopes and chunks, the projection layer is written to\nreturn a subgraph rather than the whole graph, and the frontend is written to\nsync only what changed. None of that has been measured against a world large\nenough to break it, and the failure mode is the quiet one: a scoped endpoint\nthat keeps returning the whole graph is *correct* and *slow*, and it will not\nthrow.\n\nThat is why the card exists as a separate deliverable from the scaling work\nitself. A passing vertical slice - task-400's Pines - proves *user semantics*:\na character can walk into a room that was generated, a task can be completed in\na scope that was compiled. It says nothing about transport, memory, or\nasymptotic behaviour, because the slice is small enough that the whole graph\nfits in the response comfortably. The claim \"VirtualWorld supports a\nmillion-node world\" is currently supported by a slice three orders of magnitude\nsmaller than that.\n\nThe card's own framing is careful about what it does *not* promise: it sets no\narbitrary universal performance target before the host budget is known. What\nit does require is bounded-payload behaviour and a guardrail that catches\naccidental whole-graph responses. That is the difference between a benchmark\nand a performance target, and it is the part that can be built now.",
+    "how": "Two pieces, and the first is the blocker for the second.\n\n1. **A deterministic synthetic world generator.** Not a browser render test - a\n   fixture generator for tests and tools that produces at least 100,000 nodes\n   across many scopes, with areas, ways, ordinary items and a small number of\n   characters. Fixed seeds, published fixture counts in the output, so a run is\n   comparable with a later run. It must be expandable toward a million nodes\n   *without changing test semantics*, which means the generator's scope layout\n   has to be parameterised from the start rather than hard-coded to a shape.\n   task-572 (review) already records that this generator is **not** part of\n   its scope: *\"Not done here: task-402's >=100k-node synthetic generator\"* -\n   so this card still owns it, and task-572's E2E harness is the thing it can\n   grow from.\n\n2. **The measurement pass**, run as an explicit benchmark or marked test, never\n   in the ordinary unit suite, and never calling an external LLM:\n   - projection endpoint payload size and response time at world, settlement\n     and building scope depths;\n   - the number of nodes and edges actually loaded or returned per request;\n   - index lookup versus full-edge-list scan for scope-local queries;\n   - memory use and elapsed time for the save/load or chunk-load operations\n     that exist at the time of the test;\n   - confirmation that the browser does not request or render the complete\n     fixture when navigating a small scope.\n\n3. **The guardrail.** A benchmark must fail loudly if a scoped endpoint returns\n   out-of-scope graph nodes, *even if its latency happens to be acceptable*.\n   This is the assertion that carries the weight, and it is the one that turns\n   a measurement into a regression test. A slow endpoint is a performance\n   problem; an endpoint that quietly returns the whole graph is a correctness\n   problem wearing a performance costume, and only the out-of-scope assertion\n   catches it.\n\n**Sequencing.** This card is `blocked_by: task-401`, and that ordering is\nright. Without real chunk loading, a scoped projection is being measured\nagainst a graph that is fully resident, which measures the wrong thing. The\nsub-cards task-581/582/583/584 are the chunk work; the benchmark becomes\nmeaningful when they land.",
+    "verify": "1. Generator\n   - expected: Deterministic generator produces >=100000 nodes across scopes with fixed seed.\n   - observed: Not implemented; task-572 notes generator not done.\n2. Measurements\n   - expected: Report records payload sizes/times/index performance/memory for scoped requests; guardrail catches out-of-scope nodes.\n   - observed: Not run; benchmark not implemented.\n3. Reproducibility\n   - expected: Repeatable command produces same baseline within host conditions.\n   - observed: Not implemented.",
+    "acceptance": [
+      {
+        "text": "The task produces a repeatable command and a checked-in baseline report. It",
+        "done": false
+      },
+      {
+        "text": "does not set arbitrary universal performance targets before the host budget is",
+        "done": false
+      },
+      {
+        "text": "chosen, but it must establish bounded-payload behavior and catch accidental",
+        "done": false
+      },
+      {
+        "text": "whole-world graph responses.",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/` - where the deterministic generator belongs, alongside the other",
+      "scenario and world-building tools; it must be runnable without the browser",
+      "tests/` - the benchmark harness, marked so it does not run in the ordinary",
+      "unit suite",
+      "engine/world_grid.py`, `engine/world_compile.py` - the scope and chunk",
+      "substrate the fixture has to exercise realistically",
+      "routes/` - the projection endpoints whose payload size and node counts are",
+      "the primary measurement",
+      "docs/design/` - where the checked-in baseline report lands, so a later run",
+      "can be compared against it"
+    ],
+    "custom": {
+      "benchmark_fixture": "Build a deterministic synthetic world generator for tests/tools, not a browser\nrender test. It should create at least 100,000 nodes across many scopes with\nareas, ways, ordinary items, and a small number of characters. It must support\nlater expansion toward one million nodes without changing test semantics.",
+      "measurements": "- Projection endpoint payload size and response time at world, settlement, and\n  building scope depths.\n- Number of nodes/edges loaded or returned for every request.\n- Index lookup versus full-edge-list scans for scope-local queries.\n- Memory use and elapsed time for save/load or chunk-load operations that are\n  actually implemented at the time of the test.\n- Confirmation that the browser does not request/render the complete fixture\n  when navigating a small scope.",
+      "guardrails": "- Run this as an explicit benchmark/marked test, not the ordinary unit suite.\n- Use fixed seeds and publish fixture counts in the output so regressions are\n  comparable.\n- Do not call external LLMs.\n- A benchmark must fail loudly if a scoped endpoint returns out-of-scope graph\n  nodes, even if its latency happens to be acceptable.",
+      "browser_ui": "Intended UI home: run the task's checked-in large-world benchmark command, open its generated scenario in the graph editor, select one scope, and inspect `/api/state`/scope responses in the browser Network panel.\n\nCurrent availability: the task requires a repeatable command and checked-in baseline report but deliberately sets no universal performance threshold before host budget is chosen. The command and baseline are not claimed as present.\n\nLive steps when available:\n1. Run the benchmark command recorded by this task and open the generated world at whole-world and scoped settings.\n   - expected: the report records world node/edge counts, requested-scope counts, response bytes, and elapsed measurements for the same fixture.\n2. In the browser, select one small scope and inspect the graph request/response and visible node count.\n   - expected: payload size is bounded to that requested scope; the response does not accidentally contain the whole-world graph.\n3. Repeat the same command and browser request without changing the fixture.\n   - expected: the checked-in baseline is reproducible within recorded host conditions and names the measurements rather than asserting an arbitrary universal speed target.\n4. Compare the browser's visible graph with the report's scope node/edge counts.\n   - expected: the displayed subgraph and response counts match the selected scope.\n\nThis section is not a claim that the benchmark command or baseline report exists today.",
+      "reconnaissance_2026_10_20": "- Measured: blocked by task-401 (todo). No benchmark script/baseline found in quick scan.\n- Verdict: STILL_VALID. Blocked and not implemented. Status remains todo."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-397. Extend after task-401 when real chunk loading exists."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-402-world-scale-projection-benchmark.md"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-662",
+  "kind": "task",
+  "number": 662,
+  "title": "Repair 143 broken wikilinks in the vault, 129 of them stale task paths",
+  "status": "done",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-01",
+  "updated": "2026-10-01",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-576",
+      "task-578"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Measured across all 597 `[[wikilinks]]` in docs/virtualWorld: 143 distinct targets do not resolve, in 74 files. 129 point at dev_task files whose path went stale when tools/tasks.py move relocated them between status folders - the tool renames on disk but does not rewrite inbound links, so every move silently rots the notes that cited the task. 11 point at prose notes that do not exist, mostly a missing folder prefix (Temperature/* are at Environment/Temperature/*) plus three genuinely absent notes (Characters/Equipment Loadouts, UI & Settings/Inspector, World Building/Item System). Two ways to fix: make tools/tasks.py move rewrite inbound `[[...]]` links, or link tasks by stable id rather than by status-folder path. Then add a broken-link check beside tools/tasks.py validate so this cannot rot again.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: vault wikilinks resolve, no stale task paths.\n- observed (2026-10-10): python tools/doc_links.py --count -> broken occurrences: 0 / broken distinct: 0; --check exits 0.",
+    "acceptance": [
+      {
+        "text": "Every resolvable broken link is repaired; the vault is at zero.",
+        "done": true
+      },
+      {
+        "text": "`python tools/doc_links.py --check` exits 0.",
+        "done": true
+      },
+      {
+        "text": "A task moved with `tools/tasks.py move` has its inbound links rewritten",
+        "done": true
+      },
+      {
+        "text": "(covered by `tests/test_doc_links.py`).",
+        "done": false
+      },
+      {
+        "text": "The check runs from the task helper: `python tools/tasks.py links`.",
+        "done": true
+      },
+      {
+        "text": "The retraction of the \"143\" figure is recorded above with the measurement.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_reality_2026_10_02_task_662_execution": "The \"143\" was wrong for one boring reason: most of them were **escaped-pipe\naliases**, not broken links. `[[Items & Inventory/Equipment & Paperdoll\\|Equipment\n& Paperdoll]]` is the correct way to write an alias inside a markdown table; any\nmeasurement that splits on `|` without unescaping `\\|` counts them as missing.\nHandling `\\|`, `#heading`, `.md`, and Obsidian's basename resolution leaves\n**27 broken occurrences in 21 distinct targets** - not 143.\n\nOf those 27:\n\n- 8 were stale task/bug paths fixed mechanically (a moved task is retargeted by\n  **id + slug**, so a reused id is never mislinked; old `bug_6-slug` names are\n  understood); they are now cited by basename, which a status move cannot break.\n- 3 pointed at the three genuinely absent notes, retargeted to the real notes\n  (`UI & Settings/Inspector Panels`, `Items & Inventory/Items Overview`,\n  `Environment/Temperature System`).\n- 5 were broken **folder** links (`[[dev_tasks/todo/]]`), which Obsidian cannot\n  resolve at all; replaced with plain labels and a path.\n- 6 were malformed \"links\" wrapping code/test paths, converted to code spans.\n- 5 referenced tasks that no longer exist (deleted duplicates with a reused id:\n  task-150, task-181; and a never-filed task-163); delinked to plain text.",
+      "resolution": "- New `tools/doc_links.py` - resolves the vault's wikilinks and reports/repairs\n  broken ones (`--check`, `--count`, `--report`, `--fix`).\n- `tools/tasks.py links` runs the check, and `tools/tasks.py move` rewrites\n  inbound links when a move would invalidate them.\n- Evidence: `python tools/doc_links.py --count` went from\n  `broken occurrences: 27 / broken distinct: 21` to `0 / 0`; `--check` exits 0."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/docs/task-662-repair-143-broken-wikilinks-in-the-vault-129-of-them-stale-task-paths.md"
+  }
+}

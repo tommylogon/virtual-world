@@ -99,7 +99,7 @@ A single defense integer collapsed two fundamentally distinct defensive mechanic
 - engine/equipment_bonuses.py
 - engine/combat.py
 - engine/equipment.py
-- 	ests/test_defense_axes.py
+- tests/test_defense_axes.py
 
 ## Browser UI and intended live verification
 

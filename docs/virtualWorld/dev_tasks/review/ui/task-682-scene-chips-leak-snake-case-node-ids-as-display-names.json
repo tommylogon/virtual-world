@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-682",
+  "kind": "task",
+  "number": 682,
+  "title": "Scene chips leak snake_case node ids as display names",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Things you can see renders raw node ids for items whose name is an id: coat_rack, calling_cards, protein_bar, vase (ok) while neighbouring chips read denim cut-offs. The You strip shows energy drinkbroken -- the item name and its broken state concatenated with no separator. scene_snapshot emits describe_item_quantity(node) and build_item_quantity_label joins name+state; both need a display-name resolution layer plus a separator. Check whether the id is already available as a display_name/label property before adding a second resolution path.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Human Turn Composer → scene snapshot → People and Things chips, plus the controlled character's You strip.\n\nCurrent availability: The card records raw item IDs (`coat_rack`, `calling_cards`, `protein_bar`, `vase`) in Things and the joined text `energy drinkbroken` in the You strip; the name/separator fix is planned.\n\nLive steps when available:\n1. Load the repro scene, open the human-turn composer, and inspect Things for coat rack, calling cards, protein bar, and vase.\n   - expected: each chip uses its authored display name rather than an ID fallback when that name exists; `vase` remains readable if its authored name is already “vase”.\n2. Inspect the controlled character's You strip while carrying the broken energy drink.\n   - expected: the item name and broken state have a visible separator, reading as “energy drink - broken” (or the chosen state format), not `energy drinkbroken`.\n3. Select each chip and compare its visible label with the item record's `name`/`display_name` fields.\n   - expected: scene snapshot and You strip resolve from the existing display-name field; they do not add a second name-resolution source.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-682-scene-chips-leak-snake-case-node-ids-as-display-names.md"
+  }
+}

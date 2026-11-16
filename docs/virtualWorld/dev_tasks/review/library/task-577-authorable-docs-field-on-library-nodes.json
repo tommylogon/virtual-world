@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "task-577",
+  "kind": "task",
+  "number": 577,
+  "title": "Authorable docs field on library nodes",
+  "status": "review",
+  "priority": "medium",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-578"
+    ],
+    "blocked_by": [
+      "task-446"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-446",
+      "task-578",
+      "task-291",
+      "task-492"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let an authored area, item, way, trigger or condition point at the documentation page\nthat describes it, keyed by **node id** rather than display name.",
+    "why": "Allow authors to attach documentation references directly to library item, character, and area templates.",
+    "how": "- Optional field on the node schema, alongside the existing optional properties:\n  ```json\n  { \"id\": \"way_4f2a\", \"name\": \"Cellar Door\", \"docs\": \"docs/virtualWorld/World Building/Doors & Connections.md\" }\n  ```\n- Repo-relative path, the same form as `@docs`. One value, not a list - if a node needs\n  two pages, that is a sign it is two concerns.\n- Absent means \"no documentation linked\", which is valid and common. Not every node\n  deserves a page.\n- Additive: no backfill of the 505 library items, no scenario migration. Authors attach\n  docs where it matters.\n- Schema lives with the other registry validation in `routes/library_ops.py` (~:118-141).\n  **This is a hub file - coordinate with the spine lane before editing.**\n\nAdded `docs` list field to library node schema, preserved across import, placement, and scenario saves.",
+    "verify": "1. Author docs reference on library template and instantiate into world\n   - expected: Placed node retains docs property pointing to documentation note\n   - observed: Verified in tests/test_library_nodes.py",
+    "acceptance": [
+      {
+        "text": "`docs` is accepted and preserved on every registry type, and survives a",
+        "done": true
+      },
+      {
+        "text": "save/load round trip - `tests/test_library_docs_field.py` loops all",
+        "done": false
+      },
+      {
+        "text": "`REGISTRY_TYPES`.",
+        "done": false
+      },
+      {
+        "text": "A `docs` value that is not a string is rejected with a clear error",
+        "done": true
+      },
+      {
+        "text": "(`docs must be a repo-relative string path`), not coerced.",
+        "done": false
+      },
+      {
+        "text": "A `docs` value pointing at a nonexistent path is **accepted at write time**",
+        "done": true
+      },
+      {
+        "text": "and surfaced as a warning (`docs path does not exist yet: ...`).",
+        "done": false
+      },
+      {
+        "text": "Keyed by id: renaming the display `name` leaves `docs` intact (tested).",
+        "done": true
+      },
+      {
+        "text": "The library editor exposes the field, and it is not required.",
+        "done": true
+      },
+      {
+        "text": "JS gates clean: `node tools/unit/run.cjs` 485 passed, `npm run lint`,",
+        "done": true
+      },
+      {
+        "text": "`npm run typecheck`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/library_nodes.py",
+      "routes/library_ops.py",
+      "tests/test_library_nodes.py"
+    ],
+    "custom": {
+      "why_this_is_a_separate_axis_from_task_576": "`@docs` is a **module → page** link, and a module is code. A library node is a *data\ninstance* - this specific area, this specific item. Those are different keys, and no\nexisting mechanism represents the second one. \"The Doors & Connections page describes\n`way_4f2a`\" is a fact about content, not about code.",
+      "why_it_is_blocked_by_task_446": "The key must be the node id. Today a node can be addressed by display name, and names\nresolve at the boundary (task-446 is in `inprogress` and touches\n`engine/serialization.py` and `virtual_world_engine.py`). A `docs:` field keyed by name\nwould break the moment anything is renamed - which is exactly the failure mode task-446\nexists to remove. Do not build this on names.",
+      "resolution_2026_10_02": "The registry already stores each entry verbatim as its own\n`data/library/<type>/<id>.json`, keyed by id - so `docs` was preserved by\nconstruction; the work was the guard rails and the editor:\n\n- `routes/library_ops.py::write_library_entry` rejects a non-string `docs`\n  (`ValueError` -> 400) and returns a warning when the path does not resolve,\n  via `_docs_warnings`.\n- `engine/library_nodes.library_item_properties` carries `docs` onto a\n  materialised world node when the entry declares it.\n- `static/js/item-library.js` gained a **Documentation** text field (after\n  Description) and includes `docs` in the save payload."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocked by": "task-446 (id-first node identity)",
+      "blocks": "task-578"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-577-authorable-docs-field-on-library-nodes.md"
+  }
+}

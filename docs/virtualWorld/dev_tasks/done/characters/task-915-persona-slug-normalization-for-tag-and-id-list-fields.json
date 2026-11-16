@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-915",
+  "kind": "task",
+  "number": 915,
+  "title": "Persona slug normalization for tag and id-list fields",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903",
+      "bug-570"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Automatically normalize id-list inputs in the Persona tab and import pipeline to valid lower-case kebab-case/snake-case slugs (`^[a-z0-9][a-z0-9_-]*$`) rather than rejecting unnormalized typed input or letting uppercase display strings enter the tag arrays.",
+    "why": "Id-list fields (`likes`, `dislikes`, `fears`, `interests`, `kinks`, `turn_ons`, `turn_offs`, `traumas`, `boundaries`, `traits`, `aspirations`, `quirks`, `habits`) must be tag slugs for engine consumers to match them against world entities and tags. Users naturally type `\"Dark Caves\"` or `\"Monster energy drink\"`, which currently fails validation or bypasses checks.",
+    "how": "- Add `normalize_slug(value: str) -> str` in `engine/character_appearance.py` that trims, lowercases, replaces non-alphanumeric punctuation with underscores, and strips illegal symbols.\n- In `static/js/inspector/mind-view.ts`, apply slug normalization on chip creation so typed tags transform smoothly.\n- Add unit tests verifying slug conversion across spaces, special characters, and diacritics.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Typing spaces or mixed-case into Persona id-list fields normalizes to valid tag slugs.",
+        "done": true
+      },
+      {
+        "text": "Backend validator normalizes or rejects malformed slugs deterministically.",
+        "done": true
+      },
+      {
+        "text": "Unit tests cover slug normalization rules and edge cases.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-915-persona-slug-normalization-for-tag-and-id-list-fields.md"
+  }
+}

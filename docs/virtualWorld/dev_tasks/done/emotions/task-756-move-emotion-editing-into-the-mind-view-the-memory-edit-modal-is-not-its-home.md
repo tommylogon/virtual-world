@@ -21,29 +21,29 @@ related: [task-714, task-757, task-820]
 
 Per-memory emotion editing (label + intensity, multiple) now lives in the Mind view's memory detail; the memory-edit modal no longer owns it. Writes the same `memory_emotions` field via `updatePlayerMemory` - no new store.
 
-## Reconciliation (2026-10-09) — the premise was half true
+## Reconciliation (2026-10-09) - the premise was half true
 
 The card was filed from a dead code cluster (`emo`/`emoLbl`/`emoInt`/`emoOptions`/
 `emoOpts`) in `inspector/memory-view.ts` that rendered no field. That cluster was a
 **dead duplicate**: the memory-edit modal already edits a *richer* emotion set
-through `memory_emotions: [{label,intensity}]` — the grouped picker at
+through `memory_emotions: [{label,intensity}]` - the grouped picker at
 `memory-view.ts:17-18, 418-419`, saved in the payload at `:572` via
 `updatePlayerMemory`/`addPlayerMemory`. The dead cluster was removed in task-757.
 
-So there is **no missing emotion editor to add** — the feature exists, in the memory
+So there is **no missing emotion editor to add** - the feature exists, in the memory
 modal. Relocating it is a UI move that belongs with the Mind view takeover.
 
 ## Why deferred
 
 Adding an emotion editor to the Mind view *now* would create a second editing
 surface over the same `memory_emotions` field while the memory modal still owns the
-memory list and add/edit flow — i.e. two places to edit one memory, which is the
+memory list and add/edit flow - i.e. two places to edit one memory, which is the
 "second source of truth for a surface" the repo warns against. The clean cut is:
 when task-691/714 make the Mind view own the memory list, move the editor with it.
 
 ## Decision needed
 
-RESOLVED 2026-10-13: yes — the Mind view takes over memory *editing*, not just the
+RESOLVED 2026-10-13: yes - the Mind view takes over memory *editing*, not just the
 read-only dashboard (Bio survives as the character's definition surface; the Mind
 panel owns the mind). The move is:
 

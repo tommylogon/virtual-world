@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "task-685",
+  "kind": "task",
+  "number": 685,
+  "title": "Memory dynamics: memories that reinforce, fade, contradict, and change the character",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-11-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-686",
+      "task-687",
+      "task-688",
+      "task-689",
+      "task-690",
+      "task-707",
+      "task-950"
+    ],
+    "parent": null,
+    "children": [
+      "task-686",
+      "task-687",
+      "task-688",
+      "task-689",
+      "task-690",
+      "task-691"
+    ],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make memory a dynamic system instead of a static list: dynamic availability\n(activation), confidence, reinforcement on recall and re-encounter, non-uniform\ndecay, belief-category memories, and contradiction links - all **additive** to\n`Player.memories[]`. The test of the finished system is the question it can\nanswer: *what has happened to this character, what did they conclude from it,\nhow certain are they, how do they feel about it, and how has it changed what\nthey expect to happen next?*",
+    "why": "Static flat memory lists accumulate hundreds of disconnected text strings that never fade, never prioritize recent or formative events, never change confidence, and cannot represent beliefs or contradictions. Dynamic memory gives NPCs evolving internal state where frequently recalled or reinforced memories remain active while trivial impressions fade, reflections generate structured beliefs, and contradictory facts coexist without deletion.",
+    "how": "1. Define dynamics fields on memory dicts: activation, reinforcement_count, decay_resistance, contradiction_ids, confidence, category (belief, episodic, social, observation).\n2. Wire reinforcement on recall and re-encounter (task-686).\n3. Apply non-uniform exponential/tick-based activation decay with resistance gates (task-687).\n4. Implement structured reflection and insight consolidation (task-688).\n5. Add contradiction detection and link generation without destructive overwrites (task-689).\n6. Implement multi-signal retrieval scoring (recency, relevance, activation, importance) in engine/memory.py (task-690).\n7. Expose memory timeline, dynamics badges, and contradiction links in the Mind UI dashboard (task-691).",
+    "verify": "1. In a live scenario, open the character's Memory Mind dashboard, re-encounter\n   a known person, and inspect the recalled memory and derived person profile.\n   - expected: the existing memory's reinforcement count rises and the profile\n     reflects the recorded relationship evidence.\n   - observed (2026-10-04): the card records reinforcement `↻ ×1`, one linked\n     contradiction pair, structured reflection memories, and Anna's derived\n     profile (`rival`, trust −28) in the dashboard.\n2. Open a character with a contradictory pair and inspect both memory details.\n   - expected: the two records remain in `Player.memories[]` and show a linked\n     contradiction without one overwriting the other.\n   - observed: the same live session recorded `⚡ 1 pair`; no fresh browser run\n     was collected for this backfill.",
+    "acceptance": [
+      {
+        "text": "Every child task done; the compatibility table in the design doc §8 still holds (HTC, agents, triggers, soak, observation memory, MCP, editor all operate unchanged) - children 686–691 in review; the full suite A/B against a clean master worktree shows identical failure names (the one apparent difference is the gitignored local `jessica.json`, unrelated).",
+        "done": true
+      },
+      {
+        "text": "An old save (no dynamics fields) loads, plays, saves, and reloads with no errors and no field loss (`test_old_save_memory_round_trips_without_new_fields`).",
+        "done": true
+      },
+      {
+        "text": "A play session demonstrably produces: reinforced memories (↻ counts rise), faded memories, at least one belief from reflection, and the structured I REMEMBER block in the prompt - demonstrated live on 2026-10-04: seeded a scenario, saw re-encounter reinforcement (↻ ×1), contradiction links (⚡ 1 pair), belief/procedural/social memories from one structured reflect, the derive.py profile (Anna: rival, trust −28), and the Memory Mind dashboard rendering all of it.",
+        "done": true
+      },
+      {
+        "text": "Documentation status markers updated from *planned* to *implemented/wired/authored/tested* per feature (Memory System.md + Memory Dynamics.md).",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/memory.py",
+      "engine/player.py",
+      "engine/reflection.py",
+      "static/js/inspector/mind-view.ts",
+      "tests/test_memory_dynamics.py",
+      "docs/virtualWorld/AI & Narration/Memory Dynamics.md"
+    ],
+    "custom": {
+      "children": "| Task | Slice |\n|---|---|\n| task-686 | Engine: dynamics fields + reinforcement (recall + re-encounter) |\n| task-687 | Engine: non-uniform decay (activation with per-memory resistance) |\n| task-688 | Engine: reflection 2.0 - structured insights, depth guard, consolidation |\n| task-689 | Engine: contradiction detection (marking, never resolving) |\n| task-690 | Retrieval 2.0: one multi-signal scorer + structured recall block |\n| task-691 | UI: Memory Mind interface per the mockup |",
+      "open_questions": "- Should reflection also run engine-side for NPCs who never get a client LLM\n  turn (background_simulation path), or is client-side reflect() the only\n  reflection writer? Today reflect() is client-only; background characters\n  never reflect. Deliberately **not** solved in this tree unless it blocks\n  task-688's wiring test.\n- Default-on decay changes existing scenarios by design. Confirm the default\n  rate (0.01/tick) feels right after one soak; `memory.decay_per_tick: 0`\n  is the freeze hatch.",
+      "browser_ui": "Intended UI home: Character Inspector → Bio → 🧠 Mind → Memories / Memory Mind.\n\nCurrent availability: The Memory Mind dashboard and the dynamics described in\nthis card were live-demonstrated on 2026-10-04. This records the card's existing\nevidence; it is not a fresh browser check in this backfill.\n\nLive steps when available:\n1. Load a scenario with a character who has one reinforced memory and a linked\n   contradiction; select that character, open Bio, scroll to the Memories\n   section, and click 🧠 Mind.\n   - expected: the dashboard shows the character's memory timeline, the\n     reinforcement count on the recalled memory, and the contradiction link\n     between the two records.\n2. Run the scenario action that re-encounters the remembered person or event,\n   reopen the same memory details, then open the character's derived profile.\n   - expected: the same memory record's reinforcement count has increased and\n     the profile reflects the relationship evidence; no second memory store is\n     needed to explain either view.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "design doc": "`docs/virtualWorld/AI & Narration/Memory Dynamics.md`",
+      "interface mockup": "`docs/design/memory-mockup.html`"
+    }
+  }
+}

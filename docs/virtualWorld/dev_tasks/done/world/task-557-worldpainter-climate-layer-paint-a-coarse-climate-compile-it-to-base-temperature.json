@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "id": "task-557",
+  "kind": "task",
+  "number": 557,
+  "title": "WorldPainter climate layer: paint a coarse climate, compile it to base_temperature",
+  "status": "done",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-553"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-553",
+      "task-497",
+      "task-496",
+      "task-745"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One coarse climate paint layer (arctic / temperate / arid / tropical /\nalpine) whose cells compile to a per-area `base_temperature`, so outdoor\ntemperature varies across the map.\n\n**Depends on task-553.** Do not start this until `base_temperature` exists and\nis load-bearing; otherwise this task has nothing to write into.\nDesign: `docs/design/weather-world-integration.md` §5, §6 step 5.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**The layer is whitelisted** in `engine/world_grid.py` `PAINT_LAYERS`,",
+        "done": true
+      },
+      {
+        "text": "`static/js/worldpainter/grid-model.js` and the unit test. Checked the round",
+        "done": false
+      },
+      {
+        "text": "trip the task warned about: a painted climate cell survives `normalise_grid`",
+        "done": false
+      },
+      {
+        "text": "and is still there after save/reload, because the backend no longer drops an",
+        "done": false
+      },
+      {
+        "text": "unlisted layer.",
+        "done": false
+      },
+      {
+        "text": "**One enum vocabulary of five** - `arctic`, `alpine`, `temperate`, `arid`,",
+        "done": true
+      },
+      {
+        "text": "`tropical` - with a base °C each, in `CLIMATE_BASE_C`. Enum, not float: no",
+        "done": false
+      },
+      {
+        "text": "save bloat, one brush instead of a value-and-falloff control, and the",
+        "done": false
+      },
+      {
+        "text": "aggregation below stays a majority vote rather than a mean that invents a",
+        "done": false
+      },
+      {
+        "text": "climate nobody painted.",
+        "done": false
+      },
+      {
+        "text": "**Two areas painted with different climates report different temperatures,",
+        "done": true
+      },
+      {
+        "text": "with no forecast entry authored**: `arctic` compiles to",
+        "done": false
+      },
+      {
+        "text": "`base_temperature: -8.0` and `tropical` to `27.0` on the same grid.",
+        "done": false
+      },
+      {
+        "text": "**The climate layer does NOT split areas.** Climate is absent from",
+        "done": true
+      },
+      {
+        "text": "`identity()`, so a region keeps one place across a climate boundary - five",
+        "done": false
+      },
+      {
+        "text": "forest cells with two of them tropical is still **one** area. A road still",
+        "done": false
+      },
+      {
+        "text": "does split: forest/road/forest is three areas.",
+        "done": false
+      },
+      {
+        "text": "**Aggregation is majority of cells, ties broken by the region's first cell",
+        "done": true
+      },
+      {
+        "text": "in row-major order.** Both halves earn their place: a majority is how a real",
+        "done": false
+      },
+      {
+        "text": "climate is summarised, and the tie-break is what makes the answer",
+        "done": false
+      },
+      {
+        "text": "*deterministic* - an even split of a two-cell region must not depend on",
+        "done": false
+      },
+      {
+        "text": "iteration order, because a grid that compiles differently twice is the bug",
+        "done": false
+      },
+      {
+        "text": "this task exists to prevent. Unpainted cells are not votes.",
+        "done": false
+      },
+      {
+        "text": "**Unpainted is `temperate` (21 °C), not \"unknown\"** - and, stronger than the",
+        "done": true
+      },
+      {
+        "text": "acceptance asked, an area in a world with **no** climate layer gets *no*",
+        "done": false
+      },
+      {
+        "text": "`climate` and *no* `base_temperature` key at all, so it reads the engine's",
+        "done": false
+      },
+      {
+        "text": "long-standing 21 °C and a world that never chose a climate compiles exactly",
+        "done": false
+      },
+      {
+        "text": "as it did before.",
+        "done": false
+      },
+      {
+        "text": "**An existing world with no climate layer compiles unchanged**, which follows",
+        "done": true
+      },
+      {
+        "text": "from the two points above: nothing is written that was not painted, so there",
+        "done": false
+      },
+      {
+        "text": "is nothing to differ.",
+        "done": false
+      },
+      {
+        "text": "**A disagreeing region is reported**, not silent:",
+        "done": true
+      },
+      {
+        "text": "\"1 area(s) had cells painted with more than one climate; the majority won\".",
+        "done": false
+      },
+      {
+        "text": "**An unknown climate is a reported typo, not a silent temperate**:",
+        "done": true
+      },
+      {
+        "text": "`WARNING: 1 unknown climate value(s) ignored: 'tropcial' at (1,1). Expected",
+        "done": false
+      },
+      {
+        "text": "one of alpine, arctic, arid, temperate, tropical.` The cell still shows a",
+        "done": false
+      },
+      {
+        "text": "distinct colour while painting, so it is visibly *not* one of the five.",
+        "done": false
+      },
+      {
+        "text": "**Only `world` scopes compile a climate.** A `town` or `interior` gets no",
+        "done": true
+      },
+      {
+        "text": "`climate` and no `base_temperature`: the outdoor model is world-scoped (the",
+        "done": false
+      },
+      {
+        "text": "same distinction task-525 makes for a storey step being a staircase rather",
+        "done": false
+      },
+      {
+        "text": "than a rockface), and a hall is not −8 °C because someone painted arctic on",
+        "done": false
+      },
+      {
+        "text": "it.",
+        "done": false
+      },
+      {
+        "text": "**A legend is shown while painting** - a colour chip per climate labelled",
+        "done": true
+      },
+      {
+        "text": "with the °C it compiles to, plus \"unpainted is Temperate\", and a title",
+        "done": false
+      },
+      {
+        "text": "explaining the majority rule and the world-scope limit.",
+        "done": false
+      },
+      {
+        "text": "**The server owns the values.** `/api/world/painter/vocabulary` ships",
+        "done": true
+      },
+      {
+        "text": "`climates` and `default_climate` from the same table the compiler aggregates",
+        "done": false
+      },
+      {
+        "text": "against, and the editor adopts them (`useClimatesFromVocab`), supplying only",
+        "done": false
+      },
+      {
+        "text": "the *colour*. A palette showing one base °C while the compiler writes another",
+        "done": false
+      },
+      {
+        "text": "is the kind of disagreement nobody notices until a painted mountain is the",
+        "done": false
+      },
+      {
+        "text": "wrong temperature; a new climate is now a backend change and nothing else.",
+        "done": false
+      },
+      {
+        "text": "Unit tests: `PAINT_LAYERS` asserts the new layer, and three new tests cover",
+        "done": true
+      },
+      {
+        "text": "the vocabulary, the colours (including the typo case) and the server-adoption",
+        "done": false
+      },
+      {
+        "text": "path. `node tools/unit/run.cjs` - 371 passed, the 13 pre-existing",
+        "done": false
+      },
+      {
+        "text": "`test_plan_tracker.js` failures unchanged.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_2026_09_27_three_separate_obstacles_all_measured": "**1. The layer whitelist is a hard gate.** `engine/world_grid.py:70`:\n\n```python\nPAINT_LAYERS = (\"biome\", \"road\", \"floor\")\n```\n\nand `normalise_grid` (`:151-174`) iterates exactly that tuple, **dropping any\nlayer not in it**. A new layer that is not whitelisted is silently discarded on\nsave - the author paints, the world forgets. Mirrored in\n`static/js/worldpainter/grid-model.js:25` and asserted in\n`tools/unit/test_worldpainter.js:345`.\n\n**2. Painted cells do not survive compilation.** `engine/world_compile.py:559`\nflood-fills cells of the same *identity* into regions, and `compile_grid`\n(`:639`) makes one area per region. So a climate value painted on a cell has to\nbe **aggregated** into the area, and the rule is a design decision with gameplay\nconsequences invisible on the painted map. For an enum layer the answer is\neasy - majority of cells, ties broken by the region's first cell in the\ncompiler's stable order. This is a large part of why the layer should be an\n**enum and not a continuous value**.\n\n**3. Elevation was tried and removed, for a different reason.** The old\n0..1 `elevation` paint layer was folded into the storey index via\n`LEGACY_LAYER_KEYS = {\"elevation\": \"floor\"}` (`world_grid.py:78`) because one\nword meant two things. Elevation today lives per *area* as a description input\n(`world_compile.py:829`) and never reaches the climate model. If elevation ever\ncomes back as a painted layer, it needs a different justification than the one\nit lost under - \"it drives temperature, which drives biome fit\" would be one.",
+      "what_to_change": "1. Whitelist the layer (`world_grid.py:70`, `grid-model.js:25`,\n   `test_worldpainter.js:345`).\n2. One enum vocabulary of 5 values. Enum, not float: no save bloat, one brush\n   instead of a value+falloff control, and the aggregation rule above stays\n   trivial.\n3. The compiler reads the layer, **excludes it from region identity** (climate\n   must not split areas the way a road does), aggregates per region, and writes\n   `base_temperature`.\n4. A legend/toggle in the WorldPainter so the climate is visible while painting.",
+      "explicitly_not_here": "Continuous per-cell temperature, wind as a flow field, and per-area seasons all\nstay out. Continuous numeric paint layers are exactly what the deleted\n`elevation` layer warns about, and the save/diff cost scales with fields.",
+      "notes": "- **The deleted `elevation` layer's warning is respected, and the new layer dodges\n  it.** `elevation` was removed because one word meant two things (a painted\n  height *and* a storey). `climate` means exactly one thing - a coarse outdoor\n  thermal band - and it is an enum so the per-region question has one answer\n  rather than a continuum. If elevation ever comes back as a painted layer it\n  still needs a different justification than the one it lost under.\n- The climate values are the **mid-point of each band's range**, not its extreme:\n  a painted arctic is cold without being the coldest thing on earth, and the\n  diurnal and seasonal curve is added on top by task-553's model."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature.md"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "bug-512",
+  "kind": "bug",
+  "number": 512,
+  "title": "/api/tags/validate returns nonsense fuzzy suggestions for unknown tags",
+  "status": "done",
+  "priority": "high",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-750",
+      "task-291",
+      "task-206"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Measured against the live Kraktooth world, GET /api/tags/validate proposes: wanderer -> underwear, fear -> footwear, silence -> evidence, hostile -> hosiery, master -> water, chaos -> ghost, attention -> mansion. Only tools -> tool and mechanisms -> mechanism are correct. difflib get_close_matches at cutoff 0.6 is far too permissive for two-to-ten character ids, and a caller that trusts a suggestion will silently write a worse tag than the one it rejected. Raise the cutoff and/or require the match to share a length, and verify no caller depends on the current loose behaviour. Consumers should be able to distinguish 'near miss worth suggesting' from 'no idea'.",
+    "why": "difflib.get_close_matches with default 0.6 cutoff generated unrelated fuzzy suggestions (e.g. `wanderer` -> `underwear`, `fear` -> `footwear`), which risked corrupting tag metadata when callers accepted suggestions.",
+    "how": "Implemented `closest_tag_match` in `routes/helpers.py` with cutoff 0.8 and a strict length difference guard (`abs(len(a) - len(b)) <= max(2, len(a) // 3)`). Returning None when no confident match exists.",
+    "verify": "1. Run tag validation unit tests\n   - expected: pytest tests/test_tags_validate.py passes\n   - observed: 6 passed in tests/test_tags_validate.py\n2. Verify fuzzy suggestion behavior on unknown tags\n   - expected: Unrelated tags return suggestion null; inflections like tools -> tool still match\n   - observed: Verified on test client requests",
+    "acceptance": [
+      {
+        "text": "The matcher is strict enough to reject every reported nonsense pair.",
+        "done": true
+      },
+      {
+        "text": "Real inflections (`tools` -> `tool`, `mechanisms` -> `mechanism`) still suggest.",
+        "done": true
+      },
+      {
+        "text": "`null` is returned when there is no confident match, so a caller can tell",
+        "done": true
+      },
+      {
+        "text": "\"near miss worth suggesting\" from \"no idea\".",
+        "done": false
+      },
+      {
+        "text": "No caller depended on the loose behaviour: `validate_tags_on_save` only",
+        "done": true
+      },
+      {
+        "text": "logs/warns, and the `/api/tags/validate` consumer already handles `null`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/helpers.py",
+      "routes/tags.py",
+      "tests/test_tags_validate.py"
+    ],
+    "custom": {
+      "what_was_done_2026_10_02": "`routes/helpers.py` now owns `closest_tag_match(tag, candidates)` - difflib at\ncutoff **0.8** plus a length guard (`|len(a)-len(b)| <= max(2, len(a)//3)`), which\nkeeps plural/singular pairs and short typos while rejecting the reported pairs.\n`validate_tags_on_save` and `routes/tags.py` both use it, so the save path and the\nendpoint agree.\n\nEvidence:\n\n- `python -m pytest tests/test_tags_validate.py -q` - 6 passed.\n- The endpoint returns `suggestion: null` for `wanderer`/`fear` and the correct\n  singular for `tools`/`mechanisms` (asserted through `create_app().test_client()`).",
+      "verified_2026_10_21": "Re-measured on the working tree, both the mechanism and the live route:\n\n- `python -m pytest tests/test_tags_validate.py` - 6 passed.\n- `GET /api/tags/validate` through `create_app().test_client()` against the real\n  `data/library/tags` registry, all nine reported ids in one request:\n\n  ```\n  wanderer -> None      fear -> None        silence -> None\n  hostile -> None       master -> None      chaos -> None\n  attention -> None     tools -> 'tool'     mechanisms -> 'mechanism'\n  ```\n\n  All seven nonsense pairs return `suggestion: null`; both real inflections\n  still suggest. `valid: []` because none of the nine ids is registered, which\n  is the fixture's premise, not a defect.\n- Both callers share `routes/helpers.py:closest_tag_match` (`routes/tags.py:50`,\n  `validate_tags_on_save` at `routes/helpers.py:399`), so the endpoint and the\n  save path cannot disagree."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/library/bug-512-api-tags-validate-returns-nonsense-fuzzy-suggestions-for-unknown-tags.md"
+  }
+}

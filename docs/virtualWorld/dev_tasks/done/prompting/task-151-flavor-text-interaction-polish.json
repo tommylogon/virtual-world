@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-151",
+  "kind": "task",
+  "number": 151,
+  "title": "Flavor Text Interaction Polish",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-31",
+  "updated": "2026-07-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Polish the interaction layer so that attempts to interact with objects that only exist in descriptive text (flavor text) produce in-character narrative responses instead of technical \"not found\" errors. Also improves the WITNESSED prompt section.\n\n---",
+    "why": "TODO",
+    "how": "### 1. Descriptive-target fallback for \"use X on Y\" ✅\n**File**: `engine/item_actions.py` - `_descriptive_target_failure()`\n\nWhen a use-on-target doesn't match a real item/exit, the system now scans the area description, item descriptions, and way descriptions for the target phrase. If found, it returns an in-character failure:\n\n> \"You try to use the multitool on chandelier, but it doesn't budge - it's part of the scenery, not something you can interact with.\"\n\nThe attempt is logged as a turn event so other characters in the room can witness it.\n\n### 2. Descriptive-target fallback for \"examine X\" ✅\n**File**: `engine/item_actions.py` - `_describe_flavor_target()`\n\nWhen examining an object that only appears in descriptive text, the system pulls the surrounding sentence and returns it as flavor text:\n\n> \"You examine marble floor. A grand entrance hall with a black-and-white marble floor...\"\n\n### 3. Deduplicate WITNESSED entries ✅\n**File**: `static/js/agent/prompt-builder.js`\n\nA speech line heard from another room is no longer shown twice - once as a local event (`[Kayla] said: ...`) and once as heard speech (`[Heard] Kayla said: ...`). Deduplication uses a `(speaker, text)` key.\n\n### 4. Always render WITNESSED header ✅\n**File**: `static/js/agent/prompt-builder.js`\n\nThe `=== WITNESSED ===` header now always appears in the prompt. When nothing has happened, it shows a placeholder: \"Nothing unusual happened while you were looking.\"\n\n### 5. Log failed interactions as turn events ✅\n**File**: `engine/item_actions.py`\n\nFailed use-on-target attempts are recorded via `record_turn_event` so other characters in the room can witness the attempt.\n\n### 6. Removed debug logging ✅\n**Files**: `static/js/agent/prompt-builder.js`, `static/js/agent-engine.js`\n\nThe `[WITNESSED DEBUG]` and `[AGENT DEBUG]` console logs added during the WITNESSED debugging session were removed.\n\n---",
+    "verify": "Added `tests/test_descriptive_targets.py` (6 tests):\n- Flavor target match returns narrative sentence\n- Multi-word flavor match (marble floor) works\n- Unknown target returns None\n- Empty target returns None\n- Use-on-flavor-target gives narrative failure + logs turn event\n- Use-on-unknown-target returns None\n\n**Result**: 40 tests passing (sound + engine + descriptive targets)\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_modified": "1. `engine/item_actions.py` - added `_descriptive_target_failure()`, `_describe_flavor_target()`\n2. `static/js/agent/prompt-builder.js` - dedupe WITNESSED, always render header, remove debug logs\n3. `static/js/agent-engine.js` - remove debug logs\n4. `tests/test_descriptive_targets.py` - new test file\n\n---",
+      "related": "- Task 149: Sound Propagation System\n- Task 150: Prompt Builder Bug Fixes"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-151-flavor-text-interaction-polish.md"
+  }
+}

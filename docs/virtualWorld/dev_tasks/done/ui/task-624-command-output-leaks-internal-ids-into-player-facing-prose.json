@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-624",
+  "kind": "task",
+  "number": 624,
+  "title": "Command output leaks internal ids into player-facing prose",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Grid coordinates like '(world 16,4)' appear in narration a player reads. Note the way *hover* resolves names correctly ('north trail -> Camp Entrance') while the at-rest button label does not, so the clean form already exists.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. In `kraktooth_goblin_camp`, follow the north and south paths that lead toward Road and read each event-stream line.\n   - expected: movement prose says “toward Road” and “you're in Road”, without grid coordinates.\n   - observed: live in the painted world across seven commands; zero coordinate leaks.\n2. Inspect labels containing coordinate pairs and legitimate parentheses.\n   - expected: `Road (world 10,4)` and `Sparse Forest (Eldenford interior 10,3)` display without coordinates, while `Bathroom (Kraktooth, level 2)`, `The Outhouse (West)`, and `Cellar (Below Kitchen)` remain unchanged.\n   - observed: the card records all six before/after examples, including `toward Road (world 9,4).` becoming `toward Road`.\n3. Inspect `/api/state.current_area` for the same location.\n   - expected: the data record remains unchanged; this task fixes presentation, not stored names.\n   - observed: recorded as `Road (world 9,3)`; the data migration belongs to task-638.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "amended_2026_09_30_the_fix_was_incomplete_now_widened": "Loading `kraktooth_goblin_camp` to work task-616 showed this fix had only half\nlanded. The pattern was\n\n    \\(\\s*world\\s+[\\d,\\s]+\\s*\\)\n\nwhich matches `Road (world 10,4)` and nothing else. But the painter uses a\n**second** naming scheme, and it is the larger one:\n\n    Sparse Forest (Eldenford interior 10,3)\n    Road (Eldenford interior 10,4)\n    Camp Entrance Trail to Road (Eldenford interior 10,4)\n\n**326 ways and their areas** use that form. So the coordinate leak survived the\noriginal fix on roughly three-quarters of the affected nodes, and the audit's own\nclaim that this was fixed was wrong.\n\nWidened to any trailing parenthesised `N, M` pair:\n\n    \\(\\s*[^()]*?\\b\\d+\\s*,\\s*\\d+\\s*\\)\\s*[.!]?\\s*$\n\nChecked against the cases that must **not** change, and confirmed unchanged:\n\n    Bathroom (Kraktooth, level 2)   ->  Bathroom (Kraktooth, level 2)\n    The Outhouse (West)              ->  The Outhouse (West)\n    Cellar (Below Kitchen)           ->  Cellar (Below Kitchen)\n\nand confirmed changed:\n\n    Road (world 10,4)                            ->  Road\n    Sparse Forest (Eldenford interior 10,3)       ->  Sparse Forest\n    toward Road (world 9,4).                     ->  toward Road\n\n**Verified live** in the painted world, seven commands, zero leaks:\n\n    You follow the path north toward Road - you're in Road.\n    You follow the path south toward Road - you're in Road.\n\nThe 3 pytest failures in `test_ownership` / `test_scenario_data_integrity` were\nA/B'd with `git stash` and are identical with and without these changes -\npre-existing, not mine.\n\nNote `/api/state.current_area` still reports `Road (world 9,3)` because that is\nthe stored *name*. Presentation is fixed; the data migration is task-638.",
+      "browser_ui": "Intended UI home: Load `kraktooth_goblin_camp`, use the command input for movement, and read the resulting line in the event stream; the at-rest way labels and their hover text are the companion wayfinding surface.\n\nCurrent availability: The card records seven live commands in the painted world with zero coordinate leaks. It records that `Road (world 10,4)` and `Sparse Forest (Eldenford interior 10,3)` lose coordinate suffixes while semantic names such as `Bathroom (Kraktooth, level 2)` remain intact.\n\nLive steps when available:\n1. From the camp, use the north and south paths that lead toward Road and inspect each event-stream result.\n   - expected: the line says “You follow the path north/south toward Road - you're in Road.”; no `(world N,M)` or `(Eldenford interior N,M)` suffix reaches player-facing prose.\n2. Open the way label at rest, then hover that same way.\n   - expected: the at-rest label and hover resolve the display name consistently; the node's stored name in `/api/state` is not silently migrated by this presentation fix.\n3. Inspect legitimate parenthetical names in the same scenario, including `Bathroom (Kraktooth, level 2)` and `The Outhouse (West)`.\n   - expected: descriptive parentheses remain; only a trailing coordinate pair is removed.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-624-command-output-leaks-internal-ids-into-player-facing-prose.md"
+  }
+}

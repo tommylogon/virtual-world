@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-case-consistency-sweep",
+  "kind": "task",
+  "number": null,
+  "title": "Case-Consistency Sweep: toLowerCase Where It's Missing",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-duplicate-item-loses-triggers-case-mismatch"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Follow-up to the duplicate-loses-triggers fix (see `review/items/task-duplicate-item-loses-triggers-case-mismatch.md`). Swept the codebase for spots that generate or match node/edge ids case-sensitively. Key insight: the **engine graph layer is already case-insensitive** (`graph.py:_resolve_id` + `get_edges_for_source` lowercase both sides), so runtime resolution was never the problem - the landmines were **id generation** (creating mixed-case data) and **frontend exact-match lookups** (hiding data in the UI).",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "fixes": "- `static/js/item-library.js` - `_duplicateItem` new library id now `.toLowerCase()` (registry POST doesn't lowercase, so the frontend must).\n- `engine/node_ids.py` - `NodeIDHelper.way_node_id` + `item_node_id` now lowercase (were the odd ones out vs `area_node_id`; `connect_areas` at movement.py:62 was generating mixed-case way ids, the exact source of the legacy Task-3 mixed-case orphans).\n- Inspector exact-match edge lookups → case-insensitive:\n  - `static/js/inspector/trigger-helpers.js` (buildTriggersHtml, _openGraphEditor, old-edge cleanup)\n  - `static/js/inspector/item-view.js` (trigger edges, container weight via `worldState.getNode`)\n  - `static/js/inspector/way-view.js` (connection edges)\n  These directly caused the \"duplicate item shows no triggers\" symptom for mixed-case data.",
+      "not_changed_already_safe_deliberate": "- `handle_unlock_way`/`spawn_item` - safe via case-insensitive `WorldGraph.get_node`.\n- Player node ids (`player_<Name>`) - case-preserving by design, creation+lookup share `NodeIDHelper.player_node_id`.\n- `engine/matching.py` - already lowercases all name matching.",
+      "verification": "- `node --check` clean on all edited JS; `pytest tests/ -q -k \"not mcp and not emote\"` → 752 passed, 1 skipped (11 pre-existing give-item failures unchanged); `tools/test_ui.cjs` 25/25.",
+      "browser_ui": "Intended UI home: Library Browser → duplicate an item with uppercase letters in its name → open the duplicate's Inspector and Triggers; then inspect any connected way/containment edges.\n\nCurrent availability: the card records case-insensitive ID generation and Inspector edge lookups as implemented, with historical UI smoke 25/25 and a 752-pass test run. A fresh browser run is not recorded here.\n\nLive steps when available:\n1. Duplicate an item and give the duplicate a mixed-case display name; open the new item Inspector.\n   - expected: the generated node ID is lowercase and every copied trigger/containment edge resolves to that node.\n2. Inspect the trigger list and then delete the duplicate.\n   - expected: no trigger disappears because of case mismatch and no orphan edge remains under the mixed-case caller ID.\n3. Open an existing mixed-case legacy item/way and inspect its edges.\n   - expected: the Inspector resolves edges case-insensitively while preserving the original display name and player IDs' deliberate case behavior.\n4. Run the project's UI smoke check after the interaction.\n   - expected: all 25 smoke interactions still pass.\n\nThis section is not a claim that a fresh browser run has been performed today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Items",
+    "status_note": "In Review - implemented 2026-08-09, full suite 752 passed (only the 11 pre-existing give-item failures), UI smoke 25/25.",
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-case-consistency-sweep.md"
+  }
+}

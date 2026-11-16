@@ -58,7 +58,7 @@ span passes even when the transition happened at the wrong moment.
 
 Memory churn on the boundary is accepted by the designer for now and is recorded
 here so it is a decision rather than an oversight. Revisit only if it becomes a
-problem — the lever, if it does, is a minimum background span before a span is
+problem - the lever, if it does, is a minimum background span before a span is
 worth summarising, or hysteresis on the boundary.
 
 ## Why

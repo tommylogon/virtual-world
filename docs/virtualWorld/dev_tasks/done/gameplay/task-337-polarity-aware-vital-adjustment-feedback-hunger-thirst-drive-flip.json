@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-337",
+  "kind": "task",
+  "number": 337,
+  "title": "Polarity-aware vital adjustment feedback + Hunger/Thirst drive flip",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "`adjust_vital` results render as *\"Thirst adjusted by 20.\"* - no direction,\nno sense of whether that's good or bad. Worse, sign conventions differ per\nvital: eating applies `Hunger -30` (value DOWN = good), damage applies\n`HP -5` (down = bad), `Social +10` is good but `Bladder +40` is bad.\nPlayers and LLMs both have to guess. Needs fixing for ALL vitals.",
+    "how": "1. **Per-vital polarity metadata** - one table (engine/vitals.py or\n   runtime_config DEFAULTS): for each vital, which direction is\n   \"improving\" plus display name.\n\n### Verified polarity table (2026-08-23, from code)\n\nCurrent engine truth: vitals DECAY downward (tick_manager.py:160,\nbaseline_decay all positive), Hunger/Thirst kill at 0 (:210-239),\nBladder FILLS up (+base_fill :190, accident at 100). Welcome message\n(virtual_world_engine.py:80) confirms \"keep above 25%\".\n\n| Vital | Model | Direction | Edge |\n|-------|-------|-----------|------|\n| HP | resource | ↑ good | ≤0 dead |\n| Energy | resource | ↑ good | collapse at 0 |\n| **Hunger** | satiation TODAY | **FLIP → drive** (↑=hungrier) | ≤0 starves today → ≥100 after flip |\n| **Thirst** | satiation TODAY | **FLIP → drive** | same |\n| Bladder | drive | ↑ bad | 100 = accident (keep) |\n| Social/Hygiene/Sanity/Entertainment/Comfort | resource | ↑ good | flavor at lows |\n| Temperature | BAND (~37°C target) | both directions bad | hypo/hyperthermia - metadata needs `band` mode, not a direction |\n| Mana | dormant (decay 0) | - | decide when magic lands |\n| **Arousal** | drive (zone-system doc §Arousal: 0-100, condition tiers 15/30/50/90, climax edge) | ↑ = more aroused; release resets | like Bladder mechanically |\n| **Pleasure** | **BAND** (doc §Pleasure: dynamic target window from arousal/mood/traits; exceeding comfort threshold flips to overstimulation, -3/tick drain) | below window = numb/frustrating, in window = good, above = pain | second band vital alongside Temperature |\n| **Satisfaction** | resource (fills on release, decays over time back into need) | ↑ good | decay creates the seeking loop |\n\n**Principle going forward:** every NEW vital must declare its type in this\ntable at creation time - `resource` (↑good, decays ↓), `drive` (↑bad,\nfills ↑), or `band` (comfort window, both extremes bad). No implicit\ndefaults.\n\n**Recommendation (agreed with Tommy): FLIP Hunger/Thirst to drive-style**\nlike Bladder. Rationale: ALL existing food/drink content across scenarios\nalready authors negative amounts as \"relief\" (taco_bell burrito -30,\nmansion legacy items) - under today's satiation semantics that content\npushes characters toward starvation (feeding = harming). Two independent\nauthoring generations got it wrong the same way; the names also read\nnaturally as drives (\"hunger rises\"). Flipping makes the existing content\ncorrect without touching a single trigger.\n\n2. **Flip checklist (Hunger/Thirst)**:\n   - baseline_decay entries become FILL (+rate) or move to a fill table\n   - death checks flip (≥100 instead of ≤0)\n   - threshold drop-below tiers remap to rise-above (tick_manager.py:90-91)\n   - welcome message + `stats` command wording\n   - character-state.js prompt lines + UI bar polarity (driven by the new\n     metadata, so this is free afterwards)\n3. **Message rendering** replaces \"adjusted by N\":\n   - improvement: *\"Your thirst eases.\"* / *\"Hunger recedes.\"*\n   - worsening: *\"Your thirst worsens.\"*\n   - numbers signed from the PLAYER'S perspective (relief shown as\n     reduction of the drive, damage shown as loss) so raw `-20` never\n     appears.\n4. **Trigger authors keep raw signs** - after the flip their existing\n   negatives mean relief, matching intent. Only FEEDBACK translates.\n5. Cross-check both adjust_vital render sites (trigger_system ~:376/:809)\n   so both paths share one helper.\n\n**Content bug flagged meanwhile**: taco_bell_date eat/drink triggers are\nharmful under CURRENT semantics (pre-flip). Harmless to leave until this\ntask lands - flip fixes them retroactively.",
+    "verify": "- Drink → thirst-easing message; take poison → worsening wording\n- Every vital type renders direction-correct feedback via unit test",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "related": "- task-327 vitals-threshold-context-awareness (threshold FLAVOR text -\n  this task covers adjustment RESULT messages; keep them consistent)\n- task-207 body-state-and-vitals",
+      "remaining_closed_2026_08_24": "- [x] `stats` command wording audit - `routes/action.py` now uses\n  `format_vitals_readout()` (engine/vitals.py): one line per vital, drives\n  annotated \"fills toward 100\", bands \"comfort band\", resources plain.\n- [x] UI bar color polarity - `vital_polarity` dict added to `/api/state`\n  payload (routes/action.py). `agent-view.js` (`vitalBarColor`) and\n  `ui-controller.js` (agent overview mini-bars) now drive bar color from\n  polarity metadata: drives invert (high = red). Also removed a duplicate\n  `'HP'` in the ui-controller vitals loop.\n- [x] Full-suite green: 1113 passed, 1 skipped.\n- [x] autosave.json note - already documented (line 77): intentionally NOT\n  migrated, reset/reload handles it.",
+      "follow_up_2026_08_24_trigger_effect_data_migration_gap_closed": "The 2026-08-23 migration covered character spawn vitals but MISSED\ntrigger adjust_vital effects - every eat/drink/relieve trigger still\nused pre-flip positive amounts (+hunger on food, +thirst on drinks,\n+bladder on toilets), so consuming food made characters HUNGRIER.\nFixed 51 effects across taco_bell_date, mansion, pines, both\nworld_template copies and 14 library items: consume effects now NEGATIVE\n(drives fall toward 0 = satisfied). Kept positive: water_pitcher's\nbladder +10 on_drink - drinking filling the bladder is correct new\nsemantics. Verified by re-scan + full suite (1120 passed)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-337-vital-adjustment-feedback.md"
+  }
+}

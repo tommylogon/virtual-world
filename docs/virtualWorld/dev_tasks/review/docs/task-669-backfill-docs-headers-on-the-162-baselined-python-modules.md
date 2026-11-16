@@ -39,7 +39,7 @@ TODO
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this task adds machine-readable documentation headers to Python source modules; it does not change player or authoring behavior in the browser.
+Intended UI home: Not applicable - this task adds machine-readable documentation headers to Python source modules; it does not change player or authoring behavior in the browser.
 
 Current availability: 162 Python module paths are recorded in `docs/design/py-module-baseline.txt`. The task's stated guard is `python tools/js_module_index.py --check`; this is a source-contract maintenance task, not a UI feature.
 

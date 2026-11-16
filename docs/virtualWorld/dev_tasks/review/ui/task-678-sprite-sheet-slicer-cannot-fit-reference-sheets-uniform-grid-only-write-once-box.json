@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-678",
+  "kind": "task",
+  "number": 678,
+  "title": "Sprite sheet slicer cannot fit reference sheets: uniform grid only, write-once boxes, no preview of the cut",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-445"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let the character-art sheet slicer handle real reference and expression sheets without one hand-drawn box per panel: a grid whose frame and interior dividers are draggable (frame shrinks off a title banner, dividers give mixed panel sizes), auto-detection of whitespace gutters to propose that grid, and a live thumbnail strip of the actual crops so a miscut is visible before upload.",
+    "why": "The old slicer was a uniform rows × cols grid with write-once boxes and no\npreview. Real sheets are a title banner, an outer margin, and panels of mixed\nsizes (a wide full-body pose beside a column of small detail panels), and a\ncount describes none of that. A miscut was only visible after upload - the\n\"guess-then-check\" dialog this card replaces.",
+    "how": "- `inspector/sprite-sheet.ts` - the frame + interior-divider model (not a\n  rows/cols count): draggable frame edges (to fit the grid onto the art and off a\n  banner/footer), draggable interior dividers (uneven rows/cols), \"✨ Auto-fit\"\n  proposing the whole grid from the sheet's whitespace gutters (detection\n  proposes, every value stays draggable), a live crop strip as the second view,\n  and move/resize of an existing box instead of delete + redraw. \"Draw boxes\"\n  remains the escape hatch for genuinely irregular layouts.\n- `inspector/sprite-sheet-geometry.ts` - the pure slice geometry, split out\n  because the canvas half cannot run in the Node unit sandbox.\n- Cropping is client-side via canvas; each tile uploads through the existing\n  single-image endpoint (`ApiClient.uploadNodeImage`). No server change, no\n  base64 in the scenario.\n- The crop strip is rebuilt on release (not on every mousemove) so re-cropping\n  every tile cannot stall the tab.",
+    "verify": "1. Character inspector → Expression Pack → ✂️ Split sheet → upload a sheet with a\n   title banner.\n   - expected: drag the frame off the banner; interior dividers make uneven rows/cols; the crop strip updates.\n   - observed: TODO\n2. Click ✨ Auto-fit.\n   - expected: it proposes a grid from the whitespace gutters; every proposed value stays draggable.\n   - observed: TODO\n3. Move / resize an existing box.\n   - expected: it moves / resizes instead of needing delete + redraw.\n   - observed: TODO\n4. Upload the crops.\n   - expected: each tile lands in its expression slot.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Frame edges and interior dividers are draggable; Auto-fit proposes a grid from whitespace gutters and stays editable.",
+        "done": false
+      },
+      {
+        "text": "A live strip previews the actual crops before upload.",
+        "done": false
+      },
+      {
+        "text": "An existing box can be moved / resized (no delete + redraw).",
+        "done": false
+      },
+      {
+        "text": "Slice geometry is unit-tested (`tools/unit/test_sprite_sheet_geometry.js`).",
+        "done": false
+      },
+      {
+        "text": "Cropping is client-side through the existing single-image endpoint; no server change, no base64 in the scenario.",
+        "done": false
+      },
+      {
+        "text": "Live browser check on a real reference sheet.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/sprite-sheet.ts` (+ emitted `.js`)",
+      "static/js/inspector/sprite-sheet-geometry.ts",
+      "tools/unit/test_sprite_sheet_geometry.js",
+      "docs/virtualWorld/Characters/Character Images & Expression Packs.md"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector → Expression Pack → Split Sheet dialog.\n\nCurrent availability: The slicer currently handles uniform grids; adjustable frame/dividers and crop preview remain in progress.\n\nLive steps when available:\n\n1. Open Split Sheet and upload a sheet with a title banner and uneven panel sizes.\n   - expected: The frame moves off the banner, dividers create uneven crops, and thumbnails update live.\n\n2. Run Auto-fit, then move and resize an existing crop.\n   - expected: Auto-fit proposes editable whitespace gutters and each crop can be corrected before upload.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "audit_note_2026_10_16": "Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 6 acceptance boxes checked; no commit references it. The slicer files were last committed 2026-10-09 and 2026-10-10 as part of other work."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Character Images & Expression Packs]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-678-sprite-sheet-slicer-cannot-fit-reference-sheets-uniform-grid-only-write-once-boxes-no-preview-of-the-cut.md"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-311",
+  "kind": "task",
+  "number": 311,
+  "title": "Click Area Name in Initiative List",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: the area name next to an agent in the initiative list is clickable and selects the room.\n- observed (2026-10-10 live): 27 .agent-location spans, cursor:pointer + underline; clicking 'Cooking Area' opened the Area inspector.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "In the initiative list, allow clicking the area name next to each agent to navigate/select that agent's room.",
+      "implemented": "- `static/js/ui-controller.js` - the existing `agent-location` span is now clickable (dotted underline, stopPropagation so it doesn't select the agent row) and calls `graphManager._selectRoom(areaName)` to open the area in the inspector + focus it in the graph.\n\n**Verified**: `node --check` clean; full suite 980 passed.",
+      "notes": "- Trivial UX win: makes the area name in the initiative list a clickable link that selects the room in the graph/editor.\n- Small, self-contained.",
+      "related": "- `developer ideas.md` line 18\n- Initiative/turn UI (`static/js/`)",
+      "browser_ui": "Intended UI home: Left panel → Agents list → click the agent's location label.\n\nCurrent availability: The location text is recorded as a clickable\n`agent-location` span that calls `_selectRoom()` and stops row-click\npropagation. The card records a live click on Cooking Area that opened its Area\nInspector.\n\nLive steps when available:\n1. In the Agents list, click the location label `Cooking Area` beside an\n   agent; observe the graph focus and right Inspector.\n   - expected: Cooking Area is selected in the graph and its Area Inspector\n     opens; the agent row itself does not select a different character.\n2. Click the location label again after selecting another agent row.\n   - expected: the room navigation follows the clicked label and does not\n     consume the agent-row click behavior.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-311-initiative-list-click-area.md"
+  }
+}

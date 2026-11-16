@@ -20,7 +20,7 @@ LLM-facing memory context (episodic memories in `=== I REMEMBER ===`, reflection
 
 ## How
 
-- Added `EventBus.tickToRelative(tick)` — converts a tick to "just now" / "X minutes ago" / "X hours ago" / "X days ago" based on current world tick and `time_per_tick_minutes`
+- Added `EventBus.tickToRelative(tick)` - converts a tick to "just now" / "X minutes ago" / "X hours ago" / "X days ago" based on current world tick and `time_per_tick_minutes`
 - Replaced `[Tick N]` in 4 LLM-facing locations:
   - `agent-engine.js` reflection summarization prompt
   - `agent-engine.js` `_buildMemoryContext()` episodic memory list
@@ -29,9 +29,9 @@ LLM-facing memory context (episodic memories in `=== I REMEMBER ===`, reflection
 
 ## Files
 
-- `static/js/event-stream.js` — added `tickToRelative()` method
-- `static/js/agent-engine.js` — 3 `[Tick N]` → relative time
-- `static/js/memory-store.js` — 1 `[Tick N]` → relative time
+- `static/js/event-stream.js` - added `tickToRelative()` method
+- `static/js/agent-engine.js` - 3 `[Tick N]` → relative time
+- `static/js/memory-store.js` - 1 `[Tick N]` → relative time
 
 ## Why
 

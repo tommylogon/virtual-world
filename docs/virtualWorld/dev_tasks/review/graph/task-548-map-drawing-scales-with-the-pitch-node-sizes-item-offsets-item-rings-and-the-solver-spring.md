@@ -21,20 +21,20 @@ leash that stretched every edge across the canvas.
 
 ## Acceptance
 
-- [x] `GraphLayoutEngine.mapScale()` — the pitch relative to 40, **clamped to
+- [x] `GraphLayoutEngine.mapScale()` - the pitch relative to 40, **clamped to
       1…2.5**. 1 at the default pitch, so nothing changes by default; clamped
       because 6.5× boxes are not a readable map. Spacing still follows the pitch
       *exactly*; only the drawing is clamped.
 - [x] Node group sizes and fonts scale by it (area margin/font, item, way,
       character). A font only gets an explicit size where it already had one, so a
       scaled way label is not a surprise.
-- [x] `GraphLayoutEngine.mapBesideOffsets()` — the item/character offsets beside a
+- [x] `GraphLayoutEngine.mapBesideOffsets()` - the item/character offsets beside a
       painted area as **cell multiples of the pitch** (`1.75`, `3.25`, `1.125`).
       Identical at 40px (−70/+70/130/45, the numbers they replaced) and
       proportional above it.
 - [x] The item orbit reuses the existing `scale` mechanism, so an item reads as
       beside its room at any pitch.
-- [x] The solver's `springLength` follows the pitch — **unless** the author set
+- [x] The solver's `springLength` follows the pitch - **unless** the author set
       `graphSpringLength` themselves, which always wins.
 - [x] **Map layout only.** `GraphNetwork.mapSizeScale()` returns 1 unless
       `_cardinalLayout` is on, so the graph view and Levels look exactly as they
@@ -45,7 +45,7 @@ leash that stretched every edge across the canvas.
       offsets at 40px and 260px, and an item placed beside its area at the current
       pitch.
 - [x] Verified live at pitch 260 in Map layout: `mapScale` 2.5, area margin
-      52.5/67.5, font 35, item 45, way 35, character 60 — and the art still
+      52.5/67.5, font 35, item 45, way 35, character 60 - and the art still
       5200 wide, so the boxes grew with the lattice instead of drifting off it.
 
 ## Note
@@ -55,18 +55,18 @@ wide map they can spread further than the rooms. Their spring length now follows
 the pitch, which is the fix for the worst of it; pinning ways to their cell
 midpoints (as the compiler does) is the structural answer and is left for later.
 
-## Reopened 2026-10-08 — back to inprogress (the drawing still does not fit the cell)
+## Reopened 2026-10-08 - back to inprogress (the drawing still does not fit the cell)
 
 The clamped scale does not solve the case it was written for. At the auto pitch
 (240) `mapScale()` clamps at 2.5, so the area group margin is `27 × 2.5 = 67.5px`
-per side and the card is the label text + 135px — **wider than the 240px cell it
+per side and the card is the label text + 135px - **wider than the 240px cell it
 sits in**. The way midpoint in the gap (task-723) is therefore drawn *under* the
 card, and the map reads as cards packed on a lattice, which is the "spacing is
 too low" the author reported. Measured in the whole-world map at pitch 240: 469
 edges draw >2000px (418 `connection`, 34 `in`, 11 `at`, 3 `triggers`, 2
 `carrying`, 1 `beside`), longest 11,763px. Reopen to make the area mark fit its
 cell at any pitch, and to place the loose (non-painted) nodes instead of solving
-them — the note above is now the reason this is not done.
+them - the note above is now the reason this is not done.
 
 **Landed 2026-10-08:** marks are cell fractions (`MARK_FRACTION`, `markSize`/
 `markFontPx`/`markCardPad`/`markCardMax`); the area card is capped at `0.92` cell

@@ -1,0 +1,99 @@
+version: 1
+preset: virtualworld
+project: virtual-world
+storage:
+  dir: docs/virtualWorld/dev_tasks
+  format: json
+  layout: status_area
+  preview_dir: .previews
+  preview_ttl_minutes: 15
+statuses:
+- todo
+- inprogress
+- review
+- done
+- cancelled
+- superseded
+terminal_statuses:
+- done
+- cancelled
+- superseded
+kinds:
+- task
+- bug
+priorities:
+- critical
+- high
+- medium
+- low
+areas:
+- archive
+- bugs
+- characters
+- conditions
+- crafting
+- dev
+- docs
+- emotions
+- engine
+- environment
+- gameplay
+- graph
+- items
+- library
+- misc
+- prompting
+- refactor
+- testing
+- triggers
+- ui
+- world
+tags:
+  normalize: lowercase_kebab
+  allowed: []
+  required_prefixes: []
+  aliases: {}
+fields:
+  required:
+  - id
+  - kind
+  - title
+  - status
+  - area
+  - priority
+  allowed_extra: true
+  defaults:
+    kind: task
+    status: todo
+    priority: medium
+    horizon: ''
+    effort: ''
+sections:
+  required:
+  - what
+  - why
+  - how
+  - browser_ui
+  - verify
+  - acceptance
+  - files
+  optional: []
+  custom:
+  - browser_ui
+rules:
+  no_stubs: true
+  require_acceptance_for_done: true
+  require_evidence_for_done: true
+  require_wiki: true
+  require_browser_ui: true
+  require_valid_relations: true
+  warn_on_invalidated_refs: true
+  warn_legacy_markdown_gaps: true
+  baseline_file: done-validation-baseline.txt
+codesearch:
+  enabled: true
+  semantic: auto
+  probe_timeout_seconds: 0.6
+  dedupe_threshold: 0.35
+  related_threshold: 0.22
+json_schema: {}

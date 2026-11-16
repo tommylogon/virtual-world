@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "bug-583",
+  "kind": "bug",
+  "number": 583,
+  "title": "LM Studio Native API (/api/v1/chat) fails with HTTP 400 on non-reasoning models and returns empty string when streaming is enabled",
+  "status": "review",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-933"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When `LLMClient` (`static/js/llm-client.ts`) is configured with `apiFormat: 'lmstudio'` (hitting LM Studio's Native `/api/v1/chat` endpoint), two bugs broke LLM calls in the browser:\n1. `_buildLMStudioBody()` unconditionally sent `reasoning: 'off' | 'on'`. For non-reasoning models (such as `arrowcanaria-llama-8b-sft-v0.1`), LM Studio rejects the request with `HTTP 400: Model '...' does not expose reasoning configuration`.\n2. `_buildLMStudioBody()` builds a non-streaming JSON request (`stream` is not set), so `/api/v1/chat` returns a single JSON object (`{ output: [{ type: 'message', content: '...' }] }`). However, `LLMClient.chat()` checked `if (streaming)` (`line 489`) without `!isLMStudio`, routing the plain JSON response into the SSE stream reader (`_handleStream`), which found zero `data:` lines and returned `\"\"`.",
+    "why": "1. LM Studio's `/api/v1/chat` endpoint only accepts the `reasoning` parameter on models that declare a reasoning template.\n2. The `isLMStudio` branch in `chat()` was only wired into the non-streaming `resp.json()` path (`line 515`), while `if (streaming)` intercepted responses whenever `config.streaming` was `true`.",
+    "how": "1. In `static/js/llm-client.ts`:\n   - Added `_lmStudioReasoningUnsupported` detection on `HTTP 400` responses matching `/does not expose reasoning|reasoning configuration/i`, omitting `body.reasoning` in `_buildLMStudioBody()` and retrying immediately in the same call.\n   - Changed `if (streaming)` at `line 489` to `if (streaming && !isLMStudio)` so `/api/v1/chat` JSON responses parse via `_extractLMStudioContent(completion)`.",
+    "verify": "1. In the browser on `http://localhost:4444` with `apiFormat: 'lmstudio'`, `streaming: true`, and `model: 'arrowcanaria-llama-8b-sft-v0.1'`, click **🎬 Ask Director** in the Human Turn Composer.\n   - expected: `LLMClient.chat()` automatically drops `reasoning` on the 400 response, parses the `/api/v1/chat` JSON completion, and populates the composer fields.",
+    "acceptance": [
+      {
+        "text": "`LLMClient` automatically omits `reasoning` on `/api/v1/chat` when a model does not expose reasoning configuration.",
+        "done": true
+      },
+      {
+        "text": "`LLMClient` parses `/api/v1/chat` JSON responses when `config.streaming === true`.",
+        "done": true
+      },
+      {
+        "text": "Zero em-dashes in code or task files.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/llm-client.ts"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/LLM Providers]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/bugs/bug-583-lmstudio-native-api-400-on-non-reasoning-models-and-empty-streaming-responses.md"
+  }
+}

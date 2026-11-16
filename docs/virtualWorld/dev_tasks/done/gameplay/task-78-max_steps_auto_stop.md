@@ -30,7 +30,7 @@ Add a numeric input next to the Run Simulation button that limits how many turns
 
 ## Behavior
 
-- **Default**: 10 — user can edit the number freely
+- **Default**: 10 - user can edit the number freely
 - **0** = unlimited (legacy behavior, runs until manually paused)
 - Input is disabled while simulation is running
 - Step display switches to `Step: 3/10 (7 left)` during sim, reverts to `Step: idx/total` when stopped

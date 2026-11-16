@@ -34,26 +34,26 @@ The coach-tip registry (window.HelpCenter in static/js/ui/help-center.js) only c
 
 ## Gap-by-gap disposition (2026-10-02)
 
-- **WorldPainter in-editor controls** — DONE in task-575 (21 hooks, `paint-a-town`
+- **WorldPainter in-editor controls** - DONE in task-575 (21 hooks, `paint-a-town`
   tour, registry guard). The launcher `worldpainter` tip already covers
   `⚙ Generate` per-scope; no further work here.
-- **Scope tree / unmade-scope Generate** — **deferred to task-580**, which owns
+- **Scope tree / unmade-scope Generate** - **deferred to task-580**, which owns
   that affordance. It is outside this lane's files (`static/js/graph/scope-tree.js`
   is in-progress under task-592, which *deliberately* replaced a scope-row
   Generate with a Paint jump). task-580 must add its own `data-help="scope-generate"`
   hook + tip when it lands; recorded here so the gap is not silently dropped. The
   painter's own `⚙ Generate` is already hinted by `wp-generate`.
-- **Consume/depletion contract** — folded into the existing `inspector-item` tip
+- **Consume/depletion contract** - folded into the existing `inspector-item` tip
   (now: "Consumables spend themselves … authored food/drink must not spend a use
   by hand").
-- **Auto-regenerating descriptions** — new tip `auto-description`, hooked on the
+- **Auto-regenerating descriptions** - new tip `auto-description`, hooked on the
   `🤖 Generate from Equipment` button (`data-help="auto-description"`), explaining
   the derived description, auto-refresh, and Base Description as the durable home.
-- **Turn/time model** — new tip `turn-model`, hooked on `#agent-turn-based`
+- **Turn/time model** - new tip `turn-model`, hooked on `#agent-turn-based`
   (`data-help="turn-model"`).
-- **Background simulation** — new tip `background-sim`, hooked on `#agent-list`
+- **Background simulation** - new tip `background-sim`, hooked on `#agent-list`
   (`data-help="background-sim"`).
-- **Audit** — the registry guard (`tools/unit/test_help_center.js`) already
+- **Audit** - the registry guard (`tools/unit/test_help_center.js`) already
   sweeps every `data-help=` / `_help('…')` key in `static/js` + `templates` and
   fails on an orphan hook; extended with a targeted test for the three new tips.
 
@@ -96,12 +96,12 @@ localStorage; the default re-shows next session.
   inside the overlay are not.
   **DONE in task-575** (2026-09-28): 21 `data-help` hooks and matching tips under
   a `WorldPainter` group, a `paint-a-town` tour, and `tools/unit/test_help_center.js`
-  guarding the registry — which also found the ❓ Help button itself unhinted.
+  guarding the registry - which also found the ❓ Help button itself unhinted.
   Note task-575 added a **second** layer this task did not scope: preflight
   blockers in the editor, because a tip cannot tell an author that *this* scope
   cannot be compiled.
 - **World scopes / graph view** (task-397, task-400): beyond the shipped
-  `scope-filter` tip — the scope *tree* is only a flat picker today, and an
+  `scope-filter` tip - the scope *tree* is only a flat picker today, and an
   unmade-scope `Generate` affordance (task-398) has no hint yet.
 - **Consume/depletion contract** (task-508): eat/drink auto-decrement `uses`
   after triggers; item-authored content must not hand-spend. Fits the
@@ -109,7 +109,7 @@ localStorage; the default re-shows next session.
 - **Auto-regenerating descriptions** (task-486, task-210): description refreshes
   on body-state change.
 - **Turn/time model** (task-436): 1 turn = 1 in-game minute, one decision set per
-  turn regardless of `time_per_tick_minutes`, travel ≥1 turn per cell — a
+  turn regardless of `time_per_tick_minutes`, travel ≥1 turn per cell - a
   "Time & travel" tip.
 - **Background simulation** (task-399): off-screen characters act on their own
   schedule; promote/demote, attended scope.
@@ -117,7 +117,7 @@ localStorage; the default re-shows next session.
   menu items still have `title` tooltips but no `data-help`; sweep them and add
   tips where a system deserves a coach card rather than a hover string. Also
   consider a lightweight guard so a `data-help` with no matching tip (or a tip
-  with a dead `target`) is caught — a small unit test over the registry.
+  with a dead `target`) is caught - a small unit test over the registry.
 
 ## Steps to verify
 

@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "task-829",
+  "kind": "task",
+  "number": 829,
+  "title": "Growth wiring for persona fields via items triggers and consumers",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-15",
+  "updated": "2026-10-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-828",
+      "task-849",
+      "task-843"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Wire every 828 field so it can CHANGE at runtime - via items,\ntriggers, and the engine - so a character grows: age advances to old\nage / child→adult, lenses change eye color, hair grows and is cut,\ntattoos/scars/piercings are given, a leg becomes a prosthetic, and\nkinks / turn_offs / traumas / interests / likes / dislikes / fears\nare added AND removed. All still ONE block on the node; the block is\nthe state, the compile is the prose.",
+    "why": "The ask is explicit: the question is not what works today but what\nmust change to take full use of the new fields. A static sheet is\ndead authoring. Growth is the feature: characters become more than\nthey started.",
+    "how": "New trigger effects (all target a character node, all mirror to the\nnode block AND re-compile or mark prose stale):\n\n- `set_persona_field {path, value}` - generic: `appearance.hair.color`,\n  `personality.traumas[]`, `identity.age`, `narrative.secrets…`.\n  One handler, dotted path, so lenses/haircut/tattoo/prosthetic need\n  no bespoke effect each.\n- `add_persona_id {field, id}` / `remove_persona_id {field, id}` -\n  for every id-list: likes, dislikes, fears, interests, kinks,\n  turn_ons/offs, traumas, boundaries, quirks, habits, aspirations.\n  fear/interest adds ALSO mirror to `Player.fear_tags` /\n  `interest_tags` so `engine/fear.py` + attention read them today.\n- `advance_age {years}` - bumps authored age; when task-735's clock\n  lands it becomes elapsed-derived, this stays as author override.\n- Item hooks: `on_use` / `on_use_on` carry these effects, so lenses,\n  scissors, tattoo kit, prosthetic leg, diary (secret), letter\n  (dialogue example) are content, not code.\n- Consumers: sexuality/orientation + example_dialogues + voice/scent\n  → prompt context (`engine/dressing.py`, `engine/narration.py`);\n  secrets/known_by → `known`; age → life-stage gate (735);\n  traumas → fear_tags + `frightened`; turn_ons/offs → affect\n  (already); modifications → `base_description` via compile.",
+    "verify": "1. Give a character lenses via an item `on_use` with\n   `set_persona_field appearance.eyes.color`.\n    - expected: node block changes; after Compile the prose shows it.\n    - observed: 2026-10-15 - mechanism proven end to end at the\n      dispatch layer (`test_lenses_change_eye_color_through_an_effect`\n      runs `world.effects.execute(\"set_persona_field\", ...)` and the\n      prose recompiles with the change). `on_use` dispatches through\n      the same trigger registry (`effects.py`), so a lens item carrying\n      this effect needs no new code; authoring one is content work.\n2. Add + remove a kink, a fear, a trauma via trigger effects.\n    - expected: lists change; fear/interest mirror on Player; affect\n      + fear engine read the new value.\n    - observed: 2026-10-15 - proven (`TestEffectDispatch` + round-trip\n      test, 13 tests in `tests/test_persona_growth.py`). Mirroring is\n      additive-only on `set` so foreign tags survive.\n3. Advance age across a life-stage threshold (scratch clock).\n    - expected: stage changes; old-age death path reachable (735).\n    - observed: 2026-10-15 - `advance_age` bumps authored age and shifts birth tick (proven in `test_advance_age_moves_the_clock_too`); threshold gate wired via task-735.\n4. Run the targeted regression test.\n    - expected: new `tests/test_persona_growth.py` passes.\n    - observed: 2026-10-15 - 13 passed.",
+    "acceptance": [
+      {
+        "text": "`set_persona_field` / `add_persona_id` / `remove_persona_id` /",
+        "done": false
+      },
+      {
+        "text": "`advance_age` exist, target characters, persist on the node.",
+        "done": false
+      },
+      {
+        "text": "Lenses / haircut / tattoo / prosthetic achievable as content.",
+        "done": false
+      },
+      {
+        "text": "Every id-list growable both directions; fear/interest mirror live.",
+        "done": false
+      },
+      {
+        "text": "Sexuality, dialogue examples, secrets, voice/scent reach prompts;",
+        "done": false
+      },
+      {
+        "text": "age reaches the lifecycle gate.",
+        "done": false
+      },
+      {
+        "text": "`tests/test_persona_growth.py` proves add/remove/compile round-trip.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/effect_handlers/persona.py` (new)",
+      "engine/triggers/constants.py` (`EFFECT_TYPES` + `SAFE_EFFECT_TYPES`)",
+      "engine/effects.py` (registry)",
+      "engine/character_appearance.py` (mutators + compile)",
+      "engine/dressing.py`, `engine/narration.py` (prompt consumers)",
+      "tests/test_persona_growth.py` (new)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind -> Persona / Appearance tab.\n\nCurrent availability: Implemented in `engine/character_appearance.py` and `engine/effect_handlers/persona.py`.\n\nLive steps when available:\n1. Open Character Inspector -> Mind -> Persona tab on a character.\n   - expected: Structured persona appearance fields (hair, scars, tattoos, piercings) are rendered.\n2. In Play Mode, trigger an item or effect that modifies an appearance field (e.g. hair dye or scar trigger).\n   - expected: The effect executes and updates the character's persona properties.\n3. Inspect the Persona tab again.\n   - expected: The updated value is reflected in the UI and in the compiled prose description.\n4. Toggle Play Mode off.\n   - expected: Transient changes are reset.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-829-growth-wiring-for-persona-fields-via-items-triggers-and-consumers.md"
+  }
+}

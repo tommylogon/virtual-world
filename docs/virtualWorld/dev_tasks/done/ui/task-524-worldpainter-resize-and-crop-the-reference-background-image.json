@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "id": "task-524",
+  "kind": "task",
+  "number": 524,
+  "title": "WorldPainter: resize and crop the reference background image",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-25",
+  "updated": "2026-09-25",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "WorldPainter's reference image only has image/opacity/visible and is auto-fitted to the grid. Add scale/offset/crop handles (mirror the graph background's crop UX) and persist them on the scope reference, so the painter and the graph 'fit to painted grid' action share the same geometry.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Reference stores a destination `rect` in **cell** units and a normalized",
+        "done": true
+      },
+      {
+        "text": "`crop` window, validated/clamped server-side (`world_grid.set_reference`,",
+        "done": false
+      },
+      {
+        "text": "`reference_rect`, `reference_crop`).",
+        "done": false
+      },
+      {
+        "text": "Painter **✥ adjust** mode: drag the picture to move, corner handles resize",
+        "done": true
+      },
+      {
+        "text": "(scale), edge handles crop (cut, keeps content scale); **⤢ reset** returns",
+        "done": false
+      },
+      {
+        "text": "to auto-fit.",
+        "done": false
+      },
+      {
+        "text": "Layout persists through `POST /api/world/scopes/<id>/grid/reference`",
+        "done": true
+      },
+      {
+        "text": "(`rect`, `crop`, `reset`); a changed image auto-fits.",
+        "done": false
+      },
+      {
+        "text": "Graph **▦ Fit to painted grid** maps the same rect through",
+        "done": true
+      },
+      {
+        "text": "`GraphLayoutEngine.mapSpacing()` and copies the crop, so painter and graph",
+        "done": false
+      },
+      {
+        "text": "show the same geometry.",
+        "done": false
+      },
+      {
+        "text": "Tests: `tests/test_world_grid.py` (+4 model), `tools/unit/test_worldpainter.js`",
+        "done": true
+      },
+      {
+        "text": "(+3 pure geometry: `fitReferenceRect`, `referenceHandleDrag`,",
+        "done": false
+      },
+      {
+        "text": "`referenceHandlePoints`).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "progress_2026_09_25": "Rect is stored in cells (not px) so the painter (22px/cell) and the graph map\nlayout (`mapSpacing` px/cell) can each draw it in their own space and still\nagree. `null` rect = auto-fit. Corners scale the whole picture; edges cut it by\nfollowing the pointer and shrinking the source window proportionally. Pure\ngeometry lives in `grid-model.js` (unit-tested); the Konva handles/hit-test and\npersistence live in `editor.js`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-524-worldpainter-resize-and-crop-the-reference-background-image.md"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "id": "task-532",
+  "kind": "task",
+  "number": 532,
+  "title": "Graph toolbar: collapse zones into an overflow menu on narrow windows",
+  "status": "done",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-530",
+      "bug-18"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "task-530 keeps the toolbar wrapping so nothing overflows off-screen, but on a narrow\nwindow it still ate two to three rows. Collapse the bar's secondary controls into\nMore ▾ below ~900px, leaving the scope chip, the search, Build ▾, the layout segment\nand View ▾ in the bar. Follow-up to bug_18, whose options 1 and 2 (scroll strip, wrap\nwithin groups) were only partially applied and whose option 3 (shrink the search\nboxes) task-530 finished.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: below 900px six controls move INTO More (relocated, not hidden).\n- observed (2026-10-10 live, innerWidth 860): btn-undo/redo/fit/physics/export-png/undo-history-anchor all inMoreMenu=true, visible=false; More aria-expanded=true, Canvas heading, holds undo/redo/history/fit/Physics/PNG/Report.",
+    "acceptance": [
+      {
+        "text": "Below `(max-width: 900px)` six controls move **into** More ▾ under a \"Canvas\"",
+        "done": true
+      },
+      {
+        "text": "heading: undo, redo, undo history, Fit, Physics, Export PNG. They are",
+        "done": false
+      },
+      {
+        "text": "*relocated*, not hidden, so every handler, title and `aria-pressed` survives -",
+        "done": false
+      },
+      {
+        "text": "a hidden control is unreachable, a moved one is still one click away.",
+        "done": false
+      },
+      {
+        "text": "Build ▾, the layout segment and View ▾ stay in the bar: they are what you reach",
+        "done": true
+      },
+      {
+        "text": "for; the moved six are what you do not.",
+        "done": false
+      },
+      {
+        "text": "Each node's original home is recorded once, so expanding the window puts every",
+        "done": true
+      },
+      {
+        "text": "control back **in place** (verified: all six return to their original zone).",
+        "done": false
+      },
+      {
+        "text": "Icon-only controls get their name back inside the menu via",
+        "done": true
+      },
+      {
+        "text": "`data-overflow-label`; Physics and Export PNG keep their own text, so nothing",
+        "done": false
+      },
+      {
+        "text": "reads \"⏸ Physics Physics\".",
+        "done": false
+      },
+      {
+        "text": "Using a relocated control runs the action and then closes the menu - except the",
+        "done": true
+      },
+      {
+        "text": "undo-history panel, which is absolutely positioned inside the menu and would be",
+        "done": false
+      },
+      {
+        "text": "hidden with it.",
+        "done": false
+      },
+      {
+        "text": "The More menu opens leftwards, or it hangs off the window edge at narrow widths.",
+        "done": true
+      },
+      {
+        "text": "The Do zone's leftover divider is hidden when it holds a single control.",
+        "done": true
+      },
+      {
+        "text": "Physics' disabled rule is recomputed after a move (it lives on the node, not the",
+        "done": true
+      },
+      {
+        "text": "zone), so an unavailable control is still honest inside the menu.",
+        "done": false
+      },
+      {
+        "text": "Verified in the browser at 860px: the bar drops to two rows, More ▾ lists the",
+        "done": true
+      },
+      {
+        "text": "Canvas section, Physics toggles and closes the menu, and at 1600px every control",
+        "done": false
+      },
+      {
+        "text": "is back where it was.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "- The viewport is followed with `matchMedia(...).addEventListener('change')`; the rest\n  of the bar's responsive behaviour stays in CSS media queries (1240px/1000px).\n- The contextual scope bar (task-531) is hidden below 1240px rather than 900px: it is\n  a whole row, and the scope chip keeps reporting what is loaded on its own."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-532-graph-toolbar-collapse-zones-into-an-overflow-menu-on-narrow-windows.md"
+  }
+}

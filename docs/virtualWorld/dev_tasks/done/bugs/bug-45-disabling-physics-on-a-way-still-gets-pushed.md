@@ -29,7 +29,7 @@ Reproduced and fixed live in the running app, through the same API the inspector
 
 For contrast, an unfrozen way is still re-anchored by the cardinal layout (it moved 354px when moved off its anchor), which is the intended behaviour for a way that has not been frozen.
 
-Also added: dragging a **frozen** node writes its position to `properties.x/y` (`GraphRelativeLayout.frozenDropOps` / `persistFrozenDrop` on `dragEnd`), because nothing else restores it — the layout deliberately leaves frozen nodes alone, so without this a page reload would lose the placement.
+Also added: dragging a **frozen** node writes its position to `properties.x/y` (`GraphRelativeLayout.frozenDropOps` / `persistFrozenDrop` on `dragEnd`), because nothing else restores it - the layout deliberately leaves frozen nodes alone, so without this a page reload would lose the placement.
 
 `node tools/unit/run.cjs` -> 157 passed (two new cases: a frozen node is not repositioned and gets no offset; only frozen nodes produce position-save ops).
 
@@ -52,7 +52,7 @@ Verified by instrumenting the call itself:
 
 A displaced area also stayed exactly where it was put through a graph-mode rebuild.
 
-## Second live verification — 2026-10-02 (port 4471)
+## Second live verification - 2026-10-02 (port 4471)
 
 Re-ran the freeze check on `way_bathroom_door` in plain Graph mode with physics
 on (`_physicsEnabled: true`, `activeLayout(): 'graph'`):
@@ -60,8 +60,8 @@ on (`_physicsEnabled: true`, `activeLayout(): 'graph'`):
 | step | result |
 |---|---|
 | `api.updateNode(way, { central_gravity_enabled: false })` + reload | dataset node `physics: false` |
-| `moveNode(way, 4321, -1234)`, 2.5s simulation | `{x:4321, y:-1234}` — **0px drift** |
-| forced full `loadGraphData()` rebuild | `{x:4321, y:-1234}` — held exactly |
+| `moveNode(way, 4321, -1234)`, 2.5s simulation | `{x:4321, y:-1234}` - **0px drift** |
+| forced full `loadGraphData()` rebuild | `{x:4321, y:-1234}` - held exactly |
 
 Flag restored afterwards. No page errors.
 

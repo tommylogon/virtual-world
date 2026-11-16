@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "id": "task-404",
+  "kind": "task",
+  "number": 404,
+  "title": "Character life experience authoring and import",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-17",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-519",
+      "task-403",
+      "task-457",
+      "task-725",
+      "task-734",
+      "task-736",
+      "task-849",
+      "task-968"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give a character a substantial, emotionally grounded past that can influence\ntheir existing memories and behavior. This is an offline authoring/import\nworkflow. It does not simulate a second life beside VirtualWorld or add another\nplace to store memories.",
+    "why": "A character with a substantial, emotionally grounded past is one of the\ncheapest ways to make a simulated world read as inhabited, and it is the thing\nthe current character-authoring path cannot do. The Persona import (task-843,\ndone) converts a card or prose into a *description* - traits, appearance,\ndisposition. It does not give the character a history, and a description does\nnot change behaviour: a character whose description says they are a veteran of\nthe river wars acts the same as one that does not.\n\nThis is the difference the card is after. A first-person experience record\n(\"the night the ferry burned, and I did not go back for my brother\") lands in\n`preconceived_knowledge.memories`, and the existing memory loader turns it into\nsomething the character can draw on, colour, and be pushed by. That is what\nmakes a past *influence* behaviour rather than decorate it.\n\nIt is also the part the simulation keeps asking for and not getting. Every\nother route into a character's interior - goals, relationships, reactions to\nevents that happen in-play - starts from nothing. A character who has been in\nthe world for ten minutes has no past to be reminded of, and the same\ninteriority is available to authored backstory for free if the authoring path\nsupports it.\n\nThe constraint that shapes the whole card: this is an **offline authoring and\nimport** workflow, not a second simulation. VirtualWorld does not run a\nshadow life beside the real one, and the card must not add a parallel memory\nstore, an emotional-state snapshot, or a fear/hope/trauma collection. The\npast is expressed in the fields the existing loader already understands -\n`Player.memories` for what happened, existing GIMP goal records for what it\nchanged - and nothing else.",
+    "how": "1. Define a small event vocabulary and a deterministic seed contract for an\n   offline generator or importer.\n2. Emit a VirtualWorld scenario-player `preconceived_knowledge` block whose\n   memories use the existing memory fields. Preserve the lived experience in\n   first-person text; keep event-selection metadata in the authoring input\n   unless an existing memory field can represent it.\n3. For an Aura/Diary export, map only verified fields. Unresolved names and\n   locations must be reported for author review, not converted into invented\n   nodes or relationships.\n4. Load the resulting scenario through the existing task-403 bootstrap. Do not\n   add a new loader, memory index, persona, or biography panel.",
+    "verify": "1. Load generated/imported memories through the existing task-403 scenario path.\n   - expected: records land in the character's existing Player memory store\n     without duplicates.\n   - observed: not run; implementation remains open.\n2. Follow the intended browser path below when the generator/importer is\n   available in a scenario.\n   - expected: generated experience is visible and usable through the existing\n     Mind/Memory surface.\n   - observed: not run; this card records the acceptance path.",
+    "acceptance": [
+      {
+        "text": "Generating twice with the same inputs and seed yields the same authored",
+        "done": false
+      },
+      {
+        "text": "memory payload.",
+        "done": false
+      },
+      {
+        "text": "Generated/imported experiences are first-person memories stored in the",
+        "done": false
+      },
+      {
+        "text": "existing Player memory collection after scenario load; loading twice does",
+        "done": false
+      },
+      {
+        "text": "not duplicate them.",
+        "done": false
+      },
+      {
+        "text": "Memory locations and entity references either resolve to real scenario node",
+        "done": false
+      },
+      {
+        "text": "IDs or are omitted with a clear authoring error.",
+        "done": false
+      },
+      {
+        "text": "A character's wants are represented only through existing GIMP goals when",
+        "done": false
+      },
+      {
+        "text": "explicitly authored; the generator does not create a separate hopes/fears/",
+        "done": false
+      },
+      {
+        "text": "motivation store or let MOSIAC decide actions.",
+        "done": false
+      },
+      {
+        "text": "Existing character node properties and Player-owned private state continue",
+        "done": false
+      },
+      {
+        "text": "to follow task-457's ownership boundary.",
+        "done": false
+      },
+      {
+        "text": "The Diary importer reports unsupported or unresolved fields and does not",
+        "done": false
+      },
+      {
+        "text": "silently drop, fabricate, or persist a second representation of an event.",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/` authoring/import workflow (new, if needed)",
+      "Event authoring data for the generator (new, if needed)",
+      "Existing scenario player data using `preconceived_knowledge.memories",
+      "tests/` only for the generator/importer mechanism and its task-403 payload",
+      "contract"
+    ],
+    "custom": {
+      "source_of_truth_and_boundaries": "- Runtime memories remain on `Player.memories`. Scenario-authored starting\n  memories enter through `preconceived_knowledge.memories` and the existing\n  `AgentMind.load_preconceived()` path from task-403.\n- Character wants belong to the existing GIMP goal records. MOSIAC reads those\n  records as runtime context; it is not another motivation store. See\n  [[Character Pursuits]] and [[GIMP]].\n- Authored personality and character description remain on the character node;\n  private memories, goals, and runtime state remain on Player, following\n  task-457's ownership boundary.\n- Event tables and a seeded generator may be authoring inputs. Do not persist a\n  parallel `LifeExperience` collection, `diary_entries`, emotional-state\n  snapshot, fear/hope/trauma store, or external graph in the running game.\n- Generate first-person experience records using fields the existing memory\n  loader supports. Any location or entity reference must resolve to an actual\n  world node. Convert other desired effects only through an existing GIMP,\n  memory, relationship, or character-definition field; omit unsupported data\n  instead of inventing a second model.",
+      "aura_diary_reference_checked_2026_10_15": "The local reference checkout at `F:\\AI\\Aura\\Diary` was at commit `a551328`\n(2026-10-11, “offline simulation mode, event forge API, and decision-loop\nfixes”). That update added offline event generation/review, stable event IDs\nand chains, duplicate checks, age-aware choices, outcome tiers, seeded runs,\nand JSON export. Its export\n`Diary/exports/anna_anjou_20261011_191821.json` contains 77 events, 2\nrelationships, 1 location, 8 milestones, and 77 emotional-trajectory entries.\nEvent records include `event_id`, `date`, `age_days`, `raw_memory`,\n`emotional_impact`, `choice_made`, `outcome_text`, `involved_persons`, and\n`location_id`.\n\nReuse the useful authoring ideas: structured event choices, reproducible\noutcomes, emotional grounding, and first-person memories. Treat this checkout\nand export as reference data, not a runtime dependency or a second source of\ntruth. Before importing an event, review it as character-authored content and\nresolve every referenced person and location against VirtualWorld's existing\nscenario.",
+      "browser_ui": "Intended UI home: Character Inspector → 🧠 Mind → Memories; any authored GIMP\ngoal appears in the existing Goals section.\n\nCurrent availability: the Mind and Memories surfaces exist; this generator and\nimport workflow are not implemented.\n\nLive steps when available:\n\nThe author-facing home for generated experience is the existing character\nInspector's **🧠 Mind** panel, **Memories** tab. Show each memory through the\nsame memory list and detail view as other Player memories. If an authored goal\nis also present, it belongs in the existing Mind tab's Goals section. Do not\nadd a separate backstory, persona, or memory screen. Missing visibility in this\npanel is an acceptance failure even if the JSON or API payload is correct.\n\n1. Open the generated test scenario from **Scenario Manager** and select the\n   character in the graph.\n2. Open **🧠 Mind → Memories**; locate a generated/imported experience, select\n   it, and inspect its full text and memory details.\n   - expected: first-person experience appears in the ordinary memory UI; any\n     authored goal appears in the existing Goals section.\n3. Reload the scenario and inspect the same character again.\n   - expected: the memory remains visible once, with no duplicate on reload.\n4. Inspect `/api/state` for the same character's Player memories and compare the\n   selected record with the panel. Then trigger a normal character decision in\n   the scenario.\n   - expected: the existing memory/prompt path can use the experience; no new\n     memory collection or world node was created.\n\nThese are required UI acceptance steps for the implementation. This section\ndefines intended access and live acceptance; it is not a claim that planned UI\nexists or works today. No browser run is recorded for this card.",
+      "non_goals": "- Running Aura/Diary or its graph database inside VirtualWorld.\n- Real-time backstory simulation during play.\n- Creating a second memory, emotion, goal, or persona store.\n- Inferring world facts from prose or adding nodes for unresolved references.",
+      "reconnaissance_2026_10_20": "- Measured: static/js/character-import.js and mind-view.js have persona import (LLM converts card/prose to Persona schema) - task-843 done. No life-experience generator/importer creating preconceived memories from event tables/Aura export found.\n- Verdict: STILL_VALID. Persona import exists (different scope), but life-experience authoring/import producing Player.preconceived_knowledge memories as specified is not implemented. Status remains todo."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "reframed": "2026-10-15"
+    }
+  }
+}

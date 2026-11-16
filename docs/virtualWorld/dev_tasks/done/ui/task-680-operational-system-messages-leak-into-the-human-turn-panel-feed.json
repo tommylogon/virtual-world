@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-680",
+  "kind": "task",
+  "number": 680,
+  "title": "Operational system messages leak into the human turn panel feed",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Reporter sees save/load/library chatter in the HTC 'What happened' feed: 'scenario saved', loadout and grid messages. They are editor/GM operations with no place in the narrative a player reads. turn-feed.isObserverVisible already drops parsed.type === 'system', but parseEntry re-labels a system row as type 'action' whenever _tryParsePrefixedName matches (and as 'npc' for 'did nothing this turn'), so those rows leak. Filter operational chatter at the feed boundary rather than at each of the ~230 events.log('system-msg') call sites, which the raw event stream still needs.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`system-msg` / `agent-msg` rows never enter the turn-feed ring",
+        "done": true
+      },
+      {
+        "text": "the one system row that IS a turn row (`<name> did nothing this turn`) survives",
+        "done": true
+      },
+      {
+        "text": "speech / emote / action / result rows unaffected",
+        "done": true
+      },
+      {
+        "text": "the raw event stream still shows everything (the filter is feed-local)",
+        "done": true
+      },
+      {
+        "text": "regression test proven to fail without the filter",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution": "Filtered at the ring push in `static/js/agent/turn-feed.ts` `install()`, which is\nthe feed's boundary with the whole-app event log. `className` is\n`system-msg`/`agent-msg` and the text is not `did nothing this turn`.\n\nMeasured before choosing this: of every `system-msg` row, `parseEntry` leaves\n`kind = 'system'` (already dropped by `isObserverVisible`) for all but two\nshapes - `did nothing this turn` → `npc` (legitimate, kept) and a\n`_tryParsePrefixedName` match → `action` (the leak). `👾 <actor> <action>: …`\nrows do not match the parser, so nothing else that renders today is lost.\n\nTests: `tools/unit/test_turn_feed_scope.js` (4). Verified failing with the\nfilter disabled (`564 passed, 1 failed`) and green with it (`565 passed`)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-680-operational-system-messages-leak-into-the-human-turn-panel-feed.md"
+  }
+}

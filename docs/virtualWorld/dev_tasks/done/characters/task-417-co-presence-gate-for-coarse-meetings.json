@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-417",
+  "kind": "task",
+  "number": 417,
+  "title": "Co-presence gate for coarse meetings",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-20",
+  "updated": "2026-09-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "task-409 §4 defines coarse meetings as *\"Deterministic from relationships +\ntraits + vitals + seeded RNG; apply symmetric relationship deltas.\"*\n\nThere is **no spatial constraint in that rule.** Nothing requires the two\ncharacters to be in the same area, so the background planner will pair\ncharacters on opposite sides of the camp, apply mutual relationship deltas, and\ngive both a memory of a conversation that never happened. That is not a missing\nfeature; it is incorrect behaviour written into a high-priority task, and it is\nthe direct consequence of the relational world model (there is no distance to\naccidentally prevent it).",
+    "how": "The meeting pass runs **per area**, never globally:\n\n```\nfor area_id in areas (sorted):\n    present = background_characters_in(area_id)      # from task-416 index\n    if len(present) < 2: continue\n    pair greedily by (affinity desc, id asc)\n    for each pair:\n        apply symmetric relationship deltas\n        record a meeting trace entry for both sides\n```\n\nAdditional rules:\n\n- Foreground/attended characters are **not** paired by this pass. An attended\n  character's social interaction is decided by the normal LLM loop.\n- Cap meetings per background character per in-game day to avoid a\n  relationship drift treadmill in crowded areas.\n- If both parties are background and co-present, the meeting is eligible. If\n  either is attended, it defers to the foreground path (task-412 seam).\n- Meetings are recorded with `area_id` on the trace, and with an anchor if one\n  is available (task-419).",
+    "verify": "- Unit: three characters in two areas → only the co-present pair meets.\n- Unit: same-area pair with negative affinity → no meeting, or a hostile one, per\n  the authored rule (must be explicit, not accidental).\n- Determinism: seed replay with reflection disabled.\n- Extend `tests/test_background_simulation.py`.",
+    "acceptance": [
+      {
+        "text": "Two background characters in **different areas never meet**, under any seed.",
+        "done": false
+      },
+      {
+        "text": "Meeting pairing is deterministic: same seed + same relationship state yields",
+        "done": false
+      },
+      {
+        "text": "the same pairs.",
+        "done": false
+      },
+      {
+        "text": "Relationship deltas are symmetric on both sides (this is already an",
+        "done": false
+      },
+      {
+        "text": "acceptance criterion of task-409; keep it).",
+        "done": false
+      },
+      {
+        "text": "No meeting is scheduled in an area with fewer than two background characters.",
+        "done": false
+      },
+      {
+        "text": "A meeting trace entry names the area and both parties.",
+        "done": false
+      },
+      {
+        "text": "Cap is enforced and logged.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_2026_09_21": "**Done as a component of task-423**, not separately - the \"symmetric meeting\"\nthis task specifies was the placeholder that task-423's action-and-outcome pass\nreplaces, so building it standalone would have meant implementing the pairing\ntwice. `engine/background_social.py` implements the gate:\n\n- `pair_for_area` runs **per area, never globally** - greedy by mutual affinity\n  descending, ties by name, so the same relationship state always yields the same\n  pairs and each character is in at most one pair per pass. There is no distance\n  in this world model, so nothing else would stop two characters on opposite\n  sides of the camp from meeting.\n- Same area, both `simulation_mode == \"background\"` (`is_background`), both\n  conscious and not mid-activity (`is_available`).\n- **An attended character is never paired** - their social life belongs to the\n  LLM loop (the task-412 seam).\n- The cap is `MEETINGS_PER_CHARACTER_PER_DAY = 6`, rolled over on the in-game day\n  and therefore tick-length independent, plus a `SOCIAL_COOLDOWN_MINUTES = 90`\n  cooldown between one character's interactions so the day's allowance is spread\n  rather than burst.\n- Traces name the area and both parties and carry `rel:<other>` tags, so a\n  relationship change is auditable after the fact.\n\nTask-416 (area → character index) was **not** needed: the pass groups the ~23\ncharacters by `current_area` in one pass, which is cheaper than the index and has\nno cache to invalidate. If character counts grow an order of magnitude, revisit.\n\nThe blocking-activity part of the design this task fed into was **removed** -\nsee task-423's outcome for the measurement that killed it.",
+      "non_goals": "- Dialogue generation, full conversation simulation, or meeting content.\n- Foreground social interaction (that stays with the LLM loop).\n- Schedules/work (still task-409 §1–3)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "amends": "task-409 §4 (\"Coarse meetings\").",
+      "depends on": "task-416 (area → character index), task-399 (background runner)."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-417-co-presence-gate-for-coarse-meetings.md"
+  }
+}

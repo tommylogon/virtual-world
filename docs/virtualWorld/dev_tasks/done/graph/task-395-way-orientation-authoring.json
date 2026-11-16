@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-395",
+  "kind": "task",
+  "number": 395,
+  "title": "way-orientation-authoring",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `pytest tests/test_trigger_validator.py tests/test_undo_history.py tests/test_way_connect_repair.py` - 54 passed.\n- Live: author-set pass_message preserved by cleanup; minted template values removed.\n- Repo gate `pytest -k \"not mcp and not emote\"` - 2632 passed.\n- Manual browser pass still TODO (panel ✨ AI-write flow + info-severity styling).",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_verified_2026_09_21": "Closed for its four code deliverables; one follow-up split out.\n\n- **`fix_way_orientation` is gone** - a repo-wide grep finds it only in\n  `CHANGELOG.md` prose. No route, no caller.\n- **`clear_way_fix_fields`** implemented at `routes/graph_ops.py:674-712`,\n  dispatched through `_apply_batch_op` (`:571`, loop `:774-791`). It removes only\n  exact minted templates - `\"You pass through <name>.\"` (`:694`),\n  `\"A glimpse of <source> beyond.\"` (`:702`), and a `cardinal == \"north\"` when\n  the edge direction is not a real cardinal (`:706`) - so authored prose is safe\n  by construction.\n- **Severity downgrade** to `info`: `engine/trigger_validator.py:620,631,639`,\n  with the why documented at `:598-608`.\n- **Panel button**: `static/js/validator-panel.js:202-229` runs the cleanup batch\n  (`:205`), then opens the existing per-way \"✨ Improve with AI\" flow\n  (`window.InspectorWayView.improveWayWithAI`, `static/js/inspector/way-view.js:937`).\n  The validator-panel button reads \"✨ AI-write ways\" (`validator-panel.js:467`).\n- **Data is clean**: way library files carry `\"pass_message\": \"\"`, a repo-wide\n  grep for `A glimpse of` in `data/` returns nothing, and `You pass through`\n  survives only as legitimate authored prose.\n\n**Corrections to this file's own claims:** the movement fallback is\n`engine/movement.py:780-783`, not `:743-749`; the area-description default is\n`engine/area_description.py:563`, not `:509-549`; and the improve-Way entry point\nis `way-view.js:937`, not `:931`.\n\n**Two gaps, one fixed here and one split out:**\n\n1. *Fixed:* the new cleanup op had **no test**. Added\n   `tests/test_way_orientation_cleanup.py`, which pins that it removes only the\n   exact minted templates and leaves authored `pass_message` / `cardinal` /\n   `visible_in_direction` alone.\n2. *Split out:* the claim \"No bulk op writes way data anymore\" is **false at the\n   repo level** - offline generators still mint the exact template\n   (`tools/build_scenario.py:80-81`, `tools/assemble_scenario.py:239`,\n   `tools/sync_scenario_to_library.py:147`, `tools/generate_scenario.py:212`), and\n   `tools/fix_scenario_authoring.py:78-79` writes a near-variant that\n   `clear_way_fix_fields`' exact-string match will *not* remove. Filed as\n   **task-435**.\n\n**Filed**: 2026-09-07\n**Status**: In Progress - reworked 2026-09-07 after engine review. The original\nblind-fill (minted \"north\" cardinals + templated pass/visible messages) was WRONG\nand has been replaced. No bulk op writes way data anymore; the pattern is now\n\"downgrade to info + AI-draft for review.\"",
+      "source": "Conversation 2026-09-07. The mansion validator lists ~180 warnings all generated\nby the same class: ways missing `pass_message`, cardinal direction, and/or\n`visible_in_direction` on their connection edges (× 2 sides × ~30 ways).",
+      "rework_why_the_first_version_was_wrong_post_mortem": "- **pass_message is NOT required.** `engine/movement.py:743-749` falls back to\n  \"You head through {direction}.\" when unset; the check was informational only.\n  Also, per-direction pass prose is coming - currently the field is a single\n  way-node property shared by BOTH sides, so a bulk template would also be a\n  direction-collapse footgun.\n- **`north` minting lies.** `engine/matching.py:155-160` uses `cardinal` to match\n  \"go north\" commands; `layout-engine.js:32-36` uses it to place rooms. Ways can\n  connect to any number of areas, and direction commands are freeform (\"up the\n  stairs\", \"into the closet\", \"to Narnia\") and never route through the cardinal\n  tier - so forcing \"north\" creates a silent match bug and piles rooms in layout.\n  Geometry can't rescue it either: layout GENERATES positions FROM cardinals, so\n  deriving cardinal from position is circular.\n- **visible_in_direction is author prose, and the engine already has a default.**\n  `engine/area_description.py:509-549`: unset → \"X is visible beyond\"; set →\n  author's view text. The invented \"A glimpse of {area} beyond.\" was redundant\n  AND wrong. The right authoring path is the existing per-way ✨ Improve AI\n  (`way-view.js:931`), not a template.",
+      "what_we_actually_changed_rework": "1. `routes/graph_ops.py`:\n   - `fix_way_orientation` → **removed entirely** (was a no-op). Nothing calls it\n     and nothing should - the guess-writing route is gone, not just inert.\n   - new `clear_way_fix_fields` batch op: removes ONLY values that exactly match\n     the old minted templates (`You pass through <name>.`, `A glimpse of <source>\n     beyond.`, `cardinal=='north'` AND direction not a real cardinal). Author\n     text survives by construction; idempotent; one undo.\n2. `engine/trigger_validator.py` - `_validate_way_authoring()` downgraded\n   `way_missing_pass_message` / `way_missing_cardinal` /\n   `way_missing_view_direction` from `warning` to `info` with honest reason text\n   (\"engine falls back to its default\"). This kills the ~180 warning rows without\n   pretending there's a defect.\n3. `static/js/validator-panel.js` - the old \"⚡ Fix all ways\" became\n   \"✨ AI-write ways\": runs the cleanup op, then opens the top missing-field way\n   in the existing per-way ✨ Improve AI (draft-for-review, never auto-applied\n   en masse).",
+      "future_not_this_task": "- Per-direction pass/visible prose → move those fields onto the area→way edges\n  (they're currently single node-level props), then an AI \"write missing flavor\"\n  batch can target per-direction text with real context."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-395-way-orientation-bulk-fix.md"
+  }
+}

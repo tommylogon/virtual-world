@@ -68,7 +68,7 @@ Two notes for whoever picks up adjacent work:
   function is the right seam anyway.
 - A new browser-global module needs its `<script>` tag in
   `templates/index.html`. The unit runner loads modules itself, so the 8 tests
-  passed while the page still had `window.ScopeOptions` undefined — the tests
+  passed while the page still had `window.ScopeOptions` undefined - the tests
   could not catch the missing tag, and only loading the real page did.
 
 - TODO

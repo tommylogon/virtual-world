@@ -77,7 +77,7 @@ A uniform flat salience subtraction treated trivial observations (e.g. seeing a 
 - engine/memory_dynamics.py (apply_decay)
 - engine/agent_mind.py
 - engine/tick_manager.py
-- 	ests/test_memory_decay.py
+- tests/test_memory_decay.py
 
 ## Browser UI and intended live verification
 

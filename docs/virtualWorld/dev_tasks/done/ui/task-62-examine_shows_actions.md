@@ -5,11 +5,11 @@ area: ui
 priority: medium
 ---
 
-# Examine Enhancement — Show Available Actions When Examining an Object
+# Examine Enhancement - Show Available Actions When Examining an Object
 
 **Filed**: 2026-07-17
 **Priority**: Medium
-**Status**: Done — verified 2026-08-03. Examine appends "Available actions:" via _get_available_actions (engine/item_actions.py:200-205). Phase 3 (clickable action buttons) was optional and not implemented.
+**Status**: Done - verified 2026-08-03. Examine appends "Available actions:" via _get_available_actions (engine/item_actions.py:200-205). Phase 3 (clickable action buttons) was optional and not implemented.
 
 ---
 
@@ -71,14 +71,14 @@ Add a method `_get_available_actions(item_node, player)` that returns a list of 
 ```
 
 Rules for determining available actions:
-- `examine` — always available (it's the current action)
-- `take` — available if item is in room and not too heavy
-- `drop` — available if item is carried
-- `open`/`close` — available if item has openable state and isn't already in that state
-- `use` — available if item has triggers for `on_use` or `on_use_on`
-- `use [target]` — available if player has a matching item in inventory and target has relevant triggers
-- `toggle` — available if item has `on_toggle_on`/`on_toggle_off` triggers
-- `eat`/`drink` — available if item has food/drink tags
+- `examine` - always available (it's the current action)
+- `take` - available if item is in room and not too heavy
+- `drop` - available if item is carried
+- `open`/`close` - available if item has openable state and isn't already in that state
+- `use` - available if item has triggers for `on_use` or `on_use_on`
+- `use [target]` - available if player has a matching item in inventory and target has relevant triggers
+- `toggle` - available if item has `on_toggle_on`/`on_toggle_off` triggers
+- `eat`/`drink` - available if item has food/drink tags
 
 ### Phase 2: Append to examine output
 
@@ -97,9 +97,9 @@ In the examine output displayed in the event stream, render actions as clickable
 
 ## Files
 
-- `virtual_world_engine.py` — `get_item_desc()`, new `_get_available_actions()`
-- `static/js/event-stream.js` — (optional) render clickable action buttons in examine output
-- `world_template.json` — add action metadata for template items
+- `virtual_world_engine.py` - `get_item_desc()`, new `_get_available_actions()`
+- `static/js/event-stream.js` - (optional) render clickable action buttons in examine output
+- `world_template.json` - add action metadata for template items
 
 ## How
 

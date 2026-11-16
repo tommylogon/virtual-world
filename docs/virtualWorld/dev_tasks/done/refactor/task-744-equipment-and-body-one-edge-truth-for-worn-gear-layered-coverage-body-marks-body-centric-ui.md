@@ -14,7 +14,7 @@ wiki: "[[Feature Map]]"
 **Related:** task-654, task-450, task-161, task-660, task-724, task-457, task-619, task-847, task-848, task-852
 
 <!-- deps:start -->
-**Related:** [[task-654-single-writer-equipment-edges]], [[task-675-character-editor-three-column-body-with-section-nav-rail]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]]
+**Related:** [[task-654-player-equipped-and-the-equipment-graph-edges-are-two-sources-of-truth-the-api-writes-only-the-first]], [[task-675-character-editor-three-column-body-with-section-nav-rail]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]], [[task-852-persona-ui-improvement-plan-workspace-doll-navigation-markings-state-integration]]
 <!-- deps:end -->
 
 ## What

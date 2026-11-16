@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: In Review — implemented (code-verified 2026-08-11). `has_item` condition with dropdown of world/library items in trigger editor (`static/js/inspector.js:287/386`, `item-library.js:40/940-945`).
+**Status**: In Review - implemented (code-verified 2026-08-11). `has_item` condition with dropdown of world/library items in trigger editor (`static/js/inspector.js:287/386`, `item-library.js:40/940-945`).
 
 ---
 
@@ -43,12 +43,12 @@ When user selects "Has item in inventory" from condition dropdown:
 **Status**: Ready to test
 **How to test**:
 - Open the Item Library trigger editor for any item. Add a condition, select "Has item in inventory". Verify a searchable text input with datalist appears (not a plain `<select>`).
-- Start typing an item name — verify matching items from the library appear as suggestions.
+- Start typing an item name - verify matching items from the library appear as suggestions.
 - Save the trigger, verify the condition stores the correct item ID.
 
 ## Files
 
-- `static/js/item-library.js` — replace the `trigger-cond-extra` select with searchable input+datalist
+- `static/js/item-library.js` - replace the `trigger-cond-extra` select with searchable input+datalist
 
 ## How
 

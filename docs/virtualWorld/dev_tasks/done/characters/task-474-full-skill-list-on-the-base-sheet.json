@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-474",
+  "kind": "task",
+  "number": 474,
+  "title": "Full skill list on the base sheet",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-472",
+      "task-471"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Every skill in the vocabulary lives on Player.skills so a setting or character can grant/train any of them; specialist skills (Arcana, History, Religion, Nature, Investigation, Medicine, Insight, Deception, Intimidation, Performance, Animal Handling, Sleight of Hand) default to 0 and the six adventuring basics stay at 1. Save/load and library character definitions merge over the defaults instead of replacing the dict, so an older save or a sparse library entry still ends up with the full sheet.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "`python -m pytest tests/test_skills.py -q` -> passed (including the 62 pre-existing exact-math/message assertions); 289-passed soak/timeskip/checks/conditions slice.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "progress_2026_09_23_landed_review": "- [x] The base sheet carries the full 18-skill vocabulary: six adventuring basics at 1 (Athletics, Acrobatics, Stealth, Perception, Survival, Persuasion) and twelve specialists at 0.\n- [x] Save/load (`engine/serialization.py`) and library character definitions (`engine/effects.py`) MERGE over those defaults instead of clobbering the skills dict.\n- [x] Abilities live in `player.stats` (STR/DEX/CON/INT/WIS/CHA, default 10) with `ability_mod = (score-10)//2`, supplied by task-472.",
+      "skills_are_free_strings_2026_10_15_crafting_schema": "Skill names are NOT a closed enum. `player.skills` is a plain dict; `skill_check` reads `skills.get(name, 0)` and `engine/checks.py` `SKILL_ABILITY` maps known names to abilities while unknown names key off no ability (modifier 0) - homebrew names work with no code change. The 18 D&D names on the base sheet are defaults, not the vocabulary. Settings and recipes may mint `Cooking`, `Smithing`, `Woodcraft`, `Leatherwork`, etc.; they default to 0 until a scenario, library character, or `teach` action grants them. Recipe authors: use the name that reads right, and note the grant source."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-474-full-skill-list-on-the-base-sheet.md"
+  }
+}

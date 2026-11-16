@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "id": "task-539",
+  "kind": "task",
+  "number": 539,
+  "title": "Reassign an area to a scope (membership only) + a scope picker on the node",
+  "status": "review",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-528",
+      "task-535",
+      "task-540",
+      "task-541",
+      "task-582"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**Author's design (2026-09-27):** membership is one field, so it should be edited\nwhere membership is visible - click the area node, pick its scope from a dropdown,\ndone. No separate bulk-move flow; the WorldPainter then only has to list the areas\nof the scope you are painting (task-541).",
+    "why": "`world_scope_id` *is* scope membership - the scope views read nothing else\n(`world_scopes.own_area_ids` / `area_ids_in_scope`, and `project_subgraph`'s \"a\n`way` whose both endpoints are included\"). But today the only way to change it is\n`POST /api/world/scopes/<id>/grid/place_area` (`routes/world_grid_ops.py`), which\nneeds a **painted cell** and writes `cell`/`x`/`y` too. For a child scope's\n*interior* that is the wrong tool: rooms should belong to the camp scope, not be\nparked as cells on the world's grid (which is also why they kept showing up in\nthe world scope's own view).\n\n`PATCH /api/graph/node/<id>` with `{\"properties\": {\"world_scope_id\": ...}}`\n*would* work, but it writes only the node. The manifest mirror\n(`scope[\"area_ids\"]`, maintained by `_set_area_membership`) would desync, so scope\ncounts and `area_ids_in_scope` would disagree with the graph. It is also not one\nundo step with the rest.",
+    "how": "",
+    "verify": "1. On a scratch copy, assign `area_training_pit` to goblin camp in the area\n   Inspector and reopen the area's Scope section.\n   - expected: goblin camp remains selected and the area appears in the camp's\n     own-level view.\n   - observed: verified live 2026-09-27; the area appeared in the camp view.\n2. Select **- no scope -** and reopen the Inspector.\n   - expected: no scope is selected and the area leaves the camp's own-level\n     view.\n   - observed: verified live 2026-09-27; the area was removed from that view.",
+    "acceptance": [
+      {
+        "text": "`POST /api/world/scopes/<scope_id>/areas` with `{\"add\": [ids], \"remove\": [ids]}`",
+        "done": true
+      },
+      {
+        "text": "(lists, so a multi-selection moves in one call) sets",
+        "done": false
+      },
+      {
+        "text": "`properties.world_scope_id`, updates **both** scope records' `area_ids`,",
+        "done": false
+      },
+      {
+        "text": "leaves `cell`/`x`/`y` of a *target*-scope placement alone, and is **one undo",
+        "done": false
+      },
+      {
+        "text": "step**. The rules live in `world_scopes.assign_area_membership`, which the",
+        "done": false
+      },
+      {
+        "text": "place route now shares, so there is one implementation of \"move\".",
+        "done": false
+      },
+      {
+        "text": "Moving an area away from a scope drops it from that scope's",
+        "done": true
+      },
+      {
+        "text": "`area_placements` and clears the node's `cell`/`x`/`y` - otherwise the old",
+        "done": false
+      },
+      {
+        "text": "grid keeps reserving a cell for an area that is no longer a member. A cell",
+        "done": false
+      },
+      {
+        "text": "it holds in the *target* scope is kept, so re-assigning it there is a no-op.",
+        "done": false
+      },
+      {
+        "text": "Refuses generated areas (with the same explanation `handle_place_area`",
+        "done": true
+      },
+      {
+        "text": "gives), non-areas and unknown ids - and validates **before** the snapshot, so",
+        "done": false
+      },
+      {
+        "text": "a refusal leaves no junk undo entry and no half-applied move.",
+        "done": false
+      },
+      {
+        "text": "`remove` clears the scope *and* the cell (the area then belongs to nobody",
+        "done": true
+      },
+      {
+        "text": "and is free to be placed anywhere).",
+        "done": false
+      },
+      {
+        "text": "An **area-node scope picker** in the inspector: a 🗺️ Scope section with a",
+        "done": true
+      },
+      {
+        "text": "`<select>` of the scope list from `GET /api/world/scopes?flat=1`",
+        "done": false
+      },
+      {
+        "text": "(depth-indented), a \"- no scope -\" option, and an orphan option so a scope",
+        "done": false
+      },
+      {
+        "text": "id with no record still shows as the current value instead of the select",
+        "done": false
+      },
+      {
+        "text": "lying. Nothing in the inspector fetched scopes before.",
+        "done": false
+      },
+      {
+        "text": "The same section shows the map placement (\"cell (x,y)\" + *open in",
+        "done": true
+      },
+      {
+        "text": "WorldPainter*), so membership and position read as one fact.",
+        "done": false
+      },
+      {
+        "text": "Removing via the \"- no scope -\" option posts to the area's *current* scope",
+        "done": true
+      },
+      {
+        "text": "(an empty scope id would build `/api/world/scopes//areas`); a failure",
+        "done": false
+      },
+      {
+        "text": "restores the previous selection.",
+        "done": false
+      },
+      {
+        "text": "After moving, the parent's own-level view no longer lists the areas and the",
+        "done": true
+      },
+      {
+        "text": "child's does.",
+        "done": false
+      },
+      {
+        "text": "Tests (`tests/test_world_grid_routes.py`, +7): membership without a cell,",
+        "done": true
+      },
+      {
+        "text": "one undo step for a whole selection (asserted through a real",
+        "done": false
+      },
+      {
+        "text": "`POST /api/undo`), cell release on leaving, target-cell kept, remove clears",
+        "done": false
+      },
+      {
+        "text": "both, the three refusals, and the candidate `scope_name`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "-",
+      "routes/world_grid_ops.py",
+      "engine/world_scopes.py",
+      "static/js/inspector/area-view.ts",
+      "static/js/api.ts",
+      "static/js/graph-manager.ts",
+      "tests/test_world_grid_routes.py"
+    ],
+    "custom": {
+      "verified_live": "Created a throwaway `zz_camp` scope and three areas, then moved two of them with\n`POST /api/world/scopes/zz_camp/areas`:\n`zz_tent=assigned, zz_pit=assigned`; the camp's subgraph then listed\n`area_animal_pens, area_murk_lake, area_sleeping_halls, zz_pit, zz_tent` and\n`world`'s subgraph no longer contained the moved areas. All three refusal paths\nanswered with their intended message. Through the UI: picking \"goblin camp\"\n(`deep_woods_2`) in the node's Scope dropdown put `area_training_pit` into the\ncamp's own level, and \"- no scope -\" put it back. Test data was removed again and\nthe world left as it was found.",
+      "not_done_here": "- The task-535 half (turning a *selection* into a new child scope) is untouched.\n  A multi-selection can now be moved into an *existing* scope (see below), but\n  making a new child scope out of a selection is still task-535.",
+      "browser_ui": "Intended UI home: area-node Inspector → 🗺️ Scope, beside the map placement.\n\nCurrent availability: implemented and verified live on 2026-09-27; no fresh\nbrowser run is claimed here.\n\nLive steps when available:\n\nTo recheck on a scratch copy, open the area node Inspector and use its **🗺️\nScope** section.\n\n1. Select `area_training_pit` and check the selected scope against\n   `properties.world_scope_id` in `/api/state`.\n   - expected: the Inspector shows the area's current scope.\n2. Select **goblin camp** (`deep_woods_2`) in the Scope dropdown and wait for\n   the Inspector to refresh.\n   - expected: the area is included in the camp's own-level view, and the\n     selected scope remains goblin camp after reopening the Inspector.\n3. Select **- no scope -**.\n   - expected: the area is removed from the camp's own-level view and the\n     dropdown shows no scope after reopening the Inspector.\n4. Compare the node's scope property and both scope membership lists.\n   - expected: the visible selection and membership data agree. The 2026-09-27\n     live check recorded the expected result; this is a repeatable recheck, not\n     a claim of a new live run.\n\nThese steps define intended access and live acceptance. They are not a claim\nthat a fresh browser check was performed today; current availability records\nthe last verified browser run (2026-09-27)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-539-reassign-an-area-to-a-scope-membership-only-plus-a-scope-picker-on-the-node.md"
+  }
+}

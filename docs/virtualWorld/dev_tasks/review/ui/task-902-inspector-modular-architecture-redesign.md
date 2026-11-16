@@ -50,15 +50,15 @@ pm run build:ts and
 pm run typecheck pass with 0 errors.
 3. Run the targeted regression test for the mechanism.
    - expected: Unit tests for base class lifecycle, components, and singleton inheritance pass.
-   - observed: PASS 2026-10-25. 	ools/unit/test_inspector_modular.js passes with 10 assertions in 
+   - observed: PASS 2026-10-25. tools/unit/test_inspector_modular.js passes with 10 assertions in 
 ode tools/unit/run.cjs.
 
 ## Acceptance
 
-- [x] All inspector view singletons refactored to extend InspectorView base (gent-view, rea-view, item-view, way-view, lore-view, memory-view, mind-view, paperdoll-view, ehaviors-view).
+- [x] All inspector view singletons refactored to extend InspectorView base (agent-view, area-view, item-view, way-view, lore-view, memory-view, mind-view, paperdoll-view, behaviors-view).
 - [x] Shared components extracted (InspectorComponents.BreadcrumbComponent, InspectorComponents.PropertyGridComponent in static/js/inspector/components.ts).
 - [x] String-based HTML eliminated in refactored sections in favor of lit-html templates.
-- [x] Unit tests for base class, components, and view singleton instances (	ools/unit/test_inspector_modular.js).
+- [x] Unit tests for base class, components, and view singleton instances (tools/unit/test_inspector_modular.js).
 - [x] TypeScript builds clean without type errors (
 pm run build:ts and 
 pm run typecheck).

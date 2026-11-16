@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-115",
+  "kind": "task",
+  "number": 115,
+  "title": "Field Locks + Refresh from Library",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**Field-level locking** lets you mark specific item properties as \"locked\" - they're preserved during AI Improve, Refresh from Library, and Sync to Library. Plus a **Refresh from Library** button that resets unlocked fields from the library template.",
+    "why": "TODO",
+    "how": "### 1. Field Lock UI (item-view.js)\n\nAdd 🔒 lock toggles next to each editable field in the item inspector:\n- Description\n- Actions\n- Tags\n- Triggers (lock/unlock all triggers)\n- Insulation\n- Resistances\n- Defense/Damage (weapon stats)\n\nEach toggle calls `api.updateNode()` to set/unset the field in `locked_fields`.\n\n### 2. AI Improve respects locks (item-view.js)\n\n`_improveItemWithAI()` currently regenerates: name, description, actions, uses, weight, hidden, tags, action_costs, skill_check. \n\nModify to:\n- Read `locked_fields` from node properties\n- Strip locked fields from the prompt (don't send them to the LLM)\n- Strip locked fields from the response (don't apply them even if LLM returns them)\n\n### 3. Refresh from Library (items_registry.py + item-view.js)\n\n**Backend**: `POST /api/items/<node_id>/refresh-from-library`\n1. Find the library entry via `node.properties.library_id`\n2. Load library item data from the registry\n3. Remove old trigger edges + logic_trigger nodes\n4. Rebuild triggers from library data\n5. Copy unlocked properties from library to the graph node\n6. Return updated node data\n\n**Frontend**: Button in item inspector footer (alongside \"Save to Library\")\n- Calls the new endpoint\n- Refreshes inspector\n\n### 4. Sync to Library respects locks (item-library.js)\n\n`_saveToLibrary()` and batch sync check `locked_fields` on the world item. Locked properties on the world item are NOT overwritten in the library entry.\n\n### 5. Sync from Library (future) respects locks\n\nWhen refreshing the graph node from library, locked fields are preserved.\n\n---",
+    "verify": "1. Open item inspector → toggle lock on description\n2. Click Improve → description stays unchanged\n3. Click Refresh from Library → locked fields preserved, unlocked reset\n4. Sync to Library → locked fields preserved on lib side",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "concept": "Items gain a `locked_fields` array in their properties:\n\n```json\n{\n  \"description\": \"My custom description...\",\n  \"triggers\": [...],\n  \"insulation\": 5,\n  \"locked_fields\": [\"description\", \"triggers\"]\n}\n```\n\nLocked fields are **never overwritten** by:\n- ✨ Improve (AI generation skips them)\n- 📚 Refresh from Library (keeps your custom values)\n- 🔄 Sync to Library (preserved on the library side when syncing world→lib)\n\n---",
+      "files_to_touch": "| File | Change |\n|------|--------|\n| `static/js/inspector/item-view.js` | Lock toggles, refresh button, modify improve |\n| `routes/items_registry.py` | POST /api/items/<node_id>/refresh-from-library |\n| `static/js/item-library.js` | Sync-to-library respects locked_fields |\n| `static/js/api-client.js` | Add refreshFromLibrary() method |\n\n---"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-07-29"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-115-field-locks-and-refresh-from-library.md"
+  }
+}

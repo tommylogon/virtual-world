@@ -1,0 +1,45 @@
+{
+  "id": "task-308",
+  "kind": "task",
+  "number": 308,
+  "title": "Item Relationship Condition (Bulging Pocket Check)",
+  "status": "review",
+  "area": "triggers",
+  "priority": "medium",
+  "created": "2026-08-19",
+  "relations": {
+    "related": [
+      "task-200",
+      "task-203",
+      "task-297"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-297-vitals-readout-trigger-condition-message]]",
+      "[[task-200-more-descriptive-parameters]]",
+      "[[task-203-set-adjust-parameters]]"
+    ]
+  },
+  "sections": {
+    "what": "Condition to check if self has an item in a relationship, or if an item has another item of a certain relationship type. Example: if a coat has an item inside (`in` edge), an effect makes the `pocket` param message say \"the pocket is bulging\" - else \"the pockets are empty\".",
+    "acceptance": [
+      {
+        "text": "Condition validates graph relationships between items (contained_by, equipped_on).",
+        "done": true
+      },
+      {
+        "text": "Trigger only fires when specified item relationship holds.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/conditions.py"
+    ],
+    "custom": {
+      "idea": "Condition to check if self has an item in a relationship, or if an item has another item of a certain relationship type. Example: if a coat has an item inside (`in` edge), an effect makes the `pocket` param message say \"the pocket is bulging\" - else \"the pockets are empty\".",
+      "notes": "- Mostly covered by existing conditions: `has_item` / `has_items` / `in_area` plus spatial edges (`EDGE_IN`, `EDGE_ON`, etc.).\n- The missing bit is condition syntax for *relationship type on a specific node* (e.g. \"does item X have anything with edge `in`?\"), plus wiring the result into message templating.\n- Small completion of the existing trigger system, not a new system.",
+      "related": "- `developer ideas.md` line 15\n- `engine/trigger_system.py` (`has_item`, `has_items`, `in_area`), `graph.py` spatial edges"
+    }
+  }
+}

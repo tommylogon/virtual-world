@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "task-563",
+  "kind": "task",
+  "number": 563,
+  "title": "Entering a building: 'in' from any side that has a way",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-562",
+      "task-561",
+      "task-535",
+      "task-567"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A building on a town grid is entered with 'in' from ANY side that has a way, not walked into with a compass direction. Today a cell-to-cell adjacency inside a grid is always a compass step and only a child-scope boundary is a narrative 'enter', so a building cell is a place like any other. Change: a cell that has a child scope (an interior) is entered with 'in'/'out' like a feature entry; a cell with no interior gets a themed refusal drawn from its building type ('The door is shut.' / 'It's locked.' / 'Closed for the season.') on a closed/locked way state, so a key or a knock can change it later. The movement semantics then fall out of the existing way graph: 'out' from inside a tavern lands on its cell, an adjacent temple is one turn, and dash_to_area already chains a second hop in one turn. A gap between two buildings is not a place, so an alley only works if the author paints it.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A building cell with an interior emits one `in` way per cardinal side that",
+        "done": true
+      },
+      {
+        "text": "has a way, pointing at the interior's entry area, `open`, one-way out, with",
+        "done": false
+      },
+      {
+        "text": "`aliases: [\"in\"]` and a `child_scope_id`.",
+        "done": false
+      },
+      {
+        "text": "A building cell with no interior emits one `in` way per such side, pointing",
+        "done": true
+      },
+      {
+        "text": "at the plot, `closed`, with a themed `refusal_message` drawn from the",
+        "done": false
+      },
+      {
+        "text": "building's category, and one-way in.",
+        "done": false
+      },
+      {
+        "text": "`move_to_area` raises the refusal, does not auto-open the closed way, and",
+        "done": true
+      },
+      {
+        "text": "lets the character in once it is `open`; a way without the property is",
+        "done": false
+      },
+      {
+        "text": "unchanged.",
+        "done": false
+      },
+      {
+        "text": "The door appears as a real exit of the street (`build_exits_for_area`), and",
+        "done": true
+      },
+      {
+        "text": "`in` still resolves through the alias tier.",
+        "done": false
+      },
+      {
+        "text": "A walled side gets no door; a diagonal neighbour is not a door; a road over",
+        "done": true
+      },
+      {
+        "text": "a building cell is not a building; a plain field gets no doors at all.",
+        "done": false
+      },
+      {
+        "text": "Both compile orders work: the parent emits when the interior is already",
+        "done": true
+      },
+      {
+        "text": "materialized, the interior emits from the recorded sides otherwise.",
+        "done": false
+      },
+      {
+        "text": "`ungenerate_scope(interior)` removes the doors.",
+        "done": true
+      },
+      {
+        "text": "The generate report says how many doors and how many are shut.",
+        "done": true
+      },
+      {
+        "text": "The editor's cell inspector and hover show the same sentence the world",
+        "done": true
+      },
+      {
+        "text": "gives, from the same function.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_built": "`engine/biomes.py`\n\n- `BUILDING_TAG` / `is_building(biome_id)` - the vocabulary decides, from the\n  `building` tag task-561 gave the 31 types, not from a list of ids in the\n  compiler. A modder's `watermill` joins without a code change.\n\n`engine/world_compile.py`\n\n- `building_subject()` / `building_refusal()` - a building's name as a thing you\n  can be inside of (\"inn\", \"ferry landing\") and the line its door gives when\n  there is nothing behind it, composed from the building's category tags\n  (`BUILDING_DOOR_TAILS`): a watch house is barred, an inn is shut, a smithy's\n  bench is cold. Two tails per category, chosen by `_stable_index` on the biome\n  id, so the same building always refuses the same way and two of a kind do not\n  read as clones. The editor reads the same function (see the route below), so\n  the painter's preview and the world cannot drift.\n- `_enter_way()` - the way itself. `direction` is the phrase `enter the inn` and\n  `aliases: [\"in\"]` keeps `go in` resolving, as the child gateway already does.\n  `see_through: False` (a front door is not a window) and `kind: \"entrance\"`,\n  which is deliberately *not* `door`: a painted door **cell** is structure the\n  author drew (task-562) and a building's front door exists because the cell is a\n  building, so \"how many doorways did I paint\" and \"how many buildings are on\n  this street\" stay separately answerable from the graph.\n- **One-way in both cases.** With an interior, because `out` inside must keep\n  meaning the doorstep. With no interior, because the street already has a\n  compass way onto the plot: a way back would be a *second* connection for the\n  same pair, and two ways both answering to `out` on the plot means a bare \"out\"\n  picks one at random. Walking a real world found exactly that - in through the\n  street door, type \"out\", and the shut **alley** door answers - so the plot keeps\n  its compass exits and says `Visible exits: west, east`.\n- The emitter, in `compile_grid` after the doorways: for every building region,\n  the **cardinal** sides that already have a way (`emitted_pairs`, so a walled\n  side gets no door and a side reached through a painted doorway does), then one\n  way per side. Cardinal only because a door is on a wall; a diagonal neighbour\n  is a corner of the plot.\n  - **With an interior** (a placed child scope that is materialized): the way\n    leads to that interior's entry area, open, and **one-way**. One-way on\n    purpose: inside, `out` must keep meaning one thing - the doorstep the child\n    gateway points at - and a second `out` onto the street would make the word\n    ambiguous. You come out onto the doorstep and walk off it, which is also\n    what keeps an adjacent building one turn.\n  - **With no interior**: the way leads to the building's own cell (the plot) and\n    starts `closed` with `refusal_message`. `current_state: \"closed\"` is the\n    state a knock or an `open` can change, and the refusal holds until it becomes\n    `open`, so the door can be opened later instead of being permanently\n    impassable.\n  - **A child placed but not yet generated**: nothing is emitted at all. Emitting\n    the shut door would be a lie (there *is* an interior, we have just not seen\n    it) and the `in` way needs an entry area id we do not have.\n- The parent records its door sides on the placement (`placements[id].sides`),\n  and the child mints its own `in` ways from them when it compiles. This is what\n  covers the **common** order - generate the town, *then* draw the interior -\n  where the parent had no entry area to point at. The alternative was\n  re-deriving the parent's whole region naming from the child side for the sake\n  of one string.\n- The ways carry `child_scope_id`, so `world_scopes.ungenerate_scope` removes\n  them with the interior even though their provenance names the parent (the\n  gateway's existing rule).\n- The generate report says how many doors and how many of those are shut.\n- Areas for a building cell record `properties.building`, the fact the map, the\n  description and the inspector all read.\n\n`engine/movement.py` - `refusal_message`\n\n- A way with a `refusal_message` raises that line instead of letting you through,\n  and holds until `current_state` is `open`. Checked *before* the state machine,\n  because a `closed` way otherwise auto-opens on approach and the refusal would\n  be cosmetic. It also replaces the generic \"The {direction} is locked\" line for a\n  way that *is* locked, so a themed door does not also get the engine's guess\n  that a key exists.\n- Nothing else moved: a way without the property keeps every existing behaviour,\n  including the `closed` auto-open (tested).\n\n`routes/world_grid_ops.py` + `static/js/worldpainter/`\n\n- The vocabulary payload carries `refusal` for buildings, from\n  `world_compile.building_refusal`.\n- `grid-model.cellEnter(vocab, biomeId, child)` and `info.enter` in `cellInfo`:\n  `in → The Inn` when the cell has an interior, `in → The inn's door is shut.`\n  when it does not, `''` for anything else - including a road painted over a\n  building cell, which the compiler also does not treat as a building.\n- The cell inspector shows an `enter` row, and the hover readout shows the shut\n  line so the author notices it while painting rather than in play.",
+      "left_open_deliberately_and_where_it_goes": "- **A street facing two buildings has two `in` exits**, so a bare `go in` is\n  ambiguous there. The name tier disambiguates (\"go in to the temple\") and the\n  matcher's own message lists the candidates, which is realistic but worth\n  watching in play. task-564 (per-kind merge rules) is the place to decide\n  whether a building's door should be *named* rather than numbered.\n- **`out` from a plot is not a word.** On the building's own cell the exits are\n  compass, because `in`/`out` name the threshold crossing and the plot is past it.\n  A character who walks in and then says \"out\" gets `No exit 'out'. Visible exits:\n  west, east`, which is honest but not generous. If it matters, the fix is a\n  `leave the {subject}` phrase on the plot's compass ways - a prose call for\n  task-564, not a movement rule.\n- **The plot's prose.** A building cell still compiles to an area, because the\n  placement record and the `out` side of every interior point at it, and it\n  carries the building biome's descriptions - which read as the *inside*. So\n  standing on the plot reads like standing in the building. task-567 (generate\n  interiors from type) gives the interior its own descriptions; naming the plot\n  (\"the inn front\") is a prose call that belongs with it.\n- **`link_islands` still rescues a sealed room.** A building that is deliberately\n  walled in still gets a rescue way. Deciding when a *sealed* thing should stay\n  unreachable is task-525's storey/terrain decision plus task-564, not this one:\n  here a building with no sides is simply a building with no doors.\n- **No room vocabulary yet** (`classroom`, `hallway`, `stairway` compile as\n  unknown-id places with a warning), so a real floor plan still needs it."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-563-entering-a-building-in-from-any-side-that-has-a-way.md"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "task-559",
+  "kind": "task",
+  "number": 559,
+  "title": "Weather is never narrated: rain, snow and the sun are mechanically present but textually absent",
+  "status": "review",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-556",
+      "task-553",
+      "task-227"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add weather prose to the area description so a character standing outside in a\nstorm is told about it, and give the sun a presence beyond an implied light\nlevel.\n\nText-only: no new state, no new engine module. Companion to task-556, which\nadds the *state* that snow needs; this adds the *words* for what already exists.",
+    "why": "Weather conditions were simulated mechanically in the engine but omitted from room descriptions and look output.",
+    "how": "Integrated outdoor weather narration fragments into area look descriptions based on active precipitation and cloud cover.",
+    "verify": "1. Perform look command in outdoor area under rain or snow\n   - expected: Sensory description includes sensory weather phrasing\n   - observed: Verified in tests/test_narration.py",
+    "acceptance": [
+      {
+        "text": "Standing outside in `rainy` says it is raining; in `stormy` says something",
+        "done": false
+      },
+      {
+        "text": "worse. Indoors it does not.",
+        "done": false
+      },
+      {
+        "text": "Every value in `WEATHER_STATES` produces a sentence.",
+        "done": false
+      },
+      {
+        "text": "The two weather lists (`WEATHER_STATES` and the DC map) are one list.",
+        "done": false
+      },
+      {
+        "text": "Forecast wind is narrated, not just authored `noise: \"windy\"`.",
+        "done": false
+      },
+      {
+        "text": "An exterior area at dawn/dusk says so, and the day boundary agrees with the",
+        "done": false
+      },
+      {
+        "text": "existing 05:00-19:00 rule.",
+        "done": false
+      },
+      {
+        "text": "The `guess time` behaviour and the moon description are unchanged.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/narration.py",
+      "tests/test_narration.py"
+    ],
+    "custom": {
+      "measured_2026_09_27_env_weather_has_exactly_two_readers": "Every functional read of the weather key in the backend:\n\n| Where | What it does |\n|---|---|\n| `engine/lighting.py:172` | applies the weather light multiplier |\n| `routes/action_handlers.py:477` | sets the DC of the `guess time` skill check |\n\nThat is all. `env[\"weather\"]` is written by the forecast\n(`virtual_world_engine.py:1292`) and is **never narrated**.\n\n`engine/area_description.py:299-337` builds its environment summary from\n`temperature`, `air`, `smell` and `noise` - and `weather` is not among them. So\na character standing in a thunderstorm gets a temperature sentence, an air\nsentence, maybe a smell and a noise sentence, and **not one word about the\nrain**. The only hint that it is storming is that the light is dimmer.\n\n**The near-miss that hides this.** `area_description.py:326-334` maps raw\ndescriptor values to real sentences, and one of them is:\n\n```python\nnoise_prose = {\"windy\": \"The wind howls outside.\", ...}\n```\n\nBut that reads the **`noise`** key, while the forecast writes **`wind`**\n(`virtual_world_engine.py:1293`). Two keys for one phenomenon, so an *authored*\n`noise: \"windy\"` narrates wind and a *forecast* gale does not. Worth fixing in\nthe same pass.\n\n**The sun does not exist as an object.** There is no sunrise, no sunset, no sun\nposition, no \"the sun beats down\" anywhere. Daylight is a light curve\n(`lighting.py:19-36`) plus an hour comparison. The only mention of the sun in\nprose is one line in the `guess time` output: \"The sun's position is clear to\nyou\" (`action_handlers.py:498`).",
+      "what_already_works_and_should_not_be_touched": "- **Time** is fully implemented and is the best-designed part of this area:\n  `routes/action_handlers.py:470-536` runs a Survival check whose DC scales\n  with the weather (clear 10 → stormy 20) and reports precision by tier -\n  exact `HH:MM` naming the sun or the stars, then hour-bucket, then \"somewhere\n  around\", then \"probably the middle of the day\".\n- **The moon** is narrated at night in the room description\n  (`area_description.py:215-232`): full moon, blood moon, or plain moonlight,\n  and it carries a real `light_bonus` (0-25) plus `OBSCURING_WEATHER` hiding\n  it. `guess time` also names the phase.\n\nReuse those conventions rather than inventing a second phrasing style.",
+      "what_to_change": "1. A `weather_prose` map in the same place as `noise_prose`, keyed off\n   `env[\"weather\"]`, gated on the area being exterior (a storm is not\n   something you hear through a stone wall - the same reason the moon text is\n   outdoor-night-only).\n2. Draw the keys from `WEATHER_STATES` (`weather_forecast.py:26`) so a forecast\n   can never write a state that has no sentence. Today `guess time` already\n   carries a **second, divergent** list including `\"sunny\"` and `\"overcast\"`,\n   which are not in `WEATHER_STATES` - collapse the two.\n3. Unify wind: either narrate `env[\"wind\"]` directly, or have the forecast\n   write `noise` too. Pick one and document it.\n4. A time-of-day line for exteriors - dawn, midday, dusk, night - so the sun has\n   a presence. Reuse the hour boundaries already used at\n   `area_description.py:221` and `action_handlers.py:497` (05:00-19:00 is day)\n   rather than inventing a third set.",
+      "implemented_2026_09_27": "Narration landed, and it turned up a **live bug that had been hiding in plain\nsight**: the moon has never been narrated anywhere, in any world, ever.\n\n`get_area_description` read a local `node` on the first line of the moon block.\nPython resolves `node` as a local - because it is assigned *later* in the same\nmethod, in the item and people loops - so the line raised `UnboundLocalError`,\nand the bare `except Exception: pass` underneath swallowed it. Proven by AST\n(the only assignments to `node` are at lines 289/349/355) and by a repro that\nproduced no moon text at 22:00 with a full moon. The except is now narrowed to\nthe provider errors it was written for, so the next real failure is not\ninvisible.\n\n**Shipped**\n\n- `engine/area_description.py` - `WEATHER_PROSE` (one sentence per weather\n  state), `WIND_PROSE` (one per wind magnitude), `TIME_OF_DAY_BANDS` +\n  `time_of_day_prose()`, `_is_open_sky()` (accepts `outdoor` *or* `exterior`),\n  and `weather_description()`. The moon block's node lookup is fixed and the\n  bare except is gone.\n- `engine/weather_forecast.py` - `WEATHER_ALIASES` + `normalize_weather()`,\n  and `WEATHER_TIME_DC` / `WEATHER_TIME_DC_DEFAULT` moved in from the action\n  handler so the DC table and the vocabulary cannot drift apart again.\n- `routes/action_handlers.py:470-486` - uses the shared table and the\n  normaliser; the private list (which knew `sunny`/`overcast`) is deleted.\n- `engine/lighting.py:172` - the moon-obscured check normalises, so a world\n  spelling it `overcast` behaves like `cloudy`.\n- `tests/test_weather_narration.py` - 26 tests, including three that pin the\n  vocabularies together (every weather state has prose, every wind state has a\n  sentence, every weather state has a DC), the moon regression, the outdoor\n  gate, and the no-duplicate-wind cases.\n- `docs/virtualWorld/Environment/Time & Weather.md` - a new \"What the Weather\n  Looks Like\" section, the alias rule, the tag table, and a correction to the\n  Weather Modifier table.\n- `docs/design/weather-world-integration.md` - §1 and §2 corrected.\n\n**Full suite: 59 failed / 4071 passed** - the failure count matches the\nrecorded baseline exactly, and all 59 are the documented pre-existing ones\n(`test_mcp_*` FastMCP wrapper mismatch, plus `test_world_grid_routes.py`,\n`test_character_identity.py`, `test_scenario_name.py`, `test_templates.py` -\nnone of which this change touches).",
+      "filed_while_implementing_this": "**bug-54** - two causes behind the same symptom, and the reason a painted world\nstill sees no weather even with narration in place:\n\n1. `WEATHER_LIGHT_MULT` has **no readers at all**. A storm never darkens the\n   world. (I had told the user this was wired into `lighting.py:172`; it is\n   not. That line only decides whether the moon is obscured.)\n2. The compiler builds area tags from the biome record, and **no biome in\n   `data/worldpainter/biomes.json` declares `outdoor` or `exterior`** - so for a\n   WorldPainter world the forecast is skipped entirely, the diurnal light curve\n   never applies, and exterior areas are not heat reservoirs.\n   `world_compile.py:670` computes `outdoor` from the scope mode and discards\n   it.\n\nHand-authored scenarios carry the tags by hand, which is why this survived:\n`world_template.json` has 28 hits, `The Valerious Case.json` 28, `kraktooth_goblin_camp.json` 11.",
+      "browser_ui": "Intended UI home: game view → read area description outdoors and indoors under each weather state; inspect the Forecast's wind and the area description at dawn/dusk.\n\nCurrent availability: this card adds words for weather state already present in the environment and explicitly adds no new state/module. The weather prose behavior is not claimed as freshly browser-verified.\n\nLive steps when available:\n1. Stand outside in each value of `WEATHER_STATES` and read the area description.\n   - expected: every state has a corresponding sentence; rainy says it is raining and stormy describes the stronger conditions.\n2. Move indoors under the same forecast and read the room description.\n   - expected: outdoor weather prose is absent indoors.\n3. Set nonzero forecast wind and read the exterior description.\n   - expected: wind direction/magnitude are narrated from forecast data; `noise: \"windy\"` is not required as a substitute.\n4. Advance across dawn/dusk and read the description around 05:00 and 19:00.\n   - expected: the sun's presence is described at those boundaries, while `guess time` and moon description remain unchanged.\n5. Compare the `WEATHER_STATES` list with the narration map.\n   - expected: the UI has one source for state-to-description coverage; no state silently falls through.\n\nThis section is not a claim that all weather prose has been freshly browser-verified today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/environment/task-559-weather-is-never-narrated-rain-snow-and-the-sun-are-mechanically-present-but-textually-absent.md"
+  }
+}

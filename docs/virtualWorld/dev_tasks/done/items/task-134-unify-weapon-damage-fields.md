@@ -38,14 +38,14 @@ This is confusing and inconsistent. The system uses `damage_dice` if available, 
 
 ## What was changed
 
-- `engine/equipment_bonuses.py` — `parse_dice()` renamed to `parse_damage()`, handles both dice strings and flat numbers. `aggregate_bonuses()` reads unified `damage` field.
-- `engine/combat.py` — removed duplicate `_parse_dice()` method, uses `parse_damage()` from equipment_bonuses. Removed `import re`.
-- `data/library/items/iron_shortsword.json` — combined `damage: 8, damage_dice: "1d6"` → `damage: "1d6"`
-- `data/library/items/heavy_club.json` — combined `damage: 10, damage_dice: "1d8"` → `damage: "1d8"`
-- `data/library/items/lumber_axe.json` — combined `damage: 0, damage_dice: "1d6"` → `damage: "1d6"`
-- `data/scenarios/combat_pit.json` — all weapon entries updated
-- `static/js/item-library.js` — replaced separate Flat Damage + Damage Dice inputs with a single "Damage" field. Save/load/sync/diff all use unified field.
-- `static/js/inspector/item-view.js` — replaced separate Flat Damage + Damage Dice inputs with single Damage field.
+- `engine/equipment_bonuses.py` - `parse_dice()` renamed to `parse_damage()`, handles both dice strings and flat numbers. `aggregate_bonuses()` reads unified `damage` field.
+- `engine/combat.py` - removed duplicate `_parse_dice()` method, uses `parse_damage()` from equipment_bonuses. Removed `import re`.
+- `data/library/items/iron_shortsword.json` - combined `damage: 8, damage_dice: "1d6"` → `damage: "1d6"`
+- `data/library/items/heavy_club.json` - combined `damage: 10, damage_dice: "1d8"` → `damage: "1d8"`
+- `data/library/items/lumber_axe.json` - combined `damage: 0, damage_dice: "1d6"` → `damage: "1d6"`
+- `data/scenarios/combat_pit.json` - all weapon entries updated
+- `static/js/item-library.js` - replaced separate Flat Damage + Damage Dice inputs with a single "Damage" field. Save/load/sync/diff all use unified field.
+- `static/js/inspector/item-view.js` - replaced separate Flat Damage + Damage Dice inputs with single Damage field.
 
 ## How
 

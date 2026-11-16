@@ -28,7 +28,7 @@ change the weather could not, in fact, change the weather's schedule.
 
 ## How
 
-Extended the World Sky modal (`static/js/sky-scape.ts`) — no second engine:
+Extended the World Sky modal (`static/js/sky-scape.ts`) - no second engine:
 
 - A **Forecast** row: `mode` (authored / deterministic / random / hybrid /
   **generated**), `granularity` (hourly / weekly / yearly), `seed`,
@@ -36,14 +36,14 @@ Extended the World Sky modal (`static/js/sky-scape.ts`) — no second engine:
 - A **timeline** bar over the period with a chip per entry (its position is the
   offset / period), and one editable row per entry: offset, weather, wind,
   wind_direction, humidity, temperature_mod, light_mod, air, message.
-- A collapsible **transition table** textarea (JSON), validated on save — the
+- A collapsible **transition table** textarea (JSON), validated on save - the
   honest view for the state-machine modes, which cannot be enumerated ahead.
 - Save POSTs the same shape the route expects to `/api/settings/forecast`, and
   the route (task-763) now passes `area_overrides`/`date_overrides` through.
 
 **Two departures from the card's field list, both because the live data demanded
 them**: the rows carry `wind_direction` (task-555 shipped, so direction exists)
-and `humidity` — the scenario's own entries already set `humidity`, and a row
+and `humidity` - the scenario's own entries already set `humidity`, and a row
 without that field would have silently dropped it on save. The card's "no
 precipitation model" is now stale: task-763 added it, so the note says so.
 
@@ -66,8 +66,8 @@ both fixed here:
   the modal was reopened. It is now refreshed on every state update.
 
 **The modal was then rebuilt as one surface** instead of two stacked ones. It
-embedded `sky-atmosphere.html` — a 720-line console with its own header, time
-slider and season/moon deck — and added a *second* header and three loose,
+embedded `sky-atmosphere.html` - a 720-line console with its own header, time
+slider and season/moon deck - and added a *second* header and three loose,
 inline-styled control rows on top: two UIs, two headers, two time controls. The
 embedded console is now reduced to a **scene-only hero** (a scoped stylesheet
 injected into the same-origin iframe hides its chrome and lets the sky canvas
@@ -108,7 +108,7 @@ the field is only a preview.
    - expected: gate green.
    - observed: gate green.
 2. Run `python -m pytest tests/test_forecast_settings_route.py`.
-   - expected: 2 passed — the schedule round-trips through the route and the
+   - expected: 2 passed - the schedule round-trips through the route and the
      generated field is exposed.
    - observed: 2 passed.
 3. In a browser, open World Sky on a running world and edit the schedule.
@@ -150,7 +150,7 @@ the field is only a preview.
 - [x] Columns are honest: the deltas (`temperature_mod`/`light_mod`) are what the
   author sets, the temperature shown in-game stays engine-derived, and the
   transition table is shown for the modes that cannot be enumerated ahead.
-- [x] A save is lossless — no authored entry field is dropped.
+- [x] A save is lossless - no authored entry field is dropped.
 - [x] A live environment strip and a transport bar make the hero a real readout.
 - [x] A **Regions** tab shows the next days per open-sky area, projected over the
   generated field, without advancing the world, with a badge distinguishing a
@@ -158,17 +158,17 @@ the field is only a preview.
 
 ## Files
 
-- `static/js/sky-scape.ts` (+ emitted `.js`) — the token-based modal styles
+- `static/js/sky-scape.ts` (+ emitted `.js`) - the token-based modal styles
   (`MODAL_CSS`), the scene-only stage embed (`STAGE_CSS`), the schedule editor,
   the registry-driven weather dropdowns, the two display fixes, the live stats
   strip and transport, and the Regions tab (`_switchSkyTab`, `_renderRegions`,
   `_regionsTable`).
-- `virtual_world_engine.py` — `weather_outlook(days)` (the pure look-ahead over
+- `virtual_world_engine.py` - `weather_outlook(days)` (the pure look-ahead over
   `generate_weather_field`) and `_calendar_dims`.
-- `routes/settings.py` — `area_overrides`/`date_overrides` passthrough and
+- `routes/settings.py` - `area_overrides`/`date_overrides` passthrough and
   `weather_field` on the GET (task-763); `GET /api/settings/forecast/outlook`.
-- `tests/test_forecast_settings_route.py` — route round-trip.
-- `tests/test_forecast_outlook.py` — the outlook projection.
+- `tests/test_forecast_settings_route.py` - route round-trip.
+- `tests/test_forecast_outlook.py` - the outlook projection.
 
 ## Browser UI and intended live verification
 

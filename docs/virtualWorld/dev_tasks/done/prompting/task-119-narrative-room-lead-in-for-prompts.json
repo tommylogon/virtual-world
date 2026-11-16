@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-119",
+  "kind": "task",
+  "number": 119,
+  "title": "Narrative Room Lead-in for Prompts",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the bare room name header in LLM prompts with a narrative lead-in sentence.\n\n### Current\n```\nLiving Room\nA cold living room with wooden floors...\n```\n\n### Target\n```\nYou are currently in the Living Room. The air is cold and still, dust hanging in the dim glow from the hearth.\n```\n\nThe lead-in should combine:\n- Room name\n- Light level feel (dim, pitch black, bright, etc.)\n- Temperature feel (cold, warm, biting, etc.)\n- A key atmospheric detail from the room description\n\nFull room description follows below as before.\n\n### Scope\n- `static/js/agent/prompt-builder.js` - `buildRoomContext()` function\n- `static/js/agent-engine.js` - `_buildRoomContext()` function",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-119-narrative-room-leadin.md"
+  }
+}

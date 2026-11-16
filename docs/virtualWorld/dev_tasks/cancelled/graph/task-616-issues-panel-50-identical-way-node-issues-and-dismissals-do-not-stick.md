@@ -18,7 +18,7 @@ The Issues panel fills with the same way-node problem repeated per node, and dis
 
 - TODO
 
-## Cancellation — the affordance the finding asks for already exists
+## Cancellation - the affordance the finding asks for already exists
 
 Cancelled 2026-09-30. Driving the panel in the world it was filed against
 (`kraktooth_goblin_camp`, loaded via the Scenario Manager's own open path):
@@ -37,11 +37,11 @@ So the magnitude is 1011 across 331 groups, not "50+" -- and every group has a
 **But there is a second view, and it is the answer.** Clicking **`By code`**
 collapses 341 rows into **five**:
 
-    â„¹ way missing description      Ã—329
-    â„¹ way: no view direction       Ã—659
-    â„¹ way: no cardinal direction   Ã—9
-    â„¹ way: no pass message         Ã—4
-    âš  drifted from library         Ã—10
+    â„¹ way missing description      Ã-329
+    â„¹ way: no view direction       Ã-659
+    â„¹ way: no cardinal direction   Ã-9
+    â„¹ way: no pass message         Ã-4
+    âš  drifted from library         Ã-10
 
 That is exactly the aggregation the finding asked for, already implemented,
 already reachable, with a `â–¾` per code. The finding describes the **default
@@ -49,7 +49,7 @@ drill-down view** and does not mention the aggregate view beside it.
 
 **Also wrong in the filing:** these are **â„¹ informational** findings. The
 header reads `0 err Â· 10 warn` -- the 1011 are not errors, and the only warning
-class is `drifted from library Ã—10`.
+class is `drifted from library Ã-10`.
 
 **The one real (small) point that survives:** the default view is `By node`,
 which is the worse default when 326 groups are byte-identical in shape. Defaulting

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-761",
+  "kind": "task",
+  "number": 761,
+  "title": "data/library/rooms is unregistered and holds two misplaced scenario dumps",
+  "status": "review",
+  "priority": "low",
+  "area": "library",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-589",
+      "task-645",
+      "task-568"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "data/library/rooms/ holds 3 files but 'rooms' is not in REGISTRY_TYPES and no route reads the dir. fighting_pit.json is a room template {name, description, environment}; mansion.json and world_template.json are full scenario dumps (top-level current_area/players) misfiled there. Decide per file: migrate the room into the registered indoor vocabulary (task-568's data/library/biomes) or register a rooms type; move the two scenario dumps to the right place or delete them with a recorded reason. Do NOT delete rooms on the strength of being unregistered.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Inspect all three files under `data/library/rooms/` and record which schema\n   each contains: the room-shaped `fighting_pit.json` or the two full scenario\n   dumps (`mansion.json` and `world_template.json`).\n   - expected: each file has a recorded destination decision; no file is\n     removed just because its directory is unregistered.\n2. After choosing whether rooms become a registered library type or are\n   migrated to the existing indoor vocabulary, run the corresponding library\n   checker and request the registered catalog from the app.\n   - expected: the selected room template is discoverable through the chosen\n     registry/API, while neither scenario dump appears as a room template.\n3. Load the relocated scenario files only from their selected scenario\n   location and confirm they still pass scenario loading.\n   - expected: the two scenario definitions remain valid scenario data and are\n     not exposed through a room-template catalog.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Library Browser → room/indoor template catalog, if the\nregistry decision registers `fighting_pit` there. The two scenario dumps\nremain in Scenario Manager's scenario list, not that catalog.\n\nCurrent availability: the card says `rooms` is absent from `REGISTRY_TYPES`\nand no route reads the directory. Therefore no current browser flow can list\nthese files as room templates, and this card does not invent one before the\nregistry decision is made.\n\nLive steps when available:\nThese steps apply after the registry decision is implemented.\n1. Open the Library Browser and inspect the registered room/indoor template\n   catalog.\n   - expected: `fighting_pit` appears once under the selected registered type;\n     `mansion` and `world_template` do not appear as templates.\n2. Open Scenario Manager and inspect the scenario list.\n   - expected: `mansion` and `world_template` appear only if retained as\n     scenarios in the chosen scenario location; neither is listed as a room.\n3. Select `fighting_pit` from its catalog and use the existing placement or\n   creation flow for that chosen library type.\n   - expected: the selected template's room name, description, and environment\n     are used; no full-scenario player/current-area fields are imported as a\n     room.\n\nThe browser destination is intentionally conditional on the registry choice;\nthe current card records no shipped browser surface for this directory.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-761-data-library-rooms-is-unregistered-and-holds-two-misplaced-scenario-dumps.md"
+  }
+}

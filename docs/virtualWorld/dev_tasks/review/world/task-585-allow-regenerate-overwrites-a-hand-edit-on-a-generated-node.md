@@ -71,11 +71,11 @@ by hand".
 
 ## Why
 
-Re-running structure recipes with llow_regenerate: True previously reverted hand-authored edits on generated nodes, violating authoring safety invariants.
+Re-running structure recipes with allow_regenerate: True previously reverted hand-authored edits on generated nodes, violating authoring safety invariants.
 
 ## How
 
-Defined requirement that llow_regenerate must preserve hand edits unless explicitly confirmed with a diff report, retaining 409 conflict refusal on the default path.
+Defined requirement that allow_regenerate must preserve hand edits unless explicitly confirmed with a diff report, retaining 409 conflict refusal on the default path.
 
 ## Steps to verify
 
@@ -90,4 +90,4 @@ Defined requirement that llow_regenerate must preserve hand edits unless explic
 
 - engine/structure_generation.py
 - engine/world_compile.py
-- 	ests/test_apartment_recipe.py
+- tests/test_apartment_recipe.py

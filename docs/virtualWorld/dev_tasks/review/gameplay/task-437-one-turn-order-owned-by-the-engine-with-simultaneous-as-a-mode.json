@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "task-437",
+  "kind": "task",
+  "number": 437,
+  "title": "One turn order, owned by the engine, with simultaneous as a mode",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-436"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-244",
+      "human",
+      "turn",
+      "parameters",
+      "task-241",
+      "task-338",
+      "queue",
+      "docs"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give the engine one turn order and make it the only one. Today four orders\nrun at once: the client queue resolves one from `config.turnOrder`, while\n`BackgroundSimulation.process_due`, `run_social_pass` and\n`process_simple_npcs` each walk their own roster in whatever order it\nhappens to be in. The order that decides who gets the last food, the bed or\nthe clear path is therefore an accident of registration order rather than a\nchoice anyone made, and the card's own measurement shows it is material -\nreversing the roster moves Energy, Thirst, Sanity and Entertainment at a\none-week soak. The work is to move the resolution into the engine: at the\nstart of each timeframe the engine resolves the order once, seeded, stores it\nas a fact for that timeframe, and the API and the UI both read that stored\nlist instead of computing their own - share the data, not the logic. One\nsetting with four modes (sequential, random, initiative, simultaneous)\nanswers the single question \"how does a timeframe resolve?\", and\nsimultaneous in particular must not depend on processing order at all. The\nresolved order is carried by opaque character ids, not by names, and\n`turn_order` stops being dead scenario data.",
+    "why": "There is no single answer to \"who acts first\", and the order that matters most is\nthe only one nobody chose.\n\nFour orders exist today:\n\n| Where | Order | Chosen by |\n| --- | --- | --- |\n| Frontend turn queue (`static/js/agent/turn-queue.js`) | sequential (alphabetical) / random / initiative | the player, via `config.turnOrder` |\n| `BackgroundSimulation.process_due` | **dict insertion order** | nobody - an accident |\n| `run_social_pass` | its own per-area order | nobody |\n| `process_simple_npcs` | its own order | nobody |\n\nSo a character can be 3rd in the queue the UI shows and 19th in the order the\nworld actually resolves them - and the world's order is the one that decides who\ngets the last food, the bed, or the clear path.\n\n`turn_order` is also **dead data**: `tools/build_scenario.py:261` stamps\n`\"sequential\"` into every scenario and **no Python reads it**.\n\n### Measured evidence\n\nReversing the roster order in `process_due`, changing nothing else, moved a\none-game-week soak at T=15 as follows (survival unchanged at 23/23):\n\n| | normal | reversed |\n| --- | --- | --- |\n| Energy | 76.1 | 80.1 |\n| Thirst | 15.0 | 18.4 |\n| Sanity | 82.0 | 78.3 |\n| Entertainment | 40.5 | 38.2 |\n| HP | 96.2 | 96.9 |\n\nInsertion order is therefore a **material, invisible determinant** of outcomes.\nThat is the thing to remove: not because a metric drifted, but because the world\nis quietly cheating in favour of whoever was registered first.",
+    "how": "1. **The engine resolves and stores.** At the start of a timeframe the engine\n   resolves the order once - seeded - and **stores the resolved list for that\n   timeframe** as a fact. The simulation reads it, the API exposes it, the UI reads\n   it.\n   - Do **not** let both sides compute it. If the server shuffles and the client\n     shuffles independently you get the current divergence plus non-determinism.\n     **Share the data, not the logic.**\n2. **Ids, not names.** The queue is name-based today, which contradicts\n   `[[Simulation Model]]` (`id_backed_character_identity`, task-316) and breaks the\n   moment two characters share a name.\n3. **Read `turn_order` for real.** The engine reads it from the scenario/engine\n   config, so the setting stops being dead data and the client-side value stops\n   being the authority.\n4. **Frontend keeps the cursor, loses the ordering.** `currentTurnIndex`,\n   `advance()`, the turn panel: presentation, stays. `initialize()`'s sorting,\n   `reshuffleRandom()`, `rerollInitiatives()`: deleted, replaced by reading the\n   server's list. `config.turnOrder` becomes a display of the server's mode, not a\n   client-side decision.\n5. **`simultaneous` implementation, in two stages.**\n   - **Stage 1 - snapshot decisions, serial deterministic commit.** Each\n     character's flow reads the world as it stood at timeframe start, then effects\n     apply in a fixed commit order. Cheap, removes the *information* advantage\n     (which is what the measurement above is measuring). Does **not** make\n     contention fair: the commit order still decides who gets the last item.\n   - **Stage 2 - intent/effect separation with explicit conflict resolution.**\n     `_act` emits what the character *tries* to do; a commit step applies it and\n     resolves collisions deterministically. This is the real thing, and it is what\n     makes the mode's contract true.\n6. **The contract, stated once, tested:** in `simultaneous`, the outcome does not\n   depend on processing order. That is checkable - reverse the roster and the\n   result must not move.\n7. **Determinism is mandatory.** Conflict resolution, shuffles and initiative\n   rolls must all be seeded, or soaks and tests stop being reproducible.",
+    "verify": "1. Compare the engine's resolved order for one timeframe against the client\n   queue, the Turn Order panel and the event-stream \"up next\" strip.\n   - expected: all three list the same character ids in the same order as the\n     server-resolved value.\n   - observed: not run. Measured 2026-10-20: there is no engine-resolved\n     order to compare against. `static/js/agent/turn-queue.ts` still resolves\n     it client-side (`config.turnOrder` at `:85`, `:163`, `:244`, `:291`), and\n     a scan of `engine/*.py` for `turn_order|turnOrder|turn_mode` returns no\n     reader at all.\n2. Reverse the roster and run the same seed in simultaneous mode.\n   - expected: observable resolution does not move when the roster is\n     reversed.\n   - observed: not run. Measured 2026-10-20: no `simultaneous` mode switch\n     exists in `engine/`, so the mode cannot be exercised. The card's own\n     earlier measurement (reversing the `process_due` roster moved Energy\n     76.1 to 80.1 and Thirst 15.0 to 18.4 at T=15) is the standing evidence\n     that order still decides outcomes.\n3. Run the same seed and scenario twice in each supported mode.\n   - expected: identical outcomes every time, and the UI order is the exact\n     order the world consumed.\n   - observed: not run. Measured 2026-10-20: `tools/build_scenario.py:318`\n     still stamps `\"turn_order\": runtime_overrides.get(\"turn_order\",\n     \"sequential\")` into every scenario and no Python reads it, so the\n     setting is still dead data and there is nothing yet to make\n     deterministic.\n4. Give two characters the same display name and inspect the queue and the\n   event attribution.\n   - expected: each slot stays distinguishable by opaque character id, and no\n     resolution relies on names.\n   - observed: not run. Measured 2026-10-20: the queue is still name-based\n     (`static/js/agent/turn-queue.ts`), so two same-named characters cannot\n     be told apart by the order.",
+    "acceptance": [
+      {
+        "text": "The order the UI shows **is** the order the world resolves in.",
+        "done": false
+      },
+      {
+        "text": "Reversing the roster changes nothing observable in `simultaneous` mode.",
+        "done": false
+      },
+      {
+        "text": "Same seed + same scenario ⇒ identical outcomes, in every mode.",
+        "done": false
+      },
+      {
+        "text": "`turn_order` is read by the engine and is no longer dead scenario data.",
+        "done": false
+      },
+      {
+        "text": "No character is identified by name in the resolved order.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/background_simulation.py:229` - `process_due`, one of the four",
+      "order-bearing walks; its roster iteration is dict insertion order today",
+      "engine/background_social.py:827` - `run_social_pass`, the second",
+      "virtual_world_engine.py:831` - `process_simple_npcs`, the third",
+      "engine/character_appearance.py:916` - the only current mention of",
+      "\"simultaneous\" anywhere in `engine/`, and it is a comment about",
+      "simultaneous drawing, not a mode",
+      "static/js/agent/turn-queue.ts:85` - `switch (config.turnOrder)`, the",
+      "client-side resolution to be replaced by reading the server's list.",
+      "initialize()`'s sorting, `reshuffleRandom()` and `rerollInitiatives()` go",
+      "with it; `advance()` (`:188`), `currentTurnIndex` and the turn panel stay",
+      "as presentation",
+      "static/js/agent-engine.ts` - the client that drives `step()` per actor",
+      "and posts the turn; it consumes the order rather than computing it",
+      "static/js/event-stream.ts` - renders the \"up next\" strip, the third",
+      "surface that must project the engine's list",
+      "tools/build_scenario.py:318` - stamps `turn_order` into every scenario;",
+      "becomes the setting the engine reads instead of dead data",
+      "tests/test_turn_panel_affordances.py` - the existing turn-surface",
+      "regression suite; a new engine-side determinism test for each mode belongs",
+      "beside it"
+    ],
+    "custom": {
+      "the_dial": "One setting, four modes, answering one question - *how does a timeframe resolve?*\n\n- **sequential** - one fixed order, applied serially.\n- **random** - a fresh seeded sequence each timeframe, applied serially.\n- **initiative** - a seeded d20+DEX sequence each timeframe, applied serially.\n- **simultaneous** - no sequence: resolve against a snapshot, commit together.\n\nThree share an implementation shape; `simultaneous` does not. That is a difference\nin mechanism, not in kind, so it belongs on the same dial - which also means any\ntwo modes can be A/B'd against each other, which is how the \"does order actually\nmatter to how this feels\" question gets answered.\n\n**Simultaneous is not a reason to skip contention work**: handling only *contended*\nresources (the last item, one bed, a shared door) is a legitimate internal\noptimisation of the mode, not a different mode.",
+      "the_payoff_beyond_fairness": "Intent/effect separation makes **\"a player is an agent with a different\ncontroller\"** structurally true rather than merely asserted: human, agent, simple\nNPC and soak NPC all emit the same kind of thing into the same resolver. Today\n`_act` mutates the world directly, which is why the four levels *look* like four\ndifferent systems even though the model says they are one.\n\nIt also unifies the human turn with the timeframe: the player's action becomes an\nintent folded into the same commit, instead of a special path.",
+      "notes": "`task-310` is already implemented on the frontend (`reshuffleRandom`,\n`rerollInitiatives`) and sits in `review/` as though it were not. Its remaining\nwork is exactly step 1–4 above - moving the decision to the server. `task-101` is\nstep 5.",
+      "reconnaissance_2026_10_20_verdict_still_valid": "Re-checked the four-order claim against the live code. Nothing newer has moved\nthe turn order under the engine; the card is accurate as written, and its\n\"Dependency reality\" note that task-436 is done still holds.\n\n**The order is still client-owned.** `static/js/agent/turn-queue.ts` (326\nlines) still resolves the order itself: `switch (config.turnOrder)` at line 85,\n`config.turnOrder === 'random'` at line 163, `config.turnOrder === 'initiative'`\nat lines 244 and 291. It reads `config.turnOrder`, never a server-resolved list.\nThere is no `resolvedOrder`, `turnOrder`, or `turn_mode` field in the engine:\na scan of `engine/*.py` for `turn_order|turnOrder|turn_mode|turnMode|simultaneous`\nreturns exactly one hit, `engine/character_appearance.py:916`, which is the word\n\"in\" a comment about simultaneous drawing, not a mode.\n\n**`turn_order` is still dead scenario data.** `tools/build_scenario.py:318`\nstill stamps `\"turn_order\": runtime_overrides.get(\"turn_order\", \"sequential\")`,\nand a repo-wide scan for `turn_order` in `.py` files outside `dev_tasks/`,\n`.kilo/`, `docs_combined.md` and `git-history.txt` returns no readers.\n\n**task-533 did not absorb this card.** task-533 (\"Simultaneous mode never runs\nthe world turn pipeline\") is `done`, but it is a different claim: it fixes the\nsimultaneous-mode *pipeline*, not the *ordering*. The mode dial this card asks\nfor (sequential / random / initiative / simultaneous on one engine-owned\nsetting) is still not implemented. Confirmed by the absence of any\n`turn_mode`/`simultaneous` switch in `engine/`.\n\n**task-465 (turn mode dial) did not land either.** task-465 is `done` (\"Turn\nmode dial: fold Simultaneous into the mode dropdown + add Simultaneous per\nroom\"), but its scope is the UI dropdown and per-room simultaneous, not the\nengine-owned resolved order this card's step 1-4 require. The frontend still\ncomputes the order; the server still does not own it.\n\n**task-310 is still in `review/`** and its remaining work is still exactly this\ncard's step 1-4. task-101 is still in `review/` and is still this card's step 5.\n\n**Line numbers in the card's \"Why\" table are current.** `static/js/agent/turn-queue.js`\nis 326 lines (the `.ts` is the source; the card's `151-158` range is inside\n`advance()`, which still increments and wraps the index). `routes/action_handlers.py`\ndoes not exist - the decay handler moved; `routes/action.py:108` registers\n`POST /api/world/timeskip`, and `engine/timeskip.py:179/273` are the two\nadvance entry points. That drift is recorded, not a change in fact.\n\nThe card stays in `todo`.",
+      "browser_ui": "Intended UI home: enable turn-based play and compare the Turn Order panel, the event-stream “up next” strip, and the `/api/state` resolved-order value for the same timeframe. All views must project the engine-resolved order rather than compute separate queues.\n\nCurrent availability: the card reports that scenario `turn_order` is dead data and that the client queue is name-based. An engine-owned resolved order, ID-backed queue, and mode agreement are planned; this card does not claim those changes are live.\n\nLive steps when available:\n1. Load a seeded scenario with three uniquely identified characters, enable sequential mode, and inspect Turn Order and the event-stream `up next` strip before the first action.\n   - expected: both surfaces list the same character IDs in the same order as the server-resolved timeframe value.\n2. Reverse the character roster in the scenario and run the same seed in simultaneous mode.\n   - expected: observable resolution is unchanged by roster order; simultaneous processing does not inherit an arbitrary roster ordering.\n3. Run the same seed and scenario twice in each supported mode, then compare the resolved order and outcomes.\n   - expected: each repeat is deterministic and the UI order is the exact order consumed by the world.\n4. Give two characters the same display name and inspect the queue and event attribution.\n   - expected: each slot remains distinguishable by opaque character ID; no resolution relies on names.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Simulation Model]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-436 (timeframe-and-flow model - done)",
+      "absorbs": "task-310 (reroll initiative / random order), task-101 (simultaneous room turns)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-437-turn-order-source-of-truth-and-modes.md"
+  }
+}

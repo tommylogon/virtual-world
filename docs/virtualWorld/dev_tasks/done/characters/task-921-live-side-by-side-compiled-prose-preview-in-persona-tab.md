@@ -12,6 +12,10 @@ related: ["task-903", "task-844"]
 **Filed:** 2026-10-31
 **Related:** task-903, task-844
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]], [[task-844-persona-tab-character-sheet-pass-grid-chips-codex-preview]]
+<!-- deps:end -->
+
 ## What
 
 Add a live side-by-side diff preview modal / drawer in the Persona tab before committing a compile action, displaying:
@@ -39,5 +43,5 @@ Compiling currently applies the changes directly when `force: true` or opens a s
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

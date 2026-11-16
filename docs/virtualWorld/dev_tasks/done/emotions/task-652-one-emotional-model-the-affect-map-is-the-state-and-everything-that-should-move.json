@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "id": "task-652",
+  "kind": "task",
+  "number": 652,
+  "title": "One emotional model: the affect map is the state, and everything that should move a feeling moves it",
+  "status": "done",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Every input that should affect a character's emotional state does affect it, in the one model, and that state surfaces memories, steers behaviour and shapes social interaction",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**One normaliser for a declared feeling.** `felt_from_llm` is no longer",
+        "done": true
+      },
+      {
+        "text": "dead code and the route no longer uses the loose one - a declared feeling is",
+        "done": false
+      },
+      {
+        "text": "resolved by the same function everywhere.",
+        "done": false
+      },
+      {
+        "text": "**No authored alias is dropped.** Every one of the ~70 entries in",
+        "done": true
+      },
+      {
+        "text": "`LABEL_TO_DIM` now resolves, and the eleven `AXIS_TO_EXPRESSION` names are",
+        "done": false
+      },
+      {
+        "text": "authored into `LABEL_TO_DIM` rather than inherited by accident.",
+        "done": false
+      },
+      {
+        "text": "**A coincidental substring does not resolve.** `hangry` stays un-resolved",
+        "done": true
+      },
+      {
+        "text": "(it does not become `angry`), which is what task-505 was filed for and what",
+        "done": false
+      },
+      {
+        "text": "the old route path violated.",
+        "done": false
+      },
+      {
+        "text": "**An invented word is still ignored** - an LLM cannot invent a dimension.",
+        "done": true
+      },
+      {
+        "text": "**The affect map is readable as a set of feelings**, not just a leader:",
+        "done": true
+      },
+      {
+        "text": "`engine.emotion.raised_axes`, sharing the one label threshold so the label a",
+        "done": false
+      },
+      {
+        "text": "reader sees and the axes behaviour reads cannot disagree.",
+        "done": false
+      },
+      {
+        "text": "**The feeling steers behaviour.** `action_weights` now takes the actor's",
+        "done": true
+      },
+      {
+        "text": "raised affect axes into account, so a frightened or furious character draws",
+        "done": false
+      },
+      {
+        "text": "a different social action from a calm one.",
+        "done": false
+      },
+      {
+        "text": "**The steering is a modifier, never a gate.** A gated action stays gated",
+        "done": true
+      },
+      {
+        "text": "however strongly you feel; the band and the traits still dominate.",
+        "done": false
+      },
+      {
+        "text": "Every affinity names a real dimension - two of the first eight did not, and",
+        "done": true
+      },
+      {
+        "text": "those rules could never have fired.",
+        "done": false
+      },
+      {
+        "text": "Mechanism tests *and* an emergence test (the distribution actually shifts),",
+        "done": true
+      },
+      {
+        "text": "in `tests/test_affect_model.py` (23 tests).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_2026_10_02_wt_characters_engine": "### What was already true, and was checked rather than assumed\n\nThe model itself is good and widely written to. Before changing anything, the\nfour AGENTS.md wiring checks were run on the obvious candidates:\n\n| check | result |\n|---|---|\n| is anything calling it? | `frightened` → affect map **yes** (`engine/conditions.py` → 10.0). `spike_emotion` → 10+ callers. `felt_from_llm` → **zero production callers**. |\n| reading the right object? | the map is on `Player`, read via `emotions_map()` - consistent |\n| has anyone authored data? | yes, extensively |\n| can the guard's lookup ever match? | see the two defects below |\n\nSo the model did not need building. Two things did, and both were provable\nwithout reading a file end to end.\n\n### Defect 1: a declared feeling was normalised two different ways\n\n`handle_spike_emotion` used `map_label`, which **substring-matches**.\n`felt_from_llm` existed specifically to avoid that - its docstring says so - and\nhad no production caller at all.\n\n```\nlabel       felt_from_llm (strict)   map_label (what the route used)\nhangry      None                      angry        <- coincidence\nterrified   None                      afraid       <- declared alias, dropped\nfurious     None                      angry        <- declared alias, dropped\ntired       None                      melancholic  <- declared alias, dropped\n```\n\nTwo failures from one cause: the live path invented a feeling from a typo, and\nthe strict path rejected the module's own authored vocabulary. `felt_from_llm`\nconsulted only `BASELINES` and never `LABEL_TO_DIM` - which is why\n`set_emotion(\"terrified\")` worked (it reads the alias table) while the LLM route\nrefused the same word.\n\nFixed by consulting `LABEL_TO_DIM` before the semantic bridge, and by routing\nthe endpoint through the strict normaliser. `hangry` is now ignored rather than\nread as `angry`, which is the behaviour task-505 asked for and the loose path\nhas been silently defeating since.\n\nThe eleven axis names (`sadness`, `anger`, `shame`, …) were also added to\n`LABEL_TO_DIM`. `map_label` has always resolved them - but only by inverting\n`AXIS_TO_EXPRESSION`, the **expression art** table, which is a different concern\nthat happens to share eleven names. Those names now sit next to `terrified`,\nwhere an author can see them.\n\n### Defect 2: the feeling never caused behaviour\n\nThe goal says the state \"steers behaviour and shapes social interaction\".\nMeasured: **eleven** systems write the affect map and **one** reads it\n(`engine/derive.py`, for consent). `background_social.py` writes emotions -\n`TIER_EMOTION`, `TIER_TARGET_EMOTION`, `FEAR_COSTS` - and read none. A character\nwho had just been frightened drew from an identical table to one who had just\nbeen complimented: the feeling was a *consequence* of behaviour and never a\n*cause* of it.\n\n`action_weights` already modulates by band, traits and vitals, so it is the right\nseam and the change is a few lines in a table that already exists. Each action now\ndeclares the affect axes it **expresses**, and a character feels their way to the\ndraw.\n\n### The three constraints on the steering\n\n1. **A feeling re-weights what is on offer; it never opens a gate.** A frightened\n   character does not become willing to flirt with a stranger - `confide` and\n   `flirt` stay at 0.0 however strongly the matching axes are raised. This is what\n   keeps social behaviour readable rather than mood-contingent.\n2. **Only a *raised* axis counts**, and the bar is the same\n   `emotion.expression_margin` that decides a label counts as a feeling - so the\n   label a reader sees and the axes behaviour reads cannot disagree, and a\n   baseline that sits above zero does not make a character permanently feel it.\n3. **The strongest matching axis decides, not the union.** A character 20 angry\n   and 60 afraid gets `afraid`'s full tilt on `apologise` and only a quarter of\n   `angry`'s on `bully`, rather than both at full strength.\n\n### A rule that could never have fired\n\nThe first draft of `AFFECT_AFFINITY` named `amused`, `hopeful`, `defiant` and\n`mischievous`. `defiant` and `mischievous` are **labels** that map into\n`angry`/`excited`; `amused` and `hopeful` are neither dimensions nor declared\nlabels anywhere. Two of the eight affinities were dead on arrival, and nothing\nwould have said so. `test_every_affinity_names_a_real_dimension` now does.\n\n### The honest magnitude\n\nAn angry character bullies **10.6% → 15.2%** of draws (1.44×), not 2×: `bully`\ncompetes against seven other actions, so multiplying its weight by `AFFECT_TILT`\nmoves its share by less than that factor. The test asserts 1.3×, which is the\nmeasurement, and the docstring says why it is not 2 - asserting a stronger\nmechanic than the one that ships would be asserting something untrue.\n\n### Not done here\n\n- **`background_plans` was left alone.** It is the other obvious place a feeling\n  could steer behaviour, and the plan layer is **entirely unexercised** - there\n  is not one authored `plan` node in `data/`. Wiring a behaviour modifier into a\n  layer with no content would have produced a rule that could not be observed, and\n  per AGENTS.md §8 the content comes first.\n- **Narration and expression art** were already reading the map\n  (`dominant_expression`, `character-art.js`) and are untouched.\n- **No new affect dimensions.** This task is about the model being *one* model and\n  *used*, not about there being more axes.\n\n### Verify\n\n```\npython -m pytest tests/test_affect_model.py -q                             # 23 passed\npython -m pytest tests/test_emotion.py tests/test_emotion_semantic_bridge.py -q\n                                                                          # 83 passed\npython -m pytest tests/test_background_social.py tests/test_social_approach.py \\\n  tests/test_social_company.py tests/test_background_simulation.py \\\n  tests/test_background_agendas.py tests/test_background_plans.py \\\n  tests/test_background_recreation.py tests/test_background_relief_and_washing.py \\\n  tests/test_background_consumption.py tests/test_background_preparation.py -q\n                                                                          # 122 passed\n```\n\nThe 122 social/background tests passing **with** the new behaviour is the point:\nthe change is invisible to a character who is not feeling anything, and every\nexisting expectation about one who is still met.\n\n**Full suite compared by failure NAME against the clean-master baseline**: 15\nfailed on both, `Compare-Object` empty.\n\n### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`\n\n**1. A declared alias now lands.** It was dropped before:\n\n```\nPOST /api/players/Kaelen%20Voss/emotions {\"emotion\":\"terrified\",\"intensity\":8,\"delta\":40}\nGET  /api/state   ->  afraid 10.0 -> 50.0\n```\n\n`terrified` is a declared alias of `afraid` in `LABEL_TO_DIM`;\n`set_emotion(\"terrified\")` had always worked, and the LLM route refused the same\nword.\n\n**2. And the coincidence is refused.** Same endpoint, same character:\n\n```\nPOST /api/players/Kaelen%20Voss/emotions {\"emotion\":\"hangry\",\"intensity\":8,\"delta\":40}\n  -> {\"ignored\": \"hangry\"}\nGET  /api/state   ->  angry 8.0 -> 8.0   (unchanged)\n```\n\nBefore this change that same request moved `angry` by +40, because the route\nsubstring-matched \"hangry\" containing \"angry\" - the exact failure task-505 was\nfiled to prevent.\n\n**3. The feeling reaches behaviour.** Same seed, only the affect map differs, 600\ndraws each from `choose_action`:\n\n```\n  calm    bully=0.083  apologise=0.090\n  angry   bully=0.135  apologise=0.077\n  afraid  bully=0.080  apologise=0.125\n```\n\nAngry raises bullying and lowers apologising; afraid raises apologising and leaves\nbullying alone. Neither is a switch - the calm character still bullies 8% of the\ntime, because the relationship band and the traits still decide.\n\nLive world returned to its prior state afterwards (`afraid` restored to its\nbaseline 10.0)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/emotions/task-652-one-emotional-model-the-affect-map-is-the-state-and-everything-that-should-move-a-feeling-moves-it.md"
+  }
+}

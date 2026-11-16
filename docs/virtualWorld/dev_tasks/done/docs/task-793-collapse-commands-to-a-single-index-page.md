@@ -19,7 +19,7 @@ wiki: "[[Feature Map]]"
 
 ## What
 
-Replace the 86 per-verb `docs/virtualWorld/Commands/*.md` pages with a single **Commands index** — every verb and its aliases, grouped, linking each verb to the feature page and section that owns it.
+Replace the 86 per-verb `docs/virtualWorld/Commands/*.md` pages with a single **Commands index** - every verb and its aliases, grouped, linking each verb to the feature page and section that owns it.
 
 ## Why
 

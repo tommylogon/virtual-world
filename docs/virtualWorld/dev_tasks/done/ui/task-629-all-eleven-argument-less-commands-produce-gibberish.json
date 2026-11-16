@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-629",
+  "kind": "task",
+  "number": 629,
+  "title": "All eleven argument-less commands produce gibberish",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Invoking a verb with no target returns nonsensical prose for every one of the eleven verbs tested. Only three remaining verbs produce anything sensible at all.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Recover the exact eleven verb spellings from the original regression fixture or commit, load a scratch scenario, and enter each verb without a target in the command input.\n   - expected: every reply gives a useful missing-target explanation or choices; no bare verb produces gibberish or silently executes another action.\n   - observed: This card does not record the verb spellings or a browser result; a faithful replay cannot be claimed until the original input list is recovered.\n2. Compare `/api/state`, tick, and action slots before and after each bare verb.\n   - expected: asking for a target does not move the actor, consume a slot, advance time, or write a memory.\n   - observed: not recorded in this card.\n3. Add a valid target to each verb that requires one and repeat.\n   - expected: the targeted form follows the normal engine action path and produces its ordinary result.\n   - observed: not recorded in this card.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Main command input → enter a verb with no target → read the command result in the event stream. The response must explain the missing target or show useful choices without performing an action.\n\nCurrent availability: This card is filed under done but its body does not name any of the eleven verbs, record their expected replies, or provide evidence. The exact eleven input strings are not available in the card, so a faithful replay needs the original regression fixture or commit evidence before it can be called verified.\n\nLive steps when available:\n1. Load a scratch scenario, select the actor used by the original repro, and record `/api/state` and the current tick.\n   - expected: a clean before-state is available for checking that a bare verb has no side effects.\n2. Enter each of the eleven exact no-target verb strings from the original regression fixture and record the event-stream reply.\n   - expected: each reply names the missing argument or offers the relevant choices in ordinary prose; none returns gibberish or silently executes a different action.\n3. Compare state and tick after each input.\n   - expected: a request for an argument does not move the actor, consume an action slot, advance time, or write a memory.\n4. Add a valid target to each command that asks for one and repeat.\n   - expected: the valid form reaches the normal engine action path and produces its ordinary result.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-629-all-eleven-argument-less-commands-produce-gibberish.md"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-300",
+  "kind": "task",
+  "number": 300,
+  "title": "Scenario Clock Start Time",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "Allow changing the scenario's clock start time.",
+      "implemented": "- `routes/settings.py` - `GET/POST /api/settings/clock_start`, validates HH:MM, writes `world.clock_start_hour/minute` (engine already computes the clock from these).\n- `templates/index.html` - \"Clock Start (HH:MM)\" `<input type=\"time\">` in the Game Clock settings group.\n- `static/js/ui/settings-view.js` - `populateForm()` prefills the field from the backend when settings open.\n- `static/js/ui/saveload-view.js` + `static/js/main.js` - `updateClockStart(value)` posts the new time and refreshes state.\n\n**Verified**: full suite 980 passed; JS `node --check` clean; `routes.settings` imports.",
+      "notes": "- Clock settings are already serialized per scenario (see `docs/virtualWorld/Environment/Time & Weather.md`); this is wiring the start time through load/save so a scenario can begin at, e.g., dawn or midnight.\n- Trivial scope - mostly reading an existing setting at startup and exposing it in the editor/scenario file.\n- Related to `task-301` (default turn duration): both are \"scenario clock\" knobs.",
+      "related": "- `developer ideas.md` line 7\n- `docs/virtualWorld/Environment/Time & Weather.md`, scenario files (`world_template.json` clock settings)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-300-scenario-clock-start-time.md"
+  }
+}

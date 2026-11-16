@@ -5,9 +5,9 @@ area: bugs
 priority: medium
 ---
 
-# Bug 25 — take/wear no-ops read as failures and duplicate-wear stacks
+# Bug 25 - take/wear no-ops read as failures and duplicate-wear stacks
 
-**Status:** Done — reframed and closed 2026-09-22. The engine-side messaging fix
+**Status:** Done - reframed and closed 2026-09-22. The engine-side messaging fix
 was already in place; the remaining live repro was a duplicate-item-instances
 data problem, split out to task-450.
 
@@ -22,10 +22,10 @@ data problem, split out to task-450.
 
 ## Fix (shipped)
 
-- `engine/items/take_drop_actions.py` — `take_item` checks carried/equipped roots
+- `engine/items/take_drop_actions.py` - `take_item` checks carried/equipped roots
   first and returns a soft no-op ("You're already carrying/wearing the X."); the
   not-found hint lists items only, never characters.
-- `engine/equipment.py` — `equip_item` refuses a second instance of the same-named
+- `engine/equipment.py` - `equip_item` refuses a second instance of the same-named
   worn item ("You're already wearing the X.").
 - Tests: `TestTakeAlreadyHeld`, `test_cannot_wear_second_copy_of_same_item`,
   `test_equip_same_item_twice_refused`.
@@ -41,7 +41,7 @@ The 2026-08-30 reopen repro was:
 [Tick 6] World You're already wearing the Jumpsuit.
 ```
 
-Those are the *fixed* messages — the code path is not the bug. The contradictory
+Those are the *fixed* messages - the code path is not the bug. The contradictory
 carrying-then-wearing sequence can only occur when the character holds **two
 same-named instances** (one carried, one worn) or one node with both a `CARRYING`
 and an `EQUIPPED` edge. `equip_item` removes the `CARRYING` edge, so in normal

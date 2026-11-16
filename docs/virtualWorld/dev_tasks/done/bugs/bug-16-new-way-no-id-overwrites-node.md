@@ -1,10 +1,10 @@
 # Bug-16: Creating a New Way Without an ID Overwrites an Existing Node
 
-**Status:** In Review — implemented 2026-08-16, in `routes/graph.py` `build_connect_legacy`: no manual ID now generates a unique id (`base`, `base_2`, ...) via a `get_node` collision loop + `_slugify_node_id(dir1)`. Regression test added in `tests/test_way_connect_repair.py` (`test_build_connect_no_way_id_generates_unique_id`), all 941 pytest pass.
-**Area:** Graph editor — way creation
+**Status:** In Review - implemented 2026-08-16, in `routes/graph.py` `build_connect_legacy`: no manual ID now generates a unique id (`base`, `base_2`, ...) via a `get_node` collision loop + `_slugify_node_id(dir1)`. Regression test added in `tests/test_way_connect_repair.py` (`test_build_connect_no_way_id_generates_unique_id`), all 941 pytest pass.
+**Area:** Graph editor - way creation
 **Observed:** `create new way without setting a id will overwrite a existing node, not create a new way with a unique ID`
 **Repro:** Create one way with no manual Way ID (the auto-generated id is stored),
-then create a second way likewise with no manual Way ID — the second one replaces
+then create a second way likewise with no manual Way ID - the second one replaces
 the first instead of being a new node.
 
 ## Root cause
@@ -39,7 +39,7 @@ route then rewires the stale edges for that id). No error, no unique id.
 
 Creating a way without specifying an ID should generate a unique way ID
 (e.g. `way_<room>_<dir>` with a numeric suffix `_2`, `_3`, ... on collision),
-preserving the existing node — consistent with the `way_<room>_<dir>_<suffix>`
+preserving the existing node - consistent with the `way_<room>_<dir>_<suffix>`
 handling used by other node types, and with the lowercase/node-id conventions
 (`build_item` already reuses/finds case-insensitive matches to avoid dupes).
 

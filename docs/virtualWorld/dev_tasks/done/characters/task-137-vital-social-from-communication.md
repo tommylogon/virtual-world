@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-30  
 **Priority**: Medium  
-**Status**: Design — audit 2026-08-15: conversation tracking (speech_log, recent_hearing) and `on_speech` trigger type already implemented (trigger_system.py:44, virtual_world_engine.py:719). Remaining gaps tracked in task-227.
+**Status**: Design - audit 2026-08-15: conversation tracking (speech_log, recent_hearing) and `on_speech` trigger type already implemented (trigger_system.py:44, virtual_world_engine.py:719). Remaining gaps tracked in task-227.
 
 ---
 
@@ -34,7 +34,7 @@ The Social vital decays over time but has no natural way to increase except via 
 ## Related
 
 - [[review/characters/task-28-character_needs_system|task-28: Character needs system]]
-- `player.py` — vitals, traits
+- `player.py` - vitals, traits
 - `engine/tick_manager.py`
 
 ## What

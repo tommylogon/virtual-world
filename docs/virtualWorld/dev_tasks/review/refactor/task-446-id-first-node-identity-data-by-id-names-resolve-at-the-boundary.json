@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "task-446",
+  "kind": "task",
+  "number": 446,
+  "title": "id-first node identity - data by id, names resolve at the boundary",
+  "status": "review",
+  "priority": "high",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-457"
+    ],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Refactor node identity to be id-first rather than name-keyed across backend data structures, storage, relationships, and queries. Display names become a user-facing resolution layer handled at the boundary by engine/matching.py, allowing nodes to share display names safely without dangling references or identity collisions.",
+    "why": "Keying backend storage and logic by display names causes collisions when multiple characters share a name (e.g. two characters named 'Jon'), leads to silent state overwrites, breaks references when display names change, and blocks procedural population or templated content. An id-first data model provides stable persistence and references while decoupling internal identity from display strings.",
+    "how": "1. Slice A: Make PlayerManager.players id-keyed with a name index (engine/player_manager.py), give duplicate names stable suffixes (player_Jon__<uid>), update relationships to key on identity (engine/relationships.py), and migrate display iteration.\n2. Slice B: Transition location storage from area names to canonical area IDs (tracked in task-439).\n3. Slice C: Enforce engine/matching.py as the sole name-to-id resolution boundary for player commands and interaction.",
+    "verify": "1. Run targeted player identity tests via pytest (python -m pytest tests/test_player_identity.py).\n   - expected: All 8 identity tests pass (duplicate names, round-trip persistence, relationship separation, name matching ambiguity).\n   - observed: 8 passed on Slice A implementation.\n2. Create and interact with two same-named characters in a test world.\n   - expected: Targeting one resolves unambiguously via unique ID or prompts for disambiguation without collapsing state.\n   - observed: Disambiguation candidate list returned as expected; UX workflow tracked in task-448.\n3. Verify backward-compatible save loading.\n   - expected: Legacy name-keyed scenarios load cleanly and deserialize display names accurately.\n   - observed: Verified via serialization unit tests.",
+    "acceptance": [
+      {
+        "text": "Two characters named \"Jon\" can coexist end-to-end (create, save, load, act,",
+        "done": true
+      },
+      {
+        "text": "be targeted unambiguously via `matching`).",
+        "done": false
+      },
+      {
+        "text": "`players` storage and `node_id_for` are id-keyed; no data operation keys on a",
+        "done": true
+      },
+      {
+        "text": "name.",
+        "done": false
+      },
+      {
+        "text": "Old saves load unchanged; new saves round-trip.",
+        "done": true
+      },
+      {
+        "text": "Full test suite green apart from the known pre-existing failures.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/player_manager.py",
+      "virtual_world_engine.py",
+      "engine/serialization.py",
+      "engine/matching.py",
+      "engine/relationships.py",
+      "tests/test_player_identity.py"
+    ],
+    "custom": {
+      "principle": "Backend data operations on nodes are keyed by **id**. Names are user-facing: a\nmatcher resolves user text (\"steal from Jon\", \"take the knife\") to an id, and\nthe id is what every data operation consumes. Ids are stable across renames, so a\nrename never dangles a reference and two nodes may share a display name.\n\n`engine/matching.py` is the name→id seam. Storage must not use names as identity.",
+      "measured_blast_radius_2026_09_22_non_test": "| Violation | Sites |\n|---|---|\n| `players` dict keyed by name | 24 direct `players[...]` + 69 `.items()/.values()/.keys()` |\n| `Player.node_id_for(name)` anchor id from name | 192 (`node_id_for`/`player_node_id`) |\n| `relationships` keyed by name | 6 |\n| `current_area` stores an area **name** | 445 |\n| `find_item_node` / exit resolution by name as identity | small (mostly `matching.py`) |",
+      "slices": "### Slice A - player identity (points 1, 2, 3) *in progress*\n\n- `Player.uid` is the stable identity (existing opaque `Player.id`, task-316).\n- `PlayerManager.players` becomes **id-keyed**, with a name index. Duplicate\n  display names are allowed; ambiguous name lookups return candidates and the\n  resolver picks.\n- Anchor node ids stay `player_<slug(name)>` for a **unique** name (saves and\n  tests keep working) and get a stable suffix from the uid when the name is\n  duplicated (`player_jon__<uid>`).\n- Save format: `players` written keyed by id with `name` inside; **read** accepts\n  legacy name-keyed files (key falls back to the payload's `name`).\n- Migrate the ~93 access sites: iteration for display uses `p.name`; identity\n  uses the key/uid.\n- Relationship keys move to uid (point 3) with name resolution for prompts.### Slice B - location by id (point 4) *last, behind a compat accessor*\n\n- `current_area` holds an area id; `Player.area_name`/resolver provide the name\n  at the display/prompt boundary. 445 sites, so a compatibility accessor first,\n  then mechanical migration.\n- **Already tracked as task-439** (\"Canonical area identity in the save and in\n  area lookups\") - do that work there, not here. 439 is the prerequisite for\n  scopes/decomposition.\n\n### Slice C - resolver boundary (point 5)\n\n- Formalize `matching.py` as the only name→id seam; no engine code consumes a\n  name as a key. Mostly a cleanup once A/B land.",
+      "why_this_order": "A is the core of the stated goal (500 \"Jon\"s; template population). B is the\nwidest change, so it goes last. C is cleanup. A+B+C in one pass would leave the\ntree half-migrated and break the suite; each slice must keep the suite green.",
+      "compatibility_migration_rules": "- Never break a name-keyed save: read old, write new.\n- A unique name keeps its derived anchor id (no churn on existing worlds).\n- `players[name]` continues to work for a unique name; ambiguous access logs /\n  returns the primary candidate and the resolver surfaces the alternatives.\n- Rename must remain reference-safe: only the display name changes.",
+      "implemented_slice_a_steps_1_3_2026_09_22": "Functional duplicate display names, non-breaking:\n\n- `PlayerManager` (`engine/player_manager.py`): a name is now a **lookup key**,\n  not the identity. `_unique_key` gives a duplicate a stable id-derived registry\n  key (`Jon` -> `Jon__<id6>`) while `p.name` stays free; `add_player` gives such a\n  player a unique anchor (`player_Jon__<id6>`). Unique names keep the exact legacy\n  key and anchor, so existing worlds/saves do not churn. Added `uid_of`,\n  `get_by_id`, `find_by_name`, `resolve`, `reindex`, `relationship_key`,\n  `display_name_of`; `get_player` / `get_player_node_id` / `set_active_player`\n  accept key, name or id; `get_players_in_area` / `get_all_*_players` report\n  `p.name` (display). Registered players are given a `player_manager`\n  back-reference so identity can be resolved from anywhere.\n- `virtual_world_engine.py`: `player_node_id` / `_player_node_id` delegate to\n  `PlayerManager.get_player_node_id`, so a registry key resolves to its own anchor.\n- `engine/serialization.py`: `_deserialize_player` restores `p.name` from the\n  payload (fixes a latent bug that would set the display name to the key), and\n  `load_from_dict` calls `reindex()` so duplicate keys get unique anchors.\n- `engine/matching.py` (`_match_character_name`): name tiers compare the\n  **display** name, so two characters named \"Jon\" return an **ambiguous**\n  candidate list (keys) instead of silently resolving to the first.\n- **Relationships keyed by identity (point 3).** `engine/relationships.py` gains\n  `resolve_key` / `display_name` / `get_relationship`; every writer and reader\n  (`ensure_relationship`, `apply_relationship_delta`, `apply_symmetric_delta`,\n  `describe`, and the migrated reads in `derive`, `area_description`,\n  `background_social`, `grapple`, `pleasure_actions`, `movement`, `player_ops`)\n  resolves the other party to the unique key. Records carry a denormalized\n  `name` for prose/prompts; `Player._rel_key` backs `has_met` / `knows_name` /\n  `learn_name` / `register_first_meeting`; `_relationships_to_dict` emits display\n  names. For a unique name the key IS the name, so nothing churns.\n- **Display-name usage in iteration (step 4).** Label sites that printed or\n  matched the loop key as a name now use the display name: `narration.py`\n  character listing, `logging_events.py` debug export, `routes/settings.py`\n  player dump, `routes/player_ops.py` player lists + target candidates + learned\n  list, `engine/autocomplete.py` character suggestions, `engine/movement.py`\n  feared-room check, `engine/effects.py` / `engine/triggers/evaluation.py`\n  target resolution. Sites where the key is genuinely an identity (edge/condition\n  keys, notification keys, counts, hash keys) were left as-is.\n- Tests: `tests/test_player_identity.py` (8) - unique-name compatibility,\n  duplicate coexistence, save/load round-trip, resolve by name/key/id, in-area\n  listing, duplicate-target ambiguity, and **per-identity relationships** (two\n  \"Jon\"s keep separate records; a rename does not drop the record), and distinct\n  spawn character materialization.\n- Regression: full suite unchanged (same 60 pre-existing MCP/social/tick\n  failures; no new ones).\n\n### Remaining in Slice A\n\n- Duplicate-target disambiguation UX -> **task-448**.\n- Character nicknames/alias authoring + persistence -> **task-447**.\n- Grapple identity mixup (functional) + log-string label leaks -> **task-449**.\n- Add duplicate-name round-trip coverage at the route/autosave layer (small,\n  folded into a later pass).\n- `node_id_for` is still name-derived for the unique case by design (compat);\n  a pure-uid anchor migration is a later step.\n- Slice B (location by id) is **task-439**, not this task.",
+      "browser_ui": "Intended UI home: Scenario character authoring/selection and Character Inspector -> Bio, with the normal target-selection prompt during play.\n\nCurrent availability: The id-first record boundary is integrated; existing character surfaces keep same-named records distinct.\n\nLive steps when available:\n\n1. In a scratch scenario, create two characters with the same display name, save, reload, and select each from the graph/character list.\n   - expected: Each selection opens the intended character record and keeps separate Player state across reload.\n\n2. Target one same-named character through normal interaction and inspect the response.\n   - expected: Stable identity resolves the target or the UI asks for a choice; it never silently merges names.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "refactor_discipline_applies_to_this_task": "Applies to every refactor in this repo, per the 2026-10-16 card refresh:\n\n1. **Dedup & reuse pass (mandatory).** While working, scan the touched concern and its\n   neighbours for duplicate logic, parallel data homes, and near-identical helpers;\n   consolidate onto one owner instead of copying. Prefer reusing an existing seam over\n   creating a second one. Record any dedup decision in the move table / notes.\n2. **Agent-experience & cleanliness (mandatory).** Name modules/files by concern (not\n   by size), keep each under ~600 lines where the seam allows, add a one-line module\n   docstring stating its owner and public surface, and ensure a fresh agent session can\n   understand it without reading the host. No new abstraction unless an existing seam\n   already represents the concept.\n3. **No behaviour change unless the card says so.** Extraction and consolidation only;\n   keep public imports/API stable and re-export moved members as thin delegates.\n4. **One file/concern at a time**, verified with a targeted test selection (never the\n   full suite by default, never -q).",
+      "status_note_2026_10_19": "- Unblocked with task-457 character-node authored definition landing.\n- Slice A fully implemented in engine/player_manager.py and verified with 8/8 tests passing in tests/test_player_identity.py. Ready for review."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Ways]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/refactor/task-446-id-first-node-identity.md"
+  }
+}

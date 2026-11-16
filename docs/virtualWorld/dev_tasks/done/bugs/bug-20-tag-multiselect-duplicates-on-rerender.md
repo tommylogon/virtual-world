@@ -1,6 +1,6 @@
-﻿# Bug 20 — Tag multiselect duplicates on every inspector re-render
+﻿# Bug 20 - Tag multiselect duplicates on every inspector re-render
 
-**Status:** Done — confirmed by Tommy 2026-08-30.
+**Status:** Done - confirmed by Tommy 2026-08-30.
 
 ## Symptoms
 
@@ -14,7 +14,7 @@ both paths fire `onChange` → `api.updateNode` → `worldState.fetch()` → re-
 `static/js/shared/tag-multiselect.js` mixed two rendering worlds:
 
 1. `_build()` called `window.Lit.render(empty, container)` to clear the
-   container — but lit-html only clears content between its own comment
+   container - but lit-html only clears content between its own comment
    markers.
 2. The widget `wrapper` was then added via `container.appendChild(...)`,
    landing AFTER lit's end marker, outside lit's managed region.
@@ -28,7 +28,7 @@ was never called by most call sites anyway (`IV._tagMs` was simply overwritten).
 `tag-multiselect.js`:
 
 - `_build()` now wipes all container children imperatively
-  (`while (container.firstChild) removeChild(...)`) before appending —
+  (`while (container.firstChild) removeChild(...)`) before appending -
   guarantees exactly one widget per container regardless of rebuild count.
 - `destroy()` uses the same wipe so it actually removes the widget.
 
@@ -39,7 +39,7 @@ guards with `container.__condTagMulti`, so no behavior change there.
 
 ## Verification
 
-- `node --check static/js/shared/tag-multiselect.js` — OK.
+- `node --check static/js/shared/tag-multiselect.js` - OK.
 - Browser E2E pending: select item → remove a tag → confirm exactly one
   selector remains; add a tag → same; switch between nodes → no stacking.
 

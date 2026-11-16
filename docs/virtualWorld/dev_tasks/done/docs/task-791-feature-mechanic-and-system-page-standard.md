@@ -15,7 +15,7 @@ wiki: "[[Feature Map]]"
 
 ## What
 
-Define and document the three-tier page standard every vault note follows: a **feature** page (what you do or use), its **mechanics** (how it works), and the **system** (where it lives — code, data, config). Replace the scaffolded stub format with a hand-written template.
+Define and document the three-tier page standard every vault note follows: a **feature** page (what you do or use), its **mechanics** (how it works), and the **system** (where it lives - code, data, config). Replace the scaffolded stub format with a hand-written template.
 
 ## Why
 

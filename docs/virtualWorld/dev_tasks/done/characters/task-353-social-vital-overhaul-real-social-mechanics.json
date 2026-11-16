@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-353",
+  "kind": "task",
+  "number": 353,
+  "title": "Social Vital Overhaul - Real Social Mechanics",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-15",
+  "updated": "2026-08-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Social vital currently mixes **social connection** (talking, being with people) with **physical comfort** (humid air penalizes Social, perfume boosts Social). These are separate concerns. The humid/smell effects belong in Hygiene or Entertainment, not Social. Additionally, several defined mechanics are never consumed by the engine.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "scope": "### Remove - physical comfort masquerading as social\n\n| Current behavior | File | Fix |\n|-----------------|------|-----|\n| `air == \"humid\"` → `-1 Social/tick` | `tick_manager.py:256` | Move to Hygiene decay (`p.vitals[\"Hygiene\"] = max(0, p.vitals[\"Hygiene\"] - 1)`) |\n| `smell == \"perfume\"` → `+1 Social/tick` | `tick_manager.py:284` | Move to Entertainment boost (`p.vitals[\"Entertainment\"] = min(100, p.vitals[\"Entertainment\"] + 1)`) |\n\nThese are sensory/physical comfort effects. A character can be socially fulfilled in a humid room, and miserable in a perfumed one if alone.\n\n### Implement - real social mechanics\n\n#### 1. Isolation timer + accelerated decay\n\nTrack consecutive ticks spent alone in an area. After a threshold (e.g., 5 ticks), Social decay accelerates:\n\n```python\n# Pseudocode per player per tick:\nif len(others_here) == 0:\n    p._alone_ticks = getattr(p, \"_alone_ticks\", 0) + 1\n    if p._alone_ticks >= 5:\n        p.vitals[\"Social\"] = max(0, p.vitals[\"Social\"] - 2)  # accelerated\nelse:\n    p._alone_ticks = 0\n```\n\nThreshold and rate are tunable. Introverts get a higher threshold.\n\n#### 2. Consume SOCIAL_GAIN from traits\n\nCurrently everyone gets flat +1/tick near others. Traits should modulate this:\n\n- `extrovert` (SOCIAL_GAIN=2): +2/tick when others present\n- `introvert` (SOCIAL_GAIN=0): +0/tick from presence alone (still gains from speech)\n- Default (no trait): +1/tick\n\nReplace the hardcoded `+1` in `tick_manager.py:290` with a TraitSystem lookup.\n\n#### 3. Self-talk / monologue social gain\n\nWhen a character speaks but no other living character is in the same area, give a small Social gain (+1) - better than nothing, but less than real conversation. Hook into `narration.py broadcast_speech()`.\n\nCheck after the listener loop: if no listeners received the speech, apply +1 to speaker.\n\n#### 4. New traits\n\n**`loner`** (mental category):\n- Gains +1 Social/tick when alone (reverses isolation penalty)\n- No SOCIAL_GAIN bonus from presence (same as introvert)\n- Conflicts with `extrovert`\n- Description: \"Solitude recharges you. Being alone restores your social well-being.\"\n\n**`chatty`** (mental category):\n- +2 extra Social gain per speech exchange (so +7 speaker, +5 listeners instead of +5/+3)\n- No isolation modifier\n- Description: \"You talk easily. Conversations come naturally and leave you feeling connected.\"\n\n#### 5. Behavioral gates at low Social\n\nLow Social should influence AI decision-making, not just narration. Inject into prompt state:\n\n- `< 50`: Add flag `social_need: moderate` - agent should consider speech action more often\n- `< 25`: Add flag `social_need: desperate` - agent prioritizes finding people, may ramble/beg/speak without purpose\n- `< 10`: Add condition `social_breakdown` - unpredictable behavior, random speech, possible hallucination narration\n\nThese flags feed into the agent's decision prompt so the LLM actually acts on them.\n\n### Testing in Labs\n\nScenario setup: characters with different traits placed in controlled environments.\n\n| Test | Setup | Expected |\n|------|-------|----------|\n| Baseline speech gain | 2 chars in same room, speak | Speaker +5, listener +3 (or +7/+5 for chatty) |\n| Self-talk | 1 char alone, speaks | Speaker +1 (not +5) |\n| Presence only | 2 chars silent together, multiple ticks | +1/tick default, +2/extrovert, +0/introvert, +0/loner |\n| Isolation | 1 char alone > 5 ticks | Accelerated decay (-2/tick) |\n| Loner isolation | Loner alone > 5 ticks | Gains +1/tick instead |\n| Introvert group | Introvert in room with 3+ others | No presence gain, energy drain applies |\n| Extrovert group | Extrovert in room with 3+ others | +2/tick presence, no energy drain |\n| Low Social behavior | Force Social < 25 via cheat | Agent seeks interaction, rambles |\n| Humid environment | Character in humid room | Hygiene decays, Social unaffected |\n| Perfume environment | Character in perfume room | Entertainment increases, Social unaffected |\n\n---",
+      "related": "- `task-137`: original design doc (conversation tracking + on_speech already done)\n- `task-94`: closeness as behavioral gate (complementary social dimension)\n- `task-92`: needs-driven autonomous replanning (Social urgency feeds into priority queue)\n- `tick_manager.py` - per-tick vital processing\n- `narration.py` - speech broadcast with Social gains\n- `traits.py` - extrovert/introvert/SOCIAL_GAIN/GROUP_ENERGY_DRAIN\n- `character-state.js:150-152` - low Social narration injection\n- `game_tools.py:167-168` - advice for low Social"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-353-social-vital-overhaul.md"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "task-exit-item-matching-tiers",
+  "kind": "task",
+  "number": null,
+  "title": "Exit & Item Matching Tiers: Cardinal, Area Name, Description Words, Way Handles",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "While testing Jane Two in Task 18, the agent tried `examine circular door` / `go north` and the engine failed to resolve them: `_match_exit_direction` only matched the exit **label** (the bracketed key, e.g. `Door 4`), and `_match_item_name` only matched name/alias - never description words. The code comment at `matching.py` even claimed \"(or description words)\" for items but the implementation never did it.\n\n**Second round (this task's core)**: the Task 18 final door has `\"direction\": \"\"` on **all four** connection edges (autosave.json). That made it completely unreachable - the renderer printed `[]`, `go` couldn't resolve it (the old matcher skipped empty directions), and examine's candidate list showed `()`. The fix: a way is resolvable by any of its identity facets, with a derived handle when the direction label is missing.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "changes": "### 1. `engine/matching.py` - `way_handle` + `resolve_exit`\n\n`way_handle(way_node, direction, area_name)` is the reference handle: the per-side `direction` label wins when set; otherwise a short name derived from the way node's name (current area's `\"Name - \"` prefix stripped, underscores → spaces) - `\"Task 18 - final door\"` → `\"final door\"`; falls back to `\"door\"`.\n\n`resolve_exit(area_id, input)` replaces the label-only matcher and returns `(edge, way_node, handle)`:\n\n1. Exact handle (`Door 4`, `final door`)\n2. Cardinal (`north`)\n3. Word-boundary substring on the handle\n4. Way node name / target area name (`Task 18 - Room 1`, `the next room`)\n5. Description words (`circular door`, `the circular door with the keycard slot`; distinctive ≥6-char word fallback)\n6. **State word** (`locked`, `open`, `closed` - \"examine locked door\" resolves)\n7. Fuzzy difflib\n\nEmpty-direction edges are **included** (the old `if not direction: continue` skip is gone). `_match_exit_direction` remains as a backward-compat wrapper returning the handle.\n\n### 2. `engine/matching.py` - `_match_item_name` description tier\n\nWired the description words into the alias tier (matching the previously-stale comment): input's significant words scored against the item description, ≥2 word hits or a single distinctive (≥6 char) word resolves. `take pale petals` now finds the \"Dried Flower Crown (Crushed)\" whose description mentions \"pale petals\".\n\n### 3. Renderers use the handle everywhere\n\n- `engine/area_description.py` - `build_exits_for_area` keys exits by the handle (added `\"label\"` to exit_data); the look output prints `[final door] ...` instead of `[]`.\n- `static/js/agent/prompt-builder.js` - JS-side `wayHandle` mirror in the \"paths you can see\" listing.\n- `engine/item_actions.py` - examine's \"Things you can examine\" list shows ways by handle instead of a blank `() `.\n\n### 4. Movement / examine / triggers use `resolve_exit`\n\n- `engine/movement.py` (`move_to_area`, `toggle_way`) - resolve via `resolve_exit`, so `go final door` works even with empty directions.\n- `engine/item_actions.py` - examine + use_on target resolution via `resolve_exit`.\n- `engine/trigger_system.py` + `virtual_world_engine.py` - `resolve_exit` facade, `_match_exit_direction` kept for compat.\n\n### 5. Prompt consolidation (`static/js/agent/prompt-builder.js`)\n\nThe ACTION STRUCTURE + SPEECH & VOLUME blocks were duplicated in the **system prompt** AND in every per-turn user message. Kept the (improved) rules in the system prompt, stripped them from `buildReactionPrompt` and `buildResultReactionPrompt`, which now point at the system rules and keep only phase-specific instructions + their JSON schema. Also fixed: blank lines before `=== WITNESSED ===` and `=== I REMEMBER ===`; `reactContext` now carries `[Tick N]` + area name (`agent-engine.js`).",
+      "verification": "- `tests/test_matching.py` - TestExitMatchingTiers (cardinal, way-name, target-area, description, state word, non-match), TestItemDescriptionMatching, and **TestEmptyDirectionWayHandle** (handle derivation + resolve by handle/name/area/description/state with empty-direction edges).\n- Full suite: 787 passed, only the 11 pre-existing `TestUnifiedEffectTargeting`/`TestGiveItemEffect` fixture failures (`set_active_player` ValueError, unrelated).\n- Gotcha fixed mid-flight: `build_exits_for_area` must not read `self.player_manager.current_area` (it re-enters `build_exits_for_area` via `legacy_compat.current_area` → RecursionError) - the `area_name` param is used instead."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Gameplay",
+    "status_note": "In Review - implemented 2026-08-09, test_matching.py 55 passed (1 pre-existing skip), full suite 787 passed (only the 11 pre-existing give-item fixture failures), JS syntax clean.",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-exit-item-matching-tiers.md"
+  }
+}

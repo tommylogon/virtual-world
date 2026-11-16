@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-30  
 **Priority**: Medium  
-**Status**: Done (simplified — see note below)  
+**Status**: Done (simplified - see note below)  
 
 ---
 
@@ -29,7 +29,7 @@ The frontend `_areaEventLog` accumulates up to **50 events per area** and never 
 
 ### Concept
 
-Each character carries a **room entry tick** — the game tick when they last entered their current area. Only events with a tick >= that entry tick are injected into the character's prompt.
+Each character carries a **room entry tick** - the game tick when they last entered their current area. Only events with a tick >= that entry tick are injected into the character's prompt.
 
 When a character moves to a new area, their entry tick resets to the current tick. Events from the previous room are no longer injected.
 
@@ -45,10 +45,10 @@ On top of presence-scoping, each event carries a **sensory channel** tag. A char
 | Auditory | `auditory` | Things you hear | Speech, footsteps, door sounds, item clatter, combat noise |
 | Tactile | `tactile` | Things you feel (same room contact) | Being touched, temperature shifts, wind, shoving |
 
-Most events are `["visual", "auditory"]` — both sight and sound register them. Some are one or the other:
+Most events are `["visual", "auditory"]` - both sight and sound register them. Some are one or the other:
 - Speaking = `["auditory"]` (only heard, not seen)
 - Examining a book = `["visual"]` (only seen, no sound)
-- Picking a lock = `["auditory"]` (hearing the click) — but could also be `["visual", "auditory"]`
+- Picking a lock = `["auditory"]` (hearing the click) - but could also be `["visual", "auditory"]`
 
 #### Character State → Available Senses
 
@@ -68,12 +68,12 @@ An event is only injected into the prompt if the character possesses **at least 
 **Example with the Bookshop scenario:**
 
 ```
-TICK 3 — Library, same tick and same presence:
+TICK 3 - Library, same tick and same presence:
   Jake: examines a bookshelf carefully    → event: senses=["visual"], area=Library
   Butcher (still in Library):             → Butcher is present, sees this
   → Butcher is blind:                     → Butcher has no "visual" channel → BLOCKED
 
-TICK 5 — Kitchen:
+TICK 5 - Kitchen:
   Jake: says "I found a key"              → event: senses=["auditory"], area=Kitchen
   Butcher (in Kitchen, deaf):             → Butcher has no "auditory" channel → BLOCKED
   Butcher sees Jake's lips move           → That's a separate visual observation
@@ -90,8 +90,8 @@ TICK 5 — Kitchen:
     "actor": "Jake",
     "action": "speak",
     "description": "Jake says 'I found a key'",
-    "senses": ["auditory"],            # NEW — which senses perceive this
-    "initiative": 21                   # NEW — for same-tick ordering
+    "senses": ["auditory"],            # NEW - which senses perceive this
+    "initiative": 21                   # NEW - for same-tick ordering
 }
 
 # Movement events:
@@ -118,7 +118,7 @@ Each action type maps to default senses:
 | `take`, `drop`, `use` | `["visual", "auditory"]` | Motion + item sounds |
 | `attack`, `hit` | `["visual", "auditory"]` | Visual action + impact sounds |
 | `emote` (non-verbal) | `["visual"]` | Expression/gesture (unless described with sound) |
-| `open`, `close` | `["auditory"]` | Door sounds — creak, click |
+| `open`, `close` | `["auditory"]` | Door sounds - creak, click |
 | Default / unknown | `["visual", "auditory"]` | Both senses assumed |
 
 Overridable per-event in the action code if the action generates a specific sensory profile.
@@ -153,7 +153,7 @@ function getVisibleEvents(events, charName, currentArea, entryTick, senses) {
 **Turn-by-turn trace (presence + senses):**
 
 ```
-TICK 1 — Cycle start
+TICK 1 - Cycle start
   Jake (Kitchen, normal): says "hello"
     → event: tick=1, area=Kitchen, actor=Jake, action="hello", senses=["auditory"], init=21
   Butcher (Library, blind): reads a book
@@ -161,7 +161,7 @@ TICK 1 — Cycle start
   Elena (Kitchen, deaf): examines a knife
     → event: tick=1, area=Kitchen, actor=Elena, action="examining knife", senses=["visual"], init=19
 
-TICK 2 — Queue wraps, new cycle
+TICK 2 - Queue wraps, new cycle
   Jake (Kitchen, normal): moves to Library
     → Jake.entry_tick[Kitchen] cleared, Library entry set to tick=2
     → event: tick=2, area=Kitchen→Library, actor=Jake, action="moved to Library", senses=["visual","auditory"], init=21
@@ -175,11 +175,11 @@ TICK 2 — Queue wraps, new cycle
     Butcher entered Kitchen this same tick (after moving) → Butcher did NOT hear Elena (he arrived after she spoke, initiative 19 < 20)
     Jake left Kitchen → doesn't see this
 
-TICK 3 — New cycle
+TICK 3 - New cycle
   Butcher (Kitchen, blind): examines counter by touch
     → event: tick=3, area=Kitchen, actor=Butcher, action="examining counter", senses=["tactile"], init=21
     Elena (Kitchen, deaf): sees Butcher's hands moving → senses=["visual"] picks it up? 
-    No — the event is tagged senses=["tactile"]. Elena has visual, not tactile → BLOCKED for Elena
+    No - the event is tagged senses=["tactile"]. Elena has visual, not tactile → BLOCKED for Elena
   Elena (Kitchen, deaf): says "there's flour here"
     → event: tick=3, area=Kitchen, actor=Elena, action="there's flour here", senses=["auditory"], init=20
     Butcher is blind but has auditory → Butcher HEARS Elena → visible
@@ -187,7 +187,7 @@ TICK 3 — New cycle
     → event: tick=3, area=Library, actor=Jake, action="examining bookshelf", senses=["visual"], init=19
     (Alone in Library, sees own event → filtered)
 
-TICK 4 — New cycle
+TICK 4 - New cycle
   Jake (Library, normal): takes a book
     → event: tick=4, area=Library, actor=Jake, action="took a book", senses=["visual","auditory"], init=21
   Butcher (Kitchen, blind): leaves to Library
@@ -206,19 +206,19 @@ TICK 4 — New cycle
 | T1 | Jake | Kitchen | normal | (none) | First turn in Kitchen |
 | T1 | Butcher | Library | blind | (none) | First turn in Library |
 | T1 | Elena | Kitchen | deaf | (none) | First turn in Kitchen |
-| T2 | Jake | Library | normal | `[tick=1] Butcher reading`? No — Jake entered Library at tick=2. Butcher's tick=1 event was before Jake arrived → BLOCKED by presence. Jake sees nothing. | |
-| T2 | Butcher | Kitchen | blind | `[tick=1] Elena examined a knife`? No — Butcher entered Kitchen at tick=2, Elena's tick=1 event was before arrival → BLOCKED by presence. Also senses=["visual"] → Butcher is blind → BLOCKED by senses anyway. Butcher sees nothing. | |
+| T2 | Jake | Library | normal | `[tick=1] Butcher reading`? No - Jake entered Library at tick=2. Butcher's tick=1 event was before Jake arrived → BLOCKED by presence. Jake sees nothing. | |
+| T2 | Butcher | Kitchen | blind | `[tick=1] Elena examined a knife`? No - Butcher entered Kitchen at tick=2, Elena's tick=1 event was before arrival → BLOCKED by presence. Also senses=["visual"] → Butcher is blind → BLOCKED by senses anyway. Butcher sees nothing. | |
 | T2 | Elena | Kitchen | deaf | `[tick=1] Jake said "hello"` → senses=["auditory"] → Elena is deaf → BLOCKED by senses. Also tick=1 < entry_tick=1 (Elena started in Kitchen at tick=0? Actually entry_tick starts at 0 for starting area). So tick=1 >= 0 → PRESENT → but BLOCKED by deafness. Elena sees nothing. | |
-| T3 | Butcher | Kitchen | blind | `[tick=2] Elena said "nice knife"` → tick=2 >= entry_tick=2 → PRESENT (barely). senses=["auditory"] → Butcher has auditory ✅. But wait — initiative: Elena (19) acted BEFORE Butcher moved (20). Butcher wasn't in Kitchen when Elena spoke → BLOCKED by presence (sub-tick ordering). Sees nothing. `[tick=2] Butcher moved to Kitchen` (self → filtered). | |
+| T3 | Butcher | Kitchen | blind | `[tick=2] Elena said "nice knife"` → tick=2 >= entry_tick=2 → PRESENT (barely). senses=["auditory"] → Butcher has auditory ✅. But wait - initiative: Elena (19) acted BEFORE Butcher moved (20). Butcher wasn't in Kitchen when Elena spoke → BLOCKED by presence (sub-tick ordering). Sees nothing. `[tick=2] Butcher moved to Kitchen` (self → filtered). | |
 | T3 | Elena | Kitchen | deaf | `[tick=3] Butcher examined counter` → senses=["tactile"] → Elena has visual+auditory only → BLOCKED by senses. `[tick=2] Elena said "nice knife"` (self → filtered). Sees nothing. | |
-| T3 | Jake | Library | normal | `[tick=2] Butcher moved to Kitchen` → senses=["visual","auditory"] → Jake has both ✅. tick=2 >= entry_tick=2 → PRESENT ✅. Butcher was in Library, Jake was entering Library same tick. How did Jake see Butcher leave? Jake arrived in Library at tick=2 (his move action). Butcher was already there at the START of tick 2 (before moving). Jake's entry_tick=2 for Library. Butcher's "move to Kitchen" event has tick=2 and happened when Butcher acted (init=20). Jake entered Library at init=21 (his move). So Butcher leaves at init 20, Jake enters at init 21 — Jake arrives AFTER Butcher left. BLOCKED by presence (sub-tick). Jake sees nothing. | |
+| T3 | Jake | Library | normal | `[tick=2] Butcher moved to Kitchen` → senses=["visual","auditory"] → Jake has both ✅. tick=2 >= entry_tick=2 → PRESENT ✅. Butcher was in Library, Jake was entering Library same tick. How did Jake see Butcher leave? Jake arrived in Library at tick=2 (his move action). Butcher was already there at the START of tick 2 (before moving). Jake's entry_tick=2 for Library. Butcher's "move to Kitchen" event has tick=2 and happened when Butcher acted (init=20). Jake entered Library at init=21 (his move). So Butcher leaves at init 20, Jake enters at init 21 - Jake arrives AFTER Butcher left. BLOCKED by presence (sub-tick). Jake sees nothing. | |
 | T4 | Jake | Library | normal | `[tick=3] Jake examined bookshelf` (self → filtered). `[tick=4] Butcher moved to Library` → senses=["visual","auditory"] ✅. tick=4 >= entry_tick=2 → PRESENT ✅. But Jake and Butcher both in Library at different sub-ticks? Butcher's move at init 20, Jake's "took a book" at init 21. Jake's action happened first (init higher). Butcher's event at tick=4 happened AFTER Jake took the book (init 20 < 21). Jake is still in Library → PRESENT → sees Butcher enter. ✅ | |
 | T4 | Butcher | Library | blind | `[tick=4] Jake took a book` → Butcher entered Library at tick=4, Jake's "took a book" happened at init=21 (before Butcher's init=20). Butcher was in Kitchen when Jake took the book → BLOCKED by presence. Sees nothing. | |
 | T4 | Elena | Kitchen | deaf | `[tick=3] Butcher examined counter` → BLOCKED by senses (tactile). `[tick=3] Elena said "there's flour"` (self → filtered). `[tick=4] Elena lit a lamp` (self → filtered). Sees nothing. | |
 
-**Key insight from the trace:** Presence-scoping + sub-tick ordering + sensory filtering means characters often see very little. That's correct — characters should only know what they can actually perceive. The prompt should include "You don't notice anything unusual" rather than fabricating knowledge.
+**Key insight from the trace:** Presence-scoping + sub-tick ordering + sensory filtering means characters often see very little. That's correct - characters should only know what they can actually perceive. The prompt should include "You don't notice anything unusual" rather than fabricating knowledge.
 
-**Wait — this is too strict.** Butcher arrived at tick=4 and Jake's tick=4 event happened "at the same tick" (same cycle). Which comes first?
+**Wait - this is too strict.** Butcher arrived at tick=4 and Jake's tick=4 event happened "at the same tick" (same cycle). Which comes first?
 
 **Resolution:** Events within the same tick are ordered by initiative. If Butcher arrives at the END of his action (after moving), and Jake's "takes a book" happened EARLIER in the initiative order (Jake acts before Butcher), then:
 - Jake's tick=4 event: `Jake took a book` (happened when Jake acted, initiative 21)
@@ -266,24 +266,24 @@ function getVisibleEvents(events, charName, currentArea, entryTick) {
 | Character leaves and re-enters same room | Entry tick resets to re-entry tick. Misses events between leaving and re-entering. |
 | Two characters in same room, one leaves | Leaver stops seeing events. Stay-er continues seeing events (if they can sense them). |
 | Character enters room, someone else acts same tick | If entrant moves first (lower initiative), they arrive after the action → don't see it. If entrant moves last, they miss actions that happened before they arrived in the same tick. |
-| Blind character enters room | Can only hear auditory events — visual events (examining, reading, gestures) are invisible |
+| Blind character enters room | Can only hear auditory events - visual events (examining, reading, gestures) are invisible |
 | Deaf character enters room | Can see visual events but misses all speech |
 | Sleeping character in room | Perceives nothing unless a loud auditory event occurs (needs a loudness threshold on events) |
-| Unconscious/dead character in room | Perceives nothing regardless of event type — all events filtered out |
+| Unconscious/dead character in room | Perceives nothing regardless of event type - all events filtered out |
 | Character goes blind mid-game (condition applied) | Stops seeing visual events from that tick forward. Prior events unaffected (already perceived). |
-| Queue wraps, new cycle begins | No special behaviour — same presence + sense rules apply. Entry ticks survive cycle boundaries. |
+| Queue wraps, new cycle begins | No special behaviour - same presence + sense rules apply. Entry ticks survive cycle boundaries. |
 | New game / restart | All entry ticks reset to 0. All character states reset to normal. |
 
 ### Data Storage
 
 **Backend** (source of truth):
-- `player.area_entry_tick: dict[str, int]` — area name → tick when character entered
+- `player.area_entry_tick: dict[str, int]` - area name → tick when character entered
 - Serialized in `player.to_dict()` and sent in `/api/state`
 - Events are stored as `{tick, area, actor, action, description}` in `logging_events.py`
 
 **Frontend**:
 - `_areaEventLog` becomes a **temporary per-cycle log** OR is replaced entirely by filtering backend events
-- No more indefinite accumulation — the frontend log is a fallback that gets pruned per-cycle, or removed entirely
+- No more indefinite accumulation - the frontend log is a fallback that gets pruned per-cycle, or removed entirely
 
 ### Migration
 
@@ -291,20 +291,20 @@ function getVisibleEvents(events, charName, currentArea, entryTick) {
 2. Update `move_to_area()` in `engine/movement.py` to set the entry tick
 3. Update `prompt-builder.js` to filter events by entry tick + area match
 4. Decide: keep `_areaEventLog` as a UI display log only (not a prompt data source), or prune it per-cycle
-5. Remove the fallback in prompt-builder that reads `_areaEventLog` — or keep it but filter by presence
+5. Remove the fallback in prompt-builder that reads `_areaEventLog` - or keep it but filter by presence
 
-## Implemented (simplified) — audit 2026-09-02
+## Implemented (simplified) - audit 2026-09-02
 
 The presence window is implemented in simplified form: per-area presence
 ledger `world.area_presence[area][char] = entry_tick` recorded on movement
 (`_record_area_presence`), serialized through saves, and prompt-builder
 `room-context.js` filters local turn_events by area + entry tick with
 blind-aware handling (blind characters only witness `speak` events).
-`_areaEventLog` is no longer a prompt data source — only the area
+`_areaEventLog` is no longer a prompt data source - only the area
 inspector's recent-events list reads it.
 
 Simplified vs the design doc (kept as future work if wanted): full sensory
-channel tags (visual/auditory/tactile with deaf/sleeping states — currently
+channel tags (visual/auditory/tactile with deaf/sleeping states - currently
 only the blind→auditory rule), and sub-tick initiative ordering for
 same-tick presence races.
 

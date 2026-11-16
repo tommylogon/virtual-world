@@ -6,7 +6,7 @@ status: done
 priority: medium
 ---
 
-# Task 100: Graph View Overlays — Light, Heat, Sound, Triggers, Cardinal
+# Task 100: Graph View Overlays - Light, Heat, Sound, Triggers, Cardinal
 
 **Status**: Done  
 **Priority**: High  
@@ -15,11 +15,11 @@ priority: medium
 
 ## What
 
-The graph currently shows one view — the structural room/door/item/character relationships. Add a view selector with different visual overlays to show environmental data, trigger propagation, and spatial relationships.
+The graph currently shows one view - the structural room/door/item/character relationships. Add a view selector with different visual overlays to show environmental data, trigger propagation, and spatial relationships.
 
 ## Key Design Decision
 
-All 5 overlays are computed **entirely on the frontend** from existing `worldState` data. No API endpoints needed. The engine's Python `get_ambient_light()` is for runtime gameplay (room descriptions, examine, narration) — the graph view is a visualization tool for builders.
+All 5 overlays are computed **entirely on the frontend** from existing `worldState` data. No API endpoints needed. The engine's Python `get_ambient_light()` is for runtime gameplay (room descriptions, examine, narration) - the graph view is a visualization tool for builders.
 
 ## View Types
 
@@ -56,10 +56,10 @@ Rooms → ways → items, characters. Shows graph topology with type-based color
 
 ### Frontend
 
-- `static/js/graph/network-manager.js` — add `applyOverlay(mode)`, per-overlay restyle functions, per-view legend builder
-- `static/js/graph-manager.js` — extend `setViewMode()` to handle overlay modes without hiding vis.js canvas
-- `templates/index.html` — add overlay view buttons to graph toolbar (dropdown or compact buttons)
-- `static/css/style.css` — styles for overlay indicator, per-view legend variants
+- `static/js/graph/network-manager.js` - add `applyOverlay(mode)`, per-overlay restyle functions, per-view legend builder
+- `static/js/graph-manager.js` - extend `setViewMode()` to handle overlay modes without hiding vis.js canvas
+- `templates/index.html` - add overlay view buttons to graph toolbar (dropdown or compact buttons)
+- `static/css/style.css` - styles for overlay indicator, per-view legend variants
 
 ### How It Works
 
@@ -73,14 +73,14 @@ Switching back to Structural view clears the overlay by force-reloading graph da
 
 ## Files
 
-- `static/js/graph/network-manager.js` — add overlay functions (~150 lines)
-- `static/js/graph-manager.js` — extend setViewMode (~20 lines)
-- `templates/index.html` — add overlay buttons (~5 lines)
-- `static/css/style.css` — overlay legend variants (~20 lines)
+- `static/js/graph/network-manager.js` - add overlay functions (~150 lines)
+- `static/js/graph-manager.js` - extend setViewMode (~20 lines)
+- `templates/index.html` - add overlay buttons (~5 lines)
+- `static/css/style.css` - overlay legend variants (~20 lines)
 
 ## Dependencies
 
-None — everything is frontend-only from existing state data. Task-80 (light spill system) backend code is not required.
+None - everything is frontend-only from existing state data. Task-80 (light spill system) backend code is not required.
 
 ## Steps to verify
 

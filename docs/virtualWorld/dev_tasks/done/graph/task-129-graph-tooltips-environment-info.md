@@ -14,7 +14,7 @@ priority: medium
 
 ## What
 
-Show useful environment information in graph node tooltips on hover — temperature, light level, air quality, and other area properties — so users don't have to open the inspector to see area conditions at a glance.
+Show useful environment information in graph node tooltips on hover - temperature, light level, air quality, and other area properties - so users don't have to open the inspector to see area conditions at a glance.
 
 ---
 
@@ -22,7 +22,7 @@ Show useful environment information in graph node tooltips on hover — temperat
 
 Currently, hovering a graph node shows only the node name and type (via vis-network's built-in tooltip). To see temperature, light level, or other environment data you must open the inspector panel. For worldbuilding and debugging, surface-level data should be visible on hover.
 
-**Note**: General UI tooltips already exist (HTML `title` attributes + Tippy.js) — this task is specifically about enhancing graph node tooltips with environment data.
+**Note**: General UI tooltips already exist (HTML `title` attributes + Tippy.js) - this task is specifically about enhancing graph node tooltips with environment data.
 
 ## Requirements
 

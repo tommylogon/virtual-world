@@ -14,7 +14,7 @@ id collision with `done/emotions/task-445-character-expression-packs.md`.)
 
 bug-25 (take/wear no-op messaging) was closed by the engine-side wording fix, but
 its live repro only happens when one character holds **two same-named item
-instances** (one carried, one worn) — or a single instance carries both a
+instances** (one carried, one worn) - or a single instance carries both a
 `CARRYING` and an `EQUIPPED` edge. The messages are then technically correct
 (`take` → "already carrying", `equip` → "already wearing") yet read as a
 contradiction, and the LLM spirals.
@@ -22,7 +22,7 @@ contradiction, and the LLM spirals.
 Evidence: playtest "John two / Jane three" (2026-08-30), plus the original
 taco_bell case where miki spawned wearing one Blue Butterfly Earring and carrying
 a second. Scenario names suggest population/dressing duplication; `equip_item`
-removes the `CARRYING` edge, so a single node normally cannot hold both — the
+removes the `CARRYING` edge, so a single node normally cannot hold both - the
 both-edge state comes from load/legacy/test paths that add `CARRYING` without
 removing `EQUIPPED` (`serialization_legacy.py`, `routes/library_ops.py`,
 `engine/dressing.py` + `equip_item` when seeding).
@@ -64,7 +64,7 @@ hydrating.** `_hydrate_item(always_fresh=True)` mints a new node per call;
 freshly-minted node into the room. So dressing an already-dressed character a
 second time left a second same-named item on the floor (the taco_bell "one worn,
 one carried" shape). Fixed by collecting the character's worn names first and
-skipping any candidate whose name matches — the module docstring already claimed
+skipping any candidate whose name matches - the module docstring already claimed
 this idempotence, but the code did not implement it.
 
 **Invariant enforced at the load boundary.** `WorldGraph.normalize_item_hold_state()`

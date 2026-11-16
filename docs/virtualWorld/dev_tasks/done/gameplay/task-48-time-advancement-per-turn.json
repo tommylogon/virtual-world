@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-48",
+  "kind": "task",
+  "number": 48,
+  "title": "Time Advancement Per Turn",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-19",
+  "updated": "2026-07-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Every `POST /api/action` and `GET /api/room/description` advances the clock by 5 minutes (1 tick) by default, even for actions that shouldn't consume meaningful time (speech, examine, etc.). An agent step can advance time by 15–20 minutes when it should only advance by 1 tick when the full turn cycle completes.",
+    "why": "Time advances in 4 places per agent step:\n\n| Source | File | Line | Advance |\n|--------|------|------|---------|\n| Observe phase: `ApiClient.getAreaDescription()` → `get_area_description()` calls `apply_action(\"look\")` | `virtual_world_engine.py` | 827 | 5 min |\n| Decision speech: `ApiClient.action(\"speak ...\")` - no `apply_action` called → default fallback fires | `app.py` | 505 | 5 min |\n| Decision action: `ApiClient.action(\"examine ...\")` - same, no `apply_action` → default fallsback | `app.py` | 505 | 5 min |\n| Reaction speech: `ApiClient.action(\"speak ...\")` - same pattern | `app.py` | 505 | 5 min |\n\nThe default fallback at `app.py:505` is:\n```python\nif not getattr(world, '_action_time_consumed', False):\n    world.advance_clock(1)\n```\n\nThis runs for **every** `POST /api/action` that doesn't explicitly set `_action_time_consumed = True` via `apply_action()`. Speech, examine, inventory, and fumble all fall through to this default.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "app.py:505` - default `advance_clock(1)`, needs gating or removal",
+      "virtual_world_engine.py:2911` - `tick_turn()`, candidate for explicit time advance",
+      "agent-engine.js:254` - `getAreaDescription()` in observe phase (triggers extra `apply_action(\"look\")`)"
+    ],
+    "custom": {
+      "desired_behavior": "- Actions within a turn happen in a \"burst\" - time only advances when the full turn cycle completes\n- 1 tick (5 min) per turn, not per action\n- `tick_turn()` (called at turn change via `/api/turn/apply`) already handles vitals decay - time advance should be coupled with it",
+      "what_needs_to_change": "### Option A: Remove default advance, add explicit advance only at turn change\n\nRemove `advance_clock(1)` from `app.py:505` and instead call `advance_clock(1)` inside `tick_turn()` or `/api/turn/apply`.\n\n**Risks**: Human players typing commands one-at-a time would never see the clock advance until they click \"End Turn\" (or equivalent). Currently every `look` or `go` bumps time.\n\n### Option B: Selective default - skip for speech/examine\n\n```python\n# In app.py, after the try block:\nif cmd.startswith((\"speak \", \"say \")):\n    pass  # speech doesn't consume meaningful time\nelif not getattr(world, '_action_time_consumed', False):\n    world.advance_clock(1)\n```\n\nThis is the minimal fix but doesn't address the conceptual issue that examine/take/look shouldn't each consume 5 min when an agent does them back-to-back within one turn.\n\n### Option C: Track per-turn consumed flag\n\nAdd a `_turn_time_consumed` flag that prevents the default advance from firing more than once per turn cycle:\n\n```python\n# In app.py:\nif not getattr(world, '_turn_time_consumed', False) and not getattr(world, '_action_time_consumed', False):\n    world.advance_clock(1)\n    world._turn_time_consumed = True\n# In tick_turn() or at turn boundary:\nworld._turn_time_consumed = False\n```\n\nThis way, during a full turn cycle (multiple agent steps), time only advances once. But human players typing one command at a time still see the clock move.",
+      "edge_cases": "| Case | Current | Desired |\n|------|---------|---------|\n| Agent: observe + speak + act + react-speak | 20 min | 5 min (once per turn) |\n| Human: look | 5 min | 5 min (still works) |\n| Human: go + look | 10 min | 10 min (still works) |\n| Rest command | already consumes its own time via `apply_action` | unchanged |\n| Combat: attack several times in one turn | 5 min per attack | 5 min total |"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Environment/Time & Weather]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-48-time_advancement_per_turn.md"
+  }
+}

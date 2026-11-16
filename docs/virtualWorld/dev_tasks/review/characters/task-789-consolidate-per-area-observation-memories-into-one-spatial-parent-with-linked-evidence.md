@@ -58,6 +58,25 @@ When the memory retrieval step runs, these 10 trivial item memories consume the 
 2. **Reinforce in place**: Re-visiting the same unchanged area updates `observed_at`, bumps `reinforcements`, and refreshes the text in-place rather than appending new rows.
 3. **Preserve Sub-Item Indices**: Fast lookups like `player.has_seen(item_id)` and novelty curves continue to check `data.items_seen` so no existing engine queries break.
 
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector -> Mind -> Memories tab.
+
+Current availability: Implemented in `engine/observation.py` and covered in tests.
+
+Live steps when available:
+1. Load scenario `kraktooth_goblin_camp` and toggle Play Mode.
+   - expected: Play Mode is active.
+2. Move a character into a new area with multiple items (e.g. Cooking Area).
+   - expected: The character observes the area.
+3. Select the character and open Character Inspector -> Mind -> Memories.
+   - expected: A single consolidated spatial parent scene memory appears for the area visit instead of separate individual item sighting memories, with observed items linked as evidence.
+4. Toggle Play Mode off.
+   - expected: Transient state is discarded and base scenario is restored.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Acceptance
 
 - [ ] `engine/observation.py:observe_area` produces a single consolidated scene memory per area visit.

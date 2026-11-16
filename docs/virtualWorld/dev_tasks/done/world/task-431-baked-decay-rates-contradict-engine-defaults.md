@@ -22,16 +22,16 @@ mechanic (`SOCIAL_COMPANY_GAIN` 0.030 could never beat a 0.050 baseline).
 
 Two changes:
 
-1. **Re-baked every scenario** with `tools/migrate_decay_rates.py --all` — 93
+1. **Re-baked every scenario** with `tools/migrate_decay_rates.py --all` - 93
    player records across 15 files. This turned up a second, larger class of drift
    the camp probe had hidden: **thirteen scenarios baked the legacy `1` for every
    vital** (the pre-2026-09 per-tick scale), which the per-minute engine applies
-   as −1/min — vitals empty in about a hundred minutes. Those are fixed too.
+   as −1/min - vitals empty in about a hundred minutes. Those are fixed too.
    Verified mechanically that **only** `decay_rates` changed and every value
    equals the canonical default (17 JSON files, all clean). Three files the tool
    touched were reverted as semantic no-ops: `autosave.json`,
    `combat_pit.json`, `corsair.json` had an empty or absent `decay_rates`, which
-   already means "use the engine defaults" — filling them would add churn *and*
+   already means "use the engine defaults" - filling them would add churn *and*
    freeze the values against future recalibration.
 2. **`SOCIAL_COMPANY_GAIN` 0.030 → 0.020**, equal to the Social baseline. The
    user's second decision: company is *maintenance* (it stops the rot), and
@@ -76,7 +76,7 @@ Every character in `data/scenarios/kraktooth_goblin_camp.json` bakes a
 | Entertainment | 0.030 | **0.070** | 2.3x |
 
 Everything else matches (`Energy` 0.104, `Hunger` 0.0034, `Sanity` 0.005,
-`Thirst` 0.025), and `Bladder` 0.42 is baked with no engine default — so this is
+`Thirst` 0.025), and `Bladder` 0.42 is baked with no engine default - so this is
 a partial, stale bake rather than a deliberate per-character profile. All 23
 characters carry the identical values.
 
@@ -88,7 +88,7 @@ characters carry the identical values.
 everyone no matter what.
 
 Measured, one week at 15 min/tick, 23 characters background:
-- baked rates: **Social 0 / 0 / 0** (avg/min/max) — with `SOCIAL_COMPANY_GAIN`
+- baked rates: **Social 0 / 0 / 0** (avg/min/max) - with `SOCIAL_COMPANY_GAIN`
   firing 94 of 96 ticks for the sampled character, i.e. constant company.
 - `--engine-decay`: **Social 99.2 / 84 / 100**.
 
@@ -110,17 +110,17 @@ and the cause is three numbers in the scenario file.
 The one redeeming note: task-425's Entertainment work already overcomes its own
 baked 0.070 (Entertainment ends at 40.1 with baked rates vs 45.3 with engine
 rates), because fixtures and novelty are explicit sources rather than passive
-trickle. Social has no equivalent explicit source yet — that is task-423.
+trickle. Social has no equivalent explicit source yet - that is task-423.
 
 ## Decision needed
 
 Which side is wrong?
 
-1. **The scenario bake is stale** — re-bake from `BASELINE_DECAY`
+1. **The scenario bake is stale** - re-bake from `BASELINE_DECAY`
    (`tools/migrate_decay_rates.py`), leaving the tuned engine defaults alone.
    Evidence for: three uniform values drifted upward while five match exactly,
    and the baked Social value silently disables a shipped mechanic.
-2. **The engine defaults are wrong** — the camp is meant to be harsher, and
+2. **The engine defaults are wrong** - the camp is meant to be harsher, and
    `SOCIAL_COMPANY_GAIN` should exceed the intended baseline. Evidence for: it
    is a goblin camp; but then `SOCIAL_COMPANY_GAIN` must be raised above 0.050 or
    passive co-presence is dead by design.
@@ -129,7 +129,7 @@ Also worth deciding: with engine rates Social **pegs at 100** from mere
 co-presence (+0.010/min is +14.4/day and nothing else competes). That is
 harmless but inert. If interactions are supposed to be the social mechanism
 (task-423), the passive `SOCIAL_COMPANY_GAIN` should probably drop to a
-maintenance trickle and let explicit interactions carry the load — otherwise
+maintenance trickle and let explicit interactions carry the load - otherwise
 task-423's Social deltas land on an already-capped vital.
 
 ## Acceptance
@@ -141,13 +141,13 @@ task-423's Social deltas land on an already-capped vital.
 - A week soak at 1 and 15 min/tick ends with **Social above 0** and settling, and
   **no character in `social_breakdown`/`hallucinating`** unless something in the
   run actually caused it (starvation, an attack, a fear trigger).
-- Sanity's own sources are *not* invented here — the coupling is left as authored;
+- Sanity's own sources are *not* invented here - the coupling is left as authored;
   this task only stops Social from being impossible.
 
 ## Non-goals
 
 - Retuning the whole survival balance (task-410 owns the food-limited constraint).
-- Adding Sanity sources (comfort, company, fear relief) — task-425 non-goal.
+- Adding Sanity sources (comfort, company, fear relief) - task-425 non-goal.
 - Per-character decay profiles; the bake is uniform today and stays so unless
   someone deliberately authors otherwise.
 

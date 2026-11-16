@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: Planned — task-209 (Arousal State Conditions & Threshold Triggers)
+**Status**: Planned - task-209 (Arousal State Conditions & Threshold Triggers)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
@@ -46,18 +46,18 @@ The pleasant post-release state. Arousal resolves and the character is contented
 - **Saves/checks**: none.
 - **Combat**: neutral.
 - **Movement**: full speed.
-- **Periodic**: **drains** Arousal/Stimulation back down — the resolution to baseline. This is what pulls Arousal below the threshold bands so `aroused`/etc. clear.
+- **Periodic**: **drains** Arousal/Stimulation back down - the resolution to baseline. This is what pulls Arousal below the threshold bands so `aroused`/etc. clear.
 - **Lifecycle**: `stack: "noop"` (already satisfied). Excludes `overstimulated` (mutually exclusive). Ends when rest resumes normal or fresh stimulation re-engages.
-- **Refractory**: briefly resistant — re-arousal is slower while `satisfied` (the drain fights the re-feed).
+- **Refractory**: briefly resistant - re-arousal is slower while `satisfied` (the drain fights the re-feed).
 
 ## Perception
 
-`known: True` — self-evident contentment.
+`known: True` - self-evident contentment.
 
 ## Integration points space
 
-- `engine/player.py` — `CONDITION_DEFINITIONS` entry + `excludes`.
-- `engine/conditions.py` — `process_tick` Arousal/Stimulation decay.
+- `engine/player.py` - `CONDITION_DEFINITIONS` entry + `excludes`.
+- `engine/conditions.py` - `process_tick` Arousal/Stimulation decay.
 - Climax/release flow: `frantic` + release → clear arousal bands, apply `satisfied` (task-208 release/edging/friction).
 - Threshold logic: `satisfied`'s drain helps drop Arousal below 15 → cleaner removal of band states.
 

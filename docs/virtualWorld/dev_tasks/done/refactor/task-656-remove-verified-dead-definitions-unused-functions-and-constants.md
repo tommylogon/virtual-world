@@ -20,8 +20,8 @@ its measured evidence, not a fix instruction: re-count before deleting.
 
 A repo-wide word-boundary scan (`\bNAME\b`) across every `.py`/`.js`/`.cjs`/`.mjs`/
 `.html`/`.json`/`.md` file, excluding `.git`, `node_modules`, `.kilo`, venvs and
-caches. An identifier is listed only when it occurs **exactly once** — at its own
-`def`/`const` line — so no caller, test, template attribute, JSON key or doc
+caches. An identifier is listed only when it occurs **exactly once** - at its own
+`def`/`const` line - so no caller, test, template attribute, JSON key or doc
 reference exists. Decorator-registered handlers (Flask `@app.route`, MCP
 `@mcp.tool`) were filtered out because their name never repeats; the filter's one
 miss, `routes/world_grid.py:83 world_scope_grid_boundary_override` (a two-line
@@ -32,7 +32,7 @@ case, or `window[...]`/inline `on*` handlers in the JS case, would not be seen. 
 scan included `.html` and `.json`, so no inline-handler reference exists for the JS
 entries. Treat every line as a candidate to re-verify, not as proof.
 
-## Python — module-level constants (14) — DONE (removed 2026-09-30)
+## Python - module-level constants (14) - DONE (removed 2026-09-30)
 
 | File:line | Name | Note |
 |---|---|---|
@@ -45,13 +45,13 @@ entries. Treat every line as a candidate to re-verify, not as proof.
 | `engine/sound.py:64` | `WAY_BARRIER_SEE_THROUGH` | |
 | `engine/traversal.py:31` | `ROUTINE` | |
 | `engine/checks.py:63` | `SKILL_NAMES` | |
-| `engine/fear.py:172` | `SOURCE_ABSENT` | value `"source_absent"` is *also* unreferenced — possible unwired mechanic, see below |
+| `engine/fear.py:172` | `SOURCE_ABSENT` | value `"source_absent"` is *also* unreferenced - possible unwired mechanic, see below |
 | `engine/traits.py:29` | `VITAL_MOD_PER_TICK` | value `"vital_mod_per_tick"` is also unreferenced |
 | `engine/weather_forecast.py:88` | `WIND_SCALE` | |
 | `engine/activities.py:118` | `_ALLOWED_WHILE_BLOCKED` | |
 | `engine/character_appearance.py:238` | `_HAIR_LENGTHS` | |
 
-## Python — functions/methods (25) — DONE (removed 2026-09-30)
+## Python - functions/methods (25) - DONE (removed 2026-09-30)
 
 | File:line | Name |
 |---|---|
@@ -83,12 +83,12 @@ entries. Treat every line as a candidate to re-verify, not as proof.
 
 ### Python result (2026-09-30)
 
-All 39 removed — 25 files, pure deletions, no insertions. Evidence:
+All 39 removed - 25 files, pure deletions, no insertions. Evidence:
 
 - `python -m py_compile` on every changed file: clean.
 - **Controlled A/B.** Ran the full suite (`--ignore=tests/test_tick_time_scaling.py`)
   in the main tree (deletions) and in a clean `master` worktree given the *same*
-  data set (both collected 6466 tests). Both produced the **same 12 failures** —
+  data set (both collected 6466 tests). Both produced the **same 12 failures** -
   exactly the documented baseline (`test_character_identity` ×2,
   `test_ownership` ×3, `test_pines_slice`, `test_promotion`,
   `test_scenario_data_integrity` ×4, `test_templates` ×1). No failure is
@@ -101,7 +101,7 @@ All 39 removed — 25 files, pure deletions, no insertions. Evidence:
   `effective_periodic_for` (not the deleted `effective_periodic`), and
   `test_engine_config.py` imports `_noise_levels` (not the deleted `NOISE_LEVELS`).
 
-## JavaScript — DONE (removed 2026-09-30)
+## JavaScript - DONE (removed 2026-09-30)
 
 All 12 below were deleted. Each was re-checked for a **superseding live path**
 rather than a bare name count; 10 had one; `explainAction` and the `dom-utils`
@@ -114,7 +114,7 @@ instruction (the "see if anything breaks" experiment).
 | `openItemLibrary` | `static/js/main.js` | inline `itemLib.open()` in `templates/index.html` |
 | `closeItemLibrary` | `static/js/main.js` | inline `itemLib.close()` |
 | `nudgeCharacter` | `static/js/main.js` | `agent.nudge` (`agent-engine.js:1142`) via the inspector |
-| `explainAction` | `static/js/main.js` | none found — see note below |
+| `explainAction` | `static/js/main.js` | none found - see note below |
 | `escapeForJsSingleQuoteString` | `static/js/shared/dom-utils.js` | none (only `escapeForHtmlAttribute` is used) |
 | `sanitizeToDomId` | `static/js/shared/dom-utils.js` | none |
 | `createDomElement` | `static/js/shared/dom-utils.js` | none |
@@ -124,7 +124,7 @@ instruction (the "see if anything breaks" experiment).
 | `_wireKeys` | `static/js/worldpainter/editor.js` | `state._keyDown` handler (editor.js) |
 
 Gates after removal: `node tools/unit/run.cjs` (465 pass), `npm run lint`,
-`npm run typecheck`, `python tools/js_module_index.py --check` — all clean.
+`npm run typecheck`, `python tools/js_module_index.py --check` - all clean.
 
 **Open question from this pass:** `#why-panel` (`templates/index.html:1156`) had
 `explainAction` as its only writer, so it is now unwritten. If the "why this
@@ -145,36 +145,36 @@ dead-code sweep. Deleting just the constant is safe either way.
 ## Acceptance
 
 - [x] For every listed entry, re-counted across the repo and confirmed exactly
-  **one** hit — the definition (done before the removal).
+  **one** hit - the definition (done before the removal).
 - [x] Remove only the unused definitions; no other behaviour change.
 - [x] Confirm no `__all__`, `from x import *`, or module attribute exposes a removed
   name (none did).
 - [x] Python suite compared by FAILED **names** against a clean-`master` worktree
-  with identical data — same 12 baseline failures, no new ones.
+  with identical data - same 12 baseline failures, no new ones.
 - [x] For the JS entries: `node tools/unit/run.cjs`, `npm run lint` and
   `npm run typecheck` green.
 - [x] Record that no entries were dropped (all 39 held at removal time), and the
   flaky `test_reset_undo` note above.
 
-## Independent re-check — 2026-10-02
+## Independent re-check - 2026-10-02
 
 The work was committed (`b712a46` JS, `e8862fe` Python) but the task was never
 moved out of `todo`. Re-verified on the current tree: a repo-wide word-boundary
-count for a cross-section of the removed names is now **0** —
+count for a cross-section of the removed names is now **0** -
 `COLD_MODERATE_ENERGY`, `_get_light_int`, `get_characters_by_tag`,
 `setActiveCharacter`, `explainAction`, `createDomElement`, `_wireKeys`,
 `diffModalTag`.
 
 **Open item carried forward (do not silently close):** `#why-panel`
 (`templates/index.html:1156`) was written only by `explainAction`, so it is now
-an orphan element — no writer, no superseding live path. Per the repo's
+an orphan element - no writer, no superseding live path. Per the repo's
 dead-code rule that is "verify feature intent", not "dead": either wire a writer
 or delete the element and its CSS rule. Left as follow-up (not filed) to keep
 this task a pure deletion.
 
 No further code change. Moving to `review`.
 
-## Live confirmation — 2026-10-02 (port 4471)
+## Live confirmation - 2026-10-02 (port 4471)
 
 The removals are already on `master`, and the live app was exercised this
 session: it loads with no page errors and `VW.agent.stepOnce()` completed a real

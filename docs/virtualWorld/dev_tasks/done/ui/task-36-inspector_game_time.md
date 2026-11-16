@@ -33,9 +33,9 @@ Inspector panels (memories, timeline, room event log, world lore) displayed raw 
 
 ## Files
 
-- `static/js/event-stream.js` — renamed `_tickToTime` → `tickToTime`
-- `static/js/inspector.js` — 5 tick displays → `events.tickToTime(tick)`
-- `static/js/main.js` — 2 tick displays → `events.tickToTime(tick)`
+- `static/js/event-stream.js` - renamed `_tickToTime` → `tickToTime`
+- `static/js/inspector.js` - 5 tick displays → `events.tickToTime(tick)`
+- `static/js/main.js` - 2 tick displays → `events.tickToTime(tick)`
 
 ## Why
 

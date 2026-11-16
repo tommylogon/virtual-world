@@ -13,19 +13,19 @@ priority: high
 
 ## Outcome (2026-09-21)
 
-**Done as a component of task-423**, not separately — the "symmetric meeting"
+**Done as a component of task-423**, not separately - the "symmetric meeting"
 this task specifies was the placeholder that task-423's action-and-outcome pass
 replaces, so building it standalone would have meant implementing the pairing
 twice. `engine/background_social.py` implements the gate:
 
-- `pair_for_area` runs **per area, never globally** — greedy by mutual affinity
+- `pair_for_area` runs **per area, never globally** - greedy by mutual affinity
   descending, ties by name, so the same relationship state always yields the same
   pairs and each character is in at most one pair per pass. There is no distance
   in this world model, so nothing else would stop two characters on opposite
   sides of the camp from meeting.
 - Same area, both `simulation_mode == "background"` (`is_background`), both
   conscious and not mid-activity (`is_available`).
-- **An attended character is never paired** — their social life belongs to the
+- **An attended character is never paired** - their social life belongs to the
   LLM loop (the task-412 seam).
 - The cap is `MEETINGS_PER_CHARACTER_PER_DAY = 6`, rolled over on the in-game day
   and therefore tick-length independent, plus a `SOCIAL_COOLDOWN_MINUTES = 90`
@@ -38,7 +38,7 @@ Task-416 (area → character index) was **not** needed: the pass groups the ~23
 characters by `current_area` in one pass, which is cheaper than the index and has
 no cache to invalidate. If character counts grow an order of magnitude, revisit.
 
-The blocking-activity part of the design this task fed into was **removed** —
+The blocking-activity part of the design this task fed into was **removed** -
 see task-423's outcome for the measurement that killed it.
 
 ## Why

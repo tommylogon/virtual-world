@@ -23,11 +23,11 @@ Repro (live 2026-10-08): NL editor 'add Zoe Mercer to the foyer' stages create_n
 A character is now created as a **Player**, not a bare graph node.
 
 - **Server** (`routes/graph_ops.py`): new batch op `create_character` (phase 0) registers a
-  Player via `player_manager.add_player` — which mints the canonical `player_<name>` node —
+  Player via `player_manager.add_player` - which mints the canonical `player_<name>` node -
   then writes authored prose (`personality` / `description` / `base_description`) onto the
   node. Restores `active_player` like the duplicate path. `_BATCH_PHASE` updated.
 - **Validation** (`engine/nl_editor_validation.py`): `create_character` added to
-  `KNOWN_OP_TYPES` with a name + id-collision check (slug warning skipped — `player_<Name>`
+  `KNOWN_OP_TYPES` with a name + id-collision check (slug warning skipped - `player_<Name>`
   ids are mixed case by convention).
 - **Front end**: `tools.ts` `create_node` branches `kind === 'character'` to a
   `create_character` op carrying the canonical `player_<name>` id (so a following `attach`
@@ -38,9 +38,9 @@ A character is now created as a **Player**, not a bare graph node.
   (`type=character`) present with `properties.personality`/`description`; `DELETE
   /api/players/...` removed the node too. No `character_*` bare node.
 - Not changed: `handle_create_node` (`/api/graph/node`) keeps its low-level "add a node"
-  semantics — the inspector, triggers and items still use it unchanged.
+  semantics - the inspector, triggers and items still use it unchanged.
 - Note: `tags` land on the Player (per `character_record.py`), not the node, so node-tag
-  bulk selectors still don't see characters — that is the task-457 migration, tracked there.
+  bulk selectors still don't see characters - that is the task-457 migration, tracked there.
 
 ## Why
 

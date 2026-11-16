@@ -5,11 +5,11 @@ area: graph
 priority: medium
 ---
 
-# Task 289 — Generic Template-Link & Sync System for All Node Types
+# Task 289 - Generic Template-Link & Sync System for All Node Types
 
 ## Status
 
-**Library → World half DONE (2026-10-01).** Done together with **task-317** — the
+**Library → World half DONE (2026-10-01).** Done together with **task-317** - the
 two cards describe the same remaining work from two directions, and splitting it
 was how `library_id` ended up with three different id-resolution behaviours. See
 "Result" below.
@@ -29,13 +29,13 @@ Generalize the existing `refresh-from-library` item sync into a first-class temp
 
 ## Design Decisions
 
-1. **`library_id` on every node** — a string field storing the source library file stem (e.g., `lab_table`, `blackout_goggles`). Absent or empty = standalone.
-2. **`POST /api/nodes/<node_id>/sync-from-library`** — generic endpoint that:
+1. **`library_id` on every node** - a string field storing the source library file stem (e.g., `lab_table`, `blackout_goggles`). Absent or empty = standalone.
+2. **`POST /api/nodes/<node_id>/sync-from-library`** - generic endpoint that:
    - reads the current library file by `library_id`
    - overwrites mutable fields on the node to match the library definition
    - returns a diff of what changed
-3. **`POST /api/nodes/<node_id>/break-template-link`** — strips `library_id` and marks the node as standalone. Does not alter node data.
-4. **Mutable field whitelist per node type** — not everything should sync. Example:
+3. **`POST /api/nodes/<node_id>/break-template-link`** - strips `library_id` and marks the node as standalone. Does not alter node data.
+4. **Mutable field whitelist per node type** - not everything should sync. Example:
    - **items**: `name`, `description`, `tags`, `triggers`, `equip_slots`, `defense`, `damage`, `insulation`
    - **areas**: `name`, `description`, `environment`, `properties.tags`
    - **ways**: `name`, `description`, `properties`
@@ -90,41 +90,41 @@ whitelist was real but was not the interesting part. Measuring the four
 
 | Node type | How it guessed its template before |
 |---|---|
-| item | never — explicit id only |
+| item | never - explicit id only |
 | way | slugified the node's name |
 | area | stripped an `area_` node-id prefix, then fell back to the name |
 | character | fell back to its display name |
 
 So the same operation on four node types could resolve to three different
 templates, or to none. And there was no way to unbind any of them, so "this copy
-is mine now" was unexpressible — an author's hand-fix was one stray Refresh away
+is mine now" was unexpressible - an author's hand-fix was one stray Refresh away
 from being undone, with nothing to say otherwise.
 
 ### Changes
 
-- **`engine/sync.py`** (new) — the contract. `TemplateSpec` per type (registry,
+- **`engine/sync.py`** (new) - the contract. `TemplateSpec` per type (registry,
   mutable-field whitelist, how it resolves an id, whether it syncs onto the node
   or its `Player`), `resolve_template_id`, `link`, `break_template_link`,
   `locked_fields`, `changed_fields`, and `NEVER_SYNCED`.
-- **`routes/library_ops.py`** — the four handlers now call
+- **`routes/library_ops.py`** - the four handlers now call
   `sync.resolve_template_id` instead of each doing its own fallback, and
   `handle_break_template_link` is new.
-- **`routes/library_routes.py`** — `POST /api/library/break-template-link`.
-- **`static/js/shared/template-sync.js`** — a **🔗 Break Link** button, rendered
+- **`routes/library_routes.py`** - `POST /api/library/break-template-link`.
+- **`static/js/shared/template-sync.js`** - a **🔗 Break Link** button, rendered
   only when the node actually has a link (on an unlinked node it could only ever
   report "nothing to break"), with a confirm that says the data is kept, plus a
   "was linked to `<id>`" provenance line after a break.
-- **`static/js/api.js`** — `ApiClient.breakTemplateLink`.
+- **`static/js/api.js`** - `ApiClient.breakTemplateLink`.
 
 The per-type *apply* bodies stayed in the handlers on purpose. They genuinely
-differ — a character's fields land on its `Player` through a coercion table, a
-way's are coerced booleans — and folding them into one loop would have been a
+differ - a character's fields land on its `Player` through a coercion table, a
+way's are coerced booleans - and folding them into one loop would have been a
 refactor for its own sake. What was unified is the part that had drifted.
 
 ### Two decisions taken rather than assumed
 
 **A guessed sync now records the link.** A character with no link would guess a
-template from its own name, sync from it, and *not* write `library_id` — so the
+template from its own name, sync from it, and *not* write `library_id` - so the
 node kept reading as unlinked while plainly having a template, and Break Link had
 nothing to break. All four handlers now record the template they actually synced
 from, and `refresh-to-world` returns `template_id` and `linked`.
@@ -136,7 +136,7 @@ apply nothing, which reads as a broken button. A break removes the link and
 records `template_broken_from`; an author who wants fields spared names them in
 `locked_fields` themselves.
 
-### `current_state` — a real disagreement, recorded not resolved
+### `current_state` - a real disagreement, recorded not resolved
 
 This card's design says never sync `current_state`. The code syncs it for both
 items and ways. For a **way** the card is right: `open`/`closed`/`locked` is
@@ -156,13 +156,13 @@ Drove the real UI on a fresh instance, not the API alone:
    appeared in the inspector.
 2. Opened the way inspector. The footer read **💾 Save to Library · 🔄 Refresh
    from Library · 🔗 Break Link**.
-3. Clicked **🔗 Break Link** (it is below the fold — the panel had to be
+3. Clicked **🔗 Break Link** (it is below the fold - the panel had to be
    scrolled, and the row is only rendered once the panel is scrolled to its
    bottom). Confirm read: *"Stop syncing "bathroom door" from library template
    "bathroom_door"? The node keeps everything it has now. It will simply stop
    taking updates from the template."*
 4. After: the **Break Link button is gone** (nothing left to break), the panel
-   reads **"was linked to bathroom_door — this copy no longer syncs"**,
+   reads **"was linked to bathroom_door - this copy no longer syncs"**,
    `library_id` is null, `template_broken_from` is set, and the description is
    **unchanged**. The event stream logged
    `Unlinked "bathroom door" from library template "bathroom_door". Data kept.`
@@ -179,13 +179,13 @@ fails, so none are mine.
 
 ### Still open
 
-- **task-290** — variants and override tracking (`template_ref`). Deliberately
+- **task-290** - variants and override tracking (`template_ref`). Deliberately
   not started: a field whitelist is not a variant system, and `290` scopes itself
   as the layer above `locked_fields`.
 - **The `current_state` ruling** above.
-- **Library browser instance counts** ("X placed instances" per entry) — part of
+- **Library browser instance counts** ("X placed instances" per entry) - part of
   this card's UX list, untouched; it belongs with task-290's authoring surface.
-- Filed separately: **task-658** — `python tools/js_module_index.py --check` fails
+- Filed separately: **task-658** - `python tools/js_module_index.py --check` fails
   on `room-context.js` despite a complete header. Verified pre-existing on a clean
   `master` worktree (same message, exit 1), so not caused by this work.
 

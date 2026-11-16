@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "bug-552",
+  "kind": "bug",
+  "number": 552,
+  "title": "scenario commit button triggers name editor (accidental rename)",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-16",
+  "updated": "2026-10-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Clicking the scenario status chip's Commit button bubbles up into the scenario-name-container click handler, opening the rename input with the name selected, so a stray keystroke renames the scenario.",
+    "why": "Clicking the scenario Commit button triggered focus events on adjacent editable labels, inadvertently opening inline rename inputs.",
+    "how": "The rename editor is a click handler on `#scenario-name-container`\n(`static/js/ui/saveload-view.ts:45`), and the status chip lives *inside* that\ncontainer (`templates/index.html:40`). The chip's Commit button now stops\npropagation before committing (`static/js/ui/scenario-status.ts:69`,\n`commit.onclick = (e) => { e.stopPropagation(); commitScenario(); }`), so the\ncontainer never sees the click. The implementation is in `scenario-status.ts`,\nnot `scenario-manager.ts` as this card first said.",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "verified_2026_10_21": "- `templates/index.html:40` confirms the chip is a descendant of\n  `#scenario-name-container`, so bubbling was the only way the rename editor\n  could open.\n- `static/js/ui/scenario-status.ts:69` stops propagation on the Commit button\n  before calling `commitScenario()`.\n- The handler that opens the rename input is only on the container\n  (`static/js/ui/saveload-view.ts:45-54`), so no other listener fires on a\n  commit-button click.\n- Verified live on 2026-10-21: clicking the chip's commit button commits without\n  opening the rename editor, confirmed in the browser by the user. The steps\n  below record what was checked.",
+      "browser_ui": "UI home: the scenario status chip inside the top-left scenario name container\n(`#scenario-name-container`, title \"Click to rename scenario\"). The chip\n(`#scenario-status-chip`) shows `📦 <scenario>`, and when the live world has\ndrifted from its source it adds an amber `●` plus a `💾 Commit` button\n(`data-role=\"scenario-commit\"`). The rename editor is a click handler on the\ncontainer (`saveload-view.ts:45`), so a bubbling button click used to open it.\n\n1. Load a scenario so it has a source.\n2. Make any world edit (move a character, take/drop an item, edit a node) and\n   wait about a second for the status poll.\n   - expected: `●` and `💾 Commit` appear inside the scenario name container.\n3. Click the chip's `💾 Commit` button.\n   - expected: the commit toast appears, a `💾 Scenario ... committed.` line is\n     logged, and the rename input does **not** open.\n4. Regression control: click the scenario name text itself.\n   - expected: the rename input opens and is selected. This proves the container\n     handler is alive, so step 3 is not passing because the handler is dead.\n   Press Escape to cancel.\n5. Confirm the menu path still works: `☰` menu -> `💾 Commit Scenario`."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Scenario Workflows & UI Audit]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-552-scenario-commit-button-triggers-name-editor-accidental-rename.md"
+  }
+}

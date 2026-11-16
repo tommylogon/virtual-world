@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-77",
+  "kind": "task",
+  "number": 77,
+  "title": "Contextual Action Feedback - Smart Error Messages",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-20",
+  "updated": "2026-07-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When an action fails on an item (not found, wrong verb, impossible action), instead of\ngeneric \"can't do that\" messages, return a first-person contextual reason explaining\n*why* plus a list of what actions ARE valid for that item. This teaches the AI agent\nwhat's possible and makes the world feel more alive.",
+    "why": "Currently, failing actions produce robotic messages:\n\n| Action | Current message | Wanted |\n|--------|----------------|--------|\n| `eat rock` | \"Unknown command\" or generic ValueError | \"I pause - that's a rock, not food. I could **examine** it.\" |\n| `take curtains` | Generic \"can't find it\" or nothing | \"I realize I have no need for the curtains. I could **examine** them.\" |\n| `use book` (no triggers) | \"nothing happens\" | \"I flip through the book but find nothing useful to do with it.\" |\n| `eat coat` | Generic failure | \"I stop myself - that's not something you eat.\" |",
+    "how": "### 1. Add `_contextual_failure()` to engine\n\nA helper that generates a first-person failure reason:\n\n```python\ndef _contextual_failure(self, actor, verb, target_name, available_actions):\n    \"\"\"Generate a first-person contextual failure message.\"\"\"\n    reasons = {\n        \"take\": \"I reach for the {item} but stop - I have no need for it.\",\n        \"use\": \"I examine the {item} but can't figure out what to do with it.\",\n        \"eat\": \"I pause - that's not food.\",\n        \"drink\": \"That's not something you drink.\",\n        \"open\": \"The {item} doesn't open.\",\n        \"close\": \"The {item} isn't something you can close.\",\n        \"break\": \"I don't think breaking the {item} would accomplish anything.\",\n    }\n    msg = reasons.get(verb, \"I try, but nothing useful happens.\")\n    msg = msg.format(item=target_name)\n\n    # Append available actions\n    valid = [a[\"label\"] for a in available_actions if a[\"enabled\"]]\n    if valid:\n        msg += f\" I could {valid[0].lower()}\" + (f\" or {', '.join(v.lower() for v in valid[1:])}.\" if len(valid) > 1 else \".\")\n    return msg\n```\n\n### 2. Add validation in `take_item()`\n\nBefore attempting to take, check `\"take\" in item.actions`:\n\n```python\nif \"take\" not in item_data.get(\"actions\", []):\n    available = self._get_available_actions(item_id)\n    return self._contextual_failure(actor, \"take\", item_name, available)\n```\n\n### 3. Add validation in `use_item()` / `use_item_on()`\n\nCheck if the item has `on_use`/`on_use_on` triggers or `\"use\"` in actions:\n\n```python\n# In use_item() or use_item_on(), after finding the item but before processing:\nhas_triggers = self._has_triggers_of_type(item_id, \"on_use\") or self._has_triggers_of_type(item_id, \"on_use_on\")\nif \"use\" not in item_data.get(\"actions\", []) and not has_triggers:\n    # Also check for eat/drink tags for contextual message\n    is_food = \"food\" in item_data.get(\"tags\", [])\n    is_drink = \"drink\" in item_data.get(\"tags\", [])\n    if is_food and verb == \"eat\":\n        # Let it pass - it's food\n        pass\n    elif not has_triggers:\n        available = self._get_available_actions(item_id)\n        return self._contextual_failure(actor, \"use\", item_name, available)\n```\n\n### 4. Add weight/encumbrance check\n\nRead `weight` from item properties, compare to player's strength stat:\n\n```python\nitem_weight = item_data.get(\"weight\", 0.1)\nplayer_strength = self.players.get(actor, {}).get(\"strength\", 10)  # or however strength is stored\nif item_weight > player_strength * 2:  # arbitrary threshold\n    available = self._get_available_actions(item_id)\n    return f\"I try to lift the {item_name} but it's far too heavy. {available_msg}\"\n```\n\n### 5. Wire eat/drink into contextual path\n\nCurrently `eat` and `drink` are separate branches in app.py that call `use_item()`. Validate through the same path:\n\n```\neat rock → use_item(\"rock\") → check \"food\" tag → fail: \"I pause - that's a rock, not food.\"\n```\n\n### 6. Update app.py error handling\n\nThe existing `ValueError` catch (line 497) already converts engine errors to output. Smart errors returned as strings (not exceptions) should flow through the same path. No app.py changes needed if engine returns contextual strings.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - `_contextual_failure()`, validation in `take_item()`, `use_item()`, `use_item_on()",
+      "app.py` - possibly minor adjustments to how snake_case verbs map (read→examine, light→use, etc.)"
+    ],
+    "custom": {
+      "supported_actions_simplified_set": "| Action | Maps To | Validation |\n|--------|---------|------------|\n| examine | examine | Always valid |\n| take | take | Check `\"take\"` in item.actions |\n| use | use | Check if triggers exist OR `\"use\"` in item.actions |\n| open | open | Check `\"open\"` in item.actions or tags |\n| close | close | Check item state is open |\n| eat | use (flavor) | Check `\"food\"` tag or `\"eat\"` in actions |\n| drink | use (flavor) | Check `\"drink\"` tag or `\"drink\"` in actions |\n| read | examine (flavor) | Treat as examine |\n| light | use (flavor) | Check for toggle/use triggers |\n| activate | use (synonym) | Same as use |\n| toggle | toggle | Check for on_toggle_on/off triggers |\n| equip | equip | Check if equippable |\n| unequip | equip | Check if equipped |\n| break | break | Check if breakable |",
+      "how_agents_benefit": "When an agent tries `eat rock` and gets:\n```\n\"I pause - that's a rock, not food. I could **examine** it.\"\n```\n\nThe agent's LLM learns:\n- Rocks aren't food\n- The action failed because the item category doesn't match\n- Examine is available as an alternative\n\nOver time, this teaches agents the game's physics and item grammar without hardcoded rules."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-77-contextual_action_feedback.md"
+  }
+}

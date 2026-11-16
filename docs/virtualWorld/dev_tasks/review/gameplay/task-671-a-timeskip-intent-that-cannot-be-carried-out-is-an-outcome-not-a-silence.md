@@ -61,4 +61,4 @@ When an intended timeskip action (such as traveling along a heading with no exit
 ## Files
 
 - engine/timeskip.py
-- 	ests/test_timeskip.py
+- tests/test_timeskip.py

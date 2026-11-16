@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-35",
+  "kind": "task",
+  "number": 35,
+  "title": "Graph / Visual Alternatives",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The vis.js network graph is the primary visualization, but it can become cluttered with many nodes/edges. Alternative views are needed for different use cases: room-focused layout, item hierarchies, character locations.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph-manager.js` - add view mode switching",
+      "static/css/style.css` - styles for alternative views",
+      "templates/index.html` - toolbar toggle buttons"
+    ],
+    "custom": {
+      "proposed_views": "### 1. Area Map View (top-down layout)\n\nA simplified 2D map showing rooms as boxes, doors as connections, with characters shown inside rooms. This is the most intuitive view for world navigation.\n\n- Rooms arranged in a grid based on their exit directions (north/south/east/west)\n- Click a room to inspect it\n- Characters shown as icons inside their current room\n- Items shown as small icons\n- Filterable: hide items, show only doors\n\n### 2. Item Hierarchy View (tree layout)\n\nShow containment relationships: room → container → items inside container.\n\n- Tree layout rooted at each room\n- Expandable/collapsible branches\n- Shows container nesting\n- Drag items between rooms/containers\n\n### 3. Character-Centric View\n\nShow a character and their surroundings:\n- Character at center\n- Current room around them\n- Exits to adjacent rooms\n- Inventory items\n- Other characters in the same room\n\n### 4. Text-Based Outline\n\nA simple collapsible tree view in the left or right panel:\n\n```\n🏠 Mansion\n├── 📦 Items\n│   ├── iron_key (in living room)\n│   └── crystal_skull (in foyer)\n├── 🚪 Doors\n│   ├── front_door → Garden (locked)\n│   └── kitchen_door → Kitchen (open)\n└── 🧍 Characters\n    ├── Tommy (Living Area)\n    └── Cat (Kitchen) [NPC]\n```\n\n### Implementation Approach\n\n**Option A (Recommended)**: Add a toggle toolbar above the graph that switches between:\n- \"Graph\" (current vis.js network)\n- \"Map\" (simplified room layout using vis.js with custom physics)\n- \"Outline\" (text-based panel)\n\n**Option B**: Replace vis.js entirely with a custom canvas/SVG renderer that supports multiple layouts. Higher effort but more control.\n\n**Option C**: Keep vis.js but add layout presets that the user can switch between (hierarchical, grid, radial).",
+      "audit": "**Status**: Ready to test\n**Evidence**: Three view modes fully implemented in `graph-manager.js`:\n- **🔮 Graph**: vis.js force-directed graph with node type coloring (room box, item diamond, door triangle, character ellipse), door/item state coloring, edge type coloring, physics toggle, fit view, search/filter, legend\n- **🗺 Map**: SVG-based room map using BFS room layout from compass directions (N/S/E/W/up/down), room cards with click-to-inspect, SVG connection lines with direction labels\n- **📋 Outline**: Collapsible text tree with rooms/exits/items/characters, copy-to-clipboard\n- Toolbar buttons (`index.html:77-109`) toggle between all three modes\n**How to test**: Click the 🔮 Graph / 🗺 Map / 📋 Outline buttons in the graph toolbar. In Map view: verify rooms are positioned by compass direction and connection lines appear. In Outline view: verify collapsible tree with rooms → items → characters. In Graph view: right-click any node to see context menu."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-35-graph_visual_alternatives.md"
+  }
+}

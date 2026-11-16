@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "id": "task-528",
+  "kind": "task",
+  "number": 528,
+  "title": "Place authored areas onto a painted cell (scope membership + map placement)",
+  "status": "review",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-26",
+  "updated": "2026-09-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-496",
+      "task-397",
+      "task-378",
+      "task-523",
+      "task-495",
+      "task-535",
+      "task-539"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "An area the author wrote by hand exists in the graph but has no place on a painted map:\nthe map is a WorldPainter reference image with biome cells, and `compile_grid` only\never creates areas *from* cells. Nothing could put an existing area *onto* one, so\n`world_scope_id`, `properties.cell` and `x/y` had no producer outside the compiler.\n\nThis closes it: pick an existing area, click a cell on the map, and it becomes a\nmember of that scope placed on that cell - visible in Map mode, aligned with the\npainted art, and safe against Generate.\n\n**Decided 2026-09-27 (with the author):**\n- Placement is manual: a WorldPainter tool, pick area → click cell. Not a graph bulk\n  action; \"add to scope\" without positioning was rejected as not useful.\n- Painting + generating the **world** grid stays allowed. That makes the collision\n  rule mandatory, not optional (see below): a cell holding a hand-placed area is\n  skipped by `compile_grid`, so Generate never creates a second area there.",
+    "why": "Authors need to place existing hand-authored areas onto WorldPainter grid cells without re-generating them, establishing both spatial coordinates (cell, x/y) and scope membership in one atomic, undoable operation.",
+    "how": "Added route POST /api/scopes/<scope_id>/place_area updating node cell and properties.world_scope_id and reserving the grid cell in manifest.json. Implemented place tool in painter UI.",
+    "verify": "1. Place an authored area on a painted cell\n   - expected: Area gains cell coordinates and scope membership; cell is reserved from procedural generation\n   - observed: Verified on 12x12 scope live check (area_testmap_6_3)\n2. Verify scope deletion releases hand-placed cell\n   - expected: Deleting scope frees cell reservation while preserving authored area node\n   - observed: Verified by test_delete_scope_releases_a_hand_placed_area_but_keeps_it",
+    "acceptance": [
+      {
+        "text": "### Store and rules (engine)",
+        "done": false
+      },
+      {
+        "text": "`record[\"area_placements\"]`: `{area_id: {\"x\",\"y\"}}` - the mirror of `placements`",
+        "done": true
+      },
+      {
+        "text": "(which is keyed by child scope). Normalised in `world_grid.normalise_grid` like",
+        "done": false
+      },
+      {
+        "text": "`placements` is, so a malformed record self-heals on load.",
+        "done": false
+      },
+      {
+        "text": "`world_grid.area_placements(record)`, `area_placement_at(record, x, y)` and",
+        "done": true
+      },
+      {
+        "text": "`area_placement_of(record, area_id)` mirror `placements()` / `occupant_at()`.",
+        "done": false
+      },
+      {
+        "text": "`compile_grid` **skips** a region whose anchor cell is occupied by an",
+        "done": true
+      },
+      {
+        "text": "`area_placements` entry. Without this, painting that cell and generating would",
+        "done": false
+      },
+      {
+        "text": "produce a second area on top of the hand-placed one.",
+        "done": false
+      },
+      {
+        "text": "A placed area keeps NO `properties.generated` (it is hand-authored), so",
+        "done": true
+      },
+      {
+        "text": "`ungenerate_scope` / `delete_scope` leave it alone - that is already how those",
+        "done": false
+      },
+      {
+        "text": "predicates work, and it is why placement must refuse generated nodes instead.",
+        "done": false
+      },
+      {
+        "text": "### One undoable operation (routes)",
+        "done": false
+      },
+      {
+        "text": "`POST /api/world/scopes/<id>/grid/place_area` `{area_id, x, y, on_overlap?}`",
+        "done": true
+      },
+      {
+        "text": "does the whole thing in one request: node properties (`world_scope_id`,",
+        "done": false
+      },
+      {
+        "text": "`cell`, `x`, `y` in `CELL_CANVAS_UNITS`), manifest `area_ids` membership",
+        "done": false
+      },
+      {
+        "text": "(appending to the new scope, removing from the previous one), and the",
+        "done": false
+      },
+      {
+        "text": "`area_placements` entry.",
+        "done": false
+      },
+      {
+        "text": "`POST /api/world/scopes/<id>/grid/unplace_area` `{area_id}` frees the cell and",
+        "done": true
+      },
+      {
+        "text": "clears the node's `cell`/`x`/`y`, keeping scope membership.",
+        "done": false
+      },
+      {
+        "text": "Both live under `/grid/`, where `app.py:112-117` suppresses the automatic",
+        "done": true
+      },
+      {
+        "text": "post-state snapshot, and each pushes exactly **one** pre-state snapshot - so",
+        "done": false
+      },
+      {
+        "text": "one undo reverts the whole op (bulk delete's N-entries mistake avoided).",
+        "done": false
+      },
+      {
+        "text": "Refusals, each with a message the UI can show verbatim:",
+        "done": true
+      },
+      {
+        "text": "unknown area · not an area node · **generated** area (regenerating its source",
+        "done": false
+      },
+      {
+        "text": "scope would re-create it) · scope has no grid · cell out of bounds · cell",
+        "done": false
+      },
+      {
+        "text": "already taken (unless `on_overlap: \"displace\"`, which moves the other area off",
+        "done": false
+      },
+      {
+        "text": "the cell) · area already placed elsewhere in this scope.",
+        "done": false
+      },
+      {
+        "text": "### Painter (frontend)",
+        "done": false
+      },
+      {
+        "text": "A fifth WorldPainter tool \"📍 Area\": a picker of unplaced hand-authored areas,",
+        "done": true
+      },
+      {
+        "text": "then click a cell to place. Placed areas render in the decor layer with their",
+        "done": false
+      },
+      {
+        "text": "name, so the map shows what is where.",
+        "done": false
+      },
+      {
+        "text": "Clicking a cell that already holds a placed area offers to unplace it (no",
+        "done": true
+      },
+      {
+        "text": "second mode to learn).",
+        "done": false
+      },
+      {
+        "text": "After placing, the tool stays armed for the next area; Escape returns to paint.",
+        "done": true
+      },
+      {
+        "text": "The grid payload carries `area_placements` (id, name, x, y) and",
+        "done": true
+      },
+      {
+        "text": "`unplaced_areas` (hand-authored areas with no placement), so the picker needs",
+        "done": false
+      },
+      {
+        "text": "no extra round trip.",
+        "done": false
+      },
+      {
+        "text": "Bridge: the area context menu gets \"📍 Place on map…\", which opens the painter",
+        "done": true
+      },
+      {
+        "text": "at that area's scope with the tool armed and the area pre-selected.",
+        "done": false
+      },
+      {
+        "text": "### Tests",
+        "done": false
+      },
+      {
+        "text": "`tests/test_world_grid.py`: the new accessors + `normalise_grid` on a",
+        "done": true
+      },
+      {
+        "text": "malformed `area_placements`.",
+        "done": false
+      },
+      {
+        "text": "`tests/test_world_grid_routes.py`: place / unplace / every refusal / one undo",
+        "done": true
+      },
+      {
+        "text": "step / membership moves between scopes / generate skips an occupied cell.",
+        "done": false
+      },
+      {
+        "text": "`tools/unit/test_worldpainter.js`: any new pure view-model helpers.",
+        "done": true
+      },
+      {
+        "text": "`python -m pytest -q` at the documented baseline, `node tools/unit/run.cjs`,",
+        "done": true
+      },
+      {
+        "text": "`npm run lint`, `npm run typecheck`, `python tools/js_module_index.py --check`.",
+        "done": false
+      },
+      {
+        "text": "Verified in the browser: place an authored area on the painted world map, see",
+        "done": true
+      },
+      {
+        "text": "it in Map mode, and see Generate refuse to duplicate the cell.",
+        "done": false
+      }
+    ],
+    "files": [
+      "-",
+      "routes/world_grid_ops.py",
+      "engine/world_scopes.py",
+      "static/js/worldpainter/grid-model.ts",
+      "tests/test_world_grid_routes.py"
+    ],
+    "custom": {
+      "deferred_filed_as_task_535": "The other half of the original goal - promoting a selection into a **new child scope**\nplaced on a parent cell, with a gateway way and an entry area - is a separate op: it\nneeds child-scope creation from existing nodes, a gateway whose provenance is not the\nparent's, and entry-area bookkeeping. `world_compile._gateway` is private and\ngeneration-owned, so it wants its own public helper rather than a reuse of that one.",
+      "notes": "- `world` scope caveat for the author: its grid is 200×133 cells while a zone grid is\n  e.g. 20×40, so the two live at very different scales. Zone placement on the world\n  map is therefore the zone `map_offset`'s job (task-523) - place areas in the scope\n  they belong to, then drag the zone onto the world map.\n- `hasPaintedGrid` (`layout-engine.js:317`) is a whole-payload mode switch: the first\n  hand-placed area flips the entire world view into grid mode. Areas without a `cell`\n  are then placed by physics rather than the lattice, which is the intended\n  \"grid where it exists, physics elsewhere\" behaviour.\n- Deleting a scope **releases** its hand-placed areas' cells (the reservation lived in\n  the record being deleted) while keeping the areas. Without that, a phantom `cell`\n  would keep `hasPaintedGrid` true for a map nothing reserves any more, and a\n  re-created scope of the same id could generate a second area on it. Covered by\n  `test_delete_scope_releases_a_hand_placed_area_but_keeps_it`.\n- The painter's compile estimate drops occupied cells too, so the header's\n  \"≈ N areas\" matches what Generate actually mints.\n- Verified live on a 12×12 scope: the tool opens pre-armed from the graph, a click\n  placed `Bathroom` on (5,3) (`cell`, `x/y = 200/120`, membership, one undo step),\n  and Generate with biomes painted on (5,3) and (6,3) minted only `area_testmap_6_3`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature.md"
+  }
+}

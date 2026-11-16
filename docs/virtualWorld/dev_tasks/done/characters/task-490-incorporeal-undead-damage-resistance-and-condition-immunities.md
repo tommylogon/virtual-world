@@ -21,7 +21,7 @@ Complete the still-open part of task-309: D&D-style damage resistance/immunity f
 - Keyed off the incorporeal/undead identity from task-309 (`engine/combat.py`, `engine/conditions.py`).
 - Tests covering resistance/immunity and condition application.
 
-## Implementation — 2026-09-28 (WT-C)
+## Implementation - 2026-09-28 (WT-C)
 
 ### What task-309 had already done
 
@@ -34,17 +34,17 @@ grabbed, because nothing here existed.
 
 ### Files
 
-- `engine/undead.py` — **new**. The defence profile and its arithmetic.
-- `engine/combat.py` — damage resolution hook.
-- `engine/conditions.py` — `apply_condition` immunity gate.
-- `tests/test_undead_resistance.py` — **new**, 57 tests.
+- `engine/undead.py` - **new**. The defence profile and its arithmetic.
+- `engine/combat.py` - damage resolution hook.
+- `engine/conditions.py` - `apply_condition` immunity gate.
+- `tests/test_undead_resistance.py` - **new**, 57 tests.
 
 ### A separate profile, and why
 
 `aggregate_bonuses` already produces a `resistances` dict, but it is a **flat
 subtraction** assembled from equipped items (`resisted_damage` does
 `base - resist`). 5e resistance *halves* and immunity *negates*, and a halved
-point of damage is nothing — none of which is a flat number. Folding undead into
+point of damage is nothing - none of which is a flat number. Folding undead into
 that aggregate would also make a sword do less damage to a ghost, which is not
 what either rule means. So a profile is its own explicit thing with its own
 arithmetic: `resist` halves, `immune` zeroes, and `damage // 2` is written as
@@ -52,26 +52,26 @@ integer division on purpose.
 
 ### The rule I got wrong first, worth writing down
 
-The 5e rule is resistance to damage **from nonmagical weapons** — about the
+The 5e rule is resistance to damage **from nonmagical weapons** - about the
 *weapon*, not the injury. The first cut keyed the resistance on damage types
 (`slashing` and friends), so a mundane sword did full damage to a ghost because
-`slashing` was not in the resist table, while `lightning` and `force` — which
-were — halved damage no matter what struck with them. That is the rule exactly
+`slashing` was not in the resist table, while `lightning` and `force` - which
+were - halved damage no matter what struck with them. That is the rule exactly
 backwards.
 
 Now the profile carries a `NONMAGICAL_WEAPON` sentinel, and
 `apply_damage_resistance` takes a `from_nonmagical_weapon` flag, because only the
 caller knows where a hit came from. A bare fist is *not* a nonmagical weapon: a
 ghost is hard to hurt with a sword, not with a fist going straight through it.
-A weapon with no stated magicalness counts as mundane — the world has to say a
+A weapon with no stated magicalness counts as mundane - the world has to say a
 weapon is enchanted for it to be, and defaulting the other way would make every
 mundane sword useless against ghosts without anyone having decided that.
 
 ### Immunity beats resistance, and neither is a wound
 
 An immune blow applies no region injury either. Wounding a ghost for touching it
-would be the engine disagreeing with itself in two places — `engine/body_parts`
-and `engine/undead` — and the first of those to be wrong wins.
+would be the engine disagreeing with itself in two places - `engine/body_parts`
+and `engine/undead` - and the first of those to be wrong wins.
 
 ### Ghost versus zombie
 
@@ -80,15 +80,15 @@ part:
 
 | | ghost (undead + ghost) | zombie (undead) | mortal |
 |---|---|---|---|
-| cold / necrotic / poison | immune | immune | — |
-| nonmagical weapons | resist (halve) | — | — |
-| lightning / thunder / force | resist | — | — |
-| grappled / restrained / prone | immune | **vulnerable** | — |
-| exhausted | **vulnerable** | immune | — |
+| cold / necrotic / poison | immune | immune | - |
+| nonmagical weapons | resist (halve) | - | - |
+| lightning / thunder / force | resist | - | - |
+| grappled / restrained / prone | immune | **vulnerable** | - |
+| exhausted | **vulnerable** | immune | - |
 
 5e says a ghost is immune to *all conditions except exhaustion*. `exhausted` is
 therefore deliberately **not** in the ghost list, and a test asserts the two
-lists differ by exactly `{exhausted}` — so a well-meaning edit that "fixes" the
+lists differ by exactly `{exhausted}` - so a well-meaning edit that "fixes" the
 asymmetry fails instead of silently rewriting the rule.
 
 A zombie is not a ghost: it has a body, so it can be grappled and it bleeds. It
@@ -107,7 +107,7 @@ caller that has already established the target is a ghost.
 ### The visibility gate comes first, and the tests had to be honest about it
 
 task-309 made an unmanifested ghost invisible, and combat refuses to strike what
-it cannot see — so an unmanifested ghost never reaches the damage hooks at all.
+it cannot see - so an unmanifested ghost never reaches the damage hooks at all.
 The first version of the combat test passed *for the wrong reason*: it saw
 "passes straight through" in the message and concluded the resistance worked,
 when that line was the visibility gate. The test now manifests the ghost (the
@@ -120,8 +120,8 @@ Nothing. No hub file was touched.
 
 ### Verify
 
-`python -m pytest tests/test_undead_resistance.py -q` — 57 tests. And
-`tests/ -q -k "combat or condition or ghost or undead or damage"` — 413 pass, the
+`python -m pytest tests/test_undead_resistance.py -q` - 57 tests. And
+`tests/ -q -k "combat or condition or ghost or undead or damage"` - 413 pass, the
 single failure being the pre-existing `test_mcp_misc::test_ghost_mode` FastMCP
 wrapper mismatch.
 

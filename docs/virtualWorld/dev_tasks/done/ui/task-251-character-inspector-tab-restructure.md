@@ -7,18 +7,18 @@ priority: medium
 
 # Task-251: Restructure Character Inspector Tabs
 
-**Status:** In Review — implemented 2026-08-16 in
+**Status:** In Review - implemented 2026-08-16 in
 `static/js/inspector/agent-view.js` + `paperdoll-view.js`.
 
 ## What
 
 Reorganize the character inspector into fewer, more coherent tabs:
 
-- **Inventory** — paperdoll/equipment on top, inventory grid below it
+- **Inventory** - paperdoll/equipment on top, inventory grid below it
   (Equipment + Inventory merged).
-- **Bio** — personality, appearance, **Stats/Skills/Traits** (moved from the
+- **Bio** - personality, appearance, **Stats/Skills/Traits** (moved from the
   old Stats tab), relationships, tags, memories, etc.
-- **Advanced** — **Graph Physics** (moved from always-visible top section),
+- **Advanced** - **Graph Physics** (moved from always-visible top section),
   **Behaviors** (moved from Bio), timeline, conversation memory, save/export.
 
 ## How

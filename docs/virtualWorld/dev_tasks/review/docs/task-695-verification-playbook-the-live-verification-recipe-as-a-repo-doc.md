@@ -23,7 +23,7 @@ rediscover it. AGENTS.md points at it.
 
 - [ ] Documents where state lives: turn queue is client-side (`VW.agent`), world
       state is server-side; a second browser tab is a safe sandbox.
-- [ ] The safe-interaction list: hover, chip clicks (draft only — "nothing fires
+- [ ] The safe-interaction list: hover, chip clicks (draft only - "nothing fires
       until Act"), menus, `#player-room` as the character-teleport control,
       `HumanTurnComposer.request(name)` to open the turn card directly.
 - [ ] The unsafe list: Act / close turn / skip-react / Escape (dismiss resolves
@@ -55,7 +55,7 @@ TODO
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this task creates a repository verification guide, not a new product surface. The guide's examples direct future agents to existing browser controls and state surfaces.
+Intended UI home: Not applicable - this task creates a repository verification guide, not a new product surface. The guide's examples direct future agents to existing browser controls and state surfaces.
 
 Current availability: the acceptance names `docs/design/verification-playbook.md` and lists the required safe-interaction and state-ownership guidance. The guide is not claimed as written by this card.
 

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-835",
+  "kind": "task",
+  "number": 835,
+  "title": "Crafting recipes - bread and grain",
+  "status": "review",
+  "priority": "medium",
+  "area": "crafting",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-2",
+      "task-703",
+      "task-831",
+      "task-840"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "12 recipes: thresh → grind → dough → loaf, the full medieval grain chain plus oatcakes, flatbread, and honeyed extras.\n\n| # | Recipe | Ingredients | Equipment | Cond | Min | Skill/DC | Success | Fail | Crit-fail |\n|---|---|---|---|---|---|---|---|---|---|\n| 1 | thresh barley | barley_sheaf ×1 | flail / threshing_floor | - | 20 | Survival 8 | barley (uses 4) + straw ×1 | barley (uses 2) | scattered grain (uses 1) |\n| 2 | grind meal | barley (uses 2) | grindstone / quern | - | 30 | Survival 9 | barley_meal (uses 3) | coarse_meal (uses 2) | spilled meal (uses 1) |\n| 3 | grind flour fine | wheat (uses 2) | millstone | - | 30 | Crafting 10 | flour (uses 3) | coarse_meal (uses 2) | spilled meal |\n| 4 | mix dough | flour (uses 2), boiled_water ×1, salt ×1 | wooden_bowl | - | 15 | Cooking 8 | dough (uses 2) | sticky_dough (uses 1) | soupy mess (lost) |\n| 5 | leaven dough | dough (uses 2), barm ×1 | wooden_bowl (covered) | - | 120 | Cooking 10 | risen_dough (uses 2) | dough (flat, uses 1) | soured dough (useless) |\n| 6 | flatbread | dough (uses 1) | hearth_stone, fire (on) | fire on | 5 | Cooking 8 | flatbread ×2 | flatbread ×1 | burned_flatbread |\n| 7 | barley loaf | risen_dough (uses 2) | clay_oven / hearth, fire (on) | fire on | 40 | Cooking 11 | barley_loaf | barley_loaf (small, half) | burned_loaf |\n| 8 | wheat bread | risen_dough (uses 2, wheat) | clay_oven, fire (on) | fire on | 40 | Cooking 12 | bread ×1 | bread (small) | burned_loaf |\n| 9 | oatcake | oats (uses 2), animal_fat ×1, salt ×1 | hearth_stone, fire (on) | fire on | 10 | Cooking 9 | oatcake ×3 | oatcake ×1 | burned_oatcake |\n| 10 | honeyed bread | bread ×1, honey ×1 | - | - | 5 | Cooking 7 | honeyed_bread | honeyed_bread (half) | soggy mess (lost) |\n| 11 | breadcrumbs | stale_bread ×1 | - | - | 5 | Cooking 6 | bread_crumbs (uses 3) | bread_crumbs (uses 1) | - |\n| 12 | bake apple tart | dough (uses 1), apple ×2, honey ×1 | clay_oven, fire (on) | fire on | 30 | Cooking 13 | apple_tart | apple_tart (soggy, half) | burned_tart |\n\nNew items: barley_sheaf, wheat, wheat_sheaf, straw, coarse_meal, spilled meal→(use existing flour spill?), dough, sticky_dough, soupy_mess, barm, risen_dough, soured_dough, flatbread, burned_flatbread, barley_loaf (check existing), oatcake, burned_oatcake, stale_bread, apple_tart (check), burned_tart, burned_loaf, clay_oven (station), quern (station), flail (tool).",
+    "why": "Bread is the medieval calorie base. The chain gives farmers, millers, and bakers distinct pursuits instead of one \"make bread\" button.",
+    "how": "Per task-831; sheaf→grain→meal→dough→loaf is a 4-deep chain - each step's outputs are the next step's inputs, validated in order.",
+    "verify": "1. Gate over this card's files.\n    - expected: clean; chain links resolve (no step consumes what no prior step makes).\n    - observed: 2026-10-16 - `recipe_check.py --check`: all 55 clean\n      (12 new + 43 prior). 14 missing item files authored alongside\n      (flail/honeyed_bread/barm/flour etc. already existed - reused,\n      `hearth` mapped to existing `hearth_stone`, no duplicates).\n2. Run thresh → grind → dough → loaf end to end.\n    - expected: full chain completes; one forced fail mid-chain degrades but doesn't break the chain.\n    - observed: 2026-10-16 -\n      `test_grain_chain_sheaf_to_loaf_end_to_end`: sheaf → barley →\n      meal → dough → risen → loaf completes through the engine.\n      Caught a REAL break on the way: the table's mix-dough takes\n      flour, but grind-meal makes coarse_meal - the specified chain\n      could never complete. Mix dough now takes coarse_meal (the\n      verify step wins over the table). Consequence, recorded: wheat\n      flour currently has no consumer - needs a future\n      wheat-dough variant, not invented here.",
+    "acceptance": [
+      {
+        "text": "All 12 recipes validate clean; grain chain is unbroken.",
+        "done": true
+      },
+      {
+        "text": "New outputs exist as library files.",
+        "done": true
+      }
+    ],
+    "files": [
+      "data/library/items/*.json` - new outputs above"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: game view → Make dough / bake loaf → inventory + event stream.\n\nCurrent availability: card only.\n\nLive steps when available:\n1. Bake a barley loaf from risen dough at a lit oven.\n   - expected: loaf per tier; crit-fail gives burned loaf, dough consumed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/crafting/task-835-crafting-recipes-bread-and-grain.md"
+  }
+}

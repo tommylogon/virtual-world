@@ -7,7 +7,7 @@ priority: medium
 
 # Task-238: Click a Parse Error to Inspect the Raw Response
 
-**Status:** In Review — implemented as part of the event-stream v2 work (task-340).
+**Status:** In Review - implemented as part of the event-stream v2 work (task-340).
 
 ## What
 
@@ -15,7 +15,7 @@ Surface raw LLM response text in a clickable way when parsing fails.
 
 ## Implemented
 
-- `static/js/stream/stream-raw-llm.js` — `logParseError(charName, phase, errMsg, raw)`:
+- `static/js/stream/stream-raw-llm.js` - `logParseError(charName, phase, errMsg, raw)`:
   renders a clickable `⚠ parse error` bubble with a `🔍 view raw response` link; the
   raw payload expands inline (monospace, scrollable, escaped).
 - Consecutive parse-error count + **payload export** (`parse_errors_<char>_<phase>.txt`

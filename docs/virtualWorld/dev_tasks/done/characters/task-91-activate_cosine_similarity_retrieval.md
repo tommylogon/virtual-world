@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-22
 **Priority**: High
-**Status**: In Review (moved 2026-08-29) — implemented 2026-08-23 per the re-scope
+**Status**: In Review (moved 2026-08-29) - implemented 2026-08-23 per the re-scope
 below. Settings →
 🧬 Embedding tab (enable/url/model/dims/key/test), `static/js/shared/embedding-client.js`,
 `engine/vector_store.py` (JSON store, pure-python cosine, atomic writes) + routes in
@@ -21,16 +21,16 @@ below. Settings →
 recall pool at 2×score weight, keyword scoring untouched as fallback. Verified: 11 new
 tests in `tests/test_vector_store.py`, full suite 1066 passed, live curl round trip
 (upsert→ranked search→conflict), settings UI renders + populates. Not yet verified with
-a real embedding provider (Ollama/LM Studio) — needs a live endpoint E2E.
+a real embedding provider (Ollama/LM Studio) - needs a live endpoint E2E.
 
 **Status correction (2026-10-04)**: this body line still read "In Review" while the
-folder and frontmatter both said `done` — the body was the stale part. It is done; the
+folder and frontmatter both said `done` - the body was the stale part. It is done; the
 open verification item ("a real embedding provider") was closed the same day, see the
 addendum below.
 
 ## Re-verified live with a real provider (2026-10-04, task-685)
 
-The last open item — *not yet verified with a real embedding provider* — is now closed
+The last open item - *not yet verified with a real embedding provider* - is now closed
 end-to-end against LM Studio in the browser, during the memory-dynamics work:
 
 - **Embedding E2E**: `text-embedding-nomic-embed-text-v1.5@f32` → 768-dim vector
@@ -39,7 +39,7 @@ end-to-end against LM Studio in the browser, during the memory-dynamics work:
   (`GET /api/memory/embeddings/stats`: model + dims + count all correct, count grew
   98 → 99 as new memories were written).
 - **The 409 dim-conflict guard fired for real**: a 768-dim config against a store
-  holding 1024-dim vectors is silently refused client-side — the mixed-vector-space
+  holding 1024-dim vectors is silently refused client-side - the mixed-vector-space
   protection in the scope above is not theoretical.
 - **Write path confirmed live**: react-phase LLM memories ("Entering a cold living
   room", "The cold air is still coming in") embedded automatically after store.
@@ -50,14 +50,14 @@ end-to-end against LM Studio in the browser, during the memory-dynamics work:
 What task-685 changed on top of this (none of it contradicts the scope above):
 
 - Vector hits now **reinforce** the memory they recalled, via a new
-  `POST /memories/reinforce` endpoint (`memory-context.js` fires it after the merge) —
+  `POST /memories/reinforce` endpoint (`memory-context.js` fires it after the merge) -
   semantic recall became part of the reinforcement loop, not just a read.
 - The keyword/multi-signal scorer (`/memories/retrieve`, task-690) is now the primary
   ranker; the vector merge at 2× weight is one input among several, and the recall
   block is grouped (EVENTS / WHAT I BELIEVE / HOW I SEE PEOPLE / WHAT I EXPECT).
 
 Known gaps above that remain open: no mass re-embed job (still one-off via the
-inspector), and the redundant `embedding` field vs `data/embeddings.json` geometry —
+inspector), and the redundant `embedding` field vs `data/embeddings.json` geometry -
 unchanged by task-685.
 
 **Known gaps (2026-08-29)**:
@@ -81,36 +81,36 @@ unchanged by task-685.
    `{baseUrl}/embeddings`, batch input, dimension auto-detect, graceful null on any
    failure (system degrades to keyword-only recall).
 3. **Lightweight vector store** (backend): `data/embeddings.json` keyed by
-   `{character}|{memory key}`, pure-python cosine search — no new dependencies,
+   `{character}|{memory key}`, pure-python cosine search - no new dependencies,
    no sentence-transformers. Endpoints in `routes/memories.py`:
-   - `POST /api/memory/embeddings` — bulk upsert `{items: [{key, vector}]}`
-   - `POST /api/memory/embeddings/search` — `{character, vector, k}` → top-k keys + scores
+   - `POST /api/memory/embeddings` - bulk upsert `{items: [{key, vector}]}`
+   - `POST /api/memory/embeddings/search` - `{character, vector, k}` → top-k keys + scores
 4. **Write path**: `AgentMemory.storeMemory()` embeds the memory text after a
    successful store and upserts the vector (fire-and-forget).
 5. **Read path**: `buildMemoryContext()` embeds the recall query, searches, merges
    cosine-scored memories into the existing candidate pool (keyword scoring stays as
    fallback when embeddings are disabled/unavailable).
 6. Legacy root-level `embeddings.py` / `/api/embeddings` (sentence-transformers) is
-   superseded — removal tracked separately.
+   superseded - removal tracked separately.
 
-Prior art: `F:\AI\Aura\Diary` (rag_utils.py — query embedding → top-k similar events;
+Prior art: `F:\AI\Aura\Diary` (rag_utils.py - query embedding → top-k similar events;
 nomic-embed via local LM Studio endpoint).
 
 ## What to expect on your next run
 
-**Event stream: nothing new appears** — both systems are silent by design. Silence =
+**Event stream: nothing new appears** - both systems are silent by design. Silence =
 working (or disabled; check Settings → 🧬 Embedding shows model + dims after Test).
 Failure mode is invisible too: dead endpoint = silent keyword-only fallback, which is
 why you Test Connection first. Ollama CORS gotcha: may need `OLLAMA_ORIGINS=*`.
 
-**Behavioral fingerprint** — agents act on meaning-matched memories with zero word
+**Behavioral fingerprint** - agents act on meaning-matched memories with zero word
 overlap:
 - *Taco Bell*: Miki's thought drifts to "tonight feels unfinished" → she returns to
   the booth unprompted (the hidden-object memory shares no keywords with her thought).
-- *Mansion*: an agent in the study recalls the calling card found in the hall —
+- *Mansion*: an agent in the study recalls the calling card found in the hall -
   cross-area resonance; the deduction chain should connect in fewer turns.
 
-**In exports**: read `=== I REMEMBER ===` blocks in prompt echoes — memories listed
+**In exports**: read `=== I REMEMBER ===` blocks in prompt echoes - memories listed
 that share no vocabulary with their surroundings are semantic hits (they enter at
 2× cosine weight).
 
@@ -123,7 +123,7 @@ tune the 0.35 threshold / 2× weight in `memory-context.js`.
 
 ## What
 
-The embedding infrastructure exists (embedding generation, cache, `/api/embeddings` endpoint, `cosineSimilarity()`) but is **dormant** — the `retrieve()` method gives a flat `0.3` boost for any memory that has an embedding, instead of computing actual cosine similarity against the query.
+The embedding infrastructure exists (embedding generation, cache, `/api/embeddings` endpoint, `cosineSimilarity()`) but is **dormant** - the `retrieve()` method gives a flat `0.3` boost for any memory that has an embedding, instead of computing actual cosine similarity against the query.
 
 This task activates semantic retrieval, making memory recall dramatically more relevant for agents.
 
@@ -131,7 +131,7 @@ This task activates semantic retrieval, making memory recall dramatically more r
 
 ## Evidence
 
-`static/js/memory-store.js:96-145` — `retrieve()`:
+`static/js/memory-store.js:96-145` - `retrieve()`:
 
 ```js
 let simScore = 0;
@@ -148,7 +148,7 @@ query_embedding = self.LLM.get_embeddings(query)
 scores = cosine_similarity([query_embedding], memory_item_embeddings)[0]
 ```
 
-Also: `buildContext()` at line 149-177 generates a `queryEmbedding` but passes it as the third `entityBoost` parameter to `retrieve()` — so the query embedding is completely ignored during scoring.
+Also: `buildContext()` at line 149-177 generates a `queryEmbedding` but passes it as the third `entityBoost` parameter to `retrieve()` - so the query embedding is completely ignored during scoring.
 
 ---
 
@@ -184,11 +184,11 @@ The `queryEmbedding` param is currently consumed as `entityBoost`. Fix so it's p
 
 ### 3. Update all other callers of `retrieve()`
 
-Check `prompt-builder.js:138` and any other places that call `retrieve()` — they should continue working with the new signature defaults.
+Check `prompt-builder.js:138` and any other places that call `retrieve()` - they should continue working with the new signature defaults.
 
 ### 4. (Optional) Backend `get_relevant_memories()` in `player.py:287-308`
 
-Currently keyword-only. If the backend ever needs semantic retrieval, add the same fix — but this is lower priority since the frontend MemoryStore is what actually feeds agent prompts.
+Currently keyword-only. If the backend ever needs semantic retrieval, add the same fix - but this is lower priority since the frontend MemoryStore is what actually feeds agent prompts.
 
 ---
 

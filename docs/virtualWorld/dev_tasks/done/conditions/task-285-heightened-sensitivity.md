@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: Planned — task-209 (Arousal State Conditions & Threshold Triggers)
+**Status**: Planned - task-209 (Arousal State Conditions & Threshold Triggers)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
 
 ## What
 
-The edging stack. Repeated stimulation near the edge makes the character progressively more sensitive — every touch hits harder. Stacks by design.
+The edging stack. Repeated stimulation near the edge makes the character progressively more sensitive - every touch hits harder. Stacks by design.
 
 ## Proposed schema
 
@@ -41,7 +41,7 @@ The edging stack. Repeated stimulation near the edge makes the character progres
         2: "Needier than before. Tingling and raw.",
         3: "Barely contained. Any touch is electric.",
     },
-    "stack": "accumulate",   # the edging stack — each edge-approach adds a level
+    "stack": "accumulate",   # the edging stack - each edge-approach adds a level
     "default_duration": None,
     "excludes": [],
 }
@@ -51,18 +51,18 @@ The edging stack. Repeated stimulation near the edge makes the character progres
 
 - **Gates**: none hard.
 - **Saves/checks**: auto-fails `concentration` (distracting need).
-- **Combat**: light `attack_mod`/`defense_mod −1` and slight speed dip — distractible.
+- **Combat**: light `attack_mod`/`defense_mod −1` and slight speed dip - distractible.
 - **Periodic**: escalating `Stimulation` feed by stack level (via `level_periodic`).
-- **Lifecycle**: `stack: "accumulate"` — the whole point is that edging **stacks** sensitivity. Ends on release or rest (dropping off once the edge resolves).
+- **Lifecycle**: `stack: "accumulate"` - the whole point is that edging **stacks** sensitivity. Ends on release or rest (dropping off once the edge resolves).
 
 ## Perception
 
-`known: True` — self-evident, escalating symptoms.
+`known: True` - self-evident, escalating symptoms.
 
 ## Integration points space
 
-- `engine/player.py` — `CONDITION_DEFINITIONS` entry (leverage `level_periodic`/`level_speed_mult`).
-- `engine/conditions.py` — `process_tick`, symptoms.
+- `engine/player.py` - `CONDITION_DEFINITIONS` entry (leverage `level_periodic`/`level_speed_mult`).
+- `engine/conditions.py` - `process_tick`, symptoms.
 - Edging/closeness mechanics (task-208 release-edging-friction, task-94 closeness-as-behavioral-gate).
 - Release/climax clears the stack and typically hands off to `satisfied`.
 
@@ -76,7 +76,7 @@ The edging stack. Repeated stimulation near the edge makes the character progres
 ## Open questions / things to work out
 
 - Exact accumulation trigger: does reaching a closeness threshold once bump the level, or per tick in the edge zone (task-208 friction)?
-- Cap — is there a maximum stack (e.g. level 3) before forced release/overstimulation (`overstimulated` interplay)?
+- Cap - is there a maximum stack (e.g. level 3) before forced release/overstimulation (`overstimulated` interplay)?
 - Does high `sensitized` push toward `frantic` or `overstimulated`? (Sensitivity feeding either is a design lever.)
 
 ## Why

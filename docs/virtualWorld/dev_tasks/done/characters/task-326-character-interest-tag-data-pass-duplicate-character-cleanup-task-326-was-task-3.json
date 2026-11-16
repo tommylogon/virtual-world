@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-326",
+  "kind": "task",
+  "number": 326,
+  "title": "Character Interest-Tag Data Pass + Duplicate Character Cleanup (task-326, was task-322)",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-21",
+  "updated": "2026-08-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Bring all 44 library characters to a realistic, *matchable* interest profile:\n8–14 `interest_tags` each, drawn from the 204-tag item vocabulary, mixing four\ncategories (2–3 mechanical, 2–3 consumables, 3–4 domain, 2–3 personal-style).\nAlso remove one duplicate character file and one empty junk file.\n\nFeeds task-325 (auto-dressing) and makes NPC-relevant spawning meaningful.\nBlocks task-9's interest-driven placement phase.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `python tools/fix_character_interests.py` dry-run reviewed before apply\n- `python -m pytest tests/ -q -k \"not mcp and not emote\"`\n- Re-run survey snippet: 0 characters with dead-only lists, all counts 8–14\n  (animals exempt: rat/goblin/whiskers may stay shorter)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/fix_character_interests.py` (new script)",
+      "data/library/characters/*.json` (data changes)",
+      "duplicate Violet + `?` files (deletions)"
+    ],
+    "custom": {
+      "target_profile_why_8_14": "Interest tags do double duty: personality AND item-matching hooks. Verified\nagainst the well-filled characters (miki: 13, elena: 14):\n\n- **2–3 mechanical** (`sound_source`, `electric`, `light_source`) - drive engine spawning\n- **2–3 consumables** (`candy`, `energy_drink`, `food`)\n- **3–4 domain** (`occult`, `evidence`, `music`)\n- **2–3 personal-style** (`jewelry`, `clothing`, `mirror`)\n\nUnder ~6 → sparse rooms; over ~15 → everything matches everything.",
+      "problems_found_survey_2026_08_21": "1. **7 characters with zero interests**: Gromm, Kaelen Voss, Lyrie, Viktor,\n   Violet halloway, rat, plus one empty `?` file\n2. **5 characters with mostly-DEAD tags** (match zero of 204 item tags):\n   - satsuki 6/6 dead (`track`, `gym`, `hoodies`, `sports`, `competition`, `running`)\n   - uzume-chan 6/6 dead (`farming`, `gardening`, `animals`, `livestock`, `cooking`, `produce`)\n   - nia 5/6 dead (`patrol`, `suspects`, `uniform`, `gym`, `cuffs`; only `mirror` lives)\n   - nina 5/6 dead (`videogames`, `strategy`, `boardgame`, `gaming`, `plush`)\n   - pam 5/6 dead (`books` ≠ `book`!, `studying`, `science`, `homework`, `videogames`)\n3. **Thin lists (<6)**: james(3), mamako(3), miiya(3), kayla(4), lopunny(4),\n   lydia(4), koharu(4), feral goblin(5), jessie(5), kissy(5), miki takahashi(6)\n4. **Dead singletons inside otherwise-fine lists**: `berry` (lopunny),\n   `guitar` (brittany), `necklace` (jessie), `cigarette`/`tv`/`snack` (anna),\n   `game`/`video` (amber), `sweet`/`color` (maya), `dark`/`family`/`photo`(anne ok, photo exists)\n5. **Duplicate file**: two `Violet halloway*.json` entries in data/library/characters/\n6. **Empty junk**: one character file named `?` with no content",
+      "work_plan": "1. **Cleanup first**: delete duplicate Violet file (diff them first - keep the\n   richer one); delete `?` file. Check world_template.json / scenarios for\n   references to the removed ids before deleting.\n2. **Script** `tools/fix_character_interests.py` (pattern: tools/fix_item_equipment.py):\n   - Explicit per-character table (reviewed proposals below) - no silent inference\n   - **Merge-not-replace**: existing live tags are kept, dead tags rewritten via\n     explicit mapping, new tags appended\n   - Dry-run default, `--apply` flag\n   - Validates every proposed tag against the current item-tag vocabulary and\n     hard-errors on unknown tags (prevents re-introducing dead tags)\n3. Review dry-run output, apply.\n4. Run task-323 lint to confirm zero dead interest tags remain.",
+      "proposal_table_drafted_2026_08_21_grounded_in_item_vocab": "**Full sets (empty characters):**\n\n| Character | Proposed interest_tags |\n|---|---|\n| Gromm | weapon, melee, meat, bone, fire, drink, wooden, heavy |\n| Kaelen Voss | clue, evidence, documents, letter, key, book, journal, secret, investigation, weapon |\n| Lyrie | elven, flower, linen, clothing, jewelry, candle, doll, candy |\n| Viktor | weapon, armor, meat, drink, bandage, medical, money, blood |\n| Violet halloway | candy, phone, music, toy, book, secret, clue, clothing |\n| rat | food, cheese, warmth |\n\n**Rewrites (dead → live):**\n\n| Character | Rewrite |\n|---|---|\n| satsuki | clothing, outerwear, footwear, water, energy_drink, music, phone |\n| uzume-chan | plant, vegetation, animal, food, ingredient, water, tool, meal |\n| nia | weapon, clothing, evidence, clue, key, restraint, mirror, food |\n| nina | candy, toy, headphones, phone, electric, energy_drink, book |\n| pam | book, animal, eyewear, tea, candy, phone, knowledge |\n\n**Top-ups (append to existing):**\n\n| Character | Add |\n|---|---|\n| kayla | perfume, lipstick, jewelry, restraint, cosmetic |\n| kissy | cosmetic, clothing, jewelry, flower |\n| lydia | lipstick, clothing, music, drink |\n| mamako | tea, soap, flower, warmth, clothing |\n| miiya | toy, headphones, energy_drink, drink |\n| james | tea, journal, knowledge, writing |\n| jessie | bandage, drink, clothing, weapon (+ necklace→drop, jewelry already present) |\n| koharu | flower, tea, doll, clothing |\n| miki takahashi | food, drink, clothing, candy, knife |\n| anna | wine, money, phone, clothing (+ cigarette/tv/snack→drop) |\n| brittany | guitar→instrument, + leather |\n| dr. eliza reed | tea, knowledge, writing |\n| feral goblin | gold, key |\n| lopunny | berry→honey, + plant, flower, warmth |\n\n**Leave untouched (already 8+ and healthy):** miki, amber, angeline, anne,\naudrey, elena vance, ghost, jake halloway, kayla jenkins, kyrie johansen,\nmaya, sammy lopez, tala, the butcher, whiskers.",
+      "gotcha_library_fix_live_world_fix": "Characters are snapshot into scenarios at import time (same pattern as items -\nAGENTS.md \"duplicate placements snapshot the library entry at build time\"). A\nrunning scenario keeps the OLD interest tags even after this pass. Options:\n\n1. Re-import affected characters from the library (cheap, per-scenario), or\n2. Extend `POST /api/library/refresh-to-world` to cover characters\n   (`routes/library_routes.py:619` currently handles items with `library_id`)\n\nPick option 2 if scenario characters carry meaningful runtime state (memories,\nrelationships) that re-importing would wipe - which they do. Fold the character\nsupport into this task or spin a follow-up; either way, don't call this done\nuntil a loaded scenario reflects the new tags after refresh.",
+      "dependencies": "- None (can start immediately)\n- Feeds: task-325 (auto-dress style matching), task-9 phase 2 (interest-weighted spawns)\n- Pairs with: task-323 lint (regression guard)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-326-character-interest-tags-data-pass.md"
+  }
+}

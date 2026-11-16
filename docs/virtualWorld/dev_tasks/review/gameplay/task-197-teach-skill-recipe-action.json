@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-197",
+  "kind": "task",
+  "number": 197,
+  "title": "Teach Skill / Recipe Action",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-2",
+      "task-131",
+      "task-969"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Action enabling a character who knows a crafting recipe or skill to teach it to an adjacent character.",
+    "why": "There is no way to teach a skill or a recipe as a stateful action. Recipes are multi-step stateful actions (see task-2 crafting), and teaching someone a recipe - narrating the steps so they learn it - is itself a stateful action. This is ideas #15 and #20 (omelet recipe) from developer ideas.",
+    "how": "- Recipes = stateful actions orchestrating many sub-actions (see task-2 crafting); a recipe is a template of ordered steps.\n- Teaching = a stateful action of narrating a recipe to someone; on completion the target character learns the recipe/skill.\n- Tag-based optional matching (\"any vegetable\") keeps recipes generic across different items.\n- Success is skill-gated: the teacher must know the recipe, and the learner must be capable of learning it (trait/level check).\n- Learner gets a learned-skill entry so they can later perform the recipe themselves.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Teacher verifies possession of recipe knowledge before teaching.",
+        "done": true
+      },
+      {
+        "text": "Student acquires recipe knowledge upon action completion.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/crafting.py` (future) - recipe templates and stateful execution.",
+      "engine/item_actions.py` - teach action handler orchestrating the narrative sub-steps.",
+      "static/js/agent/prompt-builder.js` - instruct the model to emit teach actions targeting a recipe/skill."
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

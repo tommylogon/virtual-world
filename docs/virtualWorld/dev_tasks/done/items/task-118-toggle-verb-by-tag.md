@@ -22,8 +22,8 @@ The base toggle message currently uses "on"/"off" universally after the fix in `
 
 ## How
 
-- `engine/toggleable_items.py` — check `tags` for `electric`/`synthetic` to choose status_word verb
-- Keep `current_state` as `"lit"/"unlit"` for the lighting system — only the message changes
+- `engine/toggleable_items.py` - check `tags` for `electric`/`synthetic` to choose status_word verb
+- Keep `current_state` as `"lit"/"unlit"` for the lighting system - only the message changes
 
 ## Reference
 

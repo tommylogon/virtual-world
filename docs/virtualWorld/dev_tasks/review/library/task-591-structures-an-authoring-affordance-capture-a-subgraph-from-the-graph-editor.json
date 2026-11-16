@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "id": "task-591",
+  "kind": "task",
+  "number": 591,
+  "title": "Structures - an authoring affordance (capture a subgraph from the graph editor)",
+  "status": "review",
+  "priority": "high",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-29",
+  "updated": "2026-09-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-357",
+      "task-291"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**Surviving scope, after the 2026-10-20 re-measurement.** The engine, the five\nroutes, the capture dialog and the browse / materialize / delete browser all\nlanded with task-357 (commit `f2c34acb`, 2026-09-22). What did **not** land is\nthe thing this card was filed for: a way in from the **live** graph editor.\n\n- The `📦 Save as Structure…` item was added to `GraphManager._showContextMenu`\n  (`static/js/graph-manager.ts:796`, the item at `:814`), a method with **zero\n  call sites**. The live right-click path is\n  `static/js/graph/network-manager.ts:244` → `GraphEventHandlers.onContext`\n  (`static/js/graph/event-handlers.ts:127`) → `GraphContextMenu.showContextMenu`\n  (`static/js/graph/context-menu.ts:27`), and its area branch\n  (`context-menu.ts:38-47`) carries no structure item and `ctxAction` has no\n  `save_structure` case. So `VW.structures.openSaveDialog` is unreachable from\n  the running UI.\n- No template has ever been committed. `data/library/structures/` does not exist\n  on disk, `git ls-files data/library/structures` returns 0 files, and\n  `git log --all --diff-filter=A -- \"data/library/structures/*\"` is empty.\n\nSo the remaining work is: put the capture affordance on the live context menu\n(or give the author another live route into `openSaveDialog`), and commit a\nfirst real template so the library is not empty on `master`.",
+    "why": "A structure template is only worth having if an author can *make* one without\nhand-writing JSON. The engine, the routes and the dialog already exist, so the\ngap is one click on the wrong code path plus one committed example: without\nthem the feature is a curl script that ships a backend nobody can reach.",
+    "how": "1. Move the capture item onto the live menu. `static/js/graph/context-menu.ts`\n   owns the area branch (`showContextMenu`, `:38-47`); add the\n   `📦 Save as Structure…` row there and a `save_structure` case in\n   `ctxAction` (`:92`) that calls `VW.structures.openSaveDialog(nodeId, name)`.\n   The item already exists in `GraphManager._showContextMenu`\n   (`static/js/graph-manager.ts:796-814`, handler at `:874-875`); either move\n   it or make that method a thin delegate, so there is one menu, not two.\n2. Make the preview name the boundary. `POST /api/structures/preview` returns\n   `boundary_exits` as a list of `{way, area, direction, name}`\n   (`routes/structures_ops.py:63`, built in `engine/structures.py:202-208`);\n   render the names, not just the count.\n3. Capture a first template in a scratch world (two connected areas, their way,\n   an item, a resident), save it, and commit\n   `data/library/structures/<id>.json` so `master` is not empty.",
+    "verify": "1. Right-click an area node in the graph canvas.\n   - expected: the context menu shows `📦 Save as Structure…`.\n   - observed: (2026-10-20) the live menu does NOT show it. The item is in\n     `GraphManager._showContextMenu` (`static/js/graph-manager.ts:814`), which\n     has zero call sites; the live path is `network-manager.ts:244` →\n     `GraphEventHandlers.onContext` → `GraphContextMenu.showContextMenu`\n     (`static/js/graph/context-menu.ts:38-47`).\n2. With the item live, open it and read the preview before pressing Save.\n   - expected: the `{areas, ways, items, residents}` summary and the boundary\n     exits are shown, and no file exists yet.\n   - observed: (2026-10-20) the dialog's preview is correct and runs on open\n     (`static/js/structures.ts:161-164`, `:189`); it is unreachable from the UI.\n3. Save, then browse `📦 Structures` from the top menu.\n   - expected: one `data/library/structures/<id>.json` entry appears and its\n     summary matches the capture.\n   - observed: (2026-10-20) the browse / materialize / delete half is live from\n     `templates/index.html:210`; there is no captured template to list, because\n     `git ls-files data/library/structures` returns 0 files.\n4. Materialize the template twice into the same world and inspect both\n   instances.\n   - expected: both instances keep their internal wiring, and their ids differ.\n   - observed: (2026-10-20) proved by\n     `tests/test_structures.py::test_collision_remaps_ids_but_keeps_names`,\n     which materializes into the same world.",
+    "acceptance": [
+      {
+        "text": "Met by task-357 (commit `f2c34acb`, 2026-09-22), re-verified 2026-10-20:",
+        "done": false
+      },
+      {
+        "text": "The capture writes one `data/library/structures/<id>.json` file per",
+        "done": true
+      },
+      {
+        "text": "template, and `save_registry` is the only write path",
+        "done": false
+      },
+      {
+        "text": "(`routes/structures_ops.py:86` → `routes/helpers.py:304-319`).",
+        "done": false
+      },
+      {
+        "text": "The preview runs **before** anything is written, and shows the",
+        "done": true
+      },
+      {
+        "text": "`{areas, ways, items, residents}` summary plus the boundary-exit count:",
+        "done": false
+      },
+      {
+        "text": "`openSaveDialog` calls `runPreview()` on open",
+        "done": false
+      },
+      {
+        "text": "(`static/js/structures.ts:189`) and renders the counts at `:161-164`;",
+        "done": false
+      },
+      {
+        "text": "`Save` is a separate button at `:176`.",
+        "done": false
+      },
+      {
+        "text": "A structure can be materialized twice into the same world with **no id",
+        "done": true
+      },
+      {
+        "text": "collision**, proved by a test that exercises `_deterministic_suffix`",
+        "done": false
+      },
+      {
+        "text": "(`engine/structures.py:89`): `tests/test_structures.py::test_collision_remaps_ids_but_keeps_names`",
+        "done": false
+      },
+      {
+        "text": "materializes into the *same* world, so `_unique_id` (`:94`) fires.",
+        "done": false
+      },
+      {
+        "text": "14 tests in `tests/test_structures.py`.",
+        "done": false
+      },
+      {
+        "text": "*Correction:* the original wording asked for the ids **and the names** to",
+        "done": false
+      },
+      {
+        "text": "differ. task-357 settled the opposite on purpose - a collision remaps",
+        "done": false
+      },
+      {
+        "text": "ids only and never renames a node (`engine/structures.py:14-18`) - and the",
+        "done": false
+      },
+      {
+        "text": "test asserts two areas both called \"Hall\". The criterion was wrong as",
+        "done": false
+      },
+      {
+        "text": "written; the wiring-stays-intact half is what the test proves.",
+        "done": false
+      },
+      {
+        "text": "Deleting a template from the UI removes the file via `delete_registry_entry`",
+        "done": true
+      },
+      {
+        "text": "and leaves existing materialized instances in the world alone: the `🗑`",
+        "done": false
+      },
+      {
+        "text": "button in the Structures browser (`static/js/structures.ts:232-235`) calls",
+        "done": false
+      },
+      {
+        "text": "`DELETE /api/structures/<id>` → `delete_registry_entry`",
+        "done": false
+      },
+      {
+        "text": "(`routes/helpers.py:322-333`), which unlinks one file and touches nothing",
+        "done": false
+      },
+      {
+        "text": "in the world.",
+        "done": false
+      },
+      {
+        "text": "Still open:",
+        "done": false
+      },
+      {
+        "text": "**An author can capture a subgraph from the live graph editor.** The",
+        "done": false
+      },
+      {
+        "text": "`📦 Save as Structure…` item must exist on the live right-click path",
+        "done": false
+      },
+      {
+        "text": "(`static/js/graph/context-menu.ts`, the area branch at `:38-47`) and",
+        "done": false
+      },
+      {
+        "text": "`ctxAction` must handle `save_structure` by calling",
+        "done": false
+      },
+      {
+        "text": "`VW.structures.openSaveDialog(nodeId, name)`. Today the item is only in",
+        "done": false
+      },
+      {
+        "text": "`GraphManager._showContextMenu`, which nothing calls.",
+        "done": false
+      },
+      {
+        "text": "**A first real template is captured and committed**, so",
+        "done": false
+      },
+      {
+        "text": "`data/library/structures/` is not empty on `master`.",
+        "done": false
+      },
+      {
+        "text": "The preview **names** the boundary exits (which ways, and where they",
+        "done": false
+      },
+      {
+        "text": "lead) instead of only counting them. `POST /api/structures/preview`",
+        "done": false
+      },
+      {
+        "text": "already returns the detail (`routes/structures_ops.py:63`); the dialog",
+        "done": false
+      },
+      {
+        "text": "shows only the number (`static/js/structures.ts:164`).",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/context-menu.ts` (the live menu - the capture item belongs here)",
+      "static/js/graph-manager.ts` (the dead `_showContextMenu` copy)",
+      "static/js/structures.ts` (the capture dialog and the Structures browser)",
+      "engine/structures.py` (capture, summarize, materialize)",
+      "routes/structures_ops.py`, `routes/structures.py` (the five endpoints)",
+      "tests/test_structures.py` (14 tests)",
+      "data/library/structures/` (to be created: the first committed template)"
+    ],
+    "custom": {
+      "verified_state_2026_09_29_re_measured_2026_10_20": "- **Engine, complete.** `collect_structure` (`engine/structures.py:153`) captures from a live graph with a fixpoint that pulls in items reachable through area / surface / container and any residents inside. `materialize_structure` (`:310`, was `:309`) instantiates it, remapping every reference (`_remap_refs:73`, `_unique_id:94`, `_deterministic_suffix:89`) so two instances cannot collide. `summarize_structure` (`:292`, was `:291`) reports `{areas, ways, items, residents}`.\n- **API, complete.** `/api/structures` (list), `/preview`, `/save`, `/<id>/materialize`, `/<id>` (delete). Registered in `routes/structures.py:16-34`, handlers in `routes/structures_ops.py`.\n- **Storage, already per-entry.** `save_registry` writes `data/library/structures/<id>.json` (`routes/helpers.py:304-319`, via `_registry_subdir` at `:272-277`) - no shape decision is outstanding here, contrary to what a first reading of `STRUCTURES_REGISTRY = \"structures.json\"` suggests.\n- **UI, present but the capture entry point is dead.** `static/js/structures.ts` (255 lines, `structures.js` until the 2026-10-02 TypeScript conversion) holds the save dialog and the browse / materialize / delete browser. It is live for browsing: `templates/index.html:210` puts `📦 Structures` in the top menu and calls `VW.structures.openBrowseDialog()`, and `templates/index.html:1485` loads the script. The **capture** route is not live: the `📦 Save as Structure…` item lives in `GraphManager._showContextMenu` (`static/js/graph-manager.ts:796`, item at `:814`), which has zero call sites. The library browser still has no structures pane: the `LibraryTab` union (`static/js/library-browser.ts:64`) lists 11 tabs and the refresh list (`:334`) renders 10, with `structures` in neither.\n- **No content.** `data/library/structures/` does not exist on disk, `git ls-files data/library/structures` returns 0 files, and `git log --all --diff-filter=A -- \"data/library/structures/*\"` is empty: no structure has ever been committed, so `list` returns nothing and `materialize` can only ever 404.",
+      "the_gap": "Capture is the interesting direction and it needs the graph editor: the author has a subgraph in front of them - a tavern with its tap room, a shrine with its courtyard, a bandit camp - and wants it reusable. Today the only way to get one is to hand-build the JSON, which is the thing the library exists to stop.",
+      "open_questions": "1. **Where does capture start?** A context-menu action on selected area nodes in the graph canvas, or a button in the area inspector that captures the area and everything reachable? The engine's boundary rule (no far-side area node, or far side outside the selection) is the interesting part and the UI has to express it before the author presses the button, not after.\n2. **Preview before saving.** `/api/structures/preview` exists. Does the flow show `{areas, ways, items, residents}` and the boundary before it writes, given that `save_registry` never deletes and a wrong capture lingers?\n3. **Which pane?** A `structures` library pane would make them browsable, but triggers set the precedent that a type used only by one tool needs no pane - the trigger graph editor's blueprint picker. Structures is captured in the graph editor, so a picker there may be the honest answer.\n4. **Does `task-357` already own part of this?** It is in review and covers capture + materialize end to end. If its acceptance is met by the engine alone, this task is the UI half; if it never claimed a UI affordance, say so in its file rather than leaving two tasks implying the same work.\n\n**Answered 2026-10-20.** task-357 claims the UI affordance explicitly: its card\nlists \"**UI** - `static/js/structures.js` - Save dialog (name, include\nitems/residents, live preview of counts + boundary exits) and a Structures\nbrowser with Materialize/Delete\" and \"Area right-click menu gains `📦 Save as\nStructure…`\". It implemented the dialog and the browser, but the right-click\nitem went into a method that is not on the live path, so the half it claimed is\nthe half that did not land. Questions 1 to 3 were answered by the\nimplementation: capture starts from an area node's context menu (question 1),\nthe preview runs before the write (question 2), and the picker is a top-menu\n`📦 Structures` browser rather than a library pane (question 3) - the\n`structures` registry type is in `REGISTRY_TYPES`\n(`routes/library_ops.py:27`), but the library browser has no structures tab\n(`static/js/library-browser.ts:64`, `:334`).",
+      "browser_ui": "Intended UI home: Graph editor → select the intended area/way/item/resident subgraph → **Capture Structure** → review the boundary and `{areas, ways, items, residents}` summary → Apply to the Structures library.\n\nCurrent availability: re-measured 2026-10-20, the backend endpoints, the capture\ndialog and the Structures browser exist. The **capture affordance is not\nreachable from the graph editor** (the menu item sits in an uncalled method),\nand `data/library/structures/` has never held a committed template, so the\nbrowse dialog has nothing to list.\n\nLive steps when available:\n1. In a scratch world, right-click the root area node and invoke **Save as Structure…**.\n   - expected: a preview shows exactly the captured residents and internal edges, names the boundary connections, and writes no file before Apply.\n2. Apply the capture, then open `📦 Structures` from the top menu and preview the new template.\n   - expected: one `data/library/structures/<id>.json` entry appears and its preview matches the captured areas, ways, items, and residents.\n3. Materialize the template twice into the same world and inspect both instances in the graph.\n   - expected: both instances retain internal wiring but have distinct IDs; their display names stay the same (a collision remaps ids only, by design).\n4. Delete the template from the Structures browser, then inspect the two materialized instances.\n   - expected: only the template file is removed; both world instances remain unchanged.\n\nThis section is not a claim that planned UI exists or works today.",
+      "reconnaissance_2026_10_20_partly_done_still_open": "Re-checked on 2026-10-20 against the code, not the card. The newer work that\ntouches this feature is **task-357** (commit `f2c34acb`, 2026-09-22), whose card\nlists the UI as implemented. The code agrees with the card about the dialog and\nthe browser, and disagrees with it about the right-click menu.\n\nWhat landed (task-357):\n\n- `static/js/structures.ts` exists, 255 lines, 34 matches for \"structure\".\n  `openSaveDialog` (`:122`) and `openBrowseDialog` (`:193`).\n- The browse half is **live**: `templates/index.html:210` renders\n  `📦 Structures` in the top menu calling `VW.structures.openBrowseDialog()`;\n  `templates/index.html:1485` loads `/static/js/structures.js`;\n  `static/js/main.ts:95` publishes `VW.structures`.\n- The capture half is **dead**: `📦 Save as Structure…` is at\n  `static/js/graph-manager.ts:814` inside `GraphManager._showContextMenu`\n  (`:796`), whose only repo-wide references are its own definition\n  (`graph-manager.ts:796`, `graph-manager.js:716`). The live right-click path\n  is `static/js/graph/network-manager.ts:244`\n  (`network.on(\"oncontext\", ...)`) → `static/js/graph/event-handlers.ts:127`\n  → `static/js/graph/context-menu.ts:27`, and that module contains **0**\n  matches for \"structure\" and no `save_structure` case in `ctxAction` (`:92`).\n  So `VW.structures.openSaveDialog` has no live caller.\n- Backend and tests: `routes/structures.py` registers the five endpoints,\n  `routes/structures_ops.py` holds the handlers, `tests/test_structures.py`\n  has 14 tests including the same-world collision test.\n\nEvidence counts: 1 capture dialog module, 1 live browse entry point\n(`templates/index.html:210`), 1 dead capture entry point\n(`graph-manager.ts:814`), 0 structure matches in the live context menu, 14\nstructure tests, 0 committed templates\n(`git ls-files data/library/structures` = 0; `git log --all --diff-filter=A --\n\"data/library/structures/*\"` is empty).\n\nFacts that drifted since the card was written:\n\n- \"Nothing in `static/` or `templates/` mentions a structure template\" was\n  already false when the card was filed on 2026-09-29: `static/js/structures.js`\n  was created on 2026-09-22 and is present in the tree at the filing commit\n  `347d539f`. The card's *conclusion* (capture is not reachable from the graph\n  editor) still holds, for a different reason.\n- `materialize_structure` moved `:309` → `:310`; `summarize_structure` moved\n  `:291` → `:292`. The other cited lines (`collect_structure:153`,\n  `_remap_refs:73`, `_unique_id:94`, `_deterministic_suffix:89`) are unchanged.\n- The library browser has 11 tab types and renders 10, not the eight the card\n  lists, and still has no structures tab.\n\nVerdict: PARTLY_DONE. Four of the five original acceptance criteria are met\n(the write path, the pre-write preview, the collision-free double\nmaterialization with its test, and the delete-from-UI). The card is kept in\ntodo with its scope rewritten to what is left: the live capture entry point,\nthe first committed template, and naming the boundary exits."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-591-structures-an-authoring-affordance-in-the-ui-capture-a-subgraph-from-the-graph-editor.md"
+  }
+}

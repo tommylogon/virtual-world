@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "bug-6",
+  "kind": "bug",
+  "number": 6,
+  "title": "Character inspector equipment slot selector - same white bg as bug 2",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Same as bug 2 but in the character inspector (world items), not the library. The equipment slot multi-select in the item inspector (node-equip-slots-*) has a white background with unreadable light gray text.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "static/js/inspector/item-view.js:190` - `<select multiple class=\"choices-init\" id=\"node-equip-slots-${escapedId}\">",
+      "---",
+      "_Audited 2026-08-03 - duplicate file consolidated into this record._"
+    ],
+    "custom": {
+      "root_cause": "Same as bug 2 - Choices.js default light theme with no dark-mode CSS overrides. The fix in bug 2 may already cover this if the CSS overrides apply globally to all `.choices__*` elements, but needs verification."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed (same global Choices.js CSS overrides as bug 2)",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-6-inspector-equip-slots-white-bg.md"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-390",
+  "kind": "task",
+  "number": 390,
+  "title": "NPC Behavior Phase 2: Sensory Triggers, Faction Logic, Attack",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-02",
+  "updated": "2026-09-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_implemented_2026_09_22": "**Live game, simple-NPC tier.** Builds on the shipped phase 1 (`add_memory`,\n`set_emotion`, `set_flag`, `hide_in`/`hide_behind`/`hide_under`, `unhide`) and the\ntask-214 perception work. **Scheduling was intentionally dropped**: `schedule_tick`\noverlaps task-409 (background schedules/work) and the newer Schedule system, so it\nbelongs there, not here.\n\n### Already existed\n- `attack` behavior action (`engine/triggers/behaviors.py`) - delegates to\n  `CombatSystem.player_attack`; already shipped before this pass.\n- `character_has_tag` condition (`engine/triggers/condition_tree.py`).\n\n### Shipped this pass\n- **Behavior actions** (`engine/triggers/behaviors.py`): `add_tag` / `remove_tag`\n  on `self`/`npc`/a named character. This is what the faction example needs\n  (mark the intruder `hostile`, then `attack`). Idempotent; tolerates a\n  comma-string `tags` field.\n- **Conditions** (`engine/triggers/condition_tree.py`):\n  - `player_has_tag` - resolves a target character and matches a tag on anything\n    they carry (`EDGE_CARRYING`) or wear (`player.equipped`).\n  - `sight_holds` - same tag check, but only when the NPC shares the target's\n    area (`npc_area`) and the target is not `hidden`.\n  - `smell_detected` - matches an item tag in the area, with `range` hops of\n    neighbours via `_build_exits_for_area`; uses `room_perception.visible_area_items`.\n  - `sound_above` - reads `recent_hearing` and compares against the engine's\n    0–3 sound scale; a 0–1 authored `threshold` maps onto `threshold × 3`.\n  - `flag_equals` - compares a `flags[key]` value (phase 1 wrote these) with\n    coercion for `\"true\"`/`\"false\"`/numbers.\n- **Helpers**: `_player_item_tags`, `_area_id`, `_areas_within`,\n  `_recent_sound_strength`.\n- **Validator** (`engine/trigger_validator.py`): `CONDITION_TYPES` now lists the\n  new conditions plus the previously-missing phase-1 ones\n  (`npc_emotion_is`, `npc_is_hidden`, `character_has_tag`, `item_relationship`),\n  so authored behaviors stop being flagged as unknown types.\n- **Frontend**: `static/js/inspector/behaviors-view.js` exposes the five new\n  conditions and two actions with field editors; `static/js/shared/trigger-types.js`\n  lists the shared sensory conditions for item triggers.\n- **Tests**: `tests/test_npc_behavior_phase2.py` (22) - item-tag senses, sight\n  hidden/area gates, flags, sound thresholds, smell same-area + range expansion,\n  add/remove tag idempotence, and the faction worked example.\n\n### Not done / future\n- `schedule_tick` / NPC routines → **task-409**.\n- `smell_detected` scans only visible items; hidden items are not smelled.\n- Sound strength for item-origin noise reads `sound_level`; speech maps via\n  `SPEECH_LEVELS`.\n\n---",
+      "original_summary": "Builds on Phase 1 to add sensory awareness (smell, sight, sound), tag-based faction logic, and the `attack` behavior action, enabling NPCs to react to what they sense, form factions, and engage in combat without LLM agents.",
+      "related": "- Phase 1: `task-389` (shipped)\n- `task-214` (NPC perception & reaction), `task-409` (background schedules)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-390-npc-behavior-phase2-sensory-faction-attack.md"
+  }
+}

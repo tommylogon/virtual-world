@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-201",
+  "kind": "task",
+  "number": 201,
+  "title": "Area Visibility Beyond Ways (examine + observation prompt)",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "\"From where you stand, the Upstairs Hall is visible beyond\" currently lists little beyond auto env clues. There is no way to toggle whether characters/items in an area beyond a way appear in the narrative or agent prompt.",
+    "how": "- This is not just the examine view - it also applies to the **agent room context** (`buildRoomContext` exits block).\n- The backend already has partial data (`see_through`, `area_description.py` visibility).\n- Two parts:\n  - (a) Per-direction visibility on the **area→way connection edge** (same place as `visible_in_direction`):\n    - `allow_see_characters` - boolean; when true, list people in the **target** area on the exit line.\n    - `visible_items` - **string array** (multiselect); only the chosen item names from the target area appear. Empty = no dynamic items (author opts in per item).\n  - (b) Inject target-area highlights into the agent observation prompt when way is open / see-through.\n- UI lives in way inspector **Connections** tab - one multiselect per direction (“From Kitchen → Living Room”), populated from items currently in the target area. Gating is backend.\n\n### Data shape (area→way edge properties)\n\n```json\n{\n  \"direction\": \"stairs\",\n  \"visible_in_direction\": \"The upstairs hallway beyond, with the master bedroom door…\",\n  \"allow_see_characters\": true,\n  \"visible_items\": [\"Grandfather Clock\", \"wooden chest\"]\n}\n```\n\nFrom area A looking toward B: read the A→way edge; target area = B. Only items whose **name** is in `visible_items` and that are present in B (direct, spatial, or on a surface in B) are listed. Hidden items never appear.\n\n### Runtime rules\n\n- Applies when way is **open**, or **closed + see_through** (peephole/glass).\n- Dynamic highlights append to the exit line after env clues / `visible_in_direction` prose.\n- `allow_see_characters` uses the same stranger/known naming as “People here”.\n- If `visible_items` is missing or `[]`, no dynamic items - static `visible_in_direction` text still works.",
+    "verify": "1. Run `python -m pytest tests/test_beyond_visibility.py` for the recorded\n   backend visibility cases.\n   - expected: open and see-through ways reveal only configured, present,\n     non-hidden items and the requested target-area characters.\n   - observed (2026-08-13): the card records 7 passing tests; browser E2E is\n     still pending.\n2. Follow the Connections and Agent Lens steps below in the browser after both\n   UI pieces are available.\n   - expected: the per-direction controls save on the source edge and the Lens\n     preview matches the runtime visibility rules.\n   - observed: not recorded; the card's own browser acceptance remains open.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/area_description.py` - read `allow_see_characters` / `visible_items` from area→way edges",
+      "static/js/agent/prompt-builder/room-context.js` - inject target-area highlights into exits/people sections",
+      "static/js/inspector/way-view.js` (Connections tab) - character checkbox + item multiselect per direction",
+      "engine/serialization.py` - persist `visible_items` / `allow_see_characters` on connection edges",
+      "static/js/agent-lens.js` - preview toggles (depends on task-219)"
+    ],
+    "custom": {
+      "agent_lens_integration_task_219": "When implemented, task-201 controls must appear in **left-panel Agent Lens**:\n\n- Toggle `see_through`, `allow_see_characters`, `visible_items` in **preview-only** mode\n- Show whether target-area people/items would appear in exits/people blocks\n- Live update when flags change in inspector\n\nDo not build a separate preview surface - extend task-219 lens.",
+      "related": "- [[todo/ui/task-219-agent-lens-left-panel|task-219]]\n- [[todo/ui/task-220-unified-way-editor|task-220]]\n- [[dev_tasks/level-design-workflow|Level design workflow hub]]",
+      "browser_ui": "Intended UI home: Graph → select a way → Inspector → Connections; left-panel\nAgent Lens → preview the source area's exits and people.\n\nCurrent availability: The card records the backend visibility rules and agent\nroom-context work as implemented. Its own notes say the per-direction editor\ncontrols and Lens preview toggles depend on task-219 and browser E2E is pending;\nthe `done` folder is not evidence those UI steps passed.\n\nLive steps when available:\n1. In a scratch scenario, select the Kitchen-to-Hall way and open Connections.\n   Enable `allow_see_characters` for that direction and select one named item\n   present in the Hall under `visible_items`; save the passage.\n   - expected: the authored values belong to Kitchen → way, not the reverse\n     edge, and the target item is selected by its name.\n2. Open the Kitchen view in Agent Lens with the way open, then repeat with the\n   way closed and `see_through` enabled; include an unselected item and a\n   hidden item in the Hall as controls.\n   - expected: Hall characters and only the selected present item appear in the\n     prompt's exit view when visible; the unselected and hidden items never do.\n3. Turn off `allow_see_characters`, clear `visible_items`, and refresh the\n   preview without saving any further world edit.\n   - expected: dynamic people/items disappear while static\n     `visible_in_direction` prose remains.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-201-area-visibility-beyond-ways.md"
+  }
+}

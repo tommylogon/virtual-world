@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-304",
+  "kind": "task",
+  "number": 304,
+  "title": "Centralized Config Menu for Engine Constants",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open Settings → ⚙️ Engine Config and read `sound.way_see_through`.\n   - expected: the row is grouped under Sound and starts from the server's\n     current value (default 0.75 when no override is saved).\n2. Change that value to 0.65 and click 💾 Apply; reopen Engine Config and then\n   call `GET /api/settings/engine_config`.\n   - expected: the input and endpoint both report 0.65, and the save toast\n     confirms the value was applied without restarting.\n3. Click ↩️ Reset to defaults and reload the settings tab.\n   - expected: `sound.way_see_through` returns to 0.75 and other tunables\n     return to their declared defaults.\n   - observed: this card records tests for live engine reads and reset; no\n     browser run of the settings tab is recorded.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/runtime_config.py` (new)",
+      "engine/sound.py`, `engine/environment_propagation.py`, `engine/lighting.py",
+      "routes/settings.py",
+      "static/js/ui/engine-config-view.js` (new)",
+      "templates/index.html",
+      "tests/test_engine_config.py` (new)",
+      "data/engine_config.json` (generated on first save)"
+    ],
+    "custom": {
+      "idea": "Centralized config menu for all constants - sound propagation values, heat propagation, light spill, and any other values that currently require a code change to test and adjust.",
+      "implementation_2026_08_20": "### Backend\n- **`engine/runtime_config.py`** (new) - single source of truth for the tunables.\n  - `DEFAULTS` dict holds the current values (sound speech/war barriers/noise levels,\n    heat `base_rate`/`max_delta`, light spill).\n  - Loads optional overrides from `data/engine_config.json` at import; missing/empty\n    file → stock values. Unknown/malformed keys are logged and skipped; values are\n    coerced to the default's type so a bad hand-edit can't crash the engine.\n  - `config.get(key, default)` is called by the engine modules at runtime - a saved\n    value applies with no restart.\n  - `RuntimeConfig.save(values)` merges + persists; `reset()` restores defaults.\n- **Engine modules now read config live** (defaults unchanged unless overridden):\n  - `engine/sound.py` - `SPEECH_LEVELS`/`WAY_BARRIERS`/`NOISE_LEVELS` reads go through\n    config-backed helpers `_speech_levels()`, `_way_barriers()`, `_noise_levels()`;\n    see-through barrier `sound.way_see_through`.\n  - `engine/environment_propagation.py` - `BASE_RATE`→`_heat_base_rate()`,\n    `MAX_DELTA`→`_heat_max_delta()`.\n  - `engine/lighting.py` - spill `0.5` → `_spill_factor()` (adds module const `SPILL_FACTOR`).\n  - Backward-compat module-level constants (`sound.SPEECH_LEVELS`, etc.) are kept as\n    snapshot exports for importers/tests.\n- **Routes** in `routes/settings.py`:\n  - `GET /api/settings/engine_config` → `{values, schema, sections}` (schema drives a\n    schema-less frontend; a new `DEFAULTS` key shows up in the UI automatically once it\n    gets a `SCHEMA` entry).\n  - `POST /api/settings/engine_config` → merge + persist; `POST\n    /api/settings/engine_config/reset` → restore defaults.\n\n### Frontend\n- **`static/js/ui/engine-config-view.js`** (new) - lit-html-rendered editor (`window.EngineConfigView`).\n  Renders one labeled number input per key grouped by section (Sound / Heat / Light),\n  with 💾 **Apply** (POSTs the form) and **↩️ Reset to defaults** buttons. Loads on\n  tab click via `EngineConfigView.load()`; re-renders with server-coerced values after\n  each save.\n- **`templates/index.html`** - new settings tab button + pane\n  (`tab-engine-config`), script tag loaded after `settings-view.js`.\n\n### Tests\n- **`tests/test_engine_config.py`** (new, 5 tests): GET shape/schema, save persists +\n  engine reads live, sound/light live override, reset, unknown/bad keys ignored.\n  Uses a tmp-file-backed singleton (fixture swaps `runtime_config.config._config_file`).\n- Full suite: **1021 passed** (3 pre-existing failures in test_trigger_system.py\n  unchanged), 1 skipped.",
+      "usage": "Settings → ⚙️ **Engine Config** → edit values → 💾 Apply. File persisted in\n`data/engine_config.json`.\n\n> User-facing documentation: `docs/virtualWorld/UI & Settings/Engine Config.md` (full key table,\n> \"add a new tunable\" recipe). Cross-referenced from `Settings & Configuration.md`,\n> `Environment/Light System.md`, `Environment/Temperature System.md`, and\n> `Environment/Time & Weather.md`.",
+      "notes": "- This is the \"user-facing version\" of tuning constants by editing code.\n- Keep the MVP tight: one JSON config file + a route to read/write it + a simple editor panel.\n- Related: `task-301` (turn duration default is the exact kind of constant this exposes).",
+      "related": "- `developer ideas.md` line 11\n- `config` module / constants in engine modules (sound, lighting, environment_propagation)",
+      "browser_ui": "Intended UI home: Settings modal → ⚙️ Engine Config → Sound / Heat / Light.\n\nCurrent availability: The schema-driven editor, Apply, and Reset to defaults\nare implemented. The Settings tab is loaded on click from the modal; the task\nrecords backend tests but marks browser E2E pending.\n\nLive steps when available:\n1. Open Settings → Engine Config and locate `sound.way_see_through` under Sound.\n   - expected: its current server value is shown in the numeric field.\n2. Change it from 0.75 to 0.65 and click Apply; inspect the toast and reopen\n   the tab.\n   - expected: the value reads 0.65 after the reload and the engine uses the\n     changed setting without a server restart.\n3. Click Reset to defaults.\n   - expected: the field returns to 0.75 and other values return to their\n     schema defaults.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-304-centralized-config-menu.md"
+  }
+}

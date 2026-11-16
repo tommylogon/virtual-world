@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "bug-514",
+  "kind": "bug",
+  "number": 514,
+  "title": "Generate from Personality does nothing and says nothing when no LLM is configured",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Both generators open with 'if (!player || !AIGenerator.isConfigured()) return;'. With no provider configured the button silently does nothing - no toast, no disabled state, no explanation - so it reads as a broken button rather than a missing setting. Verified in the browser: AIGenerator.isConfigured() false produces no prompt, no write and no message. Disable the button with a tooltip pointing at Settings, or toast a reason.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. With a test profile whose API key and model are empty, open a character's\n   Bio tab and hover ✨ Generate interests and 😨 Generate fears.\n   - expected: both buttons are disabled and their tooltips tell the author to\n     configure an API key and model in Settings.\n   - observed (2026-10-02): both real buttons were disabled and carried the\n     Settings message after the inspector was reopened with empty values.\n2. Switch to a profile with a configured provider and reopen the same inspector.\n   - expected: both buttons are enabled; invoking either without configuration\n     cannot wait for tag collection before explaining the missing provider.\n   - observed (2026-10-02): both buttons were enabled with the default provider\n     profile; the no-provider handler was measured to toast immediately.",
+    "acceptance": [
+      {
+        "text": "With no provider, the button is disabled and its tooltip points at",
+        "done": true
+      },
+      {
+        "text": "Settings (verified live, `disabled=true` + title).",
+        "done": false
+      },
+      {
+        "text": "With a provider, the button stays enabled and unchanged (verified live).",
+        "done": true
+      },
+      {
+        "text": "A programmatic call with no provider toasts immediately rather than",
+        "done": true
+      },
+      {
+        "text": "silently returning.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "fix_2026_10_02": "The half-right part: `AIGenerator.isConfigured()` *does* toast\n(\"Configure API key and model in Settings first.\"), and did so since the initial\nrelease. The real defect was **ordering**: the interest/fear buttons run an async\ntag + vocabulary collection *before* `_generateTagsFromPersonality` reaches its\n`isConfigured()` check, so the toast arrived late enough that the click read as\ndoing nothing. Measured live: after a real button click with `config.apiKey` and\n`config.model` cleared, no toast at 900 ms; awaiting the handler directly\nproduced the toast.\n\nChanges in `static/js/inspector/agent-view.js`:\n\n- `AV._isAiConfigured()` - a side-effect-free provider read\n  (`config.apiKey && config.model`), safe to call during render.\n- Both **✨/😨 Generate from Personality** buttons now render `disabled` with a\n  title ending \"- No AI provider configured. Add an API key and model in\n  Settings first.\" when no provider is set, and stay enabled otherwise.\n- `_generateInterestTags` / `_generateFearTags` now call\n  `AIGenerator.isConfigured()` at the very top, so a programmatic invocation\n  toasts immediately instead of after the async collection.\n\n### Live verification (port 4471, real button elements)\n\n| provider state | ✨ button | 😨 button |\n|---|---|---|\n| `config.apiKey=''` (cleared, then inspector re-opened) | `disabled=true`, title carries the Settings sentence | `disabled=true`, same title |\n| default profile (key `not-needed`) | `disabled=false` | `disabled=false` |\n\nNo page errors. `node tools/unit/run.cjs` → 485 passed; `npm run lint` and\n`npm run typecheck` clean. No engine or data change.",
+      "browser_ui": "Intended UI home: Character Inspector → Bio → Interest tags / Fear tags →\nGenerate from Personality.\n\nCurrent availability: The disabled buttons, tooltips, configured-provider\nstate, and immediate no-provider message were live-checked on 2026-10-02. The\ntest used a profile with empty credentials and then restored the default\nprofile; do not clear a user's saved credentials to reproduce it.\n\nLive steps when available:\n1. Use a disposable profile with no API key or model, select a character, open\n   Bio, and scroll to both tag sections; hover each Generate from Personality\n   button.\n   - expected: both controls are disabled and each tooltip points to Settings.\n2. With the same profile, invoke each generator through its UI action handler.\n   - expected: the missing-provider explanation appears immediately, before\n     any async tag or vocabulary lookup can make the click appear stalled.\n3. Switch to a configured test profile and reopen the inspector.\n   - expected: the two controls are enabled and the existing configured-provider\n     flow remains available.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-514-generate-from-personality-does-nothing-and-says-nothing-when-no-llm-is-configured.md"
+  }
+}

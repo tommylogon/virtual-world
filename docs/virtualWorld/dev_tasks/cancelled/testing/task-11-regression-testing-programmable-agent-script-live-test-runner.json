@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-11",
+  "kind": "task",
+  "number": 11,
+  "title": "Regression Testing: Programmable Agent Script (Live Test Runner)",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Create a programmable agent test runner that plays through the default scenario automatically, following a script of actions, to verify the happy flow works end-to-end. This is a live test (against the real engine, not mocked) that catches regressions.",
+    "why": "TODO",
+    "how": "### Concept\n\nA test script defines a sequence of actions an agent should take, along with expected results. The test runner executes these actions against the world engine and reports pass/fail for each step.\n\n### Script Format\n\n```json\n{\n  \"name\": \"mansion_happy_flow\",\n  \"description\": \"Play through the mansion scenario main quest line\",\n  \"scenario\": \"scenarios/mansion2.json\",\n  \"steps\": [\n    { \"action\": \"look\", \"expect_contains\": \"Foyer\" },\n    { \"action\": \"go east\", \"expect_contains\": \"Kitchen\" },\n    { \"action\": \"take iron_key\", \"expect_contains\": \"taken\" },\n    { \"action\": \"go west\", \"expect_contains\": \"Foyer\" },\n    { \"action\": \"use iron_key on garden_way\", \"expect_contains\": \"unlocked\" },\n    { \"action\": \"go south\", \"expect_contains\": \"Garden\" }\n  ]\n}\n```\n\n### Assertions\n\nEach step can have:\n- `expect_contains`: output must contain this string\n- `expect_not_contains`: output must NOT contain this string\n- `expect_state`: check world state after action (e.g., player room, item in inventory)\n- `expect_error`: action is expected to fail with this error message\n\n### Implementation\n\nCreate a `test_runner.py` script that:\n1. Loads the scenario\n2. Creates the engine\n3. For each step:\n   - Executes the action against the engine\n   - Checks assertions\n   - Reports pass/fail\n4. Outputs a summary\n\n### Integration\n\nThese scripts should be runnable from the command line:\n```\npython test_runner.py scenarios/mansion_happy_flow.json\n```\n\nOr better, store the test scripts alongside the code so they can be run as unit tests:\n```\npytest tests/test_scenarios.py\n```\n\n### Test Coverage (Happy Flow)\n\nThe default scenario should have a script covering:\n- Look around\n- Move between areas (via ways)\n- Take items\n- Use items (eat food, drink water)\n- Use item on target (unlock door with key)\n- Examine items\n- Open/close ways\n- Talk (player speech)\n- Character state changes (sleep, rest)",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "opencode_tools/test_runner.py` - new test runner script",
+      "tests/test_scenarios.py` - or new test file",
+      "Scenario test scripts: one per scenario",
+      "---"
+    ],
+    "custom": {
+      "resolution_2026_09_22_retired": "The end-to-end regression intent is covered by existing suites, so the bespoke\n`scenario.json` + `test_runner.py` (`expect_contains`) flow is not being built:\n\n- **Live Playwright E2E** (drives the real server via `/api/action` and asserts):\n  `tools/test_full_e2e.cjs`, `tools/test_live.cjs`, `tools/test_all.cjs`,\n  `tools/test_commands.cjs`, `tools/test_doors.cjs`, `tools/test_regressions.cjs`.\n- **Long-horizon simulation:** `tools/soak_sim.py` + `engine/soak_runner.py`\n  (`tests/test_soak_runner.py`, `tests/test_soak_routes.py`, `tools/unit/test_soak.js`).\n- **Simple-NPC behaviour:** `tests/test_npc_behaviors.py`,\n  `tests/test_npc_behavior_intervals.py`.\n- **Play-export regression guards:** `tools/log_lint.cjs` (`tests/test_log_lint.py`).\n\nNote `tests/test_scenarios.py` covers scenario CRUD/import audit only, not this runner.\nCaveat: the Playwright suite needs a running server + Playwright and is not wired into\n`pytest`/CI, so the *automated* part of the intent is only partially covered."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/testing/task-11-regression_testing_live_agent.md"
+  }
+}

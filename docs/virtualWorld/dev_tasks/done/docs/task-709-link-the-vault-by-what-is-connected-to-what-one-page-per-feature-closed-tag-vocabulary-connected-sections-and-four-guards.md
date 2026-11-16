@@ -29,15 +29,15 @@ duplicated in two folders, making every bare reference ambiguous ·
   rows), counts corrected in prose, and a "numbering changed" callout added so an
   old citation ("row 58") stays traceable. `[[Temperature System (redirect)]]`
   removed the duplicate basename that made bare references ambiguous.
-- **`Features/`** — 76 pages, one per row, plus `Features Overview.md`. Scaffolds
+- **`Features/`** - 76 pages, one per row, plus `Features Overview.md`. Scaffolds
   are thin but *true*: every sentence is one the Feature Map already asserts.
 - **Closed tag vocabulary** (`tools/doc_tags.py`): `system/…`, `surface/…`,
   `status/…`, `topic/…`. Tags are derived from the folder and, for a feature page,
-  from the deep doc it links — **How it works only**, because inheriting from the
+  from the deep doc it links - **How it works only**, because inheriting from the
   `Connected` block's `[[Feature Map]]` link tagged all 76 pages `system/docs`.
 - **`## Connected` on every note that has a relation**, generated from four that
   the repo already asserts: Feature Map rows, the 96 task files carrying `wiki:`
-  frontmatter, module `@docs` headers, same-folder neighbours — plus a small
+  frontmatter, module `@docs` headers, same-folder neighbours - plus a small
   verified `SECTION_REFS` table of heading-level links (the vault had four
   heading refs in 885 notes).
 - **Callouts where they carry meaning**: status → `> [!success]`/`> [!caution]`,
@@ -51,7 +51,7 @@ duplicated in two folders, making every bare reference ambiguous ·
 1. **`docs_links` mis-parsed the escaped pipe.** `[[Note\|Alias]]` came back as
    `"Note\\"`, which silently mis-stemmed `doc_connected.features_by_doc` and cost
    that note a whole inbound relation. It now normalises through
-   `doc_links.target_key` — one resolver, one answer.
+   `doc_links.target_key` - one resolver, one answer.
 2. **A bare `|` in a Feature Map cell truncated it silently.** Row 23 parsed as
    `[[Environment/Temperature System` and the note it names lost its inbound
    relation with no error anywhere. The cell is now escaped (`\|`, which is what
@@ -80,7 +80,7 @@ asserted the map had 58 rows.
 - [x] All four gates run in `npm run precommit`, with pytest mirrors
       (`tests/test_doc_links.py`, `test_doc_tags.py`, `test_doc_connected.py`,
       `test_feature_pages.py`, plus new cases in `test_feature_index.py` and
-      `test_way_property_index.py`) — 66 tests green.
+      `test_way_property_index.py`) - 66 tests green.
 - [x] `python tools/feature_index.py --check` green again; `ts_convert.py check`
       green; `python tools/tasks.py validate` → 0 errors.
 - [x] Full suite A/B'd against a clean worktree at the same commit; failure
@@ -90,7 +90,7 @@ asserted the map had 58 rows.
 
 Normalising tags across the 805 task files (huge diff) · `![[embeds]]` anywhere ·
 inventing relations the repo does not already assert · enriching the 76 feature
-pages with real code paths — they honestly say "Where it lives: not recorded yet"
+pages with real code paths - they honestly say "Where it lives: not recorded yet"
 rather than guessing. `doc_links --orphans --all-notes` reports 635 unreferenced
 task files; that is expected, because the task tree is referenced by
 `related:` frontmatter rather than by wikilinks.

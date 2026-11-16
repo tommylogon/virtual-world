@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: Planned — task-190 (More Conditions)
+**Status**: Planned - task-190 (More Conditions)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
@@ -43,24 +43,24 @@ Actively losing HP from a wound. A periodic-drain condition whose effects leave 
 
 ## Behavior breakdown (proposed)
 
-- **Gates**: none hard — you can still act (gasping, but functional).
+- **Gates**: none hard - you can still act (gasping, but functional).
 - **Saves/checks**: none mechanical here; prolonged blood loss drives HP toward 0.
 - **Combat**: light `attack_mod` penalty from weakness.
 - **Movement**: full speed (blood trail is passive, not a movement gate).
-- **Periodic**: HP drain per tick per instance — multiple wounds sum (e.g. two wounds = âˆ’6 HP/tick). Severe hemorrhage via `level`.
+- **Periodic**: HP drain per tick per instance - multiple wounds sum (e.g. two wounds = âˆ’6 HP/tick). Severe hemorrhage via `level`.
 - **World footprint (task-190)**: periodic symptom spawns a `blood_pool` item in the current area each tick, and a go-hook leaves blood trails behind as the character moves.
 - **Lifecycle**: `stack: "accumulate"`; `default_duration: None`; ends on `bandage`/`heal`/`cauterize`.
 
 ## Perception
 
-`known: True` — agent knows they're bleeding; symptoms by remaining time.
+`known: True` - agent knows they're bleeding; symptoms by remaining time.
 
 ## Integration points space
 
-- `engine/player.py` — `CONDITION_DEFINITIONS` entry.
-- `engine/conditions.py` — `process_tick` drains summed across instances; blood pooling needs a **spawn hook** (new?) in tick processing or a dedicated effect.
-- `engine/movement.py` — go-hook that drops a blood trail on each move (task-190).
-- `engine/item_actions.py` — bandages/cauterization ending the condition.
+- `engine/player.py` - `CONDITION_DEFINITIONS` entry.
+- `engine/conditions.py` - `process_tick` drains summed across instances; blood pooling needs a **spawn hook** (new?) in tick processing or a dedicated effect.
+- `engine/movement.py` - go-hook that drops a blood trail on each move (task-190).
+- `engine/item_actions.py` - bandages/cauterization ending the condition.
 - Item spawn: `blood_pool` node creation.
 
 ## Testing (proposed)
@@ -73,10 +73,10 @@ Actively losing HP from a wound. A periodic-drain condition whose effects leave 
 
 ## Open questions / things to work out
 
-- How are the blood-pool spawn and movement blood-trail implemented — new hooks in `process_tick`/movement, or scene/item triggers?
+- How are the blood-pool spawn and movement blood-trail implemented - new hooks in `process_tick`/movement, or scene/item triggers?
 - Does bleeding coexist with `injured`, and does stopping bleeding require also treating `injured`?
 - Drain balance: base `âˆ’3`/tick reasonably lethal but survivable with fast treatment.
-- Should `bleeding` auto-stop when HP hits 0 (death) — handled by `dead` excludes or explicit logic?
+- Should `bleeding` auto-stop when HP hits 0 (death) - handled by `dead` excludes or explicit logic?
 
 ## Why
 

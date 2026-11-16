@@ -67,7 +67,7 @@ that no longer exists.
 
 Impact is bounded but real. `is_exposed` (`engine/body_parts.py:260`) does
 `graph.get_node(outer_id)` and `continue`s on `None`, so a dangling id degrades
-to "treated as uncovered" rather than raising — which means it changes
+to "treated as uncovered" rather than raising - which means it changes
 coverage maths silently. The equipment readout counts it as worn. The only
 recovery is the manual write this task is already complaining about, i.e. the
 API route that creates the original divergence.
@@ -79,7 +79,7 @@ or reconciled on change.
 ## Acceptance
 
 - [x] An `equipped` payload written through the API updates the graph edges as
-      well as the dict — every real item gets an `equipped` edge (item →
+      well as the dict - every real item gets an `equipped` edge (item →
       character) carrying its `slot`, and the `carrying` edge is dropped.
 - [x] The same writer returns items a later payload no longer claims to
       `carrying`, so nothing is orphaned out of the graph.
@@ -92,24 +92,24 @@ or reconciled on change.
       from every character's `equipped`, instead of leaving the readout counting
       a worn item that no longer exists and `is_exposed` reading a missing node
       as "uncovered".
-- [x] Both real readers — `combat._best_weapon_node` and
-      `equipment_bonuses.get_equipment_nodes` — agree with the inspector, and an
+- [x] Both real readers - `combat._best_weapon_node` and
+      `equipment_bonuses.get_equipment_nodes` - agree with the inspector, and an
       API write and a real `take` leave the same shape.
 - [x] Regression tests in `tests/test_equipment_api_edges.py` (12 tests).
 
-## Implementation — 2026-10-02 (WT-characters-engine)
+## Implementation - 2026-10-02 (WT-characters-engine)
 
 ### Files
 
-- `engine/equipment.py` — `EquipmentSystem.set_equipped_payload` (the single
+- `engine/equipment.py` - `EquipmentSystem.set_equipped_payload` (the single
   writer) and `prune_dangling_equipped` / `prune_all_dangling_equipped`.
-- `virtual_world_engine.py` — `set_equipped_payload` delegate.
-- `routes/player_ops.py` — `POST /api/players/<name>` and
+- `virtual_world_engine.py` - `set_equipped_payload` delegate.
+- `routes/player_ops.py` - `POST /api/players/<name>` and
   `POST /api/players/import` route through the writer.
-- `routes/library_ops.py` — the library character loader does too.
-- `routes/graph_ops.py` — `DELETE /api/graph/node/<id>` prunes an item's
+- `routes/library_ops.py` - the library character loader does too.
+- `routes/graph_ops.py` - `DELETE /api/graph/node/<id>` prunes an item's
   dangling `equipped` ids.
-- `tests/test_equipment_api_edges.py` — **new**, 12 tests.
+- `tests/test_equipment_api_edges.py` - **new**, 12 tests.
 
 ### The decisions
 
@@ -134,7 +134,7 @@ or reconciled on change.
 The library loader assigned `player.equipped` twice: once raw at the top, then
 again after resolving names to node ids. The first was dead. The second ran on
 `cdata.get('equipped') or {}`, so **a library character with no `equipped` block
-had its equipment cleared on import** — the raw assignment above it had been
+had its equipment cleared on import** - the raw assignment above it had been
 preserving it up to that point. Both are gone; the resolved payload now goes
 through the writer.
 
@@ -160,7 +160,7 @@ python -m pytest tests/test_equipment_system.py tests/test_library_character_imp
 The five failures in `test_scenario_data_integrity.py` / `test_character_identity.py`
 are the documented pre-existing baseline and are unrelated.
 
-### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`
 
 The reporting interaction for this task was an API call, so the API was driven
 directly rather than through the inspector (which the task's own note already
@@ -170,16 +170,16 @@ path).
 1. Created `item_live_task654_hatchet` (`damage: 1d6+3`, `equip_slots:
    [hand_right]`) and put it in `Blizzard Forest Clearing`.
 2. Moved `rat` into the same area, made Kaelen the active player.
-3. **Equipped it with no other writer involved** —
+3. **Equipped it with no other writer involved** -
    `POST /api/players/Kaelen%20Voss {"equipped": {"hand_right":
    ["item_live_task654_hatchet"]}}` → `200 {"status": "updated"}`.
 4. **The graph edges existed immediately** (`GET /api/graph/edges`):
 
        equipped: item_live_task654_hatchet slot=hand_right
 
-   and no `carrying` edge for it — worn, not held.
+   and no `carrying` edge for it - worn, not held.
 5. **Combat used it.** `POST /api/action {"command": "attack rat"}` →
-   `Kaelen Voss attacks rat with Live Task654 Hatchet!` — i.e. the weapon was
+   `Kaelen Voss attacks rat with Live Task654 Hatchet!` - i.e. the weapon was
    reachable by `combat._best_weapon_node`, which is the reader that was blind
    to the API write.
 6. **Clearing the slot demotes rather than orphans.**
@@ -187,7 +187,7 @@ path).
    `carrying: item_live_task654_hatchet` is back.
    (Combat still reaches it, correctly: `_best_weapon_node` scans `carrying` and
    `equipped` by design, so a carried weapon is still a usable one. The claim
-   under test — that the API write is inert — is disproved by step 5.)
+   under test - that the API write is inert - is disproved by step 5.)
 7. **The inverse.** With the item equipped again,
    `DELETE /api/graph/node/item_live_task654_hatchet` → `200`, and
    `equipped.hand_right` went from `item_live_task654_hatchet` to empty rather

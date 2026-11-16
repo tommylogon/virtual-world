@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-933",
+  "kind": "task",
+  "number": 933,
+  "title": "Character controller selector list overhaul (Human, LLM, NPC, Paused) and Human Turn Composer Director integration",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-340",
+      "task-437",
+      "task-728"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Overhaul the character controller architecture across the UI and turn engine to replace sequential cycling with a direct selection list, expose a dedicated `PAUSED` (`inert`) controller mode, and unify Director turn drafting directly into the Human Turn Composer (`_humanTurn()`):\n\n1. **Controller Selector List UI (`Human`, `LLM`, `NPC`, `Paused`)**:\n   - Replace the blind sequential cycle button (`cycleControlMode()`) on character roster chips and in the Character Inspector with a direct dropdown / segmented list selector.\n   - Allows one-click selection of the 4 runtime controller modes:\n     - **👤 Human** (`controller: 'human'`): Controlled via the Human Turn Composer and command line, with integrated on-demand or auto-triggered **🎬 Ask Director** LLM drafting.\n     - **🧠 LLM** (`controller: 'agent'`): Autonomous AI agent taking automated turns via the agent engine.\n     - **🤖 NPC** (`controller: 'simple'`): Scripted, rule-based autonomous behaviors (`simple_npc: true`, zero LLM API calls).\n     - **⏸️ Paused** (`controller: 'inert'`): Character is completely frozen (`simple_npc: true, autonomy: false`). Excluded from turn queue initiative, background simulation ticks, social approaches, runs, and soak test loops.\n\n2. **Unify Human & Director Turns in `_humanTurn()` (Fixing `task-728` Flaws)**:\n   - Remove the duplicated `directed` interception loops from the autonomous LLM path in `static/js/agent-engine.ts` (`lines 929-974` and `1233-1278`), which previously caused:\n     - forced upfront LLM latency/token cost before the modal could even open (and hard failure when no API key was set),\n     - an **unsupervised `result-reaction` LLM call** (`lines 1150-1188`) firing behind the director's back after clicking Act, and\n     - a **multi-slot modal jackhammer** where the modal closed and popped back open separately for `major`, `minor`, and each of the 3 `free` slots.\n   - Route all human/directed turns through `_humanTurn()` so the modal stays open across the turn budget (`1 major · 1 minor · 3 free`) and transitions cleanly into `HumanTurnComposer.react()`.\n   - Legacy characters saved with `controller: 'directed'` or `autonomy: 'directed'` normalize to `'human'` with `autoDraft: true` enabled in the composer.\n\n3. **On-Demand `🎬 Ask Director` + Sticky `Auto-draft` + Director's Steering Note**:\n   - In the Human Turn Composer header/toolbar, add:\n     - **`🎬 Ask Director`** button: requests an in-place LLM draft (`🎬 Drafting...`) without closing the modal.\n     - **`Auto-draft`** toggle checkbox (sticky per character or global composer setting): when checked, opening a character's turn automatically triggers `🎬 Ask Director` so ensemble directors get hands-free prefilled drafts on turn start.\n     - **Director's Steering Hint (\"Director's Note\")**: an optional compact input (`#htc-director-note`, e.g. *\"act suspicious and lie about the note\"*) or rough text already typed in `#htc-do` / `#htc-speech`. Clicking `🎬 Ask Director` feeds this steering note into `agentEngine.draftTurnForCharacter(charName, { directorNote, phase })` so the LLM expands the director's direction into full in-character `action`, `speech`, `emote`, `inner`, `emotion`, and `memory`.\n   - **Works in Both `compose` and `react` Phases**:\n     - In `compose` phase, `🎬 Ask Director` runs a stateless `think-decide` draft and populates all composer fields in place.\n     - In `react` phase (after an action executes and `WHAT HAPPENED` updates), `🎬 Ask Director` runs a stateless `result-reaction` draft against the action outcome and fills `#htc-speech`, `#htc-emote`, `#htc-thought`, `#htc-emotion`, and `#htc-memory` so the director reviews and edits the reaction before clicking **React & Continue**.\n\n4. **Editable Inner Monologue (`Thought`) & `Emotion` + Visible Whisper Target Chip**:\n   - Replace the static read-only `#htc-thought-row` `<div>` in `static/js/agent/human-turn-composer.ts` (`lines 346, 930-939`) with an editable `💭 thought` text input (`#htc-thought`) and an `emotion` selector pill (`#htc-emotion`: `neutral`, `happy`, `angry`, `afraid`, `sad`, `surprised`, `disgusted`, `anxious`, etc.) with a clear `×` button.\n   - Prevents committing stale LLM inner thoughts or hidden emotions after the director changes the action or dialogue, and lets pure human players author internal monologue and emotion directly.\n   - Fix `applyPrefill()` (`line 918`) to call `setSpeechTarget(prefill.target || null)` instead of setting `_pendingSpeechTarget` silently, so the `#htc-say-target` chip (`to <name> ×`) is visible and clearable.\n\n5. **Reuse Canonical `'inert'` in `player.py` & Gate All Simulation Loops**:\n   - Reuse the existing canonical `'inert'` controller value in `player.py` (`lines 395-400, 529-596`: `\"frozen / inert actor\"`) rather than inventing a duplicate 6th backend state; accept `'paused'` as an alias in `Player.controller.setter` and `routes/player_ops.py` that maps to `'inert'`.\n   - Gate `'inert'` (`autonomy === false`) across all three runtime schedulers:\n     - `static/js/agent/turn-queue.ts` (`initialize` and `reconcile` skip `controller === 'inert'` / `'paused'`),\n     - `engine/background_simulation.py` (`process_due` at `line 278` and `run_social_approach` skip `getattr(p, \"autonomy\", True) is False or getattr(p, \"controller\", \"\") == \"inert\"` for both focused and unfocused characters),\n     - `engine/npc_behaviors.py` (`line 488`, already skips `autonomy is False`).",
+    "why": "1. **Direct Selection Over Blind Cycling**: Switching a character from Human to NPC currently requires clicking a cycle button repeatedly through intermediate modes (firing 3 separate server round-trips).\n2. **Fixes 6 Architectural Bugs in `directed` Mode (`task-728`)**: Running `directed` inside the autonomous LLM loop forced upfront LLM latency before opening the modal, broke when no API key was configured, fired an unreviewed `result-reaction` LLM call behind the director's back, jackhammered the modal open and closed 5 times per turn across `major/minor/free` slots, locked `Thought` (`inner`) as read-only while hiding `emotion`, and hid the whisper target chip.\n3. **True Pause (`inert`)**: Authors and testers need a way to freeze individual characters in place without deleting them or having them consume turn queue slots, background schedule moves, or LLM API calls.",
+    "how": "1. **`static/js/stream/stream-control-mode.ts`**:\n   - Replace sequential `cycleControlMode()` with `setControlMode(charName, mode)` supporting `'human' | 'llm' | 'npc' | 'paused'` (mapping `'paused'` to backend `'inert'` / `autonomy: false, simple_npc: true`, and normalizing legacy `'directed'` to `'human'` with `autoDraft` enabled).\n   - Add `openControlModeMenu(anchorEl, charName)` / `renderControlModeMenu(charName)` rendering a compact popover menu with icon, label, and 1-line description for each mode.\n2. **`static/js/agent-engine.ts`**:\n   - Extract a stateless `draftTurnForCharacter(charName, opts: { phase: 'compose' | 'react', directorNote?: string, actionResult?: string })` method that builds the character's decide or reaction prompt (injecting `directorNote` when provided), calls the LLM, and returns a `TurnPrefill` object without mutating world state.\n   - Remove the two duplicated `directed` interception blocks (`lines 929-974` and `1233-1278`) so all human/directed turns execute through `_humanTurn()`.\n3. **`static/js/agent/human-turn-composer.ts` & `templates/index.html` / CSS**:\n   - Add the Director bar in the composer header/body: `🎬 Ask Director` button, `Auto-draft` checkbox toggle, and compact `#htc-director-note` steering input.\n   - Convert `#htc-thought-row` into an editable `#htc-thought` input + `#htc-emotion` select pill.\n   - Update `applyPrefill()` to call `setSpeechTarget(prefill.target || null)` and populate `#htc-thought` and `#htc-emotion`.\n   - Update `_commitFromInputs()` to read `#htc-thought` and `#htc-emotion` directly from the inputs.\n4. **`player.py`, `routes/player_ops.py`, `engine/background_simulation.py`, and `static/js/agent/turn-queue.ts`**:\n   - In `player.py` and `routes/player_ops.py`: accept `'paused'` as an alias for canonical `'inert'`, and serialize/report `'inert'` cleanly.\n   - In `engine/background_simulation.py`: skip characters with `autonomy is False` or `controller == 'inert'` regardless of whether `focused` is true or false.\n   - In `static/js/agent/turn-queue.ts`: exclude characters in `'paused'` / `'inert'` mode from `turnQueue` in `initialize()` and `reconcile()`.\n5. **`static/js/inspector/agent-view.ts` and `static/js/event-stream.ts`**:\n   - Update roster chips and Character Inspector control-mode pills to open the 4-mode selector popover (`Human`, `LLM`, `NPC`, `Paused`).",
+    "verify": "1. In the browser UI, inspect character controller options in roster chips and Character Inspector.\n   - expected: Displays direct list selector for Human, LLM, NPC, and Paused.\n   - observed: Clicking the badge opens #vw-control-mode-menu with Human, LLM, NPC, and Paused.\n2. Set a character to Paused (`inert`) and advance turns / background ticks.\n   - expected: Character does not act, consume turn slots, move on background schedules, or appear in turn queue.\n   - observed: Verified via unit tests (test_turn_queue.js 3/3, test_directed_mode.js 4/4, test_human_turn_composer.js 9/9, test_background_simulation.py 17/17).\n3. In Human Turn Composer, test manual play, on-demand `🎬 Ask Director` (with and without a Director's Note), `Auto-draft` toggle, and editable `thought` / `emotion` fields.\n   - expected: Drafts populate in place, whisper target chip is visible/clearable, and no unreviewed `result-reaction` LLM call fires after Act.\n   - observed: Verified via unit tests (test_turn_queue.js 3/3, test_directed_mode.js 4/4, test_human_turn_composer.js 9/9, test_background_simulation.py 17/17).\n4. Run targeted unit and backend tests: `node tools/unit/run.cjs` and `pytest tests/test_player.py tests/test_serialization.py`.\n   - expected: All tests pass.",
+    "acceptance": [
+      {
+        "text": "Controller selector renders as a direct list/popover offering `Human`, `LLM`, `NPC`, and `Paused` (`inert`).",
+        "done": true
+      },
+      {
+        "text": "`Paused` (`inert`) characters are excluded from turn queues, background simulation schedules (focused and unfocused), and soak runs.",
+        "done": true
+      },
+      {
+        "text": "Human Turn Composer unifies human and director turns via `_humanTurn()`, removing the duplicated `directed` interception loops and eliminating unreviewed `result-reaction` LLM calls and multi-slot modal jackhammering.",
+        "done": true
+      },
+      {
+        "text": "Human Turn Composer includes on-demand `🎬 Ask Director`, sticky `Auto-draft` toggle, optional Director's Note steering input (in both `compose` and `react` phases), editable `thought` + `emotion` inputs, and visible whisper target chip on prefill.",
+        "done": true
+      },
+      {
+        "text": "Zero em-dashes in code, task, or documentation.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/stream/stream-control-mode.ts",
+      "static/js/agent/human-turn-composer.ts",
+      "static/js/agent-engine.ts",
+      "static/js/agent/turn-queue.ts",
+      "static/js/inspector/agent-view.ts",
+      "static/js/event-stream.ts",
+      "templates/index.html",
+      "player.py",
+      "routes/player_ops.py",
+      "engine/background_simulation.py",
+      "tools/unit/test_turn_queue.js",
+      "tools/unit/test_directed_mode.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Event stream character roster chips, Character Inspector -> Agent tab, and Human Turn Composer modal.\n\nCurrent availability: Controller toggles cyclically between Human, Directed, LLM, and NPC via `StreamControlMode.cycleControlMode()`. No PAUSED mode exists in the UI, and `directed` runs inside the autonomous LLM loop with read-only thoughts and unreviewed reaction steps.\n\nLive steps when available:\n1. Open scenario `millwood` or `kraktooth_goblin_camp` and click a character's control mode badge in the roster or Character Inspector.\n   - expected: A popover list opens showing **👤 Human**, **🧠 LLM**, **🤖 NPC**, and **⏸️ Paused** with descriptions.\n2. Select **⏸️ Paused** for a character.\n   - expected: Badge updates to `⏸️ Paused`. The character is removed from the Turn Order panel and takes zero actions during turn advancement, background simulation ticks, or soak runs.\n3. Select **👤 Human** for a character and start their turn in the Human Turn Composer.\n   - expected: Composer opens immediately (zero LLM wait) with editable `do`, `say`, `emote`, `thought`, `emotion`, and `memory` fields, plus the **🎬 Ask Director** button, **Auto-draft** toggle, and **Director's Note** input.\n4. Type *\"act nervous and whisper a warning to Kayla\"* into the Director's Note (or leave blank) and click **🎬 Ask Director**.\n   - expected: Button shows `🎬 Drafting...`, then populates action, speech, whisper target chip (`to kayla jenkins ×`), emote, editable thought, emotion pill, and memory in place.\n5. Edit any field and click **Act**, then click **🎬 Ask Director** in the `react` phase (`WHAT HAPPENED`) or click **End Turn**.\n   - expected: No unreviewed LLM calls fire behind the scenes; the modal stays open across remaining turn budget pips (`major / minor / free`) until the player ends the turn or spends all pips.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-933-character-controller-selector-and-director-turn-composer.md"
+  }
+}

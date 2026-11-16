@@ -16,7 +16,7 @@ Validate staged ops before Apply (known fields and registered trait ids, edge en
 
 ## Acceptance
 
-- [x] Shared validator `engine/nl_editor_validation.py:validate_ops` — one
+- [x] Shared validator `engine/nl_editor_validation.py:validate_ops` - one
       definition used by the batch route and the pre-Apply endpoint. Checks:
       op structure/type, node existence (tracking creates/deletes as the batch
       replays), unknown trait ids (error), unknown item actions (warning), id
@@ -32,7 +32,7 @@ Validate staged ops before Apply (known fields and registered trait ids, edge en
       and shows the findings (`staging.js`, `index.js`,
       `ui.js:showValidationIssues`).
 - [x] Property-level diff per op: `static/js/nl-editor/diff.js`
-      (`opDiff`/`diffPairs`/`summaryLines`) renders "traits.dark_vision: — → true"
+      (`opDiff`/`diffPairs`/`summaryLines`) renders "traits.dark_vision: - → true"
       under each staged row, flags a no-op patch, and lists each bulk target.
 - [x] Tests: `tests/test_nl_editor_validation.py` (9) and
       `tools/unit/test_nl_editor_diff.js` (8).

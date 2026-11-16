@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-335",
+  "kind": "task",
+  "number": 335,
+  "title": "Fixture-aware relieve + turn-message polish",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Miki entered the women's restroom, ran `relieve`, and got *\"You relieve\nyourself in a corner. That's going to stink up the place.\"* - standing in\na restroom with no toilet item (none existed; Tommy hand-placed toilets at\nticks 95/96 to patch the gap). Then Jake's `use toilet` hit the\ncarried-only lookup bug (fixed same day via engine/item_reach.py - reload\nto verify), but `relieve` itself still has no notion of toilet fixtures.",
+    "how": "TODO",
+    "verify": "- Panel-submitted `{action:'eat', item:'burrito'}` → `eat burrito`\n  (normalizer cases added); raw text `eat burrito` unchanged\n- Bare `eat`/`drink`: 4 new unit tests in\n  `tests/test_item_actions.py::TestConsumeItem` - auto-pick works,\n  carried beats room, drink skips food-only items, nothing consumable →\n  friendly error. Full suite: 1116 passed.\n- Relieve fixture branching + emote pronoun fix verified by code read\n  (landed in earlier sessions). Browser E2E still pending.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_notes_2026_08_24": "1. **Structured eat/drink keeps its item** - `normalizeStructuredAction`\n   (`static/js/agent/action-normalizer.js`) had NO case for eat/drink, so\n   `{action:'eat', item:'burrito'}` fell through to `default: return verb`\n   and became bare `eat`. Added `eat/consume` and `drink/quaff` cases:\n   `{action,item}` → `eat burrito`; bare payload → `eat` (auto-resolves\n   backend-side).\n2. **Toilet-aware relieve** - verified already implemented\n   (`routes/action.py` relieve branch checks `toilet`/`bathroom` tags in\n   the area; no fixture → corner message + urine smell + puddle spawn).\n3. **Bare-eat grammar + auto-pick** - bare `eat`/`drink` previously fell\n   through the dispatcher (only `\"eat \"` with trailing space matched),\n   producing *\"You stop waiting. jake halloway eat.\"*. Now:\n   - `routes/action.py` catches both bare and suffixed forms.\n   - `_consume_item` (`engine/items/consume_actions.py`) with a blank name\n     auto-picks the first consumable in reach via new\n     `reachable_items()` (extracted from find_reachable's visibility walk,\n     `engine/item_reach.py`) - carried before area, deterministic order,\n     same validity rule as the normal path. Nothing suitable →\n     \"You have nothing to eat.\" / \"...drink.\"\n   - Side-fix: a blank name never reaches `find_item_node` anymore - its\n     containment match (`'' in anything`) would have grabbed the first\n     carried object regardless of edibility.\n4. **Emote prefix doubling** - verified already fixed (G1 pronoun\n   stitching, see presence-gap-analysis-2026-08.md).",
+      "work_items": "1. **Structured eat/drink LOSES its item (primary bug)** - Tommy submitted\n   a turn that parsed down to bare `eat` (\"eat item burrito\" →\n   `act eat`, tick 20-22: *\"You stop waiting. jake halloway eat.\"* - the\n   burrito vanished). Root-cause the human path: structured payload\n   `{action:'eat', item:'burrito'}` → command-string building (composer /\n   `_normalizeStructuredAction` / routes dispatch) drops the item for\n   eat/drink-class verbs somewhere before execution. Fix the flattening,\n   then re-test `eat burrito` from BOTH the panel payload and raw text.\n2. **Toilet-aware relieve** - when relieving, resolve a fixture in reach\n   (engine/item_reach.find_reachable: name contains toilet/urinal, or a\n   `toilet` mechanical tag if we add one) and branch:\n   - fixture found → normal message, no stink penalty, hygiene benefit\n   - none → current corner behavior (stink warning)\n3. **Bare-eat grammar** - `eat` with no item produced *\"You stop waiting.\n   jake halloway eat.\"* (tick 22). Fix verb conjugation / phrasing of the\n   no-item fallback.\n4. **Emote prefix doubling** - witness lines render *\"jake halloway he\n   grins happily…\"* when LLM emote text starts with a pronoun (ticks 23,\n   42). Same family as the second-person converter gotcha (guide §20);\n   strip/merge leading name+pronoun pairs in emote rendering."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-335-fixture-aware-relieve.md"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "id": "task-406",
+  "kind": "task",
+  "number": 406,
+  "title": "Trigger dispatch by event index, standing-item ticks, lazy context",
+  "status": "done",
+  "priority": "high",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-09-19",
+  "updated": "2026-09-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make trigger dispatch **event-driven across every node type**, give standing\nitems a real tick path, and stop paying for triggers that do not exist - without\nchanging what any trigger does.",
+    "why": "1. `_fire_turn_triggers` (`virtual_world_engine.py:971`) and\n   `_fire_time_triggers` (`:984`) iterate **every** node and skip\n   `node.type not in (\"area\", \"way\", \"character\")`. Two consequences:\n   - Every tick visits ~106 nodes even when **zero** carry a tick/time trigger\n     (the goblin scenario has 0; its 11 triggers are `on_drink` / `on_eat` / …),\n     so the whole sweep is waste.\n   - `on_turn_start` / `on_turn_end` / time-of-day / moon triggers on an\n     **item** never fire - only area/way/character are swept.\n2. **Item `on_tick` is inconsistent, not absent** (corrects an earlier claim).\n   `engine/tick_manager.py` fires `on_tick` for exactly two item states:\n   - carried or equipped items (`:635–643`);\n   - items sitting in an area with `current_state` in `(\"lit\", \"on\")`\n     (`:665–692`, the burn-down path).\n\n   A **standing** item - a bush, nest, shrine - that is neither carried nor lit\n   is never ticked, so an `on_tick` growth/regrowth trigger on it does nothing.\n   Carried and lit items keep working and must not be double-fired.\n3. `_execute_triggers` (`engine/triggers/execution.py:277`) builds the full\n   template context (lines 323–375) **before** it fetches trigger edges\n   (line 378). On the common no-match path all of that work is discarded.\n4. Two context keys read the expensive `game_state.current_area` legacy\n   property (`:341`, `:371`), which rebuilds an `Area` and its exits on every\n   access (`engine/legacy_compat.py:57`) - so building a discarded context can\n   rebuild the exits of the active area.",
+    "how": "1. **Event index.** Maintain a map from trigger event/type → set of source node\n   ids, built from trigger edges (`trigger_type`, scalar or list), covering\n   **all** node types. Owner: `graph.py`. Rebuild on\n   `add_edge` / `remove_edge` / `load_from_dict` / `clear`.\n2. **Index-driven sweep.** `_fire_turn_triggers` / `_fire_time_triggers` iterate\n   the ids registered for the requested type(s) instead of\n   `graph.nodes.values()`. Empty index → no work.\n3. **Standing-item tick.** Register items carrying an `on_tick` trigger so they\n   are ticked regardless of carry/lit state, without double-firing items already\n   served by the carried/equipped or lit/on paths (dedupe by node id per tick).\n4. **Short-circuit + lazy context.** In `_execute_triggers`, fetch and filter\n   matching trigger edges first; return `[]` if none match. Build the context\n   only when something will execute, and only fill keys referenced by the\n   matched triggers' templates/effects.\n5. **Cheap area in context.** Replace both `current_area` property reads with\n   the already-resolved area id/name/environment (e.g. `_get_current_area_id()`\n   + `graph.get_node`), so trigger context never rebuilds exits.",
+    "verify": "- Unit: standing-item `on_tick`; no double-fire when also carried/lit; item\n  turn/time trigger; no-match `_execute_triggers` returns `[]` without context;\n  index stays correct across add/remove/load.\n- Profile: before/after `cProfile` over 100 ticks (ranking only, not timing).",
+    "acceptance": [
+      {
+        "text": "A standing, non-lit, non-carried item with an `on_tick` trigger is ticked",
+        "done": false
+      },
+      {
+        "text": "exactly once per tick.",
+        "done": false
+      },
+      {
+        "text": "Carried/equipped and lit/on items keep firing exactly as today (no double",
+        "done": false
+      },
+      {
+        "text": "fire) - `test_carried_item_fires_on_tick` still passes.",
+        "done": false
+      },
+      {
+        "text": "An item carrying an `on_turn_start`/`on_turn_end` or time-of-day trigger now",
+        "done": false
+      },
+      {
+        "text": "fires.",
+        "done": false
+      },
+      {
+        "text": "No behaviour change for area/way/character triggers; existing trigger tests",
+        "done": false
+      },
+      {
+        "text": "pass unchanged.",
+        "done": false
+      },
+      {
+        "text": "With the goblin scenario, a tick performs no trigger-context construction;",
+        "done": false
+      },
+      {
+        "text": "the trigger path shows ~0 in the profiler.",
+        "done": false
+      },
+      {
+        "text": "`_execute_triggers` on a node with no matching edge does not read",
+        "done": false
+      },
+      {
+        "text": "`game_state.current_area`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "non_goals": "- Changing the trigger authoring format, condition trees, or effect handlers.\n- Removing or globally reworking the `current_area` property (see task-407).",
+      "progress_2026_09_19": "Implemented.\n\n- `graph.py`: trigger-event index (`_trigger_index`, `get_trigger_sources`) built\n  from `triggers` edges that carry a non-empty `trigger_type`; maintained on\n  add/remove/load/clear. Faithful to `_execute_triggers`, so legacy-shape edges\n  that never matched still do not match.\n- `virtual_world_engine.py`: `_fire_turn_triggers` / `_fire_time_triggers` are\n  now index-driven (visit only trigger owners, any node type) instead of\n  sweeping every node.\n- `engine/tick_manager.py`: standing items (not carried/equipped, not lit/on)\n  now get `on_tick`, exactly once, without disturbing the carried/equipped and\n  lit/on paths (`test_carried_item_fires_on_tick` still green).\n- `engine/triggers/execution.py`: `_execute_triggers` fetches trigger edges and\n  applies a cheap type pre-filter before building context; the expensive\n  `current_area` property is replaced by area-id/node resolution with a\n  duck-typed fallback.\n\nVerified: 255 targeted tests + full suite (2835 passed, excluding pre-existing\n`test_mcp_*`). One-week background soak: 10,080 ticks in 9m49s (17.1 t/s),\n23/23 alive.",
+      "progress_2026_09_24": "Closed the verification gap: the implementation shipped without the acceptance\ntests named below. Added `TestTriggerEventIndex` in `tests/test_trigger_system.py`\n- standing item fires `on_tick` exactly once; carried and lit/on items are not\ndouble-fired; an item `on_turn_start` trigger now fires; a no-match\n`_execute_triggers` call returns `[]` without touching `game_state.current_area`\n(asserted with an exploding stub); and the graph trigger index stays correct\nacross add / remove / load / clear, including list-valued `trigger_type` and the\nlegacy no-`trigger_type` shape.\n\nFocused run: 6 new tests pass; trigger suites 191 passed. Moved to review."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "nothing. Additive; must not change trigger semantics.",
+      "evidence": "goblin soak profile; `virtual_world_engine.py:971`/`:984`;"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-406-trigger-event-index-and-lazy-context.md"
+  }
+}

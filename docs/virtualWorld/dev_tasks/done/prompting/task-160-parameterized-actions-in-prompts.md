@@ -13,7 +13,7 @@ area: prompting
 
 ## What
 
-Enhance the agent prompts so the LLM emits parameterized, structured action commands instead of loose natural-language actions — e.g. `use item: key, target: door1, speech: "lets see if this works", emote: "i turn the key and..."`.
+Enhance the agent prompts so the LLM emits parameterized, structured action commands instead of loose natural-language actions - e.g. `use item: key, target: door1, speech: "lets see if this works", emote: "i turn the key and..."`.
 
 ## Why
 
@@ -69,17 +69,17 @@ Why this matters: item/target names in this world are multi-word (`Short Forest 
 `Dried Flower Crown (Crushed)`, `Stovepipe Leather Boots (Pair)`). Structured fields
 eliminate the parser ambiguity that caused `use create flame on dried flower crown` to
 *inscribe* text (see `task-181-command-parser-multiwindow-targets`). The `use` vs `use_on`
-distinction also fixes the Create Flame case — it should be `use` alone, not
+distinction also fixes the Create Flame case - it should be `use` alone, not
 `use_on <something>`.
 
 ### Agent engine
 
 - Normalize emitted `action` strings into the parameterized form before sending to
   `/api/action`: if the model emits structured fields, serialize to
-  `use_on <item> on <target>` (item + target joined as full names — no truncation);
+  `use_on <item> on <target>` (item + target joined as full names - no truncation);
   keep the existing free-text fallback for unsupported commands.
 - The verb enum must stay in sync with `_validateAction`'s whitelist
-  (`agent-engine.js:617`) and the COMMANDS table — one source of truth (see
+  (`agent-engine.js:617`) and the COMMANDS table - one source of truth (see
   `task-186-agent-validation-and-feedback`).
 - Optionally: add a validation step in agent-engine.js that flags malformed actions
   for retry (ties into task-150 auto-retry).
@@ -87,17 +87,17 @@ distinction also fixes the Create Flame case — it should be `use` alone, not
 ### Backend
 
 - `routes/action.py` / `tokenize_command`: the free-text parser still exists for human
-  players — the structured agent path serializes to full-remainder targets, so no new
+  players - the structured agent path serializes to full-remainder targets, so no new
   endpoint is required in v1. Verify `use_on <item> on <full target>` resolves via the
   (already-fixed) name matcher (`task-183-name-matching-aliases`).
-- `modifiers` are accepted but **ignored by the engine in v1** — keep them in the prompt
+- `modifiers` are accepted but **ignored by the engine in v1** - keep them in the prompt
   for future use (action economy task-132, stealth) rather than implementing now.
 
 ## Files to Modify
 
-1. `static/js/agent/prompt-builder.js` — prompt instructions + action examples
-2. `static/js/agent-engine.js` — action normalization/validation
-3. `routes/action.py` — verify all parameterized forms parse correctly
+1. `static/js/agent/prompt-builder.js` - prompt instructions + action examples
+2. `static/js/agent-engine.js` - action normalization/validation
+3. `routes/action.py` - verify all parameterized forms parse correctly
 
 ## Steps to verify
 
@@ -112,35 +112,35 @@ distinction also fixes the Create Flame case — it should be `use` alone, not
 ## Implementation Notes (completed 2026-08-04)
 
 ### Backend
-- `engine/item_actions.py` — new `place_item()` (writes EDGE_ON/UNDER/BEHIND/BESIDE/AT/IN
+- `engine/item_actions.py` - new `place_item()` (writes EDGE_ON/UNDER/BEHIND/BESIDE/AT/IN
   with capacity check for `in`) and `give_item()` (moves carrying edge to same-area target).
   `take_item()` now also clears spatial edges when grabbing an item off a surface.
-- `virtual_world_engine.py` — delegators `place_item()`/`give_item()`.
-- `routes/action.py` — `put <item> <prep> <target>` (on/under/beside/behind/at/in),
+- `virtual_world_engine.py` - delegators `place_item()`/`give_item()`.
+- `routes/action.py` - `put <item> <prep> <target>` (on/under/beside/behind/at/in),
   `place <item> <prep> <target>`, and `give <item> to <character>`.
 - **Reachability surprise**: `get_edges_for_target(area, EDGE_IN)` already expands spatial
   edges (graph.py:98-103), so items placed on/under surfaces are automatically findable by
-  `take_item` — no reachability code change needed beyond a clarifying comment in
+  `take_item` - no reachability code change needed beyond a clarifying comment in
   `matching.py:_is_item_reachable`.
 
 ### Frontend
-- `static/js/agent-engine.js` — `_normalizeStructuredAction()` converts `{action, item,
+- `static/js/agent-engine.js` - `_normalizeStructuredAction()` converts `{action, item,
   target, relation}` into a command string (e.g. `use rusty_key on front_door`,
   `put ink_pen on table`, `give rusty_key to Lyrie`). `_extractSpeechVolume()` reads the
   unified `speech` + `volume` fields (legacy keys still accepted). `_validateAction`
   whitelist gained `place`, `give`, `hand`. `_extractMemory()` parses `tags`.
-- `static/js/agent/prompt-builder.js` — ACTIONS table rewritten as structured-object
+- `static/js/agent/prompt-builder.js` - ACTIONS table rewritten as structured-object
   examples (full verb list restored: equip/wear, unequip/remove, fumble, close, stats +
   put/place/give/steal). `buildReactionPrompt`/`buildResultReactionPrompt` emit the unified
   schema with `volume`-is-the-key guidance and a `memory` field (react prompt + non-reactive).
-- `static/js/agent/memory-manager.js` — `storeMemory()` passes `tags` to the backend and
+- `static/js/agent/memory-manager.js` - `storeMemory()` passes `tags` to the backend and
   auto-registers new single-word tags in the id-keyed tag library (dedupes naturally).
-- `static/js/inspector/memory-view.js` — memory editor uses the shared `TagMultiselect`
+- `static/js/inspector/memory-view.js` - memory editor uses the shared `TagMultiselect`
   component (searchable + create-on-the-fly); memory list shows importance-colored border,
   SEED badge for `source: manual`, and tag chips.
 
 ### Tests
-- `tests/test_item_actions.py` — 9 new: place on/under/in, non-container `in` rejection,
+- `tests/test_item_actions.py` - 9 new: place on/under/in, non-container `in` rejection,
   missing target, give success/area check, spatial reachability.
 - Full suite: 481 passed, 1 skipped (472 → 481).
 
@@ -149,13 +149,13 @@ distinction also fixes the Create Flame case — it should be `use` alone, not
 - task-150: Invalid action auto-retry (task file no longer present)
 - Command parser: multi-word targets (task-181 file no longer present)
 - [[todo/prompting/task-186-agent-validation-and-feedback|Agent validation & feedback]] (verb whitelist sync, no silent drops)
-- [[todo/items/task-184-stove-implementation|Stove implementation]] — `use kindling on stove` needs structured target to survive
-- [[todo/environment/task-174-fire-mechanic-heat-source|Fire mechanic]] — Create Flame should be `use` alone
+- [[todo/items/task-184-stove-implementation|Stove implementation]] - `use kindling on stove` needs structured target to survive
+- [[todo/environment/task-174-fire-mechanic-heat-source|Fire mechanic]] - Create Flame should be `use` alone
 
 ## Design Decisions (confirmed 2026-08-04)
 
 While working task-178 (unified memory) it became clear this task and the speech-volume
-system overlap. **Decision: unify speech volume INTO the action schema** — one structured
+system overlap. **Decision: unify speech volume INTO the action schema** - one structured
 action object, no separate `say`/`whisper`/`shout`/`scream` top-level keys.
 
 ### Unified schema (no `modifiers`)
@@ -174,7 +174,7 @@ action object, no separate `say`/`whisper`/`shout`/`scream` top-level keys.
 ```
 
 - `volume`: `whisper | say | shout | scream` (default `say`); `speak`/`talk` normalize → `say`.
-  **The volume word is the JSON KEY name `volume`, never a value inside `speech`** — fixes
+  **The volume word is the JSON KEY name `volume`, never a value inside `speech`** - fixes
   the `{"say":"whisper psst"}` bug structurally (prompt explicitly shows this).
 - `modifiers` object: **rejected** for now (stealth/intensity/urgency). Keep schema lean;
   add when task-132/stealth has something to act on it.
@@ -192,7 +192,7 @@ action object, no separate `say`/`whisper`/`shout`/`scream` top-level keys.
 | `buildReactionPrompt` (non-reactive, includeMemory) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `buildResultReactionPrompt` (react) | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
 
-`buildObservationPrompt`/`buildDecisionPrompt` are dead exports — NOT updated.
+`buildObservationPrompt`/`buildDecisionPrompt` are dead exports - NOT updated.
 
 ### Spatial placement & give (added 2026-08-04)
 
@@ -200,7 +200,7 @@ The scenario data (e.g. `data/scenarios/labs.json`) already models furniture wit
 edges: `on` (ink pen on table), `under` (rug under table), `behind` (painting behind table),
 `beside` (toy box beside table), `in` (soldiers in box). The engine DEFINES these edge types
 (`graph.py:218-233`) and READS them when examining a surface (`item_actions.py:190-215`), but
-there is NO way to place an item onto a surface or take an item OFF one — `take_item`
+there is NO way to place an item onto a surface or take an item OFF one - `take_item`
 reachability (`matching.py:386-411`) only handles area-direct / inventory / `in`-containers.
 
 **Decision: make furniture spatial relations a first-class placement mechanic**, unified into
@@ -213,26 +213,26 @@ the same structured action schema:
 {"action":"give","item":"key","target":"Lyrie"}
 ```
 
-- **`place` / `put`** — move a carried item onto/under/beside/behind/at a target surface in
+- **`place` / `put`** - move a carried item onto/under/beside/behind/at a target surface in
   the same area. Verb mapping: `place` and `put` are synonyms. Relation inferred from the
   preposition in the free-text form (`put X on Y`, `put X under Y`, `put X beside Y`,
   `put X behind Y`, `put X at Y`, `put X in Y`) or the `relation` field in structured form.
-- **`give`** — hand a carried item to another character in the same area (moves the
+- **`give`** - hand a carried item to another character in the same area (moves the
   `carrying` edge from player to target).
 - **Backend**: `engine/item_actions.py` gains `place_item_on` (writes `EDGE_ON`/`EDGE_UNDER`/
   `EDGE_BEHIND`/`EDGE_BESIDE`/`EDGE_AT`/`EDGE_IN`) and `give_item` (moves carrying edge).
   `routes/action.py` parses the free-text command forms for human players.
 - **Reachability**: `matching._is_item_reachable` and `take_item` container scan extended to
   treat spatial edges as findable surfaces (an item `on`/`under`/`beside`/`behind` a surface
-  is reachable once the surface is in the area — visibility via `examine`).
+  is reachable once the surface is in the area - visibility via `examine`).
 - **Prompts**: ACTIONS table advertises `put`/`place` (with `relation`) and `give`.
 
-### Prompt ACTIONS table — restore dropped verbs (added 2026-08-04)
+### Prompt ACTIONS table - restore dropped verbs (added 2026-08-04)
 
 The rework accidentally dropped valid verbs from the ACTIONS table that `_validateAction` and
 the normalizer still support. Restore: `equip`/`wear`, `unequip`/`remove`, `fumble`, and give
 `close` + `stats` their own example rows (they were folded into combined rows with only one
-example each). Keep the table lean but complete — the LLM can only emit verbs it sees.
+example each). Keep the table lean but complete - the LLM can only emit verbs it sees.
 
 ## Acceptance
 

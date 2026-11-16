@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-648",
+  "kind": "task",
+  "number": 648,
+  "title": "Biome palette has two different 'Civic' groups (a room purpose and a building category)",
+  "status": "done",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Civic appears in both ROOM_PURPOSES and CATEGORIES in worldpainter/editor.js, so the palette renders two separate 'Civic' headings -- one with 2 options under Rooms, one with 4 under Buildings. An author cannot tell from the heading which they are picking, and the room/building distinction is the whole reason the palette is grouped.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open WorldPainter on the Eldenford interior and inspect both Civic headings.\n   - expected: they read `Civic (room)` and `Civic (building)`.\n   - observed: live: the full palette list showed both disambiguated headings.\n2. Expand each group and compare its options.\n   - expected: room-purpose choices stay under Civic (room); building-category choices stay under Civic (building); neither source concept is renamed.\n   - observed: live palette showed two separately labeled groups, preserving their underlying names.\n3. Filter for `civic`.\n   - expected: both distinguishable headings remain with their matching options.\n   - observed: the resolution confirms the disambiguation is applied at render time.",
+    "acceptance": [
+      {
+        "text": "Two sections that share a name are distinguishable",
+        "done": true
+      },
+      {
+        "text": "The disambiguation does not rename either concept",
+        "done": true
+      },
+      {
+        "text": "Verified live: the palette headings read \"Civic (room)\" and \"Civic (building)\"",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30": "`civic` is legitimately **both** a room purpose (a town hall is a room) and a\nbuilding category (a civic building), so the palette rendered two headings with\nthe identical name. Filtering for \"civic\" showed both, and the heading said\nnothing about which was which -- in a palette whose whole justification is that\nthe author is asking a *purpose* question, not a tile question.\n\nDisambiguated at render time rather than by renaming either concept, because\nboth are right: a label that appears more than once in one palette is suffixed\nonce as `(room)` and once as `(building)`.\n\n**Verified live**, full heading list on the Eldenford interior:\n\n    Circulation, Living, Sleeping, Cooking, Eating, Storage, Workshop, Worship,\n    Records, Trade, Civic (room), Service, Outdoor, Residential, Religious,\n    Commercial, Civic (building), Craft, Industrial, Military, Rural,\n    Transport, Structure\n\nplus 16 wild-terrain tiles loose at the top.\n\n- TODO",
+      "browser_ui": "Intended UI home: WorldPainter → palette with Room purpose and Building category options → headings shown above their choices.\n\nCurrent availability: The card records a live Eldenford interior check where the two headings read “Civic (room)” and “Civic (building)”; the underlying room purpose and building category remain named Civic.\n\nLive steps when available:\n1. Open the WorldPainter palette and scroll the full heading list to both Civic entries.\n   - expected: the room-purpose heading says `Civic (room)` and the building-category heading says `Civic (building)`.\n2. Expand each heading and inspect its choices.\n   - expected: room choices remain under Room purpose; building choices remain under Building category; neither concept is renamed in the underlying data.\n3. Filter the palette for `civic`.\n   - expected: both groups remain distinguishable while filtering, with their original options under the matching heading.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-648-biome-palette-has-two-different-civic-groups-a-room-purpose-and-a-building-category.md"
+  }
+}

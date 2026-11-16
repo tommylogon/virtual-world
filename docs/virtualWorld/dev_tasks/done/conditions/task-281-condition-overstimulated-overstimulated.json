@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-281",
+  "kind": "task",
+  "number": 281,
+  "title": "Condition: Overstimulated (`overstimulated`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Too much, too fast - overstimulation. Drains Pleasure and costs Energy; excludes `satisfied`/`numb`. A negative/aversive state contrasted with the pleasant arousal bands.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"overstimulated\": {\n    \"name\": \"Overstimulated\", \"description\": \"Too much. Every touch is too much.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [\"concentration\"],\n    \"auto_fail_saves\": [],\n    \"attack_mod\": -2, \"defense_mod\": -3, \"speed_mult\": 0.9,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {\"Pleasure\": -3, \"Energy\": -1},\n    \"ends_on\": [\"ease_off\", \"rest\"],\n    \"known\": True,\n    \"symptoms\": {\n        1: \"Even gentle touch feels like too much.\",\n        2: \"Sensitive to the point of pain. You need a moment.\",\n    },\n    \"stack\": \"refresh\",\n    \"default_duration\": None,\n    \"excludes\": [\"satisfied\", \"numb\"],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: none hard.\n- **Saves/checks**: auto-fails `concentration` (can't focus through the overload).\n- **Combat**: `attack_mod −2`, `defense_mod −3` - flinchy/exposed.\n- **Movement**: slight `speed_mult 0.9`.\n- **Periodic**: `Pleasure −3` and `Energy −1` per tick - it actively drains pleasure.\n- **Lifecycle**: `stack: \"refresh\"`. Excludes `satisfied` and `numb` (applying this removes them - you can't be satisfied and overstimulated at once). Ends on easing off / resting.",
+      "perception": "`known: True` - intensely aversive and obvious.",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry + `excludes` into `CONDITION_EXCLUSIONS`.\n- `engine/conditions.py` - `process_tick`, combat mods, auto-fail checks.\n- Trigger/ovenstim sources: prolonged edging, repeated stimulation past a cap.\n- Relief: `ease_off`/rest ends it, potentially leaving `sensitized` or `satisfied`.",
+      "testing_proposed": "- [ ] Overstimulation drains Pleasure and Energy per tick.\n- [ ] Applies to remove `satisfied`/`numb` (`excludes`).\n- [ ] Concentration checks auto-fail; combat mods `-2`/`-3`.\n- [ ] `ease_off`/`rest` ends it.",
+      "open_questions_things_to_work_out": "- Is there a `numb` condition (referenced in `excludes`) yet? If not, the exclusion entry references something undefined.\n- Onset criteria - what triggers overstimulation vs. crossing into `frantic`? (Sustained stimulation vs. a spike.)\n- Recovery path: straight to `satisfied`, or through `sensitized`?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-281-overstimulated.md"
+  }
+}

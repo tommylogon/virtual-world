@@ -6,7 +6,7 @@ group: UI & Settings
 
 **Filed**: 2026-08-09  
 **Priority**: Low  
-**Status**: In Review — implemented 2026-08-09, `node --check` clean.
+**Status**: In Review - implemented 2026-08-09, `node --check` clean.
 
 ---
 
@@ -20,4 +20,4 @@ Removed `{ value: 'toggle_way', ... }` from both effect lists in `static/js/insp
 
 ## Files Changed
 
-- `static/js/inspector.js` — removed dead effect option (both lists)
+- `static/js/inspector.js` - removed dead effect option (both lists)

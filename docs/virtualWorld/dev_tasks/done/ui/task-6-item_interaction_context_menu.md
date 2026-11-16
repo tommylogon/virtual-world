@@ -6,7 +6,7 @@ status: done
 priority: medium
 ---
 
-# Tab-Completion for Commands — Cycle Available Targets
+# Tab-Completion for Commands - Cycle Available Targets
 
 **Filed**: 2026-07-17
 **Updated**: 2026-08-13
@@ -34,7 +34,7 @@ The user types a verb + space, then hits Tab:
 > take candle_stick        [... wraps around]
 ```
 
-The completion only activates after a recognised verb + space. If the user hasn't typed a verb yet, Tab does nothing (or inserts a tab character — default browser behaviour).
+The completion only activates after a recognised verb + space. If the user hasn't typed a verb yet, Tab does nothing (or inserts a tab character - default browser behaviour).
 
 ### When it applies
 
@@ -81,7 +81,7 @@ Add a `keydown` handler on the command input (`#command-input` or equivalent). O
 3. Cycle to the next option and replace the current partial text
 4. On next Tab, cycle again
 
-No new UI components needed — just the input field behaviour.
+No new UI components needed - just the input field behaviour.
 
 ### Backend logic
 
@@ -92,11 +92,11 @@ No new UI components needed — just the input field behaviour.
 
 ## Files
 
-- `static/js/main.js` — Tab key handler on command input
-- `static/js/api.js` — add `getAutocomplete()` endpoint call
-- `routes/action.py` — add `/api/autocomplete` route  
-- `virtual_world_engine.py` — add `get_autocomplete_options(verb, prefix)` helper
-- `tests/test_autocomplete.py` — test autocomplete endpoint & engine logic
+- `static/js/main.js` - Tab key handler on command input
+- `static/js/api.js` - add `getAutocomplete()` endpoint call
+- `routes/action.py` - add `/api/autocomplete` route  
+- `virtual_world_engine.py` - add `get_autocomplete_options(verb, prefix)` helper
+- `tests/test_autocomplete.py` - test autocomplete endpoint & engine logic
 
 ## Why
 

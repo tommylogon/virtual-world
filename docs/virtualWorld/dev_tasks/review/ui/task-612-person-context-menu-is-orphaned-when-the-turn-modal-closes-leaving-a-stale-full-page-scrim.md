@@ -37,7 +37,7 @@ Live steps when available:
 
 This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 
-## REOPENED 2026-10-04 — reproduced live; the shipped fix is dead code
+## REOPENED 2026-10-04 - reproduced live; the shipped fix is dead code
 
 Was `done` (folder). Moved back to `todo` after a clean browser repro on the
 mansion scenario (read-only session, own client tab):
@@ -47,11 +47,11 @@ mansion scenario (read-only session, own client tab):
 2. One Escape keydown (the overlay-dismiss path). The modal closes.
 3. Counted after: `.tsv-scrim` = 1 and `.tsv-ctx` = 1, both visible. The scrim
    is full-viewport (1280×720), z-index 1390, `pointer-events: auto`, and
-   `document.elementFromPoint` at viewport centre returns the scrim — the next
+   `document.elementFromPoint` at viewport centre returns the scrim - the next
    click is swallowed, then the scrim's own click handler clears it. The exact
    "one-click tax" from the original goal.
 
-Root cause — the fix at `human-turn-composer.ts:679` (`hidePanel`) guards with
+Root cause - the fix at `human-turn-composer.ts:679` (`hidePanel`) guards with
 `typeof _scene.closeMenu === 'function'`, but `_scene` is the **scene data
 payload** assigned at `human-turn-composer.ts:727` (`_scene = scene` from
 `TurnSceneView.fetch`). A JSON payload has no `closeMenu`; the method is on the

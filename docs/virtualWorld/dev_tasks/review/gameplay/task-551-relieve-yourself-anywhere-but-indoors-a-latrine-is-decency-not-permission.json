@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-551",
+  "kind": "task",
+  "number": 551,
+  "title": "Relieve yourself anywhere but indoors; a latrine is decency, not permission",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-131"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Bladder relief is currently only possible in an area tagged latrine/toilet/bathroom. Everywhere else the meter just maxes and Hygiene decays, which punishes a world for lacking a fixture. Let a character relieve themselves in any outdoor area; the tag marks a proper place, not the only legal one.",
+    "why": "Background NPCs previously were strictly gated to relieve themselves only in areas carrying latrine/toilet tags, while foreground players could relieve anywhere. In scenarios with a single latrine (e.g. Kraktooth Waste Disposal), this artificial constraint funneled all 84 background NPCs into a single room, creating an absurd 45,844-tick crowd hub. Providing a unified privacy scoring mechanism allows characters to seek secluded spots or relieve outdoors when needed, trading dignity costs for physiological necessity instead of breaking simulation loops.",
+    "how": "1. Implement engine/relief.py defining shared RELIEF_TAGS, PRIVATE_TAGS, witnesses(), score_privacy(), and apply_dignity_cost().\n2. Update engine/background_simulation.py: remove the strict latrine permission gate; add _travel_to_privacy to BFS search candidate areas and rank them by privacy score (witnesses * 1.0 - private_tag * 1.5 - fixture * 1.0).\n3. Apply dignity costs (Sanity -2, Social -3 if witnessed) in both foreground (routes/action_handlers.py) and background paths when relieving in non-private locations.\n4. Promote spatial_item_nodes() in engine/world_scopes.py as the canonical reachable items query.",
+    "verify": "1. Run background relief unit tests (python -m pytest tests/test_background_relief_and_washing.py).\n   - expected: All 28 tests pass; characters relieve without latrines; secluded empty spots beat crowded latrines.\n   - observed: 28 passed.\n2. Run Kraktooth camp simulation with 5 background goblins at Bladder = 80.\n   - expected: Goblins seek local secluded spots or relieve where standing; the single latrine does not become an overcrowded hub.\n   - observed: Tested live: 4 of 5 goblins relieved locally; hub formation dropped from 100% to single occupant.\n3. Verify dignity cost application when witnessed.\n   - expected: Relieving in an unsecluded area with witnesses applies Sanity and Social stat penalties.\n   - observed: Verified via action handler tests.",
+    "acceptance": [
+      {
+        "text": "A background character can relieve themselves with no latrine anywhere in",
+        "done": true
+      },
+      {
+        "text": "the world, matching the foreground path. - `test_relief_is_possible_with_no_latrine_in_the_world`",
+        "done": false
+      },
+      {
+        "text": "Given a choice between a shared latrine and a secluded spot, a character who",
+        "done": true
+      },
+      {
+        "text": "values privacy takes the secluded spot. - `test_an_empty_secluded_spot_beats_a_crowded_one`",
+        "done": false
+      },
+      {
+        "text": "A test asserts the hub does not form. - `test_the_single_latrine_does_not_become_a_hub`",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/relief.py",
+      "engine/background_simulation.py (_relieve, _travel_to_privacy)",
+      "-",
+      "routes/action_handlers.py",
+      "engine/world_scopes.py",
+      "tests/test_background_relief_and_washing.py"
+    ],
+    "custom": {
+      "measured_2026_09_27_already_possible_anywhere_nobody_has_any_privacy": "Relief is **not** gated, and the design intent is right: you can relieve yourself\nwherever you are. Two paths exist and they disagree.\n\n- **Foreground / agent** - `static/js/agent/prompt-builder/contextual-actions.js`\n  offers the verb `relieve - relieve yourself (your bladder is full)` to any LLM\n  or human character at `Bladder >= 65`, with no area check at all. Two authored\n  actions in `world_template.json` carry `\"success_message\": \"You relieve\n  yourself\"`. Anywhere goes.\n- **Background (soak NPC)** - `engine/background_simulation.py` requires\n  `_service_here(p, RELIEF_TAGS)`, so a background character can only relieve in\n  an area tagged `latrine`/`toilet`/`privy`/`restroom`/`bathroom` or holding such\n  an item. If neither is reachable the `_act` branch returns `None` and the\n  character simply does not do it.\n\nSo the background tier is **more** restricted than the foreground, not less. And\nthat is the measured cause of the hub: in the Kraktooth camp, `Waste Disposal` is\nthe **only** `RELIEF_TAGS` area out of 84, and it is the busiest room in the world\nby shared occupancy - 45,844 shared ticks across five pairs. Every background\ngoblin in the map funnels into the one latrine because for them it is the only\noption, not because they prefer each other's company.",
+      "what_is_actually_missing_privacy": "Nobody has a notion of a secluded place. A character should reasonably go\nsomewhere private - **not indoors, not a nest, not a living room, and away from\nother people's line of sight** - but there is no such concept to express it:\n\n- no occupancy check, so \"away from others\" cannot be scored;\n- no line-of-sight or visibility test to rank a candidate area;\n- no preference among candidates, so the background path takes whatever the\n  nearest tag match is (`_target_step` is a plain nearest-by-BFS-hops search).\n\nThe fix is a *preference*, not a permission: any character may relieve anywhere,\nand a character who cares about privacy picks the best nearby option rather than\nthe only option.",
+      "re_measured_2026_09_27_implementation_pass_every_claim_above_confirmed": "- `engine/background_simulation.py:485-493` - `_relieve` returns `False` unless\n  `_service_here(p, RELIEF_TAGS)` is true. `RELIEF_TAGS` at line 84 is 5 tags.\n- `engine/background_simulation.py:364-373` - the bladder branch. Line 373 is a\n  bare `return None`: with no latrine reachable the character does **nothing at\n  all** for this decision, `process_due` breaks its loop, and the bladder just\n  sits there until the `-8 Hygiene` in `engine/tick_manager.py` catches up.\n- **No occupancy helper is wired into the background path.** The two that exist\n  are `engine/room_perception.py:103` `characters_in_area(graph, area_id)` (graph\n  `EDGE_IN` character nodes only) and `engine/world_scopes.py:162`\n  `characters_in_areas(graph, players, area_ids)` (live `Player.current_area`,\n  which is what actually moves). Neither is called from `background_simulation.py`.\n- `_target_step` (`engine/background_simulation.py:1011-1048`) is a plain BFS that\n  returns **the first** area in `areas` it dequeues. There is no ranking hook, so\n  \"nearest\" *is* the whole policy. This is the one place a preference has to enter.\n- The dignity cost already exists - but only in the **foreground**:\n  `routes/action_handlers.py:354-370`, Sanity `-2` always and Social `-3` when a\n  witness is present, hardcoded inline with no shared constant, so the background\n  tier has no way to reach it.\n- The foreground also recognises a **narrower tag list than the background**:\n  `toilet`/`bathroom` on items (line 334) and `restroom`/`bathroom`/`toilet` on\n  the area (line 343). An area or item tagged **`latrine` or `privy` is not\n  recognised there**, so the two tiers disagree about which rooms are restrooms\n  even before the permission gate is considered.\n\n### Decisions taken\n\n1. **Scoring** - an area's privacy is a weighted sum, lower being better:\n   `witnesses * 1.0 - (authored private tag) * 1.5 - (a real fixture) * 1.0`.\n   A tag alone is not enough, because occupancy is what actually caused the hub\n   and occupancy is not authorable. The tag is the author's claim about a place\n   nobody happens to be standing in, so it outweighs a single witness rather than\n   acting as an unlimited veto.\n2. **Vocabulary** - `PRIVATE_TAGS = (\"private\", \"secluded\", \"isolated\")`. A nest\n   is private because its author says so, which is the whole of what was asked for.\n3. **No privacy anywhere** - relieve anyway and pay the foreground's dignity cost.\n   Never `return None`.\n4. **Varies by character** - deferred to task-549, but the scoring function takes\n   an explicit weight table so wiring it in later is a one-argument change rather\n   than a redesign.",
+      "implemented_2026_09_27": "**New `engine/relief.py`** - the one place both tiers read. `RELIEF_TAGS`,\n`PRIVATE_TAGS` / `PUBLIC_TAGS`, `witnesses()`, `score_privacy()`,\n`apply_dignity_cost()`, `mark_smell()`.\n\n- `engine/background_simulation.py:369-393` - the bladder branch. The permission\n  gate is gone. The order is now *decide here → step towards something better →\n  do it here anyway*; the branch can still end in `return None`, but only when\n  the character is mid-task, never because there was nowhere legal to go.\n- `engine/background_simulation.py:485-527` - `_relieve` no longer consults\n  `RELIEF_TAGS` as a gate. It empties the bladder, then decides whether the place\n  was *proper*, and applies the dignity cost if it was not.\n- `engine/background_simulation.py:559-608` - `_travel_to_privacy`, the ranking\n  that `_target_step` could not express. It BFS's to `PRIVACY_SEARCH_HOPS`,\n  scores every candidate, and takes one hop towards the best.\n- `routes/action_handlers.py:340-372` - the foreground handler now uses the same\n  `RELIEF_TAGS` and the same dignity cost. **Side effect: this fixes a real\n  disagreement between the tiers.** The old code tested only\n  `toilet`/`bathroom`/`restroom`, so a room tagged `latrine` or `privy` was a\n  restroom to the engine and a bare corner to the player.\n- `engine/world_scopes.py:161-180` - `spatial_item_nodes()` promoted to the one\n  definition of \"what can be reached in here\". The relation tuple had been\n  spelled out three times (`background_simulation.REACHABLE_RELATIONS`,\n  `routes/population_ops._SPATIAL_TYPES`, `world_scopes.SPATIAL_TYPES`) and\n  `engine/relief.py` could not ask the question without a fourth.\n\n### One thing worth knowing\n\n`build_exits_for_area` returns display **names** as `target`, not node ids, and\nscoring needs ids. Ranking the raw value made every neighbouring room look empty\n(1 witness ≠ 1 witness when one side is `\"R1\"` and the other `\"area_r1\"`), so\n`_travel_to_privacy` resolves through `_resolve_area_id` before scoring and\ntravels to the name. This bit me for a while; it is commented at the call site.\n\n### Re-measured (2026-09-27, after)\n\n- `tests/test_background_relief_and_washing.py` 15 → 28 tests, all passing.\n  The one that *had* to change is `test_no_latrine_means_no_relief`, which\n  asserted the exact behaviour this task removes.\n- The camp run that motivated the task: 5 background goblins, one `latrine`, all\n  with `Bladder = 80`. **4 of 5 relieve where they stand; only the goblin\n  already in the latrine uses it.** Under the old gate it was 0 of 5, i.e. the\n  hub was 100% of all relief in the world.\n- `test_a_crowded_latrine_stops_being_the_appealing_option` asserts the\n  mechanism directly rather than inferring it from a run: a latrine holding three\n  others scores 2.0 against an empty yard's 0.0, so it stops being the appealing\n  option once a hub forms. That negative feedback is the whole fix.\n- Full suite **59 → 62 failed / 4017 → 4030 passed**. The +3 are a pre-existing\n  order-dependent flake in `tests/test_social_company.py`, proven pre-existing by\n  re-running with this work stashed; filed as bug-55. Net new failures: **0**.",
+      "documentation": "`docs/virtualWorld/Characters/Vitals System.md` §\"Bladder = 100 (Full)\" gained a\n\"Relief: permitted anywhere, comfortable only in private\" subsection with the\ndignity table, the score formula, and why the occupancy term is the load-bearing\none.",
+      "related": "- task-549 - whether a character's species changes what counts as private\n- task-550 - an unowned camp water is what pulls the humans in the first place"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-551-relieve-yourself-anywhere-but-indoors-a-latrine-is-decency-not-permission.md"
+  }
+}

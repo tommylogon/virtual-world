@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-186",
+  "kind": "task",
+  "number": 186,
+  "title": "Agent Validation, Feedback & Emote Gating",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Stop the frontend agent loop from silently dropping actions and contradicting\nreality. Two concrete failures from `event_log_2026-08-02T12-00-06.txt`:\n\n1. **`drink water` → `invalid action: \"drink water\" - skipping`** (line 3945) - the\n   COMMANDS table tells the model \"also supports eat and drink for consumables\",\n   but `_validateAction`'s verb whitelist (`agent-engine.js:617`) omits `eat`/`drink`\n   (and `dash`, `scream`). The action is dropped, the model never learns why, and it\n   repeats the same attempt.\n2. **Emotes contradict failures** - after `wear short forest cape` fails\n   (`The torso slot is full`), the emote still plays \"bundles it around her\n   shoulders with a relieved sigh\" (line 11540). Same for Kaelen \"arranging the\n   kindling inside\" while `use kindling on stove` failed. The model stores these as\n   sensory memories and keeps re-trying.",
+    "why": "TODO",
+    "how": "### 1. `static/js/agent-engine.js` - `_validateAction` whitelist (line 617)\n- Add verbs the backend actually supports and the COMMANDS table advertises:\n  `eat`, `drink`, `dash`, `scream`, `put`, `get`, `pickup`, `steal`, `undo`,\n  `sit` (if supported). Audit `validVerbs` against the command table in\n  `prompt-builder.js`/system prompt so they match 1:1.\n\n### 2. No silent drops - surface validation feedback\n- When `_validateAction` rejects an action (lines 281-284 and 416-419), instead of\n  just `finalAction = ''`:\n  - set `config.lastActionResult[charName]` to something like\n    `[System] \"drink water\" is not a valid action. Use 'use <item>' for consuming.`\n  - write a high-importance memory entry (`AgentMemory.storeMemory(..., 7, 'system')`)\n    so the next observe prompt shows the rejection.\n- This guarantees the react phase / next observe teaches the model the correct form.\n\n### 3. `static/js/agent/prompt-builder.js` - DECIDE sees last result\n- `buildDecisionPrompt` (line 770) omits `lastResult`. Add an optional param and\n  include `=== LAST ACTION RESULT ===\\n{lastResult}` so the decide phase knows what\n  just happened (observe already includes it via line 738, but decide is where the\n  choice is made). Wire it in `agent-engine.js:272`.\n\n### 4. Emote gating on action success\n- In `agent-engine.js` decision emote (lines 331-343) and reaction emote\n  (lines 378-390): only execute the emote when the action result does **not**\n  indicate failure. Heuristic: skip emote (or pass a \"the action didn't work\" note)\n  when `actionResult` matches failure signals (`can't`, `don't have`, `cannot`,\n  `full`, `nothing happens`, `isn't`, `isn't here`, `not a`, `can't find`, `purely decorative`).\n- Also store the **raw failure** to memory with high importance so future turns\n  don't replay the false success (\"wore the cape\" memory).\n\n### 5. (Optional) Hardening\n- When the same *action string* fails twice in a row, inject a one-line nudge into\n  the next observe prompt: `\"You already tried '<action>' and it failed - pick a\n  different approach.\"`",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_modified": "- `static/js/agent-engine.js`\n- `static/js/agent/prompt-builder.js`\n- `docs/virtualWorld/AI & Narration/` (agent loop doc if present)",
+      "status_notes": "- **Changes 1-3 landed in commit `4d87248`** (\"fix: implement event-log fixes\n  F1-F8\", 2026-08-02): whitelist synced to the backend/COMMANDS table\n  (`eat`/`drink`/`dash`/`scream`/`get`/`pickup`/`put`/`steal`), rejections\n  surfaced via `lastActionResult` + a high-importance `system` memory\n  (`_surfaceRejectedAction`), and `buildDecisionPrompt` gained the\n  `=== LAST ACTION RESULT ===` block. No `invalid action` drops remain in the\n  latest event logs.\n- **Change 4 (decision emote) also landed in `4d87248`** via the\n  `_isFailureResult` heuristic gate at `agent-engine.js:339`.\n- **Remaining gap closed 2026-08-03**: the **non-reactive (combined-phase)\n  emote** at `agent-engine.js:449` was ungated - it's speculative (emitted in\n  the same LLM call as the action, before the action resolves), so it could\n  still narrate success the world never granted. Now gated on\n  `!this._isFailureResult(output)`.\n- **Change 4 reaction emote** (`agent-engine.js:386`, react phase) left ungated\n  intentionally: the react-phase LLM already sees `=== WHAT HAPPENED ===`, so\n  its emote is informed; gating would suppress legitimate failure reactions\n  (e.g. \"frowns\").\n- **Change 5 (hardening)** already covered by the failure-aware repeat\n  warnings in `buildMemoryContext` (`prompt-builder.js:285-294`) - flags any\n  failed action attempted 3+ times."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "completed": "2026-08-03"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-186-agent-validation-and-feedback.md"
+  }
+}

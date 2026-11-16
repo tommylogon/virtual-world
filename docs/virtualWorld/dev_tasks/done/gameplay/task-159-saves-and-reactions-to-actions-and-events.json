@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-159",
+  "kind": "task",
+  "number": 159,
+  "title": "Saves and Reactions to Actions and Events",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "combat",
+    "skills",
+    "gameplay",
+    "reactions"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give characters a chance to avoid traps, attacks, or other events via a saving throw / reaction roll. When something dangerous happens, the character rolls against a relevant stat or skill to dodge, resist, or avoid it.",
+    "why": "TODO",
+    "how": "### One primitive, everyone funnels through it\n\n`SkillSystem.saving_throw(player, stat_or_skill, dc)` is **the** save API. Callers pass the player object (active or NPC) - no `use_active_player` limitation like `skill_check`.\n\n```\nsaving_throw(player, \"DEX\", 12)       # stat save (modifier-based)\nsaving_throw(player, \"Athletics\", 12) # skill save (raw skill value)\n```\n\nReturns `(success, total, message)`; the roll is logged via `add_log_entry`.\n\n### Trigger condition `save_throw`\n\n```json\n{\"type\": \"save_throw\", \"stat\": \"DEX\", \"dc\": 12, \"target\": \"self\"}\n{\"type\": \"save_throw\", \"skill\": \"Acrobatics\", \"dc\": 10, \"target\": \"Guard\"}\n```\n\nSuccess → condition passes → the trigger's effects fire (e.g. a trap you dodged). Pair with a damage effect's `save` param when you want halved damage instead of an all-or-nothing dodge.\n\n### Damage effect with save\n\n```json\n{\"type\": \"damage\", \"params\": {\"amount\": 8, \"target\": \"self\",\n  \"save\": {\"stat\": \"DEX\", \"dc\": 12, \"on_success\": \"half\"}}}\n```\n\nFailed (or absent) save → full `amount`. Successful save → `amount // 2` (`on_success: \"half\"`, default) or `0` (`on_success: \"none\"`). The `[Save] ...` message is emitted alongside the damage line.\n\n### Combat stays attack-vs-defense\n\nDeliberately NOT converted to saves (scope decision 2026-08-07): `player_attack` keeps its attack roll vs DEX defense roll. Saves are for traps/hazards/resistance, not melee hits.",
+    "verify": "- [x] Trap trigger with save can be dodged (`save_throw` condition gates the effect)\n- [x] Failed save applies full damage, success applies reduced/zero (`handle_damage` save tests)\n- [x] Works for NPCs as well as the active player (`saving_throw` takes any player object; named-target trigger test)\n- [x] Roll message appears in event stream (log-entry test + `_last_save_msg` surfacing)\n- [x] No regression to existing attack vs defense logic (full suite green)\n- [x] Full suite: **585 passed, 1 skipped** (was 549 before this task; +36 save tests)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/skills.py` - `saving_throw` unified (stats + skills, negative mods, any player)",
+      "virtual_world_engine.py` - facade `saving_throw",
+      "engine/trigger_system.py` - `save_throw` condition (flat + tree), `_resolve_save_target`, `_last_save_msg` surfaced in trigger output",
+      "engine/effects.py` - `handle_damage` optional `save` param + named target",
+      "static/js/item-library.js`, `static/js/shared/trigger-editor.js`, `static/js/inspector.js`, `static/js/shared/trigger-graph.js` - condition dropdowns + fields",
+      "static/js/main.js`, `static/js/shared/ai-generator.js`, `static/js/prompt-docs.js`, `static/js/item-library/ai-generation.js` - LLM condition lists",
+      "Tests: `tests/test_skills.py::TestSavingThrows`, `tests/test_trigger_system.py::TestSaveThrowCondition`, `tests/test_effects_save.py` (new)"
+    ],
+    "custom": {
+      "status": "**In Review - implemented 2026-08-07.** The unified save primitive + integrations landed together with task-4 (grapple), which was the first consumer of `saving_throw`.",
+      "problem_original_superseded": "The original write-up said there was \"no unified save concept\" and proposed adding `saving_throw`. That part is **outdated**: task-4's grapple work added `SkillSystem.saving_throw(player, stat, dc)` (`engine/skills.py:95`), which already:\n- rolls `d20 + modifier` vs DC\n- supports **any** player object - the active player or NPCs\n- logs `[Save] STR vs DC 10: roll 2 + 0 = 2 => failure` to the event stream\n\nWhat was still missing and is now implemented (2026-08-07):\n\n- `saving_throw` only understood **stats**; now a check name in `{\"STR\",\"DEX\",\"CON\",\"INT\",\"WIS\",\"CHA\"}` rolls the stat modifier `(value-10)//2`, and **any other name is treated as a skill** (raw skill value). Negative stat modifiers are no longer clamped to 0 (consistent with `skill_check`).\n- No trigger condition existed to gate an effect on a save → added **`save_throw`** condition, mirroring `skill_check`, in both the flat item-trigger path (`_evaluate_trigger_condition`) and the AND/OR tree path (`_evaluate_conditions`), for the active player (`target: \"self\"`) or a named NPC (`target: \"<name>\"`).\n- The damage effect couldn't be resisted → `handle_damage` now accepts an optional **`save`** param: `{\"stat\": \"DEX\", \"dc\": 12, \"on_success\": \"half\"|\"none\"}`. Success halves (default) or avoids the damage; the `[Save] ...` roll is emitted with the damage message. `target` also accepts an explicit character name.\n- No facade access → `VirtualWorld.saving_throw(player, stat, dc)` added (`virtual_world_engine.py`), so effects/triggers/routes can call through `game_state`.\n- Editor wiring: `save_throw` appears in the trigger editor condition dropdowns (item library, inspector, graph editor) with stat-or-skill + DC + optional target fields, and in the LLM condition lists.",
+      "related": "- [[review/gameplay/task-4-grapple_restrain_system|task-4: Grapple/Restrain]] - first `saving_throw` consumer (STR saves on grab/escape)\n- [[todo/gameplay/task-165-chance-to-stun-on-attack|task-165: Chance to stun on attack]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-159-saves-and-reactions.md"
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "task-656",
+  "kind": "task",
+  "number": 656,
+  "title": "Remove verified dead definitions (unused functions and constants)",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Delete definitions that appear exactly once in the codebase (their own definition)\nand are referenced nowhere. Each entry below is a static-analysis candidate with\nits measured evidence, not a fix instruction: re-count before deleting.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "For every listed entry, re-counted across the repo and confirmed exactly",
+        "done": true
+      },
+      {
+        "text": "**one** hit - the definition (done before the removal).",
+        "done": false
+      },
+      {
+        "text": "Remove only the unused definitions; no other behaviour change.",
+        "done": true
+      },
+      {
+        "text": "Confirm no `__all__`, `from x import *`, or module attribute exposes a removed",
+        "done": true
+      },
+      {
+        "text": "name (none did).",
+        "done": false
+      },
+      {
+        "text": "Python suite compared by FAILED **names** against a clean-`master` worktree",
+        "done": true
+      },
+      {
+        "text": "with identical data - same 12 baseline failures, no new ones.",
+        "done": false
+      },
+      {
+        "text": "For the JS entries: `node tools/unit/run.cjs`, `npm run lint` and",
+        "done": true
+      },
+      {
+        "text": "`npm run typecheck` green.",
+        "done": false
+      },
+      {
+        "text": "Record that no entries were dropped (all 39 held at removal time), and the",
+        "done": true
+      },
+      {
+        "text": "flaky `test_reset_undo` note above.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "method_how_not_in_use_was_confirmed": "A repo-wide word-boundary scan (`\\bNAME\\b`) across every `.py`/`.js`/`.cjs`/`.mjs`/\n`.html`/`.json`/`.md` file, excluding `.git`, `node_modules`, `.kilo`, venvs and\ncaches. An identifier is listed only when it occurs **exactly once** - at its own\n`def`/`const` line - so no caller, test, template attribute, JSON key or doc\nreference exists. Decorator-registered handlers (Flask `@app.route`, MCP\n`@mcp.tool`) were filtered out because their name never repeats; the filter's one\nmiss, `routes/world_grid.py:83 world_scope_grid_boundary_override` (a two-line\ndecorator), was caught by hand and is **not** dead, so it is excluded.\n\nKnown limits: a name reached only through `getattr`/string dispatch in the Python\ncase, or `window[...]`/inline `on*` handlers in the JS case, would not be seen. The\nscan included `.html` and `.json`, so no inline-handler reference exists for the JS\nentries. Treat every line as a candidate to re-verify, not as proof.",
+      "python_module_level_constants_14_done_removed_2026_09_30": "| File:line | Name | Note |\n|---|---|---|\n| `vital_rates.py:66` | `COLD_MODERATE_ENERGY` | |\n| `vital_rates.py:67` | `COLD_MODERATE_HP` | |\n| `graph.py:609` | `EDGE_REQUIRES` | value `\"requires\"` is live as a literal property key; only the constant is unused |\n| `engine/grapple.py:29` | `GRAPPLE_SAVE_BASE_DC` | |\n| `engine/trigger_validator.py:110` | `ITEM_NAME_KEYS` | |\n| `engine/sound.py:63` | `NOISE_LEVELS` | |\n| `engine/sound.py:64` | `WAY_BARRIER_SEE_THROUGH` | |\n| `engine/traversal.py:31` | `ROUTINE` | |\n| `engine/checks.py:63` | `SKILL_NAMES` | |\n| `engine/fear.py:172` | `SOURCE_ABSENT` | value `\"source_absent\"` is *also* unreferenced - possible unwired mechanic, see below |\n| `engine/traits.py:29` | `VITAL_MOD_PER_TICK` | value `\"vital_mod_per_tick\"` is also unreferenced |\n| `engine/weather_forecast.py:88` | `WIND_SCALE` | |\n| `engine/activities.py:118` | `_ALLOWED_WHILE_BLOCKED` | |\n| `engine/character_appearance.py:238` | `_HAIR_LENGTHS` | |",
+      "python_functions_methods_25_done_removed_2026_09_30": "| File:line | Name |\n|---|---|\n| `virtual_world_engine.py:458` | `_get_light_int` |\n| `virtual_world_engine.py:461` | `_get_ambient_light` |\n| `virtual_world_engine.py:465` | `_can_see_in_dark` |\n| `virtual_world_engine.py:497` | `_check_ghost_action` |\n| `virtual_world_engine.py:337` | `_item_node_id` |\n| `virtual_world_engine.py:663` | `_log_llm_call` |\n| `engine/items/take_drop_actions.py:185` | `_clear_last_relation` |\n| `engine/triggers/execution.py:24` | `_find_item_by_name` |\n| `engine/zones.py:103` | `_gateway_scopes` |\n| `engine/library_nodes.py:62` | `_get` |\n| `engine/grapple.py:162` | `_grappled_targets` |\n| `engine/item_actions.py:126` | `_sum_carry_weight` |\n| `engine/world_grid.py:552` | `climate_at` |\n| `engine/agent_memory.py:183` | `consolidation_summary` |\n| `engine/conditions.py:38` | `effective_periodic` |\n| `engine/conditions.py:46` | `effective_ends_on` |\n| `engine/conditions.py:332` | `get_condition_instances` |\n| `engine/conditions.py:356` | `get_active_conditions` |\n| `graph.py:460` | `get_characters_by_tag` |\n| `player.py:1113` | `get_memory_context_nl` |\n| `player.py:628` | `update_emotion_from_outcome` |\n| `engine/activities.py:274` | `has_activity` |\n| `engine/body_parts.py:153` | `region_definition` |\n| `engine/derive.py:258` | `relationship_block` |\n| `engine/character_spatial.py:727` | `set_position_using_target` |\n\n### Python result (2026-09-30)\n\nAll 39 removed - 25 files, pure deletions, no insertions. Evidence:\n\n- `python -m py_compile` on every changed file: clean.\n- **Controlled A/B.** Ran the full suite (`--ignore=tests/test_tick_time_scaling.py`)\n  in the main tree (deletions) and in a clean `master` worktree given the *same*\n  data set (both collected 6466 tests). Both produced the **same 12 failures** -\n  exactly the documented baseline (`test_character_identity` ×2,\n  `test_ownership` ×3, `test_pines_slice`, `test_promotion`,\n  `test_scenario_data_integrity` ×4, `test_templates` ×1). No failure is\n  attributable to the deletions.\n- `tests/test_reset_undo.py::test_undo_restores_state_after_reset` failed in one\n  full-suite run but is **flaky**: it passes in isolation, tests nothing deleted,\n  and did not recur on a re-run. Not attributable to this change.\n- No test under `tests/` references any removed name. Note the near-misses are\n  *different, still-present* names: `test_conditions.py` imports\n  `effective_periodic_for` (not the deleted `effective_periodic`), and\n  `test_engine_config.py` imports `_noise_levels` (not the deleted `NOISE_LEVELS`).",
+      "javascript_done_removed_2026_09_30": "All 12 below were deleted. Each was re-checked for a **superseding live path**\nrather than a bare name count; 10 had one; `explainAction` and the `dom-utils`\ntrio are \"nothing calls it, no replacement named\" and were removed on explicit\ninstruction (the \"see if anything breaks\" experiment).\n\n| Removed | Was at | Superseding live path |\n|---|---|---|\n| `setActiveCharacter` | `static/js/main.js` | `ui-controller.selectAgent` / `ApiClient.setActivePlayer` |\n| `openItemLibrary` | `static/js/main.js` | inline `itemLib.open()` in `templates/index.html` |\n| `closeItemLibrary` | `static/js/main.js` | inline `itemLib.close()` |\n| `nudgeCharacter` | `static/js/main.js` | `agent.nudge` (`agent-engine.js:1142`) via the inspector |\n| `explainAction` | `static/js/main.js` | none found - see note below |\n| `escapeForJsSingleQuoteString` | `static/js/shared/dom-utils.js` | none (only `escapeForHtmlAttribute` is used) |\n| `sanitizeToDomId` | `static/js/shared/dom-utils.js` | none |\n| `createDomElement` | `static/js/shared/dom-utils.js` | none |\n| `diffModalTag` | `static/js/shared/diff-modal.js` | file renders via `window.Lit.unsafeHTML` |\n| `initTooltip` | `static/js/ui-helpers.js` | direct `tippy()` + `data-tippy-content` |\n| `_gridPayloadFor` | `static/js/graph/graph-background.js` | inline `ApiClient.getWorldGrid` + `_cacheGrid` |\n| `_wireKeys` | `static/js/worldpainter/editor.js` | `state._keyDown` handler (editor.js) |\n\nGates after removal: `node tools/unit/run.cjs` (465 pass), `npm run lint`,\n`npm run typecheck`, `python tools/js_module_index.py --check` - all clean.\n\n**Open question from this pass:** `#why-panel` (`templates/index.html:1156`) had\n`explainAction` as its only writer, so it is now unwritten. If the \"why this\naction\" panel is meant to work, that is an unwired feature and belongs in its own\ntask; if it was abandoned, delete the element and its CSS rule.",
+      "note_two_values_not_just_names_are_unreferenced": "`SOURCE_ABSENT = \"source_absent\"` (`engine/fear.py:172`) and\n`VITAL_MOD_PER_TICK = \"vital_mod_per_tick\"` (`engine/traits.py:29`) are the only\noccurrences of their string values in code. That is the AGENTS.md\n\"never infer runtime behaviour from existence\" pattern: a named mechanic (a fear\n`ends_on` reason; a per-tick trait vital modifier) that may be intended but is\nwired to nothing. Before deleting these, decide whether the *mechanism* is meant to\nexist; if so, this is an engine/authoring gap and belongs in its own task, not in a\ndead-code sweep. Deleting just the constant is safe either way.",
+      "independent_re_check_2026_10_02": "The work was committed (`b712a46` JS, `e8862fe` Python) but the task was never\nmoved out of `todo`. Re-verified on the current tree: a repo-wide word-boundary\ncount for a cross-section of the removed names is now **0** -\n`COLD_MODERATE_ENERGY`, `_get_light_int`, `get_characters_by_tag`,\n`setActiveCharacter`, `explainAction`, `createDomElement`, `_wireKeys`,\n`diffModalTag`.\n\n**Open item carried forward (do not silently close):** `#why-panel`\n(`templates/index.html:1156`) was written only by `explainAction`, so it is now\nan orphan element - no writer, no superseding live path. Per the repo's\ndead-code rule that is \"verify feature intent\", not \"dead\": either wire a writer\nor delete the element and its CSS rule. Left as follow-up (not filed) to keep\nthis task a pure deletion.\n\nNo further code change. Moving to `review`.",
+      "live_confirmation_2026_10_02_port_4471": "The removals are already on `master`, and the live app was exercised this\nsession: it loads with no page errors and `VW.agent.stepOnce()` completed a real\nLLM turn (new thought + reaction bubbles in the event stream). Nothing in the\nremoved set is reachable, so the behaviour is \"app runs unchanged\". Moving to\n`done`; the `#why-panel` orphan above is the one open item, kept recorded."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-656-remove-verified-dead-definitions-unused-functions-and-constants.md"
+  }
+}

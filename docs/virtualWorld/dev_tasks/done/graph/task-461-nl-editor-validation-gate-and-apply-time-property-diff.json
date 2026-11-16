@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "id": "task-461",
+  "kind": "task",
+  "number": 461,
+  "title": "NL editor validation gate and apply-time property diff",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-438",
+      "task-422",
+      "task-458"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Validate staged ops before Apply (known fields and registered trait ids, edge endpoints exist, id casing, no duplicate area names) and show a property-level diff per op instead of generic ghost nodes, so a misspelled trait or wrong shape cannot silently no-op. Add per-op undo for an applied batch. Shares the validator with task-438 phase 5.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Shared validator `engine/nl_editor_validation.py:validate_ops` - one",
+        "done": true
+      },
+      {
+        "text": "definition used by the batch route and the pre-Apply endpoint. Checks:",
+        "done": false
+      },
+      {
+        "text": "op structure/type, node existence (tracking creates/deletes as the batch",
+        "done": false
+      },
+      {
+        "text": "replays), unknown trait ids (error), unknown item actions (warning), id",
+        "done": false
+      },
+      {
+        "text": "casing (warning), duplicate area display names (warning), dangling",
+        "done": false
+      },
+      {
+        "text": "attach/detach endpoints, bulk selector/patch emptiness, library registry",
+        "done": false
+      },
+      {
+        "text": "+ id slug + mature gate.",
+        "done": false
+      },
+      {
+        "text": "`POST /api/graph/batch/validate` dry-run endpoint (`handle_graph_validate`).",
+        "done": true
+      },
+      {
+        "text": "Apply gate: `handle_graph_batch` validates first; with",
+        "done": true
+      },
+      {
+        "text": "`strict_validation: true` it returns 422 and applies nothing when there",
+        "done": false
+      },
+      {
+        "text": "are errors. Other callers keep the previous permissive behaviour and just",
+        "done": false
+      },
+      {
+        "text": "receive `validation` as advisory data.",
+        "done": false
+      },
+      {
+        "text": "The NL editor sends `strict_validation`, keeps every op staged on a 422,",
+        "done": true
+      },
+      {
+        "text": "and shows the findings (`staging.js`, `index.js`,",
+        "done": false
+      },
+      {
+        "text": "`ui.js:showValidationIssues`).",
+        "done": false
+      },
+      {
+        "text": "Property-level diff per op: `static/js/nl-editor/diff.js`",
+        "done": true
+      },
+      {
+        "text": "(`opDiff`/`diffPairs`/`summaryLines`) renders \"traits.dark_vision: - → true\"",
+        "done": false
+      },
+      {
+        "text": "under each staged row, flags a no-op patch, and lists each bulk target.",
+        "done": false
+      },
+      {
+        "text": "Tests: `tests/test_nl_editor_validation.py` (9) and",
+        "done": true
+      },
+      {
+        "text": "`tools/unit/test_nl_editor_diff.js` (8).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "remaining": "- Per-op undo for an applied batch is **split out to task-743**. It is not a\n  bounded add-on: the batch deliberately records ONE snapshot (task-387) so a\n  single Undo reverts the whole Apply, and there is no per-op undo concept\n  anywhere (no route, no UI). Changing that is a contract decision, not a\n  side-effect of the validation gate.\n\n**Verified 2026-10-08:** validation gate + property diff are complete; tests\nexist per the acceptance above (`tests/test_nl_editor_validation.py`,\n`tools/unit/test_nl_editor_diff.js`)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-461-nl-editor-validation-gate-and-apply-time-property-diff.md"
+  }
+}

@@ -23,7 +23,7 @@ boxes) task-530 finished.
 
 - [x] Below `(max-width: 900px)` six controls move **into** More ▾ under a "Canvas"
       heading: undo, redo, undo history, Fit, Physics, Export PNG. They are
-      *relocated*, not hidden, so every handler, title and `aria-pressed` survives —
+      *relocated*, not hidden, so every handler, title and `aria-pressed` survives -
       a hidden control is unreachable, a moved one is still one click away.
 - [x] Build ▾, the layout segment and View ▾ stay in the bar: they are what you reach
       for; the moved six are what you do not.
@@ -32,7 +32,7 @@ boxes) task-530 finished.
 - [x] Icon-only controls get their name back inside the menu via
       `data-overflow-label`; Physics and Export PNG keep their own text, so nothing
       reads "⏸ Physics Physics".
-- [x] Using a relocated control runs the action and then closes the menu — except the
+- [x] Using a relocated control runs the action and then closes the menu - except the
       undo-history panel, which is absolutely positioned inside the menu and would be
       hidden with it.
 - [x] The More menu opens leftwards, or it hangs off the window edge at narrow widths.

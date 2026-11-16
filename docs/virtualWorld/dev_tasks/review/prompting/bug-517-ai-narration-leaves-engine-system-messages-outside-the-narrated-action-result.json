@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "bug-517",
+  "kind": "bug",
+  "number": 517,
+  "title": "AI narration leaves engine system messages outside the narrated action result",
+  "status": "review",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-10-04 (reconciled 2026-10-21)",
+  "updated": "2026-10-04 (reconciled 2026-10-21)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-692",
+      "task-340"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When AI narration is active, the Agent Engine sends `data.output` to the\nnarrator, but logs each `data.system_messages` entry as a raw system row before\nthe narration result is known. A successful narration therefore appears beside\nthe un-narrated engine messages instead of replacing the complete action result.\n\nThe earlier claim that room narration calls `/api/players/<name>/speak` is\ndisproved by the current source: `room-context.ts` contains no `playerSpeak`\ncall, and `buildNarratedRoomContext` has no runtime caller. The narration mode\nselector also lacked a change handler; `main.ts` now calls `narrationUI.setMode`\nwhen the selector changes. These are not remaining acceptance criteria for\nthis card.",
+    "why": "Narration is a presentation layer. Raw systemic messages can contradict the\nnarrated result and leave the event stream showing both versions of one action.",
+    "how": "1. Gather `data.output` and `data.system_messages` before logging either.\n2. When narration mode is active and narration succeeds, emit the narrated\n   result and suppress the duplicate raw system messages.\n3. When narration is off, skipped, or fails, preserve the current raw system\n   messages and action-result fallback.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "In AI narration mode, a successful action narration includes the action output",
+        "done": true
+      },
+      {
+        "text": "and its systemic consequences.",
+        "done": false
+      },
+      {
+        "text": "The event stream shows the narrated result without duplicate raw system rows",
+        "done": true
+      },
+      {
+        "text": "for that action.",
+        "done": false
+      },
+      {
+        "text": "When narration is off or fails, the existing system rows and action result",
+        "done": true
+      },
+      {
+        "text": "remain visible.",
+        "done": false
+      },
+      {
+        "text": "No narration text is sent through the character speech endpoint.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.ts",
+      "static/js/narration-ui.ts",
+      "tools/unit/test_narration_system_messages.js"
+    ],
+    "custom": {
+      "verification": "- static/js/narration-ui.ts: updated getNarratedActionResult to combine systemMessages with action output into prompt context (fullOutput), passing consequences to LLM narrator.\n- static/js/agent-engine.ts: gathered actionResult and data.system_messages before logging. Passed sysMsgs into \narrationUi.getNarratedActionResult(). When narration succeeds (\narratedText returned), duplicate raw system messages are suppressed. When narration is off, skipped, or fails, raw system messages are logged via events.log(systemMessage, 'system-msg').\n- Unit test tools/unit/test_narration_system_messages.js: verified that getNarratedActionResult combines output and system messages into LLM prompt context in AI mode, returns null in none mode, and handles fallback.\n- \npm run typecheck and \npm run build:ts pass with 0 errors.",
+      "browser_ui": "**Intended UI home:** top-bar Narration mode selector, Simulation controls,\nEvent Stream.\n\n**Availability:** The current `labs` page has the narration selector and event\nstream. A browser scenario that produces an action with non-empty\n`system_messages` has not been identified yet. Author that content before\nclaiming this behavior is live-verified.\n\n**Steps once the scenario is available:**\n\n1. Reload the editor, choose **AI Narrate** in the top-bar selector, then reload\n   and confirm the selector still shows **AI Narrate**.\n2. In **Agents**, select an NPC and use **Step Once** to perform an action that\n   produces an engine system message.\n3. In **Event Stream**, keep **Action** and **System** rows visible. Confirm the\n   narrated action includes the consequence and the raw system message is not\n   duplicated as a separate row.\n4. Choose **No Narration** and repeat. Confirm the raw result and system row are\n   visible as the fallback.\n\nThis card is corrected from the 2026-10-20 reconciliation: its speech-pollution\nfinding had no current caller or matching code. The surviving systemic-message\nissue remains unverified in a live browser."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Narration System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/prompting/bug-517-ai-room-narration-is-broadcast-as-the-character-s-own-spoken-line-polluting-every-listener-s-recent-hearing.md"
+  }
+}

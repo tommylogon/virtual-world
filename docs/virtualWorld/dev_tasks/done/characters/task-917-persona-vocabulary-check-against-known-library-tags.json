@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-917",
+  "kind": "task",
+  "number": 917,
+  "title": "Persona vocabulary check against known library tags",
+  "status": "done",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Check id-list entries (`fears`, `interests`, `traits`) against the library's authoritative tag registry (`data/library/tags/`). Surface unmatched tags as \"free tags\" while offering autocompletion against canonical library tags.",
+    "why": "A typo in a tag slug (e.g. `arachnid` instead of `spider` or `spiders`) prevents `engine.fear` and perception matching from triggering against authored hazards, making authored traits silently inert.",
+    "how": "- Expose a tag catalog endpoint or reuse `GET /api/library/tags`.\n- In `static/js/inspector/mind-view.ts`, visually distinguish known tags (solid border) from unrecognized custom tags (dashed border).\n- Provide autocomplete suggestions in tag input fields.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Persona tag inputs provide autocomplete against known library tag slugs.",
+        "done": true
+      },
+      {
+        "text": "Tags not found in the library catalog render with distinct styling in the UI.",
+        "done": true
+      },
+      {
+        "text": "Unknown tags remain valid without blocking custom authoring.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-917-persona-vocabulary-check-against-known-library-tags.md"
+  }
+}

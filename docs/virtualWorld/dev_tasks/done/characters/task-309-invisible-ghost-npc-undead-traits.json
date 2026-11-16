@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-309",
+  "kind": "task",
+  "number": 309,
+  "title": "Invisible Ghost NPC / Undead Traits",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "shipped_refactored_2026_09_22": "Modelled on the 5e Ghost, which keeps three axes independent. The old single\n`is_undead_ghost()` check conflated them (making a `undead`-tagged zombie\ninvisible and untargetable), so it was split:\n\n| Axis | Tag | Behaviour |\n| --- | --- | --- |\n| Not alive | `undead` | skips vitals/needs (`player_manager.is_undead`) |\n| Intangible | `ghost` | phases through ways (`is_incorporeal`) |\n| Seen / not | state | listed + targetable only when visible (`is_visible`) |\n\n- `engine/player_manager.py`: `is_undead`, `is_incorporeal`, `is_visible`\n  (`hidden` always hides; a `ghost` is unseen until `manifested`); the broad\n  `is_undead_ghost` remains as a compat alias for \"spectral entity\".\n- `get_players_in_area()` now gates on `is_visible` - which also fixes a\n  pre-existing leak where mundane `hidden` NPCs were still listed.\n- `engine/combat.py`: you can only strike what you can see (\"swings at empty\n  air\" when unseen); a **manifested ghost is solid and hittable**. D&D-style\n  damage resistance for incorporeals is not implemented.\n- `engine/movement.py`: phasing keys off `is_incorporeal`.\n- `engine/tick_manager.py`: vitals skip keys off the broad alias (undead or ghost).\n- `engine/triggers/behaviors.py`: `manifest` / `vanish` now toggle\n  `player.manifested` (they were listed in the editor but inert).\n- `player.py` + `engine/serialization.py`: new `manifested` state, persisted.\n- `static/js/agent/plan-manager.js`: needs-suppression also honours the\n  `undead` / `ghost` tags (not just the `traits.undead` path).\n- Tests: `tests/test_ghost_visibility.py` (18).\n\nStill open: damage resistance/immunity for incorporeal undead (5e has\nresistance to nonmagical weapons, immunity to cold/necrotic/poison), and\ncondition immunities (grappled/restrained/prone/exhausted/...).\n\n---",
+      "original_idea": "Make the ghost in the mansion an invisible/ghost character - a \"dead ghost\" - with traits like undead.",
+      "notes": "- Ghost mode (dead players acting) already exists via the ghost system; this is about an **NPC** that is a ghost: invisible, not attackable by normal means, carrying undead traits.\n- Medium scope: an NPC-side ghost state (invisibility to agents/room lists, `undead` tag, phasing through ways) rather than a whole new system.\n- Flavorful for the mansion scenario and reuses `docs/virtualWorld/Characters/` ghost/condition machinery.",
+      "related": "- `task-490` - incorporeal damage resistance and condition immunities (still open)\n- `developer ideas.md` line 16\n- `engine/ghost.py`, `engine/conditions.py`, trait system (`data/library/traits/*.json`)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-309-invisible-ghost-character.md"
+  }
+}

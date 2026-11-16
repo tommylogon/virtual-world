@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "id": "task-536",
+  "kind": "task",
+  "number": 536,
+  "title": "WorldPainter: left tool rail, marquee cell selection, move selection",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-528",
+      "task-495",
+      "task-496"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give the WorldPainter the selection/move ergonomics of a real paint tool (Unity/Blender/Aseprite) instead of four tool buttons in a top row. A vertical left rail holds the tools with keyboard shortcuts and an active state, plus the options that belong to the active tool; a Select tool adds click, shift-click and drag-a-marquee multi-selection of cells (Ctrl+A all, Escape clear), every paint/erase/route operation then acts on the whole selection in one request, and a Move tool (or arrow keys) shifts the selected cells' contents with bounds clamping. Selection is per-scope and survives tool switches. Must not fight the existing paint stroke: drag means marquee in Select mode and stroke in Paint mode, decided by the active tool. task-528's new Area tool goes in the rail from the start rather than the old top row, so the two changes meet in one place.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: a left tool rail with Select/marquee + Move.\n- observed (2026-10-10 live, painter open): rail buttons = Select / Paint / Erase / Move / Route / Feature / Area / Inspect, plus Grid/Generate/Ungenerate/Add feature.",
+    "acceptance": [
+      {
+        "text": "**A vertical left rail holds the tools**, beside the canvas rather than",
+        "done": true
+      },
+      {
+        "text": "above it, so the tool column and the map it acts on are read together and",
+        "done": false
+      },
+      {
+        "text": "the map gets the width back. `⬚ Select · 🖌 Paint · 🧽 Erase · ✥ Move ·",
+        "done": false
+      },
+      {
+        "text": "🧭 Route · 🏠 Feature · 📍 Area · 🔍 Inspect`, with task-528's Area tool in",
+        "done": false
+      },
+      {
+        "text": "the rail from the start rather than the old top row.",
+        "done": false
+      },
+      {
+        "text": "**One key per tool** (V P E M R F A I), handled in the existing key handler",
+        "done": true
+      },
+      {
+        "text": "rather than a second one, because the interesting cases are combinations",
+        "done": false
+      },
+      {
+        "text": "(Escape with a selection *and* a half-drawn route) and two handlers deciding",
+        "done": false
+      },
+      {
+        "text": "what each does is how a key ends up meaning two things.",
+        "done": false
+      },
+      {
+        "text": "**The active tool is visible** (outline + `aria-pressed`) and the rail also",
+        "done": true
+      },
+      {
+        "text": "shows **the options that belong to the active tool**: the selection panel",
+        "done": false
+      },
+      {
+        "text": "(count, all, clear, invert) under Select, the nudge pad under Move.",
+        "done": false
+      },
+      {
+        "text": "**Select tool: click, shift-click, and a drag-a-marquee** multi-selection.",
+        "done": true
+      },
+      {
+        "text": "A click on an already-selected cell deselects it, so the same gesture that",
+        "done": false
+      },
+      {
+        "text": "made the selection takes it back.",
+        "done": false
+      },
+      {
+        "text": "**Ctrl+A selects all, Escape clears** - and Escape drops the selection",
+        "done": true
+      },
+      {
+        "text": "*before* it resets the tool, peeling off the least-committed thing first.",
+        "done": false
+      },
+      {
+        "text": "**Every paint/erase operation then acts on the whole selection in one",
+        "done": true
+      },
+      {
+        "text": "request**: one `paint_batch` over the selected cells, one undo step.",
+        "done": false
+      },
+      {
+        "text": "**Move tool / arrow keys shift the selected cells' contents** with bounds",
+        "done": true
+      },
+      {
+        "text": "clamping, as one batch: every source cleared and every value written at its",
+        "done": false
+      },
+      {
+        "text": "new home. Clear-then-write, so a value moving one cell east is not erased",
+        "done": false
+      },
+      {
+        "text": "by its own neighbour's clear. Cells pushed past the edge are dropped from",
+        "done": false
+      },
+      {
+        "text": "the move and counted in the status line rather than silently wrapping.",
+        "done": false
+      },
+      {
+        "text": "**Selection is per-scope and survives tool switches** (keyed by scope id),",
+        "done": true
+      },
+      {
+        "text": "and is visible on the canvas: a tinted overlay plus a rubber-band marquee",
+        "done": false
+      },
+      {
+        "text": "drawn into its own layer, so it moves with the map and does not fight the",
+        "done": false
+      },
+      {
+        "text": "cell colours.",
+        "done": false
+      },
+      {
+        "text": "**It does not fight the paint stroke**: a drag means marquee in Select,",
+        "done": true
+      },
+      {
+        "text": "stroke in Paint/Erase, and pan otherwise - decided by the active tool, and",
+        "done": false
+      },
+      {
+        "text": "`draggable` is re-asked on every tool change so switching tools cannot leave",
+        "done": false
+      },
+      {
+        "text": "the canvas panning when it should be painting.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "- The **layer / value / brush controls stayed in the top row** on purpose: they\n  are options of four tools, not one, and putting them in the rail would mean\n  switching tools to change a setting that outlives the switch. The rail owns\n  only the per-tool options.\n- Layer/value/brush in the rail is a one-line move if the author disagrees."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-536-worldpainter-left-tool-rail-marquee-cell-selection-move-selection.md"
+  }
+}

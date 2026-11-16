@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-972",
+  "kind": "task",
+  "number": 972,
+  "title": "Relationships: Multi-axis model (trust, attraction, fear, resentment) and asymmetric stance",
+  "status": "todo",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [
+    "relationships",
+    "mind",
+    "prompting"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "medium",
+  "goal": "Replace flat single-scalar closeness with multi-axis, asymmetric relationship state",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-423"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expand player.relationships[other] beyond a single closeness scalar to support trust, attraction, fear, and resentment.",
+    "why": "Characters currently smuggle #trust:5 and #attraction:4 into memory tags because closeness alone cannot express fear, distrust, or asymmetric feelings.",
+    "how": "Extend relationship records with optional/defaulted trust, attraction, fear, and resentment dimensions in engine/relationships.py, migrate/hydrate cleanly, and render in Mind -> People and prompts.",
+    "verify": "pytest -q and npm run build:ts",
+    "acceptance": [
+      {
+        "text": "engine/relationships.py supports trust, attraction, fear, and resentment axes alongside closeness",
+        "done": false
+      },
+      {
+        "text": "Serialization, scenario load/save, and library diff preserve multi-axis relationship records backward-compatibly",
+        "done": false
+      },
+      {
+        "text": "Mind -> People and Commons/agent prompts surface relationship axes without requiring #trust/#attraction memory tag hacks",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/relationships.py",
+      "engine/serialization.py",
+      "static/js/inspector/mind-view.ts",
+      "static/js/agent/prompt-builder/turn-prompts.ts"
+    ],
+    "custom": {
+      "browser_ui": "Mind -> People and character inspector show trust, attraction, fear, and resentment bars/values alongside closeness and label."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Gameplay/Relationships.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

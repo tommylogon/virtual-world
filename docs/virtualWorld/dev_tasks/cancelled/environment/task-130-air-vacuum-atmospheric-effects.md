@@ -26,8 +26,8 @@ Currently areas have temperature and light but no concept of air quality. You ca
 ## Requirements
 
 ### Area Properties
-- `environment.air` — enum or string: `"breathable"` (default), `"thin"`, `"vacuum"`, `"poison"`, `"smoke"`, `"stale"`
-- `environment.air_visibility` — visibility range: `"clear"`, `"hazy"`, `"fog"`, `"obscured"` (affects what characters can see/describe)
+- `environment.air` - enum or string: `"breathable"` (default), `"thin"`, `"vacuum"`, `"poison"`, `"smoke"`, `"stale"`
+- `environment.air_visibility` - visibility range: `"clear"`, `"hazy"`, `"fog"`, `"obscured"` (affects what characters can see/describe)
 
 ### Effects on Characters
 - **Vacuum / no air**: suffocation damage per tick (HP drain), speech impossible

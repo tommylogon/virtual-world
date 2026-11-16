@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-149",
+  "kind": "task",
+  "number": 149,
+  "title": "Sound Propagation System",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-31",
+  "updated": "2026-07-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Implement a graph-based sound propagation system where speech and sound sources travel through connected areas based on penetration values, door states, and ambient noise levels.\n\n---",
+    "why": "TODO",
+    "how": "### Speech Levels (4 tiers)\n\n| Level | Penetration | Description | Range Example (all-open chain) |\n|-------|-------------|-------------|-------------------------------|\n| Whisper | 0 | Only current area | 0 areas |\n| Normal | 1 | Default speech | 1 area through open doors |\n| Shout | 2 | Loud voice | 4 areas through open doors |\n| Scream | 3 | Maximum volume | 6 areas, alerts NPCs |\n\n### Sound Barriers Values\n\n| Way State | Barrier | Notes |\n|-----------|---------|-------|\n| Open | 0.5 | Open doorways attenuate sound - a chain of opens lets a normal voice reach only the adjacent room |\n| See-through (window/grate) | 0.75 | Partial obstruction, more than an open doorway |\n| Closed | 1 | Door shut, not locked |\n| Locked/Blocked/Hidden | 2 | All treated as \"closed\" for sound |\n\n### Propagation Rule\n\nSound travels while `penetration > accumulated_barriers`\n\nExamples:\n- Normal speech (pen=1) through open door (bar=0.5): 1 > 0.5 ✓ (reaches next area)\n- Normal speech (pen=1) through 2 open doors (bar=1): 1 = 1 ✗ (stops)\n- Normal speech (pen=1) through closed door (bar=1): 1 = 1 ✗ (stops)\n- Shout (pen=2) through closed door (bar=1): 2 > 1 ✓ (continues)\n- Shout (pen=2) through 2 closed doors (bar=2): 2 = 2 ✗ (stops)\n- Scream (pen=3) through 2 closed doors + 1 open (bar=2.5): 3 > 2.5 ✓ (continues)\n\n### Ambient Noise\n\nAreas have `environment.noise` property (already exists):\n- silent/quiet: 0 (no dampening)\n- normal: 1 (reduces effective penetration by 1)\n- loud/chaotic: 2 (reduces effective penetration by 2)\n\nFormula: `effective_penetration = speech_level - ambient_noise`\n\nExample: Shout (pen=2) in loud tavern (noise=2) → effective_pen=0 → only reaches current area\n\n### Sound-Dampening Items\n\nItems with `sound_absorbing` tag reduce ambient noise in their area:\n- Each item has `sound_absorption` property (default 1)\n- Total absorption = sum of all sound_absorbing items in area\n- Reduces area's effective noise level\n\n### Sound Sources (Items)\n\nNew tag: `sound_source`\n\nItems with this tag emit sound continuously:\n- `sound_level`: penetration value (1-3)\n- `sound_pattern`: description (e.g., \"ringing phone\", \"blaring alarm\")\n- `sound_range`: max areas (optional, defaults to sound_level)\n\nExamples:\n- Air horn: sound_level=3, pattern=\"deafening blast\"\n- Phone ringing: sound_level=2, pattern=\"insistent ringing\"\n- Alarm: sound_level=3, pattern=\"piercing siren\"\n- Speaker playing music: sound_level=1, pattern=\"muffled music\"\n\nSound sources propagate like speech but:\n- Always active (checked each tick)\n- Can trigger NPC awareness/alerts\n- May have duration or be toggleable\n\n---",
+    "verify": "### All Tests Passing (21/21)\n1. ✅ Whisper in area A → only characters in A hear it\n2. ✅ Normal speech in area A → characters in adjacent area B (open door) hear it\n3. ✅ Normal speech in area A → characters in area B (closed door) don't hear it\n4. ✅ Shout in area A → characters in areas B, C, D, E (4 open doors, bar 0.5 each) hear it\n5. ✅ Scream in area A → characters up to 6 open doors away hear it (bar 0.5 each)\n6. ✅ Scream through 2 closed doors + 1 open → reaches 3rd area but not 4th\n7. ✅ Loud tavern (noise=2) → shout (pen=2) only reaches current area\n8. ✅ Normal noise reduces speech range appropriately\n9. ✅ Sound sources propagate through graph\n10. ✅ Sound sources in loud rooms are muffled\n11. ✅ Open doors cost 0.5 barrier - normal speech reaches only the adjacent room\n12. ✅ See-through ways have partial obstruction (0.75 barrier)\n13. ✅ Locked/blocked/hidden doors all have barrier 2\n\n### Integration Points\n- ✅ Speech commands work with all 4 levels\n- ✅ Sound sources tick each turn and notify nearby characters\n- ✅ `sound_heard` condition can trigger NPC behaviors\n- ✅ Graph overlay shows noise levels\n- ✅ Recent hearing tracks both speech and sound sources\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_complete": "### Phase 1: Core Sound Propagation (Backend) ✅\n\n1. ✅ Created `engine/sound.py` with full propagation system:\n   - `get_way_barrier(way_node)` - returns barrier value based on state\n   - `get_area_noise_level(area_node, graph)` - calculates effective noise with absorption\n   - `get_effective_penetration(speech_level, ambient_noise)` - applies noise dampening\n   - `propagate_sound(origin_area_id, penetration, graph, areas)` - BFS through graph\n   - `get_areas_hearing_speech(origin_area_id, speech_level, graph, areas)` - returns list\n   - `get_areas_hearing_sound_source(origin_area_id, sound_level, graph, areas)` - returns list\n   - `get_sound_sources_in_area(area_id, graph)` - finds active sound sources\n   - `format_heard_narration(sound_pattern, direction, is_speech)` - formats narration\n\n2. ✅ Added speech level commands:\n   - `speak <text>` / `say <text>` - normal (default)\n   - `whisper <text>` - whisper\n   - `shout <text>` - shout\n   - `scream <text>` - scream\n\n3. ✅ Integrated with narration system:\n   - Modified `broadcast_speech()` to accept `speech_level` parameter\n   - Propagates sound to adjacent areas based on penetration\n   - Characters in hearing areas get narration: \"You hear someone speaking from the [direction]\"\n   - Added to `recent_hearing` with `heard_from` direction\n\n4. ✅ Created tag definitions:\n   - `data/library/tags/sound_source.json`\n   - `data/library/tags/sound_absorbing.json`\n\n5. ✅ Created comprehensive tests:\n   - `tests/test_sound.py` - 21 tests covering barriers, propagation, noise, sound sources\n\n### Phase 2: Sound Sources (Items) ✅\n\n1. ✅ Added sound source processing to `tick_manager.py`:\n   - `_process_sound_sources()` method scans areas for items with `sound_source` tag\n   - Propagates sound from each active source each tick\n   - Notifies characters in hearing areas via `recent_hearing`\n   - Logs narration for active player: \"You hear [pattern] from the [direction]\"\n   - Deduplication tracking to avoid duplicate notifications\n\n2. ✅ Added `sound_heard` condition type to `trigger_system.py`:\n   - Checks if character has heard a specific sound pattern recently\n   - Works with both sound sources and speech\n   - Can be used in NPC triggers (e.g., \"if sound_heard alarm, investigate\")\n   - Added to both NPC and item-trigger condition evaluation paths\n\n### Phase 3: Ambient Noise & Dampening ✅\n\n1. ✅ Area environment integration:\n   - `noise` property already exists (silent/quiet/normal/loud/chaotic)\n   - `get_area_noise_level()` calculates effective noise from environment + items\n   - Sound-absorbing items reduce area's effective noise level\n\n2. ✅ Sound propagation applies dampening:\n   - `get_effective_penetration()` reduces speech level by ambient noise\n   - Loud rooms muffle speech appropriately\n\n### Phase 4: Frontend Visualization ✅\n\n1. ✅ Sound overlay in graph view:\n   - `_applySoundOverlay()` in `network-manager.js` colors areas by noise level\n   - Uses existing `_noiseColors()` function for color mapping\n   - Integrated with overlay view buttons in `templates/index.html`\n\n2. ✅ Sample items created:\n   - `alarm_clock.json` - sound_source item with piercing alarm\n   - `ringing_phone.json` - sound_source item with insistent ringing\n   - `heavy_curtains.json` - sound_absorbing item with absorption value 2\n\n---",
+      "files_created_modified": "### New Files\n- `engine/sound.py` - core sound propagation logic ✅\n- `data/library/tags/sound_source.json` - tag definition ✅\n- `data/library/tags/sound_absorbing.json` - tag definition ✅\n- `tests/test_sound.py` - unit tests (21 tests) ✅\n- `data/library/items/alarm_clock.json` - sample sound source ✅\n- `data/library/items/ringing_phone.json` - sample sound source ✅\n- `data/library/items/heavy_curtains.json` - sample sound absorber ✅\n\n### Modified Files\n- `engine/narration.py` - added speech_level parameter, sound propagation ✅\n- `virtual_world_engine.py` - pass through speech_level ✅\n- `routes/action.py` - added whisper/shout/scream commands ✅\n- `engine/tick_manager.py` - added `_process_sound_sources()` method ✅\n- `engine/trigger_system.py` - added `sound_heard` condition type ✅\n- `static/js/graph/network-manager.js` - sound overlay (already existed) ✅\n\n---",
+      "usage_examples": "### Speech Commands\n```\nspeak Hello everyone!        # Normal speech (pen=1)\nwhisper Psst, over here...   # Whisper (pen=0, only current area)\nshout Hey! Can you hear me?  # Shout (pen=2, through closed doors)\nscream Help!                 # Scream (pen=3, alerts 3 areas away)\n```\n\n### Creating a Sound Source Item\n```json\n{\n  \"id\": \"blaring_radio\",\n  \"name\": \"blaring radio\",\n  \"type\": \"item\",\n  \"tags\": [\"sound_source\", \"toggleable\"],\n  \"properties\": {\n    \"current_state\": \"on\",\n    \"sound_level\": 2,\n    \"sound_pattern\": \"loud music\",\n    \"weight\": 1.0\n  }\n}\n```\n\n### Creating a Sound-Absorbing Item\n```json\n{\n  \"id\": \"acoustic_panels\",\n  \"name\": \"acoustic panels\",\n  \"type\": \"item\",\n  \"tags\": [\"sound_absorbing\"],\n  \"properties\": {\n    \"sound_absorption\": 2,\n    \"weight\": 10.0\n  }\n}\n```\n\n### NPC Trigger with sound_heard\n```json\n{\n  \"trigger_type\": \"on_tick\",\n  \"conditions\": {\n    \"operator\": \"and\",\n    \"conditions\": [\n      { \"type\": \"sound_heard\", \"pattern\": \"alarm\" }\n    ]\n  },\n  \"effects\": [\n    { \"type\": \"message\", \"params\": { \"text\": \"The guard investigates the alarm!\" } },\n    { \"type\": \"move\", \"params\": { \"destination\": \"alarm room\" } }\n  ]\n}\n```\n\n---",
+      "dependencies": "- Task 100 (graph overlays) - for sound visualization ✅ (already existed)\n- Task 141 (lighting system) - similar graph-scan pattern ✅\n\n---",
+      "notes": "- Followed the lighting system pattern from task-141 (graph-scan approach) ✅\n- Sound sources can be toggleable items (use existing toggleable system)\n- Consider adding \"sound_echo\" for caves/large halls (future enhancement)\n- NPCs could have \"hearing\" trait (good/poor hearing) affecting perception (future)\n- Sound propagation is deterministic - same setup always produces same results\n- Deduplication prevents spam when sound sources tick continuously"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-149-sound-propagation-system.md"
+  }
+}

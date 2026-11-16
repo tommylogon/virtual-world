@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-500",
+  "kind": "task",
+  "number": 500,
+  "title": "Zone-driven fidelity and lazy zone materialisation",
+  "status": "done",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-399",
+      "task-495",
+      "task-401",
+      "task-411",
+      "task-418"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Use zones (world_scopes) as the spatial key for the existing fidelity tiers (task-399 background fidelity; engine/soak.py promote/demote; engine/trace.py records promote/demote). Distant zones should exist as scope records only and materialise their areas/ways on approach (lazy instantiation), so a 500-zone world does not hold every area/way node at once - this is the actual offloading win. Tie to task-411/412/418 attention tiers and task-407 graph edge-indexing/perf.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Fidelity-tier selection can key off a character's zone/scope (in addition to attention).",
+        "done": false
+      },
+      {
+        "text": "Distant zones hold only scope records; their areas/ways are materialised on approach and can be released - a test proves node count stays bounded as the world grows.",
+        "done": false
+      },
+      {
+        "text": "Promotion/demotion records survive materialise/release (`engine/trace.py`).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "progress_2026_09_28_in_review": "### Only the unique delta is built, as the task's own header asks\n\n> \"task-401 already owns chunk load/evict … and task-411 (selector) + task-418\n> (awareness channels) own fidelity-tier selection. This task's only unique delta\n> is using *zones* as the selection key … consider folding it into 401/411\n> rather than tracking it separately.\"\n\nAgreed. So: **zones** (`engine/zones.py`, new) plus the zone key added to\n`engine/attention.py` (`zones_in_play=…`, opt-in). Nothing reimplements 401's\nchunking or 411/418's selection.\n\n**This is the third task in a cluster of duplicates** - 401 (chunk load/evict),\n411+418 (fidelity selection) and 500 all describe the same mechanism. Posted to\nthe board with 411's.\n\n### Acceptance 3 cannot be built as written, and that is a finding\n\nIt names `engine/trace.py`. **That file does not exist**, and the task that owned\npromote/demote records - task-412 - is **cancelled**. `engine/soak.py` exists but\nis player soak orders (a bounded time-skip span), not per-zone materialisation, so\nit is not the same thing with another name.\n\nThe property behind the acceptance line is real and *is* tested, in a form the\nworld can actually honour: **a released zone keeps its scope record.** The zone\nstops being a graph citizen and stays a fact about the world, with its\n`area_ids` inventory intact, which is what lets a rebuild be checked against what\nused to be there.\n\n### The zone as the selection key\n\n`select(..., zones_in_play=[\"zone_0\", ...])` reads each character's\n`world_scope_id` and puts a character in a zone nobody is attending **below every\nother tier, including \"recent\"** - their recency is a fact about a zone the world\nis not paying attention to, and ranking them on it is how a whole distant zone\nquietly holds the budget.\n\nTwo things the tests forced:\n\n- **The key is a demotion, so it needed something to lift.** My first version\n  left an in-zone character with no channel signal at `TIER_NONE` alongside a\n  distant one, and the key was inert. In-zone-with-no-signal is now\n  `TIER_RECENT` (recency is the only signal left) and out-of-zone is\n  `TIER_NONE`; that is what separates them.\n- **It is opt-in**, so a world with no zones pays nothing and a caller that\n  forgets the argument gets the old behaviour rather than an error. Pinned by a\n  test that runs the same two characters with and without the key.\n- An **unplaced** character (no `world_scope_id`) is nobody's neighbour. Guessing\n  \"near\" for them would let a loose character hold the budget over a placed one.\n\n### The refusals are the actual content\n\nA release is destructive and mostly irreversible, so the rules that stop one\nmatter more than the happy path. Four, in the order they are checked, each with a\ntest that fires it:\n\n1. **A zone with a character in it** is not released - its areas vanish under\n   their feet and `current_area` dangles. Occupancy is read off the graph (`in`\n   edges), not passed in, so the rule cannot be satisfied by a caller that\n   forgot.\n2. **A `baked` zone** is never released and never re-materialised. A baked zone\n   compiles once and is hand-edited afterwards, so a release/materialise cycle\n   destroys the edits - **the clobber trap (task-496) wearing a different hat**.\n   This is the rule most worth having and the one a naive implementation misses.\n3. **A zone with hand-authored nodes in it** is not released unless every\n   non-generated node is one the compiler can rebuild. Same reason, found by\n   inspection rather than by policy.\n4. **A zone whose parent this store released** is not released - the gateway way\n   is emitted by whichever scope compiles second. Only a parent *this store*\n   released blocks: a parent that was never materialised is the author's own\n   doing, and refusing on that would fire on every scope whose parent has no grid\n   of its own, which is a normal authoring shape and not a reason to keep a zone\n   resident.\n\nTwo non-refusals that are also deliberate: releasing an already-released zone is\na **no-op, not an error** (a second release is the normal way to confirm the\nfirst took, and raising there teaches callers to ignore the result), and a store\nwith no injected compiler uses the **real** one - the injection point is for\ntests, not a licence to have no behaviour.\n\n### A bug this task's own test caught, and it is the one that matters\n\n**A rebuild silently used a different seed.** `compile_grid` mints its own default\n(`<scope>:grid.v2`) when given none, and the release path was remembering the\n*store's* configured seed rather than the one the zone was actually built with. A\nre-materialise cycle would therefore have produced a **different zone wearing the\nold one's name** - same node ids, different contents, no error. That is worse than\nnot rebuilding at all, and it is invisible until you diff the two.\n\nThe seed now comes from the **nodes' own provenance** before they are dropped,\nand a zone not built from one seed is reported with `ambiguous_seed` rather than\nguessed. Tested both ways: a zone built with no seed rebuilds byte-identically,\nand a zone with two seeds in it says so.\n\nProvenance was the natural selector throughout - every compiled node already\ncarries `properties.generated.scope_id` (`engine.generation.provenance`), so\n\"release this zone\" is \"delete exactly the nodes that recipe produced for it\". The\nsame mechanism the design doc's 🧹 Ungenerate calls for, used as the runtime half\nof a cycle. A hand-placed area carrying only `world_scope_id` is in the inventory\ntoo, or a zone holding only that kind would look empty and be released while\nstill holding the thing that was there.\n\n### New tests - `tests/test_zones.py` (24) and +4 in `test_attention.py`\n\nThe selection key (distant zone loses on recency as well as awareness; opt-in;\nunplaced; same-zone not demoted; demotes rather than promotes); provenance as the\nselector; the four refusals; the release keeping the record and dropping only its\nown nodes; the rebuild reproducing ids *and* provenance, plus the ambiguous-seed\nreport; approach idempotence; the injected compiler; and the **bounded node\ncount**: 2, 8 and 32 zones, one resident, measuring that 16× the zones costs\nunder 4× the nodes and that 8 and 32 cost *the same*."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "design": "`docs/design/worldpainter-knowledge-and-fog.md`"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-500-zone-driven-fidelity-and-lazy-zone-materialisation.md"
+  }
+}

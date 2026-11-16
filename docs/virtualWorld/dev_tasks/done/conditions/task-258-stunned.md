@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -40,16 +40,16 @@ Reeling from a blow or effect. Can't act or move, fails STR/DEX saves. A fresh s
 - **Combat**: `defense_mod -5` (helpless while stunned).
 - **Movement**: `speed_mult: 0.0`; keeps grip.
 - **Periodic**: none.
-- **Lifecycle**: `stack: "refresh"` — re-application extends duration (fresh stun perpetuates). `default_duration: 2` ticks; ends on `duration` only.
+- **Lifecycle**: `stack: "refresh"` - re-application extends duration (fresh stun perpetuates). `default_duration: 2` ticks; ends on `duration` only.
 
 ## Perception
 
-`known: True` — self-evident.
+`known: True` - self-evident.
 
 ## Integration points
 
-- `player.py:71-80` — catalog entry.
-- `engine/conditions.py` — combat mods, saves, speed.
+- `player.py:71-80` - catalog entry.
+- `engine/conditions.py` - combat mods, saves, speed.
 - `process_tick` countdown.
 - Chance-to-stun hooks (task-165 done) that apply this.
 

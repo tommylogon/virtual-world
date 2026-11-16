@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-245",
+  "kind": "task",
+  "number": 245,
+  "title": "Multiplayer Humans - Online or Local",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-244"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Support more than one human-controlled player in the world, either locally (multiple\nhumans taking turns on the same machine) or online (humans in different sessions sharing\nthe same world state).",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Local multiplayer turn queue interleaves multiple human-controlled characters.",
+        "done": true
+      },
+      {
+        "text": "Turn modal prompts each human player in initiative sequence.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/agent/turn-queue.js"
+    ],
+    "custom": {
+      "local_mvp_implementation_2026_08_16": "Every non-dead player is in the turn queue regardless of control type. When the queue\nlands on a human character, `agent-engine._humanTurn()` calls `ApiClient.setActivePlayer(\nthatHuman)` before prompting, so each human is targeted in queue order and gets a clean\nturn handoff via the existing `active_player` mechanism. No online/concurrent-writer\nsupport (Flask is single-process) - that remains out of scope.",
+      "notes_open_questions": "- Local: allow multiple players marked human/active and a clean turn handoff (who acts\n  each turn), reusing the existing `active_player` mechanism.\n- Online: feasibility of concurrent writers to the same `app.world.graph` (Flask is\n  single-process/single-threaded here) - locking, session identity, and tick scheduling\n  for multiple humans must be designed before building.\n- Recommend scoping MVP to local multi-human first; online is a large architectural lift."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "`dev_tasks/developer ideas.md` (multiplayer humans online or local)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-245-multiplayer-humans.md"
+  }
+}

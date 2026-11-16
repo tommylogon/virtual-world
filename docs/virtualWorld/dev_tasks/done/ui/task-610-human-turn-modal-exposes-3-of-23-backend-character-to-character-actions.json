@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "id": "task-610",
+  "kind": "task",
+  "number": 610,
+  "title": "Human turn modal exposes 3 of ~23 backend character-to-character actions",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-602"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The HTC person menu offers only Talk to / Examine / Attack. The backend supports ~23: attack, approach, grab, release, escape, lead, give, steal, name, teach, shout, whisper, scream, sing, wake, relieve, plus 8 intimate verbs in engine/pleasure_actions.py (kiss, lick, suck, bite, caress, pinch, blow, tickle) each with an authored default body region, plus the grapple subsystem with per-hand targeting. 8 of those verbs are body-part-targeted, so they depend on the same region mechanism task-602 fixes.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. In the Human Turn Composer, click a person chip with mature content disabled.\n   - expected: person-directed actions are available; menu items requiring unknown target data are not offered.\n   - observed: live on localhost:4463 (2026-10-02): 10 menu entries with mature content off; Give and Teach submenus showed Dagger/Bread and Swordsmanship; the menu drafted Whisper to Tester with the recipient carried.\n2. Enable mature content and open Intimacy…; then disable it again.\n   - expected: all eight intimacy actions appear only while mature content is enabled.\n   - observed: live: hidden when off and shown when on; submenu contained Kiss, Caress, Lick, Suck, Bite, Pinch, Blow, Tickle.\n3. Use the area chip for room speech and the person menu for a directed whisper.\n   - expected: Say/Shout/Scream are area-directed; Whisper to Tester sets both whisper volume and target.\n   - observed: live composer preview carried `volume: whisper` and `target: Tester`; say preview cleared the target.",
+    "acceptance": [
+      {
+        "text": "The person chip menu exposes the person-directed verbs, not just three:",
+        "done": true
+      },
+      {
+        "text": "Talk to / Whisper to / Examine / Attack / Grab (grapple) / Lead / Wake /",
+        "done": false
+      },
+      {
+        "text": "Release, **Escape** when the character is grappled, **Give…** (submenu of",
+        "done": false
+      },
+      {
+        "text": "what you are carrying → `give <item> to <name>`), **Teach…** (submenu of",
+        "done": false
+      },
+      {
+        "text": "known abilities → `teach skill:<name> to <name>`), and **Intimacy…** (all 8",
+        "done": false
+      },
+      {
+        "text": "verbs from `pleasure_actions.py`) shown only when `world.mature_content` (or",
+        "done": false
+      },
+      {
+        "text": "the client flag) is on.",
+        "done": false
+      },
+      {
+        "text": "Room-level speech volumes are on the **area** chip (Say / Shout / Scream)",
+        "done": true
+      },
+      {
+        "text": "and person-directed **Whisper to <name>** sets the composer's whisper volume",
+        "done": false
+      },
+      {
+        "text": "*and* recipient.",
+        "done": false
+      },
+      {
+        "text": "The person menu is an affordance, like the way menu: every entry drafts",
+        "done": true
+      },
+      {
+        "text": "text the server validates; the person target still resolves through",
+        "done": false
+      },
+      {
+        "text": "`matching.py` (masked stranger labels draft fine).",
+        "done": false
+      },
+      {
+        "text": "Menus that need an argument the menu cannot know are deliberately not",
+        "done": true
+      },
+      {
+        "text": "offered: **steal** (needs an item from the target's inventory, which the",
+        "done": false
+      },
+      {
+        "text": "scene does not expose) and **name** (needs a free-text alias). Both remain",
+        "done": false
+      },
+      {
+        "text": "typeable in the composer. **approach** is movement, not person-interaction,",
+        "done": false
+      },
+      {
+        "text": "and already has a home in the way menu / typed box.",
+        "done": false
+      },
+      {
+        "text": "`action-normalizer.js` gains `wake`/`release` cases: previously the target",
+        "done": true
+      },
+      {
+        "text": "was silently dropped, so `{action:'wake',item:'X'}` normalized to bare `wake`.",
+        "done": false
+      },
+      {
+        "text": "Directed whisper survives the human composer: `normalizeReply` carries",
+        "done": true
+      },
+      {
+        "text": "`target` for `volume==='whisper'`, and agent-engine's existing `_speakLine`",
+        "done": false
+      },
+      {
+        "text": "turns it into `whisper to <target>: <text>` (task-248).",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/turn-scene-view.js` - `buildPersonMenu`, nested/talk menus,",
+      "area speech entries.",
+      "static/js/agent/human-turn-composer.js` - `_pendingSpeechTarget`, talk-volume",
+      "handler, directed-whisper target, teach parsing.",
+      "static/js/agent/action-normalizer.js` - `wake`/`release` target cases."
+    ],
+    "custom": {
+      "verification_live_browser_2026_10_02": "`VW_PORT=4463`, Playwright. Real scene fetched via `TurnSceneView.fetch`, one\nfixture person added, then real clicks on chips/menu entries.\n\n```\nPERSON_MENU_COUNT 10 (mature off, +1 while carrying, +1 while known)\nPERSON_MENU [\"Talk to Tester\",\"Whisper to Tester\",\"Examine Tester\",\"Attack Tester\",\n  \"Grab Tester (grapple)\",\"Lead Tester\",\"Wake Tester\",\"Release Tester\",\n  \"Give… (2)\",\"Teach… (2)\"]\nTALK_CAPTURED [{\"volume\":\"whisper\",\"target\":\"Tester\"}]\nGIVE_SUB   [\"‹ back\",\"Dagger\",\"Bread\"]   GIVE_DRAFT -> draft \"give Dagger to\"+\"Tester\"\nTEACH_DRAFT -> \"teach skill:Swordsmanship to\"+\"Tester\"\nINTIMACY_HIDDEN_WHEN_OFF true\nINTIMACY_SHOWN_WHEN_ON true\nINTIMACY_SUB [\"‹ back\",\"Kiss\",\"Caress\",\"Lick\",\"Suck\",\"Bite\",\"Pinch\",\"Blow\",\"Tickle\"]\n\nComposer (HumanTurnComposer.request, real panel):\nVOLUME_ON [\"whisper\"] FOCUS htc-speech\nWHISPER_PREVIEW {\"speech\":\"meet me at midnight\",\"volume\":\"whisper\",\"target\":\"Tester\"}\nSAY_PREVIEW     {\"speech\":\"meet me at midnight\",\"volume\":\"say\"}   (target cleared)\nGIVE_DO_FIELD \"give Dagger to Tester\"\nGIVE_PREVIEW  {\"action\":\"give\",\"item\":\"Dagger\",\"target\":\"Tester\"}\n```\n\nScreenshots: `review-verify/610-menu-top.png` (whole menu open),\n`review-verify/610-intimacy-sub.png` (submenu),\n`review-verify/610-composer-whisper.png` (whisper volume + directed target in\nthe payload preview).",
+      "follow_up_2026_10_02_speech_audience_reviewed_with_the_user": "Reviewing the whisper path against the current sound propagation showed the\nvolume→audience mapping was only half-specified, so it was checked and corrected:\n\n- **`engine/speech.py` - a directed whisper now has a defined audience.** It was\n  target-only (task-248). It now also reaches anyone standing in the same area\n  who is a **friend or better** with the speaker (`WHISPER_EAVESDROP_BAND`,\n  reusing the `closeness_band` ladder in `engine/relationships.py` so the two\n  cannot drift). A stranger at the same table still hears nothing, and nothing\n  crosses a wall (whisper penetration is already 0). The event records\n  `whisper_audience`. An undirected whisper stays room-wide - that existing\n  contract is unchanged.\n- **Menu wording made the distinction real.** \"Talk to X\" was misleading: it set\n  no target, so it was a room-wide line that merely sat under someone's name.\n  The person menu now offers **Whisper to X** (directed) and **Say aloud\n  (everyone hears)** (undirected) as two explicit choices.\n- **`Speak…` kept as an option.** It focuses the speech row *without* changing\n  the selected volume - \"just let me say something\" is distinct from picking a\n  volume, so `talkFocus` is live again rather than dead.\n- **`teach` added to `parseCmd`'s `VERBS`.** The Teach submenu drafts\n  `teach skill:X to Y`; without the verb listed, `parseCmd` returned it as speech\n  and the give/steal/teach split was unreachable. Found by review, not by the\n  earlier live pass, which only captured the raw draft.\n\nLive check (`VW_PORT=4463`, Playwright, real clicks):\n\n```\nPERSON_MENU [\"Whisper to Tester\",\"Say aloud (everyone hears)\",\"Examine Tester\",\n  \"Attack Tester\",\"Grab Tester (grapple)\",\"Lead Tester\",\"Wake Tester\",\"Release Tester\"]\nWHISPER_PREVIEW {\"speech\":\"the vault code is 4417\",\"volume\":\"whisper\",\"target\":\"Tester\"}\nSAY_PREVIEW     {\"speech\":\"anyone listening?\",\"volume\":\"say\"}\nAREA_MENU [\"Examine the room\",\"Look around\",\"Listen\",\"Speak…\",\"Say it to the room\",\"Shout\",\"Scream\"]\nVOL_BEFORE_SPEAK [\"shout\"] -> SPEECH_FOCUS_VOL_UNCHANGED [\"shout\"] (FOCUS_IS_SPEECH htc-speech)\n```\n\nEngine (new `TestWhisperAudience`, 6 tests):\n`python -m pytest tests/test_realism_perception.py -q -> 23 passed`\n(target hears; stranger does not; a friend does; an acquaintance does not; the\nevent names the audience).",
+      "browser_ui": "Intended UI home: Human Turn Composer → click a person chip → that person's verb menu; click an area chip for room-level Say/Shout/Scream; use the composer to inspect the drafted action before committing it.\n\nCurrent availability: The card records a live pass on localhost:4463 (2026-10-02): the person menu had 10 entries with mature content off, Give and Teach submenus resolved carried/known entries, and Intimacy exposed eight verbs only when mature content was on.\n\nLive steps when available:\n1. Open the Human Turn Composer, click a person chip, and count/read every visible menu control with mature content disabled.\n   - expected: Talk to, Whisper to, Examine, Attack, Grab, Lead, Wake, Release, Give… and Teach… are offered when their prerequisites exist; no Intimacy menu appears.\n2. Select “Whisper to Tester” and inspect the composer preview; then choose a carried dagger from Give… and a known skill from Teach…\n   - expected: the whisper preview carries both `volume: whisper` and target `Tester`; the drafts are `give Dagger to Tester` and `teach skill:Swordsmanship to Tester`.\n3. Enable mature content and reopen the person's menu.\n   - expected: Intimacy… appears with Kiss, Caress, Lick, Suck, Bite, Pinch, Blow, and Tickle; turning mature content off hides it again.\n4. Click an area chip and inspect Say, Shout, and Scream, then return to the person menu.\n   - expected: room-volume speech remains on the area; directed whisper remains tied to its person recipient.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-610-human-turn-modal-exposes-3-of-23-backend-character-to-character-actions.md"
+  }
+}

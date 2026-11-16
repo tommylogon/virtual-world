@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "id": "task-525",
+  "kind": "task",
+  "number": 525,
+  "title": "Storey delta gates traversal (climb required past N storeys)",
+  "status": "review",
+  "priority": "low",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-26",
+  "updated": "2026-09-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-496",
+      "task-498",
+      "task-747",
+      "task-529",
+      "task-557"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Exterior grid steps stay compass moves. When the **storey** delta between two\nadjacent exterior cells exceeds a threshold (suggested >3 storeys), the step is no\nlonger a plain walk: it needs a climb (a narrative feature-entry direction), and\nsteep drops/climbs may be blocked unless a feature (ledge, cave, rockface)\nprovides the move. Decide the threshold source (per-scope? per-biome? global\nconfig), whether it blocks or just costs extra time, and how the area description\nphrases it. Depends on the observer-view/narrative-direction description work\n(task-496 rewrite) and the floor layer already stored on areas\n(`properties.floor`).\n\n**Terminology (corrected with the author, 2026-09-27):** the unit is *storeys*,\nnot heights and not floor materials. `properties.floor` is the storey index - 0 is\nthe ground plane, 1 one up, -1 one down, and it is **unbounded** (three stacked\nrooms, a lake bottom at -2, an 80-storey tower, a hole to hell at -900). Ground\n*material* is `properties.surface`. The old `elevation` layer / `properties.elevation`\nis gone, and `CLIFF_FLOOR_DELTA = 2` is a *storey* delta - which is why the prose\npromotion is restricted to `world` scopes: a storey step inside a town or interior\nis a staircase, not a rockface. The gate should follow suit and only apply where a\nstorey step really is terrain (outdoors), so an interior can stack rooms freely.",
+    "why": "Differences in vertical storey elevation must enforce physical traversal gates (climb/ladder requirement) rather than allowing walking across cliffs.",
+    "how": "Evaluated floor elevation deltas between adjacent compiled areas, automatically attaching climb requirements to ways joining areas with storey deltas >= 2.",
+    "verify": "1. Compile connected cells with storey delta of 2 or more\n   - expected: Interconnecting way carries requires: climb gate\n   - observed: Verified in tests/test_world_compile.py",
+    "acceptance": [
+      {
+        "text": "**Exterior grid steps stay compass moves.** A step of `threshold` storeys or",
+        "done": true
+      },
+      {
+        "text": "fewer is `kind: \"open\"` and is walked. The threshold is",
+        "done": false
+      },
+      {
+        "text": "`DEFAULT_MAX_STOREY_STEP = 3`, so an ordinary building is free (a house with",
+        "done": false
+      },
+      {
+        "text": "a cellar is two).",
+        "done": false
+      },
+      {
+        "text": "**Past the threshold the step needs a path**: the way carries a `climb`",
+        "done": true
+      },
+      {
+        "text": "record, `climb_required: true`, `current_state: \"closed\"` and a",
+        "done": false
+      },
+      {
+        "text": "`refusal_message` naming the storeys - so `engine/movement.py` refuses it",
+        "done": false
+      },
+      {
+        "text": "with the author's own sentence rather than walking a character off a cliff.",
+        "done": false
+      },
+      {
+        "text": "**Threshold source decided: per scope**, as `record.climb.max_storey_step`,",
+        "done": true
+      },
+      {
+        "text": "defaulting to 3. A wilderness world wants three (a cliff is a cliff) and a",
+        "done": false
+      },
+      {
+        "text": "mountain range wants eight; a global setting makes one of those two wrong",
+        "done": false
+      },
+      {
+        "text": "for the other.",
+        "done": false
+      },
+      {
+        "text": "**Interiors are never gated** - the rule is `mode: \"world\"` only, so a town",
+        "done": true
+      },
+      {
+        "text": "or interior can stack rooms freely and a cellar four storeys under a hall is",
+        "done": false
+      },
+      {
+        "text": "not a trap. This is the correction the task itself records: a storey step",
+        "done": false
+      },
+      {
+        "text": "indoors is a staircase, not a rockface.",
+        "done": false
+      },
+      {
+        "text": "**\"Unless a feature provides the move\" is the road layer.** A `road` painted",
+        "done": true
+      },
+      {
+        "text": "across the step is a built path and carries you: the same pair of cells",
+        "done": false
+      },
+      {
+        "text": "compiles as a closed climb or an open one depending on the paint. No new",
+        "done": false
+      },
+      {
+        "text": "`ledge` vocabulary was invented for it.",
+        "done": false
+      },
+      {
+        "text": "**It is worded, not silent**: the generate report says how many steps were",
+        "done": true
+      },
+      {
+        "text": "gated and how to open them, and a scope with a custom threshold that gated",
+        "done": false
+      },
+      {
+        "text": "nothing still reports the number it is using.",
+        "done": false
+      },
+      {
+        "text": "A hand-placed area on a cliff obeys the same gate - its boundary ways are",
+        "done": true
+      },
+      {
+        "text": "emitted through the same `climb` path.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/world_compile.py",
+      "engine/movement.py"
+    ],
+    "custom": {
+      "notes": "- **Block, not cost extra time.** The task left this open. A steep step is\n  refused outright because the engine has no travel-cost vocabulary for a grid\n  edge to charge more, and inventing one here would have been a second, silent\n  mechanic. The refusal names the reason, so the author can paint a path.\n- Storey *sign* is recorded (`climb.rising`) so prose can say climb or drop, but\n  the magnitude is `abs()`, matching task-562's `floor_step`.\n- **Follow-up (task-747):** the refusal above is the deliberate *block* decision -\n  \"block, not cost extra time\". Where an author wants a cliff to be *climbable\n  with a consequence* (failed climb → fall/push + damage) rather than a wall,\n  task-747 replaces the refusal, for that way, with a check driven by the painted\n  layers and `data/worldpainter/hazards.json`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-525-elevation-floor-delta-gates-traversal-climb-required-past-n-floors.md"
+  }
+}

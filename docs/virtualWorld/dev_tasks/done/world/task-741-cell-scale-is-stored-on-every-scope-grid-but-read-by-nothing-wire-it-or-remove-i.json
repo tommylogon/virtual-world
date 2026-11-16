@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-741",
+  "kind": "task",
+  "number": 741,
+  "title": "cell_scale is stored on every scope grid but read by nothing: wire it or remove it",
+  "status": "done",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-10-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-495",
+      "task-496"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The WorldPainter grid dialog's scale field writes grid.cell_scale, and it is read by zero engine call sites: engine/world_compile.py:147 states travel time stays one turn per cell and cell_scale is not read by the compiler or movement. Decide the intent: either wire it into movement as turns-per-cell (a real travel-cost change) or delete it from the dialog, the grid record and the round-trip. A field that persists and does nothing is worse than no field.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`cell_scale` removed from the model, the dialog, the route payload, the",
+        "done": true
+      },
+      {
+        "text": "player-map payload and the round-trip.",
+        "done": false
+      },
+      {
+        "text": "Legacy data is dropped, not carried: `ensure_grid`/`normalise_grid` write",
+        "done": true
+      },
+      {
+        "text": "`{\"w\", \"h\"}` only, and normalise strips a stale `cell_scale` (regression",
+        "done": false
+      },
+      {
+        "text": "test `test_normalise_grid_is_tolerant`).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "decision": "**Remove it.** User direction (2026-10-09): turns-per-cell is not wanted. A grid keeps only `{w, h}`; travel stays one turn per cell.",
+      "resolution_2026_10_09": "Removed end to end:\n\n- `engine/world_grid.py` - `ensure_grid(record, w, h, mode)` (param dropped),\n  normalise writes `{\"w\",\"h\"}`, model doc updated; the now-unused `_as_float`\n  helper deleted.\n- `routes/world_grid_ops.py` - grid payload `{\"w\",\"h\"}`, both `ensure_grid`\n  call sites, docstring; `routes/player_ops.py` map scope payload.\n- `static/js/worldpainter/editor.ts` - `WpPayload.grid`, the grid dialog's\n  `scale` input + `wp-grid-scale` role, and both grid POST bodies; rebuilt to\n  `.js`. `static/js/agent/turn-minimap.ts` `MapScope` type.\n- Tests: `test_world_grid.py`, `test_world_scopes.py`,\n  `test_world_grid_routes.py`, `test_world_compile.py`, `test_player_map.py`,\n  `tools/unit/test_worldpainter.js`.\n- Data: `cell_scale` stripped from `data/scenarios/mansion.json` and\n  `data/scenarios/kraktooth_goblin_camp.json` (10 grid records) via a\n  formatting-preserving regex; both reparse.\n- Docs: `WorldPainter.md`, `World Scopes.md`.\n\n**Verified:** `pytest test_world_grid/test_world_scopes/test_world_grid_routes/\ntest_world_compile/test_player_map` → 251 passed; `npm run build:ts` and\n`npm run typecheck` clean; `node tools/unit/run.cjs` → 636 passed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-741-cell-scale-is-stored-on-every-scope-grid-but-read-by-nothing-wire-it-or-remove-it.md"
+  }
+}

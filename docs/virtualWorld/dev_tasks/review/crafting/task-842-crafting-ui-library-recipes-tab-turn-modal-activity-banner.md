@@ -6,7 +6,7 @@ priority: medium
 related: ['task-831', 'task-840', 'task-841']
 ---
 
-# task-842: Crafting UI — library recipes tab, turn modal, activity banner
+# task-842: Crafting UI - library recipes tab, turn modal, activity banner
 
 <!-- deps:start -->
 **Related:** [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-840-crafting-runtime-who-crafts-activities-backsim-abort]], [[task-841-known-recipes-live-in-the-mind-panel]]
@@ -18,14 +18,14 @@ Three surfaces, three jobs. Nothing crafts from the editor, nothing
 authors from the turn modal.
 
 **1. Library Recipes tab (browse + author).** Add `'recipes'` to
-`REGISTRY_TYPES` (`routes/library_ops.py:27`) — the generic
+`REGISTRY_TYPES` (`routes/library_ops.py:27`) - the generic
 `/api/library/<type>` CRUD then serves `data/library/recipes/*.json`
 with no new backend code. Tab polish in one module (`recipe-library.ts`,
 mirroring `item-library/`): outcome ladder (crit → success → fail →
 crit-fail with fail items named), inventory checkmarks per ingredient,
 `variant_of` grouping, ➕ New scaffolding the task-831 shape,
 `recipe_check.py` on save naming the exact bad field. Browse and author
-only — no Cook button here.
+only - no Cook button here.
 
 **2. Turn modal / command line (execute).** `Make X` is a character
 action like any verb: requirement check first (fail-closed missing list),
@@ -59,13 +59,13 @@ executes, knowledge never acts, actions stay in the turn system.
 
 1. Open Library → Recipes.
     - expected: 4 files listed; entry shows ladder + checks; no Cook.
-    - observed: 2026-10-16 — live on :4444, screenshot on file:
+    - observed: 2026-10-16 - live on :4444, screenshot on file:
       105 entries, ladder (crit/success/fail/crit-fail items),
       inventory checkmarks, zero Cook buttons. Save-reject proven
       via test client (400 naming the field).
 2. `Make boiled_water` at a lit fire, Stop mid-way, re-make to finish.
     - expected: abort consumes nothing; completion toasts the tier.
-    - observed: 2026-10-16 — live on :4444 as Cullen (breadcrumbs):
+    - observed: 2026-10-16 - live on :4444 as Cullen (breadcrumbs):
       take → Make → "You start cooking breadcrumbs (5 min)";
       banner chip reads "cooking make breadcrumbs · 5m left ✕"
       (screenshot); Stop → "You stop cooking.", bread intact, no
@@ -83,8 +83,8 @@ executes, knowledge never acts, actions stay in the turn system.
 
 ## Files
 
-- `routes/library_ops.py` — add `'recipes'` to REGISTRY_TYPES
-- `static/js/recipe-library.ts` — new tab module
+- `routes/library_ops.py` - add `'recipes'` to REGISTRY_TYPES
+- `static/js/recipe-library.ts` - new tab module
 - Turn modal + banner wiring
 
 ## Browser UI and intended live verification

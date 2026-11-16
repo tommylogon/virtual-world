@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "task-430",
+  "kind": "task",
+  "number": 430,
+  "title": "Retire `visited_areas` and `discovered_items`",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`grep -rn \"visited_areas\\|discovered_items\"` returns only the tolerant",
+        "done": false
+      },
+      {
+        "text": "legacy read in `engine/serialization.py`.",
+        "done": false
+      },
+      {
+        "text": "An old save carrying both sets loads without error and its known-route block",
+        "done": false
+      },
+      {
+        "text": "is non-empty for areas the character has actually been in.",
+        "done": false
+      },
+      {
+        "text": "The `adventurous` trait still pays on a first entry and not on a repeat.",
+        "done": false
+      },
+      {
+        "text": "The turn composer's prompt still lists previously-seen items (or the reason it",
+        "done": false
+      },
+      {
+        "text": "no longer needs to is recorded).",
+        "done": false
+      },
+      {
+        "text": "A background week at 1 and 15 min/tick is unchanged in survival, with",
+        "done": false
+      },
+      {
+        "text": "Entertainment still above 0 and settling.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_this_exists": "task-425 replaced both sets as the *novelty* source  -  novelty now reads the\nobservation memory (`player.observation_tick`). But the sets were left in place\nbecause they still have consumers, and both are still written so those consumers\nkeep working. Two structures describing the same thing (what a character has\nexperienced) is exactly the drift task-425 set out to remove, so this finishes\nthe job:\n\n| consumer | what it reads | should read instead |\n|---|---|---|\n| `engine/spatial_memory.py` `build_known_routes(current_area, visited_areas)` | area **names** the character has been in | live `kind == \"area\"` observations (`observation_memory` / `memory_index`) |\n| `engine/tick_manager.py:~313` `adventurous` micro-modifier | \"is the current area new?\" | `player.has_seen(area_id)`  -  but see the ordering note below |\n| `engine/items/take_drop_actions.py` | bookkeeping only (novelty no longer reads it) | drop entirely |\n| `routes/memories.py` `.../memories/spatial` | `player.visited_areas` → `build_known_routes` | same derivation as spatial memory |\n| `static/js/agent/prompt-builder/room-context.js`, `memory-context.js`, `contextual-actions.js` | `player.discovered_items` for prompt context | `memory_index` / observation memories, or a server-rendered list |\n| `engine/serialization.py` | round-trips both | drop, keeping the tolerant read |",
+      "the_one_real_snag": "`visited_areas` is **area names**, while observation subjects are **area node\nids**, and `location` on an observation is also the area name. So \"areas I have\nbeen in\" derives as either\n\n- `{m[\"location\"] for m in player.memories if m.get(\"kind\") == \"area\" and not m.get(\"superseded_by\")}`\n   -  a scan over memories, fine for the prompt path (`/api/...memories/spatial`)\n  but not in the tick loop; or\n- resolve each `kind == \"area\"` subject id to its node and take the name, via\n  `memory_index`  -  no scan, but needs the graph.\n\nPrefer the second where the graph is reachable.\n\n**Ordering note on `adventurous`:** today `visited_areas.add()` happens *before*\nthe `adventurous` check, so the bonus is for the first-ever entry only, and\n`observe_area` has already stamped the observation by then, so `has_seen` is\n`True` on that first entry  -  a naive swap inverts the behaviour. Either read the\nfreshness `observe_area` returns (it is pre-refresh and already available in\n`movement.py`) or accept the change deliberately.",
+      "non_goals": "- Any change to the novelty curve or the observation model.\n- Replacing `SpatialMemory`  -  only its input.",
+      "implementation_note_2026_10_02_not_started_classified": "Investigated before touching anything; this is a cross-stack change, so the\nsafety bar is high and it was deliberately **not** attempted in this pass.\n\nBlast radius measured: `visited_areas` / `discovered_items` appear in 13\nnon-test files and in `tests/test_item_actions.py` alone **16 times** (plus\n`test_character_record`, `test_spatial_memory`, `test_observation_memory`,\n`test_trigger_system`). The write sites are:\n\n- `engine/movement.py:788`  -  `player.visited_areas.add(area_name)`, on the line\n  immediately **before** `_grant_arrival_entertainment(player, perception)`.\n- `engine/items/take_drop_actions.py:159` and `examine_actions.py:318`  - \n  `discovered_items` bookkeeping.\n- `routes/memories.py:306`  -  reads `visited_areas` into `build_known_routes`.\n- `engine/tick_manager.py:641`  -  `adventurous` bonus reads\n  `p.current_area not in visited_areas`.\n- `engine/character_record.py:126-128`, `engine/observation.py`,\n  `player.py:226/228`, `engine/serialization.py`  -  construction/round-trip.\n\nThe trap is real and verified: `observe_area` runs at `movement.py:780` and\nstamps the arrival observation **before** the `visited_areas.add` at `:788`, so\n`player.has_seen(area_id)` is already `True` on the first entry. A naive swap in\n`tick_manager` inverts the `adventurous` bonus. The fix must use the freshness\n`observe_area` returns (pre-refresh) for the arrival bonus, not a post-stamp\nlookup.\n\nSafe order for the next pass (each step lands with its tests):\n1. Derive area names from `kind == \"area\"` observations in one helper on\n   `Player`; point `routes/memories.py` and `SpatialMemory` callers at it.\n2. Switch the arrival/`adventurous` novelty to `perception[\"freshness\"]` (already\n   returned and pre-refresh), then delete the `visited_areas.add`.\n3. Delete the `discovered_items` writes and repoint the three prompt builders\n   (`room-context.js`, `memory-context.js`, `contextual-actions.js`) at the\n   server-derived `memory_index`.\n4. Keep the tolerant read in `engine/serialization.py`; drop the fields.\n5. Verify: `adventurous` pays on first entry only (micro-scenario), known-route\n   block non-empty for a visited area after loading an old save, and the\n   background-week soak is unchanged.",
+      "browser_ui": "Intended UI home: load a pre-migration save → select the character → Human Turn scene/turn composer and Mind known-route view. These surfaces should read existing character memory/spatial knowledge rather than a second `visited_areas` or `discovered_items` store.\n\nCurrent availability: the card's acceptance calls for legacy-save compatibility, first-entry `adventurous` behavior, seen-item prompt context, and a one-week survival comparison. The retirement of those stores is not claimed as complete.\n\nLive steps when available:\n1. Load a legacy save containing both `visited_areas` and `discovered_items`, then open the character's known-route/Mind view.\n   - expected: the load succeeds and areas actually entered produce a non-empty known-route block; legacy values are read without restoring duplicate authoritative stores.\n2. Enter one area with an `adventurous` character, leave, and re-enter it; inspect the event/reward output.\n   - expected: the first entry pays the trait reward and the repeat does not.\n3. Open the Human Turn composer for a character who has seen an item and inspect the prompt's known-item context.\n   - expected: the previously seen item remains available to the prompt, or the card documents the replacement source used.\n4. Run the one-week survival comparison at 1 and 15 minutes per tick and inspect entertainment and survival state.\n   - expected: both runs preserve the recorded survival behavior and Entertainment remains above zero and settles.\n\nThis section is not a claim that planned store retirement is complete today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Action Resolution System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "follows": "task-425 (novelty recovery and recreation), task-403 (observation"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-430-retire-visited-areas-and-discovered-items.md"
+  }
+}

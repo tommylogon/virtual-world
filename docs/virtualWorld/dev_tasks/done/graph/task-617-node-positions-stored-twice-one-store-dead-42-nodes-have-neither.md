@@ -45,7 +45,7 @@ So the useful part of this finding is narrower than filed: *do items need a
 position, and if so why are 2 missing?* The "two stores" and "42 orphans" framing
 does not survive contact with the data.
 
-## My correction above was itself a wrong-world artefact — retracting it
+## My correction above was itself a wrong-world artefact - retracting it
 
 I measured this in `world_template` (239 nodes: 98 item, 99 logic_trigger) and
 concluded there was only one position store, 101 orphans, and 99 of them
@@ -100,7 +100,7 @@ recorded their positions.
 **Fix** (`static/js/graph/graph-background.js`): a shared `_allNodePositions()`
 reads `network.body.nodes` (hidden nodes included), filtered to ids still in the
 DataSet, and both capture paths use it. (The `.js` is the live source of truth
-here — it has been edited 5× since `graph-background.ts` was last regenerated and
+here - it has been edited 5× since `graph-background.ts` was last regenerated and
 contains bug-52's painted-coords skip the `.ts` lacks; `npm run build:ts` would
 regress it, so the fix went into the `.js`.)
 
@@ -108,10 +108,10 @@ regress it, so the fix went into the `.js`.)
 `getPositions()` 627 vs dataset 658, hidden 31;
 `GraphBackground.persistPositionsToWorld()` => `{saved: 195, failures: 0,
 skippedPainted: 463}`; `195 + 463 = 658`, i.e. every node. The old
-`getPositions()` path would have saved `627 - 463 = 164` — exactly the 31 hidden
+`getPositions()` path would have saved `627 - 463 = 164` - exactly the 31 hidden
 triggers missing.
 
-**Operator verification (2026-10-10) — confirmed.** The persist path covers hidden
+**Operator verification (2026-10-10) - confirmed.** The persist path covers hidden
 nodes as described. The hand-edit hazard recorded above is no longer live: the
 current `graph-background.ts` now carries `persistPositionsToWorld` with the same
 painted-coords guard (`isPainted` via `hasPaintedCoords`) as the `.js`, verified

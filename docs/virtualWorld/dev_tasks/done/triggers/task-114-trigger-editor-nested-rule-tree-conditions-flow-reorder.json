@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-114",
+  "kind": "task",
+  "number": 114,
+  "title": "Trigger Editor - Nested Rule Tree Conditions + Flow Reorder",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Rework the TriggerEditor (form-based) to:\n1. **Reorder flow**: Trigger Type → **Conditions** → Effects → Messages (was: Trigger → Effects → Conditions → Messages)\n2. **Nested rule tree for conditions**: Replace flat conditions list + single AND/OR toggle with a recursive tree builder supporting grouped boolean logic like `(A AND B) OR (C AND D)`\n3. **Fix TriggerGraph z-index bug**: Right-click context menu renders behind the canvas\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Open Inspector → Add Trigger → verify conditions section has nested builder\n2. Build `(has_item key AND skill_check) OR (state_equals door open)` - confirm tree renders right\n3. Save trigger → reload → confirm conditions load correctly\n4. Check existing triggers in world still fire correctly (backward compat)\n5. Right-click in TriggerGraph → menu visible above canvas\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "backend_changes": "### Bug Fix: condition singular never evaluated\n\n`_execute_triggers` reads `conditions` (plural) but serialization stores `condition` (singular). Most library item conditions are dead code.\n\n**Fix**: Add fallback lookup in `_execute_triggers` - if `conditions` (plural) is empty/absent, check `condition` (singular) and wrap it in a list.\n\n### Unify condition evaluation\n\nTwo separate evaluators exist:\n- `_evaluate_trigger_condition` - flat list, item context (has_item, skill_check, etc.)\n- `_evaluate_conditions` - tree format, NPC context (eq, in_area, proximity, etc.)\n\n**Fix**: Make `_execute_triggers` detect tree format (dict with `\"operator\"` key) and dispatch to `_evaluate_conditions`. Add missing item-trigger condition types to `_evaluate_conditions` (skill_check, temperature_below/above, uses_reached/above, has_trait).\n\n### New condition data format\n\n```json\n// Tree format (new)\n{\n  \"conditions\": {\n    \"operator\": \"and\",\n    \"conditions\": [\n      { \"type\": \"has_item\", \"value\": \"Brass Key\" },\n      {\n        \"operator\": \"or\",\n        \"conditions\": [\n          { \"type\": \"skill_check\", \"skill\": \"Athletics\", \"dc\": 10 },\n          { \"type\": \"state_equals\", \"target\": \"door_south\", \"value\": \"open\" }\n        ]\n      }\n    ]\n  }\n}\n```\n\nBackward compat: flat conditions array + conditions_logic still supported.\n\n### Files to touch\n\n| File | Change |\n|------|--------|\n| `engine/trigger_system.py` | Add singular fallback, tree detection, merge condition types |\n| `engine/serialization.py` | Probably no change (stores what it gets) |\n\n---",
+      "frontend_changes": "### Flow reorder\n\nCurrent: Trigger Type → Effects → Conditions → Messages\nNew: **Trigger Type → Conditions → Effects → Messages**\n\nThe natural language flow: \"WHEN [trigger] IF [conditions] THEN [effects]\"\n\n### Nested rule tree UI\n\nReplace the flat conditions section with a visual rule tree builder:\n\n```\n🧩 Conditions\n  WHEN ALL of these are true:\n  ┌─────────────────────────────────────┐\n  │ AND │ [skill_check ▼]               │\n  │     │ Skill: [Athletics] DC: [10]  ✕│\n  ├─────────────────────────────────────┤\n  │ AND │ [group ▼] [+ group -]         │\n  │     │ ┌─────────────────────────┐    │\n  │     │ OR │ [has_item ▼]         │    │\n  │     │    │ Value: [key]        ✕│    │\n  │     │ ├─────────────────────────┤    │\n  │     │ OR │ [state_equals ▼]     │    │\n  │     │    │ Target: [door]       │    │\n  │     │    │ Value: [open]       ✕│    │\n  │     │ └─────────────────────────┘    │\n  └─────────────────────────────────────┘\n  [+ Add Condition] [+ Add Group]\n```\n\n#### UI elements:\n- **AND/OR pill** at start of each row - toggleable, determines logic between this and previous sibling\n- **Condition row** - type dropdown + params (same as current)\n- **Group row** - visual bracket/indent containing child conditions, same AND/OR logic\n- **➕ Add Condition** - adds a leaf row\n- **➕ Add Group** - adds a nested sub-group\n- **Group/ungroup** - maybe a button to wrap selected? Or just manual grouping via \"Add Group\"\n- **✕ Remove** on each row (same as current)\n\n#### Visual design:\n- Groups indented with left border/bracket\n- Operator pills placed between rows (not on them)\n- Color: pink accent for conditions (same as current)\n\n### Data flow\n\nCollect data builds nested tree:\n```javascript\n{\n  conditions: {\n    operator: \"and\",\n    conditions: [\n      { type: \"skill_check\", skill: \"Athletics\", dc: 10 },\n      {\n        operator: \"or\",\n        conditions: [\n          { type: \"has_item\", value: \"key\" },\n          { type: \"has_item\", value: \"crowbar\" }\n        ]\n      }\n    ]\n  }\n}\n```\n\nInitial data loading: parse tree format and render recursively.\n\n### TriggerGraph z-index fix\n\nThe context menu in `trigger-graph.js` has a z-index lower than the canvas overlay. Find the menu element and bump its z-index above the overlay.\n\n---",
+      "implementation_order": "1. Fix TriggerGraph z-index (2 lines, separate concern)\n2. Backend: condition evaluation unification (safest first, verify existing tests pass)\n3. Frontend: TriggerEditor rework (biggest piece)\n4. Test: verify with existing triggers + new nested conditions\n\n---",
+      "files_to_touch": "| File | Change |\n|------|--------|\n| `static/js/shared/trigger-graph.js` | Fix z-index on context menu |\n| `engine/trigger_system.py` | Unify condition evaluation |\n| `static/js/shared/trigger-editor.js` | Major rework - flow reorder, nested rule tree |\n| `static/css/main.css` | Maybe add rule tree styles |\n\n---",
+      "hotfix_2026_07_29_lost_trigger_effects": "**Bug**: `_extractTriggersFromEdges` in `item-library.js` read `edgeProperties.effects` which was `undefined` for old-format triggers stored in graph edges. Fell back to `[]`, saving empty effects arrays.\n\n**Root cause**: The sync-to-library function didn't handle the legacy trigger format (`effect_type` + `effect_params`). Old triggers stored in graph edges before the TriggerEditor rework had no `effects` array.\n\n**Fix**: `_extractTriggersFromEdges` now detects old format and converts:\n```javascript\nconst effects = edgeProperties.effects?.length > 0\n    ? edgeProperties.effects\n    : (edgeProperties.effect_type\n        ? [{ type: edgeProperties.effect_type, params: edgeProperties.effect_params || {} }]\n        : []);\n```\nAlso converts flat conditions array → tree format for consistency.\n\n**Restored**: 56 library items had their trigger effects recovered from git history HEAD~1 via a Python migration script.\n\n**Prevention**: The conversion now happens each time triggers are extracted from graph edges, so old-format items synced to library will automatically upgrade to the new format.\n\n---",
+      "implementation_summary_2026_07_31": "All items implemented and verified:\n\n| Item | Status | Location |\n|------|--------|----------|\n| Flow reorder (Trigger → Conditions → Effects → Messages) | ✅ | `trigger-editor.js:98` (conditions before effects) |\n| Nested rule tree UI | ✅ | `trigger-editor.js:316-638` - `_loadConditionTree()`, `_renderConditionGroup()`, `_collectConditionGroup()` |\n| Singular condition fallback | ✅ | `trigger_system.py:1146-1153` |\n| Tree format detection | ✅ | `trigger_system.py:1173-1183` |\n| Unified condition evaluator | ✅ | `trigger_system.py:337` - `_evaluate_conditions()` handles both tree and flat |\n| TriggerGraph z-index fix | ✅ | `trigger-graph.js:522` - context menu z-index:10001 > modal z-index:9999 |"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Triggers & Effects]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-07-31"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-114-trigger-editor-nested-conditions-reorder.md"
+  }
+}

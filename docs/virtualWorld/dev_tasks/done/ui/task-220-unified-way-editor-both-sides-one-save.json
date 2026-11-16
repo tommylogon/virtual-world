@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-220",
+  "kind": "task",
+  "number": 220,
+  "title": "Unified Way Editor (Both Sides, One Save)",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-13",
+  "updated": "2026-08-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One inspector layout for a way that shows **shared passage properties** and **both area sides** with explicit command names per side. Single save writes way node + both connection edges atomically.\n\nPairs with **way templates** (user-planned separately) - template picks pre-fill this form.",
+    "why": "A way is one passage connecting two areas, but authoring splits across:\n\n- Way node (state, appearance when closed, `requires`, tags, parameters, triggers, pass_message)\n- Connection edge A→way (`direction` / command, `visible_in_direction`, cardinal)\n- Connection edge way→A (return path)\n- Same for side B\n\nDesigners tab-hop in `way-view.js` (Info / Behavior / Connections / Tags / Triggers) and mentally merge \"Living Room → swinging door → Kitchen\" with different commands each side (`go swinging door` vs `enter`, `go Ladder down` vs `go Ladder up`, `jump jump across`).",
+    "how": "### Files\n\n- `static/js/inspector/way-view.js` - refactor Connections + Info into unified layout (or `way-passage-editor.js`)\n- `routes/graph.py` - optional batch endpoint `PATCH /api/ways/<id>/passage` if multi-edge save needs atomicity\n- Reuse `InspectorWayView._updateCardinal` for opposite cardinal sync\n\n### Out of scope\n\n- Way templates content (separate user track - this editor is the target surface)\n- Pathfinding / movement engine changes\n- Graph topology validation (user reports no broken connections today)",
+    "verify": "- [x] Unified **Passage** tab: shared props + both area sides + preview + **Save way** batch (`saveWayPassage`)\n- [x] Field renames applied (appearance, on traverse, command, view when open, required movement verb)\n- [x] Tag sanity warnings + param preview reused from task-221 helpers\n- [ ] Edit Living Room↔Kitchen swinging door: both commands + both views in one screen (browser)\n- [ ] Save once → agent lens shows updated exit lines from both areas (browser)\n- [ ] Ladder: separate commands on each side visible (browser)\n- [ ] Jump way: `requires: jump` visible on shared row (browser)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "ui_mockup": "```\n┌─ Way: swinging door ─────────────────────────────────────┐\n│ SHARED                                                    │\n│ State: [closed ▼]   Requires movement: [go ▼]             │\n│ Appearance when closed/locked/blocked: [textarea]         │\n│ On traverse (pass_message): [textarea]                    │\n│ Parameters: key=val  (live resolved preview)              │\n│ Tags: [TagMultiselect]   ☐ one-way  ☐ see_through  …     │\n│ Triggers: [existing editor]                               │\n├─ FROM Living Room ───────────────────────────────────────┤\n│ Command (go ___): [swinging door]                         │\n│ View when open: [textarea - visible_in_direction]           │\n│ Cardinal: [optional ▼]                                    │\n├─ FROM Kitchen ───────────────────────────────────────────┤\n│ Command (go ___): [enter]                                   │\n│ View when open: [textarea]                                │\n│ Cardinal: [optional ▼]                                    │\n├─ PREVIEW (task-219 lens snippet) ────────────────────────┤\n│ Closed glance (Living Room): \"…\"                          │\n│ Open glance (Living Room): \"…\"                              │\n│ ⚠ Tag audit: jump way should not have clearance           │\n└───────────────────────────────────────────────────────────┘\n                    [ Save way ]\n```",
+      "field_labels_rename_in_ui": "| Current | New label |\n|---------|-----------|\n| Description (way) | **Appearance when closed/locked/blocked** |\n| pass_message | **On traverse narration** |\n| direction (edge) | **Command** (`go ___`) |\n| visible_in_direction | **View when open (from this area)** |\n| requires (way) | **Required movement verb** (go / crawl / climb / jump) |\n\nDifferent commands per side are **first-class** - not bugs (stairs up vs down, jump across, narrative verbs).",
+      "save_behavior": "One `saveWayPassage(wayId, payload)` that:\n\n1. Updates way node properties\n2. Updates area→way edges for both areas (direction, visible_in_direction, cardinal)\n3. Ensures way→area return edges keep correct `direction` (return command)\n4. Calls `worldState.fetch()` once\n5. Does **not** require author to touch area inspector exit list separately",
+      "authoring_helpers_soft_warnings_not_topology_lint": "Display inline ⚠ when:\n\n- `{param:key}` in description but key missing from way parameters\n- Tag on way looks wrong for type (e.g. `clearance` on jump pit - labs lesson)\n- `requires: jump` but command doesn't match movement table (informational)\n- Parameter resolved preview differs from raw (show both)\n\nOptional: warn if serialized `areas.exits` cache drifts from graph (until task-222 removes cache)",
+      "related": "- [[review/characters/task-8-npc_behavior_movement|task-8]] - NPC `go` uses these commands\n- [[todo/ui/task-219-agent-lens-left-panel|task-219]]\n- [[todo/ui/task-221-way-authoring-ux-and-tooltips|task-221]]",
+      "browser_ui": "Intended UI home: Graph → select a way → Inspector → Passage tab; Agent Lens\nshows the resulting exits from each connected area.\n\nCurrent availability: The card records the unified Passage tab, `saveWayPassage`\nbatch, field labels, warnings, and preview as implemented. Its browser checklist\nis still open for the Living Room/Kitchen, Ladder, and Jump-way cases; do not\nread the `done` folder as evidence those checks passed.\n\nLive steps when available:\n1. Select the swinging door between Living Room and Kitchen and open Passage.\n   Edit each side's command and open-view text, then save once.\n   - expected: both sides remain visible in one form and one save updates the\n     shared way plus both area→way edges.\n2. Select a Ladder with different up/down commands and a Jump way requiring\n   `jump`; read the shared and per-side rows.\n   - expected: each side keeps its own command, and `requires: jump` is shown\n     on the shared passage row.\n3. Select Living Room and Kitchen in turn and expand Agent Lens → Exits.\n   - expected: both previews show the saved, direction-specific exit lines;\n     no second area-inspector edit is required.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-220-unified-way-editor.md"
+  }
+}

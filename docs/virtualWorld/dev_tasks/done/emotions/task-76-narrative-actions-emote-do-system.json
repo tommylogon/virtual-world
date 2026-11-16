@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-76",
+  "kind": "task",
+  "number": 76,
+  "title": "Narrative Actions (Emote / `do` System)",
+  "status": "done",
+  "priority": "medium",
+  "area": "emotions",
+  "tags": [],
+  "created": "2026-07-20",
+  "updated": "2026-07-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "| File | Change |",
+      "|------|--------|",
+      "| `app.py` | `tokenize_command()`, `do` verb, auto-fallthrough, `POST /api/emote`, all branches updated for tokenizer |",
+      "| `virtual_world_engine.py` | `process_emote()` method |",
+      "| `static/js/api.js` | `ApiClient.emote()` |",
+      "| `static/js/agent-engine.js` | `emote` field parsing (decision + reaction), execution, prompts, `_validateAction()` update |",
+      "| `static/js/event-stream.js` | `msg-emote` → `streamType: emote`, 🎭 icon, filter map entry |",
+      "| `static/css/style.css` | `.msg-bubble.msg-bubble-emote` border-left accent |",
+      "| `mcp_server.py` | `emote(text)` MCP tool |",
+      "| `tests/test_tokenizer.py` | 10 new tests |",
+      "| `tests/test_emote.py` | 3 new tests |"
+    ],
+    "custom": {
+      "implementation_summary": "All phases implemented and tested (13/13 tests passing):\n\n### Phase 1: Quoted Parameter Parsing\n- `tokenize_command()` in `app.py` - handles `'` and `\"` quotes\n- 10 unit tests in `tests/test_tokenizer.py`\n- All command branches use tokenizer: `go`, `open`, `close`, `eat`, `drink`, `use`, `examine`, `take`, `drop`, `rest`, `toggle`, `attack`, `speak`\n\n### Phase 2: `do` Verb (Human Players)\n- `do` recognized verb in app.py\n- Auto-fallthrough: unrecognized commands become emotes (replaces \"Unknown command.\")\n- Priority: verb matching → item matching → LLM reinterpretation → EMOTE\n\n### Phase 3: Agent `emote` Field\n- `ApiClient.emote()` in `api.js`\n- Parsing in both `_parseDecisionWithSpeech()` and `_parseReaction()` in `agent-engine.js`\n- Execution after action in both reactive (decision) and combined (reaction) paths\n- System prompts updated with `emote` in JSON response format\n- `'do'` added to `_validateAction()` valid verbs\n- Emote command documented in COMMANDS table\n\n### Phase 4: Backend `process_emote()`\n- `process_emote()` method in `virtual_world_engine.py` - LLM generates description, logs turn event\n- `POST /api/emote` endpoint in `app.py`\n- 3 unit tests in `tests/test_emote.py` (returns description, logs room event, LLM failure fallback)\n\n### Phase 5: Display + MCP\n- `msg-emote` display type in `event-stream.js` with 🎭 icon\n- `.msg-bubble-emote` CSS with pink left-border accent (`#ff79c6`)\n- `emote(text)` MCP tool in `mcp_server.py`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "completed": "2026-07-20",
+      "spec": "`docs/superpowers/specs/2026-07-20-narrative-actions-design.md`"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/emotions/task-76-narrative_actions_do_emote.md"
+  }
+}

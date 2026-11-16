@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-627",
+  "kind": "task",
+  "number": 627,
+  "title": "Outline panel: hierarchical scope tree rendered as a flat option list",
+  "status": "done",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The scope tree is hierarchical but the select's option list is flat, losing the structure the tree has.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Render a synthetic five-scope tree into the graph scope picker.\n   - expected: depth-1+ scopes appear in real nested optgroups; a shallower sibling closes the deeper branch; multiple roots stay separate.\n   - observed: live browser DOM and screenshot show Root → Zones → Zone A → Sub-zones → Sub-zone A1/A2, then Zone B; the second root remains separate.\n2. Inspect all option text and test zero, undefined, and null scope lists.\n   - expected: no non-breaking-space indentation; each scope is reachable once; empty inputs do not throw.\n   - observed: eight scope-options unit tests pass, and the browser on a zero-scope world correctly offered only “Whole world”.",
+    "acceptance": [
+      {
+        "text": "The scope picker nests depth-1+ scopes in real `<optgroup>` elements",
+        "done": true
+      },
+      {
+        "text": "No option text carries leading non-breaking spaces",
+        "done": true
+      },
+      {
+        "text": "A shallower sibling closes the deeper branch",
+        "done": true
+      },
+      {
+        "text": "Multiple roots each become their own top-level option",
+        "done": true
+      },
+      {
+        "text": "Zero / undefined / null scope lists are tolerated",
+        "done": true
+      },
+      {
+        "text": "Covered by unit tests that need no scenario loaded",
+        "done": true
+      },
+      {
+        "text": "Visually confirmed in the browser against a synthetic 5-scope tree",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30": "The claim was correct and is now fixed. `graph-manager.js` was rendering the\nhierarchy as a flat list with the depth expressed as invisible padding:\n\n    opt.textContent = `${'\\u00A0'.repeat((scope.depth || 0) * 2)}${scope.name}`\n\nso a player had to count non-breaking characters to tell a zone from a sub-zone.\n\n**Fixed** by extracting the nesting into a new module,\n`static/js/shared/scope-options.js` (`window.ScopeOptions.populate`), which\nrenders real `<optgroup>` nesting using a stack of open groups: scopes arrive\nparent-before-child (task-531 keeps `parent_id` for exactly this), so popping\nback to the requested depth and appending into it is sufficient.\n\n**Verified in the browser** against a synthetic tree, because the world loaded at\nthe time has ZERO world-scopes (`/api/world/scopes` returns `scopes: []`, and\nthe picker correctly offers only \"Whole world\"). Rendering into a real DOM and\nscreenshotting gives:\n\n    Whole world\n    Root\n    Zones\n      Zone A\n      Sub-zones\n        Sub-zone A1\n        Sub-zone A2\n      Zone B\n\n**8 unit tests** in `tools/unit/test_scope_options.js` cover the regression\n(depth-1 nests; no nbsp in any option text), the shape (depth 2 inside depth 1;\na shallower sibling closes the deeper branch; multiple roots; every scope\nreachable exactly once), and degenerate inputs (zero, undefined, null, missing\ndepth).\n\nTwo notes for whoever picks up adjacent work:\n\n- The helper had to be its own module rather than a method on `GraphManager`.\n  Loading `graph-manager.js` into the unit sandbox broke **12** existing tests\n  (`test_relative_layout`, `test_graph_background`, `test_graph_event_handlers`),\n  because constructing the manager perturbs the shared sandbox. A 25-line pure\n  function is the right seam anyway.\n- A new browser-global module needs its `<script>` tag in\n  `templates/index.html`. The unit runner loads modules itself, so the 8 tests\n  passed while the page still had `window.ScopeOptions` undefined - the tests\n  could not catch the missing tag, and only loading the real page did.\n\n- TODO",
+      "browser_ui": "Intended UI home: Graph workspace → scope picker → nested scope options. The picker uses real option groups; it is not a second scope tree or a whitespace-indented list.\n\nCurrent availability: The card records a browser pass using a synthetic five-scope tree because the loaded world had zero scopes; the picker correctly offered only “Whole world” for that world.\n\nLive steps when available:\n1. Open the scope picker with a synthetic tree containing two roots, a depth-1 child, two depth-2 children, then a shallower sibling.\n   - expected: “Root” and each other root appear at the top level; `Zone A` is inside a real `optgroup`, its two sub-zones are nested under their own group, and the later `Zone B` closes the deeper branch.\n2. Inspect each option's text and parent element in the open picker.\n   - expected: no option begins with non-breaking-space indentation; each scope appears once in its correct group.\n3. Replace the scope list with empty, undefined, and null inputs.\n   - expected: the picker remains usable and offers “Whole world” without throwing.\n4. Load a world with no scopes and open the picker.\n   - expected: only “Whole world” is available; no synthetic scope is presented as world data.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-627-outline-panel-hierarchical-scope-tree-rendered-as-a-flat-option-list.md"
+  }
+}

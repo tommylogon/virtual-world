@@ -9,7 +9,7 @@ priority: medium
 # lit-html Inspector Conversion
 
 **Priority**: Medium
-**Status**: In Review — implemented 2026-08-13 (all views route through `InspectorPanel`; static checks pass; pending browser E2E)
+**Status**: In Review - implemented 2026-08-13 (all views route through `InspectorPanel`; static checks pass; pending browser E2E)
 
 ---
 
@@ -27,25 +27,25 @@ A proof-of-concept with `lit-html` (ES module + import map) was attempted for th
 Convert all inspector views to a consistent rendering approach, chosen as **Option A (all lit-html)** with a classic-script bootstrap:
 
 - Vendored `lit-html` under `static/js/vendor/lit-html/`
-- `static/js/shared/lit-bootstrap.js` — deferred ES-module bootstrap that exposes `window.Lit` (`html`, `render`, `nothing`, `unsafeHTML`, directives) at call time, so classic scripts keep working
-- `static/js/inspector/panel.js` — `InspectorPanel`, the SINGLE render entrypoint for `#inspector-panel`. No other file writes `panel.innerHTML` directly.
+- `static/js/shared/lit-bootstrap.js` - deferred ES-module bootstrap that exposes `window.Lit` (`html`, `render`, `nothing`, `unsafeHTML`, directives) at call time, so classic scripts keep working
+- `static/js/inspector/panel.js` - `InspectorPanel`, the SINGLE render entrypoint for `#inspector-panel`. No other file writes `panel.innerHTML` directly.
 - Views render lit `TemplateResult`s via `window.Lit.html` and hand them to `InspectorPanel.render()`
 - Inline `onclick`/`onchange` replaced with `@click`/`@change`/`?selected` bindings where views were fully converted
 - lit auto-escaping replaces most manual `esc()` calls in converted views
 
 ### Converted fully to lit TemplateResults
 
-- `inspector/helpers.js` — `graphGravityControl`, `renderLockToggle`, `renderAliasesSection` return TemplateResults
-- `inspector/trigger-helpers.js` — `buildTriggersHtml` / `buildContentsHtml`
-- `inspector/lore-view.js` — list + modal
-- `inspector/memory-view.js` — edit modal (section builder stays string for agent-view)
-- `inspector/behaviors-view.js` — editor modal + action cards
-- `inspector/area-view.js` — full view
-- `inspector/item-view.js` — full view (Choices.js equip-slot select still re-init'd post-render)
-- `inspector/way-view.js` — full view incl. reconnect/connections section (fixed latent bugs: lock-toggle was `[object Object]`, connection "View from" textareas were missing their opening tags)
-- `graph/edge-inspector.js` — full view; added `renderEdgeInspector` export so `graph-manager._showEdgeInspector` dispatches to the lit version (it was previously dead code falling through to the innerHTML fallback)
-- `graph-manager.js` — `_showEdgeInspector` fallback renders a lit template through `InspectorPanel` instead of `panel.innerHTML`
-- `inspector.js` — `hide()`/empty/fallback branches render through `InspectorPanel`
+- `inspector/helpers.js` - `graphGravityControl`, `renderLockToggle`, `renderAliasesSection` return TemplateResults
+- `inspector/trigger-helpers.js` - `buildTriggersHtml` / `buildContentsHtml`
+- `inspector/lore-view.js` - list + modal
+- `inspector/memory-view.js` - edit modal (section builder stays string for agent-view)
+- `inspector/behaviors-view.js` - editor modal + action cards
+- `inspector/area-view.js` - full view
+- `inspector/item-view.js` - full view (Choices.js equip-slot select still re-init'd post-render)
+- `inspector/way-view.js` - full view incl. reconnect/connections section (fixed latent bugs: lock-toggle was `[object Object]`, connection "View from" textareas were missing their opening tags)
+- `graph/edge-inspector.js` - full view; added `renderEdgeInspector` export so `graph-manager._showEdgeInspector` dispatches to the lit version (it was previously dead code falling through to the innerHTML fallback)
+- `graph-manager.js` - `_showEdgeInspector` fallback renders a lit template through `InspectorPanel` instead of `panel.innerHTML`
+- `inspector.js` - `hide()`/empty/fallback branches render through `InspectorPanel`
 
 ### agent-view.js (largest, 1461 lines)
 
@@ -53,7 +53,7 @@ Kept as a single string template (48 inline handlers) but rendered through `Insp
 
 ### paperdoll-view.js
 
-Left as string output (consumed by agent-view's string template) — a prior session's edit had stripped its `esc()` calls on the assumption of full lit rendering; those were restored because agent-view emits them through `unsafeHTML`, where manual escaping is still required.
+Left as string output (consumed by agent-view's string template) - a prior session's edit had stripped its `esc()` calls on the assumption of full lit rendering; those were restored because agent-view emits them through `unsafeHTML`, where manual escaping is still required.
 
 ## Steps to verify
 
@@ -71,9 +71,9 @@ Pending browser E2E (user):
 
 ## Files
 
-- `virtual_world/static/js/vendor/lit-html/**` — vendored lit-html
-- `virtual_world/static/js/shared/lit-bootstrap.js` — deferred `window.Lit` bootstrap
-- `virtual_world/static/js/inspector/panel.js` — single panel render owner
+- `virtual_world/static/js/vendor/lit-html/**` - vendored lit-html
+- `virtual_world/static/js/shared/lit-bootstrap.js` - deferred `window.Lit` bootstrap
+- `virtual_world/static/js/inspector/panel.js` - single panel render owner
 - `virtual_world/static/js/inspector/helpers.js`
 - `virtual_world/static/js/inspector/trigger-helpers.js`
 - `virtual_world/static/js/inspector/lore-view.js`
@@ -87,7 +87,7 @@ Pending browser E2E (user):
 - `virtual_world/static/js/inspector.js`
 - `virtual_world/static/js/graph/edge-inspector.js`
 - `virtual_world/static/js/graph-manager.js`
-- `virtual_world/templates/index.html` — script load order (panel.js after helpers, lit-bootstrap as deferred module)
+- `virtual_world/templates/index.html` - script load order (panel.js after helpers, lit-bootstrap as deferred module)
 
 ## Why
 

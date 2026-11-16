@@ -20,7 +20,7 @@ Finish task-215: give item nodes default comfort/friction/coverage/opacity (opac
       `opacity`/`coverage` defaulting to 0.8 when absent, surfaced by
       `_equipment_detail_lines()`.
       **`coverage` is done** (one resolver, default 0.8, surfaced always).
-      **`opacity` and `friction` are REFUSED** — see "The refusal" below, which
+      **`opacity` and `friction` are REFUSED** - see "The refusal" below, which
       is a decision rather than an omission.
 - [x] The `wet` condition raises clothing `opacity` and changes `friction`.
       **Refused as numeric props; delivered through `current_state`**, which is
@@ -30,7 +30,7 @@ Finish task-215: give item nodes default comfort/friction/coverage/opacity (opac
       `world.auto_generate_descriptions` is on.
 - [x] Arousal coupling stays `mature_content`-gated; **wetness itself is
       generic** and conjures no pleasure vital.
-- [x] Tests for the prop defaults and the wet coupling — 16 in
+- [x] Tests for the prop defaults and the wet coupling - 16 in
       `tests/test_clothing_environment.py`, including four that pin the refusal
       so a later reader does not reinstate the cancelled props as a bug.
 
@@ -64,21 +64,21 @@ to read both files does not resolve the conflict the wrong way.
 The rest of the task is implemented, and the *intent* behind "wet makes layers
 more see-through" is delivered through the mechanism 215 kept.
 
-## Implementation — 2026-10-02 (WT-characters-engine)
+## Implementation - 2026-10-02 (WT-characters-engine)
 
 ### Files
 
-- `engine/equipment.py` — `EquipmentSystem.coverage_of` (the default resolver);
+- `engine/equipment.py` - `EquipmentSystem.coverage_of` (the default resolver);
   `_equipment_detail_lines` uses it and always surfaces `coverage`; the
   description **fallback** now carries an item's live state.
-- `engine/effect_handlers/environment.py` — `handle_set_wet` soaks, marks
+- `engine/effect_handlers/environment.py` - `handle_set_wet` soaks, marks
   `current_state`, and regenerates; helpers `_active_player_obj`,
   `_equipped_items`, `_mark_wet_current_state`, `_regenerate_wet_descriptions`.
-- `tests/test_clothing_environment.py` — **new**, 16 tests.
+- `tests/test_clothing_environment.py` - **new**, 16 tests.
 
 ### The coverage default is `body_parts.COVERAGE_EXPOSED_THRESHOLD`
 
-0.8 is not an arbitrary midpoint — it is exactly the constant
+0.8 is not an arbitrary midpoint - it is exactly the constant
 `engine/body_parts.py` uses to decide whether a layer blocks skin contact. So an
 item that says nothing is described *and* treated as a covering garment, and the
 two cannot drift. A non-numeric or out-of-range value falls back to 0.8 rather
@@ -86,7 +86,7 @@ than propagating, because a garment whose coverage is `"sheer"` is written wrong
 
 ### Wetness is a state, not a number
 
-`WET_CURRENT_STATE = "soaked"` goes into `current_state` — the field 215 names as
+`WET_CURRENT_STATE = "soaked"` goes into `current_state` - the field 215 names as
 kept, and the one the appearance prompt already renders. Two rules, both of which
 a test forced:
 
@@ -100,7 +100,7 @@ a test forced:
 ### Two defects found while wiring it
 
 1. **`set_wet` with no node named never soaked anything.** The branch read
-   `game_state.active_player` — a **name string** — and passed it to
+   `game_state.active_player` - a **name string** - and passed it to
    `equipment.get_equipped_items`, which does not exist. Rain, wading and
    flooding therefore targeted nothing at all, silently, through a `except
    Exception` that swallowed the `AttributeError`. That is AGENTS.md's
@@ -122,12 +122,12 @@ python -m pytest tests/test_equipment_system.py tests/test_clothing_environment.
 ```
 
 **Full suite compared by failure NAME against the clean-master baseline**: 15
-failed on both, `Compare-Object` empty — including
+failed on both, `Compare-Object` empty - including
 `test_detail_lines_carry_description_not_opacity_or_friction`, which is the test
 this task refuses to break.
 
 
-### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`
 
 ```
 === 1. coverage defaults to 0.8, and the cancelled props stay absent ===
@@ -153,7 +153,7 @@ this task refuses to break.
 
 Row 1 is the refusal proved live on an item that authors both cancelled props:
 they are silently absent while `coverage` defaults into view. Row 2 is the item
-task-215 lists as still open — the description actually changes now. Row 4 is
+task-215 lists as still open - the description actually changes now. Row 4 is
 the defect that made rain do nothing at all.
 
 ## Why

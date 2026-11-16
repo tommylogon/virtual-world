@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-611",
+  "kind": "task",
+  "number": 611,
+  "title": "flee verb does not exist; wait does (retraction of half the claim)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "CORRECTED 2026-09-30 after live testing. The original claim said \"no flee or wait\";\nonly half of that is true. `wait` DOES exist and answers \"You start waiting\n(until woken)\", and `retreat` cancels it. Only `flee` is missing: it falls\nthrough to the emote catch-all and answers \"player_human_explorer flee.\" -- the\nexact gibberish task-629 just fixed everywhere else. With combat resolving at\n42.8% attacker hit rate against DEX 11 (task-603), retreat is often the correct\nplay and there is no verb and no HTC menu entry for it.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`flee` is a real verb, not an emote",
+        "done": true
+      },
+      {
+        "text": "It costs the turn and moves through the real movement layer",
+        "done": true
+      },
+      {
+        "text": "`flee <direction>` steps away from that direction",
+        "done": true
+      },
+      {
+        "text": "Honest answer when there is nowhere to go",
+        "done": true
+      },
+      {
+        "text": "Verified live",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30": "Live before, on `kraktooth_goblin_camp`:\n\n    flee     -> \"Belne flee.\"          (emote catch-all)\n    run      -> \"Belne runs.\"\n    retreat  -> \"Belne retreat.\"\n    disengage-> \"Belne disengage.\"\n\nAll four fell through to the emote catch-all - the same gibberish task-629\nremoved everywhere else. And `retreat` only *appeared* to work because the\n**waiting** state string-matched the word \"retreat\" to cancel itself; on its own\nit was an emote too.\n\n**Added** `flee` / `disengage` / `withdraw` as real verbs, routed through the\nexisting movement layer (`_collect_exits` + `move_to_area`, the same path `go`\nuses). Fleeing costs the turn and moves one step along an exit, preferring an\nexit whose handle does **not** contain the word you typed, so `flee north` steps\naway from the north. No exits means an honest \"There's nowhere to run to.\"\n\n**DESIGN ASSUMPTION, flagged rather than assumed.** There is no threat model in\nthe engine, so this is *get out of here*, not *evade this attacker*. Real\nevasion is grapple-side and lives in `engine/grapple.py`. If it should behave\ndifferently, the rule to change is the exit choice and nothing else.\n\n**Verified live:**\n\n    flee          -> \"You step off the forest trail onto the hidden approach\n                      to the goblin camp entrance.\"   Camp Entrance\n    disengage     -> Chief's Pit\n    withdraw north-> Sleeping Halls\n    flee          -> Chief's Pit\n\nOne implementation note: the first attempt used `world.gs`, which does not exist\n- the accessors are `world._get_current_area_id()` and\n`world.movement.name_matcher`. It 500'd on every call until corrected.\n\n- TODO"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-611-no-flee-or-wait-verb-anywhere-and-the-modal-has-no-retreat-option.md"
+  }
+}

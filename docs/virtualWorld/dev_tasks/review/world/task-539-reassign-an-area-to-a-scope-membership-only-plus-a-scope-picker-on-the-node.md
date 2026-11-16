@@ -135,9 +135,9 @@ the last verified browser run (2026-09-27).
 ## Files
 
 - 
-outes/world_grid_ops.py
+routes/world_grid_ops.py
 - engine/world_scopes.py
 - static/js/inspector/area-view.ts
 - static/js/api.ts
 - static/js/graph-manager.ts
-- 	ests/test_world_grid_routes.py
+- tests/test_world_grid_routes.py

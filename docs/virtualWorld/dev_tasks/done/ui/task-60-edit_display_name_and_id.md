@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: Done — verified 2026-08-03. Editable node IDs on all inspectors (InspectorHelpers.renameNode, static/js/inspector/helpers.js:150) + backend rename with edge/trigger-param migration (routes/graph.py).
+**Status**: Done - verified 2026-08-03. Editable node IDs on all inspectors (InspectorHelpers.renameNode, static/js/inspector/helpers.js:150) + backend rename with edge/trigger-param migration (routes/graph.py).
 
 ---
 
@@ -25,7 +25,7 @@ The room name is editable via an inline `<input>` that calls `api.updateNode(nod
 ### Item Inspector (`inspector.js:_showItem()` line 644)
 The item display name is editable via an `<input>` that calls `_updateItemProp(escId, 'name', this.value)`. The item node ID is not editable.
 
-### Way Inspector (`inspector.js:_showDoor()` — need to verify)
+### Way Inspector (`inspector.js:_showDoor()` - need to verify)
 Same pattern: display name editable, ID not.
 
 ## Proposed Change
@@ -63,9 +63,9 @@ Recommended: Option A, to keep concerns separated and make the migration explici
 
 ## Files
 
-- `static/js/inspector.js` — add editable ID field to room/item/door inspectors
-- `app.py` — add `updateNodeId` API endpoint or extend `updateNode`
-- `static/js/api.js` — add `updateNodeId()` method
+- `static/js/inspector.js` - add editable ID field to room/item/door inspectors
+- `app.py` - add `updateNodeId` API endpoint or extend `updateNode`
+- `static/js/api.js` - add `updateNodeId()` method
 
 ## How
 

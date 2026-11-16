@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "id": "task-458",
+  "kind": "task",
+  "number": 458,
+  "title": "NL editor bulk and filtered mutation with a plan preview",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-438",
+      "task-457"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a deterministic bulk staging op so one intent ('give all goblins darkvision') becomes one reviewable patch: update_matching_nodes (and a set_character_field convenience) filtered by kind/tag/area, an explicit affected-entity list shown before Apply, dict-field merge, per-target failure reporting, and idempotent re-run. Extends the batch vocabulary (_BATCH_PHASE in routes/graph_ops.py) and ToolRouter/TOOL_DEFINITIONS.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`update_matching_nodes` op in the batch vocabulary",
+        "done": true
+      },
+      {
+        "text": "(`routes/graph_ops.py`: `_BATCH_PHASE`, `_apply_batch_op`,",
+        "done": false
+      },
+      {
+        "text": "`_select_nodes`, `_apply_node_patch`) - one intent, one reviewable op.",
+        "done": false
+      },
+      {
+        "text": "Selector by `kind`/`type`, `tags`/`tag` (+ `require_all_tags`),",
+        "done": true
+      },
+      {
+        "text": "`area`/`area_id` (via `in` edge), `name_contains`, or explicit `ids`.",
+        "done": false
+      },
+      {
+        "text": "Explicit affected-entity list before Apply: the frontend tool resolves",
+        "done": true
+      },
+      {
+        "text": "matches immediately (`OverlayGraphView.matchNodes`), stores",
+        "done": false
+      },
+      {
+        "text": "`matched_ids`/`matched` on the op, names them in the op summary, and",
+        "done": false
+      },
+      {
+        "text": "restyles/patch-previews each matched live node.",
+        "done": false
+      },
+      {
+        "text": "Dict-field merge: `_merge_dict_props` folds dict values key-by-key so",
+        "done": true
+      },
+      {
+        "text": "patching one trait/environment key does not drop the others; the overlay",
+        "done": false
+      },
+      {
+        "text": "preview mirrors it (`_mergeProps`). The same helper now backs the PATCH",
+        "done": false
+      },
+      {
+        "text": "`update_node` route.",
+        "done": false
+      },
+      {
+        "text": "Per-target failure reporting: the op returns `matched`/`updated`/",
+        "done": true
+      },
+      {
+        "text": "`failed:[{node_id,error}]`; a no-match selector is a reported error.",
+        "done": false
+      },
+      {
+        "text": "Idempotent re-run: re-staging/re-applying the same selector+patch is a",
+        "done": true
+      },
+      {
+        "text": "no-op merge.",
+        "done": false
+      },
+      {
+        "text": "ToolRouter/TOOL_DEFINITIONS + agent-loop prompt guidance updated.",
+        "done": true
+      },
+      {
+        "text": "Tests: `tests/test_graph_batch.py` (6 new) and",
+        "done": true
+      },
+      {
+        "text": "`tools/unit/test_nl_editor.js` (bulk selector/preview).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_notes": "- Also fixed a latent undo bug the new test exposed: batch/patch property\n  writes used to mutate `node.properties` in place, which also mutated the undo\n  snapshot's shared reference, so one Undo did not revert a property edit. The\n  merge helpers now assign a fresh top-level dict.\n- `staging.js` fallback (stale server) reports bulk ops as an error instead of\n  dropping them silently."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-458-nl-editor-bulk-and-filtered-mutation-with-a-plan-preview.md"
+  }
+}

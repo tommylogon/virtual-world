@@ -22,7 +22,7 @@ engine/character_appearance.py reads a structured personality object with likes,
 ## Observed 2026-09-30: the Generate button produces exactly the unusable shape
 
 Pressing **Generate from Personality** in the inspector does not fail and does not
-report anything. It writes a persona, and the persona reads as generic — which is
+report anything. It writes a persona, and the persona reads as generic - which is
 the *symptom* of this task, not a separate one. Four defects, each traceable:
 
 1. **The response schema forbids the useful shape.**
@@ -31,8 +31,8 @@ the *symptom* of this task, not a separate one. Four defects, each traceable:
    is therefore *required* to compress an entire character into one prose blob, and
    prose is what reads as adjective soup. There is no field for a fear, a motive or
    a contradiction, so none can appear. The shape `character_appearance.py` reads
-   — `fears`, `likes`, `dislikes`, `kinks`, `turn_offs`, each a list of tag **ids**
-   — has no slot here at all.
+   - `fears`, `likes`, `dislikes`, `kinks`, `turn_offs`, each a list of tag **ids**
+   - has no slot here at all.
 
 2. **The prompt asks for nothing usable.**
    `static/js/inspector/agent-view.js:1338` is the whole instruction: *"You are a
@@ -42,13 +42,13 @@ the *symptom* of this task, not a separate one. Four defects, each traceable:
    place to put either.
 
 3. **`temperature: 0.9`** (`agent-view.js:1344`) for a first draft that is saved
-   permanently and — per the comment at :1471 — *"feeds EVERY prompt forever and is
+   permanently and - per the comment at :1471 - *"feeds EVERY prompt forever and is
    seen by other characters"*. High temperature is "surprise me" on the one output
    nobody can undo. The variety belongs in the prompt; the sampler should be cool.
 
 4. **No context, and a silent bad fallback.** The call gets one line of user
-   prompt and nothing else — no name, no role, no setting, no existing
-   description — so it reaches for the nearest stock archetype. Worse,
+   prompt and nothing else - no name, no role, no setting, no existing
+   description - so it reaches for the nearest stock archetype. Worse,
    `agent-view.js:1353` is `parsed.personality || 'A mysterious character.'`: a
    model that returns nothing usable **silently** writes a clichÃ© over the
    character, with no error and no log. That is a failure the author cannot
@@ -67,27 +67,27 @@ invents prose where its siblings write ids.
    and is what a person reads in the inspector, so removing it is a regression.
    *Recommendation: keep prose **and** add the id lists beside it.* The prose is
    the voice; the lists are the mechanic, and they are read by different code. The
-   thing that must be settled is what happens when they disagree — and the honest
+   thing that must be settled is what happens when they disagree - and the honest
    answer is that they cannot, because the ids are generated *from* the prose in the
    same call, so the lists are a mechanical reading of the paragraph and never a
    separate claim about the character.
 2. **Which id vocabulary?** `fears` feeds `engine.fear fear_tags`, which uses the
-   same id vocabulary as the tag library — so the ids must come from that
+   same id vocabulary as the tag library - so the ids must come from that
    vocabulary and be validated against it, or a rename orphans every fear in the
    world. **This is blocked on task-601**, which has not settled whether a tag id
    may contain `:` and spaces (the data does; the declared pattern allows
    neither). Validating ids against a charset that is about to change is building
    the validator twice, so 601 answers this first. `kinks`/`turn_offs` may not
    have a vocabulary at all yet; check before asking for ids.
-3. **Does this task absorb bug-514?** It does not reproduce — the button is not
+3. **Does this task absorb bug-514?** It does not reproduce - the button is not
    silent when no LLM is configured; `agent-view.js:1333` toasts *"Configure API
    key and model in Settings first."* bug-514's premise was wrong; its narrower
    case (no key) is already handled. Leave it filed unless that reading is wrong.
 
 ## Acceptance
 
-- [ ] **The strict `personality` schema carries the id lists** — `fears`,
-      `likes`, `dislikes` at minimum — alongside the existing prose fields, so the
+- [ ] **The strict `personality` schema carries the id lists** - `fears`,
+      `likes`, `dislikes` at minimum - alongside the existing prose fields, so the
       shape the engine reads has a slot in the response. `kinks`/`turn_offs` only
       if decision 2 finds them a vocabulary.
 - [ ] **The prompt names the fields it wants populated** and does not mention
@@ -98,7 +98,7 @@ invents prose where its siblings write ids.
       ids are dropped, and the drop is visible.
 - [ ] **`temperature` is lowered** to roughly 0.7, with the note that the output is
       permanent.
-- [ ] **The call receives context** — name, role, existing description — so it is
+- [ ] **The call receives context** - name, role, existing description - so it is
       not inventing a stranger.
 - [ ] **The `'A mysterious character.'` silent fallback is gone.** An unusable
       response is an error with a visible message and **no write**, because the
@@ -116,15 +116,15 @@ invents prose where its siblings write ids.
 
 - This is the reason the mechanic is untestable in play: a fear needs an id, an id
   needs a vocabulary, and every generator that would supply one currently writes
-  prose. Nothing downstream is wrong — `character_appearance.py` and `engine/fear.py`
+  prose. Nothing downstream is wrong - `character_appearance.py` and `engine/fear.py`
   are correct and covered.
 - The sibling generators (`_generateInterestTags`, `_generateFearTags`) are the
   template for all of this and should not be rewritten in passing; the only thing
   they lack is the personality side.
 - `bug-514` was filed from the same session on the premise that the button failed
-  silently. It did not — see decision 3.
+  silently. It did not - see decision 3.
 
-## Cancellation — the finding is refuted
+## Cancellation - the finding is refuted
 
 Cancelled 2026-09-30. `GET /api/state` shows **all 3 players in the loaded world
 carry a fully-authored `personality`**, and it is substantial prose rather than a

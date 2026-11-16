@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-601",
+  "kind": "task",
+  "number": 601,
+  "title": "Settle the tag id charset: data uses ':' and spaces, the declared pattern allows neither",
+  "status": "done",
+  "priority": "low",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "engine/character_appearance.py::_ID_RE declares ids as ^[a-z0-9][a-z0-9_-]*$ but the data does not follow it: every Kraktooth character carries faction:goblin, faction:human, held_by:goblin, held_by:human, and the library has 'taco bell'. Nothing validates ordinary character tags against _ID_RE, so the two conventions have simply diverged. This already cost a real bug: a tag id normalizer that reshaped ':' to '-' produced faction-goblin, an id that matches nothing, and the generator then offered the model ids that could never work while describing them as in use. Decide whether tags may contain ':' and spaces (and document it), or migrate the data to the declared pattern - and note that only 155 of the 439 distinct item tags exist in the curated registry at data/library/tags, so the registry is not a reliable proxy for what items actually carry.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A lint check reports every registry id outside `[a-z0-9_]`",
+        "done": true
+      },
+      {
+        "text": "It runs by default as part of `tools/lint_library.py`",
+        "done": true
+      },
+      {
+        "text": "It names the specific offenders rather than a count",
+        "done": true
+      },
+      {
+        "text": "It reports ids that would COLLIDE if normalised, so a blind rename is blocked",
+        "done": true
+      },
+      {
+        "text": "Covered by tests",
+        "done": true
+      },
+      {
+        "text": "Verified live against the real library",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30_check_landed_rename_deferred_to_task_646": "The gap was real and is now guarded. `routes/helpers.py::load_registry` keys\nevery entry by its **filename verbatim**, so an id is whatever the file is called\nand there is no normalisation anywhere. Verified functionally against the running\napp: of 591 tag ids, 576 are `snake_case` and 15 use spaces; both resolve by\ntheir *exact* id, but `blackwood_mansion` does **not** find\n`blackwood mansion.json`. An author writing the conventional form gets a silent\nmiss.\n\n**Why this was not caught:** `tag_case_drift` already exists and is an ERROR\ncheck, but it compares **casing** (`Foo` vs `foo`) only. Separators are invisible\nto it, so all 15 space-separated ids passed cleanly.\n\n**Added** `tag_id_charset` (warning level) to `tools/lint_library.py`, reporting\nthe offenders by name rather than a bare count. It also flags ids that would\n**collide** if normalised, which is what blocks a careless rename. `tags` and\n`ways` were added to the lint context, which previously loaded only items,\ncharacters and areas -- so the registry where the problem actually lives was\nnever in scope for any check.\n\nCurrent output against the real library:\n\n    items:      1   baker's_bread\n    characters: 36  Arix, Croak-Mother, Old Iron-Back, the butcher, ...\n    tags:       15  frozen thicket, hidden door, willow hollow, ...\n    COLLISION:  'hidden door' and 'hidden_door' both normalise to 'hidden_door'\n\n**Left to task-646 deliberately.** The rename is not a lint fix:\n\n- the spaced ids are referenced in **20+ places** across areas, characters,\n  items, rooms and ways, so those references must move in the same change;\n- `hidden door` and `hidden_door` are **separate files today** and normalising\n  merges them, so whether they are the same tag is a content decision, not a\n  mechanical one.\n\nCharacter *display* names are unaffected -- `name` is a separate field -- so the\nfix is safe once the collision is decided. The point of landing the check first\nis that the set is now visible and can no longer grow silently, which was the\nactual defect.\n\n- TODO"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/library/task-601-settle-the-tag-id-charset-data-uses-and-spaces-the-declared-pattern-allows-neither.md"
+  }
+}

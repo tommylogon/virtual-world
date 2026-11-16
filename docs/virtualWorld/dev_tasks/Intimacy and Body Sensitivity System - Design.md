@@ -304,7 +304,7 @@ vitals = {
     "symptoms": {
         5: "You flinch at every touch, oversensitive.",
         3: "Your skin feels raw and overworked.",
-        1: "You need it to stop — now."
+        1: "You need it to stop - now."
     },
     "excludes": ["satisfied", "numb"],
     "blocks_actions": False,
@@ -705,7 +705,7 @@ prompt = (
     f"BODY STATE:\n{body_state_text}\n\n"
     "Write a vivid, natural 3rd-person description of how this character looks right now. "
     "Merge their baseline physical traits with what they're wearing AND their current physical state. "
-    "Describe only visible appearance — no backstory, no personality. "
+    "Describe only visible appearance - no backstory, no personality. "
     "Be accurate about what's visible through clothing layers."
 )
 ```
@@ -831,7 +831,7 @@ player.description_cache[state_hash] = player.description
 
 ## 12. Summary
 
-**The key insight:** The condition system already handles everything we need — multi-instance state tracking, duration-based fading, periodic effects, perception via symptoms, exclusivity, and hierarchy. We just need to:
+**The key insight:** The condition system already handles everything we need - multi-instance state tracking, duration-based fading, periodic effects, perception via symptoms, exclusivity, and hierarchy. We just need to:
 
 1. **Add new condition definitions** (`aroused`, `nipple_hard`, `overstimulated`, etc.)
 2. **Add new vitals** (`Arousal`, `Stimulation`, `Pleasure`)

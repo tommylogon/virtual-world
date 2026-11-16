@@ -12,6 +12,10 @@ related: ["task-903", "bug-570"]
 **Filed:** 2026-10-31
 **Related:** task-903, bug-570
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]], [[bug-570-persona-compile-media-is-prose-not-identity-id-list-fields-must-be-tag-slugs]]
+<!-- deps:end -->
+
 ## What
 
 Formalize the `narrative.media` block in character persona as structured records (title, creator, genre, character reaction/affinity, key takeaways) that feed directly into the character's seeded memory store and lorebook knowledge rather than remaining an unread list.
@@ -36,5 +40,5 @@ Characters often list favorite books, songs, games, or myths in their backstory.
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

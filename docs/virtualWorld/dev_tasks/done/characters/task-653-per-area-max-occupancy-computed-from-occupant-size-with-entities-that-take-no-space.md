@@ -21,7 +21,7 @@ DECIDED 2026-09-30 by Tommy. Each area gets a max occupancy, and occupancy is co
 
 ## Acceptance
 
-- [x] **A per-area budget exists and is authorable** — the area's
+- [x] **A per-area budget exists and is authorable** - the area's
       `max_occupancy` property, with a generous default
       (`DEFAULT_MAX_OCCUPANCY = 100`) for areas that declare nothing.
 - [x] **Occupancy is a sum of footprints, not a headcount.** `space_of` maps a
@@ -36,12 +36,12 @@ DECIDED 2026-09-30 by Tommy. Each area gets a max occupancy, and occupancy is co
       read from its `properties`, with a `size_*` trait as the fallback for a
       world predating the `size` property. A graph-only resident is scored at
       its own size, not defaulted to `normal`.
-- [x] **The four that fit where four people do not** — four `normal` creatures
+- [x] **The four that fit where four people do not** - four `normal` creatures
       and one `huge` one fill the same budget; a dragon alone over capacity is a
       reportable state; a room at zero occupancy always admits anything;
       `fits` refuses only an arrival into a *full* room.
-- [x] **Ghosts always fit** — into any room, however full.
-- [x] **It is readable** — `world.area_occupancy(area)` and `world.would_fit`
+- [x] **Ghosts always fit** - into any room, however full.
+- [x] **It is readable** - `world.area_occupancy(area)` and `world.would_fit`
       expose the report; the area description narrates a crowded/full room, and
       says nothing at all for an empty or quiet one.
 - [x] **The dead do not occupy a room** (a corpse on the floor is not crowding),
@@ -49,23 +49,23 @@ DECIDED 2026-09-30 by Tommy. Each area gets a max occupancy, and occupancy is co
 - [x] Tests in `tests/test_occupancy.py` (40 tests), including the description
       wiring and the bare-node cases.
 
-## Implementation — 2026-10-02 (WT-characters-engine)
+## Implementation - 2026-10-02 (WT-characters-engine)
 
 ### Files
 
-- `engine/occupancy.py` — **new**. `space_of`, `takes_no_space`, `area_budget`,
+- `engine/occupancy.py` - **new**. `space_of`, `takes_no_space`, `area_budget`,
   `occupants`, `occupancy_used`, `occupancy_report`, `fits`,
   `normalize_area_id`, `describe_occupancy`, and the `TIER_SPACE` /
   `ZERO_SPACE_TAGS` / `DEFAULT_MAX_OCCUPANCY` tables.
-- `engine/area_description.py` — appends a crowd sentence to the description.
-- `virtual_world_engine.py` — `area_occupancy(name)` and `would_fit(name)`.
-- `tests/test_occupancy.py` — **new**, 40 tests.
+- `engine/area_description.py` - appends a crowd sentence to the description.
+- `virtual_world_engine.py` - `area_occupancy(name)` and `would_fit(name)`.
+- `tests/test_occupancy.py` - **new**, 40 tests.
 
 ### The decisions
 
 1. **Footprints are a named table, not a formula.** `TIER_SPACE` (tiny 1 →
-   titanic 200) is a tunable scale an author can reason about — "a person fills
-   a quarter of a default room" — rather than an emergent result of, say, `tier²`.
+   titanic 200) is a tunable scale an author can reason about - "a person fills
+   a quarter of a default room" - rather than an emergent result of, say, `tier²`.
    The tiers are non-linear because a leviathan is not six normals; it does not
    sit beside them.
 2. **`0` as a budget means unbounded, not emptied.** `0` is the obvious way to
@@ -75,7 +75,7 @@ DECIDED 2026-09-30 by Tommy. Each area gets a max occupancy, and occupancy is co
 3. **Capacity is a budget and a reportable state, not a gate on identity.** A
    titanic dragon in a small hall is a legitimate scene, so `fits` always admits
    anything into an *empty* room and only refuses an arrival into a *full* one.
-   Nothing in the engine refuses movement on it — `would_fit` is a report.
+   Nothing in the engine refuses movement on it - `would_fit` is a report.
 4. **The consumer is the description, not a movement gate.** The area
    description already narrates who is present; adding "the room is crowded"
    there makes a packed room legible without changing where anyone can walk. The
@@ -90,7 +90,7 @@ DECIDED 2026-09-30 by Tommy. Each area gets a max occupancy, and occupancy is co
 
 The first `_entity_in_area` had a copied-from-`relief.py` fallback that compared
 `area_id` against *itself*, so every character in the world counted as an
-occupant of whichever area was being measured — the counts were off by exactly
+occupant of whichever area was being measured - the counts were off by exactly
 the whole roster. Caught by the very first test run, and it is why `occupants`
 now funnels through a single `normalize_area_id` and compares one resolved id to
 one resolved id.
@@ -112,14 +112,14 @@ python tools/feature_index.py --check                                # OK
 **Full suite compared by failure NAME against the same clean-master baseline used
 for task-538**: 15 failed on both, `Compare-Object` empty.
 
-### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`
 
 The reporting surface here is the sentence the reader already sees when they
-arrive, so that is what was checked — through `GET /api/area/description`, the
+arrive, so that is what was checked - through `GET /api/area/description`, the
 call the client itself makes.
 
 1. `PATCH /api/graph/node/area_blizzard_forest_clearing {"properties":
-   {"max_occupancy": 8}}` — a room sized for a couple of people.
+   {"max_occupancy": 8}}` - a room sized for a couple of people.
 2. Added a character node `character_vhaidra_the_titanic` with
    `size: titanic` (200 units) and moved `rat` into the same area (4 units).
 3. `GET /api/area/description` now ends:
@@ -130,7 +130,7 @@ call the client itself makes.
 4. **Counter-case**, so the sentence is not just always-on: the same request
    with `max_occupancy: 10000` returns a description in which none of
    `The room is full / crowded / busy`, `packed past its limits` or
-   `cannot properly hold` appear — an empty-sounding room, which is the point.
+   `cannot properly hold` appear - an empty-sounding room, which is the point.
 
 Live world returned to its prior state afterwards (the titanic test node
 deleted, the authored budget reset to the default, `rat` moved back to the

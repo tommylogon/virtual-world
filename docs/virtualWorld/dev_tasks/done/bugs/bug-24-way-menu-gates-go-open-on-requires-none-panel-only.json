@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-24",
+  "kind": "bug",
+  "number": 24,
+  "title": "Way menu gates Go/Open on requires:\"none\" (panel-only)",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Legacy data stores the literal string `\"none\"` in a way's `requires`\nfield. The engine special-cases it (`movement.py:228`\n`if requires and requires != \"none\"`), but `scene_snapshot.py` passed it\nthrough verbatim and `turn-scene-view.js` treats any truthy `requires` as\na gate: Go disabled (\"requires none\"), Open/Close suppressed\n(`!way.requires` fails), â›° marker + hover text shown.",
+    "how": "- `engine/scene_snapshot.py`: normalize none-like requires\n  (\"none\"/\"nothing\"/\"no\", case-insensitive) to `\"\"` in the ways payload.\n- `static/js/agent/turn-scene-view.js`: new `requiresGate()` helper used\n  by buildWayMenu, the exit hover card, and the â›° marker - same\n  normalization client-side (defense in depth for stale payloads).",
+    "verify": "`tests/test_scene_snapshot.py::test_requires_none_is_not_a_gate` - a way\nwith `requires: \"none\"` ships `\"requires\": \"\"` in the scene payload.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "2026-08-24 taco_bell playtest: the men's restroom door menu showed only\nExamine + a DISABLED \"Go men's restroom â†’ … - requires none\". No Open\nentry. Typed `go men's restroom` worked fine the whole time.",
+      "verification": "- pytest full suite 1121 passed\n- Browser: reload panel â†’ restroom door menu must show enabled Go + Open;\n  no \"requires none\" reason text, no â›° marker."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-24-way-menu-requires-none-gate.md"
+  }
+}

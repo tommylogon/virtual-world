@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "task-418",
+  "kind": "task",
+  "number": 418,
+  "title": "Awareness channels - audibility replaces `radius_hops`",
+  "status": "cancelled",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-20",
+  "updated": "2026-09-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-30",
+      "sound",
+      "propagation",
+      "path",
+      "selection"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "task-411 selects the attended set using `radius_hops: 2` - graph-hop distance\nfrom anchors. In a text/graph world with no Euclidean space, hop radius is an\narbitrary spatial fiction. Its only actual job is **bounding cost**: it is a\ncheap proxy for \"co-present at one remove.\"\n\nThat proxy is now unnecessary, because the world already has a principled\ncross-area channel: **sound**. Sound is the only way characters interact through\na way. It is already implemented with per-way barriers (open 0.5 / see-through\n0.75 / closed 1 / locked·blocked 1 / hidden 2) in `engine/sound.py` - which is exactly the sober\nform of \"one hop away,\" with the advantage that a locked door demotes someone\nfor a *physical* reason instead of an arbitrary `enter: 2`.",
+    "how": "**Awareness is a set of channels, each answering one question: from this origin\narea, what else can be perceived, and how strongly?**\n\n```python\nclass AwarenessChannel:\n    def propagate(self, graph, origin_area_id) -> dict[str, float]:\n        \"\"\"area_id -> strength (0..1), including the origin.\"\"\"\n```\n\nPriority order for the attended set (highest first):\n\n1. **Anchors** - the focused character, the human, pinned items/locations.\n2. **Co-present** - same area as an anchor.\n3. **Aware** - reachable through any channel above its threshold.\n4. **Recency** - recency of last foreground activity.\n5. **Hooks** - mid-plan, mid-quest, or inside a trigger's scope.\n\nFill to `cap`, evict deterministically by `(tier, recency, id)`.\n\n### Channels\n\n| Channel | Source | Notes |\n|---------|--------|-------|\n| `sound` | `engine/sound.py` propagation | Implement now. |\n| `comms` | communication items (radio, phone) | Later; item-scoped, not area-scoped. |\n| `magic` | scrying / sending spells | Later. |\n| `sight` | spyglass / telescope, line-of-sight | Later; needs a sight model, not just barriers. |\n\n`Radius_hops` is retired. Hysteresis, if kept at all, applies to a channel\nthreshold (avoid flapping when a door opens/closes), not to a hop count.\n\n### Caching\n\nSound propagation is a graph walk. Cache the per-area aware set on **graph and\ndoor-state revision**, exactly as `engine/lighting.py`'s\n`recompute_area_lights()` caches on the graph revision. Never recompute per\ncharacter or per tick.",
+    "verify": "- Unit: fixture with A–B open, B–C locked → sound from A reaches B, not C.\n- Unit: cap enforcement, eviction determinism, serialization of anchors.\n- Perf: awareness cached; a 200-character fixture proves no per-tick full scan.",
+    "acceptance": [
+      {
+        "text": "Attended set is derived without any hop-radius parameter.",
+        "done": false
+      },
+      {
+        "text": "A character separated from all anchors by a locked/closed door sequence is",
+        "done": false
+      },
+      {
+        "text": "**not** attended (barrier test with a fixture).",
+        "done": false
+      },
+      {
+        "text": "Awareness results are cached and not recomputed per character per tick.",
+        "done": false
+      },
+      {
+        "text": "The set stays ≤ cap and is deterministic for a fixed state.",
+        "done": false
+      },
+      {
+        "text": "Removing `radius_hops` does not change which characters are *co-present*.",
+        "done": false
+      },
+      {
+        "text": "Channel interface has one implemented channel (`sound`) and a test double for",
+        "done": false
+      },
+      {
+        "text": "a second, proving the seam works without implementing comms/magic.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "interaction_with_bug_30_read_before_implementing": "bug-30 notes that `engine/sound.py` uses a FIFO BFS that returns the *first*\npath rather than the *least-damped* path, and the dev note on that bug argues\nsound should behave like a **shockwave** (any surviving amplitude), not a\nsingle cheapest route.\n\nFor attention this distinction is small: the question here is \"is any route\naudible above threshold,\" which is closer to the shockwave reading than to\nshortest-path. Do not let this task silently depend on bug-30 being fixed - pick\nthe semantics deliberately and state which one the threshold means. If a\nlocked door must be able to cut a character out of attention, that requires the\nroute *not* being reachable by a cheap alternate path, which the current FIFO\nwalk may or may not give.",
+      "non_goals": "- Implementing communication items, magic, or scrying (those are their own\n  tasks; this task only defines the channel seam).\n- Changing per-character decision rules.\n- Simulating or advancing time (task-399/409, task-414).",
+      "progress_2026_09_28": "`engine/awareness.py` (new, 34 tests in `tests/test_awareness_channels.py`) plus\n`TickManager.attended_set()` / `TickManager.awareness()`.\n\n### The seam\n\n```python\nclass AwarenessChannel:\n    def propagate(self, graph, origin_area_id, context=None) -> dict[str, float]:\n        \"\"\"area_id -> strength 0..1, including the origin.\"\"\"\n```\n\nOne implemented channel (`SoundChannel`) and one test double\n(`_TeleportChannel`) proving the seam without implementing comms or magic. The\nseam is duck-typed on purpose: `getattr(channel, \"threshold\", 0.0)` and\n`getattr(channel, \"name\", None)`, so a channel that is not an\n`AwarenessChannel` subclass but implements `propagate` is a valid channel. That\nwas not a free choice - the first version read `channel.threshold` directly and\na `try/except` silently swallowed the resulting `AttributeError`, so a\nperfectly good second channel produced nothing and the tests failed for a\nreason that had nothing to do with the test.\n\nA channel that *raises* is still isolated (one broken channel must not blind the\nothers), which is why the `except` is there at all.\n\n### bug-30 is already fixed - and the semantics are stated anyway\n\nThe task asks not to depend on bug-30. It no longer applies: `propagate_sound`\nis a **Dijkstra on cumulative barrier**, explicitly documented as taking every\npath and letting the least-damped route set the perceived loudness. That is the\nshockwave reading the task asked to choose deliberately. The threshold is\ndefined against the *returned amplitude* rather than against the walk's\nalgorithm, so the choice does not silently depend on the walk staying as it is.\n\n### A locked door is a latch, not a soundproof wall\n\nThe most useful thing the tests pinned. `engine/sound.py` gives locked and\nclosed the same barrier, because a lock adds no acoustic mass. The honest\nconsequences, both now asserted:\n\n- A **shout crosses one locked door** (0.5 + 1 = 1.5, shout 2 → 0.5 survives).\n- Exclusion comes from a **chain**: 0.5 + 1 + 1 = 2.5 stops a shout. Three doors\n  in, the room is not audible; two doors in, it is.\n\nA channel that treated a single locked door as cutting someone off would be\ninventing physics, and the barrier arithmetic would be tuned to a lie. Every\nbarrier test names its `penetration` explicitly (whisper 0 / normal 1 / shout 2 /\nscream 3; open 0.5 / see-through 0.75 / closed 1 / hidden 2) rather than relying\non a default, because the arithmetic *is* the test.\n\n`SoundChannel` defaults to a **shout** with threshold 0: a character you are\naware of is one you could plausibly hear, and a whisper is the wrong bar for\n\"who is around\". The cap, not the channel, is what bounds the result.\n\n### Caching: two revisions, because a door is not topology\n\n`graph.get_revision()` covers node and edge changes, but\n`way.properties[\"current_state\"] = \"locked\"` mutates in place and never bumps\nit. Caching on the graph revision alone would keep a door's pre-lock awareness\nafter the door was locked - precisely the case the channel exists for. So the key\nis `(graph_revision, door_fingerprint)`, the fingerprint being the\n`(id, current_state, sound_barrier, see_through)` tuples of every way. Comparing\nit short-circuits on the first door that actually moved, so the common case -\nnothing changed - is one walk of the way list, not a Dijkstra per origin.\n\n### Recency is a sort key, not a tier\n\nThe task lists recency as priority level 4, below \"aware\". Built that way it is\ndead: anyone in the aware set is already tier *aware*, and a recency tier could\nonly restate co-presence at a lower rank. So recency is the **within-tier** key,\nwhich is also exactly what the eviction order `(tier, recency, id)` says. Tiers\nare anchor → co-present → audible → hook, and recency breaks ties inside one.\nA hook is the one reason to attend someone you cannot perceive - a mid-plan, a\nmid-quest, a trigger whose scope they are inside of.\n\n### The scan follows awareness\n\n`characters_by_area` is called once per **audible** area and never for an area\nnothing perceives, so the cost is bounded by how much of the world is audible\nfrom the anchors, not by the population. That is the whole point of retiring the\nhop radius.\n\nMeasured through the real entry point with 200 characters in one room: the\nattended set is 8 long and the roster dict is iterated **0** times. At 8\ncharacters it is iterated 0 times too - the assertion is that the count does not\n*grow*, which is what \"no per-tick full scan\" means.\n\nCandidates come from task-416's `characters_in` presence buckets, so this task\ndepends on 416 exactly as its frontmatter says, and the two compose without a\nnew index.\n\n### Not done\n\n- task-411 keeps the **feed** into the tick loop (promote/demote, hysteresis on a\n  channel threshold rather than a hop count, and the save/load of anchors). This\n  task is authoritative for *selection* and stops there; nothing here writes\n  fidelity state, so the two cannot disagree about who is in the set.\n- No `hysteresis` parameter. A channel threshold is a plain float and flapping\n  is a selection-policy question that belongs with the feed.",
+      "retraction_2026_10_12": "Retracted to `cancelled`. This card replaced `radius_hops` with awareness\nchannels but kept the global `cap` and tier ordering, and that attended-set model\nwas rejected with its sibling\n[[task-411-attention-budget-and-fidelity-tiers]]: promotion is **scope-driven**\n([[task-710-scope-selection-drives-the-promoted-set-level-scoped-never-recursive]]),\nthe loaded scope *is* the budget.\n\nOne artifact survives. `engine/awareness.py` (the `AwarenessChannel` /\n`SoundChannel` / `AwarenessIndex` perception seam: sound -> perceptible areas,\ncached on graph + door revision) and its 34 tests in\n`tests/test_awareness_channels.py` are kept **unwired** by\n[[task-713-engine-attention-py-is-a-dead-second-implementation-of-the-attended-set-selector]]'s\nresolution, and are not to be wired as-is. Its future use is a perception channel\n(comms, sight, magic), e.g. [[task-299-long-distance-communication]]'s phone\ncalls, and possibly an input to MOSIAC's Attention salience layer, which belongs\nto those tasks rather than to this one. Nothing else from this card is kept."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "amends": "task-411 (attention budget), specifically the `radius_hops` /",
+      "depends on": "task-416 (area index), task-407 (indexes), `engine/sound.py`."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/world/task-418-awareness-channels-audibility-over-radius.md"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "bug-7",
+  "kind": "bug",
+  "number": 7,
+  "title": "\"Generate from Equipment\" bio button → 500 Internal Server Error",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Clicking \"Generate from Equipment\" in the character inspector's bio tab causes a POST to `/api/players/Kaelen%20Voss/generate-description` that returns a 500 error.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "virtual_world_engine.py:422` - calls wrong method name",
+      "engine/equipment.py:341` - method defined with different name",
+      "routes/players.py:345-356` - route that returns 500 on exception"
+    ],
+    "custom": {
+      "root_cause": "Method name mismatch between `virtual_world_engine.py` and `engine/equipment.py`.\n\n`virtual_world_engine.py:422` calls `self.equipment.update_equipment_description(p)` (no underscore), but `engine/equipment.py:341` defines the method as `_update_equipment_description(self, player)` (with underscore prefix). `EquipmentSystem` has no attribute named `update_equipment_description`, so an `AttributeError` is raised.\n\nThe route handler in `routes/players.py:355` catches this and returns a 500.",
+      "fix": "Either:\n- Add a public alias `update_equipment_description` in EquipmentSystem that delegates to `_update_equipment_description`, or\n- Change `virtual_world_engine.py:422` to call `self.equipment._update_equipment_description(p)` directly"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-7-generate-from-equipment-500.md"
+  }
+}

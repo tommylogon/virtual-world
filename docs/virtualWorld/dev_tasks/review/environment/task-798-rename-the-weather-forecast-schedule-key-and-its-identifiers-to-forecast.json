@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "task-798",
+  "kind": "task",
+  "number": 798,
+  "title": "Rename the weather forecast_schedule key and its identifiers to forecast",
+  "status": "review",
+  "priority": "low",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-227",
+      "task-762"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Finish the 'forecast schedule' -> 'Forecast' rename (Character Pursuits.md, Decisions 2026-10-12) at the IDENTIFIER level. The user-facing label pass is already done (docs, UI strings, tooltips, comments). Remaining scope: the world-state key `forecast_schedule` -> `forecast`; the POST body field `schedule` on `/api/settings/forecast` -> `forecast`; the Python class `ForecastSchedule` -> `Forecast`; and the sky-scape editor function names / element ids. Accept the legacy spellings on load so existing saves, scenarios and fixtures do not lose their weather.",
+    "why": "\"Schedule\" now belongs to MOSIAC (the decision layer's Schedule letter). Left in code, `forecast_schedule` / `ForecastSchedule` / the `schedule` body field keep two meanings of the same word alive for every future reader and agent, which is exactly what the rename exists to remove. This is the deferred half of the decision; the surface already reads \"Forecast\".",
+    "how": "Rename the world-state attribute/key `forecast_schedule` -> `forecast`:\n\n- `virtual_world_engine.py` (8 sites: `self.forecast_schedule`, including the `_apply_forecast_env` / `_forecast_tick` readers and the `current_state` writer at ~1625).\n- `engine/serialization.py:391,804,805` (write `forecast`; on read accept `forecast` OR the legacy `forecast_schedule`).\n- `engine/soak_runner.py:640`, `routes/settings.py:159,200`, `routes/action_handlers.py:207`, `tools/weather_preview.py:140`.\n- Data: `data/scenarios/*.json` (7 files), `world_template.json` (repo root), `tests/fixtures/world.json`.\n\nRename the POST body field `schedule` -> `forecast` on `POST /api/settings/forecast` (`sky-scape.ts:1223,1236` and the `routes/settings.py` handler); accept the legacy `schedule` key for one release so an older client keeps working.\n\nRename the class `ForecastSchedule` -> `Forecast` (`engine/weather_forecast.py:658`) plus its users: the `sky-scape.ts` interface, `tests/test_forecast_modes.py`, `tests/test_wind_direction.py`.\n\nRename the sky-scape editor identifiers: `_renderScheduleEditor`, `_collectSchedule`, `_saveSchedule`, the `forecast_schedule?` interface field, and the `sky-sched-*` element ids.\n\nUpdate the `world_state.forecast_schedule` references in `Weather System.md`, `Weather Guide.md` and `Time & Weather.md`.\n\nBack-compat is the whole risk: `engine/serialization.py` must read the legacy key (a save written before the rename still carries it) and the route must accept the legacy body field. Prove it by loading one pre-rename scenario/save per branch.\n\nLeave historical task cards and slugs (task-227, task-234, task-228, task-762) as the record; do not rewrite the past.",
+    "verify": "1. Legacy-key load keeps weather.\n   - expected: a scenario/fixture carrying `forecast_schedule` (and a POST using the legacy `schedule` body) loads with its weather intact, and `GET /api/state` then exposes it under `forecast`.\n   - observed: TODO\n2. Round-trip through the route.\n   - expected: `POST /api/settings/forecast {\"forecast\": {...}}` saves and `GET` returns it; the legacy `{\"schedule\": {...}}` body is still accepted.\n   - observed: TODO\n3. Live World Sky.\n   - expected: the Forecast tab renders the saved forecast, the timeline and transport work, and switching to Regions does not move the clock.\n   - observed: TODO\n4. Grep is clean.\n   - expected: `rg \"forecast_schedule|ForecastSchedule\"` returns only the back-compat read sites and the historical task cards.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`GET /api/state` and every scenario store the forecast under `forecast`; nothing writes `forecast_schedule`.",
+        "done": false
+      },
+      {
+        "text": "A pre-rename save/scenario restores its weather (back-compat read proven).",
+        "done": false
+      },
+      {
+        "text": "`POST /api/settings/forecast` accepts `forecast` and still accepts `schedule`.",
+        "done": false
+      },
+      {
+        "text": "The class is `Forecast`; the sky-scape editor functions and `sky-sched-*` ids no longer say \"schedule\".",
+        "done": false
+      },
+      {
+        "text": "`tests/test_forecast_*`, `test_weather_generator.py`, `test_wind_direction.py` pass; `python tools/ts_convert.py check` is green.",
+        "done": false
+      },
+      {
+        "text": "Docs reference `world_state.forecast`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/weather_forecast.py` (class `ForecastSchedule` at 658)",
+      "engine/serialization.py` (391, 804, 805)",
+      "engine/soak_runner.py` (640)",
+      "virtual_world_engine.py` (8 sites)",
+      "routes/settings.py` (159, 200), `routes/action_handlers.py` (207)",
+      "static/js/sky-scape.ts`, `static/js/inspector/area-view.ts` (274)",
+      "tools/weather_preview.py` (140), `tools/weather_library_check.py` (36, comment)",
+      "data/scenarios/*.json` (7), `world_template.json`, `tests/fixtures/world.json`",
+      "tests/test_forecast_settings_route.py` (36), `tests/test_forecast_outlook.py` (31, 78, 79, 90, 119), `tests/test_weather_generator.py` (135), `tests/test_forecast_modes.py`, `tests/test_wind_direction.py`",
+      "docs/virtualWorld/Environment/Weather System.md`, `Weather Guide.md`, `Time & Weather.md`"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Settings → Environment/Weather → Forecast editor. The UI\ncontinues to show the user-facing label **Forecast**; the rename changes the\nunderlying state/API identifiers and must preserve old saved weather.\n\nCurrent availability: the user-facing label pass is already recorded as done.\nThe identifier rename for state, POST body, Python class, and sky-scape editor\nIDs is still the scope of this card; this section does not claim the rename is\ncomplete.\n\nLive steps when available:\n1. Open the Forecast editor, change one forecast entry, and save it. Read\n   `/api/state` and the browser request body for `POST /api/settings/forecast`.\n   - expected: the editor still says Forecast; state stores the value under\n     `forecast` and the request body sends `forecast`, not `schedule`.\n2. Load a fixture written with the legacy `forecast_schedule` key, then open\n   the Forecast editor and inspect the active weather.\n   - expected: the old forecast is restored and displayed; the next save writes\n     only the canonical `forecast` key.\n3. Load a fixture using the new `forecast` key and repeat the edit/save flow.\n   - expected: the forecast round-trips identically and remains visible after a\n     page reload.\n4. Inspect the editor's control IDs and invoke its add/remove/edit controls.\n   - expected: the DOM identifiers use the Forecast naming, each control still\n     edits the intended entry, and there is no second Schedule-labelled field.\n\nThese steps define live compatibility and editor behavior. The identifier\nrename remains planned until the state and request checks pass.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Weather System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/environment/task-798-rename-the-weather-forecast-schedule-key-and-its-identifiers-to-forecast.md"
+  }
+}

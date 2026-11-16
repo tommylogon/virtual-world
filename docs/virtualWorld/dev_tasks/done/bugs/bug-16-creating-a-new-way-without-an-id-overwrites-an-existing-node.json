@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "bug-16",
+  "kind": "bug",
+  "number": 16,
+  "title": "Creating a New Way Without an ID Overwrites an Existing Node",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "then create a second way likewise with no manual Way ID - the second one replaces\nthe first instead of being a new node.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "root_cause": "`routes/graph.py` `build_connect_legacy` (lines ~428-431):\n\n```python\nway_id = data.get('way_id', '') or ''\nway_id = _slugify_node_id(way_id)\nif not way_id:\n    way_id = f\"way_{_slugify_node_id(room1)}_{dir1}\"\n```\n\nWhen no way ID is supplied the route always generates the same deterministic id\nfrom `(room1, dir1)`. Creating a *second* way with the same pair (or two ways\nbetween the same areas) regenerates that identical id.\n\nThen `graph.add_node` (`graph.py:66-80`) only auto-suffixes **items, doors, and\nlogic_triggers** on id collision:\n\n```python\nif node.type in ('item', 'door', 'logic_trigger'):\n    suffix = str(uuid.uuid4())[:8]\n    node.id = f\"{node.id}_{suffix}\"\n```\n\n`way` is **not** in that list, so the collision falls through and\n`self.nodes[node.id] = node` silently overwrites the existing way node (and the\nroute then rewires the stale edges for that id). No error, no unique id.",
+      "expected": "Creating a way without specifying an ID should generate a unique way ID\n(e.g. `way_<room>_<dir>` with a numeric suffix `_2`, `_3`, ... on collision),\npreserving the existing node - consistent with the `way_<room>_<dir>_<suffix>`\nhandling used by other node types, and with the lowercase/node-id conventions\n(`build_item` already reuses/finds case-insensitive matches to avoid dupes).",
+      "fix_options": "1. In `build_connect_legacy`, when `way_id` is empty, loop for a free id:\n   `base = f\"way_{slug(room1)}_{slug(dir1)}\"`, then `base`, `base_2`, `base_3`,...\n   until `graph.get_node(candidate)` is None.\n2. Also `slugify(dir1)` in that fallback so the generated id has no spaces\n   (currently the raw dir string is embedded).\n3. Optionally return/log the actual id so the UI shows what was created."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "In Review - implemented 2026-08-16, in `routes/graph.py` `build_connect_legacy`: no manual ID now generates a unique id (`base`, `base_2`, ...) via a `get_node` collision loop + `_slugify_node_id(dir1)`. Regression test added in `tests/test_way_connect_repair.py` (`test_build_connect_no_way_id_generates_unique_id`), all 941 pytest pass.",
+    "area_note": "Graph editor - way creation",
+    "legacy_area": "Graph editor - way creation",
+    "inline_meta": {
+      "observed": "`create new way without setting a id will overwrite a existing node, not create a new way with a unique ID`",
+      "repro": "Create one way with no manual Way ID (the auto-generated id is stored),"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-16-new-way-no-id-overwrites-node.md"
+  }
+}

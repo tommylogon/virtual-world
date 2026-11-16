@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-918",
+  "kind": "task",
+  "number": 918,
+  "title": "Legacy character prose description migration to structured persona",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903",
+      "task-843"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Build an offline / CLI tool (`tools/migrate_prose_to_persona.py`) and an inspector action that parses unstructured character description paragraphs into the 4-part persona block (`identity`, `appearance`, `personality`, `narrative`), keeping existing prose intact as `base_description`.",
+    "why": "Older scenarios (and imported third-party character cards) have multi-paragraph descriptions mixing eye color, height, speech quirks, and backstory into a single prose wall. Converting them to structured persona blocks manually is tedious and error-prone.",
+    "how": "- Implement an extraction pipeline in `tools/migrate_prose_to_persona.py` using LLM entity extraction and heuristic regex matching for age, height, eye color, hair, and clothing.\n- Allow dry-run review before applying updates to scenario JSON files.\n- Add unit tests verifying schema conformance of generated persona blocks.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "CLI tool can parse a character prose description into a valid persona schema block.",
+        "done": true
+      },
+      {
+        "text": "Converted persona block round-trips through validation without dropping prose context.",
+        "done": true
+      },
+      {
+        "text": "Tested on sample character descriptions from Kraktooth and Millwood.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-918-legacy-character-prose-description-migration-to-structured-persona.md"
+  }
+}

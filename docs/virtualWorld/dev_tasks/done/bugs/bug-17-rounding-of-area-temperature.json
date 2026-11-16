@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-17",
+  "kind": "bug",
+  "number": 17,
+  "title": "Rounding of Area Temperature",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "and `parseInt` truncates on save.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "repro_live_area_inspector_html": "```html\n<label style=\"min-width:50px;\">Temp °C</label>\n<input type=\"number\" min=\"-50\" max=\"100\" value=\"23.22679159375\" style=\"flex:1;\"\n       onchange=\"InspectorAreaView._updateEnv('area_conservatory','temperature',parseInt(this.value))\">\n```\n\nTwo bugs in one:\n1. **Display**: `value` renders the raw stored float (`23.226791593125`), so the\n   inspector shows long decimals that drift with environment propagation.\n2. **Save**: `parseInt(this.value)` *truncates* - `23.8` saves as `23`, and\n   negative values are fine but fractional temps get silently floored every\n   edit, so you can never store a decimal temperature.",
+      "root_cause": "`static/js/inspector/area-view.js` line 194:\n\n```js\n<input type=\"number\" min=\"-50\" max=\"100\" value=\"${env.temperature ?? 21}\" style=\"flex:1;\"\n       onchange=\"InspectorAreaView._updateEnv('${escapedId}','temperature',parseInt(this.value))\">\n```\n\nNo rounding for display, `parseInt` for the value.",
+      "fix": "- Display: round to 1 decimal (`Math.round(env.temperature * 10) / 10`).\n- Save: use `parseFloat` rounded to 1 decimal instead of `parseInt`.\n- Check whether the effective temp fed to vitals/drain math elsewhere also needs\n  a consistent rounding (engine `environment_propagation.py` writes floats; the\n  display should match the value actually stored)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Done - fully fixed 2026-08-30: display rounding at every UI site (tree-view outline+copy, agent-lens, world-export, area-view improve prompt) plus storage rounding in `engine/environment_propagation.py` (round to 0.1 on writes). Live-verified in the GUI (outline shows -10.5, 0.8, -1 instead of noise); full suite green.",
+    "area_note": "Environment - area temperature / area inspector",
+    "legacy_area": "Environment - area temperature / area inspector",
+    "inline_meta": {
+      "observed": "The Temp °C field in the area inspector shows raw unrounded floats"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-17-area-temp-rounding.md"
+  }
+}

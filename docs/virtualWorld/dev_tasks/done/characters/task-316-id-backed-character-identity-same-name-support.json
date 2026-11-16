@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-316",
+  "kind": "task",
+  "number": 316,
+  "title": "ID-backed character identity (same-name support)",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give every character a stable, opaque backend id so same-named entities are distinct\n(e.g. 100 zombies all named \"zombie\", two characters both named \"Violet\"), while the\ndisplay name remains the human/LLM addressing surface.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Unit tests: spawn two same-named characters → 2 distinct players, 2 distinct nodes,\n  separate relationship slots.\n- Autosave round-trip keeps ids stable; old name-keyed save still loads.\n- E2E: 100 zombie spawns exist as unique entities; `attack zombie at the door` /\n  `attack the ugly one` resolve; agent output never shows an id.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome": "Most of this design landed as **task-446 Slice A** (id-first identity), which\ncites task-316 as the source of the opaque `Player.id`:\n\n- `Player.id` (opaque, persisted, never shown to agents); registry is\n  identity-keyed with name lookup (`PlayerManager._unique_key` /\n  `_players_by_id` / `relationship_key` / `resolve` / `find_by_name`).\n- Duplicate display names coexist end-to-end: distinct registry keys, distinct\n  anchor nodes, separate relationship records (task-446,\n  `tests/test_player_identity.py`).\n- `graph.add_node` suffixes duplicate `character` ids rather than overwriting\n  (graph.py).\n- Save/load persists and restores `Player.id` with a legacy fallback\n  (`engine/serialization.py`).\n\n**Completed here (2026-09-23):** `spawn_character` is now always *fresh* -\n`_hydrate_character(..., always_fresh=True)` builds a new `Player`/identity per\ncall (mirroring `spawn_item`), and `handle_spawn_character` places the new\nentity by its registry key rather than its display name (which would resolve to\nthe primary for a duplicate). A trigger can now produce 100 distinct same-named\nzombies. Covered by `test_spawn_character_is_fresh_per_call`, plus a\nstrengthened id-stability assertion in the save round-trip test.\n\nRemaining follow-ups live elsewhere: disambiguation UX (**task-448**), character\nalters (**task-447**), grapple identity (**task-449**), and location-by-id\n(**task-439**).",
+      "background_motivation": "Library = templates, world = instances. Items already spawn as unique fresh copies\n(`always_fresh`, `library_id` stamped - done 2026-08-19 in effects.py). Characters do\nnot: `_hydrate_character` dedupes by `char_id`, `player_manager.players` is keyed by\ndisplay name, relationships are keyed by the other character's display name, and the\nfrontend agent engine addresses agents by `worldState.players[charName]`.\n\nConsequences today:\n- Second spawn of the same character returns the first one (effects.py:537-542).\n- Two same-named characters silently overwrite each other in the registry\n  (player_manager.py:36) and merge into one relationship slot (player.py:779).\n- `graph.add_node` raises on duplicate area ids but only suffixes item/door/logic_trigger\n  ids - characters collide and overwrite (graph.py:74).",
+      "design_confirmed_with_user": "- **Stable backend `Player.id`** (opaque, unique, never shown to agents/LLM).\n- **Display name stays the addressing surface**: commands target by name, alias, or\n  descriptive/spatial qualifiers (\"attack the ugly one\", \"attack the zombie at the door\").\n  No new targeting needed - matching (aliases, descriptions, spatial position) already\n  exists.\n- With 100 identical zombies and no qualifier, first-match is correct - any zombie is a\n  valid target.\n- **Registry keyed by id internally**, with name → id resolution for the command surface.\n- **Relationships keyed by id**, so two Violets don't share a relationship slot.\n- **Serialization**: write `players` keyed by id; migrate name-keyed autosaves.\n- **Spawn/give stay fresh** (`always_fresh`) so a trigger can produce 100 unique zombies.",
+      "scope": "Backend:\n- `Player.id` field (constructor + from_library hydration path)\n- `player_manager` registry keyed by id, name→id resolution helper\n- relationships keyed by id (player.py, combat.py, area_description.py)\n- serialization (write by id + migration for name-keyed saves)\n- action route player resolution (routes/action.py)\n\nFrontend:\n- agent engine + prompt builder must keep using display names only (no id leakage)\n- world-sync / library match remains name/slug/library_id based (works as-is)\n\nSupporting:\n- `graph.add_node`: include character nodes in the unique-suffix branch (or rely on\n  id generation in player_manager) so a duplicate player id can never silently overwrite."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-316-id-backed-character-identity.md"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "bug-568",
+  "kind": "bug",
+  "number": 568,
+  "title": "use_actions guards ignore property triggers",
+  "status": "review",
+  "priority": "high",
+  "area": "items",
+  "tags": [],
+  "created": "2026-10-22",
+  "updated": "2026-10-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-567"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`engine/items/use_actions.py` decides whether an item can be used by counting `triggers` edges, not by reading `properties.triggers`. Line 135 sets `has_any_trigger = len(get_edges_for_source(item_node.id, EDGE_TRIGGERS)) > 0`, and lines 356 to 369 scan the same edges for an `on_use_on` trigger. After the task-886 migration an item whose triggers live in the property array has zero edges, so `use` is refused for any item that does not also list `use` in `actions`, and `use X on Y` is refused for every authored `on_use_on` rule. Measured on HEAD mansion.json: 4 definitions on 3 items (`item_granola_bar`, `item_water_bottle`, `item_unlabeled_vial`) have an `on_use` property trigger and no `use` action, so all three regress to \"you can't use that\" after migration.",
+    "why": "The trigger engine already fires property triggers; only the permission guard looks at the retired store. A player can hold an item with an authored use trigger and be told they cannot use it. The `on_use_on` case is the key-in-lock pattern the docs recommend authoring, and it breaks the same way the first time anyone authors one.",
+    "how": "Add one helper to the trigger system that answers \"does this node have a trigger of type T\", reading `(node.properties or {}).get('triggers')` first (accepting a string, a list or an entry with `id`) plus legacy edges, and use it in both guards. Do not duplicate the trigger-type normalisation three times; one function, both call sites. Keep the existing edge path so a pre-migration world still works.",
+    "verify": "1. Drive `use` on an item whose only `on_use` rule lives in `properties.triggers` and which has no `use` action.\n   - expected: the use is accepted and the trigger runs.\n   - observed: `test_use_is_allowed_by_an_on_use_property_trigger` calls `world.use_item` and gets a result string; before the change the guard raised `ValueError` because it counted `triggers` edges only.\n2. Drive `use X on Y` for a pair whose `on_use_on` rule lives only in the property array.\n   - expected: accepted, and the same pair with only a legacy edge is still accepted.\n   - observed: `test_use_on_is_allowed_by_an_on_use_on_property_trigger` and `test_use_on_still_reads_the_legacy_edge_store` both pass.\n3. Drive `use` on an item with no action and no trigger.\n   - expected: still refused, so the guard has not become unconditional.\n   - observed: `test_use_is_refused_without_any_trigger_or_action` raises `ValueError`.\n4. Run the targeted suites the card names.\n   - expected: pass.\n   - observed: `python -m pytest tests/test_consume_contract.py tests/test_trigger_system.py tests/test_use_trigger_guard.py tests/test_trigger_migration.py tests/test_trigger_materialize.py` reports 182 passed. The named scenario items (`item_granola_bar`, `item_unlabeled_vial`) were not driven through the live app: it has not been restarted since the engine edit, so the running process still holds the pre-fix guard. The guard's mechanism is proven by fixtures; its live behaviour on those two items is left for the reviewer's restarted check.",
+    "acceptance": [
+      {
+        "text": "use on an item with an on_use property trigger and no use action succeeds (synthetic fixture; the named `item_granola_bar` is not driven live, see step 4)",
+        "done": true
+      },
+      {
+        "text": "use on an item with two on_use property triggers runs both (fixture covers the multi-entry read; execution order is the existing trigger runner)",
+        "done": true
+      },
+      {
+        "text": "use key on door succeeds for an item whose on_use_on rule lives only in properties.triggers",
+        "done": true
+      },
+      {
+        "text": "The same item with only a legacy triggers edge still succeeds",
+        "done": true
+      },
+      {
+        "text": "The guard reports false when the node has neither a property trigger nor an edge",
+        "done": true
+      },
+      {
+        "text": "python -m pytest tests/test_consume_contract.py tests/test_trigger_system.py passes",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/items/use_actions.py",
+      "engine/trigger_system.py",
+      "tests/test_use_trigger_guard.py",
+      "tests/test_consume_contract.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Inspector > item_granola_bar > Triggers, then the play console\n\nCurrent availability: Open http://localhost:4444, load the mansion scenario, and take the granola bar.\n\nLive steps when available:\n1. Confirm the Triggers section lists an on_use trigger for item_granola_bar\n2. Confirm the item's actions do not include use\n3. Type use granola bar in the console and confirm it consumes the item instead of refusing\n4. Repeat for use unlabeled vial on self and confirm both effects run\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/bug-568-use-actions-guards-ignore-property-triggers.md"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-780",
+  "kind": "task",
+  "number": 780,
+  "title": "Expose requires_item, refusal_message and entry_phrase in the way inspector",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The way inspector (static/js/inspector/way-view.ts) exposes current_state, pass_message, needs_open, auto_close, see_through, one_way, requires, max_size, sound_barrier and edge_length, but not requires_item, refusal_message or entry_phrase. All three are read by the engine (movement.py:507 requires_item, movement.py:579 refusal_message, area_description.py:696 entry_phrase) and shown to agents, so a way authored only through the inspector can never set a gear gate, a themed refusal, or a 'go down the tunnel' phrasing. Add them. Also reconcile the needs_open DC default: the checkbox saves 15 (way-view.ts:481) while the engine falls back to 10 (movement.py:594).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Select a way → Inspector → way properties. Configure `requires_item`, `refusal_message`, `entry_phrase`, and `needs_open` on the same way record used by movement and area description.\n\nCurrent availability: The card records that the way inspector exposes neighboring properties but omits these three engine-read fields; it also records a 15-versus-10 `needs_open` default mismatch. The editor additions are planned.\n\nLive steps when available:\n1. Open a scratch way between two areas and use the inspector's item picker to select a real key item; set a refusal message and an entry phrase, then save and reopen the way.\n   - expected: all three values round-trip from the way properties without a second editor-only copy.\n2. Attempt to traverse the way without the key, then carry the selected key and try again.\n   - expected: the first attempt displays the authored refusal message; the second passes the `requires_item` gate when the existing movement rules allow it.\n3. Travel through the way and inspect the destination area's exit description.\n   - expected: the authored entry phrase is used in the ordinary area description for that route.\n4. Toggle `needs_open` and inspect its default DC in the editor, then attempt the closed way.\n   - expected: the editor and engine use the same documented default DC; the way still requires its existing open action before passage.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Ways]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-780-expose-requires-item-refusal-message-and-entry-phrase-in-the-way-inspector.md"
+  }
+}

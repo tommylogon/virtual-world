@@ -8,7 +8,7 @@ priority: high
 # task-365: Save/Load modal + autosave slot
 
 **Filed**: 2026-08-30
-**Status**: Done — implemented + live-verified 2026-08-30.
+**Status**: Done - implemented + live-verified 2026-08-30.
 
 ## What was built
 

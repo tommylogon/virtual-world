@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "task-773",
+  "kind": "task",
+  "number": 773,
+  "title": "Send the character's profile image to vision-capable models",
+  "status": "review",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-512",
+      "expression",
+      "pack",
+      "task-87",
+      "paperdoll",
+      "art",
+      "task-405",
+      "raw-llm",
+      "capture"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The app now holds real character art - **782 files** under `static/images/nodes/`\n(`player_Arix-profile-amused-1791423330210.webp`, `area_foyer-*.webp`,\n`item_dusty_overcoat-*.webp`, …), referenced from the scenario as\n`properties.expressions.<emotion>.profile`. Every LLM call today carries **text\nonly**: the model is told what a character looks like in prose and never sees the\nportrait that already exists on disk.\n\nSend that portrait along, but only to models that can actually read an image.",
+    "why": "- The generators that most need eyes are the ones that judge appearance:\n  appearance/personality generation, interest + fear tags, and auto-dress all\n  reason about \"what would this person look like / wear\" from prose alone, while\n  an authoritative render sits one property away.\n- The agent turn prompts describe the character to itself. A model that can see\n  its own portrait can stay consistent with art that a human is looking at.\n- It must be strictly additive: a text-only model or a provider without image\n  support must produce byte-identical requests to today, or every existing\n  scenario's behaviour changes for no reason.",
+    "how": "1. **Capability gate, one place.** `llm-client.ts` has no notion of what a model\n   can do (`config.ts` holds only model/keys/thinking). Add a per-model image\n   capability (config-driven, default off) read next to the existing\n   `thinking`/`thinkingEffort` flags, so the decision lives beside the other\n   provider quirks rather than at each call site.\n2. **Content parts, not strings.** `LLMMessage.content` is a string everywhere\n   today. Allow an array of parts - `[{type:'text',text}, {type:'image_url',\n   image_url:{url}}]` - and only build it when the gate is on.\n3. **Inline base64, never the local URL.** The stored value is\n   `/static/images/nodes/...webp`, which a remote provider cannot fetch. Read the\n   file and send a `data:image/webp;base64,...` URL (DeepSeek accepts JPEG/PNG/\n   GIF/WebP data URLs; 32 MiB per inline image). Cache the encoded bytes per\n   path - re-encoding on every turn would be wasteful.\n4. **User/developer messages only.** DeepSeek rejects images in system or\n   assistant messages. The agent's persona is the system message\n   (`agent-engine.ts:133`), so the image belongs in the user turn content\n   (`agent-engine.ts:743`), not the system prompt.\n5. **Which calls, in order.** Start with the character-facing generators\n   (`agent-view.ts:2162` tags, `:1851` auto-dress, `ai-generator.ts:62/126`\n   appearance/personality) and the agent turn prompt. Area/item art and the\n   WorldPainter canvas are explicitly later - same machinery, more sources.\n6. **Observability.** The raw-LLM capture (task-405) already records the request\n   body; confirm the image part shows up there and that a text-only model's\n   captured body is unchanged.",
+    "verify": "1. Configure a vision-capable model (e.g. `deepseek-flash`) and generate fear\n   tags for a character that has expressions.\n   - expected: the captured request carries an `image_url` part with a base64\n     data URL alongside the text; the tags reflect the portrait.\n   - observed: TODO\n2. Switch to a text-only model and repeat.\n   - expected: the captured request body is byte-identical to today's (string\n     content, no image part).\n   - observed: TODO\n3. A character with no `expressions` on its node.\n   - expected: no image part, no error, the prompt is unchanged.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A per-model image capability exists in config and is read by the client",
+        "done": false
+      },
+      {
+        "text": "beside the other provider flags.",
+        "done": false
+      },
+      {
+        "text": "When on, the character's `expressions.<emotion>.profile` (or the neutral",
+        "done": false
+      },
+      {
+        "text": "render) is sent as a base64 `image_url` content part in a **user**",
+        "done": false
+      },
+      {
+        "text": "message; the system prompt stays text.",
+        "done": false
+      },
+      {
+        "text": "When off - or on a text-only model, or for a character with no art - the",
+        "done": false
+      },
+      {
+        "text": "request body is unchanged from today.",
+        "done": false
+      },
+      {
+        "text": "Encoded images are cached per path, not re-read per call.",
+        "done": false
+      },
+      {
+        "text": "At least one generator produces visibly image-informed output against a",
+        "done": false
+      },
+      {
+        "text": "vision model, verified live in the browser.",
+        "done": false
+      },
+      {
+        "text": "The raw-LLM capture shows the part arriving, and the unit tests pin the",
+        "done": false
+      },
+      {
+        "text": "text-only path as unchanged.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/llm-client.ts` - capability read, content-part support, base64 cache",
+      "static/js/config.ts` - the per-model image flag",
+      "static/js/agent-engine.ts` - attach the portrait to the user turn",
+      "static/js/inspector/agent-view.ts`, `static/js/shared/ai-generator.ts` - generator call sites",
+      "static/js/character-art.ts` - the existing owner of profile/full render lookup"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: select a character with `properties.expressions.<emotion>.profile` art → run a character turn through the existing game/agent surface → inspect the Raw LLM capture in the Event Stream.\n\nCurrent availability: the card records 782 profile images and text-only LLM requests. Per-model image capability, image payloads, caching, and image-informed output are planned; no image transfer is claimed as available.\n\nLive steps when available:\n1. Configure a vision-capable model and enable its image capability. Select a character with a known profile image and run one generation.\n   - expected: Raw LLM capture shows the profile as a base64 `image_url` part in a user message; the system prompt remains text.\n2. Repeat with a text-only model, with the capability disabled, and with a character with no art.\n   - expected: each request body is unchanged from the current text-only payload and contains no image part.\n3. Run two generations using the same image and inspect the request trace/cache diagnostics.\n   - expected: the image is read/encoded once per path and reused; each request still contains the correct image content part.\n4. Compare the vision-model response with the text-only response for an image-specific authored detail visible in the profile but absent from prose.\n   - expected: only the vision-capable enabled request can ground the response in that image detail.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/prompting/task-773-send-the-character-s-profile-image-to-vision-capable-models.md"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-795",
+  "kind": "task",
+  "number": 795,
+  "title": "Re-home the deep docs into the three tiers",
+  "status": "done",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-791"
+    ],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Re-home the existing deep docs - `Environment/Light System.md`, `Rules Engine/Combat System.md`, `Characters/Vitals System.md`, `Library System/Tags System.md` and the rest - into the feature / mechanic / system tiers, refactoring and incorporating where needed.",
+    "why": "These are already the notes the Feature Map links to, but they predate the tiers. Move and reshape; do not rewrite from scratch - the content is largely right, the shape is not.",
+    "how": "Applied the three-tier standard across the deep docs. Each page now carries a \\## What you can do\\ feature opener (grounded only in that page's own content) and a \\## Where it lives\\ system section listing the code paths the page itself names. Four exemplar pages (Ways, Movement, Environment, Connections) carry the tiers under their own richer headings rather than the literal template heading. Index, ledger, generated and meta pages (Feature Map, Feature Ledger, Way Properties, Welcome, Scenario Catalogue, patch notes) are deliberately excluded.",
+    "verify": "1. `python tools/doc_links.py --check`.\n   - expected: no new broken links.\n   - observed: TODO\n2. Spot-check `Light System.md`.\n   - expected: feature / mechanics / system tiers present.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "the deep docs follow the three-tier standard",
+        "done": false
+      },
+      {
+        "text": "content is moved, not rewritten, unless it was wrong",
+        "done": false
+      },
+      {
+        "text": "no dead links after the move",
+        "done": false
+      }
+    ],
+    "files": [
+      "docs/virtualWorld/Environment/",
+      "docs/virtualWorld/Rules Engine/",
+      "docs/virtualWorld/Characters/",
+      "docs/virtualWorld/Library System/"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/docs/task-795-re-home-the-deep-docs-into-the-three-tiers.md"
+  }
+}

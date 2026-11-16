@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-25",
+  "kind": "task",
+  "number": 25,
+  "title": "Unit Tests",
+  "status": "done",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-07-15 (updated 2026-07-24)",
+  "updated": "2026-07-15 (updated 2026-07-24)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The project now has comprehensive pytest unit tests covering all major engine modules. Core functionality is covered. Depth tests for UI components (room/door inspector, trigger editor interactions) were deferred as they're better suited to the Playwright click-through test upgrade (see task-97).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "### Run Tests\n```powershell\ncd virtual_world\npython -m pytest tests/ -v\n```\n\nExpected result: **395 tests pass, 0 failures**\n\n### Check Key Files\n- `virtual_world/tests/test_traits.py` - 57 trait tests\n- `virtual_world/tests/test_conditions.py` - 38 condition tests\n- `virtual_world/tests/test_trigger_system.py` - 46 trigger tests\n- `virtual_world/tests/test_equipment_system.py` - 35 equipment tests\n- `virtual_world/tests/test_lighting.py` - 35 lighting tests\n- `virtual_world/conftest.py` - shared engine fixtures",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "test_files": "| File | Tests | Coverage |\n|------|-------|----------|\n| `test_traits.py` | 57 | All 23 trait definitions, effect resolution, tick processing |\n| `test_trigger_system.py` | 46 | Conditions, effects, trigger chains, edge cases |\n| `test_conditions.py` | 38 | Multi-condition support, duration, decay, removal |\n| `test_equipment_system.py` | 35 | Paperdoll, equip/unequip, slots, stacking, layered items |\n| `test_lighting.py` | 35 | Ambient light, spill through doors, dark vision, light levels |\n| `test_ghost.py` | 27 | Ghost actions, visibility, movement restrictions |\n| `test_skills.py` | 26 | Skill checks, progression, modifiers |\n| `test_matching.py` | 24 | Fuzzy item/name matching, ambiguous items |\n| `test_mcp_commands.py` | 17 | MCP tool commands |\n| `test_mcp_state_players.py` | 15 | MCP state/player operations |\n| `test_mcp_editing.py` | 14 | MCP editing tools |\n| `test_engine_init.py` | 13 | Engine initialization, config, world loading |\n| `test_combat.py` | 12 | Turn-based combat, attack/defense, damage |\n| `test_mcp_misc.py` | 11 | Misc MCP tools |\n| `test_tokenizer.py` | 10 | Token counting, context window management |\n| `test_mcp_skeleton.py` | 9 | MCP skeleton/infrastructure |\n| `test_emote.py` | 3 | Emote narrative generation |\n| `test_mcp_integration.py` | 3 | MCP integration tests |\n| **Total** | **395** | |",
+      "what_s_covered_by_category": "| Category | Status | Notes |\n|----------|--------|-------|\n| Item management (create/find/take/drop) | ✅ Covered | Through trigger tests + equipment tests |\n| Area management | ✅ Covered | test_engine_init, test_lighting |\n| Way management | ✅ Covered | test_lighting (spill through doors), engine_init |\n| Player management | ✅ Covered | test_engine_init, test_mcp_state_players |\n| Trigger system | ✅ Covered | test_trigger_system.py (46 tests) |\n| Movement | ✅ Covered | test_ghost, test_lighting |\n| Vitals/decay | ✅ Covered | test_traits (vital multipliers), test_conditions |\n| NPC behaviors | ✅ Covered | test_ghost (NPC ghost behavior) |\n| Ghost mode | ✅ Covered | test_ghost.py (27 tests) |\n| Combat | ✅ Covered | test_combat.py (12 tests) |\n| Equipment/paperdoll | ✅ Covered | test_equipment_system.py (35 tests) |\n| Lighting/spill | ✅ Covered | test_lighting.py (35 tests) |\n| Skills | ✅ Covered | test_skills.py (26 tests) |\n| Conditions | ✅ Covered | test_conditions.py (38 tests) |\n| Traits | ✅ Covered | test_traits.py (57 tests) |\n| Container system | ❌ Deferred | Needs dedicated test file |\n| API endpoints | ✅ Partial | Covered by MCP tests + Playwright tests |\n| Edge cases | ✅ Partial | Some overlap in trigger/condition tests |",
+      "what_s_not_covered_deferred": "- Container system (put/take from containers, container states)\n- API endpoint CRUD tests for rooms/items/doors (partially covered by MCP tests)\n- Edge cases: empty world, circular door references, concurrent modifications\n- Integration scenarios: multi-step player walkthroughs, NPC interaction chains\n\nThese were deferred to post-merge feature branches and are not blocking."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/testing/task-25-unit_tests.md"
+  }
+}

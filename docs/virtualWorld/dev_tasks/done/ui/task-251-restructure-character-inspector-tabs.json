@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-251",
+  "kind": "task",
+  "number": 251,
+  "title": "Restructure Character Inspector Tabs",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Reorganize the character inspector into fewer, more coherent tabs:\n\n- **Inventory** - paperdoll/equipment on top, inventory grid below it\n  (Equipment + Inventory merged).\n- **Bio** - personality, appearance, **Stats/Skills/Traits** (moved from the\n  old Stats tab), relationships, tags, memories, etc.\n- **Advanced** - **Graph Physics** (moved from always-visible top section),\n  **Behaviors** (moved from Bio), timeline, conversation memory, save/export.",
+    "why": "TODO",
+    "how": "- `agent-view.js`:\n  - Tabs reduced `['Stats','Equipment','Inventory','Bio','Advanced']` →\n    `['Inventory','Bio','Advanced']` (default `_activeTab = 'Inventory'`).\n  - `_renderStatsTab` → `_renderStatsBlocks` (no tab wrapper), included at the\n    top of `_renderBioTab`.\n  - Behaviors section moved from `_renderBioTab` → `_renderAdvancedTab`.\n  - Graph Physics (`graphGravityControl`) moved from the always-visible top of\n    `showAgent` → `_renderAdvancedTab` (via `characterNode` param).\n  - `_renderInventoryTab` now renders the paperdoll first, then the carried\n    inventory / containers.\n- `paperdoll-view.js`: `renderPaperdollEquipmentHtml` no longer wraps itself in\n  a `data-tab=\"Equipment\"` shell (it previously owned the Equipment tab); it\n  now emits just the equipment section, hosted inside the Inventory tab.",
+    "verify": "- expected: character inspector tabs are Inventory / Bio / Advanced (Inventory default), Stats folded into Bio, Physics + Behaviors into Advanced.\n- observed (2026-10-10 live, player_Arix): tab row = ['Inventory','Bio','Advanced'].",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Graph or Agents list → select a character → Character\nInspector tab row.\n\nCurrent availability: This card's 2026-10-10 observation records\nInventory/Bio/Advanced. The current source now renders a fourth Images tab\n(`TABS = ['Inventory', 'Bio', 'Images', 'Advanced']`, added by later image\nwork); recheck the live row before treating the older three-tab observation as\ncurrent. The original separation remains: skills are inside Bio; graph physics\nand behaviors are inside Advanced.\n\nLive steps when available:\n1. Open a character and read the full Inspector tab row; open Inventory, Bio,\n   Images, and Advanced in turn.\n   - expected: Inventory contains paperdoll then carried items; Bio contains\n     stats/skills/traits and character details; Images contains expression\n     tools; Advanced contains behaviors and graph physics.\n2. Scroll to the bottom of Bio and Advanced and expand their sections.\n   - expected: stats and skills are not a separate tab; behaviors and graph\n     physics are not placed in the Inventory/Bio content.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-251-character-inspector-tab-restructure.md"
+  }
+}

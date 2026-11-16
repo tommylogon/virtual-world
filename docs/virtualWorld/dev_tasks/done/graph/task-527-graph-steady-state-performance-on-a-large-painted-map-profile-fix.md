@@ -25,7 +25,7 @@ With a compiled zone loaded in Map mode (physics off), the surrounding UI panels
 over hover + wheel-zoom + pan:
 
 - Idle was **~20fps**: 41 `requestAnimationFrame`s in 2s with **82
-  `afterDrawing`** events — vis was redrawing non-stop.
+  `afterDrawing`** events - vis was redrawing non-stop.
 - `network.physics.options.enabled === true`, `simulatorRunning === true`,
   `graphManager._physicsEnabled === true` **in Map mode**.
 - Interaction profile: 19178 samples; 75.6% in vis's canvas draw
@@ -36,7 +36,7 @@ over hover + wheel-zoom + pan:
 `this._physicsEnabled = true` (and persisted it) on **entering Map**, and
 `loadGraphData` restores physics when that flag is set (network-manager.js
 ~711). So Map ran the solver continuously on 658 nodes, which forced a redraw
-every physics tick and starved the inspector / scope picker / WorldPainter —
+every physics tick and starved the inspector / scope picker / WorldPainter -
 exactly the steady-state drag reported. (It also let nodes drift off the painted
 cells, the drift task-618's edge fix had to compensate for.)
 
@@ -45,7 +45,7 @@ cells, the drift task-618's edge fix had to compensate for.)
 that mode-default; Graph mode re-enables it. An explicit toolbar toggle still
 wins and is what gets persisted, so a reload starts in Graph with the user's own
 preference. The painted lattice already owns positions; the derived relative
-layout still seeds coordinate-less items (verified separately — 52 orphans, 0 at
+layout still seeds coordinate-less items (verified separately - 52 orphans, 0 at
 the origin, both layouts).
 
 **Profile (after).**

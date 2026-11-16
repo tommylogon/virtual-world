@@ -57,7 +57,7 @@ Over 3200 unit tests verified individual components, but integration seams betwe
 
 ## How
 
-Authored 	ests/test_integration_layer.py covering duplicate-name area save/load across scopes, RNG seed replay determinism, seed divergence control, and deterministic shape verification for 9x9 compiled regions (81 areas / 272 ways / 1088 edges).
+Authored tests/test_integration_layer.py covering duplicate-name area save/load across scopes, RNG seed replay determinism, seed divergence control, and deterministic shape verification for 9x9 compiled regions (81 areas / 272 ways / 1088 edges).
 
 ## Steps to verify
 
@@ -70,7 +70,7 @@ Authored 	ests/test_integration_layer.py covering duplicate-name area save/load 
 
 ## Files
 
-- 	ests/test_integration_layer.py
+- tests/test_integration_layer.py
 - engine/world_compile.py
 - 
-outes/persistence_ops.py
+routes/persistence_ops.py

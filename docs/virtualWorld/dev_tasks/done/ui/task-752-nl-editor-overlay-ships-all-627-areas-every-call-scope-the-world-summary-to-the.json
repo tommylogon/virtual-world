@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "task-752",
+  "kind": "task",
+  "number": 752,
+  "title": "NL editor overlay ships all 627 areas every call; scope the world summary to the selection and counts",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-422",
+      "nl",
+      "editor",
+      "budget",
+      "controls",
+      "task-739",
+      "read",
+      "tools"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Every NL editor turn ships the **entire** world summary in the system prompt: all\nareas (627 in kraktooth_goblin_camp) and the full character roster, regardless of\nwhat the user asked. Measured from a captured exchange:\n\n- `input_tokens: 32,833` for the question *\"what behaviours does the zombies\n  have?\"* (answer: ~34 tokens output).\n- The 627 `- Area [name] (id: …) [tags: …]` lines are roughly **15–16k tokens**;\n  the 27-line roster ~500; ~30 tool definitions make up most of the rest.\n\nThe bulk is contextually irrelevant: a question about zombies pulls in every road\ntile across West woods / deep woods / Eldenford interior / world.\n\nCause: `static/js/nl-editor/tools.ts:221-258` - `listWorldSummary()` iterates every\ngraph node and pushes **every** area into `areas[]` with no cap, no scope filter\nand no relevance filter, then `agent-loop.buildSystemPrompt()`\n(`agent-loop.ts:294-295`) embeds the result verbatim on every call.\n\nThis is also a likely contributor to the model stalling after narrating a plan\n(see the \"dots-3 preview\" exchange): 600+ irrelevant lines bury the selection and\nlose the thread before the model acts.\n\nThe read tools already exist to fetch specifics on demand - `list_nodes`\n(filter/paged), `search_graph_nodes` (fuzzy), `get_node`, `list_world_summary` -\nso the overlay does not need to be the whole world.",
+    "why": "TODO",
+    "how": "1. Overlay carries **counts** plus only the selection's neighbourhood: the\n   selected node's area and its directly connected areas (or the active scope's\n   areas), capped (~30). The rest is discoverable via `search_graph_nodes` /\n   `list_nodes`.\n2. Roster the same way: full roster only when small; otherwise a count plus the\n   characters in the selection's area.\n3. Record the before/after input-token count in the card.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A representative world's overlay no longer lists hundreds of areas; counts",
+        "done": false
+      },
+      {
+        "text": "replace the long tail.",
+        "done": false
+      },
+      {
+        "text": "The selected node's area and immediate neighbours still appear (selection",
+        "done": false
+      },
+      {
+        "text": "awareness preserved - rule 3).",
+        "done": false
+      },
+      {
+        "text": "The model can still answer \"who is in area X\" / \"how many goblins\" by",
+        "done": false
+      },
+      {
+        "text": "calling `list_nodes`; those tools are unchanged.",
+        "done": false
+      },
+      {
+        "text": "Measured input tokens for the same question dropped materially (before:",
+        "done": false
+      },
+      {
+        "text": "~32,800), recorded here.",
+        "done": false
+      },
+      {
+        "text": "No regression in the read tools or in prompt rules 1–15.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_2026_10_09": "- `nl-editor/tools.ts` - `listWorldSummary()` now emits counts plus a bounded\n  (≤30) selection-first area slice and a truncation note; `roster()` capped at 40\n  with a note. New `_selectedAreaIds()` resolves the selection's area (via `in`/`at`\n  edge) and its neighbours through `connection` edges (area→way→area).\n- Bundled with: `agent-loop.ts` prompt rule 16 (act, don't narrate);\n  `tool_calls: []` normalised to absent in `agent-loop.ts` and `llm-client.ts`;\n  NL editor `A−/A+` chat font size (`ui.ts`, persisted `vw_nl_fontSize`).\n- Gates: `build:ts`, `typecheck`, `js unit` all clean (632 pass).\n- **Not yet verified live:** the before/after input-token count on the same\n  question (needs a browser call to re-measure; ~627→≤30 area lines should remove\n  roughly 15k of the ~32.8k input tokens)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-752-nl-editor-overlay-ships-all-627-areas-every-call-scope-the-world-summary-to-the-selection-and-counts.md"
+  }
+}

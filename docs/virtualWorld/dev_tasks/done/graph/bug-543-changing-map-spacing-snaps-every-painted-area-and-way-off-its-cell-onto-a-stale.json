@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "bug-543",
+  "kind": "bug",
+  "number": 543,
+  "title": "Changing map spacing snaps every painted area and way off its cell onto a stale saved position",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-526",
+      "map",
+      "pitch",
+      "ownership",
+      "task-748",
+      "task-769"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Nudge the Map spacing and every painted area/way lands on its cell for a moment,\nthen a few seconds later jumps to a different place - off the painted label and\noff the art. It happens to all areas and ways in the scope, not just one.",
+    "why": "The grid derives a painted node's position (`cell * pitch`,\n`GraphLayoutEngine.scopedGridPosition`); a saved canvas snapshot is a copy from\nwhatever pitch it was captured at. Two things re-apply that snapshot over the\ngrid:\n\n`setMapSpacing()` (`graph-manager.ts`) runs `loadGraphData()` (grid lays every\narea/way on its cell) then `GraphBackground.fitToPaintedGrid()`, which calls\n`saveToWorld()` - an API write. That write fires the `world_changed` SSE →\n`worldState.fetch()` → `state:updated` → `GraphBackground._onWorldRefetched()`,\nwhich does `_restore()` (reloads the block's `positions`) then\n`_applyPositions()` - `moveNode()` for every node to its **saved** position.\nThe snapshot predates the pitch change, so it is a different frame; the areas\njump onto it. They stay there because grid areas are `fixed`, so the solver\nnever pulls them back.\n\nMeasured live on `goblin_camp`, `area_scrap_pile` (cell 5,7):\n\n| | position |\n|---|---|\n| on its cell at pitch 176 | `(-4996, 2240)` - over \"8. Scrap Pile\" |\n| after `setMapSpacing(+20)` (pitch 196) | rendered at `(-6756, 3029)` = `state.positions['area_scrap_pile']` |\n| the new grid pos it should be | `(-5564, 2495)` - held in the DataSet, ignored by the rendered node |\n\n`persistPositionsToWorld()` already refuses painted nodes on the way out (\"a\npainted area is not a target\", `hasPaintedCoords`); `_applyPositions()` had the\nmatching guard missing on the way in.",
+    "how": "`static/js/graph/graph-background.ts` - `_applyPositions()` skips a node whose\nposition the painted grid owns (has a `cell`, and `graphManager._cardinalLayout`\nis on). Scoped to Map mode so Graph-mode saved positions are untouched.",
+    "verify": "1. Open `goblin_camp`, read `area_scrap_pile`, then nudge the spacing.\n   - expected: it stays on its cell / the \"8. Scrap Pile\" label.\n   - observed (before fix): renders at the stale saved position `(-6756, 3029)`;\n     the correct new-grid position `(-5564, 2495)` is discarded.",
+    "acceptance": [
+      {
+        "text": "A spacing nudge leaves every painted area and way on its cell.",
+        "done": false
+      },
+      {
+        "text": "Graph-mode dragged positions are unaffected.",
+        "done": false
+      },
+      {
+        "text": "Unit + `ts_convert.py check` remain green.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/graph-background.ts` - `_applyPositions()` skips grid-owned nodes",
+      "static/js/graph/graph-background.js` - emitted"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-543-changing-map-spacing-snaps-every-painted-area-and-way-off-its-cell-onto-a-stale-saved-position.md"
+  }
+}

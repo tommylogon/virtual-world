@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-5",
+  "kind": "task",
+  "number": 5,
+  "title": "Heat Propagation Through Open Ways",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Temperature should gradually equalize between areas connected by open ways. This creates emergent behavior:\n- Lit fireplace warms adjacent areas through open doors\n- Blizzard cold seeps into the house through the open front door\n- Player can close doors to retain heat - strategic thermal management\n\n**Only temperature propagation for now.** Noise, smell, and light are separate concerns.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_this_matters": "Without propagation, room temperature only changes via explicit trigger effects (set_environment / adjust_environment). The fireplace only warms its own room. Opening the front door to a -5°C blizzard does nothing. This breaks immersion.\n\nWith propagation, these behaviors emerge naturally from the mechanics:\n- Fireplace in living room slowly warms hallway and bedroom through open doors\n- Front door left open pulls house temp toward exterior temp\n- Player has a reason to close doors behind them in winter\n- Exterior rooms tagged `is_exterior: True` act as infinite heat sinks/sources\n\n---",
+      "tick_model": "**Critical**: `tick_turn()` is called **once per full turn**, not per action.\n\n| Concept | What it means |\n|---------|--------------|\n| **Turn** | All characters (player + NPCs) have acted |\n| **Tick** | One call to `tick_turn()` - 5 game-minutes by default |\n| **Frequency** | POST `/api/turn/apply` → `tick_turn()` once |\n\nSo propagation in a 20-character scenario still runs **once per turn**, not 20 times. Each tick represents ~5 minutes of game time, which is a natural interval for temperature change.\n\nThe existing drift formulas (0.02–0.3°C per tick) are calibrated for this frequency and propagation should use the same cadence.\n\n---",
+      "propagation_formula": "Every tick, for each pair of areas connected by an open way:\n\n```\ndiff = temp_a - temp_b\ntransfer = diff * exchange_rate\ntemp_a -= transfer      (unless is_exterior)\ntemp_b += transfer      (unless is_exterior)\n```\n\n### Exchange Rate\n\n`exchange_rate = base_rate * way_insulation * area_insulation`\n\n| Factor | Default | Source |\n|--------|---------|--------|\n| `base_rate` | `0.05` | Constant - calibrated for 5-min ticks |\n| `way_insulation` | `1.0` | From way node properties (stone door = 0.5, window = 2.0) |\n| `area_insulation` | `1.0` | From area node properties (basement = 0.3) |\n\n### Calibration example\n\n| Scenario | diff | rate | transfer/tick | After 1 hour (12 ticks) |\n|----------|------|------|--------------|------------------------|\n| Fireplace (28°C) → Hallway (21°C) | 7°C | 0.05 | 0.35°C | Hallway warms ~4°C |\n| Blizzard (-5°C) → Hallway (21°C) | 26°C | 0.05 | 1.3°C | Hallway cools ~13°C |\n| Near-equal rooms (22°C ↔ 21°C) | 1°C | 0.05 | 0.05°C | Negligible |\n\n### Max change cap\n\nClamp per-tick transfer to prevent extreme single-tick swings:\n```\ntransfer = max(-max_delta, min(max_delta, transfer))\n```\nwhere `max_delta = 2.0°C` per tick.\n\nThis prevents a -50°C exterior from flash-freezing a room in one tick.\n\n---",
+      "infinite_reservoirs_exterior_areas": "Areas with `properties.is_exterior: True` act as infinite reservoirs:\n\n- Their temperature **never changes** from propagation\n- They still **affect connected areas** (heat flows into/out of them)\n- No `is_exterior`? Treat as normal.\n\nThis is the key mechanic. Open the front door to a blizzard and the hallway temperature gets pulled toward the exterior temp, but the blizzard area itself stays at -5°C.\n\n---",
+      "implementation_plan": "### 1. New file: `engine/environment_propagation.py`\n\n```python\ndef propagate_temperature(graph):\n    \"\"\"Spread temperature between areas connected by open ways.\"\"\"\n    edges_processed = set()\n\n    # Walk all connection edges\n    for edge in graph.edges:\n        if edge.type != \"connection\":\n            continue\n\n        # Avoid processing both directions\n        pair = tuple(sorted([edge.source, edge.target]))\n        if pair in edges_processed:\n            continue\n        edges_processed.add(pair)\n\n        source_area = graph.get_node(edge.source)\n        target_area = graph.get_node(edge.target)\n        if not source_area or not target_area:\n            continue\n\n        # Find the way node that connects these (matches source+target)\n        way_node = _find_way_between(graph, edge.source, edge.target)\n        if not way_node:\n            continue\n\n        # Only propagate through open ways\n        if way_node.properties.get(\"current_state\") != \"open\":\n            continue\n\n        temp_a = source_area.properties.get(\"environment\", {}).get(\"temperature\", 21)\n        temp_b = target_area.properties.get(\"environment\", {}).get(\"temperature\", 21)\n\n        diff = temp_a - temp_b\n        if abs(diff) < 0.5:\n            continue  # Skip negligible differences\n\n        insulation = way_node.properties.get(\"insulation\", 1.0)\n        rate = 0.05 * insulation\n\n        transfer = max(-2.0, min(2.0, diff * rate))\n\n        if not source_area.properties.get(\"is_exterior\"):\n            source_env = source_area.properties.setdefault(\"environment\", {})\n            source_env[\"temperature\"] = temp_a - transfer\n\n        if not target_area.properties.get(\"is_exterior\"):\n            target_env = target_area.properties.setdefault(\"environment\", {})\n            target_env[\"temperature\"] = temp_b + transfer\n\n\ndef _find_way_between(graph, area_a_id, area_b_id):\n    \"\"\"Find a way node that has connections to both area_a and area_b.\"\"\"\n    for node in graph.nodes.values():\n        if node.type != \"way\":\n            continue\n        conns = graph.get_edges_for_source(node.id, \"connection\")\n        targets = {e.target for e in conns}\n        if area_a_id in targets and area_b_id in targets:\n            return node\n    return None\n```\n\n### 2. Hook into `TickManager.tick_turn()`\n\nIn `engine/tick_manager.py`, at the **end** of `tick_turn()` (after all player temperature drift/damage):\n\n```python\nfrom engine.environment_propagation import propagate_temperature\n\ndef tick_turn(self, skip_npcs=False):\n    # ... existing code: baseline decay, temp drift, damage ...\n    \n    # ── Temperature propagation ──\n    propagate_temperature(self.graph)\n```\n\n### 3. Tag exterior areas in world data\n\nFind all exterior areas in `world_template.json` and add `\"is_exterior\": true` to their properties. Also add reasonable insulation values on doors between interior/exterior.\n\n### 4. Add insulation to way creation UI (optional)\n\nThe way inspector in `area-view.js` or `way-view.js` should have an editable `insulation` field for fine-tuning propagation rates.\n\n---",
+      "integration_points": "- **Fireplace** ([[review/environment/task-18-fireplace_lighting_recipe]]) - lit fireplace heats its room via `on_tick` + `adjust_environment`; propagation spreads warmth through open doors\n- **Door mechanics** - open/close state directly controls whether heat flows\n- **Temperature conditions** - triggers using `temperature_below`/`temperature_above` will fire based on propagated temps\n- **Exhaustion death from cold** - cold propagation can indirectly kill through Energy drain even without hypothermia\n- **NPC behavior** - NPCs could be set to close doors when temperature drops (future enhancement)\n\n---",
+      "edge_cases": "| Situation | Behavior |\n|-----------|----------|\n| Room connects to 3 exterior areas | Heat bleeds out rapidly (like an open pavilion) |\n| Player closes all doors | Propagation stops, rooms maintain their temps |\n| Multi-room chain (A↔B↔C) | Heat flows stepwise: A→B then B→C each tick |\n| Room with no open connections | Temperature stable (only changes via triggers) |\n| `is_exterior` room connected to another exterior | Neither changes (both skip) |\n\n---",
+      "what_this_does_not_cover": "- **Weather/sunlight** - outdoor temperature doesn't cycle ([[todo/environment/task-227-environment-forecast-schedule]])\n- **Noise propagation** - separate concern\n- **Smell propagation** - separate concern\n- **Visual heat flow UI** - could be added to graph overlay later\n\n---",
+      "files_to_touch": "| File | Change |\n|------|--------|\n| `engine/environment_propagation.py` | **New** - propagation logic |\n| `engine/tick_manager.py` | Import and call `propagate_temperature()` at end of `tick_turn()` |\n| `world_template.json` | Add `is_exterior: true` to outdoor areas, insulation to doors |\n| `data/scenarios/` | Same for scenario files |",
+      "non_goals_for_this_pass": "- Visualizing heat flow on the graph (future)\n- NPCs reacting to temperature changes (future)\n- Dynamic insulation from player-built structures (future)\n- Fire spread (future -- task-5 was originally scoped for this but it's too much)"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Temperature System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-07-29",
+      "implemented": "2026-07-30"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-5-heat_propagation.md"
+  }
+}

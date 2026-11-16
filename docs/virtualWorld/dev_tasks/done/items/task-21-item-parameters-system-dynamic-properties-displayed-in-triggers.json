@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-21",
+  "kind": "task",
+  "number": 21,
+  "title": "Item Parameters System - Dynamic Properties Displayed in Triggers",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Items now support dynamic template variables in trigger messages. The primary use case - grandfather clock showing current game time - is live and working.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Start the server (`python app.py`)\n2. Examine the grandfather clock in-game: `examine grandfather_clock`\n3. The output should show the current game time (e.g., \"The clock reads 08:15:00...\") instead of a hardcoded \"08:15\"\n4. Open the Inspector panel and click on the grandfather clock node\n5. Scroll to the \"Parameters\" section to see/edit key-value pairs\n6. Add a parameter like `chime: bong` - it becomes accessible via `{param:chime}` in trigger messages",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "| File | Change |",
+      "|------|--------|",
+      "| `virtual_world_engine.py` | Added `item_params` and `item_description` to trigger context |",
+      "| `world_template.json` | Updated clock trigger message to use `{game_time}` (edge + node) |",
+      "| `data/items.json` | Updated library entry clock trigger message to use `{game_time}` |",
+      "| `static/js/inspector.js` | Added Parameters UI section + 4 helper methods |"
+    ],
+    "custom": {
+      "engine_virtual_world_engine_py": "Task 16 (`_render_template()`) was already fully implemented. The engine already had:\n\n- **`_render_template(text, context)`** at line 4236 - replaces `{variable}` placeholders from context dict, plus `{param:<key>}` for item parameters\n- **Context building** in `_execute_triggers()` at line 1338 - already included `game_time`, `player_name`, `area_name`, `item_name`, `item_state`, `time_ticks`, `turn_number`, `player_hp`, `player_energy`, `player_sanity`, `area_light`, `area_temp`, `area_smell`\n\n**What was added to the engine:**\n\n1. **`item_description`** - added to context at line 1348\n2. **`item_params`** - added to context at line 1351-1352, reads `item_node.properties.parameters` dict. This enables `{param:<key>}` syntax in trigger messages (e.g., `{param:format}`).\n\nThe `{param:<key>}` pattern is handled by `_render_template()`'s regex substitution: `re.sub(r\"\\{param:(\\w+)\\}\", ...)` looks up the key in `context[\"item_params\"]`.",
+      "template_world_template_json": "Both the **trigger edge** (line 141) and the **trigger node** (line 6393) for the grandfather clock's `on_examine` trigger were updated from:\n```\n\"The clock reads 08:15. Through the glass you can see a small brass key...\"\n```\nto:\n```\n\"The clock reads {game_time}. Through the glass you can see a small brass key...\"\n```\n\nThe library entry in `data/items.json` was also updated.",
+      "inspector_ui_static_js_inspector_js": "Added a **\"Parameters\" section** to the item inspector (`_showItem()`) with:\n- Key-value pair list with inline editing\n- Add/delete buttons\n- Helper methods: `_addParam`, `_removeParam`, `_updateParamKey`, `_updateParamValue`\n\nParameters are stored in node properties as `{\"parameters\": {\"key1\": \"value1\", \"key2\": \"value2\"}}` and saved via the existing `api.updateNode()` endpoint.",
+      "available_template_variables": "| Variable | Description |\n|----------|-------------|\n| `{game_time}` | Current in-game time (HH:MM:SS) |\n| `{player_name}` | Active player's name |\n| `{area_name}` | Current room name |\n| `{item_name}` | Item being examined/used |\n| `{item_description}` | Item's description |\n| `{item_state}` | Item's current_state |\n| `{player_hp}` | Player's HP |\n| `{player_energy}` | Player's energy |\n| `{player_sanity}` | Player's sanity |\n| `{area_light}` | Area light level |\n| `{area_temp}` | Area temperature |\n| `{area_smell}` | Area smell |\n| `{time_ticks}` | Total game ticks |\n| `{turn_number}` | Current turn number |\n| `{param:<key>}` | Custom parameter from item's `parameters` property |",
+      "note": "No new API endpoints were needed - the existing `api.updateNode()` (which calls `PATCH /api/graph/node/{id}`) already supports updating arbitrary node properties, including `parameters`."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-21-item_parameters_system.md"
+  }
+}

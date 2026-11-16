@@ -24,7 +24,7 @@ Decide whether moving a zone also moves its subtree.
   units. Absent or zero = the painted position, so an unmoved scope keeps a
   minimal manifest. `engine/world_grid.py` gains `map_offset(record)`,
   `set_map_offset(record, x, y, reset=)`, and `normalise_grid` cleans/drops it.
-- **API:** `POST /api/world/scopes/<id>/offset` — `{x, y}` cells, or
+- **API:** `POST /api/world/scopes/<id>/offset` - `{x, y}` cells, or
   `{reset: true}`. The scope's grid payload and `scope_summary` (including the
   flat `/api/world/scopes?flat=1` list) both carry `map_offset`.
 - **Layout:** `GraphLayoutEngine` adds **each node's own scope offset**

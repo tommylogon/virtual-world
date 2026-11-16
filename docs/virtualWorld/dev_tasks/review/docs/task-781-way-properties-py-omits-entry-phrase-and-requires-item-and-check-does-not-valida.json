@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-781",
+  "kind": "task",
+  "number": 781,
+  "title": "way_properties.py omits entry_phrase and requires_item, and --check does not validate values",
+  "status": "review",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "tools/way_properties.py declares the way-property set and its page calls itself the single source of truth, but the engine reads two properties it does not declare: entry_phrase (area_description.py:696, world_compile.py:876) and requires_item (movement.py:507). Separately, way_property_index.py --check only compares the hand-maintained spawn lists, never a property values tuple, so current_state has drifted: it lists broken and omits hidden, and counts see_through as a state when the code treats it as a property override (barriers.py declared_state docstring says never see_through); max_size omits the accepted none. Add the two properties and validate values against engine/barriers.py WAY_STATES and the size tiers.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable - this task verifies the complete way-property vocabulary and its generated index/checker. A single Inspector view cannot prove that the declared property set is exhaustive or that every value tuple matches engine readers.\n\nCurrent availability: the card identifies omitted `entry_phrase` and `requires_item`, and a drifted `current_state` list (`broken` listed, `hidden` omitted, `see_through` misclassified). The declaration/checker correction is planned.\n\nWhy no browser UI: the acceptance is exhaustive agreement between `tools/way_properties.py`, engine readers, allowed values, and generated reference output; this is a tooling contract rather than a browser behavior change.\n\nAlternative verification steps:\n1. Run `python tools/way_property_index.py --report` and inspect the complete property count and declarations from `tools/way_properties.py`.\n   - expected: `entry_phrase` and `requires_item` are included; `hidden` is represented in the correct state set; `broken` and `see_through` are classified according to their engine semantics.\n2. Run `python tools/way_property_index.py --check` after changing a declared value tuple without updating its generated page/check data.\n   - expected: the check fails on that exact drift, then passes after the declaration and generated index agree.\n3. Search the Way Inspector property editor for one example each of `entry_phrase`, `requires_item`, and a hidden state after the source contract is corrected.\n   - expected: authoring controls expose the declared values the engine reads; the editor does not offer an undeclared substitute.\n\nThis section is not a claim that planned tooling checks are implemented or passing today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Ways]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values.md"
+  }
+}

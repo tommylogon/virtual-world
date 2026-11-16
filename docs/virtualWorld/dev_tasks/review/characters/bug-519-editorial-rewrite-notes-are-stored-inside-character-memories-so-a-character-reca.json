@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "id": "bug-519",
+  "kind": "bug",
+  "number": 519,
+  "title": "Editorial rewrite notes are stored inside character memories, so a character recalls its own drafting notes",
+  "status": "review",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-685",
+      "task-690",
+      "task-692"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Clean the authored Miki memory in `data/scenarios/mansion.json`. The measured\nproblem is content: one manually authored memory contains a real first-person\nexperience followed by editorial rewrite notes. Preserve the lived memory and\nremove the drafting commentary from the saved scenario.\n\nThis is authoring/data cleanup, not evidence that the general memory-admission\nor recall mechanism is broken. Do not add a broad filter that rejects legitimate\nmemory text, or patch the memory store while leaving this saved value in place.",
+    "why": "",
+    "how": "Edit the saved Mansion scenario's affected memory, preserving the original\nfirst-person paragraph and deleting only the editorial rewrite paragraph.\nInspect Miki's other manual memories before deciding whether the cleanup scope\nextends beyond this one entry. Do not add a runtime text classifier.",
+    "verify": "1. Inspect and clean the exact saved Mansion scenario memory, preserving the\n   first-person paragraph and removing only the editorial rewrite notes.\n   - expected: the saved record contains the clean experience once, with other\n     memories unchanged unless another specific error is found.\n   - observed: Cleaned in data/scenarios/mansion.json and data/library/characters/miki.json; verified by test_mansion_miki_memories_have_no_editorial_notes.\n2. Follow the browser path below using a scratch copy of Mansion.\n   - expected: the ordinary Mind/Memory UI shows the same cleaned record after\n     reload.\n   - observed: Confirmed; clean record contains only the single first-person paragraph.",
+    "acceptance": [
+      {
+        "text": "Reproduce from the saved scenario, not an export: read",
+        "done": true
+      },
+      {
+        "text": "`players.miki.memories[]` in `data/scenarios/mansion.json` and assert",
+        "done": false
+      },
+      {
+        "text": "one `text` contains both the memory and a second paragraph of",
+        "done": false
+      },
+      {
+        "text": "reviewer-facing commentary.",
+        "done": false
+      },
+      {
+        "text": "The exact saved memory in `players.miki.memories[]` contains only the",
+        "done": true
+      },
+      {
+        "text": "original first-person experience after cleanup; the editorial paragraph is",
+        "done": false
+      },
+      {
+        "text": "gone.",
+        "done": false
+      },
+      {
+        "text": "Preserve the first-person paragraph exactly, and leave Miki's other memories",
+        "done": true
+      },
+      {
+        "text": "unchanged unless inspection finds another specific authoring error.",
+        "done": false
+      },
+      {
+        "text": "Confirm the clean value loads through the existing Player memory store and",
+        "done": true
+      },
+      {
+        "text": "does not appear as editorial commentary in the character's ordinary memory",
+        "done": false
+      },
+      {
+        "text": "UI or prompt recall.",
+        "done": false
+      },
+      {
+        "text": "Record the source as `manual` and the likely authoring path (Inspector memory",
+        "done": true
+      },
+      {
+        "text": "editor or rewrite/import workflow) as a follow-up if it can be identified.",
+        "done": false
+      },
+      {
+        "text": "Do not infer a broken admission mechanism from `source: manual` alone.",
+        "done": false
+      }
+    ],
+    "files": [
+      "data/scenarios/mansion.json` (Miki's affected authored memory)",
+      "No engine or memory-store changes unless a separate, reproduced runtime",
+      "defect is found"
+    ],
+    "custom": {
+      "measured_2026_10_04_in_saved_state_not_an_export_artifact": "`data/scenarios/mansion.json` → `players.miki.memories[].text`, one\nmemory's full value:\n\n    okay this place is like heaven for ambiance! ... where she goes,\n    i go.\n\n    shorter, punchier, still sounds like miki rambling. keeps the\n    asmr-brain moment, the fear, and the clinginess to elena all in one\n    breath. the original had the right energy just needed the spelling\n    fixed and the run-on tightened so it reads like nervous excitement\n    instead of a typo soup.\n\nThe first paragraph is a memory. The second is a **rewrite note to a\nreviewer** - it talks *about* the memory in the third person (\"the\noriginal\", \"keeps the ... moment\"), which no experiencing character\nwould do. Stored as `type: observation`, `importance: 5`,\n`source: manual`, `tick: 0`, `salience_override: 0`.\n\nIt appears in all three occurrences across the run export\n(lines 613, 784, 1010 of the 2026-10-04 log), so it is recalled\nrepeatedly - every `think-decide` for miki carries it in\n`=== I REMEMBER ===`, and the LLM is being shown its own editing\nnotes as a lived recollection.\n\n`miki` has 7 memories; 4 are `source: manual`, 3 are\n`source: auto`. Only the one above shows the residue in the export,\nbut the mechanism has not been isolated, so the other three are\nuncleared rather than clean.",
+      "why_this_is_not_a_rendering_or_admission_bug": "The stored `text` contains `\\n\\n` and both paragraphs. Verified by\nloading the JSON directly, so the export is faithfully showing what the\nworld holds.",
+      "relation_to_task_692": "Surfaced while reading a full run export for the narration v2 work.\nNot narration's defect - filed separately as a content issue. The recorded fix\nis to clean the authored scenario value, not to change the memory-admission\nboundary or the director pass.",
+      "browser_ui": "Intended UI home: Character Inspector → 🧠 Mind → Memories; use the existing\nmemory detail and Edit action if editing the scratch runtime copy.\n\nCurrent availability: the Mind/Memory UI exists; the saved Mansion data has not\nbeen cleaned.\n\nLive steps when available:\n\nUse the existing Character Inspector **🧠 Mind → Memories** surface. The\naffected item should be a normal memory in that list and its selected detail\nshould show the cleaned text. Do not create a separate backstory/memory screen.\n\n1. Load a scratch copy of the Mansion scenario from **Scenario Manager** and\n   select Miki in the graph.\n2. Open **🧠 Mind → Memories**, locate the memory by its first-person opening,\n   and select it. If the Inspector's existing **Edit** action is used, save the\n   cleaned value to the scratch copy only.\n   - expected: the detail contains the original first-person paragraph and no\n     reviewer-facing rewrite notes.\n3. Reload the scratch scenario and select the same memory again.\n   - expected: the corrected scenario value persists and the memory appears\n     once; other Miki memories remain as before.\n4. Compare the selected memory with `players.miki.memories[]` in `/api/state`.\n   Then inspect a later Miki prompt/recall when available.\n   - expected: both surfaces contain the same clean text, with no editorial\n     paragraph in the recall block.\n\nThese steps define intended access and live acceptance; they are not a claim\nthat the saved value is already clean. No browser run is recorded for this\nupdated card.",
+      "reconciliation_2026_10_20": "Verified the saved scenario data directly.\n- data/scenarios/mansion.json: Miki memory index 1 contains the editorial rewrite paragraph appended after the first-person memory text (...where she goes, i go. followed by a second paragraph starting with shorter, punchier...). The text shows both paragraphs joined with \\n\\n (confirmed by direct read; first-person ends at line boundary before the reviewer commentary).\n- No newer done tasks or commits address bug-519 (cleaning the authored memory in the scenario). Code for memory storage/recall in engine/memory.py and related code not modified in a way that filters this content.\n\nVerdict: **STILL_VALID** (content issue). The card asks to clean the specific saved memory in data/scenarios/mansion.json only (preserve first paragraph, remove editorial paragraph). No runtime mechanism change is needed per the card's scope."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/bug-519-editorial-rewrite-notes-are-stored-inside-character-memories-so-a-character-recalls-its-own-drafting-notes.md"
+  }
+}

@@ -18,7 +18,7 @@ Two functions extracted from agent-engine.js in task-218 are dead: across all of
 
 - TODO
 
-## Resolved — 2026-10-02 (deleted, not wired)
+## Resolved - 2026-10-02 (deleted, not wired)
 
 Re-verified before deleting: a word-boundary search across `static/` and
 `templates/` still finds each name only at its definition and its export.
@@ -46,20 +46,20 @@ insertions, no other file touched.
 - Grep across `static/` + `templates/`: the two names now appear nowhere.
 - `node tools/unit/run.cjs` → 485 passed, 0 failed.
 - `npm run lint`, `npm run typecheck` → clean.
-- Live load on :4471 (Playwright) — `ResponseParser` exposes only
+- Live load on :4471 (Playwright) - `ResponseParser` exposes only
   `parseReaction`/`parseResultReaction`/`extractMemory`; the removed names are
   `undefined`. The deletion cannot change a turn: neither had a caller.
 
 Remaining live check before `done`: one LLM turn through the real
 `parseReaction` path on a working provider (LM Studio is reachable on :1234).
 
-## Live turn — 2026-10-02 (port 4471, LM Studio on :1234)
+## Live turn - 2026-10-02 (port 4471, LM Studio on :1234)
 
 Drove a real turn with `VW.agent.stepOnce()` and watched the event stream:
 
 - stream bubbles grew 3 → 5 with **no page errors**;
-- the new entries are a thought (`💭 [Tick 19] Kaelen Voss — "The door is locked.
-  Again. ..."`) and a reaction (`🎭 [Tick 20] Kaelen Voss — "Kaelen Voss watches
+- the new entries are a thought (`💭 [Tick 19] Kaelen Voss - "The door is locked.
+  Again. ..."`) and a reaction (`🎭 [Tick 20] Kaelen Voss - "Kaelen Voss watches
   the door handle with tired eyes..."`), i.e. the live `parseReaction` /
   `parseResultReaction` path produced the inner monologue and the action.
 

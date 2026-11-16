@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "id": "task-693",
+  "kind": "task",
+  "number": 693,
+  "title": "E2E verification harness: one command that boots the app, drives the browser and asserts live state",
+  "status": "review",
+  "area": "testing",
+  "priority": "high",
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ]
+  },
+  "created": "2026-10-04",
+  "relations": {
+    "related": [
+      "bug-520",
+      "bug-521",
+      "task-444"
+    ]
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Run `python tools/e2e.py --scenario <name>` for one documented fixture and\n   capture the process output and selected scratch port.\n   - expected: the harness starts the app on a free `VW_PORT` (never 4444),\n     waits for mid-boot state to clear, launches a driven browser, and reports\n     each named interaction and assertion.\n2. Run the library-browser, duplicate-character-import, person-menu,\n   hidden-way, and modal-scrim checks listed in Acceptance.\n   - expected: each check performs its named browser interaction and validates\n     both visible DOM state using rendered bounds and the corresponding client\n     or server state; failures identify the check and failed assertion.\n3. Cause one selected assertion to fail in a scratch run and read the harness\n   output.\n   - expected: the report names the scenario, interaction, expected result, and\n     observed value; it does not pass because a hidden DOM node exists.",
+    "acceptance": [
+      {
+        "text": "`python tools/e2e.py --scenario <name>` boots the app on a scratch port",
+        "done": false
+      },
+      {
+        "text": "(`VW_PORT`, never 4444), waits for the mid-boot state to clear, and runs the",
+        "done": false
+      },
+      {
+        "text": "requested check in a driven browser.",
+        "done": false
+      },
+      {
+        "text": "The harness documents and uses the session-verified recipe: the turn queue is",
+        "done": false
+      },
+      {
+        "text": "CLIENT-side, so a second tab is a safe sandbox; nothing mutates world state",
+        "done": false
+      },
+      {
+        "text": "unless a turn is committed; `HumanTurnComposer.request()` opens the turn card",
+        "done": false
+      },
+      {
+        "text": "directly; turn-based mode + max-steps=1 is the safe startup.",
+        "done": false
+      },
+      {
+        "text": "Asserts read the client (`worldState.players`, DOM counts with",
+        "done": false
+      },
+      {
+        "text": "getBoundingClientRect, never `element exists`) and the server truth",
+        "done": false
+      },
+      {
+        "text": "(`data/autosave.json`, `/api/state` via a scoped query).",
+        "done": false
+      },
+      {
+        "text": "Ship it with the regression checks this session produced live: library",
+        "done": false
+      },
+      {
+        "text": "browser opens (bug-520), importing a duplicate-named character twice with an",
+        "done": false
+      },
+      {
+        "text": "explicit area puts BOTH in that area (bug-521), person menu exposes the",
+        "done": false
+      },
+      {
+        "text": "task-610 verbs, hidden ways stay out of WAYS OUT (bug-23), no orphaned",
+        "done": false
+      },
+      {
+        "text": "`.tsv-scrim` after closing the modal with a menu open (task-612).",
+        "done": false
+      },
+      {
+        "text": "Runs green headlessly on this machine; a clean-checkout A/B is not required",
+        "done": false
+      },
+      {
+        "text": "for UI checks but failures must name the interaction that failed.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: the scenario page in the harness-driven browser, launched\nfrom the repository root with `python tools/e2e.py --scenario <name>`. The\nharness boots a scratch app instance and opens the selected scenario there.\n\nCurrent availability: the task specifies the expected command and browser\nchecks, but the one-command harness is planned. This section does not claim the\ncommand currently exists or succeeds.\n\nLive steps when available:\n1. Run the command with a named fixture while port 4444 is occupied.\n   - expected: the harness chooses a free port, reports the URL/port it uses,\n     and leaves the existing server on 4444 untouched.\n2. Read the named check output while the harness exercises each fixture\n   interaction: open Library Browser, import the duplicate-named character\n   twice into an explicit area, open the person action menu, inspect WAYS OUT\n   with a hidden way, and close the modal with the menu open.\n   - expected: each check reports its DOM result and corresponding\n     `worldState`/`/api/state` value; the hidden way is absent from WAYS OUT\n     and closing the modal removes `.tsv-scrim`.\n3. Trigger one expected-value mismatch in a scratch fixture.\n   - expected: the run exits as a failure and identifies the specific\n     interaction and mismatched value.\n\nThese are the intended CLI-to-browser verification steps. They do not assert\nthat the harness is implemented today.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  }
+}

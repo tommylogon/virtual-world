@@ -30,7 +30,7 @@ the feed's boundary with the whole-app event log. `className` is
 
 Measured before choosing this: of every `system-msg` row, `parseEntry` leaves
 `kind = 'system'` (already dropped by `isObserverVisible`) for all but two
-shapes — `did nothing this turn` → `npc` (legitimate, kept) and a
+shapes - `did nothing this turn` → `npc` (legitimate, kept) and a
 `_tryParsePrefixedName` match → `action` (the leak). `👾 <actor> <action>: …`
 rows do not match the parser, so nothing else that renders today is lost.
 

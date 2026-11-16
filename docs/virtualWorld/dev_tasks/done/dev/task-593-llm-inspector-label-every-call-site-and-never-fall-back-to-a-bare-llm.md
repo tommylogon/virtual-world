@@ -45,7 +45,7 @@ Every provider call the browser makes reaches the inspector under a name that sa
       A future call site that forgets to label itself is therefore still
       traceable, and is visibly *unlabelled* rather than silently impersonating the
       whole system.
-- [x] **Lint and typecheck clean**; no behaviour changed — a label is capture
+- [x] **Lint and typecheck clean**; no behaviour changed - a label is capture
       metadata only, and `captureRaw` is already fire-and-forget and never throws.
 
 ## Why the fallback was the real bug
@@ -60,13 +60,13 @@ interest or fear buttons", and the honest answer had two parts:
 2. **Those buttons were exactly the unlabelled ones.** All four inspector
    *Generate* buttons sit in `inspector/agent-view.js` and all four passed no
    label. So with the setting on, the inspector filled with entries all called
-   `LLM` — visible in the tick log as `LLM -> inclusionai/ling-3.0-flash...`
+   `LLM` - visible in the tick log as `LLM -> inclusionai/ling-3.0-flash...`
    repeating. The capture had worked; the output was unreadable. Eleven of
    seventeen sites were affected, so "and probably every other request" was
    right.
 
 The constant `'LLM'` is the part worth remembering: it is a name that carries no
-information, and it is indistinguishable from a capture that failed — which is
+information, and it is indistinguishable from a capture that failed - which is
 exactly the confusion it created. The derived fallback removes that class of
 ambiguity rather than just labelling today's call sites.
 
@@ -80,14 +80,14 @@ through `llmClient`, and labelling the call sites covers all of them. The only
 outbound HTTP in the backend is `mcp_server.py`'s `httpx` client, which talks to
 *this* app rather than to a provider.
 
-That is why this was a dozen lines and no new plumbing — worth stating, because
+That is why this was a dozen lines and no new plumbing - worth stating, because
 "the LLM inspector does not capture server-side calls" would have been a much
 larger piece of work had the architecture been the other way round.
 
 ## Notes
 
-- `llm-client.js` captures on **all three** exits already — error (154), streamed
-  (177) and normal (182) — so nothing was missing on the send side; only the
+- `llm-client.js` captures on **all three** exits already - error (154), streamed
+  (177) and normal (182) - so nothing was missing on the send side; only the
   naming was.
 - `chatWithTools` (the NL editor and the agent loop) already passes a label and
   routes through the same `chat()`, so tool-calling exchanges were never the

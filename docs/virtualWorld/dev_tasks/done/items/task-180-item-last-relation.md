@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-10
 **Priority**: Medium
-**Status**: Done — implemented 2026-08-10, tests pass
+**Status**: Done - implemented 2026-08-10, tests pass
 
 ---
 
@@ -42,14 +42,14 @@ Stamp the item's last spatial relation on pickup, so `use` / `drop` can return i
 
 ## Implementation
 
-- `engine/item_actions.py` — `take_item()` stamps `last_relation`; `use_item()` returns to origin after use; `drop_item()` returns to origin; helper methods `_stamp_last_relation`, `_restore_last_relation`, `_clear_last_relation`
-- `engine/equipment.py` — `equip_item()` clears `last_relation` on equip
-- `tests/test_item_actions.py` — tests pass
+- `engine/item_actions.py` - `take_item()` stamps `last_relation`; `use_item()` returns to origin after use; `drop_item()` returns to origin; helper methods `_stamp_last_relation`, `_restore_last_relation`, `_clear_last_relation`
+- `engine/equipment.py` - `equip_item()` clears `last_relation` on equip
+- `tests/test_item_actions.py` - tests pass
 
 ## Notes
 
 - Pairs with the spatial tracking added in the 2026-08-10 take-item refactor.
-- Not a new system — just a property write + edge recreation.
+- Not a new system - just a property write + edge recreation.
 - Does NOT affect equipped items in hand (they stay in hand on use, per the current design).
 
 ## Steps to verify

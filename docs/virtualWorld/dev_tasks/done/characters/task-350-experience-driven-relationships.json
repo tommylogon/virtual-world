@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-350",
+  "kind": "task",
+  "number": 350,
+  "title": "Experience-driven relationships",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-349",
+      "task-420"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_verified_2026_09_21": "Closed. **This file is a work log, not a spec** - it was filed with no\nfrontmatter, a stray orphaned bullet as line 1, and outcomes written in the past\ntense rather than deliverables. Every artifact it names exists:\n\n- `_resolve_other` alias/description resolver: `routes/player_ops.py:203`,\n  used at `:43` and `:166`, with the drop-rather-than-mis-attribute guard at\n  `:162-170`; tested at `tests/test_derive.py:84-112`.\n- `engine/derive.py` (`:1` names this task) - the memory → multi-dimensional\n  profile reducer (`:159-180`), with `resolve`/`derive_person_profile`.\n- Turn-start judge via `includeFeelings`: `static/js/agent/prompt-builder/turn-prompts.js:103,117-118`,\n  called for real at `static/js/agent-engine.js:572`.\n- `felt_toward` bridge: `player.py:380-383`; response plumbing\n  (`learnedNames` / `learned_names` / `emotion_toward`) in\n  `static/js/agent/response-parser.js:98,123` and `schema-fragments.js:69-70`.\n- Grapple reads the derived profile: `engine/grapple.py:64,77-78`; tested at\n  `tests/test_grapple.py:363-367`.\n\n**Relationship to task-420:** task-350 derives a profile *from* the scalar store\n(reading `closeness`/`interaction_count`), so the later single-write-path refactor\ndoes not contradict it. Note for future work: the derived profile is keyed by\ncharacter **name** via the relationships dict - see the id-not-name convention\n(identity_by_id_never_by_name) and task-316 for the id-backed re-key.",
+      "original_work_log_kept_for_the_reasoning": "### Aliases (the LLM names people by the handle it SEES)\nHeard-name learning was already alias-aware (`engine/speech.py` uses\n`node_aliases`). The NEW `/names` and `toward` paths were NOT - they did a raw\n`candidate in players`, so `toward:\"the man\"` would create a bogus relationship\nkeyed by the label. Fixed with a per-character resolver `_resolve_other` in\n`routes/player_ops.py`: exact name -> name-substring -> node alias -> description\nword, scoped to the acting character`s own area. Unresolved/ambiguous handles\nare DROPPED (the bogus-guard) rather than mis-attributed, so no phantom record.\n\n### The recipient-judge belongs at turn-start, not the react phase\nPer the earlier rule, react = react to your OWN action outcome. A feeling *about*\na person is decided when you process what they did/said at the START of the turn\n(the `=== WITNESSED ===` block). In the current loop `buildObservationPrompt`/\n`buildDecisionPrompt` are defined but NOT called - the real turn-start call is\n`buildReactionPrompt`. So the judge lives THERE:\n  - non-reactive: already had `emotion_toward` + `learned_names`.\n  - reactive: added them (via `includeFeelings`, WITHOUT forcing `memory`, which\n    reactive already emits separately) to the think+decide turn-start call.\nThe react-after-action prompt keeps `emotion` for own-outcome mood; `toward`\nthere is only secondary (own action involving them).",
+      "files_touched_all_phases": "- `engine/derive.py` (new), `engine/grapple.py`\n- `player.py`, `routes/player_ops.py`, `routes/players.py`\n- `static/js/agent-engine.js`, `static/js/agent/response-parser.js`\n- `static/js/agent/prompt-builder/{schema-fragments,turn-prompts,character-state}.js`\n- `tests/test_derive.py` (new), `tests/test_grapple.py`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-350-experience-driven-relationships.md"
+  }
+}

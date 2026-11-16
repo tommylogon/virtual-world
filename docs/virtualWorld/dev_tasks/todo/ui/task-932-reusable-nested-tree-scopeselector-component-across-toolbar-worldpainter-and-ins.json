@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-932",
+  "kind": "task",
+  "number": 932,
+  "title": "Reusable nested tree ScopeSelector component across toolbar, WorldPainter, and inspectors",
+  "status": "todo",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "task-531",
+      "task-627"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the fragmented, flat scope dropdowns with a single reusable, nested tree-view **ScopeSelector** component (`static/js/shared/scope-tree-picker.ts`) used across all surfaces:\n\n1. **True Hierarchical Tree View**:\n   - Instead of a native HTML `<select>` that flattens scopes under a generic \"Zones\" `<optgroup>`, render a structured, collapsible tree popover showing the true parent-child hierarchy:\n     `🌍 Whole world` -> `🏘️ District / Zone` -> `🏫 Building / Compound` -> `🚪 Interior Floor / Room Scope`.\n   - Each branch displays expand/collapse chevrons (`▸` / `▾`), depth indentation guides, scope icons by mode/kind, and child area/node counts.\n   - Includes a quick search filter to immediately jump to any nested scope by name.\n2. **Reusable Component (MVC Architecture)**:\n   - **Model**: Leverages the pure tree construction logic in `static/js/graph/scope-tree.ts` (`buildTree`, `visibleRows`, `rowLabel`) reading `GET /api/world/scopes?flat=1`.\n   - **View**: A custom popover widget with accessible ARIA tree attributes (`role=\"tree\"`, `role=\"treeitem\"`, `aria-expanded`), clean dark glass styling, and compact chip display.\n   - **Controller**: Dispatches standard `scope-selected` events, supports keyboard navigation (`ArrowDown`, `ArrowUp`, `ArrowRight` to open, `ArrowLeft` to close, `Enter` to commit), and maintains unified state.\n3. **Unified Across All Callers**:\n   - Graph toolbar: replaces `#graph-scope-filter`.\n   - WorldPainter: replaces the separate chooser dialog in `editor.ts`.\n   - Area Inspector: replaces the flat `scope_id` select element.",
+    "why": "HTML `<select>` elements cannot nest `<optgroup>`s under the HTML standard. In `static/js/shared/scope-options.ts`, all depth-1 scopes are lumped under a hardcoded label \"Zones\", and deeper interior scopes (such as school floors or basement scopes) appear detached or flattened. Furthermore, having three separate implementations for picking scopes across the toolbar, WorldPainter, and Area Inspector duplicates logic and creates inconsistent navigation.",
+    "how": "1. In `static/js/shared/scope-tree-picker.ts`:\n   - Implement `ScopeTreePicker` class conforming to standard Web Component or lightweight custom controller pattern.\n   - Render button trigger showing current scope chip (`icon + name + ▾`).\n   - On click, mount an anchored floating popover with search input and tree list.\n   - Support keyboard navigation (`ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Enter`, `Escape`).\n2. Integrate in `static/js/graph/toolbar.ts` (and `templates/index.html`):\n   - Replace `<select id=\"graph-scope-filter\">` with `<div id=\"graph-scope-filter-container\">` hosting `ScopeTreePicker`.\n   - Wire `onSelect` to call `graphManager.setScopeFilter(scopeId)`.\n3. Integrate in `static/js/worldpainter/editor.ts`:\n   - Replace custom `showChooser()` modal with `ScopeTreePicker` to switch between active scopes.\n4. Integrate in `static/js/inspector/area-view.ts`:\n   - Use `ScopeTreePicker` in compact mode for assigning an area's owning scope.\n5. Add unit tests in `tools/unit/test_scope_tree_picker.js`.",
+    "verify": "1. In the top toolbar, click the scope selector on a scenario with nested scopes.\n   - expected: Dropdown displays hierarchical tree with chevrons and depth indentation rather than a flat list under \"Zones\".\n   - observed: Flat native `<select>` with single generic `<optgroup label=\"Zones\">`.\n2. Inspect Area Inspector and WorldPainter scope selection.\n   - expected: Consistent reusable component across all three surfaces.\n   - observed: Separate disconnected implementations.\n3. Run targeted unit tests: `node tools/unit/run.cjs`.\n   - expected: All unit tests pass.",
+    "acceptance": [
+      {
+        "text": "ScopeSelector renders genuine nested tree hierarchy with expand/collapse affordances and depth indent guides.",
+        "done": false
+      },
+      {
+        "text": "Tree popover provides instant name search filtering.",
+        "done": false
+      },
+      {
+        "text": "Keyboard navigation fully supported (`Arrow` keys, `Enter`, `Escape`).",
+        "done": false
+      },
+      {
+        "text": "Single reusable component shared between Graph toolbar, WorldPainter, and Area Inspector.",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes introduced in code, tasks, or docs.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/shared/scope-tree-picker.ts",
+      "static/js/graph/scope-tree.ts",
+      "static/js/graph/toolbar.ts",
+      "static/js/worldpainter/editor.ts",
+      "static/js/inspector/area-view.ts",
+      "templates/index.html",
+      "tools/unit/test_scope_tree_picker.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Main graph toolbar (top bar scope chip), WorldPainter scope header, and Area Inspector scope dropdown.\n\nCurrent availability: Prototype scope tree exists in `static/js/graph/scope-tree.ts` beside the graph, but all pickers still use flat native `<select>` dropdowns with hardcoded \"Zones\" optgroups.\n\nLive steps when available:\n1. Open `localhost:4444` on a scenario with multi-level nested scopes (e.g. `Millwood` with town, school, and floors).\n   - expected: Top toolbar displays the ScopeSelector chip showing active scope.\n2. Click the ScopeSelector chip.\n   - expected: A clean tree popover opens with search input, showing nested tree branches (`Whole world` -> `west millwood` -> `millwood public school` -> `Millwood High 1F`).\n3. Click the chevron `▸` next to a building scope.\n   - expected: The branch expands to reveal its interior floors with depth indent lines.\n4. Type `1F` into the search box.\n   - expected: The tree filters instantly to matching scopes with parent breadcrumbs highlighted.\n5. Press `Enter` or click `Millwood High 1F`.\n   - expected: Popover closes; graph loads the selected scope; ScopeSelector chip updates its label and icon.\n6. Open WorldPainter and Area Inspector.\n   - expected: Both surfaces use the exact same nested tree picker component.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Painter & Scope Editor]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/task-932-reusable-nested-tree-scope-selector-component.md"
+  }
+}

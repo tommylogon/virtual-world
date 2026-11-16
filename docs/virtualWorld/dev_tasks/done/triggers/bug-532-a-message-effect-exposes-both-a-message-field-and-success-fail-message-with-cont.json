@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "id": "bug-532",
+  "kind": "bug",
+  "number": 532,
+  "title": "A message effect exposes both a Message field and Success/Fail Message with contradictory precedence",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-306",
+      "task-200",
+      "task-739",
+      "task-512",
+      "bug-563"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The trigger editor shows a `message` effect with a **Message** field *and*, in the\nsame dialog, separate **Success Message** and **Fail Message** fields. They write\nthe same narration slot, and the engine resolves them with **contradictory\nprecedence**, so a value the author typed can be silently discarded.\n\nObserved live: authoring an `on_examine` → Show Message trigger produced an effect\nwhose params carry `message`, while the dialog also offered `success_message` /\n`fail_message`. The trigger worked, but the two fields compete.\n\nEvidence of the conflict:\n\n- **Runtime prefers `success_message` and overwrites `message`** -\n  `engine/triggers/execution.py:570-572`:\n  `if effect_params.get(\"success_message\"): effect_params[\"message\"] = effect_params[\"success_message\"]`.\n  A successful run therefore drops the authored `Message`.\n- **Legacy migration prefers `message`** - `engine/triggers/effect_resolution.py:23-27`\n  uses `success_message` only as a *fallback* when `message` is empty. Opposite order.\n- **Validation accepts any of the three** - `engine/trigger_validator.py:560-566`\n  treats `message` / `success_message` / `fail_message` as \"has text\", so it\n  cannot catch the conflict.\n- **Test runs repeat the runtime override** - `engine/triggers/testing.py:162-187`.\n- **Readers pick `success_message` first too** - `static/js/graph/tooltips.ts:206`,\n  `static/js/inspector/trigger-helpers.ts:176`.\n- **The editor writes both** - `static/js/inspector/item-view.ts:747-748` seeds\n  `success_message: ''` and `fail_message: ''` alongside the effect params.\n- `fail_message` is only meaningful for effects that can fail (scry, spawn,\n  ways, some spells) but the dialog shows it for every effect.\n\nThe result: two homes for one value, and which one wins depends on which code\npath runs (live execution vs. legacy migration vs. test harness vs. tooltip).",
+    "why": "Contradictory precedence between `message` and `success_message` in trigger effect schemas produced unpredictable output text.",
+    "how": "`message` is authoritative. `success_message` is a legacy alias promoted only\nwhen `message` is empty, and the same rule is applied at every site that reads\neither field.",
+    "verify": "1. Trigger an effect declaring both success_message and message\n   - expected: `message` renders in the event stream, because it is authoritative\n   - observed: `tests/test_trigger_system.py::test_message_effect_prefers_message_over_legacy_success_message` passes (2026-10-21)\n2. Trigger an effect declaring only the legacy `success_message`\n   - expected: it still narrates (the alias is promoted when `message` is empty)\n   - observed: `tests/test_trigger_system.py::test_message_effect_legacy_success_message_still_narrates_when_message_empty` passes (2026-10-21)",
+    "acceptance": [
+      {
+        "text": "One precedence rule, applied identically in execution, testing, tooltip,",
+        "done": true
+      },
+      {
+        "text": "trigger-helpers and legacy migration; recorded in a comment at the runtime site.",
+        "done": false
+      },
+      {
+        "text": "A regression test asserts the mechanism: both fields set -> `message` wins",
+        "done": true
+      },
+      {
+        "text": "(`test_message_effect_prefers_message_over_legacy_success_message`); a lone",
+        "done": false
+      },
+      {
+        "text": "`success_message` still narrates",
+        "done": false
+      },
+      {
+        "text": "(`test_message_effect_legacy_success_message_still_narrates_when_message_empty`).",
+        "done": false
+      },
+      {
+        "text": "Existing authored scenarios still render their intended message (`message`",
+        "done": true
+      },
+      {
+        "text": "wins; the legacy alias stays a fallback).",
+        "done": false
+      },
+      {
+        "text": "Editor UX follow-up: filed as",
+        "done": true
+      },
+      {
+        "text": "[[bug-563-a-message-effect-s-success-fail-fields-duplicate-the-effect-s-message-with-no-visible-precedence]]",
+        "done": false
+      },
+      {
+        "text": "(the trigger editor still shows trigger-level Success/Fail fields beside the",
+        "done": false
+      },
+      {
+        "text": "effect's `message`; collapsing to one unambiguous field and hiding",
+        "done": false
+      },
+      {
+        "text": "`fail_message` for effects that cannot fail is a UI change, not a precedence",
+        "done": false
+      },
+      {
+        "text": "change).",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/triggers/execution.py",
+      "engine/triggers/testing.py",
+      "engine/triggers/effect_resolution.py"
+    ],
+    "custom": {
+      "resolution_2026_10_09": "Chosen rule: **`message` is authoritative; `success_message` is a legacy alias\npromoted only when `message` is empty.** This matches the effect handlers (which\nread `message` / `fail_message`) and keeps `adjust_vital`-style effects that\nnarrate via `success_message` working. Applied identically at every site:\n\n- `engine/triggers/execution.py` (runtime) - added `not effect_params.get(\"message\")`.\n- `engine/triggers/testing.py` (×2, dry-run + live).\n- `static/js/graph/tooltips.ts`, `static/js/inspector/trigger-helpers.ts`,\n  `static/js/item-library.ts` (×2) - readers now `message`-first.\n- `engine/triggers/effect_resolution.py` already used this order (unchanged - it is\n  the reference).",
+      "verified_2026_10_21": "- `python -m pytest tests/ -k \"message_effect_prefers_message_over_legacy or legacy_success_message_still_narrates\"` - 2 passed.\n- Code reads, one rule at every site: `engine/triggers/execution.py:562` and\n  `engine/triggers/testing.py:124/:147` promote `success_message` only when\n  `message` is empty; `engine/triggers/effect_resolution.py:24` is the reference\n  order; `static/js/inspector/trigger-helpers.ts:214` is now `message`-first.\n- The editor still writes both fields (`static/js/inspector/item-view.ts:761`),\n  which is why the UI follow-up below exists. That is a field-ergonomics problem,\n  not a precedence problem: whatever survives the editor, `message` wins."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/bug-532-a-message-effect-exposes-both-a-message-field-and-success-fail-message-with-contradictory-precedence.md"
+  }
+}

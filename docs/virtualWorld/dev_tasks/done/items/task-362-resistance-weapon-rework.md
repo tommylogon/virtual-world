@@ -9,7 +9,7 @@ priority: medium
 
 ## Status
 
-**Status**: In Review — implementation complete 2026-08-05. Single `resistance` tag + `resistances` dict (data/library/tags/resistance.json exists), no per-type tags remain in engine/frontend; combat.py parses damage_dice + damage_type + damage_skill + resisted_damage; item-view.js + item-library.js wired for resistance/weapon fields. Moved from inprogress.
+**Status**: In Review - implementation complete 2026-08-05. Single `resistance` tag + `resistances` dict (data/library/tags/resistance.json exists), no per-type tags remain in engine/frontend; combat.py parses damage_dice + damage_type + damage_skill + resisted_damage; item-view.js + item-library.js wired for resistance/weapon fields. Moved from inprogress.
 
 ## What
 
@@ -18,8 +18,8 @@ Replace per-type resistance tags (`fire_resistant`, `cold_resistant`, etc.) with
 ## How
 
 ### 1. Tag Library
-- **Create** `data/library/tags/resistance.json` — single `resistance` tag
-- Remove per-type tag lookups from engine (no files to delete — they never existed as JSON)
+- **Create** `data/library/tags/resistance.json` - single `resistance` tag
+- Remove per-type tag lookups from engine (no files to delete - they never existed as JSON)
 
 ### 2. Engine: `engine/equipment_bonuses.py`
 - Remove `TAG_RESISTANCES` dict (per-type tag → damage_type mapping)

@@ -16,7 +16,7 @@ Clicking the Step (⏭) button rapidly while a step is in progress queues up mul
 
 ## Why
 
-`config.busy` is already set during `step()` and `updateButtons()` already disables the button based on `config.busy || config.running`. But `stepOnce()` only checks `config.running`, and the button disable happens after the first `await` — so rapid double-clicks before the async yield can slip through.
+`config.busy` is already set during `step()` and `updateButtons()` already disables the button based on `config.busy || config.running`. But `stepOnce()` only checks `config.running`, and the button disable happens after the first `await` - so rapid double-clicks before the async yield can slip through.
 
 ## How
 
@@ -30,11 +30,11 @@ if (config.busy || config.running) { ... return; }
 
 **Status**: Ready to test
 **How to test**:
-- Click the Step (⏭) button rapidly multiple times. Verify only one step executes per click — the button should disable during execution and no overlapping agent turns occur.
+- Click the Step (⏭) button rapidly multiple times. Verify only one step executes per click - the button should disable during execution and no overlapping agent turns occur.
 
 ## Files
 
-- `static/js/agent-engine.js` — add `config.busy` check in `stepOnce()`
+- `static/js/agent-engine.js` - add `config.busy` check in `stepOnce()`
 
 ## Steps to verify
 

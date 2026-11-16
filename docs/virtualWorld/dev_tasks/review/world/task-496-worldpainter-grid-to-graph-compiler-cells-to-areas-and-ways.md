@@ -307,8 +307,7 @@ WorldPainter needs a deterministic compiler to transform painted 2D cell grids (
 
 ## How
 
-Implemented engine/world_compile.py grid-to-graph compilation converting cells into area nodes and adjacency into way nodes; supports layers iome, 
-oad, and loor (storey + surface), with backward-compatible migration (RECIPE_ID grid.v2).
+Implemented engine/world_compile.py grid-to-graph compilation converting cells into area nodes and adjacency into way nodes; supports layers biome, road, and floor (storey + surface), with backward-compatible migration (RECIPE_ID grid.v2).
 
 ## Steps to verify
 
@@ -324,4 +323,4 @@ oad, and loor (storey + surface), with backward-compatible migration (RECIPE_ID
 - engine/world_grid.py
 - engine/world_compile.py
 - graph.py
-- 	ests/test_world_compile.py
+- tests/test_world_compile.py

@@ -334,7 +334,7 @@ done/prompting/task-186-agent-validation-and-feedback.md
 done/prompting/task-39-observe_rich_description.md
 done/refactor/task-216-lit-html-inspector-conversion.md
 done/refactor/task-218-agent-engine-clean-code-extraction.md
-done/refactor/task-219-prompt-builder-shared-fragment-extraction.md
+done/refactor/task-951-prompt-builder-shared-fragment-extraction.md
 done/refactor/task-314-modularize-largest-files.md
 done/refactor/task-341-single-source-room-perception.md
 done/refactor/task-343-consolidate-dual-condition-evaluators.md

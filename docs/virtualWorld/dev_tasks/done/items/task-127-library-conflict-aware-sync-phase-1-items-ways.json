@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-127",
+  "kind": "task",
+  "number": 127,
+  "title": "Library Conflict-Aware Sync - Phase 1: Items + Ways",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "\"Save to Library\" does a silent overwrite. If you save a world item that happens to share a name with a library entry, the library version gets replaced entirely - tags, triggers, properties and all. This is how the hand_lamp lost its proper definition.",
+    "how": "Replace silent overwrite with a diff modal (same pattern as graph-editor's selective import at `graph-editor/js/ui.js:3700-3780`). Sections that match are skipped; differing sections are highlighted green; user picks which to update or saves as a duplicate.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_done_moved_to_review": "",
+      "phase_1_scope_this_task": "Items and ways only. Characters and rooms come in Phase 2 (see task-95).\n\n### Backend\n- `routes/library_routes.py` - added `'ways'` to `REGISTRY_TYPES`. Existing generic CRUD at `/api/library/ways` handles listing, saving, and deleting way entries. No separate endpoint needed.\n- Way entries stored in `data/library/ways/<id>.json`\n\n### Frontend\n\n**1. `static/js/shared/diff-modal.js`** - reusable diff modal component\n```\nDiffModal.show(current, incoming, sections, options)\n  → returns null (cancel) | { action: 'update', sections: [...] } | { action: 'duplicate', name, id, sections }\n```\n- Section-by-section comparison using stringified equality\n- Green highlight on differing sections\n- Checkbox per section, pre-ticked if different\n- \"Update Selected\" button → merge checked sections\n- \"Save as Duplicate\" → prompt for new name, generate lowercase_id\n- **Bug fix**: modal-window was sibling of modal-overlay (black screen). Now appended as child so flexbox centering works.\n\n**Item sections:** name, description, actions, uses, weight, state, defense, damage, insulation, resistances, tags, triggers, contents\n\n**Way sections:** name, description, state, pass_message, needs_open, auto_close, see_through, tags, triggers\n\n**2. `item-library.js:saveWorldItem()`** - refactored with DiffModal\n- Uses `ApiClient.getLibraryType('items')` instead of broken `/api/registry/items/<id>` individual fetch\n- No existing entry → saves directly (still respects `locked_fields`)\n- Existing entry → shows DiffModal with 13 flat sections\n- \"Update Selected\" → merge checked sections, `locked_fields` enforced (library values win for locked fields)\n- \"Save as Duplicate\" → new entry with world data\n\n**3. `way-view.js`** - added library save\n- `_saveToLibrary(nodeId)` method + green button in footer\n- Wraps way properties + triggers → saves to `/api/library/ways`\n- Same DiffModal flow when entry already exists\n\n### Known issues\n- `syncAllWorldItems()` still does silent overwrite (planned for Phase 3)\n- `_saveToLibrary()` duplicate case doesn't apply `locked_fields` (ways don't use them yet)\n- No character/room library diff yet (Phase 2)\n\n### Files changed\n\n```\nvirtual_world/\n├── static/js/\n│   ├── shared/diff-modal.js           ← bugfix: modal→overlay nesting\n│   ├── item-library.js                ← refactored saveWorldItem with DiffModal\n│   └── inspector/way-view.js          ← added save button + _saveToLibrary\n├── routes/\n│   └── library_routes.py              ← added 'ways' to REGISTRY_TYPES\n└── templates/\n    └── index.html                     ← already loaded diff-modal.js\n```",
+      "phase_2_character_room_sync_task_95": "Not in scope here. See task-95 for full spec."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-127-library-diff-sync.md"
+  }
+}

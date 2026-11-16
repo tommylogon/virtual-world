@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "id": "task-425",
+  "kind": "task",
+  "number": 425,
+  "title": "Novelty recovery - Entertainment from places, things and people",
+  "status": "done",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Entertainment has **no recurring source**, so it sits at 0 forever.\n\nToday (`engine/movement.py:697-708`):\n\n```python\nwas_new = area_name not in player.visited_areas\nplayer.visited_areas.add(area_name)\nif was_new:            # +15, once per area, ever\nelif wanderlust:       # +3, ONLY for wanderlust characters\n```\n\nItem discovery (`take_drop_actions.py:41`) is the same shape - once per item, ever.\n`ACTIVITY_REGEN` has sleeping, resting, waiting, meditating, bathing, sitting and\nlying: **nothing recreational**. So a settled camp goblin's Entertainment decays\n(0.07/min ≈ 100/day) to zero within a day and nothing can restore it.",
+    "how": "1. **Delete** `visited_areas` and `discovered_items`; derive last-seen from\n   observation memories (the index they needed now exists - see above).\n2. Novelty helper (one place): `novelty_bonus(subject, tick)` returning the scaled\n   bonus. Recording is already handled by `Player.record_observation`; this only\n   reads `observation_tick`.\n3. `movement.py` area entry and the item discovery path use it, replacing the\n   `was_new` / `wanderlust` branches. Keep the trait scaling (`curious` ×1.5,\n   `homebody` 0).\n4. **Recreational fixtures** - entertainment should also come from *things in the\n   world*, the same fixture pattern as the wash spot: `on_use → adjust_vital\n   Entertainment +N`. A drum, a dice game, a book, a fire to sit at. This is what\n   makes a camp lively, and it means Entertainment is authored, not trickled.\n5. Config: `entertainment.novelty_recovery_minutes` (+ Engine Config schema).",
+    "verify": "- Unit: the curve - immediate re-entry 0, mid-window partial, saturated 15.\n- Unit: set→map migration on load.\n- Unit: a recreational fixture's authored `adjust_vital Entertainment` applies\n  (background and player).\n- Soak: Entertainment non-zero and stable over a week.",
+    "acceptance": [
+      {
+        "text": "Bouncing between two areas repeatedly yields ≈0; leaving one alone for the",
+        "done": false
+      },
+      {
+        "text": "recovery window and returning yields a bonus that saturates at 15.",
+        "done": false
+      },
+      {
+        "text": "A background week soak at 1 and 15 min/tick ends with **Entertainment above 0**",
+        "done": false
+      },
+      {
+        "text": "and settling, not pinned at 0.",
+        "done": false
+      },
+      {
+        "text": "Item interaction pays on the same curve; a first-ever discovery still pays full.",
+        "done": false
+      },
+      {
+        "text": "A subject with **no** observation memory pays full novelty; a visit refreshes",
+        "done": false
+      },
+      {
+        "text": "the previous observation in place rather than appending a second one (volume",
+        "done": false
+      },
+      {
+        "text": "stays bounded by subjects - already true, see task-403 slice 1).",
+        "done": false
+      },
+      {
+        "text": "An old save carrying `visited_areas`/`discovered_items` loads without error and",
+        "done": false
+      },
+      {
+        "text": "pays novelty from memory instead (the stale sets are ignored, so the first visit",
+        "done": false
+      },
+      {
+        "text": "after upgrading pays full - the generous reading).",
+        "done": false
+      },
+      {
+        "text": "The farm guard holds: repeatedly entering the same area produces far less than a",
+        "done": false
+      },
+      {
+        "text": "fresh route over the same time.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_2026_09_21": "Done. Entertainment is no longer pinned at 0, and it settles rather than\npegging.\n\n### Corrected after the fact (while fixing task-434)\n\nThe rest of this section is the design as first built. Four things about it were\nwrong, all found by fixing one unrelated double-pay and following the thread:\n\n1. **Perceived novelty never paid anything.** `_grant_arrival_entertainment`\n   called `grant()`, which recomputes freshness from the tick `observe_area` had\n   just refreshed - so it measured 0 for every subject on every arrival. The\n   entertainment the soaks showed came from the fixtures and (later) social\n   conversations. My tests here checked `grant` and `observe_area` separately and\n   never the composition.\n2. **The window was measured in the wrong unit.** `freshness` compared a tick\n   delta against a window authored in *game minutes*, so the 2-hour window was 2\n   hours only at 1 min/tick; at 15 min/tick it was 30 hours. `Player.minutes_per_tick`\n   is now refreshed by the tick loop and the window derived in ticks.\n3. **The window guards bouncing but not roaming, so it was not the farm guard.**\n   With 31 areas a character revisits one only after ~5 hours, so every arrival is\n   a fresh subject and pays: a fresh subject per action against 43/day of decay is\n   unbounded. Measured with only the area subject paying and social off, one day\n   still pinned Entertainment at 81. **`NOVELTY_DAILY_BUDGET = 30`** now bounds it -\n   the \"diminishing returns within a day\" option this task listed and I did not\n   take. The measurement says the window alone is insufficient; the two work\n   together.\n4. **People came off the arrival path.** Paying for characters on sight saturated\n   the meter (a crowded camp re-observes 5-10 people per arrival, all going stale\n   within the window): 87 avg / 100 max with the authored fixtures never firing.\n   `observe_area` now records the **area and its items** only; a person is claimed\n   by `register_first_meeting` (task-434), which is what pays for meeting them. The\n   \"item novelty is paid on perception\" decision below still stands for items.\n\nEntertainment now settles mid-range instead of pinned at either end:\n\n| | 1 min/tick | 15 min/tick |\n|---|---|---|\n| Entertainment | **49.1** (40-68) | **50.1** (29-70) |\n| Social | 81.4 | 81.4 |\n\n**As first built** (superseded by the numbers above), a background week ended at\n**40.1 avg / 25 min / 50 max at 15 min/tick** and **39.3 / 24 / 50 at 1 min/tick**,\n23/23 alive - which the two tick lengths agreeing made look healthy.\n\n- `engine/novelty.py` - one curve for three subjects, `NOVELTY_MAX = 15`,\n  `curious` ×1.5, `homebody` 0, `wanderlust` recovers on half the window (which\n  is how the old `+3 on re-entry` survives). Config\n  `entertainment.novelty_recovery_minutes` (default 120).\n- `observe_area` now reports each subject's **freshness measured before it\n  refreshes the observation** - that is why the curve is computed there and not\n  re-derived by the caller: an entry both refreshes the tick and earns novelty,\n  and reading the tick afterwards reports every arrival as already stale.\n- `movement.py` pays per subject the arrival made fresh (area, things, people)\n  instead of a flat \"+15 for a new area\"; the `was_new`/`wanderlust` branches are\n  gone. `visited_areas` is still written because spatial memory reads it.\n- Item discovery is the same curve. The old \"+8 once ever\" set test is gone.\n- Three authored fixtures (`camp_drum`, `knucklebones`, `story_fire`) placed by\n  `tools/add_renewable_sources.py` in Chief's Pit, Camp Entrance and Cooking\n  Area, plus a `_recreate` step in the background tier, which gates on need -\n  that gate is also the anti-spam.\n\n### Two decisions worth recording\n\n**Item novelty is paid on perception, not only on take/use.** The subject table\nbelow says \"item - taking or using it\", and the non-goal defers perceptual\nnovelty \"until the perception path can carry it\". The perception path now carries\nit: entering an area observes what is visible there, so paying on take would pay\n**zero** - the entry already stamped the item. Paying at perception is strictly\nbetter and is what `observe_area` already computes. The take/examine path is kept\nas a fallback for items perception could not see: hidden until examined, or taken\nout of a container.\n\n**The curve is squared, not linear.** A linear ramp pays a little for any gap: a\ntwo-room bounce every 10 minutes earned +1 a hop, 6/hour against Entertainment's\n1.8/hour decay - the treadmill the window was meant to prevent, and the \"window\ncomparable to the decay time\" reasoning further down was wrong about it. Squaring\nmakes a short gap worth nothing (10 minutes of 120 pays 0; 40 minutes pays 2)\nwhile a real absence still pays in full. It also matches \"rising toward +15\"\nbetter: slow at first, then real.\n\n### Not done here\n\n`visited_areas` and `discovered_items` are **not deleted**, because they have\nconsumers beyond novelty: spatial memory's known-route filter, the `adventurous`\nmicro-modifier in `tick_manager`, `take_drop_actions`' bookkeeping, and three\nfrontend readers (`room-context.js`, `memory-context.js`,\n`contextual-actions.js`). Both are still written, so those readers keep working.\nRetiring them is filed as **task-430**.",
+      "design_novelty_is_a_per_subject_recovery_curve": "Replace the binary new/familiar test with a **recovering** bonus, per character:\n\n```\nfreshness = clamp((now - last_enjoyed_tick[subject]) / NOVELTY_RECOVERY_MINUTES, 0, 1)\nbonus     = round(NOVELTY_MAX * freshness)      # NOVELTY_MAX = 15\nlast_enjoyed_tick[subject] = now\n```\n\nBehaviour the user specified: bounce between two areas and you get +15 on the new\none, **0** on the one you just left, and **0** immediately on return; wait a while\nand it pays again, rising toward +15 as the subject goes stale. It saturates back\nat the original novelty value, never above it.\n\n**Subjects** - one mechanic, three uses:\n\n| subject | triggered by | note |\n|---|---|---|\n| area | entering it | replaces `visited_areas` membership test |\n| item | taking or using it | replaces `discovered_items` membership test |\n| person | meeting/socialising | gives task-423 a recurring Entertainment source, and reuses the existing `_grant_meeting_entertainment` |\n\n### Farming guard (important)\n\nWith a short recovery window this is a travel treadmill: bounce between two rooms\nand Entertainment is free. Two acceptable fixes, pick one and hold it -\n\n- **A window comparable to the decay time** (Entertainment empties in ~24h; a full\n  refresh somewhere in the 1–4h range), so a route earns variety but loitering and\n  bouncing do not; or\n- **diminishing returns within a day** (the same subject pays progressively less\n  until it has genuinely gone stale).\n\nMake it a config key (`entertainment.novelty_recovery_minutes`, default to be\ndecided) so the tuning lives with the other rates.\n\n### Derive the timestamps from observation memories (preferred)\n\n`visited_areas` and `discovered_items` are **sets** today. Rather than grow them\ninto name→tick maps, take `last_enjoyed[subject]` from the **observation memory**\nabout that subject, which already carries who/what/where/when. Then:\n\n```\nlast_enjoyed(subject) = the tick of the live observation memory about subject\n```\n\nand the recovery curve reads that timestamp. `visited_areas` and\n`discovered_items` are **deleted** rather than migrated: two more parallel\nstructures gone, which is the same move as `areas`/`rooms` and `entity_ids`.\n\n**The observation memory already exists** (task-403 slice 1, 2026-09-21) - this\ndependency is met, so the shape below is what is actually on `Player`, not a\nproposal:\n\n| need | read this |\n|---|---|\n| last seen | `player.observation_tick(subject_id)` → tick or `None` |\n| has seen | `player.has_seen(subject_id)` |\n| the memory | `player.observation_memory(subject_id)` → `{entity_ids: [subject_id], location, kind, tick, visits, tags, text, superseded_by?}` |\n| subject index | `player.memory_index` (`subject_id → memory_id`) |\n\n`kind` is `\"area\"` / `\"item\"` / `\"character\"`, which is the subject kind.\nRecording is `player.record_observation(subject_id, text, tick, kind=..., location=...)`,\nand it **refreshes in place** - sightings do not chain, so volume stays bounded\nby subjects. `supersede_observation(subject_id, reason)` retires a belief that\nwas replaced and is the only path that sets `superseded_by`.\n\nMeasured boundedness (task-403): 908 memories after a week at 1 min/tick vs 912\nafter a week at 15 min/tick - 15x the game time, the same count.\n\nNovelty therefore no longer needs its own write path: entering an area is\nalready an observation (`engine/movement.py`), and item discovery can record one\ntoo. `novelty_bonus(subject, tick)` only has to *read* `observation_tick` and\nscale it - plus scale the trait multipliers.\n\n**Note on what \"supersede instead of append\" turned into.** The original sketch\nhad each visit supersede the previous observation; implementation refreshes the\none memory in place, which achieves the same bound with a smaller structure. The\ntrace remains the history (bounded, salient-first) while the memory holds the\ncurrent belief - the existing trace/memory split.\n\n**Emergent bonus, and one caveat.** Forgetting re-enchants the world: an area a\ncharacter can no longer remember becomes novel again, which is a lovely\nconsequence of the coupling and worth keeping - `Player._trim_memories` drops the\nevicted subject from `memory_index` so this falls out for free. The caveat is the\ncoupling itself - suppression, eviction and deliberate forgetting now move a\nvitals system, so that has to be stated rather than discovered.",
+      "non_goals": "- Perceptual novelty (\"I *saw* a known item in a new area\") - that is a perception\n  trigger, not an action; defer until the perception path can carry it.\n- Social interaction itself (task-423) - this only supplies the bonus it grants.\n- Sanity, which wants its own sources (comfort, company, fear relief)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "relates": "task-136 (novelty traits), task-423 (social interactions), task-410",
+      "spec": "`engine/movement.py:694-708`, `engine/items/take_drop_actions.py:41`,"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-425-novelty-recovery-and-recreation.md"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-54",
+  "kind": "task",
+  "number": 54,
+  "title": "Universal Weapon System",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Players should be able to attack each other using items as weapons. This includes both the slasher (Butcher) and normal characters (Kyrie with wrench, anyone with a cleaver, etc.).",
+    "why": "- `attack [target]` → routes to `_slasher_attack()` which only works for `is_slasher` characters. Non-slashers get bare-handed messaging but the combat logic doesn't use their STR properly.\n- `attack [target] with [item]` → not parsed, target string includes `\" with [item]\"` → player not found\n- `use [weapon] on [target]` → no `on_use_on` triggers on weapons → \"Nothing happens\"",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "command_syntax_choices": "Two possible approaches. We should pick **one**:\n\n### Option A: `attack [target] with [item]`\n- Parses `\"jake with cleaver\"` → splits on `\" with \"` → target=Jake, weapon=cleaver\n- Requires rewording the `attack` handler to search for `\" with \"` in the rest of the command\n- Output example: *\"You swing the cleaver at Jake. It connects - a deep gash opens across his arm. (-18 HP)\"*\n\n### Option B: `use [weapon] on [target]` (existing syntax)\n- Already partially works: finds weapon item, finds target player via fuzzy name match\n- Needs: add `on_use_on` trigger to weapon items with `adjust_vital` HP damage effect\n- `effect_target: \"other\"` would need to apply to the target player\n- But `use cleaver on jake` currently routes to `use_item_on()` which checks for `on_use_on` triggers on the item - so we just add the trigger\n\n**Recommendation: Option A** - `attack [target] with [item]` - because:\n- `attack` is the combat verb, not `use`\n- Slasher-specific logic (`_slasher_attack`) can be generalized to accept a weapon parameter\n- Clearer for players: `attack jake` (bare-handed) vs `attack jake with cleaver` (weapon)",
+      "what_needs_to_change": "### 1. `app.py` - Parse `attack [target] with [item]`\n\n```python\nelif cmd.startswith(\"attack \"):\n    rest = cmd[7:].strip()\n    weapon = None\n    target = rest\n    if \" with \" in rest:\n        parts = rest.split(\" with \", 1)\n        target = parts[0].strip()\n        weapon_name = parts[1].strip()\n        # Look up weapon in player inventory\n        inventory = world.get_inventory_items()  # returns item nodes\n        weapon = next((item for item in inventory if item.name.lower() == weapon_name.lower()), None)\n```\n\n### 2. `virtual_world_engine.py` - Generalize `_slasher_attack`\n\nRename to `_player_attack` or add a weapon parameter:\n\n```python\ndef _player_attack(self, attacker_name: str, target_name: str, weapon_node=None) -> str:\n    \"\"\"Player attacks another player, optionally with a weapon.\"\"\"\n    attacker = self.players.get(attacker_name)\n    target = self.players.get(target_name)\n    if not attacker or not target:\n        return \"You can't do that.\"\n    \n    # Base damage: STR bonus\n    str_bonus = (attacker.stats.get(\"STR\", 10) - 10) // 2\n    \n    if weapon_node:\n        # Weapon damage from properties\n        wp = weapon_node.properties\n        weapon_damage = int(wp.get(\"damage\", 0))\n        weapon_name = wp.get(\"name\", weapon_node.name)\n        total_damage = max(1, weapon_damage + str_bonus)\n        # Decrement uses if applicable\n        uses = wp.get(\"uses\", -1)\n        if uses > 0:\n            wp[\"uses\"] = uses - 1\n        target.vitals[\"HP\"] = max(0, target.vitals.get(\"HP\", 100) - total_damage)\n        return f\"You swing the {weapon_name} at {target_name}. It connects! ({total_damage} damage)\"\n    else:\n        # Bare-handed\n        total_damage = max(1, str_bonus)\n        target.vitals[\"HP\"] = max(0, target.vitals.get(\"HP\", 100) - total_damage)\n        return f\"You punch {target_name} for {total_damage} damage.\"\n```\n\n### 3. Weapon Item Properties\n\nEach weapon needs a `damage` field and optionally `weapon_type`:\n\n| Item | Damage | Type | Special |\n|------|--------|------|---------|\n| Cleaver (Butcher) | 20 | blade | +STR bonus, slasher bonus |\n| Wrench (Kyrie) | 12 | blunt | +STR bonus |\n| Multitool (Jake) | 8 | blade | small, last resort |\n| Hook (Butcher) | 15 | piercing | also used for grapple |\n\n### 4. Relationship Impact\n\nAttacking someone should affect relationships:\n- `attack [target]` → -5 closeness\n- `attack [target] with [weapon]` → -10 closeness (worse with a weapon)\n\n### 5. Slasher Bonuses\n\nIf the attacker has `is_slasher` trait:\n- Double STR bonus to damage\n- Bonus damage based on attack_bonus stat\n- Different narrative tone (more violent descriptions)",
+      "edge_cases": "| Case | Behavior |\n|------|----------|\n| Target not in room | \"They aren't here.\" |\n| Weapon not in inventory | \"You don't have that.\" |\n| Weapon has 0 uses | \"The [weapon] breaks!\" (on_depleted trigger) |\n| Target HP reaches 0 | Target enters `unconscious` or `dead` state |\n| Attacker attacks self | \"You can't attack yourself.\" |\n| Slasher vs normal | Slasher gets damage bonuses, but normal characters can still hit |\n| Multiple weapons in inventory | Pick the first match by name (fuzzy) |"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Combat System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-54-weapon_system.md"
+  }
+}

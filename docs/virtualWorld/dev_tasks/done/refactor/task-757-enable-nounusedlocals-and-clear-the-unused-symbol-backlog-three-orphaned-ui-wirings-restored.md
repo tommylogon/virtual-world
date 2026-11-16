@@ -24,9 +24,9 @@ silently lost its image picker. The compiler knew; we told it not to say.
 ## How
 
 - `tsconfig.json`: add `noUnusedLocals: true`. `tsconfig.check.json` is left
-  alone on purpose — it includes the generated `.js`, which would double every
+  alone on purpose - it includes the generated `.js`, which would double every
   finding; the `.ts` build is the gate.
-- Delete the unused locals/types. Three are **not** dead — they are dropped
+- Delete the unused locals/types. Three are **not** dead - they are dropped
   wiring, restored instead:
   - `durabilityChip` hoisted from `renderPaperdollEquipmentHtml` to module scope
     in `inspector/paperdoll-view.ts`; the `showSlotModal` call was out of scope
@@ -36,7 +36,7 @@ silently lost its image picker. The compiler knew; we told it not to say.
     (`ui/saveload-view.ts`) so `main.ts`'s guarded call resolves.
   - `renderVitalMetrics()` called from the `vitals` case in `renderCharts()`
     (`soak/soak-ui.ts`).
-- Remove the shadowed `doorTags` local (`room-context.ts`) — the new system
+- Remove the shadowed `doorTags` local (`room-context.ts`) - the new system
   reads way tags, not area tags.
 - Remove the duplicate emotion plumbing in the memory-edit modal; its home is
   the Mind view (task-756). The per-action intimacy intensities were literal
@@ -58,8 +58,8 @@ silently lost its image picker. The compiler knew; we told it not to say.
 
 ## Files
 
-- `tsconfig.json` — `noUnusedLocals: true`
-- `static/js/agent/**`, `static/js/inspector/**`, `static/js/shared/**`, `static/js/soak/**`, `static/js/ui/**`, `static/js/nl-editor/ghosts.ts`, `static/js/bug-report.ts`, `static/js/agent-engine.ts` — deletions
-- `static/js/inspector/paperdoll-view.ts`, `static/js/ui/saveload-view.ts`, `static/js/soak/soak-ui.ts` — restored wiring
-- `tools/window-usage-reviewed.json` — `way-view.js::Lit` verdict
-- `tools/unit/test_worldpainter.js` — `_referenceControl` regression guard (earlier)
+- `tsconfig.json` - `noUnusedLocals: true`
+- `static/js/agent/**`, `static/js/inspector/**`, `static/js/shared/**`, `static/js/soak/**`, `static/js/ui/**`, `static/js/nl-editor/ghosts.ts`, `static/js/bug-report.ts`, `static/js/agent-engine.ts` - deletions
+- `static/js/inspector/paperdoll-view.ts`, `static/js/ui/saveload-view.ts`, `static/js/soak/soak-ui.ts` - restored wiring
+- `tools/window-usage-reviewed.json` - `way-view.js::Lit` verdict
+- `tools/unit/test_worldpainter.js` - `_referenceControl` regression guard (earlier)

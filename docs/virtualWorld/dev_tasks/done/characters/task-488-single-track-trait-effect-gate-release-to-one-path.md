@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-23
 **Related:** task-213, task-545, task-546
 
-## Blocked (2026-09-27) — two prerequisites do not exist
+## Blocked (2026-09-27) - two prerequisites do not exist
 
 Re-measured before implementing: gating a release by path needs two things the
 engine cannot currently express.
@@ -37,33 +37,33 @@ Wire the single_track trait effect, which is currently defined but inert (effect
 ## Acceptance
 
 - [x] **`single_track` gains a live consumer that gates release to one designated
-      path** — it was `effects: {single_track: true}` with no consumer, and now
+      path** - it was `effects: {single_track: true}` with no consumer, and now
       the release cascade asks `_release_gate` before firing.
 - [x] **Other stimulation builds frustration/edging instead of triggering
-      release** — a refused build gets `frustrated` (task-546), so a gated
+      release** - a refused build gets `frustrated` (task-546), so a gated
       character is never left sitting at 65 with nothing to show for it.
-- [x] **Only active when `world.mature_content` is on** — the gate lives inside
+- [x] **Only active when `world.mature_content` is on** - the gate lives inside
       `_pleasure_tick`, which returns before it when the toggle is off, and the
       designated route is read from the trait's own `mature: true` flag.
 - [x] **Tests asserting a non-designated path does not release and the designated
-      path does** — plus that non-carriers and a trait with no named route are
+      path does** - plus that non-carriers and a trait with no named route are
       both completely unaffected.
 
-## Implementation — 2026-10-02 (WT-characters-engine)
+## Implementation - 2026-10-02 (WT-characters-engine)
 
 The two blockers named in the "Blocked" note above are now built (task-545 path
 tracking, task-546 frustration), so this is the gate those two existed for.
 
 ### Files
 
-- `engine/tick_manager.py` — `_release_gate`, `_single_track_designated`, and the
+- `engine/tick_manager.py` - `_release_gate`, `_single_track_designated`, and the
   call site inside the release branch of `_pleasure_tick`.
-- `tests/test_stimulation_paths.py` — the gate tests.
+- `tests/test_stimulation_paths.py` - the gate tests.
 
 ### The decisions
 
 1. **A gate, not a branch inside the cascade.** `_release_gate(p, stim)` returns
-   `(allowed, reason)`, and for anyone without the trait that is `(True, "")` —
+   `(allowed, reason)`, and for anyone without the trait that is `(True, "")` -
    the ordinary cascade is provably untouched, which is what the task asks for and
    what makes it safe to add.
 2. **The designated route lives in the trait params** (`path`, or `region`, or
@@ -79,13 +79,13 @@ tracking, task-546 frustration), so this is the gate those two existed for.
    record under `genitals` (via `engine.body_parts.region_chain`), so an author is
    not forced to know which sub-region the engine resolves for them. An exact
    match is checked first, so naming the precise route is worth doing.
-5. **The gate reads the recorded path, not history** — `stimulation_from_path`,
+5. **The gate reads the recorded path, not history** - `stimulation_from_path`,
    which is task-545's whole point.
 
 ### The bug the negative test caught
 
 `_single_track_designated` matched an ancestor route with
-`if key in region_chain(key)` — true for every key — instead of
+`if key in region_chain(key)` - true for every key - instead of
 `if named in region_chain(key)`. It therefore returned the *first recorded path*
 whatever the trait named, so the gate released every build and the trait was a
 no-op. Every positive assertion passes with that bug in place; only
@@ -104,7 +104,7 @@ python -m pytest tests/test_pleasure_system.py tests/test_body_parts.py \
 failed on both, `Compare-Object` empty.
 
 
-### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`
 
 Each case: a probe character with `mature_content` on, one `caress` applied, the
 meter forced past the threshold, then `_pleasure_tick`.

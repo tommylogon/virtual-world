@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-768",
+  "kind": "task",
+  "number": 768,
+  "title": "Node-count-aware physics so the graph supports any world size",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-437"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The solver constants are tuned to one world of about 638 nodes. Physics must scale: disable or switch to a static/saved layout above a node-count threshold so a 10-node scene and a very large world both behave. The graph layer must not assume a few hundred nodes.",
+    "why": "The vis.js physics simulation becomes CPU-prohibitive on massive graphs (>8000 nodes), causing browser freezes unless physics is automatically disabled above threshold.",
+    "how": "`GraphNetwork.PHYSICS_NODE_LIMIT` (8000) is a **safety valve**, checked in\n`applyModePhysics` and `buildOptions` via `nodesOverPhysicsLimit()`. Above the\nlimit physics is forced off regardless of the user's setting; below it the\nuser's default-on physics is untouched. This stops the \"1M nodes\" catastrophe\nwithout changing normal worlds.\n\nThis is deliberately a valve, not full scaling. A larger world still needs a\nrendering strategy vis-network cannot give for free (clustering, LOD, culling) -\nthat remains open and is a separate, bigger effort.",
+    "verify": "1. Load a world with > 8000 nodes.\n   - expected: physics off automatically; graph still renders.\n   - observed: valve present (not yet exercised at scale).\n2. Load a normal world (< 8000).\n   - expected: physics on, per the user's setting.\n   - observed: 2763 nodes → physics on. OK.",
+    "acceptance": [
+      {
+        "text": "Above the limit, physics is off; below it, honored.",
+        "done": false
+      },
+      {
+        "text": "The threshold is documented as a valve, not a tuned constant.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/network-manager.ts` (`PHYSICS_NODE_LIMIT`,",
+      "nodesOverPhysicsLimit`, `applyModePhysics`, `buildOptions`)"
+    ],
+    "custom": {
+      "progress_2026_10_10": "Implemented: `PHYSICS_NODE_LIMIT` + `nodesOverPhysicsLimit()`, folded into\n`applyModePhysics` and `buildOptions`. **Adjustable** via the\n`graph_physics_node_limit` config key (default 8000), so a big world can be\nre-enabled deliberately. Live check: 2763-node camp → limit 8000, `over=false`,\nphysics still on (user's default preserved). Still open: a *visible* indicator\nwhen physics is auto-suppressed, so it is never silent."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-768-node-count-aware-physics-so-the-graph-supports-any-world-size.md"
+  }
+}

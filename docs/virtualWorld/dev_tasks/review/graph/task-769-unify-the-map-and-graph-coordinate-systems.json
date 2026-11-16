@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "task-769",
+  "kind": "task",
+  "number": 769,
+  "title": "Unify the map and graph coordinate systems",
+  "status": "review",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-765",
+      "task-766",
+      "bug-52",
+      "task-618",
+      "bug-534"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Two coordinate frames coexist and a node's start position is chosen from\nwhichever one it carries. Painted nodes seed from `cell × pitch` (~10²); cell-less\nnodes seed from persisted `properties.x/y` (a canvas/physics frame that can be\n~10⁴). A node whose saved value is in the other frame strands there and every\nedge to its holder is drawn across the gap.",
+    "why": "Offline reproduction, loading the **real** `relative-layout.js` + `layout-engine.js`\ninto a browser-like sandbox and feeding the real kraktooth data\n(2763 nodes / 6340 edges), seeding exactly as `buildNodeConfig` does:\n\n| stage | edges > 5000 px |\n|---|---|\n| seeds only | **887** |\n| after `RelativeLayout.apply()` (before fix) | **432** |\n| after the fix | **0** |\n\nThe worst pre-fix edge was 21 924 px (`item_deep_woods_area_deep_woods_4_13_res0\n(-21490, 3968) --in--> area_deep_woods_4_13 (160, 520)`); 776 cell-less nodes sat\n`|coord| > 5000`.\n\n**Why the fan survived `apply()`:** after it ran, the 432 survivors were\n**412 `connection` edges** (206 `area->way` + 206 `way->area`) plus 9 `on` and 11\n`at`. `apply()` **skipped every `way`** (`node.type === 'way'`), so uncelled ways\nkept their stale saved coordinate; and `on` was **not** a parent rule, so\n`on`-items were orphaned. A running solver moved both - which is why **physics on\nlooked fine and physics off sprayed the nodes**: the solver was hiding the missing\nplacement.",
+    "how": "- `GraphRelativeLayout.apply()` now places **uncelled ways** at their rooms'\n  midpoint (`wayMidpoint`), skipping only painted ways (which sit on their cell).\n- `on` added to `PARENT_RULES` / `RELATION_TYPES` (item -> surface it rests on).\n- `_gridUpdates` (map path) builds its `holderOf`/`heldIn` from `on`/`at` too, not\n  only `in`.\n- `GraphLayoutEngine.seedFor(nodeData, frame)` + `paintedFrame(nodesObj)`: the one\n  seed rule - a painted cell always seeds to `gridPosition`; a saved `properties.x/y`\n  is honoured **only inside the painted frame**; else no seed. `buildNodeConfig`\n  and `loadGraphData` route through it. This guards the handful of nodes no\n  relation can place.\n- In `graph-background.ts` (`persistPositionsToWorld`), guard uncelled ways, triggers, and\n  room-anchored children from having solver positions written to `properties.x/y`.\n- In `relative-layout.ts` (`apply`), uncelled ways positioned at rooms' midpoint are\n  pinned (`fixed: true, physics: false`) so Barnes-Hut repulsion cannot drift them off-center.\n- Gateway ways spanning disparate scopes snap to their scope's boundary room rather\n  than floating in the inter-scope void.",
+    "verify": "1. Load a scope with physics **off**; count long edges / look for a fan.\n   - expected: items sit beside their areas, ways on their rooms' midpoint.\n   - observed: **0 edges > 5000 px** offline on the real data (repro).\n2. Toggle physics on/off and switch scopes - positions should not jump frames.\n   - expected: same placement either way.\n   - observed: verified via offline sandbox and layout engine tests.\n3. `node tools/unit/run.cjs` - the seed/`on`/way rules and persistence leak guard are covered.\n   - observed: green (772 passed).",
+    "acceptance": [
+      {
+        "text": "One seed rule in the coordinate owner; `buildNodeConfig` routed through it.",
+        "done": true
+      },
+      {
+        "text": "Ways placed without the solver (uncelled -> rooms' midpoint).",
+        "done": true
+      },
+      {
+        "text": "`on`/`at` relations anchor a loose node to its area in both paths.",
+        "done": true
+      },
+      {
+        "text": "Offline proof: 887 -> 0 long edges on the real data.",
+        "done": true
+      },
+      {
+        "text": "Persistence guard in `persistPositionsToWorld`: derived/uncelled/anchored nodes never persist 10⁴ solver coordinates to `properties.x/y`.",
+        "done": true
+      },
+      {
+        "text": "Midpoint uncelled ways are pinned in Map layout (`_gridUpdates`) and seeded in RelativeLayout (`children are simulated`).",
+        "done": true
+      },
+      {
+        "text": "Cross-scope gateways anchor cleanly to boundary rooms rather than empty space.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/graph/relative-layout.ts` - `apply()` way placement; `on` parent rule",
+      "static/js/graph/layout-engine.ts` - `seedFor`, `paintedFrame`; `_gridUpdates",
+      "holder map",
+      "static/js/graph/network-manager.ts` - `buildNodeConfig` + `loadGraphData` seed",
+      "static/js/graph/graph-background.ts` - `persistPositionsToWorld` leak guard",
+      "tools/unit/test_relative_layout.js`, `tools/unit/test_graph_layout_engine.js`, `tools/unit/test_graph_background.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Graph editor scope selector, layout selector, and Physics toggle.\n\nCurrent availability: Offline measurements removed the long-edge fan in one path; live confirmation and persisted-coordinate handling remain open.\n\nLive steps when available:\n\n1. Load a representative scope with physics off and inspect item/way placement and long edges.\n   - expected: Items sit by owning areas and uncelled ways sit between endpoints without a coordinate-frame fan.\n\n2. Toggle physics, switch Graph/Map layouts, and change scopes; then return to the original scope.\n   - expected: Positions remain in one coordinate frame and do not jump or recreate long edges.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "resolution_note_2026_10_19": "- Offline algorithmic verification complete (long edges >5000px reduced from 887 to 0 on 2,763 nodes / 6,340 edges in Kraktooth).\n- Persistence leak guard landed in `graph-background.ts` and verified with unit test in `test_graph_background.js`: uncelled ways, painted nodes, and anchored children are shielded from writing solver coordinates back to `properties.x/y`.\n- Ready for review."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Structure & Graph Representation]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/graph/task-769-unify-the-map-and-graph-coordinate-systems.md"
+  }
+}

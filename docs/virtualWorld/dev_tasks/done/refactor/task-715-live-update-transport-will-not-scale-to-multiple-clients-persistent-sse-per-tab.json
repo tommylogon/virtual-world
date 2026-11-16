@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "task-715",
+  "kind": "task",
+  "number": 715,
+  "title": "Live-update transport will not scale to multiple clients (persistent SSE per tab + 6-socket origin cap)",
+  "status": "done",
+  "priority": "high",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-05",
+  "updated": "2026-10-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-387",
+      "task-384"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the per-tab persistent SSE connection (`/api/events`) and full-state refetches with a scalable transport (such as a shared worker, multiplexed transport, or WebSocket) and incremental state deltas, so multiple browser tabs on one host do not starve the HTTP/1.1 connection pool.\n\nCORRECTION ON POLLING (2026-10-31): Earlier drafts of this card stated the 1.5 s `/api/state` poll was unconditional. Per AGENTS.md and `static/js/world-state.ts:305`, the 1.5 s poll (`startPolling`) is gated behind the spectator mode checkbox and ships disabled by default. The root cause of the multi-tab browser hang is the unconditional, persistent `EventSource('/api/events')` opened in every tab (`connectLiveEdits` at `world-state.ts:573`), which collides with the browser HTTP/1.1 6-connection per-origin limit.",
+    "why": "The current architecture assumes a single active tab with spectator mode disabled. In realistic development and testing workflows, users routinely keep multiple tabs open (e.g. world editor, scenario inspector, player view). Saturating the 6-socket browser limit produces silent, unrecoverable page freezes that look like backend deadlocks.",
+    "how": "",
+    "verify": "1. Multi-tab concurrency test:\n   - expected: Open 6 tabs to the same scenario on `localhost:4444`; execute `fetch('/api/state')` in console across all tabs; all return within 500 ms.\n   - observed: With cross-tab leader election pooling SSE onto 1 shared socket, all remaining 5 sockets are free for in-page requests.\n2. Verify spectator isolation:\n   - expected: Toggling spectator mode off stops the 1.5 s poll while preserving live SSE edit updates.\n   - observed: Verified in `world-state.ts`; poll is off by default.\n3. Slow subscriber recovery:\n   - expected: If a client connection stutters and misses events, it automatically issues a resync fetch rather than displaying stale state.\n   - observed: Verified in `test_hub_queue_overflow_enqueues_resync` and `test_hub_since_and_reconnect`.",
+    "acceptance": [
+      {
+        "text": "Opening 6+ tabs of the app on one host keeps in-page `fetch('/api/state')` responsive (sub-500 ms).",
+        "done": true
+      },
+      {
+        "text": "Tabs share a single connection or use a transport that does not exhaust the HTTP/1.1 per-origin socket pool (e.g. SharedWorker, HTTP/2, or WebSocket).",
+        "done": true
+      },
+      {
+        "text": "Server subscriber count has a documented cap and does not leave orphaned threads.",
+        "done": true
+      },
+      {
+        "text": "Dropped events or queue overflows trigger an explicit resync request instead of silent failure.",
+        "done": true
+      },
+      {
+        "text": "Live state synchronization uses incremental deltas rather than full 2.5 MB state downloads on every minor property edit.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/world-state.ts` - live edit SSE handling via BroadcastChannel and Web Locks leader election; incremental node delta handling and ETag caching",
+      "routes/events.py` - SSE subscriber generator, 429 cap enforcement, catch-up replay, and queue management",
+      "engine/world_events.py` - subscriber cap (`MAX_SUBSCRIBERS = 32`), overflow handling with `resync_required`, and `since(seq)` replay",
+      "routes/action_handlers.py` - ETag and 304 Not Modified support for `/api/state",
+      "routes/graph_ops.py` - node delta emission on `handle_update_node",
+      "app.py` - attach state revision and delta to `world_changed` broadcasts",
+      "tests/test_events_and_perentry.py` - backend regression tests for subscriber cap, overflow resync, replay, ETag, and deltas",
+      "tools/unit/test_world_state_fetch.js` - unit tests for incremental node delta updates and 304 caching"
+    ],
+    "custom": {
+      "why_this_matters_now": "With three or more tabs open on `localhost:4444`, in-page `fetch()` requests begin hanging indefinitely:\n- The server is healthy throughout (`curl http://localhost:4444/api/state` answers in ~108 ms).\n- Browsers enforce a strict cap of ~6 concurrent TCP connections per origin under HTTP/1.1 across all tabs.\n- Each open tab holds a persistent `EventSource` connection open to `/api/events`. Three tabs hold 3 persistent streams. Any background request, second stream (e.g. `EditFeed`), or concurrent asset fetch quickly saturates the 6-socket budget, queuing all subsequent `fetch()` calls indefinitely in the browser network queue.\n- Closing a tab immediately drops socket usage and resolves the queue.",
+      "diagnosis": "Two independent ceilings bind well before multiplayer scale is reached:\n\n1. **Browser-side (the observed hang):**\n   - `world-state.ts:573` unconditionally opens `EventSource('/api/events')`.\n   - Browser HTTP/1.1 connection pooling allocates a maximum of 6 concurrent sockets to `localhost:4444`.\n   - Long-lived SSE connections permanently occupy socket slots. With 3+ tabs open, transient requests (such as `/api/state` fetches triggered by `world_changed` events) exceed the remaining slots and deadlock the browser connection queue.\n\n2. **Server-side (thread pinning & fan-out):**\n   - `routes/events.py` runs a blocking generator per subscriber: `q.get(timeout=15)`.\n   - Flask's dev server (`threaded=True` in `app.py`) pins one OS thread per connected tab.\n   - `WorldEventHub.publish()` fans out to per-subscriber queues (`queue.Queue(maxsize=256)`). A slow client causes `queue.Full`, which was caught and silently dropped, causing clients to miss `world_changed` notifications without triggering a resync.\n\n3. **Payload volume:**\n   - On every `world_changed` push, `connectLiveEdits` calls `worldState.fetch()`, downloading the entire world state (~2.5 MB). Multiple tabs downloading multi-megabyte JSON payloads simultaneously on every edit creates severe bandwidth spikes and main-thread JSON parsing locks.",
+      "browser_ui": "Intended UI home: multiple tabs open in browser; DevTools Network panel and Console.\n\nLive steps:\n1. Open six tabs to `http://localhost:4444`.\n2. Inspect the Network panel in each tab to verify socket usage does not block new requests (only 1 tab holds an active `/api/events` connection).\n3. Trigger a node edit in tab 1; inspect tabs 2-6 to verify the graph updates promptly without downloading full 2.5 MB state.",
+      "refactor_discipline_applies_to_this_task": "1. **Dedup & reuse pass (mandatory).** Consolidated state push event handling onto existing `worldState` and `appEvents`.\n2. **Agent-experience & cleanliness (mandatory).** Modules kept clean with descriptive docstrings.\n3. **No behaviour change unless the card says so.** Preserved all existing spectator polling boundaries and world tick streaming semantics.\n4. **One file/concern at a time**, verified with targeted tests.",
+      "completion_notes_2026_10_31": "- Landed all 5 acceptance criteria:\n  1. Frontend multi-tab SSE leader election: `connectLiveEdits` uses `BroadcastChannel('world_events')` and `navigator.locks.request('world_events_sse_leader')` to elect a single tab to hold the `/api/events` stream, broadcasting to sibling tabs. Sibling tabs hold 0 SSE sockets.\n  2. Incremental deltas: `handle_update_node` emits `delta: {'kind': 'node_update', ...}` attached to `world_changed`. `WorldState.applyNodeDelta` updates graph nodes in place without refetching the full 2.5 MB state payload.\n  3. Server connection cap: Defined `WorldEventHub.MAX_SUBSCRIBERS = 32`. `/api/events` returns 429 when cap is reached. `gen()` cleans up connections on disconnect.\n  4. Stream resync on overflow / replay: `hub.publish` enqueues `resync_required` when a subscriber queue overflows. Reconnection replay via `Last-Event-ID` or `?since=` replays missed events or triggers `resync_required` if the buffer expired.\n  5. ETag / 304 conditional fetches: `GET /api/state` emits `ETag: \"<rev>\"`. When `If-None-Match` matches the current revision, it responds with `304 Not Modified` in < 1 ms.\n  6. All 10 backend tests in `tests/test_events_and_perentry.py` and 900 frontend unit tests in `tools/unit/` pass cleanly."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-10-31"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll.md"
+  }
+}

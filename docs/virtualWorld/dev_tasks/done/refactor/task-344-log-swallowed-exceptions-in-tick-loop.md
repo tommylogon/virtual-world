@@ -5,9 +5,9 @@ area: refactor
 priority: medium
 ---
 
-# task-344 — Stop swallowing exceptions in the tick loop; log with context
+# task-344 - Stop swallowing exceptions in the tick loop; log with context
 
-**Status**: Done — verified 2026-08-30. The goal is already met: every `except`
+**Status**: Done - verified 2026-08-30. The goal is already met: every `except`
 in `engine/tick_manager.py` logs with context (e.g. `logger.warning("[tick]
 <ctx>: %s", e)` at :130, :211, :299, :346, :409, :520, :626). No silent
 `except: pass` remains. The only `except Exception:` without `as e` is the
@@ -19,13 +19,13 @@ No code change required.
 `engine/tick_manager.py::tick_turn()` contains 5+ bare
 `except Exception: pass` blocks (:126 grapple-sync, :207, :295, :320, :482-487
 delayed-event processing). The tick loop is where vitals decay, triggers fire,
-items burn down and deaths resolve — failures there currently vanish as silent
+items burn down and deaths resolve - failures there currently vanish as silent
 no-ops. Several recurring mystery bugs plausibly live behind these walls:
 bugs in review folder describe exactly this shape ("spawn drift", "state
 doesn't change").
 
 Also while there: `TickManager.__init__` comment at :13 admits
-"player_manager is the VirtualWorldEngine instance" — the facade smuggled in
+"player_manager is the VirtualWorldEngine instance" - the facade smuggled in
 as a duck-typed dependency, reaching into privates (`gs._process_delayed_events`,
 `gs._spawn_body_item`, `gs.name_matcher._set_player_area`). Not this task's
 job to unwind the coupling; just don't make logging worse while touching it.

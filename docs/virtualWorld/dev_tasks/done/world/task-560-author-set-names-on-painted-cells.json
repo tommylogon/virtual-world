@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "id": "task-560",
+  "kind": "task",
+  "number": 560,
+  "title": "Author-set names on painted cells",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-496",
+      "task-540",
+      "task-561",
+      "task-526"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Every painted place is named by the compiler alone: `<label> (<scope> x,y)`. A\n19-location town is 19 coordinate names, so painted towns and interiors cannot be\nauthored - a building is \"Building 3,4\" forever, and `go inn` has nothing to\nmatch. Add a per-cell name the author sets, preferred by the compiler for the\nplace's display name, with the uniqueness guarantee intact.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**A `names` map on the scope record, not a fourth paint layer.** A name is",
+        "done": true
+      },
+      {
+        "text": "*metadata about* a cell, so it lives beside `layers`: there is no name",
+        "done": false
+      },
+      {
+        "text": "vocabulary, the eraser must not wipe it, and \"clear this cell\" must not",
+        "done": false
+      },
+      {
+        "text": "silently unname a place. `world_grid.set_name` / `name_at`, and",
+        "done": false
+      },
+      {
+        "text": "`normalise_grid` drops an unparseable cell key or a blank name (a bad save",
+        "done": false
+      },
+      {
+        "text": "costs one name, not the map).",
+        "done": false
+      },
+      {
+        "text": "**An empty name removes the entry**, and the container goes with the last",
+        "done": true
+      },
+      {
+        "text": "one, so an unnamed scope loads byte-identically to one that never had names.",
+        "done": false
+      },
+      {
+        "text": "**`POST /api/world/scopes/<id>/grid/name`** - `{x, y, name}`, its own undo",
+        "done": true
+      },
+      {
+        "text": "step, and the grid payload carries `names` back. Rejects a non-integer cell",
+        "done": false
+      },
+      {
+        "text": "and a non-string name.",
+        "done": false
+      },
+      {
+        "text": "**The compiler prefers it.** `_place_name` takes the author name, falling",
+        "done": true
+      },
+      {
+        "text": "back to the generated form. A name repeated *inside one scope* also falls",
+        "done": false
+      },
+      {
+        "text": "back, so no single area offers two exits with the same name - which is all",
+        "done": false
+      },
+      {
+        "text": "`go <name>` needs, since `NameMatching.resolve_exit` collects the current",
+        "done": false
+      },
+      {
+        "text": "area's exits first. Two scopes may reuse a name, exactly as two",
+        "done": false
+      },
+      {
+        "text": "hand-authored areas may: ids stay the authoritative key.",
+        "done": false
+      },
+      {
+        "text": "**A merged region takes a name from *any* of its cells**, not just the",
+        "done": true
+      },
+      {
+        "text": "anchor. Naming the middle of a High Street is the natural thing to do, and",
+        "done": false
+      },
+      {
+        "text": "making the author know that the anchor is the top-left-most cell would be a",
+        "done": false
+      },
+      {
+        "text": "rule with no purpose. Two different names in one region: the first wins.",
+        "done": false
+      },
+      {
+        "text": "**Authorable in the painter**: a name field in the cell inspector",
+        "done": true
+      },
+      {
+        "text": "(task-540's panel), the name leading the hover readout, and",
+        "done": false
+      },
+      {
+        "text": "`cellInfo`/`cellName` exposed on the grid model.",
+        "done": false
+      },
+      {
+        "text": "**Tests.** `tests/test_world_compile.py` (the name wins, the repeated-name",
+        "done": true
+      },
+      {
+        "text": "fallback, a region taking a name from its middle, metadata-not-paint, a bad",
+        "done": false
+      },
+      {
+        "text": "name costing one name), `tests/test_world_grid_routes.py` (round trip,",
+        "done": false
+      },
+      {
+        "text": "clearing, paint-and-name independently, nonsense rejected).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "verified": "Through the real app (Flask test client, temp data dir, so the author's scenario\nis untouched) - a 6×4 town grid with a road and a tavern and a temple, the tavern\nnamed:\n\n```\nnames on the record  : {'1,1': 'The Stag Inn'}\n  (0,1)  Road (Downtown 0,1)     storey=0 surface='dirt'  tags=['road']\n  (1,1)  The Stag Inn            storey=0 surface='dirt'\n        tags=['building','settlement','commercial','food','drink']\n  (2,1)  Temple (Downtown 2,1)   storey=0 surface='stone'\n        tags=['building','settlement','religious','worship']\nways minted: 2\n```\n\nNote the tags: that is task-566's hook already in place - a place a character\ncould seek a bed or a meal in is identifiable from its node.",
+      "not_here": "- **The sim does not use names yet.** Nothing asks \"where is an inn\"; that is\n  task-566. A painted town is addressable, not yet inhabited by intent.\n- **Interiors name the same way**, so a room is nameable now - but a 2×2 classroom\n  merging into one place names the whole region, which is task-564's business.\n- `deep_woods_2` still carries its stale id (task-565)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-560-author-set-names-on-painted-cells.md"
+  }
+}

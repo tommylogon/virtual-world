@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "id": "task-460",
+  "kind": "task",
+  "number": 460,
+  "title": "NL editor library template editing",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-289",
+      "task-317",
+      "task-457"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let the NL editor edit library registries, not just read them: create/update character, item, area, way and trait templates with schema validation and the mature-content filter, so archetype-level changes ('all goblins have darkvision') are possible and future spawns inherit. Wires the existing POST /api/library/<type> endpoints into ToolRouter with staged review.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Batch ops `library_upsert` / `library_delete`",
+        "done": true
+      },
+      {
+        "text": "(`routes/graph_ops.py`: `_BATCH_PHASE` phase 4, `_apply_batch_op`), one",
+        "done": false
+      },
+      {
+        "text": "reviewable op each, applied in the same single undo snapshot as the rest",
+        "done": false
+      },
+      {
+        "text": "of the batch.",
+        "done": false
+      },
+      {
+        "text": "`routes/library_ops.py` refactored: `write_library_entry` /",
+        "done": true
+      },
+      {
+        "text": "`delete_library_entry` are shared by the HTTP `POST /api/library/<type>`",
+        "done": false
+      },
+      {
+        "text": "route and the batch, so there is one write path.",
+        "done": false
+      },
+      {
+        "text": "NL tools `upsert_library_entry` / `delete_library_entry` in",
+        "done": true
+      },
+      {
+        "text": "`TOOL_DEFINITIONS` + ToolRouter (items, characters, areas, ways, traits),",
+        "done": false
+      },
+      {
+        "text": "staged and previewed like every other op; ids are slug-normalised.",
+        "done": false
+      },
+      {
+        "text": "Schema/validation before Apply: registry must be writable, id must be a",
+        "done": true
+      },
+      {
+        "text": "lowercase slug, trait templates need an object `effects`, and the",
+        "done": false
+      },
+      {
+        "text": "mature-content gate refuses `mature: true` entries while mature content",
+        "done": false
+      },
+      {
+        "text": "is off (reuses task-461's validator).",
+        "done": false
+      },
+      {
+        "text": "Agent prompt guidance (rule 10) covers archetype-vs-instance semantics:",
+        "done": true
+      },
+      {
+        "text": "library edits do not touch already-spawned nodes; `link_to_library` and",
+        "done": false
+      },
+      {
+        "text": "refresh push a template to the world.",
+        "done": false
+      },
+      {
+        "text": "Tests: `tests/test_nl_editor_validation.py` (upsert writes the registry,",
+        "done": true
+      },
+      {
+        "text": "bad registry/id refused, mature gate, delete).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-460-nl-editor-library-template-editing.md"
+  }
+}

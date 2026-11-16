@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-118",
+  "kind": "task",
+  "number": 118,
+  "title": "Toggle Verb by Item Tag",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The base toggle message currently uses \"on\"/\"off\" universally after the fix in `toggleable_items.py`. Instead, the verb should adapt to the item type:\n\n- Items tagged `electric` or `synthetic` → \"turn on / turn off\"\n- Everything else (torches, furnaces, candles, fireplaces) → \"light / extinguish\"",
+    "why": "TODO",
+    "how": "- `engine/toggleable_items.py` - check `tags` for `electric`/`synthetic` to choose status_word verb\n- Keep `current_state` as `\"lit\"/\"unlit\"` for the lighting system - only the message changes",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "reference": "Trigger messages (when they fire correctly per task-116) already have contextual flavor. This fix only affects the base fallback message."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-118-toggle-verb-by-tag.md"
+  }
+}

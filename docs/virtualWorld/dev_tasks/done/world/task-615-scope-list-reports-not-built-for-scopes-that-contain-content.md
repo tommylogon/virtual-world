@@ -24,7 +24,7 @@ The scope list contradicts the world contents, claiming unbuilt for scopes holdi
 - [x] Existing scope-tree tests pass unchanged
 - [x] Verified live against the real manifest
 
-## Resolution (2026-09-30) — confirmed and fixed
+## Resolution (2026-09-30) - confirmed and fixed
 
 The claim was right. `GraphScopeTree.rowLabel` keyed the **whole row** off
 `unmade`:
@@ -73,7 +73,7 @@ has destroyed more than it fixed.
 
 - TODO
 
-## Unverifiable in the loaded world 2026-09-30 — left open
+## Unverifiable in the loaded world 2026-09-30 - left open
 
 `GET /api/world/scopes` on the loaded scenario returns:
 

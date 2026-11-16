@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-08-21  
 **Priority**: High  
-**Status**: In Review — implemented 2026-08-21 via tools/fix_character_interests.py;
+**Status**: In Review - implemented 2026-08-21 via tools/fix_character_interests.py;
 34 characters fixed (6 full sets, 28 patches), every tag validated against item
 vocabulary before write; lint `--check dead_interests` went 21 error lines → 0;
 duplicate `Violet_halloway_character.json` (stale shell; richer space-named file
 kept) and misplaced world-state export `labs.json` deleted after reference check;
 pytest 1051 passed / 0 failed. Renumbered 322→326: parallel session claimed 322
 first (task-322-system-hygiene-refactor). Reviewer note: proposal table corrected
-mid-flight — lint caught dead tags in my own first draft (perfume/lipstick match
+mid-flight - lint caught dead tags in my own first draft (perfume/lipstick match
 no items), and kayla.json is kayla *Jenkins* while the sister lives in
 kayla-sister.json (wrong-file landmine, dodged).
 
@@ -37,7 +37,7 @@ Blocks task-9's interest-driven placement phase.
 Interest tags do double duty: personality AND item-matching hooks. Verified
 against the well-filled characters (miki: 13, elena: 14):
 
-- **2–3 mechanical** (`sound_source`, `electric`, `light_source`) — drive engine spawning
+- **2–3 mechanical** (`sound_source`, `electric`, `light_source`) - drive engine spawning
 - **2–3 consumables** (`candy`, `energy_drink`, `food`)
 - **3–4 domain** (`occult`, `evidence`, `music`)
 - **2–3 personal-style** (`jewelry`, `clothing`, `mirror`)
@@ -64,11 +64,11 @@ Under ~6 → sparse rooms; over ~15 → everything matches everything.
 
 ## Work Plan
 
-1. **Cleanup first**: delete duplicate Violet file (diff them first — keep the
+1. **Cleanup first**: delete duplicate Violet file (diff them first - keep the
    richer one); delete `?` file. Check world_template.json / scenarios for
    references to the removed ids before deleting.
 2. **Script** `tools/fix_character_interests.py` (pattern: tools/fix_item_equipment.py):
-   - Explicit per-character table (reviewed proposals below) — no silent inference
+   - Explicit per-character table (reviewed proposals below) - no silent inference
    - **Merge-not-replace**: existing live tags are kept, dead tags rewritten via
      explicit mapping, new tags appended
    - Dry-run default, `--apply` flag
@@ -138,7 +138,7 @@ maya, sammy lopez, tala, the butcher, whiskers.
 
 ## Gotcha: Library Fix ≠ Live World Fix
 
-Characters are snapshot into scenarios at import time (same pattern as items —
+Characters are snapshot into scenarios at import time (same pattern as items -
 AGENTS.md "duplicate placements snapshot the library entry at build time"). A
 running scenario keeps the OLD interest tags even after this pass. Options:
 
@@ -147,7 +147,7 @@ running scenario keeps the OLD interest tags even after this pass. Options:
    (`routes/library_routes.py:619` currently handles items with `library_id`)
 
 Pick option 2 if scenario characters carry meaningful runtime state (memories,
-relationships) that re-importing would wipe — which they do. Fold the character
+relationships) that re-importing would wipe - which they do. Fold the character
 support into this task or spin a follow-up; either way, don't call this done
 until a loaded scenario reflects the new tags after refresh.
 

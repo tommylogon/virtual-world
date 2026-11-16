@@ -22,7 +22,7 @@ The biome palette is 105 options. It now renders as 23 real optgroups (fixed und
 - [x] Clearing the filter restores everything
 - [x] Verified live: typing "wall" narrows 105 tiles to `Wall (wall)`
 
-## Resolution (2026-09-30) — added while painting Eldenford
+## Resolution (2026-09-30) - added while painting Eldenford
 
 Tommy asked me to finish the Eldenford town map, which made this the first
 thing in the way. The palette is 105 tiles under 23 headings: navigable but not

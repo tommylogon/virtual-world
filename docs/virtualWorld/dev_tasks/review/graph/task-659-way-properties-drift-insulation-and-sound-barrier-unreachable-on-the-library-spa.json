@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "task-659",
+  "kind": "task",
+  "number": 659,
+  "title": "Way properties drift: insulation and sound_barrier unreachable on the library spawn and refresh paths",
+  "status": "review",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-10-01",
+  "updated": "2026-10-01",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "bug-538"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-596"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Four hand-maintained lists of the way property set have drifted. insulation is settable by engine/effect_handlers/ways.py:94 but appears in neither routes/library_ops.py spawn (706-708) nor refresh (911-918), nor in engine/sync.py mutable, so it cannot be synced from a library template. sound_barrier, jump_dc and climb_dc are read by engine/movement.py:543 and barriers.py but appear in no spawn list, so a trigger-spawned or library-spawned way silently loses them while a hand-authored save keeps them. The canonical list is now tools/way_properties.py, guarded by python tools/way_property_index.py --check with the present drift baselined in docs/virtualWorld/World Building/way-property-baseline.txt. Decide per key whether the engine is wrong or the list is incomplete, fix the list, then re-run --update-baseline.",
+    "why": "Way properties such as `insulation` and `sound_barrier` were dropped during library template instantiation and refresh.",
+    "how": "Preserved way sound and insulation properties during refresh-to-world and library spawn paths.",
+    "verify": "1. Refresh a way carrying insulation and sound barrier from library\n   - expected: Way properties survive refresh-to-world without being stripped\n   - observed: Verified in tests/test_library_refresh.py",
+    "acceptance": [
+      {
+        "text": "Every corrected key verified to have an engine reader before being added",
+        "done": true
+      },
+      {
+        "text": "`insulation`, `sound_barrier`, `climb_dc`, `jump_dc`, `refusal_message`,",
+        "done": true
+      },
+      {
+        "text": "`blocked_description`, `aliases`, `cost` carried by all three library lists",
+        "done": false
+      },
+      {
+        "text": "Checker no longer reports false positives (per-property `expect`)",
+        "done": true
+      },
+      {
+        "text": "`--report` shows zero drift; `--check` green with an empty baseline",
+        "done": true
+      },
+      {
+        "text": "Regression suite green against the 12-failure baseline",
+        "done": true
+      },
+      {
+        "text": "A library way template exercising these keys exists, so the spawn path is",
+        "done": true
+      },
+      {
+        "text": "demonstrable in a browser rather than only by list comparison",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/library_ops.py",
+      "tests/test_library_refresh.py"
+    ],
+    "custom": {
+      "what_was_done": "Every key was checked for a reader before anything was added, because the fix runs in\ntwo directions and the wrong one is easy:\n\n- `insulation` - read at `engine/environment_propagation.py:78` as a multiplier on the\n  heat rate through the way. Real, so the lists were incomplete.\n- `sound_barrier` - read at `engine/barriers.py:169` and `engine/awareness.py:158`.\n  Already in the refresh map and `sync.py`, missing from library spawn.\n- `climb_dc` / `jump_dc` - read at `engine/movement.py:543` via `f\"{requires}_dc\"`, so a\n  grep for the literal key finds only a test. Missing from all three library lists.\n- `refusal_message` - read at `engine/movement.py:572`.\n- `blocked_description` - read at `engine/movement.py:1015`.\n- `aliases` - read generically for any node at `engine/matching.py:106`, and\n  `matching.py:276` names it \"the way node's aliases\".\n- `cost` - read by movement; present on spawn, absent from the refresh map.\n\nAdded to `routes/library_ops.py` spawn, the refresh `prop_map`, and the `engine/sync.py`\nmutable set. `tools/way_property_index.py --report` now reports **zero** drift across all\nfour lists, and `--check` is green with an empty baseline.\n\nThe checker was also tightened. It previously compared the declaration against every\nlist unconditionally, which reported 19 \"omissions\" from `effect_handlers/ways.py` that\nwere mostly properties its own props dict assigns two lines above the copy tuple, plus\nview-layer keys (`image`, `physics_enabled`, `distance_from_parent`) and edge-layer keys\n(`cardinal`, `visible_in_direction`) that are never library-synced. Each property now\ndeclares an `expect`, and the checker only compares where the property belongs. A gate\nthat always cries wolf is a gate nobody runs.",
+      "not_verified_and_why": "No library way template sets any of the corrected keys, so there is nothing to exercise\nlive. Per \"content before instrumentation\" the follow-up is to author one template that\ndoes - a `draft_door` with `insulation` and `sound_barrier` would make both the spawn\npath and this fix observable in the browser. Until then the fix rests on the four\nextracting lists agreeing with the declaration, which is weaker than a live check.\n\nThe trigger spawn path is still narrow by design and is recorded in the generated page\nrather than enforced; widening it is a separate decision.",
+      "content_authored_2026_10_02": "`data/library/ways/draft_door.json` carries `insulation: 0.4` and\n`sound_barrier: 0.5` on a normal door, so both keys now travel the real library\nspawn and refresh paths. `tests/test_library_way_spawn.py` drives the actual\nroutes against it:\n\n- `POST /api/library/import/way/draft_door` -> the spawned node carries both keys.\n- `POST /api/ways/<id>/refresh-from-library` with `sections` -> both keys applied.\n\n`python -m pytest tests/test_way_property_index.py tests/test_library_way_spawn.py -q`\n- 10 passed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "- `python tools/way_property_index.py --report` - 0 drift, four lists agreeing.",
+    "- `tests/test_way_property_index.py` - 8 passed.",
+    "- `tests/test_library_refresh.py tests/test_way_connect_repair.py` - 22 passed.",
+    "- Full suite: 12 failed / 6588 passed, failure **names** identical to the documented",
+    "baseline of 12."
+  ],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/graph/task-659-way-properties-drift-insulation-and-sound-barrier-unreachable-on-the-library-spawn-and-refresh-paths.md"
+  }
+}

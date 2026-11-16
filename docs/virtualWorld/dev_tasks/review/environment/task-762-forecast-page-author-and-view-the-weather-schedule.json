@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "id": "task-762",
+  "kind": "task",
+  "number": 762,
+  "title": "Forecast page: author and view the weather schedule",
+  "status": "review",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-763"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-227",
+      "task-229",
+      "task-231",
+      "task-234",
+      "task-555",
+      "task-556",
+      "task-758"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One surface to author and view forecast_schedule (task-227), extending the existing World Sky modal (static/js/sky-scape.ts) rather than building a second weather engine. The modal today shows the current sky, the next change and an override quick-set; it cannot edit the schedule entries. Add a timeline of the schedule entries laid out over the period granularity (hourly 1440 / weekly 10080 / yearly 525600 minutes, entries repeat), each editable in place (offset, weather, wind, temperature_mod, light_mod, air, message), plus mode (authored|deterministic|random|hybrid), seed and transition_table controls, over the existing GET/POST /api/settings/forecast. Columns must be honest: temperature is the derived effective outdoor value (base_temperature + diurnal/seasonal curve + climate + humidity/wind-chill), not an authored per-entry temperature; there is no precipitation model, so do not render mm; wind is magnitude only until task-555 gives direction. Random/deterministic modes are not enumerable ahead, so show the transition table rather than a fake dated forecast.",
+    "why": "The schedule was authorable only by editing a scenario file or POSTing JSON: the\nWorld Sky modal could show the current sky and set a one-shot override, but it\ncould not touch `forecast_schedule`. So the one surface a GM opens to see and\nchange the weather could not, in fact, change the weather's schedule.",
+    "how": "Extended the World Sky modal (`static/js/sky-scape.ts`) - no second engine:\n\n- A **Forecast** row: `mode` (authored / deterministic / random / hybrid /\n  **generated**), `granularity` (hourly / weekly / yearly), `seed`,\n  `transition_interval`, `+ entry`, and `Save schedule`.\n- A **timeline** bar over the period with a chip per entry (its position is the\n  offset / period), and one editable row per entry: offset, weather, wind,\n  wind_direction, humidity, temperature_mod, light_mod, air, message.\n- A collapsible **transition table** textarea (JSON), validated on save - the\n  honest view for the state-machine modes, which cannot be enumerated ahead.\n- Save POSTs the same shape the route expects to `/api/settings/forecast`, and\n  the route (task-763) now passes `area_overrides`/`date_overrides` through.\n\n**Two departures from the card's field list, both because the live data demanded\nthem**: the rows carry `wind_direction` (task-555 shipped, so direction exists)\nand `humidity` - the scenario's own entries already set `humidity`, and a row\nwithout that field would have silently dropped it on save. The card's \"no\nprecipitation model\" is now stale: task-763 added it, so the note says so.\n\nThe box also had to become scrollable (`max-height:90vh; overflow-y:auto`): it\nwas `overflow:hidden`, and the new section sat below the fold on a short viewport\nwhere it could not be reached at all.\n\nA browser pass over the whole weather surface turned up **two more defects**,\nboth fixed here:\n\n- **The stage disagreed with the top bar about the same moment.** With an\n  authored spelling (`overcast`) effective at \"now\", the top bar read `overcast`\n  while the sky stage read `Clear`: the stage's `weatherMap` keys on canonical\n  ids, and the raw spelling fell through to the `'clear'` default. The widget now\n  resolves the spelling through the engine's own alias map before the stage\n  lookup, so both read the same value.\n- **The `● override active` dot did not update when an override was set.** It was\n  refreshed only by `_populateControls` (modal open or clock skip), not on a\n  state update, so setting an override showed the new weather but no dot until\n  the modal was reopened. It is now refreshed on every state update.\n\n**The modal was then rebuilt as one surface** instead of two stacked ones. It\nembedded `sky-atmosphere.html` - a 720-line console with its own header, time\nslider and season/moon deck - and added a *second* header and three loose,\ninline-styled control rows on top: two UIs, two headers, two time controls. The\nembedded console is now reduced to a **scene-only hero** (a scoped stylesheet\ninjected into the same-origin iframe hides its chrome and lets the sky canvas\nfill), and every control lives in a **card** built from the app's own design\ntokens (`--bg-inset`, `--border`, `--accent`, `--font`): a labelled *Time & date*\ncard, an *Override* card with a single active-dot, and a *Forecast*\ncard with a column-header row over the entry grid, a timeline on a real axis, a\nstyled empty state, and a footer readout. All wiring survived (element ids were\npreserved); verified live, including no-scroll fit at 1600x900.\n\n**A second pass made the hero a real readout and added the outlook.** The stage\nwas raised to 238px, a **live environment strip** was added beneath it (Wind,\nHumidity, Air, Temp, Light, Precip, Snow - read from the controlled player's\ncurrent area, so it shows real values rather than a placeholder), and a\n**transport** row (Play day, Dawn/Noon/Dusk/Midnight, Now) drives the existing\nschedule scrub. The embedded stage now takes its temperature from the same\nengine value the strip shows, so the hero and the strip cannot disagree (they\nread 25 vs 28 before).\n\nThe same pass added a **Regions** tab (a segmented toggle under the transport;\nthe hero and transport stay visible across both tabs). It renders a days x\nper-area table - one row per open-sky area, one column per day, today first -\nprojected over the generated field by `VirtualWorld.weather_outlook()` and served\nby `GET /api/settings/forecast/outlook`. The projection rolls\n`generate_weather_field` forward one day at a time (each day's field is the next\nday's coupling input) and **never writes** `self._weather_field` or the clock, so\nopening the tab cannot advance the world. Each cell is the engine's weather word\nand its tuning-derived daytime temperature (reusing `temp_curve_for_hour` and\n`weather_tuning`, so the numbers are the engine's own, not the client's). A badge\nsays `live field` when the mode is `generated` and `preview - mode: <mode>`\notherwise, because in any other mode the sim follows the authored schedule and\nthe field is only a preview.",
+    "verify": "1. Run `python tools/ts_convert.py check` (build:ts, typecheck, lint,\n   module:check, unit runner).\n   - expected: gate green.\n   - observed: gate green.\n2. Run `python -m pytest tests/test_forecast_settings_route.py`.\n   - expected: 2 passed - the schedule round-trips through the route and the\n     generated field is exposed.\n   - observed: 2 passed.\n3. In a browser, open World Sky on a running world and edit the schedule.\n   - expected: the editor populates from the live schedule; the row's weather,\n     wind, wind_direction, humidity, temperature_mod, light_mod, air and message\n     all survive a save; the override dropdown lists the registry's weather\n     types (including the task-763 extremes).\n   - observed (live): top bar renders (`08:58 · May 13, 2016 · quarter ·\n     overcast · in 3h 2m: rain`); the stage reads `Overcast` matching the bar\n     (was `Clear`); 3 entries load with their `humidity` (`dry`/`humid`/`wet`)\n     intact; `+ entry` adds a row and `✕` removes it; Save →\n     `POST /api/settings/forecast` **200**, status `✓ saved`, GET returns the\n     entries unchanged; the override dropdown shows the 11 registry ids\n     (`clear…snowy` + `blizzard`/`cold_snap`/`heatwave`/`thunderstorm`) and no\n     alias spellings; setting an override flips the bar to `snowy` and shows the\n     `● override active` dot, clearing hides it; the modal scrolls under a 600px\n     viewport.\n4. Run `python -m pytest tests/test_forecast_outlook.py`.\n   - expected: 8 passed - the outlook is per-area, reproducible, honours the\n     ordered overrides, advances the date, and never writes the live field or the\n     clock.\n   - observed: 8 passed.\n5. In a browser, open World Sky and switch to the Regions tab.\n   - expected: a days x per-area table with a mode badge; the clock does not move.\n   - observed (live): **470 rows**, 8 header cells (Area + 7 days), **3760 cells**;\n     badge `preview - mode: authored`; clock `08:58:00` before and after\n     switching, so the tab did not tick; filter `Farm` narrows to 1 row; the tab\n     toggle restores the Forecast view with its ribbon intact.",
+    "acceptance": [
+      {
+        "text": "One surface authors **and** views `forecast_schedule`, extending the World",
+        "done": true
+      },
+      {
+        "text": "Sky modal rather than a second weather engine.",
+        "done": false
+      },
+      {
+        "text": "A timeline of the entries over the period granularity, each editable in",
+        "done": true
+      },
+      {
+        "text": "place (offset, weather, wind, wind_direction, humidity, temperature_mod,",
+        "done": false
+      },
+      {
+        "text": "light_mod, air, message).",
+        "done": false
+      },
+      {
+        "text": "`mode`, `seed` and `transition_table` controls.",
+        "done": true
+      },
+      {
+        "text": "Save/edit over the existing `GET`/`POST /api/settings/forecast`.",
+        "done": true
+      },
+      {
+        "text": "Columns are honest: the deltas (`temperature_mod`/`light_mod`) are what the",
+        "done": true
+      },
+      {
+        "text": "author sets, the temperature shown in-game stays engine-derived, and the",
+        "done": false
+      },
+      {
+        "text": "transition table is shown for the modes that cannot be enumerated ahead.",
+        "done": false
+      },
+      {
+        "text": "A save is lossless - no authored entry field is dropped.",
+        "done": true
+      },
+      {
+        "text": "A live environment strip and a transport bar make the hero a real readout.",
+        "done": true
+      },
+      {
+        "text": "A **Regions** tab shows the next days per open-sky area, projected over the",
+        "done": true
+      },
+      {
+        "text": "generated field, without advancing the world, with a badge distinguishing a",
+        "done": false
+      },
+      {
+        "text": "live field from a preview.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/sky-scape.ts` (+ emitted `.js`) - the token-based modal styles",
+      "(`MODAL_CSS`), the scene-only stage embed (`STAGE_CSS`), the schedule editor,",
+      "the registry-driven weather dropdowns, the two display fixes, the live stats",
+      "strip and transport, and the Regions tab (`_switchSkyTab`, `_renderRegions`,",
+      "`_regionsTable`).",
+      "virtual_world_engine.py` - `weather_outlook(days)` (the pure look-ahead over",
+      "`generate_weather_field`) and `_calendar_dims`.",
+      "routes/settings.py` - `area_overrides`/`date_overrides` passthrough and",
+      "`weather_field` on the GET (task-763); `GET /api/settings/forecast/outlook`.",
+      "tests/test_forecast_settings_route.py` - route round-trip.",
+      "tests/test_forecast_outlook.py` - the outlook projection."
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Game menu → World Sky → Forecast tab for schedule editing; World Sky → Regions tab for the per-area outlook. Keep the sky stage, Time & date, Override, Forecast, and Regions controls on this one modal.\n\nCurrent availability: The card records live verification of the schedule editor, weather override, scroll behavior, and Regions table, including a 470-row result and an unchanged clock when switching tabs.\n\nLive steps when available:\n1. Open World Sky → Forecast, change one entry's weather and humidity, click “Save schedule”, then close and reopen the modal.\n   - expected: the edited row is still present with the chosen weather and humidity; the status shows saved and the stage/top-bar weather agree.\n2. Set a weather override, then clear it.\n   - expected: the top-bar `● override active` indicator appears while set and disappears when cleared; the weather label follows the selected value.\n3. Open Regions and enter `Farm` in its filter.\n   - expected: the table narrows to the Farm area, the badge identifies live field versus preview mode, and the world clock remains unchanged while the tab is open.\n4. Scroll the modal to its bottom in a short viewport, then return to Forecast.\n   - expected: the last Regions rows are reachable and the forecast controls remain usable.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/environment/task-762-forecast-page-author-and-view-the-weather-schedule.md"
+  }
+}

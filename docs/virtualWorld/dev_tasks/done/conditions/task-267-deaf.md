@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Low
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
 
 ## What
 
-Can't hear. Hearing cues are lost. The `auto_fail_checks` gate for the `hearing` sense — pairs with `blind` for the senses family.
+Can't hear. Hearing cues are lost. The `auto_fail_checks` gate for the `hearing` sense - pairs with `blind` for the senses family.
 
 ## Schema (catalog entry)
 
@@ -44,12 +44,12 @@ Can't hear. Hearing cues are lost. The `auto_fail_checks` gate for the `hearing`
 
 ## Perception
 
-`known: True` — the agent is told they're deaf.
+`known: True` - the agent is told they're deaf.
 
 ## Integration points
 
-- `player.py:175-184` — catalog entry.
-- `engine/conditions.py` — `auto_fails_checks(player, "hearing")`, perception.
+- `player.py:175-184` - catalog entry.
+- `engine/conditions.py` - `auto_fails_checks(player, "hearing")`, perception.
 - Sensory context: hearing-based cues (audio) dropped/gated when deaf.
 
 ## Steps to verify
@@ -61,7 +61,7 @@ Can't hear. Hearing cues are lost. The `auto_fail_checks` gate for the `hearing`
 ## Open questions / things to work out
 
 - Should deafness gate speech perception differently from sound cue delivery (self vs. incoming audio)?
-- Pairs with `blind` for a full sensory-deprivation scenario — any combined handling?
+- Pairs with `blind` for a full sensory-deprivation scenario - any combined handling?
 
 ## Why
 

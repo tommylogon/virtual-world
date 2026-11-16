@@ -12,6 +12,10 @@ related: ["task-909", "task-906"]
 **Filed:** 2026-10-30
 **Related:** task-909, task-906, task-751
 
+<!-- deps:start -->
+**Related:** [[task-909-dedicated-memory-model-client-and-agentlens-live-retrieval-comparison-sandbox]], [[task-906-retry-after-rate-limit-backoff-across-app-and-benchmark-reroll-history]]
+<!-- deps:end -->
+
 ## What
 
 Move LLM provider configuration and API profile persistence from volatile client-side browser IndexedDB to the backend:

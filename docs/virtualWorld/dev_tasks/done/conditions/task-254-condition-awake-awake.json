@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-254",
+  "kind": "task",
+  "number": 254,
+  "title": "Condition: Awake (`awake`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The default resting state. Present when no other condition is active; `Player.state` reads back as `\"awake\"` when nothing else applies. Mostly a bookkeeping sentinel rather than a gameplay effect.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [ ] Clearing the last non-awake condition restores an `awake` instance.\n- [ ] `Player.state` reads `\"awake\"` with no conditions.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "schema_catalog_entry": "```python\n\"awake\": {\n    \"name\": \"Awake\", \"description\": \"Conscious and alert.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [],\n    \"attack_mod\": 0, \"defense_mod\": 0, \"speed_mult\": 1.0,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {}, \"ends_on\": [],\n    \"known\": True, \"symptoms\": {}, \"stack\": \"noop\", \"default_duration\": None,\n    \"excludes\": [\"unconscious\"],\n}\n```",
+      "behavior_breakdown": "- **Gates**: none (all three `blocks_*` False).\n- **Saves/checks**: none autofailed.\n- **Combat**: neutral (`attack_mod`/`defense_mod` 0).\n- **Movement**: full speed (`speed_mult` 1.0).\n- **Periodic**: none.\n- **Lifecycle**: `stack: \"noop\"`, `default_duration: None` (persistent until replaced). Excludes `unconscious` - becoming awake clears any unconscious instance.\n- **Exclusions note**: `dead` sets `excludes: []`, so applying `awake` after `dead` cannot revive a corpse; the no-conditions path re-adds `awake` when `player.conditions` empties.",
+      "perception": "`known: True` - self-evident. Skipped by `perceived_conditions` via `_PERCEPTION_SKIP`.",
+      "integration_points": "- `player.py:31-40` - catalog entry.\n- `engine/conditions.py:120` `_PERCEPTION_SKIP` - `awake` is not rendered to agents.\n- `player.py` `remove_condition` (line ~507) and `process_tick` - re-add default `awake` when the last condition clears.\n- Condition hierarchy order in `CONDITION_HIERARCHY` (lowest priority, listed last).",
+      "open_questions_things_to_work_out": "- Should `awake`'s `excludes: [\"unconscious\"]` remain, or is that the only exclusion source that matters?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Existing catalog"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-254-awake.md"
+  }
+}

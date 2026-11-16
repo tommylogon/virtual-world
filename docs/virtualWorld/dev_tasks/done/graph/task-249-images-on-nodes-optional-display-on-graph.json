@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-249",
+  "kind": "task",
+  "number": 249,
+  "title": "Images on Nodes - Optional Display on Graph",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-08-16 from developer ideas backlog.",
+  "updated": "2026-08-16 from developer ideas backlog.",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Allow nodes (areas, items, characters, ways) to carry an image, with an optional display on\nthe graph so a scenario can show icons/thumbnails instead of (or alongside) text labels.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implemented_2026_08_17": "### Backend - `routes/graph.py`\n\n- `POST /api/graph/node/<node_id>/image`: accepts multipart `file`, validates the extension\n  (`png/jpg/jpeg/gif/webp/svg/bmp/ico`), saves a bundled asset under\n  `static/images/nodes/<node_id>-<ms>.<ext>` (served at the same URL - offline-safe), sets the\n  node `image` property to `/static/images/nodes/<filename>`, and best-effort removes the\n  previous uploaded file for that node.\n- Clearing an image uses the existing `PATCH /api/graph/node/<node_id>` with\n  `properties: { image: null }` (no schema change needed - arbitrary node properties).\n\n### Frontend\n\n- `api.js`: `uploadNodeImage(nodeId, file)` (FormData POST) and `removeNodeImage(nodeId)`.\n- `graph/network-manager.js`:\n  - Node `image` property is part of the reload-dedup signature (so image changes refresh the graph).\n  - `buildNodeConfig` renders `shape:'circularImage'` with the node image when the\n    `graphManager._showImages` toggle is on AND the node has an `image` property; nodes without\n    an image keep their normal group shape/color. The label stays, so names remain readable.\n  - `toggleImages()` toggles the pref, persists it to `localStorage` (`vw_graphShowImages`), and\n    reloads.\n- `graph-manager.js`: `_showImages` initialised from localStorage in the constructor.\n- `templates/index.html`: added a `🖼 Images` toolbar toggle button (`#btn-images`).\n- `inspector/helpers.js`: shared image widget - `renderImageSection(nodeId, props)` with a\n  file upload (bundled) OR a pasted URL/path field, a live preview + inline remove, wired up by\n  `setNodeImage` / `setNodeImageUrl` / `clearNodeImage`.\n- Inspector views wired: `area-view.js`, `item-view.js`, `way-view.js` (Tags & More tab),\n  `agent-view.js` (Advanced tab).\n\n### Testing\n\n- `tests/test_node_image.py` (new, 3): upload binds property + persists file; rejects\n  unsupported types; clear via PATCH unbinds. → passed.\n- `tests/test_graph_move.py` (existing 5) still passes.\n- Live smoke on `:4444`: upload → property set + static GET `200 image/png`; cleared back.",
+      "notes_open_questions_next": "- **Default image mapping by node type/tag** - not implemented yet. Could map\n  `data/library/items/<id>.png` or a tag→image fallback so nodes without an explicit `image`\n  still get a default thumbnail. Decide the mapping + where defaults live before adding.\n- **Browser E2E** (pending): `node tools/test_*.cjs` - toggle the 🖼 Images button, upload in\n  the inspector for each node type, confirm graph thumbnails render + labels persist and that\n  the overlay views (light/heat) still have readable borders over image nodes.\n- Clearing an image via PATCH doesn't delete the orphaned file on disk (only the upload route's\n  replace path cleans up). Optional follow-up: a DELETE takes an `image` and removes the file.\n- Image mode switches small items/ways/characters/areas to circular thumbnails; verify area\n  text still easy to read at a glance (label under image)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "`dev_tasks/developer ideas.md` (add images to nodes, optional display on graph?)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-249-node-images-on-graph.md"
+  }
+}

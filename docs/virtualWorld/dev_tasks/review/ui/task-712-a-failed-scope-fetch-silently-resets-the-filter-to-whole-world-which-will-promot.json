@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "id": "task-712",
+  "kind": "task",
+  "number": 712,
+  "title": "A failed scope fetch silently resets the filter to Whole world, which will promote the whole cast",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-05",
+  "updated": "2026-10-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-710",
+      "task-397"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "network-manager.loadGraphData() catches ANY failure from getScopeSubgraph and silently resets graphManager._scopeFilter to null, falling back to the whole world. Once the scope filter drives the promoted set (task-710), that fallback stops being a rendering fallback: it promotes every character in the game.\n\nIt is also broader than the comment claims. The comment says 'Stale selection (e.g. after a scenario load)', but the catch is on the whole fetch, so a transient 500, a network blip, or a proxy timeout all demote-to-Whole-world too. Nothing distinguishes a scope that no longer exists from a scope that failed to load.\n\nThe filter is also cleared with no notification: the picker's value is set to '' and\nthe user sees the whole world with no indication anything went wrong.\n\n**Code** (`static/js/graph/network-manager.ts`, in `loadGraphData`):\n\n```js\nconst scopeId = graphManager._scopeFilter || null;\nif (scopeId) {\n    try {\n        const sub = await ApiClient.getScopeSubgraph(scopeId, true);\n        ...\n    } catch (err) {\n        // Stale selection (e.g. after a scenario load): drop it and\n        // fall back to the whole world rather than showing nothing.\n        graphManager._scopeFilter = null;\n        const sel = document.getElementById('graph-scope-filter');\n        if (sel) sel.value = '';\n        ...\n    }\n}\n```\n\n`getScopeSubgraph` throws on any non-OK response (`static/js/api.ts:240`), and a\nnetwork failure rejects the fetch - so the catch covers both.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A **404 / unknown scope** still falls back, because there is genuinely",
+        "done": false
+      },
+      {
+        "text": "nothing to show - but the user is told the scope went away rather than",
+        "done": false
+      },
+      {
+        "text": "being handed a whole world with no explanation.",
+        "done": false
+      },
+      {
+        "text": "A **transient failure** (5xx, timeout, offline) does **not** clear the",
+        "done": false
+      },
+      {
+        "text": "filter. It retries, or surfaces an error and leaves the selection intact.",
+        "done": false
+      },
+      {
+        "text": "The distinction the code does not currently make.",
+        "done": false
+      },
+      {
+        "text": "The filter reset is reported to the user by whatever mechanism this codebase",
+        "done": false
+      },
+      {
+        "text": "already uses for it (`toastError` is available and in use elsewhere).",
+        "done": false
+      },
+      {
+        "text": "A regression test that a failed subgraph fetch leaves",
+        "done": false
+      },
+      {
+        "text": "`graphManager._scopeFilter` set. As shipped it does not.",
+        "done": false
+      },
+      {
+        "text": "Verified in the browser, not only in a unit test: select a scope, break the",
+        "done": false
+      },
+      {
+        "text": "request, and confirm both the picker and the promoted set are unchanged.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_it_is_worse_than_a_rendering_bug": "Today the cost of a false reset is a slow canvas. After task-710 the cost is the\nwhole cast at full LLM fidelity, chosen by a network blip the user never sees.\nThe failure mode is also *silent in the expensive direction*: the graph looks\nfine, it just looks like the whole world.",
+      "sequencing": "Harmless until task-710 ships; a live hazard afterwards. If 710 lands first, land\nthis in the same change.",
+      "browser_ui": "Intended UI home: Graph workspace → `#graph-scope-filter` scope picker and its loaded graph. On a fetch error, keep the chosen scope visible and report the failure instead of promoting the whole world.\n\nCurrent availability: The card records that `loadGraphData()` catches any scope-fetch error, clears the filter, and falls back to the whole world. The fix is planned; no live recovery behavior is claimed.\n\nLive steps when available:\n1. Select one named scope in the graph picker and confirm its subgraph is visible; record the current visible node count and promoted-character set.\n   - expected: the picker shows the selected scope, and the graph displays only that scope's nodes.\n2. Use DevTools request blocking or a local test proxy to make that scope's subgraph request return 503, then retry the load.\n   - expected: the picker keeps the selected scope, the visible graph does not widen to Whole world, the promoted set stays the same, and an error is shown.\n3. Repeat with a deliberately unknown scope that returns 404.\n   - expected: only this stale-scope case follows the documented fallback and tells the user the selected scope no longer exists.\n4. Restore the request and reload the selected scope.\n   - expected: the scope subgraph replaces the error state without duplicate world nodes or a hidden filter reset.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-712-a-failed-scope-fetch-silently-resets-the-filter-to-whole-world-which-will-promote-the-whole-cast.md"
+  }
+}

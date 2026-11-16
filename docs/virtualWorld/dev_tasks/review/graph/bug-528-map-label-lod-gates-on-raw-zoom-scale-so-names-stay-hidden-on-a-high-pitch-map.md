@@ -18,7 +18,7 @@ GraphNetwork._nodeLabelPolicy (static/js/graph/network-manager.ts:958-972) hides
 
 - [x] `_nodeLabelPolicy` gates on `pitch × zoom >= graphLabelMinCellPx` (default 14px); the `graphLabelMaxNodes` / `graphLabelMinScale` count gate is gone.
 - [x] Unit coverage for the cell unit in the layout-engine suite (`markFontPx`, `markCardMax`, `autoMapSpacing`).
-- [x] **Live:** names appear on zoom at an absolute scale far below 0.6. Not yet observed — the map page blocked the Playwright `evaluate` (2737-node world + 2.5MB poll). Verify on a lighter scope before closing.
+- [x] **Live:** names appear on zoom at an absolute scale far below 0.6. Not yet observed - the map page blocked the Playwright `evaluate` (2737-node world + 2.5MB poll). Verify on a lighter scope before closing.
 
 **Landed 2026-10-08:** `static/js/graph/network-manager.ts` `_nodeLabelPolicy`. `graphLabelMaxNodes` / `graphLabelMinScale` are now unused config keys (left in place).
 

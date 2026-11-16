@@ -201,6 +201,6 @@ Background NPCs previously were strictly gated to relieve themselves only in are
 - engine/relief.py
 - engine/background_simulation.py (_relieve, _travel_to_privacy)
 - 
-outes/action_handlers.py
+routes/action_handlers.py
 - engine/world_scopes.py
-- 	ests/test_background_relief_and_washing.py
+- tests/test_background_relief_and_washing.py

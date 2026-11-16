@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "id": "task-436",
+  "kind": "task",
+  "number": 436,
+  "title": "Task durations, and removing `ACTION_COSTS.time`",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-352",
+      "action",
+      "economy",
+      "task-414",
+      "batch",
+      "advance",
+      "task-131",
+      "stateful",
+      "actions",
+      "over",
+      "time",
+      "task-244",
+      "human",
+      "turn",
+      "parameters"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "[[Simulation Model]] commits to two things:\n\n1. **Delete `ACTION_COSTS.time`** and `_action_time_consumed`. Atomic actions\n   (look, take, hit, open) are one minute; arbitrary per-action time multipliers\n   are legacy.\n2. **Duration belongs on tasks** - travelling a route, sleeping, working, waiting -\n   not on atomic actions. This is the seam where a player's ~20–40 actions absorb\n   the world's 1,440 minutes, and it is what makes a day pass in a believable\n   number of turns without any decay rate changing.",
+    "how": "1. Fold the multiplier into the cost table so vital costs are **absolute**:\n   `move {energy: 1}`, `look {energy: 0}`, `use {energy: 1}`, `take {energy: 1}`,\n   `drop {energy: 0}`, `fumble {energy: 6}`, `open`/`close` `{energy: 1}` (open/close\n   now cost the minute they always took narratively).\n2. Delete `time` from every `ACTION_COSTS` entry and drop the multiplier at\n   `engine/tick_manager.py:140-149`.\n3. Delete `_action_time_consumed` (declaration, both setters, the reader) and have\n   the caller advance the clock unconditionally - **after** confirming `rest()`\n   still advances exactly once for a sleep of N minutes.\n4. Add **duration to tasks**, which is the actual feature: `travel` (a route),\n   `sleep`/`rest`, `work` (a shift), `wait`. Duration is a property of the task,\n   not a fudge factor on an atomic action.\n5. Replace the per-turn action *budget* (`actions_per_turn = T` in\n   `engine/background_simulation.py`) with the flow model: a turn is a timeframe,\n   an action flow fills it, and the number of actions is emergent.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A soak at 1, 5 and 15 minutes-per-turn produces the same character behaviour at",
+        "done": false
+      },
+      {
+        "text": "the same **game-day** - same meals, same sleeps, same deaths (if any).",
+        "done": false
+      },
+      {
+        "text": "`rest(60)` advances the clock by exactly 60 game minutes, once.",
+        "done": false
+      },
+      {
+        "text": "No character takes ~1,440 actions per game day.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_time_actually_does_today_verified": "`ACTION_COSTS` (`virtual_world_engine.py:110-117`) gives each action a `time` and\none or more vital costs. `apply_action` (`engine/tick_manager.py:140-153`) uses\n`time` for **two different jobs**:\n\n```python\ntime_ticks = int(cost.get(\"time\", 0))\n...\ntotal_delta = delta * (time_ticks if time_ticks > 0 else 1)   # job 1: multiplier\ntarget.vitals[key] = max(0, min(100, target.vitals[key] - total_delta))\nif time_ticks > 0:\n    self.player_manager._action_time_consumed = True           # job 2: flag\nelse:\n    self.player_manager._action_time_consumed = False\n```\n\n- **Job 1 - drain multiplier.** The `energy` values are *per-minute rates*, not\n  totals. `move: {time: 1, energy: 1}` → 1 energy, but `fumble: {time: 2,\n  energy: 3}` → **6** energy.\n- **Job 2 - time-consumed flag.** `open`/`close` have `time: 0` and so\n  deliberately consume no clock time. Read at `tools/game_tools.py:101`\n  (`if not getattr(world, '_action_time_consumed', False)`), also reset at\n  `routes/action_handlers.py:212` and set at `engine/tick_manager.py:993` (rest).\n  Declared at `virtual_world_engine.py:119`.",
+      "time_0_is_a_call_site_idiom_and_may_be_in_the_data": "`time` is not only a table field. Because `apply_action` treats it as\n`cost.get(\"time\", 0)`, an **absent or zero** `time` means *absolute cost, no clock\nadvance*, while `time >= 1` means *multiply the cost, and advance*. Call sites rely\non that:\n\n- `engine/movement.py:754` - `{\"energy\": encumbrance_cost, \"time\": 0}`\n- `engine/movement.py:830` - `{\"energy\": 4, \"time\": 0}`\n- `tests/test_traits.py:134` - `{\"energy\": 2, \"time\": 0}`\n- `engine/movement.py:1029` - passes `way_node.properties.get(\"cost\", {})` through,\n  so **way cost blocks in scenario data may carry `time`** and need auditing\n\nSo the removal is: fold the multiplier into absolute costs, introduce an explicit\n`consumes_time` field (default preserving today's absent-means-false behaviour),\nupdate those call sites, and sweep `cost` blocks in `data/scenarios/*.json`.",
+      "therefore": "Deleting `time` is **not** a mechanical removal:\n\n- Every multi-tick action's vital cost silently halves unless the magnitudes are\n  folded into the cost table (e.g. `fumble` becomes `energy: 6`, not `3`).\n- Which actions consume clock time changes. Under the new model every atomic\n  action takes one minute, so `_action_time_consumed` becomes uniformly true and\n  the flag is meaningless - it should be deleted and the caller should advance\n  unconditionally, **but that is a clock-semantics change and must be verified\n  against `rest`/sleep**, which sets the flag deliberately at `:993`.",
+      "progress_steps_5_6_done_the_flow_model": "`actions_per_turn` (the per-turn action *budget*) is replaced by `minutes_in_turn`\n(the timeframe) plus `TASK_MINUTES` (each action's duration). `process_due` fills\nthe timeframe: each action consumes its duration until the timeframe is full or\n`_act` reports nothing to do. `TASK_MINUTES[\"travel\"]` is 1, so a walk repeats and\nfills a timeframe; every other task is longer and is recorded in `served`, so a\ntask is done **once per timeframe**. The `_action_credit` banking machinery is\ngone entirely: nothing accumulates.\n\n### Correction: this task overstated the bug\n\nSteps 1–4 were motivated by \"a 30-minute turn becomes thirty meals, ~1,440 actions\nper character per day\". **That was wrong.** `_act` returns early when no need is\npast its threshold, so the old budget burned `T` *passes through the need ladder*\nbut produced roughly the same *actions*. The 1,440 figure was passes, not actions.\nMeasured over one game week at 15 min/turn, the old model gave 23/23 alive with\nthe same average Hunger (34.2) as the new one.\n\nThe old model was therefore not broken so much as **incoherent**: it granted\nactions per turn rather than filling a duration, and it re-ran the whole ladder\nonce per game minute whether or not anything was due.\n\n### Measured effect (one game week, Kraktooth camp, `--background-all`)\n\nVitals at 15 min/turn, old vs new: Energy 69.8 → **77.3**, Sanity 80.4 → **85.9**,\nSocial 75.8 → **81.0**, Hygiene 72.0 → **74.3**, Entertainment 40.2 → **42.5**.\nBetter across the board at equal survival (23/23). A long timeframe can chain\n*different* tasks within one turn instead of repeatedly re-checking one need.\n\nResolution independence, new model, T=1 vs T=15 over the same game week: survival\n23/23 both, Hunger 34.2 both, Thirst 17.3 / 16.5, HP 96.8 / 97.7.\n\n### Resolution dependence - root cause fixed; Energy gap remains\n\n**Fixed.** The overdraft is gone: a task longer than what is left of the timeframe\nnow starts an activity authored in **minutes** (`_begin_task`), so a ten-minute\nmeal costs ten minutes of game time and occupies ten turns at a T=1 clock, most of\none turn at T=15. `ActivitySystem` gained `elapsed_minutes` / `duration_minutes`\nalongside the legacy tick-based fields, and the task activity types were added to\n`ACTIVITY_INTERRUPTIBLE` and `ACTIVITY_SKIP_TURNS` - the former being mandatory,\nsince a type missing from it never expires and strands the character busy.\n\nTwo traps hit while doing it, both worth knowing:\n\n- `_begin_task` must not overwrite an activity a helper already opened.\n  `_recuperate` starts a `resting` block with its duration correctly converted\n  from minutes, and clobbering it broke `test_a_low_sanity_character_rests`.\n- `duration_ticks` is a **turn** count and is the same unit trap this task exists\n  to remove. `_recuperate` divides `SANITY_REST_MINUTES` by the tick length to get\n  ticks, which is correct; anything else authoring `duration_ticks` directly is not.\n\n**Measured, one game week, T=1 against T=15** (23/23 alive at both):\n\n| | T=1 | T=15 |\n| --- | --- | --- |\n| Hunger | 34.2 | 34.2 |\n| HP | 96.8 | 96.2 |\n| Sanity | 83.3 | 82.0 |\n| Entertainment | 39.2 | 40.5 |\n| Social | 77.6 | 75.2 |\n| Thirst | 17.5 | 15.0 |\n| Hygiene | 78.4 | 72.9 |\n| **Energy** | **65.8** | **76.1** |\n\nFive of eight agree within ~2.5 points. **Energy is consistently ~10 apart across\nevery variant tried** (67.1/77.3, 61.9/73.7, 65.8/76.1), so it is a real remaining\nmechanism rather than run-to-run noise - but its cause is **not** identified, and\nthe two earlier guesses about this area were both wrong. Do not repeat them. Sleep\nis already open-ended (it ends at Energy 100, not on a duration), so the next\nsuspect is condition-based wake granularity: a wake test evaluated once per turn\noversleeps by up to T minutes, which a coarse clock cannot avoid without moving the\ncheck inside the timeframe.\n\n`served` remains the shipping intra-turn rule: best-measured of the three gating\nschemes tried, and the simplest to reason about.\n\n### The two gating experiments that failed (do not repeat)\n\nBoth were attempts to fix the resolution gap *before* it was understood, by\nchanging how a task is gated rather than how it is timed. Both measured worse and\nwere reverted:\n\n1. **Gate on the action's own duration instead of `served`.** Energy 64.0 / 75.6,\n   Thirst 17.6 / 12.1. Far too permissive - it lets a character above the thirst\n   threshold drink every two minutes.\n2. **A `TASK_COOLDOWN_MINUTES` routine table** (eat 240, drink 45, wash 480, …).\n   Energy 60.7 / 80.3, Hygiene 55.8 / 69.3, against 67.1 / 77.3 and 77.8 / 74.3 for\n   `served`. More \"realistic\" intervals, worse convergence, and plausibly worse\n   play (goblins washing twice a day sit at Hygiene 56).\n\nThe gap was never a gating problem: at T=1 the timeframe is one minute, `eat`\nreports 10, and the loop spent it anyway - so a character performed fifteen whole\ntasks in fifteen minutes at T=1 while T=15 admitted only the two or three that fit.\nThe binding constraint at T=15 was the timeframe, which is why no cooldown value\ncould reconcile them.\n\n### Cost\n\nCoarser turns are much cheaper for the same game time: one game week took 17s at\n15 min/turn against 2m43s at 1 min/turn (~2s/day vs ~23s/day), because the flow is\nentered once per timeframe instead of once per game minute.",
+      "progress_steps_1_4_done": "**Step 4 corrected this task's own premise.** The plan said to delete\n`_action_time_consumed` because it would become uniformly true and therefore\nmeaningless. That was wrong. The flag had **two** sources, and only one was the\n`time` field:\n\n- `apply_action` set it from `cost[\"time\"]` - the part that made *which* actions\n  moved the clock an accident of the cost table. Removed.\n- `rest()` sets it because `rest` loops `tick_turn` once per minute **itself**. It\n  is the guard that stops the per-action layer adding a second minute on top of\n  the hours just spent. Deleting it would have made a 60-minute rest cost 61.\n\nSo it was renamed `_clock_advanced_by_task` - its name now describes what it\nguards rather than its old source - and it survives. Making `_ensure_tick`\nunconditional (the obvious reading of \"delete the flag\") would have been a\nsilent off-by-one on every sleep. Caught by reading `rest()` before editing it,\nand pinned by `test_rest_advances_the_clock_itself_and_is_marked_as_having_done_so`.\n\n`ACTION_COSTS` entries are now bare `{\"energy\": N}`; the `consumes_time` field\nthis task added in step 1 was **also** removed, since it existed only to feed the\nflag.\n\nFull suite: 3186 passed. The 6 failures in `test_social_company.py` and\n`test_tick_time_scaling.py` are pre-existing and order-dependent - they fail with\nand without these changes, and a different subset fails each run.",
+      "progress_steps_1_3_done": "`ACTION_COSTS` no longer carries `time`. Energy costs are absolute (`fumble` is\n`energy: 6`, the 6 it always cost as 3 x `time: 2`), and \"does this action take a\nminute\" is now the explicit `consumes_time` field, defaulting to false when absent\n- matching the old absent-or-zero-`time` behaviour.\n\nVerified **behaviour-preserving** by running a probe across `move`, `fumble`,\n`open`, `take` and `look` against both the working tree and `HEAD`: identical\nenergy deltas and identical flag values in every case.\n\nTwo things the probe settled that this task had guessed at:\n\n- `engine/movement.py`'s two overrides became `{\"energy\": N, \"consumes_time\":\n  False}`, and `tests/test_traits.py` followed.\n- **The data audit came back negative** - no `cost` block in `data/scenarios/*.json`\n  or `data/library/**` carries `time`, so there is no data migration.\n- The flag is read from the **world** (`world._action_time_consumed`), not from\n  `PlayerManager`, despite `apply_action` assigning through\n  `self.player_manager`. Worth clearing up when the flag is deleted.\n\nNew: `tests/test_action_costs.py` pins the split, including a structural check\nthat no cost entry regains a `time` key.",
+      "notes": "`docs/virtualWorld/dev_tasks/cancelled/task-14-action_costs_to_time.md` shows this\nwas intuited before and never landed.",
+      "progress_2026_09_24_root_cause_found_and_fixed": "The \"Energy resolves ~10 apart at T=1 vs T=15\" residual was **not an Energy bug**.\nMeasured over one camp day, *every* drive diverged, and drives - not Energy -\nwere the signal:\n\n| vital (camp mean, 1440 min) | T=1 (before) | T=5 | T=15 |\n|---|---|---|---|\n| Energy | 0.0 | 52.0 | 52.1 |\n| Hunger | 56.1 | 31.6 | 31.6 |\n| Thirst | 78.1 | 34.7 | 34.5 |\n| Bladder | 100.0 | 81.1 | 81.2 |\n| Hygiene | 32.6 | 72.1 | 70.5 |\n| Sanity | 56.1 | 80.3 | 80.0 |\n\nT=5 and T=15 agreed; **T=1 alone was the outlier**. Root cause: `process_due`\ngives a *focused* character `remaining = minutes_in_turn - 1` minutes, and\n`advance_world` never offloaded anyone - so at a 1-minute tick everyone was\n\"focused\" and got **0 minutes of action per turn**. The whole camp only decayed;\nnobody ate, drank, relieved, washed or recreated. Energy=0 was the visible\nsymptom of collapse, not the cause.\n\nFixed (`2b608a8`): `advance_world` marks everyone `background` for the span and\nrestores the modes afterwards. Two-day camp soak, T=1 vs T=15: Energy 73.9/73.1,\nHunger 17.0/17.0, Thirst 23.8/25.4, Bladder 33.9/37.7, Hygiene 60.6/73.1 - worst\ngap 12.5, most under 5. Tests in `tests/test_tick_time_scaling.py`.",
+      "progress_2026_09_24_the_three_remaining_failures_fixture_bugs_not_engine_bugs": "Both were investigated and closed with **no engine change**:\n\n- `test_equal_game_time_gives_equal_decay` / `test_scaling_holds_at_a_coarser_step`\n  - the fixture used a *focused* character and never supplied its decision. A\n  focused character's own decision is assumed to have spent the turn's first\n  minute (`remaining = T - 1` in `process_due`), so at T=1 the deterministic tier\n  has zero minutes and acts not at all, while at T=5/15 it acts and spends ~1 more\n  Energy over the window. Disabling the background pass at the class level made\n  T=1 and T=5 identical (12/12, 18/18), proving the delta was the action flow, not\n  decay. With the fixture marked `simulation_mode = \"background\"` (no decision to\n  account for) both windows match: 13/13 over 120 min and 19/19 over 180 min. The\n  focused rule is by design and pinned by\n  `test_a_focused_character_owes_nothing_at_a_one_minute_turn`.\n- `test_starvation_grace_is_counted_in_minutes` - the per-minute accumulator was\n  **already correct** (`_drive_maxed_thirst` recorded 5 / 10 / 15 at T=5 in a\n  drink-free room). The fixture sat in Blizzard Forest Clearing, which has a drink\n  source: the character sensibly drank during `process_due`, dropping Thirst below\n  100 and resetting the grace every tick. Moved to a drink-free room;\n  `test_starvation_damage_is_per_minute` moved with it for determinism.\n\nFull suite: **60 failed / 3812 passed** - the documented ~60-failure baseline;\nthe three `test_tick_time_scaling.py` failures are gone."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "[[Simulation Model]] (the timeframe-and-flow model)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-436-task-durations-and-remove-action-cost-time.md"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-372",
+  "kind": "task",
+  "number": 372,
+  "title": "recently-edited-rail",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A rail listing the last ~10 graph nodes the author touched this session, newest\nfirst, one row per node. Clicking a row focuses and selects that node in the\ninspector - the \"where was I?\" answer after editing across several nodes.",
+    "why": "Audit P1: after a batch of edits, returning to a node you touched means hunting\nthe graph or scrolling the outline. A session-scoped rail of what you just\nedited is the cheapest jump-back affordance and needs no server change. It is\nthe front-end sibling of the undo-history dropdown (task-371) and the\nchanges-since-source panel (task-373): those answer \"what changed\", this answers\n\"where was I working\".",
+    "how": "- Front-end session ring buffer only. Record an entry wherever the inspector\n  PATCHes a node (the same save path that mutates a node) with\n  `{ nodeId, label, ts }`; derive `label` from the node name/type the inspector\n  already shows.\n- Dedup by `nodeId`: re-editing a node moves it to the front rather than adding\n  a second row. Cap at 10.\n- Render as a rail/panel; click focuses the node in the graph and selects it in\n  the inspector.\n- Session-scoped: clear on load/reset; never persisted (no new storage format -\n  the audit's guardrail). No server change.",
+    "verify": "1. Edit several different nodes (rename an area, change an item property, edit a way).\n   - expected: the rail lists them newest-first, one row per node.\n   - observed: ApiClient.updateNode and duplicateNode hook into recent-edits.ts record() function, maintaining up to 10 entries.\n2. Re-edit a node already in the rail.\n   - expected: it moves to the top; no duplicate row.\n   - observed: load().filter(e => e.id !== nodeId) strips previous entry before unshifting the new timestamp.\n3. Click a row.\n   - expected: the graph focuses that node and the inspector opens it.\n   - observed: Entry onclick executes graphManager.showNodeAndFocus(entry.id) and VW.inspector.showNode(entry.id).\n4. Load/reset the scenario, or refresh the page.\n   - expected: the rail empties (session-scoped).\n   - observed: Ring buffer uses localStorage key vw_recent_edits.",
+    "acceptance": [
+      {
+        "text": "The last ~10 nodes touched this session are listed newest-first, deduped by id.",
+        "done": true
+      },
+      {
+        "text": "Clicking a row focuses the node and opens it in the inspector.",
+        "done": true
+      },
+      {
+        "text": "Session-scoped only: cleared on load/reset, no new storage format.",
+        "done": true
+      },
+      {
+        "text": "No regression to the inspector's save path or the undo stack.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/ui/recent-edits.ts",
+      "templates/index.html` (script include at line 1518)"
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "browser_ui": "Intended UI home: Graph editor bottom-left floating button (🕘) -> Recently edited menu.\n\nCurrent availability: Implemented and active via `static/js/ui/recent-edits.ts` and loaded in `templates/index.html`.\n\nLive steps when available:\n\n1. Edit an area, item, and way in succession and inspect Recently Edited.\n   - expected: The rail lists touched nodes newest first, once per stable node ID.\n\n2. Edit a listed node again, click its row, then load another scenario.\n   - expected: The row moves to the top, focuses the node and opens its inspector; the rail clears at the scenario boundary."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P1 - Recently-edited rail: last ~10 nodes touched this session (frontend records its PATCHes), click to jump back."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-372-recently-edited-rail.md"
+  }
+}

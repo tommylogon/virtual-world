@@ -13,7 +13,7 @@ priority: medium
 
 ## Bugs
 
-- `_renderMapView()` throws `ReferenceError: floorOffsetY` — `const` used before declaration (TDZ). ✅ Fixed (moved before first use)
+- `_renderMapView()` throws `ReferenceError: floorOffsetY` - `const` used before declaration (TDZ). ✅ Fixed (moved before first use)
 - Item library editor was missing `current_state` dropdown, action list was inconsistent with world inspector ✅ Fixed
 - Library save payload was missing `current_state` ✅ Fixed
 
@@ -27,8 +27,8 @@ Allow both narrative directions (`"front_way"`, `"trail"`, `"hallway"`) and stan
 - cardinals are north, northeast, east, southeast, south, southwest, west, northwest, up, down, or N, NE, E, SE, S, SW, W, NW, U, D (case-insensitive)
 
 ### 2. Map View Cardinal Rendering
-- `getCardinal()` helper already exists in `_renderMapView` (line 828-831) — reads `ex.cardinal` or falls back to `dir`
-- But `dirOffsets` only has the 10 cardinal directions — any non-cardinal exit gets skipped silently
+- `getCardinal()` helper already exists in `_renderMapView` (line 828-831) - reads `ex.cardinal` or falls back to `dir`
+- But `dirOffsets` only has the 10 cardinal directions - any non-cardinal exit gets skipped silently
 - Need to handle areas with only non-cardinal exits (show them as unconnected)
 
 ### 3. Area Floor in Editor (✅ Done)
@@ -38,16 +38,16 @@ Allow both narrative directions (`"front_way"`, `"trail"`, `"hallway"`) and stan
 
 ## Files
 
-- `static/js/graph-manager.js` — `_renderMapView()` cardinal fallback, unconnected room placement, direction label display
-- `static/js/inspector.js` — floor editor ✅ done
-- `templates/index.html` — map view toggle buttons
-- `static/css/style.css` — map view styling
+- `static/js/graph-manager.js` - `_renderMapView()` cardinal fallback, unconnected room placement, direction label display
+- `static/js/inspector.js` - floor editor ✅ done
+- `templates/index.html` - map view toggle buttons
+- `static/css/style.css` - map view styling
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
 
 ## Refactoring Impact (July 2026)
 
-Map view exists as static/js/graph/map-view.js. Layout engine is static/js/graph/layout-engine.js. This task fixes open issues in map rendering, adds direction aliases, floor display — extend existing modules.
+Map view exists as static/js/graph/map-view.js. Layout engine is static/js/graph/layout-engine.js. This task fixes open issues in map rendering, adds direction aliases, floor display - extend existing modules.
 
 ## What
 

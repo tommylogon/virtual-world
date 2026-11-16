@@ -55,6 +55,8 @@ Live steps when available:
 3. Save the scenario, reload it.
    - expected: `size` is `huge` (path 1).
 
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Steps to verify
 
 1. `python -m pytest tests/test_serialization.py tests/test_library_character_import.py`

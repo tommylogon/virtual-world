@@ -27,9 +27,9 @@ Already implemented. `put_item_in_container` exists in engine/item_actions.py:48
 - [x] Items in containers show up in examine output (reachable for examine/take)
 - [x] Containers placed in the world (not just inventory) work
 
-**Verified 2026-08-02** — all checks pass via `tests/test_item_actions.py::TestPutInContainer` (carried containers, world-placed containers, capacity enforcement, take-back, non-container rejection).
+**Verified 2026-08-02** - all checks pass via `tests/test_item_actions.py::TestPutInContainer` (carried containers, world-placed containers, capacity enforcement, take-back, non-container rejection).
 
-**Status: DONE** — moved to `done/items/`.
+**Status: DONE** - moved to `done/items/`.
 
 ## Why
 

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-8",
+  "kind": "task",
+  "number": 8,
+  "title": "NPC Behavior Movement Enhancement (Go / Random / Patrol)",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The `go` action in the behavior system currently teleports an NPC directly to a named room - no pathfinding, no door checks, no randomness. It needs to support three movement modes: pathfinding to a specific room via ways, moving to a random connected room, and cycling through a patrol route.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "```powershell\npython -m pytest tests/test_npc_behaviors.py -q\nnode --check static/js/inspector/behaviors-view.js\n```\n\nBrowser E2E: rat Kitchen ↔ Cellar via trapdoor after reset - pending manual check.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implemented": "### Backend (`engine/npc_behaviors.py`)\n\n- `execute_go_action(char_name, action)` dispatches on `mode`:\n  - **`goto`** (default): `_get_path_to_area()` + `movement.move_to_area()` - one step, respects doors/locks/costs\n  - **`random`**: random open exit (legacy wander logic)\n  - **`patrol`**: reads/writes `player.patrol_route` + `patrol_index`; advances on arrival\n- `_execute_behavior_actions` `go` handler delegates to `npc_behaviors.execute_go_action()`\n- Backward compat: `area` or `room` field, default mode `goto`\n\n### Player model (`player.py`, `engine/serialization.py`)\n\n- `patrol_route: list`, `patrol_index: int` - serialized in saves/templates\n\n### Frontend (`static/js/inspector/behaviors-view.js`)\n\n- `go` action: mode dropdown (goto / random / patrol)\n- Conditional fields: target area (goto), comma-separated areas (patrol)\n- `toggleGoModeFields()` for field visibility\n\n### Tests\n\n- `tests/test_npc_behaviors.py`: goto via way, random, patrol cycle, locked door blocked",
+      "original_design_reference": "See git history / prior `todo/characters/task-8-npc_behavior_movement.md` for full design notes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/NPC Behavior System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-8-npc_behavior_movement.md"
+  }
+}

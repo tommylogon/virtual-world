@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "task-191",
+  "kind": "task",
+  "number": 191,
+  "title": "Freshness of Consumables (fresh/cooked/spoiled)",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "There is no way to track the state of food - it can't be fresh, cooked, or spoiled. This matters narratively: food should go bad over time and cooking should change its state.",
+    "how": "- Model fresh / cooked / spoiled as condition instances attached to the item, which keeps the generic item template clean and reuses the existing condition system.\n- Use a periodic tick on the item to transition to spoiled after a duration.\n- Use `ends_on` to end the fresh/cooked state when it spoils.\n- Integrate with the existing cooking system so cooking a fresh item sets it to cooked.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/item_actions.py` - cooking transitions, spoil behavior on item use.",
+      "engine/conditions.py` - condition instances for freshness states on items."
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-191-freshness-of-consumables.md"
+  }
+}

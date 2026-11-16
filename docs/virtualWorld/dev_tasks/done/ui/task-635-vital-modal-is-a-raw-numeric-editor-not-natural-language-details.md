@@ -18,7 +18,7 @@ The modal advertises natural-language details but offers raw numeric fields with
 
 - [x] The modal leads with a natural-language read of the vital, reusing
   `VitalThresholds.hoverText` (the same prose the hover shows): "Hunger: 47/100 ·
-  a drive — it fills over time… · You are hungry. FIND SOMETHING TO EAT NOW."
+  a drive - it fills over time… · You are hungry. FIND SOMETHING TO EAT NOW."
 - [x] The direction is stated correctly. The rate line reads *"Fills toward 100 …
   it reaches the top (most urgent) in about 15588.2 turns"* for drives
   (Hunger/Thirst/Bladder) and *"Drains toward 0 … it empties in about 442.3
@@ -26,10 +26,10 @@ The modal advertises natural-language details but offers raw numeric fields with
   exposed as `polarity` on `GET /api/players/<name>/vitals/<vital>`), not a UI
   guess.
 - [x] The misleading `TIME TO EMPTY` label is gone; a zero rate reads
-  *"Stable — it does not change on its own over time."*
+  *"Stable - it does not change on its own over time."*
 - [x] The raw value/rate inputs are moved behind a default-collapsed
   **Advanced** disclosure, so the natural-language detail is the surface.
-- [x] The override line distinguishes an unset override (*"none — using base"*)
+- [x] The override line distinguishes an unset override (*"none - using base"*)
   from a real one, instead of printing base and override identically with no
   meaning.
 - [x] Temperature keeps its band block and no longer offers a meaningless decay
@@ -42,12 +42,12 @@ a character with Hunger:
 
 ```
 API_HUNGER {"polarity":"drive","decay_rate":0.0034,"value":47,"max":100,"time_to_empty":13823.5}
-HUNGER: "Hunger: 47/100 / a drive — it fills over time; eat before it maxes at 100.
+HUNGER: "Hunger: 47/100 / a drive - it fills over time; eat before it maxes at 100.
          / You are hungry. FIND SOMETHING TO EAT NOW.
-         / Fills toward 100 at about 1 point every 294 turns — it reaches the top
+         / Fills toward 100 at about 1 point every 294 turns - it reaches the top
            (most urgent) in about 15588.2 turns."
 POSITIVE: HAS_FILLS true, HAS_TIME_TO_EMPTY_LABEL false
-ENERGY: "Drains toward 0 at about 1 point every 10 turns — it empties in about 442.3 turns."
+ENERGY: "Drains toward 0 at about 1 point every 10 turns - it empties in about 442.3 turns."
 Advanced disclosure: before {open:false, inputs:2}; after click {open:true, value:"47", rate:"0.0034"}
 ```
 
@@ -55,8 +55,8 @@ Screenshot: `review-verify/635-vital-modal.png`.
 
 ## Files
 
-- `templates/index.html` — `openVitalModal` markup; `escVital`/`fmtVitalNum`.
-- `routes/player_ops.py` — `GET .../vitals/<vital>` returns `polarity`.
+- `templates/index.html` - `openVitalModal` markup; `escVital`/`fmtVitalNum`.
+- `routes/player_ops.py` - `GET .../vitals/<vital>` returns `polarity`.
 
 ## Steps to verify
 
@@ -83,7 +83,7 @@ Live steps when available:
 2. Open Energy detail and compare its direction; then inspect a zero-rate vital.
    - expected: Energy says it drains toward 0 and time-to-empty; a zero-rate vital says it is stable rather than showing a misleading countdown.
 3. Expand Advanced, change the raw value/rate, and save; reopen the modal.
-   - expected: numeric controls are available only in the disclosure, the override distinguishes “none — using base” from a real override, and the readout refreshes from the API's `polarity`.
+   - expected: numeric controls are available only in the disclosure, the override distinguishes “none - using base” from a real override, and the readout refreshes from the API's `polarity`.
 4. Open Temperature detail.
    - expected: its temperature-band block remains and no meaningless decay editor is offered.
 

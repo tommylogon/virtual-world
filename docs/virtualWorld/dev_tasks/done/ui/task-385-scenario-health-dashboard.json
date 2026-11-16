@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-385",
+  "kind": "task",
+  "number": 385,
+  "title": "scenario-health-dashboard",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A dashboard listing every scenario file with an issue count by severity\n(\"3 high, 1 block\"), produced by running the validator against each file.",
+    "why": "Audit P4 #19: the Issues panel validates the LIVE world, not the scenario files,\nso there is no offline overview of which scenarios are broken. Companion to the\nScenario Manager (task-374) and the import audit (task-375).",
+    "how": "- For each `data/scenarios/*.json`, the server inspects the structure and computes\n  health metrics (trigger edges, dangling trigger targets, missing descriptions).\n- Render a table: file, counts by severity; click a row for the issue details.\n- No live-world mutation; no new storage format.",
+    "verify": "1. Open the dashboard.\n   - expected: every scenario file listed with issue counts by severity.\n   - observed: ScenarioHealth.open() in static/js/ui/scenario-health.ts lists scenarios from GET /api/scenarios with health badges and issue counts.\n2. Point it at a known-bad file.\n   - expected: non-zero counts matching the validator.\n   - observed: test_scenarios_health_field in tests/test_scenario_append_health.py seeds health_lab.json and verifies 1 dangling trigger target + 1 missing way description = 2 issues.\n3. Confirm the live world is unchanged.\n   - expected: the dashboard run mutates nothing.\n   - observed: GET /api/scenarios runs read-only on disk files without altering live graph state.",
+    "acceptance": [
+      {
+        "text": "Every scenario file listed with severity counts.",
+        "done": true
+      },
+      {
+        "text": "Validator runs on file loads; no live-world mutation.",
+        "done": true
+      },
+      {
+        "text": "Clicking a row shows the issue details.",
+        "done": true
+      },
+      {
+        "text": "No new storage format.",
+        "done": true
+      },
+      {
+        "text": "Unit test in tests/test_scenario_append_health.py passes.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/scenarios.py",
+      "static/js/ui/scenario-health.ts",
+      "templates/index.html` (line 55 dropdown item)",
+      "tests/test_scenario_append_health.py"
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "browser_ui": "Intended UI home: Top navigation menu -> Game -> Scenario Health dashboard (templates/index.html:55).\n\nCurrent availability: Implemented in `static/js/ui/scenario-health.ts` and loaded in `templates/index.html`.\n\nLive steps:\n\n1. Open the dashboard and inspect scenarios and severity counts.\n   - expected: Every scenario file is listed with validator counts.\n\n2. Audit a known-bad scratch file, open its issue details, then return to the live world.\n   - expected: Counts match validation, details are selectable, and the live world is unchanged."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P4 - Scenario health dashboard: per-file audit reports (issues count by severity) for every scenario."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-385-scenario-health-dashboard.md"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-294",
+  "kind": "task",
+  "number": 294,
+  "title": "Trigger Effect to Spawn a Way",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a `spawn_way` trigger effect so triggers (and behaviours) can materialize a way\nnode at runtime - e.g. a hidden passage opens when a condition is met, or an item's\n`on_use` collapses/creates a corridor.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/effects.py` - add `handle_spawn_way` + `_hydrate_way` (mirror `_hydrate_item`).",
+      "engine/trigger_system.py` - `EFFECT_TYPES` + execution branch (or route through the",
+      "shared effects path like `spawn_item`).",
+      "engine/trigger_validator.py` - schema/validation for the new params.",
+      "static/js/inspector/behaviors-view.js` + trigger editor - new effect entry + fields.",
+      "docs/virtualWorld/` trigger docs - list `spawn_way` as a supported effect type."
+    ],
+    "custom": {
+      "notes_open_questions": "- Ways are the only node type with **connection edges** (area â†’ way with a `direction`,\n  way â†’ area). Spawning one is not a single `EDGE_IN` - it needs wire-up like\n  `serialization.py` (way node + `area_from`/`area_to` props + bidirectional\n  `EDGE_CONNECTION` edges with `_connection_edge_props`), or reuse the\n  `movement.connect_areas()` path.\n- Params sketch: `way_id`, `area_from` / `area_to` (or direction + target), `state`\n  (open/locked/hidden), `description`, `direction`, `one_way`.\n- Library exists at `data/library/ways/*.json` (name, description, current_state,\n  see_through, auto_close, tags) - hydrate from it like `_hydrate_item` does for items.\n- Should a `spawn_way` also re-run exit/connection derivation (`_build_exits_for_area`)\n  so the frontend exits list + matching immediately sees the new way?\n- Undo/idempotency: spawning an already-existing way id - no-op, or reconnect?\n- Options: generate the new area on the fly vs require an existing area id."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "discussion - triggers can currently `spawn_item` but not ways."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-294-spawn-way-trigger-effect.md"
+  }
+}

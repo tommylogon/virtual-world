@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "bug-522",
+  "kind": "bug",
+  "number": 522,
+  "title": "worldSync.refresh() was never implemented: one caller throws a false error, three callers silently no-op",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-10-05",
+  "updated": "2026-10-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-492",
+      "task-441"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Found live 2026-10-04 in kraktooth_goblin_camp (Rikka's turn 4): three 'Scope change failed: window.worldSync.refresh is not a function' rows AFTER the scope change had already succeeded. static/js/world-sync.ts exported no refresh method at all; inspector/area-view.ts:537 called it guarded only on the object's existence (throwing), while graph-manager.ts:389, structures.ts:227 and worldpainter/editor.ts:600 guarded on the method and silently did nothing - exactly the dead-call pattern the TS gate's reviewed-prefix notes warn about.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`worldSync.refresh()` exists: re-reads the library types, re-collects",
+        "done": true
+      },
+      {
+        "text": "entities, re-renders summary + list, WITHOUT opening the modal",
+        "done": false
+      },
+      {
+        "text": "(`open()` delegates to it and then shows the modal).",
+        "done": false
+      },
+      {
+        "text": "area-view's unguarded call no longer throws; a scope change reports",
+        "done": true
+      },
+      {
+        "text": "success instead of \"Scope change failed\" after succeeding.",
+        "done": false
+      },
+      {
+        "text": "The three guarded callers (graph-manager, structures, worldpainter) are",
+        "done": true
+      },
+      {
+        "text": "live code again rather than dead probes.",
+        "done": false
+      },
+      {
+        "text": "Live verification: move an area between scopes in the inspector and",
+        "done": false
+      },
+      {
+        "text": "confirm no error toast; the sync panel list updates on refresh.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-522-worldsync-refresh-was-never-implemented-one-caller-throws-a-false-error-three-callers-silently-no-op.md"
+  }
+}

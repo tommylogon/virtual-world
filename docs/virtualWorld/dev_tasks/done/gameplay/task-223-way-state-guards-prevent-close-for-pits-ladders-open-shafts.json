@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-223",
+  "kind": "task",
+  "number": 223,
+  "title": "Way State Guards - prevent_close for Pits, Ladders, Open Shafts",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-13",
+  "updated": "2026-08-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "If a way has  traversal type of jump, climb or crawl, do not allow charaters to close or open those by doing open \"way name\" or close \"wayname\", only allow via triggers.\n- Blocks player/agent `close` actions on that way",
+    "why": "Any way including open jump pits and ladders can be closed via area inspector **Open/Close** buttons (`toggleDoorState`) or triggers that set `current_state: closed`. For labs Task 18 jump pit and ladder shaft, closing would nonsensically \"shut\" an open hole or climbable ladder.\n\nNothing in the engine prevents this today. but i do want to allow triggers to still open or close ways.",
+    "how": "- `engine/movement.py` - refuse character open/close on jump/climb/crawl ways and `prevent_close` flags (`_open_passage_block` in `toggle_way` + `toggle_way_by_id`)\n- `static/js/main.js` - `toggleDoorState` (inspector Open/Close buttons) uses the direct node PATCH instead of the action route, keeping the inspector fully authoring-capable\n- `static/js/inspector/way-view.js` - **☐ Prevent closing (open passage)** checkbox (passage tab), saved to node + library sync\n- Way node properties + serialization (`prevent_close` through save/refresh/library)",
+    "verify": "- [x] Jump way: character `close`/`open` refused, state unchanged\n- [x] Normal door: still closable/openable by characters\n- [x] Inspector can still set any way state (designer freedom - PATCH path)\n- [x] `prevent_close` flag blocks character close, allows character open\n- [x] Agent `close` on a guarded way fails gracefully (same engine path as human)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "use_cases": "| Way type  |\n|----------|---------------------|\n| Jump pit (`requires: jump`) |\n| Ladder (`requires: climb`)  |\n| Normal door | false |",
+      "related": "- [[todo/ui/task-220-unified-way-editor|task-220]]\n- User way templates - set default for pit/ladder templates"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-223-way-prevent-close-open-passages.md"
+  }
+}

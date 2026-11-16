@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "bug-50",
+  "kind": "bug",
+  "number": 50,
+  "title": "Renaming a scope does not update the graph scope picker or breadcrumb, and one Undo after a rename does nothing",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "task-539"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "symptom": "The author renamed a scope (`deep_woods_2` → \"goblin camp\") and the graph still\nshowed the old name - in the scope picker chip at the top of the canvas and in the\nscope bar's breadcrumb. It only changed after a full page reload. The rename\nitself was correct all along: `GET /api/world/scopes?flat=1` returned\n`name: \"goblin camp\"`, and the WorldPainter breadcrumb (which fetches its own\npayload) showed it.",
+      "cause_1_nothing_refreshed_the_derived_labels": "The picker and the breadcrumb are both derived from\n`graphManager._scopeSummaries`, filled by `loadScopeFilterOptions()`. Nothing\ncalled it after a rename, and the `world_changed` subscriber in `world-state.js`\nonly does `worldState.fetch()`, which does not carry scope names. So any rename -\nfrom this app, from an agent over MCP, or reverted by Undo - left both labels\nstale.\n\nFix: `graphManager._watchScopeChanges()` subscribes to the existing\n`world:changed` app event and refetches the flat list, but only for routes that\ncan change a scope's name or place in the tree:\n\n- `POST /api/world/scopes` (created), `…/rename`, `…/delete`\n- the whole-world operations that can revert one: `/api/undo`, `/api/redo`,\n  `/api/reset`, `/api/load`, `/api/load-game/…`\n\nThe predicate is deliberately narrow: painting, placing and the map-offset drags\nalso live under `/api/world/scopes/…` and fire the same event, so matching that\nprefix would refetch the list on every stroke. (Verified: three paint strokes\nproduced **0** extra requests.)",
+      "cause_2_rename_delete_and_offset_pushed_two_undo_snapshots": "Every WorldPainter scope handler pushes its own **pre**-state snapshot, and\n`app.py`'s `after_request` hook must skip a second push for those paths, or the\nfirst Undo pops the POST state and appears to do nothing. The skip list was\nwritten as a set of suffixes (`== '/api/world/scopes'`, `endswith('/grid')`,\n`'/grid/' in path`, and `/areas` added for task-539) and had missed the three\nsuffixes outside `/grid/`, so each of them double-pushed. task-539's `/areas`\nwas the same class of miss, which is how it was found.\n\nFix: one rule instead of a suffix list - any mutation under\n`/api/world/scopes` pushes its own snapshot. Regression test:\n`test_every_scope_route_is_one_undo_step` asserts a single stack entry, and that\n**one** undo reverts, for rename / offset / paint / delete.",
+      "also_fixed_while_here": "The two scope-change messages printed the raw id (\"Moved 3 area(s) into\ndeep_woods_2\"), which reads as if the rename had not taken. Both now print the\nscope's display name (`graph-manager._bulkScope`, `area-view` scope select).",
+      "verified": "Live, with no page reload between any step: rename → picker and breadcrumb both\nshow \"ZZ renamed camp\"; one Undo → both back to \"goblin camp\"; Redo → both back\nto \"ZZ renamed camp\". The camp was left named \"goblin camp\" and the test paint\nwas cleared."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "fixed": "2026-09-27"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-50-renaming-a-scope-does-not-update-the-graph-scope-picker-or-breadcrumb-and-one-undo-after-a-rename-does-nothing.md"
+  }
+}

@@ -20,8 +20,8 @@ The specific `logger.exception()` in the handler will log the traceback to the s
 
 ## Files
 
-- `routes/action.py:515-524` — route handler
-- `engine/tick_manager.py:63-340` — `tick_turn()` implementation (vital decay, conditions, NPC processing)
+- `routes/action.py:515-524` â€” route handler
+- `engine/tick_manager.py:63-340` â€” `tick_turn()` implementation (vital decay, conditions, NPC processing)
 
 ---
-_Audited 2026-08-03 � duplicate file consolidated into this record._
+_Audited 2026-08-03 - duplicate file consolidated into this record._

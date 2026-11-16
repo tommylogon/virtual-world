@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-152",
+  "kind": "task",
+  "number": 152,
+  "title": "Fix Whisper/Shout Clobbered by Alias Normalization",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-31",
+  "updated": "2026-07-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The `whisper` and `shout` speech commands were silently degrading to normal speech because the verb alias normalization in `routes/action.py` rewrote them to `say` before the speech handler ever saw them. Only `scream` survived (it wasn't in the alias map).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "Command parsing now produces the correct levels:\n\n| Command | Level |\n|---------|-------|\n| `whisper psst` | whisper |\n| `shout hey` | shout |\n| `scream help` | scream |\n| `say hello` | normal |\n| `yell fire` | shout |",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "the_bug": "In `routes/action.py`, the alias map contained:\n\n```python\n(\"yell \", \"say \"),\n(\"shout \", \"say \"),     # ← clobbered shout → normal speech\n(\"whisper \", \"say \"),   # ← clobbered whisper → normal speech\n```\n\nSo `whisper psst` became `say psst` → normal level. `shout hey` became `say hey` → normal level. The sound propagation system (task 149) was built and tested but the commands that feed it were broken at the entry point. Both the direct command route AND the MCP tools (`whisper()`, `shout()`) were affected since they all go through the same `/api/action` handler.",
+      "the_fix": "`routes/action.py` alias map:\n\n```python\n(\"yell \", \"shout \"),  # yell now correctly escalates to shout\n```\n\n- `shout` and `whisper` now pass through untouched to the speech handler\n- `yell` maps to `shout` (semantically correct - yelling IS shouting)",
+      "tests": "Added 5 regression tests to `tests/test_sound.py` (class `TestSpeechCommandParsing`) that mirror the alias normalization + dispatch logic:\n- whisper survives alias map\n- shout survives alias map\n- scream survives alias map\n- yell maps to shout\n- say stays normal\n\n**Result**: 26 tests passing in test_sound.py",
+      "files_modified": "1. `routes/action.py` - removed `shout`/`whisper` from alias map, changed `yell` → `shout`\n2. `tests/test_sound.py` - added `TestSpeechCommandParsing` regression tests\n\n---",
+      "quick_win_sound_source_perception": "**Files**: `engine/tick_manager.py`, `static/js/agent/prompt-builder.js`\n\nTwo related gaps in the sound propagation system:\n\n1. **Same-area sound sources were inaudible.** `_process_sound_sources()` only notified characters in *adjacent* hearing areas, so a character standing next to a ringing alarm clock got no hearing entry. Fixed by adding the origin area to the notification set (`hearing_areas[area_id] = (sound_level, \"\")`) before the loop.\n\n2. **Sound sources never appeared in WITNESSED.** The prompt builder filtered out `type === 'sound_source'` entries from `recent_hearing`, so even when a sound propagated, the character never perceived it. Fixed by rendering them as `[Heard from the X from the alarm clock] piercing alarm.`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-152-whisper-shout-alias-fix.md"
+  }
+}

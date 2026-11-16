@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "task-758",
+  "kind": "task",
+  "number": 758,
+  "title": "Biome records: add the climate and neighbour fields the palette needs",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-529",
+      "task-496",
+      "task-497",
+      "task-557",
+      "task-569",
+      "task-640",
+      "task-718",
+      "task-745",
+      "task-759"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extend `data/worldpainter/biomes.json` records with the two field groups that are\ngenuinely **biome data**: `climate` (`temperature`, `rainfall`, `elevation`) and\nthe adjacency sets (`natural_neighbors`, `unlikely_neighbors`,\n`transition_biomes`), plus explicit `engine_tags` / `forage_skills`. Fields are\nadditive; absent = unknown, never guessed. Add the matching validation to\n`engine/biomes.py`.",
+    "why": "`biomes.json` records today are `{name, terrain, tags, surface, descriptions}` -\nno climate, no neighbours. The improved palette (task-759) and the adjacency\ngenerator rule - *\"a pine forest next to a mountain stream is normal; a tropical\nrainforest beside an arctic tundra is bizarre\"* - have no data to render or\ncheck. task-497 authored the taxonomy prose; the records never gained the\nper-entry fields. (`world-environment-taxonomy.md` §\"Gap analysis\" records this.)",
+    "how": "- **Data** (`data/worldpainter/biomes.json`): add `climate {temperature,\n  rainfall, elevation}` and `natural_neighbors` / `unlikely_neighbors` /\n  `transition_biomes` per record, drawn from the taxonomy doc. Neighbours and\n  transitions are **biome ids** where they resolve; where the doc uses a prose\n  noun, prefer an existing id and record any soft noun in an alias map rather\n  than inventing a second vocabulary.\n- **Engine** (`engine/biomes.py`): extend `validate()` (the one owner) to fail a\n  record whose `natural_neighbors` / `transition_biomes` ids do not resolve.\n  Expose the new fields through the derivation `handle_painter_vocabulary`\n  (`routes/world_grid_ops.py:287`) already uses, so task-759 needs no new read\n  path. `clear_cache()` exists and has zero callers - the save/reload story is\n  task-589's, not this.\n- **Climate vs the paint layer:** the `climate` field here is **per-biome\n  descriptive ranges** for the panel. It is not the painted `climate` layer,\n  which is a 5-value enum (arctic/alpine/temperate/arid/tropical) with a base °C\n  (task-557) and must stay an enum \"not a float\". Do not couple them.\n- **No compiler behaviour change.** Additive data + validation only; existing\n  compiled scopes and scenarios stay unaffected.",
+    "verify": "1. Read a populated record from `data/worldpainter/biomes.json`.\n   - expected: it carries `climate` and neighbour sets; no `resources`,\n     `creatures` or `hazards` key (those live in the registries).\n   - observed:\n2. `engine/biomes.validate()` with an unresolvable neighbour id.\n   - expected: fails loudly with the bad id.\n   - observed:\n3. `GET /api/world/painter/vocabulary` (or the painter's derived route).\n   - expected: the new fields are present per biome entry.\n   - observed:",
+    "acceptance": [
+      {
+        "text": "Records carry authored `climate` + neighbour values, from the taxonomy",
+        "done": false
+      },
+      {
+        "text": "doc. **Deferred to the authoring surface (task-589)** - the doc's 170",
+        "done": false
+      },
+      {
+        "text": "entries are wilderness ecotypes that mostly are not shipped ids, and the",
+        "done": false
+      },
+      {
+        "text": "doc gives no numbers, so authoring here would be invention. The schema and",
+        "done": false
+      },
+      {
+        "text": "validation are the deliverable of this task (below); 589 is the right home",
+        "done": false
+      },
+      {
+        "text": "for the values.",
+        "done": false
+      },
+      {
+        "text": "No `resources` / `creatures` / `hazards` key is added to a biome record;",
+        "done": true
+      },
+      {
+        "text": "those stay in the task-718 / task-745 registries.",
+        "done": false
+      },
+      {
+        "text": "`engine/biomes.validate()` checks the shape of `climate` and the neighbour",
+        "done": true
+      },
+      {
+        "text": "lists when present; a regression test proves a malformed climate and a",
+        "done": false
+      },
+      {
+        "text": "non-list neighbour are rejected, and well-formed data passes.",
+        "done": false
+      },
+      {
+        "text": "The painter vocabulary derivation serves the new fields; no new read path.",
+        "done": true
+      },
+      {
+        "text": "Existing taxonomy/compiler output unchanged; targeted tests stay green.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/biomes.py` - `_climate_problems`, `_neighbour_problems",
+      "routes/world_grid_ops.py` - `handle_painter_vocabulary` field passthrough",
+      "static/js/worldpainter/grid-model.ts` - `detailRows` climate/neighbour rows",
+      "tests/test_biomes.py` - 3 validation tests",
+      "tools/unit/test_worldpainter.js` - detail-rows test"
+    ],
+    "custom": {
+      "deliberately_not_here_and_why": "The mockup's **Resources / Creatures / Hazards** panels must **not** become biome\nfields. The design tasks already sent those elsewhere:\n\n- **Resources** → `data/library/resource_distribution/` (task-718 splits the\n  loot tables out of `biomes.json`; task-569 wires the runtime consumer). A\n  resource is a tag-intersection against library items, not a per-biome list.\n- **Creatures** → `data/library/hostile_distribution/` (same split, task-718).\n- **Hazards** → `data/worldpainter/hazards.json`, a category registry\n  (task-745), not a biome field.\n\nThe palette (task-759) renders those three by reading the **registries** for the\nbiome's tags - it does not copy them onto the biome record. Baking them in here\nwould re-centralise exactly what task-718 is trying to decentralise, and create a\nsecond source of truth for spawns.",
+      "resolution_2026_10_09": "Recon changed the picture: the records live in **`data/library/biomes/*.json`**\n(106 one-file entries), and the loaders already prefer those dirs - the bundled\n`biomes.json` no longer carries `resource_distribution`/`hostile_distribution`.\nSo the split task-718 describes is **already done at the data+loader level**; this\ntask did not re-add any distribution key.\n\nShipped:\n\n- `engine/biomes.py` - `_climate_problems` and `_neighbour_problems`, called from\n  the per-biome loop in `validate()`. Present `climate` must be an object whose\n  `temperature`/`rainfall`/`elevation` are `[min, max]` numbers with `min <= max`;\n  present neighbour lists must be lists of non-empty strings. **Absent stays\n  valid** (unknown, never guessed). Neighbour names are *not* forced to resolve to\n  a biome id - the doc uses soft nouns (\"meadow\"), and a resolution rule without a\n  shipped wilderness vocabulary would be a second taxonomy.\n- `routes/world_grid_ops.py` - `handle_painter_vocabulary` passes `climate`,\n  `natural_neighbors`, `unlikely_neighbors`, `transition_biomes` (and `terrain`)\n  through the one derivation.\n- `static/js/worldpainter/grid-model.ts` - `detailRows` renders authored climate\n  ranges and neighbour lists, and invents no row when the field is absent.\n\n**Verified:** `pytest tests/test_biomes.py` → 20 passed;\n`node tools/unit/run.cjs` → 645 passed; `build:ts` + `typecheck` clean.\n\n**Named deferral:** the values (which biomes carry which climate/neighbours) are\nauthored via task-589's vocabulary tab, not fabricated here."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocks": "task-759 (the palette detail panel renders these fields)",
+      "design": "`docs/design/world-environment-taxonomy.md` §\"Record shape (target"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-758-biome-records-add-climate-and-neighbour-fields-for-the-palette.md"
+  }
+}

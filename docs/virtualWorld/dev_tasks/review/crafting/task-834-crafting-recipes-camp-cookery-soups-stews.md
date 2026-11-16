@@ -6,7 +6,7 @@ priority: high
 related: ['task-2', 'task-703', 'task-831', 'task-840']
 ---
 
-# task-834: Crafting recipes — camp cookery, soups and stews
+# task-834: Crafting recipes - camp cookery, soups and stews
 
 <!-- deps:start -->
 **Related:** [[task-2-crafting_and_recipes]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-840-crafting-runtime-who-crafts-activities-backsim-abort]]
@@ -14,7 +14,7 @@ related: ['task-2', 'task-703', 'task-831', 'task-840']
 
 ## What
 
-14 recipes: the heart of the request — pot food over fire. Porridge to pottage to meat stew to fish soup, plus eggs every way and the fail states that make cooking honest (gruel, scorched pots, burned eggs).
+14 recipes: the heart of the request - pot food over fire. Porridge to pottage to meat stew to fish soup, plus eggs every way and the fail states that make cooking honest (gruel, scorched pots, burned eggs).
 
 | # | Recipe | Ingredients | Equipment | Cond | Min | Skill/DC | Success | Fail | Crit-fail |
 |---|---|---|---|---|---|---|---|---|---|
@@ -35,11 +35,11 @@ related: ['task-2', 'task-703', 'task-831', 'task-840']
 
 New library items: raw_egg, fried_egg, rubbery_egg, burned_egg, boiled_egg, cracked_egg, rubber_ball_egg, herbed_eggs, plain_scramble, oats, porridge, thin_gruel, scorched_pot, onion, carrot, potato, mushroom, raw_meat, raw_fish, bones, wild_garlic, salt, butter, vegetable_soup, meat_stew, greasy_stew, burned_stew, fish_soup, fishy_broth, mushroom_stew, mushroom_broth, roast_meat, dry_roast, charred_meat, roast_veg, charred_veg, cheese, cheese_toast, warm_bread_cheese, burned_toast, trail_stew, bone_broth, scorched_cauldron, frying_pan, spit, iron_cauldron.
 
-Check before authoring: some may already exist (pottage, vegetable_soup exist — reuse, don't duplicate).
+Check before authoring: some may already exist (pottage, vegetable_soup exist - reuse, don't duplicate).
 
 ## Why
 
-This is the card the request was really about — "cooking water to be safe or soup." Pot + fire + time + skill, with failure you can taste.
+This is the card the request was really about - "cooking water to be safe or soup." Pot + fire + time + skill, with failure you can taste.
 
 ## How
 
@@ -49,18 +49,18 @@ Per task-831. Stew outputs use `uses` for servings (one pot, N bowls). Verify ea
 
 1. Gate over this card's files.
     - expected: clean; no duplicate ids with existing library.
-    - observed: 2026-10-16 — `recipe_check.py --check`: all 43 clean
+    - observed: 2026-10-16 - `recipe_check.py --check`: all 43 clean
       (14 new + 29 prior). No id collisions (new ids verified
       against the library dir before authoring; `pottage`,
       `vegetable_soup` reused, not duplicated). 26 missing item
       files authored alongside.
 2. Cook pottage → fail path → scorched pot recovery.
     - expected: fail spawns gruel, crit-fail kills the food but keeps the pot.
-    - observed: 2026-10-16 —
+    - observed: 2026-10-16 -
       `test_camp_pottage_fail_path_and_pot_recovery`: forced fail →
       `thin_gruel`, forced crit → `scorched_pot` carried. Caught a
       real matching gap on the way: "barley pottage camp" found
-      nothing (spaces vs underscores vs parens) — `_find_recipe`
+      nothing (spaces vs underscores vs parens) - `_find_recipe`
       now normalizes punctuation, covered by the same test.
 
 ## Acceptance
@@ -71,7 +71,7 @@ Per task-831. Stew outputs use `uses` for servings (one pot, N bowls). Verify ea
 
 ## Files
 
-- `data/library/items/*.json` — new outputs above (minus pre-existing)
+- `data/library/items/*.json` - new outputs above (minus pre-existing)
 
 ## Browser UI and intended live verification
 

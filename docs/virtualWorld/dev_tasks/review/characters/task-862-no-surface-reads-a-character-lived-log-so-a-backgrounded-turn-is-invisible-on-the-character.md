@@ -32,7 +32,19 @@ Render the existing field, do not invent a new one. Add a history section to the
 
 ## Browser UI and intended live verification
 
-Intended UI home: the character inspector, on the Mind panel, reached by clicking a character. Current availability: History tab renders on InspectorMindView with rollups, kind chips, why tags, area badges, and search/filtering. Live path: click a character, open the Mind panel, switch to the History tab, and read off what they did during background simulation.
+Intended UI home: Character Inspector -> Mind panel -> History tab.
+
+Current availability: History tab renders on InspectorMindView with rollups, kind chips, why tags, area badges, and search/filtering.
+
+Live steps when available:
+1. Click a character in the Agents list or on the graph.
+   - expected: Character Inspector opens.
+2. Open the Mind panel and switch to the History tab.
+   - expected: The History tab displays chronological `lived_log` rows with rollups, kind chips, why tags, and area badges.
+3. Advance world simulation time by one or more turns.
+   - expected: Background simulation actions append to the history feed in real time.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 
 ## Steps to verify
 

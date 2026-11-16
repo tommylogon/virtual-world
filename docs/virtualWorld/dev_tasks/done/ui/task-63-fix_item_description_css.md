@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: High
-**Status**: Done — verified 2026-08-03. Item description textarea styled with --bg-input/--border/--text vars + resize:vertical (static/js/inspector/item-view.js:185).
+**Status**: Done - verified 2026-08-03. Item description textarea styled with --bg-input/--border/--text vars + resize:vertical (static/js/inspector/item-view.js:185).
 
 ---
 
@@ -56,7 +56,7 @@ Apply the same styling pattern to the item description textarea as the room insp
 
 ## Files
 
-- `static/js/inspector.js` — add proper styling to item description and other fields
+- `static/js/inspector.js` - add proper styling to item description and other fields
 
 ## How
 

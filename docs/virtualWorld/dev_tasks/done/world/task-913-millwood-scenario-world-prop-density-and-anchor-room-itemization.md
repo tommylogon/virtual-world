@@ -12,6 +12,10 @@ related: ["task-744", "task-519"]
 **Filed:** 2026-10-30
 **Related:** task-744, task-519
 
+<!-- deps:start -->
+**Related:** [[task-744-equipment-and-body-one-edge-truth-for-worn-gear-layered-coverage-body-marks-body-centric-ui]], [[task-519-character-starting-loadouts-from-the-item-library]]
+<!-- deps:end -->
+
 ## What
 
 Populate key anchor locations across the 56 areas of `data/scenarios/Millwood.json` with thematic, interactable items and containers:

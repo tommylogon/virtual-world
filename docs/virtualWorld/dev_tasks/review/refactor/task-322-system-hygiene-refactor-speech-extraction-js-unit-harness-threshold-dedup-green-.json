@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-322",
+  "kind": "task",
+  "number": 322,
+  "title": "System Hygiene Refactor (speech extraction, JS unit harness, threshold dedup, green suite)",
+  "status": "review",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [
+    "engine",
+    "prompt-builder",
+    "refactor",
+    "testing"
+  ],
+  "created": "2026-08-21",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-327",
+      "task-328"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**Status** - In Review - all items implemented + verified 2026-08-21\n\nCleanup pass over issues surfaced while landing tasks 92/94/248/133/230. Goal: leave the\nsystem in a state where the next feature work is cheaper and safer.",
+    "why": "Refactor speech extraction, establish JS unit test runner, and deduplicate vitals threshold checks across modules.",
+    "how": "Created `tools/unit/run.cjs` test harness, extracted speech generation logic, and unified vitals thresholds.",
+    "verify": "- `python -m pytest tests/ -q -k \"not mcp and not emote\"` → **1051 passed, 0 failed**,\n  1 skipped (first fully green run this session).\n- `node tools/unit/run.cjs` → 34 passed, 0 failed.\n- `node --check` clean on all touched JS.\n- Speech/narration/realism subset: 51 passed. Time/clock subset: 43 passed.\n- Trigger system: 144 passed.",
+    "acceptance": [
+      {
+        "text": "Node unit test runner executes and reports test status cleanly.",
+        "done": true
+      },
+      {
+        "text": "Vitals threshold values consolidated into single source of truth.",
+        "done": true
+      }
+    ],
+    "files": [
+      "tools/unit/run.cjs",
+      "engine/vitals.py"
+    ],
+    "custom": {
+      "what_was_done": "### R1 - narration.py back under the 600-line rule\n`engine/speech.py` (new, ~250 lines): `SpeechBroadcaster` owns broadcast_speech end-to-end\n(hearing entries, directed whispers, cross-area propagation, social bumps, closeness hooks,\nlog/turn-event recording, simple-NPC notification). `NarrationSystem.broadcast_speech` is a\nthin @deprecated delegate; `narration.py` went 611 → ~445 lines. Move-not-copy per AGENTS.md.\n\n### R2 - one whisper-target resolution path\n`SpeechBroadcaster._resolve_whisper_target` now resolves via the shared `NameMatching`\nmatcher (aliases/partial names) first, then applies the same-area privacy scan. The facade\ninjects the matcher via `narration.set_name_matcher()` at construction. No more duplicate\nleniency logic.\n\n### R3 - clock math dedup\n`VirtualWorld.total_game_minutes()` is the single computation; `current_game_hour()`\nderives from it and `TickManager.get_current_time()` consumes it (via the facade reference\nit already holds). One formula, two consumers.\n\n### R4 - JS unit harness (no server needed)\n`tools/unit/run.cjs`: sandbox whose global object IS `window` (true browser semantics for\n`window.Foo = ...` modules), zero-dependency runner. Suites:\n- `test_plan_tracker.js` (12) - criticalNeeds, crossing-gated replanning, trackStep\n- `test_conversation_context.js` (14) - salience classifier, markers, anti-repeat (restores\n  the throwaway harness deleted during task-321)\n- `test_response_parser.js` (8) - structured parsing, volume-as-key, fences, error capture\n\nRun: `node tools/unit/run.cjs` → 34 passed, 0 failed.\n\n### R5 - one vitals threshold table\n`static/js/agent/vital-thresholds.js` (new): CRITICAL/WARNING/BLADDER_*/SANITY_SHATTERED +\n`isCritical(key, value)`. `describeVitals` and `plan-tracker.criticalNeeds` both read it -\ntier numbers can no longer drift between prompt prose and replan logic. Registered in\nindex.html + prompt-builder manifest + harness.\n\n### R6 - suite green\nThe 3 \"pre-existing\" failures were stale test expectations against retuned library data:\n- spawn_item tests hardcoded `uses: 3` / `lit` / heating props; library now has `uses: 0`,\n  `unlit`, no heating. Tests now read expectations FROM the library entry (the contract\n  under test is \"spawn copies the library\", so compare against the source).\n- trigger burn-down test now seeds `uses = 3` before firing on_tick - verifies the mechanic\n  without coupling to data tuning.\n- spawn_character test hardcoded \"Jake Halloway\"/`player_Jake_Halloway`; library name is\n  \"jake halloway\". Test derives name + node id from the library file.",
+      "corrections_to_earlier_observations": "- task-358/task-351 were already filed in `inprogress/testing|triggers` - earlier \"flat in\n  root\" reading was wrong (recursive listing artifact).\n- task-155's two status lines AGREE (`todo` both) - consistent, left as-is.",
+      "deferred": "- `agent-engine.js` (~800) / `virtual_world_engine.py` (~980) modularization →\n  task-314 (dedicated pass, per plan)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/refactor/task-322-system-hygiene-refactor.md"
+  }
+}

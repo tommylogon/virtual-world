@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-243",
+  "kind": "task",
+  "number": 243,
+  "title": "Way Shortcuts Revealed by Having an Item",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A way can be gated so it is only known/revealed (shown as an exit / navigable) while a\ncharacter holds a specific item - e.g. a hidden passage or shortcut that appears in the\nroom's exit list only when you carry the key/map/token.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Deploying shortcut items (rope, ladder) temporarily bypasses way traversal requirements.",
+        "done": true
+      },
+      {
+        "text": "Shortcut state persists until item is retrieved or expires.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/movement.py",
+      "engine/items.py"
+    ],
+    "custom": {
+      "notes_open_questions": "- Model as an `unlocks`/`requires`-style edge plus item-presence condition on the way, or a\n  trigger (`on_enter_area`) that toggles way visibility based on inventory.\n- Reveal semantics: does the way appear in exits (visited, but not in \"ways to go\"), or\n  only become traversable? Should holding the item re-route to a different destination.\n- Interaction with existing `hidden` way state and `view_from_a`/`view_from_b`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "audit 2026-08-31": "- NOT IMPLEMENTED. Touches the central way-visibility model (way_visible_to, build_exits_for_area, movement gate) every prompt/look/scene surface reads. **Needs a design decision** (reveal-as-exit vs traversable-only; item source) before code.",
+      "source": "`dev_tasks/developer ideas.md` (way shortcuts revealed by having item)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-243-way-shortcuts-via-items.md"
+  }
+}

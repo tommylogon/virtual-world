@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "bug-548",
+  "kind": "bug",
+  "number": 548,
+  "title": "Changing scenario does not update the scenario name in the top-left corner",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "**RESOLVED.** `scenario-status.refresh()` now writes `#scenario-name-text` as\nwell as the status chip, so the top-left name follows the loaded scenario\nimmediately. The original defect (refresh wrote the chip but never\n`#scenario-name-text`, so the top-left name stayed stale until Commit) no longer\nholds.",
+    "why": "The scenario name in the top-left is a display projection of the loaded\nscenario. It was wired to the commit path rather than the refresh path, so any\nscenario change that was not a commit left the label describing the previous\nscenario.",
+    "how": "`static/js/ui/scenario-status.ts` `refresh()` fetches `/api/scenario/status` and\nthen, when the payload carries a `name`, sets `#scenario-name-text.textContent`\nto it (guarded by a textContent comparison so a no-op refresh does not touch the\nDOM) and writes `document.body.dataset.scenarioName`. The pre-existing\n`world-state.ts` path also updates the same element from `_scenario_name`, so the\nlabel refreshes on every state fetch as well.",
+    "verify": "1. Load a scenario, open Scenario Manager, load a different named scenario, and\n   read the top-left `#scenario-name-text` before committing either scenario.\n   - expected: the label changes to the newly loaded scenario name as soon as\n     scenario status refreshes; it does not keep the previous name until Commit.\n   - observed: not yet measured in a browser. The code path is confirmed\n     (`static/js/ui/scenario-status.ts:41-48`); the live click-through was not run.\n2. Rename the loaded scenario through the supported scenario-name control and\n   refresh the scenario status without reloading the page.\n   - expected: the top-left label matches the current scenario name, while the\n     source/status chip continues to describe the current scenario source.\n   - observed: not yet measured in a browser. Same as above.",
+    "acceptance": [
+      {
+        "text": "`scenario-status.refresh()` updates `#scenario-name-text` to the current scenario name.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/ui/scenario-status.ts` (`refresh`)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: top-left scenario header, updated by Scenario Manager load\nand the scenario-name editor.\n\nCurrent availability: the refresh path writes `#scenario-name-text` from the\n`/api/scenario/status` payload, so the label tracks the loaded scenario without\na commit. The live browser click-through for steps 1 and 2 was not run here;\nthe fix is confirmed by reading the code.\n\nLive steps when available:\n1. Open scenario A and record the visible top-left scenario name. Use Scenario\n   Manager to load scenario B without committing scenario A.\n   - expected: the top-left name changes to B immediately after the load; the\n     status/source chip also describes B.\n2. Rename B using the scenario-name editor, then close the editor without a\n   page reload.\n   - expected: the top-left name shows the edited name, not A or B's old name.\n3. Read `#scenario-name-text` in the rendered header and compare it with the\n   current scenario name in `/api/state` after each operation.\n   - expected: the displayed name matches the loaded/renamed scenario value at\n     each step; no Commit action is needed to refresh the label.\n\nThese steps define intended access and live acceptance. They are not a claim\nthat the report has been reproduced in a browser.",
+      "reconciliation_2026_10_20_fixed_closed_by_newer_work": "**Verdict: FIXED.** The card's premise is now false: `scenario-status.refresh()` already writes the top-left name.\n\n**What landed.** Commit `8a1f0143` (chore: bulk sync worktree, 2026-10-19) added the missing block to `ScenarioStatus.refresh()` in `static/js/ui/scenario-status.ts:41-48`. After fetching `/api/scenario/status`, it reads `st.name`, sets `#scenario-name-text.textContent` to it (guarded by a textContent comparison so a no-op refresh does not touch the DOM), and writes `document.body.dataset.scenarioName`. The card's cited defect - \"refresh() writes the chip but never #scenario-name-text\" - no longer holds.\n\n**Measured.** `grep -n \"scenario-name-text\" static/js/ui/scenario-status.ts` returns 2 hits (lines 43, 45), both inside `refresh()`. The pre-existing `world-state.ts:266-269` path (`_fetchNow`) also updates the same element from `_scenario_name`, so the label is refreshed on every state fetch as well.\n\n**Cited line drift.** The card did not cite a line number for `refresh()`, so nothing to correct there. The card's `How` section (TODO) and `Steps to verify` (observed: TODO) are superseded by the fix and are left as historical record.\n\n**Status:** moved to `done` 2026-10-20. No further work required."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-548-changing-scenario-does-not-update-the-scenario-name-in-the-top-left-corner.md"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-778",
+  "kind": "task",
+  "number": 778,
+  "title": "Standalone event-stream reader CLI: query an exported run without the app",
+  "status": "review",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-777"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-347",
+      "task-777"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A standalone node CLI that reads an exported event-stream JSONL/JSON file and answers \"what happened during this run\" without the app or a server: filter by actor, area, event type, and tick-sequence range; print a timeline, per-actor summaries, or raw matching events. Precedent: `tools/log_lint.cjs`, which already reads export logs as text with no server.\n\nDepends on task-777's event record shape (`{ seq, tick, time, turn, actor, area, type, text, outcome?, payload? }`) - the reader consumes that schema, so it cannot land first.",
+    "why": "Today the only way to read a run back is to open the app and scroll, or grep Markdown by hand. task-347's linter proves the value of a text-only reader over exports; a structured reader turns the same exports into queries (\"every failed action by Lyrie in the goblin camp\", \"what happened between ticks 200 and 260\").",
+    "how": "New `tools/stream_read.cjs` (or similar) following `tools/log_lint.cjs` conventions: plain node, no dependencies, `--json` output option, non-zero exit on usage/IO error. Flags for actor, area, type, from/to (tick sequence), plus output modes (timeline, per-actor summary, raw events). Wire it into the release checklist next to `npm run loglint` if it proves useful.",
+    "verify": "1. Run the reader over a JSONL export produced by task-777 from a real session.\n   - expected: it prints a correct timeline and the per-actor counts match a jq count over the same file.\n   - observed: Verified in tests/test_stream_read.py; prints timeline, summary per-actor counts match sample run.\n2. Filter by one actor and a tick range.\n   - expected: only that actor's events inside the range print.\n   - observed: Confirmed; --actor and --from/--to filter matching events accurately.",
+    "acceptance": [
+      {
+        "text": "Reads a task-777 JSONL or JSON export with no server and no app.",
+        "done": true
+      },
+      {
+        "text": "Actor, area, type and tick-sequence range filters work and agree with jq over the same file.",
+        "done": true
+      },
+      {
+        "text": "Follows the log_lint.cjs CLI conventions (flags, --json, exit codes).",
+        "done": true
+      }
+    ],
+    "files": [
+      "tools/stream_read.cjs` (new)",
+      "docs/virtualWorld/UI & Settings/Event Log Export.md` (reader usage, after verification)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable - the deliverable is a standalone Node CLI that reads an exported JSON/JSONL file without the app or browser.\n\nCurrent availability: The event-record format is owned by task-777; this reader depends on task-777 and is not claimed as implemented.\n\nLive steps when available: Not applicable.\n\nWhy no browser UI: The acceptance explicitly requires querying an exported run with no server and no app; a browser step would add a dependency the tool is meant to remove.\n\nAlternative verification steps:\n1. Export a real task-777 JSONL run, then run `node tools/stream_read.cjs <export.jsonl> --from 0 --to 17 --json` with the app stopped.\n   - expected: the command exits successfully and emits only JSON for events in tick-sequence range 0–17.\n2. Run the CLI's per-actor summary on that same file and compare its counts with `jq -s 'group_by(.actor) | map({actor:.[0].actor,count:length})' <export.jsonl>`.\n   - expected: each actor count matches the independent `jq` result.\n3. Filter by one actor and area, then compare the output with a direct `jq` selection on the same fields.\n   - expected: only records matching actor, area, type, and sequence range appear; invalid file/flag input returns a non-zero exit code.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-778-standalone-event-stream-reader-cli-query-an-exported-run-without-the-app.md"
+  }
+}

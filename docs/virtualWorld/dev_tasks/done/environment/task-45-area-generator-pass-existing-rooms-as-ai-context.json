@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-45",
+  "kind": "task",
+  "number": 45,
+  "title": "Area Generator: Pass Existing Rooms as AI Context",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When generating a room via AI, no context about existing areas is provided to the LLM. This means generated areas may be thematically inconsistent with the world, use duplicate names, or describe environments that don't fit the established setting.",
+    "why": "In `main.js:generateWithAI()` (line 310), the room generation prompt is:\n\n```js\nconst formatHint = '{\"name\":\"Area Name\",\"description\":\"...\",\"light\":80,\"temperature\":21,\"air\":\"fresh\",\"smell\":\"musty\",\"noise\":\"quiet\"}';\n```\n\nThe system prompt tells the AI to generate a room but gives no context about existing areas, their descriptions, or the overall world setting.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/main.js` - add room context to AI generation in create modal"
+    ],
+    "custom": {
+      "proposed_change": "### Context Inclusion\n\nBefore the AI prompt, gather context about existing areas:\n\n```js\nconst existingRooms = Object.entries(worldState.areas || {}).map(([name, data]) => {\n  return `- ${name}: ${data.description || '(no description)'}`;\n}).join('\\n');\n```\n\nInclude this in the system prompt:\n\n```\nExisting areas in this world:\n- Foyer: A grand entrance hall with marble floors.\n- Kitchen: A warm kitchen smelling of herbs.\n- Library: Shelves of ancient books line the walls.\n\nGenerate a new room that fits thematically with these existing areas.\nRespond ONLY with raw JSON matching the form fields. No markdown.\n```",
+      "toggle_option": "See separate task: `toggle_room_context_generation.md` - a toggle should control whether room context is included, since some users may want standalone generation.",
+      "audit": "**Status**: Ready to test\n**How to test**:\n- Open the create modal, select Area, type an AI prompt, ensure \"🧠 Use world context\" is checked. Click Generate. Verify the generated room fits the existing world theme.\n- Check the network request to the LLM - verify existing areas and their descriptions are included in the prompt."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Rooms & Areas]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-45-room_generator_room_context.md"
+  }
+}

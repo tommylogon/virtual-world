@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-338",
+  "kind": "task",
+  "number": 338,
+  "title": "Document turn-queue & human-turn gating architecture",
+  "status": "done",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "The turn system EXISTS and is real - `static/js/agent/turn-queue.js`\nmanages character ordering (sequential / random / **initiative** with d20\n+ DEX rolls, re-roll support) consumed by AgentEngine as\n`.turnQueue` / `.currentTurnIndex` / `.turnNumber`. The human turn panel\nis gated to the controlled character's slot in that queue. Meanwhile the\nalways-available command line / guest-speaker path in the event stream is\na **deliberate godmode-level override**, not a missing scheduler.\n\nNone of this was understood during the panel redesign until Tommy\ncorrected it - the architecture lives in code + Tommy's head, not docs.\nThat's a documentation gap: future work (react phases, digests, dash\ntwo-action turns, multi-human tables) all builds on these semantics.",
+    "how": "TODO",
+    "verify": "- A fresh agent (or human) can explain whose turn it is and why the\n  command line still works, purely from the docs.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "AGENTS.md` - new \"Turn system\" gotcha block",
+      "docs/virtualWorld/` - architecture chapter (or extend an existing",
+      "engine doc)",
+      "Cross-link from task-333/334"
+    ],
+    "custom": {
+      "what_to_document_agents_md_section_guide_chapter": "1. **Turn queue** (`turn-queue.js`): order modes, initiative rolls,\n   re-roll, how currentTurnIndex advances, what happens on\n   join/leave/death mid-queue.\n2. **Human turn gating**: how the panel knows it's \"your turn\"; what the\n   world does while waiting (autopilot paused? ticks continue?); what\n   happens if the human idles.\n3. **Godmode override semantics**: the free-typing command line /\n   guest-speaker event-stream path - always available by design, bypasses\n   the queue, when to use vs when it breaks scene logic.\n4. **Interaction rules**: override actions vs queued turns (does an\n   override consume the character's queued slot?), digest/react\n   implications (task-334 builds on this).\n5. Where the panel's \"next up\" indicator reads from.",
+      "result_2026_09_30": "The chapter already existed - `docs/virtualWorld/Gameplay/Turn Queue & Human\nTurns.md`, already declared as `@docs` from `turn-queue.js:8`. Measuring it\nagainst the five requested points: **4 of 5 were covered** (queue modes,\ngating, override semantics, interaction rules). Two gaps were real:\n\n1. **Point 5 was absent** - \"where does the next-up indicator read from\". Added\n   a section covering the three views, and corrected my own first draft: I had\n   written that the modal and the strip \"read different things\", but a live\n   measurement had them **agree** on the head of the order (modal\n   `tick 2 · next up: Silver-Talon`, strip `⏭ up next: Silver-Talon → Leslie →\n   Tusker → Vekka → Gribba`). The difference is width and gating, not meaning.\n   The Turn Order panel is a third view and is now documented too.\n2. **The AGENTS.md \"Turn system\" gotcha block did not exist** - only incidental\n   mentions of the modal's hint text. Added, carrying the same measured\n   correction.\n\nAlso added, from a question the doc could not previously answer: **what the\nworld does while it waits for a human, and what happens if they never answer.**\nThe gate is `agent-engine.js:459` → `await this._humanTurn(charName)` →\n`HumanTurnComposer.request()`, and **there is no timeout** - the sim waits\nindefinitely until Act or end-turn.\n\n### Doc-completeness test\n\nRan a fresh subagent restricted to the two documents (no source access) against\nthe acceptance criterion. It answered \"is `Turn: 0` a bug / may I fix the\ncommand line / do the next-up indicators disagree\" all **correctly from the\ndocs alone**, citing the sections. Its unanswerable list was live-runtime\nvalues (`turnQueue` contents, DOM coordinates) - never in scope. One item was\nactionable and became the \"what the world does while it waits\" section: it\ncould not tell whether the modal is *guaranteed* to appear.\n\n### Live confirmation of the documented facts\n\nOn a real session with a human-controlled slot, all three indicators read:\n`#htc-meta` = `tick 2 · next up: Silver-Talon`, the strip =\n`⏭ up next: Silver-Talon → Leslie → Tusker → Vekka → Gribba`, modal title =\n`player_human_explorer's turn`. The panel also showed the documented\nstranger-masking (\"the woman\") and the hover/click hint. Separately confirmed\nthat a scenario whose every character is autonomous (`autonomy: true`) opens\n**no** modal - correct per the gate, and the reason an earlier attempt found\n`#htc-meta` missing."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/docs/task-338-turn-queue-documentation.md"
+  }
+}

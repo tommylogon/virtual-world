@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-16
 **Priority**: High
-**Status**: In Review — implemented (code-verified 2026-08-11). Multi-target radio (Area/Container/Character) + AI trigger parsing + 👁️ prompt preview in `create-modal.js`/`main.js`.
+**Status**: In Review - implemented (code-verified 2026-08-11). Multi-target radio (Area/Container/Character) + AI trigger parsing + 👁️ prompt preview in `create-modal.js`/`main.js`.
 
 ---
 
@@ -18,15 +18,15 @@ priority: medium
 
 The "Create New Item" modal (main.js) and Item Library generation (item-library.js) need three enhancements:
 
-1. **Target selector** — choose Area, Container Item, or Character as the placement target
-2. **Trigger generation** — AI generates triggers but parse step discards them; all LLM prompts need up-to-date trigger docs
-3. **Prompt preview** — view and edit the assembled prompt before sending to the LLM
+1. **Target selector** - choose Area, Container Item, or Character as the placement target
+2. **Trigger generation** - AI generates triggers but parse step discards them; all LLM prompts need up-to-date trigger docs
+3. **Prompt preview** - view and edit the assembled prompt before sending to the LLM
 
 ## Why
 
 ### Trigger parsing missing in main.js (line 386-389)
 
-The format hint includes triggers (`"triggers":[{"trigger_type":"on_use","effect_type":"message","effect_params":{"message":"..."}}]`) but the parsing only sets name, description, uses, weight, hidden — triggers are ignored.
+The format hint includes triggers (`"triggers":[{"trigger_type":"on_use","effect_type":"message","effect_params":{"message":"..."}}]`) but the parsing only sets name, description, uses, weight, hidden - triggers are ignored.
 
 ### LLM prompts inconsistent
 
@@ -79,12 +79,12 @@ Extend `POST /api/build/item` (app.py:1014) to accept `container` and `character
 
 ## Files
 
-- **NEW** `static/js/prompt-docs.js` — shared trigger documentation
-- `static/js/main.js` — trigger parsing, system prompt, target selector, prompt preview
-- `static/js/item-library.js` — use shared prompt docs, prompt preview
-- `static/js/api.js` — if needed for new fields
-- `app.py` — extend `/api/build/item`
-- `templates/index.html` — script load order for new file
+- **NEW** `static/js/prompt-docs.js` - shared trigger documentation
+- `static/js/main.js` - trigger parsing, system prompt, target selector, prompt preview
+- `static/js/item-library.js` - use shared prompt docs, prompt preview
+- `static/js/api.js` - if needed for new fields
+- `app.py` - extend `/api/build/item`
+- `templates/index.html` - script load order for new file
 
 ## Steps to verify
 

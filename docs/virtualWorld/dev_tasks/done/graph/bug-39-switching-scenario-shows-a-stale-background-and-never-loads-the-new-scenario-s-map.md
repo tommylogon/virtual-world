@@ -90,7 +90,7 @@ When backgrounds become a **list**, the emptiness test must move with them: an e
 an empty block must still clear. The predicate is `_hasBackground()`, kept as one place so the
 list form has a single thing to extend.
 
-## Second live verification — 2026-10-02 (port 4471)
+## Second live verification - 2026-10-02 (port 4471)
 
 Exercised the real `state:updated → _onWorldRefetched() → _restore()` path in the
 running app: fabricated an empty world block (`worldState.data.graph_background = {}`,

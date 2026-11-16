@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-341",
+  "kind": "task",
+  "number": 341,
+  "title": "Single-source room perception invariants (agent path + panel path)",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Two renderers answer \"what does this character perceive in this room\":\n\n- **Agent path**: `engine/area_description.py` (prose) + prompt-builder\n- **Panel path**: `engine/scene_snapshot.py` (`/api/scene/<player>`, JSON chips)\n\nThe panel legitimately needs structured data (available_actions, per-way\ndiscovered state, YOU strip) - this is NOT a \"merge the renderers\" task.\nThe problem is the *invariants* get re-implemented in the panel path and\ndrift. Four incidents, one root cause:\n\n| Incident | Agent path had | Panel path lacked |\n|---|---|---|\n| task-333 fix | name-based area lookup | constructed-id lookup (500 crash) |\n| bug-23 | `look` filters hidden ways | hidden-way filter (leak) |\n| bug-24 | movement normalizes `requires:\"none\"` | normalization (Go disabled) |\n| bug-26 | name-based area resolution | id validation (empty panel) |",
+    "how": "TODO",
+    "verify": "- Full pytest suite green; existing behavior-pinning tests unchanged.\n- Browser: men's restroom panel populated (bug-26), hidden ways still\n  hidden until searched, \"requires none\" doors go/open normally.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_notes_2026_08_24": "New module `engine/room_perception.py` owns the shared invariants:\n\n- `resolve_area_node(graph, area_name)` - name-based (normalized:\n  lowercase, apostrophes dropped, `_`/`-` as spaces), canonical\n  constructed id as validated fallback (bug-26).\n- `normalize_requires(value)` - none/nothing/no → \"\" (bug-24).\n- `way_visible_to(player, player_manager, viewer_name, way_node,\n  area_name, direction)` - hidden ways: slasher or `(area, direction)`\n  in `discovered_exits` (bug-23). Viewer is a parameter: the agent path\n  passes active_player, the panel passes the viewing character.\n- `visible_area_items(graph, area_id, include_hidden)` - the hidden-item\n  filter both paths duplicated.\n- `characters_in_area(graph, area_id, exclude_name)` - people enumeration.\n\nConsumers rewired:\n\n- `scene_snapshot.py` - area resolution, items loop, people loop, hidden\n  way rule, requires normalization all delegate now.\n- `area_description.py` - `get_current_area_id`, `get_area_items`,\n  `build_exits_for_area` area resolution + hidden rule delegate. Output\n  shapes untouched (prose identical, exits dict identical).\n- `movement.py` - both requires reads (passage gate + traversal-only\n  open/close refusal) use `normalize_requires`.\n\nContract test `tests/test_room_perception_contract.py`: one fixture world\n(non-canonical apostrophe ids, undiscovered + discovered hidden ways,\nrequires:\"none\" way, hidden item) asserting the agent path\n(`get_area_items` + `build_exits_for_area`) and the panel path\n(`build_scene`) return the SAME visible item set and way set. Plus unit\ntests for `resolve_area_node` / `normalize_requires`.\n\nAGENTS.md architecture section now names room_perception.py as the\ncanonical home with the \"presentation is the only difference\" rule.",
+      "proposal": "Extract the drifting invariants into one small module (e.g.\n`engine/room_perception.py`) and make BOTH paths call it:\n\n1. `resolve_area_node(graph, area_name)` - name-based lookup with\n   constructed-id fallback (bug-26 fix, already proven in scene_snapshot).\n2. `way_visible_to(player, way_node, area_name, direction)` - the hidden\n   way rule: slasher sees all, else `(area, direction)` in\n   discovered_exits (bug-23; mirror of build_exits_for_area).\n3. `normalize_requires(value)` - none/nothing/no → `\"\"` (bug-24).\n\nConsumers: `scene_snapshot.py`, `area_description.py`\n(`build_exits_for_area`), and `movement.py` (requires gate reads the\nnormalized value). Keep each renderer's OUTPUT shape untouched - no\nprompt prose changes, no panel payload changes.",
+      "contract_test": "A test that builds one fixture world (apostrophe area ids, hidden way,\nrequires:\"none\", unmet stranger) and asserts the two paths AGREE:\nsame visible item set, same way set, same people masking. Drift then\nfails CI instead of surfacing in Tommy's playtests."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-341-single-source-room-perception.md"
+  }
+}

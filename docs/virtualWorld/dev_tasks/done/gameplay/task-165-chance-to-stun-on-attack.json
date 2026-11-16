@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-165",
+  "kind": "task",
+  "number": 165,
+  "title": "Chance to Stun on Attack",
+  "status": "done",
+  "priority": "low",
+  "area": "gameplay",
+  "tags": [
+    "combat",
+    "conditions",
+    "gameplay"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a chance to stun the target when an attack hits - e.g. a heavy hit from a slasher can leave the target needing to rest for a turn.",
+    "why": "Combat resolves damage but has no crowd control (engine/combat.py). A hit either deals damage or misses; there's no way for a hit to stagger the target. Conditions exist (engine/conditions.py, player.py:7-33) but nothing in combat applies `stunned`/`paralysed` to a hit target.",
+    "how": "- Add a stun chance on hit, driven by weapon properties: `stun_chance` (e.g. 0-100) on the weapon, plus maybe a `stun_duration` in turns\n- On a successful hit, roll for stun; if it succeeds, apply the `stunned` condition to the target for the duration\n- `stunned` already exists in the condition hierarchy (player.py CONDITION_HIERARCHY) - make sure it blocks acting (BLOCKING_CONDITIONS may need `stunned` added; currently it has `paralysed` but not `stunned`)\n- A stunned character: can't act for N turns, then recovers (state_timer handles countdown)\n- Log it clearly: `[COMBAT] Hit landed a stunning blow! X is stunned.`",
+    "verify": "- [x] Weapon with stun_chance can stun a target\n- [x] Stunned target can't act for the duration\n- [x] Stun wears off via state_timer\n- [x] No stun when the weapon has no stun_chance\n\n**Implemented 2026-08-02** - `CombatSystem.player_attack` rolls `stun_chance` (0-100) on a weapon hit; success applies `stunned` + `state_timer = max(timer, stun_duration)` and logs `[COMBAT] X's hit with Y stuns Z!`. `stunned` blocks acting via `BLOCKING_CONDITIONS` and expires via the standard timed-condition path. Tests in `tests/test_combat.py::TestStunOnAttack` (4 tests).\n\n**Status: DONE** - moved to `done/gameplay/`.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_to_modify": "1. `engine/combat.py` - stun roll on hit ✅\n2. `player.py` - `stunned` added to BLOCKING_CONDITIONS, CONDITION_HIERARCHY, CONDITION_DEFAULT_TIMERS (2 ticks) ✅\n3. `routes/items_registry.py` - `stun_chance`/`stun_duration` copied in build + refresh; `static/js/item-library.js` - Stun Chance/Duration fields in the weapon editor ✅",
+      "related": "- [[todo/gameplay/task-159-saves-and-reactions|task-159: Saves and reactions]]\n- [[todo/gameplay/task-131-stateful-actions-over-time|task-131: Stateful actions (conditions)]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-165-chance-to-stun-on-attack.md"
+  }
+}

@@ -50,7 +50,7 @@ TODO
 
 Intended UI home: WorldPainter → select the `world` scope → inspect its grid boundary and painted cells, especially the eleven recorded areas at y=7/y=8 and the off-grid farm/lake cells.
 
-Current availability: the card measured a 20×7 world grid containing cells through y=8 and lists eleven out-of-bounds areas. The fix choice—grow the grid, reject placement, or another documented policy—is still open; no behavior is claimed as corrected.
+Current availability: the card measured a 20×7 world grid containing cells through y=8 and lists eleven out-of-bounds areas. The fix choice-grow the grid, reject placement, or another documented policy-is still open; no behavior is claimed as corrected.
 
 Live steps when available:
 1. Load `data/scenarios/kraktooth_goblin_camp.json`, open WorldPainter, and select the `world` scope. Scroll/zoom until all grid rows and boundary cells are visible.

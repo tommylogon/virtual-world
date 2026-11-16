@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "task-908",
+  "kind": "task",
+  "number": 908,
+  "title": "Associative Memory Retrieval 3.0: multi-facet perceptual cues and zero-padding prompt lanes",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-30",
+  "updated": "2026-10-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-690",
+      "task-685",
+      "task-686",
+      "task-689"
+    ],
+    "parent": "task-690",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Consolidate pre-turn memory retrieval into a unified backend engine (`engine/memory_retrieval.py`) driven by multi-facet perceptual cues, with clean prompt lane budgeting and zero fake padding:\n\n1. **Multi-Facet Perceptual Cues:**\n   - Stop building queries from only `currentArea + lastThought + 2 heard lines`.\n   - Pass structured situation cues to `/api/players/<name>/memories/retrieve`:\n     - Scene actors present in the room (`player_*` IDs and names).\n     - Visible items and containers in the room (`item_*` IDs and names).\n     - Carried inventory items.\n     - Spoken dialogue (recent hearing tokens) and own last thought.\n     - Active bodily needs when vitals are elevated (`need:food`, `need:drink`, `need:rest`).\n     - Current emotion/affect state.\n\n2. **Associative Intersection Surge & Temporal Validity:**\n   - Memories that link multiple active cues simultaneously (e.g. Jake present in room AND olives mentioned in dialogue) receive a multiplicative intersection boost that beats single-token noise.\n   - Temporal validity window: memories with `invalid_at` populated and `<= current_tick` are skipped during active recall. Existing `contradicts` and `superseded_by` checks stay respected.\n\n3. **Three Non-Competing Prompt Lanes:**\n   - **Working Scene Buffer:** Rolling recent actions/speech plus the memory IDs recalled on the immediately prior turn (protects against mid-conversation amnesia).\n   - **Associative Recall (`0..6`):** Scored associative memories above threshold. Crucially, **0 is allowed** when nothing connects; eliminate the legacy top-3 zero-score padding.\n   - **Open Questions (`0..2`):** Active unresolved questions (`category: \"question\"`) whose watch targets match entities or concepts in perception.\n\n4. **Write-Path Parity (`AgentMemory.storeMemory`):**\n   - Stamp `location: player.current_area` on turn-written memories (currently saved as empty string).\n   - Attach the turn action's `item` and `target` entity IDs into `entity_ids`.\n   - Record `valid_at` (current tick) and initialize `invalid_at: null`.",
+    "why": "Auditing `memory-context.ts` and `routes/memories.py` revealed four defects breaking retrieval:\n1. Visible room characters and items are completely missing from the retrieval query, making silent companions invisible to recall.\n2. Area slug synthesis (`area_<slug>`) fails on hand-authored node IDs, breaking area entity boosts.\n3. The legacy client loop forces 3 memories into the prompt even when their relevance score is 0.\n4. Browser turn memories drop `location` and action targets on write, leaving memories disconnected from the entities they involved.",
+    "how": "- Implement `engine/memory_retrieval.py` with `retrieve_associative_memories(player, cues, config)`:\n  - Implements multi-facet scoring: keyword overlap, entity intersection boost, recency half-life, effective importance (`activation * confidence`), need matching, and emotion match.\n  - Implements lane partitioning and score explanation (`explain: true` returns candidate breakdowns).\n- Wire `routes/memories.py`: `/api/players/<name>/memories/retrieve` delegates directly to `memory_retrieval.py`.\n- Update `static/js/agent/prompt-builder/memory-context.ts`:\n  - Collects room actors, room items, inventory, dialogue, vitals, and emotion as structured payload.\n  - Renders the lane-budgeted prompt sections without padding zero-score entries.\n- Update `static/js/agent-engine.ts` (`_storeReactionMemory`) and `static/js/agent/memory-manager.ts` (`storeMemory`):\n  - Passes current area to `location`.\n  - Collects action target and item IDs into `entity_ids`.",
+    "verify": "1. Follow the intended live path in Agent Lens preview.\n   - expected: Multi-facet cues surface connected memories without zero-score padding.\n   - observed: Recorded during implementation.\n2. Run targeted pytest verification: `python -m pytest tests/test_memory_retrieval_associative.py`.\n   - expected: All unit tests for intersection scoring, need probes, temporal validity, and write-path parity pass full output.\n   - observed: Recorded during implementation.",
+    "acceptance": [
+      {
+        "text": "Unit: Multi-facet scoring ranks an intersection hit (Jake + olives) strictly higher than single-entity memories about Jake alone or food alone.",
+        "done": true
+      },
+      {
+        "text": "Unit: Zero-score memories are never padded into recall; an empty room returns 0 associative memories.",
+        "done": true
+      },
+      {
+        "text": "Unit: Memories with `invalid_at <= current_tick` or `superseded_by` are excluded from active associative recall.",
+        "done": false
+      },
+      {
+        "text": "Unit: Bodily need cues (high hunger/thirst) surface food/drink memories without requiring specialized container tracking.",
+        "done": true
+      },
+      {
+        "text": "Unit: `storeMemory` stamps `location` and the turn's acted-on target/item IDs into the stored record.",
+        "done": false
+      },
+      {
+        "text": "Browser: Agent Lens displays the lane-budgeted recall block reflecting visible actors and room items.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/memory_retrieval.py",
+      "routes/memories.py",
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "static/js/agent-engine.ts",
+      "static/js/agent/memory-manager.ts",
+      "tests/test_memory_retrieval_associative.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Left sidebar -> Lens tab -> Agent Lens (`AgentLens` preview).\n\nCurrent availability: Planned / ready for implementation.\n\nLive steps when available:\n1. Open the web client and select an agent in the Lens tab (e.g. Kayla).\n2. Observe the `=== I REMEMBER ===` section in the generated prompt preview.\n   - expected: Only memories relevant to the agent's current surroundings appear; an agent in an empty room with no matching associations sees no padded filler memories.\n3. Place another character in the same room (e.g. Jake) and trigger dialogue containing a connected topic (e.g. \"olives\").\n   - expected: The associative memory connecting both entities surfaces at the top of the recall block with its matched cues explained."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-908-associative-memory-retrieval-3-0-multi-facet-perceptual-cues-and-zero-padding-prompt-lanes.md"
+  }
+}

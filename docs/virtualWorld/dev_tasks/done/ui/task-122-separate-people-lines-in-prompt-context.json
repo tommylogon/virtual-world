@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-122",
+  "kind": "task",
+  "number": 122,
+  "title": "Separate People Lines in Prompt Context",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Character descriptions are currently concatenated into one comma-separated paragraph, making them hard to parse:\n\n```\nPeople here: Kayla Jenkins (awake): A sixteen-year-old Black girl..., Kyrie Johansen (awake): A sixteen-year-old white girl..., ...\n```\n\nShould be one line per person with clear separation:\n\n```\nPeople here:\n- Kayla Jenkins (awake) - A sixteen-year-old Black girl...\n- Kyrie Johansen (awake) - A sixteen-year-old white girl...\n- John Smith (unknown to you) (awake) - Someone is here but you haven't met them yet.\n```\n\n**Note**: Unknown characters are shown with their actual name followed by \"(unknown to you)\" so the agent can still target them by name in actions (e.g., `attack John Smith`), while conveying the character hasn't met them yet.\n\n### Scope\n- `static/js/agent/prompt-builder.js` - `buildRoomContext()` people output format\n- `static/js/agent-engine.js` - `_buildRoomContext()` people output format",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Select an agent in the graph and expand Agent Lens → `Room context\n   (observe / decide)` for an area containing two known characters and one\n   stranger.\n   - expected: `People here:` is followed by one separate line per character;\n     the stranger's line keeps the real name and marks “unknown to you”.\n   - observed: the card records the formatter change in both prompt builders;\n     no Agent Lens browser observation is recorded.\n2. Switch the preview to another agent who does not know the stranger.\n   - expected: the prompt context keeps the stranger distinguishable by name\n     while preserving the unknown-to-this-character label.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Graph → select an agent → Agent Lens → live prompt context.\n\nCurrent availability: Agent Lens is the existing prompt-context preview and\nshows the context an agent receives without making an LLM call. The one-person-\nper-line formatting change is recorded in both prompt builders; the card has\nno browser observation for the preview.\n\nLive steps when available:\n1. Select an agent whose room contains two known people and one stranger, then\n   expand `Room context (observe / decide)` in Agent Lens.\n   - expected: each person occupies one line; the stranger's real name is\n     followed by “unknown to you”, not merged into the previous description.\n2. Select another agent in the same room who knows a different subset of the\n   people and read the same section.\n   - expected: names and unknown labels are resolved for that agent's\n     relationships, and every person remains on a separate line.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-122-people-separate-lines.md"
+  }
+}

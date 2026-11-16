@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "bug-515",
+  "kind": "bug",
+  "number": 515,
+  "title": "Duplicate explicit way id is silently reused and the connect log does not say what was connected",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-10-01",
+  "updated": "2026-10-01",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-16",
+      "task-376"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- `routes/graph_ops.py` - capture whether the way existed before `add_node` and\n  return `created`, `way_id`, `way_name`, `area_from`, `area_to`,\n  `area_from_id`, `area_to_id`.\n- `static/js/main.js` - new `connectSummary(res, payload)` builds the log line:\n  - created: `Connected \"<A>\" <-> \"<B>\" via way '<name>'`\n  - reused: `Way '<name>' already existed - rewired \"<A>\" <-> \"<B>\" (no new way created)`\n- `static/js/graph/event-handlers.js` - the task-376 wizard uses the same helper.\n- `eslint.config.js` - `connectSummary` added to the cross-file globals list.",
+    "verify": "`tests/test_way_connect_repair.py::test_build_connect_reports_created_and_areas`\n- first connect with `way_id: door1` reports `created: true` and the two area\nnames; a second connect with the same id reports `created: false` and the same\nareas; exactly one `door1` node exists.",
+    "acceptance": [
+      {
+        "text": "Connecting with a fresh `way_id` logs the two room names and the way id.",
+        "done": false
+      },
+      {
+        "text": "Connecting again with an existing `way_id` logs that the way already",
+        "done": false
+      },
+      {
+        "text": "existed and was rewired (no new way created).",
+        "done": false
+      },
+      {
+        "text": "No connection ever logs a bare \"Connected rooms\" with no areas/way named.",
+        "done": false
+      },
+      {
+        "text": "An `area` id collision still raises (unchanged).",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/graph_ops.py` - `handle_build_connect_legacy` response",
+      "static/js/main.js` - `connectSummary`, `connectRoomsViaGraph",
+      "static/js/graph/event-handlers.js` - `onAddEdge` success log",
+      "eslint.config.js` - globals",
+      "tests/test_way_connect_repair.py"
+    ],
+    "custom": {
+      "symptom_reported_live": "In a blank scenario with two rooms and a way whose manual Way ID is `door1`,\nmaking a **second** way with the same id `door1` logs\n\n```\n[Tick 2 | 08:00] World  Connected rooms\n[Tick 3 | 08:00] World  Connected rooms\n```\n\nbut no second door appears. Nothing says the way already existed, and nothing\nsays which areas were connected by which way.",
+      "root_cause": "Two independent gaps:\n\n1. **The collision is a silent overwrite.** `Graph.add_node` auto-suffixes only\n   `item`/`door`/`logic_trigger`/`character`; a `way` collision falls through to\n   `self.nodes[node.id] = node` (`graph.py:162-173`). With an explicit\n   `way_id` the route uses the id verbatim (`routes/graph_ops.py`), so the\n   existing `door1` is replaced in place.\n2. **The response reports nothing.** `handle_build_connect_legacy` returned a bare\n   `{\"status\": \"success\"}`, and the client logged a fixed string\n   (`main.js:224` \"Connected rooms\"; the task-376 wizard at\n   `graph/event-handlers.js:199` \"Connected A <-> B\"). Neither says whether a way\n   was created or an existing one reused, nor which way.\n\nNote the existing tests (`test_build_connect_removes_stale_edges`,\n`test_build_connect_replaces_old_side`) show that re-using an explicit `way_id`\nis an **intentional update/rewire**, so the fix is honest reporting, not a\nrefusal. This is distinct from bug-16, which was the no-id case.",
+      "verification": "- `python -m pytest tests/test_way_connect_repair.py -q` - 6 passed.\n- `npm run lint`, `npm run typecheck` - clean.\n- `node tools/unit/run.cjs` - 465 passed.\n- Live browser check of the new log line: pending.",
+      "live_verification_2026_10_02_port_4471": "- Backend unchanged and green: `python -m pytest tests/test_way_connect_repair.py tests/test_saveload.py tests/test_scene_snapshot.py -q` → 52 passed.\n- Client log lines via the live global `connectSummary` (the helper `connectRoomsViaGraph` logs, main.js:233):\n\n```\ncreated: Connected \"Kitchen\" <-> \"Study\" via way 'door1'\nreused:  Way 'door1' already existed - rewired \"Kitchen\" <-> \"Study\" (no new way created)\n```\n\nBoth name the two areas and the way; the bare \"Connected rooms\" string is gone.\nNo page errors."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-515-duplicate-explicit-way-id-is-silently-reused-and-the-connect-log-does-not-say-what-was-connected.md"
+  }
+}

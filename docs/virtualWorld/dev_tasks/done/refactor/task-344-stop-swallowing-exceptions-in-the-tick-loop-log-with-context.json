@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-344",
+  "kind": "task",
+  "number": 344,
+  "title": "Stop swallowing exceptions in the tick loop; log with context",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Every except in tick_manager becomes `except Exception as e:` +\n`self.gs.game_logger.log(f\"[tick] {context}: {e}\", ...)` (or module logger),\nincluding enough context to locate it (character name / node id / event id).\nWrap-and-log is fine; silent pass is not.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "Inject a failing stub into each wrapped subsystem (monkeypatch raising) →\ntick completes AND produces one identifiable log line per failure site;\nfull pytest suite green; manual turn with triggers running shows no error spam\nin normal operation.\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "`engine/tick_manager.py::tick_turn()` contains 5+ bare\n`except Exception: pass` blocks (:126 grapple-sync, :207, :295, :320, :482-487\ndelayed-event processing). The tick loop is where vitals decay, triggers fire,\nitems burn down and deaths resolve - failures there currently vanish as silent\nno-ops. Several recurring mystery bugs plausibly live behind these walls:\nbugs in review folder describe exactly this shape (\"spawn drift\", \"state\ndoesn't change\").\n\nAlso while there: `TickManager.__init__` comment at :13 admits\n\"player_manager is the VirtualWorldEngine instance\" - the facade smuggled in\nas a duck-typed dependency, reaching into privates (`gs._process_delayed_events`,\n`gs._spawn_body_item`, `gs.name_matcher._set_player_area`). Not this task's\njob to unwind the coupling; just don't make logging worse while touching it."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-344-log-swallowed-exceptions-in-tick-loop.md"
+  }
+}

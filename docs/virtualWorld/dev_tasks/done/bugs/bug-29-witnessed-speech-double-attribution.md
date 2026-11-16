@@ -5,9 +5,9 @@ area: bugs
 priority: medium
 ---
 
-# Bug 29 — Same witnessed speech appears twice with different attributions
+# Bug 29 - Same witnessed speech appears twice with different attributions
 
-**Status**: Premise disproven against the artifact. Recommend closing — no
+**Status**: Premise disproven against the artifact. Recommend closing - no
 defect to fix and nothing to guard.
 
 ## Found
@@ -26,13 +26,13 @@ rendered through the stranger/anonymized path ("a man's voice") rather than
 "[the man]". Two candidates:
 
 a) Deliberate: an unanswered direct address lingers one extra turn so the ball
-   stays visibly in the character's court — but then attribution flipping
+   stays visibly in the character's court - but then attribution flipping
    between "[the man]" and "[Heard → to you]" between renders of the SAME
    event is inconsistent.
 b) Duplicate posting: the speech got recorded into both this-turn events and a
    "pending conversation" carry-over list.
 
-## Investigation — 2026-09-22 (code trace)
+## Investigation - 2026-09-22 (code trace)
 
 `room-context.js` builds WITNESSED from two separate sources and dedupes them:
 
@@ -76,7 +76,7 @@ id or pin one attribution form for carried-over balls.
 Two-agent room: A says X to B; B's next TWO prompts contain exactly one entry
 for X each turn, attributed identically both times.
 
-## Re-investigation — 2026-09-28 (WT-C): confirmed false alarm, recommend closing
+## Re-investigation - 2026-09-28 (WT-C): confirmed false alarm, recommend closing
 
 Read the exact lines the report quotes, in
 `data/exports/taco_bell_event_log_2026-08-23T16-19-57.txt:422-425`:
@@ -93,7 +93,7 @@ are **different utterances by the same speaker** ("...i like your whole chaos
 thing" vs "...you are really fun to hang out with, right?"). The 2026-08-22 note
 called this correctly; nothing has changed since.
 
-**The predicted alternative — speaker-label instability — is also not live.**
+**The predicted alternative - speaker-label instability - is also not live.**
 The three labels in that block (`the man`, `jake halloway`, `a man's voice`) are
 real, and in current code they cannot disagree, because both the bracket label
 and the in-body name are derived from the same value:
@@ -103,8 +103,8 @@ and the in-body name are derived from the same value:
 - `room-context.js:653-656` replaces the raw actor name inside `descText` with
   that *same* `anon`.
 
-So `[the man] jake halloway he winks` — a bracket that anonymises next to a body
-that leaks the name — is not reachable today; both would say `the man`. The
+So `[the man] jake halloway he winks` - a bracket that anonymises next to a body
+that leaks the name - is not reachable today; both would say `the man`. The
 bracket/body split in that log is a 2026-08-23 artifact, same vintage as the
 apostrophe bug in bug-28. (`voiceLabel` for cross-room lines uses
 `isKnownToViewer` too, so it agrees with `anonymousName` rather than competing
@@ -119,7 +119,7 @@ with it.)
 
 A relationship record with `first_sighting: false` and no `closeness` would
 therefore anonymise the bracket but keep the name in the body. It is **not
-reachable from shipped content** — every `first_sighting` in
+reachable from shipped content** - every `first_sighting` in
 `data/library/characters/*.json` and `data/scenarios/*.json` is paired with a
 `closeness` (`ensure_relationship` always writes it, and deserialisation at
 `player.py:1070` indexes `data["closeness"]` directly, so a save cannot omit it).

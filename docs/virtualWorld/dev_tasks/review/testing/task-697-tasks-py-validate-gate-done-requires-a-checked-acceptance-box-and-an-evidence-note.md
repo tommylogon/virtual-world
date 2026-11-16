@@ -19,16 +19,16 @@ TODO
 
 task-612 reached `done` with its Acceptance section still TODO and no live repro;
 task-677's checkboxes drifted behind what actually shipped. The task tree is the
-project's memory — an unverified `done` poisons the next session's ground truth.
+project's memory - an unverified `done` poisons the next session's ground truth.
 
-- [ ] `tasks.py validate` fails (or errors — decide warn vs error, warn to start)
+- [ ] `tasks.py validate` fails (or errors - decide warn vs error, warn to start)
       when a task in `done/` has zero checked `- [x]` boxes in Acceptance.
 - [ ] It also warns when a `done/` task's body has no evidence marker
       (a line matching /verified|repro|test|screenshot/i).
 - [ ] `review/` tasks with zero checked boxes get a softer warning (review
-      legitimately includes partial work — task-333/334 style).
+      legitimately includes partial work - task-333/334 style).
 - [ ] Existing `done/` files that trip the rule are listed once, and the
-      grandfather set is either fixed or accepted via the usual baseline update —
+      grandfather set is either fixed or accepted via the usual baseline update -
       do not mass-move old tasks silently.
 - [ ] `python tools/tasks.py validate` self-test: moving task-612 back to done
       without evidence fails; with the evidence section added, passes.
@@ -53,7 +53,7 @@ TODO
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this card changes the repository task validator, not the game UI.
+Intended UI home: Not applicable - this card changes the repository task validator, not the game UI.
 
 Current availability: the task records that `done/` cards can lack checked Acceptance boxes or evidence. The validator gate is planned; no new app control is involved.
 

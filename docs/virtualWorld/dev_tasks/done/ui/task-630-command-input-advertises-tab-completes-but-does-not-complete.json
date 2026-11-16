@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-630",
+  "kind": "task",
+  "number": 630,
+  "title": "Command input advertises 'Tab completes' but does not complete",
+  "status": "done",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "#command-input placeholder promises 'Tab completes'; it does not.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Select a controlled character in a room with two visible targets sharing a prefix; type `examine <prefix>` in `#command-input`.\n   - expected: Tab inserts the first matching target without submitting the command.\n   - observed: the current `main.ts` contains the Tab/API autocomplete handler; this card records no live browser result or actual target names.\n2. Press Tab again and then Shift+Tab.\n   - expected: suggestions cycle forward and backward while preserving the verb.\n   - observed: not recorded in this card.\n3. Submit the selected command and compare it with the event stream.\n   - expected: only the chosen target is examined; cycling suggestions alone does not consume a turn or mutate the world.\n   - observed: not recorded in this card.\n4. Repeat after switching the controlled character.\n   - expected: suggestions match that character's available targets; the `selectedAgent` context noted in `main.ts` must be checked live rather than assumed.\n   - observed: not recorded in this card.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Main `#command-input` field → type a verb, a space, and a target prefix → press Tab; Shift+Tab cycles backward through matching targets.\n\nCurrent availability: `main.ts` contains a Tab handler that requests autocomplete options and inserts the first result, then cycles them. Its comment says the selected-agent context is null on this path; this card contains no live observation showing which actor's target list the endpoint returns.\n\nLive steps when available:\n1. Select a controlled character in a room with two visible targets sharing a prefix, focus `#command-input`, and type `examine <prefix>` without pressing Enter.\n   - expected: Tab inserts the first matching target and the command remains uncommitted.\n2. Press Tab again, then Shift+Tab.\n   - expected: Tab advances to the next matching target, Shift+Tab returns to the previous one, and the input retains the `examine` verb.\n3. Press Enter only after choosing a target and inspect the event stream.\n   - expected: exactly the chosen target is examined; cycling suggestions alone has not consumed a turn or changed world state.\n4. Repeat after switching the controlled character to a room with different visible targets.\n   - expected: suggestions match the newly controlled actor's available targets; if the active context remains null, record that as a remaining issue instead of treating the placeholder claim as verified.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-630-command-input-advertises-tab-completes-but-does-not-complete.md"
+  }
+}

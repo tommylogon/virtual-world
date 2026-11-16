@@ -23,7 +23,7 @@ This was triggered by the blueprint save flow: `trigger-graph._saveBlueprint`
 (name, then description), and the toolbar button is labelled "💾 Blueprint" so it
 is not even obvious it saves. A two-field modal fixes both problems at once.
 
-Inventory (TS sources; the generated `.js` doubles each). Counts are approximate —
+Inventory (TS sources; the generated `.js` doubles each). Counts are approximate -
 some `prompt(` matches in `agent/prompt-builder/*` are identifiers, not popups, so
 triage per site:
 
@@ -55,7 +55,7 @@ A single `shared/dialog.ts` module, promise-based, modelled on `DiffModal.show`
 
 Focus-trapped; `Esc` cancels, `Enter` submits, backdrop click cancels. Publish as
 `VW.dialog`. `alert()` calls that are just "it worked" messages become
-`toastInfo`/`toastError` (`ui-helpers.ts`) — do not open a modal for those.
+`toastInfo`/`toastError` (`ui-helpers.ts`) - do not open a modal for those.
 
 ## Plan
 

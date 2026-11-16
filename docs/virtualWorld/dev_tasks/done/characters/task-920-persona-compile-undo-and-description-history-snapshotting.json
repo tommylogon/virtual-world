@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-920",
+  "kind": "task",
+  "number": 920,
+  "title": "Persona compile undo and description history snapshotting",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Snapshot previous `base_description`, `personality`, `interest_tags`, and `fear_tags` before committing a persona compile, allowing the author to revert back to their prior authored prose with a single click in the Persona tab.",
+    "why": "Compiling a structured persona block rewrites the character's primary prose fields. If the compiled result is less nuanced than hand-crafted prose, authors currently have no easy way to revert without manually restoring from git or backups.",
+    "how": "- Store `_last_precompile_snapshot` on `Node.properties` (or in client session history) containing `{ \"base_description\": ..., \"personality\": ..., \"interest_tags\": ..., \"fear_tags\": ... }`.\n- Add a \"Revert to pre-compile\" button in the Persona tab sticky bar when a snapshot is present.\n- Provide an API endpoint `POST /api/players/<name>/record/revert_compile` to restore the snapshot.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Compiling a persona automatically captures a snapshot of the overwritten fields.",
+        "done": true
+      },
+      {
+        "text": "Authors can revert compiled prose back to the pre-compile state.",
+        "done": true
+      },
+      {
+        "text": "Snapshot does not leak into public scenario exports or bloated graph payloads.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-920-persona-compile-undo-and-description-history-snapshotting.md"
+  }
+}

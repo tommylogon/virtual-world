@@ -9,7 +9,7 @@ priority: medium
 
 **Filed:** 2026-09-21
 **Supersedes:** the unimplemented residuals of task-393 (the triage mechanics shipped; that task is closed)
-**Related:** task-393 (design sections E/F), task-324 (domain tags — feeds `mechanical_tag_missing_props`)
+**Related:** task-393 (design sections E/F), task-324 (domain tags - feeds `mechanical_tag_missing_props`)
 
 ## What
 
@@ -18,7 +18,7 @@ built, so the mansion run's noise floor drops.
 
 ## What is missing (verified 2026-09-21)
 
-1. **`library_mismatch` recalibration — not done, and task-393's claim about it was false.**
+1. **`library_mismatch` recalibration - not done, and task-393's claim about it was false.**
    The panel was supposed to fire `library_mismatch` only on **mechanical** field drift
    (vitals / triggers / actions / uses) and not on `light_level` / `contents`, because
    instance divergence on those is the *normal* authoring flow. It still includes them:
@@ -30,7 +30,7 @@ built, so the mansion run's noise floor drops.
    `mechanical_tag_missing_props` (info), not `library_mismatch` (warning).
 2. **No "mark instance as intended" action.** Task-393 design section E calls for batch
    "mark instance as intended" (set an explicit override) rather than resync. No such
-   action exists anywhere — no route, no property, no UI.
+   action exists anywhere - no route, no property, no UI.
 3. **No default-collapsed `info` section.** Grouping sorts by worst severity
    (`static/js/validator-panel.js:293-300`) but info rows render inline.
 
@@ -43,13 +43,13 @@ dismiss-until-touched persistence across reload).
   for the props where divergence is a real bug; route `light_level` /
   `target_temperature` / `heating_rate` to the existing `mechanical_tag_missing_props`
   (info) path, and decide `contents` / `aliases` explicitly (they are structural, so
-  likely stay — but then the message should say why).
+  likely stay - but then the message should say why).
 - **Mark-as-intended is a node override**, not a library edit: a property on the placed
-  node that suppresses its own mismatch until the node is edited again — the same
+  node that suppresses its own mismatch until the node is edited again - the same
   dismiss-until-edited shape `ignored_issues` / `_ignored_at` already uses
   (`engine/trigger_validator.py:184-219`). Reuse it rather than inventing a second
   mechanism.
-- **The info section is grouping, not filtering** — it must not hide info rows from the
+- **The info section is grouping, not filtering** - it must not hide info rows from the
   count in the pinned header.
 
 ## Acceptance
@@ -57,10 +57,10 @@ dismiss-until-touched persistence across reload).
 - [x] Trivial-field `library_mismatch` warnings fall sharply: in the live
   mansion run, 23 of 30 `library_mismatch` rows became **info** and only 7
   remain warnings (identity/structural/mechanical drift). No real mechanical
-  drift is lost — `actions`/`uses` drift still warns (new test
+  drift is lost - `actions`/`uses` drift still warns (new test
   `test_actions_drift_still_warns`).
 - [x] "Mark instance as intended" suppresses a mismatch on that node only,
-  survives reload, and expires when the node is edited after the mark — it
+  survives reload, and expires when the node is edited after the mark - it
   reuses the shipped `ignored_issues` / `_ignored_at` mechanism via
   `/api/triggers/ignore` (no second mechanism). The validator's expiry test
   already exists.
@@ -74,13 +74,13 @@ dismiss-until-touched persistence across reload).
 
 Split `LIBRARY_SYNC_PROPS` drift into three buckets:
 
-- **warning `library_mismatch`** — `name`, `tags`, `actions`, `uses`, `weight`,
+- **warning `library_mismatch`** - `name`, `tags`, `actions`, `uses`, `weight`,
   `equip_slots`; the message says "mechanical fields determine behaviour" when
   `actions`/`uses` differ, else "these change what the item is".
-- **info `mechanical_tag_missing_props`** — `light_level`, `target_temperature`,
+- **info `mechanical_tag_missing_props`** - `light_level`, `target_temperature`,
   `heating_rate` (engine defaults from `DEFAULTED_MECHANICAL_DEFAULTS`); the
   existing ⚙ quick-fix sets them, so the info row is actionable.
-- **info `library_mismatch`** — `current_state`, `contents`, `description`,
+- **info `library_mismatch`** - `current_state`, `contents`, `description`,
   `aliases`: runtime/per-instance state or free text, which is exactly what an
   instance is for. Decided explicitly (see `LIBRARY_MISMATCH_TRIVIAL_PROPS`).
 
@@ -113,17 +113,17 @@ Screenshots: `review-verify/443-validator-top.png`,
 
 ## Files
 
-- `engine/trigger_validator.py` — `LIBRARY_MISMATCH_TRIVIAL_PROPS`,
+- `engine/trigger_validator.py` - `LIBRARY_MISMATCH_TRIVIAL_PROPS`,
   `LIBRARY_MECHANICAL_PROPS`, split `_validate_library_sync`.
-- `static/js/validator-panel.js` — `_infoSection` (default-collapsed), group
+- `static/js/validator-panel.js` - `_infoSection` (default-collapsed), group
   split, ✓ "mark as intended" for library_mismatch.
 - `tests/test_trigger_validator.py`.
 
 ## Non-goals
 
 - The triage mechanics themselves (grouping, scroll, empty-trigger collapse, dismiss,
-  fix-all, progress bar) — those shipped with task-393.
-- Changing the derived-progress definition — task-393 settled it on the shipped
+  fix-all, progress bar) - those shipped with task-393.
+- Changing the derived-progress definition - task-393 settled it on the shipped
   formula; see that task's Outcome block.
 
 ## Steps to verify

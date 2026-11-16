@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "id": "task-499",
+  "kind": "task",
+  "number": 499,
+  "title": "Per-agent fog of war and map knowledge transfer",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-495",
+      "task-403"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add an area/scope-level known set per character. player.known already gates hidden ways and items through viewer-aware perception (engine/room_perception.py; tests/test_known.py), and EDGE_KNOWN is abilities-only. Unknown cells/zones are fog on the map; walking, examining, or finding a map item reveals them - a map's use/read teaches known entries (reuse the existing teach path). Rendering: the map view shows only known cells/zones. Keep perception honest in agent prompts (an unaware agent is not told about unknown areas).",
+    "why": "`player.known` gates hidden ways, hidden items and exit visibility, but nothing\nin the runtime wrote to it. Per-agent knowledge therefore only worked for\nauthored starting knowledge: a character who walked into a room still did not\nknow it, and an agent could not route to a place it had been told about. The\ngate was sound and had no key.",
+    "how": "- `engine/fog.py` supplies the verbs: `reveal_area`, `reveal_examined` (a way\n  teaches the far side; `graph` and `from_area_id` make a two-ended way resolve\n  the room the viewer is not in), `teach_from_map`, `only_known` and `fog_view`.\n- `engine/movement.py` calls `reveal_area` at the arrival point.\n- `engine/items/examine_actions.py` reveals the room, the item and the far side\n  of a way; `engine/items/use_actions.py` does the same for a used map.\n- A map is only taught when it declares `charted_areas`. The no-chart fallback\n  in `teach_from_map` hands out every area, so an uncharted map prop must not\n  reach it.\n- `engine/spatial_memory.known_route_areas` unions the walked areas with the area\n  entries in `known`/`known_areas`; the prompt route block (`routes/memories.py`)\n  and `recall path` (`routes/action_handlers.py`) read the union.",
+    "verify": "1. `python -m pytest tests/test_fog_wiring.py tests/test_fog.py tests/test_known.py`\n   - expected: all pass\n   - observed: 40 passed on 2026-10-23\n2. Walk a two-room world and examine the joining way.\n   - expected: the destination room's id and name are both in `player.known`\n   - observed: `test_walking_into_an_area_teaches_it` and\n     `test_examining_a_way_teaches_the_far_side` pass\n3. Read a charted map and an uncharted map prop.\n   - expected: the charted map teaches its chart; the uncharted prop teaches only\n     the room the reader is in\n   - observed: `test_reading_a_charted_map_teaches_its_chart` and\n     `test_reading_an_uncharted_map_does_not_teach_the_world` pass\n4. Seed `known` with an area id and ask for a route.\n   - expected: `find_route` returns the path even with no walked memory\n   - observed: `test_authored_known_area_makes_a_path_findable` passes\n5. Live browser check of the fog reveal.\n   - expected: a walked area appears in known in GET /api/players/<name>\n   - observed: PASS 2026-10-25. GET /api/players/<name>/map returns {fog: fog_view(player, all_area_ids)}; walked areas appear in player.known in player payload. 42 tests pass across tests/test_fog_wiring.py, tests/test_fog.py, and tests/test_known.py.",
+    "acceptance": [
+      {
+        "text": "Areas/scopes can be marked known per character. The reveal verbs and the",
+        "done": true
+      },
+      {
+        "text": "perception gate are wired. Rendering unknown cells as fog is task-677.",
+        "done": false
+      },
+      {
+        "text": "Walking and examining reveal them; a charted map's use/read teaches the",
+        "done": true
+      },
+      {
+        "text": "entries it lists, through the same `known` registry.",
+        "done": false
+      },
+      {
+        "text": "Agent prompts never disclose unknown areas. The route block and the exit",
+        "done": true
+      },
+      {
+        "text": "list are known-filtered, `only_known` is wired into `known_route_areas`",
+        "done": false
+      },
+      {
+        "text": "(`engine/spatial_memory.py`), and `fog_view` is wired into",
+        "done": false
+      },
+      {
+        "text": "`GET /api/players/<name>/map` (`routes/player_ops.py`).",
+        "done": false
+      },
+      {
+        "text": "Tests cover the reveal, map-item knowledge transfer and the authored route",
+        "done": true
+      },
+      {
+        "text": "bridge.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/fog.py",
+      "engine/movement.py",
+      "engine/items/examine_actions.py",
+      "engine/items/use_actions.py",
+      "engine/spatial_memory.py",
+      "routes/memories.py",
+      "routes/action_handlers.py",
+      "tests/test_fog_wiring.py"
+    ],
+    "custom": {
+      "progress_2026_09_28_in_review": "### The gate existed and had no key\n\n`player.known` was already a list, and `engine/room_perception.py:way_visible_to`\nalready gated on it - *\"Authored knowledge: a way, or its area, listed in the\nviewer's `known` registry is visible from the start (the butcher's passage, a\nscout's map).\"* **Nothing anywhere wrote to it.** Every test passed because every\nfixture hand-populated the list. The gate was sound and had no key, which is the\nwhole of this task's delta.\n\n`engine/fog.py` (new) supplies the three halves.\n\n### Reveal - three verbs, one registry\n\n`reveal_area` (walking in), `reveal_examined` (examining a way teaches where it\ngoes, examining a place teaches the place), and `reveal_sightline` (seeing down a\ncorridor, **reusing `engine/beyond_visibility.sightline_run`** rather than\nre-deciding what is visible - one place that knows how far you can see, so the\nmap and the prose cannot disagree).\n\n**Ids and names both matter, and the set stores both.** The gate matches on\n`way.id`, `area_name`, or a lossy name-derived id guess, because hand-authored\nways predate the id convention. A set holding one form leaks through the other\ntwo, so a reveal writes every form it can derive. The derived guess is never\nneeded in the set: a reveal writes the real id and the real name, so the guess is\nalways redundant.\n\n### Teach - a map goes into the *same* registry\n\n`teach_from_map` writes `player.known`, which is the existing teach path. Two\npaths would mean two places to look and one of them would be forgotten; a test\nasserts a walk and a map end up in one list.\n\n**A chart entry that is a display name resolves to its area**, so a map that\ncharts `\"Room 1\"` and a walk that reaches `area_1` teach the same forms rather\nthan two half-entries. The report counts **places** and **entries** separately,\nbecause those are different numbers and conflating them makes \"a map of two rooms\"\nlook like it taught five things.\n\n### Fog - present but marked, never omitted\n\n`fog_view` returns `{known, fog, known_count, fog_count}`, and unknown cells are\n**in `fog`, not missing from the payload**. An omitted cell is indistinguishable\nfrom one that was never painted, so the map could not tell \"you have not been\nthere\" from \"there is nothing there\" - and fog of war that looks like empty space\nis fog of war nobody explores. It also de-duplicates: a map that lists a cell\ntwice is a map with a bug in it, and a caller counting `known_count` to draw a\nlegend would be off.\n\n### Honesty - a filter on a list, not a string\n\n`only_known(player, names)` is **the** boundary the task's third acceptance line\nasks for, and it filters a **list**, deliberately. A filter on a rendered prompt\nstring is unauditable; a list filter is a call a reviewer can see, and a prompt\nthat forgot to call it is the actual failure mode this guards against. A test\npins the degradation direction: a filter that cannot decide returns **nothing**,\nnever the input - returning the input would be an omniscient agent with extra\nsteps.\n\n`unknown_are_hidden` exists as a named predicate so the call sites read as a\ndecision rather than an `if not in known(...)`, and so there is exactly one place\nto change if the rule ever becomes \"a rough bearing is allowed\".\n\n### Three bugs the tests caught, all in this task's own new code\n\n1. **An explicit empty chart taught the whole world.** `props.get(\"charted_areas\")`\n   is falsy for `[]`, so `charted_areas: []` fell through to the \"no list, so a map\n   of wherever you are\" branch. Now `\"charted_areas\" in props`. The difference is\n   a blank prop and an absent one, and a truthiness test reads both the same.\n2. **`fog_view` listed a duplicated cell twice** and inflated `known_count`, which\n   a legend-drawing caller would be off by.\n3. **A chart of two rooms reported five things taught**, because `count` was\n   counting registry entries rather than places.\n\n### New tests - `tests/test_fog.py` (24)\n\nThe missing key: a fresh agent knows nothing, a reveal teaches both forms,\nre-revealing adds nothing, **two agents never share a set** (fog of war is per\nagent; a shared set is omniscience), a `Known` is re-readable without clearing\nanything, `reveal` covers id/name/props, and `forget` on a node removes every form\nwhile a bare string removes only itself.\n\nThe verbs: walking in, examining a way (teaches the far side), examining an area,\na sightline, and every empty-input case.\n\nThe map: a chart teaches exactly its chart, a chartless map teaches where you are,\nan explicit empty chart teaches nothing, and a map and a walk share one registry.\n\nHonesty: the filter, names as well as ids, degrading to nothing, the named\npredicate, and **two agents getting different prompt answers from one world**.\n\nThe view: fog present-but-marked, stable with no input, de-duplicated, zones\noptional.\n\nAnd the payoff test: a revealed hidden way is visible to the agent that revealed\nit and still hidden from another, through the real\n`room_perception.way_visible_to`. `tests/test_known.py` still passes.\n\n### Wired 2026-10-23 (follow-up)\n\nThe follow-up named below has landed. The call sites are:\n\n- **Walk:** `engine/movement.py` calls `reveal_area` for the acting player at the\n  arrival point, right after `_set_player_area`. Best-effort: a reveal failure\n  never breaks a move.\n- **Examine:** `engine/items/examine_actions.py` calls `reveal_area` for the room\n  and `reveal_examined` for the target. A way reveals the far side, and\n  `reveal_examined` now takes `from_area_id` so a two-ended way resolves the room\n  the viewer is not standing in. That bug was invisible while nothing called the\n  verb.\n- **Map:** a charted item (`\"charted_areas\" in properties`) teaches through\n  `teach_from_map` on `examine`/`read` and on `use`. Uncharted map props are not\n  passed to `teach_from_map`, because its no-chart fallback hands out every area\n  in the world.\n- **Sightline:** `engine/area_description.py` calls `reveal_sightline` for each\n  open or see-through exit in the room description, using\n  `beyond_visibility.sightline_run`. Looking down a corridor therefore teaches\n  every room the line of sight reaches, and the prose and the map read the same\n  run instead of two visibility rules. A shut door stops the run.\n- **Tests:** `tests/test_fog_wiring.py` (13) pins the walk, room examine, way\n  examine, item examine, mapped and unmapped reads, looking down a corridor, a\n  shut door stopping the sightline, idempotence, and the authored route bridge.\n  `tests/test_fog.py` and `tests/test_known.py` still pass.\n\n`known_route_areas` in `engine/spatial_memory.py` unions the walked areas with\nauthored `known`/`known_areas`, and the prompt route block plus `recall path`\nnow use it. That is the task-467 half that makes authored knowledge navigable\nwithout a second store.\n\nWired:\n\n- only_known is wired into engine/spatial_memory.py.\n- fog_view is wired into GET /api/players/<name>/map (\nroutes/player_ops.py), returning {fog: fog_view(player, all_area_ids)}.\n- Canvas rendering of unknown cells as fog on the player-facing map is tracked in \task-677.\n\n### Not wired at filing (historical)\n\nNothing called `reveal_*` on movement or examine. The verbs existed, were tested\nand were the right shape; the call sites were `engine/movement.py` and the\nexamine handler."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "design": "`docs/design/worldpainter-knowledge-and-fog.md` - fog is the"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-499-per-agent-fog-of-war-and-map-knowledge-transfer.md"
+  }
+}

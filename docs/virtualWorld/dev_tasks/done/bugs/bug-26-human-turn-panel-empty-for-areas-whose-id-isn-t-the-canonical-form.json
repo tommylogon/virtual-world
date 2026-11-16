@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "bug-26",
+  "kind": "bug",
+  "number": 26,
+  "title": "Human turn panel empty for areas whose id isn't the canonical form",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "`scene_snapshot._area_node_id` resolves via a getter chain that returns\nCONSTRUCTED ids: `NodeIDHelper.area_node_id(\"Taco Bell Men's Restroom\")`\n→ `area_taco_bell_men's_restroom` (apostrophe kept). The hand-authored\nnode is `area_taco_bell_mens_restroom` (apostrophe stripped). The id\nresolved to NO node → area_node None (no description) → all three graph\nwalks (people/items/ways) queried a nonexistent id → empty lists. The\nYOU strip still worked because vitals come from the player object.\nThe agent path never breaks on this: `area_description` resolves areas\nby iterating nodes and matching NAME.\n\ntask-333 previously patched a 500 crash in this same chain; the silent\nempty-result case survived it. Fourth drift incident - see task-341.",
+    "how": "`engine/scene_snapshot.py::_area_node_id`:\n- each getter result is now VALIDATED (must resolve to an existing area\n  node) before being accepted;\n- a name-based node lookup (normalized: lowercase, apostrophes stripped)\n  runs before the canonical-id fallback - same source of truth as\n  area_description.",
+    "verify": "`tests/test_scene_snapshot.py::test_noncanonical_area_id_resolves_by_name`\n- area node at a non-canonical id with an apostrophe name; asserts the\nscene resolves the right area id, renders the description, and lists the\nitem and way.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "2026-08-24 playtest: jake in \"Taco Bell Men's Restroom\" - panel showed\nnobody / nothing of note / no ways out, and no area description under the\nchip. Changing the light level (it was pitch black) changed nothing -\ndarkness only degrades chip labels, never empties them. The dining room\n(no apostrophe) rendered fine.",
+      "verification": "- pytest full suite 1126 passed\n- Browser: reload jake's turn in the men's restroom - toilet chip, \"out\"\n  way, and the area description must all render.",
+      "live_server_verification_2026_10_02_port_4471": "The Taco Bell repro world is not in this worktree, but the same shape exists:\n`area_abandoned_hunter's_cabin` (apostrophe keeps the non-canonical id). Drove\nthe real endpoints:\n\n1. `POST /api/players/Kaelen Voss/move {area: \"Abandoned Hunter's Cabin\"}`\n2. `GET /api/scene/Kaelen Voss`\n\nResult:\n\n```\narea.id   = \"area_abandoned_hunter's_cabin\"\narea.name = \"Abandoned Hunter's Cabin\"\narea.desc = \"The cabin slumps under the weight of snow, its roof caved in on one side.\"\nways      = [ { id: \"way_cabin_door\", direction: \"cabin door\", to: \"Frozen Lake Clearing\" } ]\nitems     = [ { name: \"Frozen Corpse\", ... } ]\n```\n\nAll three graph walks (description, ways, items) resolve for the\nnon-canonical id; the panel would not be empty. Player moved back to\n\"Blizzard Forest Clearing\" afterwards. `tests/test_scene_snapshot.py` also\ngreen in the same run (52 passed with the other selections)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-26-panel-empty-noncanonical-area-id.md"
+  }
+}

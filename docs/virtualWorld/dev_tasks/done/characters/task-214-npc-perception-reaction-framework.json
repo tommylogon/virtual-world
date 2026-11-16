@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-214",
+  "kind": "task",
+  "number": 214,
+  "title": "NPC Perception & Reaction Framework",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-11",
+  "updated": "2026-08-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_implemented_2026_09_22": "**Live game, simple-NPC tier.** Simple NPCs have no LLM, so \"the LLM sees the\ndescription\" never applied to them; this gives them a mechanical floor for\nnoticing state/action. LLM agents and humans already perceive through their own\nprompts, so they are deliberately **not** double-handled here. Sexual stimuli are\nmature-gated; generic stimuli are always active.\n\n### Shipped\n- **Traits** (`engine/traits.py` + `data/library/traits/*.json`):\n  `observant` / `oblivious` (perception DC −5 / +5, `perception_dc_mod`),\n  `prudish` (`npc_reaction: disapprove`), `open_minded` (`approach`),\n  `attracted` (mature: `approach` + sharper arousal reading).\n- **`engine/npc_behaviors.py`**:\n  - `calculate_perception_difficulty(npc, target, stimulus_type)` - base DC 10\n    ± trait mods, ambient light (<20 → +10, >80 → −5), and the target's\n    outer-layer `coverage` over the relevant region (covered skin reads harder).\n  - `check_perception(npc, dc)` - d20 + WIS mod + Perception trait mods, silent\n    (no `[Save]` log spam on every reaction).\n  - `process_npc_reaction(npc, target, stimulus_type)` - perception roll, then\n    reaction from traits: prudish → disapprove, attracted/open_minded →\n    approach (open_minded only when Social > 50), generic → comment.\n  - `process_bystander_reactions(actor, target, stimulus_type)` - simple NPCs in\n    the actor's area react, capped at one line per stimulus so a crowd does not\n    flood the log. Dead and undead-ghost NPCs never react.\n  - `process_npcs_on_combat(context)` - the old `pass` stub now routes\n    `combat_actors` through the generic stimulus path (combat passes it in\n    `engine/combat.py:219`).\n- **Hook**: `engine/pleasure_actions.execute_intimacy_action()` calls the\n  bystander path after resolving an intimacy verb and appends any reaction line.\n- **Emissions** reuse the existing channels - `add_log_entry` +\n  `record_turn_event(..., \"npc_reaction\")` - no new event stream.\n- **Tests**: `tests/test_npc_perception.py` (20) - DC modifiers, reaction\n  selection, mature gate, bystander filtering (agent excluded, other area\n  excluded, actor/target excluded), crowd cap, and the intimacy integration.\n\n### Not done / future\n- Only simple NPCs react mechanically. If agent characters should also get a\n  mechanical perception floor, extend `process_bystander_reactions` past the\n  `simple_npc` filter - but keep it advisory (a turn event the LLM can read),\n  not a decision override.\n- \"Nearby rooms → +5\" distance penalty from the design is not implemented; v1\n  considers only characters in the same area.\n- `aroused` / `nipple_hard` / `wetness` are accepted as stimulus types (with\n  coverage modifiers) but nothing currently *generates* them per tick; v1 is\n  event-driven (intimacy action, combat).\n\n---",
+      "original_problem": "NPCs can't mechanically \"notice\" another character's state (hard nipples, blushing, arousal) or react to it (disapprove, approach, comment). Perception is currently LLM-flavor only.",
+      "related": "- [[Intimacy and Body Sensitivity System - Design]] §8 (Phase 6)\n- `task-213 mature traits`, `task-211 intimacy verbs`, `task-208 friction`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-214-npc-perception.md"
+  }
+}

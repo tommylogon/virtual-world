@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "task-442",
+  "kind": "task",
+  "number": 442,
+  "title": "Trigger blueprint runtime compile + blueprint browser",
+  "status": "done",
+  "priority": "high",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-388",
+      "trigger",
+      "graph",
+      "editor",
+      "overhaul",
+      "task-501",
+      "compile-honesty"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make a saved trigger **blueprint** something the engine can actually run, and give\nblueprints a real browser. Today a blueprint is a JSON document the editor can load and\ncompile to a graph patch, but **no Python code has ever heard of a blueprint** - nothing\nmaterialises a blueprint into `logic_trigger` nodes + `triggers` edges at runtime.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A blueprint with a condition branch round-trips into `logic_trigger` nodes + `triggers`",
+        "done": false
+      },
+      {
+        "text": "edges and behaves correctly in the engine.",
+        "done": false
+      },
+      {
+        "text": "The compile-fidelity half (NO-branch effects, OR/NOT) is task-501 and must be",
+        "done": false
+      },
+      {
+        "text": "done before a branch can be claimed to round-trip.",
+        "done": false
+      },
+      {
+        "text": "The browser lists and searches `data/library/triggers/*.json`, and attaching a",
+        "done": false
+      },
+      {
+        "text": "blueprint from it materialises the nodes.",
+        "done": false
+      },
+      {
+        "text": "`node --check` clean on touched JS; `python -m pytest tests/ -q -k \"not mcp and not emote\"` green.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "verified_state_2026_09_21": "- Phase 1 (node renderer, sockets, wires, inline editing, blueprint save/load/export/\n  import, compile-to-engine, inspector + library integration) is **done** in\n  `static/js/shared/trigger-graph.js` - `_serializeGraph` `:1622`, `compileToEngine`\n  `:1984`, `compileToBehaviors` `:1832`, blueprint I/O `:1667-1765`.\n- Blueprint storage is real: `POST /api/library/triggers`\n  (`routes/library_routes.py:48-60`, `triggers` in `REGISTRY_TYPES`\n  `routes/library_ops.py:16`) writes per-entry files under `data/library/triggers/`.\n- **`grep blueprint *.py` → 0 hits.** Phase 3 is unstarted.\n- Phase 2's two unticked boxes (directory exists, templates seeded) are actually\n  satisfied - nine files in `data/library/triggers/`. What is missing is the **browser**:\n  today only the in-editor `_loadBlueprint` picker (`trigger-graph.js:1714-1750`), a raw\n  floating div.",
+      "slice_1_blueprint_engine_nodes_the_point_of_the_task": "Define the compile as a documented JSON contract plus a runtime materialiser, so\nattaching a blueprint to a node creates ordinary `logic_trigger` nodes and `triggers`\nedges - no parallel format, same as task-398's `GenerationPatch` principle.",
+      "slice_2_condition_branching_must_stop_losing_data": "**Moved to task-501 (2026-09-24).** The two dishonest compiles - `_traceGraph`\ndropping NO-branch effects and `compileToEngine` always emitting `{operator:'and'}`\n- are a self-contained editor/compiler fix, so they no longer gate this task's\nruntime work. Do task-501 first: slice 1's JSON contract must carry whatever\ncondition shape task-501 lands on.",
+      "slice_3_blueprint_browser": "A searchable picker over `data/library/triggers/` (the six seeded templates plus\nuser-saved ones), in the shape the item library already uses - not a floating div.",
+      "non_goals": "- The editor's UI/UX overhaul (pan/zoom, wire deletion, undo) - that is task-388, and\n  pan/zoom already exists (`trigger-graph.js:1113-1219`).\n- Re-introducing `reduce_uses`: it does not exist in the effect registry\n  (`engine/effect_handlers/equipment.py:182` has `adjust_uses`, which accepts a negative\n  delta). Task-351's Phase-1 checkbox claiming it was added is false and has been\n  corrected there.",
+      "verified_2026_10_02": "- Commit `f91eb53`. `tests/test_trigger_materialize.py` 7 passed; full\n  `pytest -k \"not mcp and not emote\"` 6527 passed with the 3 non-baseline\n  failures A/B-reproduced on `02a8ab1` (pre-existing); `node tools/unit/run.cjs`\n  497 passed incl. \"every seeded trigger-mode blueprint compiles\".\n- Live browser (app on :4469, Playwright): the searchable blueprint modal listed\n  9 blueprints and filtered to 1 on \"warm\"/\"on_use_message\"; with a node context\n  it showed 9 **↳ Attach** buttons; clicking Attach on *On Use → Message*\n  created a `triggers` edge on the target item (0 → 1) and closed the modal,\n  proving `POST /api/triggers/attach` materialises ordinary logic_trigger nodes."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "supersedes": "task-351 Phases 2–3 (Phase 1 shipped; that task is closed)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-442-trigger-blueprint-runtime-compile-and-browser.md"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-280",
+  "kind": "task",
+  "number": 280,
+  "title": "Condition: Frantic (`frantic`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Peak arousal band (Arousal 90+). Overwhelming - strong Stimulation, heavy Energy and Sanity cost, big combat distraction, auto-failed self-control. Edge of composure.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"frantic\": {\n    \"name\": \"Frantic\", \"description\": \"Out of control. Nothing matters but this.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [\"perception\", \"concentration\", \"willpower\", \"self_control\"],\n    \"auto_fail_saves\": [],\n    \"attack_mod\": -5, \"defense_mod\": -5, \"speed_mult\": 0.9,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {\"Stimulation\": 4, \"Energy\": -3, \"Sanity\": -2},\n    \"ends_on\": [\"release\", \"climax\", \"calm\"],\n    \"known\": True,\n    \"symptoms\": {\n        1: \"You're lost in it - thought dissolving into pure, burning need.\",\n    },\n    \"stack\": \"refresh\",\n    \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: none hard, but the mental cost is severe.\n- **Saves/checks**: auto-fails `perception`, `concentration`, `willpower`, and `self_control`.\n- **Combat**: `attack_mod −5`, `defense_mod −5` - very exposed.\n- **Movement**: slight `speed_mult 0.9` (single-minded, less careful).\n- **Periodic**: `Stimulation +4`, `Energy −3`, `Sanity −2` per tick - rapidly draining once frenzied.\n- **Lifecycle**: `stack: \"refresh\"`. Applied at Arousal 90+. Ends on `release`/`climax` (resolves to `satisfied`) or falling below the band.",
+      "perception": "`known: True` - unmistakable.",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry.\n- `engine/tick_manager.py` - threshold checks in `tick_turn()`.\n- `engine/conditions.py` - auto-fail checks, combat mods, `process_tick`.\n- Climax/release actions resolving to `satisfied` and clearing arousal conditions.",
+      "testing_proposed": "- [ ] Arousal 90+ → `frantic`; drops below 90 revert.\n- [ ] Self-control/perception/etc. checks auto-fail.\n- [ ] `attack_mod`/`defense_mod −5`.\n- [ ] Stimulation +4, Energy −3, Sanity −2 per tick.\n- [ ] Release/climax → `satisfied` and clears frantic + lower bands.",
+      "open_questions_things_to_work_out": "- Is a `defense_mod −5` + heavy Sanity/Energy drain intended to be genuinely dangerous (accident/collapse risk), or just roleplay fluff?\n- Does extreme arousal feed into involuntary actions (task-166) or self-control saves?\n- `self_control` check pathway - ability check vs. save."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-280-frantic.md"
+  }
+}

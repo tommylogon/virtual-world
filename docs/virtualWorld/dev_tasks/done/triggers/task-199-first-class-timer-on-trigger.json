@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "task-199",
+  "kind": "task",
+  "number": 199,
+  "title": "First-Class Timer on Trigger",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Timing is currently hacked via a \"timer item\" pattern. There is no first-class way to express \"this happens after N ticks\" on a trigger.",
+    "how": "- A workable timer-item workaround exists: on_tick reduces uses, then a conditional unlock fires when uses hit zero.\n- A first-class timer trigger type is cleanup, not a necessity - the workaround already covers the core need.\n- Add a trigger type with a `duration`/`ticks` field that auto-fires at expiry.\n- Reuse the existing on_tick hook so the countdown runs without extra engine machinery.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/trigger_system.py - add first-class timer trigger type with duration/ticks field and expiry auto-fire",
+      "engine/effects.py - support effects tied to the timer trigger firing"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-199-timer-on-trigger.md"
+  }
+}

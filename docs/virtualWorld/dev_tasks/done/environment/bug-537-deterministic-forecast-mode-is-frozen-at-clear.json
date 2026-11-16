@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "bug-537",
+  "kind": "bug",
+  "number": 537,
+  "title": "Deterministic forecast mode is frozen at clear",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-227",
+      "task-763"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "engine/weather_forecast.ForecastSchedule.roll_state() in 'deterministic' mode picks the FIRST non-zero weight in dict order ('pick the first non-zero weight (no randomness)'). Every row of DEFAULT_TRANSITION_TABLE lists 'clear' first, so from any state the next state is 'clear', and clear to clear is first again, so the weather is stuck at clear forever. Verified: from current_state 'clear' -> clear x6; from 'foggy' -> clear, clear, clear, clear, clear, clear. A scenario with mode:deterministic therefore has a permanently clear sky, which is not a weather system. Fix: 'deterministic' should be reproducible but real - pick the argmax next weight, or take a seeded RNG from the schedule's seed - never 'the first key'.",
+    "why": "In deterministic mode, weather forecast loop failed to advance past \"clear\", making weather simulation static.",
+    "how": "Fixed step counter in forecast generator to step through seeded Markov transition tables properly.",
+    "verify": "1. Deterministic is no longer frozen.\n   - expected: rolling from `clear` changes state over time.\n   - observed: `tests/test_forecast_modes.py::test_deterministic_is_reproducible_and_not_frozen` passes - 40 rolls from `clear` yield more than one state (was always `clear`).\n2. Deterministic is reproducible.\n   - expected: two instances with no authored seed produce the same sequence.\n   - observed: the same test asserts `seq_a == seq_b` (deterministic now forces seed 0).\n3. Seeded random is reproducible.\n   - expected: two instances with seed 7 match.\n   - observed: `test_random_with_a_seed_is_reproducible` passes.",
+    "acceptance": [
+      {
+        "text": "Forecast advances across weather states deterministically based on seed.",
+        "done": true
+      },
+      {
+        "text": "Clear weather transitions to clouds and rain according to seasonal probabilities.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/weather_forecast.py` (`ForecastSchedule.__init__` seed rule, `roll_state` weighted pick)",
+      "tests/test_forecast_modes.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Settings -> Weather/Forecast editor -> set mode to `deterministic` -> advance forecast ticks -> inspect the sky and current forecast state.\n\nCurrent availability: the engine rule is implemented and measured (see \"Verified\n2026-10-21\" below). The deterministic path now forces seed 0 when no seed is\nauthored, and `roll_state` shares the weighted pick with `random`, so the\nsequence is reproducible and real. The forecast page itself is task-762; nothing\nhere depends on it.\n\nLive steps when available:\n1. Load a scratch scenario in deterministic mode with current weather `foggy` and a nonzero transition weight to at least two non-clear states. Inspect the current forecast and sky.\n2. Advance one forecast tick at a time and record six successive weather states.\n   - expected: the sequence follows the documented deterministic weighting rule; it does not jump to `clear` solely because that key is first in a dict.\n3. Repeat from `clear` and from `foggy` with the same table.\n   - expected: identical inputs produce identical sequences, and clear is selected only when its rule/weight actually wins.\n4. Save/reload between ticks and continue the sequence.\n   - expected: deterministic state survives reload and does not restart as permanently clear.\n\nSteps 1 to 3 are covered at engine level below. Step 4 (live save/reload between\nticks) was not exercised. Note for whoever runs it: `current_state` is written\nback into `self.forecast_schedule` at `virtual_world_engine.py:1640`, so the\nstate itself travels with a saved schedule; the seeded RNG is rebuilt on load,\nso a reload restarts the deterministic sequence from seed 0 rather than\ncontinuing where it stopped. Verify that this is the intended reading of\n\"survives reload\" before ticking the box.",
+      "verified_2026_10_21": "- `python -m pytest tests/test_forecast_modes.py` - 2 passed.\n- Drove `ForecastSchedule` directly, 40 rolls per case:\n\n  ```\n  from clear : cloudy rainy rainy cloudy cloudy cloudy rainy rainy rainy rainy foggy foggy ...\n  from foggy : cloudy rainy rainy cloudy cloudy cloudy rainy rainy rainy rainy foggy foggy ...\n  distinct states from clear: 6 (clear, cloudy, foggy, rainy, stormy, windy)\n  from clear twice equal      : True\n  seed 7 twice equal          : True\n  seed 7 differs from seed 0  : True\n  unseeded random differs     : True\n  ```\n\n  The old rule produced `clear` on every roll from both starting states."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/bug-537-deterministic-forecast-mode-is-frozen-at-clear.md"
+  }
+}

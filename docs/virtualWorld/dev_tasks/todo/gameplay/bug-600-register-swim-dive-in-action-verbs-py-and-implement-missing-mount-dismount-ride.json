@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "bug-600",
+  "kind": "bug",
+  "number": 600,
+  "title": "Register swim/dive in action_verbs.py and implement missing mount/dismount/ride handlers",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "movement",
+    "action-verbs",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-594",
+      "task-475",
+      "task-491"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Close the half-wired traversal verbs gap by registering swim and dive in action_verbs.py / contextual-actions / PlanGrounding and implementing real dispatch handlers for mount, dismount, ride, and saddle.",
+    "why": "routes/action_handlers.py lists swim, dive, mount, dismount, ride, and saddle in _VERBS_NEEDING_TARGET (lines 139, 148), implements swim_to_area/dive_to_area (engine/movement.py:1123-1129), and maps ride -> Animal Handling in engine/traversal.py:63. Yet engine/action_verbs.py omits all six verbs, contextual-actions.ts only hints crawl/climb/jump, and mount/dismount/ride/saddle have zero handler branches so commands silently fall through to process_emote.",
+    "how": "1. Register swim and dive in engine/action_verbs.py, add them to PlanGrounding.PLAN_INTENT_ACTS, and add swim/dive branches to way requirement hints in contextual-actions.ts (lines 350-355) alongside crawl/climb/jump.\\n2. Implement mount / dismount / ride / saddle dispatch branches in routes/action_handlers.py and mounted-state helpers in engine/movement.py (reusing Animal Handling check from engine/traversal.py line 63, riding/vehicle entity tags, speed/carrying coupling, and clean dismount), and register them in engine/action_verbs.py so commands never fall through to process_emote.",
+    "verify": "1. Run existing tests/test_swimming_and_diving.py plus new pytest coverage asserting swim, dive, mount, dismount, and ride resolve in ActionVerbs and /api/action.\\n2. Run npm run build:ts and node tools/unit/run.cjs verifying PlanGrounding and contextual way hints recognize swim and dive.",
+    "acceptance": [
+      {
+        "text": "swim and dive are registered in engine/action_verbs.py, PlanGrounding, and contextual-actions way hints (matching routes/action_handlers.py lines 669-676 and engine/movement.py lines 1123-1129).",
+        "done": false
+      },
+      {
+        "text": "mount, dismount, ride, and saddle either execute real mounted state/movement behavior or fail with explicit informative errors rather than falling through to process_emote.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "engine/movement.py",
+      "engine/traversal.py",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Available Actions / way movement hints (`contextual-actions.ts`) and Event Stream command output.\\n\\nCurrent availability: routes/action_handlers.py lists swim, dive, mount, dismount, ride, and saddle in _VERBS_NEEDING_TARGET (lines 139, 148) and dispatches swim/dive (lines 669-676), while action_verbs.py omits all six and mount/dismount/ride/saddle have no handler branches at all.\\n\\nManual verification steps:\\n1. Approach a water passage requiring swim/dive and check contextual actions and PlanGrounding.\\n2. Run `mount horse` / `ride horse` / `dismount` in action execution.\\n   - expected: swim/dive appear in ActionVerbs and way hints; mount/dismount/ride execute mounted traversal/state cleanly instead of echoing as emotes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Movement]]",
+      "[[Commands]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

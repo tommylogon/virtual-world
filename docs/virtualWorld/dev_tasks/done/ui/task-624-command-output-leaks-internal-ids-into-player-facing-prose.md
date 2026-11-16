@@ -18,7 +18,7 @@ Grid coordinates like '(world 16,4)' appear in narration a player reads. Note th
 
 - TODO
 
-## Amended 2026-09-30 — the fix was incomplete, now widened
+## Amended 2026-09-30 - the fix was incomplete, now widened
 
 Loading `kraktooth_goblin_camp` to work task-616 showed this fix had only half
 landed. The pattern was
@@ -54,11 +54,11 @@ and confirmed changed:
 
 **Verified live** in the painted world, seven commands, zero leaks:
 
-    You follow the path north toward Road — you're in Road.
-    You follow the path south toward Road — you're in Road.
+    You follow the path north toward Road - you're in Road.
+    You follow the path south toward Road - you're in Road.
 
 The 3 pytest failures in `test_ownership` / `test_scenario_data_integrity` were
-A/B'd with `git stash` and are identical with and without these changes —
+A/B'd with `git stash` and are identical with and without these changes -
 pre-existing, not mine.
 
 Note `/api/state.current_area` still reports `Road (world 9,3)` because that is
@@ -95,7 +95,7 @@ Current availability: The card records seven live commands in the painted world 
 
 Live steps when available:
 1. From the camp, use the north and south paths that lead toward Road and inspect each event-stream result.
-   - expected: the line says “You follow the path north/south toward Road — you're in Road.”; no `(world N,M)` or `(Eldenford interior N,M)` suffix reaches player-facing prose.
+   - expected: the line says “You follow the path north/south toward Road - you're in Road.”; no `(world N,M)` or `(Eldenford interior N,M)` suffix reaches player-facing prose.
 2. Open the way label at rest, then hover that same way.
    - expected: the at-rest label and hover resolve the display name consistently; the node's stored name in `/api/state` is not silently migrated by this presentation fix.
 3. Inspect legitimate parenthetical names in the same scenario, including `Bathroom (Kraktooth, level 2)` and `The Outhouse (West)`.

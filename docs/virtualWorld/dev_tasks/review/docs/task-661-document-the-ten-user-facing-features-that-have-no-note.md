@@ -89,7 +89,7 @@ Undocumented features lead to developer confusion, false defect reports, diverge
 - docs/virtualWorld/UI & Settings/Validator & Issues.md
 - docs/virtualWorld/UI & Settings/Event Stream.md
 - docs/virtualWorld/UI & Settings/Soak Lab.md
-- 	ools/doc_links.py
+- tools/doc_links.py
 
 ## Browser UI and intended live verification
 

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-95",
+  "kind": "task",
+  "number": 95,
+  "title": "Idempotent Sync to Library - Conflict-Aware Entity Sync",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-23 (updated 2026-07-31)",
+  "updated": "2026-07-23 (updated 2026-07-31)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_s_already_done": "### DiffModal component\nBuilt as part of task 115 (`static/js/shared/diff-modal.js`). Reusable modal with:\n- Section-by-section comparison (`JSON.stringify` per section)\n- Checkbox per section, pre-ticked if different\n- \"Update Selected\" → saves only checked sections\n- \"Save as Duplicate\" → auto-generates unique ID\n- Returns result: `{ action: 'update', sections: [...] }` or `{ action: 'duplicate', name, id }`\n\n### Single-item world→library sync (item-level)\n`item-library.js:saveWorldItem()` - saves one world item to library:\n- Reads `locked_fields` to preserve locked properties\n- If no existing library entry → saves directly\n- If conflict → shows `DiffModal` for section-by-section merge\n- Supports duplicate with auto-generated ID\n\n### Character save to library (no conflict handling)\n`library-browser.js:saveWorldToCharacter()` - saves character to library:\n- Builds entry from `worldState.players[name]` with embedded inventory\n- Saves via `ApiClient.saveLibraryType('characters', ...)`\n- **Silent overwrite** - no DiffModal, no conflict detection\n\n---",
+      "what_s_left": "### 1. Items: `syncAllWorldItems()` needs DiffModal\n\n`item-library.js:1206` iterates all world items and syncs them to library, but:\n- Silently overwrites existing library entries via `ApiClient.saveLibraryItem()`\n- No conflict detection, no diff UI\n- Should use the same DiffModal pattern as `saveWorldItem()` (batch with per-item prompts, or queue conflicts)\n\n### 2. Character sync: wire DiffModal\n\n`library-browser.js:420` needs the conflict flow:\n- Check if library already has entry with same id or name\n- If no conflict → save directly\n- If conflict → compute section diffs, show DiffModal\n- Sections for character sync: Basic, Personality, Description, Stats, Skills, Traits, Tags, Emotion, Relationships, Memories, World Knowledge, Behaviours, NPC Config, Items\n\n### 3. Area sync: missing entirely\n\nNo world→area-library sync exists. Needs:\n- Build entry from graph node + embedded items + exits (as templates) + triggers\n- Check for existing library entry\n- DiffModal conflict flow\n- Sections: Basic (name, description, tags), Items, Exits, Triggers\n\n### 4. \"Sync from World\" buttons per library tab\n\nLibrary browser (`library-browser.js`) has 3 tabs (Items, Characters, Rooms):\n- **Items tab** - button that calls `syncAllWorldItems()` with DiffModal\n- **Characters tab** - button that syncs all `worldState.players` with individual DiffModals per character\n- **Rooms tab** - button that syncs all `type: \"area\"` graph nodes with individual DiffModals\n\nThe global \"📋 Sync to Library\" toolbar button (`main.js`) should open the library browser and trigger the appropriate tab's sync.\n\n### 5. Self-contained entries + import-as-library-items\n\nWhen importing a self-contained character or room that has embedded item definitions:\n- Each embedded item should also be saved as a standalone library entry (if not already present)\n- This makes them reusable independently\n\n### 6. Export templates, not connections\n\nArea exits save as templates (descriptive + state fields + `target_room_hint` string), not graph connections. Already designed in the task - needs implementation in the area sync builder.\n\n---",
+      "files_to_touch": "| File | Change |\n|------|--------|\n| `static/js/item-library.js` | Add DiffModal to `syncAllWorldItems()` |\n| `static/js/library-browser.js` | Add sync buttons per tab, wire DiffModal for characters/rooms |\n| `static/js/main.js` | Update \"📋 Sync to Library\" to open library browser + trigger tab sync |\n| `static/js/api.js` | May need generic save wrapper |\n| `routes/library_routes.py` | Verify import handles inline items |\n| - | New area sync builder (could be in library-browser.js or a new module) |\n\n---",
+      "implementation_order": "1. Add DiffModal to `syncAllWorldItems()` - replace silent overwrite with conflict-aware batch\n2. Wire DiffModal into `saveWorldToCharacter()`\n3. Build area sync builder + wire into DiffModal\n4. Add \"Sync from World\" buttons to each library tab\n5. On import, save embedded items as library entries\n6. Update \"📋 Sync to Library\" toolbar button"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-95-idempotent-sync-to-library.md"
+  }
+}

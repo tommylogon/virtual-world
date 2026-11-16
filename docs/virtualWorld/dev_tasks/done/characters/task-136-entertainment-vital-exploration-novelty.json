@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-136",
+  "kind": "task",
+  "number": 136,
+  "title": "Entertainment Vital: Exploration & Novelty",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-30 (updated 2026-08-02)",
+  "updated": "2026-07-30 (updated 2026-08-02)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The Entertainment vital should increase naturally when characters visit new areas, find new items, or experience novel events - and be affected by character traits. Low Entertainment should prompt LLM agents to seek novelty (try new things, go new places) rather than just applying a stat penalty.\n\n---",
+    "why": "The Entertainment vital currently has a baseline decay but no natural way to increase it (only manually via actions like playing games). Going to a new area should be inherently entertaining. A character who never leaves the starter room should lose Entertainment over time.\n\nThere's also no trait-driven variation in how characters seek novelty - an impatient character should act differently from a patient one when bored.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_note_2026_08_02": "Moved back to `todo/` during review: the area-visit half is fully implemented\n(`movement.py:226-240` first-visit boost + curious/homebody/wanderlust;\n`tick_manager.py:131-143` impatient/patient/adventurous modifiers;\n`prompt-builder.js:677-680` low-Entertainment drive text; `visited_areas` tracked),\nbut the **item-discovery half was dead code**: `player.discovered_items` was declared\n(`player.py:112`) and serialized (`player.py:370`) but never populated.\n\n**Now implemented (2026-08-02):**\n- **Item discovery:** `ItemActions._register_item_discovery` (`engine/item_actions.py`)\n  adds a never-seen item to `discovered_items` and grants a base +8 Entertainment\n  boost (×1.5 for `curious`, 0 for `homebody`, clamped at 100). Hooked into both\n  examine (`get_item_desc`) and successful take. Covered by `TestItemDiscovery` in\n  `tests/test_item_actions.py`.\n- **Meeting a new character:** `Player.register_first_meeting` (`player.py`) creates\n  the relationship entry (no interaction-count bump) and grants a base +10 boost\n  (×1.5 `curious`, 0 `homebody`, clamped at 100). Called from the area-description\n  \"players here\" path (`area_description.py`) and also fires via `update_relationship`.\n  Covered by `TestFirstMeeting` in `tests/test_player_meeting.py`.\n- **Exploration trait definitions:** the six traits referenced by the existing\n  engine code (`curious`, `adventurous`, `homebody`, `wanderlust`, `impatient`,\n  `patient`) were **missing from `TRAIT_DEFINITIONS`** (`engine/traits.py`) - so\n  `has_effect(player, \"curious\")` etc. always returned False and the whole\n  trait-driven half was inert. All six are now defined (category `exploration`),\n  which activates the area-visit and per-tick modifiers too.\n\nRemaining checklist items (\"on_area_entered event\", prompt-side trait behavior text)\nare either already covered by existing wiring or noted in the Requirements section -\nverify and close.\n\n---",
+      "requirements": "### Entertainment gain sources\n- Visiting an area for the first time → Entertainment boost\n- Finding a new item → small Entertainment boost\n- Meeting a new character → Entertainment boost\n- Diminishing returns: same area visited repeatedly gives less/no boost\n- Track visited areas per character: `player.visited_areas: set[str]`\n- Track discovered items per character for novelty bonus\n- Event: `on_area_entered` triggers Entertainment update\n\n### Traits\n| Trait | Effect on Entertainment | Effect on behavior |\n|-------|------------------------|-------------------|\n| `curious` | +50% from new places/things | More likely to examine items, explore exits |\n| `adventurous` | Entertainment doesn't decay in unfamiliar areas | More willing to take risks, go somewhere unknown |\n| `homebody` | No boost from new places, slower decay in home area | Reluctant to leave familiar areas |\n| `wanderlust` | Gains Entertainment from moving between areas even if visited before | Prefers to keep moving, rarely stays put |\n| `impatient` | Faster Entertainment decay when inactive; smaller boost from passive activities (reading, waiting) | More likely to take items, use items, or go somewhere without careful thought - acts before considering consequences |\n| `patient` | Slower Entertainment decay; can tolerate repetitive activities longer | Less driven by boredom, can stay in one area longer |\n\n### Prompt engineering: Low Entertainment drives behavior\nLow Entertainment should change what agents do, not just apply a stat penalty:\n\n- **Entertainment < 50**: \"You're starting to get bored. Consider doing something new or going somewhere else.\"\n- **Entertainment < 25**: \"You're bored. Routine feels stifling. You're drawn to try something different - anything to break the monotony.\"\n- **Entertainment < 10**: \"You're desperate for stimulation. Staying in place any longer is unbearable. Take action - go, examine, or use.\"\n\nThese are injected into the agent prompt alongside the vital description, influencing decision-making. The `impatient` trait amplifies this - characters with it skip the \"consider carefully\" step and act faster.\n\n### Implementation notes\n- Entertainment thresholds are checked in `PromptBuilder.describeVitals()` (or a new `buildEntertainmentContext()`)\n- The low-Ent drive text goes into the prompt's `=== YOUR STATE ===` section\n- Trait effects on behavior are expressed as additional prompt instructions (e.g. \"You are impatient - you act quickly without overthinking.\")\n- `engine/tick_manager.py` handles the per-tick decay and trait modifiers",
+      "related": "- [[review/characters/task-28-character_needs_system|task-28: Character needs system]]\n- [[todo/gameplay/task-131-stateful-actions-over-time|task-131: Stateful actions]] - impatient trait affects how quickly characters interrupt activities\n- `player.py` - vitals, traits\n- `engine/tick_manager.py`\n- `static/js/agent/prompt-builder.js` - describeVitals() and prompt injection"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-136-vital-entertainment-from-exploration.md"
+  }
+}

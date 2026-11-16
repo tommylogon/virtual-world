@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-58",
+  "kind": "task",
+  "number": 58,
+  "title": "Way Inspector: Target Editing & Direction Display",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The door inspector (`_showDoor`) currently shows a door's name, state, description, tags, and triggers - but **doesn't show which rooms it connects to** or allow changing them. This makes it impossible to fix miswired doors from the UI.",
+    "why": "TODO",
+    "how": "In `_showDoor()`:\n1. Query `worldState.graph.edges` for connection edges matching this door\n2. Extract room node IDs and directions from the 4 edges\n3. Resolve room names from node IDs\n4. Display as read-only labels + editable dropdowns\n5. \"Reconnect\" button calls `ApiClient.reconnectDoor(wayId, roomAId, roomBId)`\n\nNeed a new `reconnectDoor` method on the API client.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector.js` - extend `_showDoor()` with connection display + target editing",
+      "static/js/api.js` - add `reconnectDoor()` method"
+    ],
+    "custom": {
+      "requirements": "- Show both connected rooms with their direction labels visible in the inspector\n- Dropdown selectors to change which room each side connects to\n- \"Reconnect\" button that calls `/api/graph/door/reconnect`\n- Also add this to the door creation modal (`door_modal_more_properties.md` is a separate task)",
+      "ui_mock": "```\n🚪 Way: Kitchen-swinging\nDescription: [...]\n\n⚙️ Properties\n  State: [open ▼]\n  Pass Message: [...]\n  Direction A: swinging door → Kitchen\n  Direction B: enter → Living Area\n\n🔗 Connections\n  Side A: [Kitchen ▼]  direction: [swinging door ▼]\n  Side B: [Living Area ▼]  direction: [enter ▼]\n  [Reconnect]\n\n[... triggers, unlock, delete]\n```"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-58-door_inspector_targets.md"
+  }
+}

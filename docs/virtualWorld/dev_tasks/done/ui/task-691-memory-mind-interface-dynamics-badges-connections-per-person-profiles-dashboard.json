@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-691",
+  "kind": "task",
+  "number": 691,
+  "title": "Memory Mind interface: dynamics badges, connections, per-person profiles, dashboard",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-714",
+      "task-729",
+      "task-730",
+      "task-785",
+      "task-787",
+      "task-788",
+      "task-820",
+      "task-821",
+      "task-830"
+    ],
+    "parent": "task-685",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Grow the inspector's Memories tab (`static/js/inspector/memory-view.ts`) from a\nflat list into the memory mind, in four stages - engine fields from task-686\nare the prerequisite:\n\n> **Progress 2026-10-04:** stages 1–4 all landed and verified live in the\n> browser against a seeded scenario (stats header + filters, dynamics badges,\n> editor Category/Confidence/Connections with symmetric link sync, the\n> per-person panel over a new `GET /memories/people` endpoint, and the full\n> **Memory Mind** dashboard as `static/js/inspector/mind-view.ts` - timeline\n> ribbon, category filters, detail pane with contradicts / derived-from /\n> same-entity connections, accessibility panel, people panel). Live check\n> also caught and fixed two wiring gaps: contradiction detection now runs on\n> the HTTP write path, and attitude statements (\"I do not trust Anna…\") no\n> longer link as factual contradictions. `tools/ts_convert.py check` green.\n> Dashboard entry: the 🧠 Mind button in the Memories section header.\n\n1. **Stats header** - count by category, average confidence, total\n   reinforcements, faded count; **category filters** beside the existing\n   search (All / Episodic / Beliefs / Semantic / Social / Contradicted / Faded).\n2. **Dynamics on every card** - category chip, confidence %, `↻ ×N`\n   reinforced, `⚡ contradicts N` (clicking jumps to the paired memory), faded\n   styling under activation < 0.5, consolidated/trace badge; editor gains\n   Category select + Confidence slider + contradicts link list (removable).\n3. **Per-person panel** - derived profile from `engine/derive.py`\n   (trust/fear/attraction/disgust/respect, band label, contributing memory\n   count) rendered beside the memory list; clicking a person filters memories\n   to their `rel:` tag.\n4. **The full dashboard** (timeline ribbon, decay chart, memory graph,\n   standalone surface) - the mockup is the design target; only start this\n   after stages 1–3 are live in the inspector.\n\nHouse rules: `.ts` source only (never hand-edit emitted `.js`), run\n`python tools/ts_convert.py check` before commit, keep the existing editor\nsections working (types, emotions, entity references, negative-tick seeds,\nembedding status).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Stage gate each: 1 and 2 land together with task-686/689 wiring proof; 3 renders real derived data for a character with rel-tagged memories (measured, not assumed).",
+        "done": false
+      },
+      {
+        "text": "Every badge value shown is a field the backend actually wrote - no decorative numbers.",
+        "done": false
+      },
+      {
+        "text": "`tools/ts_convert.py check` and `node tools/unit/run.cjs` pass.",
+        "done": false
+      },
+      {
+        "text": "Editor round-trips category/confidence/contradicts through the entry update endpoint.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "open_questions": "- Does the dashboard need to exist inside the inspector at all, or is it a\n  separate \"mind view\" route (there is precedent: the graph view)? Decide\n  after stages 1–3 - the inspector panel may be enough.\n- The mockup shows an emotional-encoding panel with named affect rows; the\n  memory editor already edits `memory_emotions` - reuse that vocabulary, do\n  not invent a second one."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "mockup": "`docs/design/memory-mockup.html` (static, not wired)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard.md"
+  }
+}

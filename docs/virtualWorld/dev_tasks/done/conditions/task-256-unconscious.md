@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -37,24 +37,24 @@ Knocked out, asleep, or collapsed from exhaustion. Incapacitated until woken or 
 
 - **Gates**: blocks actions, movement, and speech. Sleep keeps speech open via instance override (`blocks_speech: False`).
 - **Saves/checks**: auto-fails STR/DEX.
-- **Combat**: `defense_mod -5` — helpless (attacker effectively +5).
+- **Combat**: `defense_mod -5` - helpless (attacker effectively +5).
 - **Movement**: `speed_mult: 0.0`; `drops_held_items: True`.
-- **Periodic**: none here — Energy recovery during sleep/unconscious is **engine-managed** in `tick_manager`, not `ConditionsSystem.process_tick`. It is in `engine_managed = {"unconscious"}`.
+- **Periodic**: none here - Energy recovery during sleep/unconscious is **engine-managed** in `tick_manager`, not `ConditionsSystem.process_tick`. It is in `engine_managed = {"unconscious"}`.
 - **Lifecycle**: `stack: "refresh"`, `default_duration: None`. Ends on `wake` (state clears), `damage` (being hurt wakes), or `timer` (countdown expires). Excludes `awake`.
 
 ## Perception
 
-`known: True` but skipped in `_PERCEPTION_SKIP` — not rendered as a symptom line.
+`known: True` but skipped in `_PERCEPTION_SKIP` - not rendered as a symptom line.
 
 ## Integration points
 
-- `player.py:51-60` — catalog entry.
-- `engine/player.py` `state` property — unconscious is second-highest in `CONDITION_HIERARCHY` (below `dead`).
-- `engine/tick_manager.py` — unconscious state machine: recover Energy while `state_timer > 0`, wake at 0.
-- `engine/conditions.py` `process_tick` — skipped via `engine_managed`.
-- `activities.py` sleep — applies `unconscious` instance with `source: "sleep"`.
-- Energy collapse path — applies `unconscious` and drops held items.
-- Combat death vs knock-out — `damage` in `ends_on` differentiates.
+- `player.py:51-60` - catalog entry.
+- `engine/player.py` `state` property - unconscious is second-highest in `CONDITION_HIERARCHY` (below `dead`).
+- `engine/tick_manager.py` - unconscious state machine: recover Energy while `state_timer > 0`, wake at 0.
+- `engine/conditions.py` `process_tick` - skipped via `engine_managed`.
+- `activities.py` sleep - applies `unconscious` instance with `source: "sleep"`.
+- Energy collapse path - applies `unconscious` and drops held items.
+- Combat death vs knock-out - `damage` in `ends_on` differentiates.
 
 ## Steps to verify
 

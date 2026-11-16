@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "bug-560",
+  "kind": "bug",
+  "number": 560,
+  "title": "raw llm chip attributes drop actor and area and format line sequence as world tick",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-21",
+  "updated": "2026-10-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-777",
+      "task-779"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Raw LLM request chips created in `StreamRawLLM.logRequest` (`static/js/stream/stream-raw-llm.ts`) hardcode `actorLabel` to `'LLM'` and `areaName` to `''`. When filtering the Event Stream by an active character or area, all raw prompt chips disappear. In addition, `_nextLineLabel()` formats the chip header with `seq` (the stream line number) as `[Tick <seq>]`, displaying e.g. `[Tick 12]` when `world_tick` is actually 1. Finally, JSON log export duplicates the send icon as `📤 📤`.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "`StreamRawLLM.logRequest` receives and records the active character name and area on the bubble elements.",
+        "done": true
+      },
+      {
+        "text": "JSON export normalizes icon extraction so chips do not double-dip icons.",
+        "done": true
+      },
+      {
+        "text": "The raw request chip header uses `VW.state.tick`, not `seq`.",
+        "done": true
+      },
+      {
+        "text": "The rest of the stream uses the world tick too. `_nextLineLabel()` was renamed to `_tickLabel()` and now returns `Tick ${VW.state.tick} | ${tickToTime(tick)}` everywhere it is called (event-stream.ts:376, :595, :698 and stream-raw-llm.ts:53, :166), so the raw chip and its neighbours all say the same thing. The line sequence id still lives on `data-seq` and is read by the export and the persistence restore, never parsed out of the label string.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "steps_to_reproduce": "1. Trigger an agent turn for Arix in Food Storage.\n2. Filter the Event Stream by actor \"Arix\" or area \"Food Storage\".\n3. Observe that raw LLM chips are hidden because `data-actor=\"LLM\"` and `data-stream-area=\"\"`.\n4. Export event log: observe double icons (`📤 📤`) and label showing `Tick 12` on world tick 1.",
+      "fixed_2026_10_21": "`static/js/event-stream.ts` `_nextLineLabel` → `_tickLabel`:\n\n```ts\n// before: stamped the line sequence number into the visible label, so every\n//         row said \"Tick <line number>\" while the raw chip said \"Tick <world tick>\"\n// after: the visible label is the world clock tick; the sequence id is the\n//        data-seq attribute, which the export and the restore read directly\n_tickLabel(bubble?: HTMLElement) {\n    const tick = VW?.state?.tick || 0;\n    if (bubble) bubble.setAttribute('data-seq', String(this._lineSeq++));\n    const time = this.tickToTime(tick);\n    return `Tick ${tick} | ${time}`;\n}\n```\n\nThe rename is a contract, not a cosmetic one: `stream-raw-llm.ts` declares\n`_nextLineLabel(bubble?: HTMLElement): string` on its `EventBusLike` interface\nand calls it twice, so the old name had to go everywhere or the build failed.\nUpdated: the three call sites in `event-stream.ts`, the two in\n`stream-raw-llm.ts`, and the interface. The persistence restore's legacy\nfallback (`stream-persistence.ts:101-104`) still matches `/\\[Tick\\s+(\\d+)\\|/`,\nwhich now means \"world tick\" - correct, and it only runs for pre-task-777 saves\nthat carry no `data-seq`.\n\nDocs that named the old method are updated to match the new behaviour:\n`docs/virtualWorld/UI & Settings/Event Log Export.md` (the \"tick concepts\"\nsection now lists three, not two, and the file/role table), and\n`docs/virtualWorld/Features/export.md`.\n\nMeasured live on port 4444, `kraktooth_goblin_camp` loaded: `_tickLabel` returns\n`Tick 0 | 08:00`, stamps `data-seq` 4, and all 4 `.bubble-tick` bubbles in the\nstream read `[Tick 0 | 08:00]` - one meaning of \"Tick\" across the whole stream.",
+      "verified_2026_10_21_working_tree_uncommitted": "- Actor and area: `stream-raw-llm.ts:77-88` resolves the actor from\n  `VW.agent.getCurrentTurnCharacter()` (falling back to\n  `config.controllingPlayer`), and looks up `current_area` the same way\n  `event-stream.ts:372/:693` already do. Both land on the bubble at `:47` and\n  `:50` (`data-actor`, `data-stream-area`), which is what `stream-filters.ts:106-113`\n  filters on.\n- Tick: `_chipBubble`'s header renders `[Tick ${tick} | ${tickToTime(tick)}]`\n  with `tick = VW?.state?.tick` (`:74`, `:56`), and every other row now renders\n  the same thing through the renamed `_tickLabel` - see the \"Fixed 2026-10-21\"\n  section. The line sequence id is on `data-seq` and is read by the export and\n  the restore, never parsed out of the label.\n- Export: `event-log-export.ts:219` sets `icon: isRaw ? undefined : ...`, so a raw\n  chip's 📤 appears once, inside the header text, not twice.",
+      "browser_ui": "UI home: the `📤` request and `🤖` response chips in the event stream, the actor\ndropdown in the stream toolbar, the area scoping that opening an area applies,\nand the `📥` event-log export.\n\n1. Settings -> Agent Settings -> enable `🔬 Show Raw LLM`; make one LLM call.\n2. Read the `📤` chip header. It is `[Tick <n> | <game time>] LLM → <phase>`;\n   the actor is not displayed, it lives in `data-actor` (the phase is the visible\n   label). The chip must stay visible when the actor dropdown\n   (`#stream-agent-filter`, \"All actors\") is set to the acting character.\n   - check `data-actor` with the console dump in step 6. If it reads `LLM`, the\n     `getCurrentTurnCharacter()` / `config.controllingPlayer` fallback missed and\n     the actor filter will hide the chip. That is the failure this card is about.\n3. Click the character's area node in the graph to open it in the inspector.\n   Opening an area scopes the stream to it (`area-view.ts:171`).\n   - expected: the raw chip for that area stays visible. Before the fix its\n     `data-stream-area` was empty, so area scoping hid it.\n4. Compare the tick label with its neighbours. The raw chip prints the world\n   tick; the thought/action/system rows still print `Tick <line number>` from\n   `_nextLineLabel()`.\n   - expected: one meaning for `Tick` across both.\n5. Click `📥`, open the exported JSON, and find the raw record.\n   - expected: `actor` and `area` are populated, `payload.header`/`payload.body`\n     carry the request, and the icon is not duplicated.\n6. Read-only console dump of the last three raw chips:\n   ```js\n   [...document.querySelectorAll('.msg-bubble-rawllm')].slice(-3).map(b => ({\n     actor: b.dataset.actor,\n     area: b.dataset.streamArea,\n     tick: b.dataset.tick,\n     header: b.querySelector('.rawllm-chip-header').innerText\n   }))\n   ```"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Features/event-stream]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-560-raw-llm-chip-attributes-drop-actor-and-area-and-format-line-sequence-as-world-tick.md"
+  }
+}

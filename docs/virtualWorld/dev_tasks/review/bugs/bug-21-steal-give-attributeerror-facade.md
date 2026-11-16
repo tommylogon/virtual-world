@@ -47,6 +47,8 @@ Live steps when available: use Play Mode so item transfers do not persist to the
 
 The original screenshot showed the successful handoff message beside a stale one-item Inventory panel. A read-only check then confirmed the world graph's `carrying` edge targeted `player_Zikka`, while a query of the `goblin_camp` scoped subgraph confirmed Zikka was included and the biscuits were omitted. The scoped projection and refresh path are now fixed. Browser verification of the updated scoped graph remains pending.
 
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Steps to verify
 
 1. In Play Mode with `goblin camp` selected, give Gribba's Hardtack Biscuits to Zikka, then inspect the graph edge and Inventory.

@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "id": "task-700",
+  "kind": "task",
+  "number": 700,
+  "title": "Grounded plan contract: the LLM plan phase emits typed steps validated against world facts",
+  "status": "review",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-693",
+      "task-409",
+      "task-702",
+      "task-807",
+      "task-706",
+      "bug-589",
+      "bug-605"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Change the short-term plan phase from `{'steps': ['prose']}` to typed steps in the primitive vocabulary (`act`, item/target, area, `until`, duration) and validate them against the graph before acceptance. Motivation (live evidence 2026-10-04): Vekka planned “use hanging meat” against flavor text and resolved to failure; prose plans can hallucinate affordances, while plans composed from facts can be checked. The typed step format is the same artifact task-702's executor can run for simple NPCs: an LLM's immediate approach, engine execution, and condition-leaf validation share one contract. It does not represent the character's longer pursuit or an ongoing Activity. Keep the freeform plan prompt as fallback when grounding rejects a step: rejection returns failed preconditions so the LLM re-composes.",
+    "why": "Prose plans allow LLMs to hallucinate affordances and ungrounded interactions. A typed plan vocabulary (act, target, area, until, duration) grounds plan generation against graph facts and provides a shared execution contract with NPC schedulers.",
+    "how": "Implemented typed plan grammar schema, validated against known world facts before acceptance, with raw response fallback parsing (_salvageTypedSteps) for provider length truncations.",
+    "verify": "1. Run planner test suite\n   - expected: pytest tests/test_planner.py passes typed plan generation and validation\n   - observed: Grounded typed steps validated against world facts\n2. Verify live turn loop with goblin camp scenario\n   - expected: Typed plan executed or fallback to grounded actions without crashing\n   - observed: Verified on live run with Rikka",
+    "acceptance": [
+      {
+        "text": "The plan phase responds with typed steps (act/item/target/area/until/",
+        "done": true
+      },
+      {
+        "text": "duration) instead of prose; the decide prompt consumes the plan via",
+        "done": false
+      },
+      {
+        "text": "PlanTracker's (CURRENT) marker exactly as today (grounded steps render to",
+        "done": false
+      },
+      {
+        "text": "canonical strings: `take dried meat (in Food Storage)`).",
+        "done": false
+      },
+      {
+        "text": "A grounding validator (agent/plan-grounding) checks every step against",
+        "done": true
+      },
+      {
+        "text": "the prompt's facts before acceptance; rejected steps return their failed",
+        "done": false
+      },
+      {
+        "text": "preconditions plus the fact list to the LLM exactly once for",
+        "done": false
+      },
+      {
+        "text": "re-composition; whatever still does not ground is dropped, never",
+        "done": false
+      },
+      {
+        "text": "executed.",
+        "done": false
+      },
+      {
+        "text": "The Vekka regression: \"use hanging meat\" is REJECTED at plan time",
+        "done": true
+      },
+      {
+        "text": "(unit test: `tools/unit/test_plan_grounding.js`, flavor-only step). Live",
+        "done": false
+      },
+      {
+        "text": "stream confirmation lands with task-702's mechanical execution.",
+        "done": false
+      },
+      {
+        "text": "A plan whose steps all ground is executed without the decide phase for",
+        "done": false
+      },
+      {
+        "text": "mechanical steps - deliberately deferred to task-702 (the executor);",
+        "done": false
+      },
+      {
+        "text": "this wedge keeps the decide phase as the actor.",
+        "done": false
+      },
+      {
+        "text": "The typed step format is the contract task-702 consumes (rendered form",
+        "done": true
+      },
+      {
+        "text": "locked by unit test; the executor lifts the structure into PlanTracker).",
+        "done": false
+      },
+      {
+        "text": "Fallback preserved: legacy prose contract accepted when the LLM emits",
+        "done": true
+      },
+      {
+        "text": "strings, and the whole grounding layer degrades to the old path if the",
+        "done": false
+      },
+      {
+        "text": "module is unavailable.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_prompt.py",
+      "engine/planner.py",
+      "static/js/agent/plan-executor.js",
+      "tests/test_planner.py"
+    ],
+    "custom": {
+      "terminology_clarification_2026_10_05": "The current `=== YOUR PLAN ===` list is the character's short-term approach. A separate active-pursuit block (task-704) will provide the longer objective, motive, where/when, requirements, supplies, and checked progress. A plan can change after an interruption while the pursuit remains active; starting a time-spanning Activity is a separate engine action.",
+      "implementation_2026_10_04": "- `static/js/agent/plan-grounding.ts` (new) - pure fact-side validator:\n  collectFacts (prompt-shaped: area items, carried, people, exits, known\n  areas), groundStep per act, lenient word-overlap matching in the spirit of\n  the action target matcher, canonical render. Unknown acts fail closed.\n- `static/js/agent/plan-manager.ts` - typed plan contract in the prompt; parse\n  typed steps; ground; ONE bounded re-composition with a\n  `=== GROUNDING REJECTIONS ===` block; rejections logged to the stream\n  (system-msg); legacy prose contract accepted as fallback; legacy parse kept\n  for the no-grounding path.\n- Script tag after agent-state/vital-thresholds, before plan-tracker.\n- Gate green (`tools/ts_convert.py check`), 11 new unit tests.",
+      "live_run_2026_10_04_kraktooth_goblin_camp_rikka_three_defects_found_and_fixed": "The user's exported turn 4 shows the contract working on a REAL LLM: typed\ncompliance, three hallucinated steps caught (\"examine collapse\", \"search\ndebris\", \"take edible item\" - all invented from room prose \"partially\ncollapsed tunnels\"), rejections logged with the fact list, and a grounded\nre-composition. Three defects surfaced by that run:\n\n1. **max_tokens 300 truncated the re-composition mid-JSON** (\"note\": \"Listen\n   for dripping\") - parse failed, the turn ran PLANLESS. Fixed: 560 (the\n   decide cap), plus `_salvageTypedSteps()` keeps the complete step objects out\n   of a half-written response instead of losing the whole plan.\n2. **The act list was missing engine verbs** - no escape/dash/approach/fumble,\n   so a character being held (Rikka) could not plan an escape. Fixed: ACTS now\n   carries the engine's own verb list (task-491's single source of truth), with\n   grounding rules for dash (like go), approach (people/paths/area), drop/stow/\n   wear/remove/combine/split (carried), lead/steal (people). 5 new unit tests\n   incl. a verb-coverage guard.\n3. **Pre-existing, unrelated to the plan layer:** `worldSync.refresh()` was\n   never implemented - area-view called it unguarded (live stream: \"Scope\n   change failed: window.worldSync.refresh is not a function\" x3 after a scope\n   change that had SUCCEEDED) while graph-manager, structures and worldpainter\n   guarded it and silently did nothing. Fixed: `refresh()` implemented\n   (re-read + re-render, no modal), `open()` now delegates to it. Filed as\n   bug-522.\n\n### Salvage reads the RAW response, not `repairJSON`\n\nThe first salvage attempt salvaged from `response` AFTER `repairJSON`. That\ncannot work: on truncated JSON `repairJSON` strips quotes, turning\n`{\"act\": \"escape\"` into `{\"act\":,\"escape\"`, so the salvaged chunks are no\nlonger parseable and salvage returns `[]` - the whole plan is lost anyway.\n`_salvageTypedSteps(response || '')` reads the raw string.\n\nMeasured live 2026-10-04 in the browser (Thrazz, Mine Access), stubbed\n`llmClient.chat` to return a response cut off mid-third-step:\n\n```\ntruncated in:  {\"steps\":[{\"act\":\"go\",\"target\":\"upward tunnel\"},{\"act\":\"look\"},{\"act\":\"search\",\"item\":\"rack\nllm calls:     1  (no retry - both salvaged steps grounded)\nsteps out:     [\"go upward tunnel\", \"look\"]\n```\n\nTwo complete steps survive where the turn previously ran PLANLESS. With the\nrepairJSON input the same stub returned `[]`.\n\nLive fallback gap, still open: a model that answers in the legacy prose format\nis accepted ungrounded (the documented fallback). The retry nudge gets typed\ncompliance on this model; a prose-locked model would need a prose-anchoring\nrule - deferred."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

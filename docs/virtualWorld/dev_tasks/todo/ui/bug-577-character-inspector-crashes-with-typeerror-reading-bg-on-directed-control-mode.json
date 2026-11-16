@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "bug-577",
+  "kind": "bug",
+  "number": 577,
+  "title": "Character Inspector crashes with TypeError reading bg on directed control mode",
+  "status": "todo",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-933",
+      "task-340",
+      "task-728"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Selecting any character whose control mode is set to `directed` crashes the Character Inspector with an uncaught `TypeError`:\n\n```\nagent-view.js:383 Uncaught TypeError: Cannot read properties of undefined (reading 'bg')\n    at window.InspectorAgentView.AV._renderStatusRow (agent-view.js:383:231)\n    at window.InspectorAgentView.AV.showAgent (agent-view.js:100:71)\n    at Inspector.showAgent (inspector.js:279:35)\n    at UIController.selectAgent (ui-controller.js:338:24)\n```\n\nIn `static/js/inspector/agent-view.ts` (lines 390-394), `_renderStatusRow` defines a lookup object `modeMeta` containing only three keys: `human`, `llm`, and `npc`:\n\n```ts\nconst modeMeta = ({\n    human: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Human'), bg: 'var(--accent)', fg: '#000', bd: 'var(--accent-dim)' },\n    llm:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'LLM'),   bg: 'var(--bg-input)', fg: 'var(--text)', bd: 'var(--border)' },\n    npc:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'NPC'),   bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' }\n} as Record<string, any>)[mode];\n```\n\nWhen `mode` is `'directed'` (or any unlisted mode such as `'paused'`), `modeMeta` evaluates to `undefined`. Line 415 then attempts to interpolate `${modeMeta.bg}`, `${modeMeta.fg}`, `${modeMeta.bd}`, and `${modeMeta.label}`, throwing a fatal `TypeError` and aborting inspector rendering completely.",
+    "why": "`StreamControlMode.cycleControlMode()` includes `directed` in its rotation (`human -> directed -> llm -> npc`), and `events.getControlMode(agentName)` returns `'directed'`. However, `agent-view.ts` was authored assuming control modes could only ever be `human`, `llm`, or `npc`, with no entry for `directed` and zero defensive fallback. When a character in directed mode is selected, the inspector fatally breaks on every render and every live SSE state refresh.",
+    "how": "1. In `static/js/inspector/agent-view.ts`:\n   - Add explicit styling metadata for `directed` and `paused` modes:\n     ```ts\n     directed: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Directed'), bg: 'var(--accent)', fg: '#000', bd: 'var(--accent-dim)' },\n     paused:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Paused'),   bg: 'var(--bg-input)', fg: 'var(--text-dim)', bd: 'var(--border)' },\n     ```\n   - Provide a safe fallback object so an unrecognized mode never yields `undefined`:\n     ```ts\n     const currentMeta = modeMetaMap[mode] || {\n         label: modeBadge.emoji + ' ' + (modeBadge.label || mode),\n         bg: 'var(--bg-input)',\n         fg: 'var(--text)',\n         bd: 'var(--border)'\n     };\n     ```\n   - Interpolate `currentMeta.bg`, `currentMeta.fg`, `currentMeta.bd`, and `currentMeta.label` on the badge element.\n2. Recompile TypeScript: `npm run build:ts`.",
+    "verify": "1. In browser console, set a character to directed mode: `events.setControlMode('Gribba', 'directed')`.\n2. Click Gribba in the agents list to open Character Inspector.\n   - expected: Inspector opens displaying character tabs and status row with Directed badge.\n   - observed: Crashes with `Uncaught TypeError: Cannot read properties of undefined (reading 'bg')`.\n3. Apply fix and reselect character.\n   - expected: Inspector renders successfully with zero console errors.\n4. Run frontend tests: `node tools/unit/run.cjs`.\n   - expected: All unit tests pass.",
+    "acceptance": [
+      {
+        "text": "Selecting a character in `directed` mode renders Character Inspector without TypeErrors.",
+        "done": false
+      },
+      {
+        "text": "`_renderStatusRow` defines styling for `directed` and `paused` modes.",
+        "done": false
+      },
+      {
+        "text": "Safe fallback prevents undefined crashes for any arbitrary mode string.",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes anywhere in task cards, code, or documentation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/agent-view.ts",
+      "static/js/inspector/agent-view.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector header / status row for any character in directed mode.\n\nCurrent availability: Clicking any character in directed mode triggers an uncaught TypeError in `_renderStatusRow` and fails to render the inspector panel.\n\nLive steps when available:\n1. Open scenario `kraktooth_goblin_camp` in the browser UI.\n2. Select character `Gribba` and click the control mode badge until it cycles to `Directed` (or set `events.setControlMode('Gribba', 'directed')` in console).\n3. Deselect Gribba and click Gribba again in the left agents panel or graph view.\n   - expected: Character Inspector opens cleanly without console errors, displaying the `🎬 Directed` badge in the status row.\n4. Cycle through all control modes (`Human`, `Directed`, `LLM`, `NPC`, and `Paused`).\n   - expected: Character Inspector updates in place on each mode change without throwing errors.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/bug-577-character-inspector-crashes-reading-bg-on-directed-control-mode.md"
+  }
+}

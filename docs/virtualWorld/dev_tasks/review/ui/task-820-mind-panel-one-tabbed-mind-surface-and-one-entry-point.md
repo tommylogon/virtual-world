@@ -18,12 +18,12 @@ related: ['task-691', 'task-714', 'task-729', 'task-787', 'task-788', 'task-821'
 
 ## What
 
-Restructure `static/js/inspector/mind-view.ts` from a memory-shaped modal — a fixed 3-column grid (`250px 1fr 380px`) opened from the Memories section header and titled "Memory Mind" — into one **tabbed** mind surface, retitled "🧠 Mind — <name>" with a tab strip:
+Restructure `static/js/inspector/mind-view.ts` from a memory-shaped modal - a fixed 3-column grid (`250px 1fr 380px`) opened from the Memories section header and titled "Memory Mind" - into one **tabbed** mind surface, retitled "🧠 Mind - <name>" with a tab strip:
 
-- **Mind** — MOSIAC, Disposition, Actions, Goals + history, Obligations, Schedule, Pursuit & plan.
-- **Perception** — Activity, Feeling, World knowledge, Recipes.
-- **Memories** — the memory dashboard: timeline, filters, search, list, detail, accessibility.
-- **People** — the derived per-person profiles.
+- **Mind** - MOSIAC, Disposition, Actions, Goals + history, Obligations, Schedule, Pursuit & plan.
+- **Perception** - Activity, Feeling, World knowledge, Recipes.
+- **Memories** - the memory dashboard: timeline, filters, search, list, detail, accessibility.
+- **People** - the derived per-person profiles.
 
 The card's proposed **Attitudes** tab (relationships, interests, fears) is deferred until task-729 / task-787 move those surfaces out of the Bio tab - there is no content for it yet. The 🧠 Mind entry button stays in the Bio tab (resolved 2026-10-13). The panel re-renders from `worldState.players[name]`; the tab shell changes only where each block mounts.
 
@@ -31,7 +31,7 @@ The card's proposed **Attitudes** tab (relationships, interests, fears) is defer
 
 The modal now carries the whole mind (MOSIAC task-812, Goals task-714, history task-811, Obligations task-813, Schedule task-814) but is still named and reached as if it were only memories, and its left column accreted one block per task with no container. The relocation cards (task-729, task-756, task-785, task-787, task-821) have nowhere coherent to land until the panel is tabbed. This card is that container, not another block.
 
-Resolved 2026-10-13: the inspector **Bio** tab survives as the character's body/definition surface — personality, appearance, stats/skills/traits, tags, aliases — and keeps the 🧠 Mind button. Everything mind moves into this panel. Bio is not retired.
+Resolved 2026-10-13: the inspector **Bio** tab survives as the character's body/definition surface - personality, appearance, stats/skills/traits, tags, aliases - and keeps the 🧠 Mind button. Everything mind moves into this panel. Bio is not retired.
 
 ## How
 
@@ -41,7 +41,7 @@ In `mind-view.ts`, `_render()` now builds a `.mind-tab` strip (Mind / Perception
 
 1. Open a character, click the 🧠 Mind entry, and switch every tab.
    - expected: each tab renders only its own pane; the memory dashboard (timeline, filters, detail, accessibility) still works; no doubled blocks.
-   - observed: VERIFIED 2026-10-13, live on localhost:4444. Title "🧠 Mind — Arix", tabs [Mind, Perception, Memories, People]. Mind shows MOSIAC / Disposition / Goals + history; Perception shows Activity / Feeling / Known recipes (with injected data); Memories shows the filters + list + "Memory detail" + accessibility; People shows the profiles header. Tab switching re-renders each pane.
+   - observed: VERIFIED 2026-10-13, live on localhost:4444. Title "🧠 Mind - Arix", tabs [Mind, Perception, Memories, People]. Mind shows MOSIAC / Disposition / Goals + history; Perception shows Activity / Feeling / Known recipes (with injected data); Memories shows the filters + list + "Memory detail" + accessibility; People shows the profiles header. Tab switching re-renders each pane.
 2. Narrow the window.
    - expected: the tab strip wraps; panes stay readable.
    - observed: the tab strip has `flex-wrap: wrap` and each pane grid uses `repeat(auto-fit, minmax(330px, 1fr))`, so panes collapse to one column on a narrow window.
@@ -67,7 +67,7 @@ Current availability: The card records the four-tab Mind panel live-verified on 
 
 Live steps when available:
 1. Open a character with populated data from the status-row 🧠 Mind button and count the visible tab controls.
-   - expected: exactly four tabs—Mind, Perception, Memories, People—and one pane is visible at a time.
+   - expected: exactly four tabs-Mind, Perception, Memories, People-and one pane is visible at a time.
 2. Visit each tab, select a memory, apply a memory filter, and resize the window narrow.
    - expected: each data group appears only on its assigned tab; memory list/detail/accessibility continue to work; the tab strip wraps and content stays readable.
 3. Open Mind from the retained Bio Memories button, if that entry control is still present.

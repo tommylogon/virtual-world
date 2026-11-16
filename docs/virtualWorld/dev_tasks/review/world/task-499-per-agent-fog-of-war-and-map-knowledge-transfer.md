@@ -163,8 +163,8 @@ without a second store.
 Wired:
 
 - only_known is wired into engine/spatial_memory.py.
-- og_view is wired into GET /api/players/<name>/map (
-outes/player_ops.py), returning {fog: fog_view(player, all_area_ids)}.
+- fog_view is wired into GET /api/players/<name>/map (
+routes/player_ops.py), returning {fog: fog_view(player, all_area_ids)}.
 - Canvas rendering of unknown cells as fog on the player-facing map is tracked in 	ask-677.
 
 ### Not wired at filing (historical)

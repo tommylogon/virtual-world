@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "task-489",
+  "kind": "task",
+  "number": 489,
+  "title": "Environmental clothing: prop defaults and wet transparency/friction",
+  "status": "done",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-215"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Finish task-215: give item nodes default comfort/friction/coverage/opacity (opacity 0.8, coverage 0.8 when absent), and couple the existing wet state (condition 'wet', equipment_bonuses.py:107) to clothing opacity/friction so rain/swimming makes layers more see-through and changes friction, then triggers description regeneration. Friction->arousal trickle already ships (engine/tick_manager.py:1028) as does weather/wind/humidity.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Item nodes expose `comfort`/`friction`/`coverage`/`opacity`, with",
+        "done": true
+      },
+      {
+        "text": "`opacity`/`coverage` defaulting to 0.8 when absent, surfaced by",
+        "done": false
+      },
+      {
+        "text": "`_equipment_detail_lines()`.",
+        "done": false
+      },
+      {
+        "text": "**`coverage` is done** (one resolver, default 0.8, surfaced always).",
+        "done": false
+      },
+      {
+        "text": "**`opacity` and `friction` are REFUSED** - see \"The refusal\" below, which",
+        "done": false
+      },
+      {
+        "text": "is a decision rather than an omission.",
+        "done": false
+      },
+      {
+        "text": "The `wet` condition raises clothing `opacity` and changes `friction`.",
+        "done": true
+      },
+      {
+        "text": "**Refused as numeric props; delivered through `current_state`**, which is",
+        "done": false
+      },
+      {
+        "text": "task-215's own chosen mechanism and which task-489's \"coordinate with",
+        "done": false
+      },
+      {
+        "text": "task-215\" invites.",
+        "done": false
+      },
+      {
+        "text": "The state change retriggers the equipment description when",
+        "done": true
+      },
+      {
+        "text": "`world.auto_generate_descriptions` is on.",
+        "done": false
+      },
+      {
+        "text": "Arousal coupling stays `mature_content`-gated; **wetness itself is",
+        "done": true
+      },
+      {
+        "text": "generic** and conjures no pleasure vital.",
+        "done": false
+      },
+      {
+        "text": "Tests for the prop defaults and the wet coupling - 16 in",
+        "done": true
+      },
+      {
+        "text": "`tests/test_clothing_environment.py`, including four that pin the refusal",
+        "done": false
+      },
+      {
+        "text": "so a later reader does not reinstate the cancelled props as a bug.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "the_refusal_task_489_and_task_215_contradict_each_other": "This task was filed **2026-09-23**. task-215 was re-scoped the day before,\n**2026-09-22**, with an explicit user decision that the numeric `opacity` and\n`friction` properties are **cancelled** and layer visibility belongs on the item's\nown description. task-489 asks for exactly those two properties, to be added and\nsurfaced, in a file whose \"Related\" line names task-215.\n\nThe decision is not only documented, it is **enforced by a live test**:\n\n```python\n# tests/test_equipment_system.py\ndef test_detail_lines_carry_description_not_opacity_or_friction(basic_setup):\n    node.properties[\"opacity\"] = 0.2\n    node.properties[\"friction\"] = 3\n    ...\n    assert \"opacity\" not in joined\n    assert \"friction\" not in joined\n```\n\nIt asserts they are not advertised **even when the item authors them**. So the\npart of this task that asks for them would have had to break a standing user\ndecision that the repo encodes as a test. Doing that is not a scope call; it is\nreversing a decision. Refused, and pinned by\n`test_numeric_opacity_and_friction_are_still_not_advertised` so the next person\nto read both files does not resolve the conflict the wrong way.\n\nThe rest of the task is implemented, and the *intent* behind \"wet makes layers\nmore see-through\" is delivered through the mechanism 215 kept.",
+      "implementation_2026_10_02_wt_characters_engine": "### Files\n\n- `engine/equipment.py` - `EquipmentSystem.coverage_of` (the default resolver);\n  `_equipment_detail_lines` uses it and always surfaces `coverage`; the\n  description **fallback** now carries an item's live state.\n- `engine/effect_handlers/environment.py` - `handle_set_wet` soaks, marks\n  `current_state`, and regenerates; helpers `_active_player_obj`,\n  `_equipped_items`, `_mark_wet_current_state`, `_regenerate_wet_descriptions`.\n- `tests/test_clothing_environment.py` - **new**, 16 tests.\n\n### The coverage default is `body_parts.COVERAGE_EXPOSED_THRESHOLD`\n\n0.8 is not an arbitrary midpoint - it is exactly the constant\n`engine/body_parts.py` uses to decide whether a layer blocks skin contact. So an\nitem that says nothing is described *and* treated as a covering garment, and the\ntwo cannot drift. A non-numeric or out-of-range value falls back to 0.8 rather\nthan propagating, because a garment whose coverage is `\"sheer\"` is written wrong.\n\n### Wetness is a state, not a number\n\n`WET_CURRENT_STATE = \"soaked\"` goes into `current_state` - the field 215 names as\nkept, and the one the appearance prompt already renders. Two rules, both of which\na test forced:\n\n* **A soak does not overwrite a state the author set.** `current_state` is a\n  single field, so a coat already `\"torn\"` reads torn, not soaked. Wetness is\n  still visible to the engine through the `wet` property, which is what the\n  insulation penalty reads.\n* **Drying removes only what a soak wrote**, so clearing the weather cannot\n  delete `\"torn\"`.\n\n### Two defects found while wiring it\n\n1. **`set_wet` with no node named never soaked anything.** The branch read\n   `game_state.active_player` - a **name string** - and passed it to\n   `equipment.get_equipped_items`, which does not exist. Rain, wading and\n   flooding therefore targeted nothing at all, silently, through a `except\n   Exception` that swallowed the `AttributeError`. That is AGENTS.md's\n   \"never infer runtime behavior from existence\" in its purest form: the code\n   read correctly and did nothing.\n2. **The description could not change even once the state was set.** The\n   `ITEM DETAILS` block feeds the LLM prompt, but the *fallback* prose listed\n   slot names only, so a soaked character regenerated to byte-identical text.\n   \"Wet -> description regenerates\" looked unwired because the regeneration\n   happened and produced nothing new.\n\n### Verify\n\n```\npython -m pytest tests/test_clothing_environment.py -q                       # 16 passed\npython -m pytest tests/test_equipment_system.py tests/test_clothing_environment.py \\\n  tests/test_auto_dress.py tests/test_armor_wear.py tests/test_body_parts.py \\\n  tests/test_equipment_api_edges.py -q                                       # 128 passed\n```\n\n**Full suite compared by failure NAME against the clean-master baseline**: 15\nfailed on both, `Compare-Object` empty - including\n`test_detail_lines_carry_description_not_opacity_or_friction`, which is the test\nthis task refuses to break.\n\n\n### Live verification - 2026-10-02, `python app.py` on `VW_PORT=4466`\n\n```\n=== 1. coverage defaults to 0.8, and the cancelled props stay absent ===\n  detail line: - Waxed Coat (torso): Waxed cotton, holds off rain. [coverage 0.8]\n  'opacity' advertised? False (must be False)\n  'friction' advertised? False (must be False)\n\n=== 2. a soak reaches the description ===\n  wet           : True\n  current_state : soaked\n  description BEFORE: RainSoaker is wearing Waxed Coat on their torso.\n  description AFTER : Waxed coat is soaked.\n  changed? True\n\n=== 3. drying does not wipe an authored state ===\n  current_state after drying: torn (authored value preserved)\n  wet after drying: False\n\n=== 4. the soak-all path (no node named) now works ===\n  coat wet: True\n  hat  wet: True (was silently nothing before this change)\n```\n\nRow 1 is the refusal proved live on an item that authors both cancelled props:\nthey are silently absent while `coverage` defaults into view. Row 2 is the item\ntask-215 lists as still open - the description actually changes now. Row 4 is\nthe defect that made rain do nothing at all."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-489-environmental-clothing-prop-defaults-and-wet-transparency-friction.md"
+  }
+}

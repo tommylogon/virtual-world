@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-157",
+  "kind": "task",
+  "number": 157,
+  "title": "Put Item in Container (Verify Existing)",
+  "status": "done",
+  "priority": "low",
+  "area": "items",
+  "tags": [
+    "items",
+    "containers",
+    "verify"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The \"put item in container\" feature already exists. This task is to verify it works end-to-end and close out the idea.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [x] `put apple in backpack` moves the item into the container\n- [x] Capacity error shows when the container is full\n- [x] `take apple from backpack` works\n- [x] Items in containers show up in examine output (reachable for examine/take)\n- [x] Containers placed in the world (not just inventory) work\n\n**Verified 2026-08-02** - all checks pass via `tests/test_item_actions.py::TestPutInContainer` (carried containers, world-placed containers, capacity enforcement, take-back, non-container rejection).\n\n**Status: DONE** - moved to `done/items/`.\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status": "Already implemented. `put_item_in_container` exists in engine/item_actions.py:481, capacity checks in `_check_container_capacity` (engine/item_actions.py:626), and the command is parsed by `put X in Y` in routes/action.py:230."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-157-put-item-in-container-verify.md"
+  }
+}

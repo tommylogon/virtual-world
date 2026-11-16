@@ -22,7 +22,7 @@ template resolution, and a refresh then applies the wrong character's data.**
 
 Found in the browser log: `Refreshed "Eldenford Blacksmith" from library` logged
 a successful apply, and immediately afterwards the Eldenford Blacksmith node was
-carrying **the merchant's** personality and description — which is what the
+carrying **the merchant's** personality and description - which is what the
 auto-dress LLM was then shown, twice, so it dressed the blacksmith like a
 trader.
 
@@ -30,13 +30,13 @@ Measured, keeping the unproven part separate:
 
 - **Established:** no Eldenford node carries `library_id` or `template_ref`
   (checked all five), so a character node resolves its template **by name
-  alone**. `Eldenford Blacksmith` is no longer a library key — the entry is
+  alone**. `Eldenford Blacksmith` is no longer a library key - the entry is
   `Harren Cobb`, and `/api/library/characters` no longer returns the old key.
   The step immediately before the wrong data is the node-level
   `template-sync.js:181` refresh.
 - **Established:** live state is *correct now*. All five Eldenford characters
   carry their own personality and description. The wrong personality was
-  transient — present during the run, gone after the later engine
+  transient - present during the run, gone after the later engine
   re-initialisation. So this corrupts state rather than persisting it, which is
   worse than a visible break because nothing reports it.
 - **Not established:** the exact fallback that produced the merchant. Either the
@@ -45,8 +45,8 @@ Measured, keeping the unproven part separate:
   are plausible; neither was isolated.
 
 This is the concrete cost of a half-rename, and it decides the order of work:
-the rename has to be finished **in the live world first** — or the node bindings
-rewritten — not in the library files with the nodes left to guess.
+the rename has to be finished **in the live world first** - or the node bindings
+rewritten - not in the library files with the nodes left to guess.
 
 **Partially mitigated on 2026-10-01.** All five Eldenford nodes now carry an
 explicit `library_id`, pinned through the sanctioned path
@@ -61,7 +61,7 @@ and still runs `sync.link` at `routes/library_ops.py:1145`):
 
 So the cast can be synced now without any name matching, and the Merchant
 resolves to the renamed template rather than to `Eldenford Merchant.json`. This
-is a pin on filename-shaped keys, so it does not survive a future rename — that
+is a pin on filename-shaped keys, so it does not survive a future rename - that
 is task-667.
 
 Note what this does **not** fix: the three files with a stale `name` field

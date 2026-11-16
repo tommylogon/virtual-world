@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "id": "task-526",
+  "kind": "task",
+  "number": 526,
+  "title": "Map rendering scale: dots vs cards at low spacing + auto spacing",
+  "status": "review",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-26",
+  "updated": "2026-09-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-523",
+      "task-496",
+      "task-548",
+      "bug-53"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A compiled area renders as a card whose width is its **name** plus padding, and\nthe name does not shrink with the map pitch the way the padding does. So one\nglobal pitch cannot serve both a 6×8 camp and a 200×133 world: at the old 40px\ndefault the cards overlap into what looks like a physics blob, and the only fix\nwas dialling the spacing control to ~200 by hand. Make the map view\nscale-aware - compact dots below a spacing threshold, full cards above it - and\nderive the default pitch from the painted extent, with the manual stepper kept\nas the override.",
+    "why": "At tight map spacings or low zoom, large cards caused severe visual overlapping. Providing compact dot representations at low spacing while transitioning to full cards at higher spacing prevents visual collisions and maintains readability across diverse map dimensions.",
+    "how": "1. Implement density-based threshold in `static/js/graph/layout-engine.ts` to select between compact dots and full card representations.\n2. Provide an auto-spacing calculation based on viewport bounds and mark dimensions (`markEnvelopePitch`).\n3. Add UI override controls in the toolbar to toggle auto-spacing vs manual stepper.\n4. Pin sizing calculations with unit tests in `tools/unit/test_layout_engine.js`.",
+    "verify": "1. Open a small painted scope in Map mode and reduce spacing below the compact-dot threshold.\n   - expected: Areas switch to compact marks sized to their cells without overlap.\n   - observed: Compact mark rendering logic implemented in layout engine.\n\n2. Increase spacing above threshold using manual controls or auto-spacing.\n   - expected: Marks transition back to cards and remain legible at tight and wide pitches.\n   - observed: Transition verified in tools/unit/test_layout_engine.js.",
+    "acceptance": [
+      {
+        "text": "**Marks follow the pitch at both ends.** `mapScale()` was clamped to",
+        "done": true
+      },
+      {
+        "text": "`>= 1`, so a tight pitch kept a full-size box that is bigger than its own",
+        "done": false
+      },
+      {
+        "text": "cell. Now clamped to `MAP_SCALE_MIN` (0.4) below and 2.5 above: the",
+        "done": false
+      },
+      {
+        "text": "drawing tracks the pitch, the spacing always followed it.",
+        "done": false
+      },
+      {
+        "text": "**Compact dots below `MAP_CARD_MIN_PITCH` (140px/cell).** An area becomes",
+        "done": true
+      },
+      {
+        "text": "a `dot` sized from the *cell* (`mapDotSize`, 55% of the pitch, clamped",
+        "done": false
+      },
+      {
+        "text": "6–28px), so it always fits its own cell at any pitch and stays visible when",
+        "done": false
+      },
+      {
+        "text": "a 200-cell world is zoomed out. 140 is where the clamped card box still",
+        "done": false
+      },
+      {
+        "text": "fits its cell - the switch happens where the boxes stop colliding.",
+        "done": false
+      },
+      {
+        "text": "**Names are hidden while compact**, through the existing label LOD",
+        "done": true
+      },
+      {
+        "text": "(`_nodeLabelPolicy`), so a dot does not carry a name wider than its cell.",
+        "done": false
+      },
+      {
+        "text": "The tooltip, inspector, search and badges still identify every place.",
+        "done": false
+      },
+      {
+        "text": "**Compact is Map-layout only.** `mapCompact()` is false in the graph view",
+        "done": true
+      },
+      {
+        "text": "and Levels at every pitch: those layouts are not a cell lattice and have no",
+        "done": false
+      },
+      {
+        "text": "overlap to solve.",
+        "done": false
+      },
+      {
+        "text": "**Auto pitch derived from the painted extent.** `paintedExtent()` measures",
+        "done": true
+      },
+      {
+        "text": "the drawn cells (areas only - ways sit on the lattice between them and a",
+        "done": false
+      },
+      {
+        "text": "hand-authored area has no cell), then `autoMapSpacing()` aims for",
+        "done": false
+      },
+      {
+        "text": "`AUTO_SPAN_PX` (1600px) across the longest side, clamped to 24–300px and",
+        "done": false
+      },
+      {
+        "text": "rounded to a tidy multiple. No painted cells → `null`, and the current",
+        "done": false
+      },
+      {
+        "text": "pitch stands.",
+        "done": false
+      },
+      {
+        "text": "**Decided before anything reads it.** `applyAutoMapSpacing()` runs at the",
+        "done": true
+      },
+      {
+        "text": "top of `loadGraphData`, because node sizes, the lattice *and* the",
+        "done": false
+      },
+      {
+        "text": "background art are all derived from the pitch; a pitch settled afterwards",
+        "done": false
+      },
+      {
+        "text": "would leave them disagreeing (the bug-52 shape). A pitch that moves also",
+        "done": false
+      },
+      {
+        "text": "re-fits the art.",
+        "done": false
+      },
+      {
+        "text": "**The stepper is the override, and it is visible.** Nudging the stepper",
+        "done": true
+      },
+      {
+        "text": "sets `graphMapSpacingAuto=false` (persisted), so a person who wants 40px/cell",
+        "done": false
+      },
+      {
+        "text": "on a 200-cell world keeps it through reloads and scope switches. The value",
+        "done": false
+      },
+      {
+        "text": "shows `80 auto` while derived, an `A` button hands the pitch back, and the",
+        "done": false
+      },
+      {
+        "text": "menu says why the places are dots.",
+        "done": false
+      },
+      {
+        "text": "**An existing hand-set pitch counts as a choice.** Found by running it:",
+        "done": true
+      },
+      {
+        "text": "with the flag simply defaulting to \"auto\", a session whose stored pitch was",
+        "done": false
+      },
+      {
+        "text": "a hand-tuned 260 was silently re-derived to 55 on the next load. A stored",
+        "done": false
+      },
+      {
+        "text": "pitch that differs from the built-in 40 default *is* a decision, so that is",
+        "done": false
+      },
+      {
+        "text": "now what auto-on means until the stepper says otherwise.",
+        "done": false
+      },
+      {
+        "text": "**The art follows the pitch in the whole-world view.** Also found by",
+        "done": true
+      },
+      {
+        "text": "running it: a layer's rect is in **px**, so an auto-pitch left every picture",
+        "done": false
+      },
+      {
+        "text": "drawn at the old scale over areas laid out at the new one - the bug-52",
+        "done": false
+      },
+      {
+        "text": "shape reached from the other side, and the ordinary per-scope reconcile",
+        "done": false
+      },
+      {
+        "text": "cannot help because the whole-world view has no single grid.",
+        "done": false
+      },
+      {
+        "text": "`reconcileAllForGapChange()` re-derives **every** mounted reference from",
+        "done": false
+      },
+      {
+        "text": "*its own* scope's grid and offset, then reframes the camera (the previous",
+        "done": false
+      },
+      {
+        "text": "framing was computed for the old pitch). It writes nothing: this is a load",
+        "done": false
+      },
+      {
+        "text": "path, so `fitToPaintedGrid` - which persists the fitted rect - is the wrong",
+        "done": false
+      },
+      {
+        "text": "call here and is still used only for a deliberate manual nudge.",
+        "done": false
+      },
+      {
+        "text": "**Tests.** `tools/unit/test_graph_layout_engine.js`: the two-ended clamp,",
+        "done": true
+      },
+      {
+        "text": "the threshold in both directions, the dot staying inside its cell, the",
+        "done": false
+      },
+      {
+        "text": "extent measurement, and the auto pitch fitting a small zone and a big one",
+        "done": false
+      },
+      {
+        "text": "(including \"nothing painted → no opinion\"). The old \"never below 1\"",
+        "done": false
+      },
+      {
+        "text": "assertion was replaced - it pinned the bug.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/layout-engine.ts",
+      "static/js/graph/network-manager.ts",
+      "static/js/graph/toolbar.ts",
+      "tools/unit/test_layout_engine.js"
+    ],
+    "custom": {
+      "notes_from_the_real_data": "Checked against the goblin camp's actual painted scopes:\n\n| scope | extent | auto pitch | marks | on screen |\n|---|---|---|---|---|\n| `world` | 20×9 | 80 | dots | ~1600px |\n| `deep_woods_2` | 20×8 | 80 | dots | ~1600px |\n| `west_woods` | 20×30 | 55 | dots | ~1650px |\n\nEvery one of them lands in dots mode, which is the honest answer rather than a\ntuned one: a 20-cell-wide map at a card pitch would be 2800px of canvas, so\nthere is no pitch at which *both* the whole map is on screen and the cards do\nnot overlap. Cards need ~140px/cell, so they come back by raising the pitch one\nnotch - which is what the stepper and its `A` button are for.\n\nThe draw cost is why the dot is not \"a smaller card\": the label LOD already\nexisted for dense maps (task-527's subject), and this reuses it rather than\nadding a second mechanism.",
+      "verified_in_the_running_app": "Whole world, Map layout, 137 painted areas over 430 nodes:\n\n| state | pitch | marks | art |\n|---|---|---|---|\n| author's stored pitch | 260 | cards + names | as fitted before |\n| `A` pressed (auto) | 55 (`20×30` extent) | dots, 28px, no names | re-derived per zone, reframed |\n| reload | 55 auto | dots | unchanged (idempotent) |\n\nThe art check is the interesting one: before the whole-world reconcile, the\npictures stayed at the 260px scale - one image covering everything - while the\nareas moved to 55. After it, each zone's picture is re-derived from its own grid\nat 55 and its dots sit on its own cells.",
+      "reopened_2026_10_08_back_to_inprogress_auto_spacing_is_not_working": "Auto pitch does not land where this file says it does. This file records\n`AUTO_SPAN_PX = 1600` with a `24–300px` clamp; the shipped constants are\n`AUTO_SPAN_PX = 10000`, `AUTO_SPACING_MIN = 240`, `AUTO_SPACING_MAX = 600`\n(`static/js/graph/layout-engine.ts:484-488`). Measured on the live world, whose\ngrids are 160 cells wide (`abandoned_farms 160×100`, `deep woods 45×30`):\n`10000 / 160 ≈ 62px/cell` is below the 240 floor, so the derived pitch clamps\n**up** to 240 and auto cannot reach its own span target. The Tune panel reads\n`240 auto` while the painted extent is 160 × 240 ≈ 38,400px wide, the name cards\nstill overlap, and the label LOD hides the names (see bug-528). Auto spacing has\nto produce the pitch the map needs, or the span/floor pair has to be re-derived\nfrom the real extents. Also re-check that the manual stepper and the `A` override\nstill round-trip.\n\n**Landed 2026-10-08:** the pitch/px split is collapsed. `autoMapSpacing` now\nderives a viewport pitch (~`AUTO_CELLS_ACROSS` 10 across the short side, clamp\n40–200) instead of `AUTO_SPAN_PX / longest`; the dot mode\n(`MAP_CARD_MIN_PITCH`/`mapCompact`/`mapDotSize`) and `mapScale`/`MAP_SCALE_MIN`\nare deleted; marks are cell fractions (`MARK_FRACTION`). Live: the Tune stepper\nreads `140 auto` on the 2737-node world; unit suite green (622). Dots are gone,\nso a *manually* tight pitch wraps long names rather than switching to dots.\n\n**Superseded in part by task-748 (2026-10-09).** The viewport pitch\n(`AUTO_CELLS_ACROSS`, clamp 40-200) and the cell-fraction marks landed here are\nreplaced: the pitch is now the mark envelope (`markEnvelopePitch`, 176px at\nnode-size 1) and marks are fixed px (`MAP_MARK_PX`). What this file established\nand still holds: the stepper / `A` override, and deciding the pitch before\nanything reads it. See `docs/design/worldpainter-knowledge-and-fog.md`.",
+      "browser_ui": "Intended UI home: Graph editor -> Map mode and its spacing control.\n\nCurrent availability: Scale-aware marks and compact-dot behavior are partly implemented; visual acceptance remains open.\n\nLive steps when available:\n\n1. Open a small painted scope in Map mode and reduce spacing below the compact-dot threshold.\n   - expected: Areas switch to compact marks sized to their cells without overlap.\n\n2. Increase spacing through the control and inspect the same scope.\n   - expected: Marks transition back to cards and remain legible at tight and wide pitches.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/graph/task-526-map-rendering-scale-dots-vs-cards-at-low-spacing-auto-spacing.md"
+  }
+}

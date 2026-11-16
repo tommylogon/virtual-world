@@ -61,6 +61,6 @@ This section defines intended access and live acceptance. It is not a claim that
 
 ## Progress (2026-10-19)
 
-Implemented in editor.ts: \_toolUsesBrush()\ (paint, erase, route) gates the hover footprint in the stage mousemove handler, and \_selectTool\ clears \rushHover\ so a tool switch does not leave the previous footprint on screen. Compiled with build-one. 1 source-wiring test added to tools/unit/test_worldpainter.js (passes).
+Implemented in editor.ts: \_toolUsesBrush()\ (paint, erase, route) gates the hover footprint in the stage mousemove handler, and \_selectTool\ clears \brushHover\ so a tool switch does not leave the previous footprint on screen. Compiled with build-one. 1 source-wiring test added to tools/unit/test_worldpainter.js (passes).
 
 **Not yet verified live.** The test asserts the code is present, not that the outline is one cell under the Area tool in a browser. Acceptance stays unticked until someone runs the browser steps above. Placement itself was never affected (placeFeature posts one cell), so no placement behavior changed.

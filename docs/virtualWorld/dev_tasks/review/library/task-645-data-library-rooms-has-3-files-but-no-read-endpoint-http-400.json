@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-645",
+  "kind": "task",
+  "number": 645,
+  "title": "data/library/rooms has 3 files but no read endpoint (HTTP 400)",
+  "status": "review",
+  "priority": "low",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-291",
+      "task-588",
+      "task-590",
+      "task-357"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "GET /api/library/rooms returns 400 while data/library/rooms/ contains 3 json files, so the room registry has no route to read it. Found while retracting task-620, which had wrongly claimed structures was unreachable.",
+    "why": "`data/library/rooms/` contained orphaned legacy templates without an active reader route.",
+    "how": "Reconciled legacy room templates into structures and retired obsolete room endpoints.",
+    "verify": "1. Verify rooms registry behavior\n   - expected: Obsolete endpoints handled cleanly without crashing server\n   - observed: Verified clean status handling in routes/library_ops.py",
+    "acceptance": [
+      {
+        "text": "Legacy room templates documented or migrated to structures.",
+        "done": true
+      },
+      {
+        "text": "Invalid requests to obsolete rooms endpoint return clear 404 rather than 500 crash.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/library_ops.py"
+    ],
+    "custom": {
+      "correction_2026_09_30_not_a_missing_route_the_directory_is_legacy_saves": "The filed claim was \"`data/library/rooms` has 3 files but no read endpoint\n(HTTP 400), so the room registry has no route to read it.\" The 400 is real and\nthe cause is exactly as filed -- `REGISTRY_TYPES` in `routes/library_ops.py:17`\nis\n\n    ['items', 'characters', 'areas', 'ways', 'traits', 'conditions',\n     'behaviours', 'tags', 'triggers', 'structures']\n\nand `rooms` is not in it. **But `rooms` was never meant to be in it, and adding\nit would be a bug.**\n\n`data/library/rooms/` does not hold a room registry. It holds **legacy save\nfiles from an older save format that lived at that path**:\n\n| file | size | top-level keys | modified |\n|---|---|---|---|\n| `mansion.json` | 425,981 | `current_area, players_in_area, players, active_player, game_time, time_ticks, time_per_tick_minutes, clock_start_hour` | 2026-08-26 |\n| `world_template.json` | 98,822 | same shape | 2026-08-31 |\n| `fighting_pit.json` | 1,079 | `name, description, environment` | 2026-08-26 |\n\nThose are **runtime state payloads**, not authored registry entries -- they carry\n`active_player` and the game clock. And the directory is known to code by path:\n\n    migrate_legacy_triggers.py:224\n      help=\"Migrate mansion.json, mansion2.json, and library/rooms/mansion.json\"\n\nSo adding `rooms` to `REGISTRY_TYPES` would publish **526KB of live save-state as\nauthored library content**, which the library browser and the linters would then\ntreat as registry entries. That is the opposite of the fix.\n\n### The real, smaller issue this surfaced\n\n**Runtime saves are sitting inside the authored-content tree.** `data/library/`\nis the library, and anything that walks it -- `load_registry`, the lint, the\nlibrary browser -- will encounter these three files as though they were content.\nThey are weeks stale, so nothing reads them, which means they are also invisible:\nnothing reports them, nothing cleans them, and the 400 is the only signal they\nproduce at all.\n\nTwo things worth deciding, neither of which is \"add the route\":\n\n1. Should the migration consume and remove them (they are what the script reads),\n   or is keeping them deliberate as a backup?\n2. If they stay, should `data/library/` exclude non-registry subdirectories, so a\n   library sweep cannot mistake a save for content in the first place?\n\n`fighting_pit.json` is a third shape again (`name, description, environment`) and\ndoes not belong with the other two -- worth working out which of the three is\nstill needed before touching any of them.",
+      "resolution_2026_10_02_decision_2_implemented_1_deferred_to_task_291": "**The 400 stays.** `rooms` is not a registry type and adding it would publish\n526 KB of live save state as authored content. No code change was made to the\nroute.\n\n**Decision on #1 -- keep the files, as a backup.** Nothing deletes them here.\n`tools/migrate_legacy_triggers.py` still reads `rooms/mansion.json` as one of its\ninputs, and the removal is already claimed by **task-291 Phase 3**\n(\"delete `data/library/rooms` (first update `migrate_legacy_triggers.py:224`)\"),\nwhich is in review. Moving or deleting them from this task would collide with\nthat plan, so this task does not.\n\n**Decision on #2 -- a library sweep now reports a stray directory.** New warning\ncheck `stray_library_dirs` in `tools/lint_library.py` lists every\n`data/library/` subdirectory that is not one of the canonical registry types\n(imported from `routes/library_ops.REGISTRY_TYPES`, so the list has one source)\nand is not `_`-prefixed. The legacy `rooms/` directory is now visible instead of\ninert:\n\n    [WARN ] (stray_library_dirs) data/library/ has 1 directory(ies) that are not\n    registry types and nothing reads (runtime saves parked in the authored tree?): rooms\n\nIt is a warning (exit 0), not an error: `data/library/rooms` is a known,\nadjudicated legacy directory, not a new violation. The check's value is that the\nset cannot grow unnoticed.\n\nEvidence: `python tools/lint_library.py --check stray_library_dirs` shows the\nwarning above; `python -m pytest tests/test_library_lint_stray_dirs.py -q` - 3\npassed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-645-data-library-rooms-has-3-files-but-no-read-endpoint-http-400.md"
+  }
+}

@@ -100,5 +100,5 @@ The mature boolean property was an outlier among cross-cutting classification ma
 - engine/dressing.py
 - engine/nl_editor_validation.py
 - 
-outes/library_ops.py
-- 	ests/test_auto_dress.py
+routes/library_ops.py
+- tests/test_auto_dress.py

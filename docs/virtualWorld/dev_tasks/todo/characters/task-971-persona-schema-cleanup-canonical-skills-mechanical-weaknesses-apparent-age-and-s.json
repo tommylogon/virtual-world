@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "task-971",
+  "kind": "task",
+  "number": 971,
+  "title": "Persona: Schema cleanup, canonical skills, mechanical weaknesses, apparent age, and secret ownership",
+  "status": "todo",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [
+    "persona",
+    "schema",
+    "mechanics"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "medium",
+  "goal": "Align the Persona schema and compiler with ViWo simulation mechanics and privacy/observability boundaries",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-828",
+      "task-830",
+      "task-844"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Clean up persona schema fields and compiler outputs that conflict with ViWo simulation invariants.",
+    "why": "Freeform skills produce dead strings like drywall_patching, role_in_town is boilerplate, secrets.known_by lives on the wrong character, and exact age leaks in observable descriptions.",
+    "how": "Restrict capabilities.skills to canonical Player.skills keys, add mechanical weakness hooks, deprecate role_in_town, move secret sharing to knower memories, render apparent age bracket in base_description, and keep deepest_secret internal-only.",
+    "verify": "pytest tests/test_character_appearance.py -q and npm run build:ts",
+    "acceptance": [
+      {
+        "text": "capabilities.skills constrains/maps to the 18 canonical checkable skills while non-mechanical crafts live in expertise or interests",
+        "done": false
+      },
+      {
+        "text": "capabilities.weaknesses wires mechanical liabilities such as nearsighted perception penalty without glasses",
+        "done": false
+      },
+      {
+        "text": "narrative.role_in_town is deprecated/removed from compiled description and UI",
+        "done": false
+      },
+      {
+        "text": "narrative.secrets.known_by is replaced by an init-time memory seeder on the knower rather than runtime metadata on the subject",
+        "done": false
+      },
+      {
+        "text": "Compiled observable base_description shows apparent age bracket rather than exact numeric age, and deepest_secret informs internal prompt tension without leaking into observable prose",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_appearance.py",
+      "engine/character_store.py",
+      "static/js/inspector/persona-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Persona tab renders canonical skill picker/levels for capabilities.skills, mechanical liability hints for weaknesses, drops role_in_town, and shows apparent-age preview."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Gameplay/Character Persona.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

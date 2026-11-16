@@ -12,8 +12,8 @@ priority: medium
 
 ## What
 
-Let an item be personally owned so others cannot casually take or use it —
-Gribba's treasured Good Knife "nobody else may touch" — while keeping an
+Let an item be personally owned so others cannot casually take or use it -
+Gribba's treasured Good Knife "nobody else may touch" - while keeping an
 explicit, contested steal path.
 
 ## Context

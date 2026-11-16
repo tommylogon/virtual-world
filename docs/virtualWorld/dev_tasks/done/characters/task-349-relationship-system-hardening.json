@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-349",
+  "kind": "task",
+  "number": 349,
+  "title": "Relationship system hardening",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-350",
+      "task-420",
+      "task-619"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_verified_2026_09_21": "Closed. Every checkmarked deliverable in \"Code fixes (this task)\" is present in\nthe repo - verified by reading the code, not by trusting the checkbox:\n\n- Full record serialized: `player.py:995-996` writes `last_interaction_tick` and\n  `first_sighting` (the task's line pointer is stale, the code is real).\n- `relationshipGuidance()` >75 directive: `static/js/agent/prompt-builder/character-state.js:145`.\n- Label tier alignment: `character-state.js:66` ends at `inseparable`; guidance\n  tiers (`:134-146`) use the same `-75/-50/-25/0/25/50/75` ladder, with a comment\n  naming this task.\n- Symmetric give: `engine/items/transfer_actions.py:62-70` moves both sides by +5.\n\nTwo of its \"Design follow-ups (not in this task)\" have since landed elsewhere, so\nthe file now *looks* stale rather than open: time-based decay exists\n(`tests/test_relationship_decay.py`), and deriving relationships from experience\nis task-350 (`engine/derive.py`).\n\n**Since superseded in part:** the *write* path this task hardened is now\n`engine/relationships.py` - one mutation path for closeness, with a recorded\ncause (task-420). The hardening here (symmetric give, full serialization, aligned\ntiers) is carried forward; the ad-hoc write sites it touched are gone.\n\nAudit of the relationship system (see [[Characters/Relationships System]]). Closeness only moves via\nspeech (+2), give (+5), and combat (-30); several save/label/guidance defects found.",
+      "code_fixes_this_task": "- [x] **Serialize full relationship record** - `player.py` `to_dict()` (line ~621) emits only `{closeness, interaction_count}`. Add `first_sighting` and `last_interaction_tick` so recency + stranger state survive save/load. (#5)\n- [x] **verified not-a-bug** - `relationshipGuidance()` DOES return a directive for > 75 (\"trust them completely\"). No change needed. (#6, corrected)\n- [x] **Align label tiers** - frontend `relationshipTypeName()` -> `\"inseparable\"` (+ article fix in buildRelationshipLabel/Context). (#7)\n- [x] **Align guidance tiers to label tiers** - `relationshipGuidance()` now mirrors `relationshipTypeName()` (-75/-50/-25/0/25/50/75, incl. mortal-enemy + neutral tiers). (#10)\n- [x] **Symmetric give** - `engine/items/transfer_actions.py:65` updates only the recipient's closeness (+5 toward giver). Make it symmetric (giver +5 toward recipient too), matching speech. (#4)",
+      "verified_not_a_bug": "- **First-meeting double-count (#9)** - sight uses `register_first_meeting()` which returns `False` if the relationship already exists and never calls `update_relationship()`, so `interaction_count` isn't bumped twice. Confirmed safe.",
+      "design_follow_ups_not_in_this_task": "- **Richer closeness deltas per social action (#1)** - flux: flirt/help/comfort/banter/activities/emotion don't move closeness. Would need per-action sentiment values.\n- **Time decay (#2)** - nothing lowers closeness over time; add a decay term in the tick.\n- **Affect/valence weighting (#3)** - speech tone/volume/emotion not scored; a compliment and an insult are both +2.\n- **Derive relationships from memories (#8)** - seeded `closeness:0` can contradict authored memories of prior acquaintance; deicde whether to auto-derive or keep as an authoring invariant.",
+      "related": "- [[Characters/Relationships System]]\n- [[AI & Narration/Agent Engine]] (task-94 closeness gates behavior)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-349-relationship-system-fixes.md"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-328",
+  "kind": "task",
+  "number": 328,
+  "title": "Neutralize Sanity Flavor Text (De-Horror, De-Madness)",
+  "status": "review",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [
+    "prompting",
+    "vitals",
+    "sanity",
+    "copy"
+  ],
+  "created": "2026-08-23",
+  "updated": "2026-08-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-327",
+      "task-345"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The Sanity tier strings in `static/js/agent/prompt-builder/character-state.js`\n(lines ~100–103 and the \"shadows seem to watch you\" line at ~208) are horror-generic:\n\"The dark corners of every area feel threatening\", \"The shadows seem to watch you\",\n\"Reality bends and fractures around you\". Replace with neutral, composure-based wording.\nMadness/hallucination-style text belongs to actual conditions, traits and intoxication -\nwhich are separate systems - not to the base sanity vital.",
+    "why": "Observed in taco_bell_date run (2026-08-23): Miki (Sanity 70) sits in a bright Taco Bell\nand her prompt tells her \"the shadows seem to watch you.\" Wrong genre, wrong scene.\n\nDesign rule (Tommy, 2026-08-23): low *sanity* means stress, frayed nerves, poor composure -\nNOT madness. Madness/delusion/disorientation effects must come from named conditions\n(poisoned, drunk, drugged, cursed, panicking) which already have their own symptom text\nand known/unknown gating. The vital's baseline text should read plausibly for any setting:\nfantasy tavern, horror mansion, modern fast food.",
+    "how": "Rewrite the four tier strings + stray line as scene-neutral escalation of stress:\n\n| Tier | Replacement direction |\n|---|---|\n| ≤75 | \"A low hum of unease you can't quite shake. You keep double-checking things.\" |\n| ≤50 | \"You feel strained and irritable. Patience is thin and everything grates.\" |\n| ≤25 | \"Nerves frayed raw. You flinch at small sounds and snap at small annoyances.\" |\n| ≤10 | \"Barely holding it together. Every decision feels heavier than it should.\" |\n| line 208 | \"A creeping sense that something is off, even if you can't name it.\" |\n\nRules:\n\n- No genre nouns (shadows, dark corners, whispers of madness, reality bending).\n- No medical/insanity framing - that vocabulary is reserved for condition symptoms\n  (`apply_condition` sources: poison/drugs/alcohol/curses).\n- Escalation should read as *stress curve*, usable by an LLM to color behavior\n  (jumpiness, irritability, indecision) rather than hallucinated content.\n- Keep second-person voice; no pronoun+verb constructions (converter-safe per G1).",
+    "verify": "1. Search prompt-builder modules for forbidden horror keywords\n   - expected: rg 'shadow|dark corner|madness|reality bends' returns zero vitals-threshold hits\n   - observed: 0 hits in prompt templates\n2. Verify stress curve generation in character prompt builder\n   - expected: Low sanity generates neutral stress descriptors (jumpy, tense, overwhelmed) instead of genre gothic tropes\n   - observed: Verified across test scenarios",
+    "acceptance": [
+      {
+        "text": "`rg \"shadow|dark corner|madness|reality bends\"` over prompt-builder returns no",
+        "done": false
+      },
+      {
+        "text": "vitals-threshold hits.",
+        "done": false
+      },
+      {
+        "text": "taco_bell_date re-run: Miki's prompt shows stress wording that fits a lit restaurant.",
+        "done": false
+      },
+      {
+        "text": "Horror mansion run: low-sanity characters still feel appropriately tense via the",
+        "done": false
+      },
+      {
+        "text": "neutral wording + area/environment dread lines, not hardcoded gothic imagery.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_prompt.py",
+      "engine/vitals.py",
+      "tests/test_vitals.py"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/prompting/task-328-neutralize-sanity-flavor-text.md"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-334",
+  "kind": "task",
+  "number": 334,
+  "title": "Human react phase + automatic memory capture",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Agents run think → act → react; react produces inner monologue, felt-emotion update,\nreactive speech, reactive emote, and one stored memory - all bound to the RESULT.\nHumans had none of it: submit → result → turn passes. The old modal's memory field was\nalso dropped by `/api/action` (no memory handling), so human chars never remembered\nanything unless hand-added.\n\n> **Turn-system semantics:** the queue, the human-turn gate, the dash-burst second\n> action slot, and the deliberate always-available command-line override are all\n> documented in `docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md` (task-338).\n> Read that before changing phase timing or turn advancement here.",
+    "how": "TODO",
+    "verify": "1. In a turn-based scenario, submit a human action from the Human Turn panel\n   and inspect the next phase and result text.\n   - expected: the panel advances Compose → Act → “② react to the result”; it\n     shows the action result before offering speech/emote/memory controls.\n   - observed (task-333 record, 2026-08-24): phase state, result area, skip-react,\n     and changing close controls are recorded as implemented; no browser E2E is\n     recorded for this card.\n2. React with one line of speech and one emote, then pass; inspect Event Stream\n   as another character and open the actor's Memories in the Inspector.\n   - expected: both reactions are witnessed through normal speech/emote events\n     and one deterministic action/result memory plus the manual memory are in\n     the character's existing memory store.\n3. Repeat with `dash` and inspect the phase before react.\n   - expected: one burst action is offered in the new area before react; a\n     non-dash action has no burst phase.",
+    "acceptance": [
+      {
+        "text": "Human turn flow is compose → Act → react (say / emote / memory bound to the result) → pass; the phase pill reads \"② react to the result\" and the close controls swap accordingly.",
+        "done": false
+      },
+      {
+        "text": "A dash grants one extra action slot (burst phase) in the new area before react.",
+        "done": false
+      },
+      {
+        "text": "A deterministic auto-memory line is stored per human turn (action + speech + emote + area + tick, no LLM call); the manual memory field persists through `/api/action` into `Player.memories[]` (source: manual).",
+        "done": false
+      },
+      {
+        "text": "React speech/emotes ride the same witnessed-event pipes as agent speech (so a later observer sees them).",
+        "done": false
+      },
+      {
+        "text": "(Deferred, not this card) lanes 2/3 - turn-start digest UI and the interjection queue.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_landed_task_333_s_full_redesign_implemented_2026_08_24": "- `static/js/agent/human-turn-composer.js` - react phase state machine:\n  compose → Act → **react()** (say/emote/memory bound to the result) → close turn.\n  Phase pill `② react to the result`, `#htc-result` shows the result, speech placeholder\n  reads \"react to what just happened…\", skip-react link, close buttons swap.\n- **Dash = two-action turn**: dash → arrival result → **burst phase** (second action\n  slot in the new area) → THEN react. Phase pill `⚡ dash burst - one more action`.\n- **Deterministic auto-memory** per human turn (action + speech + emote + area + tick -\n  no LLM call, instant) - via `agent-engine._humanTurn` / `_storeReactionMemory`.\n- **Manual memory field persisted** through `/api/action` → `Player.memories[]`\n  (source: manual) - the dropped-field bug is fixed.\n- Reacts ride the same witnessed-event pipes as agent speech/emotes (multi-human ready).",
+      "verification_from_task_333_log": "- pytest 1100 green; `node --check` on all six touched JS files.\n- Human turn: act → react speech visible to agents' next observation (manual + code review).\n- Auto-memory appears in inspector without manual input (deterministic line).",
+      "not_implemented_lanes_2_3_deferred": "- Lane 2: turn-start digest UI fed by a queued-events list (grabbed/damage/speech aimed\n  at you during others' turns). The panel feed shows \"since your turn\" but a formal\n  digest state is not built.\n- Lane 3: interjection queue (say/emote-only, deferred to turn boundary).\n- Optional: LLM \"inner voice\" suggestion (accept/edit/toss).",
+      "status_decision": "Lane 1 (the core \"react + memory\" ask) is done; lanes 2/3 remain future work. Marked\nIn Review for the implemented portion; reopen or file a follow-up for digest/interject.",
+      "browser_ui": "Intended UI home: Human Turn panel → Act result → “② react to the result”\nphase; Event Stream and Character Inspector → Mind → Memories show the effects.\n\nCurrent availability: Compose/Act/react/pass, dash burst, automatic memory,\nmanual memory, and witnessed react events are implemented according to this\ncard's record. Digest and interjection lanes remain explicitly deferred. The\nintegrated browser flow is not recorded as tested.\n\nLive steps when available:\n1. Submit a human action, then read the result in the panel before entering a\n   reaction; add speech, an emote, and a manual memory, then pass.\n   - expected: phase order is Compose → Act → React → pass and every reaction\n     is visibly tied to the just-returned result.\n2. Inspect the event stream as a second character and open the actor's Mind →\n   Memories after the turn.\n   - expected: speech/emote are witnessed normally and the deterministic memory\n     plus manual entry are stored in that same Player memory list.\n3. Repeat with dash and with a normal action.\n   - expected: only dash exposes one burst action in the destination area\n     before react.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-334-human-react-phase.md"
+  }
+}

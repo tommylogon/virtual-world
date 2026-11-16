@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "task-810",
+  "kind": "task",
+  "number": 810,
+  "title": "GIMP: the goal graph - links, blocks and chaining",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-807"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-426",
+      "task-691",
+      "task-714",
+      "task-809",
+      "task-811",
+      "task-812"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Goals linked and blocked by other goals, characters, events or items, so goals chain up.",
+    "why": "A goal's fate usually depends on another (waiting on an item, blocked by a character, gated by an event). Without the graph, replay and blocking cannot be tracked.",
+    "how": "Relations are id-references inside the goal record, not graph edges: a goal is character-private data, so it cannot be a node (the 2026-10-12 decision, and [[Character Pursuits]]). A goal carries `blocks` (refs that gate it) and `links` (related refs). A ref is `prefix:value`, where the prefix is `goal` (another goal of the same character), `item`, `character` or `event`; a bare ref is a goal id. `blocks` is resolved on read against live world state (`engine/goals.world_resolvers`), and the derived `blocked_by` is a projection on the payload, never persisted.",
+    "verify": "1. In the 🧠 Mind panel (`InspectorMindView`), a goal blocked by an item shows that blocker, and one whose item the character holds does not.\n   - expected: the blocker appears for an item the character lacks, and clears for one they hold.\n   - observed: VERIFIED 2026-10-12, live on localhost:4445. `item:lost_relic_xyz` (missing) and `item:area_cooking_area` (a room, not an item) both showed outstanding; `item:item_shiny_coin`, which Arix wears, resolved satisfied with no `blocked_by`.\n2. Chain: goal A blocked by goal B.\n   - expected: reaching B unblocks A without a bespoke script.\n   - observed: VERIFIED 2026-10-12. `Reach the chief` (blocks `b`) showed `⛔ blocked by b` in the Mind panel; after `goal complete b` the `blocked_by` cleared on the next read.",
+    "acceptance": [
+      {
+        "text": "A goal can be blocked and unblocked by world state.",
+        "done": true
+      },
+      {
+        "text": "Chains resolve without a script per goal.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/goals.py",
+      "engine/serialization.py",
+      "static/js/inspector/mind-view.ts",
+      "static/js/inspector/agent-view.ts"
+    ],
+    "custom": {
+      "progress_2026_10_12": "- `engine/goals.py`: `TERMINAL_STATUSES`, `_ref_list`, `_split_ref`, `goal_resolver`, `resolve_blocks`, `is_blocked`, `outstanding_blocks`, `with_blockers`, `world_resolvers`. A goal ref is met when the referenced goal is reached or dropped; an unknown prefix holds the goal rather than freeing it.\n- `engine/serialization.py`: `_goals_payload` derives `blocked_by` for the payload, skipping work when there are no goals.\n- Mind panel: a `⛔ blocked by …` line on a blocked goal. Editor: a `blocks` field per goal row.\n- `tests/test_goals.py`: chain resolution, comma-string refs, unknown-prefix hold, and `with_blockers` marking only the blocked goal."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-810-gimp-the-goal-graph-links-blocks-and-chaining.md"
+  }
+}

@@ -31,9 +31,9 @@ Wearing a heavy fur-lined coat over a waxed canvas vest, with sturdy leather boo
 The `engine/equipment.py` system already generates a description string on equip/unequip triggers. This string should be stored on the player object and surfaced in the prompt instead of the raw slot list.
 
 ### Scope
-- `engine/equipment.py` — ensure description generation happens and persists
-- `player.py` — add `equipment_description` field
-- `static/js/agent/prompt-builder.js` — use equipment_description in `buildRoomContext()`
+- `engine/equipment.py` - ensure description generation happens and persists
+- `player.py` - add `equipment_description` field
+- `static/js/agent/prompt-builder.js` - use equipment_description in `buildRoomContext()`
 - Keep the raw slot list available as fallback/backup
 
 ## Why

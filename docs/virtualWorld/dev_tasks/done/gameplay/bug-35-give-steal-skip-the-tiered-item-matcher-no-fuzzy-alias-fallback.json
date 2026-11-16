@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "bug-35",
+  "kind": "bug",
+  "number": 35,
+  "title": "give/steal skip the tiered item matcher - no fuzzy/alias fallback",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-30 from live playtest (John two / Jane three).",
+  "updated": "2026-08-30 from live playtest (John two / Jane three).",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `tests/test_matching.py::TestInventoryScopedItemMatching` - fuzzy misspelling\n  resolves, area items are out of scope, alias resolves a worn item.\n- `tests/test_item_actions.py::TestGiveItem` - misspelled give transfers the\n  resolved item; worn item give transfers and unequips.\n- `tests/test_item_actions.py::TestStealItem` - misspelled steal resolves;\n  equipped-item steal still works.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "observed": "Player is carrying/wearing the Jumpsuit; a misspelled `give jumptuit to jane`\nfailed with a bare \"You aren't carrying 'jumptuit'.\" - no fuzzy resolution.\n`take`/`examine`/`use` resolve the same input via the tiered matcher, so this\nwas a give/steal inconsistency.",
+      "root_cause": "`give_item` / `steal_item` (`engine/items/transfer_actions.py`) resolved the item\nvia `player_manager.find_item_node()` (strict exact/substring only) and an inline\nstrict scan, never calling the tiered resolver\n(`engine/matching.py::_match_item_name`: exact → substring → alias/description →\ndifflib fuzzy, cutoff 0.7).",
+      "fix_2026_09_22": "- `engine/matching.py`: split the tier logic into `_match_item_name_from(input,\n  names)` and added `match_item_name_in_inventory(input, owner_id)` - the same\n  tiers scoped to one character's carried + equipped items (never area items).\n  `_match_item_name` now collects area + inventory names and delegates, so its\n  behaviour is unchanged.\n- `engine/items/transfer_actions.py`:\n  - `give_item` resolves through `match_item_name_in_inventory` for the giver,\n    falls back to the strict lookup, and uses the canonical name in the output.\n  - `steal_item` resolves through the same helper for the victim, with a strict\n    fallback. Worn (equipped) items remain eligible.\n  - Because the matcher sets `_fuzzy_match_note`, the note is surfaced through\n    the existing `/api/action` `system_messages` channel (routes/action_handlers)\n    - no new plumbing.\n- **Latent transfer bug found while testing:** `give_item` removed only the\n  `CARRYING` edge from the giver, so handing over a WORN item left a dangling\n  `EDGE_EQUIPPED` edge (and multi-slot markers). It now removes the equipped edge\n  and cleans markers too."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-35-give-steal-skip-tiered-item-matcher.md"
+  }
+}

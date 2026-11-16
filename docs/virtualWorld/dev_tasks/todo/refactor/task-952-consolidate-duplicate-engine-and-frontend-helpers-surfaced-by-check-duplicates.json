@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "task-952",
+  "kind": "task",
+  "number": 952,
+  "title": "Consolidate duplicate engine and frontend helpers surfaced by check_duplicates",
+  "status": "todo",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [
+    "refactor",
+    "duplicate-check",
+    "clean-code"
+  ],
+  "created": "2026-11-13",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-590"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Consolidate verified structural, semantic, and literal code duplicates across engine/ and static/js/ identified by tools/check_duplicates.py and npx jscpd, prioritizing legacy-vs-extracted module pairs and shared helper functions.",
+    "why": "Running python tools/check_duplicates.py --semantic and npx jscpd across 3,611 functions (398 files) surfaced multiple parallel implementations of identical behavior. Consolidating each cluster to one authoritative implementation prevents behavioral drift where bug fixes land in only one copy.",
+    "how": "1. Consolidate high-confidence Python (engine/) duplicate clusters:\n   - engine/logging_events.py:log_llm_call vs engine/skills.py:log_llm_call (cosine 0.983)\n   - engine/world_compile.py vs engine/world_compile_stable.py:stable_digest and engine/world_compile_directions.py:_compass_direction\n   - engine/area_description.py:_is_intrinsic_ability vs engine/equipment.py:is_intrinsic_ability (and engine/action_tiers.py:_is_ability, cosine 0.974)\n   - engine/effect_handlers/equipment.py:_normalize_tags vs engine/effects.py:_normalize_tags\n   - engine/pregnancy.py (_identity_of, _species_of) vs engine/reproductive_cycle.py (_identity_of, resolve_species)\n   - engine/activities.py:_check_completion vs engine/plan_executor.py:_check_activity_completion (cosine 0.972)\n   - engine/npc_behaviors.py:_area_id_for vs engine/triggers/condition_tree.py:_area_id\n2. Consolidate high-confidence TypeScript (static/js/) duplicate clusters:\n   - static/js/graph/context-menu.ts (showContextMenu, showEdgeContextMenu) vs static/js/graph-manager.ts (_showContextMenu, _showEdgeContextMenu) (cosine 0.982)\n   - static/js/worldpainter/editor-handles.ts:_scaleRefRect vs static/js/worldpainter/editor.ts:_scaleRefRect (cosine 0.976)\n   - static/js/ui/saveload-view.ts:toggleSpectator vs static/js/ui/settings-view.ts:toggleSpectator (cosine 0.975)\n   - static/js/config.ts: unify getMemoryLLMClient and getInterpreterLLMClient via one parameterized helper\n   - static/js/library-browser.ts: unify saveWorldToCharacter/saveWorldToArea and saveCharacterByName/saveAreaByName\n   - static/js/structures.ts:_req vs static/js/worldpainter/editor.ts:_req (Jaccard 1.00)\n3. Leave genuine inverse pairs untouched (e.g. metresToStoreys vs storeysToMetres).",
+    "verify": "1. Run `python tools/check_duplicates.py --all` before and after consolidation.\n   - expected: Targeted duplicate clusters disappear from structural, Jaccard, jscpd, and semantic outputs.\n2. Run `npm run build:ts`, `npm run typecheck`, `npm run lint`, and Python/JS unit tests.\n   - expected: All checks pass with zero regressions.",
+    "acceptance": [
+      {
+        "text": "Each listed Python and TypeScript duplicate cluster is consolidated to one authoritative helper or module export with all callers updated.",
+        "done": false
+      },
+      {
+        "text": "python tools/check_duplicates.py reports 0 UI template binding collisions and no remaining copies of the consolidated functions.",
+        "done": false
+      },
+      {
+        "text": "npm run build:ts, npm run typecheck, and affected test suites pass after consolidation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/logging_events.py",
+      "engine/skills.py",
+      "engine/world_compile.py",
+      "engine/world_compile_stable.py",
+      "engine/world_compile_directions.py",
+      "engine/area_description.py",
+      "engine/equipment.py",
+      "engine/action_tiers.py",
+      "engine/effect_handlers/equipment.py",
+      "engine/effects.py",
+      "engine/pregnancy.py",
+      "engine/reproductive_cycle.py",
+      "engine/activities.py",
+      "engine/plan_executor.py",
+      "engine/npc_behaviors.py",
+      "engine/triggers/condition_tree.py",
+      "static/js/graph/context-menu.ts",
+      "static/js/graph-manager.ts",
+      "static/js/worldpainter/editor-handles.ts",
+      "static/js/worldpainter/editor.ts",
+      "static/js/ui/saveload-view.ts",
+      "static/js/ui/settings-view.ts",
+      "static/js/config.ts",
+      "static/js/library-browser.ts",
+      "static/js/structures.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Graph context menu, WorldPainter editor, Settings modal, and Library browser\n\nCurrent availability: Existing UI surfaces only; no new UI controls added.\n\nSteps:\n1. Open the app and right-click a graph node and edge to verify context menus render and trigger actions.\n2. Open Settings and toggle Spectator mode to verify saveload/settings wiring works without console errors."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Architecture]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

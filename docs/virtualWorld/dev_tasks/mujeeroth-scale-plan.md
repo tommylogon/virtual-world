@@ -1,7 +1,7 @@
-# Mujeeroth Scale Plan — Zoom Levels, Procedural Fill, and Background Simulation
+# Mujeeroth Scale Plan - Zoom Levels, Procedural Fill, and Background Simulation
 
 **Filed:** 2026-09-08  
-**Scope:** VirtualWorld engine — world-scale streaming for Mujeeroth
+**Scope:** VirtualWorld engine - world-scale streaming for Mujeeroth
 
 ---
 
@@ -27,24 +27,24 @@ The six `todo/world/` tasks (397–402) are **already filed and unstarted**. The
 
 ## 2. The plan (ordered, dependency-aware)
 
-### Phase 0 — Unblock the chain (2 tasks, can start now)
-1. **task-323** (inprogress) — finish `tools/lint_library.py`. This is the gate for 324.
-2. **task-324** — domain tag schema + area/furniture tagging pass. This is the gate for task-9 and task-398's tag-aware population.
+### Phase 0 - Unblock the chain (2 tasks, can start now)
+1. **task-323** (inprogress) - finish `tools/lint_library.py`. This is the gate for 324.
+2. **task-324** - domain tag schema + area/furniture tagging pass. This is the gate for task-9 and task-398's tag-aware population.
 
-### Phase 1 — Procedural fill engine (your stated #1 goal)
-3. **task-9** — tag-chain population engine (`engine/population.py`). This is the reusable core: area domain tags → furniture with matching domain tag + role tag (`display`/`container`) → items with matching domain tag. Placement via existing spatial edges (`in`/`on`/`beside`/`at`). Deterministic, seedable, idempotent.
-4. **task-398** — wraps task-9 into deterministic scoped structure generation (building/district/town recipes → `GenerationPatch` of normal graph nodes/edges).
+### Phase 1 - Procedural fill engine (your stated #1 goal)
+3. **task-9** - tag-chain population engine (`engine/population.py`). This is the reusable core: area domain tags → furniture with matching domain tag + role tag (`display`/`container`) → items with matching domain tag. Placement via existing spatial edges (`in`/`on`/`beside`/`at`). Deterministic, seedable, idempotent.
+4. **task-398** - wraps task-9 into deterministic scoped structure generation (building/district/town recipes → `GenerationPatch` of normal graph nodes/edges).
 
-### Phase 2 — Zoom / scope / projection (your stated #2 goal)
-5. **task-397** — hierarchy manifest (`world_scopes`), server-side projection API (`GET /api/world/scopes/<id>` and `/graph?depth=N&include_items=...`), scope breadcrumb UI.
-6. **task-401** — chunk persistence, scoped indexes, gateway ways, merge/unload APIs. This is what makes the projection API actually cheap at million-node scale.
+### Phase 2 - Zoom / scope / projection (your stated #2 goal)
+5. **task-397** - hierarchy manifest (`world_scopes`), server-side projection API (`GET /api/world/scopes/<id>` and `/graph?depth=N&include_items=...`), scope breadcrumb UI.
+6. **task-401** - chunk persistence, scoped indexes, gateway ways, merge/unload APIs. This is what makes the projection API actually cheap at million-node scale.
 
-### Phase 3 — Background simulation (your stated #3 goal)
-7. **task-399** — `simulation_mode: active|background` on existing `Player`. Background runner in `engine/background_simulation.py`: deterministic schedule/needs/vitals progression, no LLM calls, structured event log, "since last full mode" memory summary on reactivation.
+### Phase 3 - Background simulation (your stated #3 goal)
+7. **task-399** - `simulation_mode: active|background` on existing `Player`. Background runner in `engine/background_simulation.py`: deterministic schedule/needs/vitals progression, no LLM calls, structured event log, "since last full mode" memory summary on reactivation.
 
-### Phase 4 — Proof
-8. **task-400** — Pines vertical slice combining 397+398+399.
-9. **task-402** — 100k+ node synthetic benchmark proving projection payload stays bounded.
+### Phase 4 - Proof
+8. **task-400** - Pines vertical slice combining 397+398+399.
+9. **task-402** - 100k+ node synthetic benchmark proving projection payload stays bounded.
 
 ---
 

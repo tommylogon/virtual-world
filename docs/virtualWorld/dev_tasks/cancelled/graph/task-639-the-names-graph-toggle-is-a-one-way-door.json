@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-639",
+  "kind": "task",
+  "number": 639,
+  "title": "The Names graph toggle is a one-way door",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Turning the label toggle off does not restore the prior state.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "cancellation": "Cancelled 2026-09-30. The finding does not reproduce. Driving\n``graphManager.toggleNodeLabels()`` and reading the canvas:\n\n  _showNodeLabels / localStorage / aria-pressed\n\n  initial  true  / \"1\" / true   -> node labels rendered\n  toggle   false / \"0\" / false  -> nodes render as EMPTY rectangles\n  toggle   true  / \"1\" / true   -> labels return\n\nBidirectional, with correct persistence and correct ARIA. The original \"one-way\ndoor\" claim came from reading a static screenshot, and the button's own title\n(\"Names auto-hide at overview zoom on a dense painted map\") explains why labels\ncan be absent without anything being broken.\n\nThis is the fifth finding in the live audit retracted for the same reason --\njudged without interacting with the surface. Recorded in the audit README's\nmethod-limitation section."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/graph/task-639-the-names-graph-toggle-is-a-one-way-door.md"
+  }
+}

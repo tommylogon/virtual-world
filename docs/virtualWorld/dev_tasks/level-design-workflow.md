@@ -1,4 +1,4 @@
-# Level Design Workflow — Task Hub
+# Level Design Workflow - Task Hub
 
 **Created**: 2026-08-13  
 **Context**: Authoring areas, ways, items, and triggers for agent/human perception. Players live in **areas**, never in ways. Exit perception = way appearance (closed) + connection view (open) + movement rules.
@@ -21,7 +21,7 @@ No agent step required for copy validation. Inspector stays editable; lens never
 
 | # | Task | Priority | What it gives you |
 |---|------|----------|-------------------|
-| **219** | [[todo/ui/task-219-agent-lens-left-panel\|Agent Lens — left panel]] | **High** | Live `buildRoomContext` + full next-turn prompts; context follows area/agent selection |
+| **219** | [[todo/ui/task-219-agent-lens-left-panel\|Agent Lens - left panel]] | **High** | Live `buildRoomContext` + full next-turn prompts; context follows area/agent selection |
 | **220** | [[todo/ui/task-220-unified-way-editor\|Unified Way editor]] | **High** | Both sides + shared props in one save; pairs with your way templates |
 | **221** | [[todo/ui/task-221-way-authoring-ux-and-tooltips\|Way UX + tooltips]] | Medium | Honest labels, exit badges (climb/jump/tags), graph edge hover, `{param:}` preview |
 | **222** | [[todo/gameplay/task-222-serialize-exits-graph-only\|Graph-only exits in saves]] | Medium | Stop duplicate `exits` in JSON; one field in UI = one truth |
@@ -32,10 +32,10 @@ No agent step required for copy validation. Inspector stays editable; lens never
 
 | Task | Status |
 |------|--------|
-| [[review/characters/task-8-npc_behavior_movement\|task-8 Way go modes]] | Review — NPCs pathfind via ways |
-| [[review/triggers/task-keycard-clearance-target_has_tag-unlock_way-target\|Keycard clearance]] | Review — `has_tag` on **door** (target), any tag value works (e.g. generic `clearance`) |
-| [[todo/graph/task-129-graph-tooltips-environment-info\|task-129 Graph tooltips]] | Todo — area env on hover; connection edges covered by 221 |
-| Way templates | User-planned — feed into task-220 editor |
+| [[review/characters/task-8-npc_behavior_movement\|task-8 Way go modes]] | Review - NPCs pathfind via ways |
+| [[review/triggers/task-keycard-clearance-target_has_tag-unlock_way-target\|Keycard clearance]] | Review - `has_tag` on **door** (target), any tag value works (e.g. generic `clearance`) |
+| [[todo/graph/task-129-graph-tooltips-environment-info\|task-129 Graph tooltips]] | Todo - area env on hover; connection edges covered by 221 |
+| Way templates | User-planned - feed into task-220 editor |
 
 ---
 
@@ -73,7 +73,7 @@ No agent step required for copy validation. Inspector stays editable; lens never
 |-------|-------|-----------------|
 | Two texts for same ladder view in raw JSON | `rooms.exits` cache vs `graph.edges` | **222** |
 | `clearance` tag on jump pit | Easy to mis-tag on way node | **221** soft hint, **220** unified editor |
-| Keycard opens all `clearance` doors | By design — `has_tag target clearance` checks **door** tags | Docs only ✓ |
+| Keycard opens all `clearance` doors | By design - `has_tag target clearance` checks **door** tags | Docs only ✓ |
 | Jump fail → hole | `on_fail_jump` teleport + message | Working as designed |
 | Can close open pit/ladder | No guard | **223** |
 | Ladder missing `requires: climb` | Authoring oversight | **221** badge in lens + exits |
@@ -85,7 +85,7 @@ No agent step required for copy validation. Inspector stays editable; lens never
 ### Area lens (area selected in graph)
 
 - **View as:** pick character
-- **Location:** that area (hypothetical — for level design)
+- **Location:** that area (hypothetical - for level design)
 - Shows: description, attention items, people, **exits block**
 
 ### Agent lens (agent selected)
@@ -95,7 +95,7 @@ No agent step required for copy validation. Inspector stays editable; lens never
 
 ### Way selected (v1.1)
 
-- Two snippets: "From area A…" / "From area B…" — not a third "inside way" view
+- Two snippets: "From area A…" / "From area B…" - not a third "inside way" view
 
 ---
 
@@ -103,7 +103,7 @@ No agent step required for copy validation. Inspector stays editable; lens never
 
 - Graph topology / invalid connection lint (not a reported pain point)
 - Replacing way templates (user owns this)
-- "Passage" rename — **ways** stay ways
+- "Passage" rename - **ways** stay ways
 
 ---
 
@@ -111,9 +111,9 @@ No agent step required for copy validation. Inspector stays editable; lens never
 
 1. Reset/load labs scenario  
 2. Open left **👁 Lens**, select Task 18 Room 5  
-3. View as Kaelen — exits show `jump across` with closed pit description  
-4. Edit jump view in way inspector — lens updates without running sim  
-5. Select Lyrie in agent list — lens shows **her** prompts from Frozen Thicket, not selected area
+3. View as Kaelen - exits show `jump across` with closed pit description  
+4. Edit jump view in way inspector - lens updates without running sim  
+5. Select Lyrie in agent list - lens shows **her** prompts from Frozen Thicket, not selected area
 
 <!-- changelog:start -->
 ## Changelog
@@ -122,12 +122,12 @@ No agent step required for copy validation. Inspector stays editable; lens never
 
 | When | Task | Status |
 |---|---|---|
-| — | [[task-224-transit-areas-entry-relative-exits\|task-224-transit-areas-entry-relative-exits]] | `done` |
-| — | [[task-223-way-prevent-close-open-passages\|task-223-way-prevent-close-open-passages]] | `done` |
-| — | [[task-222-serialize-exits-graph-only\|task-222-serialize-exits-graph-only]] | `done` |
-| — | [[task-221-way-authoring-ux-and-tooltips\|task-221-way-authoring-ux-and-tooltips]] | `done` |
-| — | [[task-220-unified-way-editor\|task-220-unified-way-editor]] | `done` |
-| — | [[task-219-agent-lens-left-panel\|task-219-agent-lens-left-panel]] | `done` |
-| — | [[task-201-area-visibility-beyond-ways\|task-201-area-visibility-beyond-ways]] | `done` |
-| — | [[task-135-character-item-spatial-relationships\|task-135-character-item-spatial-relationships]] | `done` |
+| - | [[task-224-transit-areas-entry-relative-exits\|task-224-transit-areas-entry-relative-exits]] | `done` |
+| - | [[task-223-way-prevent-close-open-passages\|task-223-way-prevent-close-open-passages]] | `done` |
+| - | [[task-222-serialize-exits-graph-only\|task-222-serialize-exits-graph-only]] | `done` |
+| - | [[task-221-way-authoring-ux-and-tooltips\|task-221-way-authoring-ux-and-tooltips]] | `done` |
+| - | [[task-220-unified-way-editor\|task-220-unified-way-editor]] | `done` |
+| - | [[task-219-agent-lens-left-panel\|task-219-agent-lens-left-panel]] | `done` |
+| - | [[task-201-area-visibility-beyond-ways\|task-201-area-visibility-beyond-ways]] | `done` |
+| - | [[task-135-character-item-spatial-relationships\|task-135-character-item-spatial-relationships]] | `done` |
 <!-- changelog:end -->

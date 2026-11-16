@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-939",
+  "kind": "task",
+  "number": 939,
+  "title": "The Commons omni-modal media pass-through for native multimodal AI models",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-824",
+      "task-892",
+      "task-935"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Enable native multi-modal media attachments (image, audio, and video) in The Commons, routing the raw media directly into supported omni-modal models (such as Liquid AI LFM3-Omni-2B, Gemini Multimodal, and GPT-4o) without server-side transcription workarounds:\n\n1. **Commons Message Media Attachments**:\n   - Extend Commons message schema (`engine/commons.py`) with an `attachments` list:\n     - `id`: Unique attachment identifier.\n     - `mime_type`: Supported MIME types (`image/*`, `audio/*`, `video/*`).\n     - `url`: Path to stored asset under `static/assets/uploads/`.\n     - `caption`: Optional human or author caption.\n   - Extend Commons composer in `static/js/commons/commons-ui.ts` with a media attachment button and upload handler.\n2. **Native Omni-Modal Router & Pass-Through**:\n   - In `static/js/commons/commons-agent.ts` and `engine/llm_client.py`:\n     - Detect whether the active model supports the attachment's modality (via `data/model_bench/model_registry.json` or model capability flags).\n     - For omni-modal models: construct the provider's native multi-part payload (e.g. Gemini `parts` array with `inline_data`, or OpenAI multimodal content blocks).\n     - Pass the media directly to the inference endpoint. The omni-modal model watches, listens, or reads the file natively and produces an authentic in-character reaction in `inner_monologue` and dialogue.\n3. **Text-Only Fallback**:\n   - If the receiving character's model is text-only (e.g. standard Llama 3 8B), substitute the raw media with the attachment's `caption` or a diegetic system note: `[Media attachment: audio clip (24s) - device cannot play audio]`.",
+    "why": "Next-generation omni-modal architectures (such as Liquid AI's LFM3-Omni-2B or Gemini) are unified end-to-end models designed to perceive video, audio, and images simultaneously. Forcing media through external ffmpeg frame-splitters or speech-to-text engines is slow, CPU-intensive, destroys auditory tone and visual cadence, and adds unnecessary dependencies. By treating The Commons as a clean pass-through router, supported models can natively experience in-game media as genuine sensory input.",
+    "how": "1. In `engine/commons.py`:\n   - Update `post_message` to accept an optional `attachments` list containing `{ id, mime_type, url, caption }`.\n   - Update message serialization in `to_dict()` and `from_dict()`.\n2. In `routes/commons.py`:\n   - Implement `POST /api/commons/upload` to store uploaded media files into `static/assets/uploads/commons/` and return metadata.\n3. In `static/js/commons/commons-agent.ts`:\n   - When building prompt messages for a character's turn, check if unread messages contain attachments.\n   - If model capability supports the MIME type, format the message content as an array of parts (text prompt + media block).\n4. In `static/js/commons/commons-ui.ts`:\n   - Render attachment previews in the chat stream: inline images, playable `<audio>` controls for voice notes, and compact `<video>` players for video clips.",
+    "verify": "1. In browser UI, inspect Commons composer for attachment controls.\n   - expected: Attachment button allows selecting image, audio, or video files.\n   - observed: Only single-line text input exists.\n2. Post message with attachment via API: `POST /api/commons/messages`.\n   - expected: Accepts `attachments` array and persists to Commons state.\n   - observed: Message schema rejects or drops unknown attachment fields.\n3. Inspect prompt builder output when character is assigned an omni-modal model.\n   - expected: Formats multi-part payload containing media URI / inline data.\n   - observed: Only builds plain text strings.\n4. Run tests: `pytest tests/test_commons.py`.\n   - expected: All unit tests pass.",
+    "acceptance": [
+      {
+        "text": "Commons message schema supports an `attachments` list for image, audio, and video files.",
+        "done": false
+      },
+      {
+        "text": "Commons UI supports uploading, previewing, and displaying media attachments inline.",
+        "done": false
+      },
+      {
+        "text": "Prompt builder forwards raw media attachments natively to omni-modal models (LFM3, Gemini, GPT-4o).",
+        "done": false
+      },
+      {
+        "text": "Text-only models receive clean diegetic caption fallbacks without crashing.",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes anywhere in task cards, code, or documentation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/commons.py",
+      "routes/commons.py",
+      "static/js/commons/commons-ui.ts",
+      "static/js/commons/commons-agent.ts",
+      "static/js/llm-client.ts",
+      "tests/test_commons.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: The Commons drawer composer and message stream.\n\nCurrent availability: Commons messages only accept and render plain text strings. No file attachment affordance or multimodal prompt forwarding exists.\n\nLive steps when available:\n1. Open The Commons drawer in the browser UI and select a channel (e.g. `#general`).\n   - expected: Composer displays an attachment paperclip button next to the text input.\n2. Click the attachment button and upload an audio note or image file (e.g. `evidence_photo.jpg`).\n   - expected: Attachment thumbnail appears in the composer staging area with an optional caption field.\n3. Type *\"Take a look at this footprint\"* and press send.\n   - expected: Message appears in the chat stream with the image rendered inline.\n4. Advance simulation turn so an omni-modal agent character (e.g. configured with Gemini or LFM3) processes the message.\n   - expected: Agent's turn inspects the image natively and produces a response referencing visual details from the photograph in character.\n5. If the recipient uses a text-only model, trigger their turn.\n   - expected: Agent responds to the caption and acknowledges receiving an image attachment.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/gameplay/task-939-commons-omni-modal-media-pass-through-for-native-multimodal-models.md"
+  }
+}

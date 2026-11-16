@@ -15,7 +15,7 @@ priority: medium
 
 ## What
 
-When clicking on an equipment slot in the paperdoll inspector (e.g. "Torso", "Head", "Legs"), open a modal/popup that shows the full layer stack for that slot, the bonuses each item provides, and allows unequip/reorder actions — making character design and gear inspection easier.
+When clicking on an equipment slot in the paperdoll inspector (e.g. "Torso", "Head", "Legs"), open a modal/popup that shows the full layer stack for that slot, the bonuses each item provides, and allows unequip/reorder actions - making character design and gear inspection easier.
 
 ---
 
@@ -43,10 +43,10 @@ Currently, clicking a filled equipment slot in the paperdoll inspects the **oute
 - **Slot capacity**: "X / Y equipped" (max_depth from EQUIP_SLOTS)
 
 ### 3. Actions
-- **Unequip** button per item — pops that specific item (not just outermost)
-- **Move up / Move down** buttons — reorders layers within the slot
-- **Unequip all** button — clears the entire slot
-- **Equip item** button — opens the existing equip picker filtered to this slot
+- **Unequip** button per item - pops that specific item (not just outermost)
+- **Move up / Move down** buttons - reorders layers within the slot
+- **Unequip all** button - clears the entire slot
+- **Equip item** button - opens the existing equip picker filtered to this slot
 
 ### 4. Bonus Display
 Show all relevant aggregate bonuses from the slot's items:
@@ -93,7 +93,7 @@ Click "Torso" slot
 
 ### Bonus aggregation
 
-Reuse the logic from `engine/equipment_bonuses.py`'s `aggregate_bonuses()` — but do it client-side from `worldState` data:
+Reuse the logic from `engine/equipment_bonuses.py`'s `aggregate_bonuses()` - but do it client-side from `worldState` data:
 
 ```js
 function getSlotBonuses(nodeProperties) {
@@ -112,9 +112,9 @@ function getSlotBonuses(nodeProperties) {
 ## Related
 
 - [[done/prompting/task-123-equipment-description-in-prompts|task-123: Equipment description in prompts]]
-- `engine/equipment.py` — EQUIP_SLOTS config with max_depth
-- `engine/equipment_bonuses.py` — aggregate_bonuses() for server-side bonus calc
-- `static/js/inspector/paperdoll-view.js` — existing paperdoll rendering
+- `engine/equipment.py` - EQUIP_SLOTS config with max_depth
+- `engine/equipment_bonuses.py` - aggregate_bonuses() for server-side bonus calc
+- `static/js/inspector/paperdoll-view.js` - existing paperdoll rendering
 
 ## How
 
@@ -137,7 +137,7 @@ function getSlotBonuses(nodeProperties) {
 - Bonus display: defense, insulation, damage, weight, resistances
 - Layer reordering via `_moveLayer()` helper (client-side array swap)
 - Item names are clickable to open the item inspector
-- Accessories section now clickable — opens the same modal for the accessory slot (unlimited capacity)
+- Accessories section now clickable - opens the same modal for the accessory slot (unlimited capacity)
 
 ## Steps to verify
 

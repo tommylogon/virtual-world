@@ -15,7 +15,7 @@ Closed. Everything the task describes is implemented in
 - Freeze the hidden set (`physics:false`) and restore on clear:
   `_parkHiddenSet` `:113-130`, `_restoreParkedPhysics` `:150-164`.
 - Cluster matches: save positions + viewport, lay out a bounded grid centred on
-  the viewport via `moveNode`, settle, restore — `_clusterResults` `:171-214`,
+  the viewport via `moveNode`, settle, restore - `_clusterResults` `:171-214`,
   `_unCluster` `:217-237`.
 - "Keep in place" checkbox, persisted in localStorage
   (`graph-search-keep-in-place`): `isKeepInPlace` `:81-83`, `setKeepInPlace`
@@ -26,23 +26,23 @@ Closed. Everything the task describes is implemented in
 **Corrections to this file's own claims:** the visible set is computed in
 `network-manager.js`, not `projector.js`; the checkbox input is
 `templates/index.html:202` (201 is its label); and the shipped cluster is an
-explicit `moveNode` grid rather than a force-directed settle —
+explicit `moveNode` grid rather than a force-directed settle -
 `_kickClusterPhysics` returns early when physics is off (`:286`), which is the
 keep-in-place case.
 
 **Outstanding, deliberately not blocking closure:** the manual browser pass the
-task lists, and `bug-36` — an open, unfixed guard for `moveNode` being called for
+task lists, and `bug-36` - an open, unfixed guard for `moveNode` being called for
 absent node ids, which is the same code (`focus.js:_unCluster :220-226`). Filed
 separately; closing this task does not close that bug.
 
 **Filed**: 2026-09-07
-**Status**: In Progress — freeze + cluster + restore + keep-in-place landed 2026-09-07; manual browser pass pending.
+**Status**: In Progress - freeze + cluster + restore + keep-in-place landed 2026-09-07; manual browser pass pending.
 
 ## Source
 
 Conversation 2026-09-07 (graph search UX). When searching (e.g. "food"), matching
 nodes stay spread out on the graph even though everything else is hidden, because
-hidden nodes **keep their mass in the physics simulation** — they're invisible but
+hidden nodes **keep their mass in the physics simulation** - they're invisible but
 still repel. Expected behavior per user: on search-enter, matches should be
 centered in the middle of the viewport.
 
@@ -53,7 +53,7 @@ Two distinct bugs:
 1. **Hidden nodes still participate in physics.** Search-hiding sets visibility,
    but the hidden nodes' springs/masses keep the matches wedged in place.
 2. **No clustering.** Even with ghosts gone, force-directed relaxation from a
-   spread-out start is slow and arbitrary — matches need an explicit compact
+   spread-out start is slow and arbitrary - matches need an explicit compact
    layout, not "just fit the view".
 
 ## How
@@ -66,10 +66,10 @@ Two distinct bugs:
 
 ### B. Cluster results on query-enter
 - On search activation (after the debounce in `graph/focus.js`), **save** the
-  current positions + viewport (same pattern `loadGraphData` already uses —
+  current positions + viewport (same pattern `loadGraphData` already uses -
   `savedPositions` / `savedView`).
 - Lay out the visible set compactly around the viewport center:
-  - `_fitToSearchMatches()` already exists — keep it for initial framing.
+  - `_fitToSearchMatches()` already exists - keep it for initial framing.
   - Add a short force-directed settle (reuse `_kickClusterPhysics()`) seeded at
     the center so matches gather into a tight cluster rather than spreading.
 - On clearing the query: restore `savedPositions` + `savedView` so the world
@@ -77,19 +77,19 @@ Two distinct bugs:
 
 ### C. Keep-in-place toggle
 - A small checkbox under the search box: **"Keep in place"**.
-  - Default (off): cluster mode above — best for *finding* things.
+  - Default (off): cluster mode above - best for *finding* things.
   - On: freeze hidden nodes from physics but do NOT move the matches (for spatial
-    reasoning — "where does food live in this house?").
+    reasoning - "where does food live in this house?").
 
 ## Implementation notes
 
 - Files: `static/js/graph/focus.js` (search entry/settle/clear + layout seed),
-  `static/js/graph/projector.js` (visible-set computation — the hidden set is
+  `static/js/graph/projector.js` (visible-set computation - the hidden set is
   derivable), `static/js/graph/network-manager.js` (physics toggling per node +
   position save/restore already present in `loadGraphData`; reuse those helpers).
 - Save/restore should be scoped per search session (not a global structural
   reload), so a clear always returns the user to the pre-search state.
-- Debounce already exists in `filterNodes` — cluster kicks in after it settles.
+- Debounce already exists in `filterNodes` - cluster kicks in after it settles.
 
 ## Steps to verify
 
@@ -105,7 +105,7 @@ Two distinct bugs:
 
 ## Files
 
-- `static/js/graph/focus.js` — reworked search settle flow:
+- `static/js/graph/focus.js` - reworked search settle flow:
   - `_parkHiddenSet()`: while a query is active, every node outside the visible
     set gets `physics:false` (excluded from the sim so hidden nodes stop
     repelling the matches); freshly-revealed nodes restore their config physics.
@@ -117,11 +117,11 @@ Two distinct bugs:
     nodes back + `moveTo` saved viewport) and `_restoreParkedPhysics()`.
   - `_fitToSearchMatches()` retained as the keep-in-place path (fit + kick, no
     repositioning). `init()` syncs checkbox + manager flag from localStorage.
-- `templates/index.html` — KEEP checkbox next to the graph search input.
+- `templates/index.html` - KEEP checkbox next to the graph search input.
 
 ## Verification
 
-- `node --check static/js/graph/focus.js` — pass.
+- `node --check static/js/graph/focus.js` - pass.
 - Manual browser pass still TODO: search "food" → matches gather center;
   Esc/clear → exact prior viewport restored; KEEP mode leaves matches
   geographically in place while hidden set stays frozen.

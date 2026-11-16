@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "id": "task-665",
+  "kind": "task",
+  "number": 665,
+  "title": "Kraktooth cast rework is half-migrated in the working tree: 5 staged renames, 4 un-migrated, duplicate Merchant entry, 7 descriptions claiming nonexistent items",
+  "status": "review",
+  "priority": "low",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-01",
+  "updated": "2026-10-01",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-519",
+      "task-619",
+      "task-513",
+      "bug-516"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Bring the Kraktooth cast rename + equipment rework to a consistent, recorded state, or revert it. Currently it exists only as staged git renames and half-edited JSON with no task tracking it.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**Every renamed file has its internal `name` matching its filename.**",
+        "done": false
+      },
+      {
+        "text": "Currently only `Harren Cobb` and `Gareth Ollen` do.",
+        "done": false
+      },
+      {
+        "text": "No duplicate library entries. `Eldenford Merchant.json` (untracked, created",
+        "done": false
+      },
+      {
+        "text": "by a browser save) is either retired or promoted to `Pell Ardin.json`.",
+        "done": false
+      },
+      {
+        "text": "Every relationship key in every renamed file points at a character that",
+        "done": false
+      },
+      {
+        "text": "exists under its **new** name -- but read task-619 first, because these are",
+        "done": false
+      },
+      {
+        "text": "display-name keys and the migration may be invalidated by that work.",
+        "done": false
+      },
+      {
+        "text": "No description claims an item the character does not have. Either the",
+        "done": false
+      },
+      {
+        "text": "description changes or the item exists, per character, verified by reading",
+        "done": false
+      },
+      {
+        "text": "`inventory`/`equipped` back after import.",
+        "done": false
+      },
+      {
+        "text": "The four half-migrated renames are either completed or reverted. Half a",
+        "done": false
+      },
+      {
+        "text": "rename is worse than none: the file name says one thing and the `name`",
+        "done": false
+      },
+      {
+        "text": "field says another, and the registry keys on the id.",
+        "done": false
+      },
+      {
+        "text": "Gear is authored the way task-519 specifies (library-id references), not as",
+        "done": false
+      },
+      {
+        "text": "hand-embedded item dicts, so the Harren workaround is deleted rather than",
+        "done": false
+      },
+      {
+        "text": "copied five more times.",
+        "done": false
+      },
+      {
+        "text": "**Every renamed character node carries an explicit `library_id` or",
+        "done": false
+      },
+      {
+        "text": "`template_ref`.** All five Eldenford nodes currently resolve by name only,",
+        "done": false
+      },
+      {
+        "text": "which is how the rename produced a refresh that applied the merchant to the",
+        "done": false
+      },
+      {
+        "text": "blacksmith. Resolving by name is what made the rename load-bearing.",
+        "done": false
+      },
+      {
+        "text": "A refresh on each renamed character is exercised and the applied data is",
+        "done": false
+      },
+      {
+        "text": "read back, confirming it is *that* character's personality and not a",
+        "done": false
+      },
+      {
+        "text": "neighbour's.",
+        "done": false
+      },
+      {
+        "text": "Outcome is stated: completed, or reverted with the working tree clean. This",
+        "done": false
+      },
+      {
+        "text": "task's value is that the state stops being invisible.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_consequence_2026_10_01_found_during_task_660_verification": "**The rename does not merely leave a duplicate file. It breaks the live node's\ntemplate resolution, and a refresh then applies the wrong character's data.**\n\nFound in the browser log: `Refreshed \"Eldenford Blacksmith\" from library` logged\na successful apply, and immediately afterwards the Eldenford Blacksmith node was\ncarrying **the merchant's** personality and description - which is what the\nauto-dress LLM was then shown, twice, so it dressed the blacksmith like a\ntrader.\n\nMeasured, keeping the unproven part separate:\n\n- **Established:** no Eldenford node carries `library_id` or `template_ref`\n  (checked all five), so a character node resolves its template **by name\n  alone**. `Eldenford Blacksmith` is no longer a library key - the entry is\n  `Harren Cobb`, and `/api/library/characters` no longer returns the old key.\n  The step immediately before the wrong data is the node-level\n  `template-sync.js:181` refresh.\n- **Established:** live state is *correct now*. All five Eldenford characters\n  carry their own personality and description. The wrong personality was\n  transient - present during the run, gone after the later engine\n  re-initialisation. So this corrupts state rather than persisting it, which is\n  worse than a visible break because nothing reports it.\n- **Not established:** the exact fallback that produced the merchant. Either the\n  client resolved `libId` unexpectedly, or server-side\n  `resolve_template_id` (`engine/sync.py:170`, `guess=\"node_name\"`) did. Both\n  are plausible; neither was isolated.\n\nThis is the concrete cost of a half-rename, and it decides the order of work:\nthe rename has to be finished **in the live world first** - or the node bindings\nrewritten - not in the library files with the nodes left to guess.\n\n**Partially mitigated on 2026-10-01.** All five Eldenford nodes now carry an\nexplicit `library_id`, pinned through the sanctioned path\n(`POST /api/library/refresh-to-world` with `sections: []`, which applies nothing\nand still runs `sync.link` at `routes/library_ops.py:1145`):\n\n    Eldenford Blacksmith          -> Harren Cobb\n    Eldenford Elder               -> Gareth Ollen\n    Eldenford Farmer              -> Tobin Marsh\n    Eldenford Merchant            -> Pell Ardin      (NOT the untracked duplicate)\n    Eldenford Road Guard Captain  -> Corvin Hale\n\nSo the cast can be synced now without any name matching, and the Merchant\nresolves to the renamed template rather than to `Eldenford Merchant.json`. This\nis a pin on filename-shaped keys, so it does not survive a future rename - that\nis task-667.\n\nNote what this does **not** fix: the three files with a stale `name` field\n(`Corvin Hale`, `Pell Ardin`, `Tobin Marsh`) will still have their `name` applied\nto the live player if `name` is among the refreshed sections, which would\ndiverge `player.name` from the graph node's name. Refresh those three with\n`name` deselected, or fix the fields first.",
+      "notes_on_scope": "This is a bookkeeping task in the sense that it exists because the work was\nuntracked, not because the work is hard. The hard parts are bug-516,\ntask-519 and task-619. If those are deferred, the honest end state here is a\nclean revert, not a partial migration left staged.\n\nOne thing already verified and worth keeping: the browser-save direction writes\n`data/library/characters/<Live Name>.json`, and the live scenario still holds the\nplaceholder names (`player_Eldenford_Blacksmith` and the other four, at\n`data/scenarios/kraktooth_goblin_camp.json:17440-17526`). So renaming library\nfiles alone guarantees a duplicate on the next save, which is exactly how\n`Eldenford Merchant.json` came to exist. The rename cannot be completed in the\nlibrary in isolation.",
+      "browser_ui": "Intended UI home: load `kraktooth_goblin_camp.json` → select each renamed character in the graph → inspect Bio and Inventory; use the Library Browser to check the merchant template entries.\n\nCurrent availability: the card records staged renames, four unmigrated cast entries, a duplicate merchant template, and descriptions naming items characters do not own. No fresh live scenario check is recorded here.\n\nLive steps when available:\n1. Load the scenario and inspect each renamed character's display name, node ID, relationships, equipment, and description in the character Inspector.\n   - expected: internal character `name` matches the intended renamed file/name; every described item is actually owned or equipped; relationship targets resolve to the intended existing character after task-619's key decision.\n2. Open the Library Browser and search for the Eldenford Merchant and Pell Ardin entries.\n   - expected: exactly one canonical merchant entry appears; if promoted, it is `Pell Ardin.json`, not a duplicate display-name entry.\n3. Save and reload the scenario, then inspect the same characters and inventories.\n   - expected: the chosen cast names, equipment, and relationships persist without stale aliases or duplicate merchant records.\n\nThis section is not a claim that the rework is complete or live-verified today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-665-kraktooth-cast-rework-is-half-migrated-in-the-working-tree-5-staged-renames-4-un-migrated-duplicate-merchant-entry-7-descriptions-claiming-nonexistent-items.md"
+  }
+}

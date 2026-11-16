@@ -18,7 +18,7 @@ and be restored on load.
 
 Current state (measured):
 
-- The selection lives only in memory — `graphManager._scopeFilter`
+- The selection lives only in memory - `graphManager._scopeFilter`
   (`static/js/graph-manager.ts:132` declared, `:183` initialised to `null`),
   set by `setScopeFilter` (`:545`) from the picker `#graph-scope-filter`
   (`:498`) and the scope tree (`static/js/graph/scope-tree.ts:341-342`).
@@ -30,7 +30,7 @@ Current state (measured):
   `vw_stream_mode` (`event-stream.ts:92`).
 
 Scope: persist the selected scope **per scenario**, and restore it after the
-scope manifest loads. Must not leak a scope id from one world into another — the
+scope manifest loads. Must not leak a scope id from one world into another - the
 same reasoning `graph-background` uses for its per-scenario key
 (`_scenarioKey`). A restored id that no longer exists (renamed/deleted scope)
 must fall back to whole world, not error.
@@ -40,10 +40,10 @@ must fall back to whole world, not error.
 Persisted per scenario in `localStorage` under `vw_graphScope_<scenario name>`
 (same identity source as `graph-background._scenarioKey`).
 
-- `graph-manager.ts` — `_scopeStorageKey` / `_persistScopeFilter` / `_restoreScopeFilterOnce`;
+- `graph-manager.ts` - `_scopeStorageKey` / `_persistScopeFilter` / `_restoreScopeFilterOnce`;
   `setScopeFilter` now persists (whole world clears the key); `loadGraphData` restores
   once per page load, before the subgraph fetch, validated against `_scopeSummaries`.
-- `graph/network-manager.ts` — the stale-scope fallback also clears the saved key, so an
+- `graph/network-manager.ts` - the stale-scope fallback also clears the saved key, so an
   unresolvable id cannot loop across reloads.
 - Guard: `tools/unit/test_graph_scope_tree.js` asserts the calls are wired.
 

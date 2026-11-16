@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "bug-40",
+  "kind": "bug",
+  "number": 40,
+  "title": "Save list renders AUTO and version badges as literal HTML",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-365"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "Preferred: stop pre-building markup as strings. Emit the badges as real elements in the\ntemplate (e.g. a conditional badged span before the name, a small muted span after it),\nso the row no longer depends on an escaping opt-in.\n\nIf the minimal change is wanted first, wrap the two values in the escaping escape hatch\nalready used elsewhere in the repo - `window.Lit.unsafeHTML(badge)` /\n`window.Lit.unsafeHTML(versionBadge)` (precedent: `static/js/event-stream.js:493`).\nDo not route `save.name`/`save.filename` through `unsafeHTML`; those are user text.\n\nWhichever path is taken, the extracted row template from task-456 is the natural home\nfor it.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "The autosave row shows a styled `AUTO` badge, not raw `<span ...>` text.",
+        "done": false
+      },
+      {
+        "text": "Every row shows `v<version>` as a muted badge, not raw markup.",
+        "done": false
+      },
+      {
+        "text": "A save whose display name contains `<`, `>`, `&`, or a quote renders those",
+        "done": false
+      },
+      {
+        "text": "characters literally (name stays escaped).",
+        "done": false
+      },
+      {
+        "text": "No badge markup is visible in the rendered list for any row.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/ui/saveload-view.js` - list template, badge construction (lines ~462-471)"
+    ],
+    "custom": {
+      "symptom": "Reported from a screenshot of the Save / Load Game modal. The autosave row's title\nrendered as raw markup instead of a badge:\n\n```\n<span style=\"background:var(--accent,#4a9eff);color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;margin-right:5px;\"> AUTO </span>Autosave<span style=\"font-size:9px;color:var(--text-muted);margin-left:4px;\">v1.3.0</span>\n```\n\nEvery row also showed its version tag as the same literal `<span style=\"font-size:9px;...\">v1.3.0</span>`\ntext. The storage is fine - `save.name` is `Autosave` and the metadata is correct; only\nthe rendering is wrong.",
+      "root_cause": "`static/js/ui/saveload-view.js:462-471` builds `badge` and `versionBadge` as **HTML\nstrings**, then interpolates them into a Lit template:\n\n```js\nvar badge = isAuto\n    ? '<span style=\"...\">AUTO</span>'\n    : '';\n...\n<strong>${badge}${save.name || save.filename}</strong>${versionBadge}\n```\n\nThose interpolations are Lit **text** bindings, so Lit escapes the markup and the user\nsees it verbatim. `save.name` and `save.filename` are also text-bound, which is correct\nand should stay escaped.",
+      "fix_2026_09_24": "`badge` and `versionBadge` are now Lit templates (`saveLoadViewTag\\`<span …>\\``)\ninstead of HTML strings, so Lit renders the elements rather than escaping them\nas literal text. `save.name` / `save.filename` remain ordinary text bindings, so\na name containing `<`, `>`, `&` or a quote still renders literally. No engine or\nroute change; `node --check` / lint / typecheck clean. The badge markup is now\nbuilt by the same `saveLoadViewTag` used for the row.\n\nAcceptance met by construction; the row markup cannot contain a raw `<span …>`\nstring any more (only the two element templates, which Lit owns).",
+      "second_live_verification_2026_10_02_port_4471": "Opened `#load-game-modal` and rendered the real list via\n`SaveLoadView.loadGameList()`:\n\n- `#save-game-list` visible text contains **no** literal `<span` (regex\n  `/<span/i` → false).\n- The autosave row's text is `AUTOAutosavev1.3.0` - badge text with no markup -\n  and the list holds **2 real `<span>` elements** (the AUTO badge and the\n  version badge), so Lit rendered them as elements.\n- Row: `20261002 102656 · 08:00 · Kaelen Voss · world_template · 3 PCs · 19 areas · 560.2 KB`.\n\nNo page errors."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-40-save-list-renders-auto-and-version-badges-as-literal-html.md"
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "id": "task-529",
+  "kind": "task",
+  "number": 529,
+  "title": "Feature-entry direction phrases (narrative move verbs on entry edges)",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-26",
+  "updated": "2026-09-26",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-496",
+      "task-525",
+      "bug-529",
+      "bug-530"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the hardcoded in/out gateway directions with a phrase the feature/placement owns: enter, enter the mine, climb up the rockface, descend the shaft. Exterior cell-to-cell moves stay compass north/south/east/west (+ diagonals); only the exterior->feature seam gets narrative verbs. The engine already resolves movement by the direction string, so no engine change is required - the compiler/gateway must carry the phrase and the area description must offer it ('a cave mouth yawns here; you could enter'). Decide where the phrase is sourced (feature/biome record, placement field, or scope record), how it is validated/deterministically defaulted, and how the walker and prompt list it as an available move.",
+    "why": "Entering distinct architectural features or landmarks should evoke tailored movement narration (\"enter the shrine\", \"step onto the pier\") rather than repetitive directional prose.",
+    "how": "Derived entry phrases from feature type tags and attached directional verb descriptors to transition way nodes.",
+    "verify": "1. Move from wilderness into a placed feature area\n   - expected: Narration describes entry using tailored feature verb phrase\n   - observed: Verified in tests/test_narration.py",
+    "acceptance": [
+      {
+        "text": "**The phrase is owned by the record.** `tunnel`, `gate`, `bridge`, `ford`",
+        "done": true
+      },
+      {
+        "text": "and `ruin` declare `entry_phrase` / `exit_phrase` / `entry_aliases` in",
+        "done": false
+      },
+      {
+        "text": "`data/worldpainter/biomes.json`, and `biomes_mod.entry_phrases()` reads",
+        "done": false
+      },
+      {
+        "text": "them. A tunnel says \"go down the tunnel\", not the derived \"enter the",
+        "done": false
+      },
+      {
+        "text": "shaft\" - a modder edits one JSON field and the world changes.",
+        "done": false
+      },
+      {
+        "text": "**The placement outranks the record**, as `placements[child].entry_phrase`:",
+        "done": true
+      },
+      {
+        "text": "a mine with two adits has two ways in and only the author knows which is",
+        "done": false
+      },
+      {
+        "text": "which. A placement phrase is honoured verbatim and still keeps the record's",
+        "done": false
+      },
+      {
+        "text": "short `in`/`out` handles.",
+        "done": false
+      },
+      {
+        "text": "**The derived phrase is the last resort**, and only when neither source",
+        "done": true
+      },
+      {
+        "text": "speaks - which is the point: the chain has an order, and the order is in one",
+        "done": false
+      },
+      {
+        "text": "function.",
+        "done": false
+      },
+      {
+        "text": "**The author's phrase survives a Generate.** Placement records are rebuilt",
+        "done": true
+      },
+      {
+        "text": "from the cell on every compile, so author-owned keys are carried through",
+        "done": false
+      },
+      {
+        "text": "and only the compiler's own keys (`_DERIVED_PLACEMENT_KEYS`) are",
+        "done": false
+      },
+      {
+        "text": "overwritten. Checked by compiling twice: the phrase is still there.",
+        "done": false
+      },
+      {
+        "text": "**The description offers the move**: a seam with an `entry_phrase` reads",
+        "done": true
+      },
+      {
+        "text": "\"You could go down the tunnel - Shaft is on the other side.\" rather than",
+        "done": false
+      },
+      {
+        "text": "`[go down the tunnel] is clear`. A shut one reads \"You could enter the",
+        "done": false
+      },
+      {
+        "text": "tavern, but the tavern's door is shut and the sign is turned.\"",
+        "done": false
+      },
+      {
+        "text": "**Exterior cell-to-cell moves are untouched** - still `north`/`south`/",
+        "done": true
+      },
+      {
+        "text": "`east`/`west` and the diagonals. Only the exterior→feature seam is narrative.",
+        "done": false
+      },
+      {
+        "text": "A building's `in` way carries its phrase too, so a town street offers its",
+        "done": true
+      },
+      {
+        "text": "doorways the same way a cliff offers its tunnel.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/narration.py",
+      "engine/world_compile.py"
+    ],
+    "custom": {
+      "notes": "- The phrase is recorded on the way as `entry_phrase` **and** kept as the\n  `direction`, because movement already resolves by the direction string: the\n  engine needs no change, which was the task's expectation.\n- The \"cave mouth yawns here\" prose was deliberately not added as a *biome\n  description*. The offer line already puts the mouth in the room the character\n  is standing in, which is where the author can see it, rather than in the\n  inventory of the thing behind it."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-529-feature-entry-direction-phrases-narrative-move-verbs-on-entry-edges.md"
+  }
+}

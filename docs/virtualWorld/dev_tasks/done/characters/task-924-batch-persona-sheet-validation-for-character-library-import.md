@@ -12,6 +12,10 @@ related: ["task-903", "task-843"]
 **Filed:** 2026-10-31
 **Related:** task-903, task-843
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]], [[task-843-character-file-import-llm-converts-any-card-or-prose-to-the-persona-schema]]
+<!-- deps:end -->
+
 ## What
 
 Add a bulk validation step in the character library import tool (`static/js/character-import.ts` and `engine/character_appearance.py`) to validate all characters in a scenario or folder, reporting missing required fields, unnormalized tags, or broken references in a single batch report.
@@ -36,5 +40,5 @@ When importing a cast of 10+ characters from an external JSON pack or library fo
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

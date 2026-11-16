@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "task-459",
+  "kind": "task",
+  "number": 459,
+  "title": "NL editor roster and aggregate reads",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-458",
+      "task-457"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give the NL editor real read coverage of the cast and contents: a list_characters / list_nodes tool with kind+tag+area filters, counts and pagination; extend list_world_summary beyond areas; support 'who is in area X' and relation traversal ('all characters with an in edge to area_x'). Complements search_graph_nodes (currently capped at 15 and without roster/aggregate semantics).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`list_nodes` tool: `kind`, `tags`/`tag` (+ `require_all_tags`), `area`",
+        "done": true
+      },
+      {
+        "text": "(nodes with an `in` edge to it - \"who is in area X\"), `name_contains`,",
+        "done": false
+      },
+      {
+        "text": "with a total `count` and `page`/`page_size`/`pages` (`static/js/nl-editor/tools.js`).",
+        "done": false
+      },
+      {
+        "text": "Selector core `OverlayGraphView.matchNodes` is shared with",
+        "done": true
+      },
+      {
+        "text": "`update_matching_nodes`, so the reviewed affected set and a roster read",
+        "done": false
+      },
+      {
+        "text": "use one definition and one server-mirrored shape.",
+        "done": false
+      },
+      {
+        "text": "`list_world_summary` extended beyond areas: per-type counts and a",
+        "done": true
+      },
+      {
+        "text": "character roster with current area.",
+        "done": false
+      },
+      {
+        "text": "Relation traversal (\"all characters with an `in` edge to area_x\") is the",
+        "done": true
+      },
+      {
+        "text": "`area` filter on the same selector.",
+        "done": false
+      },
+      {
+        "text": "Prompt guidance updated (agent-loop rule 9) so the agent prefers",
+        "done": true
+      },
+      {
+        "text": "`list_nodes` for roster/aggregate reads over the fuzzy, 15-capped",
+        "done": false
+      },
+      {
+        "text": "`search_graph_nodes`.",
+        "done": false
+      },
+      {
+        "text": "Tests: `tools/unit/test_nl_editor.js` (`matchNodes` by kind/tag, area,",
+        "done": true
+      },
+      {
+        "text": "explicit ids).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-459-nl-editor-roster-and-aggregate-reads.md"
+  }
+}

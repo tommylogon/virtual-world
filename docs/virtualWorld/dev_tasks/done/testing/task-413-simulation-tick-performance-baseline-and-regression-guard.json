@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-413",
+  "kind": "task",
+  "number": 413,
+  "title": "Simulation tick performance baseline and regression guard",
+  "status": "done",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-09-19",
+  "updated": "2026-09-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-402",
+      "world-scale",
+      "projection",
+      "benchmark",
+      "untitled",
+      "different",
+      "layer"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make per-tick simulation throughput measurable and protect it against\nregressions.",
+    "why": "The hot-path cost was only discovered by profiling (trigger/exit plumbing, not\nLLM). task-402 benchmarks **projection payload**, not the per-tick simulation\nloop, and there is no committed baseline for ticks/sec, per-tick node/edge\nvisits, exit rebuilds, or `.lower()` calls.",
+    "how": "1. A repeatable benchmark command (extend `tools/soak_sim.py` or add\n   `tools/bench_ticks.py`) that prints, with a fixed seed and scenario:\n   ticks/s, nodes/edges visited per tick, exit rebuilds, `.lower()` calls, and\n   character count.\n2. A checked-in baseline report (date, host, counts).\n3. A **marked** test that fails loudly when a scoped hot path regresses past an\n   agreed factor.",
+    "verify": "- Run the command before/after task-406/task-407 and record the delta.\n- Temporarily revert one fix to confirm the guard trips.",
+    "acceptance": [
+      {
+        "text": "One documented command reproduces the numbers.",
+        "done": false
+      },
+      {
+        "text": "The baseline is published in the report.",
+        "done": false
+      },
+      {
+        "text": "The guard fails on a deliberately reverted fix (prove it bites), then passes",
+        "done": false
+      },
+      {
+        "text": "again when restored.",
+        "done": false
+      },
+      {
+        "text": "It is not part of the ordinary unit suite; it runs explicitly.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "non_goals": "- Universal wall-clock targets before a host budget is chosen.\n- Browser rendering benchmarks.",
+      "baseline_2026_09_19_after_tasks_406_407": "- Command: `python tools/soak_sim.py --ticks 10080 --background-all --progress-seconds 1`\n- Result (first pass): 10,080 ticks (7 in-game days) in 9m49s → 17.1 ticks/s.\n- Result (second pass: lighting stamp/max + cheap edge moves): **10,080 ticks in\n  ~56s → 181 ticks/s**, 23/23 alive, 0 deaths. Trace 4,459 entries; memories 17;\n  graph 130 nodes. Survivor vitals identical to the slower run.\n- Rate decline was diagnosed: `GameLogger.record_turn_event` rebuilt the whole\n  `turn_events` list per append (O(n²) headless, ~17k entries). Fixed with\n  turn-change pruning + a 2,000 cap. After the fix, profile call counts are flat\n  early vs late (~2%); `record_turn_event` is out of the top 12.\n- Absolute timings vary with host load (a week measured 56s one session, 71s in\n  another where every early figure was ~2× slower) - compare call counts, not\n  just wall time.",
+      "progress_2026_09_19": "Guard built as `tests/test_perf_guards.py` (9 tests). It asserts *shape*, not\nwall time:\n\n- `GameLogger.turn_events` stays capped and prunes on turn change (the O(n²)\n  buffer fix).\n- `remove_edge` unindexes one edge and does **not** call `_rebuild_indexes`.\n- A direct `graph.edges.append(...)` is still found by the indexed lookups\n  (lazy rebuild), so effect handlers that bypass `add_edge` stay correct.\n- `_fire_turn_triggers` executes **zero** nodes when nothing owns the trigger,\n  and exactly the owner when something does.\n- Lighting: many dim sources do not stack (brightest wins), and the per-tick\n  stamp is used until a graph mutation invalidates it.\n\nVerified the guard bites: with the cap disabled, `turn_events` reaches 5,000 and\n`test_turn_events_are_capped` fails. Full suite: **2840 passing**.\n- Pre-fix reference: ~6–9 ticks/s, with the trigger/exit path responsible for\n  ~187s of 247s in a 100-tick profile (~876 exit rebuilds and ~1M `str.lower()`\n  per tick).\n- Post-fix profile top costs: `lighting.get_ambient_light` (trimmed),\n  `get_edges_for_target` call volume, background `move_to_area`,\n  `Player.state`. The trigger/exit cost is gone from the hot path.\n- Full suite: 2831 passing (0 failures) excluding pre-existing `test_mcp_*`.\n\nFollow-ups spotted by the profile (candidates for a next pass): memoise\n`_item_light_stats`/`get_ambient_light` with explicit lit-state invalidation,\nreduce `Player.state` cost, and stop `remove_edge` from triggering a full edge\nindex rebuild."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-406, task-407 (the fixes this guards)."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/testing/task-413-simulation-tick-performance-baseline-and-guard.md"
+  }
+}

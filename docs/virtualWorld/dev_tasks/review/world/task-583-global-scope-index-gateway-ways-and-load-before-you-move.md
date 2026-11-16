@@ -36,7 +36,7 @@ Keep a small global index outside any chunk: scope ids, area ownership, characte
 
 New package `engine/world/`:
 
-- `engine/world/index.py::GlobalScopeIndex` — the small resident index:
+- `engine/world/index.py::GlobalScopeIndex` - the small resident index:
   scope parents, **area ownership** (`scope_for_area`, `areas_in_scope`),
   **id-keyed character/unique-item location** (`character_location`,
   `item_location`), **gateways** (`target_area_id`/`target_scope_id`), and
@@ -71,7 +71,7 @@ New package `engine/world/`:
   refuses cleanly ("leads to a place that is not loaded here") when the scope
   cannot be loaded, instead of dereferencing `None`.
 
-Tests: `tests/test_global_scope_index.py` (9) — reindex derivation, dict
+Tests: `tests/test_global_scope_index.py` (9) - reindex derivation, dict
 round-trip, augment preserving unloaded-scope entries, ensure-destination with
 and without a loader, due-event draining, an **end-to-end crossing through a
 gateway into an evicted scope** (loaded, player arrives) and the clean refusal

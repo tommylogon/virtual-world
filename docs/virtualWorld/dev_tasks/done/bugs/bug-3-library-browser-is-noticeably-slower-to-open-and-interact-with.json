@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "bug-3",
+  "kind": "bug",
+  "number": 3,
+  "title": "Library browser is noticeably slower to open and interact with",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Opening the library browser and switching tabs is noticeably slower than before. The delay is several seconds.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "static/js/library-browser.js:55-63` â€” sequential fetches",
+      "static/js/item-library.js:72-85` â€” `open()` re-fetches items",
+      "routes/helpers.py:50-71` â€” `load_registry()` per-file I/O",
+      "---",
+      "_Audited 2026-08-03 - duplicate file consolidated into this record._"
+    ],
+    "custom": {
+      "root_cause": "Two compounding performance issues:\n\n### 1. Sequential API calls + duplicate item fetch\n\n`libraryBrowser.open()` calls `refreshAll()` which makes **6 sequential** API calls (`GET /api/library/items`, `characters`, `areas`, `traits`, `conditions`, `behaviours`). Then `switchTab('items')` calls `itemLib.open()` which calls `itemLib.refresh()` â†’ another `GET /api/registry/items`. Items data is fetched **twice** on every open.\n\nFix: run `refreshAll()` fetches in parallel with `Promise.all`. Skip `itemLib.refresh()` in `itemLib.open()` when data already exists from `refreshAll()`.\n\n### 2. Server reads individual files per entry\n\n`routes/helpers.py:load_registry()` calls `os.listdir()` then opens and `json.load()` each file individually. For 231 items, that's 231 file I/O operations per request.\n\nFix: add a simple in-memory LRU cache keyed by `(data_dir, filename)` with ~60s TTL, so repeated requests within a short window don't re-read all files.\n\n### 3. (Minor) renderList re-renders entire list HTML on every interaction\n\n`library-browser.js:renderList()` builds the entire list HTML from scratch every time a tab is switched or an entry is selected. For 231 items this is fast, but it adds up with the double-fetch.\n\nFix: virtual list or debounce, but this is secondary â€” the main wins are #1 and #2."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed (frontend only â€” parallel fetches + no duplicate)",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-3-library-slow-open.md"
+  }
+}

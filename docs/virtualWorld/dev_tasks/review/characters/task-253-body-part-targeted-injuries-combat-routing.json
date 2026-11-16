@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-253",
+  "kind": "task",
+  "number": 253,
+  "title": "Body Part Targeted Injuries & Combat Routing",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-16",
+  "updated": "2026-08-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-211",
+      "task-213",
+      "task-486",
+      "task-534",
+      "task-851"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "",
+    "why": "Combat (`engine/combat.py` `player_attack()`, line 62) routes **all** damage straight\nto `target.vitals[\"HP\"]` with no body-part concept. There is no `where` parameter, no\n`interact` vs `attack` branch, and nothing connects a combat hit → a body region → an\n`injured`/`bleeding` condition that drops items or blocks actions. \"A gash to the arm\"\nand \"a bruise on the leg\" are mechanically identical. This is the core gap for\nbodies/injuries and is currently undefined.",
+    "how": "",
+    "verify": "- [x] Weapon hit to a specified `where` applies damage AND a region-scoped injury\n- [x] Bare-handed aimed attack applies region injury\n- [x] Un-aimed attack rolls a d20 hit-location on a hit (deterministic + table tests)\n- [x] Low-damage hit below threshold applies no injury\n- [x] Covered region (high `coverage` clothing) blocks direct skin injury\n- [x] `injured`/`bleeding` region instances end independently via `ends_on`\n- [x] Bleeding applied at damage ≥ 10\n- [ ] Full-suite + JS syntax (DONE: 1017 passed, 1 skipped; node --check clean)\n- [ ] Browser E2E: `attack jake on the head` through `/api/action`",
+    "acceptance": [
+      {
+        "text": "Combat system routes damage to target body regions when specified.",
+        "done": true
+      },
+      {
+        "text": "Armor and clothing on target region absorb damage according to coverage.",
+        "done": true
+      },
+      {
+        "text": "Uncovered regions receive skin and tissue injuries when damage exceeds threshold.",
+        "done": true
+      },
+      {
+        "text": "Body state reflects injured status and impairs relevant actions.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/body_parts.py` - NEW: region catalog, resolver, coverage, hit-location table",
+      "engine/combat.py` - `player_attack(where=...)`, `_resolve_hit_region`, `_apply_region_injury",
+      "engine/serialization.py` - `body_state` round-trip",
+      "routes/action.py` - `where` region phrase parsing",
+      "virtual_world_engine.py` - `_player_attack(..., where=...)` facade",
+      "player.py` - `body_state` init",
+      "data/library/conditions/injured.json`, `bleeding.json` - region-aware conditions",
+      "static/js/agent/action-normalizer.js` - `attack ... on <where>",
+      "tests/test_body_parts.py` - NEW test module"
+    ],
+    "custom": {
+      "design_proposal_resolve_gap_a_gap_b_in_the_audit_doc": "- **Add a body-region taxonomy** used for BOTH injury and (later) erogenous targeting:\n  `head`, `torso`, `arm_left`, `arm_right`, `leg_left`, `leg_right`, `hand_left`,\n  `hand_right`, `foot_left`, `foot_right`. Keep it a fixed set on the schema, not graph\n  nodes.\n- **`where` parameter on the action schema**: `{action, type, target, where, intensity,\n  emote}`. `type ∈ interact (no damage) | attack (existing combat path)`. Default\n  `type: interact`.\n- **Combat routing**: `player_attack()` accepts an optional `where` region. On a hit:\n  apply the same damage to `HP`, and ALSO apply a region-scoped condition instance\n  (e.g. `injured` with a `body_part` override) if damage crosses a per-region threshold.\n  Bleeding can then trail/spawn items in that region.\n- **Region conditions** reuse the multi-instance condition shape - each body part can\n  hold its own `injured`/`bleeding` instance with its own `duration`/`ends_on`.\n- **Accessibility check** (`_resolve_body_part()`): a region is reachable unless blocked\n  by clothing `coverage` on the relevant equip slot stack (paperdoll layers) or a\n  condition like `restrained`.\n- **Genericity**: injury/bleeding are NON-sexual and always active - do NOT gate behind\n  the mature-content toggle. Only arousal/pleasure coupling is mature-gated.",
+      "implemented_2026_08_19": "- **`engine/body_parts.py`** (NEW): flat + zoned `BODY_REGIONS` catalog - 12 coarse injury\n  regions (`head`, `neck`, `torso`, `back`, `arm_left/right`, `hand_left/right`,\n  `leg_left/right`, `foot_left/right`) with nested erogenous zones (`nipple_left/right`,\n  `breast_left/right`, `genitals`, `cheeks`, `lips`, `thigh_left/right`) as `parent`\n  references - plus constants `INJURY_DAMAGE_THRESHOLD=5`, `BLEEDING_DAMAGE_THRESHOLD=10`,\n  `COVERAGE_EXPOSED_THRESHOLD=0.8`, and helpers `resolve_region()` (exact id / alias /\n  \"left X\" side forms), `injury_region()` (erogenous → parent injury region),\n  `region_chain()`, `coverage_slots()`, `is_exposed()` (checks OUTER layer coverage of\n  the equip-slot stack, ignores `__multi_slot_` markers), `default_body_state()`,\n  `region_injury_level()` (damage → 0/1/2/3), and a d20 `HIT_LOCATION_TABLE` with\n  `roll_hit_location()`.\n- **`player.py`**: `self.body_state = default_body_state()` after `decay_rates`;\n  `end_instances()` already handles `ends_on` resolution. `CONDITION_DEFINITIONS`\n  loads `injured`/`bleeding` from the library.\n- **`engine/serialization.py`**: player dict round-trips `body_state`.\n- **`data/library/conditions/injured.json` + `bleeding.json`** (NEW): region-scoped,\n  `stack: \"accumulate\"` (per-region instances), `ends_on: [\"fix\",\"heal\",\"medicine\"]`,\n  `default_duration: null`, `level_periodic` HP drain, `symptoms` keyed by remaining\n  duration (JSON keys must be QUOTED strings - the loader coerces them back to ints;\n  unquoted numeric keys break JSON parsing).\n- **`engine/combat.py`**: `player_attack(..., where=None)` resolves an aimed region up\n  front; un-aimed attacks roll `roll_hit_location()` on a HIT (misses don't consume a\n  roll). On a hit with an exposed region and damage ≥ 5, `_apply_region_injury()` adds\n  an `injured` instance (level from `region_injury_level`, `body_part` = injury region,\n  i.e. erogenous zones collapse to their parent) plus `bleeding` at damage ≥ 10. Hit\n  messages append `(in the <region>)` and the injury note.\n- **`routes/action.py`**: attack branch strips a trailing region phrase (` on `,\n  ` where `, ` in the `, ` in ` - earliest match), re-tokenizes, passes\n  `where=attack_where` (resolved id or raw text fallback) to both weapon and\n  bare-handed `_player_attack()` calls.\n- **`virtual_world_engine.py`**: `_player_attack()` forwards `where`.\n- **`static/js/agent/action-normalizer.js`**: `attack` case returns\n  `attack ${obj} on ${where}` when the agent supplies a `where`.\n- **`tests/test_body_parts.py`** (NEW, 29 tests): taxonomy shape, resolution (id/alias/\n  side forms), chains, exposure (bare / low coverage / high coverage), injury levels,\n  hit-location table integrity + determinism, aimed region injury, un-aimed location\n  roll, low-damage no-injury, bleed on threshold, fix-action end.",
+      "browser_ui": "Intended UI home: the `Enter game command` input line at the bottom of the event stream and Character Inspector -> Conditions tab.\n\nCurrent availability: Implemented and test-covered in `tests/test_body_parts.py`.\n\nLive steps when available:\n1. Load scenario `kraktooth_goblin_camp` and toggle **Play Mode** in the top bar (protects scenario state).\n   - expected: Play Mode is active, transient sandbox enabled.\n2. Select `Gribba` in the Agents list, and in `Enter game command` enter:\n   `attack Zikka on the head`\n   Press Enter.\n   - expected: The event stream reports a combat attack targeting the head.\n3. Select `Zikka` in the Agents list and open Character Inspector (`#inspector-panel`) -> Conditions tab.\n   - expected: An `injured` or `bleeding` condition badge appears with region set to `head`.\n4. Toggle Play Mode off.\n   - expected: The transient injury is discarded and the base scenario is restored.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.",
+      "related": "- `review/characters/pleasure-system-audit-gaps-2026-08.md` - GAP A / GAP B / GAP C\n- `todo/characters/task-190-more-conditions.md` - `injured`/`bleeding`/suffocating\n- `todo/characters/task-211-intimacy-verbs-actions.md` - `where`/`type`/`interact`\n- `todo/characters/task-207-body-state-and-vitals.md` - `body_state` per-part `injury`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-253-body-part-targeted-injuries.md"
+  }
+}

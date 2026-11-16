@@ -87,10 +87,10 @@ Legacy reflection was merely a text summarizer that concatenated unstructured th
 
 - static/js/agent/memory-manager.ts
 - 
-outes/memories.py
+routes/memories.py
 - engine/memory_dynamics.py (consolidate)
 - engine/reflection.py
-- 	ests/test_reflection.py
+- tests/test_reflection.py
 
 ## Browser UI and intended live verification
 

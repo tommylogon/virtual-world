@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "bug-15",
+  "kind": "bug",
+  "number": 15,
+  "title": "Area inspector event log crashes - EventBus.getActionIcon is not a function",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`area-view.js:72 Uncaught TypeError: EventBus.getActionIcon is not a function`",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "root_cause_via_git_history": "The calls `EventBus.getActionIcon` / `EventBus.getActionColor` were introduced in\n`c1fbe62d` (rooms→areas refactor) alongside matching `static getActionIcon()` /\n`static getActionColor()` helpers in the `EventBus` class (`event-stream.js`). Renamed\n`events.` → `EventBus.` in `d0be8ce0`. Both static methods were **deleted in `d3b402ec`**\n(\"merge: resolve autosave.json conflict\") but the area-view.js calls were never updated,\nleaving them dangling. No test/lint runs the area-click → open-inspector path, so nothing\ncaught it.",
+      "fix": "Restored the two static helpers into the `EventBus` class in\n`static/js/event-stream.js` (right after `tickToTime`), exactly matching what `d3b402ec`\nremoved:\n\n- `EventBus.getActionIcon(entry)` - icon from the event `result` string (`▶️` success /\n  `⚠️` error / `✕` death-kill).\n- `EventBus.getActionColor(entry)` - `var(--green)` / `var(--orange)` / `var(--red)`.\n\n`EventBus.tickToTime` (also called by area-view) was unaffected.",
+      "verification": "- `node --check static/js/event-stream.js` passes.\n- `rg getActionIcon` now finds both the definition (event-stream.js) and the caller\n  (area-view.js). Live click-an-area check in the browser pending.",
+      "prevention_note": "DOM inspector views have no unit-test coverage, and `node --check` can't catch callers of\nundefined methods - only a lint pass with an undefined-reference rule or a browser E2E\nstep that opens an area of the map editor would have caught this."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Done - verified 2026-08-16 (browser re-check: area inspector event log renders), moved from todo.",
+    "area_note": "UI - Area Inspector being-view event log",
+    "legacy_area": "UI - Area Inspector being-view event log",
+    "inline_meta": {
+      "observed": "Clicking an area in the map editor to open its inspector throws:"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-15-area-event-log-undefined-action-icon.md"
+  }
+}

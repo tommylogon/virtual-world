@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-66",
+  "kind": "task",
+  "number": 66,
+  "title": "Fuzzy Item Matching: Word Boundaries",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-19",
+  "updated": "2026-07-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`_match_item_name()` uses substring matching (`nn in ni`) which matches item names inside compound words. `examine dusty_bookshelf` matches item `\"Book\"` because \"book\" is a substring of \"bookshelf\". The engine should respect word boundaries.",
+    "why": "`virtual_world_engine.py:167` (`_match_item_name`):\n\n```python\n# Tier 2: substring\nfor item_name in candidates:\n    nn = item_name.lower().replace('_', ' ').replace('-', ' ')\n    if ni in nn or nn in ni:\n```\n\n- `ni` = normalized input = \"dusty bookshelf\"\n- `nn` = normalized item name = \"book\"\n- `nn in ni` → `\"book\" in \"dusty bookshelf\"` → True (because \"book\" is part of \"bookshelf\")\n\nThis produces false positives when the item name is a partial substring of a word in the input.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py:167-218` - `_match_item_name()"
+    ],
+    "custom": {
+      "affected_commands": "All commands using `_match_item_name`:\n- `examine X` → via `get_item_desc` (line 1630)\n- `take/get/pickup X` → via `take_item` (line 1768)\n- `use X` / `use X on Y` → via `_find_item_node` / `_match_item_name`\n- `drop X`, `toggle X`",
+      "fix_options": "### Option A: `re.fullmatch` with word boundaries\n\nReplace the substring check with word-boundary regex:\n\n```python\nimport re\n# Word-boundary aware match\nif re.search(r'(?<!\\w)' + re.escape(nn) + r'(?!\\w)', ni) or \\\n   re.search(r'(?<!\\w)' + re.escape(ni) + r'(?!\\w)', nn):\n```\n\nThis requires \"book\" to appear as a complete word in \"dusty bookshelf\" - which it doesn't (it's part of \"bookshelf\").\n\n### Option B: Prioritize exact name components\n\nSplit input into space-separated words and check if any word matches an item name exactly. Then fall back to substring.\n\n### Option C: Match item name as prefix/suffix of input words\n\nOnly match if the item name starts or ends at a word boundary in the input. E.g., \"book\" in \"red book\" matches (space before \"book\"), but \"book\" in \"bookshelf\" doesn't.\n\n**Recommendation**: Option A - word-boundary regex. It's the most correct and handles all edge cases.",
+      "edge_cases": "| Input | Item Name | Current | Expected |\n|-------|-----------|---------|----------|\n| \"dusty bookshelf\" | \"Book\" | MATCH (wrong) | no match |\n| \"dusty book\" | \"Book\" | MATCH | MATCH |\n| \"books\" | \"Book\" | MATCH | no match (plural ≠ singular - let substring handle if needed) |\n| \"book\" | \"Bookshelf\" | MATCH (ni in nn) | no match (keep? maybe keep as fallback) |\n| \"sand\" | \"Sandwich\" | MATCH | no match |\n| \"key\" | \"Keycard\" | MATCH | debatable - \"key\" is a meaningful prefix of \"keycard\" |\n\nFor the last case, \"key\" matching \"Keycard\" is useful but \"key\" matching \"Donkey\" would be wrong. The `nn in ni` check (item name in user input) is less prone to false positives than `ni in nn` (user input in item name). Consider removing `ni in nn` entirely and only keeping `nn in ni` with word boundaries."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-66-fuzzy_item_matching_word_boundaries.md"
+  }
+}

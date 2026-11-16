@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "id": "task-575",
+  "kind": "task",
+  "number": 575,
+  "title": "Painter guidance: preflight blockers, a per-mode checklist, and hint coverage",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-521",
+      "task-496",
+      "task-535",
+      "task-560",
+      "task-563"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make the WorldPainter say why a scope cannot be compiled, and what to paint next,\nbefore the author presses Generate.\n\n**Filed from a real session.** An author made a 30×20 town grid, and the painter\noffered no sequence, no per-mode guidance, and - when they pressed the button -\na red line saying only \"Generate failed\". Two conditions were involved and\nneither was discoverable from the UI:\n\n- The scope had `paint_policy: \"baked\"` because it was made with\n  **🪜 Make this a scope…**, which *promotes* areas the author had already\n  written. A promoted scope is authored rather than painted, carries no paint, and\n  can never be compiled - yet nothing displayed the field, and\n  `compile_grid`'s message (\"compile it once then author by hand\") is advice a\n  promoted scope **cannot follow**, since it is precisely how it ended up with no\n  paint.\n- The scope sat on world cell (17,3), where the parent's paint has a gap. A\n  gateway needs a compiled region on that cell, so `_gateway` skipped it and\n  **no gateway was ever minted** - no error, no warning, just an unreachable\n  scope.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`engine.world_compile.preflight(manifest, scope_id)` returns",
+        "done": true
+      },
+      {
+        "text": "`[{code, severity, text, remedy}]` and `_grid_payload` ships it as",
+        "done": false
+      },
+      {
+        "text": "`blockers`, alongside `paint_policy` on the scope block.",
+        "done": false
+      },
+      {
+        "text": "Every `block` is a condition `compile_grid` refuses, or one it starts",
+        "done": true
+      },
+      {
+        "text": "refusing once the remedy is carried out. The two are held together by a",
+        "done": false
+      },
+      {
+        "text": "test rather than by convention.",
+        "done": false
+      },
+      {
+        "text": "The refusals in `compile_grid` say the **remedy**, not the rule.",
+        "done": true
+      },
+      {
+        "text": "The editor renders `blockers` beside **⚙ Generate**, and a blocked",
+        "done": true
+      },
+      {
+        "text": "condition appears in the button's own tooltip.",
+        "done": false
+      },
+      {
+        "text": "A per-mode checklist in the editor, with progress **derived from the",
+        "done": true
+      },
+      {
+        "text": "payload** rather than remembered in `localStorage`.",
+        "done": false
+      },
+      {
+        "text": "`data-help` hooks on the in-editor controls, with matching HelpCenter tips",
+        "done": true
+      },
+      {
+        "text": "under a `WorldPainter` group and a `paint-a-town` tour (task-521's first",
+        "done": false
+      },
+      {
+        "text": "gap; its other gaps are untouched).",
+        "done": false
+      },
+      {
+        "text": "`tools/unit/test_help_center.js` guards the registry, including that every",
+        "done": true
+      },
+      {
+        "text": "`data-help` key the app emits has a tip behind it.",
+        "done": false
+      },
+      {
+        "text": "The area estimate in the `node-cap` warning reuses `_regions`, so it",
+        "done": true
+      },
+      {
+        "text": "follows the merge switch and the per-kind merge rules.",
+        "done": false
+      },
+      {
+        "text": "The `unnamed` warning is scoped to `town`/`interior` (or a partly-named",
+        "done": true
+      },
+      {
+        "text": "scope) so a wilderness map is not nagged for scenery cells.",
+        "done": false
+      },
+      {
+        "text": "Documented in `docs/design/worldpainter-knowledge-and-fog.md`.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "- **The tip layer alone would not have helped.** A coach card explains what a\n  control *is*; it cannot say that *this* scope is un-generatable, or that *this*\n  placement is on a hole. Preflight had to come first, and it is the layer that\n  turns a silent failure into a stated one.\n- The registry guard found a live defect immediately: the **❓ Help button** in\n  `templates/index.html` carried `data-help=\"help\"` with no tip behind it, so the\n  entry point to the whole help layer explained nothing. Now tipped.\n- Every pre-existing tour was unreferenced from its own steps, so the Help index\n  listed four chains nothing linked to. Every step tip now names its tour, and the\n  guard holds that invariant.\n- The dead-hook check matches `data-help=\"…\"` attributes **and** the painter's\n  `_help(el, '…')` helper, and reconstructs the tool rail's eight `wp-tool-*`\n  keys from the `TOOLS` table, which are built at runtime as `'wp-tool-' + id`.\n  The closing paren in the helper pattern is load-bearing: without it the prefix\n  matches as a whole key and the guard fails on itself.\n- **Left for a follow-up:** `world_grid.normalise_grid` rebuilds every placement\n  keeping only `x, y, area_id, area_name`, so one paint click silently drops\n  `entry_phrase` (task-529), `sides` (task-563) and `gateway_from` (task-535).\n  That is a data-loss bug, not a guidance gap, and it is why\n  \"paint first, generate last\" is advice in the `wp-generate` tip."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-575-painter-guidance-preflight-blockers-a-per-mode-checklist-and-hint-coverage.md"
+  }
+}

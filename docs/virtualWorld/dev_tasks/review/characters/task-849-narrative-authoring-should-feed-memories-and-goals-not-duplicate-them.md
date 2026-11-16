@@ -30,19 +30,17 @@ TODO
 
 ## Browser UI and intended live verification
 
-Intended UI home: TODO - name the page, panel, tab, or control where this behavior belongs. If no browser UI is appropriate, write 'Not applicable' here, explain why below, and give an observable alternative.
+Intended UI home: Character Inspector -> Mind -> Memories and Goals panels.
 
-Current availability: TODO - for example, planned/not implemented, present but not live-checked, or live-checked with date and evidence.
+Current availability: Planned; narrative authoring feeds runtime memory and goal records via single-store architecture.
 
 Live steps when available:
-1. TODO - describe how to reach the surface and the interaction to perform.
-   - expected: TODO - describe what the user can see or do.
-
-Why no browser UI: (only when Intended UI home is Not applicable) TODO - explain why browser interaction is not appropriate.
-
-Alternative verification steps: (only when Intended UI home is Not applicable)
-1. TODO - describe an observable alternative.
-   - expected: TODO - describe the result.
+1. Open Character Inspector -> Mind for a character with authored narrative backstory.
+   - expected: Backstory milestones appear as linked memory records without duplicating standalone narrative text blocks.
+2. Inspect the Goals tab.
+   - expected: Long-term character motivations link directly to active goal nodes.
+3. Edit a narrative milestone in the editor and save.
+   - expected: The underlying memory or goal record updates in place without orphaned duplicates.
 
 This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "bug-598",
+  "kind": "bug",
+  "number": 598,
+  "title": "Sync PlanGrounding.PLAN_INTENT_ACTS and contextual-actions.ts with registered ActionVerbs",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "planning",
+    "action-verbs",
+    "prompting",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-491",
+      "bug-590",
+      "task-958",
+      "task-961",
+      "bug-605"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Align PlanGrounding.PLAN_INTENT_ACTS and contextual action prompt suggestions with the verbs already registered in engine/action_verbs.py.",
+    "why": "engine/action_verbs.py (lines 64-160) registers valid character verbs including flee, frisk, release, offer, wake, fix, whisper, shout, stop, sit, and lie. However static/js/agent/plan-grounding.ts (PLAN_INTENT_ACTS, lines 55-67) omits all of them (causing plan steps using those verbs to fail grounding), and static/js/agent/prompt-builder/contextual-actions.ts (lines 320-395) omits flee alongside combat/movement options.",
+    "how": "1. Audit engine/action_verbs.py (lines 64-160) against static/js/agent/plan-grounding.ts (PLAN_INTENT_ACTS, lines 55-67) and add valid in-world character verbs ('flee', 'frisk', 'release', 'offer', 'wake', 'fix', 'whisper', 'shout', 'stop', 'sit', 'lie', plus internal/social 'recall'/'guess' where appropriate) while keeping meta plumbing excluded.\\n2. Update buildAvailableActionsBlock in static/js/agent/prompt-builder/contextual-actions.ts (lines 320-395) to surface 'flee' during active danger/combat and 'wake' around sleeping/unconscious characters (honoring turn_slots).\\n3. Add JS unit tests confirming parity between ActionVerbs, PlanGrounding.ACTS, and contextual-actions suggestions.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs verifying PlanGrounding accepts 'flee', 'frisk', 'release', 'offer', 'wake', 'fix', 'whisper', 'shout', 'stop', 'sit', and 'lie', and contextual-actions surfaces 'flee'.",
+    "acceptance": [
+      {
+        "text": "PlanGrounding.PLAN_INTENT_ACTS in static/js/agent/plan-grounding.ts includes valid character verbs already registered in engine/action_verbs.py (flee, frisk, release, offer, wake, fix, whisper, shout, stop, sit, lie) while still excluding system/meta plumbing verbs.",
+        "done": false
+      },
+      {
+        "text": "contextual-actions.ts suggests contextually relevant survival/social verbs (such as flee when danger is present or others are co-located, and wake when someone is asleep/unconscious) within turn-slot budgets.",
+        "done": false
+      },
+      {
+        "text": "Unit tests cover PlanGrounding acceptance of those verbs and contextual suggestion output.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts",
+      "engine/action_verbs.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Available Actions block (`contextual-actions.ts`) and Plan Mode step validation (`plan-grounding.ts`).\\n\\nCurrent availability: engine/action_verbs.py registers flee, frisk, release, offer, wake, fix, whisper, shout, stop, sit, and lie, but PlanGrounding.PLAN_INTENT_ACTS omits all 11 and contextual-actions.ts omits flee.\\n\\nManual verification steps:\\n1. Build a multi-step plan containing flee, wake, frisk, or whisper steps and inspect PlanGrounding output.\\n2. Inspect the Available Actions prompt section for a character in danger alongside sleeping or hostile actors.\\n   - expected: PlanGrounding accepts registered character verbs cleanly and contextual-actions surfaces flee (and wake when applicable)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Commands]]",
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

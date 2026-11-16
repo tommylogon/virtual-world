@@ -14,11 +14,11 @@ wiki: "[[Feature Map]]"
 
 ## What
 
-Split the Feature Map into a clean, themed **guide index** ('here be features — what you can do in viwo, for play and creation') and move the coverage machinery — status (wired/authored/planned), the % documented, the module join — into a generated report. Then retire the generated Features/ stubs (convert `feature_pages.py` from scaffold+gate to report-only, and settle whether that folder is dropped or hand-written).
+Split the Feature Map into a clean, themed **guide index** ('here be features - what you can do in viwo, for play and creation') and move the coverage machinery - status (wired/authored/planned), the % documented, the module join - into a generated report. Then retire the generated Features/ stubs (convert `feature_pages.py` from scaffold+gate to report-only, and settle whether that folder is dropped or hand-written).
 
 ## Why
 
-The map does two jobs at once — a newcomer's guide and a coverage denominator — and the ledger columns make the guide unreadable. The 77 generated `Features/*.md` stubs are the 'coverage lie' we agreed to kill: they look like docs and carry one link.
+The map does two jobs at once - a newcomer's guide and a coverage denominator - and the ledger columns make the guide unreadable. The 77 generated `Features/*.md` stubs are the 'coverage lie' we agreed to kill: they look like docs and carry one link.
 
 ## How
 

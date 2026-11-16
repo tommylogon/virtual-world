@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "bug-530",
+  "kind": "bug",
+  "number": 530,
+  "title": "Compiled open outdoor ways miss prevent_close so a road into the forest can be hand-closed",
+  "status": "done",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-10-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-522",
+      "task-223",
+      "task-496",
+      "task-529"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "engine/world_compile.py sets prevent_close only in _apply_way_blocking (line 415), so of 378 generated ways in data/scenarios/kraktooth_goblin_camp.json only the 32 blocked ones carry it and the 345 open outdoor ways do not. That contradicts engine/movement.py:1045-1053, whose comment states a compiled outdoor way carries prevent_close because you cannot close a road into a forest by hand; today a character can close one. Set prevent_close: True on outdoor ways (kind 'open'/'stairs') in way_props, but not on kind 'door' (a building door must still close). Regression test: a character close is refused on an open outdoor way and allowed on a door way.",
+    "why": "Open outdoor passages (e.g. forest paths, open roads) lacked the `prevent_close` attribute, allowing them to be erroneously closed like doors.",
+    "how": "Stamped `prevent_close: true` onto all compiled open outdoor ways in `engine/world_compile.py`.",
+    "verify": "1. Inspect compiled outdoor way properties\n   - expected: prevent_close property is set to True\n   - observed: Verified in test_world_compile test suite",
+    "acceptance": [
+      {
+        "text": "`way_props` sets `prevent_close: True` for `kind in (\"open\", \"stairs\")`, not for `door`.",
+        "done": true
+      },
+      {
+        "text": "`tests/test_way_blocking.py::test_a_compiled_open_outdoor_way_carries_prevent_close` (4x4 grid) and `::test_a_compiled_open_outdoor_way_refuses_a_hand_close` (3x3 grid → movement refusal).",
+        "done": true
+      },
+      {
+        "text": "Full `tests/test_way_blocking.py` (35) + `tests/test_world_compile.py` (119) pass. `tests/test_way_property_index.py` also passed on 2026-10-08; on 2026-10-21 it has one *unrelated* failure (`test_generated_page_is_current`: the committed `Way Properties.md` is stale and carries 117 em-dashes the generator no longer emits). Not caused by this change.",
+        "done": true
+      },
+      {
+        "text": "**Landed 2026-10-08:** `engine/world_compile.py`, one branch in the way builder before `nodes.append`. A blocked way was already covered by `_apply_way_blocking`, so this only closes the gap for the open/stairs subset. No save-format change; existing saves pick the flag up on the next compile.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/world_compile.py"
+    ],
+    "custom": {
+      "verified_2026_10_21": "- `python -m pytest tests/test_way_blocking.py` - 35 passed, including\n  `test_a_compiled_open_outdoor_way_carries_prevent_close` (4x4 grid) and\n  `test_a_compiled_open_outdoor_way_refuses_a_hand_close` (3x3 grid, goes through\n  `MovementSystem._open_passage_block`).\n- `python -m pytest tests/test_world_compile.py` - 119 passed.\n- `engine/world_compile.py:2214-2215` is the one branch:\n  `if kind in (\"open\", \"stairs\"): way_props[\"prevent_close\"] = True`. `door` is\n  excluded, and `_apply_way_blocking` still covers the blocked subset.\n- The writer and the reader are the same fact: the test does not assert the\n  property in isolation, it drives `MovementSystem._open_passage_block(..., \"close\", ...)`\n  and asserts the refusal text."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/bug-530-compiled-open-outdoor-ways-miss-prevent-close-so-a-road-into-the-forest-can-be-hand-closed.md"
+  }
+}

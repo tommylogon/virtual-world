@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "id": "task-635",
+  "kind": "task",
+  "number": 635,
+  "title": "Vital modal is a raw numeric editor, not 'natural-language details'",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The modal advertises natural-language details but offers raw numeric fields with a decimal decay rate and a 'TIME TO EMPTY' label that runs the wrong direction.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: the vital modal leads with a natural-language read, correct direction, no TIME TO EMPTY, advanced collapse.\n- observed (2026-10-10 live, openVitalModal('Arix','Hunger')): 'Hunger: 15/100 | a drive ... | Fills toward 100 at about 1 point every 294 turns ... | Advanced - edit value & rate'; no 'time to empty'.",
+    "acceptance": [
+      {
+        "text": "The modal leads with a natural-language read of the vital, reusing",
+        "done": true
+      },
+      {
+        "text": "`VitalThresholds.hoverText` (the same prose the hover shows): \"Hunger: 47/100 ·",
+        "done": false
+      },
+      {
+        "text": "a drive - it fills over time… · You are hungry. FIND SOMETHING TO EAT NOW.\"",
+        "done": false
+      },
+      {
+        "text": "The direction is stated correctly. The rate line reads *\"Fills toward 100 …",
+        "done": true
+      },
+      {
+        "text": "it reaches the top (most urgent) in about 15588.2 turns\"* for drives",
+        "done": false
+      },
+      {
+        "text": "(Hunger/Thirst/Bladder) and *\"Drains toward 0 … it empties in about 442.3",
+        "done": false
+      },
+      {
+        "text": "turns\"* for resources. Polarity comes from the engine (`engine/vitals.py`,",
+        "done": false
+      },
+      {
+        "text": "exposed as `polarity` on `GET /api/players/<name>/vitals/<vital>`), not a UI",
+        "done": false
+      },
+      {
+        "text": "guess.",
+        "done": false
+      },
+      {
+        "text": "The misleading `TIME TO EMPTY` label is gone; a zero rate reads",
+        "done": true
+      },
+      {
+        "text": "*\"Stable - it does not change on its own over time.\"*",
+        "done": false
+      },
+      {
+        "text": "The raw value/rate inputs are moved behind a default-collapsed",
+        "done": true
+      },
+      {
+        "text": "**Advanced** disclosure, so the natural-language detail is the surface.",
+        "done": false
+      },
+      {
+        "text": "The override line distinguishes an unset override (*\"none - using base\"*)",
+        "done": true
+      },
+      {
+        "text": "from a real one, instead of printing base and override identically with no",
+        "done": false
+      },
+      {
+        "text": "meaning.",
+        "done": false
+      },
+      {
+        "text": "Temperature keeps its band block and no longer offers a meaningless decay",
+        "done": true
+      },
+      {
+        "text": "editor.",
+        "done": false
+      }
+    ],
+    "files": [
+      "templates/index.html` - `openVitalModal` markup; `escVital`/`fmtVitalNum`.",
+      "routes/player_ops.py` - `GET .../vitals/<vital>` returns `polarity`."
+    ],
+    "custom": {
+      "verification_live_browser_2026_10_02": "Server `VW_PORT=4463`; Playwright opened the app and called `openVitalModal` for\na character with Hunger:\n\n```\nAPI_HUNGER {\"polarity\":\"drive\",\"decay_rate\":0.0034,\"value\":47,\"max\":100,\"time_to_empty\":13823.5}\nHUNGER: \"Hunger: 47/100 / a drive - it fills over time; eat before it maxes at 100.\n         / You are hungry. FIND SOMETHING TO EAT NOW.\n         / Fills toward 100 at about 1 point every 294 turns - it reaches the top\n           (most urgent) in about 15588.2 turns.\"\nPOSITIVE: HAS_FILLS true, HAS_TIME_TO_EMPTY_LABEL false\nENERGY: \"Drains toward 0 at about 1 point every 10 turns - it empties in about 442.3 turns.\"\nAdvanced disclosure: before {open:false, inputs:2}; after click {open:true, value:\"47\", rate:\"0.0034\"}\n```\n\nScreenshot: `review-verify/635-vital-modal.png`.",
+      "browser_ui": "Intended UI home: Select a character → click Hunger or Energy in the vitals readout → Vital Detail modal; raw inputs are under its collapsed Advanced disclosure.\n\nCurrent availability: The card records live checks on localhost:4463 and 4444: Hunger 47/100 is described as a drive that fills toward 100; Energy drains toward 0; Advanced is collapsed until clicked; the “TIME TO EMPTY” label is absent.\n\nLive steps when available:\n1. Open the Hunger detail for Arix and read the prose, rate, and direction before opening Advanced.\n   - expected: it shows the current value, “a drive”, “Fills toward 100”, the urgent threshold, and the time to the top; no raw numeric editor is open by default.\n2. Open Energy detail and compare its direction; then inspect a zero-rate vital.\n   - expected: Energy says it drains toward 0 and time-to-empty; a zero-rate vital says it is stable rather than showing a misleading countdown.\n3. Expand Advanced, change the raw value/rate, and save; reopen the modal.\n   - expected: numeric controls are available only in the disclosure, the override distinguishes “none - using base” from a real override, and the readout refreshes from the API's `polarity`.\n4. Open Temperature detail.\n   - expected: its temperature-band block remains and no meaningless decay editor is offered.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-635-vital-modal-is-a-raw-numeric-editor-not-natural-language-details.md"
+  }
+}

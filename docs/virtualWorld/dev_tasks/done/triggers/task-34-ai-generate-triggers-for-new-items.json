@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-34",
+  "kind": "task",
+  "number": 34,
+  "title": "AI Generate Triggers for New Items",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When generating an item with AI, no triggers are generated. The AI only generates basic properties (name, description, actions, uses, weight, hidden). Users must manually add triggers afterward, which defeats the purpose of AI generation for complex interactive items.",
+    "why": "In `main.js:generateWithAI()` (line 351-354), the AI response for items is parsed as:\n\n```js\nset('item-name', data.name);\nset('item-desc', data.description);\nset('item-uses', data.uses ?? -1);\nset('item-weight', data.weight ?? 0.1);\nconst h = document.getElementById('item-hidden');\nif (h) h.checked = data.hidden || false;\n```\n\nNo trigger data is expected or parsed from the AI response. The format hint doesn't include trigger information.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/main.js` - extend format hint, parse triggers from AI response",
+      "static/js/item-library.js` - extend library AI generation to include triggers"
+    ],
+    "custom": {
+      "proposed_change": "### Step 1: Extend Format Hint\n\nUpdate the JSON format hint to include triggers:\n\n```js\nconst formatHint = '{\"name\":\"...\",\"description\":\"...\",\"actions\":\"examine,take,use\",\"uses\":1,\"weight\":0.5,\"hidden\":false,\"triggers\":[{\"trigger_type\":\"on_use\",\"effect_type\":\"message\",\"effect_params\":{\"message\":\"...\"}}]}';\n```\n\n### Step 2: Extend System Prompt\n\nAdd instructions for the AI about what triggers are and how to generate them:\n\n```\nTriggers make items interactive. Common patterns:\n- on_use → message: item tells the player something\n- on_take → message: special message when picked up\n- on_use_on → unlock_way: item unlocks a specific door\n- on_examine → message: special description on examination\n\nGenerate appropriate triggers based on the item type and purpose.\n```\n\n### Step 3: Parse Trigger Data\n\nAfter AI generation, parse the trigger data and populate the trigger fields (if the create modal supports triggers - see `create_item_modal_more_actions.md`).\n\nIf the create modal doesn't yet have trigger UI, store the generated triggers in a hidden field for later editing in the library.",
+      "audit": "**Status**: Ready to test\n**How to test**:\n- Open the create modal for an Item, use AI generation. Verify the response JSON includes triggers in the format hint.\n- After generation, scroll to the \"Triggers JSON\" textarea - verify it's populated with trigger data from the AI.\n- Submit the item, then open it in the Item Library - verify triggers were saved and are editable."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Triggers & Effects]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-34-generate_triggers_for_new_items.md"
+  }
+}

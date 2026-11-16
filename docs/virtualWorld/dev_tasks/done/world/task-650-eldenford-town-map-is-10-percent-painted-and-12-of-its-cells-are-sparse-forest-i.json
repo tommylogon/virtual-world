@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "id": "task-650",
+  "kind": "task",
+  "number": 650,
+  "title": "Eldenford town map is ~10 percent painted and 12 of its cells are sparse_forest inside the walls",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Tommy asked for the Eldenford town map to be finished. Measured from GET /api/world/scopes/eldenford_interior/grid on kraktooth_goblin_camp: mode is 'town' and the road layer is well developed (49 cells: 43 road, 2 gate at 13,2 and 17,15, 4 bridge at 17,17 / 7,16 / 8,15 / 8,16), but the biome layer holds only 18 cells and 12 of them are 'sparse_forest' at 9,3 9,5 10,3 11,3 15,4 15,5 16,4 16,5 17,4 17,5 17,6 18,5 -- scrubland inside a walled town. The only built cells are temple (11,8), market (12,9) and cemetery (7,4): 3 of the 30 locations named on the reference art. The floor and climate layers have no cells at all, placements and area_placements are both 0, and names is empty. The roads describe a town; the biome layer does not.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "All 12 `sparse_forest` cells inside the walls are repainted (the east",
+        "done": true
+      },
+      {
+        "text": "cluster becomes the Orchard & Gardens the art draws; the north-west cluster",
+        "done": false
+      },
+      {
+        "text": "becomes gardens against the cemetery wall). **`sparse_forest` count is 0.**",
+        "done": false
+      },
+      {
+        "text": "The named locations on the reference art are painted and named as real",
+        "done": true
+      },
+      {
+        "text": "data: the biome layer grows from 18 to **42 cells** and `names` from 0 to",
+        "done": false
+      },
+      {
+        "text": "**29** (26 painted/named places + Temple, Cemetery, Town Green named on",
+        "done": false
+      },
+      {
+        "text": "their existing cells).",
+        "done": false
+      },
+      {
+        "text": "Live proof: `GET /api/world/scopes/eldenford_interior/grid` on the loaded",
+        "done": true
+      },
+      {
+        "text": "`kraktooth_goblin_camp` returns `sparse_forest = 0`, 42 biome cells, 29",
+        "done": false
+      },
+      {
+        "text": "names; the painter renders the town and each cell's inspector reads its",
+        "done": false
+      },
+      {
+        "text": "name and exits.",
+        "done": false
+      },
+      {
+        "text": "The graph is deliberately left alone - the scope is `baked`, the ticket",
+        "done": true
+      },
+      {
+        "text": "measures the grid payload, and re-generating would rewrite the authored",
+        "done": false
+      },
+      {
+        "text": "world; the paint is the authoring source it names.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes": "Cells added (biome, name): Watch House (14,6); Town Hall (14,8); Shrine (17,8);\nClothier & Tailor (15,10); Leatherworker (17,11); Smithy (20,12); Carpenter\n(17,13); Wheelwright (18,14); Baker (13,13); Butcher (11,12); Brewer (19,11);\nApothecary (18,10); Stable (10,14); The Stag Inn (7,9); The Crooked Mug (8,7);\nThe Silver Lily (9,9); Bathhouse (15,15); Warehouse (6,11); River Landing/Ferry\n(6,12); Mill (6,16); Fisher Huts (3,13); Orchard & Gardens (17,5); Farmlands\n(21,2); Poor Quarter (21,8); Wealthy Merchant Homes (20,7). A new `bathhouse`\nbiome was added to `data/worldpainter/biomes.json` (data-only; the legend has a\nBathhouse and no existing building matched)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-650-eldenford-town-map-is-10-percent-painted-and-12-of-its-cells-are-sparse-forest-inside-the-walls.md"
+  }
+}

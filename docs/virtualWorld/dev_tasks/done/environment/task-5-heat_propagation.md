@@ -21,7 +21,7 @@ priority: medium
 Temperature should gradually equalize between areas connected by open ways. This creates emergent behavior:
 - Lit fireplace warms adjacent areas through open doors
 - Blizzard cold seeps into the house through the open front door
-- Player can close doors to retain heat — strategic thermal management
+- Player can close doors to retain heat - strategic thermal management
 
 **Only temperature propagation for now.** Noise, smell, and light are separate concerns.
 
@@ -46,7 +46,7 @@ With propagation, these behaviors emerge naturally from the mechanics:
 | Concept | What it means |
 |---------|--------------|
 | **Turn** | All characters (player + NPCs) have acted |
-| **Tick** | One call to `tick_turn()` — 5 game-minutes by default |
+| **Tick** | One call to `tick_turn()` - 5 game-minutes by default |
 | **Frequency** | POST `/api/turn/apply` → `tick_turn()` once |
 
 So propagation in a 20-character scenario still runs **once per turn**, not 20 times. Each tick represents ~5 minutes of game time, which is a natural interval for temperature change.
@@ -72,7 +72,7 @@ temp_b += transfer      (unless is_exterior)
 
 | Factor | Default | Source |
 |--------|---------|--------|
-| `base_rate` | `0.05` | Constant — calibrated for 5-min ticks |
+| `base_rate` | `0.05` | Constant - calibrated for 5-min ticks |
 | `way_insulation` | `1.0` | From way node properties (stone door = 0.5, window = 2.0) |
 | `area_insulation` | `1.0` | From area node properties (basement = 0.3) |
 
@@ -201,11 +201,11 @@ The way inspector in `area-view.js` or `way-view.js` should have an editable `in
 
 ## Integration Points
 
-- **Fireplace** ([[review/environment/task-18-fireplace_lighting_recipe]]) — lit fireplace heats its room via `on_tick` + `adjust_environment`; propagation spreads warmth through open doors
-- **Door mechanics** — open/close state directly controls whether heat flows
-- **Temperature conditions** — triggers using `temperature_below`/`temperature_above` will fire based on propagated temps
-- **Exhaustion death from cold** — cold propagation can indirectly kill through Energy drain even without hypothermia
-- **NPC behavior** — NPCs could be set to close doors when temperature drops (future enhancement)
+- **Fireplace** ([[review/environment/task-18-fireplace_lighting_recipe]]) - lit fireplace heats its room via `on_tick` + `adjust_environment`; propagation spreads warmth through open doors
+- **Door mechanics** - open/close state directly controls whether heat flows
+- **Temperature conditions** - triggers using `temperature_below`/`temperature_above` will fire based on propagated temps
+- **Exhaustion death from cold** - cold propagation can indirectly kill through Energy drain even without hypothermia
+- **NPC behavior** - NPCs could be set to close doors when temperature drops (future enhancement)
 
 ---
 
@@ -223,10 +223,10 @@ The way inspector in `area-view.js` or `way-view.js` should have an editable `in
 
 ## What this does NOT cover
 
-- **Weather/sunlight** — outdoor temperature doesn't cycle ([[todo/environment/task-227-environment-forecast-schedule]])
-- **Noise propagation** — separate concern
-- **Smell propagation** — separate concern
-- **Visual heat flow UI** — could be added to graph overlay later
+- **Weather/sunlight** - outdoor temperature doesn't cycle ([[todo/environment/task-227-environment-forecast-schedule]])
+- **Noise propagation** - separate concern
+- **Smell propagation** - separate concern
+- **Visual heat flow UI** - could be added to graph overlay later
 
 ---
 
@@ -234,7 +234,7 @@ The way inspector in `area-view.js` or `way-view.js` should have an editable `in
 
 | File | Change |
 |------|--------|
-| `engine/environment_propagation.py` | **New** — propagation logic |
+| `engine/environment_propagation.py` | **New** - propagation logic |
 | `engine/tick_manager.py` | Import and call `propagate_temperature()` at end of `tick_turn()` |
 | `world_template.json` | Add `is_exterior: true` to outdoor areas, insulation to doors |
 | `data/scenarios/` | Same for scenario files |

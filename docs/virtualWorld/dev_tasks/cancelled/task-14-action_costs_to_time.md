@@ -95,20 +95,20 @@ For now, leave this as-is. Time cost = game minutes consumed.
 
 ## Audit
 
-**Status**: Partially implemented — items have `action_costs`, doors lack `time_cost`
+**Status**: Partially implemented - items have `action_costs`, doors lack `time_cost`
 **Evidence**:
 - **Items ✅**: `action_costs` dict supported in frontend (`inspector.js:689-721` cost grid for Energy/Hunger/Thirst/HP) and engine (`apply_action()` at line 2520 reads `cost.get("time")` per-action)
 - **Doors ❌**: No `time_cost` property on door nodes, no UI field in door inspector (`inspector.js:1543-1673`), no engine code to read per-door time cost override
-- **Time not in cost grid ❌**: The Action Costs UI (`inspector.js:694`) only shows Energy/Hunger/Thirst/HP — `time` is not editable per-item even though the engine supports it
-**How to test**: Open an item's inspector, scroll to "Action Costs" — grid shows Energy/Hunger/Thirst/HP per action. Open a door inspector — no time_cost field exists.
+- **Time not in cost grid ❌**: The Action Costs UI (`inspector.js:694`) only shows Energy/Hunger/Thirst/HP - `time` is not editable per-item even though the engine supports it
+**How to test**: Open an item's inspector, scroll to "Action Costs" - grid shows Energy/Hunger/Thirst/HP per action. Open a door inspector - no time_cost field exists.
 
 ## Cancellation Reason
 
-**Cancelled 2026-07-20**: Variable per-action time costs don't fit the turn-based architecture. All actions happen within a single configurable turn duration (default 5 min). Time only advances on turn boundaries — individual actions can't consume time independently without breaking the multi-character sequential-action model. Action costs are now handled via the trigger system instead.
+**Cancelled 2026-07-20**: Variable per-action time costs don't fit the turn-based architecture. All actions happen within a single configurable turn duration (default 5 min). Time only advances on turn boundaries - individual actions can't consume time independently without breaking the multi-character sequential-action model. Action costs are now handled via the trigger system instead.
 
 ## Files
 
-- `virtual_world_engine.py` — check door/item for time_cost overrides in `apply_action()`
+- `virtual_world_engine.py` - check door/item for time_cost overrides in `apply_action()`
 
 ## How
 

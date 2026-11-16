@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-412",
+  "kind": "task",
+  "number": 412,
+  "title": "Promotion/demotion and trace→memory consolidation",
+  "status": "cancelled",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Implement the promote/offload handoffs so a character can switch fidelity\nwithout ever becoming a different person or rewriting their past.",
+    "why": "TODO",
+    "how": "1. **Promotion handoff.** Build a catch-up summary from\n   `engine/trace.summarize_window` since the character was last foreground;\n   inject it as a **bounded** subjective memory (`source: \"background\"`); restore\n   the standing goal/plan so promotion resumes rather than reinvents.\n2. **Demotion handoff.** Roll the foreground span into the trace as facts +\n   reasons; keep live memories in the memory store; mark the span consolidated\n   so repeated activation is idempotent.\n3. **Atomic transitions.** Activate/offload is atomic at its tick - no action is\n   resolved twice.\n4. **Invariants.** Enforce position continuity, object conservation, vital\n   continuity, relationship symmetry, stable opaque id (task-316),\n   determinism, and no orphan nodes (guards the duplicate-character-node class\n   of bug).",
+    "verify": "- Unit: idempotent activation, no duplicate memory, determinism, invariant\n  checks, save/load mid-span.\n- Contract test: an item taken in background is neither duplicated nor lost\n  across promote → demote.",
+    "acceptance": [
+      {
+        "text": "Activate/offload twice at the same tick, then save/reload: no duplicate",
+        "done": false
+      },
+      {
+        "text": "action, character, item, or summary memory.",
+        "done": false
+      },
+      {
+        "text": "A character receives no duplicate background memory after repeated activation.",
+        "done": false
+      },
+      {
+        "text": "A span with a fixed seed replays identically.",
+        "done": false
+      },
+      {
+        "text": "The v1 summary is a deterministic template over trace facts (no LLM); an",
+        "done": false
+      },
+      {
+        "text": "optional LLM summary comes later and only reads the trace.",
+        "done": false
+      },
+      {
+        "text": "Save/load mid-transition is safe because transitions land on tick boundaries.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "original_spec_kept_for_reference": "**Filed:** 2026-09-19  \n**Depends on:** task-399 (background runner), task-411 (attention tiers),\ntask-418 (attended set), task-420 (one relationship write path).\nWithout task-420 the foreground and background tiers write relationship state\nthrough different paths, so a tier change can jump the value.  \n**Spec:** `docs/design/reversibility-contract.md`, `docs/design/trace-format.md`.",
+      "non_goals": "- LLM-written catch-up summaries in v1 (template first).\n- Editing past memories (the contract forbids rewriting history)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/characters/task-412-promotion-demotion-and-trace-consolidation.md"
+  }
+}

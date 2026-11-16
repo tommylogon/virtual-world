@@ -6,21 +6,21 @@ status: done
 priority: medium
 ---
 
-# Delayed Event Queue — Schedule Trigger Effects N Ticks Later
+# Delayed Event Queue - Schedule Trigger Effects N Ticks Later
 
 **Filed**: 2026-07-21
 **Priority**: Medium
-**Status**: Done — implemented 2026-08-16. `engine/event_queue.py` (`DelayedEventQueue`); `schedule_trigger` effect handler (`engine/effects.py:handle_schedule_trigger`); `on_delayed` trigger type + `schedule_trigger` effect type in engine and frontend (`trigger-system.py`, `trigger-types.js`) with editor param fields; processing in `TickManager.tick_turn()` after clock advance; serialized via `to_dict()`/`load_from_dict()` (stripped from `to_scenario_dict()`). Tests: `tests/test_delayed_events.py` (8 passed); full suite 959 passed. Moved to review/.
+**Status**: Done - implemented 2026-08-16. `engine/event_queue.py` (`DelayedEventQueue`); `schedule_trigger` effect handler (`engine/effects.py:handle_schedule_trigger`); `on_delayed` trigger type + `schedule_trigger` effect type in engine and frontend (`trigger-system.py`, `trigger-types.js`) with editor param fields; processing in `TickManager.tick_turn()` after clock advance; serialized via `to_dict()`/`load_from_dict()` (stripped from `to_scenario_dict()`). Tests: `tests/test_delayed_events.py` (8 passed); full suite 959 passed. Moved to review/.
 
 ---
 
 ## What
 
-Add the ability to schedule a trigger effect to fire N ticks in the future. This is the single biggest missing causality mechanism — it enables curses, poisons, timed puzzles, summoned creature durations, and any "X happens Y turns from now" scenario. Currently every effect is immediate; the world can't remember to do something later.
+Add the ability to schedule a trigger effect to fire N ticks in the future. This is the single biggest missing causality mechanism - it enables curses, poisons, timed puzzles, summoned creature durations, and any "X happens Y turns from now" scenario. Currently every effect is immediate; the world can't remember to do something later.
 
 ## Why the Engine Must Do It
 
-The LLM handles character minds — but it cannot reliably fire an effect 5 turns later across context windows and turns. Only the engine can guarantee delayed causality. This is world-physics, not narrative.
+The LLM handles character minds - but it cannot reliably fire an effect 5 turns later across context windows and turns. Only the engine can guarantee delayed causality. This is world-physics, not narrative.
 
 ## How
 
@@ -33,10 +33,10 @@ self.delayed_events = []  # list of {fire_tick, trigger_source, params, label}
 ```
 
 Each entry:
-- `fire_tick` — absolute `time_ticks` value when this fires
-- `target_node_id` — the item/node to fire triggers on  
-- `trigger_type` — e.g. `"on_delayed"` (a new trigger type added to TRIGGER_TYPES)
-- `label` — human-readable summary shown in event logs
+- `fire_tick` - absolute `time_ticks` value when this fires
+- `target_node_id` - the item/node to fire triggers on  
+- `trigger_type` - e.g. `"on_delayed"` (a new trigger type added to TRIGGER_TYPES)
+- `label` - human-readable summary shown in event logs
 
 ### Processing
 
@@ -55,8 +55,8 @@ for event in due:
 ### New trigger effect: `schedule_trigger`
 
 Params:
-- `delay_ticks` — int, ticks from now to wait
-- `target` — item/node name or ID (defaults to the current trigger's parent item)
+- `delay_ticks` - int, ticks from now to wait
+- `target` - item/node name or ID (defaults to the current trigger's parent item)
 
 Usage in trigger JSON:
 
@@ -79,7 +79,7 @@ The target item then needs a corresponding trigger:
 }
 ```
 
-This separation keeps `schedule_trigger` as pure scheduling — it just queues a trigger fire. What actually happens is defined by the target item's `on_delayed` trigger, reusing all existing effect types.
+This separation keeps `schedule_trigger` as pure scheduling - it just queues a trigger fire. What actually happens is defined by the target item's `on_delayed` trigger, reusing all existing effect types.
 
 ### New TRIGGER_TYPE: `on_delayed`
 
@@ -94,7 +94,7 @@ Add `delayed_events` to `to_dict()` and `load_from_dict()` so scheduled events s
 | Scenario | How |
 |----------|-----|
 | Cursed item | Pick up → 5 ticks later → take damage + message |
-| Poisoned food | Eat → 3 ticks later → `sick` (or `poisoned`) instance with `source: <food>` and a `periodic` override — see the condition reference examples in [[review/characters/task-trait-condition-system-v2\|task: Trait & Condition System v2]] |
+| Poisoned food | Eat → 3 ticks later → `sick` (or `poisoned`) instance with `source: <food>` and a `periodic` override - see the condition reference examples in [[review/characters/task-trait-condition-system-v2\|task: Trait & Condition System v2]] |
 | Timed door | Pull lever → 10 ticks later → door slams shut |
 | Summon duration | Summon creature → 20 ticks later → creature vanishes |
 | Time bomb | Activate → 8 ticks later → explosion (area damage + environment change) |
@@ -103,8 +103,8 @@ Add `delayed_events` to `to_dict()` and `load_from_dict()` so scheduled events s
 
 ## Files
 
-- `virtual_world_engine.py` — `delayed_events` queue, processing in `tick_turn()`, `schedule_trigger` effect handler, `on_delayed` in TRIGGER_TYPES, serialization
-- `static/js/item-library.js` — show `schedule_trigger` in effect type list if needed
+- `virtual_world_engine.py` - `delayed_events` queue, processing in `tick_turn()`, `schedule_trigger` effect handler, `on_delayed` in TRIGGER_TYPES, serialization
+- `static/js/item-library.js` - show `schedule_trigger` in effect type list if needed
 
 ## Not In Scope
 
@@ -116,7 +116,7 @@ Add `delayed_events` to `to_dict()` and `load_from_dict()` so scheduled events s
 
 ## Refactoring Impact (July 2026)
 
-TickManager (engine/tick_manager.py) processes per-tick logic. Create engine/event_queue.py — delayed event queue. Wire into TickManager.tick_turn(). Event data: {tick_trigger, effect_type, effect_params, target_node_id}. Follow existing trigger effect patterns from engine/effects.py.
+TickManager (engine/tick_manager.py) processes per-tick logic. Create engine/event_queue.py - delayed event queue. Wire into TickManager.tick_turn(). Event data: {tick_trigger, effect_type, effect_params, target_node_id}. Follow existing trigger effect patterns from engine/effects.py.
 
 ## Why
 

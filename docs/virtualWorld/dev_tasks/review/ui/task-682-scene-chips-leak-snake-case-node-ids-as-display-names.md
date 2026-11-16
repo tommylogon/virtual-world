@@ -29,7 +29,7 @@ Live steps when available:
 1. Load the repro scene, open the human-turn composer, and inspect Things for coat rack, calling cards, protein bar, and vase.
    - expected: each chip uses its authored display name rather than an ID fallback when that name exists; `vase` remains readable if its authored name is already “vase”.
 2. Inspect the controlled character's You strip while carrying the broken energy drink.
-   - expected: the item name and broken state have a visible separator, reading as “energy drink — broken” (or the chosen state format), not `energy drinkbroken`.
+   - expected: the item name and broken state have a visible separator, reading as “energy drink - broken” (or the chosen state format), not `energy drinkbroken`.
 3. Select each chip and compare its visible label with the item record's `name`/`display_name` fields.
    - expected: scene snapshot and You strip resolve from the existing display-name field; they do not add a second name-resolution source.
 

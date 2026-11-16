@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "task-stale-phantom-way-edges-self-healing",
+  "kind": "task",
+  "number": null,
+  "title": "Stale & Phantom Way Connection Edges - Self-Healing Reconnect",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Some ways ended up wired to **three areas instead of two**, and edges pointed at **non-existent mixed-case node ids** (e.g. `area_Task_18_-_Room_4` while the node is stored as `area_task_18_-_room_4`). Symptoms seen in the way inspector: \"side B shows the wrong room\", \"view from B to A got lost\", \"both cardinals read south\", and direction fields showing as empty.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "root_causes": "1. **`build_connect` never removed old edges.** The graph-editor connect (`POST /api/build/connect`) *added* 4 connection edges without deleting the way's existing ones. Connecting an already-wired way left a stale pair behind → 6 edges / 3 areas. (`reconnect_way` already removes all edges first, so the stale wiring came from a connect, not a reconnect.)\n2. **Reconnect prop preservation was case-sensitive.** `reconnect_way` matched the canonical `area → way` edge with plain `==`. When the stored edge used a legacy mixed-case id and the request used the lowercase id, the match failed and `visible_in_direction` / `cardinal` were silently dropped.\n3. **Nothing normalized edge endpoints on load.** Saves copied edges verbatim, so mixed-case phantom endpoints persisted forever and polluted serialization + editor edge parsing.",
+      "fixes": "- `routes/graph.py` - `build_connect_legacy`: remove any existing connection edges for the way id (case-insensitive) before adding the 4, so re-connecting is idempotent.\n- `routes/graph.py` - `reconnect_way`: find the way's connection edges and match the canonical edge **case-insensitively** so view/cardinal props survive a reconnect even with legacy mixed-case ids.\n- `graph.py` - new `_normalize_edge_endpoints()` called at the end of `load_from_dict`: remaps every edge's source/target to the canonical stored node id (case-insensitive resolve). Saves reloading legacy worlds self-heal phantom endpoints.\n- `static/js/inspector/way-view.js` - `_parseConnections` now prefers the way's `area_from` / `area_to` props (resolved to area nodes) when choosing side A/B, so stale 3rd-area edges no longer surface the wrong pair in the inspector.",
+      "manual_repair_workflow_how_to_fix_a_broken_way_in_the_editor": "Open the way → Connections → pick the two correct areas in the reconnect dropdowns → set directions → 🔄 Reconnect. The route deletes all existing connection edges and rebuilds exactly 4 for the chosen pair, preserving view/cardinal props case-insensitively.\n\nAlso: `tools/fix_way_edges.py` scans a world file or the live server (`--live`) and prints a per-way DROP/REMAP plan; `--apply` writes the changes. Useful for bulk-cleaning a scenario that accumulated stale wiring.",
+      "verification": "- `tests/test_way_connect_repair.py` (new): reconnect preserves view/cardinal with mixed-case stored ids; build_connect is idempotent (no stale sides); build_connect to a new pair replaces the old side; load_from_dict rewrites mixed-case endpoints. 4/4 pass.\n- Full suite: 761 passed, 11 failed (pre-existing `TestGiveItemEffect` give-item failures, confirmed on clean HEAD).",
+      "files_changed": "- `routes/graph.py` - idempotent connect, case-insensitive reconnect prop preservation\n- `graph.py` - `_normalize_edge_endpoints` on load\n- `static/js/inspector/way-view.js` - `_parseConnections` prefers area_from/area_to\n- `tools/fix_way_edges.py` - new dry-run/apply repair scanner\n- `tests/test_way_connect_repair.py` - new route tests"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Graph & Area UX",
+    "status_note": "In Review - implemented 2026-08-09, 4 new route tests pass, full suite 761 passed (same 11 pre-existing give-item failures).",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/task-stale-phantom-way-edges-self-healing.md"
+  }
+}

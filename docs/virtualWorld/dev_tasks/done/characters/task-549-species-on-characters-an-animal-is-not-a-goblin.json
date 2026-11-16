@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "id": "task-549",
+  "kind": "task",
+  "number": 549,
+  "title": "Species on characters: an animal is not a goblin",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-545",
+      "task-547"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Characters have no species or faction field at all, so an animal, a goblin and a human are the same kind of thing to the simulation. Add a species/faction identity that the need layer can read.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A character carries a species identity **readable by the need layer** -",
+        "done": true
+      },
+      {
+        "text": "`Player.species`, normalised to lowercase, read from the `Player` (never",
+        "done": false
+      },
+      {
+        "text": "from a bare graph node, which carries no such field).",
+        "done": false
+      },
+      {
+        "text": "**A species can be excluded from a service**, so \"would an animal use a",
+        "done": true
+      },
+      {
+        "text": "latrine\" is a property of the data and not of the author's tag choices.",
+        "done": false
+      },
+      {
+        "text": "`engine/species.py` profiles declare exclusions; the background relief",
+        "done": false
+      },
+      {
+        "text": "handler reads one.",
+        "done": false
+      },
+      {
+        "text": "**Existing characters and scenarios load unchanged** - asserted against",
+        "done": true
+      },
+      {
+        "text": "all 70 library characters: none declares a species, and an unspecified",
+        "done": false
+      },
+      {
+        "text": "species permits every service, so every one of them behaves identically.",
+        "done": false
+      },
+      {
+        "text": "Species is authorable through `POST /api/players/<name>` and hydrates from",
+        "done": true
+      },
+      {
+        "text": "a library definition, and round-trips in `Player.to_dict()`.",
+        "done": false
+      },
+      {
+        "text": "Tests in `tests/test_species.py` (18 tests), including the relief wiring.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_2026_09_27_there_is_no_species_anywhere": "- `player.py` has **no** species, faction, or race field. `rg species engine/\n  player.py` returns one hit, and it is a comment in `engine/traits.py` about\n  temperature thresholds. No file in `data/library/characters/` mentions species.\n- Need servicing is a **pure tag intersection**. `engine/background_simulation.py`\n  `_has_tag(node, tags)` does `set(tags) & node_tags` and nothing else. The\n  vocabularies are `DRINK_TAGS = (\"drink\", \"water\", \"beverage\")` and\n  `RELIEF_TAGS = (\"latrine\", \"toilet\", \"privy\", \"restroom\", \"bathroom\")`.\n- So the question \"would an animal use a latrine?\" **cannot be answered in either\n  direction by the engine.** The goblin camp is tagged `latrine` and a human city\n  would be tagged `bathroom`, and that distinction is authored by hand and\n  invisible to the simulation. An animal, a goblin and a human all draw from the\n  same list.\n- The world *already* models the split - but only for narration. 31 of 272 areas\n  in the Kraktooth scenario carry `goblin_description`, `human_description` and\n  `goblin_knowledge` properties, so a goblin and a human in the same room already\n  get different text. What is missing is the same distinction in the\n  **simulation** layer, where it would decide who may use what.",
+      "open_decisions": "1. **Field or tag?** A `species` field on the character, or a `species` tag the\n   existing tag machinery already reads. A tag needs no serializer change and no\n   migration, and the world already uses tags this way.\n2. **What granularity?** `goblin` / `human` / `animal` is probably too coarse to\n   be useful; the goblin camp has a chief, a shaman, prisoners and a farmhand.\n3. **What does it gate?** Minimum: need servicing. Then movement (can a goblin\n   enter the village?), and narration (replacing the per-faction description\n   keys, or complementing them).",
+      "implementation_2026_10_02_wt_characters_engine": "### A bug the live API caught and the code read did not: two player serializers\n\nThere are **two** places that serialize a player -\n`Player.to_dict()` and `SerializationManager._serialize_player` - and\n`/api/state` serves the *second* one. The species was added to the first. The\nconsequence was the worst shape a write can have:\n\n```\nPOST /api/players/Kaelen%20Voss  {\"species\": \"Forest Goblin\"}  -> 200 {\"status\":\"updated\"}\nGET  /api/state                                                     -> species absent\n```\n\nAccepted, stored on the `Player`, and absent from the response the client had\njust been handed. `Player.to_dict()` is what the *save file* uses and\n`_serialize_player` is what the *client* uses, so they had drifted apart long\nbefore this task and `size` had to be added to both for the same reason\n(comment at `serialization.py:133`). Species is now in both, and\n`test_both_player_serializers_carry_the_authored_identity` compares the key sets\nso the next field added does not repeat it.\n\n### Files\n\n- `engine/species.py` - **new**. `SPECIES_PROFILES`, `species_of`,\n  `profile_for`, `can_use_service`, `excluded_services`, `describe_species`.\n- `player.py` - `self.species = None`; serialised in `to_dict()`.\n- `engine/serialization.py` - reads `species` back (absent → `None`).\n- `engine/effects.py` - the library loader normalises and sets it.\n- `engine/background_simulation.py` - the need layer reads it; `_relieve` and\n  `_note_species_mismatch`.\n- `routes/player_ops.py` - authorable through the existing update route.\n- `tests/test_species.py` - **new**, 18 tests.\n\n### The three open decisions, answered\n\n1. **Field or tag?** A **field**, `Player.species`. A tag would have needed no\n   serializer change, but it would also have been invisible to the need layer -\n   the need layer already intersects tags, so a `species: animal` tag would have\n   been read by exactly the same mechanism that cannot currently read species,\n   which is the problem. A field is the thing the need layer asks for directly.\n   It is *not* a second source of truth: `tags` remain the general vocabulary\n   (\"nobility\", \"faction:guard\", role and circumstance), `species` answers only\n   \"what kind of creature is this\".\n2. **What granularity?** **One primary species, free text.** Closed at\n   `goblin`/`human`/`animal` it is too coarse to be useful on its own (the camp\n   has a chief, a shaman, prisoners and a farmhand), but the *kind* is what\n   matters and role is what `tags` are already for. A compound name inherits\n   from its last word, so `deep elf` gets the `elf` row without a profile being\n   registered for every adjective.\n3. **What does it gate?** **Need servicing only, and comfort rather than\n   permission.** Movement and narration are deliberately untouched - see below.\n\n### The two rules that make it safe to add at all\n\n1. **An unspecified species must change nothing.** `Player.species` defaults to\n   `None` and `profile_for(None)` returns `None`, which means *no opinion* and\n   permits every service. This is what is asserted against all 70 library\n   characters. Returning an empty-but-present profile would have read as \"can do\n   nothing\", which is a very different and much worse mistake.\n2. **Exclusion is authored, never guessed.** There is no hardcoded \"animals don't\n   use latrines\"; a profile lists the services it *cannot* use. Only exclusions\n   exist - a positive list would have to enumerate every service to stay honest,\n   and the day a service is added it would silently start lying. Pinned by\n   `test_every_profile_only_declares_exclusions_never_permissions`.\n\n### On task-551: this does not reintroduce a refusal\n\ntask-551 permits relief **anywhere** and this task must not undo that. So an\nexclusion changes whether a *fixture is a proper place*, not whether relief\nhappens: an animal that cannot use a latrine relieves where it stands, pays the\nsame dignity cost anybody else would pay, and the lived log records that it found\na fixture unusable for its body. Two tests hold that line - one asserts the\nfixture stops counting as comfort, one asserts relief still succeeds in a world\nwith no latrine at all.\n\nThe mismatch is recorded rather than announced. An animal standing in a latrine\nis a fact about the world a reader can discover, not an error to be shouted at\nsomebody every time it happens; the lived log is where the engine already puts\nobjective facts with a reason tag (`why=\"species:animal\"`).\n\n### Not done here\n\n- **Narration** - the 31 Kraktooth areas carrying `goblin_description` /\n  `human_description` are left as they are. Complementing them is a separate\n  change in a layer this task does not own, and `describe_species` exists so\n  that change has one place to read from when it happens.\n- **Movement gating** (can a goblin enter the village?) - out of scope, and it\n  belongs with task-550, which applies the same idea to areas.\n\n### Verify\n\n```\npython -m pytest tests/test_species.py -q                            # 20 passed\npython -m pytest tests/test_species.py tests/test_background_relief_and_washing.py \\\n  tests/test_library_character_import.py tests/test_character_identity.py \\\n  tests/test_health_model.py tests/test_occupancy.py -q              # 144 passed, 2 baseline\n```\n\nThe two `test_character_identity` failures are the documented pre-existing ones\n(task-457's canonical-node problem).\n\n**Full suite compared by failure NAME against the clean-master baseline**: 15\nfailed on both, `Compare-Object` empty.\n\n**Live - 2026-10-02, `python app.py` on `VW_PORT=4466`.**\n\n```\nGET  /api/state                     -> species key present on the player\nPOST /api/players/Kaelen%20Voss  {\"species\": \"Forest Goblin\"}\n                                   -> 200 {\"status\": \"updated\"}\nGET  /api/state                     -> \"forest goblin\"   (normalised to lowercase)\nPOST /api/players/Kaelen%20Voss  {\"species\": null}\nGET  /api/state                     -> null  (unspecified again)\n```\n\nWritten through the API and read back from the same API - which is exactly the\nround trip that was broken before `_serialize_player` learned about the field.",
+      "related": "- task-550 - faction and ownership, which is the same idea applied to areas\n- task-551 - relief anywhere but indoors, which makes the species question matter\n- task-653 - occupancy, the sibling reader of the size axis\n- task-606 - scale-correct ability scores, which species and size both feed"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-549-species-on-characters-an-animal-is-not-a-goblin.md"
+  }
+}

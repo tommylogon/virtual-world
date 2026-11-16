@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-747",
+  "kind": "task",
+  "number": 747,
+  "title": "WorldPainter compiler emits terrain hazards (river, cliff, thorn, fall) from the painted layers",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-746"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-496",
+      "task-525",
+      "task-529",
+      "task-745"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "world_compile emits no triggers today; give it a hazards pass that reads data/worldpainter/hazards.json (task-745) and the painted layers and attaches a compact hazards:[...] descriptor to generated ways/areas (the engine expands it at load, so no trigger-node spam). Rules: a way crossing water with no bridge -> river; a way with requires: jump over water -> fall into the water; a _climb_step rising or falling -> cliff/fall, REPLACING the hard refusal task-525 chose where the author wants a check with a consequence; a thorn/bramble biome -> thorns. Severity from storey_delta (an 89-storey drop is lethal). Direction from the current layer, defaulting to the storey gradient. This also gives the on_fail hook its compiler side, and the hazard reader is what makes trigger-written condition tags (flooded) fire consequences. Depends on task-745 (layer+table) and task-746 (effect).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_2026_10_09": "**Blocked, not started - the dependency recorded is real.** The card says it\n\"Depends on task-745 (layer+table) and task-746 (effect)\". As of 2026-10-09:\n\n- **task-745**: only the registry half is built (`data/worldpainter/hazards.json`,\n  `engine/hazards.py`, the gate, the Vocabulary-tab integration). The\n  **current/strength paint layer** - which supplies the rules' *direction* and\n  part of their *severity* - is **not built**.\n- **task-746** (a single-roll hazard effect: one check, branch, forced move, sweep\n  guard) is in `todo/triggers` - **not built**. There is **no consumer** for a\n  `hazards:[...]` descriptor.\n\nAttaching `way_props[\"hazards\"]` now would produce a field that serializes, looks\nfunctional, and is read by nothing - the exact \"exists ≠ wired\" anti-pattern this\nrepo treats as a finding. So this card waits for task-746 (the consumer) and the\ntask-745 paint layer, then the derivation is a small, testable compiler pass.",
+      "browser_ui": "Intended UI home: WorldPainter → paint water, bridge, elevation/cliff, and thorn-biome layers → compile the painted world → inspect generated ways/areas in the graph and traverse them in the game view.\n\nCurrent availability: the card reports that `world_compile` emits no hazard descriptors. Terrain hazard authoring and runtime expansion are planned; no hazard behavior is claimed as implemented.\n\nLive steps when available:\n1. Paint a water crossing without a bridge and compile. Inspect the generated way in the graph and then move a character across it.\n   - expected: the generated way carries the river hazard descriptor and movement resolves the authored hazard rather than silently treating it as an ordinary safe way.\n2. Paint a jump-required crossing over water, compile, and attempt the crossing with a character lacking the required ability.\n   - expected: the jump check branches to the authored fall-into-water outcome; the action does not bypass the check.\n3. Paint a `_climb_step` with a positive and negative storey delta, then traverse each generated way.\n   - expected: the descriptor uses the direction/storey gradient and the selected check consequence; the task-525 hard refusal remains only where the author did not specify a hazard consequence.\n4. Paint a thorn biome and test movement through it; also test the large storey-drop severity case.\n   - expected: thorn effects and severity follow `hazards.json`; an 89-storey fall uses the authored lethal tier, not a fixed minor penalty.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/WorldPainter]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-747-worldpainter-compiler-emits-terrain-hazards-river-cliff-thorn-fall-from-the-painted-layers.md"
+  }
+}

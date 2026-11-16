@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-22",
+  "kind": "task",
+  "number": 22,
+  "title": "Missing Character Items (Phone, Granola Bar, Flashlight, Water Bottle)",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Several characters in `data/scenarios/mansion.json` lack items they're supposed to have. Originally filed against the old players-section `inventory` array (which no longer exists - mansion.json is fully graph/edge-based now, so that data-integrity symptom is obsolete). The **missing item instances are still absent** from the graph edges.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "missing_items_re_verified_2026_08_03_in_data_scenarios_mansion_json": "| Character | Missing Items | Currently carries |\n|-----------|--------------|-------------------|\n| Kayla Jenkins | phone, granola_bar | hair_tie, lighter, lip_gloss |\n| Kyrie Johansen | phone, water_bottle | ace_bandage, protein_bar, wrench |\n| Sammy Lopez | phone, flashlight, 2nd granola_bar | granola_bar, sneakers, water_bottle |\n\nEvidence:\n- Carrying edges at mansion.json:4165-4218 confirm the \"currently carries\" lists above.\n- `item_phone` (mansion.json:4221) and `item_flashlight` (mansion.json:4239) are carried/equipped by **Jake Halloway only**.\n- No `item_phone_kayla` / `item_granola_bar_kayla` / `item_water_bottle_kyrie` / etc. nodes exist anywhere in `data/`.\n- Note: the same per-character fix pattern WAS applied to **different characters** in `mansion2.json` (`inv_Miki_phone`, Elena Vance's flashlight) - that scenario has no Kayla/Kyrie/Sammy. Likely source of \"this was done\" confusion.",
+      "fix_design_decision_up_to_owner": "Two approaches:\n\n- **A. Unique nodes per character** (original task design): create `item_phone_kayla`, `item_granola_bar_kayla`, `item_water_bottle_kyrie`, `item_phone_kyrie`, `item_phone_sammy`, `item_flashlight_sammy` (+ 2nd granola) with character-flavored descriptions, `carrying` edges to the player node, and per-instance triggers.\n- **B. Reuse shared nodes**: add extra `carrying` edges from the existing shared `item_phone` / `item_flashlight` / `item_granola_bar` / `item_water_bottle` nodes to the other characters. Cheaper, but all copies share one description/state and the shared on_use triggers fire per-use regardless of owner.\n\nExisting trigger nodes worth mirroring for food/water instances: `trigger_item_granola_bar_on_use_1784402362_7`, `trigger_item_protein_bar_on_use_1784402362_9`, `trigger_item_water_bottle_on_use_1784402362_10` (mansion.json:4468-4513).",
+      "note": "The original \"inventory array vs graph edges must be kept in sync\" validation concern is moot now that mansion.json is fully edge-based - no array to drift. If per-character instances are created (Option A), consider a quick sanity check that no character's `carrying`+`equipped` edges are empty by design."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-22-missing_character_items.md"
+  }
+}

@@ -25,16 +25,16 @@ INTRINSIC_ABILITY_TAGS = frozenset({"spell", "ability", "innate", "intrinsic", "
 
 It is consulted in exactly two places today:
 
-- `_is_intrinsic_ability` / `_drop_intrinsic_abilities` (`engine/equipment.py:603`) —
+- `_is_intrinsic_ability` / `_drop_intrinsic_abilities` (`engine/equipment.py:603`) -
   hides abilities from a character's **visible appearance** so others do not see them
   in examine/equipment narrative.
-- `engine/items/take_drop_actions.py:737` — the **take** path checks the tags only to
+- `engine/items/take_drop_actions.py:737` - the **take** path checks the tags only to
   make an ability **skip hand slots** ("skip straight to carrying"). It does **not**
   forbid possession.
 
 **The hole:** `drop_item` (`take_drop_actions.py:837`) and `place_item`
 (`place_actions.py:124`) never check the tag. So an intrinsic ability in a
-character's possession can be **`drop`-ped into the area and `take`-n by anyone** —
+character's possession can be **`drop`-ped into the area and `take`-n by anyone** -
 Violet dropping her invisibility on the ground. Latent, because no content authors
 abilities yet.
 
@@ -46,7 +46,7 @@ An ability is **non-physical**, so the physical-possession verbs do not apply:
   `steal`. Refuse with a clear message ("your invisibility is not a thing you set
   down"), not a generic failure.
 - Acquisition is **grant / revoke**, not take/drop. A physical **carrier** (hacking
-  chip, spellbook, scroll, implant) is a normal item — you take/drop/equip the
+  chip, spellbook, scroll, implant) is a normal item - you take/drop/equip the
   *carrier*; equipping/installing **grants** the intrinsic ability node, removing it
   **revokes** it. Two layers: carrier (physical) vs ability (intrinsic).
 - Activation is `use` / `toggle` (task-352), not held/dropped.
@@ -73,7 +73,7 @@ the ability's cost table is over that different verb set.
 ## Open questions
 
 - Is `grant`/`revoke` its own verb, or is it the effect of `equip`/`unequip` on a
-  carrier? (Recommend the latter — no new verb.)
+  carrier? (Recommend the latter - no new verb.)
 - Do abilities occupy a containment slot on the character at all, or are they purely
   tag-marked nodes owned by the character? Confirm the containment model before
   excluding the verbs.

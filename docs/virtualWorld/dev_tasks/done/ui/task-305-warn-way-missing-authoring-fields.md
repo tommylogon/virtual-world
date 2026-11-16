@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-19
 **Priority**: High
-**Status**: In Review — implemented 2026-08-19 (backend validator, left-panel World Issues)
+**Status**: In Review - implemented 2026-08-19 (backend validator, left-panel World Issues)
 
 ---
 
@@ -19,7 +19,7 @@ Editor warning when a way is missing required authoring fields: cardinal directi
 
 ## Implemented
 
-- `engine/trigger_validator.py` — new `_validate_way_authoring()` pass: `way_missing_description`, `way_missing_pass_message`, `way_missing_cardinal`, `way_missing_view_direction` (cardinal + `visible_in_direction` checked per connection edge).
+- `engine/trigger_validator.py` - new `_validate_way_authoring()` pass: `way_missing_description`, `way_missing_pass_message`, `way_missing_cardinal`, `way_missing_view_direction` (cardinal + `visible_in_direction` checked per connection edge).
 - Surfaced in the left panel `#validation-section` (renamed "Trigger Issues" → "World Issues") via `/api/triggers/validate`, with jump-to-node.
 - Tests: `TestWayAuthoringWarnings` (missing-all + clean cases).
 
@@ -30,7 +30,7 @@ Editor warning when a way is missing required authoring fields: cardinal directi
 ## Notes
 
 - Authoring-time validation in the way inspector, same pattern as the existing tag validation warnings.
-- Cheap to build, and it catches real gaps — ways authored without a cardinal direction/description render poorly in the map editor's cardinal-axis layout and produce weak narrative ("the stranger at the north" relies on this data).
+- Cheap to build, and it catches real gaps - ways authored without a cardinal direction/description render poorly in the map editor's cardinal-axis layout and produce weak narrative ("the stranger at the north" relies on this data).
 - Family of warnings: `task-305` (ways), `task-306` (empty triggers), `task-307` (mechanic tags).
 
 ## Related

@@ -63,7 +63,7 @@ Make edge lookup and exit building cheap and predictable, and lowercase ids
 - Profile: same 100-tick run before/after (ranking only).
 - Full suite excluding `test_mcp_*`.
 
-## Progress — 2026-09-19
+## Progress - 2026-09-19
 
 Implemented.
 
@@ -82,7 +82,7 @@ Implemented.
 Verified: full suite 2835 passed (excluding pre-existing `test_mcp_*`); the
 trigger/exit cost that dominated the old profile is gone from the hot path.
 
-### Second pass — 2026-09-19 (lighting + edge moves)
+### Second pass - 2026-09-19 (lighting + edge moves)
 
 - `remove_edge` / `remove_edges_for_node` now unindex only the removed edges
   (`_unindex_edge`) instead of rebuilding every index; `triggers` edges still

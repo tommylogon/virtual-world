@@ -1,7 +1,7 @@
 # Bug-17: Rounding of Area Temperature
 
-**Status:** Done — fully fixed 2026-08-30: display rounding at every UI site (tree-view outline+copy, agent-lens, world-export, area-view improve prompt) plus storage rounding in `engine/environment_propagation.py` (round to 0.1 on writes). Live-verified in the GUI (outline shows -10.5, 0.8, -1 instead of noise); full suite green.
-**Area:** Environment — area temperature / area inspector
+**Status:** Done - fully fixed 2026-08-30: display rounding at every UI site (tree-view outline+copy, agent-lens, world-export, area-view improve prompt) plus storage rounding in `engine/environment_propagation.py` (round to 0.1 on writes). Live-verified in the GUI (outline shows -10.5, 0.8, -1 instead of noise); full suite green.
+**Area:** Environment - area temperature / area inspector
 **Observed:** The Temp °C field in the area inspector shows raw unrounded floats
 and `parseInt` truncates on save.
 
@@ -16,7 +16,7 @@ and `parseInt` truncates on save.
 Two bugs in one:
 1. **Display**: `value` renders the raw stored float (`23.226791593125`), so the
    inspector shows long decimals that drift with environment propagation.
-2. **Save**: `parseInt(this.value)` *truncates* — `23.8` saves as `23`, and
+2. **Save**: `parseInt(this.value)` *truncates* - `23.8` saves as `23`, and
    negative values are fine but fractional temps get silently floored every
    edit, so you can never store a decimal temperature.
 

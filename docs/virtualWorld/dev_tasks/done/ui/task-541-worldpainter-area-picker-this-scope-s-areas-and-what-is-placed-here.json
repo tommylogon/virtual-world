@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "id": "task-541",
+  "kind": "task",
+  "number": 541,
+  "title": "WorldPainter area picker: this scope's areas, and what is placed here",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-528",
+      "task-539",
+      "task-540"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Once membership is edited on the node (task-539), the place tool's dropdown should\njust answer \"which areas belong to the scope I am painting?\". It used to list\n**every** unplaced hand-authored area in the whole world\n(`_unplaced_areas`, `routes/world_grid_ops.py`), so the goblin camp's rooms showed\nup in the world map's picker as if they belonged there.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "The payload carries each candidate's **owning scope** - `scope_id` *and*",
+        "done": true
+      },
+      {
+        "text": "`scope_name`, so the \"elsewhere\" group can name the scope it belongs to",
+        "done": false
+      },
+      {
+        "text": "instead of showing a bare id.",
+        "done": false
+      },
+      {
+        "text": "`gridModel.areaGroups(payload, selectedId)` returns up to three groups, in",
+        "done": true
+      },
+      {
+        "text": "order: **On this grid** (with each cell), **This scope, not placed**, and",
+        "done": false
+      },
+      {
+        "text": "**Elsewhere in the world**. The editor renders them as `<optgroup>`s;",
+        "done": false
+      },
+      {
+        "text": "`placeableAreas` is the flattened view of the same list.",
+        "done": false
+      },
+      {
+        "text": "An area with **no** scope counts as this scope's - it belongs to nobody, so",
+        "done": true
+      },
+      {
+        "text": "any map may claim it.",
+        "done": false
+      },
+      {
+        "text": "An area already on this grid is never listed twice, even if the server also",
+        "done": true
+      },
+      {
+        "text": "offers it as a candidate.",
+        "done": false
+      },
+      {
+        "text": "The \"elsewhere\" heading says picking one moves it here, because that is a",
+        "done": true
+      },
+      {
+        "text": "membership change (task-539) and must not read as a placement.",
+        "done": false
+      },
+      {
+        "text": "A picked area is never dropped from the picker, so it can still be moved.",
+        "done": true
+      },
+      {
+        "text": "Unit-tested: the parent map's picker does not list a child scope's rooms as",
+        "done": true
+      },
+      {
+        "text": "its own, the camp's own map does, an unowned area appears on both, a placed",
+        "done": false
+      },
+      {
+        "text": "area appears once, and an unknown selected id stays selectable.",
+        "done": false
+      },
+      {
+        "text": "Verified live: on the goblin camp grid the picker shows",
+        "done": true
+      },
+      {
+        "text": "`On this grid (2)` → Animal Pens (11,7), Sleeping Halls (2,3) and",
+        "done": false
+      },
+      {
+        "text": "`This scope, not placed (29)` → the camp's rooms, with no \"elsewhere\" group",
+        "done": false
+      },
+      {
+        "text": "(every unplaced area already belongs to that scope).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "note": "The old flat \"📍 name (x,y)\" chip row for already-placed areas is gone: those areas\nare now the first optgroup, with their cell, so the same information is in one\nplace instead of two."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-541-worldpainter-area-picker-show-what-is-placed-here-and-what-belongs-to-this-scope-only.md"
+  }
+}

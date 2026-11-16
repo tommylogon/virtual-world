@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-787",
+  "kind": "task",
+  "number": 787,
+  "title": "Mind panel: migrate the remaining mind surfaces out of the Bio and Advanced tabs",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-691",
+      "task-714",
+      "task-729",
+      "task-736",
+      "task-756",
+      "task-785",
+      "task-820",
+      "task-821"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Inventory the character inspector's Bio and Advanced sections, classify each as mind state or definition, and move the mind surfaces into the Mind panel. From **Bio**: `✨ Interest Tags`, `😨 Fear Tags`, `🧪 Recipes`, `👁️ What I See`, `📋 Plan`, and `💭 Latest Thoughts`. From **Advanced**: `🧠 Knowledge`, `📜 Timeline`, `🧠 Conversation Memory`. Keep in Bio (definition/body): stats/skills/traits, personality, appearance, tags, aliases. The 🧠 Mind entry point moved to the always-visible status row (it used to sit inside the Bio memories section header). `known-by.ts` stays shared for areas. Each moved surface gets one home - the Mind panel - and leaves its old tab.\n\n**Not in this card:** the delegated Bio `🧠 Memories` list/editor. It is the memory **editor** (add / generate / suppress / delete / filter), and task-729 owns moving those edit controls into the Mind panel. The Mind panel's Memories tab already carries the *display* half (task-714). So the Bio section stays until 729; removing it here would have dropped the only add/generate/delete/suppress controls.",
+    "why": "`agent-view.ts` grew both surfaces out of the same `_renderBioTab` / `_renderAdvancedTab` strings, so the character's *runtime mind* (what they pay attention to, fear, perceive, think, plan, know and remember) is authored next to their *definition* (personality, appearance, stats). The Mind panel is becoming the single mind surface (task-714 display, task-729 edit, task-820 container), so these mind blocks belong there and not split across two tabs. Resolved 2026-10-13: Bio keeps only definition/body; every runtime-mind block moves.",
+    "how": "Move each block's render and wiring from `agent-view.ts` into the Mind panel (`mind-view.ts`) as a tab pane, reading the same runtime source it reads today: `Player.interest_tags` / `fear_tags`, `worldState` area for what-I-see, `charState.detailedTimeline` / `events` for the timeline and latest thoughts, `PlanTracker.getPlan` for the plan, `KnownBySection.buildKnownChips` for knowledge, `agent.getDisplayHistory` for conversation memory, `player.memories` for memories. Mount them under the tabs from task-820. Remove the moved sections from `_renderBioTab` and `_renderAdvancedTab`. Re-host the deferred wirings (knowledge chips, interest/fear multiselects) inside the panel. No store changes, no second copy.\n\n**Landed.** Tab assignment: **Mind** gains `📋 Plan`, `💭 Latest Thoughts`, `✨ Interest Tags`, `😨 Fear Tags` (with `Pursuit & plan`); **Perception** gains `👁️ What I See`, `🧠 Knowledge` (chips + 🎛 Manage), `🧪 Recipes` (replacing the weaker read-only `crafting_known` summary that task-714 had there); **Memories** gains `📜 Timeline`, `🧠 Conversation Memory`.\n\n**Entry point.** The only opener used to be the 🧠 Mind button inside the Bio memories section header (`memory-view.ts: renderMemoriesHtml`). Since 787 moves the display blocks out of Bio, the button now also lives in the agent **status row** (always visible, above the tabs) and calls `window.InspectorMindView.open(name)`. The Bio section keeps its own 🧠 Mind button (memory-view unchanged, task-729's target). `agent-view.ts` no longer reads `window.KnownBySection` / `window.PlanTracker` (verdicts recorded in `tools/window-usage-reviewed.json`).",
+    "verify": "1. Open a character and visit every Mind tab.\n   - expected: interest tags, fear tags, recipes, what-I-see, latest thoughts, plan, knowledge, timeline and conversation memory each render once, on their Mind tab, and are gone from Bio/Advanced. (The Bio `🧠 Memories` editor stays: task-729.)\n   - observed: Arix (25 memories, 10 interests, 8 fears, 4 goals). Agent panel `innerText` contains none of `Interest Tags | Fear Tags | Recipes | What I See | Latest Thoughts | Plan | Knowledge | Timeline | Conversation Memory` (only the Bio `Memories` editor remains, by design); the 🧠 Mind button is present. Mind tab renders interest/fear/thoughts/goals; Perception renders what-I-see/knowledge/recipes + knowledge chips (10 chips from `Player.known`); Memories renders timeline + conversation memory; People renders profiles. Plan/Activity render only when the character has one (Arix has none), by design.\n2. Run a turn for the character, then reopen the Mind panel.\n   - expected: timeline and latest-thoughts update from `charState`; values match `/api/state`.\n   - observed: timeline/latest-thoughts read `events.getCharacterState(name)` per open (same source as the old Advanced tab); the tag editor round-trip below proves the panel is live, not a snapshot.\n3. Round-trip a moved editor.\n   - expected: an edit made in the panel writes the same store and survives a reload.\n   - observed: typing a tag into the Mind panel's interest-tag multiselect → `ApiClient.updateCharacter('Arix', {interest_tags})` → `/api/state` reads 11 tags including the probe, then removed (restored to the original 10).",
+    "acceptance": [
+      {
+        "text": "Each listed surface renders on a Mind tab and is gone from Bio/Advanced; nothing renders in two places.",
+        "done": true
+      },
+      {
+        "text": "Every moved block reads its existing runtime source; no new store, no UI-only copy.",
+        "done": true
+      },
+      {
+        "text": "Deferred wirings (KnownBySection chips, interest/fear multiselects) still mount.",
+        "done": true
+      },
+      {
+        "text": "Known-by stays shared for areas (untouched).",
+        "done": true
+      },
+      {
+        "text": "`npm run build:ts`, `npm run typecheck`, `node tools/unit/run.cjs` pass; `python tools/ts_convert.py check` green.",
+        "done": true
+      },
+      {
+        "text": "Live-verified on localhost:4444 for one character with populated data.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/inspector/mind-view.ts` (destination - new renderers `_interestTagsHtml` / `_fearTagsHtml` / `_whatISeeHtml` / `_latestThoughtsHtml` / `_planHtml` / `_knowledgeHtml` / `_recipesHtml` / `_eventsTimelineHtml` / `_conversationHtml`, mounted into the task-820 tabs and wired per render)",
+      "static/js/inspector/agent-view.ts` (`_renderBioTab`, `_renderAdvancedTab`, status row entry point)",
+      "static/js/inspector/known-by.ts` (knowledge chips)",
+      "static/js/agent/` (`getDisplayHistory`), `PlanTracker",
+      "tools/window-usage-reviewed.json` (two reviewed prefix drops)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Select a populated character → the always-visible 🧠 Mind button in the inspector status row → Mind, Perception, Memories, and People tabs. Bio keeps definition/body fields and the memory editor owned by task-729.\n\nCurrent availability: The card records a live pass on localhost:4444 with Arix's populated Mind tabs and confirms the moved sections are absent from Bio/Advanced. Task 729 owns the remaining memory-editor controls.\n\nLive steps when available:\n1. Open Arix's inspector and count/inspect its top-level tabs, then open 🧠 Mind from the status row and visit Mind, Perception, Memories, and People.\n   - expected: Goals/plan/interest/fear/thoughts are on Mind; what-I-see/knowledge/recipes are on Perception; timeline/conversation memory are on Memories; profiles are on People; no moved block appears twice.\n2. Scroll the entire Mind panel to the bottom and return to the top; then close it and open it again from the Bio Memories section's retained Mind button.\n   - expected: both documented entry controls open the same tabbed Mind view; all four tabs remain reachable and the Bio memory editor remains available for task-729.\n3. Add one temporary interest tag and inspect the world state, then remove it.\n   - expected: the tag round-trips through `Player.interest_tags`, the panel reflects the refreshed value, and removing the probe restores the original count.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-787-mind-panel-migrate-the-remaining-mind-surfaces-out-of-the-bio-and-advanced-tabs.md"
+  }
+}

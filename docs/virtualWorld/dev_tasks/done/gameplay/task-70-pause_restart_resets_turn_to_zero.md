@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-19
 **Priority**: High
-**Status**: Done — fixed via the TurnQueue refactor (start() only initializes the queue when empty; turnNumber preserved across pause). Audited 2026-08-03
+**Status**: Done - fixed via the TurnQueue refactor (start() only initializes the queue when empty; turnNumber preserved across pause). Audited 2026-08-03
 
 ## What
 
@@ -17,7 +17,7 @@ Pausing the simulation and clicking "Start" calls `initializeTurnQueue()`, which
 
 ## Why
 
-`agent-engine.js:45-76` — `initializeTurnQueue()`:
+`agent-engine.js:45-76` - `initializeTurnQueue()`:
 
 ```javascript
 initializeTurnQueue() {
@@ -105,8 +105,8 @@ initializeTurnQueue(preserveTurn = false) {
 
 ## Files
 
-- `static/js/agent-engine.js:45-76` — `initializeTurnQueue()`
-- `static/js/agent-engine.js:470-474` — `start()`
+- `static/js/agent-engine.js:45-76` - `initializeTurnQueue()`
+- `static/js/agent-engine.js:470-474` - `start()`
 
 ## Steps to verify
 

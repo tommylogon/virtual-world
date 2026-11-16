@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-duplicate-item-loses-triggers-case-mismatch",
+  "kind": "task",
+  "number": null,
+  "title": "Fix: Duplicating an Item Loses Its Triggers (case-mismatched edge ids)",
+  "status": "review",
+  "priority": "high",
+  "area": "items",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-case-consistency-sweep"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Duplicating an item (graph context menu → 📋 Duplicate) silently lost all edges - including trigger edges - whenever the new name contained uppercase letters.\n\nRoot cause: `GraphNodeOps.duplicateNode` (`static/js/graph/node-operations.js`) computed the new node id in the caller's case (`item_Button_18_-_2`) and used that string as the source for every copied edge, but the backend lowercases node ids on create (`routes/graph.py:32` `create_node`: `.lower()`). Result: node `item_button_18_-_2` with edges pointing from `item_Button_18_-_2` - orphaned edges, and the duplicate appeared to have zero triggers.\n\nSecondary effect: `remove_node` cleans edges under the exact id, so deleting the broken duplicate left the mixed-case orphan edges behind permanently.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "reproduction": "- Duplicate an item, name it with any capital letter → duplicate node exists but the inspector shows no Triggers/edges; `/api/graph/edges` contains orphaned edges under the mixed-case source id.\n- Reproduced live: `item_coffee_grinder_dup_UI_test` (all 4 trigger edges orphaned under `item_coffee_grinder_dup_UI_test`); same pattern visible in the user's world for `item_Button_18_-_2` (in + triggers), `item_Jumpsuit_2`, `item_Button_7`.",
+      "fix": "- `static/js/graph/node-operations.js`:\n  - `duplicateNode`: generated `newId` is now `.toLowerCase()` before the existence check, node creation, and `_copyEdges` - matches the backend's create_node convention (ids always lowercase, see AGENTS.md memory `node_ids_lowercase_generated`).\n  - `_copyEdges`: the recursive item-copy `copyId` is also `.toLowerCase()` for the same reason.\n- Character duplication path is untouched (player ids like `player_John_doe` are not lowercased by `createCharacter`).",
+      "verification": "- Playwright UI repro with an uppercase name (\"Coffee Grinder Dup Case Test\"): node `item_coffee_grinder_dup_case_test` got all 4 trigger edges + `on` edge, **0 orphaned** edges.\n- Clean duplicate (lowercase name): 5 edges incl. 4 triggers, as before.\n- `node --check` clean; `tools/test_ui.cjs` 25/25 passed.\n- Live cleanup: removed 30 orphan/test edges and the duplicate test nodes; the user's bug orphans (`item_Button_18_-_2`, `item_Jumpsuit_2`, `item_Button_7`) are cleared. Legacy mixed-case ids (Task 3 panels/areas, `area_Task_18_-_Room_4`) were left untouched - unrelated and pre-existing.",
+      "files_changed": "- `static/js/graph/node-operations.js` - lowercase generated ids in `duplicateNode` + `_copyEdges`",
+      "browser_ui": "Intended UI home: Graph context menu → 📋 Duplicate an item → enter an uppercase name → open the duplicate's Item Inspector → inspect Triggers and graph edges.\n\nCurrent availability: the card records a Playwright reproduction and fix for mixed-case new IDs, with four trigger edges, one containment edge, and zero orphaned edges. The recorded verification is historical; no fresh browser run is claimed here.\n\nLive steps when available:\n1. Duplicate an item with four trigger edges and name it `Coffee Grinder Dup Case Test`.\n   - expected: the created node ID is lowercase; its Inspector shows all four triggers and containment edge.\n2. Inspect `/api/graph/edges` for sources matching the new ID and compare with the graph.\n   - expected: all copied edges use the canonical lowercase node ID and orphan count is zero.\n3. Repeat with a lowercase name, then delete both scratch duplicates from the UI.\n   - expected: lowercase duplication behaves the same, and deletion removes the duplicate's edges without touching the original item.\n4. Check a duplicated character separately.\n   - expected: player IDs retain their deliberate case-preserving behavior; this item-ID fix does not lowercase character identity.\n\nThis section is not a claim that the historical Playwright repro has been rerun today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Items",
+    "status_note": "In Review - implemented 2026-08-09, verified via Playwright UI repro (orphan count 0), UI smoke 25/25.",
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-duplicate-item-loses-triggers-case-mismatch.md"
+  }
+}

@@ -6,13 +6,13 @@
 
 ## Summary
 
-Before clicking "Step" or "Start", the first character in the initiative list shows `▶️ Kaelen Voss ⚡ ACTING`. No turn has been taken yet — the character is "up next", not "acting".
+Before clicking "Step" or "Start", the first character in the initiative list shows `▶️ Kaelen Voss ⚡ ACTING`. No turn has been taken yet - the character is "up next", not "acting".
 
 ## Root Cause
 
 `TurnQueue.initialize()` sets `currentTurnIndex = 0`. The `_renderInitiative()` function in `ui-controller.js` treats any character at `currentTurnIndex` as "current" and displays "⚡ ACTING" regardless of whether any turns have actually been processed.
 
-When `currentTurnIndex = 0` and `turnNumber = 0`, the character at index 0 hasn't had their turn yet — they're the next character up. The UI shouldn't show "ACTING" until `step()` has actually started processing them.
+When `currentTurnIndex = 0` and `turnNumber = 0`, the character at index 0 hasn't had their turn yet - they're the next character up. The UI shouldn't show "ACTING" until `step()` has actually started processing them.
 
 ## Fix
 
@@ -29,4 +29,4 @@ const statusStr = isCurrent
 `static/js/ui-controller.js:176`
 
 ---
-_Audited 2026-08-03 � duplicate file consolidated into this record._
+_Audited 2026-08-03 - duplicate file consolidated into this record._

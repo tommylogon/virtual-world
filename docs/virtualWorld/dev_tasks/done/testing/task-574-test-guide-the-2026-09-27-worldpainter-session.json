@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "id": "task-574",
+  "kind": "task",
+  "number": 574,
+  "title": "Test guide: the 2026-09-27 WorldPainter session",
+  "status": "done",
+  "priority": "high",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-528",
+      "task-553",
+      "task-554",
+      "task-557",
+      "task-558",
+      "task-564",
+      "task-566",
+      "task-567",
+      "task-568",
+      "task-525",
+      "task-529",
+      "task-535",
+      "task-536",
+      "bug-48"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A per-feature test guide for everything built on 2026-09-27, so each can be checked\nby hand in the app and against the suite.\n\nThirteen tasks plus one unfiled feature, in one place, so the next person (or the\nnext session) does not have to reconstruct what \"working\" means for each from\nthe diff. Every entry has the same four parts: **what it is**, **how to test it by\nhand**, **what passing looks like**, and **the automated coverage** that already\nguards it - so a manual check is for the wiring, not for the logic.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "One entry per feature from the session, each with **what it is**, **how to test",
+        "done": true
+      },
+      {
+        "text": "it by hand**, **what passing looks like**, and **its automated coverage** -",
+        "done": false
+      },
+      {
+        "text": "so a manual check is for the wiring, not for logic already under test.",
+        "done": false
+      },
+      {
+        "text": "The preconditions section states the **actual current baseline** (60 failed /",
+        "done": true
+      },
+      {
+        "text": "4182 passed; 371/13-or-14 JS) so a future reader can tell a regression from the",
+        "done": false
+      },
+      {
+        "text": "known failures, including the `test_plan_tracker.js` count that flickers.",
+        "done": false
+      },
+      {
+        "text": "Known issues are recorded rather than discovered twice: the fixed zero-width",
+        "done": true
+      },
+      {
+        "text": "grid, and the **open** marquee defect with its likely root cause (Konva",
+        "done": false
+      },
+      {
+        "text": "layers created `listening: false`, which may also break paint drag-strokes and",
+        "done": false
+      },
+      {
+        "text": "may predate this session).",
+        "done": false
+      },
+      {
+        "text": "Features with **no** automated coverage are named as such, so the gaps are",
+        "done": true
+      },
+      {
+        "text": "visible instead of implied - and the cheapest missing test is proposed",
+        "done": false
+      },
+      {
+        "text": "concretely.",
+        "done": false
+      },
+      {
+        "text": "The open marquee defect (Known issues #2) has a dev-task home -",
+        "done": true
+      },
+      {
+        "text": "**task-536** (`review/ui/worldpainter-left-tool-rail-marquee-cell-selection-move-selection`).",
+        "done": false
+      },
+      {
+        "text": "The fix itself is owned there, against a live WorldPainter session; this",
+        "done": false
+      },
+      {
+        "text": "guide's job was to record it, which it did. The `mousemove` cause is still",
+        "done": false
+      },
+      {
+        "text": "unestablished (the 2026-10-02 live attempt failed to reproduce - see below).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "preconditions": "- **Restart the app.** Every backend change (compiler, grid, routes, engine) needs\n  it. Static JS only needs a page reload, but the JS and the API ship together here,\n  so restart and reload both.\n- Open the WorldPainter from the top menu: **🗺️ WorldPainter**, or\n  `VW.worldPainter.open('<scope_id>')` in the console. The tool rail only appears on\n  a scope that **has a grid** - a scope without one renders the \"no grid\" panel, so\n  an empty rail is not a bug.\n- `python -m pytest -q` - **STALE (2026-09-28): 60 failed / 4182 passed.** This\n  figure predates the October work and must be re-measured before it is trusted;\n  the suite has grown substantially since (see `AGENTS.md` for the current\n  baseline). Do not read the 60 as current.\n- `node tools/unit/run.cjs` - **re-measured 2026-10-08: 624 passed / 0 failed.**\n  (The old \"371 passed / 13 failed in `test_plan_tracker.js`\" figure is stale;\n  that flicker is gone.)\n- `npm run lint`, `npm run typecheck`, `python tools/js_module_index.py --check` -\n  all clean.",
+      "known_issues_found_while_writing_this_guide": "Two bugs were found by looking at the app rather than the tests, which is the\nreason this document exists. **Both are DOM-only defects that no unit test in the\nrepo can currently catch.**\n\n1. **FIXED - the grid vanished when the rail moved beside it.** `_grid()`'s wrapper\n   relied on `align-items:stretch` from the panel's *column* flex box to get its\n   width. As a flex item in a **row** (rail + grid) it took its content width, and\n   its only child is absolutely positioned, so the wrapper collapsed to **0px** and\n   the 900px canvas overflowed a zero-width box: the canvas was in the DOM with five\n   live layers and nothing was visible. Fixed with `flex:1 1 auto; min-width:0` on\n   the wrapper. *Test it:* the grid's bounding box must be ~876px wide, not 2.\n2. **OPEN - a Select-tool marquee commits only one cell.** Dragging the rubber band\n   across several cells selects the anchor cell alone, so `_commitMarquee` is\n   reading an un-updated `drag.to`. The single-click path works (\"1 cell selected\"),\n   so the mousedown/mouseup wiring is fine and the fault is in the `mousemove` that\n   advances `state.marquee.to`. **Suspect:** every Konva layer is created with\n   `listening: false`, and Konva only delivers stage `mousemove` when hit detection\n   finds a listening shape - which would also break **paint drag-strokes**, not\n   just the marquee. That is worth checking first, because a broken drag-stroke\n   predates this session. *Test it:* a drag across 3+ cells selects all of them,\n   and a paint drag across a row colours the whole row.",
+      "the_features": "### 1. Boundary ways out of a hand-placed area (task-528's deferred half - **not filed as a task**)\n\n*What:* a hand-placed area is reserved on its cell and therefore not a region, so\nthe compiler never saw it and it had **no way to anything**. The compiler now mints\none way per painted cell touching it, on the same terms as any other boundary.\n\n*By hand:* Kraktooth's `world` scope has 10 hand-placed areas. Ungenerate, Generate,\nopen the graph. `Camp Entrance Trail` at (9,5) should gain ways to `Road (world 9,4)`\n(north), `Road (world 9,6)` (south) and `Sparse Forest (world 10,5)` (east).\n\n*Passing:* compass `direction` per way, `kind: \"open\"`, a `surface`, a midpoint\n`cell`, and four connection edges per way. Two adjacent placed areas get **one**\nway between them, not two.\n\n*The author's call survives a regenerate:* inspect a cell holding a placed area; the\npanel lists each seam as `north → Road (world 9,6)` with a **✕**. Clicking it\ndeletes the way and records the decision; Ungenerate + Generate must **not** bring\nit back. The seam then reads \"to removed by you\" with a **↺** to hand it back.\nSuppressing a non-seam way, or a hand-authored one, is refused with a reason.\n\n*Automated:* `tests/test_world_compile.py` (boundary section),\n`tests/test_world_grid_routes.py` (`test_generate_mints_a_boundary_way…`,\n`test_suppressing_a_seam_deletes_it_and_it_stays_deleted`,\n`test_a_hand_written_replacement_is_recorded_with_its_own_way`,\n`test_clearing_an_override_hands_the_seam_back`,\n`test_overriding_a_way_that_is_not_a_boundary_is_refused`).\n\n### 2. Indoor room vocabulary (task-568)\n\n*What:* 53 indoor rooms plus a `stairway` cell, so a floor plan can be painted\nwithout unknown-id warnings, and the palette is grouped by purpose.\n\n*By hand:* in the biome dropdown, look for **- Rooms -** with sub-headings\n(Circulation, Living, Sleeping, Cooking, Eating, Storage, Workshop, Worship,\nRecords, Study, Trade, Civic, Service, Outdoor) and a **- Structure -** section at\nthe end. Paint a small inn: a run of `hallway`, a `kitchen`, a `bathroom`, and a\n`stairway` between two rooms. Generate.\n\n*Passing:* no \"unknown id\" note in the generate report. A `stairway` is **not** a\nroom - the cell produces a `kind: \"stairs\"` way with `handle: \"stairs\"`,\n`aliases: [\"stairs\",\"stairway\",\"up\",\"down\",\"in\",\"out\"]`, and a pass message that\nsays \"You take the stairs to X\", never \"You climb 0 storeys\". Ten cells of\n`hallway` are **one** area even with merge off.\n\n*Automated:* `test_every_wild_biome_*` and `test_shipped_taxonomy_validates_clean`\n(`tests/test_biomes.py`) - an indoor room must not be asked for a forage tag.\n\n### 3. Per-kind merge rules (task-564)\n\n*What:* merging is per kind instead of one switch for the scope. `merge: always` on\na record, `merge: never` for any building.\n\n*By hand:* paint five `hallway` cells in a row and leave **merge same-biome off** -\nGenerate. Then paint three `cottage` cells, turn merge **on**, Generate.\n\n*Passing:* the corridor is **one** area; the cottages are **three** areas. Two\n`dining_hall` cells are two areas with merge off and one with it on. A wilderness\nscope with no rooms and no buildings compiles exactly as it did before.\n\n*Automated:* `test_a_region_never_spans_two_storeys`,\n`test_a_building_is_never_merged_with_its_neighbour`.\n\n### 4. The storey-delta climb gate (task-525)\n\n*What:* a grid step across more than three storeys in a **world** scope needs a\npath: the way is refused, and painting a road over the step opens it.\n\n*By hand:* in a `mode: world` scope, paint two adjacent cells and set the **floor**\nlayer to `0` on one and `6` on the other. Generate. Then paint a `road` on both\ncells and generate again.\n\n*Passing:* the first way carries `climb_required: true`, `current_state: \"closed\"`\nand a refusal (\"The climb is 6 storeys of bare ground - you would need a path cut\ninto it, or a way round.\"), and the report says how many steps were gated. With the\nroad, the same pair is `open`. Do the same in a `mode: interior` scope: **nothing is\ngated** - a cellar four storeys under a hall is not a trap. The threshold is\nper-scope at `record.climb.max_storey_step` (default 3).\n\n*Automated:* none yet. The behaviour was verified by a scratch script only, so this\nis the **weakest-covered feature in the session** and the first place to add tests.\n\n### 5. Entry phrases owned by the record or the placement (task-529)\n\n*What:* a `tunnel` says \"go down the tunnel\" from its own record; a placement may\noverride that for one specific mouth; the area description *offers* the move.\n\n*By hand:* place a child scope on a cell with a `tunnel` on the road layer.\nGenerate, then `look` in the parent area. Then set\n`placements.<child>.entry_phrase = \"crawl down the old adit\"`, regenerate, and\nconfirm the phrase is still there afterwards.\n\n*Passing:* the description says **\"You could go down the tunnel - Shaft is on the\nother side.\"**, not `[go down the tunnel] is clear`. `go in` still works (the short\nhandles are kept as aliases). A closed seam reads \"You could enter the tavern, but\nthe tavern's door is shut and the sign is turned.\" The author's phrase survives a\nregenerate - placement records are rebuilt from the cell, and author keys are\ncarried through.\n\n*Automated:* `test_entry_phrases_come_from_the_placement_not_a_hardcoded_in_out`,\n`test_every_entry_phrase_keeps_the_short_handles_as_aliases`,\n`test_an_override_keeps_the_short_handles`, `test_gateway_is_walkable_in_and_out`.\n\n### 6. Promote a selection into a child scope (task-535)\n\n*What:* an existing area becomes a child scope, with a gateway, and the gateway\ncarries **no** generated provenance so the parent's Ungenerate cannot delete it.\n\n*By hand:* inspect a cell with a hand-placed area → **🪜 Make this a scope…**. Give\nit a name. Then Ungenerate the **parent** scope and Generate it.\n\n*Passing:* the areas move scope (their `cell` marker is cleared, their names, items\nand ways stay), the scope appears `baked`/`materialized` in the breadcrumb, and the\ngateway **survives** the parent's Ungenerate. Every refusal (empty selection,\nduplicate id, an id that is not an area, an entry outside the selection, a cell\nthat is not a painted place) leaves the world untouched and pushes **no** undo step.\n`Ungenerate` on a baked scope is refused with a reason, and a hand-authored way into\na scope is kept and reported in `kept_ways` rather than deleted.\n\n*Not wired:* the graph's **multi**-select (vis runs `multiselect: false`), so the\nbutton promotes one area at a time. The helper takes a list.\n\n*Automated:* none yet - verified by scratch script only. Second-weakest coverage.\n\n### 7. The tool rail, selection and move (task-536)\n\n*What:* eight tools down the left with one key each, marquee and click selection,\npaint/erase across a whole selection in one request, and a Move tool that shifts\ncells' contents.\n\n*By hand:*\n- The rail shows `⬚ Select · 🖌 Paint · 🧽 Erase · ✥ Move · 🧭 Route · 🏠 Feature ·\n  📍 Area · 🔍 Inspect` with keys `V P E M R F A I`, and the active tool outlined.\n- Press **V**, drag a marquee: the panel counts the cells and the cells are tinted.\n  Click a selected cell again: it deselects. **Ctrl+A** selects all, **Escape**\n  clears.\n- With cells selected, switch to Paint and click once: **every** selected cell gets\n  the value, in one request, one undo.\n- With cells selected, press the arrow keys: their contents shift one cell, clamped\n  at the edge, sources cleared, in one undo.\n\n*Passing:* a drag on Space pans; a drag with Paint strokes; a drag with Select\nmarquees - and switching tools re-decides which, so a tool switch cannot leave the\ncanvas panning when it should be painting.\n\n*Two known defects to check first:* the **marquee commits one cell** (see Known\nissues) and, underneath it, a possibly-broken **paint drag-stroke** on a\nnon-listening stage.\n\n*Automated:* none. `editor.js` is DOM code the node sandbox does not load, which is\nwhy both bugs above got through.\n\n### 8. Edge-label wrapping in the graph view (task-558)\n\n*What:* long edge labels wrap, the edge length is computed from the wrapped line\ncount, `unlocks` edges show three lines of prose, and vis-network is pinned.\n\n*By hand:* open the graph, turn edge labels on, find a long `unlocks` edge. Look at\na two-sided label.\n\n*Passing:* the prose wraps over at most three lines and ends on a sentence\nboundary with an ellipsis; the full text is still on the hover tooltip. A short\nlabel (\"west\") is one line with the same length as before. `vis-network@9.1.9` is\nwhat the page loads.\n\n*Deliberate:* **way nodes were not touched** - they are nodes, and growing a node\nbox collides with the map layout's margins. Way names keep the label-LOD policy.\n\n*Automated:* `node tools/unit/run.cjs` (the JS suite as a whole).\n\n### 9. Per-area base temperature and the outdoor curve (task-553)\n\n*What:* `base_temperature` (authored) is split from `temperature` (simulated), and\n`temp_curve_for_hour` gives a diurnal curve plus a season bias.\n\n*By hand:* paint a `climate` layer (see 10) and `look` at two areas at the same\nhour, or step the clock from 04:00 to 14:00.\n\n*Passing:* the two areas differ by exactly their base difference. A 5-storey-climb\nclause above applies. **The compatibility guarantee:** an area with no authored\n`base_temperature` in a world with no season stays at a flat **21.0 °C** at every\nhour, which is what every existing world has always reported. `temperature_mod: 0`\nis honoured (not dropped as falsy); a NaN or infinite base falls back to 21.0.\n\n*Automated:* none yet.\n\n### 10. The climate paint layer (task-557)\n\n*What:* five coarse climates that compile to a per-area `base_temperature`.\n\n*By hand:* pick layer `climate` - a legend of five colour chips with the °C each\ncompiles to appears under the toolbar, and \"unpainted is Temperate\". Paint\n`arctic` on one cell and `tropical` on another in a **world** scope. Generate. Then\npaint `arctic` across **half** a merged region and Generate. Then paint a\nmisspelling such as `tropcial`.\n\n*Passing:* the two areas report −8.0 °C and 27.0 °C. A climate boundary **does not\nsplit** an area - three arctic cells and two tropical ones are still one area, the\nmajority wins, and the report says so. A road still *does* split. An even split\nbreaks the same way twice (row-major tie-break). The typo is a reported `WARNING`\nnaming the cell, not a silent temperate. A `town` or `interior` scope gets **no**\nclimate - a hall is not −8 °C because of paint. A world with no climate layer\ncompiles byte-identically to before.\n\n*Automated:* `test_the_five_climates_each_carry_a_base_c_and_a_colour`,\n`test_a_climate_cell_paints_in_its_own_colour…`,\n`test_the_server_decides_the_base_°C…` in `tools/unit/test_worldpainter.js`, and\n`test_painter_vocabulary_lists_real_ids` for the payload.\n\n### 11. Season, read by the engine (task-554)\n\n*What:* one server-side month→season resolver; the frontend's two copies of the\ntable are gone.\n\n*By hand:* step the calendar across a month boundary (3→4, or 11→12) and watch the\nlog and the sky. Or set `world_state.season` in a save and load it.\n\n*Passing:* `[Season] Winter arrives.` appears **once** at the change, and the first\ntick does not narrate. An authored `world_state.season` beats the clock; an\nunrecognised name falls through to the clock rather than becoming a state the\ntemperature model has no bias for. Winter is 11 °C colder than summer on the same\nworld. `sky-scape.js` no longer contains a month→season table.\n\n*Automated:* none yet.\n\n### 12. Interiors generated from a building type (task-567)\n\n*What:* 30 drawn floor plans in `data/worldpainter/interiors.json` plus a fallback,\ncovering all 31 building types, painted as **cells** so the standard compiler builds\nthe rooms.\n\n*By hand:* on an `interior` scope, **🏠 Paint an interior…** → `tavern`. Edit a cell\n(or marquee two). Paint it again and choose `tavern` a second time.\n\n*Passing:* the first paint reports ~60 cells and the scope stays **unmade** - paint is\nnot places. Generate: 8 rooms across two storeys with a cellar, 16 ways, and a\nstairwell threshold, all from the standard compiler. The scope gets a grid if it had\nnone. The second paint says how many cells it left alone, and the author's edits are\nstill there while untouched cells are re-written to the plan. `mall` uses the\nfallback and says so. A short plan row is padded with a **wall**, never a door, and\nthe padding is reported.\n\n*Automated:* none yet.\n\n### 13. A character seeking a place by function (task-566)\n\n*What:* `engine/venues.py` - seven venues looked up by the tags a place already\ncarries. A tired character asks where a bed is and walks there.\n\n*By hand:* in a town where some area carries `sleeps` (an `inn`, a `cottage`, a\n`guest_room`, a `bedroom`), drop a character's `Energy` to ~50 and step the sim.\nWatch the log.\n\n*Passing:* the log says `Ari walks to The Stag Inn - is looking for a bed`, one hop\nat a time. Among several inns the choice is: **fewest hops → familiarity →\npreference tier → node name**, so a character with a bed next door does not cross\ntown, a regular goes back to *their* inn, an inn beats a bunkroom at equal hops, and\nthe same world answers the same way every turn. In a world with **no** venues\nnothing changes and no line is written - the fallback is the old behaviour.\n\n*To make Kraktooth show this:* none of its hand-authored areas carry `sleeps`, so\nnothing will move there yet. Paint an inn, or promote the camp and paint an interior.\n\n*Automated:* none yet.\n\n### 14. Map layout while Levels owns it (bug-48)\n\n*What:* acceptance written for a fix that was already in the code. Levels places\nevery node, so Map would silently do nothing; Map is now **refused** while Levels is\non, visibly (the tab is disabled with a title saying why) and programmatically\n(`toggleCardinalLayout` toasts and returns false). `activeLayout()` is the one source\nof truth the segmented control reads.\n\n*By hand:* switch to **🌳 Levels**, then click **🗺️ Map**.\n\n*Passing:* the Map tab is disabled with an explanatory title, and calling\n`graphManager.toggleCardinalLayout()` toasts and returns `false`.\n\n*Automated:* `tools/unit/test_graph_toolbar.js` - \"Map is unavailable while Levels\nowns the layout\" and \"Map is available in the other two layouts\", against the pure\n`mapTabDisabled(state)` helper.",
+      "what_is_not_covered_and_why_it_matters": "Four of the fourteen (climb gate, promotion, temperature, season) have **no\nautomated test at all** - they were verified by scratch scripts during the session\nand by reading the report. The two worst offenders are the ones a user will hit\nfirst in a fresh world: **the climb gate** and **the interior generator**.\n\nThe pattern behind both bugs found today is the same: `static/js/worldpainter/editor.js`\nis DOM code that `tools/unit/run.cjs` does not load, so nothing in the suite can see\na collapsed wrapper or an option list of `undefined`. The cheap fix is to extract\nthe two pure functions - `_biomePalette(layer)` and `_layerOptions(layer)` - behind\na small testable surface and assert that every non-separator option has a non-empty\n`id` and `name`. That single test would have caught the flattened palette, and it\ncosts about twenty lines.",
+      "investigation_marquee_live_reproduction_blocked_2026_10_02_wt_testing_infra": "An attempt to establish the `mousemove` cause on the live app (`VW_PORT=4470`)\ndid **not** produce a valid reproduction, so no fix and no separate bug were\nwritten.\n\nMethod: created a scope with an 8x5 grid via `POST /api/world/scopes`\n(`{w:8,h:5,mode:\"world\"}`), opened it with `VW.worldPainter.open`, then:\n\n- attached `mousemove`/`mousedown` counters to the last entry of `Konva.stages`;\n- drove a real Playwright drag; and\n- separately dispatched `MouseEvent('mousedown'/'mousemove'/'mouseup')` directly\n  on `stage.container()`.\n\nEvery attempt counted **0** `mousedown` and **0** `mousemove`, both before and\nafter runtime-injecting a listening hit surface into the select layer\n(`select.listening(true)` plus a transparent `Konva.Rect`). `elementFromPoint`\nreturned the `<canvas>` at the drag origin, yet the instrumented stage received\nnothing - so the stage under test is very likely not the live surface (a stale\nentry in `Konva.stages`, or the overlay was not the active one). Per AGENTS.md\n\"check the selector points at the thing you said\", this is a **failed\nreproduction**, not evidence for the non-listening hypothesis.\n\nConsequences:\n- The guide's four documentation acceptance lines remain met.\n- The marquee fix is left open for the WorldPainter lane, which has the live\n  editor context. A useful first step is to assert the stage is live (paint one\n  cell and read it back) before instrumenting events; the counters above are not\n  trustworthy until that holds.\n- The paint drag-stroke bug was **not** filed, because it was not reproduced.",
+      "notes": "- Written **after** verifying by hand, which is what caught both known issues. The\n  lesson recorded here is the one worth keeping: the palette showed\n  `undefined (undefined)` in every dropdown, and the grid rendered nothing at all,\n  and **neither** was visible to lint, typecheck, the JS suite, the module-index\n  check, or the 4182 passing Python tests. Both were one-line fixes found by\n  looking at the screen.\n- The boundary-way feature (entry 1) has **no dev task of its own** - it is the\n  deferred half of task-528, which is in review. Filing it separately is worth doing\n  so its acceptance has a home."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/testing/task-574-test-guide-the-2026-09-27-worldpainter-session.md"
+  }
+}

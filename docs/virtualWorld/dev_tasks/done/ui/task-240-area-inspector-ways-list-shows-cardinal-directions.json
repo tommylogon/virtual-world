@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-240",
+  "kind": "task",
+  "number": 240,
+  "title": "Area Inspector Ways List Shows Cardinal Directions",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The area inspector's ways list should display each way's cardinal direction (north/south/\neast/west/up/down), matching how ways carry `dir` metadata, so designers can read a room's\nexits at a glance without opening each way.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: the area inspector's ways/exits list shows each exit's cardinal.\n- observed (2026-10-10 live, Animal Pens): EXITS -> 'east passage -> Side Tunnels' with a '🧭 east' badge (area-view.ts:593-618).",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "notes_open_questions": "- Ways store direction on the area↔way connection (`dir_a`/`dir_b`) or on the way node -\n  confirm the source of truth.\n- Show as a small badge/compass glyph next to each way in the inspector list (reuse the\n  radial compass selector styling).",
+      "browser_ui": "Intended UI home: Select an area → Inspector → Exits list.\n\nCurrent availability: The cardinal badge was live-observed on Animal Pens on\n2026-10-10. The card's open question about source-of-truth should still be\nresolved against the area-to-way connection metadata when the view is changed.\n\nLive steps when available:\n1. Open Animal Pens in the area Inspector and expand Exits; inspect the East\n   Passage row and its destination.\n   - expected: the row reads “east passage → Side Tunnels” and shows the 🧭 east\n     badge beside that exit.\n2. Open the corresponding way and inspect the connection from Animal Pens;\n   compare the badge with the directional metadata for that side.\n   - expected: the badge is derived from the Animal Pens side's connection\n     direction, not from the way's display name or the opposite side.\n3. Inspect a way with vertical movement and a way without cardinal metadata.\n   - expected: up/down is shown for the vertical exit, and no invented compass\n     direction appears when the source metadata is absent.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "`dev_tasks/developer ideas.md` (areas inspectors ways list to show cardinals too)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-240-area-inspector-ways-show-cardinals.md"
+  }
+}

@@ -21,14 +21,14 @@ related: ["'task-349'", "'task-350'", 'task-349', 'task-350']
 
 Done. `engine/relationships.py` holds the single mutation path:
 
-- `apply_relationship_delta(player, other, delta, cause, tick, area_id)` — the
+- `apply_relationship_delta(player, other, delta, cause, tick, area_id)` - the
   only writer of `closeness`. Clamps in one place, stamps
   `last_interaction_tick`/`interaction_count`, and records the cause on the trace
   as `why="social:<cause>"` with `delta={closeness, cause, with}`.
-- `apply_symmetric_delta(a, b, delta, cause)` — symmetry is a property of the
+- `apply_symmetric_delta(a, b, delta, cause)` - symmetry is a property of the
   *call*, so a meeting cannot be applied to one side by accident. Each side still
   gets its own trace entry, because each side's history is its own.
-- `closeness_band` / `band_at_least` / `BAND_LABELS` — the band ladder was inline
+- `closeness_band` / `band_at_least` / `BAND_LABELS` - the band ladder was inline
   in `Player.get_relationship_nl`; it is now defined once and the prose calls it,
   so a band-gated rule can never disagree with the wording about the edges.
   `band_at_least` is the gate task-423 needs for `flirt`/`confide` (the Diary's
@@ -39,14 +39,14 @@ Done. `engine/relationships.py` holds the single mutation path:
 Refactored callers: `player.update_relationship` (cause `dialogue`),
 `player.register_first_meeting`, `player.felt_toward`, `player.get_relationship_nl`,
 `engine/combat.py` (cause `combat`, was an inline inline `-30`), the `label`
-command (writes `label`, not closeness — a declaration is not a measurement), and
+command (writes `label`, not closeness - a declaration is not a measurement), and
 the felt-toward route. `engine/derive.py` turned out to be a *reader* only, so it
 needed no change.
 
 Guarded by `tests/test_relationships.py::test_relationships_are_written_only_through_the_one_path`,
 which scans `engine/`, `routes/` and `player.py` for `relationships[...] = ` and
 allows exactly two elsewhere: the bulk import in `routes/player_ops.py` (a
-payload replacing the store — deserialization, not a mutation). 32 tests.
+payload replacing the store - deserialization, not a mutation). 32 tests.
 
 ### Deliberately left alone
 
@@ -66,7 +66,7 @@ Relationship state is written from several places with no shared entry point:
 - task-417's coarse meetings will write symmetric deltas.
 - The foreground LLM loop writes its own outcome.
 
-The store itself is a single blunt scalar — `player.relationships[npc] =
+The store itself is a single blunt scalar - `player.relationships[npc] =
 {"closeness": ...}` (read at `engine/area_description.py:371`).
 
 Two consequences:
@@ -100,7 +100,7 @@ Rules:
   caller-visible property (call twice with opposite actors, or pass a symmetric
   pair in one call).
 - Foreground LLM output is converted into deltas before it reaches this
-  function — the LLM never writes the store directly.
+  function - the LLM never writes the store directly.
 
 ## Why this is the prerequisite for task-412
 
@@ -121,7 +121,7 @@ through the same clamp with a recorded cause.
 
 ## Non-goals
 
-- Richer relationship models (trust/fear/respect) — out of scope; the scalar
+- Richer relationship models (trust/fear/respect) - out of scope; the scalar
   stays a scalar for now.
 - Relationship simulation of any new kind (this is plumbing only).
 - Replacing `engine/derive.py`; it becomes a *caller* of the new function.

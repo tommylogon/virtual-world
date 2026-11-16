@@ -9,14 +9,14 @@ priority: medium
 # `requires_open` Trigger Type for Doors
 
 **Filed**: 2026-07-19
-**Priority**: Low — review / optional
+**Priority**: Low - review / optional
 **Status**: Implemented but unused
 
 ## What
 
 A new trigger type `requires_open` was added to the door movement system in `virtual_world_engine.py`. When a door has a `triggers` edge with `trigger_type: "requires_open"`, its conditions are evaluated before auto-opening. If any condition fails, the door stays shut and a fail message is shown.
 
-This is redundant with `needs_open` (a property on the door node that gates passage behind a skill check). Both serve the same purpose — preventing auto-open — just through different mechanisms.
+This is redundant with `needs_open` (a property on the door node that gates passage behind a skill check). Both serve the same purpose - preventing auto-open - just through different mechanisms.
 
 ## Current Behavior
 
@@ -35,7 +35,7 @@ Should `requires_open` be kept as an alternative approach for door gating? It al
 
 ## Files
 
-- `virtual_world_engine.py` — `move_to_area()`: added `requires_open` trigger check before auto-open
+- `virtual_world_engine.py` - `move_to_area()`: added `requires_open` trigger check before auto-open
 
 ## Why
 

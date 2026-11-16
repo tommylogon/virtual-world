@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-310",
+  "kind": "task",
+  "number": 310,
+  "title": "Reroll Initiative on Random Order",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "When using random order in turn-based mode, reroll the initiative list at the end of the turn.",
+      "implemented": "- `static/js/agent/turn-queue.js` - new `reshuffleRandom()` (Fisher–Yates on `agent.turnQueue`, resets index, updates `controllingPlayer` to the new first actor); called from `endTurn()` when `turnBased && turnOrder === 'random'`.\n- Exported from the `TurnQueue` module.\n\n**Verified**: `node --check` clean; full suite 980 passed.",
+      "notes": "- Small turn-system tweak: with `random` order, reshuffle at turn end instead of keeping a fixed list.\n- Real payoff for chaos in combat/tense scenes - no one can predict who acts next.",
+      "related": "- `developer ideas.md` line 17\n- Turn/initiative system (`static/js/` turn UI / agent turn scheduling)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-310-reroll-initiative-random-order.md"
+  }
+}

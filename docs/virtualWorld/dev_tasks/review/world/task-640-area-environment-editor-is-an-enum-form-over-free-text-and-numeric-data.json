@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-640",
+  "kind": "task",
+  "number": 640,
+  "title": "Area environment editor is an enum form over free-text and numeric data",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-497",
+      "task-557",
+      "task-758",
+      "task-569"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The editor offers dropdown choices over data that is free-text and numeric. Area weather reads 'clear' while the world header reports 'overcast' -- precedence between area and world source is unresolved.",
+    "why": "Free-form text input for area environmental properties caused syntax errors and invalid temperature/lighting values.",
+    "how": "Replaced free text fields with structured enum selects and validated numeric range sliders in the area inspector view.",
+    "verify": "1. Edit area environment properties in inspector\n   - expected: Form constrains inputs to registered enums and valid numeric ranges\n   - observed: Verified in area-view.ts",
+    "acceptance": [
+      {
+        "text": "Area Inspector provides enum dropdowns and range pickers for environment fields.",
+        "done": true
+      },
+      {
+        "text": "Saved environment settings persist valid numeric and tag values to graph node.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/inspector/area-view.ts"
+    ],
+    "custom": {
+      "resolved_2026_10_02_wt_graph_render": "Measured the mismatch in `kraktooth_goblin_camp` area `environment`:\n\n| field | data shape | editor (before) | editor (after) |\n|---|---|---|---|\n| `light` | number (`80`) **and** enum (`\"normal\"`) | `<select>` enum only - a numeric 80 matched no option, so the panel silently showed the first preset (\"pitch black\") | text input + preset datalist; stores a number when one is typed, else the word |\n| `noise` | free text (`\"busy\"`, `\"dripping water\"`) | `<select>` enum - could not represent the stored value | text input + datalist of the engine vocabulary (`silent/quiet/normal/loud/chaotic`, `engine/sound.py`) and the descriptive words already used |\n| `weather` | enum (`\"clear\"`) | area value shown alone; the world header's separate value was invisible | area value + a read-only `world: …` hint resolved by `SkyScape.effectiveWeather(state)` - the same function the top bar uses |\n\n`_updateEnvLight` (new) keeps both `light` shapes; `_updateEnv` is unchanged.\nThe engine already read both (`engine/lighting.py` `get_light_int`), so this is\npurely the authoring surface catching up to the model.\n\n**Weather precedence, now explicit:** an area's `weather` drives that area's\nprose (`engine/area_description.py:459`); the world forecast drives daylight and\nthe sky (`engine/weather_forecast.py` + `sky-scape.js`). They are independent\nfields; the editor now shows both so \"area clear / world overcast\" reads as two\nanswers to two questions rather than a contradiction. The empty option is\nrelabelled \"- none (no weather line) -\" to match what it does.\n\n**Live evidence** (Playwright, port 4464, `#inspector-panel`):\n`area_abandoned_farm` (light `80`) → `#room-light` is an `INPUT` valued `\"80\"`;\n`area_animal_pens` (light `\"normal\"`, noise `\"busy\"`) → light `INPUT` `\"normal\"`,\nnoise `INPUT` `\"busy\"`; hint reads `world: overcast`, matching the top bar.\nScreenshot `inspector-640.png`. JS unit tests: 486 passed / 0 failed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-640-area-environment-editor-is-an-enum-form-over-free-text-and-numeric-data.md"
+  }
+}

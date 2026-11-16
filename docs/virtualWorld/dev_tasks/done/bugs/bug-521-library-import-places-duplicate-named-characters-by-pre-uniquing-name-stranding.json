@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-521",
+  "kind": "bug",
+  "number": 521,
+  "title": "Library import places duplicate-named characters by pre-uniquing name, stranding the new spawn with no area",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Importing a library character whose display name already exists in the world\nleaves the NEW spawn with `current_area: null` - even when an explicit area is\nchosen in the place dialog. Found live 2026-10-04: imported \"zombie\" three times\ninto kraktooth_goblin_camp at Old Dwarven Ruins; the client showed area \"?\" for\ntwo of the three and `worldState.players` confirmed `current_area: null` for both\nduplicates (`zombie__9dcb3e`, `zombie__c4d808`), while the first \"zombie\" sat in\nOld Dwarven Ruins.",
+    "why": "`PlayerManager.add_player` (engine/player_manager.py:182) registers a duplicate\ndisplay name under a uniqued registry key (`zombie__<id6>`) - per task-446 the\ndisplay name is free to repeat. But `handle_library_import_character`\n(routes/library_ops.py:717) then calls `set_player_area(player_name, ...)`\nwith the ORIGINAL name, which the matcher resolves to the primary holder of\nthat name - the first zombie. The new spawn's area is never set.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "fix_2026_10_04": "After `add_player`, re-resolve the registry key the world actually assigned:\n`player_name = pm._players_by_id.get(player.id, player_name)` - guarded on the\nplayer having an id. All downstream placement (and the expression-pack node\nlookup) then target the new spawn. `tests/test_library_character_import.py`\n5 passed after the change.",
+      "workaround_pre_restart_and_live_resolution": "The agent inspector's location dropdown (`#player-room`, rendered per selected\ncharacter) fires `ApiClient.updateCharacter(<registry key>, {current_area})`\nwith the CORRECT uniqued key, so it repairs stranded spawns manually. Used live\n2026-10-04 to move both duplicates into Old Dwarven Ruins; verified in\n`data/autosave.json` server-side: all three zombies carry\n`current_area: \"Old Dwarven Ruins\"` in scenario kraktooth_goblin_camp.\nThe import path itself still needed the code fix above."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-521-library-import-places-duplicate-named-characters-by-pre-uniquing-name-stranding-the-new-spawn-with-no-area.md"
+  }
+}

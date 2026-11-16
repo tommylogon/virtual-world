@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "id": "task-667",
+  "kind": "task",
+  "number": 667,
+  "title": "Library entries are keyed by filename, so a display string is the primary key",
+  "status": "review",
+  "priority": "high",
+  "area": "library",
+  "tags": [],
+  "created": "2026-10-01",
+  "updated": "2026-10-01",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-619"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-446",
+      "task-619",
+      "task-665",
+      "task-660"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "`load_registry` (`routes/helpers.py:209`) builds every library registry by\nlisting `data/library/<type>/` and **keying each entry by its filename**:\n\n    key = entry[:-5]\n    result[key] = json.load(f)\n\nSo the primary key of a library entity is a display string. Everything that\nbinds a live node to a template therefore binds it *by name*, and a rename is\nnot a rename - it is a delete and an insert.\n\nThe live side is not the problem and should not be changed. `Player.id` is\nalready a surrogate key (`4be7db75`, `16b8b6ce` for the Eldenford cast),\ngenerated at creation, persisted in the scenario, and never derived from a\ndisplay name. `engine/character_identity.py` additionally keeps a retired\nauthored id resolvable as an alias. That is the id-first contract\n`AGENTS.md` requires, and task-446 built it.\n\n**The gap is one-directional: the library has nowhere to record identity.**\n\n### Why the live id cannot simply be copied into the library file\n\nThe relation is one-to-many, not one-to-one. `handle_spawn_character` hydrates a\n`Player` from a template and mints a **fresh** id for each instance, so one\n`Harren Cobb` entry legitimately becomes many live blacksmiths. A library entry\nclaiming to *be* `4be7db75` would be false the moment a second one spawned.\n\nThe working shape is two surrogate keys and a foreign key:\n\n    data/library/characters/Harren Cobb.json\n      character_id: \"ch_8f2a1c9b\"      <- surrogate key for the TEMPLATE\n      name: \"Harren Cobb\"               <- pure display, never identity\n\n    live player\n      id: \"4be7db75\"                    <- surrogate key for the INSTANCE (exists)\n      node.properties.library_id        <- foreign key to the template\n\n`library_id` on the node is *already* that foreign key. It is simply pointing at\na filename today.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Every `data/library/<type>/*.json` entry carries a stable surrogate key",
+        "done": false
+      },
+      {
+        "text": "(`character_id`, `item_id`, …) generated once on creation and never derived",
+        "done": false
+      },
+      {
+        "text": "from a display string. Filename remains a human label, not the key.",
+        "done": false
+      },
+      {
+        "text": "`load_registry` indexes by the surrogate key **and** by the legacy",
+        "done": false
+      },
+      {
+        "text": "filename, and resolution tries both, so existing saves keep working.",
+        "done": false
+      },
+      {
+        "text": "`sync.resolve_template_id` and `linked_template_id` are unchanged in",
+        "done": false
+      },
+      {
+        "text": "*order* (explicit -> link -> per-type guess) but a link may now hold",
+        "done": false
+      },
+      {
+        "text": "either form. Add the reason to `engine/sync.py`'s docstring, since the",
+        "done": false
+      },
+      {
+        "text": "field's meaning has changed.",
+        "done": false
+      },
+      {
+        "text": "The per-type **name guess** (`guess=\"node_name\"` for characters) resolves",
+        "done": false
+      },
+      {
+        "text": "through the entry's `name` field via the surrogate index rather than",
+        "done": false
+      },
+      {
+        "text": "assuming filename == name. It must also be **ambiguity-aware**: when two",
+        "done": false
+      },
+      {
+        "text": "entries share a `name`, the guess must fail loudly rather than pick one.",
+        "done": false
+      },
+      {
+        "text": "Renaming a library entry (there is already `POST",
+        "done": false
+      },
+      {
+        "text": "/api/library/<type>/<id>/rename`) leaves every bound node resolving",
+        "done": false
+      },
+      {
+        "text": "correctly, with no re-link step. **This is the acceptance that matters** -",
+        "done": false
+      },
+      {
+        "text": "it is the case that broke.",
+        "done": false
+      },
+      {
+        "text": "A round-trip proves it: rename `Harren Cobb` to anything, refresh the",
+        "done": false
+      },
+      {
+        "text": "blacksmith node, read `player.personality` back and confirm it is the",
+        "done": false
+      },
+      {
+        "text": "blacksmith's and not a neighbour's.",
+        "done": false
+      },
+      {
+        "text": "Spawning two instances from one entry produces two distinct `Player.id`s",
+        "done": false
+      },
+      {
+        "text": "and neither claims the other.",
+        "done": false
+      },
+      {
+        "text": "`tools/character_loadout_check.py` does **not** flag `character_id`; and if",
+        "done": false
+      },
+      {
+        "text": "a duplicate `character_id` is possible at all, something checks for it.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_this_has_already_cost_measured": "- **A rename silently re-targeted a refresh.** `Refreshed \"Eldenford Blacksmith\"\n  from library` applied **the merchant's** personality and description, because\n  `Eldenford Blacksmith` was no longer a key after the rename to `Harren Cobb`\n  and the node had no binding to fall back on. Recorded on task-665.\n- **Two entries could claim one character.** `Pell Ardin.json` and\n  `Eldenford Merchant.json` both carry `name: \"Eldenford Merchant\"`. Under\n  name-based resolution either may claim the live node; there is nothing to\n  arbitrate with.\n- **Relationships are keyed by display name for the same root reason**\n  (task-619): the four unmigrated cast files point at each other by their old\n  role names.",
+      "constraint_that_shapes_the_fix_it_must_be_additive": "`library_id` values **already in the graph hold filenames** across all four\nlinkable types (item, way, area, character). Changing what the field means\nwithout accepting the old form would break every bound node in every save.\nResolution must accept both the surrogate key and the legacy filename for as\nlong as saves exist that use it.\n\nItems are the awkward case: `SPECS[\"item\"].guess == \"none\"`, so a placed item's\n`library_id` is whatever the author chose, and `_hydrate_item` resolves it.\nWhatever shape is adopted has to keep resolving those.",
+      "what_was_done_instead_on_2026_10_01": "The unblock, not the fix. All five Eldenford nodes were bound explicitly through\nthe existing sanctioned path - `POST /api/library/refresh-to-world` with\n`sections: []`, which applies nothing but still runs `sync.link`\n(`routes/library_ops.py:1145`):\n\n    Eldenford Blacksmith          library_id = Harren Cobb\n    Eldenford Elder               library_id = Gareth Ollen\n    Eldenford Farmer              library_id = Tobin Marsh\n    Eldenford Merchant            library_id = Pell Ardin\n    Eldenford Road Guard Captain  library_id = Corvin Hale\n\nAll five returned `applied: []`, `linked: true`. Sync no longer depends on any\nname matching, so the cast can be synced now. That is a pin on today's\nfilename-shaped keys - it does not survive a future rename, which is exactly\nwhat this task is for.",
+      "browser_ui": "Intended UI home: Library Browser → open a template → edit its display name → save → select it from the matching type's template picker. The human-readable filename remains a label; import resolution uses the stable surrogate key with legacy filename fallback.\n\nCurrent availability: the task reports filenames/display strings acting as primary keys. Stable per-entry surrogate IDs and dual-form resolution are planned; the rename/import behavior below is not claimed as available today.\n\nLive steps when available:\n1. Create a library entry and record its generated `item_id`/type-specific key and filename. Rename the display label in the Library Browser and reopen the entry.\n   - expected: the stable key is unchanged and the updated display label is shown.\n2. Import that entry into a scenario and inspect the node's `linked_template_id`; then load a legacy scenario whose link contains the old filename.\n   - expected: new imports use the stable key; the legacy filename still resolves to the same entry.\n3. Create two entries with the same display name in the same type and use the template picker.\n   - expected: each entry remains individually addressable and selectable by its stable key; the display name is not used as identity.\n4. Save and reload the scenario and compare the links and library entries.\n   - expected: links resolve in the documented order (explicit ID, link, per-type guess) without duplicate or orphaned templates.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-667-library-entries-are-keyed-by-filename-so-a-display-string-is-the-primary-key.md"
+  }
+}

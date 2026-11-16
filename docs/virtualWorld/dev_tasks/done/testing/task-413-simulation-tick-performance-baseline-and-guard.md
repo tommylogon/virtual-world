@@ -9,7 +9,7 @@ priority: medium
 
 **Filed:** 2026-09-19  
 **Depends on:** task-406, task-407 (the fixes this guards).  
-**Related:** task-402 (world-scale projection benchmark) — different layer.
+**Related:** task-402 (world-scale projection benchmark) - different layer.
 
 ## What
 
@@ -51,7 +51,7 @@ visits, exit rebuilds, or `.lower()` calls.
 - Run the command before/after task-406/task-407 and record the delta.
 - Temporarily revert one fix to confirm the guard trips.
 
-## Baseline — 2026-09-19 (after tasks 406/407)
+## Baseline - 2026-09-19 (after tasks 406/407)
 
 - Command: `python tools/soak_sim.py --ticks 10080 --background-all --progress-seconds 1`
 - Result (first pass): 10,080 ticks (7 in-game days) in 9m49s → 17.1 ticks/s.
@@ -63,10 +63,10 @@ visits, exit rebuilds, or `.lower()` calls.
   turn-change pruning + a 2,000 cap. After the fix, profile call counts are flat
   early vs late (~2%); `record_turn_event` is out of the top 12.
 - Absolute timings vary with host load (a week measured 56s one session, 71s in
-  another where every early figure was ~2× slower) — compare call counts, not
+  another where every early figure was ~2× slower) - compare call counts, not
   just wall time.
 
-## Progress — 2026-09-19
+## Progress - 2026-09-19
 
 Guard built as `tests/test_perf_guards.py` (9 tests). It asserts *shape*, not
 wall time:

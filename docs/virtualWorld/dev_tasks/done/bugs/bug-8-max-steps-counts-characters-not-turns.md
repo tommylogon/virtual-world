@@ -24,8 +24,8 @@ Two options taken:
 
 ## Files
 
-- `templates/index.html:52` — `title="Max turns before auto-stop"`
-- `static/js/agent-engine.js:465-468` — step counting loop
+- `templates/index.html:52` - `title="Max turns before auto-stop"`
+- `static/js/agent-engine.js:465-468` - step counting loop
 
 ## Verification
 
@@ -34,8 +34,8 @@ Two options taken:
 2. Open Settings → Behavior & Automation tab
 3. Find the "Max Steps" or "Max Turns" input field
 4. **Expected**: The label/title clearly indicates it counts "steps" (individual actions) not "turns" (full rounds)
-5. Set max steps to 2, run agents — should stop after ~2 character actions
+5. Set max steps to 2, run agents - should stop after ~2 character actions
 6. The count behavior should match what the label says
 
 ---
-_Audited 2026-08-03 � duplicate file consolidated into this record._
+_Audited 2026-08-03 - duplicate file consolidated into this record._

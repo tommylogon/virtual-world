@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: In Review — implemented (code-verified 2026-08-11). AI item generation includes trigger guidance + common patterns in system prompt (`main.js:246-256`); triggers parsed into create form / library.
+**Status**: In Review - implemented (code-verified 2026-08-11). AI item generation includes trigger guidance + common patterns in system prompt (`main.js:246-256`); triggers parsed into create form / library.
 
 ---
 
@@ -59,7 +59,7 @@ Generate appropriate triggers based on the item type and purpose.
 
 ### Step 3: Parse Trigger Data
 
-After AI generation, parse the trigger data and populate the trigger fields (if the create modal supports triggers — see `create_item_modal_more_actions.md`).
+After AI generation, parse the trigger data and populate the trigger fields (if the create modal supports triggers - see `create_item_modal_more_actions.md`).
 
 If the create modal doesn't yet have trigger UI, store the generated triggers in a hidden field for later editing in the library.
 
@@ -68,13 +68,13 @@ If the create modal doesn't yet have trigger UI, store the generated triggers in
 **Status**: Ready to test
 **How to test**:
 - Open the create modal for an Item, use AI generation. Verify the response JSON includes triggers in the format hint.
-- After generation, scroll to the "Triggers JSON" textarea — verify it's populated with trigger data from the AI.
-- Submit the item, then open it in the Item Library — verify triggers were saved and are editable.
+- After generation, scroll to the "Triggers JSON" textarea - verify it's populated with trigger data from the AI.
+- Submit the item, then open it in the Item Library - verify triggers were saved and are editable.
 
 ## Files
 
-- `static/js/main.js` — extend format hint, parse triggers from AI response
-- `static/js/item-library.js` — extend library AI generation to include triggers
+- `static/js/main.js` - extend format hint, parse triggers from AI response
+- `static/js/item-library.js` - extend library AI generation to include triggers
 
 ## How
 

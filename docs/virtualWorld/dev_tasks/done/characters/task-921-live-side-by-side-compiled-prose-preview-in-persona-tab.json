@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-921",
+  "kind": "task",
+  "number": 921,
+  "title": "Live side-by-side compiled prose preview in Persona tab",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903",
+      "task-844"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a live side-by-side diff preview modal / drawer in the Persona tab before committing a compile action, displaying:\n1. Current `base_description` vs Proposed compiled description\n2. Current `personality` vs Proposed compiled personality\n3. Current tags vs Proposed tag diffs (added/removed)",
+    "why": "Compiling currently applies the changes directly when `force: true` or opens a simple alert. The author needs to clearly see what sentences and tags will change before applying the compile.",
+    "how": "- Wire into the existing `DiffModal` widget (`static/js/ui/diff-modal.ts`).\n- When clicking \"Compile\", call `POST /api/players/<name>/record/compile` (dry-run mode without saving) and open the diff modal.\n- Allow per-section acceptance (e.g. \"Apply description only\", \"Apply personality only\", or \"Apply all\").",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Persona Compile opens a diff preview showing side-by-side prose comparisons.",
+        "done": true
+      },
+      {
+        "text": "Authors can cancel the compile or accept specific sections.",
+        "done": true
+      },
+      {
+        "text": "No prose is overwritten until the author explicitly clicks Apply in the diff view.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-921-live-side-by-side-compiled-prose-preview-in-persona-tab.md"
+  }
+}

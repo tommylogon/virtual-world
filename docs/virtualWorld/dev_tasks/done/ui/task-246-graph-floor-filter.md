@@ -5,9 +5,9 @@ area: ui
 priority: medium
 ---
 
-# Task-246: Graph — Show All or Selected Floors of Areas
+# Task-246: Graph - Show All or Selected Floors of Areas
 
-**Status:** Done — implemented 2026-08-16, live-verified. Moved to review/.
+**Status:** Done - implemented 2026-08-16, live-verified. Moved to review/.
 **Source:** `dev_tasks/developer ideas.md` (option to show all or select floors of areas only)
 
 ## What
@@ -22,7 +22,7 @@ ground / upper), so large multi-floor scenarios can be navigated without clutter
 - UI: a floor picker in the graph toolbar (All / per-floor), filtering area+child nodes.
   **Implemented: `<select id="floor-filter">` in the graph toolbar,** next to Triggers/Items toggles.
 - Interaction with existing `_showItems`/`_showTriggers` toggles and the tag filter overlay:
-  floor filter should compose with them. **Done — composes at load time** (areas outside the
+  floor filter should compose with them. **Done - composes at load time** (areas outside the
   floor plus their unlinked children are omitted; edges to hidden endpoints skipped; the
   items/triggers toggles still gate their respective node kinds).
 

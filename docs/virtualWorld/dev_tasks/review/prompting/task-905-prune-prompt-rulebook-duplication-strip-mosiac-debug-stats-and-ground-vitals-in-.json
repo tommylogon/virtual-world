@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-905",
+  "kind": "task",
+  "number": 905,
+  "title": "prune prompt rulebook duplication, strip mosiac debug stats, and ground vitals in narrative sensation",
+  "status": "review",
+  "area": "prompting",
+  "priority": "high",
+  "created": "2026-10-25",
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ]
+  },
+  "sections": {
+    "what": "Prune instructional duplication across the prompt pipeline and strip internal game engine telemetry (such as raw vital percentages like thirst 80 and internal planner choice counts like Choices: activity 12, free 27, major 29, minor 21) from character turn prompts. Replace video-game imperative barks with subjective bodily sensations so characters experience physiological need without breaking the fourth wall.",
+    "why": "In benchmark runs, reasoning models quoted internal engine telemetry word-for-word in their inner monologue (e.g. Nemotron-550B thinking 'Thirst is hitting hard - 80 on the meter', and Laguna-S noting 'I am very hungry (75) and very thirsty (80)'). Furthermore, the prompt was 17,455 characters with over 55% taken up by rulebook overhead: emote rules were printed twice, JSON rules were printed twice, action structure was printed twice, and hunger/thirst was stated four times in eight lines with imperative tutorial commands ('EAT your protein_bar').",
+    "how": "1. In character-state.ts: update buildMosiacContext to omit raw vital numbers (n.value) and omit Choices tier counters.\n2. In character-state.ts: update describeVital to describe sensations qualitatively (e.g. parched throat, pounding head, hollow stomach) without imperative action commands.\n3. In turn-prompts.ts: prune redundant duplicate emote rules, repeated JSON schema instructions, and duplicate action rules from the User prompt, letting the System prompt govern standing mechanics.\n4. In system-prompt.ts: consolidate ACTIONS and ACTION STRUCTURE to eliminate duplicated verb and budget explanations.\n5. In data/scenarios/mansion.json: clean hardcoded static 'You are thirsty.' trait_behavior strings off characters so thirst emerges dynamically from vitals.\n6. Recompile TypeScript bundles via npm run build:ts.\n7. Verify in Benchmark Lab (/bench) with live prompt assembly and targeted unit tests.",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: Assembled prompt contains no raw vital integers or choices tallies, and prompt length is substantially pruned.\n   - observed: On /bench, selecting Elena Vance assembled a 9,940-character prompt (down from 17,455, a 43% reduction). Verified: 'thirst 80' absent, 'Choices:' absent, 'EAT your / FIND SOMETHING' absent, '=== YOUR MIND ===' present with subjective sensation.\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: /bench character select dropdown updates prompt preview.\n   - observed: Navigated to http://localhost:4444/bench with Playwright Chromium, waited for #bench-character to load, selected 'elena vance', read #bench-prompt-preview inner text, and verified live assembly.\n3. Run the targeted regression test for the mechanism.\n   - expected: Unit tests pass.\n   - observed: Ran `node tools/unit/run.cjs test_describe_vital.js` (8 passed), `node tools/unit/run.cjs test_prompt_capture.js` (4 passed), `node tools/unit/run.cjs test_turn_prompts.js` (7 passed), and `python -m pytest tests/test_benchmark_routes.py` (8 passed).",
+    "acceptance": [
+      {
+        "text": "No raw vital integers (e.g. 80, 75) appear in MOSIAC or turn prompts",
+        "done": true
+      },
+      {
+        "text": "No internal choice counts (e.g. Choices: activity 12...) appear in character prompt",
+        "done": true
+      },
+      {
+        "text": "Emote rules and JSON schema examples appear once in System prompt, not duplicated in User prompt",
+        "done": true
+      },
+      {
+        "text": "Imperative arcade barks (EAT your protein_bar) replaced with subjective physical sensations",
+        "done": true
+      },
+      {
+        "text": "TypeScript recompiled and targeted tests pass with zero em-dashes",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/agent/prompt-builder/character-state.ts",
+      "static/js/agent/prompt-builder/character-state.js",
+      "static/js/agent/prompt-builder/turn-prompts.ts",
+      "static/js/agent/prompt-builder/turn-prompts.js",
+      "static/js/agent/prompt-builder/system-prompt.ts",
+      "static/js/agent/prompt-builder/system-prompt.js",
+      "static/js/agent/prompt-builder/schema-fragments.ts",
+      "static/js/agent/prompt-builder/schema-fragments.js",
+      "tools/unit/test_describe_vital.js",
+      "tools/unit/run.cjs",
+      "data/scenarios/mansion.json"
+    ],
+    "custom": {
+      "browser_ui": "- Intended UI home: /bench\n- Current availability: available today\n- Note: This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today.\n- Live steps when available:\n  1. Navigate to http://localhost:4444/bench.\n  - expected: Character prompt assembled without raw vital numbers (no thirst 80) or choice counts.\n  2. Inspect Assembled Prompt details.\n  - expected: User prompt contains no duplicate emote rulebook, and vitals read as narrative physical sensations.\n  3. Run benchmark on a character.\n  - expected: Models reason naturally about their physical state without quoting integer metrics or breaking character."
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-284",
+  "kind": "task",
+  "number": 284,
+  "title": "Condition: Wetness (`wetness`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Physical arousal wetness. A steady Arousal feed that is **hidden (`known: False`) unless exposed** - the character may not know, and others only see it if clothing/situation reveals it. (Distinct from the thermal `wet` condition in task-190 - different domain.)",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "proposed_schema": "```python\n\"wetness\": {\n    \"name\": \"Wetness\", \"description\": \"Arousal wetness.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [],\n    \"attack_mod\": 0, \"defense_mod\": 0, \"speed_mult\": 1.0,\n    \"movement_mode\": None, \"drops_held_items\": False,\n    \"periodic\": {\"Arousal\": 2},\n    \"ends_on\": [\"dry\", \"release\"],\n    \"known\": False,   # hidden unless exposed\n    \"symptoms\": {\n        1: \"A slick warmth gathers between your thighs.\",\n        2: \"You're unmistakably wet.\",\n    },\n    \"stack\": \"refresh\",\n    \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown_proposed": "- **Gates**: none.\n- **Saves/checks**: none.\n- **Combat**: neutral.\n- **Movement**: full speed.\n- **Periodic**: `Arousal +2` per tick - a meaningful feed into the arousal loop.\n- **Lifecycle**: `stack: \"refresh\"` (re-exposure refreshes). Ends on drying off or release.\n- **Hidden/unknown**: `known: False` - the agent perceives only `symptoms` (and only once a threshold is reached). Others perceive it only when **exposed** (garment off / revealing situation).",
+      "perception": "`known: False` → symptom-driven for the self. Observer visibility gated on exposure - an area for design: how does the engine decide \"exposed\" (clothing removed, `strip`/`undress`)?",
+      "integration_points_space": "- `engine/player.py` - `CONDITION_DEFINITIONS` entry (`known: False`).\n- `engine/conditions.py` - `perceived_conditions`, `symptom_for`.\n- Observer perception + clothing/exposure state (ties into `strip`/`undress` and clothing).\n- Note the **name collision**: `wetness` vs. task-190's `wet`. Confirm distinct ids and no `CONDITION_DEFINITIONS` key clash.",
+      "testing_proposed": "- [ ] `Arousal +2`/tick while active.\n- [ ] Self: hidden - only symptoms show, and only after a threshold.\n- [ ] Observer: only visible when exposed (clothing off / revealing).\n- [ ] Drying/release clears it; re-exposure refreshes.",
+      "open_questions_things_to_work_out": "- **Exposure logic**: what determines if the condition is perceivable to others (clothing `strip`/`undress` state)?\n- **Name clash**: this `wetness` vs. task-190 `wet` - distinct ids? Consider `arousal_wetness` if collision risk.\n- Does `known` need to vary per-observer (self knows vs. others know), which the catalog can't express - how to handle exposure-then-knowledge?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Proposed (not yet in `player.py`)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-284-body-condition-indicators.md"
+  }
+}

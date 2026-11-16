@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-791",
+  "kind": "task",
+  "number": 791,
+  "title": "Feature, mechanic and system page standard",
+  "status": "done",
+  "priority": "high",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Define and document the three-tier page standard every vault note follows: a **feature** page (what you do or use), its **mechanics** (how it works), and the **system** (where it lives - code, data, config). Replace the scaffolded stub format with a hand-written template.",
+    "why": "We settled the model (feature = what you do/use, mechanic = how it works, system = the implemented whole) but nothing encodes it. The generated Features/ stubs do not follow it, and a new page has no shape to copy. This is the keystone: the Commands collapse, the Environment family and the deep-doc re-home are all 'apply this template'.",
+    "how": "Amend AGENTS.md's 'Writing documentation (the Ways standard)' section to name the three tiers and the three readers (player / author / engineer). Add a page template (headings + what goes in each). Use `Ways.md` and `World Building/Movement.md` as the two worked exemplars.",
+    "verify": "1. Open AGENTS.md and the template.\n   - expected: the three tiers are named, with what belongs in each.\n   - observed: TODO\n2. Write a stub page from the template cold.\n   - expected: no guessing about structure.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "AGENTS.md states the feature / mechanic / system tiers and their readers",
+        "done": false
+      },
+      {
+        "text": "a page template exists with fixed headings",
+        "done": false
+      },
+      {
+        "text": "Ways.md and Movement.md are named as the exemplars",
+        "done": false
+      },
+      {
+        "text": "a new page can be written from the template without guessing",
+        "done": false
+      }
+    ],
+    "files": [
+      "AGENTS.md",
+      "docs/virtualWorld/World Building/Ways.md",
+      "docs/virtualWorld/World Building/Movement.md"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/docs/task-791-feature-mechanic-and-system-page-standard.md"
+  }
+}

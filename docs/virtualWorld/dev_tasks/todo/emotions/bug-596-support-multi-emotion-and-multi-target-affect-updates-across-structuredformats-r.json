@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "bug-596",
+  "kind": "bug",
+  "number": 596,
+  "title": "Support multi-emotion and multi-target affect updates across StructuredFormats, ResponseParser, ActionInterpreter, and agent-engine.ts",
+  "status": "todo",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "emotions",
+    "prompting",
+    "schema",
+    "interpreter",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-587",
+      "bug-585",
+      "task-943",
+      "bug-606"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extend turn emotion output from a single scalar/tuple to multi-emotion multi-target impulses and fix ActionInterpreter/agent-engine.ts flattening that corrupts or discards emotion objects.",
+    "why": "While engine/emotion.py and routes/player_ops.py (handle_map_player_emotions) support 35-dimensional affect updates and schema-fragments.ts line 70 shows memory.emotions dicts, top-level agentAction/agentReact schemas in static/js/shared/json-schemas.ts (lines 56-65, 109, 129) allow only a single {label, intensity, toward} emotion. Worse, static/js/agent/action-interpreter.ts (line 248) runs String(parsed.emotion).trim() on fallback parse (turning objects into '[object Object]'), and static/js/agent-engine.ts (lines 1045, 1140) flattens parsed.emotion to .label before _applyFeltEmotion.",
+    "how": "1. Extend EMOTION schema in static/js/shared/json-schemas.ts (lines 56-65, 109, 129) and schema-fragments.ts (lines 71-78) to support an array of {label, intensity, toward} objects (or backward-compatible single object) so characters can express simultaneous mixed or multi-target affect.\\n2. Update extractEmotion / parseReaction in static/js/agent/response-parser.ts to normalize both single and array emotion outputs.\\n3. Fix fallback JSON handling in static/js/agent/action-interpreter.ts (line 248, where String(parsed.emotion) destroys objects) and preserve structured emotion objects/arrays instead of stripping to .label in static/js/agent-engine.ts (lines 1045, 1140).\\n4. Update _applyFeltEmotion in agent-engine.ts (lines 462-475) to iterate and dispatch all parsed affect impulses (preserving opaque player identity per bug-585).\\n5. Add JS unit tests covering multi-target mixed emotions, ActionInterpreter fallback object preservation, and batch /emotions/map dispatch.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs with tests verifying array and single-object emotion extraction across ResponseParser, ActionInterpreter (including fallback branch), and _applyFeltEmotion.\\n2. Verify zero String(object) or '[object Object]' artifacts occur when ActionInterpreter receives structured emotion payloads.",
+    "acceptance": [
+      {
+        "text": "StructuredFormats (agentAction, agentReact), ResponseParser, and schema-fragments accept multi-emotion / multi-target arrays (e.g. terrified of person A while furious at person B) alongside single-emotion backwards compatibility.",
+        "done": false
+      },
+      {
+        "text": "action-interpreter.ts (line 248 fallback) and agent-engine.ts (lines 1045, 1140) no longer coerce emotion objects via String() into '[object Object]' or flatten them to .label strings, preserving intensity and toward metadata.",
+        "done": false
+      },
+      {
+        "text": "_applyFeltEmotion in static/js/agent-engine.ts dispatches all distinct emotion impulses (global and target-directed) to /api/players/<name>/emotions/map.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/shared/json-schemas.ts",
+      "static/js/agent/response-parser.ts",
+      "static/js/agent/action-interpreter.ts",
+      "static/js/agent-engine.ts",
+      "static/js/agent/prompt-builder/schema-fragments.ts",
+      "routes/player_ops.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal prompt JSON schema examples, Inspector Emotion/Mind tabs, and Agent Lens raw LLM parsing view.\\n\\nCurrent availability: static/js/shared/json-schemas.ts constrains emotion to one object; action-interpreter.ts coerces fallback parsed.emotion with String(); agent-engine.ts strips objects to .label before _applyFeltEmotion.\\n\\nManual verification steps:\\n1. Trigger a turn where a character experiences simultaneous contrasting emotions toward two people (e.g. scared of attacker A and furious at betrayer B).\\n2. Inspect parsed turn output and /api/players/<id>/emotions state.\\n   - expected: Multiple {label, intensity, toward} impulses survive ResponseParser and ActionInterpreter intact and update both affect dimensions and relationship experiences without '[object Object]' corruption."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Emotion & Affect System]]",
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

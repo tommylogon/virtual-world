@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "id": "task-422",
+  "kind": "task",
+  "number": 422,
+  "title": "NL editor LLM budget controls and context readout",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-20",
+  "updated": "2026-09-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-387"
+    ],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make the NL editor's LLM budget visible and adjustable from the NL editor tab,\ninstead of being hard-coded constants. The user asked for this directly: \"set\nmax tokens to 60000, or even adjustable in the NL editor tab\".",
+    "why": "The knobs exist but are buried and unadjustable:\n\n| Knob | Where | Value |\n|------|-------|-------|\n| `maxIterations` | `agent-loop.js` - `this.maxIterations` | 100 |\n| `maxTokens` | `ContextWindowManager` (NL editor) | 6000 |\n| `maxMessages` | `ContextWindowManager` (NL editor) | 30 |\n| `recentTurnCount` | `ContextWindowManager` (NL editor) | 8 |\n| `maxCriticalMessages` | `ContextWindowManager` | 10 |\n\n`ContextWindowManager.getStats()` already reports\n`{totalMessages, totalTokens, maxTokens, maxMessages, utilization, isOverLimit}`\nand **nothing consumes it**. `agent.maxIterations` is already read by\n`index.js` for the status string, so the loop cap is exposed to the UI.\n\nMissing, and worth fixing in the same pass: when the iteration cap is hit the\nloop simply exits. If the model's last message had no text,\n`finalAssistantResponse` is empty and the UI shows nothing - a silent stop.",
+    "how": "1. **Knobs, in the NL editor panel.** A compact collapsed \"⚙ Budget\" row in the\n   panel header (next to Reset), expanding to a small form:\n   - Max rounds (iterations)\n   - Max context tokens\n   - Max messages retained\n   - Recent turns kept\n   Keep it out of the chat stream; the panel is narrow and the chat is the point.\n\n2. **Persistence** via the existing helper pattern -\n   `storage.setConfig('nl_max_iterations', ...)` / `storage.getConfig(...)`\n   (see `config.js` for the established shape). Defaults reproduce today's\n   behaviour exactly when nothing is saved: 100 / 6000 / 30 / 8 / 10.\n\n3. **Model-aware default for `maxTokens`.** 60000 is only safe if the active\n   provider/model actually has that window; a local LM Studio model with an 8k\n   context would overflow. Derive the default from the active model's known\n   context length and clamp, falling back to a conservative value when the model\n   is unknown. **This needs a model → context-length lookup that does not exist\n   yet** - a small table keyed by the same model names used in\n   `getFallbackModels`, with an explicit \"unknown → conservative\" path. Scope\n   this sub-piece carefully; do not guess large windows for unknown models.\n\n4. **Readout.** Show `context 4.2k/6k · round 12/100` in the status area using\n   `getStats()`. This is the observability that would have made the pruning bug\n   obvious; keep it live per iteration.\n\n5. **Report a capped stop.** If the loop exits because `currentIteration` reached\n   `this.maxIterations`, emit it - set the turn-end payload with a flag and have\n   the UI append a visible note such as \"Stopped at the 100-round limit; the\n   edit may be incomplete.\" Do not end silently with an empty response.\n\n6. **Apply to the next turn without a reload.** Read the knobs at `runUserTurn`\n   start and construct/update the `ContextWindowManager` options there, so a\n   changed value takes effect on the next prompt.",
+    "verify": "- Unit: options round-trip through `storage` config; clamp/fallback logic for\n  known, unknown, and absurd values (0, negative, 10x the model window).\n- Unit: `getStats()` reporting matches the window actually sent.\n- Manual: set max rounds to 20, run a long multi-tool edit, confirm it stops at\n  round 20 and says so in the chat.\n- Regression: `npm run lint`, `npm run typecheck`, and the existing pytest suite\n  stay green.",
+    "acceptance": [
+      {
+        "text": "Changing any knob persists across a reload and takes effect on the next turn",
+        "done": true
+      },
+      {
+        "text": "with no code change - `agent-loop.ts` `_readBudget()` runs at `runUserTurn`",
+        "done": false
+      },
+      {
+        "text": "start; `_applyBudget()` updates the live manager in place (a rebuild would",
+        "done": false
+      },
+      {
+        "text": "lose the metadata `prune()` keys by object).",
+        "done": false
+      },
+      {
+        "text": "Defaults with nothing saved reproduce current behaviour for the non-token",
+        "done": true
+      },
+      {
+        "text": "knobs (100 / 30 / 8 / 10). `maxTokens` becomes model-aware (see below),",
+        "done": false
+      },
+      {
+        "text": "which is the intended change: `60000` was only safe if the model window is",
+        "done": false
+      },
+      {
+        "text": "that large.",
+        "done": false
+      },
+      {
+        "text": "The status area shows the live context window and round counter -",
+        "done": true
+      },
+      {
+        "text": "`#nl-budget-readout`, updated on each `llm:calling` from",
+        "done": false
+      },
+      {
+        "text": "`ContextWindowManager.getStats()`.",
+        "done": false
+      },
+      {
+        "text": "Hitting the round cap produces a visible message in the chat, never a",
+        "done": true
+      },
+      {
+        "text": "silent stop - `turn:capped` → a notice chip (\"Stopped at the N-round",
+        "done": false
+      },
+      {
+        "text": "limit; the edit may be incomplete.\").",
+        "done": false
+      },
+      {
+        "text": "`maxTokens` default is clamped to the active model's window; unknown models",
+        "done": true
+      },
+      {
+        "text": "get a conservative default (`NlEditorBudget.CONSERVATIVE_MAX_TOKENS = 6000`)",
+        "done": false
+      },
+      {
+        "text": "rather than an assumed large one.",
+        "done": false
+      },
+      {
+        "text": "The **main agent engine's** own `ContextWindowManager` is unaffected - only",
+        "done": true
+      },
+      {
+        "text": "`nl-editor/*` files changed.",
+        "done": false
+      },
+      {
+        "text": "Unit: `tools/unit/test_nl_editor_budget.js` (7) - model window match, model-aware",
+        "done": true
+      },
+      {
+        "text": "default, conservative fallback for unknown, clamp of 0/negative/10x-window/blank,",
+        "done": false
+      },
+      {
+        "text": "and defaults. `node tools/unit/run.cjs` → **629 passed / 0 failed**.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "landed_2026_10_08": "- `static/js/nl-editor/budget.ts` (+ emitted `.js`) - pure helpers:\n  `contextLengthFor`, `defaultBudget`, `clampBudget`, `CONSERVATIVE_MAX_TOKENS`,\n  `BUDGET_KEYS`, over a small model→window table (gpt-4.1, gpt-4o, o1/o3, claude,\n  gemini, deepseek, mixtral/mistral, llama-3.3, groq llama, qwen; family fallback).\n- `static/js/nl-editor/agent-loop.ts` - reads/clamps the budget at turn start,\n  applies it to the live `ContextWindowManager`, emits `context`+`maxIterations`\n  on `llm:calling`, and flags a capped stop on `turn:capped` / `turn:end`.\n  `_measureStats(pruned)` measures the array actually sent - `getStats()` only\n  refreshes inside `prune()` when OVER limit, so the naive readout sat at\n  `context 0/60k` until overflow.\n- `static/js/nl-editor/ui.ts` - a collapsible `⚙ Budget` row (max rounds / max\n  context tokens / max messages / recent turns kept) persisting via `storage`,\n  plus the `#nl-budget-readout` and `appendSystemNotice`.\n- `static/js/nl-editor/index.ts` - `llm:calling` updates the readout; `turn:capped`\n  shows the notice.\n- `templates/index.html` - `budget.js` script tag; `tools/unit/run.cjs` loads it.\n\n**Live-served 2026-10-09** (second server copy on :4445): `budget.js` is served\n(`window.NlEditorBudget` present), `/` carries the `budget.js` script tag, and the\nserved `ui.js` contains the `⚙ Budget` button, the `#nl-budget-row` and\n`#nl-budget-readout`; `index.js` wires `setBudgetReadout` + `turn:capped`, and\n`agent-loop.js` contains `_readBudget`/`_applyBudget`/`_measureStats`.\n**Not yet exercised live:** the manual line (open the row, set max rounds to 20, run a\nlong edit, watch it stop + the readout) - the page's ~14 MB `/api/state` made\nscripted DOM interaction impractical this pass; it needs a human click or a lighter\nworld.",
+      "non_goals": "- Changing pruning semantics or retention policy (that fix already landed).\n- Dollar cost accounting or prompt caching.\n- Per-scenario or per-character budget overrides.\n- Making the same knobs adjustable for the foreground agent engine."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-387 (NL editor). Builds on the context-accounting fix landed",
+      "relates": "`static/js/nl-editor/agent-loop.js`, `static/js/nl-editor/index.js`,"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-422-nl-editor-llm-budget-controls.md"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-361",
+  "kind": "task",
+  "number": 361,
+  "title": "Invalid Action Auto-Retry Setting",
+  "status": "review",
+  "area": "prompting",
+  "priority": "medium",
+  "created": "2026-07-31",
+  "tags": [
+    "agent-engine",
+    "automation",
+    "ux"
+  ],
+  "relations": {
+    "related": [
+      "task-293"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-293-contextual-available-actions]]"
+    ]
+  },
+  "sections": {
+    "what": "Add a new automation setting that, when enabled, automatically offers the agent a retry when it performs an invalid action. Instead of just logging the error and moving on, the system will feed back the error message to the agent and prompt it to choose a different action.",
+    "why": "Currently, when an agent performs an invalid action (e.g., trying to attack a non-existent target, using an item that doesn't exist, or moving to an invalid location), the action fails silently or with a brief error log. The agent wastes its turn and doesn't learn from the mistake. This setting would:\n\n1. Improve agent success rates by giving them a second chance\n2. Provide better feedback loops for agent decision-making\n3. Reduce wasted turns on invalid actions\n4. Make the simulation feel more responsive and intelligent",
+    "how": "### Settings Panel\n\nAdd a new checkbox in the Agent Settings section:\n\n```\n☑ Auto-retry on invalid actions\n```\n\n- **Location**: Settings panel, Agent Settings section\n- **Default**: Off (opt-in feature)\n- **Storage**: `localStorage` key `agentAutoRetryInvalid`\n\n### Agent Engine Changes\n\nIn `agent-engine.js`, after an action is executed and returns an error:\n\n1. Check if `config.autoRetryInvalid` is enabled\n2. If enabled and the action result contains error indicators:\n   - Extract the error message from the action result\n   - Re-inject the error message into the agent's context\n   - Prompt the agent: \"Your previous action failed: [error message]. Choose a different action.\"\n   - Execute a new DECIDE phase with this additional context\n   - Execute the new action\n\n### Error Detection\n\nIdentify invalid actions by checking for:\n- \"You don't see\" messages\n- \"You don't have\" messages\n- \"Invalid action\" messages\n- \"Cannot\" messages\n- \"not found\" messages\n- Result contains \"error\" or \"failed\" keywords\n\n### Context Injection\n\nThe retry prompt should include:\n- The original failed action\n- The error message received\n- A clear instruction to choose a different action\n- The current room context (unchanged)\n\nExample prompt addition:\n```\nYour previous action failed: \"attack Standing bare-skinned\"\nError: \"You don't see standing bare-skinned.\"\n\nChoose a different action. You cannot repeat the failed action.\n```\n\n### Turn Counting\n\n- The retry should NOT count as a separate turn\n- The agent gets one retry per invalid action\n- If the retry also fails, log the error and move on (no infinite loops)\n\n### Logging\n\n- Log the retry attempt: \"↩️ [Agent] retrying after invalid action\"\n- Log the new action result normally\n- Track retry statistics for debugging",
+    "verify": "- [ ] Setting appears in Agent Settings panel\n- [ ] Setting persists across page reloads\n- [ ] Invalid action triggers retry when enabled\n- [ ] Error message is correctly extracted and fed back\n- [ ] Agent chooses a different action on retry\n- [ ] No infinite retry loops\n- [ ] Retry doesn't count as extra turn\n- [ ] Setting works in both reactive and non-reactive modes\n- [ ] Works with all action types (attack, use, go, etc.)",
+    "acceptance": [
+      {
+        "text": "Invalid action triggers retry with feedback naming the precondition failure.",
+        "done": true
+      },
+      {
+        "text": "Retry budget prevents infinite retry loops.",
+        "done": true
+      }
+    ],
+    "files": [
+      "1. `static/js/ui/settings-view.js` - Add checkbox to settings panel",
+      "2. `static/js/agent-engine.js` - Add retry logic after action execution",
+      "3. `static/js/agent/prompt-builder.js` - Add retry prompt builder function",
+      "4. `static/js/config.js` - Add `autoRetryInvalid` to config defaults",
+      "engine/action_validator.py",
+      "engine/llm_client.py",
+      "tests/test_action_validator.py"
+    ],
+    "custom": {
+      "preamble": "**Status**: In Review - implemented 2026-08-31. Two design details corrected from the filing:\nstorage is the codebase's IndexedDB `storage.getConfig` (config key `auto_retry_invalid`,\ndefault off), not raw `localStorage`; and per Tommy's confirmation the same-turn retry fires for\nBOTH verb-level rejections (ActionNormalizer gate) and engine-executed failures - one retry,\nno extra step, retry outcome feeds the react phase. Frontmatter `id` corrected 150 → 361.",
+      "files_to_modify": "1. `static/js/ui/settings-view.js` - Add checkbox to settings panel\n2. `static/js/agent-engine.js` - Add retry logic after action execution\n3. `static/js/agent/prompt-builder.js` - Add retry prompt builder function\n4. `static/js/config.js` - Add `autoRetryInvalid` to config defaults",
+      "edge_cases": "- Agent retries with the same invalid action (should fail and move on)\n- Multiple invalid actions in sequence (each gets one retry)\n- Network errors vs. game logic errors (only retry game logic errors)\n- Agent is resting/unconscious (don't retry)\n- Rate limiting (respect rate limits on retry)",
+      "future_enhancements": "- Configurable retry count (1, 2, or 3 retries)\n- Smart error classification (only retry certain error types)\n- Track retry success rate for analytics\n- Visual indicator in UI when retry occurs"
+    }
+  }
+}

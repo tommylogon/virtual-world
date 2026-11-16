@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-125",
+  "kind": "task",
+  "number": 125,
+  "title": "Observe/Decision Prompt Consistency",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Ensure the observe phase and decision phase prompts agree on what information is available. Currently they can show different data (e.g., observe has no people/items, decision has full list).\n\n### Root causes\n1. **Light level mismatch** - observe uses raw `env.light`, decision might use different path. Partially fixed by ambient_light serialization change.\n2. **Different context builders** - `PromptBuilder.buildRoomContext()` vs agent-engine's inline `_buildRoomContext()` may differ\n3. **Area state changes between calls** - if the observe prompt is built before tick processing and decision after\n\n### Fixes\n- Ensure both phases use the same `buildRoomContext` function with the same state data\n- Verify ambient_light is consistently available (backend serialization fix)\n- People should be listed in all phases even in dim/pitch black (see task-121)\n\n### Scope\n- `static/js/agent-engine.js` - observe and decision prompt building\n- `static/js/agent/prompt-builder.js` - unified context builder",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-125-observe-decision-prompt-consistency.md"
+  }
+}

@@ -135,9 +135,9 @@ Season was previously only computed in frontend UI code (sky-scape.js) from the 
 ## Files
 
 - engine/weather_forecast.py (SEASON_BY_MONTH, resolve_season)
-- irtual_world_engine.py (current_season, narration)
+- virtual_world_engine.py (current_season, narration)
 - static/js/sky-scape.js
-- 	ests/test_weather_forecast.py
+- tests/test_weather_forecast.py
 
 ## Browser UI and intended live verification
 

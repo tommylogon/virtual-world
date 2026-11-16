@@ -13,7 +13,7 @@ priority: high
 ## What
 
 Nudge the Map spacing and every painted area/way lands on its cell for a moment,
-then a few seconds later jumps to a different place — off the painted label and
+then a few seconds later jumps to a different place - off the painted label and
 off the art. It happens to all areas and ways in the scope, not just one.
 
 ## Why
@@ -25,10 +25,10 @@ grid:
 
 `setMapSpacing()` (`graph-manager.ts`) runs `loadGraphData()` (grid lays every
 area/way on its cell) then `GraphBackground.fitToPaintedGrid()`, which calls
-`saveToWorld()` — an API write. That write fires the `world_changed` SSE →
+`saveToWorld()` - an API write. That write fires the `world_changed` SSE →
 `worldState.fetch()` → `state:updated` → `GraphBackground._onWorldRefetched()`,
 which does `_restore()` (reloads the block's `positions`) then
-`_applyPositions()` — `moveNode()` for every node to its **saved** position.
+`_applyPositions()` - `moveNode()` for every node to its **saved** position.
 The snapshot predates the pitch change, so it is a different frame; the areas
 jump onto it. They stay there because grid areas are `fixed`, so the solver
 never pulls them back.
@@ -37,9 +37,9 @@ Measured live on `goblin_camp`, `area_scrap_pile` (cell 5,7):
 
 | | position |
 |---|---|
-| on its cell at pitch 176 | `(-4996, 2240)` — over "8. Scrap Pile" |
+| on its cell at pitch 176 | `(-4996, 2240)` - over "8. Scrap Pile" |
 | after `setMapSpacing(+20)` (pitch 196) | rendered at `(-6756, 3029)` = `state.positions['area_scrap_pile']` |
-| the new grid pos it should be | `(-5564, 2495)` — held in the DataSet, ignored by the rendered node |
+| the new grid pos it should be | `(-5564, 2495)` - held in the DataSet, ignored by the rendered node |
 
 `persistPositionsToWorld()` already refuses painted nodes on the way out ("a
 painted area is not a target", `hasPaintedCoords`); `_applyPositions()` had the
@@ -47,7 +47,7 @@ matching guard missing on the way in.
 
 ## How
 
-`static/js/graph/graph-background.ts` — `_applyPositions()` skips a node whose
+`static/js/graph/graph-background.ts` - `_applyPositions()` skips a node whose
 position the painted grid owns (has a `cell`, and `graphManager._cardinalLayout`
 is on). Scoped to Map mode so Graph-mode saved positions are untouched.
 
@@ -66,5 +66,5 @@ is on). Scoped to Map mode so Graph-mode saved positions are untouched.
 
 ## Files
 
-- `static/js/graph/graph-background.ts` — `_applyPositions()` skips grid-owned nodes
-- `static/js/graph/graph-background.js` — emitted
+- `static/js/graph/graph-background.ts` - `_applyPositions()` skips grid-owned nodes
+- `static/js/graph/graph-background.js` - emitted

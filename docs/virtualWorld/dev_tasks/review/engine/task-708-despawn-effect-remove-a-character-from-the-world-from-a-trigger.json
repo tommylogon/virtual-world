@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "task-708",
+  "kind": "task",
+  "number": 708,
+  "title": "Despawn effect: remove a character from the world from a trigger",
+  "status": "review",
+  "priority": "high",
+  "area": "engine",
+  "tags": [],
+  "created": "2026-10-05",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-391"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "An authored trigger can remove a target character from the roster, the graph and both lookup maps - the four-step teardown companions.py already performs privately.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**Wired:** a new `despawn_character` effect in `EFFECT_TYPES`, dispatchable",
+        "done": false
+      },
+      {
+        "text": "from any authored trigger, honouring `target` the way every other effect does.",
+        "done": false
+      },
+      {
+        "text": "**Complete teardown, all four steps**  -  the roster, both player-manager lookup",
+        "done": false
+      },
+      {
+        "text": "maps, the character graph node, and its `in` edge. A half-removed character",
+        "done": false
+      },
+      {
+        "text": "shows up in every subsequent area description, so a partial teardown is worse",
+        "done": false
+      },
+      {
+        "text": "than none.",
+        "done": false
+      },
+      {
+        "text": "`active_player` is restored if the despawned character held it; the removal",
+        "done": false
+      },
+      {
+        "text": "must not leave the session pointing at nobody.",
+        "done": false
+      },
+      {
+        "text": "Message and despawn compose in one trigger. The motivating case is a ghost who",
+        "done": false
+      },
+      {
+        "text": "appears, thanks the player, and leaves  -  `message` + `despawn_character` on",
+        "done": false
+      },
+      {
+        "text": "`target`, which is two effects and nothing new.",
+        "done": false
+      },
+      {
+        "text": "Negative case stays blocked: despawning an unknown or already-despawned",
+        "done": false
+      },
+      {
+        "text": "target reports the miss and removes nothing.",
+        "done": false
+      },
+      {
+        "text": "Companions stop doing this privately  -  `_despawn_character` in",
+        "done": false
+      },
+      {
+        "text": "`engine/companions.py:40` becomes a call to the engine path rather than a",
+        "done": false
+      },
+      {
+        "text": "second implementation, so there is one teardown.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_this_is_small": "The teardown is **already written**. `engine/companions.py:40` performs the full\nfour-step removal and says so in its own docstring:\n\n> \"There is no engine-level despawn API (nothing else needed one before\n> task-391), so this does the full teardown: both lookup maps, the anchor node,\n> and its `in` edge.\"\n\nIt is private to illusory companions and callable from nowhere else. This task is\npromoting existing, working code to an effect  -  not writing a removal path.",
+      "the_case_that_needs_it": "A haunting that ends in the ghost ascending: an authored trigger fires when the\nplayer finds the ring, emits `message`, then `despawn_character`. Every other\nbeat of that story is already authorable  -  the elder's dialogue via `llm_respond`,\nthe reveal via conditions, the delayed appearance via `schedule_trigger`. The\nending is the only piece with no expressible form, which is why it needs an\neffect rather than more authoring.\n\nVerified absent 2026-10-05: `EFFECT_TYPES` (engine/triggers/constants.py) has\n`spawn_character` and no removal counterpart; no handler in\n`engine/effect_handlers/` touches `players.pop` or the player manager.",
+      "not_decided_here": "Whether an ascended ghost should leave a trace  -  a memory in the player, an\nempty chair, an item. That is a design call about what the ending is worth, not\na mechanic, and it should be settled before this ships rather than after.",
+      "browser_ui": "Intended UI home: author a trigger on the existing trigger/behavior surface,\nthen invoke it from the game action that satisfies its condition. Observe the\nmessage in the event stream and the target's removal from the area, character\nlist, and graph. Despawn is an effect on the existing character record, not a\nnew world node type.\n\nCurrent availability: this effect is planned. Companion teardown currently\nhas a private path; no general trigger-authored despawn effect is claimed as\navailable.\n\nLive steps when available:\n1. In a scratch scenario, create a trigger whose condition can be activated by\n   the player and whose effects are `message` followed by\n   `despawn_character` for a named target. Trigger it once.\n   - expected: the message appears, then the target disappears from the area\n     description, character roster, graph, player-manager lookup, and its `in`\n     edge is removed; the active player remains valid.\n2. Trigger the same effect with an unknown target ID, then with the already\n   despawned ID.\n   - expected: each attempt reports the missing target and removes nothing\n     else; the simulation remains usable.\n3. Repeat with a companion dismissal that currently uses the private teardown.\n   - expected: companion removal goes through the shared effect path and has\n     the same complete teardown result.\n4. Inspect `/api/state` after each trigger and compare roster, graph nodes,\n   edges, and active-player ID.\n   - expected: all views agree that the target is absent and no dangling\n     character lookup remains.\n\nThese steps define the trigger-driven game interaction. The general effect is\nplanned and has not been claimed as available today.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/engine/task-708-despawn-effect-remove-a-character-from-the-world-from-a-trigger.md"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "task-deduplicate-inspector-plumbing",
+  "kind": "task",
+  "number": null,
+  "title": "Deduplicate Inspector Shared Plumbing",
+  "status": "done",
+  "priority": "low",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The inspector views (`way-view`, `item-view`, `area-view`, `agent-view`, `paperdoll-view`, `memory-view`, `behaviors-view`, `lore-view`, `trigger-helpers`) each re-implemented the same plumbing in slightly different ways: an HTML-escaping `esc()`, the field-lock toggle trio, and a ~80-line \"AI Improve\" flow. This consolidation moves the shared logic into `inspector/helpers.js` so the views stop carrying their own copies.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "changes": "### `inspector/helpers.js` (new shared helpers)\n\n- `InspectorHelpers.esc(text)` - HTML-escape double quotes (was 9+ local copies)\n- `InspectorHelpers.escId(nodeId)` - escape single quotes for inline-handler embedding\n- `InspectorHelpers.renderLockToggle(field, lockedFields, escapedId)` - field-lock toggle span\n- `InspectorHelpers.toggleFieldLock(nodeId, field)` - toggle a field's locked state\n- `InspectorHelpers.getLockedFields(props)` - read the locked-fields list\n- `InspectorHelpers.improveWithAI(nodeId, spec)` - shared AI Improve flow:\n  existence/description/API-key checks, button busy state, LLM call + JSON\n  extraction, update + refresh + re-render, error handling. Callers supply\n  `{ btnId, system, buildPrompt, apply }` - only the schema-specific parts.\n\n### Views delegating to helpers\n\n- **way-view.js** - `esc` + lock-toggle trio delegate to helpers; `improveWayWithAI`\n  now calls `InspectorHelpers.improveWithAI` with way-specific system/buildPrompt/apply.\n- **item-view.js** - same for its lock-toggle trio and `_improveItemWithAI`.\n- **area-view.js** - `esc` + `improveRoomWithAI` delegate.\n- **agent-view.js / memory-view.js / behaviors-view.js / lore-view.js / paperdoll-view.js** -\n  local `const esc = ...` replaced with `InspectorHelpers.esc` (where semantics matched).\n- **trigger-helpers.js** - `InspectorItemView._renderLockToggle` → `InspectorHelpers.renderLockToggle`.\n\n### Deliberately NOT deduplicated\n\n- `paperdoll-view.js:221` - its `esc` also escapes single quotes (`&#39;`), which the\n  shared `esc` does not. Semantically distinct; kept local.\n- The per-type `showX` entry points and their field layouts stay in their own views -\n  this pass only removes the duplicated *plumbing*, not the view content.",
+      "verification": "- `node --check` on all 10 touched files passes.\n- Node harness loads all views against stub globals: all 19 checks pass -\n  shared helpers exist and behave, every view's public `showX`/improve entry points\n  still resolve, and no view re-implements the double-quote `esc` locally.\n- No stale references to `InspectorItemView._renderLockToggle` / `InspectorWayView._toggleFieldLock` remain.\n- Full pytest suite: 787 passed, same 11 pre-existing give-item fixture failures - no regression."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Refactor",
+    "status_note": "In Review - implemented 2026-08-09, node harness 19/19 checks pass, full suite 787 passed (only the 11 pre-existing give-item fixture failures).",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-deduplicate-inspector-plumbing.md"
+  }
+}

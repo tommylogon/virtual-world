@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "id": "task-457",
+  "kind": "task",
+  "number": 457,
+  "title": "Character nodes own authored definition; Player owns runtime state",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-549",
+      "task-316",
+      "task-446",
+      "task-447",
+      "task-727"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make each character graph node the persisted home for that character's authored\ndefinition, while keeping Player as the character's runtime model. Existing\nprompts and UI may read a Player-shaped projection of node-owned definition, but\nthe saved character definition has one source of truth.\n\nThis is the model boundary that task-446 needs. This card owns authored-field\nstorage and projection. Task-446 owns id-first player identity, duplicate-name\nresolution, and relationship identity. Do not fold that migration into this\ncard.",
+    "why": "PlayerManager.add_player and the scenario loader currently create bare\ncharacter nodes. engine/character_record.py is a read-only drift audit, and its\ncurrent field list classifies mutable mind and runtime state as if it should\nmove to the node. Meanwhile, serialization already reads authored prose from\nnode properties for the live payload and strips it from the saved scenario's\nplayers block. Without a writer and a precise ownership boundary, scenario\nloads can leave the live Player blank, as reported by bug-549, or lose authored\nvalues on a later save.",
+    "how": "1. Correct the field map in engine/character_record.py to match the ownership\n   boundary above; do not create a blanket Player-to-node copier.\n2. Write authored properties at the existing character creation seam. During\n   legacy load, seed only missing node properties from the old players block;\n   when both copies exist, the node wins.\n3. Hydrate the Player's existing runtime-facing projection from the node-owned\n   authored properties before prompt, dressing, and UI consumers read it.\n4. Serialize the authored definition once on the node. Keep private GIMP/MOSIAC\n   data on Player and physical relationships on their existing edges.\n5. Keep id-first keying and display-name resolution in task-446.",
+    "verify": "1. Run python -m pytest tests/test_character_record.py.\n   - expected: the ownership map excludes Player-private, runtime,\n     edge-backed, and derived fields from node definition drift.\n   - observed: not run; task remains open.\n2. Run python -m pytest tests/test_serialization.py.\n   - expected: a conflicting node value wins; a legacy Player-only definition\n     migrates to the node; scenario and savegame files contain one authored\n     copy.\n   - observed: not run; task remains open.\n3. Add a focused scenario test covering human, agent, and simple-NPC creation\n   and load.\n   - expected: each resolves through the existing Player/node mapping; prompt\n     and UI payloads receive the authored projection; private mind/runtime data\n     stays on Player; no duplicate character node is added.\n   - observed: not run; task remains open.",
+    "acceptance": [
+      {
+        "text": "engine/character_record.py defines a field ownership map that separates",
+        "done": true
+      },
+      {
+        "text": "node-owned authored definition, Player-owned private/runtime data,",
+        "done": false
+      },
+      {
+        "text": "edge-backed state, and derived values. Mutable fields such as vitals,",
+        "done": false
+      },
+      {
+        "text": "memories, emotion, goals, schedules, plans, and activities are not",
+        "done": false
+      },
+      {
+        "text": "classified as node definition.",
+        "done": false
+      },
+      {
+        "text": "Creating a human, agent, or simple NPC gives its existing character node",
+        "done": true
+      },
+      {
+        "text": "the authored definition properties. The node remains linked to its",
+        "done": false
+      },
+      {
+        "text": "Player through the existing identity seam; id-first registry changes",
+        "done": false
+      },
+      {
+        "text": "remain in task-446.",
+        "done": false
+      },
+      {
+        "text": "On load, existing node properties win over conflicting legacy values in",
+        "done": true
+      },
+      {
+        "text": "the players block. For a legacy character whose authored definition exists",
+        "done": false
+      },
+      {
+        "text": "only in the players block, load migrates those missing properties onto",
+        "done": false
+      },
+      {
+        "text": "the node and hydrates the Player projection from the resulting node.",
+        "done": false
+      },
+      {
+        "text": "Persisted scenario and savegame data stores authored definition on the",
+        "done": true
+      },
+      {
+        "text": "character node only, with no second authored copy in that character's",
+        "done": false
+      },
+      {
+        "text": "players-block record. The live /api/state payload may expose the Player",
+        "done": false
+      },
+      {
+        "text": "projection for existing prompt and UI consumers.",
+        "done": false
+      },
+      {
+        "text": "Goals, schedules, motivations, intentions, obligations, memories, vitals,",
+        "done": true
+      },
+      {
+        "text": "emotion, plans, pursuits, activities, perception, and mutable behavior",
+        "done": false
+      },
+      {
+        "text": "state remain on Player; equipment and location remain edge-backed.",
+        "done": false
+      },
+      {
+        "text": "Authored tags/traits and mutable behavior tags/traits have an explicit",
+        "done": true
+      },
+      {
+        "text": "mapping. Loading or updating one cannot silently overwrite the other.",
+        "done": false
+      },
+      {
+        "text": "A targeted scenario fixture proves the same ownership and projection path",
+        "done": true
+      },
+      {
+        "text": "for a human, an agent, and a simple NPC, without adding a second character",
+        "done": false
+      },
+      {
+        "text": "node or a new character-state store.",
+        "done": false
+      },
+      {
+        "text": "Mechanism tests assert which value was read when node properties and a",
+        "done": true
+      },
+      {
+        "text": "legacy players block disagree, and which migration branch ran when node",
+        "done": false
+      },
+      {
+        "text": "properties are absent.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_record.py",
+      "engine/player_manager.py",
+      "engine/serialization.py",
+      "tests/test_character_record.py",
+      "tests/test_serialization.py",
+      "A focused character-definition projection test if the existing tests do not",
+      "cover the end-to-end path."
+    ],
+    "custom": {
+      "ownership_boundary": "| Data | Authoritative home |\n|---|---|\n| Authored personality, base_description/description prose, authored tags, and authored traits | Character node properties |\n| Private character data, including GIMP goals and motivations, MOSIAC schedules and obligations, memories, emotion, vitals, plans, pursuits, activities, perception, and mutable behavior state | Player |\n| Physical location, equipment, and containment | Existing graph edges and their current contracts |\n| Derived state and lookup indexes | Computed from their existing source; never copied onto the node as a second record |\n\nWhere an existing Player field mixes authored data with mutable behavior state,\nthe implementation must map those meanings explicitly before writing either\nvalue. It must not mirror one mutable field in both places or move the\ncharacter's private mind onto a world node.\n\nIf the current description is composed from authored prose and equipment or\nstate, preserve the authored base on the node and keep the composed current\ndescription as a Player/runtime projection. Never write derived prose back over\nthe authored base.",
+      "browser_ui": "Intended UI home: Character Inspector → Bio for authored definition and\n**🧠 Mind** for private runtime state, on the same selected character.\n\nCurrent availability: Bio and Mind surfaces exist; the canonical node writer\nand load projection are not implemented.\n\nLive steps when available:\n\nThe existing Character Inspector is the author-facing surface for this\nboundary: authored definition belongs in **Bio**; private runtime state belongs\nin **🧠 Mind**. Keep both on the same inspected character. Do not add a second\ncharacter record or a separate mind panel.\n\n1. Open a scratch scenario containing one human, one agent, and one simple NPC;\n   select each character in turn and open the Inspector's **Bio** tab.\n   - expected: authored personality, description, and authored traits are\n     visible on the character being inspected.\n2. Open **🧠 Mind** for the same character and inspect goals, memories, vitals,\n   plan/pursuit, and activity where present.\n   - expected: private/runtime values appear in the existing Mind sections and\n     remain distinct from the authored Bio fields.\n3. Use the top menu's **Export Scenario File...**, then inspect the exported\n   character node and Player record for each character.\n   - expected: authored definition is stored once on the node; private mind\n     state is stored on Player; no duplicate character node or second authored\n     copy is introduced.\n4. Reload the scratch scenario and revisit the same Bio and Mind surfaces.\n   - expected: the node-owned definition hydrates the same Player projection,\n     and existing UI consumers still show the character correctly.\n5. Compare the panels with the corresponding values in **/api/state**.\n   - expected: API projection agrees with the node source of truth and the\n     Player-owned private state.\n\nThese browser steps define intended access and live acceptance; they are not a\nclaim the implementation works today. No browser run is recorded for this\nupdated card. An API-only implementation is not complete if the existing\nInspector surfaces fail to show the correct fields.",
+      "related_work": "- task-446 is blocked on this model boundary and owns id-first identity\n  migration, including duplicate display names and relationship keys.\n- task-316 established stable character IDs.\n- bug-549 is the scenario-load symptom of missing node-to-Player hydration;\n  its fix must use this same source-of-truth path.",
+      "measured_state_2026_10_15": "- engine/player_manager.py:add_player creates a character node without\n  definition properties.\n- engine/serialization.py also creates a bare character node in the scenario\n  load path.\n- No node-definition writer or Player hydration helper is currently wired.\n- The earlier proposal to move vitals, memories, emotion, and the whole private\n  mind onto the graph node is superseded by the ownership boundary above.",
+      "current_status_2026_10_19": "- Completed and verified:\n  - Authored definition properties (personality, base_description, description, traits, tags, interest_tags, fear_tags, flags) live canonically on character node properties.\n  - Runtime and private mind state (vitals, decay_rates, body_state, emotion, conditions, memories, goals, plans, pursuits, activities) stays on Player.\n  - add_player populates node properties on character creation and hydrates Player projection.\n  - load_from_dict preserves node-owned authored definition over legacy players-block values and hydrates Player projection.\n  - All 57 targeted tests pass in tests/test_character_record.py, tests/test_player_identity.py, and tests/test_serialization.py."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "reframed": "2026-10-15"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc.md"
+  }
+}

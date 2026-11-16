@@ -28,7 +28,7 @@ listing `data/library/<type>/` and **keying each entry by its filename**:
 
 So the primary key of a library entity is a display string. Everything that
 binds a live node to a template therefore binds it *by name*, and a rename is
-not a rename — it is a delete and an insert.
+not a rename - it is a delete and an insert.
 
 The live side is not the problem and should not be changed. `Player.id` is
 already a surrogate key (`4be7db75`, `16b8b6ce` for the Eldenford cast),
@@ -102,7 +102,7 @@ Whatever shape is adopted has to keep resolving those.
       entries share a `name`, the guess must fail loudly rather than pick one.
 - [ ] Renaming a library entry (there is already `POST
       /api/library/<type>/<id>/rename`) leaves every bound node resolving
-      correctly, with no re-link step. **This is the acceptance that matters** —
+      correctly, with no re-link step. **This is the acceptance that matters** -
       it is the case that broke.
 - [ ] A round-trip proves it: rename `Harren Cobb` to anything, refresh the
       blacksmith node, read `player.personality` back and confirm it is the
@@ -115,7 +115,7 @@ Whatever shape is adopted has to keep resolving those.
 ## What was done instead, on 2026-10-01
 
 The unblock, not the fix. All five Eldenford nodes were bound explicitly through
-the existing sanctioned path — `POST /api/library/refresh-to-world` with
+the existing sanctioned path - `POST /api/library/refresh-to-world` with
 `sections: []`, which applies nothing but still runs `sync.link`
 (`routes/library_ops.py:1145`):
 
@@ -127,7 +127,7 @@ the existing sanctioned path — `POST /api/library/refresh-to-world` with
 
 All five returned `applied: []`, `linked: true`. Sync no longer depends on any
 name matching, so the cast can be synced now. That is a pin on today's
-filename-shaped keys — it does not survive a future rename, which is exactly
+filename-shaped keys - it does not survive a future rename, which is exactly
 what this task is for.
 
 ## What

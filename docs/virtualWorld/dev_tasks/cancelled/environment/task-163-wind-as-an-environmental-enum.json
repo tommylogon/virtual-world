@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-163",
+  "kind": "task",
+  "number": 163,
+  "title": "Wind as an Environmental Enum",
+  "status": "cancelled",
+  "priority": "low",
+  "area": "environment",
+  "tags": [
+    "environment",
+    "temperature",
+    "weather",
+    "propagation"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add `wind` as an environment enum (from no wind to hurricane), affecting temperature and heat propagation, and potentially energy and other stats/conditions.",
+    "why": "Environment props are `temperature`, `light`, `air`, `smell`, `noise` (area.py:10, engine/effects.py:300). There's no wind. Heat propagation (engine/environment_propagation.py:24) and heat sources don't know about airflow, so outdoor breeze or indoor draft can't affect temperature spread.",
+    "how": "### Wind enum\n\n- Add `wind` to area environment with a level enum: `none` / `breeze` / `wind` / `gale` / `storm` / `hurricane` (or 0-5 scale)\n- Add to area.py defaults, environment_propagation, serialization, area description output\n\n### Effects\n\n- Wind accelerates heat propagation between connected areas (especially exterior areas): stronger wind → faster temperature equalization\n- Wind affects effective temperature (wind chill in cold areas, cooling in hot areas) - extend `equipment_bonuses.effective_temperature` or add a wind modifier\n- High wind drains more Energy per move for exterior areas (ties into vitals)\n- Strong wind may extinguish or reduce light/heat sources, and can be a `sound_source`/noise factor\n\n### Editor\n\n- Add wind to the area editor and `set_environment` / `adjust_environment` effect keys",
+    "verify": "- [ ] Wind level persists in area env and serialization\n- [ ] Heat propagates faster in windy exterior areas\n- [ ] Wind chill lowers feels-like temperature\n- [ ] Hurricane-level wind has meaningful gameplay impact",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "files_to_modify": "1. `area.py` - wind default\n2. `engine/environment_propagation.py` - wind affects propagation rate\n3. `engine/equipment_bonuses.py` - wind chill on effective temperature\n4. `engine/effects.py` - wind in set/adjust environment\n5. `routes/graph.py` + area editor JS - wind field",
+      "related": "- [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]\n- [[task-85-time_weather_dates|task-85: Time, weather, dates]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/environment/task-163-wind-environmental-enum.md"
+  }
+}

@@ -113,7 +113,7 @@ rule - deferred.
 
 ## Why
 
-Prose plans allow LLMs to hallucinate affordances and ungrounded interactions. A typed plan vocabulary (ct, 	arget, rea, until, duration) grounds plan generation against graph facts and provides a shared execution contract with NPC schedulers.
+Prose plans allow LLMs to hallucinate affordances and ungrounded interactions. A typed plan vocabulary (act, target, area, until, duration) grounds plan generation against graph facts and provides a shared execution contract with NPC schedulers.
 
 ## How
 
@@ -133,4 +133,4 @@ Implemented typed plan grammar schema, validated against known world facts befor
 - engine/character_prompt.py
 - engine/planner.py
 - static/js/agent/plan-executor.js
-- 	ests/test_planner.py
+- tests/test_planner.py

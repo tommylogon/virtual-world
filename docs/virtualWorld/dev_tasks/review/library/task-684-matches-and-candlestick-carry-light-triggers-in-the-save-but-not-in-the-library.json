@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-684",
+  "kind": "task",
+  "number": 684,
+  "title": "matches and candlestick carry light triggers in the save but not in the library entry",
+  "status": "review",
+  "priority": "low",
+  "area": "library",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The live save authors on_light / on_toggle_off / on_toggle_on triggers on item_matches, item_candle_stub and item_candlestick, but their library entries under data/library/items carry no triggers, so re-importing any of them from the library drops the authored lighting behaviour and the node falls back to a plain dim light_source. The missing toggleable tag has been added to all three (both places). Sync the trigger definitions themselves, or state that the save is the authoring surface for these and the library is deliberately trigger-free.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Library Browser → choose `item_matches`, `item_candle_stub`, or `item_candlestick` → place/import into a scenario → inspect the item's triggers and operate it in the game view.\n\nCurrent availability: the saved scenario contains `on_light`, `on_toggle_off`, and `on_toggle_on` for these items, while the corresponding library entries lack them. The card leaves open whether the library or save is the authoring surface; resolve that before deciding which data should be copied.\n\nLive steps when available:\n1. In a scratch scenario, place each of the three items from the Library Browser and inspect its trigger list before interaction.\n   - expected: each imported item has the same authored lighting/toggle behavior as its canonical library definition; no trigger disappears on import.\n2. Light the matches, then toggle the candle stub and candlestick off and on using their normal item actions.\n   - expected: the correct `on_light`/`on_toggle_off`/`on_toggle_on` event fires for the operated item and the lighting state updates accordingly.\n3. Save the scenario, reload it, and compare the item trigger records with the library entry.\n   - expected: behavior survives save/reload and re-import; the chosen authoring source is explicit and there is no conflicting duplicate trigger set.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-684-matches-and-candlestick-carry-light-triggers-in-the-save-but-not-in-the-library-entry.md"
+  }
+}

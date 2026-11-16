@@ -46,19 +46,19 @@ Create engine/disposition.py owning the registry as a single declaration, in the
 - [x] Every score has a declared kind, base and range (24 scores, checked by `check_registry`).
 - [x] A `--check` tool flags references to undeclared scores (demonstrated live, exit 1).
 - [x] The registry declares per-decision combine and pick, so task-804's modes have a source.
-- [x] `tests/test_disposition.py` proves the mechanism and both gate directions — 9 passed.
+- [x] `tests/test_disposition.py` proves the mechanism and both gate directions - 9 passed.
 - [x] The declared bases equal the engine constants (`relief.PRIVACY_WEIGHTS`, `background_social.BASE_WEIGHTS` / `BASE_IGNORE_WEIGHT` / `AFFECT_TILT`); the gate fails if either side drifts.
 - [x] `python tools/feature_index.py --check` passes.
 
 ## Files
 
-- `engine/disposition.py` (new — the registry)
-- `tools/disposition_index.py` (new — the gate)
-- `tests/test_disposition.py` (new — the mechanism test)
+- `engine/disposition.py` (new - the registry)
+- `tools/disposition_index.py` (new - the gate)
+- `tests/test_disposition.py` (new - the mechanism test)
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this card declares the engine's decision-score vocabulary and static checks; the registry itself has no browser authoring surface.
+Intended UI home: Not applicable - this card declares the engine's decision-score vocabulary and static checks; the registry itself has no browser authoring surface.
 
 Current availability: the card records 24 declared scores, six score kinds, per-decision combine/pick modes, a `check_registry` guard, and passing `tests/test_disposition.py` evidence. The browser does not expose the registry directly.
 

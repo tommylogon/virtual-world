@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-27",
+  "kind": "task",
+  "number": 27,
+  "title": "Character Import From Exported JSON File",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The character inspector has an **Export JSON** button that saves a character card (personality, stats, inventory, memories, agent history, etc.) to a `.json` file. There's no corresponding **Import** button to load that file back in.\n\nThere IS `/api/registry/characters/import` but it only imports from the saved characters registry, not from an exported JSON file. The export contains much richer data (room context, inventory, agent history, memory store, etc.) that the registry import doesn't handle.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector.js` - import button + `_importCharacter()`, `_saveDescription()`, Appearance textarea",
+      "static/js/api.js` - `importPlayer()` method",
+      "app.py` - `/api/players/import` endpoint"
+    ],
+    "custom": {
+      "changes_made": "### Frontend\n\n- **`static/js/inspector.js`**: \n  - Added \"Import JSON\" button in the Import/Export section of the character panel\n  - Added `_importCharacter()` method: opens file picker, reads JSON, posts to `/api/players/import`, refreshes world state, opens the imported character's panel\n  - Added `_saveDescription()` method for the new Appearance textarea\n  - Added Appearance (description) textarea in the character inspector section\n\n- **`static/js/api.js`**: Added `importPlayer(charData)` method that POSTs to `/api/players/import`\n\n### Backend\n\n- **`app.py`**: Added `POST /api/players/import` endpoint:\n  - Accepts full exported character card\n  - Creates or updates Player with: personality, description, stats, vitals, skills, traits, emotion, relationships, world_knowledge, behaviors, npc config, item_statuses, decay_rates\n  - Handles inventory: creates graph nodes + location edges for each item, creates basic item nodes if they don't exist\n  - Validates current_area exists; falls back to first available room\n  - Sets as active player\n\n- Fields SKIPPED on import: agent_history, area_description/environment/exits/items, time_ticks/game_time, memory_store"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Characters Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-27-character_import_from_file.md"
+  }
+}

@@ -11,13 +11,13 @@ priority: medium
 **Filed**: 2026-07-21
 **Updated**: 2026-07-30
 **Priority**: Low
-**Status**: Done — superseded by organic improvements
+**Status**: Done - superseded by organic improvements
 
 ---
 
 ## What
 
-Remaining polish items from task-17 (Editable Characters). All superseded by organic improvements — the equip picker works via `+` button and right-click context menus, inventory has its own tab, container inspection works via right-click → Open Container, and the dedicated paperdoll task covers the rest.
+Remaining polish items from task-17 (Editable Characters). All superseded by organic improvements - the equip picker works via `+` button and right-click context menus, inventory has its own tab, container inspection works via right-click → Open Container, and the dedicated paperdoll task covers the rest.
 
 ### What's actually in place
 - ✅ Right-click context menus on inventory items (Inspect, Equip, Drop, Open Container, Put in Container)
@@ -28,10 +28,10 @@ Remaining polish items from task-17 (Editable Characters). All superseded by org
 - ✅ Open Container via right-click navigates to item inspector
 
 ### What was deferred/superseded
-- Container contents inline expand in inventory — not needed, right-click → Open Container covers it
-- Click empty slot → equip picker — `+` button does this
-- Swap option — unequip + re-equip from inventory works, paperdoll task will improve this
-- Drag-and-drop — not important, paperdoll task covers future UX improvements
+- Container contents inline expand in inventory - not needed, right-click → Open Container covers it
+- Click empty slot → equip picker - `+` button does this
+- Swap option - unequip + re-equip from inventory works, paperdoll task will improve this
+- Drag-and-drop - not important, paperdoll task covers future UX improvements
 
 ## Items
 
@@ -53,8 +53,8 @@ Remaining polish items from task-17 (Editable Characters). All superseded by org
 
 ## Files
 
-- `static/js/inspector.js` — all four items
-- `static/css/style.css` — drag-and-drop visual feedback (if implemented)
+- `static/js/inspector.js` - all four items
+- `static/css/style.css` - drag-and-drop visual feedback (if implemented)
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
 

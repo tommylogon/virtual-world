@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-79",
+  "kind": "task",
+  "number": 79,
+  "title": "Multi-Word Targets + Way View on Open",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-20",
+  "updated": "2026-07-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Two fixes found while testing \"open swinging door\" from the living room.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "13/13 pass (`test_tokenizer.py` + `test_emote.py`)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "| File | Change |",
+      "|------|--------|",
+      "| `app.py` | All branches updated to use `' '.join(tokens[1:])` with proper keyword splitting for `use`, `attack`, `rest`, `take` |",
+      "| `virtual_world_engine.py` | `toggle_way()` saves `way_edge`; both toggle methods append `visible_in_direction` on open |"
+    ],
+    "custom": {
+      "fix_1_multi_word_target_names": "`tokenize_command()` splits on spaces, so `\"open swinging door\"` produced tokens `[\"open\", \"swinging\", \"door\"]` and `tokens[1]` was `\"swinging\"` - broke all multi-word targets (`swinging door`, `front door`, `rusty key`, etc.) unless quoted.\n\n**Fix:** Replaced `tokens[1]` with `' '.join(tokens[1:])` in all single-target branches. For branches with keyword separators (`use X on Y`, `attack X with Y`, `rest [N] on Y`), added keyword-index search in tokens to split at the right point.\n\n### Branches Changed\n\n| Branch | Old | New |\n|--------|-----|-----|\n| go | `tokens[1]` | `' '.join(tokens[1:])` |\n| open / close | `tokens[1]` | `' '.join(tokens[1:])` |\n| eat / drink | `tokens[1]` | `' '.join(tokens[1:])` |\n| use | `tokens[2] == \"on\"` | Find `\"on\"` index in tokens[1:], split there |\n| examine | `tokens[1]` | `' '.join(tokens[1:])` |\n| take | `tokens[1]` | Join `tokens[1:-1]` if last token is digit, else `tokens[1:]` |\n| drop | `tokens[1]` | `' '.join(tokens[1:])` |\n| rest / sleep | `tokens[1].isdigit()`, `tokens[2]==on` | Find `\"on\"` index in tokens[1:], split there |\n| toggle | `tokens[1]` | `' '.join(tokens[1:])` |\n| attack | `tokens[2]==\"with\"` | Find `\"with\"` index in tokens[1:], split there |\n| speak / say | `tokens[1]` | `' '.join(tokens[1:])` |",
+      "fix_2_visible_in_direction_on_way_open": "`toggle_way()` returned just `\"You open the swinging door.\"` - the `visible_in_direction` text from the exit definition was only shown in `get_area_description()`, not in the action result. So it never appeared in `=== WHAT HAPPENED ===` for agent reactions.\n\n**Fix:** Both `toggle_way()` and `toggle_way_by_id()` now look up the room→door connection edge's `visible_in_direction` property and append it as a second line when opening:\n\n```\nYou open the swinging door.\nThe kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling.\n```"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "completed": "2026-07-20"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-79-multi_word_targets_and_door_view.md"
+  }
+}

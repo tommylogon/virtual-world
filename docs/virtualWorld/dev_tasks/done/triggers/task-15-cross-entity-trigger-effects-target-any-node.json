@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-15",
+  "kind": "task",
+  "number": 15,
+  "title": "Cross-Entity Trigger Effects (Target Any Node)",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-17 (updated 2026-07-21)",
+  "updated": "2026-07-17 (updated 2026-07-21)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Triggers need to target and modify arbitrary nodes (items, ways, areas, characters) - not just the trigger's source node or current room. Already proven: `front_way` `on_open` → `set_state` on `item_fireplace` works. This card expands to a full cross-entity effect system.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "### 1. `append_description` effect\n1. Open an item's trigger editor (e.g. a note/paper item)\n2. Add effect type: **Append to Description** (`append_description`)\n3. Set Target Node to the item's own ID (or another item)\n4. Set Text to Append: `\"\\nSomeone has written in this book.\"`\n5. Save the trigger\n6. In the game, fire the trigger (e.g. `use` or `examine`)\n7. Examine the target item - its description should now include the appended text\n\n### 2. `state_equals` with cross-entity target\n1. Open any item's trigger editor\n2. Add condition type: **Node state equals** (`state_equals`)\n3. You should see a **Target node** input (optional) plus the **Value** input\n4. Set Target to `item_fireplace` and Value to `lit`\n5. Save - this condition now checks the fireplace's state, not the trigger source\n6. (The front door → fireplace example in the template already uses this)\n\n### 3. Existing cross-entity effects still work\n- `set_state` with `node_id` targeting a different node\n- `set_environment` with `node_id` targeting a different room\n- `set_hidden` to reveal/hide items anywhere",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "complete": "### Effects\n| Effect | Params | Engine | Frontend | Notes |\n|--------|--------|--------|----------|-------|\n| `set_state` | `node_id`, `state` | ✅ | ✅ | Targets any node |\n| `set_hidden` | `node_id`, `hidden` (bool) | ✅ | ✅ | `{ node_id: \"item_spellbook\", hidden: false }` |\n| `adjust_uses` | `node_id`, `delta` (int) | ✅ | ✅ | `{ node_id: \"item_lockbox\", delta: -1 }` |\n| `set_environment` (cross-room) | `node_id`, `light`, `temp`, `noise`, `smell`, `air` | ✅ | ✅ | Target any room |\n| `set_description` | `target`, `value` | ✅ | ✅ | Replace full description |\n| `append_description` | `target`, `text` | ✅ | ✅ | NEW - appends text with `\\n` separator |\n| `end_scenario` / `restart_scenario` | - | ✅ | ✅ | Stop/restart game |\n| `rename` | `new_name`, `node_id` | ✅ | ✅ | Rename items |\n| `unlock_way` | `way_id` | ✅ | ✅ | |\n| `spawn_item` / `remove_item` | `item_id` | ✅ | ✅ | |\n| `drain` | `amount`, `stat` | ✅ | ✅ | |\n\n### Conditions\n| Condition | Engine | Frontend | Notes |\n|-----------|--------|----------|-------|\n| `has_item` | ✅ | ✅ | Searchable from all world + library items |\n| `state_equals` | ✅ | ✅ | NEW: target field in UI - `{ target: \"item_fireplace\", value: \"lit\" }` or just `{ value: \"lit\" }` for trigger source |\n| `random_chance` | ✅ | ✅ | |\n| `skill_check` | ✅ | ✅ | |\n| `uses_reached` | ✅ | ✅ | |\n\n### UI\n- ✅ Trigger editor works on items, ways, any node (node-type-agnostic)\n- ✅ Cross-entity effect targeting with node name datalist (items + areas + ways)\n- ✅ Locked state/checkbox in item inspector + library editor\n- ✅ Cancel Step button (aborts LLM)\n- ✅ Removed legacy unlock UI\n\n### Template\n- ✅ Front door → fireplace snuffing wired (on_open + state_equals + set_state + set_environment)\n- ✅ Desk unlock → spellbook reveal (on_use + has_item + set_state + set_hidden)",
+      "use_cases": "### 1. Desk unlock → reveal spellbook (Study)\nTrigger: `on_use` on `item_desk`, condition: `has_item: \"brass_key\"`\nEffects:\n- `set_state` → `node_id: \"item_desk\", state: \"open\"`\n- `set_hidden` → `node_id: \"item_Spellbook \", hidden: false`\n- `message` → \"The lock clicks open. Inside you see a dusty spellbook.\"\n\n### 2. Front door open → snuffs fireplace (DONE)\nTrigger: `on_open` on `way_front`, condition: `state_equals: \"item_fireplace\" = \"lit\"`\nEffects:\n- `set_state` → `node_id: \"item_fireplace\", state: \"unlit\"`\n- `set_environment` → `node_id: \"area_living_area\", temperature: -5, noise: \"wind howling\", smell: \"cold air\"`\n- `message` → \"A blast of freezing wind roars through the open door, snuffing out the fire!\"\n\n### 3. Lockbox with limited uses\nTrigger: `on_use` on `item_lockbox`\nEffects:\n- `adjust_uses` → `node_id: \"item_lockbox\", delta: -1`\n- `spawn_item` → `item_id: \"gold_coin\"`",
+      "files_changed_this_batch_2026_07_21": "- `virtual_world_engine.py` - added `append_description` effect handler\n- `static/js/inspector.js` - `state_equals` target field in condition editor + `append_description` effect UI\n- `static/js/item-library.js` - `state_equals` target field + `append_description` effect type + node datalists\n- `static/js/main.js` - `append_description` in AI prompt\n- `static/js/prompt-docs.js` - docs for `append_description` + updated `state_equals`\n- `dev_tasks/inprogress/task-15-way_trigger_events.md` - updated status to complete\n\n### Previous batches (2026-07-20)\n- `virtual_world_engine.py` - `set_hidden`, `adjust_uses`, `end_scenario`, `restart_scenario` effects\n- `static/js/inspector.js` - has_item search, locked state/checkbox, removed unlock UI\n- `static/js/item-library.js` - has_item search, locked checkbox, new effect types\n- `static/js/agent-engine.js` - cancel step, scenario_ended detection, abort controller\n- `static/js/ui-controller.js` - cancel button visibility\n- `static/js/main.js` - `cancelStep()` global\n- `static/js/api.js` - `resetWorld()` method\n- `static/js/graph-manager.js` - removed unlock context menu\n- `static/js/prompt-docs.js` - new effect docs\n- `app.py` - scenario_ended flags in API responses\n- `templates/index.html` - cancel button\n- `world_template.json` - locked state handling"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Connections]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-15-door_trigger_events.md"
+  }
+}

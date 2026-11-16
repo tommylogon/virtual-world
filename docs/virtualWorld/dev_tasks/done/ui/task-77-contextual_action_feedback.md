@@ -5,11 +5,11 @@ area: ui
 priority: medium
 ---
 
-# Contextual Action Feedback — Smart Error Messages
+# Contextual Action Feedback - Smart Error Messages
 
 **Filed**: 2026-07-20
 **Priority**: High
-**Status**: Done — verified 2026-08-03. `_contextual_failure` (engine/trigger_system.py:975) wired into take (item_actions.py:469), eat/drink (:767,:835), use (:946). The proposed weight/encumbrance check (item 4) was not implemented.
+**Status**: Done - verified 2026-08-03. `_contextual_failure` (engine/trigger_system.py:975) wired into take (item_actions.py:469), eat/drink (:767,:835), use (:946). The proposed weight/encumbrance check (item 4) was not implemented.
 
 ---
 
@@ -26,10 +26,10 @@ Currently, failing actions produce robotic messages:
 
 | Action | Current message | Wanted |
 |--------|----------------|--------|
-| `eat rock` | "Unknown command" or generic ValueError | "I pause — that's a rock, not food. I could **examine** it." |
+| `eat rock` | "Unknown command" or generic ValueError | "I pause - that's a rock, not food. I could **examine** it." |
 | `take curtains` | Generic "can't find it" or nothing | "I realize I have no need for the curtains. I could **examine** them." |
 | `use book` (no triggers) | "nothing happens" | "I flip through the book but find nothing useful to do with it." |
-| `eat coat` | Generic failure | "I stop myself — that's not something you eat." |
+| `eat coat` | Generic failure | "I stop myself - that's not something you eat." |
 
 ## Supported Actions (Simplified Set)
 
@@ -60,9 +60,9 @@ A helper that generates a first-person failure reason:
 def _contextual_failure(self, actor, verb, target_name, available_actions):
     """Generate a first-person contextual failure message."""
     reasons = {
-        "take": "I reach for the {item} but stop — I have no need for it.",
+        "take": "I reach for the {item} but stop - I have no need for it.",
         "use": "I examine the {item} but can't figure out what to do with it.",
-        "eat": "I pause — that's not food.",
+        "eat": "I pause - that's not food.",
         "drink": "That's not something you drink.",
         "open": "The {item} doesn't open.",
         "close": "The {item} isn't something you can close.",
@@ -124,7 +124,7 @@ if item_weight > player_strength * 2:  # arbitrary threshold
 Currently `eat` and `drink` are separate branches in app.py that call `use_item()`. Validate through the same path:
 
 ```
-eat rock → use_item("rock") → check "food" tag → fail: "I pause — that's a rock, not food."
+eat rock → use_item("rock") → check "food" tag → fail: "I pause - that's a rock, not food."
 ```
 
 ### 6. Update app.py error handling
@@ -135,7 +135,7 @@ The existing `ValueError` catch (line 497) already converts engine errors to out
 
 When an agent tries `eat rock` and gets:
 ```
-"I pause — that's a rock, not food. I could **examine** it."
+"I pause - that's a rock, not food. I could **examine** it."
 ```
 
 The agent's LLM learns:
@@ -147,8 +147,8 @@ Over time, this teaches agents the game's physics and item grammar without hardc
 
 ## Files
 
-- `virtual_world_engine.py` — `_contextual_failure()`, validation in `take_item()`, `use_item()`, `use_item_on()`
-- `app.py` — possibly minor adjustments to how snake_case verbs map (read→examine, light→use, etc.)
+- `virtual_world_engine.py` - `_contextual_failure()`, validation in `take_item()`, `use_item()`, `use_item_on()`
+- `app.py` - possibly minor adjustments to how snake_case verbs map (read→examine, light→use, etc.)
 
 ## Steps to verify
 

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-793",
+  "kind": "task",
+  "number": 793,
+  "title": "Collapse Commands to a single index page",
+  "status": "done",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-791"
+    ],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the 86 per-verb `docs/virtualWorld/Commands/*.md` pages with a single **Commands index** - every verb and its aliases, grouped, linking each verb to the feature page and section that owns it.",
+    "why": "Verbs are *mechanics*, so they belong on their feature page (`Movement` owns `go`/`dash`/`climb`/`jump`/`crawl`, `Combat` owns `attack`). 86 thin pages duplicate the feature pages at the wrong granularity. The index is a clean lookup convenience; the substance lives on the feature page.",
+    "how": "Write `Commands.md`: verb, aliases, status, and which feature/section documents it. Move any verb detail onto the owning feature page. Delete the 86 pages and retarget inbound links (`[[examine]]`, `[[light]]`, `[[fumble around]]` point at `Features/examine`, `Features/light`, and the search/listen pages).",
+    "verify": "1. `python tools/doc_links.py --check`.\n   - expected: no new broken links after deletion.\n   - observed: TODO\n2. Look up `go` from the index.\n   - expected: lands on the Movement page section.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "one Commands index page lists every verb + aliases",
+        "done": false
+      },
+      {
+        "text": "verb detail lives on the owning feature page",
+        "done": false
+      },
+      {
+        "text": "the 86 pages are deleted and no link dangles",
+        "done": false
+      }
+    ],
+    "files": [
+      "docs/virtualWorld/Commands/",
+      "docs/virtualWorld/World Building/Movement.md",
+      "docs/virtualWorld/World Building/Connections.md"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/docs/task-793-collapse-commands-to-a-single-index-page.md"
+  }
+}

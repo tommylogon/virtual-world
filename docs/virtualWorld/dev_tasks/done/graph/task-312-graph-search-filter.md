@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-19
 **Priority**: Medium
-**Status**: In Review — implemented 2026-08-20
+**Status**: In Review - implemented 2026-08-20
 
 ## How
 
@@ -30,7 +30,7 @@ Graph search that hides non-matching nodes, showing only the matches.
 ## Notes
 
 - Editor UX: type to search, non-matching nodes/edges fade or disappear, only matches (and optionally their connections) stay visible.
-- Complements `task-302` (siblings stay open) and `task-303` (hide areas without characters) — all three reduce visual noise in the graph/map editor.
+- Complements `task-302` (siblings stay open) and `task-303` (hide areas without characters) - all three reduce visual noise in the graph/map editor.
 
 ## Related
 

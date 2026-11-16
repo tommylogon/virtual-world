@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-29",
+  "kind": "task",
+  "number": 29,
+  "title": "Create Item Modal: Container Contents Support",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The \"Add New Item\" create modal does not support setting items as containers with contents inside. Users must create the item, then separately edit it in the library to add container contents.",
+    "why": "In `main.js:openCreateModal()` (line 396-407), the item create form has fields for:\n- Name\n- Description\n- Actions (3 checkboxes)\n- Uses\n- Weight\n- Hidden\n\nNo field for container contents.\n\nThe item library editor (`item-library.js` line 453-460) already has container contents support:\n```html\n<h3>📦 Container Contents</h3>\n<div id=\"lib-contents-list\">...</div>\n<button class=\"btn btn-sm btn-blue\" onclick=\"VW.itemLib._addContentUi()\">➕ Add Contained Item</button>\n```",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/main.js` - add container contents section to create modal",
+      "templates/index.html` - may need additional HTML for contents editor",
+      "app.py` - ensure container contents are created as edges"
+    ],
+    "custom": {
+      "proposed_change": "Add a collapsible \"📦 Container Contents\" section to the create item modal, using the same pattern as the library editor:\n\n1. A \"Contains items?\" checkbox\n2. When checked, show the contents editor with:\n   - Add content button (opens the same item picker overlay)\n   - List of contained items with remove button\n3. The contents are serialized with the submit data\n\n### Data Flow\n\nThe modal submit handler should include `contents` in the payload:\n\n```js\nresult = {\n  room: ...,\n  name: ...,\n  description: ...,\n  actions: ...,\n  uses: ...,\n  weight: ...,\n  hidden: ...,\n  contents: JSON.parse(document.getElementById('item-contents-json')?.value || '[]')\n};\n```\n\n### Backend\n\nThe `api.createItem()` must handle the `contents` field and create `contains` edges for each contained item.",
+      "audit": "**Status**: Ready to test\n**How to test**:\n- Click \"Create\" → \"Item\". Verify a \"📦 Container (contains items)\" checkbox appears below the form.\n- Check it, fill in JSON contents in the textarea that appears, submit. Verify the item is created with container contents visible in the inspector.\n- Open the Item Library, create/edit an item - verify the \"📦 Container Contents\" section with add/remove UI exists."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-29-create_item_container_support.md"
+  }
+}

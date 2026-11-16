@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "id": "task-695",
+  "kind": "task",
+  "number": 695,
+  "title": "Verification playbook: the live-verification recipe as a repo doc",
+  "status": "review",
+  "priority": "medium",
+  "area": "docs",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-520",
+      "bug-521",
+      "task-444"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A short doc (docs/design/verification-playbook.md) capturing how to verify a UI",
+        "done": false
+      },
+      {
+        "text": "claim end-to-end, distilled from the 2026-10-04 session so the next agent does not",
+        "done": false
+      },
+      {
+        "text": "rediscover it. AGENTS.md points at it.",
+        "done": false
+      },
+      {
+        "text": "Documents where state lives: turn queue is client-side (`VW.agent`), world",
+        "done": false
+      },
+      {
+        "text": "state is server-side; a second browser tab is a safe sandbox.",
+        "done": false
+      },
+      {
+        "text": "The safe-interaction list: hover, chip clicks (draft only - \"nothing fires",
+        "done": false
+      },
+      {
+        "text": "until Act\"), menus, `#player-room` as the character-teleport control,",
+        "done": false
+      },
+      {
+        "text": "`HumanTurnComposer.request(name)` to open the turn card directly.",
+        "done": false
+      },
+      {
+        "text": "The unsafe list: Act / close turn / skip-react / Escape (dismiss resolves",
+        "done": false
+      },
+      {
+        "text": "with endTurn) / scenario switching on a live session / server restarts.",
+        "done": false
+      },
+      {
+        "text": "Evidence sources: DOM counts via getBoundingClientRect (offsetParent lies for",
+        "done": false
+      },
+      {
+        "text": "position:fixed), `data/autosave.json` as server truth, event stream rows,",
+        "done": false
+      },
+      {
+        "text": "screenshots for layout claims.",
+        "done": false
+      },
+      {
+        "text": "Where server logs go (stdout of the launching terminal) and why that means",
+        "done": false
+      },
+      {
+        "text": "agents need task-696.",
+        "done": false
+      },
+      {
+        "text": "Linked from the STOP gate section of AGENTS.md as the \"how\" companion.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable - this task creates a repository verification guide, not a new product surface. The guide's examples direct future agents to existing browser controls and state surfaces.\n\nCurrent availability: the acceptance names `docs/design/verification-playbook.md` and lists the required safe-interaction and state-ownership guidance. The guide is not claimed as written by this card.\n\nWhy no browser UI: the deliverable is a document that teaches how to inspect the application; the document itself is checked as repository content, not opened from the game UI.\n\nAlternative verification steps:\n1. Read the completed playbook and check that it distinguishes `VW.agent` client turn-queue state from server world state and explains why a second browser tab is safe.\n   - expected: those exact ownership boundaries and the no-commit/no-world-mutation condition are stated.\n2. Follow its safe-interaction list in a scratch browser tab: hover a chip, click it to draft, open a menu, inspect `#player-room`, and call `HumanTurnComposer.request(name)`.\n   - expected: the documented outcome matches each interaction; hovering is free-look, clicking a chip drafts only, and nothing acts before Act.\n3. Run `npm run precommit` after updating the vault note and AGENTS pointer.\n   - expected: vault guards pass and the playbook is linked from the project guidance.\n\nThis section is not a claim that planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/docs/task-695-verification-playbook-the-live-verification-recipe-as-a-repo-doc.md"
+  }
+}

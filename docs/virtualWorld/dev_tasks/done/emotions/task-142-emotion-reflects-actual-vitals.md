@@ -9,14 +9,14 @@ priority: medium
 
 **Filed**: 2026-07-30
 **Priority**: Medium
-**Status**: Done (live game) — kept open for the optional extensions below
+**Status**: Done (live game) - kept open for the optional extensions below
 
-## Status — implemented (2026-09-22)
+## Status - implemented (2026-09-22)
 
 **This is a live-game (attended agent) feature.** The derived mood lands in the
 prompt and inspector for characters whose turn is being driven; it is not part
 of the background/cheap policy ([[Simulation Model]] §One entity, four
-processing levels — cognition may read state better, it never changes state).
+processing levels - cognition may read state better, it never changes state).
 
 **Shipped (v1.4.0, engine-side so it is one source of truth):**
 - `engine/emotion.derive_from_vitals(vitals, state)` builds a point-spiked
@@ -24,13 +24,13 @@ processing levels — cognition may read state better, it never changes state).
 - `Player.emotions_description()` (`player.py`) returns the explicit affect
   map's description when it is non-neutral, and otherwise falls through to the
   vitals-derived one. "Explicit always wins; vitals fill the silence" is
-  therefore the recency rule — an explicit emotion narrates until it decays
+  therefore the recency rule - an explicit emotion narrates until it decays
   back under the speak threshold (`emotion.SPEAK_THRESHOLD`).
 - `prompt-builder/character-state.buildEmotionContext` renders
   `player.emotions_description`, so all three prompt call sites
   (`agent-engine.js`, `plan-manager.js`, `agent-lens.js`) get it for free.
 
-**Signals covered** (drives are inverted — high = urgent; resources low = urgent):
+**Signals covered** (drives are inverted - high = urgent; resources low = urgent):
 | Signal | Derived |
 | --- | --- |
 | Energy ≤ 25 | irritated (also melancholic) |
@@ -51,7 +51,7 @@ processing levels — cognition may read state better, it never changes state).
 - Hand-written band phrases for the derived dimensions (`lonely`, `craving`,
   `anxious`, `uneasy`, `irritated`, `melancholic`) in `_BANDS`. Before this a
   derived mood could render the placeholder prose "You feel <dim> with unusual
-  intensity." — a debug string in the live prompt.
+  intensity." - a debug string in the live prompt.
 - Tests: `TestDeriveFromVitals` and `TestEmotionDescriptionDerivation` in
   `tests/test_emotion.py` (16 cases).
 
@@ -71,7 +71,7 @@ processing levels — cognition may read state better, it never changes state).
 
 ## Original problem
 
-The emotion system (`player.emotion`) is currently set via triggers, action outcomes, or API calls — but it doesn't automatically reflect the character's actual physical state. A character can be shivering, exhausted, thirsty, and desperate for a bathroom, yet the prompt says "Kaelen Voss is quite relieved but vigilant."
+The emotion system (`player.emotion`) is currently set via triggers, action outcomes, or API calls - but it doesn't automatically reflect the character's actual physical state. A character can be shivering, exhausted, thirsty, and desperate for a bathroom, yet the prompt says "Kaelen Voss is quite relieved but vigilant."
 
 ## Original requirements
 
@@ -92,8 +92,8 @@ The emotion system (`player.emotion`) is currently set via triggers, action outc
 
 ## Related
 
-- `developer ideas.md` — emotion not matching vitals
-- [[Simulation Model]] — why this lives on the attended/agent tier
+- `developer ideas.md` - emotion not matching vitals
+- [[Simulation Model]] - why this lives on the attended/agent tier
 
 ## What
 

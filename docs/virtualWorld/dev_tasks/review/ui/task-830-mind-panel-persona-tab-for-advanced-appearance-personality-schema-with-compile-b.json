@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "task-830",
+  "kind": "task",
+  "number": 830,
+  "title": "Mind panel Persona tab for advanced appearance-personality schema with compile button",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-15",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-828",
+      "task-844",
+      "task-847",
+      "task-848",
+      "task-852",
+      "task-820",
+      "task-821",
+      "task-971"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A new **Persona** tab in the Mind panel: the full WorldGraph-flavoured\nadvanced schema (task-828's fields) nested UNDER Appearance and\nPersonality sections, all editable, with ONE **Compile** button that\nprojects the block into `base_description` / `description` /\n`personality` + tags/traits.\n\nLayout: `Mind | Persona | Memories | People | Goals`. Persona holds:\n\n- Identity: pronouns, age, gender, species, occupation,\n  sexuality/orientation\n- Appearance: overview, height/build/weight, hair{color,length,style},\n  eyes{color,shape,special}, skin{tone,condition,features}, face,\n  body+modifications (tattoo/scar/piercing/prosthetic), voice, scent,\n  style\n- Personality: traits, likes/dislikes/interests, fears, kinks +\n  turn_ons/offs, traumas, quirks/habits/aspirations, speech_pattern,\n  boundaries, experience\n- Narrative: biography, secrets (+known_by), example_dialogues,\n  role_in_town, arc\n\nEvery field shows its consumer as hint text (\"→ fear engine\",\n\"→ prompt voice\", \"→ affect\"). The Compile button calls\n`POST /record/compile` (explicit; never auto-clobbers hand prose -\nshows a diff/preview first when prose exists).",
+    "why": "task-733's sheet has no home; the Bio tab is definition, the Mind\npanel is the person. The user decision: advanced schema lives in a\nnew Mind tab, new fields UNDER appearance/personality, compiled on a\nbutton press into the prose fields.",
+    "how": "- `static/js/inspector/mind-view.ts`: new `persona` tab renderer +\n  form state; reads `GET /record`, writes `PUT /record`\n  (`render:false` while editing), compiles via `POST\n  /record/compile`. Follows existing tab + TagMultiselect patterns.\n- `.ts` first, then `npm run build:ts` (never hand-edit `.js`).\n- Preview: when compiled prose differs from hand prose, show both\n  and require confirm.",
+    "verify": "1. Open a character → Mind → Persona. Edit pronouns, age, a tattoo,\n   a kink, a trauma, a secret, a dialogue line. Save.\n    - expected: `GET /record` returns them; reload restores.\n    - observed: 2026-10-15 - full round-trip live on :4444, verified\n      by screenshot: tab (42 controls, folds, hints), typed age 29 →\n      Save → `GET /record` returns 29. Live scratch reverted\n      afterwards (original library prose restored via update route +\n      `DELETE /record`; Arix prose-only again).\n2. Press Compile with empty hand prose.\n    - expected: `base_description`/`personality` fill; tags/traits\n      project; no parallel blob.\n    - observed: 2026-10-15 - live compile on the fresh server wrote\n      `A 29-year-old.` into `/api/state` (node-shadowing fix\n      verified live), stale flag cleared. Screenshots on file.\n3. Press Compile with hand prose present.\n    - expected: preview shows both; confirm required; cancel keeps\n      hand prose.\n    - observed: 2026-10-15 - preview screenshot live (BASE NOW vs\n      BASE COMPILED + PERSONALITY pair, replace/keep buttons);\n      confirm click applied, banner cleared, state updated.\n4. `python tools/ts_convert.py check` + unit runner pass.\n    - expected: clean.\n    - observed: 2026-10-15 - gate green (build/typecheck/lint/\n      module:check/unit). Background state pushes skip re-render while\n      a persona input has focus, so typing is never wiped.",
+    "acceptance": [
+      {
+        "text": "Persona tab exists in the Mind panel with all 828 fields under",
+        "done": true
+      },
+      {
+        "text": "Appearance/Personality (+ Identity/Narrative).",
+        "done": false
+      },
+      {
+        "text": "Edit → save → reload round-trips via `record` routes.",
+        "done": true
+      },
+      {
+        "text": "Compile projects to prose + tags/traits; hand prose protected",
+        "done": true
+      },
+      {
+        "text": "by preview/confirm.",
+        "done": false
+      },
+      {
+        "text": "Every field hints its consumer; mbti/alignment/media absent.",
+        "done": true
+      },
+      {
+        "text": "`ts_convert.py check` + unit runner pass.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/inspector/mind-view.ts",
+      "-",
+      "routes/players.py",
+      "routes/player_ops.py"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button.md"
+  }
+}

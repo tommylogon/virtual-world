@@ -26,7 +26,7 @@ A single connection fact is stored under two keys and rendered as 'south <-> sou
       a one-way way whose name slot holds an id is now correctly refused
       when travelling the reverse direction
 
-## Resolution (2026-09-30) — diagnosed, reader-side fixed, data migration left
+## Resolution (2026-09-30) - diagnosed, reader-side fixed, data migration left
 
 ### What is actually wrong
 
@@ -50,7 +50,7 @@ The reason is not a stale name. **The "name" slot holds an id:**
     area_from_id = "area_west_woods_10_14"
       resolves to "Sparse Forest (West woods 10,14)"
 
-So the field is untyped exactly as filed — it is sometimes a display name and
+So the field is untyped exactly as filed - it is sometimes a display name and
 sometimes an id, with nothing marking which.
 
 ### Why that was a live bug
@@ -58,8 +58,8 @@ sometimes an id, with nothing marking which.
 Two guards compared that value against `current_area.name`, so they could never
 match:
 
-- `engine/movement.py:543` — the **`one_way`** check
-- `engine/npc_behaviors.py:777` — the slasher's one-way block
+- `engine/movement.py:543` - the **`one_way`** check
+- `engine/npc_behaviors.py:777` - the slasher's one-way block
 
 A name compared against an id is never equal, so both guards were permanent
 no-ops: **every one-way passage in a painted world behaved as if it were
@@ -71,8 +71,8 @@ two-way**, and the NPC could never be blocked.
 the precedence the rest of the codebase already documents
 (`world_scopes._endpoint`: id first, then the name field, resolved either way)
 and returns something comparable with `Player.current_area`. Both readers now go
-through it. Hand-authored ways that only carry a name — 21 of them, e.g.
-`area_cooking_area`, `passage to food storage` — still resolve, because an
+through it. Hand-authored ways that only carry a name - 21 of them, e.g.
+`area_cooking_area`, `passage to food storage` - still resolve, because an
 unresolvable value is returned as it stands.
 
 ### Live verification -- done, by authoring the case the world lacked
@@ -110,7 +110,7 @@ the player would have walked back through a one-way passage without complaint.
     ('way_eldenford_interior_...', 'area_from', 'Sparse Forest (Eldenford interior 10,3)')
 
 A/B'd with `git stash`: identical with and without these changes, so it is
-pre-existing — and it is the test asserting the invariant this task describes.
+pre-existing - and it is the test asserting the invariant this task describes.
 The durable fix is to make `area_from`/`area_to` hold ids everywhere, but that
 is a 326-way migration **coupled to the area renames in task-638/646**, since
 `area_from` currently holds the very strings those tasks would rewrite. They
@@ -118,7 +118,7 @@ should be one change.
 
 - TODO
 
-## Partially disconfirmed 2026-09-30 — NOT cancelled
+## Partially disconfirmed 2026-09-30 - NOT cancelled
 
 Narrowed by measurement, but **not** retracted: the storage half of the claim is
 contradicted and the rendering half is untested, so this stays open. Recording

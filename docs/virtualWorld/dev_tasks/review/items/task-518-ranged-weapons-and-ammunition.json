@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-518",
+  "kind": "task",
+  "number": 518,
+  "title": "Ranged weapons and ammunition",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-54",
+      "task-362",
+      "task-504",
+      "task-960"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a real ranged-weapon and ammunition model for Vekka's compact hunting bow.\nToday the only \"ranged\" item is a scripted one-shot, not a weapon.",
+    "why": "- `data/library/items/crossbow.json` has no `damage`; it fires via an `on_use`\n  message plus a second `on_use` `destroy_self`, with `uses: 1`. It is a\n  scripted set piece.\n- Melee weapons use `damage`/`damage_type` (e.g. `data/library/items/cleaver.json`)\n  and the universal weapon/attack path (task-54); combat finds a wielded/held\n  weapon by name in inventory (`engine/combat.py:469-487`).\n- No engine code references arrow/ammo/projectile/ranged (grep, 2026-09-24).\n- Gear: Vekka's hunting bow, with arrows implied by the shared feathers/arrows\n  vocabulary.\n- Related: task-427 (spawners/death), task-504 (quantity for stacked ammo), and\n  task-99/task-313 (area grids/facing) if ranges matter later.",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Ranged weapons verify required ammunition in inventory prior to firing.",
+        "done": true
+      },
+      {
+        "text": "Firing weapon consumes ammo item and resolves ranged combat check.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/combat.py",
+      "tests/test_combat.py"
+    ],
+    "custom": {
+      "proposal": "- A `bow` (and `arrow`/`arrows`) template with `damage`,\n  `damage_type: \"piercing\"`, and `equip_slots` (the hand pair as two-handed, or\n  back), plus an attack path that requires and consumes one arrow.\n- Ammo as a stackable item with quantity (task-504) or `uses`; firing\n  decrements; zero ammo fails cleanly.\n- Decide range/targeting: same-area only first, or tie into area grids/facing\n  later.\n- Re-author `crossbow.json` on the model, or document it as an intentional\n  scripted exception.",
+      "non_goals": "- Ballistics/range simulation, ammunition crafting, projectile physics.",
+      "resolution_2026_10_02": "A ranged weapon is an item tagged ``ranged`` (or ``bow``); ammunition is an\nitem tagged ``ammo``. The attack is the ordinary `player_attack` path - the\nranged weapon supplies the damage and the ammo is the gate/charge.\n\n- `engine/combat.py`:\n  - `_is_ranged_weapon()` / `_carried_ammo_node()` / `_spend_ammo()`.\n  - A ranged attack with no ammo returns a clean failure **before any roll**,\n    so no damage is dealt.\n  - Ammo is spent when the shot is *attempted*, before the hit/miss contest: a\n    miss still costs the arrow.\n  - `_spend_ammo` decrements the generic `uses` counter; a discrete arrow\n    (`uses: 1`) is removed when spent; `uses <= 0` means an inexhaustible\n    supply.\n  - `_best_weapon_node` now skips `ammo` items. A broadhead arrow\n    (`damage: 0` + `weapon`) used to be auto-selected and rolled `1d0`.\n- Content: `vekka_hunting_bow` (1d6 piercing, `ranged`), `quiver_of_arrows`\n  (20-use `ammo` stack), `arrow`/`broadhead_arrow` re-tagged `ammo`;\n  `Vekka` now carries her bow and quiver. `tools/item_content_pass1.py` updated\n  in lockstep so the pass and the shipped JSON agree.\n- Range/targeting: same-area only (no area-grid/facing tie-in).\n- **Crossbow**: left as an intentional scripted exception. It remains a\n  one-shot `on_use` message + `destroy_self` with no `damage`, because it is an\n  authored set piece whose effect is narrative, not a combat weapon. Documented\n  here rather than re-authored.\n\nAcceptance: a bow attack uses the item's damage through the normal combat\nresolution; firing consumes one arrow and an empty quiver fails with no damage;\nammo stacks decrement via `uses`; Vekka's bow is authored and tested. Tests:\n`tests/test_ranged_combat.py` (10 passed)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

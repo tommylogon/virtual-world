@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-609",
+  "kind": "task",
+  "number": 609,
+  "title": "state.area_presence holds 5 entries for 23 players and disagrees with the Player model",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "All 23 players carry current_area, but area_presence holds only 5 non-empty entries. Counted from the Player model, Camp Entrance Trail has Belne, Kiala and Eldenford Merchant plus the player; area_presence reports only Belne and the Merchant, and the human-turn modal renders 5 strangers. Either area_presence is a stale vestigial index or three sources disagree on occupancy.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "cancellation": "Cancelled 2026-09-30. The finding misread what the field is for.\n``area_presence`` is the task-360 **presence ledger**: ``_record_area_presence``\n(virtual_world_engine.py:539) is called only from ``movement.py``, so it records\n\"who has moved through here since tick N\", not \"who is here\". A character who has\nnever moved is correctly absent from it. 3 entries against 23 players is that\nmechanism working, not a stale index.\n\nMeasured, for the record: Player model has 23 players with ``current_area`` across\n15 distinct areas; the ledger has 3.\n\nThe genuine residue is a naming one, not a correctness one: the state payload\npublishes a movement ledger under a key that reads like an occupancy index. That\nis a legibility point, not a bug, and it belongs with the audit's\nmethod-limitation section rather than in the backlog."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/gameplay/task-609-state-area-presence-holds-5-entries-for-23-players-and-disagrees-with-the-player-model.md"
+  }
+}

@@ -21,7 +21,7 @@ aliases**, not broken links. `[[Items & Inventory/Equipment & Paperdoll\|Equipme
 & Paperdoll]]` is the correct way to write an alias inside a markdown table; any
 measurement that splits on `|` without unescaping `\|` counts them as missing.
 Handling `\|`, `#heading`, `.md`, and Obsidian's basename resolution leaves
-**27 broken occurrences in 21 distinct targets** — not 143.
+**27 broken occurrences in 21 distinct targets** - not 143.
 
 Of those 27:
 
@@ -39,7 +39,7 @@ Of those 27:
 
 ## Resolution
 
-- New `tools/doc_links.py` — resolves the vault's wikilinks and reports/repairs
+- New `tools/doc_links.py` - resolves the vault's wikilinks and reports/repairs
   broken ones (`--check`, `--count`, `--report`, `--fix`).
 - `tools/tasks.py links` runs the check, and `tools/tasks.py move` rewrites
   inbound links when a move would invalidate them.

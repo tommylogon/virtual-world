@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "id": "task-521",
+  "kind": "task",
+  "number": 521,
+  "title": "HelpCenter coverage: hint the newer systems and audit for gaps",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-495",
+      "task-496",
+      "task-397",
+      "task-520",
+      "task-508",
+      "task-486",
+      "task-436",
+      "task-399"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The coach-tip registry (window.HelpCenter in static/js/ui/help-center.js) only covers a fraction of the UI; extend it so every notable system added recently has a tip and a matching data-help hook, and audit the app for un-hinted controls.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: Help index lists the newer-system tips; the registry guard passes.\n- observed (2026-10-10 live): window.HelpCenter.TIPS has 45 entries incl. turn / background / auto tips; TOURS = hello, triggers, scenario, world, paint-a-town (5).",
+    "acceptance": [
+      {
+        "text": "Every listed gap below is either given a tip + `data-help` hook, or",
+        "done": true
+      },
+      {
+        "text": "explicitly recorded as deliberately un-hinted with a reason.",
+        "done": false
+      },
+      {
+        "text": "Each new tip has a unique `id`, a `group`, a `title`, a `body`, and a",
+        "done": true
+      },
+      {
+        "text": "`target` selector that the spotlight can reach.",
+        "done": false
+      },
+      {
+        "text": "The `data-help` key on each hooked element matches its tip's `match`",
+        "done": true
+      },
+      {
+        "text": "exactly (case-sensitive), and the element is reachable in the state the tip",
+        "done": false
+      },
+      {
+        "text": "fires (verified live, below).",
+        "done": false
+      },
+      {
+        "text": "An in-editor control tip (if added) uses a `data-help` on the control built",
+        "done": true
+      },
+      {
+        "text": "by `static/js/worldpainter/editor.js`, not just the toolbar launcher.",
+        "done": false
+      },
+      {
+        "text": "The Help index (`F1` / ❓) lists the new tips and any new tour renders and",
+        "done": true
+      },
+      {
+        "text": "runs end to end; `Reset all` restores them.",
+        "done": false
+      },
+      {
+        "text": "No tip references a control that no longer exists, and no two tips share an",
+        "done": true
+      },
+      {
+        "text": "id.",
+        "done": false
+      },
+      {
+        "text": "JS checked with `node --check`, `npm run lint`, `npm run typecheck`; JS",
+        "done": true
+      },
+      {
+        "text": "units stay green (`486 passed, 0 failed`).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "gap_by_gap_disposition_2026_10_02": "- **WorldPainter in-editor controls** - DONE in task-575 (21 hooks, `paint-a-town`\n  tour, registry guard). The launcher `worldpainter` tip already covers\n  `⚙ Generate` per-scope; no further work here.\n- **Scope tree / unmade-scope Generate** - **deferred to task-580**, which owns\n  that affordance. It is outside this lane's files (`static/js/graph/scope-tree.js`\n  is in-progress under task-592, which *deliberately* replaced a scope-row\n  Generate with a Paint jump). task-580 must add its own `data-help=\"scope-generate\"`\n  hook + tip when it lands; recorded here so the gap is not silently dropped. The\n  painter's own `⚙ Generate` is already hinted by `wp-generate`.\n- **Consume/depletion contract** - folded into the existing `inspector-item` tip\n  (now: \"Consumables spend themselves … authored food/drink must not spend a use\n  by hand\").\n- **Auto-regenerating descriptions** - new tip `auto-description`, hooked on the\n  `🤖 Generate from Equipment` button (`data-help=\"auto-description\"`), explaining\n  the derived description, auto-refresh, and Base Description as the durable home.\n- **Turn/time model** - new tip `turn-model`, hooked on `#agent-turn-based`\n  (`data-help=\"turn-model\"`).\n- **Background simulation** - new tip `background-sim`, hooked on `#agent-list`\n  (`data-help=\"background-sim\"`).\n- **Audit** - the registry guard (`tools/unit/test_help_center.js`) already\n  sweeps every `data-help=` / `_help('…')` key in `static/js` + `templates` and\n  fails on an orphan hook; extended with a targeted test for the three new tips.",
+      "verification_live_browser_2026_10_02": "`VW_PORT=4463`, Playwright, real clicks:\n\n```\nTURN_TIP          \"💡 Time, turns and travel\"\nBACKGROUND_TIP    \"💡 The world keeps moving without you\"\nAUTO_DESC_BTN_PRESENT true\nAUTO_DESC_TIP     \"💡 Descriptions regenerate from gear\"\nHELP_INDEX {\"tipCount\":45,\"tours\":[\"First five minutes\",\"Triggers & effects\",\n  \"Scenario workflow\",\"Painting a world\",\"Painting a town\"],\n  \"hasTurn\":true,\"hasBg\":true,\"hasAuto\":true}\nAFTER_RESET {\"stored\":null,\"cards\":0}\nHelp index scrolled to bottom: SCROLL_REMAINING 0\n```\n\nScreenshots: `review-verify/521-turn-tip.png`,\n`review-verify/521-autodesc-tip.png`, `review-verify/521-help-index.png`,\n`review-verify/521-help-index-bottom.png`.",
+      "how_the_system_works_so_the_additions_fit_it": "`static/js/ui/help-center.js` defines `TIPS` (registry) and `TOURS` (ordered tip\nchains). A tip fires from one of three events: `inspector:view` (match on the\nview type), `state:updated`, or a **click on any element carrying `data-help`**\n(the tip's `match` compares against `dataset.help`). `target` is a CSS selector\nfor the \"Show me\" spotlight. `once: 'global'` persists the seen flag to\nlocalStorage; the default re-shows next session.",
+      "known_gaps_to_cover": "- **WorldPainter in-editor controls** (`static/js/worldpainter/**`): `⚙ Generate`\n  (per-scope once-only compile + 409 `allow_regenerate`), `➕ Add feature`\n  (creates a child scope but does **not** auto-place it), `🧭 Route` (cells →\n  turns → hours), `▦ Grid…` presets/shrink-prune, reference image + `▦ match`,\n  and the merge-same-biome toggle. The launcher button is hinted; the controls\n  inside the overlay are not.\n  **DONE in task-575** (2026-09-28): 21 `data-help` hooks and matching tips under\n  a `WorldPainter` group, a `paint-a-town` tour, and `tools/unit/test_help_center.js`\n  guarding the registry - which also found the ❓ Help button itself unhinted.\n  Note task-575 added a **second** layer this task did not scope: preflight\n  blockers in the editor, because a tip cannot tell an author that *this* scope\n  cannot be compiled.\n- **World scopes / graph view** (task-397, task-400): beyond the shipped\n  `scope-filter` tip - the scope *tree* is only a flat picker today, and an\n  unmade-scope `Generate` affordance (task-398) has no hint yet.\n- **Consume/depletion contract** (task-508): eat/drink auto-decrement `uses`\n  after triggers; item-authored content must not hand-spend. Fits the\n  `inspector-item` tip or a new item tip.\n- **Auto-regenerating descriptions** (task-486, task-210): description refreshes\n  on body-state change.\n- **Turn/time model** (task-436): 1 turn = 1 in-game minute, one decision set per\n  turn regardless of `time_per_tick_minutes`, travel ≥1 turn per cell - a\n  \"Time & travel\" tip.\n- **Background simulation** (task-399): off-screen characters act on their own\n  schedule; promote/demote, attended scope.\n- **Audit the rest**: most toolbar buttons, inspector tabs, modal actions and\n  menu items still have `title` tooltips but no `data-help`; sweep them and add\n  tips where a system deserves a coach card rather than a hover string. Also\n  consider a lightweight guard so a `data-help` with no matching tip (or a tip\n  with a dead `target`) is caught - a small unit test over the registry."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-521-helpcenter-coverage-hint-the-newer-systems-and-audit-for-gaps.md"
+  }
+}

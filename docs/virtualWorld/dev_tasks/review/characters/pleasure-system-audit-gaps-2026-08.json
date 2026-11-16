@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "pleasure-system-audit-gaps-2026-08",
+  "kind": "task",
+  "number": null,
+  "title": "Pleasure / Body / Injury System - Audit & Open Questions (v1)",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-08-16",
+  "updated": "2026-08-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "exists yet; all of tasks 206-215 are still `todo/`. This doc lists stale references,\nschema mismatches, and the genuine design gaps we need to resolve first.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "0_tl_dr": "The whole pleasure/arousal set (task-206 → 215) is greenfield. The condition\nsystem it plugs into is mature and ready (verified). But two things are **not\ndesigned** and are the core of \"bodies & injuries\":\n\n1. **No body-part-targeted damage** - combat routes all damage to `HP`; there is\n   no `where`/body-part concept and no `interact` vs `attack` branch.\n2. **Two competing sources of truth** for body state (numeric `body_state` dict\n   vs body-part-tagged *conditions*) - the design uses both and never picks one.\n\nEverything else is fixable line-reference nits.\n\n---",
+      "1_out_of_date_references_fix_in_the_existing_task_files": "| Task | Claimed | Actual | Fix |\n|------|---------|--------|-----|\n| task-211 | `grab → grapple (routes/action.py:641)`; `grope/fumble (action.py:541)` | `grab` at `action.py:689`; `grope/fumble/feel around` at `action.py:33` + `:589` | Update refs. NOTE: these verbs are already claimed - new intimacy verbs must not collide. |\n| task-215 | \"humidity tracked under task-195\" | task-195 is **cancelled** | Point at **task-232** (humidity) instead. |\n| task-213 | DESIGN trait shape: `\"multipliers\": {\"body_part:nipple\": 3.0}`, `\"decay_modifiers\"` | real schema `TRAIT_DEFINITIONS` = `effects: {VITAL_MULTIPLIER: {...}}` + `conflicts` (`traits.py:90`); `player.traits` is a **dict** `{trait_id: param}`, not a list | Task already flags this; decide on a `body_part_multipliers` parallel key. |\n\n---",
+      "2_confirmed_accurate_no_change_needed": "- task-207 `sync_vitals_with_tags()` exists at `player.py:274` (currently only Mana/magic).\n- task-206 mature toggle: **no config.toml in this repo**. The right pattern is a\n  world attribute mirroring `ghost_mode` (`virtual_world_engine.py:61`) + routes at\n  `routes/settings.py:13-35`. Confirmed.\n- task-209 condition fields (`attack_mod`/`defense_mod`/`auto_fail_checks`/`stack`/\n  `excludes`/`periodic`) all map onto the real catalog `player.py:30`. The plumbing\n  the pleasure conditions plug into is ready.\n- `tick_turn()` at `tick_manager.py:83`, `conditions.process_tick()` at `:108`,\n  `_update_equipment_description()` at `engine/equipment.py:519`.\n\n---",
+      "3_genuine_gaps_need_a_design_decision_before_coding": "### GAP A - Body-part-targeted injury/damage does NOT exist\n- `engine/combat.py` `player_attack()` (line 62) takes `(attacker, target, weapon)`\n  and subtracts damage straight from `target.vitals[\"HP\"]`. No `where` body-part.\n- task-190's `injured` is a *generic leveled condition* (light/moderate/severe,\n  `ends_on:[\"fix\"]`). task-207's `body_state` just carries a per-part `injury: null`.\n- Nothing connects: combat hit → a body region → an `injured`/`bleeding` condition,\n  dropped items, or action blocking. This is the biggest hole for \"tackle bodies & injuries.\"\n\n**Decision needed:** Add a body-region damage routing system, or lean on HP + generic\nconditions? (featured in task-253 below)\n\n### GAP B - `where`/`intensity`/`type` don't exist in the action schema\n- AGENTS.md: action struct = `{action, item, target, speech, volume, emote, memory}`.\n- No `interact` vs `attack`, no body-part resolver, no intensity parser.\n- task-211/212 assume this pipeline is greenfield.\n\n### GAP C - `body_state` dict vs body-part *conditions*: two sources of truth\n- task-207: body parts are \"NOT graph nodes, quick numeric lookups in a dict\".\n- Design doc §1 also defines a *condition* `bodypart_sensitive` (multi-instance,\n  `body_part` key, `sensitivity_mult`).\n- **Unanswered:** which stores sensitivity - the numeric dict or conditions? And who\n  *writes* the numeric dict (hardness/flush/wetness/erection)? One model must have primacy.\n\n### GAP D - Non-erotic involuntary body reactions split awkwardly\n- task-166 (involuntary speech/emote: hiccup/burp/yelp/stutter) is broad.\n- task-213 adds goosebumps/shivers/cough/sneeze/itch as *condition-driven flavor*.\n- task-213 already says \"extend task-166 rather than duplicating\" but leaves it vague\n  which live as conditions vs speech-postprocessing. Needs a final cut.\n\n---",
+      "4_open_questions_runbook_for_the_next_working_session": "1. **Body part taxonomy** - what regions exist? Design name-drops lips/face/breast/\n   nipple/genitals/balls. Do we also need head/torso/arms/legs for injury? (Injury needs a\n   fuller skeleton than erogenous zones.)\n2. **Dict OR conditions?** - pick one owner for body state, or define the exact sync\n   between them. (GAP C)\n3. **Damage routing** - full body-region combat (GAP A), or keep HP-only and add\n   conditions as a side effect? (task-253)\n4. **`where` in the schema** - verbatim from the design, or restricted to a resolve-able\n   region set? How does it interact with `_normalizeStructuredAction()` on the JS side?\n5. **Mature-toggle scope** - the design lists tick/action/conditions/perception/traits.\n   Is body-part INJURY also gated, or always-on (non-sexual)? Recommend: injury is generic\n   and NOT mature-gated; only arousal/pleasure intimacy is.\n6. **Trait shape** - adopt `body_part_multipliers` as a real catalog key, or fold into\n   `effects`? (GAP from task-213)\n7. **Friction trickle** - task-208 & task-215 both read clothing `friction`; confirm the\n   item prop goes on the graph node and the read lives in ONE place (task-208's\n   `_apply_clothing_friction`), with task-215 only seeding defaults.\n\n---",
+      "5_related_tasks_link_map": "- **task-253 (NEW)** - Body-part targeted injuries & regenerated actions (GAP A).\n- task-206 mature toggle · task-207 body_state + vitals · task-208 release/edging/friction\n- task-209 arousal conditions · task-210 description enrichment · task-211 intimacy verbs\n- task-212 verb multipliers · task-213 mature traits/body reactions · task-214 NPC perception\n- task-215 environmental clothing · task-190 more conditions (injured/bleeding/etc.)\n- task-166 involuntary actions (body reactions overlap)",
+      "browser_ui": "Intended UI home: Not applicable\n\nCurrent availability: Design and audit document; no runtime code or browser UI exists for this gap analysis.\n\nWhy no browser UI: This card is an architectural audit consolidating blockers and schema mismatches for tasks 206 through 215. It contains no simulation code.\n\nAlternative verification steps:\n1. Read the audit document and confirm all unresolved gaps (body-part targeted damage and competing sources of truth) are documented with cross-references to active tasks.\n   - expected: All 3 gap sections and blocker lists are fully readable with no unresolved placeholder markers.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Pleasure System",
+    "status_note": "Review / Design Discussion",
+    "inline_meta": {
+      "purpose": "Consolidate blockers before building tasks 206-215. None of this code"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/pleasure-system-audit-gaps-2026-08.md"
+  }
+}

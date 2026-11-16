@@ -107,7 +107,7 @@ While the NL editor could previously create bare logic_trigger nodes, it lacked 
 - static/js/nl-editor/tools.ts
 - engine/nl_editor_validation.py
 - 
-outes/graph_ops.py
+routes/graph_ops.py
 - engine/triggers/materialize.py
-- 	ests/test_nl_editor_trigger_authoring.py
-- 	ests/test_nl_editor_player_ops.py
+- tests/test_nl_editor_trigger_authoring.py
+- tests/test_nl_editor_player_ops.py

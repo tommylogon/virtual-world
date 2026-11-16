@@ -6,10 +6,10 @@ type: task
 priority: medium
 ---
 
-# 🧠 Emotional Residue + Inter-Character Memory Planting — Dev Task
+# 🧠 Emotional Residue + Inter-Character Memory Planting - Dev Task
 
 **Filed**: 2026-07-22
-**Status**: In Review — core loop implemented 2026-08-23. `engine/emotion.py`
+**Status**: In Review - core loop implemented 2026-08-23. `engine/emotion.py`
 (7 dims, baselines, clamped spikes, baseline-drift decay, band phrases,
 LLM-declaration normalizer), runtime_config tunables (`emotion.decay_per_tick`,
 `emotion.llm_spike_max`, `emotion.recall_spike_scale` + SCHEMA entries),
@@ -24,23 +24,23 @@ emotional memories surface in I REMEMBER; YOUR STATE renders backend-computed
 `emotions_description` band phrases with legacy fallback. Tests:
 `tests/test_emotion.py` 25 cases; suite 1092 passed. Also fixed a foreign WIP
 breakage en route: tuple edge-types now flatten in `graph.resolve_edge_types`.
-NOT verified live yet (dev server was down post-implementation) — first real
+NOT verified live yet (dev server was down post-implementation) - first real
 run should show Mood lines in prompts and emotion fields in LLM JSON.
 Inter-character planting (path 3) intentionally deferred to a follow-up.
 
 ## What to expect on your next run
 
-**Event stream: nothing new in format** — no new log lines. The fingerprints are
+**Event stream: nothing new in format** - no new log lines. The fingerprints are
 in content:
 - **Exports / prompt echoes**: a `Mood:` line appears in YOUR STATE once affect
-  deviates from baseline ("Mood: You are terrified — your heart hammers…"). Near
+  deviates from baseline ("Mood: You are terrified - your heart hammers…"). Near
   baseline = absent, so early turns may show nothing.
 - **LLM JSON** (visible via Show LLM Logs or export echoes): decide/react responses
   now include `"emotion":{"label":"afraid","intensity":6}`.
 - **Behavior**: after a nasty event, the mood line persists and colors the next few
   turns, decaying per tick (`emotion.decay_per_tick`, tunable in Engine Config →
   emotion section). When an emotional memory later resurfaces in I REMEMBER, the
-  character re-feels it — watch for reactions that seem to come "out of nowhere";
+  character re-feels it - watch for reactions that seem to come "out of nowhere";
   check what memory just got recalled.
 
 **Taco Bell example**: Miki reacts badly mid-date → `afraid` spikes → her Mood line
@@ -56,7 +56,7 @@ decay; if melodramatic, raise decay or drop llm_spike_max.
 
 ## New design (2026-08-23)
 
-### Emotion model — `engine/emotion.py`
+### Emotion model - `engine/emotion.py`
 
 Per-character affect map of numeric dimensions (NOT the old single-slot
 `player.emotion`), inspired by `F:\AI\Aura\Diary`'s six stats + range→phrase
@@ -64,11 +64,11 @@ rendering, adapted to VirtualWorld:
 
 - Dimensions: `happy, sad, afraid, angry, envious` (+`affectionate`, `disgusted`
   as stretch). Each 0–100, default neutral baseline (50 for happy/affectionate,
-  ~10 for negative ones? — decide in implementation; Diary uses 0–100 with
+  ~10 for negative ones? - decide in implementation; Diary uses 0–100 with
   descriptive bands).
-- `EmotionManager.set_spike(char, emotion, delta, source)` — clamp 0..100.
+- `EmotionManager.set_spike(char, emotion, delta, source)` - clamp 0..100.
 - Per-tick decay toward baseline in `tick_turn()` (Diary decays per day; we're
-  tick-driven — decay rate via `runtime_config` per task-304 rule).
+  tick-driven - decay rate via `runtime_config` per task-304 rule).
 - Serialization on the player so state survives save/load.
 - Prompt rendering: `format_emotional_state()` style band phrases ("afraid:
   dreading what's around the corner") into `=== YOUR STATE ===`, replacing the
@@ -83,7 +83,7 @@ rendering, adapted to VirtualWorld:
 2. **Remembered** (ties to task-91): memory entries gain an `emotion` tag at
    creation ("I remember feeling afraid"). When semantic recall surfaces a
    memory in `=== I REMEMBER ===`, apply a FRACTION of its original impact as a
-   spike — remembering being betrayed makes you angry again. This only becomes
+   spike - remembering being betrayed makes you angry again. This only becomes
    powerful once task-91 embeddings are live (recall by meaning, not keyword).
 3. **Inter-character planting** (original Layer 3 survives): targeted emotes
    plant perspective memories on recipients (`"Lyrie smiled warmly at you"`),
@@ -93,7 +93,7 @@ rendering, adapted to VirtualWorld:
 
 - YOUR STATE phrase line every turn (mood colors all decisions).
 - Closeness system stays separate (task-94 gates); a future pass may let
-  sustained emotions nudge relationship drift — explicitly out of scope here.
+  sustained emotions nudge relationship drift - explicitly out of scope here.
 
 ### Files likely touched
 
@@ -109,7 +109,7 @@ rendering, adapted to VirtualWorld:
 ### Explicit non-goals
 
 - No event-table/d20 choice machinery from Diary (agents act freely).
-- No Neo4j — player fields suffice.
+- No Neo4j - player fields suffice.
 - No UI beyond inspector display of current emotions (optional).
 
 ---
@@ -122,13 +122,13 @@ The narration LLM already generates emote descriptions. Add `emotion` + `intensi
 
 ### Layer 2: Emotion Decay Tracker
 
-Natural fade of emotional state over game ticks. No prompt changes needed — `buildEmotionContext` already injects `player.emotion.description`.
+Natural fade of emotional state over game ticks. No prompt changes needed - `buildEmotionContext` already injects `player.emotion.description`.
 
 ### Layer 3: Inter-Character Memory Planting
 
 When an emote targets specific characters, plant a copy in their memory too.
 
-(Original detailed checklists removed 2026-08-23 — see git history if needed.)
+(Original detailed checklists removed 2026-08-23 - see git history if needed.)
 
 ## What
 

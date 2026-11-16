@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-325",
+  "kind": "task",
+  "number": 325,
+  "title": "Auto-Dressing Characters from Interest Tags",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-21",
+  "updated": "2026-08-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Procedurally assemble and equip a coherent outfit on a character: walk their\n`interest_tags` (style/domain signals) plus context (weather/temperature,\nsetting), select clothing from the library per slot-coverage rules, layer it\nunderwearâ†’baseâ†’outer, and equip through the existing EquipmentSystem.",
+    "why": "TODO",
+    "how": "### Slot coverage rules\n\nMinimum complete outfit (per gender-tag where relevant):\n\n| Slot | Required | Example fill |\n|------|----------|--------------|\n| legs | underwear + bottom | panties â†’ trousers |\n| torso | top (+bra where character implies) | bra â†’ tank top |\n| feet | footwear optional but common | socks â†’ boots |\n| outerwear | optional, weather-driven | coat if cold |\n\nLayering = stack order per slot: first equipped = innermost. Selection picks\nitems by subcategory tag (`underwear` â†’ first, `top`/`bottom` â†’ middle,\n`outerwear` â†’ last).\n\n### Selection pipeline\n\n1. Candidate pool: library items tagged `clothing` whose tags âˆ© character's\n   style-relevant interests â‰  âˆ… (`jewelry`, `occult`, `elven`, `punk`-flavored\n   via `leather`, ...)\n2. Fill required slots first (nearest tag match), then accessories with leftover\n   interest budget (`accessory`, `jewelry`, `hair_accessory` are cheap wins)\n3. Weather gate: area temperature / forecast below threshold â†’ require\n   `insulation`-tagged outer layer (ties into task-215 environmental clothing\n   effects - coordinate, don't duplicate)\n4. Deterministic option: seedable RNG; seed stored so an outfit can be regenerated\n\n### Fit limits (honest scope)\n\n\"Fit\" = slot compatibility only. No body measurements (three-sizes live as prose\nin personality text), no garment size matching against `size_*` traits yet.\nSize-tier gating (tiny characters shouldn't wear normal clothes) is a stretch\ngoal using engine/size.py tiers.",
+    "verify": "- pytest suite green\n- Manual: dress miki from a cold-area context â†’ underwear+top+outer present in\n  correct stack order; `look` description reflects layers; undressâ†’dress round-trips",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/dressing.py` (new module)",
+      "routes/*.py` (one thin route), `mcp_server.py` (one tool)",
+      "tests/test_dressing.py` (new)"
+    ],
+    "custom": {
+      "current_state_verified_2026_08_21": "- âœ… All 60 wearable library items have `equip_slots` (tools/fix_item_equipment.py)\n- âœ… EquipmentSystem supports layered slot stacks with max_depth\n  (engine/equipment.py:23 - torso 5 deep, legs 4, feet 3...) - layering is just\n  stack order; Miki's saved `equipped` dict proves the model works\n- âœ… `is_exposed()` / coverage logic exists in engine/body_parts.py (outer layer,\n  coverage â‰¥ 0.8 = covered)\n- âœ… `insulation` item tag + Temperature vital + heat system exist â†’\n  weather-appropriate dressing is feasible now\n- âœ… strip/undress â†’ clothing_pile, dress reverses it (AGENTS.md gotcha)\n- âŒ No outfit assembly logic: no \"which slots must be filled\", no layering\n  order rules, no interestâ†’clothing selection",
+      "work_plan": "1. `engine/dressing.py` (new, <600 lines):\n   - `plan_outfit(character, candidates, weather, rng) -> {slot: [lib_id, ...]}`\n   - `apply_outfit(...)` â†’ build items + equip in layer order via EquipmentSystem\n     (respect task-146's takeâ†’hands flow once it lands)\n2. Route `POST /api/dress/<player_id>` (params: formality? seed? weather override)\n   + MCP tool `dress_character`\n3. Editor affordance later (character inspector button) - separate commit\n4. Tests: fixture character + library subset; assert slot coverage, layer order,\n   insulation gating, idempotency (dressing twice doesn't double-stack)",
+      "dependencies": "- Blocked by: task-326 (interests feed style selection)\n- Uses: equipment system as-is; coordinates with task-146 (equip flow changes)\n  and task-215 (environmental clothing effects share the weather signal)\n- Optional synergy: task-9 population can dress mannequins/rack displays using\n  the same planner"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-325-auto-dressing-characters.md"
+  }
+}

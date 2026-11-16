@@ -103,8 +103,8 @@ The shipped Behaviours tab can search, create and save behaviour entries into da
 ## How
 
 Implemented engine/behaviors.py with load() / 
-eload() catalog caching for data/library/behaviours/*.json. Added ehavior_refs: [id] on character templates, resolved during character import and refresh-to-world into player.behaviors with _library_id tracking. Wired cache invalidation into 
-outes/library_ops.py on behaviour save/delete. Authored data/library/behaviours/idle_hum.json.
+eload() catalog caching for data/library/behaviours/*.json. Added behavior_refs: [id] on character templates, resolved during character import and refresh-to-world into player.behaviors with _library_id tracking. Wired cache invalidation into 
+routes/library_ops.py on behaviour save/delete. Authored data/library/behaviours/idle_hum.json.
 
 ## Steps to verify
 
@@ -119,7 +119,7 @@ outes/library_ops.py on behaviour save/delete. Authored data/library/behaviours/
 
 - engine/behaviors.py
 - 
-outes/library_ops.py
+routes/library_ops.py
 - engine/effects.py
 - data/library/behaviours/idle_hum.json
-- 	ests/test_library_behaviors.py
+- tests/test_library_behaviors.py

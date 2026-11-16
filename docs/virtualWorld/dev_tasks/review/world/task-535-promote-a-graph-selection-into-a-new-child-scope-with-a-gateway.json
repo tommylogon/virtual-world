@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "id": "task-535",
+  "kind": "task",
+  "number": 535,
+  "title": "Promote a graph selection into a new child scope with a gateway",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-528",
+      "task-495",
+      "task-397",
+      "task-539",
+      "task-582"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The deferred half of task-528: take a selection of area nodes and make them a NEW child scope, placed on a cell of a parent scope's painted grid, with a gateway way and an entry area so it is walkable. Needs (a) a public helper to create a child scope record from existing area nodes (nothing in engine/ does this today - handle_create_scope only makes an empty record), (b) a gateway whose provenance is NOT the parent scope's, because world_compile._gateway is private and stamps properties.generated.scope_id = parent, which would make ungenerate(parent) delete the hand-authored gateway, and (c) entry_area_id/entry_area_name bookkeeping so the scope has an entry point. Placement of an EXISTING area onto a cell (task-528) is done; this is about creating a new scope out of a selection.",
+    "why": "Authors need a one-click action to promote a cluster of hand-authored areas into a discrete child scope with automatic boundary gateway edges.",
+    "how": "Added promotion API in `routes/scopes_ops.py` that assigns selected areas to the new scope and connects them to the parent scope via a gateway way.",
+    "verify": "1. Select multiple areas and execute promote to child scope\n   - expected: Selected nodes move to new scope; gateway way bridges boundary\n   - observed: Verified in tests/test_world_scopes.py",
+    "acceptance": [
+      {
+        "text": "**(a) A public helper creates a child scope from existing area nodes**:",
+        "done": true
+      },
+      {
+        "text": "`world_scopes.promote_to_scope(manifest, graph, scope_id=, name=,",
+        "done": false
+      },
+      {
+        "text": "area_ids=, parent_id=, cell=, entry_area_id=, mode=, enter=, leave=)`.",
+        "done": false
+      },
+      {
+        "text": "Nothing in `engine/` did this before; `handle_create_scope` still only makes",
+        "done": false
+      },
+      {
+        "text": "an empty record.",
+        "done": false
+      },
+      {
+        "text": "**The areas move with everything attached** - names, items, character",
+        "done": true
+      },
+      {
+        "text": "placements and their ways stay put, because the *nodes* move scope rather",
+        "done": false
+      },
+      {
+        "text": "than being recreated. Membership moves at both ends: the node's",
+        "done": false
+      },
+      {
+        "text": "`world_scope_id` and the manifest's `area_ids` mirror.",
+        "done": false
+      },
+      {
+        "text": "**The painted cell marker is cleared** on the way in, because inside a",
+        "done": true
+      },
+      {
+        "text": "promoted scope the position is hand-authored canvas space - left in place,",
+        "done": false
+      },
+      {
+        "text": "the layout engine would read engine units as canvas pixels.",
+        "done": false
+      },
+      {
+        "text": "**(b) The gateway's provenance is NOT the parent's.** It carries no",
+        "done": true
+      },
+      {
+        "text": "`generated` block at all, so `Ungenerate` on the parent cannot delete a",
+        "done": false
+      },
+      {
+        "text": "gateway the author made by promoting something. **Checked**: ungenerate the",
+        "done": false
+      },
+      {
+        "text": "parent and the promoted gateway is still there.",
+        "done": false
+      },
+      {
+        "text": "`(c) entry_area_id` / `entry_area_name` are set, and the entry is a",
+        "done": true
+      },
+      {
+        "text": "*choice*: the author's `entry_area_id`, else the first selected area **by",
+        "done": false
+      },
+      {
+        "text": "id** - deterministic, and not \"top-left-most\" as the compiler picks, because",
+        "done": false
+      },
+      {
+        "text": "a promoted selection has no painted anchor to be top-left-most of.",
+        "done": false
+      },
+      {
+        "text": "**Every refusal happens before anything mutates.** Empty selection,",
+        "done": true
+      },
+      {
+        "text": "duplicate id, an id that is not an area, an entry outside the selection, a",
+        "done": false
+      },
+      {
+        "text": "cell off the grid, a cell that is not a painted place, an unknown parent -",
+        "done": false
+      },
+      {
+        "text": "all checked up front, because a half-created scope whose areas have already",
+        "done": false
+      },
+      {
+        "text": "moved is worse than no promotion.",
+        "done": false
+      },
+      {
+        "text": "**One undoable step**: `POST /api/world/promote` moves the areas, creates",
+        "done": true
+      },
+      {
+        "text": "the record, writes the placement and mints the gateway together, and a",
+        "done": false
+      },
+      {
+        "text": "refusal pops the snapshot it pushed so nothing dangles in the undo stack.",
+        "done": false
+      },
+      {
+        "text": "**The scope is `baked`** - authored, not compiled - so Generate on it",
+        "done": true
+      },
+      {
+        "text": "refuses with a reason instead of replacing a hand-drawn interior with",
+        "done": false
+      },
+      {
+        "text": "regions, and `ungenerate_scope` refuses a baked scope for the same reason.",
+        "done": false
+      },
+      {
+        "text": "**`ungenerate_scope` no longer deletes hand-authored ways.** A *compiled*",
+        "done": true
+      },
+      {
+        "text": "gateway still dies with the scope it points at; an author's own is kept and",
+        "done": false
+      },
+      {
+        "text": "reported in the new `kept_ways` field, because Ungenerate is the undo of a",
+        "done": false
+      },
+      {
+        "text": "Generate and the author never ran one.",
+        "done": false
+      },
+      {
+        "text": "UI: the cell panel offers \"🪜 Make this a scope…\" on an inspected area.",
+        "done": true
+      },
+      {
+        "text": "The graph view's **multi**-select is not wired (vis runs",
+        "done": false
+      },
+      {
+        "text": "`multiselect: false`), so this is the one-area case; the helper takes a",
+        "done": false
+      },
+      {
+        "text": "list and the multi-select is the follow-up.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/scopes_ops.py",
+      "static/js/graph-manager.ts",
+      "tests/test_world_scopes.py"
+    ],
+    "custom": {
+      "notes": "- **`world_grid.place` gained a third overlap mode, `gateway`**, because\n  promotion legitimately needs a cell to hold both a hand-placed area and a\n  child scope - the area becomes the **doorstep**. `forbid` and `displace` still\n  refuse (a collision is a mistake; sharing the cell deliberately is not), and\n  the compiler now *reports* a hand-gated placement instead of silently minting\n  nothing, which is the failure this whole task was filed about."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway.md"
+  }
+}

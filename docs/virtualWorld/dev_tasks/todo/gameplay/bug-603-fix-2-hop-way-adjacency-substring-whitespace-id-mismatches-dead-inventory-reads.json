@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "bug-603",
+  "kind": "bug",
+  "number": 603,
+  "title": "Fix 2-hop way adjacency, substring/whitespace ID mismatches, dead inventory reads, and stealth leaks in memory retrieval cues",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "retrieval",
+    "spatial-memory",
+    "fog-of-war",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-585",
+      "bug-586",
+      "bug-597",
+      "task-944",
+      "task-948"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix five bugs in associative memory cue extraction and scoring: 1-hop vs 2-hop way traversal for adjacent areas, Channel 1 substring location false matches, space-vs-underscore player ID mismatch, dead player?.inventory reads, and hidden/unmet entity leaks in sceneActors/sceneItems.",
+    "why": "In engine/memory_retrieval.py (lines 142-152), retrieve_associative_memories walks 1-hop EDGE_CONNECTION edges directly to targets (collecting way nodes instead of neighboring areas via 2-hop area->way->area traversal like spatial_memory.py), breaking adjacent-area recall. Channel 1 (lines 297-305) checks `mem_location in area_id` and substring matches, causing false positives (hall in hallway) and opaque-ID misses. agent-engine.ts line 428 writes `'player_' + pname.toLowerCase()` with spaces while memory_retrieval.py underscores spaces. Meanwhile player.py lines 1612-1617 dropped 'inventory' from Player.to_dict(), leaving memory-context.ts line 244 and agent-engine.ts lines 433/710/1094/1177 reading always-empty player?.inventory, while memory-context.ts lines 227-242 leak hidden items, hidden characters, and unmet stranger names into recall cues.",
+    "how": "1. Fix engine/memory_retrieval.py lines 142-152 to traverse 2-hop EDGE_CONNECTION edges (area -> way -> target_area, skipping closed/non-area endpoints or reusing a shared spatial graph helper) matching engine/spatial_memory.py lines 96-105.\n2. Replace substring checks (`mem_location in area_id`, `any(adj in mem_location ...)`) at engine/memory_retrieval.py lines 297-310 with exact canonical opaque area-ID, normalized area slug, and area display-name set matching.\n3. Normalize actor ID generation in static/js/agent-engine.ts line 428 (`'player_' + pname.toLowerCase().replace(/\\s+/g, '_')` and real opaque player/node IDs) to match memory_retrieval.py and graph node conventions.\n4. Replace dead `player?.inventory` reads in memory-context.ts (lines 244-248) and agent-engine.ts (lines 433, 710, 1094, 1177) with worldState.getInventory(charName) / getInventoryIds(charName).\n5. Filter sceneActors and sceneItems in memory-context.ts (lines 227-242) using the viewer's perception rules (exclude hidden/stealthed players and hidden/unlit items; mask unmet strangers via PromptBuilder.anonymousName / players_in_area rather than leaking true player keys).",
+    "verify": "1. Run pytest retrieval tests confirming Room B connected via a way node matches Room A memories as adjacent, 'hall' does not false-match 'hallway', and multi-word player entity_ids match cue actors.\n2. Run npm run build:ts and JS unit tests asserting buildMemoryContext populates cues.inventory from worldState.getInventory and excludes hidden items, hidden NPCs, and unmet stranger names from cues.",
+    "acceptance": [
+      {
+        "text": "retrieve_associative_memories discovers adjacent areas across 2-hop way edges (area -> way -> target_area) rather than putting way nodes into adjacent_area_ids.",
+        "done": false
+      },
+      {
+        "text": "Channel 1 spatial matching uses exact opaque ID / normalized area-ID / exact lowercase name equality without substring false positives (e.g. hall vs hallway), and entity IDs normalize spaces consistently between _storeReactionMemory and memory_retrieval.py.",
+        "done": false
+      },
+      {
+        "text": "memory-context.ts cues.inventory and agent-engine.ts reaction/interpreter contexts derive carried items via worldState.getInventory()/getInventoryIds() instead of dead player?.inventory, and sceneActors/sceneItems filter out hidden items, hidden/stealthed characters, dark unlit items, and unmet stranger real names.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/memory_retrieval.py",
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "static/js/agent-engine.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Lens recall cue debugger (static/js/agent-lens.ts) and Turn Prompt memory context (static/js/agent/prompt-builder/memory-context.ts).\n\nCurrent availability: retrieve_associative_memories checks 1-hop way edges as adjacent areas; memory-context.ts reads empty player.inventory and unmasked/unfiltered worldState.data.players and area items into cues.\n\nManual verification steps:\n1. Place two rooms connected by a way node, record a memory in Room A, move the character into Room B, carry a named item (e.g. Flashlight), and put an unseen/hidden NPC and hidden item in Room B.\n2. Trigger a turn / inspect Agent Lens cues and scores.\n   - expected: Room A scores via 2-hop adjacent_area_ids, Flashlight appears in cues.inventory and cues relevant memories, and hidden/unmet entities in Room B do not leak into cues.actors or cues.items."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]",
+      "[[Gameplay/Per-Agent Knowledge (Fog of War)]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

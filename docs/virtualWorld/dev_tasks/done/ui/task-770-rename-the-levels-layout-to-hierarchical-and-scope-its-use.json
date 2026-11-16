@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-770",
+  "kind": "task",
+  "number": 770,
+  "title": "Rename the Levels layout to Hierarchical and scope its use",
+  "status": "done",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Rename the Levels layout to Hierarchical and decide its role. vis hierarchical assumes a tree or DAG, but the world graph has cycles and mixed edge types. Either scope it to a containment-only view or remove it.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: the layout control names the layout Hierarchical, not Levels.\n- observed (2026-10-10 live): #btn-layout-mode text is '🌳 Hierarchical' (data-layout=levels).",
+    "acceptance": [
+      {
+        "text": "The layout control and every policy string read 'Hierarchical' (verified: #btn-layout-mode = '🌳 Hierarchical', GraphPhysics.reason = 'Hierarchical owns node positions...').",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-770-rename-the-levels-layout-to-hierarchical-and-scope-its-use.md"
+  }
+}

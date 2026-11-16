@@ -26,7 +26,7 @@ Measured with `tools/optimize_images.py` (dry run, quality 82):
 
 - Portrait `player_Lyrie-profile-happy-*.png`: 304 KB → 25 KB.
 - Background `raven river.webp` (1536×1024): 4359 KB → 617 KB; at half-size, 194 KB.
-- PNG-only re-encoding barely helps (223 KB) — the format is the problem, not the
+- PNG-only re-encoding barely helps (223 KB) - the format is the problem, not the
   settings.
 
 Two parts. **Cache headers are already done** (see below); the conversion is not.
@@ -38,7 +38,7 @@ Two parts. **Cache headers are already done** (see below); the conversion is not
   the browser revalidate all ~780 node images on every refresh. JS/CSS keep
   `no-cache` so dev edits still pick up. Needs a server restart to take effect.
 
-### Not done — the conversion
+### Not done - the conversion
 
 `tools/optimize_images.py` (added, dry-run by default) converts and can rewrite
 references. To apply: `python tools/optimize_images.py --apply --update-refs
@@ -62,7 +62,7 @@ paths in `data/**/*.json` + `engine/**` + `static/js/**` to the `.webp` names.
 - [x] Running server reloaded so in-memory paths match disk.
 - [x] Cache headers verified live; JS/CSS still revalidate (`no-cache`).
 - [x] Generated images (sprite-sheet expression packs) are written as WebP going forward.
-- [ ] Direct user uploads (`InspectorHelpers` upload paths) are stored as uploaded — a PNG
+- [ ] Direct user uploads (`InspectorHelpers` upload paths) are stored as uploaded - a PNG
       stays a PNG. Re-encoding arbitrary uploads is a deliberate follow-up, not done here.
 - [x] `tools/optimize_images.py` stays dry-run by default.
 

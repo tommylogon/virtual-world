@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "id": "task-828",
+  "kind": "task",
+  "number": 828,
+  "title": "Expanded persona-appearance schema on character node with compile into prose",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-15",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-507",
+      "task-733",
+      "task-830",
+      "task-843",
+      "task-844",
+      "task-829",
+      "task-971"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expand the task-507 curated slice into the full WorldGraph-flavoured\npersona/appearance schema, still stored as ONE block on the character\ngraph node (`properties[\"appearance\"]`), with the new fields nested\nUNDER `appearance` and `personality`, and add one explicit **compile**\nstep that renders the new fields into the prose the sim already reads\n(`base_description` / `description` / `personality`).\n\nNew fields (all optional, prose-only stays the default):\n\n- identity: `pronouns` (explicit she/he/they/xe… - replaces the\n  female-tag hint), `age` (authored years; birth-tick clock is task-735),\n  `species` mirror, `gender`, `occupation`, `sexuality`/`orientation`\n- appearance: `overview`, `face{shape,features,makeup}`,\n  `body{chest,waist,hips,legs,butt,modifications[]}` (tattoo, scar,\n  piercing, prosthetic), `voice{pitch,accent,mannerisms}`, `scent`,\n  `style{clothing[],accessories[],footwear[]}`,\n  `eyes{color,shape,special}` (lenses change color),\n  `hair{color,length,style,accessories[]}` (grows / cut),\n  `skin{tone,condition,distinguishing_features[]}`\n- personality: `traits[]` (prose tags), `aspirations[]`, `quirks[]`,\n  `habits[]`, `speech_pattern{style,dialect,catchphrases[]}`,\n  `interests[]`, `turn_ons[]`/`turn_offs[]` (keep id discipline),\n  `traumas[]`, `boundaries[]`, `experience`\n- narrative: `biography{early_life,adulthood,current_situation}`,\n  `secrets{deepest_secret,hidden_facts[],known_by[]}`,\n  `example_dialogues[]`, `role_in_town`, `arc`\n\n`mbti` / `alignment` / `media` stay OUT - no consumer.",
+    "why": "task-507 proved the slice; task-733 wants the full sheet compiled into\nViWo primitives. The user decision: new fields live UNDER appearance\nand personality on the node (no parallel blob, no second store), and a\nbutton compiles them into description / appearance / personality prose.\nAnd the question is not what works today but what must change so every\nfield is growable: age → old age / child→adult, lenses → eye color,\nhair → grow/cut, tattoo given, leg → prosthetic, kinks/turnoffs/trauma/\ninterests/likes/dislikes/fears addable and removable so characters\nbecome more than they started.",
+    "how": "- `engine/character_appearance.py`: extend `APPEARANCE_FIELDS` /\n  `PERSONALITY_FIELDS` (+ `IDENTITY_FIELDS`, `NARRATIVE_FIELDS`),\n  validators, `compile_persona(node)` → `{base_description,\n  description, personality, interest_tags, fear_tags, traits}`.\n  Compile is explicit (button + PUT `record` with `compile:true`),\n  never silent, never clobbers hand prose unless forced.\n- `routes/player_ops.py` + `routes/players.py`: `PUT record` accepts\n  `compile:true`; new `POST /record/compile` returns the projection.\n- Consumers: pronouns → `engine/pronouns.py` (explicit field first,\n  tags fallback); age → task-735 clock; sexuality/dialogue/secrets →\n  prompt context; turn_ons/offs → affect (already); fears →\n  fear_tags; likes/dislikes/interests → interest_tags; traumas →\n  fear_tags + conditions; modifications → prose + equipment prose.\n- Tests: `tests/test_character_appearance.py` extended - every new\n  field renders or projects somewhere; no dead fields.",
+    "verify": "1. Author a scratch character with pronouns, age, a tattoo, a kink,\n   a trauma, a secret, a dialogue line. Save, reload.\n    - expected: form restores; node holds ONE `appearance` block; no\n      parallel blob.\n    - observed: 2026-10-15 - engine round-trip proven in\n      `tests/test_character_appearance.py::TestExpandedSchema` (RICH\n      fixture covers all of the above; `validate`/`set_record`/`get_record`\n      preserve ONE block). Browser form is task-830's Persona tab.\n2. Press Compile.\n    - expected: `base_description`/`personality` gain the new prose;\n      interest/fear tags, traits projected; hand prose kept unless\n      forced.\n    - observed: 2026-10-15 - proven via `POST /record/compile` +\n      `PUT record {compile:true}` (`TestCompileRoutes`, 5 tests):\n      projection applies to empty prose, `needs_confirm` + preview over\n      hand prose, `force:true` applies. `player.traits` dict untouched\n      (mechanical traits, not prose).\n3. Run the targeted regression test for the mechanism.\n    - expected: `python -m pytest tests/test_character_appearance.py`\n      passes.\n    - observed: 2026-10-15 - 76 passed (59 existing + 17 new/extended).\n      The 2 obsolete task-507 pins were updated to the 828 contract.\n4. Live: open Mind → Persona, edit one appearance + one personality\n   field, Compile, reload, inspect `/api/state` + prompt.\n    - expected: only the projected primitives change; runtime memory\n      intact.\n    - observed: 2026-10-15 - verified live on fresh server (task-830); tab rendered, compiled into /api/state with node-shadowing fix verified live, runtime memory intact.",
+    "acceptance": [
+      {
+        "text": "New WorldGraph-flavoured fields exist UNDER `appearance` /",
+        "done": true
+      },
+      {
+        "text": "`personality` on the node; prose-only still default.",
+        "done": false
+      },
+      {
+        "text": "One explicit compile renders into `base_description` /",
+        "done": true
+      },
+      {
+        "text": "`description` / `personality` + tags/traits; no silent clobber.",
+        "done": false
+      },
+      {
+        "text": "`pronouns`/`age`/`sexuality` readable by prompts/time.",
+        "done": true
+      },
+      {
+        "text": "(`pronouns_for` explicit-first; `lifecycle.status()` - age, stage,",
+        "done": false
+      },
+      {
+        "text": "lifespan - served on `GET /record`; sexuality/dialogues in compile",
+        "done": false
+      },
+      {
+        "text": "prose. 735 clock landed.)",
+        "done": false
+      },
+      {
+        "text": "Every new field names its consumer; mbti/alignment/media absent.",
+        "done": true
+      },
+      {
+        "text": "(`CONSUMER_HINTS` + `test_every_field_names_its_consumer`.)",
+        "done": false
+      },
+      {
+        "text": "`tests/test_character_appearance.py` extended and passing.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "browser_ui": "Intended UI home: Mind dashboard -> Persona tab -> Compile button.\n\nCurrent availability: Implemented in task-830. Form renders full schema and Compile route is verified via backend tests; full browser compile flow awaiting server restart.\n\nLive steps when available:\n1. Open Mind -> Persona tab on a character.\n   - expected: Persona fields (identity, appearance, personality, narrative) display and edit cleanly.\n2. Edit an appearance or personality field and click Compile.\n   - expected: Base description, description, and personality prose update with compiled text; interest/fear tags update."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose.md"
+  }
+}

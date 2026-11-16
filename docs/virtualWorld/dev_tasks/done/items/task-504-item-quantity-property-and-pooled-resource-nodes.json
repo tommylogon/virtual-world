@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "id": "task-504",
+  "kind": "task",
+  "number": 504,
+  "title": "Item quantity property and pooled resource nodes",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-419",
+      "task-438",
+      "task-155",
+      "task-427",
+      "task-410",
+      "task-483",
+      "task-495",
+      "task-496",
+      "task-500"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Introduce a per-node `quantity` property (default 1) so one item node can\nrepresent *many of the same kind*. It is chiefly a presentation and data-model\nwin - **\"1 giant tree\"** or **\"3 berries\"** reads correctly and is far cheaper to\nstore than hundreds of nodes - but hidden underneath it is the **pooled\nresource node**: a bush, plant, rock, thicket or tree that is one node described\nplural and depletes by yielding real item copies.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `python -m pytest tests/test_item_quantity.py tests/test_item_actions.py tests/test_scene_snapshot.py tests/test_forage_tables.py -q`\n- `python -m pytest -q` against the documented baseline (no new failures).\n- Week soak on the camp: food supply and 23/23 outcome unchanged.",
+    "acceptance": [
+      {
+        "text": "An item with no `quantity` property behaves exactly as today (full suite",
+        "done": false
+      },
+      {
+        "text": "baseline unchanged).",
+        "done": false
+      },
+      {
+        "text": "An area renderer shows `1 giant tree` for `quantity: 1` and `40 berries` for a",
+        "done": false
+      },
+      {
+        "text": "thicket, in **both** perception paths (`area_description.py` and",
+        "done": false
+      },
+      {
+        "text": "`scene_snapshot.py`) - one shared helper, no re-implementation (room_perception",
+        "done": false
+      },
+      {
+        "text": "charter).",
+        "done": false
+      },
+      {
+        "text": "`take 3 berries` from a pool of 40 yields three real `berries` item nodes and",
+        "done": false
+      },
+      {
+        "text": "leaves the pool at 37; taking the last unit removes the pool node.",
+        "done": false
+      },
+      {
+        "text": "A pool is never picked up whole, and never merges with a carried copy.",
+        "done": false
+      },
+      {
+        "text": "Save/load round-trips `quantity` and the plural override.",
+        "done": false
+      },
+      {
+        "text": "Authored singular/irregular plurals are respected (\"1 mouse\" / \"3 mice\").",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "the_distinction": "Two different things have both been called \"how much of this there is\":\n\n| | `uses` (task-155) | `quantity` (this task) |\n|---|---|---|\n| Attaches to | an individual item copy | the node's identity / the pool |\n| Meaning | charges left on **this** copy (a lantern's fuel, a bread's bites) | how many **of this kind** the node stands for |\n| Example | one full waterskin `uses: 3` | one thicket `quantity: 40` berries |\n| Consumed by | `use` / `consume` (task-424 hook) | `take` / harvest (spawns copies) |\n| Default | `-1` (untracked) | `1` |\n\n`quantity` must **not** be folded into `uses`: a stack of 40 berries is not one\nberry with 40 charges, and a tree standing in a forest is not something you can\ncarry at all.",
+      "model": "- `quantity` is an item-node property, default **1**. Absent == 1, so every\n  existing item and save is unchanged.\n- Display is `\"<qty> <name>, <description>\"`, e.g. `1 giant tree, its lower\n  branches heavy with fruit.` The quantity is shown even when it is 1 (the user's\n  example, \"you see 1 giant tree\") so the prose stays uniform, but see\n  *pluralisation* below.\n- A **pooled resource node** is an item node whose `quantity` may be large and\n  which does **not** move as a whole. On `take`/harvest it:\n  1. spawns `k` real item copies (a bounded handful, e.g. `k = min(quantity,\n     harvest_size)`) into the taker / area, using the existing\n     `effects._hydrate_item(..., always_fresh=True)` path (task-483/410),\n  2. decrements the pool's `quantity` by `k`,\n  3. at `quantity == 0`, is removed (reuse the task-424 `on_depleted` empty-state\n     hook rather than inventing a second teardown).\n- Natural resources first: bushes, plants, rocks, thickets, trees, veins.\n  Crafted/singular objects keep `quantity: 1` and behave exactly as today.\n\n### Pluralisation and descriptions\n\n- The stored `name` stays singular (`giant tree`); the renderer pluralises from\n  `quantity` and the item's authored `plural` (optional property, default\n  `name + \"s\"`). Irregular plurals are authored, not guessed.\n- `description` may contain a `{qty}` / `{name}` token; when absent the renderer\n  prefixes `<qty> `.\n\n### Harvest yield and per-unit uses\n\nHarvesting is **skill-gated**: a check (Survival / Nature / Medicine, per the\nforaging tables) sets how many units the attempt yields, bounded by the pool's\nremaining `quantity`. The spawned **unit** is a normal item copy with its own\n`uses` - that is the per-unit shelf life, and it is *item-specific*:\n\n- `berries` unit → `uses: 1` (a handful eaten once);\n- `apple` unit → `uses: 3` (eats in three bites).\n\nSo a pooled `blueberry bush` node (`quantity: 3`, i.e. \"3 blueberry bushes\") on a\nsuccessful harvest might spawn `1–3` `berries` units into the harvester's\ninventory and drop the pool to `3 − k`. The pool describes *how many bushes /\nhow much is out there*; the `uses` on each spawned unit describes *how long one\nunit lasts*. The two never fold together.\n\n### Biome and WorldPainter\n\nPooled resources are the natural output of the world generator: a biome\ndetermines which pool *kinds* exist and their density (a berry thicket in\ntemperate forest, a gravel bank on a shore, an ore vein on a rocky slope), and\nWorldPainter places them per cell / zone. Coordinate pool density with task-427\n(population caps), task-410 (food renewal), task-419's anchor budget, and the\nWorldPainter scope/zone work (task-495/496/500). The generator authors\n**pools**, not individual plants.\n\n### Interaction with existing systems\n\n- **task-155 stacking** merges two carried *copies* (uses add). Pooled nodes are\n  the other direction: many-in-one in the **world**, spawning copies on take.\n  `stackable_twins` must not treat a pool and a single copy as twins.\n- **task-196 `use N ... on`** already parses an amount; harvest reuses that\n  parse so \"take 3 berries\" is natural.\n- **Weight**: a pooled node has no carry weight until copies are taken; the\n  carried copy's `weight` is the per-unit weight. `carry_weight.py` reconciles\n  per-copy only.\n- **foraging (task-483)**: `find_or_spawn` today spawns one fresh copy per find.\n  It should be able to target an existing pool (find *into* the thicket) before\n  falling back to spawning a standalone copy.\n- **task-419 anchors / task-438 proxy resource nodes**: these are *related but\n  not the same*.\n  - **task-419's \"pooled resource anchor\"** is the closest overlap: the same\n    behaviour (one node \"described as a quantity\", spawning a bounded handful on\n    take/use, \"same model as the berry thicket\"), but framed as a *positioning/\n    anchor-budget* device. It treats \"quantity\" as presentation only and adds no\n    stored property. task-504 supplies the stored `quantity` model it assumes.\n  - **task-438's \"proxy resource node\"** is a *different mechanism*: on region\n    split it clones the existing **stateful producer** (the berry bush's\n    `on_tick` grow → `spawn_item` into a container, capped by `contains_count\n    berries < 10`) once per generated child so yield scales with child count,\n    \"described plural\". It is producer-cloning for generation, not a counted\n    pool; a stored `quantity` pool could *replace/simplify* it later, but they\n    are not the same feature. Coordinate caps with task-427 (population) and\n    task-410 (food renewal).\n- **`apple_tree.json`** (`uses: 3`, `actions: examine,take,drop`) is the poster\n  child for the bug this fixes: a whole tree should not be carryable. It becomes\n  a pooled node (`quantity: 3` apples, tree itself not takeable).",
+      "work_plan": "1. **Renderer + property (slice 1).** Add `quantity` (default 1) to\n   `effects._hydrate_item` passthrough and library schema; add one shared\n   `describe_item_quantity(node)` helper beside `room_perception` item listing;\n   wire it into `area_description`, `scene_snapshot`, `narration`, `examine`,\n   and the take-not-found list. Tests: default unchanged, singular/plural,\n   capped.\n2. **Harvest (slice 2).** Pooled-resource take/use: bounded spawn via\n   `_hydrate_item(always_fresh=True)`, decrement, remove at zero via the\n   task-424 depletion hook; reuse task-196 amount parsing. Tests: partial,\n   exact, over-take, last-unit removal, weight.\n3. **Authoring + data (slice 3).** Convert `apple_tree.json` and the camp berry\n   thicket (currently an `on_tick` grow + `spawn_item {into: container}` capped\n   by `contains_count berries < 10`, `kraktooth_goblin_camp.json`) to the pooled\n   model; `lint_library` check for `quantity`; scenario tool + soak to confirm\n   supply is unchanged and behaviour stays 23/23.\n4. **Integration (slice 4).** `find_or_spawn` finds into an existing pool when\n   one is present; align with task-419 anchor budget and task-438 proxy cloning.",
+      "non_goals": "- Currency / abstract counters (a separate wallet concept if ever needed).\n- Stacking carried copies - that stays task-155.\n- Renaming display names on collision (ids only; project constraint)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-504-item-quantity-property-and-pooled-resource-nodes.md"
+  }
+}

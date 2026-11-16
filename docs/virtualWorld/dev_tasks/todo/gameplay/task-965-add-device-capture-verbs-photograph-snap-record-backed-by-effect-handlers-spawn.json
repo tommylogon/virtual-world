@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-965",
+  "kind": "task",
+  "number": 965,
+  "title": "Add device capture verbs (photograph, snap, record) backed by effect_handlers/spawn.py sight and speech capture",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "items",
+    "media",
+    "evidence",
+    "action-verbs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-599",
+      "task-299"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expose native photograph/snap and record device verbs reusing engine/effect_handlers/spawn.py (_capture_recent sight/speech filtering) and is_device_active so phone- and camera-equipped characters can capture verifiable visual and audio evidence.",
+    "why": "engine/effect_handlers/spawn.py (_capture_recent, lines 17-84) already implements capture='sight' (camera photos excluding speech) and capture='speech' (recorder audio), yet no native character verbs exist in engine/action_verbs.py or routes/action_handlers.py - restricting capture solely to items manually authored with custom on_use spawn triggers.",
+    "how": "1. Extract reusable capture_scene_media(world, actor, device_node, mode='sight'|'speech', target=None) reusing engine/effect_handlers/spawn.py _capture_recent (lines 17-84) and is_device_active (engine/long_distance_comms.py lines 13-58).\\n2. Enforce physical constraints (lighting checks on sight capture, quiet/audible checks on audio capture, optional shutter flash/click witness event).\\n3. Register photograph (alias snap) and record verbs in engine/action_verbs.py, routes/action_handlers.py, PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions device prompts so stored captures appear in device media logs / child items inspectable via examine and show.",
+    "verify": "1. Run pytest covering photograph/snap and record with powered vs dead phones, darkness rejection on photos, and captured event inspection.",
+    "acceptance": [
+      {
+        "text": "photograph (alias snap) and record verbs are registered in engine/action_verbs.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts when carrying or holding an active camera or phone device.",
+        "done": false
+      },
+      {
+        "text": "Capturing creates an inspectable captured media record/child item via engine/effect_handlers/spawn.py (_capture_recent sight/speech logic) checking is_device_active, lighting (for sight captures), and optional shutter/shutter-sound/flash notice.",
+        "done": false
+      },
+      {
+        "text": "Captured photos and audio recordings can be inspected via examine and displayed to others via show/post without custom author-scripted on_use triggers per item.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "engine/effect_handlers/spawn.py",
+      "engine/long_distance_comms.py",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal device action brackets (`photograph`, `record`) and Commons / item examine previews.\\n\\nCurrent availability: engine/effect_handlers/spawn.py (_capture_recent, lines 17-84) already implements capture='sight' and capture='speech', yet only custom on_use triggers call it and no native phone/camera capture verbs exist.\\n\\nManual verification steps:\\n1. Equip/carry an active phone/camera in an area with recent visible/spoken events and execute `photograph` / `record`.\\n2. Inspect the resulting media entry/item with `examine` and share/show it.\\n   - expected: Captured sight/speech turns become concrete in-world media evidence inspectable across turns."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Item & Action Model]]",
+      "[[Rules Engine/Triggers & Effects]]",
+      "[[Commands]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

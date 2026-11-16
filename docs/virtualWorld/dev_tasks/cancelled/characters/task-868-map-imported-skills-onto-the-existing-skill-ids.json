@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-868",
+  "kind": "task",
+  "number": 868,
+  "title": "Map imported skills onto the existing skill ids",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-18",
+  "updated": "2026-10-18",
+  "horizon": "next",
+  "effort": "",
+  "goal": "An imported skill lands on an existing skill id where one exists; a new id is a decision, not an accident.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-865",
+      "task-476"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`player.skills` is the numeric skill sheet. The import has no mapping, so a source skill string (\"ASMR\", \"graph databases\", \"swordplay\") is either dropped or becomes an arbitrary new id.\n\nThis card maps source skills onto the skill ids we already have, and treats free-text \"things I am good at\" as prose, not a new skill.",
+    "why": "The import must prefer the existing vocabulary, or every file grows the skill list with synonyms. A free-text self-description is not a skill id; conflating them makes the sheet meaningless.",
+    "how": "1. Enumerate the existing skill vocabulary in one place and state the count; do not infer the set from one member (see the property-set rule in AGENTS).\n2. Add a mapping (source name / normalised -> skill id) applied during import.\n3. Add a new id only when a source skill is genuinely absent, and record it as a decision, not silently.\n4. Free-text self-description stays a prose list in the personality block; it does not create ids.",
+    "verify": "1. Import a file with a known skill name.\n   - expected: the matching sheet id is set.\n   - observed: TODO\n2. Import a file with an unknown skill name.\n   - expected: it is surfaced for a decision, not silently added or dropped.\n   - observed: TODO\n3. Import a free-text strengths list.\n   - expected: it lands as prose, not as skill ids.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Source skills map to existing ids where one exists.",
+        "done": false
+      },
+      {
+        "text": "Genuinely new skills are surfaced for a decision, not auto-added.",
+        "done": false
+      },
+      {
+        "text": "Free-text skill prose stays prose.",
+        "done": false
+      },
+      {
+        "text": "The mapping table is the single place the vocabulary is declared.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/character-import.ts",
+      "engine/skills.py",
+      "tests/test_skills.py"
+    ],
+    "custom": {
+      "browser_ui": "N/A for the mapping itself. Observable path: import a file whose skills name both a known skill and an unknown one, and confirm the sheet gains the mapped id while the unknown is reported, not invented.",
+      "retracted_2026_10_18": "Duplicate. Skills projection is `task-733` (`capabilities.skills` -> `skills`/`traits`), and the import mapping is `task-843`, which already reads `update_krakotooth_cards.py`'s field mapping and forbids a second one. A separate skills-mapping card would be exactly that forbidden second mapping. Folded into `task-733`/`task-843`."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/characters/task-868-map-imported-skills-onto-the-existing-skill-ids.md"
+  }
+}

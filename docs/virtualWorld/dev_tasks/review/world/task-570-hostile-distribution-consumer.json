@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "id": "task-570",
+  "kind": "task",
+  "number": 570,
+  "title": "Hostile distribution consumer",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "biomes.json hostile_distribution (line 2195) declares base_chance / per_area_from_settlement / max_chance per biome. It is loaded (engine/biomes.py:135) and validated (:418-439) but has no runtime consumer; HOSTILE_KINDS (engine/biomes.py:41) appears nowhere outside biomes.py and its tests. Needs task-569's spawner and the item-affinity vocabulary. Distance-from-settlement is already computable from the world grid.",
+    "why": "A biome declaring that the wilderness is dangerous is only half a feature. The\nother half is that something actually shows up, and that the *shape* of the\ndanger is the author's to decide rather than the engine's. Right now\n`hostile_distribution` is authored, validated, and then dropped: the chance\nmodel computes the right number and the number goes nowhere.\n\nThe reason it goes nowhere is worth stating plainly, because it is a content\ngap and not an engine gap. The machinery works. What is missing is the taxonomy\nof hostile characters - and the repo's rule is that a mechanic with nothing\nauthored for it is not a mechanic. Authoring a handful of predator and bandit\ndefinitions is the work; a runtime consumer is the smaller half.",
+    "how": "The chance model already exists and needs no change:\n`engine/world/spawner.py` provides `hostile_chance(biome_id,\ndistance_from_settlement, ...)` (`:123`), `roll_hostiles(...)` (`:145`) and\n`hostile_character_node(kind, ...)` (`:153`), all covered by\n`tests/test_biome_spawner.py`. The distribution data is authored in\n`data/worldpainter/biomes.json` under each biome's `hostile_distribution`\n(`base_chance`, `per_area_from_settlement`, `max_chance`), and is validated on\nload by `engine/biomes.py` (`:418-439`).\n\nTwo things have to happen, in this order:\n\n1. **Author the content.** Add hostile character definitions to\n   `data/library/characters/` - at least a predator and a bandit - tagged so\n   `HOSTILE_KINDS` (`engine/biomes.py:41`) can select them, and with the\n   attributes the existing character loader expects. `shadow_pelt.json` is the\n   one existing definition close enough to use as a template for shape.\n2. **Wire the consumer.** A runtime path that, per area and per occupancy\n   check, computes the area's distance from the settlement, calls\n   `roll_hostiles(...)` with the biome's distribution, and registers each rolled\n   kind as a `simple_npc` `Player` through the existing character spawn path\n   (not as a bare graph node). `world_compile` already knows the cells, so the\n   distance term can be supplied per area.\n\nThe consumer must not fire in a way that inflates the soak baseline. The\nroll is seeded (`roll_hostiles` is deterministic for a seed), so the\nprobability of a hostile appearing in a given area and tick has to be part of\nthe authored distribution rather than an emergent side effect of walking\naround.",
+    "verify": "1. Confirm the chance model exists and is tested.\n   - expected: `hostile_chance`, `roll_hostiles` and `hostile_character_node`\n     exist in `engine/world/spawner.py` and are covered by a test file.\n   - observed: CONFIRMED. `engine/world/spawner.py` exists with the three\n     functions at lines 123, 145 and 153; `tests/test_biome_spawner.py` exists\n     and covers chance rising with distance and capping, a deterministic roll,\n     and a tagged node.\n2. Confirm the distribution data is authored and validated.\n   - expected: `data/worldpainter/biomes.json` declares `hostile_distribution`\n     per biome and `engine/biomes.py` validates it.\n   - observed: CONFIRMED. The file exists and `engine/biomes.py` loads the\n     distribution (`:135`) and validates its shape (`:418-439`).\n3. Confirm there is no runtime consumer.\n   - expected: a caller outside the spawner module and its tests.\n   - observed: FAILS. Searching `engine/` and `routes/` for\n     `hostile_chance`, `roll_hostiles` and `hostile_character_node` returns\n     matches only inside `engine/world/spawner.py` itself. No route or engine\n     module calls them.\n4. Confirm there is usable hostile character content.\n   - expected: character definitions a spawner can instantiate.\n   - observed: FAILS. Across `data/library/characters/`, exactly 2 entries carry\n     a hostile-family tag: `anne.json` (tags include `monster`, but it is also\n     `child` and `female`) and `shadow_pelt.json` (tags include `predator`,\n     with `worg`, `animal`, `pack`). The only genuinely usable one is\n     `shadow_pelt.json`, a single animal. Two further raw string matches are\n     not character definitions: an item-level `\"tag\": \"hostile\"` in\n     `shadow_pelt.json` and a `\"hostile\": true` property in `the_butcher.json`.\n5. Author the content and wire the consumer, then re-run the live scenario.\n   - expected: a hostile appears in a high-chance biome area, does not appear\n     in a zero-chance one, and the event stream shows the encounter.\n   - observed: not run. The content does not exist yet, so there is nothing to\n     exercise.",
+    "acceptance": [
+      {
+        "text": "`data/library/characters/` holds at least one usable hostile definition",
+        "done": false
+      },
+      {
+        "text": "per kind `HOSTILE_KINDS` can roll, with the attributes the character",
+        "done": false
+      },
+      {
+        "text": "loader expects. (Today: `shadow_pelt.json` is the only usable one, and it",
+        "done": false
+      },
+      {
+        "text": "is a single worg.)",
+        "done": false
+      },
+      {
+        "text": "A runtime consumer calls `roll_hostiles(...)` per area and registers each",
+        "done": false
+      },
+      {
+        "text": "rolled kind as a `simple_npc` `Player` through the existing character",
+        "done": false
+      },
+      {
+        "text": "spawn path, not as a bare graph node.",
+        "done": false
+      },
+      {
+        "text": "The area's distance from the settlement reaches the consumer, from the",
+        "done": false
+      },
+      {
+        "text": "grid `world_compile` already knows.",
+        "done": false
+      },
+      {
+        "text": "A hostile appears in a high-chance biome area, does not appear in a",
+        "done": false
+      },
+      {
+        "text": "zero-chance one, and the encounter appears in the event stream.",
+        "done": false
+      },
+      {
+        "text": "The roll is seeded and the authored distribution, not an emergent side",
+        "done": false
+      },
+      {
+        "text": "effect of walking around, is what decides whether a hostile appears.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/world/spawner.py` - `hostile_chance` (`:123`), `roll_hostiles",
+      "(`:145`), `hostile_character_node` (`:153`)",
+      "engine/biomes.py` - `HOSTILE_KINDS` (`:41`), distribution load (`:135`),",
+      "validation (`:418-439`)",
+      "data/worldpainter/biomes.json` - the authored `hostile_distribution` blocks",
+      "data/library/characters/` - where the hostile definitions belong",
+      "(`shadow_pelt.json` is the closest existing shape)",
+      "tests/test_biome_spawner.py` - the chance model's tests"
+    ],
+    "custom": {
+      "progress_blocker_2026_10_02": "**Chance model landed and tested** (`engine/world/spawner.py`, task-569's\nmodule): `hostile_chance(biome, distance)` evaluates\n`min(max_chance, base_chance + per_area_from_settlement * distance)` clamped to\n`[0,1]`; `roll_hostiles(...)` returns the kinds that appear for a seeded roll;\n`hostile_character_node(kind, ...)` builds a tagged, generation-stamped\ncharacter node. `HOSTILE_KINDS` is now consumed. Covered by\n`tests/test_biome_spawner.py` (chance rises with distance and caps; deterministic\nroll; tagged node).\n\n**Why it is not wired to a live spawn (blocking, per \"never infer runtime from\nexistence\"):** a hostile must become a live simple NPC (a `Player` in the\nmanager), not a bare graph node - and there is **no usable hostile character\ncontent** to build one from. Re-measured 2026-10-20 across\n`data/library/characters/`: exactly **2** entries carry a hostile-family tag, and\nneither is usable as-is.\n\n- `anne.json` - tags include `monster`, but it is also tagged `child` and\n  `female`. It is a child, not a predator.\n- `shadow_pelt.json` - tags include `predator`, and it is tagged `worg`,\n  `animal`, `pack`. This is the only real candidate, and it is a single\n  animal, so a distribution that rolls several `predator` kinds has one kind\n  to roll.\n\nThe other two raw matches are not character definitions at all:\n`shadow_pelt.json` also carries an item-level `\"tag\": \"hostile\"` (its pelt\nitem), and `the_butcher.json` carries a `\"hostile\": true` property rather than\na tag. Spawning generic hostiles from code would be inventing content the\ntaxonomy does not author, which is exactly what the resource path avoids by\nreporting `unresolved_tags` instead of substituting.\n\n**Needed to finish:** author hostile character definitions (predator / bandit /\nmonster) in `data/library/characters/`, then a runtime consumer that rolls at\narea occupancy and registers a `simple_npc` `Player` via the existing character\nspawn path. Distance-from-settlement from the grid is available (`world_compile`\nknows the cells) and can be supplied per area.\n\nLeft in `todo`; not moved to review, because the behaviour is not demonstrated\nlive.",
+      "browser_ui": "Intended UI home: load a scenario with a settlement and authored biomes → inspect the world map/area properties → run the hostile spawner or allow the scheduled simulation tick → inspect generated characters and encounter events.\n\nCurrent availability: `biomes.json` declares and validates `hostile_distribution`, but this card records no runtime consumer; `HOSTILE_KINDS` is otherwise only referenced by its own module/tests. The distribution consumer is not claimed as implemented.\n\nLive steps when available:\n1. In a scratch world, choose two biome areas at different distances from a settlement and inspect their `hostile_distribution` values.\n   - expected: the spawner reads the authored base chance, per-area settlement adjustment, and max chance for each biome.\n2. Run the same seeded spawn pass in both areas and inspect generated hostile characters in the graph and `/api/state`.\n   - expected: each spawned character uses a kind allowed by `HOSTILE_KINDS`; chance changes with biome and settlement distance and is capped at `max_chance`.\n3. Repeat the same seed and fixture, then change only the settlement distance.\n   - expected: the first run reproduces exactly; only the authored distance term changes the spawn decision in the second run.\n4. Let a spawned hostile interact with a character and inspect the event stream.\n   - expected: the spawned entity participates through the existing character behavior path; the distribution is not merely displayed as unused biome data.",
+      "reconnaissance_2026_10_20_still_valid_one_count_corrected": "Re-checked on 2026-10-20. The chance model in `engine/world/spawner.py` remains and `HOSTILE_KINDS` is still only consumed there and in tests:\n\n- `rg` for `hostile_chance|roll_hostiles|hostile_character_node` outside tests returned 0 hits.\n- `rg` for `spawner.` (Python callers) outside tests returned 0 hits.\n\n**Correction to the 2026-10-02 note above.** It said the character library holds\n*\"zero entries tagged predator/bandit/monster/hostile\"*. Measured 2026-10-20 by\nparsing every file in `data/library/characters/` and collecting `tags`/`tag`:\n**2** entries carry a hostile-family tag.\n\n- `anne.json` - tags include `monster`, but it is also tagged `child` and\n  `female`. A child is not a predator.\n- `shadow_pelt.json` - tags include `predator`, with `worg`, `animal`, `pack`.\n  This is the only real candidate, and it is one animal, so a distribution that\n  rolls several `predator` kinds has exactly one kind to roll.\n\nTwo further raw string matches are **not** character definitions and should not\nbe counted: an item-level `\"tag\": \"hostile\"` inside `shadow_pelt.json` (its pelt\nitem) and a `\"hostile\": true` property in `the_butcher.json` (a property, not a\ntag).\n\nThe card's **conclusion** is unchanged - there is no usable hostile content to\nbuild a live NPC from - but its **count** was wrong, and the 2 that do exist\nare the starting point for the authoring work rather than nothing.\n\n**Plan position (2026-10-20).** Newer work touches this card without\nsuperseding it. task-571 (item biome affinity), task-573 (biome coverage\nlint) and task-588 (investigate where WorldPainter vocabularies live) all name\ntask-570 as related. task-588 is an investigation whose stated constraint is\nthat *\"the two consumers this is meant to unblock must keep working whichever\nway it lands\"* - so whatever task-588 concludes about the data layout, task-570\nstill stands as a consumer. task-569 (biome resource distribution consumer) is\nthe sibling: its chance model lives in the same `engine/world/spawner.py`\nmodule, which is why that module exists at all.\n\nVerdict: still valid, still a distinct piece of the plan. Kept in todo."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Creature Spawners]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-570-hostile-distribution-consumer.md"
+  }
+}

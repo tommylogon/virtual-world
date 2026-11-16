@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-957",
+  "kind": "task",
+  "number": 957,
+  "title": "Add pre-decision expectation-vs-observation discrepancy check (surprise cues) alongside Active Mind",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "cognitive-memory",
+    "active-mind",
+    "appraisal",
+    "emotions"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-944"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-948",
+      "bug-587",
+      "bug-590"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a pre-decision appraisal step that compares incoming third-party observations and room changes against the character's Active Mind assumptions and obligations, surfacing prediction-error/surprise cues when reality contradicts expectations.",
+    "why": "task-944 defines Active Mind constructs (questions, assumptions, obligations) and invalidates assumptions when a character's own action fails (empty pocket). However, there is no pre-decision discrepancy comparison for incoming third-party actions, arrivals, revealed weapons, or broken commitments - leaving sudden surprises unflagged unless already caught as generic danger.",
+    "how": "1. Add a deterministic discrepancy evaluator comparing Active Mind entries (active_mind.assumptions, obligations, open questions) and baseline entity expectations against current room snapshot / recent_hearing / turn_events (missing expected companion, breached door, unexpected armed posture or betrayal by trusted acquaintance).\\n2. Surface matched discrepancies as concise prediction-error / surprise cues into Intermediator (task-948) and turn cognition (task-944) alongside a proportional surprise emotion spike in engine/emotion.py.\\n3. Keep the check strictly grounded in current observed state and prior character state (zero omniscient script/narrative knowledge).",
+    "verify": "1. Run pytest and JS unit tests covering discrepancy detection between Active Mind assumptions/obligations and observed room/turn events, asserting surprise cue emission and zero false positives when observations align.",
+    "acceptance": [
+      {
+        "text": "Before cognition/decision, incoming observations (third-party arrivals, violent/armed turn events, speech, and violated obligations) are compared against the character's Active Mind assumptions, obligations, and expectations.",
+        "done": false
+      },
+      {
+        "text": "Detects mismatches deterministically (without story-director scripting) to emit an explicit surprise/discrepancy perception cue and optional surprise affect spike into turn cognition.",
+        "done": false
+      },
+      {
+        "text": "Unit tests verify both expectation confirmation (zero discrepancy) and violation (unexpected violence/missing ally/contradicted assumption) paths cleanly.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/memory_retrieval.py",
+      "engine/emotion.py",
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "static/js/agent-engine.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal prompt context (`=== ACTIVE MIND ===` / sensory surprise cue) and Intermediator synthesis input.\\n\\nCurrent availability: task-944 models Active Mind invalidation only when a character's own action fails (e.g. checking an empty pocket), with no incoming third-party expectation-vs-observation appraisal.\\n\\nManual verification steps:\\n1. Seed a character with an Active Mind assumption or obligation (e.g. believing an ally is safe/unarmed or expected in an area).\\n2. Inject a contradicting third-party observation (missing ally, weapon revealed, hostile speech/action) and inspect the pre-decision prompt / affect delta.\\n   - expected: A concise prediction-error discrepancy cue surfaces in cognition and spikes surprise attention."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]",
+      "[[Characters/Emotion & Affect System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

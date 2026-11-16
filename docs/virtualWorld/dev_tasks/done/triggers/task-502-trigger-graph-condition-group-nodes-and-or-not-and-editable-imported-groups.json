@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "task-502",
+  "kind": "task",
+  "number": 502,
+  "title": "Trigger graph condition group nodes (AND/OR/NOT) and editable imported groups",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-501",
+      "task-388"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give OR/NOT condition groups a real node representation so an imported group is editable instead of refused by task-501's compile guard.",
+    "why": "task-501 made the trigger graph honest about OR/NOT condition groups: an imported\ngroup is stored on the trigger node (`condition_tree`) and re-emitted unchanged,\nand editing its conditions is *refused* because the node graph only draws a\nlinear AND chain. This task gives groups a real node so they can be edited.\n\nTODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A condition node can represent a logical group (`and`/`or`/`not`) with child",
+        "done": false
+      },
+      {
+        "text": "conditions, rendered and wired in the graph.",
+        "done": false
+      },
+      {
+        "text": "An imported `condition_tree` round-trips through the graph and back without the",
+        "done": false
+      },
+      {
+        "text": "`condition_tree` side-channel; editing a grouped condition is supported and",
+        "done": false
+      },
+      {
+        "text": "the compile reflects the edit.",
+        "done": false
+      },
+      {
+        "text": "`compileToEngine` no longer needs the \"grouped condition edited\" refusal once",
+        "done": false
+      },
+      {
+        "text": "groups round-trip; the task-501 refusal is removed or narrowed to genuinely",
+        "done": false
+      },
+      {
+        "text": "unrepresentable shapes.",
+        "done": false
+      },
+      {
+        "text": "JS unit coverage for group add/edit/delete and for compiling each operator;",
+        "done": false
+      },
+      {
+        "text": "`node --check` clean; `npm run lint`/`typecheck` clean.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "non_goals": "- Engine-side condition evaluation - already supports and/or/not.\n- Blueprint runtime materialisation (task-442).",
+      "verified_2026_10_02": "- Commit `6efa70e`. `node tools/unit/run.cjs` 497 passed / 0 failed;\n  eslint / `npm run typecheck` / `node --check` clean.\n- Live browser (app on :4469, Playwright): opened the graph with an OR group\n  wired through the `child` socket - 5 nodes rendered, 1 `child` socket, 4 wire\n  paths drawn, group operator select = `or`; clicking **Apply** compiled to\n  `{\"operator\":\"or\",\"conditions\":[has_trait, in_area]}` with no compile error.\n  Screenshot `review-verify`-class artifact kept only in temp, not committed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-502-trigger-graph-condition-group-nodes-and-or-not-and-editable-imported-groups.md"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "task-495",
+  "kind": "task",
+  "number": 495,
+  "title": "WorldPainter: recursive scope grids and 3-mode editor",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "task-398",
+      "task-400",
+      "task-496",
+      "task-520",
+      "task-528",
+      "task-535",
+      "task-539",
+      "task-523"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Authoring layer: every world scope owns a bounded grid at its own resolution, with three modes - world (zones as cells, no interiors), town (paint settlement grid: walls, gates, roads, markets, buildings), interior (building/floor grid: rooms, doors, windows, tags). Zones ARE world_scopes (engine/world_scopes.py); select a zone to set its scale and open its drawn grid. Paint layers: biome/feature/road/elevation. Features are child scopes placed at a cell (e.g. a village inside a forest) that can be moved/added/deleted. Data model: per-scope grid_w/grid_h, cell_scale, layers, child placements; stable frames so references survive moves; a rule for move-overlap. UI renders each scope's grid.",
+    "why": "Multi-scale world authoring requires nested scope grids where towns and interiors exist at finer cell resolutions within a broader world map.",
+    "how": "Implemented recursive scope hierarchy in WorldPainter, supporting child grid placement, level switching, and boundary gateway generation.",
+    "verify": "1. Create a child scope grid within parent world grid\n   - expected: Child scope nests cleanly with independent coordinate resolution\n   - observed: Verified in tools/unit/test_worldpainter.js",
+    "acceptance": [
+      {
+        "text": "A scope can be selected; its grid (`grid_w`/`grid_h`, `cell_scale`, layers) opens in the matching mode (world/town/interior).",
+        "done": false
+      },
+      {
+        "text": "A feature (child scope) can be placed at a cell, moved, added and deleted; the parent's placements update.",
+        "done": false
+      },
+      {
+        "text": "Grids are recursive: a parent cell can hold a child scope whose own grid opens in the next mode.",
+        "done": false
+      },
+      {
+        "text": "Moving a feature over occupied cells follows a documented rule (forbid / displace / merge) and preserves ids/references.",
+        "done": false
+      },
+      {
+        "text": "The scope manifest + child placements serialize and round-trip, covered by tests.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor.ts",
+      "engine/world_grid.py"
+    ],
+    "custom": {
+      "progress_2026_09_24_grid_model": "**Started with the data model**, the piece both the editor (this task) and the\ncompiler (task-496) need and the one independent of the still-open\ngrid-canonical-vs-baked decision.\n\n- **`engine/world_grid.py`** (new) - pure helpers over the scope manifest:\n  - `cell_id(scope_id,x,y)` / `parse_cell_id` - a cell's stable identity\n    (`\"<scope>:<x>,<y>\"`), the compiler's future area id; stable across edits\n    elsewhere on the grid.\n  - `ensure_grid(record, w, h, cell_scale, mode)` - creates/resizes; a shrink\n    drops out-of-bounds paint and placements rather than dangling them.\n    `has_grid`, `grid_size`, `in_bounds`.\n  - Paint layers `biome` / `road` / `elevation` via `paint` / `painter_at`\n    (bounds-checked; erasing a cell removes empty layers).\n  - Features are **child scopes placed at a cell** (`placements`), not a stored\n    layer: `place` / `move` / `remove` / `cell_of` / `occupant_at` /\n    `feature_layer` (the derived `feature` paint view the editor draws).\n  - **Overlap rule chosen: `forbid` by default** (raise), with\n    `on_overlap=\"displace\"` as the opt-in; `merge` is deliberately deferred to\n    the compiler because it redefines child-scope identity (documented in the\n    module docstring). Returns `placed` / `moved` / `displaced`.\n  - `validate(manifest)` - bounds, unknown layers, unknown/duplicate children.\n  - `normalise_grid(record)` - tolerant load-time cleanup, wired into\n    `engine/world_scopes.py::normalise_manifest` (a scope that never had a grid\n    is left untouched, so existing saves are byte-identical).\n- **`tests/test_world_grid.py`** (18) - cell identity, resize pruning, paint,\n  place/move/displace/remove, overlap forbidding, validation, malformed-data\n  cleanup, and a JSON + `normalise_manifest` round-trip.\n\nStill open in this task: the editor UI (render each scope's grid in the\nmatching mode, select/place/move/delete features), recursive drill-down into a\nchild scope's grid, and the \"merge\" overlap policy if the compiler needs it.",
+      "progress_2026_09_24_authoring_api_editor_ui": "**Backend** (`routes/world_grid_ops.py`, thin registrar `routes/world_grid.py`,\nregistered in `app.py`):\n\n- `GET  /api/world/scopes/<id>/grid` - scope + grid + layers + placements +\n  derived feature view + child cards + parent + breadcrumb.\n- `POST /api/world/scopes` - create a scope (a feature is a child scope); id\n  disambiguated on collision, display name never renamed.\n- `POST /api/world/scopes/<id>/grid` - create/resize (`w`,`h`,`cell_scale`,`mode`);\n  a shrink prunes out-of-bounds paint/placements (via `world_grid.ensure_grid`).\n- `POST /api/world/scopes/<id>/grid/paint` - set/erase one cell on a layer.\n- `POST /api/world/scopes/<id>/grid/place` - place/move a child (`on_overlap`\n  forbid default, `displace` opt-in).\n- `POST /api/world/scopes/<id>/grid/remove` - remove a placement only (never the\n  child scope record).\n- Each mutating handler pushes its own **pre-state** undo snapshot; `app.py`'s\n  after-mutation hook skips these paths so the first Undo is not a no-op (the\n  same reason the NL batch path is special-cased).\n\n**Front end:**\n\n- `static/js/worldpainter/grid-model.js` - pure view-model: cell keys/ids,\n  `nextMode` drill-down suggestion, render rows, deterministic layer colours,\n  resize-prune preview, available children.\n- `static/js/worldpainter/editor.js` - plain-DOM overlay: scope chooser,\n  breadcrumb, mode badge, paint/erase/feature tools, layer + value picker, grid\n  dialog, add-feature, grid render, place/move/remove, child drill-down.\n  Overlap follows the documented rule (forbid, then a displace confirmation).\n- `templates/index.html` - toolbar button + script tags.\n- `static/js/main.js` - register `VW.worldPainter`, `VW.gridModel` and (fixing a\n  pre-existing regression found while wiring this) `VW.structures`, since\n  `main.js` resets `window.VW` after module scripts run and the bare globals are\n  what survives.\n\n**Tests / verification:** `tests/test_world_grid_routes.py` (8),\n`tools/unit/test_worldpainter.js` (10). A live browser smoke test exercised\nselect → create grid → paint → add/place feature → drill into the child's town\ngrid end-to-end (and caught a dialog-input append bug, now fixed). `npm run\nlint`, `npm run typecheck`, `python tools/js_module_index.py --check`, and\n`node tools/unit/run.cjs` are clean (the 13 pre-existing `test_plan_tracker`\nfailures are unrelated).\n\nStill open: the \"merge\" overlap policy is deferred to the compiler by design\n(see the module docstring); no editor work needs it yet.",
+      "progress_2026_09_25_rename_delete_island_warning": "Authoring could create scopes but never rename or remove them, so a mis-named or\nduplicate zone (e.g. two \"deep woods\") was stuck.\n\n- **Rename** - `world_scopes.rename_scope(manifest, id, name)` sets the\n  **display name only**; the id and every node reference stay (task-439/495).\n  `POST /api/world/scopes/<id>/rename {name}`; a blank name is rejected.\n- **Delete** - `world_scopes.delete_scope(manifest, graph, id, cascade=False)`:\n  refuses a scope that still has children unless `cascade`; unplaces it from\n  every parent (`placements` + `children`); deletes the nodes generation made for\n  it (provenance `properties.generated.scope_id`), leaving hand-authored nodes\n  alone. `POST /api/world/scopes/<id>/delete {cascade?}`.\n- **Editor** - each scope card gets ✏️ rename and 🗑 delete; the card's own click\n  still opens. Deleting the open scope falls back to its parent.\n- **Islands auto-link** - ways are made for 8-neighbour adjacency (orthogonal and\n  diagonal; `_SCAN_DIRECTIONS = (\"east\",\"south\",\"southeast\",\"southwest\")`). A cell\n  or cluster with no painted neighbour is not left a dead end: `compile_grid`\n  joins each disconnected component to the main landmass with a **single** way\n  between the closest pair of cells (`link_islands`, default on; one link per\n  component, not one per neighbour). The report notes\n  `K island(s) linked to the nearest region`; only a lone painted cell (nothing to\n  link to) still reports `no exits`. `estimateCompile` returns `isolated` and\n  `links`, so the live estimate reads `≈ N areas · M ways · 🔗 K linked`.\n- **Layer-scoped redraw** - a paint drag only changes the in-progress stroke\n  (drawn on the decor layer), so the hot path redraws that one Konva layer\n  instead of `stage.batchDraw()`. Full redraws re-rasterised the reference image\n  every painted cell, which made painting crawl with a large reference loaded.\n\nTests: `tests/test_world_scopes.py` (+4 rename/delete), `tests/test_world_grid_routes.py`\n(+2 route), `tests/test_world_compile.py` (+1 island note),\n`tools/unit/test_worldpainter.js` (+1 `estimateCompile.isolated`)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "design": "`docs/design/worldpainter-knowledge-and-fog.md`,"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-495-worldpainter-recursive-scope-grids-and-3-mode-editor.md"
+  }
+}

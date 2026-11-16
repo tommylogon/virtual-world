@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-552",
+  "kind": "task",
+  "number": 552,
+  "title": "Fear response: humans should fear goblins",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-469",
+      "task-484",
+      "bug-593",
+      "bug-594"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A 3-day Kraktooth soak produced zero threat-tagged actions with five humans living inside the goblin camp, because nothing in the simulation can represent 'that is not mine' or 'that person frightens me'. Add a fear/territory response, and give task-484 the calibration data it has been waiting on.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A character can be made afraid of another, and the fear produces a recorded,",
+        "done": false
+      },
+      {
+        "text": "visible action rather than a silent vital.",
+        "done": false
+      },
+      {
+        "text": "A test asserts a threat response occurs in a scenario authored to provoke one,",
+        "done": false
+      },
+      {
+        "text": "so \"zero threats\" stops being indistinguishable from \"no mechanic exists\".",
+        "done": false
+      },
+      {
+        "text": "task-484's calibration data is attached to it, so it can be un-blocked or closed",
+        "done": false
+      },
+      {
+        "text": "as not-yet-earned on evidence rather than on a date.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "measured_2026_09_27_a_3_day_soak_produced_zero_threat_actions": "Kraktooth goblin camp, 3 days (4,320 ticks), 23 goblins and 5 humans, all\nbackground, seed 1234. The `why` breakdown over every decided action:\n\n| rule | share |\n|---|---|\n| `needs` | 82.2% |\n| `social` | 16.3% |\n| `traversal` | 1.0% |\n| `forage` | 0.5% |\n| `threat` | **0** |\n| `plan` / `goal` / `schedule` / `agenda` | **0** |\n\nFive humans lived inside the goblin camp for three days - in the chief's pit, the\ncooking area, the workshop - and **not one goblin registered a threat response**.\nThe busiest room by shared occupancy was `Waste Disposal` at 45,844 shared ticks\nacross five pairs, i.e. the most sociable thing in the world is the latrine.\n\nThis is the finding the whole thing rests on: nothing in the simulation can\nrepresent \"that is not mine\" or \"that person frightens me\". A threat response\ntherefore has no substrate to act on, which is why the number is zero rather than\nlow.",
+      "task_484_has_been_waiting_for_exactly_this": "`task-484` is a deferred stub - \"give 'frightened' real attack/defense modifiers\nand an `ends_on` once authored fears are common enough to calibrate against\" -\nwith `## Acceptance - TODO`. The calibration data is this table, and it says the\nanswer is *no fears are being generated at all*, so tuning the condition is\npremature until something produces one. 484 should stay blocked on this task, and\nthis task should produce the fears.",
+      "open_decisions": "1. **Fear of what?** Species (task-549), territory (task-550), numbers, or being\n   outnumbered? All four are plausible and they are not the same mechanic.\n2. **Does fear move anyone?** A `frightened` goblin flees, hides, or freezes - and\n   if it flees, is that a `plan:` or a `threat:` action? Right now `plan` is zero\n   too, so nothing has anywhere to run *to*.\n3. **Is the Eldenford road guard a datapoint?** He is the one human with a\n   military job and he starts on the Human Road. He is the natural test case.",
+      "related": "- task-484 - the deferred tuning task this unblocks or refutes\n- task-550 - territory is probably half of what is being feared\n- task-549 - species is the other half",
+      "implementation_2026_09_28_wt_c": "### The soak's diagnosis was half right, and the wrong half was load-bearing\n\n*Right*: the background tier never called `engine/fear.py`. `fear_sources` and\n`apply_frightening` existed and worked, and nothing in\n`engine/background_simulation.py` or `engine/background_social.py` ever asked.\nSo zero was structural, not a low rate - \"no mechanic exists\" was correct.\n\n*Wrong*: nothing would ever have been afraid even once something did ask.\n`fear_sources` matched a co-present character on the **graph node's** `tags`\nproperty. A character node is created bare -\n`Node(id=..., type=\"character\", name=pname)` at `engine/serialization.py:552`\nand again on the add path - so it never carries `tags` at all. Meanwhile every\nshipped character puts its species in `player.tags`: `\"goblin\"`, `\"teen\"`,\n`\"female\"` in `data/library/characters/Arix.json:47` and in every block of\n`data/scenarios/kraktooth_goblin_camp.json`. Nothing read that.\n\nSo `fear_tags: [\"goblin\"]` on a human would have done **nothing**. The mechanic\nwas inert twice over, and only the first half was visible in the telemetry.\n\nFixed in `engine/fear.py` (not `serialization.py`, which is a hub):\n`character_tags(gs, other)` now reads `other.tags`, the trait keys and the node,\nand `fear_sources` and the new `fear_sources_for_character` both go through it.\n`tests/test_fear_threat_response.py` asserts the node really is bare, so the day\nthat changes the test is the one that has to move.\n\n### What was built\n\n- **`engine/background_social.py`: `run_fear_pass(gs, tick)`** - for every\n  background character, ask `engine/fear.py` what it fears, apply the\n  source-gated `frightened` condition, and record a **visible action**: a line, a\n  `threat:` trace in `lived_log`, a `threat`-type memory, a Social cost, an\n  `afraid` spike on the affect map, and a closeness cost toward the source.\n- **Four reactions** - `flee`, `hide`, `freeze`, `shout` - chosen by a draw\n  seeded from `(character, source, tick)` like every other roll in the module, so\n  a replay reproduces the same camp history and five characters do not flee in\n  lockstep. This answers open decision 2: fear moves someone, and the action is a\n  `threat:` one, because there is no `plan:` substrate to run to and inventing\n  one is not this task.\n- **Fear pre-empts sociability.** `perform()` returns `None` when the actor fears\n  the target, so a human does not chat with the goblin that frightens them. The\n  gate is checked *before* the action draw, not after, or the social roll would\n  still decide.\n- **Cooldown** (`FEAR_COOLDOWN_MINUTES = 45`) so a condition lasting thirty\n  minutes logs one flight, not thirty. The condition keeps refreshing meanwhile.\n- **`engine/background_simulation.py`: one call**, before the social pass, so\n  something frightening can pre-empt it. `run_fear_pass` is inside the existing\n  `try`, so a fear failure cannot take the social passes down with it.\n\n### Open decisions, settled\n\n1. **Fear of what** - answered by *authoring*, not by code. `fear_tags` already\n   existed and is already serialized (`engine/serialization.py:346`). The\n   question \"species or territory\" is task-549 and task-550's; this task only had\n   to make the field mean something. Both are expressible: species through\n   `player.tags`, territory once areas have tags (below).\n2. **Does fear move anyone** - yes, four ways, recorded as `threat:`. See above.\n3. **Eldenford road guard** - not used as a datapoint. He is a single authored\n   character in a different scenario; the test scenario here is authored\n   specifically to provoke a response, which is what acceptance asks for and is\n   reproducible without a 3-day soak.\n\n### A second dead branch, recorded not papered over\n\n`fear_sources` also looks for an **area**'s `tags`. `Area.__init__` has no tags\nparameter and `add_area` (`engine/movement.py:68`) writes only `description` and\n`environment`, so that branch can never fire either. Wiring it means adding a\n`tags` property to areas - a data-model change in `area.py`/`movement.py`, which\nis task-550's territory, not something to smuggle in here. Recorded with a test\nthat asserts the current state so it cannot drift unnoticed.\n\n### The remaining half is data, and it is not mine\n\n`data/scenarios/kraktooth_goblin_camp.json` has `\"fear_tags\": []` on **all 28\ncharacters**, including the five humans. With the pass in place the mechanism is\nready and the table would still read zero - because nobody has authored a single\nfear. That file is task-408's (WT-A), so it is handed over rather than edited.\n\n### Handed to WT-0 / WT-A\n\n- **WT-A (task-408, the goblin camp)**: give the five humans\n  `fear_tags: [\"goblin\"]`. The `goblin` tag is already on every goblin. That one\n  edit is what turns this task's calibration table from a test fixture into a\n  measured soak, and it needs no code change.\n- **Nobody (parked, task-550)**: area `tags`, which would make the area branch of\n  `fear_sources` live and give territory something to be afraid of.\n- **WT-0**: nothing. No hub file was touched.\n\n### Verify\n\n`python -m pytest tests/test_fear_threat_response.py -q` - 21 tests. And\n`python -m pytest tests/ -q -k \"fear or threat or background\"` - 160 tests.\n\nThe new file covers both halves: a shipped-style `player.tags` entry is enough to\nregister a fear source; the character node really is bare (the bug, pinned); trait\nkeys still count; a character with no `fear_tags` is never frightened; **a goblin\nis not afraid of goblins**, which is what lets a camp exist; someone in another\narea is not a source; and areas cannot be a source yet. On the pass: a fear\nrecords a `threat:` action with a line, a memory, the `frightened` condition\ncarrying its source, a Social cost, an `afraid` spike and a closeness cost; every\nreaction has a line; the draw is deterministic; five characters do not flee in\nlockstep; the same flight is not logged on consecutive ticks; **a goblin camp of\ngoblins produces nothing**, which is the honest result; and fear pre-empts\nsociability toward the source but not toward anyone else.",
+      "calibration_data_for_task_484": "The table task-484 was waiting for, now that fears actually exist:\n\n| observation | value | where it comes from |\n|---|---|---|\n| fear source | any co-present character whose tags intersect `fear_tags` | `engine/fear.py fear_sources` |\n| condition | `frightened`, source-gated, 30 game minutes by default | `FEAR_DURATION_MINUTES` |\n| trigger | co-presence in one area - there is no distance or line-of-sight model | `fear_sources_for_character` |\n| re-log gap | 45 game minutes per character | `FEAR_COOLDOWN_MINUTES` |\n| Social cost | −2 to −6 by reaction | `FEAR_COSTS` |\n| `afraid` spike | +6 to +11 on the affect map | `FEAR_COSTS` |\n| closeness toward source | −1 to −5 by reaction | `FEAR_RELATIONSHIP` |\n| reaction mix | flee 3.0 (+2 cowardly), hide 2.0 (+1 loner), freeze 1.5, shout 1.0 (+1.5 hostile) | `choose_fear_reaction` |\n| resolution | deterministic from (character, source, tick) | `random.Random` seeded per draw |\n\nWhat this does **not** give 484: a frequency. The rates above are hand-chosen\nweights, not measurements, and the only way to get a measured frequency is to\nre-run the Kraktooth soak once the humans carry `fear_tags` - which needs\nWT-A's task-408 first. 484 should stay blocked on that, or be closed as\nnot-yet-earned, and this table is what makes either call an evidence-based one\nrather than a date-based one."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

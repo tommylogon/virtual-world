@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-96",
+  "kind": "task",
+  "number": 96,
+  "title": "🧠 Emotional Residue + Inter-Character Memory Planting - Dev Task",
+  "status": "done",
+  "priority": "medium",
+  "area": "emotions",
+  "tags": [],
+  "created": "2026-07-22",
+  "updated": "2026-07-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_to_expect_on_your_next_run": "**Event stream: nothing new in format** - no new log lines. The fingerprints are\nin content:\n- **Exports / prompt echoes**: a `Mood:` line appears in YOUR STATE once affect\n  deviates from baseline (\"Mood: You are terrified - your heart hammers…\"). Near\n  baseline = absent, so early turns may show nothing.\n- **LLM JSON** (visible via Show LLM Logs or export echoes): decide/react responses\n  now include `\"emotion\":{\"label\":\"afraid\",\"intensity\":6}`.\n- **Behavior**: after a nasty event, the mood line persists and colors the next few\n  turns, decaying per tick (`emotion.decay_per_tick`, tunable in Engine Config →\n  emotion section). When an emotional memory later resurfaces in I REMEMBER, the\n  character re-feels it - watch for reactions that seem to come \"out of nowhere\";\n  check what memory just got recalled.\n\n**Taco Bell example**: Miki reacts badly mid-date → `afraid` spikes → her Mood line\nturns tense for several turns even though nothing new happened. Later, semantic\nrecall surfaces the under-booth memory carrying its fear tag → re-spike without any\nnew trigger.\n\n**Tuning**: all three knobs live in Engine Config (`emotion.decay_per_tick`,\n`emotion.llm_spike_max`, `emotion.recall_spike_scale`). If moods are flat, lower\ndecay; if melodramatic, raise decay or drop llm_spike_max.\n\n---",
+      "new_design_2026_08_23": "### Emotion model - `engine/emotion.py`\n\nPer-character affect map of numeric dimensions (NOT the old single-slot\n`player.emotion`), inspired by `F:\\AI\\Aura\\Diary`'s six stats + range→phrase\nrendering, adapted to VirtualWorld:\n\n- Dimensions: `happy, sad, afraid, angry, envious` (+`affectionate`, `disgusted`\n  as stretch). Each 0–100, default neutral baseline (50 for happy/affectionate,\n  ~10 for negative ones? - decide in implementation; Diary uses 0–100 with\n  descriptive bands).\n- `EmotionManager.set_spike(char, emotion, delta, source)` - clamp 0..100.\n- Per-tick decay toward baseline in `tick_turn()` (Diary decays per day; we're\n  tick-driven - decay rate via `runtime_config` per task-304 rule).\n- Serialization on the player so state survives save/load.\n- Prompt rendering: `format_emotional_state()` style band phrases (\"afraid:\n  dreading what's around the corner\") into `=== YOUR STATE ===`, replacing the\n  current single-emotion line.\n\n### Three input paths (the round trip)\n\n1. **Right now**: react-phase LLM declares a felt emotion each turn (add\n   `emotion: {label, intensity}` field to think-decide/react output schema,\n   prompt-builder) → spike. Witnessed events with emotional content (combat,\n   gifts, threats) can add secondary spikes via emote tagging (original Layer 1).\n2. **Remembered** (ties to task-91): memory entries gain an `emotion` tag at\n   creation (\"I remember feeling afraid\"). When semantic recall surfaces a\n   memory in `=== I REMEMBER ===`, apply a FRACTION of its original impact as a\n   spike - remembering being betrayed makes you angry again. This only becomes\n   powerful once task-91 embeddings are live (recall by meaning, not keyword).\n3. **Inter-character planting** (original Layer 3 survives): targeted emotes\n   plant perspective memories on recipients (`\"Lyrie smiled warmly at you\"`),\n   which then carry their own emotion tags and re-spike via path 2.\n\n### Output paths\n\n- YOUR STATE phrase line every turn (mood colors all decisions).\n- Closeness system stays separate (task-94 gates); a future pass may let\n  sustained emotions nudge relationship drift - explicitly out of scope here.\n\n### Files likely touched\n\n- `engine/emotion.py` (new), `engine/tick_manager.py` (decay hook),\n  `player.py` (serialization), `virtual_world_engine.py` (manager wiring)\n- `static/js/agent/prompt-builder/character-state.js` (YOUR STATE block),\n  `action-normalizer.js`/agent-engine (parse `emotion` field)\n- `prompt-builder/memory-context.js` (re-spike on recall)\n- `routes/action.py` or settings route exposing `/api/emotion/<name>`\n- Tests: `tests/test_emotion.py` (decay math, clamping, serialization,\n  recall-respike, planting)\n\n### Explicit non-goals\n\n- No event-table/d20 choice machinery from Diary (agents act freely).\n- No Neo4j - player fields suffice.\n- No UI beyond inspector display of current emotions (optional).\n\n---",
+      "original_3_layer_plan_superseded_kept_for_reference": "### Layer 1: Emote Intensity Tagging\n\nThe narration LLM already generates emote descriptions. Add `emotion` + `intensity` to its response.\n\n### Layer 2: Emotion Decay Tracker\n\nNatural fade of emotional state over game ticks. No prompt changes needed - `buildEmotionContext` already injects `player.emotion.description`.\n\n### Layer 3: Inter-Character Memory Planting\n\nWhen an emote targets specific characters, plant a copy in their memory too.\n\n(Original detailed checklists removed 2026-08-23 - see git history if needed.)"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/emotions/task-96-emotional_residue_intercharacter_memory.md"
+  }
+}

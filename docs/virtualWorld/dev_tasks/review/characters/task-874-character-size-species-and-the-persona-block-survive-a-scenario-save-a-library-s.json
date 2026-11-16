@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-874",
+  "kind": "task",
+  "number": 874,
+  "title": "Character size, species and the Persona block survive a scenario save, a library save and a library import",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-18",
+  "updated": "2026-10-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-843",
+      "task-733",
+      "task-830"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A character's `size` (task-605), its `species` (task-549) and its Persona block (the node property `properties.appearance`, `engine/character_appearance.RECORD_KEY`) survive a scenario save/load, a save to the library, and a library import.\n\nThree separate loss paths, measured:\n\n1. **Scenario save/load drops `size`.** `_serialize_player` writes `\"size\"` (`engine/serialization.py:154`) and `to_scenario_dict` does not strip it, so the key is in the file - but `_deserialize_player` (`engine/serialization.py:373`) never read it. `p.size` stayed `None`, so a tier set from the graph editor was gone on the next load.\n2. **Save to Library drops `size`, `species` and the Persona block.** `_buildCharacterCard` (`static/js/inspector/agent-view.ts:2178`) builds the card from a fixed key list; none of the three was in it.\n3. **Library import drops `size`, `species` and the Persona block.** `handle_library_import_character` (`routes/library_ops.py:879`) set stats, vitals, skills, traits, tags, personality and prose, and copied `image` / `profile_image` / `expressions` onto the node - but never read `size` or `species`, and never wrote `appearance`.\n\nMeasured, not assumed: `\"size\"` appears in 68 files and `\"species\"` in 35 under `data/library/characters/`, so the library already carries both; `\"appearance\"` appears in none, so the Persona block had never round-tripped through the library. `species` is the same one-line defect as `size` in the same import function, so it is fixed here rather than left as a knowingly half-fixed round trip.",
+    "why": "`size` is a first-class character property (task-605), not a `size_*` trait, and it has two live readers (way `max_size` gating and per-area occupancy, task-653). A property with readers that silently resets to `None` on load is worse than an unset one: the authored world and the loaded world disagree and nothing says so. `species` gates services (task-549) on the same terms. The Persona block is the structured source of truth for appearance (task-507/828), and `task-830`'s Compile renders prose *from* it - so a library round-trip that drops it silently reverts the character to whatever prose was last compiled, with the structured record gone.",
+    "how": "Four small, source-of-truth-preserving changes. No new store, no new shape.\n\n1. `engine/serialization.py::_deserialize_player`: read `size` next to `species` (`:392`), normalising to a valid tier or `None`. `None` must survive as `None`, because that is what lets an un-authored character fall through to its `size_*` trait (`engine/size.py:20-37`). A value outside `SIZE_TIERS` (a hand-edited or legacy save) becomes `None`.\n2. `static/js/inspector/agent-view.ts::_buildCharacterCard`: add `size: player.size ?? null`, `species: player.species || null` and `appearance: charProps.appearance || {}` (the same `charProps` it already reads `image` from).\n3. `routes/library_ops.py::handle_library_import_character`: set `player.size` (validated against `SIZE_TIERS` like `routes/player_ops.py:620-632`) and `player.species`, and write `cdata.get('appearance')` onto the character node's `properties` alongside `image`/`profile_image`/`expressions`.",
+    "verify": "1. `python -m pytest tests/test_serialization.py tests/test_library_character_import.py`\n   - expected: the deserialize/import round-trip keeps `size`/`species`/`appearance`, and an absent size stays `None`.\n   - observed: 26 passed (5 new: 3 scenario round-trip, 2 library import), 2026-10-18.\n2. Live front end: `InspectorAgentView._buildCharacterCard(name)` in the running page.\n   - expected: the card carries `size`, `species` and `appearance`.\n   - observed: `Arix` -> `size: null` (un-authored, correct), `species` key present, `appearance` populated, 2026-10-18.\n3. `python tools/ts_convert.py check` (the front end changed).\n   - expected: build + typecheck + lint clean.\n   - observed: typecheck ok, lint ok, header survival ok, window guards ok; the 4 `unit` failures and the `module:check` failure are byte-identical on a clean `HEAD` worktree (A/B, 736 passed / 4 failed both ways), so they are pre-existing debt, not this change.\n4. Live click-through (Save to Library -> import; scenario save/load).\n   - expected: both survive.\n   - observed: pending live browser click-through; the API-level round trip is proven by step 1.",
+    "acceptance": [
+      {
+        "text": "`_deserialize_player` reads `size`; a valid tier round-trips, `None` stays `None`, an unknown value becomes `None`.",
+        "done": true
+      },
+      {
+        "text": "`_buildCharacterCard` includes `size`, `species` and `appearance`.",
+        "done": true
+      },
+      {
+        "text": "`handle_library_import_character` sets `player.size` / `player.species` and writes `appearance` onto the node.",
+        "done": true
+      },
+      {
+        "text": "Targeted tests prove the mechanism (which value was read, which node key was written).",
+        "done": true
+      },
+      {
+        "text": "Live: a size + Persona field survive save-to-library, import, and scenario save/load by clicking in the browser.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/serialization.py",
+      "static/js/inspector/agent-view.ts",
+      "static/js/inspector/agent-view.js",
+      "routes/library_ops.py",
+      "tests/test_serialization.py",
+      "tests/test_library_character_import.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: the graph editor character form's size selector (writes `player.size` via `PATCH /api/players/<name>`) and the Mind panel Persona tab (writes `properties.appearance`, task-830).\n\nCurrent availability: implemented 2026-10-18. Regression tests in `tests/test_serialization.py` and `tests/test_library_character_import.py` exercise the real routes and the real serializer. Live front end: the running server (`localhost:4444`) serves this worktree, and `InspectorAgentView._buildCharacterCard('Arix')` returns `size`, `species` and a populated `appearance` (`{identity: {age, gender, occupation, pronouns, sexuality, species}}`) - `appearance` was absent from the card before the change (live-checked 2026-10-18). The Python half needs a process restart to be live in a running server; the tests cover it.\n\nLive steps when available:\n\n1. Open the graph editor for a character, set size to `huge`, open the Persona tab and fill at least one structured field.\n   - expected: size and the block are visible in the inspector.\n2. Save to Library, then delete the character and import it back from the library.\n   - expected: `size` is `huge`, `species` is set and the Persona fields are still populated.\n3. Save the scenario, reload it.\n   - expected: `size` is `huge` (path 1).\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-874-character-size-species-and-the-persona-block-survive-a-scenario-save-a-library-save-and-a-library-import.md"
+  }
+}

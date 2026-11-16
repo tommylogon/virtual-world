@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-3",
+  "kind": "task",
+  "number": 3,
+  "title": "Equipment & Layering System",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-15 (updated 2026-07-30)",
+  "updated": "2026-07-15 (updated 2026-07-30)",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A slot-based equipment system where items are worn in layered stacks on body slots. Orders of wearing determines what's visible vs concealed, and the LLM narrates the result in plain English rather than exposing slot/layer metadata. Two-handed items occupy both hand slots. Container items (backpacks, pouches, pockets) hold other items inside them.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_implemented_2026_07_21": "### Engine - Complete\n\n- `player.py` - `equipped` dict with 12 slots (head, neck, torso, arms, hands, legs, feet, back, waist, accessory, hand_left, hand_right). Each slot holds a stack (list of item node IDs). Added `base_description` field for baseline appearance.\n- `virtual_world_engine.py` - `equip_item()`, `unequip_item()`, `get_visible_equipment()`, `get_full_equipment()`, `get_equipment_narrative()`. Two-handed item support with marker system. Drop auto-unequips. `get_item_desc()` now handles examining other characters (shows base_description + visible equipment).\n- `app.py` - commands `wear`/`equip`, `remove`/`unequip`, `undress`, `strip`. Inventory command shows [WORN] items. Player update endpoint accepts `base_description`.\n- Item editor: `equip_slots` (multiselect) in both item library and item inspector. `build_item_from_library` transfers `equip_slots`.\n- LLM prompts and prompt-docs.js updated with equipment fields.\n\n### Frontend - Done\n\n- ✅ Paperdoll view with 12 body slots, tooltips, click-to-inspect, equip/unequip buttons\n- ✅ Grid inventory with icons, weight badges, click-to-inspect, drop/equip buttons, add-item picker\n- ✅ \"Generate from Equipment\" button (LLM-powered with code fallback)\n- ✅ `POST /api/players/<name>/generate-description` endpoint\n\n### Equipment Bonuses (2026-07-27)\n\n- ✅ `engine/equipment_bonuses.py` - Tag-to-bonus aggregation module:\n  - `defense` from `armor`/`clothing`-tagged items\n  - `damage` from `weapon`-tagged items\n  - `insulation` - temperature shift (sum of all equipped, shifts effective temp ±N°C)\n  - `resistances` - tag-based: `fire_resistant`, `cold_resistant`, `toxic_resistant`, `magic_resistant`, `vacuum_sealed`\n  - Custom `resistances` dict on items overrides tag defaults\n- ✅ `tick_manager.py` - Effective temperature from `insulation` used for environmental checks and core temp drift; toxic air reduced by `toxic_resistant`\n- ✅ `combat.py` - Target defense subtracted from weapon damage\n- ✅ Library items updated: cleaver (weapon+damage), heavy_fur_lined_coat (defense+insulation+cold_resistant), boots (defense), EVA suit (armor+defense+insulation+vacuum_sealed)\n- ✅ Equipment & Paperdoll, Combat System, Temperature System docs updated\n\n### Fixes applied (2026-07-30)\n\n- Fixed `CONDITION_HIERARCHY` naming mismatch: `\"asleep\"` → `\"sleeping\"` in `player.py` so `player.state` returns `\"sleeping\"` matching all engine checks\n- Updated `test_unequip_empty_slot_raises_error` regex to match current error message `\"Nothing equipped in your {slot}\"`",
+      "equipment_slots": "Each slot holds a **stack** of items. Stack order IS the layering - items worn first are closer to the skin, items worn later go on top.\n\n| Slot | Max Stack | Examples |\n|------|-----------|---------|\n| `head` | 3 | Hat over bandana over circlet |\n| `neck` | 2 | Scarf over necklace |\n| `torso` | 5 | Bra → shirt → chainmail → jacket → cloak |\n| `arms` | 2 | Bracers over sleeves |\n| `hands` | 2 | Rings under gloves |\n| `legs` | 4 | Panties → pants → greaves |\n| `feet` | 3 | Socks → boots |\n| `back` | 2 | Backpack over cloak |\n| `waist` | 2 | Belt over sash |\n| `accessory` | unlimited | Rings, earrings, piercings, watches |\n| `hand_left` | 1 | Held items (sword, torch, shield) |\n| `hand_right` | 1 | Held items |",
+      "item_properties_for_equipment": "Items declare equipment compatibility. Boolean properties (`two_handed`, `container`) are replaced by tags:\n\n```json\n{\n  \"name\": \"Chainmail\",\n  \"equip_slots\": [\"torso\"],\n  \"tags\": [\"armor\"],\n  \"capacity_kg\": 0\n}\n```\n\n```json\n{\n  \"name\": \"Greatsword\",\n  \"equip_slots\": [\"hand_left\", \"hand_right\"],\n  \"tags\": [\"two_handed\", \"weapon\", \"metal\"]\n}\n```\n\n```json\n{\n  \"name\": \"Backpack\",\n  \"equip_slots\": [\"back\"],\n  \"tags\": [\"container\", \"leather\"],\n  \"capacity_kg\": 20\n}\n```\n\n- `equip_slots` - which slots the item can be worn on (e.g. full plate could be `[\"torso\", \"arms\", \"legs\"]`)\n- `tags` - includes `\"two_handed\"` for two-handed items, `\"container\"` for containers\n- `capacity_kg` - weight limit for contained items",
+      "tag_based_properties_2026_07_25": "Boolean properties `two_handed` and `container` have been removed from all code paths:\n\n- Engine reads `\"two_handed\" in tags` instead of `item_node.properties.get(\"two_handed\", False)`\n- Frontend no longer renders `two_handed` checkbox or `container` checkbox\n- Library editor converts any remaining legacy booleans to tags on display\n- AI generation prompts instruct LLM to use `\"two_handed\"` and `\"container\"` as tags\n- `build_item_from_library` and `build_item_legacy` routes use tag-based checks",
+      "multi_slot_occupation_2026_07_25": "Items can occupy multiple body slots simultaneously (scuba suit covering torso+arms+legs, dress covering torso+legs, coat covering torso+arms+legs):\n\n- Generalized marker system extends two-handed pattern: `__multi_{item_id}_{slot}`\n- Equipping an item with `equip_slots: [\"torso\", \"arms\", \"legs\"]` fills all three slots\n- Unequipping from any slot clears all linked slots\n- Stack depth limits checked per-slot",
+      "engine_methods": "### Data model (player.py)\n\n```python\nself.equipped: dict[str, list[str]] = {}  \n# {\"torso\": [\"item_bra\", \"item_shirt\", \"item_chainmail\"], \"legs\": [\"item_panties\", \"item_pants\"]}\n```\n\nItem at index 0 = closest to skin. Last item = outermost.\n\n### Core methods (virtual_world_engine.py)\n\n- `equip_item(player, item_name, under=None)` - adds item to auto-detected slot. If `under` is specified (e.g. \"under jacket\"), inserts below that item in the stack. Auto-detects slot from item's `equip_slots`. If multiple slots possible, fills all.\n- `unequip_item(player, slot=None, item_name=None)` - removes item from stack. For multi-slot items, removes from all occupied slots.\n- `get_visible_equipment(player)` → returns outermost items per slot (what others see at a glance).\n- `get_full_equipment(player)` → returns all stacks (for own knowledge, search, intimacy).\n- `get_equipment_narrative(player, viewer)` → plain English description.\n\n### Commands\n\n- `wear chainmail` - equip to auto-detected slot\n- `wear chainmail under shirt` - equip with specific ordering\n- `remove chainmail` - unequip by item name\n- `remove from torso` - unequip top item from a slot\n- `undress` - remove outermost layer from each slot\n- `strip` - remove all equipment\n- `inventory` - show equipped items (marked with [WORN]) and carried items\n- `put key in backpack` - move item into a container item's contents\n- `take key from backpack` - retrieve item from container\n\n### Triggers\n\n- `on_equip` / `on_unequip` - already exist in TRIGGER_TYPES. Fire when items are worn/removed.\n- Items can have `on_equip` triggers for magical effects, stat adjustments, narrative messages.",
+      "create_item_modal_2026_07_25": "The create-item modal (`static/js/ui/create-modal.js`) now includes:\n- `equip_slots` multiselect with all 12 slot options\n- `_collectFormData()` returns `equip_slots` array\n- `generateWithAI('item')` populates `equip_slots` from AI response\n- `build_item_legacy` route accepts and stores `equip_slots`",
+      "edge_model_planned": "See `task-105-edge-refactor.md` for the edge type refactor:\n- `in` - item/character in room or container (replaces `location` + `contains`)\n- `carried` - item in character inventory (replaces `carried_by`)\n- `equipped` - item equipped on character (slot in edge properties)"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Equipment & Paperdoll]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-3-equipment_system.md"
+  }
+}

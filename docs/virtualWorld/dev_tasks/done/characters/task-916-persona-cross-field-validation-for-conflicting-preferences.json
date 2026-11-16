@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-916",
+  "kind": "task",
+  "number": 916,
+  "title": "Persona cross-field validation for conflicting preferences",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-903"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add cross-field contradiction checks in `engine/character_appearance.py` that identify mutually exclusive items in character preferences:\n- Overlap between `likes` and `dislikes`\n- Overlap between `turn_ons` and `turn_offs`\n- Overlap between `fears` and `kinks` (unless explicitly flagged as a fearplay trope)",
+    "why": "Characters authoring identical tags in both positive and negative preference arrays create erratic affect and dialogue generation where the LLM tries to simultaneously approach and avoid the same stimulus.",
+    "how": "- Add `validate_persona_conflicts(persona_dict: dict) -> list[str]` in `engine/character_appearance.py`.\n- Surface non-blocking warnings in the Persona inspector tab and compile preview modal.\n- Add unit tests verifying conflict detection and warning outputs.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Overlapping tags across polar pairs (`likes`/`dislikes`, `turn_ons`/`turn_offs`) emit validation warnings.",
+        "done": true
+      },
+      {
+        "text": "Conflicts are non-blocking in authoring but visible in the Persona UI.",
+        "done": true
+      },
+      {
+        "text": "Unit tests cover detection of conflicting tag entries.",
+        "done": true
+      }
+    ],
+    "files": [],
+    "custom": {
+      "verification": "- Completed and verified 2026-10-31.\n- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.\n- TS build green and zero em-dashes."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona|Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-916-persona-cross-field-validation-for-conflicting-preferences.md"
+  }
+}

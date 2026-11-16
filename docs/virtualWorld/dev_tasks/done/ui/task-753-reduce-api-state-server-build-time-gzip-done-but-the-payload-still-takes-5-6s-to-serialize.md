@@ -17,12 +17,12 @@ priority: high
 **0.49 MB**:
 
 - gzip added in `app.py` `after_request` (API JSON, when the client accepts it).
-- `handle_get_state` drops `rooms` (an exact duplicate of `areas` — `serialization.py`
+- `handle_get_state` drops `rooms` (an exact duplicate of `areas` - `serialization.py`
   emits the same dict under both keys) and `areas_by_id` (no HTTP consumer; the
   browser reads `worldState.areas`). `to_dict` is unchanged, so
   `tests/test_area_identity.py` still sees `areas_by_id`.
 
-What remains is **server build time (~5–6 s)**, which gzip does not address — it is
+What remains is **server build time (~5–6 s)**, which gzip does not address - it is
 Python assembling and encoding the payload. Dominant contributors measured:
 
 - `graph` ~3.2 MB / 2739 nodes / 6285 edges (`graph.to_dict()`).
@@ -47,10 +47,10 @@ outstanding), but the build time is the root cause.
 
 Added a **revision-keyed response cache** for `/api/state`:
 
-- `app.py` — `app._state_revision` is bumped on every mutating `/api/` call
+- `app.py` - `app._state_revision` is bumped on every mutating `/api/` call
   (POST/PUT/PATCH/DELETE, including `/api/soak`, which advances the world);
   `app._state_cache` holds the assembled JSON per variant (`std` / `lite` / `+full`).
-- `routes/action_handlers.py handle_get_state` — returns the cached bytes when the
+- `routes/action_handlers.py handle_get_state` - returns the cached bytes when the
   revision is unchanged; otherwise assembles, caches, and returns. The cache is
   disabled under `TESTING` so a test that mutates the world directly cannot read
   stale bytes.

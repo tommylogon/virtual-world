@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -44,9 +44,9 @@ Generic illness. Hunger and thirst worsen over time. The canonical hidden (`know
 - **Saves/checks**: none.
 - **Combat**: neutral.
 - **Movement**: full speed.
-- **Periodic**: `Hunger -2`, `Thirst -2` per tick (summed across instances — multiple sick exposures stack drains).
-- **Lifecycle**: `stack: "accumulate"` — re-exposure appends a new instance (drains sum). `default_duration: 8`. Ends on `duration` (each instance ticks out) or `cure`.
-- **Hidden/unknown**: `known: False` — the agent only ever sees `symptoms`, never the raw `sick` id.
+- **Periodic**: `Hunger -2`, `Thirst -2` per tick (summed across instances - multiple sick exposures stack drains).
+- **Lifecycle**: `stack: "accumulate"` - re-exposure appends a new instance (drains sum). `default_duration: 8`. Ends on `duration` (each instance ticks out) or `cure`.
+- **Hidden/unknown**: `known: False` - the agent only ever sees `symptoms`, never the raw `sick` id.
 
 ## Perception
 
@@ -54,8 +54,8 @@ Generic illness. Hunger and thirst worsen over time. The canonical hidden (`know
 
 ## Integration points
 
-- `player.py:135-149` — catalog entry.
-- `engine/conditions.py` — `effective_symptoms`, `symptom_for`, `perceived_conditions`, `process_tick` (level/symptom resolution).
+- `player.py:135-149` - catalog entry.
+- `engine/conditions.py` - `effective_symptoms`, `symptom_for`, `perceived_conditions`, `process_tick` (level/symptom resolution).
 - Disease/contagion authoring (`Conditions System.md` §Diseases & Contagion): carrier items + `apply_condition sick` via `on_tick`/`on_examine`.
 - Cure: `bitterweed_tonic` → `remove_condition sick`.
 
@@ -68,8 +68,8 @@ Generic illness. Hunger and thirst worsen over time. The canonical hidden (`know
 
 ## Open questions / things to work out
 
-- Should specific diseases (flu, food poisoning) be separate conditions or instances/`source`-variants of generic `sick`? (Catalog stays small — prefer param via source/level.)
-- Relationship to task-190's `hypothermia` — sickness-family reuse vs. separate condition.
+- Should specific diseases (flu, food poisoning) be separate conditions or instances/`source`-variants of generic `sick`? (Catalog stays small - prefer param via source/level.)
+- Relationship to task-190's `hypothermia` - sickness-family reuse vs. separate condition.
 
 ## Why
 

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-411",
+  "kind": "task",
+  "number": 411,
+  "title": "Attention budget and fidelity tiers",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-19",
+  "updated": "2026-09-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- **Anchors:** the focused character, the human player, pinned locations/items.\n- **Radius:** graph-hop distance from anchors; within X rooms counts as attended.\n- **Cap:** global maximum on attended characters, with deterministic eviction.\n- **Hysteresis:** no flapping on a boundary; promote on approach and on\n  trajectory for roamers.\n- Multiple spread-out humans each get a set; the shared cap is the knob.",
+    "verify": "- Unit: cap enforcement, eviction determinism, hysteresis, serialization.\n- A populated fixture (e.g. 200 characters) proving the set stays bounded.",
+    "acceptance": [
+      {
+        "text": "Attended-set size stays ≤ cap regardless of population (fixture test).",
+        "done": false
+      },
+      {
+        "text": "Two humans far apart each get a set; total ≤ cap and deterministic for a",
+        "done": false
+      },
+      {
+        "text": "fixed state.",
+        "done": false
+      },
+      {
+        "text": "No flapping across a boundary (hysteresis test).",
+        "done": false
+      },
+      {
+        "text": "Attended set and anchors survive save/load.",
+        "done": false
+      },
+      {
+        "text": "Promotion here feeds task-412's catch-up handoff, not a second state model.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "where_this_sits_not_the_timeskip_simulator": "Three separate things, easy to conflate:\n\n- **task-411 (this) = the selector.** Decides *who* is attended (full fidelity)\n  vs backgrounded, from player/editor focus + anchors + radius + cap. It does\n  not simulate anyone.\n- **task-399 / task-409 = the non-focus runner.** The deterministic\n  supercharged-simple-NPC sim that actually lives out time for everyone *outside*\n  the attended set.\n- **task-414 = time advance (\"timeskip\").** Running many ticks in a batch.\n\nStatus changes (focus moves) are the promote/demote seam: 411 names the set,\n412 does the handoff, 399/409 carries the off-screen time.",
+      "concrete_shape": "```json\n{\n  \"cap\": 8,\n  \"radius_hops\": 2,\n  \"hysteresis\": {\"enter\": 2, \"exit\": 3},\n  \"anchors\": [\n    {\"kind\": \"character\", \"id\": \"player_gribba\"},\n    {\"kind\": \"human\", \"id\": \"player_human\"},\n    {\"kind\": \"item\", \"id\": \"item_water_skin\"}\n  ],\n  \"attended\": [\"player_gribba\", \"player_human\", \"player_krikka\"]\n}\n```\n\n**Selection algorithm** (uses task-407 indexes, no full scan):\n\n1. Multi-source BFS from anchors over exits, bounded to `max(enter, exit)` hops.\n2. Candidate priority (high → low): anchor, human, pinned, then proximity by\n   hop, then recency of last foreground tick, then id.\n3. Fill to `cap` in priority order.\n4. Hysteresis: a character already attended is kept while within `exit` hops;\n   a new character enters only within `enter` hops.\n5. Evict the lowest priority when over cap; ties broken by id for determinism.\n\nProposed defaults (configurable): `cap 8`, `enter 2`, `exit 3`.\n\n**Worked example.** 23 goblins, cap 8, a human at `Chief's Pit`, following\nGribba. BFS radius 2 from those two anchors reaches ~7 characters → all\nattended, everyone else backgrounded. Move the human to `Blackmarsh`: Gribba\nstays attended (anchor), the old pit neighbours cross the `exit` radius and\ndemote, Blackmarsh neighbours enter. Two humans far apart each get a radius but\nshare the cap, so the nearest/high-priority win and the rest stay background.",
+      "changes": "1. Compute the attended set over the graph without a per-tick full scan (reuse\n   task-407 indexes).\n2. Promote on approach/trajectory; demote on distance with hysteresis.\n3. Deterministic eviction ordering; anchors serialized.\n4. Feed the attended set into the tick loop so only attended characters run the\n   foreground policy; everyone else stays background (task-399).",
+      "non_goals": "- Physical chunk unloading / cross-chunk simulation (task-401).\n- Changing per-character decision rules.\n- Simulating or advancing time (that is 399/409 and 414).",
+      "progress_2026_09_28_in_review": "### This task and task-418 are one piece of work, and 411 is the half 418 delegates to\n\n411 is amended twice: its own amendment retires `radius_hops` / `hysteresis` and\nsays attendance derives from awareness channels, then task-418 (filed later,\n`high`, still `todo`) is declared authoritative for the selection and specifies\nthe `AwarenessChannel` seam. 411's hand-off target, task-412, is **cancelled**.\n\nSo the two tasks describe the same module. Rather than build 411 against a spec\n418 is about to replace - the churn the amendment explicitly warns about - 411 is\nbuilt as the half 418 delegates to:\n\n- **418 supplies the channels.** `AwarenessChannel` is the seam it specifies, and\n  `SoundChannel` is its one headline channel.\n- **411 supplies the budget**: the cap, the ordering, the eviction, hysteresis as\n  a channel threshold, and the save/load state.\n\n`tests/test_attention.py` includes a second channel implementation (`_RopeChannel`,\nstanding in for a future `comms`) precisely so the seam is proven to work without\ncomms, magic or sight existing - 418's own acceptance line.\n\n**Recommendation, not mine to make: 411 and 418 should be closed into one task.**\nShipping both as written would duplicate `engine/attention.py`. Posted to the\nboard.\n\n### `radius_hops` is gone, and so is hop hysteresis\n\nThe selection takes no radius parameter and holds no hop-shaped state; a test\nasserts neither the class source nor its instance state contains one, and that the\nserialised form does either. Hysteresis moved onto the **channel threshold** the\namendment asked for: entering needs strength ≥ `aware_threshold`, staying needs\n≥ `aware_threshold - ENTER_MARGIN`. A character balanced on the boundary is\npromoted once and then kept, so a door swinging in the draught cannot make the set\nchurn. The asymmetry is one-way and tested both ways - a newcomer below the floor\ndoes not sneak in when somebody else leaves.\n\n### Three decisions the tests forced, none of which were free\n\n**Awareness orders, the cap decides - awareness does not filter.** This is the\none a reader assumes the opposite of, so it is stated in the module and pinned by\n`test_awareness_orders_rather_than_filters`. A character behind a locked door is\nranked below everybody the door cannot separate them from; they end up backgrounded\nwhen the cap is full, which is the case a budget exists for. Making awareness\n*exclude* would make attention grow and shrink with world topology rather than\nwith the cap, and would leave a quiet afternoon attended by nobody at all. Every\n\"is not attended\" fixture is therefore deliberately oversubscribed.\n\n**The threshold sits where the door states separate.** With strength\n`1/(1 + cumulative_barrier)`:\n\n| route | cost | strength | aware (≥ 0.55)? |\n|---|---|---|---|\n| the same room | 0 | 1.00 | yes |\n| one open door | 0.5 | 0.67 | yes |\n| one window | 0.75 | 0.57 | yes, faintly |\n| one closed / locked / blocked door | 1.0 | 0.50 | **no** |\n| one hidden panel | 2.0 | 0.33 | no |\n| two open doors | 1.0 | 0.50 | no |\n\nThe last two rows are the same number and that is not a defect: two open doors\nreally do attenuate exactly as much as one closed door. A cost-based channel\ncannot tell them apart, and pretending otherwise would mean the threshold was not\nmeasuring what it says. `1/(1+cost)` was chosen over `remaining/penetration`\nbecause the latter puts the threshold at a different place for every penetration\nvalue, making it a knob whose *meaning* moves when somebody turns it.\n\n**Sound takes the strongest route, and that is a stated choice.** task-418 warned\nnot to depend on bug-30 being fixed. It was (2026-09-22, `propagate_sound` is a\nleast-cost Dijkstra walk), so the dependence is real and satisfied rather than\nassumed. The consequence is tested: a locked door only demotes somebody when\n**no** quiet alternate reaches them - shut the door but leave a window, and they\nstay aware; shut both and they go.\n\n### What the model reads, and what it does not\n\n`select()` takes the roster as an argument (`{id: {area_id, recency}}`) rather\nthan reading a global, so the selection is a pure function of its arguments and\ntestable with no engine running. Awareness is **seeded from the anchors' and the\nalready-attended characters' areas**, not from every area in the world - probing\nall 200 would be 200 graph walks to answer a question about a handful of rooms,\nwhich is the cost this task exists to bound. A 200-character star fixture proves\nthe set stays at the cap, and `channel_walks` is exposed so a test can assert the\ncache holds rather than inferring it from timing.\n\n**A live bug this task's own test caught.** `AttentionBudget._channel_signature`\ncalled `channel.signature()` without passing the graph, so `SoundChannel` fell\nback to its stateless short form and the cache key reduced to the graph revision\nalone - the exact task-421 trap, reproduced a second time because the same mistake\nis easy to make twice. A door closing would have served a stale aware set\nforever. Fixed, and the test asserts on the awareness *value* and the walk count\nrather than the attended set, precisely because a broken cache would still have\nproduced the right attended set when the cap had room.\n\n### Serialisation\n\n`to_state` carries the budget, the anchors, the humans, the pinned and the\nattended set - and `DERIVED_KEYS` names what must **never** be saved: awareness is\nderived from the graph and goes stale the moment a door moves, so a save that looks\nresumable while quietly disagreeing with its world is worse than one that clearly\nre-derives. `from_state` returns the inputs rather than mutating the budget, so\ntwo budgets with different caps can read the same save - a save is a fact about a\nworld, not about the reader's settings.\n\n### New tests - `tests/test_attention.py` (31)\n\nThe amended acceptance rather than the original: no hop parameter anywhere; the\ncap holding at every population from 0 to 200; byte-identical sets for a fixed\nstate; eviction invariant under a *reordered* roster (so a save/load that reorders\na dict cannot change the world); the anchor and the human surviving an\noversubscribed cap even when far away and maximally stale, and a stale anchor id\nignored rather than reserving a slot; the locked-door and window barriers;\nawareness ordering rather than filtering; the no-flap boundary in both directions;\npromotion and demotion reported so a caller can hand off; the cache holding across\n20 reselects; a single walk for a single anchor; a door close invalidating the\ncache with the revision pinned; a new area invalidating it; a second graph with the\nsame revision not serving the first's cache; the second-channel seam; the strongest\nchannel winning; an unimplemented channel refusing to be used; and the task's own\nworked example (23 goblins and a human, cap 8).\n\n### Not done here\n\nNothing calls `select()`. Feeding the attended set into the tick loop is\ntask-399/409 (WT-C) and the time advance is task-414 (WT-0) - both outside this\nlane, and 411's own non-goals say so. The module is a selector with no caller\nuntil one of those lands.",
+      "retraction_2026_10_12": "Retracted to `cancelled`. The model this card specifies (anchors + a hop/sound\nradius + a global `cap` of 8 + hysteresis, selecting an attended set) was\nrejected outright, and its implementation `engine/attention.py` (427 lines) and\n`tests/test_attention.py` were deleted in\n[[task-713-engine-attention-py-is-a-dead-second-implementation-of-the-attended-set-selector]].\nFidelity promotion is **scope-driven**\n([[task-710-scope-selection-drives-the-promoted-set-level-scoped-never-recursive]]):\nthe loaded scope *is* the boundary, so no cap is needed.\n\nNothing here is kept. `engine/awareness.py`, which carries the surviving cap and\neviction ordering, is task-418's artifact and is itself unwired (see that card)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-407 (graph indexes); conceptually on task-397 (scopes).",
+      "spec": "`docs/design/long-horizon-simulation-progress.md` §1;"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/world/task-411-attention-budget-and-fidelity-tiers.md"
+  }
+}

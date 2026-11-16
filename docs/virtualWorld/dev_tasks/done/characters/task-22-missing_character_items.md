@@ -9,11 +9,11 @@ priority: medium
 
 **Filed**: 2026-07-18
 **Priority**: Medium
-**Status**: Todo — verified still missing on 2026-08-03 (full data audit). Implementation is design work, owner: Tommy.
+**Status**: Todo - verified still missing on 2026-08-03 (full data audit). Implementation is design work, owner: Tommy.
 
 ## What
 
-Several characters in `data/scenarios/mansion.json` lack items they're supposed to have. Originally filed against the old players-section `inventory` array (which no longer exists — mansion.json is fully graph/edge-based now, so that data-integrity symptom is obsolete). The **missing item instances are still absent** from the graph edges.
+Several characters in `data/scenarios/mansion.json` lack items they're supposed to have. Originally filed against the old players-section `inventory` array (which no longer exists - mansion.json is fully graph/edge-based now, so that data-integrity symptom is obsolete). The **missing item instances are still absent** from the graph edges.
 
 ## Missing Items (re-verified 2026-08-03 in `data/scenarios/mansion.json`)
 
@@ -27,9 +27,9 @@ Evidence:
 - Carrying edges at mansion.json:4165-4218 confirm the "currently carries" lists above.
 - `item_phone` (mansion.json:4221) and `item_flashlight` (mansion.json:4239) are carried/equipped by **Jake Halloway only**.
 - No `item_phone_kayla` / `item_granola_bar_kayla` / `item_water_bottle_kyrie` / etc. nodes exist anywhere in `data/`.
-- Note: the same per-character fix pattern WAS applied to **different characters** in `mansion2.json` (`inv_Miki_phone`, Elena Vance's flashlight) — that scenario has no Kayla/Kyrie/Sammy. Likely source of "this was done" confusion.
+- Note: the same per-character fix pattern WAS applied to **different characters** in `mansion2.json` (`inv_Miki_phone`, Elena Vance's flashlight) - that scenario has no Kayla/Kyrie/Sammy. Likely source of "this was done" confusion.
 
-## Fix (design decision — up to owner)
+## Fix (design decision - up to owner)
 
 Two approaches:
 
@@ -40,7 +40,7 @@ Existing trigger nodes worth mirroring for food/water instances: `trigger_item_g
 
 ## Note
 
-The original "inventory array vs graph edges must be kept in sync" validation concern is moot now that mansion.json is fully edge-based — no array to drift. If per-character instances are created (Option A), consider a quick sanity check that no character's `carrying`+`equipped` edges are empty by design.
+The original "inventory array vs graph edges must be kept in sync" validation concern is moot now that mansion.json is fully edge-based - no array to drift. If per-character instances are created (Option A), consider a quick sanity check that no character's `carrying`+`equipped` edges are empty by design.
 
 ## Why
 

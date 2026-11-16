@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-722",
+  "kind": "task",
+  "number": 722,
+  "title": "Add breadcrumb navigation to inspector",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-06",
+  "updated": "2026-10-06",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add breadcrumb navigation to the inspector so when navigating from a parent node (e.g., character) to a child node (e.g., inventory item), there is an easy way to navigate back. Maintain an inspection history stack and display clickable breadcrumbs at the top of the inspector panel.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: inspector breadcrumb trail with clickable ancestors and a Back button.\n- observed (2026-10-10 live): #inspector-breadcrumb shows 'Back < acorn_meal > player_Arix > Animal Pens > Frost-Crusted Berry Bush'; every earlier stop is a clickable BUTTON, the current node an aria-current SPAN.",
+    "acceptance": [
+      {
+        "text": "breadcrumb trail at the top of the inspector (verified). - [x] earlier segments clickable (BUTTONs). - [x] history stack + Back button. - [x] trail grows on each navigation.",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "related_files": "- `static/js/inspector.js`: add breadcrumb UI, history stack, click handlers.\n- `templates/index.html`: add breadcrumb container markup above inspector content.\n- `static/js/world-state.js`: optionally share inspection history if reused elsewhere."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-722-add-breadcrumb-navigation-to-inspector.md"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-189",
+  "kind": "task",
+  "number": 189,
+  "title": "Subjective Aliases - Command Resolution by Alternative Names",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "matching",
+    "aliases",
+    "commands",
+    "inspector"
+  ],
+  "created": "2026-08-10",
+  "updated": "2026-08-10",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let every item, way, area, and character resolve by one or more alternative names in commands - \"go the study\", \"attack the butcher\", \"take the ghost detector\". Aliases live on the node's `properties.aliases` (list or comma/`|`-separated string) and are editable in the inspector.",
+    "why": "Items could already be targeted by aliases, but ways, areas, and characters could only be matched by their exact display name. Subjective names (pet names, alternate titles, player-typed shorthand) failed: `go the study` fell through to fuzzy/description matching or just missed.",
+    "how": "### Backend (`engine/matching.py`)\n\n- `node_aliases(node)` helper - normalizes `properties.aliases` to a lowercase list (accepts list or comma/`|`-separated string). Refactored the existing item alias tier to use it.\n- `NameMatching.resolve_exit`: new alias tier inserted after name-boundary matching, before description/fuzzy tiers. Matches way-node aliases OR target-area-node aliases; returns `(edge, way_node, handle)` and sets `_fuzzy_match_note` with \"(alias match)\".\n- `_match_character_name`: new alias tier - resolves the graph character node via `gs._player_node_id(p)`, matches `node_aliases`; ambiguous aliases (shared by multiple characters) return the candidates list for the caller to disambiguate.\n\n### Frontend (inspector)\n\n- `static/js/inspector/helpers.js`: shared `InspectorHelpers.renderAliasesSection(nodeId, aliases)` + `InspectorHelpers.saveAliases(nodeId, value)` (comma-separated input; saves via `api.updateNode(nodeId, { properties: { aliases } })` on Enter/blur, then `worldState.fetch()`).\n- Wired into `item-view.js` (after tags), `way-view.js` (after tags), `area-view.js` (after tags), and `agent-view.js` (after Tags; character node id `player_<name with spaces→underscores>` looked up via `worldState.getNode`).",
+    "verify": "- [x] 7 tests in `tests/test_matching.py` `TestAliasMatching`: item alias, comma-string alias, way alias, area alias via exit (fixture ways needed a `connection` edge added), character alias, ambiguous character alias, area alias with no exit stays unmatched - 63 passed, 1 skipped\n- [x] Live: `go the study` → Library (way alias)\n- [x] Live: `examine the meat man` → The Butcher (character alias, distinctive non-substring)\n- [x] Live: Aliases field renders on item/way/area/character views; blur-save persisted `[\"EMF reader\",\"ghost detector\"]` to `inv_Elena Vance_emf_reader` (verified via `GET /api/graph/nodes`)\n- [x] All 5 edited JS files pass `node --check`\n- [x] Re-run full suite after commit: 824 passed, 1 skipped, 71 deselected, 13 failed (same pre-existing set as baseline - no new regressions)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "related": "- Idea #7 - Subjective alias system in `developer ideas.md`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-189-subjective-aliases.md"
+  }
+}

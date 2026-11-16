@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-38",
+  "kind": "task",
+  "number": 38,
+  "title": "NPC Behaviors: Add \"go\" Command",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "NPC behaviors support conditional actions triggered by events, but there is no \"go\" (move to room) action type. Simple NPCs can trigger messages, damage, etc., but cannot autonomously navigate between areas.",
+    "why": "In `inspector.js:_showAgent()` (line 223-246), NPC behaviors are displayed with their triggers, conditions, and actions. The action types available for behaviors are the same as item actions (examine, take, use, etc.) - there's no movement action.\n\nThe behavior engine (in `virtual_world_engine.py`) processes NPC behavior actions but doesn't support a `go` / `move` / `go_to` action type that would move the NPC to a different room.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - add `go` action handling in behavior processing",
+      "static/js/inspector.js` - add `go` action option in behavior editor"
+    ],
+    "custom": {
+      "required_changes": "### Backend (`virtual_world_engine.py`)\n\nAdd support for a `go` (or `move`) action type in the NPC behavior system. When triggered:\n1. Parse the target room name from the action parameters\n2. Move the NPC to the target room\n3. Return a result message\n\nThe behavior action processing should handle:\n```json\n{ \"type\": \"go\", \"params\": { \"room\": \"Kitchen\" } }\n```\n\n### Frontend (`inspector.js` / behavior editor)\n\nAdd `go` to the available actions list when editing NPC behaviors. The behavior editor (in the agent inspector) needs a way to specify the target room.",
+      "issues_to_consider": "- What happens if the target room doesn't exist? Graceful error / no-op.\n- Should there be conditional pathfinding (e.g., \"go to room X only if door is open\")? Out of scope for now.",
+      "audit": "**Status**: Ready to test\n**How to test**:\n- Open the inspector for an NPC with behaviors. Add a behavior action - verify \"go\" is available as an action type with a \"Target Area\" text field.\n- Set up a trigger (e.g. `on_tick`) with action type `go` targeting a room name. Advance time/steps. Verify the NPC moves to the target room."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/NPC Behavior System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-38-npc_behavior_go_command.md"
+  }
+}

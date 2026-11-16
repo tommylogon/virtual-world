@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-261",
+  "kind": "task",
+  "number": 261,
+  "title": "Condition: Prone (`prone`)",
+  "status": "done",
+  "priority": "medium",
+  "area": "conditions",
+  "tags": [],
+  "created": "2026-08-17",
+  "updated": "2026-08-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "On the ground. You can only crawl and fight clumsily. Distinct per-instance semantics matter here (a broken leg `prone` vs. a knock-down `prone`).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [ ] Prone forces crawl movement; climb/jump refused.\n- [ ] `speed_mult 0.5` applies; combat mods `-2`/`-2`.\n- [ ] `stand` ends a knock-down instance only; `fix` ends a broken-leg instance only.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "schema_catalog_entry": "```python\n\"prone\": {\n    \"name\": \"Prone\", \"description\": \"On the ground. You can only crawl and fight clumsily.\",\n    \"blocks_actions\": False, \"blocks_movement\": False, \"blocks_speech\": False,\n    \"auto_fail_checks\": [], \"auto_fail_saves\": [],\n    \"attack_mod\": -2, \"defense_mod\": -2, \"speed_mult\": 0.5,\n    \"movement_mode\": \"crawl\", \"drops_held_items\": False,\n    \"periodic\": {}, \"ends_on\": [\"stand\"],\n    \"known\": True, \"symptoms\": {}, \"stack\": \"noop\", \"default_duration\": None,\n    \"excludes\": [],\n}\n```",
+      "behavior_breakdown": "- **Gates**: none hard - you can still act, move (crawl), and speak.\n- **Saves/checks**: none autofailed by the condition.\n- **Combat**: `attack_mod -2`, `defense_mod -2`.\n- **Movement**: `speed_mult 0.5` and `movement_mode: \"crawl\"` - `go` becomes crawling; climb/jump are refused in `move_to_area`.\n- **Periodic**: none.\n- **Lifecycle**: `stack: \"noop\"`. `default_duration: None`. Ends on `stand`. Per-instance `ends_on` matters: `fix` ends only the broken-leg `prone` instance while `stand` ends a knock-down instance (`end_instances` resolves per instance).",
+      "perception": "`known: True` - self-evident.",
+      "integration_points": "- `player.py:101-110` - catalog entry.\n- `engine/conditions.py` - `effective_speed`, combat mods; `_PERCEPTION_SKIP` not set (rendered).\n- `engine/movement.py` - `movement_mode: \"crawl\"` gating in `move_to_area` (climb/jump refused).\n- `player.end_instances(\"stand\")` / `end_instances(\"fix\")` for per-instance resolution.",
+      "open_questions_things_to_work_out": "- How is a permanent/broken-leg `prone` distinguished at author time (instance `ends_on: [\"fix\"]`)?\n- Should re-application ever refresh (stack `noop` seems right - you're already down)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "Existing catalog"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/conditions/task-261-prone.md"
+  }
+}

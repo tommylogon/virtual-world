@@ -67,7 +67,7 @@ Keep `/api/load`'s existing `persist:true` scenario-load branch unchanged.
 - [x] `POST /api/load` with a `_save_metadata` payload keeps its current behavior
       (source cleared), and the `persist:true` scenario-load branch is untouched.
 
-## Fix — 2026-09-24
+## Fix - 2026-09-24
 
 One helper, `_adopt_loaded_world(app, data, *, autosave=True)` (`routes/saveload.py`),
 now runs after `load_from_dict` in every runtime-snapshot path:
@@ -78,7 +78,7 @@ now runs after `load_from_dict` in every runtime-snapshot path:
 - refreshes the boot autosave (`save_autosave`) unless `TESTING`.
 
 Callers: `/api/load`'s `_save_metadata` branch (autosave on) and its ephemeral
-branch (autosave off), and `/api/load-game/<filename>` — so the two routes can no
+branch (autosave off), and `/api/load-game/<filename>` - so the two routes can no
 longer drift apart (the drift that caused the bug). The `persist:true`
 scenario-load branch is unchanged.
 
@@ -89,9 +89,9 @@ synced; `/api/load` with `_save_metadata` clears the source; autosave refreshed
 
 ## Files
 
-- `routes/saveload.py` — `load_game` (331-344), `load_world` (75-124), new shared helper
-- `engine/serialization.py` — `load_from_dict` name handling (440-450)
-- `tests/test_saveload.py` — regression coverage for the load-game path
+- `routes/saveload.py` - `load_game` (331-344), `load_world` (75-124), new shared helper
+- `engine/serialization.py` - `load_from_dict` name handling (440-450)
+- `tests/test_saveload.py` - regression coverage for the load-game path
 
 ## What
 

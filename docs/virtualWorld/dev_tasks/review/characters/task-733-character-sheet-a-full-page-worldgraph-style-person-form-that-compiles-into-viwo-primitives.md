@@ -44,7 +44,7 @@ task-507 already aligned a curated subset to ViWo and reused the WorldGraph name
 where they overlap ("so authored persons import cleanly"), and deliberately
 excluded `media` / `mbti` / `alignment` (`engine/character_appearance.py` docstring).
 
-## The projection — every form field has exactly one ViWo primitive
+## The projection - every form field has exactly one ViWo primitive
 
 | WorldGraph field | ViWo primitive | consumer today |
 |---|---|---|
@@ -59,7 +59,7 @@ excluded `media` / `mbti` / `alignment` (`engine/character_appearance.py` docstr
 | `relationships.*` | `relationships` (label + closeness), `rel:` memories | task-447 / 724 |
 | `narrative.role_in_town`, `arc` | plans/goals | task-702/704 |
 | `example_dialogues`, `voice`, `scent` | prompt voice / perception | prompts |
-| `mbti`, `alignment`, `media` | **none — left out** | — |
+| `mbti`, `alignment`, `media` | **none - left out** | - |
 
 ## Folded deltas (2026-10-18)
 
@@ -73,9 +73,9 @@ Three points folded in from cancelled cards (866, 867, 869). They are correction
 
 Two of the fields the prose work depends on do **not exist** on a ViWo character:
 
-- **`pronouns`** — for prose generation ("she/they/he"). Today only the `female`
+- **`pronouns`** - for prose generation ("she/they/he"). Today only the `female`
   tag hints at it. Add a field; prompts read it.
-- **`age`** (and `species` already exists) — for time-related growth/aging. Add a
+- **`age`** (and `species` already exists) - for time-related growth/aging. Add a
   field; an aging mechanic is separate (compare task-537 `age_effect`).
 - `sexuality`/`orientation` is also absent (only `kinks`/`turn_offs` exist).
 
@@ -88,7 +88,7 @@ Two of the fields the prose work depends on do **not exist** on a ViWo character
   (`interest_tags`, `fear_tags`), `traits`/`skills`, and authored content
   (`memories`, `known`, `relationships`).
 - **One source of truth.** Either the sheet is authored and the primitives are
-  derived (one-way — editing the sheet re-projects), or the primitives are
+  derived (one-way - editing the sheet re-projects), or the primitives are
   authored directly and the sheet is just a form over the subset. Do **not** let
   both be independently editable or they drift (the task-724 failure). Recommendation:
   structured sheet is authoritative where present; prose/id lists are a rendered
@@ -96,7 +96,7 @@ Two of the fields the prose work depends on do **not exist** on a ViWo character
   step performs once.
 - **UI**: a full-page editor. The host frame is **task-673** (EntityEditor) and
   the character layout is **task-675**; this task is the *rich form + projector*,
-  not another frame. "Fill the full thing, or free-form into `personality`" — both
+  not another frame. "Fill the full thing, or free-form into `personality`" - both
   modes must work (task-507's requirement).
 - Same endpoints (`updateNode`/`updateCharacter`); no new persistence model, no
   second copy in a save.
@@ -104,7 +104,7 @@ Two of the fields the prose work depends on do **not exist** on a ViWo character
 ## Phases
 
 1. `sheet` model + projector for the **already-mechanic-backed** fields
-   (appearance, personality, likes/dislikes/fears, traits, skills) — extends 507.
+   (appearance, personality, likes/dislikes/fears, traits, skills) - extends 507.
 2. Add `pronouns` + `age` fields and wire them into prose/prompts.
 3. Compile `biography → memories(source=manual)` (shares task-404).
 4. Compile `secrets → known/knowledge` (task-366) and `narrative → plans` (702/704).

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "task-244",
+  "kind": "task",
+  "number": 244,
+  "title": "Structured Human Turn Composer - Reply Like an Agent",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-245",
+      "task-363"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "On a human player's turn, prompt the human with a **structured action composer** instead of\nthe plain free-text command box - a form (or raw-JSON text area) to fill in the SAME\nstructured reply schema an LLM agent emits, then parse and execute it through the exact same\nagent pipeline. The human gets the agents' structured power: combine an action with\n`speech`+`volume`+`emote`+`memory` in one turn, with proper validation.\n\nExplicitly **out of scope**: the human does NOT get the agent's full LLM user-prompt / room\ncontext blocks (vitals/emotion/relationship summaries, plan guide, etc.). Those are separate\nwork to solve later. This task is only the reply interface + parsing.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Control mode toggle allows switching character autonomy between human and automated NPC.",
+        "done": true
+      },
+      {
+        "text": "Turn parameters persist across scenario saves.",
+        "done": true
+      }
+    ],
+    "files": [
+      "models/player.py",
+      "static/js/agent/turn-queue.js"
+    ],
+    "custom": {
+      "implementation_2026_08_16": "- `static/js/agent/human-turn-composer.js` - new `HumanTurnComposer.request(charName, roomContext)`\n  returns a Promise resolving to a normalized structured reply. Builds a modal with a\n  form (action + item + target + relation + speech/volume + emote + optional memory) and a\n  toggle to a raw-JSON textarea, with a live parse preview. Submits through the existing\n  pipeline: `ActionNormalizer.normalizeStructuredAction` + `extractSpeechVolume`,\n  `ResponseParser.extractMemory` - identical contract to an agent reply.\n- `static/js/agent-engine.js` - `step()` no longer silently skips human characters; it now\n  `await`s `_humanTurn(charName)`. The run loop pauses on the human's turn. `_humanTurn`\n  fetches the character, shows the composer, then executes speech → action → emote → memory\n  via the same helpers agents use (`_speakLine`, `ApiClient.action`, `_performEmote`,\n  `_storeReactionMemory`), and advances the queue once the human acts (or passes).\n- `templates/index.html` - composer script loaded after `response-parser.js`.\n- `static/js/main.js` - `VW.humanTurnComposer` registered.",
+      "how_it_should_work": "1. On the active player's turn, surface a composer (modal/overlay beside `#command-input`).\n2. The human fills in structured fields:\n   - `action` (verb) + `item` + `target` + `relation` (for put/place)\n   - `speech` + `volume` (whisper/say/shout/scream)\n   - `emote` (optional), `memory` (optional)\n   - OR skip the form and paste raw JSON into a text area.\n3. Run the filled object through the **existing** parsers so human input gets identical\n   handling/validation to an agent reply:\n   - `ResponseParser.parseReaction(json)` (currently `static/js/agent/response-parser.js`)\n   - `ActionNormalizer.normalizeStructuredAction(parsed)` → backend command string\n     (`static/js/agent/action-normalizer.js:46`)\n   - `ActionNormalizer.isValidAction(command)` → reject invalid verbs like an agent's would,\n     or auto-skip/notify.\n4. Execute:\n   - main action → `ApiClient.action(finalCommand)`\n   - `speech`/`volume` → `_speakLine` pattern (`ApiClient.action(\"<volume> <speech>\")`,\n     see `agent-engine.js:94-100`)\n   - `emote` → `ApiClient.emote(charName, emote)` (`agent-engine.js:102-112`)\n   - `memory` → write to the player's memories (reuse agent memory-store).\n5. Advancing the turn afterward is unchanged from current manual-turn flow.",
+      "decisions_confirmed_2026_08_16": "1. **Form vs JSON textarea → toggle of either/or.** The composer offers both; the human\n   switches between a form UI and a raw-JSON textarea with a live parse-preview (shows the\n   normalized command before submit).\n2. **Composer complements, does not replace, `#command-input`.** Free-text typing + Tab\n   autocomplete stays; the structured composer is surfaced on the human's turn alongside it.\n3. **Invalid actions behave like any character.** If the human says `take glass` but there's\n   no glass in the room, it goes through normally → the backend returns the usual\n   system response (in-world rejection), exactly as for agents. No special-casing.\n4. **Memory is optional.** The human may leave it blank (nothing written) or attach their\n   own subjective `memory` object; it's the human's choice per turn.",
+      "notes_open_questions": "- Relation picker for `put`/`place` (`on|under|beside|behind|at|in`) and a target picker\n  scoped to the current room (items present, players present, exits).\n- Reuse, don't duplicate: drive everything through the existing\n  `ResponseParser` + `ActionNormalizer` so the contract stays identical to agents.",
+      "fixed_2026_08_16_control_mode_toggle_did_nothing_visible": "Bug: clicking the mode badge logged \"→ NPC-controlled\" every click with no visible change.\n\nRoot cause (two defects):\n1. `cycleControlMode` (`event-stream.js`) never refetched `worldState` after\n   `ApiClient.updateCharacter`, and only re-rendered on the `human` branch. The badge is\n   computed from `getControlMode()` reading `player.simple_npc` from stale state, so it\n   stayed frozen and every click re-applied the same mode (the NPC re-log loop).\n2. `autonomy` was never persisted: no `Player.autonomy` attr, no `routes/players.py`\n   handler, no serialization. Human mode was frontend-only memory, lost on reload.\n\nFix:\n- `event-stream.js` `cycleControlMode`: `await worldState.fetch()` + `VW.ui.renderAll()`\n  for ALL modes after a successful update.\n- `event-stream.js` `isAutonomous`: seed the cache from `worldState.players[..].autonomy`\n  when unset, so persisted human state survives reloads.\n- `player.py`: added `self.autonomy = True` + `to_dict` field.\n- `engine/serialization.py`: serialize `autonomy` out/in.\n- `routes/players.py` `api_update_player`: handle `\"autonomy\" in data`.\n\nVerified: `tools/test_control_mode.cjs` E2E - mode cycles llm → npc → human → llm with\n`autonomy` + `simple_npc` persisted through the backend each click; 942 pytest pass."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "`dev_tasks/developer ideas.md` (improved human player in turn with parameters like agents get) + clarifying discussion 2026-08-16."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-244-human-player-turn-parameters.md"
+  }
+}

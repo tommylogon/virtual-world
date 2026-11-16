@@ -1,0 +1,48 @@
+{
+  "id": "task-297",
+  "kind": "task",
+  "number": 297,
+  "title": "Vitals Readout as Trigger Condition and Message",
+  "status": "review",
+  "area": "triggers",
+  "priority": "medium",
+  "created": "2026-08-19",
+  "relations": {
+    "related": [
+      "task-200",
+      "task-203",
+      "task-308",
+      "task-47"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-200-more-descriptive-parameters]]",
+      "[[task-203-set-adjust-parameters]]",
+      "[[task-308-item-relationship-condition]]",
+      "[[task-47-stateful_continuous_triggers]]"
+    ]
+  },
+  "sections": {
+    "what": "New triggers and conditions for using vitals readout as a condition, and getting a vital readout as a message. Example: a thermostat that shows the character's core temperature, hunger, conditions, etc.",
+    "acceptance": [
+      {
+        "text": "Condition checks emit descriptive failure messages when vitals requirements are unmet.",
+        "done": true
+      },
+      {
+        "text": "Player receives clear feedback regarding blocked actions.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/conditions.py",
+      "engine/triggers.py"
+    ],
+    "custom": {
+      "idea": "New triggers and conditions for using vitals readout as a condition, and getting a vital readout as a message. Example: a thermostat that shows the character's core temperature, hunger, conditions, etc.",
+      "notes": "- The condition half already exists: `vital`, `vital_above`, `vital_below`, `temperature_above/below`, `area_temp` are implemented in `engine/trigger_system.py`.\n- What's missing is the readout-as-message half: a message template placeholder (e.g. `{vital:Thirst}`) so an item's `message` effect can print a current vital value.\n- Small completion of the existing system - no new condition machinery needed.",
+      "related": "- `developer ideas.md` line 4\n- `engine/trigger_system.py`, `engine/effects.py` (`handle_adjust_vital`, `_render_template`)"
+    }
+  }
+}

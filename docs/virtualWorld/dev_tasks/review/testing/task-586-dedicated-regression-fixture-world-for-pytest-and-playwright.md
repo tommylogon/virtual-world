@@ -107,7 +107,7 @@ world_template.json was overloaded as a player boot template and a mutable test 
 
 ## How
 
-Created 	ests/fixtures/regression_world.json with a dedicated layout, registered helper loader fixtures, and updated unit and integration tests to reference the regression fixture.
+Created tests/fixtures/regression_world.json with a dedicated layout, registered helper loader fixtures, and updated unit and integration tests to reference the regression fixture.
 
 ## Steps to verify
 
@@ -120,6 +120,6 @@ Created 	ests/fixtures/regression_world.json with a dedicated layout, registered
 
 ## Files
 
-- 	ests/fixtures/regression_world.json
-- 	ests/conftest.py
-- 	ests/test_regression_world.py
+- tests/fixtures/regression_world.json
+- tests/conftest.py
+- tests/test_regression_world.py

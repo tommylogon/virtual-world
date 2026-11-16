@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-673",
+  "kind": "task",
+  "number": 673,
+  "title": "EntityEditor frame: mount/unmount full-surface editors alongside the inspector panel",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-02",
+  "updated": "2026-10-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-251",
+      "task-512"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Phase 1 of docs/design/full-entity-editors.md. Add an EntityEditor that mounts a full-viewport editor surface for character, item and area, WITHOUT changing any per-editor layout yet. Requirements: (a) the new #entity-editor must be a different element from #inspector-panel - only panel.js may write to #inspector-panel, because mixing innerHTML writes with lit render() corrupts lit part tracking; (b) reuse the existing view modules agent-view.js, item-view.js, area-view.js as the single source of TemplateResults - do not fork them; (c) shared chrome: kind badge, inline-editable name, copyable node id, saved/in-flight indicator, close; (d) Esc and backdrop close, focus moves to the header name on open and returns to the opening element on close; (e) entry points - an expand control in the inspector header and double-click on a canvas node; (f) clicking a node still opens the contextual peek, so the peek remains the default. No layout change, no persistence change, no deep links (that is phase 5 and is not decided). Verify in a live browser that all three entity types mount and unmount cleanly and that lit part tracking is intact.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Select a character, item, or area in the graph → contextual inspector peek → expand control in the inspector header. Double-clicking a canvas node is the second full-editor entry point; clicking once keeps opening the contextual peek.\n\nCurrent availability: The task defines a new `#entity-editor` separate from `#inspector-panel`; the full-surface frame and entry points are planned, with no mount/unmount browser pass recorded.\n\nLive steps when available:\n1. At desktop width, select one character, one item, and one area in turn; for each, open the peek and activate its expand control.\n   - expected: a full-viewport editor mounts for the selected entity using the existing view module; `#inspector-panel` remains the peek and is not overwritten by Lit rendering.\n2. Close each editor with its close control, Escape, and backdrop; reopen it from the same peek.\n   - expected: the editor unmounts cleanly, focus returns to the element that opened it, and reopening does not duplicate event handlers or corrupt the view.\n3. Double-click each of the three canvas node types, then single-click one node.\n   - expected: double-click opens the matching full editor; single-click still opens the contextual peek by default.\n4. Open the editor, focus its header name, edit it, and close/reopen.\n   - expected: focus begins at the name, the saved/in-flight indicator reflects the edit, and the name change round-trips without changing the entity layout or persistence model.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-673-entityeditor-frame-mount-unmount-full-surface-editors-alongside-the-inspector-panel.md"
+  }
+}

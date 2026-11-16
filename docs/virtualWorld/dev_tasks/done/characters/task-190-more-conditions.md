@@ -19,7 +19,7 @@ Only basic conditions exist, so there's no way to represent rich states like a b
 
 ## How
 
-- Conditions are already multi-instance lists carrying `duration`, `source`, `level`, `periodic`, `symptoms`, `ends_on`, and `gate` fields — build on this existing shape rather than adding new fields.
+- Conditions are already multi-instance lists carrying `duration`, `source`, `level`, `periodic`, `symptoms`, `ends_on`, and `gate` fields - build on this existing shape rather than adding new fields.
 - **Wet**: attach to an equip slot / garment and feed into the existing insulation math (a wet coat provides less insulation).
 - **Injured**: uses `level` (light/moderate/severe) plus `ends_on: ["fix"]` so healing removes it.
 - **Bleeding**: uses a `periodic` symptom that spawns a `blood_pool` item and a go-hook that leaves blood trails as the character moves.
@@ -29,10 +29,10 @@ Only basic conditions exist, so there's no way to represent rich states like a b
 
 ## Files
 
-- `engine/conditions.py` — extend condition model/processing for new types and item/way/area targets.
-- `engine/player.py` — apply wet to insulation math, bleeding symptoms, sickness family.
-- `engine/item_actions.py` — condition interactions with items and garments.
-- `engine/movement.py` — blood trail go-hook, movement gating.
+- `engine/conditions.py` - extend condition model/processing for new types and item/way/area targets.
+- `engine/player.py` - apply wet to insulation math, bleeding symptoms, sickness family.
+- `engine/item_actions.py` - condition interactions with items and garments.
+- `engine/movement.py` - blood trail go-hook, movement gating.
 
 ## What
 

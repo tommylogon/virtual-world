@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-670",
+  "kind": "task",
+  "number": 670,
+  "title": "One-human timeskip soaks the whole cast, not just the ordering character",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-02",
+  "updated": "2026-10-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-671"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Confirmed design 2026-10-02: 0 attended humans -> world advance with everyone in soak; 1 attended human -> the same blocking advance, with the ordering character on its declared intent and EVERY other character on background fidelity for the span; 4+ attended humans -> a soak order carried by the turn loop. The middle case is built wrong: timeskip.advance leaves nearby NPCs and agents at active fidelity, so a one-human wait runs LLM turns for the cast instead of backsim. Fix by sharing advance_world's everyone-soaked span helper.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Timeskip advances simulation ticks for all cast members across the world.",
+        "done": true
+      },
+      {
+        "text": "NPC background schedules and vital decay execute across timeskip interval.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/background_simulation.py",
+      "routes/time_ops.py"
+    ],
+    "custom": {
+      "progress_2026_10_02": "**Also fixes a display bug found on the way.** The soak-order envelope\n(`{ok, mode: \"soak\", order}`) carries no elapsed figures, but\n`static/js/ui/timeskip.js` printed `data.elapsed_minutes` unconditionally, so the\ndialog showed `Elapsed: undefined min (undefined ticks)`. Measured live: the POST\nreturned `{mode: \"soak\", ok: true, order: {...}}` with exactly those three keys\nmissing. The summary now branches on `mode` and describes the order instead; the\nrender is a pure `_summarize()` so it is unit-testable, with 3 new cases in\n`tools/unit/test_timeskip.js`.\n\n**Engine change.** `advance_world` had the everyone-soaked block inline;\n`advance` had none. Both now share `everyone_soaking`. This also removes a latent\ndouble-act: `process_due` gives a focused character `minutes_in_turn - 1` minutes\n(zero at a 1-minute tick), which is the task-436 root cause `advance_world` already\nguarded against and `advance` did not.\n\n**First attempt was wrong and the tests caught it.** Backgrounding *everyone*\n(hero included) handed the ordering character to the deterministic runner, which\n**moved them**: an `idle` (\"wait here - do nothing\") skip walked Arix out of the\narea, and because the social-approach seam is \"a co-located background character\nreaches the active character\" (`background_social.run_social_approach`), every\nco-located interrupt lost its subject. Two existing tests failed\n(`test_timeskip_pauses_on_a_social_approach`, and\n`test_vital_danger_interrupts_and_returns_control` now firing `threat:attack`\nbefore `vital:thirst`); both were confirmed mine by stubbing\n`everyone_soaking` back to a no-op, where they pass again. Fix: `everyone_soaking`\ntakes `keep=` and `advance` passes the ordering character - the same rule a\ndeclared soak order runs under, where `process_due` skips the ordered character so\nthe generic need policy never competes with the declared intent.\n\n**Verified.** `tests/test_timeskip.py test_soak_orders.py test_soak_chain.py\ntest_fear.py test_social_approach.py` -> **95 passed**. Both new tier tests were\nchecked against a no-op stub of `everyone_soaking` and **fail** there, so they\ndiscriminate. JS gates clean.\n\n**Verified in the browser** (second instance on :4455 so the live :4444 session\nwas untouched; Jake flipped to `autonomy: true` there so the one-human branch was\nreachable). Real click-through - Game ▾ → Wait / Timeskip… → 30 min → Skip:\n\n- response `mode: \"character\"` with `elapsed_minutes: 13`, `ticks: 13`,\n  `clock_after: \"08:14:00\"` - the blocking branch, not an order, and no\n  `undefined` anywhere;\n- **Arix stayed in `Chief's Pit`** while the cast moved (Eldenford Blacksmith /\n  Elder / Farmer all relocated to `Road (world 18,3)` and `Road (world 15,7)`);\n- the social interrupt fired and ended the skip early - `Interrupted: Vekka jokes\n  with Arix.` - which is the regression the first attempt had killed;\n- the dialog rendered `Elapsed: 13 min (13 ticks) → 08:14:00`, the interrupt line,\n  the vitals deltas and the notable-lines tail.\n\nThe tier flip itself is engine-level evidence, not browser evidence:\n`simulation_mode` is not part of the `/api/state` payload, so the browser can show\nthat the cast advanced and the hero did not wander, while the A/B above shows *how*\nthey advanced.",
+      "still_open": "- The 4-human soak-order path is unchanged by design and re-verified by\n  `test_soak_orders.py`; its own summary display was the `undefined` fix above.\n- `git stash` was not used (shared-worktree rule); the A/B was done by stubbing\n  the new seam back to a no-op, which is behaviourally identical to its absence."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-670-one-human-timeskip-soaks-the-whole-cast-not-just-the-ordering-character.md"
+  }
+}

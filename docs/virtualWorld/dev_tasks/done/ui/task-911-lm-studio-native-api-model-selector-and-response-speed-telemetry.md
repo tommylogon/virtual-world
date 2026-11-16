@@ -12,6 +12,10 @@ related: ["task-910", "task-909"]
 **Filed:** 2026-10-30
 **Related:** task-910, task-909, task-906
 
+<!-- deps:start -->
+**Related:** [[task-910-backend-provider-profiles-and-env-credentials-persistence]], [[task-909-dedicated-memory-model-client-and-agentlens-live-retrieval-comparison-sandbox]]
+<!-- deps:end -->
+
 ## What
 
 Complete native LM Studio integration, upgrade the main settings model selector to match the benchmark interface, and surface inference speed:

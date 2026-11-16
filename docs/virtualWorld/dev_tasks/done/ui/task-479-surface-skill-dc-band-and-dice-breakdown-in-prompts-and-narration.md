@@ -63,18 +63,18 @@ Live deploy check (`VW_PORT=4463`, Playwright):
 ```
 SUMMARY_LINE_TYPE function
 SUMMARY_LINE_DEMO
-  "[Skill Check] Investigation vs DC 12 (medium): roll=18 + 2 = 20 => success — You search the debris."
+  "[Skill Check] Investigation vs DC 12 (medium): roll=18 + 2 = 20 => success - You search the debris."
 POST /api/action {character, command:"search"} -> 200
   "You search the room thoroughly but find nothing hidden."
 ```
 
 ## Files
 
-- `engine/checks.py` — `condition_sources`, richer `resolve` message.
-- `engine/skills.py` — named advantage/auto-fail reason in `skill_check` /
+- `engine/checks.py` - `condition_sources`, richer `resolve` message.
+- `engine/skills.py` - named advantage/auto-fail reason in `skill_check` /
   `saving_throw`.
-- `engine/conditions.py` — `auto_fail_save_sources`.
-- `static/js/agent/prompt-builder/turn-prompts.js` — `summaryLine` keeps a check
+- `engine/conditions.py` - `auto_fail_save_sources`.
+- `static/js/agent/prompt-builder/turn-prompts.js` - `summaryLine` keeps a check
   line from any position; exported as `PromptBuilder.summaryLine`.
 - `tests/test_checks.py`, `tests/test_skills.py`, `tools/unit/test_turn_prompts.js`,
   `tools/unit/run.cjs`.

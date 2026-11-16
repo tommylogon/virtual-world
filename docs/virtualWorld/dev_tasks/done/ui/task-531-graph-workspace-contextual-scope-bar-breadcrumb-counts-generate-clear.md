@@ -14,14 +14,14 @@ priority: medium
 
 Second tier of the graph-toolbar redesign in docs/design/graph-toolbar-mockup.html: a
 scope bar that appears under the primary bar when a world scope is loaded, with a zone
-breadcrumb, loaded-node counts, and the two ways out — open the scope in the
+breadcrumb, loaded-node counts, and the two ways out - open the scope in the
 WorldPainter, or go back to the whole world. task-530 ships only the scope chip plus
 the node-count stat.
 
 **Decided while filing this (2026-09-27):** the mockup's `⤓ Generate` and `✕ Clear`
 are **not** part of it. Generation belongs to the WorldPainter's own toolbar, which
 already carries `⚙ Generate` / `🧹 Ungenerate` (`worldpainter/editor.js:436-438`) and
-is the only surface that can paint or compile a grid — a Generate button in the graph
+is the only surface that can paint or compile a grid - a Generate button in the graph
 workspace would duplicate a control that cannot do the job. `✕ Clear` was dropped
 rather than mapped onto "show whole world", which is already a button beside it.
 
@@ -31,7 +31,7 @@ rather than mapped onto "show whole world", which is already a button beside it.
       (the whole-world view keeps the chip alone).
 - [x] A zone breadcrumb `world › West woods`, root first, ending on the loaded scope.
       Built from `parent_id` in the already-fetched flat scope list
-      (`graphManager._scopeSummaries`), so no request per scope change — the only
+      (`graphManager._scopeSummaries`), so no request per scope change - the only
       endpoint that returns a breadcrumb is the WorldPainter's per-scope grid payload.
       Each ancestor crumb loads that scope; the current one is `aria-current`.
 - [x] Loaded-node counts on the bar ("53 areas · 77 ways · 130 loaded", plus
@@ -40,7 +40,7 @@ rather than mapped onto "show whole world", which is already a button beside it.
       are never stated twice. Below 1240px the bar is dropped and the chip keeps
       reporting.
 - [x] `🖌 Open in WorldPainter` opens the painter **already scoped** to the loaded
-      scope — `VW.worldPainter.open(scopeId)` takes the id (`editor.js:152-179`).
+      scope - `VW.worldPainter.open(scopeId)` takes the id (`editor.js:152-179`).
 - [x] `← Show whole world` unloads the scope (`setScopeFilter('')`) and keeps the
       picker's value in step.
 - [x] A scope that is not in the manifest (stale selection) falls back to the
@@ -60,7 +60,7 @@ rather than mapped onto "show whole world", which is already a button beside it.
   `deep_woods_2`) have **no** nodes of their own, so the bar correctly shows an empty
   count and a blank canvas for them. That is the scope graph saying so, not a bug.
 - Switching scope does not re-fit the camera (pre-existing: `loadGraphData` restores
-  the saved viewport). Left alone — it belongs with task-526/527 territory.
+  the saved viewport). Left alone - it belongs with task-526/527 territory.
 
 ## Steps to verify
 

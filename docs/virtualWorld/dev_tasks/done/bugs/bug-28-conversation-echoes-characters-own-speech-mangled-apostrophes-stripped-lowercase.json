@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "bug-28",
+  "kind": "bug",
+  "number": 28,
+  "title": "=== CONVERSATION === echoes characters' own speech mangled (apostrophes stripped, lowercased)",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "- ANTI-REPEAT instruction tells the model not to repeat lines it already\n  said - but the reference lines are corrupted versions of its own words.\n- Voice degradation leaks back: models sometimes mirror the corrupted forms.\n- Same sanitizer probably touches other logged text (check WITNESSED rendering\n  for identical mangling).",
+    "how": "TODO",
+    "verify": "New play session, speak a line containing apostrophes + capitals → next\ndecide-phase CONVERSATION block matches the spoken text verbatim.\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "Taco Bell session, decide-phase prompt (`=== CONVERSATION ===` block):\n\n```\nYou recently said: \"fun?? me?? that s- okay that s so nice of you to say\nand i m going to be normal about it, watch me be normal...\"\n```\n\nThe original speech event (same log, tick 19) was:\n\n```\n\"fun?? me?? that's- okay that's so nice of you to say and I'm going to be\nnormal about it...\"\n```\n\nSo somewhere between the speech event store and prompt-building, `'` is\nremoved as whitespace (\"that's\" → \"that s\", \"I'm\" → \"i m\") and the line is\nlowercased.\n\nSuspect: the anti-repeat conversation-history builder in the JS agent side\n(`static/js/agent/` - likely context-sections / memory-context area) or a tag/\nsanitizer applied to stored turn_events server-side. Trace where the\nconversation section text is sourced.",
+      "fix_sketch": "Locate the strip/lowercase pass; keep lowercasing decisions only where they're\nintentional (speaker-name prefixing), preserve apostrophes in quoted speech.\nAdd a unit test: store `I'm - that's`, build conversation section, assert\napostrophes survive.",
+      "investigation_2026_09_22_code_trace_no_repro": "Traced the whole path and found **no transform that strips apostrophes or\nlowercases**:\n\n- `engine/speech.py:207-215` builds the hearing event with `\"text\": speech_text`\n  verbatim; `:272` copies `dict(event)` into each listener's `recent_hearing`.\n- `static/js/agent/prompt-builder/conversation-context.js:117-131`\n  (`ownRecentSpeech`) only trims + dedupes (`toLowerCase` is used solely as the\n  dedupe key, never written back).\n- Involuntary speech (`static/js/agent/involuntary.js`) only stutters the first\n  letter or splices `*hic*` fragments - it does not lowercase or strip `'`.\n\nSo the mangled text in the report must have been the text actually broadcast at\nthat tick, not a corruption introduced while building the prompt. Two candidate\nexplanations: (a) the refactor since 2026-08-27 removed the old builder that did\nthis, making the bug obsolete; (b) the model emitted the mangled line itself and\nthe \"original\" quoted in the report came from a different source.\n\n**Related oddity:** the same taco_bell log shows a *different* corruption shape -\n`please don't` → `pleas edont`, `normal` → `cnormal` (bug-29's local line). That\nis letter scrambling, not apostrophe/lowercase normalisation, and no such pass\nexists in the code either. If either corruption is still live, capture the raw\n`/api/action` request body and the `recent_hearing` entry side by side - that\nseparates an upstream text bug from a prompt-builder bug.",
+      "re_investigation_2026_09_28_wt_c_the_corruption_was_real_the_transform_is_gone": "**The transform is exactly `'` -> space, plus a full lowercase.** Nothing else.\n`-`, `?`, `!`, `...`, `*burp*` and every other character survived untouched, which\nis what makes this identifiable: `that's` -> `that s`, `I'm` -> `i m`, `you're` ->\n`you re`, `haven't` -> `haven t`, `I'll` -> `i ll`, `I've` -> `i ve`, `it's` ->\n`it s`, `nobody's` -> `nobody s`, `my name's` -> `my name s`. Every mangled\nexample in both bug files, across all three Taco Bell exports, is that one rule.\n\n**The filed \"letter scrambling\" oddity is not a second bug.** In\n`taco_bell_event_log_2026-08-23T16-19-57.txt:288` the *event log* itself already\nreads `\"Pleas edont try to be cnormal, i like your whole chaos thing, its\nperfect! ... wnat me to lick it away\"`. That text was stored mangled and\nlowercased (bar the leading `P`) **before** any prompt was built, so it is not a\nprompt-builder artefact at all - it is the NPC agent's own generated line for\nthat tick. `wnat` is `won't` with the apostrophe gone. The corruption the two bug\nfiles could not place in code was upstream of the engine the whole time.\n\n**Direct evidence that the transform used to exist and no longer does.** Same\nexport file, same turn, same utterance, two renderings:\n\n| line | block | text |\n|---|---|---|\n| 640 | `You said:` | `NO. no licking. absolutely not, that's- that's advanced DLC content, you haven't even unlocked the first date yet!! i'll handle the cheese situation MYSELF...` |\n| 719 | `You recently said:` | `...absolutely not, that s- that s advanced dlc content, you haven t even unlocked the first date yet!! i ll handle the cheese situation myself...` |\n\nThe verbatim form and the mangled form of one utterance sit in the same file. The\n`=== WITNESSED ===` block at line 423 was mangled the same way while the event\nlog at line 288 kept its `P` - so the pass sat between the stored event and the\nprompt, exactly as originally suspected, and applied to more than one block.\n\n**Current code is clean, verified by test, not by reading.** Added\n`tests/test_speech_verbatim.py` (6 tests, all passing) pinning verbatim\npreservation across every hop: `recent_hearing` for speaker and listener, the\ndirected-whisper copy, `speech_log`, the `speak` turn event, and\n`NarrationSystem.listen()`. Added 4 tests to\n`tools/unit/test_conversation_context.js` pinning `ownRecentSpeech`,\n`buildConversationInstinct` and `markSpeechLine` against apostrophe-stripping,\nlowercasing, and a dedupe that overwrites the first spelling with the second.\nAll 18 conversation-context tests pass.\n\n**Verdict: no live repro, and none is possible without reintroducing the bug.**\nThe pass no longer exists in `engine/speech.py` or in\n`static/js/agent/prompt-builder/`. This is hypothesis (a) from the 2026-09-22\nnote - the conversation-context refactor removed the old builder - confirmed\nagainst the artifacts rather than against the source. No code fix was made\nbecause there is nothing to fix; the guards are the deliverable.\n\n**Verify (unchanged, still the right manual check)**: new play session, speak a\nline containing apostrophes + capitals, next decide-phase `CONVERSATION` block\nmatches the spoken text verbatim."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-28-conversation-echo-strips-apostrophes-and-case.md"
+  }
+}

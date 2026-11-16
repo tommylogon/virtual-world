@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-18
 **Priority**: High
-**Status**: In Review — implemented (code-verified 2026-08-11). Weapon damage/damage_dice/damage_type/resistances in `engine/equipment_bonuses.py:55-122`, `attack X with Y` combat resolution in `engine/combat.py`.
+**Status**: In Review - implemented (code-verified 2026-08-11). Weapon damage/damage_dice/damage_type/resistances in `engine/equipment_bonuses.py:55-122`, `attack X with Y` combat resolution in `engine/combat.py`.
 
 ## What
 
@@ -29,22 +29,22 @@ Two possible approaches. We should pick **one**:
 ### Option A: `attack [target] with [item]`
 - Parses `"jake with cleaver"` → splits on `" with "` → target=Jake, weapon=cleaver
 - Requires rewording the `attack` handler to search for `" with "` in the rest of the command
-- Output example: *"You swing the cleaver at Jake. It connects — a deep gash opens across his arm. (-18 HP)"*
+- Output example: *"You swing the cleaver at Jake. It connects - a deep gash opens across his arm. (-18 HP)"*
 
 ### Option B: `use [weapon] on [target]` (existing syntax)
 - Already partially works: finds weapon item, finds target player via fuzzy name match
 - Needs: add `on_use_on` trigger to weapon items with `adjust_vital` HP damage effect
 - `effect_target: "other"` would need to apply to the target player
-- But `use cleaver on jake` currently routes to `use_item_on()` which checks for `on_use_on` triggers on the item — so we just add the trigger
+- But `use cleaver on jake` currently routes to `use_item_on()` which checks for `on_use_on` triggers on the item - so we just add the trigger
 
-**Recommendation: Option A** — `attack [target] with [item]` — because:
+**Recommendation: Option A** - `attack [target] with [item]` - because:
 - `attack` is the combat verb, not `use`
 - Slasher-specific logic (`_slasher_attack`) can be generalized to accept a weapon parameter
 - Clearer for players: `attack jake` (bare-handed) vs `attack jake with cleaver` (weapon)
 
 ## What Needs to Change
 
-### 1. `app.py` — Parse `attack [target] with [item]`
+### 1. `app.py` - Parse `attack [target] with [item]`
 
 ```python
 elif cmd.startswith("attack "):
@@ -60,7 +60,7 @@ elif cmd.startswith("attack "):
         weapon = next((item for item in inventory if item.name.lower() == weapon_name.lower()), None)
 ```
 
-### 2. `virtual_world_engine.py` — Generalize `_slasher_attack`
+### 2. `virtual_world_engine.py` - Generalize `_slasher_attack`
 
 Rename to `_player_attack` or add a weapon parameter:
 

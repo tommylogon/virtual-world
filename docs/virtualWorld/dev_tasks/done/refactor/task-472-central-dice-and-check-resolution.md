@@ -18,7 +18,7 @@ One place that answers what to roll, what modifies it, and how good the result i
 
 - TODO
 
-## Progress 2026-09-23 — landed (review)
+## Progress 2026-09-23 - landed (review)
 
 `engine/checks.py` + `tests/test_checks.py`; `SkillSystem` now delegates.
 
@@ -38,7 +38,7 @@ One place that answers what to roll, what modifies it, and how good the result i
 - [x] **Outcomes**: `success`/`fail`, `strong_success` (margin ≥ 5),
       `crit_success`/`crit_fail` on a kept 20/1, and `auto_fail`. `dc_band`
       preserves the legacy labels; `DCS` gives named DCs.
-- [x] **Opposed checks**: `opposed(a, b, kind=...)` with ties to the defender —
+- [x] **Opposed checks**: `opposed(a, b, kind=...)` with ties to the defender -
       the shape theft-vs-Perception and social-vs-Insight need.
 - [x] **Adapters**: `SkillSystem.skill_check` / `saving_throw` keep their
       `(success, total, message)` tuple and message format, so all existing call

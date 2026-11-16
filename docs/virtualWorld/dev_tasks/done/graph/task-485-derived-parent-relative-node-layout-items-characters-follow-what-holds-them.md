@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-464; task-481
 
-> **Superseded in part (2026-10-01).** The *derivation* below stands and still runs — the ring is
+> **Superseded in part (2026-10-01).** The *derivation* below stands and still runs - the ring is
 > computed from the relations on every layout. What is gone is the **holding**: `centralGravity` is
 > now `0` in both solvers, which removes the global field this task existed to fight, so contents are
 > in the vis solver (`{fixed:false, physics:true}`) and the 120 ms follow pass, the parent-relative
@@ -21,7 +21,7 @@ priority: medium
 > code. The rebalance that this required is in `CHANGELOG.md` under *Central gravity off, and items
 > and characters are simulated again*: repulsion `-8`, spring constant `0.10`, spring length `120`,
 > measured cold on kraktooth_goblin_camp (638 nodes) at a median 134 px from the room holding a
-> content node, 0 overlapping pairs. **The negative result below is still valid** — rebalancing the
+> content node, 0 overlapping pairs. **The negative result below is still valid** - rebalancing the
 > global physics did not fix clusters; it was `centralGravity: 0` that made the whole arrangement
 > unnecessary, not a better spring.
 

@@ -113,7 +113,7 @@ always remains in a real area, as today.
   scope.
 - Browser test: scope navigation preserves current camera/filter behavior.
 
-## Progress — 2026-09-23 (backend slice)
+## Progress - 2026-09-23 (backend slice)
 
 Landed (uncommitted):
 
@@ -122,18 +122,18 @@ Landed (uncommitted):
   writes `world_scopes`; `load_from_dict` restores a dict or `{}`), so
   `to_scenario_dict` carries it and legacy scenarios without a manifest are
   unchanged.
-- `engine/world_scopes.py` — pure helpers: `normalise_manifest`,
+- `engine/world_scopes.py` - pure helpers: `normalise_manifest`,
   `root_scope_ids`, `direct_child_ids`, `area_ids_in_scope` (recursive),
   `scope_summary` (area/character/item counts, state, child ids),
   `boundary_ways`, and `project(manifest, graph, players, scope_id, depth,
   include_items)`.
 - `routes/world_scopes.py` + `routes/world_scopes_ops.py`:
-  - `GET /api/world/scopes` — top-level scope cards.
-  - `GET /api/world/scopes/<scope_id>` — child scope cards, or leaf area
+  - `GET /api/world/scopes` - top-level scope cards.
+  - `GET /api/world/scopes/<scope_id>` - child scope cards, or leaf area
     summaries + boundary ways.
-  - `GET /api/world/scopes/<scope_id>/graph?depth=&include_items=` — projection;
+  - `GET /api/world/scopes/<scope_id>/graph?depth=&include_items=` - projection;
     items/edges included only when requested.
-- `tests/test_world_scopes.py` (12) — recursion, cardinality, boundary ways,
+- `tests/test_world_scopes.py` (12) - recursion, cardinality, boundary ways,
   leaf vs building projections, manifest round-trip through `/api/load`, and
   backward compatibility with no manifest. Full suite: 3451 passed, 6 known
   pre-existing failures.
@@ -154,13 +154,13 @@ Still open in this task:
 - Remaining work here is the book/search UI (step 4), the `Generate` affordance
   (step 5), and the projection's scope-keyed fidelity handoff to task-500.
 
-## Progress — 2026-09-24 (scope-filtered graph view)
+## Progress - 2026-09-24 (scope-filtered graph view)
 
 The step-3 projection now has a consumer, which is also the fix for the
 "densely painted world freezes the graph" failure:
 
 - **`engine/world_scopes.project_subgraph(manifest, graph, players, scope_id,
-  include_items=True)`** — a vis-loadable `{nodes, edges}` slice in the same
+  include_items=True)`** - a vis-loadable `{nodes, edges}` slice in the same
   shape as `WorldGraph.to_dict`. Membership is recursive: every area in the
   scope and its descendants, a `way` with **both** endpoints inside, a
   `character`/`player` standing in an included area, and (when requested) an
@@ -184,13 +184,13 @@ Still open: the breadcrumb/tree *panel* (this ships a flat picker), the
 unmade-scope `Generate` affordance (task-398), and the projection's scope-keyed
 fidelity handoff to task-500.
 
-### Progress — 2026-09-25 (level-scoped view + drill-down)
+### Progress - 2026-09-25 (level-scoped view + drill-down)
 
 The scope view was **recursive**, so selecting a parent flattened its whole
-subtree — selecting the world root loaded every painted zone's cells at once.
+subtree - selecting the world root loaded every painted zone's cells at once.
 That is the wrong default: a parent should read as a map (task-496 follow-up).
 
-- `world_scopes.own_area_ids(graph, scope_id)` — the areas whose
+- `world_scopes.own_area_ids(graph, scope_id)` - the areas whose
   `world_scope_id` is *exactly* this scope, ignoring descendants.
 - `project_subgraph(..., descendants=False)` is now **level-scoped by default**:
   a parent shows its own areas, so a placed child zone is a single feature cell
@@ -199,7 +199,7 @@ That is the wrong default: a parent should read as a map (task-496 follow-up).
 - `GET /api/world/scopes/<id>/subgraph?descendants=1` exposes the opt-in;
   `ApiClient.getScopeSubgraph(scopeId, includeItems, descendants)`.
 - **Drill-down:** double-clicking a feature cell in the graph loads its child
-  scope (`GraphEventHandlers.onDoubleClick` → `graphManager.setScopeFilter`) —
+  scope (`GraphEventHandlers.onDoubleClick` → `graphManager.setScopeFilter`) -
   the graph equivalent of WorldPainter's `Open ▸`.
 
 Tests: `own_area_ids`, level-scoped default (a parent is not flattened; an
@@ -207,10 +207,10 @@ organisational scope with no own cells is empty), descendant opt-in, and route
 assertions for `?descendants=1`.
 
 Note: an organisational scope with no painted cells of its own now shows an
-empty canvas — drill to a child via the picker or a feature cell. A
+empty canvas - drill to a child via the picker or a feature cell. A
 children-as-cards fallback is a possible follow-up.
 
-### Progress — 2026-09-28 (step 4: the scope hierarchy as a tree)
+### Progress - 2026-09-28 (step 4: the scope hierarchy as a tree)
 
 The step-4 ask was a scope breadcrumb/tree UI, and the world already had the
 breadcrumb (task-531's contextual scope bar) and a *flat* picker with the names
@@ -218,15 +218,15 @@ indented by `depth`. What was missing was the tree: a world with a county over
 two towns read as three unrelated entries, nothing said how big a scope was, and
 nothing said whether anything had been built in it.
 
-- **`static/js/graph/scope-tree.js`** (new) — `GraphScopeTree`. Nests the one
+- **`static/js/graph/scope-tree.js`** (new) - `GraphScopeTree`. Nests the one
   payload the server already sends (`GET /api/world/scopes?flat=1`, which carries
   `parent_id` and `depth` per scope) into a collapsible tree. **No new endpoint
   and no per-scope request.**
   - Pure and unit-tested (16 in `tools/unit/test_graph_scope_tree.js`):
     `buildTree`, `visibleRows`, `toggleCollapsed`, `rowLabel`. The DOM half is a
     thin render over those.
-  - A card states what the manifest says: `Apartment 3B — not built` for an
-    `unmade` scope, `Millbrook Falls — 40 areas · 90 items · 3 here now` for a
+  - A card states what the manifest says: `Apartment 3B - not built` for an
+    `unmade` scope, `Millbrook Falls - 40 areas · 90 items · 3 here now` for a
     materialized one. An unmade scope showing "0 areas" would read as an empty
     room, which is a different fact.
   - **No Generate button.** Generating a scope is task-398's recipe flow and
@@ -235,7 +235,7 @@ nothing said whether anything had been built in it.
 - **One writer.** The tree repaints from `GraphToolbar.syncScope()`, the same
   sync that repaints the breadcrumb, so the loaded scope is marked in both or in
   neither. The panel goes through `GraphToolbar.loadScope()`, which is what keeps
-  the flat picker's value in step — two ways to change the loaded scope is how
+  the flat picker's value in step - two ways to change the loaded scope is how
   they drift apart.
 - The flat picker stays. It is the one control that works without scrolling, and
   the tree is a second reading of the same list, not a replacement.
@@ -244,7 +244,7 @@ Four bugs the new unit tests caught, all in code I had just written:
 
 1. `buildTree` reset `node.children` inside the placement loop, so a child listed
    *before* its parent was silently dropped from the tree. The tree depended on
-   the order the list happened to arrive in — which for the real endpoint means
+   the order the list happened to arrive in - which for the real endpoint means
    it depended on the manifest.
 2. `reaches()` read `parent_id` off the node object, which never carried it, so
    cycle detection always answered "no". A mutual `a ↔ b` parent link built a

@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-30
 **Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P1 — Command palette (Ctrl+K): fuzzy search across graph nodes (jump+focus), menu actions, panels/tabs. Single index built from graph + static action table.
+**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md - P1 - Command palette (Ctrl+K): fuzzy search across graph nodes (jump+focus), menu actions, panels/tabs. Single index built from graph + static action table.
 
 ## Notes
 

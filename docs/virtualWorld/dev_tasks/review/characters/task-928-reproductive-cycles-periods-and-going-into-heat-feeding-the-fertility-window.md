@@ -12,10 +12,6 @@ wiki: "[[Characters/Persona]]"
 **Completed:** 2026-11-04
 **Related:** task-846
 
-<!-- deps:start -->
-**Related:** [[task-846-pregnancy-gestation-and-birth]]
-<!-- deps:end -->
-
 ## What
 
 Add a reproductive cycle to characters: periods (menstrual cycle) for species that have one, and heat (estrus) for species that have one. The cycle is a bounded per-character record advanced by the sim clock. It produces a fertile window that task-846's conception check reads, plus visible phases and conditions (for example menstruating, in_heat) that prompts, the Mind panel and the Bio tab can show. Species decide which pattern applies (none, monthly cycle, seasonal or periodic heat).
@@ -41,9 +37,13 @@ Intended UI home: Character Inspector, Mind panel and Bio tab: current cycle pha
 
 Current availability: Implemented. `mind-view.ts` and `persona-view.ts` render reproductive cycle and pregnancy badges and details. Condition chips `menstruating`, `ovulating`, and `in_heat` render in `agent-view.ts`.
 
-Live steps:
-1. Select a cycling adult, advance time past a phase boundary, and read the phase in Mind or Bio.
+Live steps when available:
+1. Select a cycling adult character in the Agents list, advance time past a phase boundary, and read the phase in Mind or Bio.
+   - expected: Mind view displays reproductive cycle badge/status and active cycle phase.
 2. Check the condition chips appear and clear at the phase edges.
+   - expected: Condition chips (`menstruating`, `ovulating`, or `in_heat`) dynamically reflect current cycle status.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 
 ## Steps to verify
 

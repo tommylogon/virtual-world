@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-307",
+  "kind": "task",
+  "number": 307,
+  "title": "Warn on Mechanic Tags Missing Values or Equip Slots",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-08-19",
+  "updated": "2026-08-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "Editor warning when an item has a mechanic tag (insulation, weapon, clothing, etc.) but no values set for it, or is missing equip slots for tags that should have them.",
+      "decisions_owner_confirmed_2026_08_19": "- Mechanical tags = the tags the **backend reads and requires values for** (derived from engine code), set to `category: \"mechanical\"` in `data/library/tags/`:\n  `light_source` (light_level), `heat_source` (target_temperature/heating_rate), `sound_source` (sound_level/sound_pattern), `toggleable` (current_state), `insulation` (insulation), `weapon` (damage), `clothing` + `armor` (equip_slots), `container` (max_weight_capacity), `electric`, `exterior`, `magic`, `transit`.\n- `transit` and `armor` did not exist in the tag library (both used/read by the engine) - **created**.\n- `outdoor`/`electronic` NOT included - no backend code reads them.\n- `category` is display-only in the UI, so the change is safe.",
+      "implemented": "- `data/library/tags/*.json` - 11 tags recategorized to `mechanical`; `transit.json` + `armor.json` created.\n- `engine/trigger_validator.py` - `MECHANICAL_REQUIREMENTS` map + `_validate_mechanical_items()` pass (`mechanical_tag_missing_props`).\n- Surfaced in the left panel `#validation-section` via `/api/triggers/validate`.\n- Tests: `TestMechanicalTagWarnings`.\n\n**Verified**: full suite 980 passed (+9 validator tests).",
+      "notes": "- Authoring-time validation: a `weapon` tag with no damage values, or `clothing` with no `equip_slots`, is a broken item that produces silent wrong behavior.\n- Family of warnings: `task-305` (ways), `task-306` (empty triggers), `task-307` (this one).\n- Ties into the equipment system (`equip_slots`, `equipment_bonuses`).",
+      "related": "- `developer ideas.md` line 14\n- Item editor/inspector (`static/js/inspector.js`, `static/js/item-library.js`), `engine/equipment.py`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-307-warn-mechanic-tags-missing-values.md"
+  }
+}

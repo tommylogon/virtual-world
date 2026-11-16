@@ -100,6 +100,27 @@ bodies/injuries and is currently undefined.
 - `static/js/agent/action-normalizer.js` - `attack ... on <where>`
 - `tests/test_body_parts.py` - NEW test module
 
+
+## Browser UI and intended live verification
+
+Intended UI home: the `Enter game command` input line at the bottom of the event stream and Character Inspector -> Conditions tab.
+
+Current availability: Implemented and test-covered in `tests/test_body_parts.py`.
+
+Live steps when available:
+1. Load scenario `kraktooth_goblin_camp` and toggle **Play Mode** in the top bar (protects scenario state).
+   - expected: Play Mode is active, transient sandbox enabled.
+2. Select `Gribba` in the Agents list, and in `Enter game command` enter:
+   `attack Zikka on the head`
+   Press Enter.
+   - expected: The event stream reports a combat attack targeting the head.
+3. Select `Zikka` in the Agents list and open Character Inspector (`#inspector-panel`) -> Conditions tab.
+   - expected: An `injured` or `bleeding` condition badge appears with region set to `head`.
+4. Toggle Play Mode off.
+   - expected: The transient injury is discarded and the base scenario is restored.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Steps to verify
 
 - [x] Weapon hit to a specified `where` applies damage AND a region-scoped injury

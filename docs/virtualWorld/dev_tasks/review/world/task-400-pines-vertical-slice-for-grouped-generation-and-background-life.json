@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "task-400",
+  "kind": "task",
+  "number": 400,
+  "title": "Pines vertical slice for grouped generation and background life",
+  "status": "review",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-08",
+  "updated": "2026-09-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-9",
+      "task-323",
+      "task-324",
+      "task-397",
+      "task-398",
+      "task-399"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-397",
+      "task-398",
+      "task-399",
+      "task-495",
+      "task-496",
+      "task-580",
+      "task-585",
+      "task-9",
+      "task-323",
+      "task-324"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make `data/scenarios/pines.json` the first end-to-end proof of the scalable\nworld model. This is deliberately small: it proves semantics and authoring\nworkflow, not million-node performance.",
+    "why": "Proving that large-scale world generation, deterministic structure recipes, and background NPC simulation function as a coherent whole rather than isolated mechanisms requires an end-to-end vertical slice (Pines).",
+    "how": "Integrated world generation recipes (apartment_recipe.py, structure generation), world grid compilation, and background scheduler loops in kraktooth_goblin_camp and pines scenarios.",
+    "verify": "1. Verify deterministic generator refusal on reload\n   - expected: Second invocation refuses re-generation without allow_regenerate: True\n   - observed: Verified on reload; hand edits preserved\n2. Inspect structure generation in pines slice\n   - expected: Grouped structures and ways generated consistently across runs\n   - observed: Verified generation outputs",
+    "acceptance": [
+      {
+        "text": "Generated nodes and materialization state persist across save/reload.",
+        "done": true
+      },
+      {
+        "text": "Re-run without allow_regenerate refuses rather than doubling structures.",
+        "done": true
+      },
+      {
+        "text": "Hand edits on generated nodes are preserved on refused re-runs.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/world_compile.py",
+      "engine/structure_generation.py",
+      "tests/test_apartment_recipe.py"
+    ],
+    "custom": {
+      "scenario_changes": "1. Add a Millbrook Falls scope manifest with Downtown and The Pines hierarchy.\n2. Assign existing Pines areas to their floor/building scopes.\n3. Add an unmade `Apartment 3B` scope with recipe `apartment.v1` and a stable\n   seed.\n4. Add only the tag fixtures and library entries necessary for a credible\n   residential apartment population test. Do not attempt a global library\n   backfill in this scenario task. This is mandatory: the current Pines areas\n   have no domain tags, so an untagged population demo would not validate the\n   intended feature.\n5. Add background schedules for five existing Pines characters, chosen for\n   different outcomes: sleeping at home, working remotely, walking to work,\n   consuming food/drink, and waiting/meeting.",
+      "demonstration_script": "1. Load Pines and open the Millbrook → Downtown → The Pines scope path.\n2. Confirm the graph view returns only that projection; default UI does not\n   reveal contained items.\n3. Put five residents in background mode and advance eight hours.\n4. Inspect their compact logs: location, activity, vitals, resource changes,\n   and any deferred result.\n5. Generate Apartment 3B from preview and walk from Hallway 3 into all its\n   new areas.\n6. Activate Miki; inspect her new `background` memory and full active prompt.\n7. Save/reload; repeat scope navigation and prove no duplicate generated nodes\n   or duplicate summary memories.",
+      "success_criteria": "The demo is successful only if generation, ordinary movement/item interaction,\nbackground progression, and reactivation all use existing canonical data.\nHard-coded UI-only counts, narrative-only generated rooms, or direct mutation\nthat bypasses normal graph edges do not count.",
+      "explicitly_not_demonstrated": "- Whole Millbrook generation.\n- Multiple loaded chunks or disk eviction.\n- Long road grids, fast travel, or cross-town route materialization.\n- More than five background residents.",
+      "progress_2026_09_24_partial": "Authored slice (data only, via `tools/author_pines_slice.py`):\n\n- **Scope manifest** in `data/scenarios/pines.json`: Millbrook Falls -> Downtown /\n  The Pines -> Ground/Floor 1/Floor 2/Floor 3/Roof, with every existing area\n  assigned a `world_scope_id` (a test asserts none is left unassigned).\n- **Unmade `apartment_3b`** scope carrying `recipe: \"apartment.v1\"` and a stable\n  seed - the generation hook task-398 will consume.\n- **Five resident schedules** (miki, rose, kevin, haruka, mateo) with\n  deliberately different days: working away, working at home, roaming, waiting,\n  and a night routine.\n- **task-399 proof**: offload/advance-eight-hours/promote on Miki yields one\n  bounded `background` memory (see task-399). Tests: `tests/test_pines_slice.py`\n  (7).",
+      "progress_2026_09_28_the_generator_is_now_actually_reachable": "The 2026-09-24 note said the remaining work was blocked on task-398 because \"the\ngenerator they call does not exist yet\". The generator existed; **nothing called\nit**. `generation_recipes.get_recipe()` had exactly one caller - its own test -\nwhile `POST /api/world/scopes/<id>/grid/generate` only ever ran the *grid*\ncompiler. An unmade scope that declared a recipe could therefore not be generated\nat all, by any route, in any client. This is the third instance of the failure\nmode now written up in `AGENTS.md`: a working mechanic, correctly tested, never\ncalled.\n\n- **Wired** (`routes/world_grid_ops.py`): a scope carrying a `recipe` generates\n  through that recipe, via the same `apply_patch` contract the grid compiler\n  uses. Seed comes from the body or the scope record and is required - a recipe\n  with no seed is not reproducible, so it is a 400 rather than a surprise. The\n  entry area is the scope's `entry_area_id`, else the parent scope's first area\n  (the hallway a child apartment opens off).\n- **Data**: `apartment_3b` now declares `\"entry_area_id\": \"area_hallway_3\"`\n  explicitly rather than relying on the fallback.\n- **Proved end to end** (`tests/test_pines_slice.py::TestGenerationEndToEnd`):\n  - generating through the API produces the three areas and materialises the\n    scope, with an empty `unresolved_tags` (asked-for tags the library could not\n    satisfy stay visible rather than substituted);\n  - **Miki walks in through the movement system** - `set_current_area`,\n    `toggle_way(\"apartment door\", \"open\")`, `move_to_area` - and reaches the\n    living room and then the bedroom. The previous proof was structural only\n    (\"the way node exists\"), which passed while the question of whether the door\n    was actually enterable was untested;\n  - a second generate is refused 409 and adds no node ids;\n  - save/reload keeps every generated node and the `materialized` state, and a\n    re-run after reload still refuses rather than doubling;\n  - a hand edit is not erased by a refused second invocation.\n- **Found and filed:** `allow_regenerate: True` *does* revert a hand edit, which\n  contradicts task-398's acceptance - **task-585**.\n\n### Still open\n\n- **task-580** - the `Generate` button and the preview surface. The backend\n  endpoint now works and nothing in the UI calls it, so demo step 5 (\"from\n  preview\") is the only part of the script left, and it is a surface, not a\n  mechanic.\n- **task-585** - the `allow_regenerate` contract (see above)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-397, task-398, task-399; task-323/task-324/task-9 for"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-400-pines-world-scale-vertical-slice.md"
+  }
+}

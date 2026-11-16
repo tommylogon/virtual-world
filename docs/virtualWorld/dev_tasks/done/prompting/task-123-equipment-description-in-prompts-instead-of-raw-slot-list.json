@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-123",
+  "kind": "task",
+  "number": 123,
+  "title": "Equipment Description in Prompts Instead of Raw Slot List",
+  "status": "done",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-07-29",
+  "updated": "2026-07-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the raw equipped-items slot list in prompts with a natural-language equipment description generated on equip/unequip.\n\n### Current\n```\nEquipped: back: item_Backpack, feet: item_Stovepipe Leather Boots (Pair), legs: item_Reinforced Wool Trousers > item_Wool Blend Undershirt & Drawers > item_Clockwork Prosthetic (Left Leg)\n```\n\n### Target\n```\nWearing a heavy fur-lined coat over a waxed canvas vest, with sturdy leather boots on your feet and a backpack slung over one shoulder. Your left leg is a clockwork prosthetic.\n```\n\n### Approach\nThe `engine/equipment.py` system already generates a description string on equip/unequip triggers. This string should be stored on the player object and surfaced in the prompt instead of the raw slot list.\n\n### Scope\n- `engine/equipment.py` - ensure description generation happens and persists\n- `player.py` - add `equipment_description` field\n- `static/js/agent/prompt-builder.js` - use equipment_description in `buildRoomContext()`\n- Keep the raw slot list available as fallback/backup",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/prompting/task-123-equipment-description-in-prompts.md"
+  }
+}

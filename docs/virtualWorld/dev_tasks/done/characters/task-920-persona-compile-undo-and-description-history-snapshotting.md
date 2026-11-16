@@ -12,6 +12,10 @@ related: ["task-903"]
 **Filed:** 2026-10-31
 **Related:** task-903
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]]
+<!-- deps:end -->
+
 ## What
 
 Snapshot previous `base_description`, `personality`, `interest_tags`, and `fear_tags` before committing a persona compile, allowing the author to revert back to their prior authored prose with a single click in the Persona tab.
@@ -36,5 +40,5 @@ Compiling a structured persona block rewrites the character's primary prose fiel
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

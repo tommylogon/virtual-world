@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "task-904",
+  "kind": "task",
+  "number": 904,
+  "title": "Shared component library: extract reusable UI primitives and state primitives",
+  "status": "done",
+  "priority": "high",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-23",
+  "updated": "2026-10-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-902",
+      "task-854",
+      "task-893"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extract shared UI component library and state primitives to eliminate duplication across Viwo inspector panels and between Viwo and The Commons.",
+    "why": "Viwo and The Commons duplicate core UI and state primitives:\n1. Inspector views (`item-view.ts`, `area-view.ts`, `agent-view.ts`, `way-view.ts`) each copy-paste 40-70 lines of identical node identity markup (badge, name input, generated-node check, lowercase rename, sync ID button, library sync, and node deletion).\n2. The Commons (`templates/commons.html`, `static/js/commons/`) duplicates dialogs, collapsible drawer sections, status badges, and shortcut handling already present in Viwo.\nExtracting these into presentational components in `static/js/inspector/components.ts` and `static/js/shared/components/` eliminates duplication, enforces consistent contracts, and prevents brittle domain-coupled widgets.",
+    "how": "1. **Phase 1: Inspector Component Decomposition (High ROI)**\n   - Extract `InspectorNodeHeader` into `static/js/inspector/components.ts`: standardizes badge, editable name, generated-node guard, lowercase rename, sync ID button, and close handler.\n   - Extract `InspectorDangerZone` into `static/js/inspector/components.ts`: standardizes node deletion button, confirm modal, and dispatch.\n   - Wire `InspectorNodeHeader` and `InspectorDangerZone` into `item-view.ts`, `area-view.ts`, `way-view.ts`, and `agent-view.ts`.\n2. **Phase 2: Viwo and Commons Shared UI Primitives**\n   - Extract `CollapsibleSection` and `StatusBadge` into `static/js/shared/components/`.\n   - Extract `ModalDialog` with dark-mode styling, Escape-key handling, and backdrop dismissal.\n   - Wire shared primitives into both the Viwo Agents left-panel tab and The Commons drawer (`/commons`).\n3. **Phase 3: State & API Contracts**\n   - Extract `ShortcutRegistry`, `Observable`, and `PersistedConfig` to `static/js/shared/state/`.\n   - Update imports and ensure clean TypeScript build (`npm run build:ts`).",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: Inspector views render unified InspectorNodeHeader and DangerZone widgets with functional rename, sync-ID, and delete operations across all 4 entity types.\n   - observed: Planned; to be tested upon implementation.\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: Inspecting item, area, way, and character nodes displays identical header controls without console errors or regressions.\n   - observed: Planned; to be tested upon implementation.\n3. Run the targeted regression test for the mechanism.\n   - expected: Unit tests in tools/unit/test_inspector_modular.js and tools/unit/test_commons_drawer.js pass with 0 failures, and npm run build:ts compiles with 0 errors.\n   - observed: Planned; to be tested upon implementation.",
+    "acceptance": [
+      {
+        "text": "`static/js/inspector/components.ts` exports `InspectorNodeHeader` and `InspectorDangerZone`.",
+        "done": true
+      },
+      {
+        "text": "`item-view.ts`, `area-view.ts`, `way-view.ts`, and `agent-view.ts` delegate node header and deletion markup to the shared inspector components.",
+        "done": true
+      },
+      {
+        "text": "`static/js/shared/components/` hosts reusable presentational primitives (`CollapsibleSection`, `StatusBadge`, `ModalDialog`, `ActionBtn`).",
+        "done": true
+      },
+      {
+        "text": "The Commons drawer and Viwo panels import and use the shared components with consistent styling.",
+        "done": true
+      },
+      {
+        "text": "`npm run build:ts` and `npm run typecheck` pass with 0 errors.",
+        "done": true
+      },
+      {
+        "text": "Existing unit tests pass cleanly.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/inspector/components.ts",
+      "static/js/inspector/item-view.ts",
+      "static/js/inspector/area-view.ts",
+      "static/js/inspector/way-view.ts",
+      "static/js/inspector/agent-view.ts",
+      "static/js/shared/components/",
+      "static/css/commons.css",
+      "templates/commons.html",
+      "static/js/commons/commons-ui.js",
+      "tools/unit/test_inspector_modular.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Right-panel Inspector tabs (Item, Area, Character, Way) and Left-panel Agents tab / The Commons drawer\n\nCurrent availability: always (Inspector panels and The Commons are currently live in the app)\n\nLive steps when available:\n1. Click on an item, area, character, or way node on the graph canvas or from the outline list\n   - expected: Inspector panel opens with the standardized InspectorNodeHeader showing type badge, editable name, generated-node indicator or rename field, and sync ID button without layout breakage.\n2. Edit the name or click the sync ID button on the inspector header\n   - expected: Graph node updates name or ID, state persists across reload, and graph label synchronizes.\n3. Click the delete node button in the inspector danger zone\n   - expected: Confirmation prompt appears and confirming cleanly deletes the node from graph canvas and worldState.\n4. In The Commons (/commons), open a character drawer\n   - expected: Character drawer renders collapsible sections and status presence badges using the shared presentational primitives.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.",
+      "erratum_2026_11_12": "The client domain model wrappers introduced in `static/js/types/models/` (`entities.ts`, `player.ts` declaring `AreaModel`, `ItemModel`, `PlayerModel`) have 0 real call sites across the application.\n\nVirtualWorld is fundamentally an Entity-Component / Property Graph simulation: the graph (`worldState.graph.nodes[id].properties`) is the single authoritative source of truth. Classical OOP wrapper models create a second source of truth and fight graph dynamism. Future architecture work must not build or depend on duplicate object wrappers around graph nodes; inspect and mutate graph node properties directly."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Inspector Panels|Inspector Panels]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-904-shared-component-library-extract-reusable-ui-primitives-and-state-primitives.md"
+  }
+}

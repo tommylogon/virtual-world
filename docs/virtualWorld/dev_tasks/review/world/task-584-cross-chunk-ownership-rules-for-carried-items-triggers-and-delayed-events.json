@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-584",
+  "kind": "task",
+  "number": 584,
+  "title": "Cross-chunk ownership rules for carried items, triggers and delayed events",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-401",
+      "task-581",
+      "task-583",
+      "task-582"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Decide and implement who owns a character, a carried or equipped item, a live trigger and a delayed event while its scope is unloaded, and make the answer consistent across a save and load round trip. A delayed event aimed at an unloaded node is globally indexed and either loads the scope when due or resolves through an explicit deferred policy; dropping it silently is forbidden.",
+    "why": "Dynamic chunk unloading must not drop or orphan items currently carried by traveling characters or corrupt pending events.",
+    "how": "Preserved character inventory containment edges independently of area node scope lifecycles, ensuring carried entities persist across chunk boundaries.",
+    "verify": "1. Move character carrying items out of a loaded scope into an unloaded scope\n   - expected: Items remain in character inventory without being severed by unload\n   - observed: Verified in tests/test_world_chunks.py",
+    "acceptance": [
+      {
+        "text": "Carried and equipped items remain owned by their character when area chunks unload.",
+        "done": true
+      },
+      {
+        "text": "Cross-chunk event and trigger subscriptions survive unload/load cycles.",
+        "done": true
+      }
+    ],
+    "files": [
+      "graph.py",
+      "engine/world_scopes.py",
+      "tests/test_world_chunks.py"
+    ],
+    "custom": {
+      "implemented_2026_10_02": "The ownership rule, stated once: **a character and its carried/equipped items\nare owned by the character; a trigger is owned by whatever triggers it; the\nchunk owns only its own stamped nodes.**\n\n- `engine/world/index.py`: the index records **every** node's owner\n  (`scope_for_node`), not just areas, so a due event can find which scope to\n  load. `GlobalScopeIndex.unload(graph, scope_id)` records the location of\n  characters/items that survive the eviction, and `restore_locations` re-adds\n  their `in` edges once the area is loaded again (folded into\n  `ensure_scope_loaded`). Idempotent.\n- `graph.WorldGraph.unload_scope`: a `logic_trigger` referenced only from a\n  removed node is cleaned up (`orphaned_triggers`); one shared with a surviving\n  owner is kept. A carried/equipped item edge never has an endpoint in the\n  chunk, so it is untouched - the character keeps its gear across an unload.\n- `virtual_world_engine._process_delayed_events`: a due event whose target is\n  missing tries to load its owner scope via the index; if it still cannot be\n  found it is **deferred** (re-queued for the next tick, `deferred_delayed_events`),\n  and after 10 attempts **recorded as unresolved** (`unresolved_delayed_events`)\n  and surfaced in the log. The old silent `continue` is gone.\n\nTests: `tests/test_cross_chunk_ownership.py` (6) - character/carried-item\nsurvival, location restore, orphan-trigger cleanup with a shared trigger kept,\na due event loading its scope and firing, and an unloadable target being\ndeferred then unresolved. `tests/test_delayed_events.py`'s\n`test_dead_target_node_is_skipped` was **rewritten** to\n`test_dead_target_node_is_deferred_not_silently_dropped` because its old\nassertion pinned exactly the silent drop this task forbids.\n\nConsistency across a save/load round trip: the index (including\n`character_location`/`item_location`) is persisted by `engine/serialization.py`;\na scenario rederives it from the graph + manifest."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events.md"
+  }
+}

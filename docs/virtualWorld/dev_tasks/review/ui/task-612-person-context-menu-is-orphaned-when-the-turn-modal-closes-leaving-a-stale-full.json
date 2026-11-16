@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-612",
+  "kind": "task",
+  "number": 612,
+  "title": "Person context menu is orphaned when the turn modal closes, leaving a stale full-page scrim",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Open a person menu in the HTC modal, then dismiss the modal. The THE WOMAN / Talk to / Examine / Attack panel stays rendered with no owner, and a transient .tsv-scrim (z-index 1390, position fixed, pointer-events auto, full viewport) swallows the next click before clearing. Symptom is a one-click tax or a double-click-to-act, not a lockout.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Human Turn Composer/HTC modal → click a person in the scene → that person's context menu. The turn modal's close action must also close the person menu and its scrim.\n\nCurrent availability: The card records the orphaned “THE WOMAN / Talk to / Examine / Attack” menu and a one-click scrim tax as the reported symptom; no fix or live recheck is recorded.\n\nLive steps when available:\n1. Open the human-turn modal, click a person, and confirm the context menu shows that person's name and actions.\n   - expected: the menu is attached to the selected person and the modal remains interactive.\n2. Close the turn modal using its close control, then click a different visible world control once.\n   - expected: both the context menu and full-page `.tsv-scrim` are gone; the first click reaches the intended control.\n3. Repeat by dismissing the modal with Escape and by clicking its backdrop.\n   - expected: each dismissal removes the same menu and scrim without leaving a stale pointer-blocking layer.\n4. Reopen the modal and open a second person's menu.\n   - expected: only the second person's menu remains; the first person's actions are not retained.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.",
+      "reopened_2026_10_04_reproduced_live_the_shipped_fix_is_dead_code": "Was `done` (folder). Moved back to `todo` after a clean browser repro on the\nmansion scenario (read-only session, own client tab):\n\n1. Zero `.tsv-scrim` elements (counted). Reopen the composer, click the kayla\n   jenkins person chip → body gains exactly `DIV.tsv-scrim` + `DIV.tsv-ctx`.\n2. One Escape keydown (the overlay-dismiss path). The modal closes.\n3. Counted after: `.tsv-scrim` = 1 and `.tsv-ctx` = 1, both visible. The scrim\n   is full-viewport (1280×720), z-index 1390, `pointer-events: auto`, and\n   `document.elementFromPoint` at viewport centre returns the scrim - the next\n   click is swallowed, then the scrim's own click handler clears it. The exact\n   \"one-click tax\" from the original goal.\n\nRoot cause - the fix at `human-turn-composer.ts:679` (`hidePanel`) guards with\n`typeof _scene.closeMenu === 'function'`, but `_scene` is the **scene data\npayload** assigned at `human-turn-composer.ts:727` (`_scene = scene` from\n`TurnSceneView.fetch`). A JSON payload has no `closeMenu`; the method is on the\n**TurnSceneView module export** (`turn-scene-view.ts:602`). The guard can never\npass, so `closeMenu()` never runs from `hidePanel()` on ANY close path. This is\nguard check #4 (\"can the guard's lookup ever match what the caller passes?\").\n\nFix direction: call the module (`TurnSceneView.closeMenu()`), not the payload.\nAlso add the regression test this task never had (its acceptance was left\nTODO when it was marked done): open a person menu, hide the panel, assert\n`document.querySelector('.tsv-scrim')` is null."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-612-person-context-menu-is-orphaned-when-the-turn-modal-closes-leaving-a-stale-full-page-scrim.md"
+  }
+}

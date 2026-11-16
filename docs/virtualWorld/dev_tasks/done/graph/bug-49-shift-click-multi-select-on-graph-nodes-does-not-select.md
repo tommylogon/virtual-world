@@ -13,7 +13,7 @@ priority: medium
 
 ## Symptom
 
-Shift-clicking a node in the graph neither selected it nor opened the inspector —
+Shift-clicking a node in the graph neither selected it nor opened the inspector -
 it behaved exactly like a plain click, so no bulk selection bar ever appeared and
 there was no way to act on several nodes at once (e.g. reassign a whole interior
 to a scope, task-539).
@@ -29,7 +29,7 @@ state. The real `PointerEvent` is at `params.event.srcEvent`.
 
 So the guard `if (params.event?.shiftKey && …)` was never true: the code fell
 through to the plain-click branch, which opened the inspector. Nothing was broken
-in the selection bookkeeping itself — `_toggleBulkSelect` and the action bar work
+in the selection bookkeeping itself - `_toggleBulkSelect` and the action bar work
 once they are reached.
 
 ## How
@@ -46,12 +46,12 @@ once they are reached.
 - Since the point of a selection is what you can do with it, the bulk bar also
   gained the one action this bug was blocking: a **🗺️ Scope** picker
   (`graphManager._fillBulkScopes` / `_bulkScope`, task-539) that moves the whole
-  selection into one scope in a single request — one undo step — and reports the
+  selection into one scope in a single request - one undo step - and reports the
   route's refusal if the selection mixes in generated areas.
 
 ## Verified
 
-Live, on the goblin camp: shift-clicking three areas gave "3 selected — " with all
+Live, on the goblin camp: shift-clicking three areas gave "3 selected - " with all
 three in `_bulkSelection`; the scope picker listed all five scopes; choosing the
 camp moved all three to `deep_woods_2` in one request, cleared the selection and
 removed the bar. Shift-clicking the same node twice deselects it. The three test

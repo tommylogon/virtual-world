@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "task-970",
+  "kind": "task",
+  "number": 970,
+  "title": "Commons: Mute and unmute a chat or group",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "commons",
+    "agent-tools",
+    "ux"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "small",
+  "goal": "Allow characters (and the UI) to mute and unmute individual Commons DMs, groups, or #public channels",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add per-character channel muting/unmuting in The Commons across engine, routes, agent tools, prompt context, and UI.",
+    "why": "Characters in DMs, groups, or #public need a way to silence noisy or unwanted chats without blocking the person globally or leaving a channel, and auto-reply should respect muted state.",
+    "how": "Store per-character muted channel IDs in Commons state, add POST /api/commons/channels/<id>/mute, expose mute_chat/unmute_chat tools in CommonsAgent, annotate muted channels in buildCommunicationPrompt, and skip muted recipients in triggerAutoReplyForChannel.",
+    "verify": "pytest tests/test_commons.py -q and npm run build:ts",
+    "acceptance": [
+      {
+        "text": "engine/commons.py and routes/commons.py persist per-character muted channel state and expose a mute/unmute endpoint",
+        "done": false
+      },
+      {
+        "text": "CommonsAgent exposes mute_chat / unmute_chat tool in communicationTools and executeCommunicationTool",
+        "done": false
+      },
+      {
+        "text": "Auto-reply on message and unread wakeups skip muted channels for that character while still allowing manual Act or unmute",
+        "done": false
+      },
+      {
+        "text": "buildCommunicationPrompt indicates [muted] on muted channels and Commons UI shows mute state + toggle",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/commons.py",
+      "routes/commons.py",
+      "static/js/commons/commons-agent.ts",
+      "static/js/commons/commons-api.ts",
+      "static/js/commons/commons-ui.ts",
+      "static/js/agent/prompt-builder/turn-prompts.ts"
+    ],
+    "custom": {
+      "browser_ui": "In /commons, show a mute/unmute toggle on each channel/DM header or row and a muted indicator badge; muted channels skip auto-reply on incoming messages while still allowing manual Act or unmuting."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Gameplay/The Commons.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

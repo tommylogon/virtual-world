@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-158",
+  "kind": "task",
+  "number": 158,
+  "title": "Steal Item from Character (Verify Existing)",
+  "status": "done",
+  "priority": "low",
+  "area": "gameplay",
+  "tags": [
+    "characters",
+    "stealth",
+    "combat",
+    "verify"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The \"steal item from another character\" feature already exists with a Sleight of Hand vs Perception contest. This task is to verify it works end-to-end and close out the idea.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- [x] Steal succeeds when Sleight of Hand beats Perception\n- [x] Failure produces a notice message and doesn't move the item\n- [x] Can't steal from characters in other areas\n- [x] Stealing equipped items works (EDGE_EQUIPPED is checked)\n\n**Verified 2026-08-02** - all checks pass via `tests/test_item_actions.py::TestStealItem`. One bug found and fixed: the success path did not remove the `EDGE_EQUIPPED` edge when stealing an equipped item (item ended up equipped on the victim AND carried by the thief). Fixed in `engine/item_actions.py` - success now removes both `EDGE_CARRYING` and `EDGE_EQUIPPED`.\n\n**Status: DONE** - moved to `done/gameplay/`.\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status": "Already implemented. `steal_item` in engine/item_actions.py:556 does a `Sleight of Hand` roll vs the target's `Perception` roll, moves the item on success, and raises \"X notices you!\" on failure. Command parsed by `steal X from Y` in routes/action.py:239. Review task [[review/gameplay/task-132-steal-command|task-132: steal command]] is also in the review queue."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-158-steal-item-verify.md"
+  }
+}

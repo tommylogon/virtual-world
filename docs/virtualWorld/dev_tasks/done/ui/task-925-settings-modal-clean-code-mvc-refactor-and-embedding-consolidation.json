@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-925",
+  "kind": "task",
+  "number": 925,
+  "title": "Settings modal Clean Code MVC refactor and embedding consolidation",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-909",
+      "task-910",
+      "task-304"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Refactor the Settings modal and configuration pipeline to follow Clean Code and MVC principles:\n\n1. **Centralized Configuration Schema (`CONFIG_SCHEMA`)**:\n   - Define a single source of truth for all 46 config fields in `static/js/config.ts`.\n   - Specify storage keys, data types (`string`, `number`, `boolean`), and canonical fallback defaults in one typed dictionary.\n   - Prevent default values from drifting across multiple files.\n\n2. **Declarative View Binding & Model Decoupling**:\n   - Implement `SettingsView.readForm()` to scan modal controls with `data-config=\"fieldName\"`, coercing types based on `CONFIG_SCHEMA`.\n   - Decouple `config.saveFromForm()` from direct DOM queries (`document.getElementById`), delegating to `SettingsView.readForm()`.\n   - Stamp declarative `data-config` attributes across form controls in `templates/index.html`.\n\n3. **Subsystem Consolidation & Interaction Parity**:\n   - Retire the separate `Embedding` tab button and pane, consolidating embedding settings directly into the `Connection` tab (`tab-connection`).\n   - Add a diagnostic `testMemoryConnection()` method and UI button (`#test-memory-btn`) with live latency measurement for the Dedicated Memory Worker, providing diagnostic parity with the Main LLM and Embedding models.\n   - Fix nested `.settings-group` markup bugs in `templates/index.html` where memory and embedding groups were unclosed or nested inside the API Connection group.",
+    "why": "Auditing the Settings modal revealed significant architectural debt:\n- 52 direct `document.getElementById` calls inside the Model class (`config.ts`).\n- Brittle inline `onchange` string scripts mutating global state directly from HTML attributes.\n- Default connection values (`http://localhost:1234/v1`, `not-needed`, `lmstudio-community/lfm3-1.7b`) hardcoded and duplicated across 6 different files.\n- Memory Worker lacked any diagnostic feedback, meaning connection failures or model misconfigurations were invisible until runtime character turns.\n- Embedding settings sat in an isolated tab with only two text inputs.",
+    "how": "- `static/js/config.ts`:\n  - Declare `CONFIG_SCHEMA` with typed field definitions and canonical defaults.\n  - Refactor `_loadFromStorage()`, `getMemoryLLMClient()`, and `_getDefaultProfiles()` to read from `CONFIG_SCHEMA`.\n  - Update `saveFromForm()` to delegate form reading to `SettingsView.readForm()`.\n- `static/js/ui/settings-view.ts`:\n  - Implement `readForm()` with type coercion and `turnOrder` normalization.\n  - Implement `testMemoryConnection()` with timing measurement and error handling.\n  - Add backwards-compatible alias for `switchTab('tab-embedding')` -> `'tab-connection'`.\n- `templates/index.html`:\n  - Add `data-config` attributes to inputs in `tab-connection`, `tab-agent`, and `tab-automation`.\n  - Fix `.settings-group` nesting layout.\n  - Add the Test Connection button and result span for the Memory Worker.\n- `tools/unit/test_graph_toolbar.js` & `tools/unit/test_graph_tuning.js`:\n  - Update DOM slice boundary from `tab-embedding` to `tab-engine-config` while preserving all 14 `GraphNetwork.applyGraphSettings()` call assertions.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Model: `CONFIG_SCHEMA` defines all setting keys, types, and defaults in a single typed dictionary.",
+        "done": true
+      },
+      {
+        "text": "Model: `config.saveFromForm()` delegates to `SettingsView.readForm()`, eliminating direct DOM parsing from the model.",
+        "done": true
+      },
+      {
+        "text": "View: Form controls bind declaratively via `data-config=\"fieldName\"`.",
+        "done": true
+      },
+      {
+        "text": "View: Embedding settings live within `tab-connection` as a clean sibling group.",
+        "done": true
+      },
+      {
+        "text": "View: Memory Worker has a live diagnostic Test Connection button reporting response time in milliseconds.",
+        "done": true
+      },
+      {
+        "text": "Tests: All existing unit tests and graph tuning test contracts remain 100% green.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/config.ts",
+      "static/js/config.js",
+      "static/js/ui/settings-view.ts",
+      "static/js/ui/settings-view.js",
+      "templates/index.html",
+      "tools/unit/test_graph_toolbar.js",
+      "tools/unit/test_graph_tuning.js",
+      "docs/virtualWorld/UI & Settings/Settings & Configuration.md"
+    ],
+    "custom": {
+      "verification": "1. Run full JavaScript unit test suite:\n   - `node tools/unit/run.cjs` (898 passed, 0 failed across 78 test files).\n2. Run targeted graph toolbar and tuning tests:\n   - `node tools/unit/run.cjs graph_toolbar graph_tuning` (23 passed, 10 passed).\n3. Run targeted pytest suites:\n   - `python -m pytest tests/test_trigger_migration.py tests/test_world_scopes.py` (42 passed).\n4. Verify TypeScript compilation:\n   - `npm run build:ts` (0 errors).\n5. Verify em-dash absence:\n   - Zero em-dashes introduced across all touched files."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Settings & Configuration]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-925-settings-modal-clean-code-mvc-refactor-and-embedding-consolidation.md"
+  }
+}

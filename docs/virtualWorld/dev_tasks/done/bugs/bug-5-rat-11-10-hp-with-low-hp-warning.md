@@ -26,4 +26,4 @@ A rat NPC displayed 11 out of 10 HP (exceeding max) and showed a low-HP warning.
 
 ## Second fix (alternate root cause, also landed)
 
-A companion note ("bug_5 ... 1.md") documented a second root cause: `handle_adjust_vital` had no `Max_HP` clamp for **other-target** healing. That fix also shipped — `engine/effects.py:446-450` clamps other-target HP to `min(max_hp, ...)` with `max_hp = vitals.get("Max_HP", 100)`. Both files described the same bug; this file is the consolidated record. Audited 2026-08-03.
+A companion note ("bug_5 ... 1.md") documented a second root cause: `handle_adjust_vital` had no `Max_HP` clamp for **other-target** healing. That fix also shipped - `engine/effects.py:446-450` clamps other-target HP to `min(max_hp, ...)` with `max_hp = vitals.get("Max_HP", 100)`. Both files described the same bug; this file is the consolidated record. Audited 2026-08-03.

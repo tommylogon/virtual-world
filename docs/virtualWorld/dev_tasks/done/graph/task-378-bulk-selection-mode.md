@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-30
 **Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P3 — Bulk selection mode (shift-click) + action bar: add tag / set state / env preset / delete / move to area.
+**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md - P3 - Bulk selection mode (shift-click) + action bar: add tag / set state / env preset / delete / move to area.
 
 ## Notes
 

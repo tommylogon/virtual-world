@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-104",
+  "kind": "task",
+  "number": 104,
+  "title": "Multi-Action Command Sequences",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-24",
+  "updated": "2026-07-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-131",
+      "task-363"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Allow characters to queue up a sequence of commands that execute in order, enabling macro-actions like \"use key on door, go north, look\" as one atomic operation. Useful for both player convenience and NPC multi-step behaviors. BUT not sure if i really want this or not. might tie into a action point system downt he line",
+    "why": "Allow players to execute compound command sequences separated by delimiters (e.g. `take key and unlock door`).",
+    "how": "### Frontend\n- Command input allows `;` or `→` separated sequences: `use key on door; go north; look`\n- A sequence builder UI (optional) with drag-and-drop reordering\n- Visual feedback showing sequence progress (\"Step 2/3: going north...\")\n\n### Backend\n- `/api/action/sequence` endpoint - accepts array of commands, executes in order\n- Each command in sequence gets its own response event\n- If one command fails, the sequence stops with a clear error\n- State is passed between commands (e.g., after taking an item, use it in next step)\n\n### Edge Cases\n- **Failed command mid-sequence**: \"You used the key. The door is locked. Sequence stopped.\"\n- **Character state changes**: If \"go north\" moves the character, subsequent \"examine\" works in the new room\n- **Very long sequences**: Cap at 10 commands (configurable)\n- **Multi-character**: Only valid for the acting character's commands",
+    "verify": "- Sequence of 3 commands executes in order\n- Failed command stops sequence with error message\n- State passes between commands (move then look)\n- Empty sequence returns error\n- Single command in sequence = normal /api/action",
+    "acceptance": [
+      {
+        "text": "Command sequences execute sequentially in order.",
+        "done": true
+      },
+      {
+        "text": "Execution halts immediately if an intermediate action fails validation.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/action.py` - `/api/action/sequence` endpoint",
+      "virtual_world_engine.py` - sequence execution loop",
+      "static/js/agent-engine.js` - sequence parsing",
+      "static/js/ui-controller.js` - sequence UI feedback",
+      "static/js/event-stream.js` - sequence step events"
+    ],
+    "custom": {
+      "what_already_exists": "- `/api/action` processes one command at a time\n- Agent engine sends one action per turn\n- Turn queue handles step-by-step execution\n- NPC behaviors have an `actions` array"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-104-multi-action-command-sequences.md"
+  }
+}

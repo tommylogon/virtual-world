@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "bug-34",
+  "kind": "bug",
+  "number": 34,
+  "title": "\"go to the <way>\" silently crosses the doorway",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- `engine/movement.py`: approach semantics - `go to <way>` / `go toward` /\n  `approach X` walk UP TO the way and stop (positioned at it);\n  crossing is explicit (`go <handle>`, `go <room>`, `go through <X>`, dash).\n- New `approach` verb: HTTP handler, MCP tool, action normalizer, prompt\n  examples, AV actions, scene view, type-ahead.\n- Slug-tolerant way resolution (\"hidden tunnel\" â†’ hidden_tunnel name or id).\n- Tests: `tests/test_movement.py` (approach suite); full suite 1274 passed.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "observed": "Agents said `go to the door` / `go toward the hidden tunnel` intending to\nREACH the doorway; `go` resolved the way and walked them through."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-34-go-to-way-crosses-through.md"
+  }
+}

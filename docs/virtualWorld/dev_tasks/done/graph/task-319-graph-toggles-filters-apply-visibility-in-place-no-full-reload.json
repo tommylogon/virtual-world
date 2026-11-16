@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-319",
+  "kind": "task",
+  "number": 319,
+  "title": "Graph toggles/filters apply visibility in place (no full reload)",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Two related graph editor bugs:\n\n1. **Revealed items lost their edges.** When items were hidden and you clicked a\n   character, the item nodes appeared but the edges connecting them to the character\n   did not. The old code only built edges whose endpoints passed the filter *at load\n   time*, so edges to items that were later revealed on click never existed in the\n   dataset.\n\n2. **Every toggle/filter triggered a full graph reload.** `toggleItems`,\n   `toggleInhabitedAreas`, `toggleTriggers`, `setFloorFilter`, `revealAreasForWay`,\n   `hideRevealedAreas`, and search all cleared `_lastSig` and called `loadGraphData()`,\n   which rebuilt the entire vis.js dataset via `network.setData()`. That caused zoom/pan\n   loss, physics restart, jitter, and lag - especially bad in large worlds.",
+    "how": "Separate **data loading** from **visibility filtering**:\n\n- `loadGraphData()` now builds **every** node and **every** edge into the vis.js dataset\n  once (only on actual graph-structure changes). Filtering no longer drops nodes/edges at\n  build time.\n- A new `applyVisibility()` method computes the set of currently-visible node ids\n  (`_computeVisibleNodeIds()`) and applies `hidden: true/false` to nodes and edges in\n  place via `dataset.update()`. An edge is visible only when **both** its endpoints are\n  visible - which automatically makes edges to revealed items appear once the item is\n  revealed.\n- Toggles, the floor filter, area/way reveal, and search now just update state and call\n  `applyVisibility()` - no `setData()`, so zoom/pan and physics are preserved.\n- Search now **hides** (via `hidden: true`) non-matching nodes and the edges whose\n  endpoints don't match, instead of just fading them with `opacity: 0.0`.\n- Search now **reveals matches** even when they'd otherwise be hidden by a spatial\n  filter - a matching node is surfaced regardless of whether its area is inhabited or\n  its item type is hidden. Its direct connections (nodes one hop away over any edge)\n  come into view too, so the matching node's **edges show** (\"edges if applicable\").\n  Search overrides the inhabited/floor/items/trigger filters while the query is active;\n  clearing the query restores the normal filter view.\n- Search now **fits the camera to the match cluster** (`_fitToSearchMatches`). Hidden\n  nodes keep their stale baked positions (they're excluded from the physics solver\n  while hidden), so without this the revealed results could appear scattered and far\n  from center. The fit frames the matched nodes + their one-hop neighbors so the\n  results are visible and centered.\n- Revealed search nodes now **pull together** via `_kickClusterPhysics()`: after a\n  search reveal, the solver gets a bounded `stabilize(80)` kick so the freshly-unhidden\n  nodes re-join the simulation and pull toward their connections. Because only the\n  visible match cluster is non-hidden, only those nodes participate - no restructuring\n  of the whole world. Physics state is preserved (re-disabled if it was off).\n\nAlso fixed: `loadGraphData()` was resetting `_revealedItemIds` to `new Set()` while the\nrest of the code expects a `Map` (reveal/cleanup iterated `.values()` as child sets).",
+    "verify": "- `node --check static/js/graph/network-manager.js` - OK\n- `node --check static/js/graph/projector.js` - OK\n- `node --check static/js/graph/overlays.js` - OK\n- `node --check static/js/graph-manager.js` - OK\n- `node tools/test_inspector.cjs` - all pass (incl. \"Graph canvas responds to click\",\n  \"Inspecting an item node works\", \"Trigger nodes can be found and inspected\")\n- `node tools/test_ui.cjs` - 24/25; the 1 failure is \"Toggle physics on/off:\n  document is not defined\", which is a pre-existing test-harness issue in `togglePhysics`\n  (untouched by this refactor). Graph canvas, context menu, node click, and item inspect\n  all pass.\n- Search-reveal behaviour re-checked after adding the match-reveal change - inspector\n  tests still pass.\n- Re-verified after the modular split (projector/overlays extraction) - same results.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/projector.js` (new): the pure visibility projection -",
+      "computeVisibleNodeIds()`, `edgeVisible()`, `applyVisibility()`, `_viewState()`.",
+      "Everything below that had to do with \"what should be visible\" now lives here",
+      "(unit-testable, no vis.js).",
+      "static/js/graph/overlays.js` (new): the 5 ambient overlays + color maps +",
+      "change-cached `computeAmbientLight()`. Extracted as part of the wider modularization",
+      "(see task-314); `network-manager.js` delegates the leaf apply fns to it.",
+      "static/js/graph/network-manager.js`:",
+      "loadGraphData()` - build all nodes+edges; call `applyVisibility()` after `setData()`.",
+      "_computeVisibleNodeIds()` / `applyVisibility()` - thin delegates to `GraphProjector`.",
+      "revealItemsForNode` / `hideRevealedItems` - mutate `_revealedItemIds` + call",
+      "applyVisibility()` instead of `dataset.add()/remove()`.",
+      "toggleItems` / `toggleInhabitedAreas` / `toggleTriggers` / `revealAreasForWay` /",
+      "hideRevealedAreas` - call `applyVisibility()` instead of `loadGraphData()`.",
+      "applyFilter(query)` - store query + `applyVisibility()` (hides non-matches);",
+      "debounced settle (fit + physics kick) via `_fitToSearchMatches` / `_kickClusterPhysics`.",
+      "static/js/graph-manager.js`: `setFloorFilter()` calls `applyVisibility()`.",
+      "templates/index.html`: added `<script>` tags for `projector.js` + `overlays.js",
+      "before `network-manager.js`.",
+      "graph/event-handlers.js`: unchanged (already wires way/empty-click reveal)."
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-319-graph-toggle-inplace-visibility.md"
+  }
+}

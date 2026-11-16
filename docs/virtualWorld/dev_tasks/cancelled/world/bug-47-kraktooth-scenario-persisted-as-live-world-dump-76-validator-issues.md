@@ -9,7 +9,7 @@ priority: medium
 
 **Filed:** 2026-09-23
 **Related:** task-316, task-408
-**Status:** Superseded — folded into task-408 (Goblin scenario consolidation, dedupe,
+**Status:** Superseded - folded into task-408 (Goblin scenario consolidation, dedupe,
 and data integrity), which already owns this scenario's node dedupe and validator debt.
 Kept for the dated re-validation evidence below rather than as separate work.
 
@@ -21,12 +21,12 @@ Kept for the dated re-validation evidence below rather than as separate work.
 The same 76 issues are present in the pre-edit backup, i.e. they are not caused by
 this session's work. This contradicts task-408's 2026-09-20 progress note ("validator
 went 78 issues → 0"), which suggests the trigger fixes there are not in the currently
-committed file — most likely overwritten by a live-world persist (the file carries
+committed file - most likely overwritten by a live-world persist (the file carries
 `persist: true`).
 
 ## Acceptance
 
-- TODO — see task-408 acceptance.
+- TODO - see task-408 acceptance.
 
 ## What
 

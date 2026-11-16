@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "id": "task-481",
+  "kind": "task",
+  "number": 481,
+  "title": "Per-character soak orders (multi-human timeskip)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-464",
+      "task-437",
+      "task-244",
+      "task-101",
+      "task-472"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A timeskip in a shared world is **not** a table consensus and **not** a blocking\nserver jump. It is an **order attached to one character**, declared on that\nplayer's turn in the turn composer (\"go west for an hour\"). While the order is\nactive the character is driven by the declared policy on every turn of the normal\ngame loop, exactly like an agent or a distant NPC, so a turn with a thousand\ncharacters in soak still finishes in seconds. Humans who did not declare keep\ntaking their normal attended turns; nearby NPCs stay high fidelity; every agent\nand every far-away NPC soaks.\n\nConfirmed decisions (2026-09-23):\n- **Duration is game-minutes elapsed over normal turns**, not wall-clock and not a\n  private fast-forward.\n- **While an order runs the character is genuinely `simulation_mode: background`**\n  (soak tier drives it, the LLM loop does not ask it for decisions), restored to\n  its previous mode when the order ends.\n- **Promotion does not pause the table.** A promoted character is simply put back\n  into the turn queue and acts on its next turn by normal turn order (if that\n  happens before human 3's turn, human 2 still acts first).\n- **The blocking `advance`/`advance_world` jump is the degenerate fast path**, used\n  only when nothing attended remains (solo, or everyone already soaking).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "`python -m pytest tests/test_soak_orders.py -q` → 14 passed (incl. the state\npayload reporting the order for the roster). Targeted soak/background/timeskip/\nfear/checks → 111 passed. `tools/unit` → 133 passed (incl. 3 soak-queue cases).\nlint / typecheck / module-index clean.",
+    "acceptance": [
+      {
+        "text": "`engine/soak.py`: `declare` / `cancel` / `remaining` / `apply_orders`;",
+        "done": true
+      },
+      {
+        "text": "an order carries intent, span, target/heading/watch tags, and the discovery",
+        "done": false
+      },
+      {
+        "text": "baseline.",
+        "done": false
+      },
+      {
+        "text": "`apply_orders` runs from `tick_turn` after the background pass; a policy",
+        "done": true
+      },
+      {
+        "text": "step per turn, the span decremented by the frame length.",
+        "done": false
+      },
+      {
+        "text": "Genuine background mode while ordered; restored on finish/cancel.",
+        "done": true
+      },
+      {
+        "text": "`process_due` skips ordered characters so the generic need policy never",
+        "done": true
+      },
+      {
+        "text": "competes with the declared intent.",
+        "done": false
+      },
+      {
+        "text": "Promotion on fear, hostile condition, critical vital, or a watched",
+        "done": true
+      },
+      {
+        "text": "discovery: order cleared, `frightened` applied for fear, one resume memory,",
+        "done": false
+      },
+      {
+        "text": "a `soak_end` turn event - and no table pause.",
+        "done": false
+      },
+      {
+        "text": "API: `POST /api/world/soak`, `DELETE /api/world/soak`; `POST",
+        "done": true
+      },
+      {
+        "text": "/api/world/timeskip` now **declares an order** when another attended human",
+        "done": false
+      },
+      {
+        "text": "exists instead of blocking the world, and still fast-forwards when alone.",
+        "done": false
+      },
+      {
+        "text": "The **initiative/roster list** shows an active soak (⏩ intent + minutes",
+        "done": true
+      },
+      {
+        "text": "left) from the state payload; the **turn composer deliberately shows",
+        "done": false
+      },
+      {
+        "text": "nothing** about it (status belongs in the list).",
+        "done": false
+      },
+      {
+        "text": "Turn-based `advance()` steps past characters with an active soak order, so",
+        "done": true
+      },
+      {
+        "text": "a soaking human is not prompted for an attended turn (bounded, so an",
+        "done": false
+      },
+      {
+        "text": "all-soaking table cannot spin).",
+        "done": false
+      },
+      {
+        "text": "Promotion re-queues by the normal order rule: sequential is already",
+        "done": true
+      },
+      {
+        "text": "alphabetic, random already shuffled, **initiative re-rolls for the",
+        "done": false
+      },
+      {
+        "text": "promoted character** and re-sorts keeping the current character current,",
+        "done": false
+      },
+      {
+        "text": "and simultaneous modes do not use this queue at all",
+        "done": false
+      },
+      {
+        "text": "(`TurnQueue.syncSoakPromotions`, driven from `reconcile()` on each fetch).",
+        "done": false
+      },
+      {
+        "text": "Cancel from the roster row: a ✕ on the soak badge calls",
+        "done": true
+      },
+      {
+        "text": "`DELETE /api/world/soak?character=<name>` (defaults to the active",
+        "done": false
+      },
+      {
+        "text": "character; 404 for an unknown name, clean no-op when there is no order).",
+        "done": false
+      },
+      {
+        "text": "Save/load: orders are deliberately transient; a reload abandons the order.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "review_2026_09_23_closed": "Verified: `tests/test_soak_orders.py` -> 16 passed and `tests/test_soak_chain.py` -> 5 passed on the real `tick_turn` loop (background pass -> policy -> time spent -> promotion -> resume memory -> `soak_end` event). Two things came out of that validation and are fixed here: a **search order now promotes on its find** (the policy result used to be dropped, unlike the blocking skip) and the roster row carries a **cancel** (`DELETE /api/world/soak?character=`). Orders stay transient by design, so the last box is a deliberate non-goal rather than open work. Closing."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-481-multi-human-timeskip-table-skip-with-per-player-intents.md"
+  }
+}

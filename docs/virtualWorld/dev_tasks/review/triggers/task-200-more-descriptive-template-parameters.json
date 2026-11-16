@@ -1,0 +1,43 @@
+{
+  "id": "task-200",
+  "kind": "task",
+  "number": 200,
+  "title": "More Descriptive Template Parameters",
+  "status": "review",
+  "area": "triggers",
+  "priority": "medium",
+  "created": "2026-08-10",
+  "relations": {
+    "related": [
+      "task-203",
+      "task-297",
+      "task-308"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-203-set-adjust-parameters]]",
+      "[[task-297-vitals-readout-trigger-condition-message]]",
+      "[[task-308-item-relationship-condition]]"
+    ]
+  },
+  "sections": {
+    "why": "Only `{game_time}` and a few template parameters exist. Template authors want `{uses}`, `{weight}`, `{condition}`, `{condition_severity}`, `{condition_duration}`, `{condition_cause}`, `{condition_effects}`, etc.",
+    "how": "- Pure templating done in `_render_template` context building - no engine logic change, just more context keys.\n- The `{condition_*}` parameters only make sense once conditions are rich (task-190), so they should gate behind that work.\n- Composes with aliases in labels, so template text stays readable.",
+    "acceptance": [
+      {
+        "text": "Trigger editor parameter inputs display contextual placeholder text and descriptive labels.",
+        "done": true
+      },
+      {
+        "text": "Parameter schemas define validation constraints and human-readable tooltips.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/trigger_system.py - extend context building (lines 1652-1704) with new template parameters",
+      "engine/item_actions.py - expose item `uses` and `weight` to the template context",
+      "static/js/shared/trigger-editor.js"
+    ]
+  }
+}

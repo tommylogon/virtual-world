@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-138",
+  "kind": "task",
+  "number": 138,
+  "title": "Area Status System",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-30",
+  "updated": "2026-07-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A flexible area status/effect system that models dynamic conditions in areas - fire, smoke, poison gas, extreme temperature, slime, magical fields, etc. - and how they affect characters and items. Trigger-driven for custom behavior.\n\n---",
+    "why": "Areas currently have static environment properties (temperature, light level). There's no system for dynamic, layered area effects that change over time and interact with characters. A room can be \"on fire\" but there's no fire system. A room can be \"full of poison gas\" but there's no gas system. This limits storytelling and environmental gameplay.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "requirements": "### Area Status Entries\nEach area gets a `statuses` list/dict, similar to how characters have conditions:\n```json\n{ \n  \"type\": \"on_fire\", \n  \"severity\": 3,        // intensity/stack level\n  \"duration\": null,     // null = until cleared\n  \"source\": \"fireplace_item\",\n  \"tick_effects\": {\n    \"temperature\": 15,\n    \"air\": \"smoke\",\n    \"damage\": {\"hp\": 2}\n  }\n}\n```\n\n### Status Types (examples)\n| Status | Effects | Propagation | Clear Conditions |\n|--------|---------|-------------|------------------|\n| `on_fire` | +temperature, smoke, hp damage | Spreads to connected areas | Extinguished with water/sand |\n| `flooded` | Movement cost, items float away | Drains to lower areas | Time / pump |\n| `poison_gas` | Vital damage, coughing | Spreads through open doors | Ventilation / dissipation |\n| `blessed` | Minor regen, morale boost | Doesn't spread | Duration expires |\n| `darkness_magic` | Light level → pitch_black | Caster concentration | Dispel magic |\n\n### Interactions\n- **Triggers**: `on_status_applied`, `on_status_tick`, `on_status_cleared`\n- **Hygiene connection**: certain area statuses affect hygiene (standing in slime, smoke residue, blood)\n- **Items**: items can apply/clear area statuses (fire extinguisher clears `on_fire`)\n- **Characters**: area statuses affect characters just like conditions - tick damage, stat modifiers, movement restrictions\n- **Lighting**: smoke reduces light, fire increases light\n- **Description**: area descriptions should reflect active statuses (\"The room is filled with thick, acrid smoke...\")\n\n### Implementation Notes\n- Build on top of the trigger system for custom behaviors\n- `area.py`: add `statuses` field\n- `engine/conditions.py` or new `engine/area_statuses.py` - process status ticks\n- **Mirror the condition instance schema** (see [[review/characters/task-trait-condition-system-v2|task: Trait & Condition System v2]]): `tick_effects` ≈ per-instance `periodic`, `clear conditions` ≈ `ends_on`, `severity` ≈ `level`. Area statuses can apply character conditions via the same `apply_condition` effect (poison gas → `poisoned` instance).\n- `engine/trigger_system.py` - area status triggers\n- Propagation tick similar to heat propagation\n- UI: show active statuses in area inspector with severity indicators",
+      "related": "- [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]\n- [[review/environment/task-126-tag-based-light-and-heat-sources|task-126: Tag-based light and heat sources]]\n- [[todo/environment/task-130-air-vacuum-atmospheric-effects|task-130: Air levels and atmospheric effects]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/environment/task-138-area-status-system.md"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "task-340",
+  "kind": "task",
+  "number": 340,
+  "title": "Event Stream v2: who/what/where/outcome/debug/story",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `node --check` green on event-stream.js, llm-client.js, agent-engine.js and all six\n  new stream/* modules.\n- Legacy callers confirmed working via delegates: main.js:748 restoreLog, main.js:779\n  _persistLog interval, inspector area-view EventBus.getActionIcon.\n- Pending: browser E2E (server was down per AGENTS.md no-start rule) - run a few turns,\n  confirm cards stay whole, chips expand, scrubber jumps, story mode reads well,\n  reload keeps area filter + more scrollback.",
+    "acceptance": [
+      {
+        "text": "Acting-character results stay INSIDE one turn card (no `system-msg` split) and are outcome-tinted: success green ✓, failure red ✕, minor/no-op dimmed ℹ.",
+        "done": false
+      },
+      {
+        "text": "AI-narrated results render as gold 🎭 `msg-narrated`; directed whispers as 🔒 `actor → target:`; replans as `msg-crisis` naming the critical need/threat; pruning as ✂ `msg-prune` once per signature.",
+        "done": false
+      },
+      {
+        "text": "Phase pills for observe/think/decide/act/react; `actor · A → B` area dividers; `N minutes pass` rows for ≥30 unlogged game-minutes.",
+        "done": false
+      },
+      {
+        "text": "Turn-queue strip (up-next order, human slot 🎤) renders on advanceTurn; timeline scrubber is click-to-jump; stream search hides non-matching cards with a match count.",
+        "done": false
+      },
+      {
+        "text": "Story mode (▤ / ▥ / 📖) toggles cards/compact/story and persists in localStorage; story renders the session as serif small-caps scene lines.",
+        "done": false
+      },
+      {
+        "text": "Bubble hover shows relative time; the area filter survives a reload; scrollback cap raised (500 → 2000).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "refactor_first_600_line_rule": "event-stream.js was 872 lines. Extracted move-don't-copy modules into\n`static/js/stream/`, loaded BEFORE event-stream.js; every legacy symbol stays as a\ndelegate on the bus:\n\n| Module | Owns |\n|--------|------|\n| `stream-turn-cards.js` | card open/close/bodyFor, collapse binding + restore rebind |\n| `stream-filters.js` | applyFilters, actor dropdown, area filter + scope banner (+ persistence), search |\n| `stream-raw-llm.js` | collapsed LLM chips, token meters, raw-response store, parse-error bubbles + streak export |\n| `stream-persistence.js` | IndexedDB persist/restore (cap raised 500 → 2000) |\n| `stream-scrubber.js` | timeline minimap: segments, scroll head, click-to-jump |\n| `stream-control-mode.js` | isAutonomous/getControlMode/cycleControlMode |",
+      "what_was_already_live_from_the_old_doc": "Actor filter wiring, XSS escaping, area filter + scope banner, turn cards, skill badges,\ngame-clock labels, parse-error viewer (task-238) - verified before starting.",
+      "new_features": "- **Card fragmentation fixed**: results no longer log as `system-msg` (which closed the\n  turn card mid-turn and split every acting turn into two cards). New row kinds\n  (`msg-result/narrated/reflection/whisper/crisis/prune`) stay INSIDE the acting\n  character's card.\n- **Outcome-tinted results**: agent-engine logs results via\n  `events.log(text,'msg-result',{outcome})`; success=green border+✓, failure=red+✕,\n  minor=noop rows dimmed ℹ.\n- **Narration marked**: AI-narrated action results render as gold 🎭 `msg-narrated`\n  rows instead of being indistinguishable from engine output.\n- **Whispers visible**: directed whispers render 🔒 `actor → target:` italic rows\n  (task-248 data made visible).\n- **Crisis replans explained**: replan row is `msg-crisis` and says WHY (critical need\n  label from PlanTracker.criticalNeeds or threat).\n- **Prune notifications**: ContextWindowManager pruning emits ✂ `msg-prune` (once per\n  signature, not per call).\n- **Collapsed LLM chips**: request/response payloads render one-line chips (click to\n  expand) with ~token meters (amber ≥7k). Reordering became moot - the outcome reads\n  above a one-line chip.\n- **Phase pills**: observe/think/decide/act/react get colored pills per phase.\n- **Area transitions**: trackAction's existing area-change detection also emits a\n  `─── actor · A → B ───` divider (area-filter aware via data-stream-area).\n- **Time gaps**: ≥30 unlogged game-minutes emit `- N minutes pass -`; day rollover noted.\n- **Turn-queue strip**: pinned strip shows up-next order; human slot glows pink 🎤.\n  Rendered on advanceTurn from VW.agent.turnQueue.\n- **Timeline scrubber**: sticky minimap, colored density segments, click-to-jump,\n  purple head tracks scroll.\n- **Stream search**: filter-bar input hides non-matching cards + match count.\n- **Story mode**: ▤ / ▥ / 📖 buttons toggle cards/compact/story (persisted in\n  localStorage). Story strips mechanics and renders serif small-caps scene lines,\n  italic inner voice, dialogue, narration - the session as readable fiction.\n- **Reflection styling**: 🧠 memory reflections auto-rerouted to purple reflection rows.\n- **Persistence debts partially paid**: cap 500→2000 (DOM keeps 5000); area filter now\n  survives reloads. Structured event store still open (see follow-ups).\n- **Hover relative time** on bubbles (tickToRelative surfaced).",
+      "deliberate_deviations_from_the_mockup_demo": "- LLM-detail-after-outcome ordering NOT done via buffering (llm-client logs\n  synchronously around the call) - solved by collapse instead.\n- Recalled-memory annotation API exists (window._lastRecallStats consumed if set fresh)\n  but nothing SETS it yet - needs a small memory-context.js hook (follow-up).\n- Provenance chips on triggers not wired (needs backend node-id threading).\n- Heard-from labels skipped (backend sound.py change, diminishing returns).",
+      "round_3_soft_failures_lied_about_success_found_via_the_badges": "User question \"did Miki understand she couldn't use the can?\" exposed an engine bug:\ncontextual failures (`_contextual_failure` in use/consume/take actions) RETURNED their\nprose instead of raising, so `/api/action` reported `success: true` (routes/action.py\nonly sets `failed` on ValueError). Downstream consequences: result rows showed green ✓\non failed actions, PlanTracker.trackStep counted useless attempts as PROGRESS (so the\n3-strike 🚫 step-blocking never fired), and only the react-phase prose carried the\nfailure. Fixed by raising ValueError with the IDENTICAL message text at all soft sites:\nuse_item, use_item_on pre-check + both \"nothing happens\" returns + scenery/failure text,\neat/drink, take. The nested `use X on Y → self.use_item()` caller already catches\nValueError, so composition is unchanged. Tests updated (6 in test_descriptive_targets\nnow expect pytest.raises; eat-rock test likewise). Full suite: **1100 passed, 1 skipped**.\nNet effect for agents: failure prose unchanged AND success=false now flows to the plan\ntracker (she stops retrying dead ends) and to the stream (✕ not ✓).",
+      "round_2_fidelity_fixes_after_first_live_look": "- **Turn cards no longer fragment via system chatter**: only user commands and hard\n  errors close a card; engine system rows (match info, skill text) stay inside the\n  acting turn's card. `logPhase` observe/think force a fresh card so an actor's NEXT\n  turn doesn't merge into the previous one.\n- **Actor inheritance**: rows logged without an explicit actor (actions, results,\n  emotes, mid-turn system rows) inherit the open card's actor instead of showing ⚙️.\n- **LLM chip overflow**: model names ellipsize (max 200px) while the token meter and\n  recall note stay visible (flex-shrink: 0).\n- **Pills tightened**: smaller padding/font so phase markers read as chips, not rows.",
+      "follow_ups": "- Structured event store (kills raw-HTML fragility across redesigns + feeds replay export)\n- Replay/story EXPORT button (story mode currently view-only)\n- Set window._lastRecallStats in prompt-builder/memory-context.js for recall annotation\n- Trigger provenance chips (node-id threading from backend)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-340-event-stream-v2.md"
+  }
+}

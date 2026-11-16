@@ -21,19 +21,19 @@ Let the character-art sheet slicer handle real reference and expression sheets w
 The old slicer was a uniform rows × cols grid with write-once boxes and no
 preview. Real sheets are a title banner, an outer margin, and panels of mixed
 sizes (a wide full-body pose beside a column of small detail panels), and a
-count describes none of that. A miscut was only visible after upload — the
+count describes none of that. A miscut was only visible after upload - the
 "guess-then-check" dialog this card replaces.
 
 ## How
 
-- `inspector/sprite-sheet.ts` — the frame + interior-divider model (not a
+- `inspector/sprite-sheet.ts` - the frame + interior-divider model (not a
   rows/cols count): draggable frame edges (to fit the grid onto the art and off a
   banner/footer), draggable interior dividers (uneven rows/cols), "✨ Auto-fit"
   proposing the whole grid from the sheet's whitespace gutters (detection
   proposes, every value stays draggable), a live crop strip as the second view,
   and move/resize of an existing box instead of delete + redraw. "Draw boxes"
   remains the escape hatch for genuinely irregular layouts.
-- `inspector/sprite-sheet-geometry.ts` — the pure slice geometry, split out
+- `inspector/sprite-sheet-geometry.ts` - the pure slice geometry, split out
   because the canvas half cannot run in the Node unit sandbox.
 - Cropping is client-side via canvas; each tile uploads through the existing
   single-image endpoint (`ApiClient.uploadNodeImage`). No server change, no

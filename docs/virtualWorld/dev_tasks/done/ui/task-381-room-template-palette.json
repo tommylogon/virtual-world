@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "task-381",
+  "kind": "task",
+  "number": 381,
+  "title": "room-template-palette",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "\"New Room from Template\": a palette of reusable room templates that spawns a new\narea node pre-filled from a library area, then placed on the grid. Starter\ntemplates are seeded into `data/library/areas/`.",
+    "why": "Audit P3 #15: adding a room today is one blank `create-modal` node at a time;\ncommon rooms are re-authored from scratch every time. The area library pipeline\nalready exists (Save Area to Library, template sync / diff) but has no\nspawn-from-template entry point, so the reusable half is unreachable at create\ntime.",
+    "how": "- Reuse the existing area library wiring (`InspectorTemplateSync.populateSelector('area')`,\n  the Save Area path) - do not build a second registry.\n- Add a \"New Room from Template\" entry in the create flow: list library areas,\n  pick one -> create an area node populated from the template's\n  description / environment / tags / items, then place it on the grid.\n- Seed starter templates into `data/library/areas/`.\n- No new storage format.",
+    "verify": "1. Open New Room from Template.\n   - expected: the palette lists the library areas (including the seeded starters).\n   - observed: templates/index.html:59 wires RoomTemplatePalette.open(), which loads area templates via ApiClient.getLibraryType('areas').\n2. Pick a template.\n   - expected: a new area node with the template's description / environment / items; place it on the grid.\n   - observed: room-template-palette.ts spawns area via POST /api/build/area and populates items via POST /api/build/item.\n3. Edit the new room and Save Area to Library.\n   - expected: it round-trips through the existing library pipeline.\n   - observed: Area library files round-trip through data/library/areas/ (65+ starter templates seeded).",
+    "acceptance": [
+      {
+        "text": "Palette lists library areas from the real library pipeline (no second registry).",
+        "done": true
+      },
+      {
+        "text": "Picking a template creates a populated area node and places it.",
+        "done": true
+      },
+      {
+        "text": "Starter templates are seeded in `data/library/areas/`.",
+        "done": true
+      },
+      {
+        "text": "No new storage format.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/ui/room-template-palette.ts",
+      "templates/index.html` (line 59 dropdown item)",
+      "data/library/areas/"
+    ],
+    "custom": {
+      "notes": "See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.",
+      "browser_ui": "Intended UI home: Build -> New Room from Template palette and the resulting Area Inspector.\n\nCurrent availability: Implemented and available from top navigation menu (templates/index.html:59) via `RoomTemplatePalette.open()`.\n\nLive steps:\n\n1. Open New Room from Template and inspect available library areas, including starters.\n   - expected: The palette lists real area templates through the existing library pipeline.\n\n2. Choose a template, place the room on the grid, and inspect it.\n   - expected: The area carries the template description, environment, and contents."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "source": "docs/virtualWorld/Scenario Workflows & UI Audit.md - P3 - Room template palette: New Room from Template (library areas pipeline) + seeded starter templates."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-381-room-template-palette.md"
+  }
+}

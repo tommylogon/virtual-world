@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "id": "task-594",
+  "kind": "task",
+  "number": 594,
+  "title": "Swimming as a navigation type, with diving and a limited air vital",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-745",
+      "task-190",
+      "task-187",
+      "task-475",
+      "bug-600"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add swimming as a movement/navigation type alongside walking. Moving over water should be possible at the surface; deep water should require diving, which costs air. Dive duration is bounded by a new Air vital that depletes underwater and refills at the surface, and reaching zero has a defined consequence (drowning damage, forced surfacing, or death - the design decision is the point of the task). Check whether an existing vital or condition can carry this before adding anything new, and reuse the existing movement/action machinery rather than branching inside it.",
+    "why": "Water is the one piece of terrain the engine refuses to model honestly. Today a\nriver is a hazard tag that rolls Athletics and, on a failure, leaves you `wet`:\nthere is no way to be in the water at all. A character who falls into a river\nis on a riverbank, not in a river, and \"swimming\" appears in the code only as a\nlabel with no verb behind it.\n\nThe consequence design is the point of the card. Three candidate outcomes -\ndrowning damage, forced surfacing, death - have very different consequences for\na simulation that runs for a week at a time, and the choice belongs to a\nperson, not to whichever branch was written first.",
+    "how": "1. **Pick the consequence first, and reuse `suffocating`.** It already means\n   \"no air\", it already blocks movement and actions, and it already drains HP\n   per tick with an `ends_on [\"breathe\", \"unblock\"]` escape. Decide whether the\n   zero-air outcome is \"suffocating until you surface\" (reuse it as is) or\n   \"forced surfacing\" (a new `ends_on` trigger) or \"death\" (a fatal condition\n   on top). Do not add a second drowning condition.\n2. **Carry the air budget where the other vitals live.** `engine/vitals.py`\n   declares the polarity registry, `vital_rates.py` (the top-level module\n   `engine/tick_manager.py:14` imports) the decay, and the tick loop drains\n   them. An `Air` vital is a `resource` that decays while\n   submerged and refills at the surface, but check first whether the engine\n   supports a vital that only exists on some characters, or whether the air\n   budget belongs in the suffocating condition's own clock.\n3. **Add `swim` and `dive` as verbs.** `swim` joins the way `requires`\n   vocabulary (`tools/way_properties.py:197`) and `engine/traversal.py`'s\n   `WAY_VERBS`; `dive` joins the scoped action registry (task-491). The\n   `SOAK_ACTIONS` entry `\"swim\": \"Athletics\"` (`engine/traversal.py:55`) is\n   already there but is unwired - `skill_for()` (`:72`) and `is_routine()` (`:77`)\n   have no callers, and task-475's own changelog entry records \"there is no\n   `swim`/`force` verb yet\". Either wire that mapping to a real verb or delete\n   it; a mapping that looks like support and is not is worse than none.\n4. **Give water a depth axis.** `surface` is the ground material and must not\n   be overloaded. A `depth` field on the water biomes (or a `deep_water` tag\n   the compiler stamps onto the area) is what makes \"deep water needs a dive\"\n   expressible.\n5. **Wire the hazard consequences while you are there.**\n   `engine/hazards.py::dc_for` has no engine caller: only\n   `tools/hazard_index.py` (the gate), `routes/library_ops.py` (the library\n   browser) and `tests/test_hazards.py` read it. `engine/movement.py` has **0**\n   matches for water, swim or drown. task-745's `rapids` hazard already\n   declares `on_fail.conditions [\"wet\", \"suffocating\"]`, so the data for a\n   drowning consequence exists and is waiting for a consumer.",
+    "verify": "1. Put a character in a water area and try to move through it.\n   - expected: the move is a swim, not a walk, and it is resolved by the normal\n     movement machinery.\n   - observed: (2026-10-20) not possible. There is no `swim` verb in\n     `engine/` or `routes/`; the only mechanic-shaped match is the unwired\n     `SOAK_ACTIONS` entry at `engine/traversal.py:55`.\n2. Try to cross a deep-water way.\n   - expected: the crossing is refused until the character dives.\n   - observed: (2026-10-20) not possible. `WAY_VERBS` is\n     `(\"crawl\", \"climb\", \"jump\")` (`engine/traversal.py:112`) and `way_kind`\n     (`:154`) degrades an unknown `requires` to `\"go\"`.\n3. Dive and watch the air budget.\n   - expected: air decreases only while submerged and refills at the surface.\n   - observed: (2026-10-20) there is no air vital. `VITAL_POLARITY`\n     (`engine/vitals.py:33-56`) has 16 entries and no `Air`; 0 files under\n     `data/` declare one.\n4. Run the air budget to zero.\n   - expected: the chosen consequence fires exactly once, with no unbounded\n     dive and no silent underflow.\n   - observed: (2026-10-20) not reachable. `suffocating` is the existing\n     carrier (`data/library/conditions/suffocating.json`) but no code path\n     applies it yet: the only author is `data/worldpainter/hazards.json`\n     (`rapids.on_fail.conditions`), and `dc_for` has no engine caller.",
+    "acceptance": [
+      {
+        "text": "**Swimming is a navigation type** alongside walking: a character can move",
+        "done": false
+      },
+      {
+        "text": "over water at the surface. Today the way-`requires` vocabulary is",
+        "done": false
+      },
+      {
+        "text": "`(\"\", \"crawl\", \"climb\", \"jump\")` (`tools/way_properties.py:197`) and",
+        "done": false
+      },
+      {
+        "text": "`engine/traversal.py:112` is `WAY_VERBS = (\"crawl\", \"climb\", \"jump\")`.",
+        "done": false
+      },
+      {
+        "text": "`way_kind()` (`engine/traversal.py:154-157`) returns `\"go\"` for any",
+        "done": false
+      },
+      {
+        "text": "`requires` value outside that tuple, so `requires: swim` would silently",
+        "done": false
+      },
+      {
+        "text": "degrade into an ordinary walk rather than be refused.",
+        "done": false
+      },
+      {
+        "text": "**Deep water requires a dive**, and the dive is an action of its own",
+        "done": false
+      },
+      {
+        "text": "rather than a modifier on walking. No dive verb exists.",
+        "done": false
+      },
+      {
+        "text": "**A bounded air budget** that depletes while submerged and refills at the",
+        "done": false
+      },
+      {
+        "text": "surface. There is no `Air` vital: `engine/vitals.py:33-56`",
+        "done": false
+      },
+      {
+        "text": "(`VITAL_POLARITY`) holds **16** entries and none is `Air`, and",
+        "done": false
+      },
+      {
+        "text": "`rg -c '\"Air\"' data/ --glob '*.json'` returns **0** files.",
+        "done": false
+      },
+      {
+        "text": "**A defined zero-air consequence**, chosen deliberately and applied once.",
+        "done": false
+      },
+      {
+        "text": "The existing carrier is the `suffocating` condition",
+        "done": false
+      },
+      {
+        "text": "(`data/library/conditions/suffocating.json`): \"No air. Every tick with no",
+        "done": false
+      },
+      {
+        "text": "breath is one closer to blackout.\", `blocks_actions` and",
+        "done": false
+      },
+      {
+        "text": "`blocks_movement` true, `periodic {\"Energy\": -3, \"HP\": -2}`, `ends_on",
+        "done": false
+      },
+      {
+        "text": "[\"breathe\", \"unblock\"]`. The card's own instruction is to reuse it rather",
+        "done": false
+      },
+      {
+        "text": "than add a parallel one.",
+        "done": false
+      },
+      {
+        "text": "**The existing movement and action machinery is reused**, not branched",
+        "done": false
+      },
+      {
+        "text": "around: the `swim` verb belongs in the scoped action registry",
+        "done": false
+      },
+      {
+        "text": "(task-491), the crossing check belongs in `engine/traversal.py`, and the",
+        "done": false
+      },
+      {
+        "text": "air drain belongs in the tick loop with the other vitals.",
+        "done": false
+      },
+      {
+        "text": "**Authored content exercises it**: a water area a character can swim into,",
+        "done": false
+      },
+      {
+        "text": "and a deep one it cannot cross without diving. task-745's river family",
+        "done": false
+      },
+      {
+        "text": "gives the vocabulary (5 river biome files; 24 of 411 biome files carry a",
+        "done": false
+      },
+      {
+        "text": "water terrain - 18 `water`, 5 `underwater`, 1 `surface_water`) but no",
+        "done": false
+      },
+      {
+        "text": "depth axis: `surface` is the ground *material*",
+        "done": false
+      },
+      {
+        "text": "(`engine/biomes.py:463-486`), and `shallow_water` / `deep_water` are",
+        "done": false
+      },
+      {
+        "text": "values of that field, read by nothing as depth.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/traversal.py` (`WAY_VERBS`, `SOAK_ACTIONS`, the crossing check)",
+      "engine/vitals.py` (the vital polarity registry) and `vital_rates.py` (the",
+      "vital decay the tick loop calls)",
+      "engine/player_conditions.py` and `data/library/conditions/suffocating.json",
+      "(the zero-air carrier)",
+      "engine/hazards.py`, `data/worldpainter/hazards.json` (the hazard table and",
+      "its unwired consumer)",
+      "data/library/biomes/` (the water family; needs a depth axis)",
+      "tools/way_properties.py` (the `requires` vocabulary)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: game view at a shoreline → character movement/action controls → water traversal result, air vital, and event stream. The swim and dive actions use the existing navigation/action surface; the water cell/area remains part of the world graph.\n\nCurrent availability: re-measured 2026-10-20, swimming, deep-water diving, an\nair vital, and the zero-air consequence are still proposed. The card correctly\nleaves the consequence as a design decision, and this section does not pick one\nor claim a working water mechanic. What *has* arrived since the card was filed\nis the vocabulary this work has to land on: task-745's river biome family and\nthe `data/worldpainter/hazards.json` table, whose `rapids` entry already\ndeclares `suffocating` as a failure consequence.\n\nLive steps when available:\n1. In a scratch scenario with authored shallow and deep water, move a character from shore across shallow water and inspect the resulting location and event.\n   - expected: surface swimming reaches the adjacent water location using the normal movement resolution.\n2. From deep water, attempt to move without diving, then begin a dive and inspect the air vital after each tick.\n   - expected: deep-water movement is gated by the dive rule; air decreases only while submerged and refills at the surface.\n3. Continue until the chosen zero-air consequence fires, then inspect the event stream, vital panel, and final position/state.\n   - expected: the selected design outcome is explicit and occurs once; no unbounded dive or silent air underflow occurs.\n4. Surface before air is exhausted and repeat the dive.\n   - expected: air replenishes at the surface and the next dive starts from the documented amount.\n\nThis section is not a claim that planned UI exists or works today.",
+      "reconnaissance_2026_10_20_still_valid": "Re-checked on 2026-10-20 against the code. Nothing newer implemented swimming,\ndiving or an air vital. The card's claim stands.\n\nMeasured:\n\n- **No swim verb.** `rg -n \"swim\" engine/ routes/ --glob '*.py'` returns 11\n  matches across 5 files. Nine are prose (\"your head swims\", \"Black spots\n  swim\", \"swimlane\" in the soak telemetry); one is the docstring at\n  `engine/traversal.py:10`; **one** is mechanic-shaped:\n  `engine/traversal.py:55` `\"swim\": \"Athletics\"` inside `SOAK_ACTIONS`.\n  That entry is unwired - `skill_for()` (`engine/traversal.py:72`) and\n  `is_routine()` (`:77`) have **zero** callers outside their own module, and\n  task-475's changelog entry says so outright: \"there is no `swim`/`force` verb\n  yet\" (`docs/CHANGELOG.md:1436`).\n- **No dive, no buoyancy.** `rg -i \"\\bdive\\b|diving|buoyan\" engine/ data/\n  static/` returns **1** match in the whole tree, in a 2026-09-07 export log\n  (prose).\n- **No air vital.** `engine/vitals.py:33-56` (`VITAL_POLARITY`) declares\n  **16** vitals - HP, Energy, Social, Hygiene, Sanity, Entertainment, Comfort,\n  Mana, Satisfaction, Hunger, Thirst, Bladder, Arousal, Stimulation, Pleasure,\n  Temperature - and `Air` is not among them. `rg -c '\"Air\"' data/ --glob\n  '*.json'` returns **0** files.\n- **No water gate.** The way `requires` vocabulary is `(\"\", \"crawl\", \"climb\",\n  \"jump\")` (`tools/way_properties.py:197`), `engine/traversal.py:112` is\n  `WAY_VERBS = (\"crawl\", \"climb\", \"jump\")`, and `way_kind()` (`:154-157`)\n  returns `\"go\"` for any `requires` outside that tuple. `engine/movement.py`\n  has **0** matches for water, swim or drown.\n- **Conditions: 41** files in `data/library/conditions/`, none of them an air\n  or drowning condition. But `suffocating` is the right shape and is worth\n  reusing rather than duplicating: \"No air. Every tick with no breath is one\n  closer to blackout\", `blocks_actions` and `blocks_movement` true, `periodic\n  {\"Energy\": -3, \"HP\": -2}`, `ends_on [\"breathe\", \"unblock\"]`\n  (`data/library/conditions/suffocating.json`; mirrored in the engine catalog\n  at `engine/player_conditions.py:221`). The engine reads it in three places\n  (`engine/movement.py:397`, `engine/interrupts.py:40`, `engine/undead.py:51`),\n  but **no code path applies it**: the only author is the hazards table.\n\nWhat *did* land since the card was filed, and what it changes:\n\n- **task-745** (commit `314eeff1`, 2026-10-17; card in review) added the river\n  biome family and the hazards table: `data/library/biomes/river.json`,\n  `river_calm.json`, `river_swift.json`, `river_rapids.json`,\n  `underground_river.json` (5 files; 24 of 411 biome files carry a water\n  terrain - 18 `water`, 5 `underwater`, 1 `surface_water`), and\n  `data/worldpainter/hazards.json` with 7 hazards\n  (river, rapids, cliff, fall, thorns, pit, bridge_jump). The `rapids` entry\n  declares `on_fail.conditions [\"wet\", \"suffocating\"]` and `damage \"2d6\"`, so\n  the data for a drowning consequence now exists.\n- **But the hazard table has no engine consumer.** `engine/hazards.py::dc_for`\n  is called only by `tools/hazard_index.py` (the gate) and\n  `tests/test_hazards.py`; `engine/biomes.py:622` uses the registry for\n  validation and `engine/world_grid.py:1568` reads the biome's `hazard_id`\n  during grid compile. task-745's own acceptance says \"[x] Compiler emission\n  pass mapped to consumer task-747 (blocked by task-746)\", so the crossing\n  consequences are not applied yet.\n- **There is still no depth axis.** `surface` is the ground *material*, and\n  `engine/biomes.py:463-486` (`ground_surface`) is explicit that it is \"not\n  called `floor`\" and is a different fact from the storey index. The river\n  biomes carry `\"surface\": \"shallow_water\"` and `deep_water.json`,\n  `ocean.json` and `waterfall.json` carry `\"surface\": \"deep_water\"`, but\n  nothing reads those values as depth, and no water biome carries a\n  \"swimmable\" tag.\n\nEvidence counts: 1 unwired `swim` mapping, 0 dive or buoyancy matches, 16\ndeclared vitals with no `Air`, 0 files declaring an `Air` vital, 41 condition\nfiles, 7 hazards in the registry with no engine consumer, 5 river biome\nfiles, 24 water biomes.\n\nVerdict: STILL_VALID. The card is accurate as written and is kept in todo.\nIts facts that drifted are the ones recorded above: the river biome family and\nthe hazards table now exist and change where this work lands, `suffocating` is\nthe existing zero-air carrier the card asks about, and the `SOAK_ACTIONS`\n`\"swim\"` entry must not be mistaken for a verb. The card's `Related:` field,\nwhich was empty, now names task-745, task-190, task-187 and task-475.\n\nTwo broken wikilinks in this card are recorded rather than hidden:\n\n- The card's `wiki:` frontmatter points at `[[Gameplay/Action Resolution\n  System]]`, and **no such note exists** in the vault. That was already true\n  before this edit. `docs/virtualWorld/Features/traversal-abilities.md` and\n  `docs/virtualWorld/World Building/Movement.md` are the notes that actually\n  cover this subject; repointing the `wiki:` key would add this card to their\n  `## Connected` blocks, which `tools/doc_connected.py --apply` owns, so it is\n  left for a doc change with that tool in the loop.\n- The `[[task-745-...]]` link is ambiguous only because task-745 currently\n  exists twice, in `dev_tasks/inprogress/world/` and `dev_tasks/review/world/`\n  (a duplicate-id error that `python tools/tasks.py validate` reports, along\n  with the same fault on task-769, task-776, task-852 and task-855). Delete the\n  stale copy and the link resolves."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Movement]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

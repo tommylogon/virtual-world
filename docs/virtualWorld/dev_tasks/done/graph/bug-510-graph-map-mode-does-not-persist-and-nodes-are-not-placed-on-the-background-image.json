@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "bug-510",
+  "kind": "bug",
+  "number": 510,
+  "title": "Graph map mode does not persist, and nodes are not placed on the background image",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Two defects in one area. (1) Selecting map mode for the graph does not save - the choice is lost on reload or re-render. (2) Nodes are not correctly placed or spaced relative to the background image, so they must be nudged by hand every time the map is loaded. Determine whether the placement is a stored coordinate that is being lost, a projection/scale mismatch between node coordinates and image pixels, or a layout pass that is not reading the map's coordinate space at all.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "fix_findings_2026_10_02_port_4471_playwright": "### (1) Map mode did not persist - fixed\n\nRoot cause: the Map layout lived only in `graphManager._cardinalLayout`, a\nruntime boolean. `config.graphLayoutMode` persisted **Levels** ('free'/'levels')\nbut there was no key at all for Map, so a reload (and any full re-init) dropped\nstraight back to Graph - exactly what the audit noted (\"there is no key for\nlayout mode\").\n\n- `config.js` now loads/saves `graphCardinalLayout` (`graph_cardinal_layout`),\n  separate from `graphLayoutMode` because `activeLayout()` treats them as\n  independent axes.\n- `graph-manager.js` initialises `_cardinalLayout` from config (constructor and\n  again in `init()`, after `config._initPromise`), and `_persistCardinalLayout()`\n  is called whenever the choice actually changes - `toggleCardinalLayout()` and\n  the `setViewMode('graph')` clear.\n\nLive proof (real click on `#layout-segment [data-layout=\"map\"]`):\n\n| step | `activeLayout()` | `config.graphCardinalLayout` | `storage` | Map tab `aria-selected` |\n|---|---|---|---|---|\n| before | graph | false | \"false\" | false |\n| after click | map | true | \"true\" | true |\n| after reload | **map** | true | \"true\" | **true** |\n\n### (2) Nodes not on the background image - does not reproduce as filed\n\nMeasured on the current tree: the two background layers carry rects in graph\nunits, and **236 of 238 placed nodes fall inside an image rect**. The two\noutliers are one area 193px below layer 0 (`Dark Cave`, y=1284 vs bottom 1090)\nand one logic-trigger 32px above its top edge (`on_examine → message`) - i.e.\nnodes the layout engine placed relative to their holder, not a whole-canvas\nprojection failure. The old audit picture (a node pile \"below and to the left\"\nof a single map band, four images at four scales) no longer matches: Map mode\ncomposes the layers side by side and the nodes share their frame.\n\nSo the placement half is a **retraction with measurement**, not a fix I made.\nThe audit also noted `graph_background.positions` is still empty (0 entries) and\nlayout is stored in `node.properties.x/y`; that two-stores question is a design\ndecision, filed separately, and not resolved here.\n\nGates: `node tools/unit/run.cjs` 485 passed; `npm run lint`, `npm run\ntypecheck` clean."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-510-graph-map-mode-does-not-persist-and-nodes-are-not-placed-on-the-background-image.md"
+  }
+}

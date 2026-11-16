@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-229",
+  "kind": "task",
+  "number": 229,
+  "title": "Moon Phase System",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-15",
+  "updated": "2026-08-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [
+      "task-85",
+      "task-80"
+    ],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a deterministic moon phase cycle (30-day) based on `game_day`. Moon phase affects outdoor night ambient light. Full moon makes outdoor nights visibly brighter; new moon keeps them pitch black.",
+    "why": "TODO",
+    "how": "### Calculation\n\nIn `engine/weather_forecast.py`:\n\n```python\ndef get_moon_phase(game_day: int) -> dict:\n    cycle_day = game_day % 30\n    if cycle_day < 5:\n        return {\"name\": \"new_moon\", \"light_bonus\": 0, \"icon\": \"🌑\"}\n    elif cycle_day < 10:\n        return {\"name\": \"crescent\", \"light_bonus\": 5, \"icon\": \"🌒\"}\n    elif cycle_day < 15:\n        return {\"name\": \"quarter\", \"light_bonus\": 10, \"icon\": \"🌓\"}\n    elif cycle_day < 20:\n        return {\"name\": \"gibbous\", \"light_bonus\": 15, \"icon\": \"🌔\"}\n    elif cycle_day < 25:\n        return {\"name\": \"full_moon\", \"light_bonus\": 25, \"icon\": \"🌕\"}\n    else:\n        return {\"name\": \"waning\", \"light_bonus\": 10, \"icon\": \"🌖\"}\n```\n\n### Integration with Lighting\n\n`get_time_of_day_light()` (task-230) adds `moon_phase[\"light_bonus\"]` to night light **only when**:\n- Current hour is night (19:00–05:00)\n- Room has tag `\"outdoor\"`\n- No weather that obscures sky (stormy/foggy = moon bonus halved or zero)",
+    "verify": "- `game_day` 0 → new_moon, night outdoor light = base night value\n- `game_day` 22 → full_moon, night outdoor light = base + 25\n- Stormy weather halves or nullifies moon bonus\n- Moon phase persists correctly across month/year boundaries",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/weather_forecast.py` - `get_moon_phase()` helper",
+      "engine/lighting.py` - `get_time_of_day_light()` consumes moon phase",
+      "routes/state.py` - expose `moon_phase",
+      "engine/area_description.py` - mention moonlight in outdoor night descriptions",
+      "static/js/world-state.js` - parse `moon_phase",
+      "static/css/style.css` - moon icon styling"
+    ],
+    "custom": {
+      "moon_phases": "30-day cycle, mapped from `game_day % 30`:\n\n| Days (mod 30) | Phase | Night Light Bonus |\n|---------------|-------|-------------------|\n| 0–4 | new_moon | +0 |\n| 5–9 | crescent | +5 |\n| 10–14 | quarter | +10 |\n| 15–19 | gibbous | +15 |\n| 20–24 | full_moon | +25 |\n| 25–29 | waning | +10 |",
+      "exposure": "- `/api/state` returns `moon_phase` (name + icon + light_bonus)\n- UI sidebar shows moon icon\n- Area descriptions mention moonlight when relevant",
+      "dependencies": "- **Blocked by**: task-228 (needs `game_day`)\n- **Blocks**: task-230 (outdoor lighting uses moon bonus)",
+      "implemented_audit_2026_09_02": "Fully implemented before this audit: `get_moon_phase()` (30-day cycle),\nlighting integration via `lighting.moon_provider` (outdoor night bonus,\nobscuring weather), `blood_moon` override + red-moon descriptions, and\n`moon_phase` in `/api/state`. This audit confirmed the UI: SkyScape top-bar\nshows the moon icon; turn headers include it too."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "filed": "2026-08-15",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-229-moon-phase-system.md"
+  }
+}

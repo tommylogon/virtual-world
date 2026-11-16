@@ -34,8 +34,8 @@ vis-network exposes central gravity as a graph-wide setting. The implemented per
 
 ## Files
 
-- `static/js/graph-manager.js` — maps `central_gravity_enabled` to the vis-network node physics option and refresh signature.
-- `static/js/inspector.js` — adds the inspector control and persistence handler.
+- `static/js/graph-manager.js` - maps `central_gravity_enabled` to the vis-network node physics option and refresh signature.
+- `static/js/inspector.js` - adds the inspector control and persistence handler.
 
 ## Why
 

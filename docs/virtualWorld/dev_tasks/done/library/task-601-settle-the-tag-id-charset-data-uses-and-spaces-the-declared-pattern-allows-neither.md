@@ -23,7 +23,7 @@ engine/character_appearance.py::_ID_RE declares ids as ^[a-z0-9][a-z0-9_-]*$ but
 - [x] Covered by tests
 - [x] Verified live against the real library
 
-## Resolution (2026-09-30) — check landed, rename deferred to task-646
+## Resolution (2026-09-30) - check landed, rename deferred to task-646
 
 The gap was real and is now guarded. `routes/helpers.py::load_registry` keys
 every entry by its **filename verbatim**, so an id is whatever the file is called

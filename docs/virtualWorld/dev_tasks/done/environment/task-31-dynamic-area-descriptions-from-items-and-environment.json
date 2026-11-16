@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-31",
+  "kind": "task",
+  "number": 31,
+  "title": "Dynamic Area Descriptions from Items and Environment",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Area descriptions are currently static text. Items in the room are listed separately as a flat list after the description. The goal is to make room descriptions **dynamic** - composed from a base description, items' descriptions, environment (temp/smell/sound), and character positions - so that `look` outputs a rich, natural narrative of what's actually in the room and where things are.",
+    "why": "### How `look` works now (`virtual_world_engine.py:567-686`)\n\n1. Returns `self.current_area.description` (static text)\n2. Appends list of players present with their held items\n3. Appends environment warnings (hot/cold/toxic/etc.)\n4. Appends exit descriptions from door nodes\n5. Items are NOT included in the description - they're listed separately via `get_area_items()` (`app.py:277-279`)\n\n### The result\n\n```\nA cold living room with wooden floors. The fireplace is unlit...\n\nTommy is here.\n\nThrough the east, the Kitchen is visible beyond.\n\nItems here: fireplace, bookshelf, armchair, grandfather_clock\n```\n\nThe items are just a flat name list. Their descriptions are not woven into the narrative.\n\n### `get_narration_context_for_area()` (`virtual_world_engine.py:3297-3358`)\n\nThis returns a structured dict with `description`, `environment`, `items` (name + description), `characters`, and `recent_events`. It's used for LLM context, but the player-facing `look` doesn't use item descriptions.",
+    "how": "### Phase 1: Compose item descriptions into room description\n\nWhen the player `look`s, the output should include item descriptions naturally:\n\n```\nA cold living room with wooden floors. The fireplace is unlit and the room is filled\nwith an icy chill.\n\nA worn leather armchair sits by the cold hearth.\nFaded photographs hang above the mantlepiece.\nAn old grandfather clock ticks steadily in the corner.\n\nTommy is here.\n\nThrough the east, the Kitchen is visible beyond.\n```\n\nImplementation approach:\n- Each item in the room has a `description` field (e.g., \"A worn leather armchair sits by the cold hearth.\")\n- The room has a base description\n- `get_area_description()` merges: base description + item descriptions (as a list bullet or natural text) + environment summary + characters + exits\n- Item descriptions can optionally include positional/placement language set in the item's description field\n\n### Phase 2: Environment summary in `look`\n\nInstead of just warnings when things are bad, include a brief environment summary:\n\n```\nThe air is cold and stale. A musty smell hangs in the room. The only sound is dripping water.\n```\n\nThis would come from `environment.temperature`, `environment.air`, `environment.smell`, `environment.noise` fields.\n\nThe format should be dynamic:\n- If temp is normal (18-25°C), skip temperature line\n- If air is \"fresh\", skip air quality line\n- If noise is \"quiet\", skip noise line\n- Only mention notable environment details\n\n### Phase 3: Item-specific positioning\n\nFuture enhancement: Items could have a `position` field that says where they are in the room (e.g., \"on the table\", \"in the corner\", \"hanging on the wall\"), and the description generator would use this to give spatial context. For now, item descriptions should include positional language.\n\n### Phase 4: Default vs dynamic\n\nThe base room description serves as a **fallback / foundation**. Items override or add to it. This means:\n- Area description: \"A cold living room with wooden floors.\"\n- Items: fireplace (description: \"The fireplace is unlit...\"), armchair (\"A worn leather armchair...\")\n- Combined: \"A cold living room with wooden floors. The fireplace is unlit. A worn leather armchair sits by the cold hearth.\"\n\nIf items are taken, moved, or destroyed, the description updates automatically since items are looked up dynamically from graph edges.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - rewrite `get_area_description()` to compose item descriptions; update `get_narration_context_for_area()` similarly",
+      "app.py` - the `look` command handler may need simplification since items would be in the description now (line 274-279)"
+    ],
+    "custom": {
+      "open_questions": "1. **How to merge item descriptions with base description?** \n   - Option A: Base + bullet-point list of item descriptions\n   - Option B: Base + natural prose (items' descriptions joined with \". \")\n   - Option C: Items have a `when_looking` field vs `description` field\n   - **Recommendation**: Option B - items' descriptions should be written as full sentences that can follow naturally. The room description is the anchor, item descriptions are additive prose.\n\n2. **Item description length?** Keep `look` items short (1-2 sentences). Detailed description is for `examine`.\n\n3. **Item order?** By item type (furniture first, then objects, then details) or by position in the room? Start with insertion order (as returned from the graph), add sort by a `priority` field later.\n\n4. **Hidden items?** Hidden items should NOT appear in the room's `look` output.",
+      "audit": "**Status**: Ready to test\n**How to test**:\n- Load a scenario with items in areas (e.g. mansion2). Type `look`. Verify room description includes item descriptions woven in naturally (not a flat \"Items here:\" list).\n- Verify environment summary appears (temperature, air, smell, noise) only for notable conditions.\n- Verify hidden items do NOT appear in the look output."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Rooms & Areas]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-31-dynamic_room_descriptions.md"
+  }
+}

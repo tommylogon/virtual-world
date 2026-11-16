@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-247",
+  "kind": "task",
+  "number": 247,
+  "title": "Singing",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-248",
+      "task-321"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add singing as a character action - a distinct performative behaviour (vs plain speech/\nemote) with its own volume/sound-carrier semantics so songs are heard at a distance and\ncharacters can react to them.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Sing command broadcasts performance to all characters in current area.",
+        "done": true
+      },
+      {
+        "text": "Performance applies mood and affect modifiers based on musical skill.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/actions.py",
+      "engine/affect.py"
+    ],
+    "custom": {
+      "notes_open_questions": "- New `sing` action with `{lyrics, volume}`; route through sound propagation\n  (`engine/sound.py` barriers) like a shout/speak variant.\n- Narrative framing: what the room describes (\"a voice singing...\"), and whether it maps\n  to a skill check (Performance) or an emotion/intensity modifier.\n- Join the COMMANDS table + action schema + prompt examples so LLM agents can sing too."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "audit 2026-08-31": "- NOT IMPLEMENTED; speech tiers stop at scream (sound.py _speech_levels), no `sing` verb. Effort S: volume tier + verb branch + agent schema entry.",
+      "source": "`dev_tasks/developer ideas.md` (singing)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-247-singing.md"
+  }
+}

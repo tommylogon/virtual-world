@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-494",
+  "kind": "task",
+  "number": 494,
+  "title": "Container examine reveals contents and chains a follow-up action",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-352",
+      "task-493",
+      "task-430",
+      "task-104"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make container contents an explicit reveal and allow a two-step single turn: examine <container> marks its contents discovered (they render 'known' and become usable), and the examine can be followed by one item action (take/use) in the same turn, mirroring the dash multi-step precedent (engine/movement.py dash_to_area, tick_manager.py move/dash handling) and governed by action_costs. Decide whether carried-container contents stop being auto-listed before an examine. Belongs with the task-352 action-economy work.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Examining an open container displays contained items in sensory description.",
+        "done": true
+      },
+      {
+        "text": "Follow-up take action chains directly onto revealed container contents.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/actions.py",
+      "tests/test_actions.py"
+    ],
+    "custom": {
+      "measured_2026_09_27_half_the_file_describes_code_that_does_not_exist": "### 1. The stated precedent is not there. At all.\n\nThe Goal points at \"the dash multi-step precedent (`engine/movement.py`\n`dash_to_area`, `tick_manager.py` move/dash handling)\". Measured:\n\n- **`engine/tick_manager.py` has no move/dash multi-step logic.** Its only dash\n  mention is a cost-modifier branch, `engine/tick_manager.py:113-138`:\n  `if action_name in (\"move\", \"dash\"):` - which then walks\n  `TraitSystem.get_move_cost_mods`. That is a trait lookup, not a second action.\n- **`engine/movement.py:800-831` `dash_to_area` performs exactly one hop**, and\n  says so itself. `tests/test_movement.py:131-136` pins it: *\"dash_to_area\n  performs ONE move - the second hop is a separate chained decision made by the\n  agent engine, not part of this call.\"*\n\nThe real precedent is **client-side**, in two places:\n\n- `static/js/agent-engine.js:14-21` - `CHAIN_RULES = { dash: ['go','wait'],\n  lead: [...], grab: [...] }`, dispatched at `:731-740` on\n  `actionSucceeded`, executed by `_runChainFollowUp` at `:1236-1290`. Validation\n  at `:1259-1263` accepts a whitelisted verb **or any exit name**.\n- `static/js/agent-engine.js:328-339` - the human \"burst\" phase, gated on\n  `reply.action.startsWith('dash ')` plus a failure regex\n  `/locked|blocked|can't|could not|fail/i` over the narration. UI side:\n  `static/js/agent/human-turn-composer.js:474`, `:708-709`, `:765`.\n\n**There is no server-side follow-up mechanism to mirror, and no server-side\nnotion of a turn boundary to enforce one.** Measured, exhaustively negative:\n\n- `Player.reset_turn_state(...)` (`player.py`, called from\n  `engine/tick_manager.py:267`) carries nothing about actions.\n- No counter, flag or per-turn state on `Player` or `VirtualWorld` of any kind.\n  The nearest thing is `VirtualWorld._clock_advanced_by_task`\n  (`virtual_world_engine.py:126-130`), written only by `rest`\n  (`engine/tick_manager.py:1045`) and read only by `tools/game_tools.py`.\n- **`POST /api/action` never advances the clock.** The turn boundary is\n  `TurnQueue.endTurn()` → `POST /api/turn/apply` →\n  `routes/action_handlers.py:1315-1321` → `world.tick_turn()`. So a chained\n  `examine` + `take` is literally two `/api/action` POSTs before one\n  `/api/turn/apply`, and **the server cannot tell that apart from two turns'\n  worth of actions.** That is task-352's scoping note 6: `routes/` contains zero\n  calls to `world.tick` / `advance_clock`.\n- The background tier is the opposite model by design -\n  `engine/background_simulation.py:8`: *\"Every character takes one action per\n  turn - the turn is the unit of agency.\"*\n\nAnd the direction of travel cuts against building it here: **task-352's\nacceptance criteria say `CHAIN_RULES` and the burst phase are to be retired**\nin favour of a tier/slot model, and this task file itself says it \"belongs with\nthe task-352 action-economy work\". Building a second, server-side chaining\nmechanism would be building the thing task-352 is about to delete.\n\n### 2. `action_costs` is a vital-cost mechanism with no slot concept\n\nTwo things share the name, and neither can govern a follow-up today:\n\n- The base table `ACTION_COSTS` (`virtual_world_engine.py:109-125`) - move,\n  open, close, look, use, take, drop, fumble, fear, interest. **No `examine`, no\n  `put`.** Merged in `engine/tick_manager.py:90-150`. Read at exactly one place,\n  `engine/tick_manager.py:100`.\n- The per-item-node property `action_costs` (`{verb: {vital: amount}}`), read at\n  three places: `take_drop_actions.py:524`, `use_actions.py:137`,\n  `consume_actions.py:131`.\n\nBoth are **purely about vitals**. Neither has a notion of slots, of slots\ngranted, or of follow-up permission. Note also that `action_costs` is\nper-**item** while a follow-up allowance is per-**turn** - putting a turn\nsemantics on a per-item key is a category error waiting to happen.\n\n### 3. The reveal was already half-built - and the half that was missing is the half that mattered\n\n`engine/items/examine_actions.py:285-311` already un-hides every `hidden` child\nand prints one flat line per relation. Two things were wrong with it:\n\n- **The un-hiding is global.** `cn.properties[\"current_state\"] = \"normal\"` is\n  written on the node, once, permanently, in the save. The first character to\n  open a chest revealed the loot to *everyone, forever*.\n- **The character who looked was never credited.** `_register_item_discovery`\n  is called for the container itself (`:241`) and for nothing inside it. So the\n  contents never rendered as \"known\", and a second character who opened the same\n  chest later got nothing at all - the reveal had already happened and there was\n  no per-player record to add.\n\n\"Known\" is decided **client-side**, and all three readers read\n`player.discovered_items`:\n\n- `static/js/agent/prompt-builder/contextual-actions.js:131-134` `isDiscovered()`\n  and `:195` (the `examine` verb bracket is dropped once discovered)\n- `static/js/agent/prompt-builder/room-context.js:302, 317, 331`\n- `static/js/agent/prompt-builder/memory-context.js:26, 34-35, 177`\n\nNo engine renderer change is needed. The stamp is the whole contract.\n\n### 4. \"Are carried-container contents auto-listed?\" - measured: no, and it is a no-op\n\nEvery UI surface reads direct `EDGE_CARRYING` only, with no recursion:\n\n| Surface | file:line |\n|---|---|\n| `get_inventory` | `engine/items/examine_actions.py:470-479` |\n| `scene.you.carrying` | `engine/scene_snapshot.py:283-290` |\n| `inventory` command | `routes/action_handlers.py:758-775` |\n\nThe only auto-exposure is (a) the examine prose, and (b) **the name matcher**:\n`engine/matching.py:299-324` and `engine/player_manager.py:345-355` add every\nnon-hidden content name to the candidate set, and\n`engine/item_reach.py:147-157` walks to arbitrary depth for\n`use`/`use_on`/`eat`/`drink`/`place`/`put`/`toggle`. So `take apple` out of a\nbasket already resolves with no examine having happened.\n\nThis is worth being precise about, because the acceptance criterion's wording\n(\"become usable\") is half-true: **contents are already usable before the\nexamine.** Making them *not* usable would mean changing reachability across\n`matching.py`, `player_manager.find_item_node` and `item_reach`, and would break\n`test_take_from_container_works` and `test_container_contents_are_reachable`\n(`tests/test_item_actions.py:190-214`). Recorded as a decision below rather than\ndone, because the acceptance says contents become usable, not invisible.",
+      "decisions_taken": "1. **Ship the reveal, not the chaining.** The reveal is a two-line fix for a\n   real, measurable hole with a real user-visible symptom. The chaining needs a\n   turn model that does not exist and that task-352 is about to build.\n2. **Do not make contents unreachable before an examine.** They were never\n   listed, and the acceptance criterion asks for usable, not hidden. Recorded.\n3. **Sequence the chaining after task-352**, not in parallel with it. See below.",
+      "done_2026_09_27_the_reveal": "`engine/items/examine_actions.py:302-333`. For every item the examine reports -\n`in`, `on`, `under`, `behind`, `beside`, `at`, not just `in` - the character who\nlooked is now credited via `_register_item_discovery`, which writes the\nobservation memory and the `discovered_items` entry that all three client-side\nreaders consult. The global `current_state` un-hide is unchanged; the two are\ndifferent things and the file now says so.\n\nAdded a `revealed` count so a genuinely new chest says\n`Taking in 2 new things.` and a re-look at a known one does not narrate a\ndiscovery. `_register_item_discovery` is idempotent, so the credit is safe to\napply unconditionally on every examine.\n\n`tests/test_item_actions.py` gains `TestExamineMarksContentsDiscovered`, 8\ntests: the stamp, the serialised payload the client reads, a second character\ngetting credit independently, no re-discovery on a second examine, the singular\ncase, already-visible contents, a locked container revealing nothing, and a\ntable with things on it (proving it is not `in`-only).\n\n### Re-measured\n\n- `tests/test_item_actions.py` 67 → 75, all passing. No existing test needed\n  changing: the reveal line is appended *after* `\"Inside you see: …\"`, so the\n  existing assertions still match.\n- 860 tests across `-k \"examine or item or container or freshness or observation\n  or novelty or inventory or take or drop\"`: only the 8 pre-existing\n  `test_mcp_*` failures.\n- Entertainment is not a problem: `engine/novelty.py:208`\n  (`novelty_budget_remaining`) already caps how much a single tick can pay, so a\n  chest with ten things in it cannot pay ten novelty bonuses.",
+      "not_done_the_chained_follow_up_and_why_and_how": "**Not attempted.** This is a new mechanism, not a mirror of one, and the\nsequencing matters:\n\n1. **task-352 lands a slot/tier model.** Its acceptance criteria retire\n   `CHAIN_RULES` and the human burst. Anything built now on the client-side\n   precedent is built on scaffolding that is scheduled for deletion.\n2. **Then, and only then, the server needs to know a turn's shape.** Chaining\n   only becomes enforceable when the engine - not the browser - knows how many\n   actions a turn holds. `POST /api/action` advancing nothing is what makes the\n   browser the only thing that currently knows.\n3. **Then `examine` grants a follow-up slot**, and `action_costs` is reconsidered\n   as a *vital* cost for that slot rather than being given a new slot semantic.\n   A per-item key governing a per-turn allowance should not survive the\n   redesign.\n\nSuggested landing when task-352 is done: `examine <container>` returns a\n\"follow-up available\" affordance, the client offers exactly one `take`/`use` from\nthe revealed names, and the engine rejects a second action if the slot is spent.\nReuse whatever slot model task-352 introduces rather than adding a counter next\nto it.",
+      "documentation": "`docs/virtualWorld/Items & Inventory/Items Overview.md` §\"Container Items\" gained\n\"Examining a container reveals *and* credits its contents (task-494)\": the\nnode-global vs per-player distinction in a table, which three client-side readers\nconsume `discovered_items`, the `in`-not-only scope, and the reachability point\nthat contents are targetable before any examine."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-494-container-examine-reveals-contents-and-chains-a-follow-up-action.md"
+  }
+}

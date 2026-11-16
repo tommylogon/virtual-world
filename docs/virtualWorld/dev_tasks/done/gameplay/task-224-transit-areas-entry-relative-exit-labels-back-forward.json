@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-224",
+  "kind": "task",
+  "number": 224,
+  "title": "Transit Areas - Entry-Relative Exit Labels (back / forward)",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-08-13",
+  "updated": "2026-08-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When a character enters a tagged **transit area**, remember **where they came from** via **character AT entry way** (graph edge - see [[todo/gameplay/task-135-character-item-spatial-relationships|task-135]]). While inside, the way they're AT is **back**; the other connection is **forward**.\n\nPrefer **`character AT way`** over a `transit_entry` player JSON blob - same spatial system as examine-at-door and task-201 viewpoint.\n\n| Role | Prose (example) | Command handle |\n|------|-----------------|----------------|\n| **Back** | the opening you crawled in through | `back` (alias to real direction) |\n| **Forward** | the duct continues toward … (from `visible_in_direction`) | sensory word or `forward` |\n\nNo compass. \"Ahead\" and \"behind\" follow **entry vector**, not map north.",
+    "why": "**Between-rooms** are a first-class level-design pattern: ventilation shaft crawl, stair landing, elevator cage, chase tunnel, free-fall sequence (call out each turn), etc. The player stands in a **transit area** with two (or more) ways out.\n\nFrom **outside**, both entries can share narrative commands (`enter vent`) - different areas, no collision.\n\nFrom **inside**, the headscratcher:\n\n- \"Exit the vent ahead\" is **relative to entry** - if Jane entered from Room 4, the grate back is \"behind\"; if she entered from Room 3, the same opening is \"ahead.\"\n- Fixed labels like `Vent 1` / `Vent 2` work for authors and parsers but break immersion - Jane has no reason to know arbitrary IDs.\n- Compass (`north` / `east`) is wrong for underground labs - no in-fiction orientation.\n- Destination-sensory names (`flutter`, `grate`) work today but fail on first visit and don't generalize to symmetric tunnels.\n\nText worlds lack 2D spatial relations; **entry-relative labeling** is the clean fix for transit areas.",
+    "how": "TODO",
+    "verify": "- [ ] Task 18 shaft tagged transit: enter from Room 4 → look shows `[back]` to Room 4, `[forward]` toward Room 3\n- [ ] Same shaft, enter from Room 3 → back/forward swap\n- [ ] `go back` and `go forward` work for human and agent action path\n- [ ] Leaving shaft clears `transit_entry`\n- [ ] Non-transit area unchanged (no back/forward)\n- [ ] Agent Lens exits section reflects relative labels (task-219)\n- [ ] Two outer commands both `enter vent` still works",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "example_task_18_ventilation_shaft": "```\nRoom 4  ──[enter vent]──►  Ventilation shaft (transit)  ──►  Room 3\n                              ▲\n                    entered from Room 4\n```\n\nJane enters from Room 4. Inside shaft, prompts show:\n\n- `[back]` - square grate back to the room you came from (→ Room 4)\n- `[forward]` - cooler draft, flickering light ahead (→ Room 3)\n\nShe enters from Room 3 → labels swap. Same graph, same way nodes, different prompt handles.",
+      "requirements": "### 1. Transit area tag\n\n- Area tag or property: `transit` (or `passage`, `corridor` - pick one in implementation)\n- Optional subtypes later (`freefall`, `chase`) - out of scope for v1\n\n### 2. Entry memory → **character AT way**\n\nOn successful `go` / crawl / climb **into** a transit-tagged area via way `W`:\n\n- Create graph edge: **`character AT W`** (or `beside W` - pick one in implementation)\n- On leave (any exit): clear character↔way spatial edges (shared with task-135 movement hook)\n\nOptional compat: mirror `from_area` in edge lookup for prompts if needed; primary source of truth is **AT way**.\n\n~~Runtime JSON blob~~ (superseded by AT way):\n\n```json\n{\n  \"transit_entry\": {\n    \"area\": \"Task 18 - ventilation shaft\",\n    \"from_area\": \"Task 18 - Room 4\",\n    \"via_way_id\": \"way_task_18__vent_shaft_2\",\n    \"via_command\": \"enter vent\",\n    \"tick\": 42\n  }\n}\n```\n\n### 3. Exit presentation (human look + agent room context)\n\nResolve exits by spatial relation:\n\n- Way player is **AT** → **back** handle + \"the opening you came through\"\n- Other way(s) in area player is **not** AT → **forward** (+ `visible_in_direction` prose)\n\nWhen building exits for a transit area, use AT-way lookup (not `from_area` string compare):\n\nProse templates (defaults, overridable per area in properties?):\n\n- Back: `\"the opening you came through\"`\n- Forward: use existing `visible_in_direction` or target area first-impression\n\nBracket handles in prompt: `[back]`, `[forward]` - LLM-friendly.\n\n### 4. Parser / movement aliases (transit areas only)\n\nInside transit areas, accept:\n\n- `go back` / `back` → resolve to the way the character is **AT**\n- `go forward` / `forward` → resolve to the other way connection (if exactly two exits; if 3+, forward = ambiguous - document or disable)\n\nMust not affect non-transit areas.\n\n### 5. Authoring (inspector)\n\n- Area tag checkbox: **Transit area** (entry-relative exits)\n- Optional area property overrides for back/forward prose templates\n- Way commands on outer sides stay author-defined (`enter vent` both sides OK)\n- Document pattern in level-design workflow wiki\n\n### 6. Interim authoring (until implemented)\n\nDestination-sensory commands from inside shaft (`flutter` / `grate`) - no engine change. Link from this task as workaround.",
+      "out_of_scope_v1": "- Full 2D/spatial coordinate system\n- Compass directions\n- Replacing transit areas with multi-turn way-only crawl (task-131 activities) - complementary, not exclusive\n- Dynamic renaming of graph edge labels (editor stays author-facing; prompts are player-facing)",
+      "implementation_sketch": "| Layer | Files |\n|-------|--------|\n| Entry memory write/clear | `engine/movement.py`, `player.py` |\n| Exit rebuild | `engine/area_description.py` (`build_exits_for_area`, look exits block) |\n| Agent prompts | `static/js/agent/prompt-builder/room-context.js` |\n| Command matching | `engine/matching.py` or movement resolver |\n| Serialization | player state in autosave / `Player.to_dict` |\n| UI tag | `static/js/inspector/area-view.js` |\n| Tests | `tests/test_transit_areas.py` - enter from A, back goes A; enter from B, back goes B |",
+      "related": "- **Same architecture as** [[todo/gameplay/task-135-character-item-spatial-relationships|task-135: Character ↔ item spatial relationships]] - text worlds need *stored relations*, not inferred geometry. 135 = anchor on **items** in a room; 224 = anchor on **entry** in a transit area.\n- Labs pain point: Task 18 ventilation shaft (`way_task_18__vent_shaft_1/2`)\n- [[todo/ui/task-220-unified-way-editor|task-220]] - per-side commands\n- [[review/ui/task-221-way-authoring-ux-and-tooltips|task-221]] - exit badges / movement hints\n- [[review/gameplay/task-131-stateful-actions-over-time|task-131]] - multi-turn transit as activity (free-fall, chase)\n- [[review/gameplay/task-223-way-prevent-close-open-passages|task-223]] - open passages\n- Existing **todo** [[todo/gameplay/task-135-character-item-spatial-relationships|task-135]] - sibling task (character↔item relations in rooms); see 135 summary for unified \"explicit relations in text\" framing",
+      "notes": "User quote: *\"The crawl area is the point - landing between stairs, elevator, chase tunnel, free fall each turn. Text world has no north; entry-relative is the fix.\"*"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-224-transit-areas-entry-relative-exits.md"
+  }
+}

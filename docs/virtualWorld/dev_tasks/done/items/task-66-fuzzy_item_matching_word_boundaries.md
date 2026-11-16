@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-19
 **Priority**: High
-**Status**: Done — Option A (word-boundary regex) + alias tier live in engine/matching.py:155-196. Audited 2026-08-03
+**Status**: Done - Option A (word-boundary regex) + alias tier live in engine/matching.py:155-196. Audited 2026-08-03
 
 ## What
 
@@ -53,7 +53,7 @@ if re.search(r'(?<!\w)' + re.escape(nn) + r'(?!\w)', ni) or \
    re.search(r'(?<!\w)' + re.escape(ni) + r'(?!\w)', nn):
 ```
 
-This requires "book" to appear as a complete word in "dusty bookshelf" — which it doesn't (it's part of "bookshelf").
+This requires "book" to appear as a complete word in "dusty bookshelf" - which it doesn't (it's part of "bookshelf").
 
 ### Option B: Prioritize exact name components
 
@@ -63,7 +63,7 @@ Split input into space-separated words and check if any word matches an item nam
 
 Only match if the item name starts or ends at a word boundary in the input. E.g., "book" in "red book" matches (space before "book"), but "book" in "bookshelf" doesn't.
 
-**Recommendation**: Option A — word-boundary regex. It's the most correct and handles all edge cases.
+**Recommendation**: Option A - word-boundary regex. It's the most correct and handles all edge cases.
 
 ## Edge Cases
 
@@ -71,16 +71,16 @@ Only match if the item name starts or ends at a word boundary in the input. E.g.
 |-------|-----------|---------|----------|
 | "dusty bookshelf" | "Book" | MATCH (wrong) | no match |
 | "dusty book" | "Book" | MATCH | MATCH |
-| "books" | "Book" | MATCH | no match (plural ≠ singular — let substring handle if needed) |
+| "books" | "Book" | MATCH | no match (plural ≠ singular - let substring handle if needed) |
 | "book" | "Bookshelf" | MATCH (ni in nn) | no match (keep? maybe keep as fallback) |
 | "sand" | "Sandwich" | MATCH | no match |
-| "key" | "Keycard" | MATCH | debatable — "key" is a meaningful prefix of "keycard" |
+| "key" | "Keycard" | MATCH | debatable - "key" is a meaningful prefix of "keycard" |
 
 For the last case, "key" matching "Keycard" is useful but "key" matching "Donkey" would be wrong. The `nn in ni` check (item name in user input) is less prone to false positives than `ni in nn` (user input in item name). Consider removing `ni in nn` entirely and only keeping `nn in ni` with word boundaries.
 
 ## Files
 
-- `virtual_world_engine.py:167-218` — `_match_item_name()`
+- `virtual_world_engine.py:167-218` - `_match_item_name()`
 
 ## How
 

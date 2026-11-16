@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "task-18",
+  "kind": "task",
+  "number": 18,
+  "title": "Fireplace Lighting Recipe",
+  "status": "review",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The fireplace in the Living Area is lightable by `use fireplace` when the player carries both **kindling** and **tinderbox**. Lighting it consumes the kindling, sets the fireplace state to `\"on\"`, and warms the room.",
+    "why": "Fireplace items required an authored interaction recipe to light using available tinder/kindling.",
+    "how": "Authored `fireplace_lighting` recipe in library, checking for fuel in inventory and spawning light/heat sources on completion.",
+    "verify": "1. Reset the world: `POST /api/reset`\n2. Set active player to Lyrie: `POST /api/player/set` with `{\"name\": \"Lyrie\"}`\n3. Move Lyrie to Living Area: `POST /api/players/Lyrie/move` with `{\"room\": \"Living Area\"}`\n4. Move kindling to Living Area: `POST /api/graph/node/item_kindling/move` with `{\"room\": \"Living Area\"}`\n5. Move tinderbox to Living Area: `POST /api/graph/node/item_Tinderbox/move` with `{\"room\": \"Living Area\"}`\n6. Take kindling: `POST /api/action` with `{\"action\": \"take\", \"target\": \"kindling\"}`\n7. Take tinderbox: `POST /api/action` with `{\"action\": \"take\", \"target\": \"Tinderbox\"}`\n8. Use fireplace: `POST /api/action` with `{\"action\": \"use\", \"target\": \"fireplace\"}`\n\n**Expected result:**\n```\nYou use the fireplace.\nfireplace is now on.\nkindling is consumed.\nThe environment in Living Area shifts.\nYou arrange the kindling in the hearth and light it with the tinderbox. Flames crackle to life, casting a warm glow across the room.\n```\n\n**Test already lit:** Use fireplace again → shows \"The fireplace is already burning.\"\n\n**Test no items:** After reset, use fireplace without items → shows \"You need kindling and a tinderbox to light the fire.\"",
+    "acceptance": [
+      {
+        "text": "Lighting fireplace consumes fuel and creates heat and light sources.",
+        "done": true
+      },
+      {
+        "text": "Recipe checks preconditions and reports failure if tinder/fuel is absent.",
+        "done": true
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - added `has_items` condition, fixed `state_equals`, added `consume_item` effect",
+      "world_template.json` - updated fireplace triggers and state"
+    ],
+    "custom": {
+      "what_was_implemented": "### Engine Changes (`virtual_world_engine.py`)\n\nThree new capabilities were added to the trigger system:\n\n1. **`has_items` condition type** - checks the player has ALL items in an array (unlike `has_item` which checks a single item). Used by the lighting trigger to verify both kindling AND tinderbox are in inventory.\n\n2. **`state_equals` condition improved** - previously only supported the format `\"value\": \"node_id=state\"`. Now also supports:\n   - `{\"target\": \"node_name\", \"value\": \"expected_state\"}` - finds the node by name/id and checks its `current_state`\n   - Fallback: when value has no `=` and no target, checks the current item node's own state\n\n3. **`consume_item` effect type** - finds an item in the player's inventory by name and removes it (removes location/carried_by edges to the player, reduces uses, and removes the node if uses reaches 0).\n\n### World Template Changes (`world_template.json`)\n\n1. **Fireplace `current_state`** changed from `\"unlit\"` to `\"off\"` for consistency with the `\"off\"` → `\"on\"` state transition.\n\n2. **Lighting trigger** (replaces old broken `on_use` trigger):\n   - Conditions: `has_items: [\"kindling\", \"tinderbox\"]` AND `state_equals: target=fireplace, value=off`\n   - Effects: `set_state` (fireplace→on), `consume_item` (kindling), `set_environment` (temp=22, light=80, noise=crackling fire, smell=woodsmoke), `message` (success text)\n   - Fail message: \"You need kindling and a tinderbox to light the fire.\"\n\n3. **\"Already lit\" trigger** (new):\n   - Conditions: `state_equals: target=fireplace, value=on`\n   - Effects: `message` (\"The fireplace is already burning.\")\n   - Edge ordered BEFORE the lighting trigger so it's processed first (prevents double-firing when lighting succeeds)\n\n4. **On-tick trigger** (replaced old broken one):\n   - Conditions: `state_equals: target=fireplace, value=on` AND `temperature_below: 28`\n   - Effects: `adjust_environment` (temperature+1, \"The fire crackles warmly.\")\n   - Note: only fires during `process_toggleable_items` - the fireplace is not a toggleable item, so this is dormant. Requires a toggleable system or dedicated tick handler to activate.",
+      "known_limitations": "- `use kindling on fireplace` is not supported (kindling has no `on_use_on` trigger for fireplace). Use `use fireplace` instead.\n- The on_tick trigger for gradual warming requires toggleable-item processing or a dedicated tick handler (existing limitation, not new).\n- When fireplace is already lit AND player has no kindling, two messages show: \"already burning\" + fail message. Informs the player of both conditions.",
+      "browser_ui": "Intended UI home: Living Area → select the fireplace → use `use fireplace` with kindling and a tinderbox in inventory → inspect the fireplace state, room light, and temperature.\n\nCurrent availability: the card specifies that kindling and a tinderbox are required, kindling is consumed, and an on fireplace warms the room. The live browser path is not recorded as verified here.\n\nLive steps when available:\n1. Load the Living Area with kindling and a tinderbox carried; use `fireplace` and inspect the room and item states.\n   - expected: the fireplace becomes `on`, kindling is consumed once, and room light/temperature increase according to the authored fireplace behavior.\n2. Repeat without kindling, then without the tinderbox.\n   - expected: each missing requirement gives a clear failure and the fireplace stays off; remaining inventory is unchanged.\n3. Save/reload while the fireplace is on and inspect the area again.\n   - expected: the on state and warmed room survive reload without consuming a second kindling item.\n4. Turn the fireplace off using its supported action.\n   - expected: the room stops receiving the fireplace's ongoing warmth/light contribution.\n\nThis section is not a claim that the fireplace recipe has been freshly browser-verified today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Environment/Light System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/environment/task-18-fireplace_lighting_recipe.md"
+  }
+}

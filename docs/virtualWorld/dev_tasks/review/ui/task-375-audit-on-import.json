@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-375",
+  "kind": "task",
+  "number": 375,
+  "title": "audit-on-import",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Scenario import executes integrity audit and reports warnings for dangling edges or duplicate IDs.",
+        "done": true
+      },
+      {
+        "text": "Audit report provides actionable summary before committing imported graph.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/ui/saveload-view.ts",
+      "routes/saveload.py"
+    ],
+    "custom": {
+      "what_was_built": "- The `🔬 Deep audit` button in the import-preview dialog (`static/js/ui/saveload-view.js`)\n  runs `TriggerValidator` against the *incoming* world dict BEFORE any state mutation -\n  issues are listed in the preview with severity (err/warn/info); the user can still\n  `[Apply anyway]` (undo-protected) or cancel.\n- No separate route: reuses `POST /api/triggers/validate` (validator panel path) on an\n  in-memory copy.",
+      "note": "Filed separately from 369 but landed in the same dialog. Task 369's doc is the canonical\nentry; this file records the distinction (validate-before-load vs preview counts)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-375-audit-on-import.md"
+  }
+}

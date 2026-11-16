@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15 (updated 2026-07-24)
 **Priority**: High
-**Status**: Complete — 395 tests across 18 test files, all passing
+**Status**: Complete - 395 tests across 18 test files, all passing
 
 ---
 
@@ -84,12 +84,12 @@ python -m pytest tests/ -v
 Expected result: **395 tests pass, 0 failures**
 
 ### Check Key Files
-- `virtual_world/tests/test_traits.py` — 57 trait tests
-- `virtual_world/tests/test_conditions.py` — 38 condition tests
-- `virtual_world/tests/test_trigger_system.py` — 46 trigger tests
-- `virtual_world/tests/test_equipment_system.py` — 35 equipment tests
-- `virtual_world/tests/test_lighting.py` — 35 lighting tests
-- `virtual_world/conftest.py` — shared engine fixtures
+- `virtual_world/tests/test_traits.py` - 57 trait tests
+- `virtual_world/tests/test_conditions.py` - 38 condition tests
+- `virtual_world/tests/test_trigger_system.py` - 46 trigger tests
+- `virtual_world/tests/test_equipment_system.py` - 35 equipment tests
+- `virtual_world/tests/test_lighting.py` - 35 lighting tests
+- `virtual_world/conftest.py` - shared engine fixtures
 
 ## Why
 

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-717",
+  "kind": "task",
+  "number": 717,
+  "title": "WorldPainter grid resize: numbered w/h fields are buried at the modal bottom while the promoted adjust affordance is imprecise drag handles",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-05",
+  "updated": "2026-10-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make precise grid resize discoverable: the Grid... dialog (w/h/scale/Apply) verified working in both directions by real keyboard input (168x112 -> 120x80 -> 168x112, no confirm needed on an unpainted scope), but it renders as a small strip at the very bottom of a tall scrolling modal, far below the canvas and the Grid... button. The ✥ grid adjust mode (drag frame + E/S/SE handles) is the affordance an author finds first and cannot size precisely (verified live: status hint only says 'drag the frame to move the scope on the graph map, drag the E/S/SE handles to resize' - it never mentions the dialog). Fix options: surface the w/h fields in the adjust-mode HUD or near the canvas, or open the dialog directly from the grid-dims label (160x100 - 1 cell = 1 turn).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Precise grid resize is reachable from the canvas, not only from a control",
+        "done": false
+      },
+      {
+        "text": "buried at the modal bottom.",
+        "done": false
+      },
+      {
+        "text": "The grid-adjust mode names the exact-size path instead of only the handles.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "status_2026_10_06": "Already improved since filing (task-597, `bb015e65`, `3d1befed`): the `▦ Grid…`\nbutton now sits in the tool row, and the adjust-mode handles got a live preview.\nThat addresses the pain but **not** the task's two named fixes, which were still\nmissing:\n\n- the HUD dims readout `${w}×${h} · 1 cell = 1 turn` was inert text\n  (`editor.ts:2029`), not clickable;\n- the adjust-mode hint (`editor.ts:1568`) still said only \"drag the frame /\n  E/S/SE handles\" and never mentioned the dialog.\n\nBoth are now done:\n\n- the dims readout is a `_btn` that calls `_openGridDialog(p)` - the same dialog\n  the toolbar uses - with the title \"Set the exact grid size…\". So the exact\n  numbers are one click from the canvas HUD.\n- the adjust-mode status now reads \"…drag the E/S/SE handles to resize; click the\n  size (or ▦ Grid…) to type exact numbers.\"\n\n`build:ts` clean; unit runner **618 passed, 0 failed**.\n\n**Live-confirmed 2026-10-06.** The adjust-mode hint shows in the modal\n(\"…click the size (or ▦ Grid…) to type exact numbers\") and the HUD size readout\nopens the exact-size dialog. Built source: `editor.js:1651` (the `_btn`) and\n`:1201` (the hint).\n\n**Follow-up observation, not part of this task:** the WorldPainter modal is taller\nthan the viewport - the status line and Child scopes sit below the fold, so the\nwhole modal needs a browser zoom-out to see at once. That is the \"tall modal\"\ncontext the task was filed around; the discoverability fix (size control at the\ntop of the canvas) does not depend on it, but the modal height is its own issue."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-717-worldpainter-grid-resize-numbered-w-h-fields-are-buried-at-the-modal-bottom-while-the-promoted-adjust-affordance-is-imprecise-drag-handles.md"
+  }
+}

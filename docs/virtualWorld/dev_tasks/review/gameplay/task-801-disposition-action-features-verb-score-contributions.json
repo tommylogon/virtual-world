@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-801",
+  "kind": "task",
+  "number": 801,
+  "title": "Disposition action features: verb -> score contributions",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-800"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-704",
+      "task-691",
+      "task-714",
+      "task-800",
+      "task-802",
+      "task-803",
+      "task-804",
+      "task-812"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The action-side half of the score model: what each verb (and verb-on-target) contributes to each decision score. `score(action) = weights . features` - without the feature table the trait weights (task-802) multiply nothing.\n\nAdds `ACTION_FEATURES` (verb -> {declared score: contribution}) and `TARGET_FEATURES` (target tag -> declared score) to `engine/disposition.py`, plus `features_of(verb, target_tags)`. It also adds the fourth decision, **survive** - the soak's per-turn need choice - because the soak-relevant verbs (drink, eat, sleep, relieve, ...) had no decision to contribute to; none of the spike's three covered them.\n\nThe table is grounded, not invented: contributions are `1.0` (\"this verb exercises the channel\"; the magnitude is a live read - task-802), and the target tags are the engine's own vocabularies (`relief.RELIEF_TAGS` / `PRIVATE_TAGS`, `background_simulation.FOOD_TAGS` / `DRINK_TAGS`).",
+    "why": "score(action) = weights . features. Without the feature table the trait weights multiply nothing. Derived from the verb's tier and the target's tags where possible, authored explicitly where not.",
+    "how": "Declared in `engine/disposition.py`, not `engine/action_tiers.py`: the feature table names registry scores, so it lives with the registry; `action_tiers.py` owns a verb's *tier*, not its decision contribution. `check_features()` validates the table (an undeclared score, or a soak verb that contributes to nothing) and is called from `check_registry()`, so both `tools/disposition_index.py --check` and the tests cover it. The `survive` thresholds are cross-checked against `engine/background_simulation.py` in the gate, exactly as the social weights are cross-checked against `background_social.py`.",
+    "verify": "1. The feature table names only declared scores.\n   - expected: `python tools/disposition_index.py --check` passes.\n   - observed: PASS 2026-10-13 -> \"35 scores across 4 decisions, no drift\".\n2. In the app, open the 🧠 Mind panel for a character.\n   - expected: the available actions and the decision scores each contributes are visible.\n   - observed: VERIFIED 2026-10-13, live on localhost:4444. The Mind panel's collapsible \"Actions - what they can choose (16)\" lists each soak verb beside the score it contributes, e.g. \"drink survive.utility.need_relief\", \"chat social.weight.chat\", \"go survive.utility.need_relief\".",
+    "acceptance": [
+      {
+        "text": "Every soak-relevant verb contributes to at least one registry score (`SOAK_VERBS`; `test_every_soak_verb_contributes_to_a_declared_score`).",
+        "done": true
+      },
+      {
+        "text": "Unknown scores are impossible (`check_features`, folded into `check_registry`).",
+        "done": true
+      },
+      {
+        "text": "`tests/test_disposition.py` 13 passed (feature table + target tags + merge).",
+        "done": true
+      },
+      {
+        "text": "`python tools/feature_index.py --check` passes.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/disposition.py` (the `survive` decision + `ACTION_FEATURES` / `TARGET_FEATURES` / `features_of`)",
+      "tools/disposition_index.py` (the `survive` threshold cross-check)",
+      "tests/test_disposition.py` (the feature tests)"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-801-disposition-action-features-verb-score-contributions.md"
+  }
+}

@@ -7,7 +7,7 @@ priority: medium
 
 # Deduplicate Items in Carrying List
 
-**Status**: In Review — implemented (verified 2026-08-08 code audit; moved from todo). `getInventory()` in `world-state.js:151-155` deduplicates by edge source id via a `seenIds` Set before name collection. Pending: visual verification of the inventory list.
+**Status**: In Review - implemented (verified 2026-08-08 code audit; moved from todo). `getInventory()` in `world-state.js:151-155` deduplicates by edge source id via a `seenIds` Set before name collection. Pending: visual verification of the inventory list.
 
 **Filed**: 2026-07-30
 **Priority**: High
@@ -44,9 +44,9 @@ for (const edge of ...) {
 
 ## Files
 
-- `static/js/world-state.js` — `getInventory()`
-- `static/js/agent/prompt-builder.js` — downstream consumer
-- `static/js/agent-engine.js` — downstream consumer
+- `static/js/world-state.js` - `getInventory()`
+- `static/js/agent/prompt-builder.js` - downstream consumer
+- `static/js/agent-engine.js` - downstream consumer
 
 ## What
 

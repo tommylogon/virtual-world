@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-225",
+  "kind": "task",
+  "number": 225,
+  "title": "Behavior Editor - Align with Trigger Graph Editor UX",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-14",
+  "updated": "2026-08-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_cancelled": "This task's premise was \"bring the trigger-graph node editor UX to behavior\nediting\". That is exactly what task-226 built (2026-08-23): the shared\n`trigger-graph.js` extended with behavior-mode nodes - Behavior / Condition /\nAction / State - compileToBehaviors()/behaviorsToGraph(), drag-reorder for\npriority, copy/duplicate, live-verified save round-trip.\n\nThe flat `behaviors-view.js` form still exists alongside it (toggle views),\nand the compound-condition plain-JSON area remains for authors who prefer it,\nbut the graph editor is the modern path. Any remaining gaps (blueprint mode,\ndry-run) are tracked in task-226's deferred list."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/ui/task-225-behavior-editor-align-with-trigger-ui.md"
+  }
+}

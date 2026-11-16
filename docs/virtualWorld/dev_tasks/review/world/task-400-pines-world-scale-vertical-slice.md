@@ -132,7 +132,7 @@ Proving that large-scale world generation, deterministic structure recipes, and 
 
 ## How
 
-Integrated world generation recipes (partment_recipe.py, structure generation), world grid compilation, and background scheduler loops in kraktooth_goblin_camp and pines scenarios.
+Integrated world generation recipes (apartment_recipe.py, structure generation), world grid compilation, and background scheduler loops in kraktooth_goblin_camp and pines scenarios.
 
 ## Steps to verify
 
@@ -153,4 +153,4 @@ Integrated world generation recipes (partment_recipe.py, structure generation),
 
 - engine/world_compile.py
 - engine/structure_generation.py
-- 	ests/test_apartment_recipe.py
+- tests/test_apartment_recipe.py

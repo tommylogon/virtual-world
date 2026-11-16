@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-70",
+  "kind": "task",
+  "number": 70,
+  "title": "Pause/Restart Resets Turn to Zero",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-19",
+  "updated": "2026-07-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Pausing the simulation and clicking \"Start\" calls `initializeTurnQueue()`, which resets `this.turnNumber = 0`. The turn count should be preserved across pauses so the simulation continues from where it left off.",
+    "why": "`agent-engine.js:45-76` - `initializeTurnQueue()`:\n\n```javascript\ninitializeTurnQueue() {\n    // ... build turn queue from players ...\n    if (allPlayers.length === 0) {\n        this.turnQueue = [];\n        this.currentTurnIndex = 0;\n        this.turnNumber = 0;  // ← resets\n        return;\n    }\n    // ... sort by initiative ...\n    this.currentTurnIndex = 0;\n    this.turnNumber = 0;  // ← resets at end too\n}\n```\n\nCalled from `start()` at line 471:\n\n```javascript\nasync start() {\n    if (config.turnBased) {\n        this.characterHistories = {};\n        this.initializeTurnQueue();  // ← resets turnNumber\n        ...\n    }\n    ...\n}\n```\n\nAlso called from `setCharacter()` in `main.js:1352` and `main.js:1396/1410`.",
+    "how": "### Option A: Preserve existing turnNumber in initializeTurnQueue\n\n```javascript\ninitializeTurnQueue() {\n    const existingTurn = this.turnNumber;\n    // ... existing logic ...\n    this.currentTurnIndex = 0;\n    this.turnNumber = existingTurn;  // restore\n}\n```\n\nBut this could cause issues if players were added/removed between pause and restart.\n\n### Option B: Don't call initializeTurnQueue in start() if queue exists\n\n```javascript\nasync start() {\n    if (config.turnBased) {\n        this.characterHistories = {};\n        if (this.turnQueue.length === 0) {\n            this.initializeTurnQueue();\n        }\n        ...\n    }\n}\n```\n\nThis preserves the existing queue and turnNumber. But if players changed, the queue would be stale.\n\n### Option C: Reset only if explicitly requested\n\nAdd a `preserveTurn` parameter:\n\n```javascript\ninitializeTurnQueue(preserveTurn = false) {\n    // ... existing logic ...\n    if (!preserveTurn) {\n        this.currentTurnIndex = 0;\n        this.turnNumber = 0;\n    }\n}\n```\n\n**Recommendation**: Option B is simplest and safest. `start()` should only rebuild the queue if it's empty (hasn't been initialized yet or was explicitly reset). If the user wants a full reset, they can click \"Reset.\"",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.js:45-76` - `initializeTurnQueue()",
+      "static/js/agent-engine.js:470-474` - `start()"
+    ],
+    "custom": {
+      "flow": "1. Simulation runs for 10+ turns → `this.turnNumber = 10`\n2. User clicks \"Pause\" → `stop()` → `config.running = false` (state preserved)\n3. User clicks \"Start\" → `start()` → `initializeTurnQueue()` → `this.turnNumber = 0` (lost!)\n4. Turn counter UI shows \"Turn: 0\" instead of \"Turn: 10\""
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-70-pause_restart_resets_turn_to_zero.md"
+  }
+}

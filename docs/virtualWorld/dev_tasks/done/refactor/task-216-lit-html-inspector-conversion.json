@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-216",
+  "kind": "task",
+  "number": 216,
+  "title": "lit-html Inspector Conversion",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "All inspector views (`#inspector-panel`) previously used vanilla JS `innerHTML` template literals with inline event handlers. This was fragile: mixing rendering approaches caused DOM state conflicts, escaping was manual and error-prone, and re-rendering destroyed/recreated the entire panel DOM on every update.\n\nA proof-of-concept with `lit-html` (ES module + import map) was attempted for the edge inspector, but it failed because:\n1. The module loaded asynchronously while other inspectors write to the same panel synchronously\n2. lit-html's internal comment placeholders leaked into the DOM on re-render\n3. `panel.innerHTML = ''` to clear state broke lit-html's diffing\n\nConvert all inspector views to a consistent rendering approach, chosen as **Option A (all lit-html)** with a classic-script bootstrap:\n\n- Vendored `lit-html` under `static/js/vendor/lit-html/`\n- `static/js/shared/lit-bootstrap.js` - deferred ES-module bootstrap that exposes `window.Lit` (`html`, `render`, `nothing`, `unsafeHTML`, directives) at call time, so classic scripts keep working\n- `static/js/inspector/panel.js` - `InspectorPanel`, the SINGLE render entrypoint for `#inspector-panel`. No other file writes `panel.innerHTML` directly.\n- Views render lit `TemplateResult`s via `window.Lit.html` and hand them to `InspectorPanel.render()`\n- Inline `onclick`/`onchange` replaced with `@click`/`@change`/`?selected` bindings where views were fully converted\n- lit auto-escaping replaces most manual `esc()` calls in converted views\n\n### Converted fully to lit TemplateResults\n\n- `inspector/helpers.js` - `graphGravityControl`, `renderLockToggle`, `renderAliasesSection` return TemplateResults\n- `inspector/trigger-helpers.js` - `buildTriggersHtml` / `buildContentsHtml`\n- `inspector/lore-view.js` - list + modal\n- `inspector/memory-view.js` - edit modal (section builder stays string for agent-view)\n- `inspector/behaviors-view.js` - editor modal + action cards\n- `inspector/area-view.js` - full view\n- `inspector/item-view.js` - full view (Choices.js equip-slot select still re-init'd post-render)\n- `inspector/way-view.js` - full view incl. reconnect/connections section (fixed latent bugs: lock-toggle was `[object Object]`, connection \"View from\" textareas were missing their opening tags)\n- `graph/edge-inspector.js` - full view; added `renderEdgeInspector` export so `graph-manager._showEdgeInspector` dispatches to the lit version (it was previously dead code falling through to the innerHTML fallback)\n- `graph-manager.js` - `_showEdgeInspector` fallback renders a lit template through `InspectorPanel` instead of `panel.innerHTML`\n- `inspector.js` - `hide()`/empty/fallback branches render through `InspectorPanel`\n\n### agent-view.js (largest, 1461 lines)\n\nKept as a single string template (48 inline handlers) but rendered through `InspectorPanel.render()` wrapped in `lit-html`'s `unsafeHTML` directive, so `InspectorPanel` stays the sole owner of the panel while lit never diffs against string content. Two helper TemplateResults (`graphGravityControl`, `renderAliasesSection`) that can't be string-concatenated are rendered into placeholder `<div>`s via a deferred-render queue (`_deferredGravityControl`/`_deferredAliasesSection`) after the panel render.\n\n### paperdoll-view.js\n\nLeft as string output (consumed by agent-view's string template) - a prior session's edit had stripped its `esc()` calls on the assumption of full lit rendering; those were restored because agent-view emits them through `unsafeHTML`, where manual escaping is still required.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "Static (done):\n- `node --check` passes on all converted inspector/graph files\n- `rg \"panel.innerHTML\"` shows no writers outside `InspectorPanel` itself\n\nPending browser E2E (user):\n1. Click every node type in graph → inspector updates correctly\n2. Click another node → previous content fully replaced, no stale DOM\n3. All buttons/inputs work (edit, delete, add, save)\n4. No `<!--?lit$...$-->` placeholders in DOM\n5. Agent view tabs switch, paperdoll/inventory/memory/behaviors/lore still interactive\n6. Edge inspector from graph context menu renders and edits properties",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world/static/js/vendor/lit-html/**` - vendored lit-html",
+      "virtual_world/static/js/shared/lit-bootstrap.js` - deferred `window.Lit` bootstrap",
+      "virtual_world/static/js/inspector/panel.js` - single panel render owner",
+      "virtual_world/static/js/inspector/helpers.js",
+      "virtual_world/static/js/inspector/trigger-helpers.js",
+      "virtual_world/static/js/inspector/lore-view.js",
+      "virtual_world/static/js/inspector/memory-view.js",
+      "virtual_world/static/js/inspector/behaviors-view.js",
+      "virtual_world/static/js/inspector/paperdoll-view.js",
+      "virtual_world/static/js/inspector/area-view.js",
+      "virtual_world/static/js/inspector/item-view.js",
+      "virtual_world/static/js/inspector/way-view.js",
+      "virtual_world/static/js/inspector/agent-view.js",
+      "virtual_world/static/js/inspector.js",
+      "virtual_world/static/js/graph/edge-inspector.js",
+      "virtual_world/static/js/graph-manager.js",
+      "virtual_world/templates/index.html` - script load order (panel.js after helpers, lit-bootstrap as deferred module)"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Inspector Panels]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-216-lit-html-inspector-conversion.md"
+  }
+}

@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Low
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -40,18 +40,18 @@ The default resting state. Present when no other condition is active; `Player.st
 - **Combat**: neutral (`attack_mod`/`defense_mod` 0).
 - **Movement**: full speed (`speed_mult` 1.0).
 - **Periodic**: none.
-- **Lifecycle**: `stack: "noop"`, `default_duration: None` (persistent until replaced). Excludes `unconscious` — becoming awake clears any unconscious instance.
+- **Lifecycle**: `stack: "noop"`, `default_duration: None` (persistent until replaced). Excludes `unconscious` - becoming awake clears any unconscious instance.
 - **Exclusions note**: `dead` sets `excludes: []`, so applying `awake` after `dead` cannot revive a corpse; the no-conditions path re-adds `awake` when `player.conditions` empties.
 
 ## Perception
 
-`known: True` — self-evident. Skipped by `perceived_conditions` via `_PERCEPTION_SKIP`.
+`known: True` - self-evident. Skipped by `perceived_conditions` via `_PERCEPTION_SKIP`.
 
 ## Integration points
 
-- `player.py:31-40` — catalog entry.
-- `engine/conditions.py:120` `_PERCEPTION_SKIP` — `awake` is not rendered to agents.
-- `player.py` `remove_condition` (line ~507) and `process_tick` — re-add default `awake` when the last condition clears.
+- `player.py:31-40` - catalog entry.
+- `engine/conditions.py:120` `_PERCEPTION_SKIP` - `awake` is not rendered to agents.
+- `player.py` `remove_condition` (line ~507) and `process_tick` - re-add default `awake` when the last condition clears.
 - Condition hierarchy order in `CONDITION_HIERARCHY` (lowest priority, listed last).
 
 ## Steps to verify

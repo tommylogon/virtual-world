@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "id": "task-750",
+  "kind": "task",
+  "number": 750,
+  "title": "Migrate the mature boolean to a mature content tag, registered and scanned across node types",
+  "status": "review",
+  "priority": "high",
+  "area": "library",
+  "tags": [],
+  "created": "2026-10-09",
+  "updated": "2026-10-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-660",
+      "task-206",
+      "task-213",
+      "task-462",
+      "bug-512",
+      "task-291"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the `mature` **boolean property** with a `mature` **tag**, so the same\n`mature` marker works uniformly on items, characters, areas and ways and reuses\nthe existing tag-scanning machinery instead of adding a new property-resolution\npath in every consumer.\n\nEvidence that tags are the established gate mechanism here (the reason for this\ntask): `light_source` (`engine/lighting.py:104`, `engine/toggleable_items.py:50,93`),\n`heat_source`, `undead`/`ghost` (`engine/undead.py:_has_tag`) are all tags scanned\ninline. A tag is the idiomatic cross-cutting marker; the boolean is the outlier.\n\nCurrent state - the boolean is real and read in four places:\n\n- `routes/library_ops.py:_filter_mature_entries` - `value.get('mature')` (traits/conditions listing)\n- `engine/dressing.py:_wearable_entries` / `_apply_mature_gate` - `data.get(\"mature\")` (items; currently unauthored, see task-660)\n- `engine/nl_editor_validation.py:481` - `entry.get(\"mature\")` (library_upsert write gate)\n- `engine/player_conditions.py` (definitions set `mature: True`; `:747` reads it) and `engine/traits.py` (8 traits)\n\nData: 19 entries author `\"mature\": true`; traits/conditions carry no `tags` field today.",
+    "why": "The mature boolean property was an outlier among cross-cutting classification markers (light_source, heat_source, undead, etc. are all tags). Using a boolean required bespoke property lookups across items, characters, conditions, and traits. Migrating to a registered tag unifies tag matching, filtering, and authoring validation.",
+    "how": "1. Register `data/library/tags/mature.json` (`applies_to` covering item, character,\n   area, way, trait, condition) so `scenario_tag_check.py` validates it.\n2. Migrate the 19 `\"mature\": true` entries to `tags: [\"mature\"]`.\n3. Repoint the four readers off `.get('mature')` onto the tag.\n4. Tag the content that should be gated (e.g. `ball_gag`) so the gate is\n   **authored**, not just wired. This closes the task-660 mature-gate acceptance\n   that is currently a monkeypatched-fixture no-op.\n5. Remove the now-dead boolean reads; do not leave both markers.\n\nDecisions taken up front: the tag will be visible to `has_tag` triggers and to\n`auto_dress._tag_matched`'s interest intersection (same as `light_source`; accepted),\nand `remove_tag` can strip it at runtime (same as any tag; accepted).",
+    "verify": "1. Verify tag registration and scenario tag check\n   - expected: data/library/tags/mature.json is registered and python tools/scenario_tag_check.py --check detects no missing mature tag\n   - observed: Mature tag valid across node types\n2. Run auto dress tests with mature gating\n   - expected: pytest tests/test_auto_dress.py passes with real tagged ball_gag\n   - observed: 15 passed in tests/test_auto_dress.py",
+    "acceptance": [
+      {
+        "text": "`data/library/tags/mature.json` registered. `scenario_tag_check.py --check` reports no",
+        "done": true
+      },
+      {
+        "text": "mature-tag finding; its 15 findings are pre-existing `dead_interests` on the camp cast,",
+        "done": false
+      },
+      {
+        "text": "a stale-baseline issue unrelated to this tag.",
+        "done": false
+      },
+      {
+        "text": "Zero `\"mature\": true` booleans remain; the 19 entries carry the tag.",
+        "done": true
+      },
+      {
+        "text": "All four readers match on the tag; no `get('mature')` reads remain.",
+        "done": true
+      },
+      {
+        "text": "`ball_gag` (item) and the intended node types (traits/conditions) carry `mature`.",
+        "done": true
+      },
+      {
+        "text": "`world.mature_content` off hides/gates tagged content (library listing filter + the",
+        "done": true
+      },
+      {
+        "text": "dressing pool) and on restores it - covered by tests.",
+        "done": false
+      },
+      {
+        "text": "`tests/test_auto_dress.py` mature test now exercises the real tagged `ball_gag`, not a",
+        "done": true
+      },
+      {
+        "text": "monkeypatched `_wearable_entries`.",
+        "done": false
+      },
+      {
+        "text": "No second marker: the boolean is fully retired.",
+        "done": true
+      }
+    ],
+    "files": [
+      "data/library/tags/mature.json",
+      "engine/traits.py",
+      "engine/player_conditions.py",
+      "engine/dressing.py",
+      "engine/nl_editor_validation.py",
+      "-",
+      "routes/library_ops.py",
+      "tests/test_auto_dress.py"
+    ],
+    "custom": {
+      "resolution_2026_10_09": "- Registered `data/library/tags/mature.json` (applies_to items/characters/areas/ways/traits/conditions).\n- Migrated 48 JSON files: the 11 `\"mature\": true` conditions and 8 traits now carry\n  `\"tags\": [\"mature\"]`; the `\"mature\"` key was removed from all 40 conditions\n  (11 true + 29 false) and 8 traits. No `\"mature\"` key remains in `data/`.\n- Python: `engine/traits.py` (8 traits) and `engine/player_conditions.py` now set the\n  tag (`_MATURE_CONDITION_IDS` → tags; `_CONDITION_BASE` key is `tags`), reader\n  `MATURE_CONDITIONS` matches the tag.\n- Readers repointed: `routes/library_ops.py` (`_filter_mature_entries`), `engine/dressing.py`\n  (`_apply_mature_gate`), `engine/nl_editor_validation.py`, `engine/player_conditions.py`.\n- Authored `data/library/items/ball_gag.json` (the missing template its labs.json instance\n  references) with `tags: [\"mature\"]`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/library/task-750-migrate-the-mature-boolean-to-a-mature-content-tag-registered-and-scanned-across-node-types.md"
+  }
+}

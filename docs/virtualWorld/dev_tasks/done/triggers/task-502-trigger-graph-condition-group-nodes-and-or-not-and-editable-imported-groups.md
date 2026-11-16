@@ -36,7 +36,7 @@ linear AND chain. This task gives groups a real node so they can be edited.
 
 ## Non-goals
 
-- Engine-side condition evaluation — already supports and/or/not.
+- Engine-side condition evaluation - already supports and/or/not.
 - Blueprint runtime materialisation (task-442).
 
 ## Verified (2026-10-02)
@@ -44,7 +44,7 @@ linear AND chain. This task gives groups a real node so they can be edited.
 - Commit `6efa70e`. `node tools/unit/run.cjs` 497 passed / 0 failed;
   eslint / `npm run typecheck` / `node --check` clean.
 - Live browser (app on :4469, Playwright): opened the graph with an OR group
-  wired through the `child` socket — 5 nodes rendered, 1 `child` socket, 4 wire
+  wired through the `child` socket - 5 nodes rendered, 1 `child` socket, 4 wire
   paths drawn, group operator select = `or`; clicking **Apply** compiled to
   `{"operator":"or","conditions":[has_trait, in_area]}` with no compile error.
   Screenshot `review-verify`-class artifact kept only in temp, not committed.

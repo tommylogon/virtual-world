@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-621",
+  "kind": "task",
+  "number": 621,
+  "title": "Library filenames follow four different naming conventions at once",
+  "status": "cancelled",
+  "priority": "low",
+  "area": "library",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "mixed case, kebab-case, snake_case and spaced names coexist across data/library registries.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "cancellation_duplicate_of_task_601_check_and_task_646_the_rename": "The claim is true, and it is **the same problem** already measured under\ntask-601, so carrying it as a second ticket only inflates the backlog.\n\nMeasured, per registry:\n\n| registry | n | has uppercase | has spaces | other | hyphen | underscore |\n|---|---|---|---|---|---|---|\n| `characters` | 69 | **28** | **11** | 0 | 10 | 2 |\n| `items` | 1915 | 0 | 0 | **1** (`baker's_bread`) | 0 | **1439** |\n| `tags` | 591 | 0 | **15** | 0 | 0 | 29 |\n\nSo all four named conventions really do coexist -- mixed case, kebab, snake and\nspaced -- and there are five ids that are mixed-case *and* hyphenated at once:\n`Croak-Mother`, `Old Iron-Back`, `Rag-Tail`, `Shadow-Pelt`, `Silver-Talon`.\n\n**Why this is a duplicate rather than a second finding.** task-601's\n`tag_id_charset` lint check already reports every id in this table, by name:\n\n    items:      1   baker's_bread\n    characters: 36   Arix, Croak-Mother, Old Iron-Back, the butcher, ...\n    tags:       15   frozen thicket, hidden door, willow hollow, ...\n    COLLISION:  'hidden door' and 'hidden_door' both normalise to 'hidden_door'\n\nand task-646 owns the actual rename, including the cross-registry reference\nupdate and the collision decision. The root cause is the same single line --\n`routes/helpers.py::load_registry` keys entries by filename verbatim with no\nnormalisation.\n\nSplitting one root cause across two tickets is the failure mode the audit's own\nfiling discipline warns about: the tree would claim 52 ids are outstanding twice\nand no one could tell which ticket owns the `hidden door` collision."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/library/task-621-library-filenames-follow-four-different-naming-conventions-at-once.md"
+  }
+}

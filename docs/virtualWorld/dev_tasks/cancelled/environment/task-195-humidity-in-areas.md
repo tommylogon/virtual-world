@@ -20,13 +20,13 @@ Humidity, flooding, and smoke should exist as environmental states in an area. T
 ## How
 
 - Model as a condition on the area: `"humid"`, `"flooding"`, `"full of smoke"`.
-- Needs a concrete mechanical effect to be worth adding — candidates: drying speed, `effective_temp`, stealth.
+- Needs a concrete mechanical effect to be worth adding - candidates: drying speed, `effective_temp`, stealth.
 - Pick 1–2 uses before adding; do not add a bare flag with no gameplay payoff.
 
 ## Files
 
-- `engine/area_description.py` — represent humidity/flood/smoke conditions on an area
-- `engine/conditions.py` — define the condition types and their effects
+- `engine/area_description.py` - represent humidity/flood/smoke conditions on an area
+- `engine/conditions.py` - define the condition types and their effects
 
 ## What
 

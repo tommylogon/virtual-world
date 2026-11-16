@@ -5,17 +5,17 @@ area: bugs
 priority: medium
 ---
 
-# Bug 26 — Human turn panel empty for areas whose id isn't the canonical form
+# Bug 26 - Human turn panel empty for areas whose id isn't the canonical form
 
-**Status:** In Review — fixed 2026-08-24, name-based resolution +
+**Status:** In Review - fixed 2026-08-24, name-based resolution +
 getter validation, 1 new test, full suite 1126 passed. Browser E2E
 pending (Tommy's men's restroom is the live repro).
 
 ## Found
 
-2026-08-24 playtest: jake in "Taco Bell Men's Restroom" — panel showed
+2026-08-24 playtest: jake in "Taco Bell Men's Restroom" - panel showed
 nobody / nothing of note / no ways out, and no area description under the
-chip. Changing the light level (it was pitch black) changed nothing —
+chip. Changing the light level (it was pitch black) changed nothing -
 darkness only degrades chip labels, never empties them. The dining room
 (no apostrophe) rendered fine.
 
@@ -32,7 +32,7 @@ The agent path never breaks on this: `area_description` resolves areas
 by iterating nodes and matching NAME.
 
 task-333 previously patched a 500 crash in this same chain; the silent
-empty-result case survived it. Fourth drift incident — see task-341.
+empty-result case survived it. Fourth drift incident - see task-341.
 
 ## How
 
@@ -40,23 +40,23 @@ empty-result case survived it. Fourth drift incident — see task-341.
 - each getter result is now VALIDATED (must resolve to an existing area
   node) before being accepted;
 - a name-based node lookup (normalized: lowercase, apostrophes stripped)
-  runs before the canonical-id fallback — same source of truth as
+  runs before the canonical-id fallback - same source of truth as
   area_description.
 
 ## Steps to verify
 
 `tests/test_scene_snapshot.py::test_noncanonical_area_id_resolves_by_name`
-— area node at a non-canonical id with an apostrophe name; asserts the
+- area node at a non-canonical id with an apostrophe name; asserts the
 scene resolves the right area id, renders the description, and lists the
 item and way.
 
 ## Verification
 
 - pytest full suite 1126 passed
-- Browser: reload jake's turn in the men's restroom — toilet chip, "out"
+- Browser: reload jake's turn in the men's restroom - toilet chip, "out"
   way, and the area description must all render.
 
-## Live server verification — 2026-10-02 (port 4471)
+## Live server verification - 2026-10-02 (port 4471)
 
 The Taco Bell repro world is not in this worktree, but the same shape exists:
 `area_abandoned_hunter's_cabin` (apostrophe keeps the non-canonical id). Drove

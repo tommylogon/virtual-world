@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "task-846",
+  "kind": "task",
+  "number": 846,
+  "title": "Pregnancy, gestation, and birth",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-735"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Split from task-735, which ships the clock, the stages, and old-age\ndeath. This card is the rest: conception given willingness and\nfertility-by-stage, gestation over sim time, birth, and the child\nbecoming a real character (spawn-character, task-295) at the parent's\nlocation.",
+    "why": "A 10-year soak that ages and kills but never births is half a\ndemography. But pregnancy is its own consent-gated, content-heavy\nsystem (willingness, gestation tracking, infant behaviors) - it does\nnot belong inside the clock card.",
+    "how": "- Fertility by life stage (lifecycle engine owns stages; this card\n  reads them).\n- Willingness as an explicit gate (boundaries/consent vocabulary from\n  the persona schema - never implied).\n- Gestation as bounded per-character state (a due tick + stage, not an\n  event store - the 735 scale note applies here too).\n- Birth spawns via the existing spawn-character path (task-295) with\n  `birth_tick` set to the birth tick, so the child enters the clock\n  already.",
+    "verify": "1. Run a controlled fertility/gestation sequence across the authored duration.\n    - expected: pregnancy and birth visible as events; the child is a\n      real character node with a valid location and private Player state.\n    - observed: TODO\n2. Confirm willingness gating with an unwilling pair.\n    - expected: no conception, named reason.\n    - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Conception requires willingness + fertility-by-stage.",
+        "done": false
+      },
+      {
+        "text": "Gestation elapses over sim time to a live birth event.",
+        "done": false
+      },
+      {
+        "text": "The child is a real character (node + Player + birth_tick).",
+        "done": false
+      },
+      {
+        "text": "No unbounded per-character store.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/lifecycle.py` - stages read here",
+      "engine/spawn.py` or task-295 path - birth delivery",
+      "tests/test_pregnancy.py` (new)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind -> Bio / Lifecycle panel and Conditions tab.\n\nCurrent availability: Planned; lifecycle clock and reproductive cycles are implemented in tasks 735 and 928, while gestation and birth delivery pipeline are in progress.\n\nLive steps when available:\n1. In Character Inspector -> Mind -> Bio, observe the pregnancy status and gestation progress of an expecting character.\n   - expected: Gestation progress and estimated due date/stage are displayed.\n2. Advance world simulation ticks past the gestation duration.\n   - expected: A birth event fires, and the newborn character node is materialized at the parent's area.\n3. Select the newborn character in the Agents list.\n   - expected: Character Inspector shows valid node, birth tick, and relationship edge to the parent.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-846-pregnancy-gestation-and-birth.md"
+  }
+}

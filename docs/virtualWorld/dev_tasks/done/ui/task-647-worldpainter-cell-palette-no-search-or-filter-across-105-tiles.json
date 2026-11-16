@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-647",
+  "kind": "task",
+  "number": 647,
+  "title": "WorldPainter cell palette: no search or filter across 105 tiles",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The biome palette is 105 options. It now renders as 23 real optgroups (fixed under the 623 work), but an author drawing a 30-location town floor plan still has to scroll to find 'Wall' or 'Door'. A live filter box above the select, matching on name and id, is the same affordance added to the Scenario Manager for 22 scenarios -- here it matters 5x more.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. In the Eldenford interior WorldPainter, type `wall` in the cell palette filter.\n   - expected: the 105 options narrow to `Wall (wall)`.\n   - observed: live: the filter narrowed the palette to `Wall (wall)`.\n2. Search by an ID such as `not_a_place`, then filter out the currently selected tile.\n   - expected: ID matching works; empty headings disappear; selection moves to a visible option.\n   - observed: recorded in the resolution as the filter behavior; no hidden filtered-out value remains selected.\n3. Clear the filter and paint one cell.\n   - expected: all 105 options return under their 23 headings and the selected tile is painted.\n   - observed: live palette check recorded; repeat the paint interaction when touching this surface.",
+    "acceptance": [
+      {
+        "text": "The palette has a filter that narrows by tile name and by id",
+        "done": true
+      },
+      {
+        "text": "Headings left with nothing under them disappear rather than showing blank",
+        "done": true
+      },
+      {
+        "text": "Filtering cannot leave the select on a value that no longer exists",
+        "done": true
+      },
+      {
+        "text": "Clearing the filter restores everything",
+        "done": true
+      },
+      {
+        "text": "Verified live: typing \"wall\" narrows 105 tiles to `Wall (wall)`",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30_added_while_painting_eldenford": "Tommy asked me to finish the Eldenford town map, which made this the first\nthing in the way. The palette is 105 tiles under 23 headings: navigable but not\n*findable*. An author drawing a 30-location floor plan is looking for one tile --\nWall, Door, Kitchen -- and the only route was to scroll and read.\n\nAdded a filter box beside the select, matching on displayed name **and** id (so\n`not_a_place` is typeable as well as `Wall`). A heading whose options are all\nfiltered out is removed rather than left as an empty label, and if the filter\nhides the currently-selected value the select falls back to the first visible\noption so it can never sit on something unpaintable.\n\n**Verified live** in the Eldenford interior grid: typing `wall` narrows 105\noptions to `Wall (wall)` (screenshot `audit/92-palette-filter-wall.png`).\n\n- TODO",
+      "browser_ui": "Intended UI home: WorldPainter → cell palette above the interior grid → filter input beside the tile select.\n\nCurrent availability: The card records a live Eldenford pass: typing `wall` narrowed 105 options across 23 groups to `Wall (wall)`.\n\nLive steps when available:\n1. Open the Eldenford interior grid, focus the palette filter, and type `wall`.\n   - expected: the select narrows to `Wall (wall)` and the counter/list reflects one matching tile.\n2. Replace the query with `not_a_place`, which matches the tile ID rather than its display name.\n   - expected: that tile remains reachable by ID and headings with no matching children disappear.\n3. Filter out the currently selected tile, then clear the filter.\n   - expected: the select moves to a visible tile instead of retaining an unpaintable hidden value; clearing restores all 105 options under their 23 headings.\n4. Paint one cell with the filtered selection.\n   - expected: the chosen tile is painted; filtering does not change the selected layer or route painting to another cell.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-647-worldpainter-cell-palette-no-search-or-filter-across-105-tiles.md"
+  }
+}

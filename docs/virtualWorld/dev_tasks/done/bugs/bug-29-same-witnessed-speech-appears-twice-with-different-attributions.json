@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "bug-29",
+  "kind": "bug",
+  "number": 29,
+  "title": "Same witnessed speech appears twice with different attributions",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "Two-agent room: A says X to B; B's next TWO prompts contain exactly one entry\nfor X each turn, attributed identically both times.\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "Taco Bell session. Jake's opening compliment was said ONCE (tick 4). In a\nlater turn's `=== WITNESSED ===` it appears two ways simultaneously:\n\n```\n[the man → to you] said: \"pleas edont try to be cnormal, i like your whole chaos thing...\"\n[the man] jake halloway he winks as he answers her.\n[Heard → to you] a man's voice said: \"so miki, you know you are really fun to hang out with, right?\"\n```\n\nLine 1 is the NEW unacknowledged line (turn-local), line 3 is the OLDER line\nrendered through the stranger/anonymized path (\"a man's voice\") rather than\n\"[the man]\". Two candidates:\n\na) Deliberate: an unanswered direct address lingers one extra turn so the ball\n   stays visibly in the character's court - but then attribution flipping\n   between \"[the man]\" and \"[Heard → to you]\" between renders of the SAME\n   event is inconsistent.\nb) Duplicate posting: the speech got recorded into both this-turn events and a\n   \"pending conversation\" carry-over list.",
+      "investigation_2026_09_22_code_trace": "`room-context.js` builds WITNESSED from two separate sources and dedupes them:\n\n- local `turn_events` (same area, other actors) → `witnessedLines`,\n- `player.recent_hearing` → `heardSpeech`, filtered by a `seenSpeechKeys` set\n  keyed `${speaker}|${text.toLowerCase()}` and a contains-match against local\n  narration (`room-context.js:603-693`).\n\nThe two lines in the repro have **different text** (\"...i like your whole chaos\nthing\" vs \"...you are really fun to hang out with, right?\"), so they are two\ndistinct utterances by the same speaker, not one event rendered twice. Different\nattribution per source (local event → `[the man]`; `recent_hearing` → `[Heard\n→ to you] a man's voice`) is expected behaviour.\n\n**Verdict:** the \"double attribution\" premise is unproven. To make this a real\nbug we need a repro where the *same* line (ideally same tick) appears under two\nattributions; the dedupe already keys on speaker+text, so the gap would be\nspeaker-label instability (e.g. \"the man\" vs \"jake halloway\" vs \"a man's voice\"\nfor one speaker), not duplicate posting.",
+      "also_noticed": "Line 1 shows the letter-scrambling corruption from bug-28's log\n(\"pleas edont\", \"cnormal\"); same unexplained source, tracked there.",
+      "why_investigate": "If (b), every directed-but-unanswered line double-charges prompt attention and\ncan nudge models into answering stale content. If (a), we should at least keep\nattribution stable for the same event across turns.",
+      "action": "Trace how WITNESSED entries are built per turn (room_perception /\nscene_snapshot + client context-sections): find where an event can enter twice,\nor confirm the carry-over design and document it. Then either dedupe by event\nid or pin one attribution form for carried-over balls.",
+      "re_investigation_2026_09_28_wt_c_confirmed_false_alarm_recommend_closing": "Read the exact lines the report quotes, in\n`data/exports/taco_bell_event_log_2026-08-23T16-19-57.txt:422-425`:\n\n```\n=== WITNESSED ===\n[the man → to you] said: \"pleas edont try to be cnormal, i like your whole chaos thing, its perfect! ...\"\n[the man] jake halloway he winks as he answers her.\n[Heard → to you] a man's voice said: \"so miki, you know you are really fun to hang out with, right?\"\n```\n\nThe premise fails on the artifact, not just on inference: line 423 and line 425\nare **different utterances by the same speaker** (\"...i like your whole chaos\nthing\" vs \"...you are really fun to hang out with, right?\"). The 2026-08-22 note\ncalled this correctly; nothing has changed since.\n\n**The predicted alternative - speaker-label instability - is also not live.**\nThe three labels in that block (`the man`, `jake halloway`, `a man's voice`) are\nreal, and in current code they cannot disagree, because both the bracket label\nand the in-body name are derived from the same value:\n\n- `room-context.js:646` computes `anon = PromptBuilder.anonymousName(...)` once\n  and uses it for the bracket.\n- `room-context.js:653-656` replaces the raw actor name inside `descText` with\n  that *same* `anon`.\n\nSo `[the man] jake halloway he winks` - a bracket that anonymises next to a body\nthat leaks the name - is not reachable today; both would say `the man`. The\nbracket/body split in that log is a 2026-08-23 artifact, same vintage as the\napostrophe bug in bug-28. (`voiceLabel` for cross-room lines uses\n`isKnownToViewer` too, so it agrees with `anonymousName` rather than competing\nwith it.)\n\n**One latent inconsistency, deliberately not fixed.** The two sites ask\n\"do I know this name?\" with slightly different predicates:\n\n- `worldState.hasMet` (`static/js/world-state.js:170`) returns false when\n  `rel.closeness === undefined`;\n- `room-context.js:650` uses `first_sighting === false` and ignores closeness.\n\nA relationship record with `first_sighting: false` and no `closeness` would\ntherefore anonymise the bracket but keep the name in the body. It is **not\nreachable from shipped content** - every `first_sighting` in\n`data/library/characters/*.json` and `data/scenarios/*.json` is paired with a\n`closeness` (`ensure_relationship` always writes it, and deserialisation at\n`player.py:1070` indexes `data[\"closeness\"]` directly, so a save cannot omit it).\nIt would need a hand-edited or legacy save. Fixing unreachable code on a\ndisproven bug is inventing a fix, so this is recorded, not patched. If anyone\nlater adds a relationship path that omits `closeness`, make the two predicates\none function at that point.\n\n**Verdict: close.** No duplicate posting, no attribution instability, no defect.\nA dedupe-by-event-id change would be untestable against a bug that does not\nexist, and would risk collapsing the legitimate carry-over of an unanswered line\ninto the next turn's prompt."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-29-witnessed-speech-double-attribution.md"
+  }
+}

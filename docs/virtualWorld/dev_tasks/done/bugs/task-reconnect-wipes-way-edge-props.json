@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-reconnect-wipes-way-edge-props",
+  "kind": "task",
+  "number": null,
+  "title": "Reconnect Wipes Way View-from / Cardinal Edge Props",
+  "status": "done",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-08-09",
+  "updated": "2026-08-09",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Pressing the 🔄 Reconnect button in the way inspector (or calling `POST /api/graph/way/reconnect`) cleared the **View from A → B** and **Cardinal (A→B)** fields on side A of the way - even when reconnecting to the exact same two areas. Reported while editing way nodes: \"the view from a to b got cleared out, and the cardinal a to b got cleared out.\"",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "root_cause": "`visible_in_direction` and `cardinal` live on the **area → way** connection edge (the canonical edge the engine reads - see `engine/movement.py:532` and `engine/area_description.py:142`). The reverse **way → area** edges carry only a stale copy of `direction`.\n\n`reconnect_way` (`routes/graph.py`) preserved old edge props with:\n\n```python\nfor e in way_edges:\n    if e.source == new_area_a or e.target == new_area_a:\n        old_props_a = dict(e.properties)\n```\n\nMatching by area picks the **last** edge in iteration order, which for side A is the reverse `way → area` edge (no view/cardinal). Those props were then dropped when the edges were rebuilt - reproduced live: side A lost both fields, side B survived (order-dependent).",
+      "fix": "Match the canonical edge specifically:\n\n```python\nif e.source == new_area_a and e.target == way_id:\n    old_props_a = dict(e.properties)\nif e.source == new_area_b and e.target == way_id:\n    old_props_b = dict(e.properties)\n```\n\nWhen reconnecting a side to a *new* room, that edge won't exist, so the new side correctly starts with no inherited view/cardinal.",
+      "verification": "- Repro script before fix: `A->way` lost `visible_in_direction` + `cardinal` after same-room reconnect.\n- After fix: both sides keep view + cardinal through same-room reconnect.\n- Test data cleaned up; world state restored.\n- Full pytest: 748 passed / 11 failed - the 11 failures are pre-existing `test_trigger_system.py::TestGiveItemEffect` give-item tests, confirmed failing on clean HEAD too (unrelated to this change).",
+      "files_changed": "- `routes/graph.py` - `reconnect_way`: preserve props from the canonical `area → way` edge"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "Graph & Area UX",
+    "status_note": "In Review - implemented 2026-08-09, verified live against :4444 (reconnect to same rooms now preserves `visible_in_direction` + `cardinal` on both sides).",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/task-reconnect-wipes-way-edge-props.md"
+  }
+}

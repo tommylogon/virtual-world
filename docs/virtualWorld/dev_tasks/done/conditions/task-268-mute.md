@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: Low
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -44,12 +44,12 @@ Can't speak. No sound comes out. The speech-blocking condition.
 
 ## Perception
 
-`known: True` — the agent is told they can't speak.
+`known: True` - the agent is told they can't speak.
 
 ## Integration points
 
-- `player.py:185-194` — catalog entry.
-- `engine/conditions.py` — `can_speak` (iterates conditions with `blocks_speech`).
+- `player.py:185-194` - catalog entry.
+- `engine/conditions.py` - `can_speak` (iterates conditions with `blocks_speech`).
 - Action input: speech actions should be rejected/blocked while mute.
 
 ## Steps to verify
@@ -61,7 +61,7 @@ Can't speak. No sound comes out. The speech-blocking condition.
 ## Open questions / things to work out
 
 - Should mute be enforced in the action layer (reject `speech`), or just prompt-hinted? Verify actual enforcement path.
-- `default_duration: None` — should natural recovery ever apply, or is it always explicit cure/removal?
+- `default_duration: None` - should natural recovery ever apply, or is it always explicit cure/removal?
 
 ## Why
 

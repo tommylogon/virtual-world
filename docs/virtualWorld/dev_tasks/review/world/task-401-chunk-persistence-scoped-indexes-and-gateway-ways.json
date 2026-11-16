@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "id": "task-401",
+  "kind": "task",
+  "number": 401,
+  "title": "Chunk persistence, scoped indexes, and gateway ways",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-08",
+  "updated": "2026-09-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-397",
+      "task-398",
+      "task-399",
+      "task-400"
+    ],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [
+      "task-581",
+      "task-582",
+      "task-583",
+      "task-584"
+    ],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Turn the proven scope model into real scale: materialized scopes can be loaded\nand evicted independently while remaining part of one persistent world.",
+    "why": "The scope model (task-397-400) needs to support real scale: materialized scopes loaded/evicted independently while remaining part of one persistent world. Chunk persistence requires explicit merge/unload APIs (load_from_dict clears graph), stable area IDs and one authoritative location rule (display-name current_area is unsafe across duplicate names), gateway ways with target_area_id/target_scope_id, load-before-resolve in movement, index-based lookups replacing global scans, and cross-chunk ownership rules for carried/equipped items, triggers and delayed events.",
+    "how": "1. **Sub-task execution order**: 581 (stable IDs/authoritative location) → 582 (chunk load/unload/merge APIs with ownership checks) → 583 (global index, gateway ways, load-before-move, replace global scans) → 584 (cross-chunk ownership/transaction rules, delayed event policy).\n2. **Implementation**: Follow sub-task definitions (see table). Ensure merge/unload APIs (not load_from_dict) for chunks; use gateway ways with target_area_id/target_scope_id; movement loads destination chunk before resolving; delayed events indexed globally with safe deferred policy.\n3. **Integration**: Keep character authoritative in players block; location stored by stable area ID; editor scope requests use projection/indexes (not whole-world graph).",
+    "verify": "1. Chunk lifecycle\n   - expected: Load two adjacent chunks, move agent/item across gateway (loads remote), unload and reload both, retain exactly one authoritative location.\n   - observed: Demonstrated by tests/test_chunk_lifecycle.py (4 tests) per reconnaissance; umbrella remains todo until sub-tasks done.\n2. Save/load round-trip\n   - expected: Gateway links (target_area_id/target_scope_id) and due events preserved through to_dict()/load_from_dict().\n   - observed: Demonstrated in tests/test_chunk_lifecycle.py per reconnaissance.\n3. Scoped editor responses\n   - expected: Editor scope request never returns whole world graph; only requested scope + explicit gateway boundaries.\n   - observed: Not fully verified; global node/edge scans not yet fully replaced by index (noted in task-583 review context).\n4. Benchmark/report\n   - expected: Node/edge counts loaded for requested scope reported; bounded payload behavior.\n   - observed: Task-402 territory; not claimed complete.",
+    "acceptance": [
+      {
+        "text": "All four sub-tasks (581, 582, 583, 584) are in done.",
+        "done": false
+      },
+      {
+        "text": "Load two adjacent chunks, move agent/item across gateway, unload/reload both, retain exactly one authoritative location.",
+        "done": false
+      },
+      {
+        "text": "Save/load preserves gateway links and due events.",
+        "done": false
+      },
+      {
+        "text": "Editor scope request never returns whole world graph.",
+        "done": false
+      },
+      {
+        "text": "Bounded payload behavior; node/edge counts for requested scope are reportable.",
+        "done": false
+      }
+    ],
+    "files": [
+      "graph.py` / chunk merge/unload/load-by-chunk APIs, ownership checks",
+      "engine/movement.py` - load-before-resolve for gateway moves",
+      "Global index modules - scope index, gateway indexing, entity location indexes",
+      "Character/item location model - stable area IDs (authoritative)",
+      "Delayed event handling - global indexing and deferred policy",
+      "tests/test_chunk_lifecycle.py` - end-to-end lifecycle",
+      "Sub-tasks 581-584 files (implementation)",
+      "graph.py` / `world_graph.py` (or `engine/world_graph.py`) - merge/unload/load-by-chunk APIs, ownership checks",
+      "Global index module(s) - scope index, gateway indexing, entity location indexes",
+      "Character/item location model - move from display-name current_area to stable area IDs",
+      "tests/test_chunk_lifecycle.py` - end-to-end chunk lifecycle (referenced)"
+    ],
+    "custom": {
+      "sub_tasks": "| Sub-task | Covers |\n|---|---|\n| [task-581](../../refactor/task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items.md) | Stable area ids; one authoritative location record per character and unique item. The precondition - display-name `current_area` cannot survive duplicate names across chunks. |\n| [task-582](../../world/task-582-chunk-load-unload-and-merge-apis-on-worldgraph.md) | `WorldGraph` load / unload / merge APIs with ownership checks. `load_from_dict()` clears the graph, so it cannot be the chunk loader. |\n| [task-583](../../world/task-583-global-scope-index-gateway-ways-and-load-before-you-move.md) | The global index, gateway ways naming a remote `target_area_id` + `target_scope_id`, load-before-resolve in movement, and replacing global node/edge scans. |\n| [task-584](../../world/task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events.md) | Ownership and transaction rules for carried/equipped items, triggers and delayed events across an unload; the deferred-event policy. |\n\nOrder: 581 → 582 → 583 → 584. Each is independently reviewable, and 581 is\nworth landing on its own merits: it removes a real correctness hazard (a\nduplicate area name splitting a character's location) whether or not chunking\never happens.",
+      "requirements": "- Store graph subsets by scope/chunk plus a small global index for scope ids,\n  area ownership, character location, unique item location, boundary ways, and\n  scheduled/due work.\n- Load a destination chunk before the existing movement system resolves a way.\n- A boundary/gateway way identifies its remote `target_area_id` and\n  `target_scope_id`; it is not a dead UI shortcut.\n- Replace global node/edge scans with indexes for loaded chunks before claiming\n  large-world support.\n- Define cross-chunk ownership/transaction rules for characters, carried and\n  equipped items, triggers, and delayed events.\n- Preserve direct/fast-travel ways and route/grid ways as authored choices.",
+      "critical_constraints": "`WorldGraph.load_from_dict()` clears the current graph, so it cannot be used as\nthe chunk loader. Add explicit merge/unload APIs with ownership checks and\ntests. Similarly, the current editor fetches all graph nodes/edges and must\nuse task-397's projection endpoints once chunks exist.\n\nCharacters are authoritative in the serialized `players` block as well as\nhaving graph anchors. Chunk movement must update both consistently; a chunk\ncannot independently serialize a stale copy of a character. Before unloading,\nintroduce stable area IDs and one authoritative character/item-location rule:\nmany current systems still use display-name `current_area`, which is unsafe\nwhen separate chunks can contain duplicate human-readable names.\n\nDelayed events targeting unloaded nodes must be globally indexed and either\nload the relevant scope when due or resolve through an explicit safe deferred\npolicy. Silently dropping them is forbidden.",
+      "non_goal": "This task is not required to prove task-400. It is the first step that makes a\nmillion-node world technically credible.",
+      "aggregate_verification_2026_10_02": "The four sub-tasks are implemented and in **review** (581, 582, 583, 584); this\numbrella stays `todo` per its own rule (\"satisfied when all four sub-tasks are in\n`done`\" - that final move is the reviewers', not this lane's).\n\nWhat *is* demonstrated now, end-to-end, by `tests/test_chunk_lifecycle.py` (4):\n\n- **\"Load two adjacent chunks, move an agent across a gateway, unload and reload\n  both, retain exactly one authoritative location.\"** A `town` chunk with a\n  gateway to an `inn` chunk; `move_to_area(\"enter the inn\")` loads `inn` on\n  demand (task-583); unloading both leaves the character alive with its location\n  remembered by id (task-584); reloading restores **exactly one** `in` edge to\n  `area_inn_hall` (task-581/582).\n- **\"A save/load round-trip preserves gateway links and due events.\"**\n  `to_dict()` → `load_from_dict()` keeps `world_index.gateway(way_gate)` with\n  its `target_area_id`/`target_scope_id` and the scheduled event at tick 42.\n- **\"A gateway is not a dead UI shortcut.\"** Crossing it actually materialises\n  the remote area and moves the character.\n\nStill open for the umbrella to close: the benchmark/report half (task-402\nterritory) and the editor-scope-request half; the global node/edge **scans** are\nnot yet fully replaced by the index (noted in task-583). Those are the reasons\nthe sub-tasks are in review rather than done.",
+      "browser_ui": "Intended UI home: WorldPainter/Graph scope selector → load two adjacent chunks → inspect their gateway ways and loaded node sets → move an agent/item across the gateway → unload and reload each chunk.\n\nCurrent availability: the task is an umbrella dependent on four sub-tasks; its acceptance requires gateway movement, save/load persistence, scoped editor responses, and bounded node/edge counts. The combined chunk-persistence workflow is not claimed as complete.\n\nLive steps when available:\n1. Select two adjacent chunks and record each scope's areas, ways, items, and residents in the graph and `/api/state`.\n   - expected: the editor response contains only the requested scope and its explicit gateway boundary, not the full world graph.\n2. Move one agent and one item across the gateway, then unload and reload both chunks.\n   - expected: each entity has exactly one authoritative location after each load; gateway links remain usable across the seam.\n3. Save and reload the world with a due event scheduled on one chunk.\n   - expected: both gateway links and the due event survive the round trip and the event fires once.\n4. Compare loaded node/edge counts with the requested-scope benchmark report.\n   - expected: the browser graph and report agree on the bounded scope payload; no unrelated child scope is silently loaded.\n\nThis section is not a claim that the chunk-persistence umbrella is complete today.",
+      "plan_position_2026_10_20_umbrella_remains_sub_tasks_in_review": "**Which NEWER cards (higher number, in `done/` or `review/`) bear on this card, and what did each one actually do?**\n- Sub-tasks task-581, task-582, task-583, task-584 (review, higher numbers related to this umbrella) are implemented and in review; they cover stable IDs, chunk load/unload/merge APIs, gateway ways/load-before-move, and cross-chunk ownership rules.\n- task-439 (review), task-500 (done) referenced in context - task-500 says \"task-401 already owns chunk load/evict\" in that note context, but umbrella itself is not marked done; task-439 says \"task-401 is the real remaining dependent\".\n\n**Did that newer work CHANGE THE APPROACH of this card, or does it merely IMPLEMENT PART OF IT, or is it UNRELATED?**\n- The four sub-tasks implement parts of this umbrella; the approach (split into 581-584) is the change implemented by that split. The umbrella's aggregate requirements remain valid.\n\n**Does this card still stand as a DISTINCT piece of the overall plan, or has a newer card absorbed its scope?**\n- Remains as the umbrella. It should stay open until all four sub-tasks land in done; it has not been absorbed.\n\n**Verdict:** holds, distinct (umbrella; must remain until sub-tasks complete)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Scopes]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "task-397 through task-400.",
+      "split 2026-09-28": "into the four sub-tasks below. This file is the umbrella: the"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-401-chunk-persistence-and-gateway-ways.md"
+  }
+}

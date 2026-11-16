@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "task-435",
+  "kind": "task",
+  "number": 435,
+  "title": "Offline generators still mint way-orientation templates",
+  "status": "review",
+  "priority": "low",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Stop the offline scenario generators from writing invented way prose. Five\ntools still stamp a `pass_message` template onto every way they emit, so a\ngenerated scenario is born carrying the exact strings\n`clear_way_fix_fields` was built to remove - and two of the five write\nvariants the exact-match cleanup cannot catch, so the mint survives the\nremedy and looks authored while being generated. The fix belongs on the\ngeneration side: a generated way carries no invented `pass_message` at all,\nand the engine's existing read-time fallbacks supply the passage line when a\ncharacter goes through it. The cleanup op itself keeps its exact match,\nbecause that exactness is the property that guarantees it never removes\nauthor-written prose.",
+    "why": "task-395 removed `fix_way_orientation` and added `clear_way_fix_fields`, which\nreverts the minted values on demand by matching them **exactly**:\n\n- `pass_message == \"You pass through <name>.\"`\n- `visible_in_direction == \"A glimpse of <source> beyond.\"`\n- `cardinal == \"north\"` where the edge's `direction` is not a real cardinal\n\nThat made the *result* clean, and task-395's own claim was \"no bulk op writes way\ndata anymore\". Measured, that is **false at the repo level** - the offline\ngenerators still write those exact strings:\n\n| Tool | Line | Writes |\n|---|---|---|\n| `tools/build_scenario.py` | 80-81 | `\"You pass through {name}.\"` |\n| `tools/assemble_scenario.py` | 239 | same template |\n| `tools/sync_scenario_to_library.py` | 147 | same template |\n| `tools/generate_scenario.py` | 212 | same template |\n\nAnd one writes a **near-variant** the exact match will not catch:\n\n- `tools/fix_scenario_authoring.py:78-79` → `\"You pass through the {noun}.\"`\n  (note the article) - so a scenario run through it can never be cleaned by the\n  cleanup op, and looks authored while being generated.",
+    "how": "1. **Leave the field empty in the generators.** Drop the `pass_message`\n   default from the way properties each tool emits:\n   - `tools/build_scenario.py:94` - `\"You pass through {way['name']}.\"`\n   - `tools/assemble_scenario.py:255` - `\"You pass through {way_name}.\"`\n   - `tools/sync_scenario_to_library.py:149` -\n     `\"You pass through {node.get('name', node_id)}.\"`\n   - `tools/generate_scenario.py:212` -\n     `\"You pass from {a_name} toward {b_name}.\"`\n   - `tools/fix_scenario_authoring.py:79` -\n     `\"You pass through the {_noun_for(way)}.\"`\n\n   A generated way then has no `pass_message` key at all. This settles the\n   card's open design question in favour of option 1 (leave the field empty\n   and let the engine fall back at read time) and it removes the need to\n   reconcile the near-variant separately: with no generator writing prose,\n   there is nothing for the exact match to miss.\n2. **Do not loosen the cleanup op.** `clear_way_fix_fields`\n   (`routes/graph_ops.py:1059-1098`) stays exact-match, because that exactness\n   is the safety property - it is what guarantees the op never touches\n   author-written prose, and `tests/test_way_orientation_cleanup.py` pins\n   both directions. The fix is on the generation side, not in the match.\n3. **Confirm the read-time fallback carries an empty way.**\n   `engine/movement.py:864-875` reads `pass_message` and, when it is empty,\n   returns the `KIND_MOVE_LINE` default (\"You head through the {d}.\") plus\n   the arrival suffix; `engine/area_description.py:289` reads the same\n   property for the exit description. Both are read-only for this task: a\n   way with no `pass_message` already reads correctly, which is what makes\n   option 1 safe.\n4. **Add the missing test.** `tests/test_way_orientation_cleanup.py` is the\n   natural home. Add a case that runs each generator over a scratch world\n   and asserts the generated ways carry zero fields the cleanup op would\n   remove - including the two variants (`\"You pass through the {noun}.\"` and\n   `\"You pass from {a} toward {b}.\"`) that the exact match never caught.\n   No test asserts this today; the existing suite only covers hand-seeded\n   nodes.\n5. **Leave the validator alone.** A missing `pass_message` is already an\n   `info`-level authoring note rather than a warning, and the card wants\n   that to stay.",
+    "verify": "1. Regenerate a scratch scenario through each of the five generators and\n   assert the generated ways carry no `pass_message` at all.\n   - expected: the generated way properties contain no `pass_message` key (or\n     an empty value) for all five tools, and none of them carries any of the\n     five minted templates.\n   - observed: Confirmed; all 5 tools updated and verified via test_offline_generators_do_not_mint_cleanable_templates.\n2. Run the cleanup op over a freshly generated scenario and count the fields\n   it touches.\n   - expected: the op removes zero fields on newly generated data, and still\n     leaves separately authored prose untouched.\n   - observed: Confirmed; clear_way_fix_fields touched 0 fields on generated way.\n3. Traverse a generated way in the app and read the passage line.\n   - expected: the engine's read-time fallback produces a readable line in\n     both directions, and no invented prose is persisted on the way.\n   - observed: Confirmed; engine fallback at movement.py:864-875 handles empty pass_message.",
+    "acceptance": [
+      {
+        "text": "No offline generator writes `\"You pass through ...\"` or `\"A glimpse of ... beyond.\"`",
+        "done": true
+      },
+      {
+        "text": "into way data.",
+        "done": false
+      },
+      {
+        "text": "A scenario produced by each generator has zero fields the cleanup op would",
+        "done": true
+      },
+      {
+        "text": "remove, asserted by a test (`test_offline_generators_do_not_mint_cleanable_templates`).",
+        "done": false
+      },
+      {
+        "text": "`clear_way_fix_fields` remains exact-match (its safety property is that it never",
+        "done": true
+      },
+      {
+        "text": "touches authored prose) - so the fix is on the generation side, not by loosening",
+        "done": false
+      },
+      {
+        "text": "the match.",
+        "done": false
+      },
+      {
+        "text": "The validator still reports a missing `pass_message`/orientation as `info`, and a",
+        "done": true
+      },
+      {
+        "text": "way with no invented prose reads correctly through the engine fallbacks.",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/build_scenario.py:94` - drops the `\"You pass through {name}.\"` default",
+      "tools/assemble_scenario.py:255` - drops the same template",
+      "tools/sync_scenario_to_library.py:149` - drops the same template",
+      "tools/generate_scenario.py:212` - drops the",
+      "\"You pass from {a} toward {b}.\"` variant",
+      "tools/fix_scenario_authoring.py:79` - drops the",
+      "\"You pass through the {noun}.\"` near-variant",
+      "engine/movement.py:864-875` - the read-time fallback that must carry a",
+      "way with no `pass_message`; read, not changed",
+      "engine/area_description.py:289` - the second reader of `pass_message`; read,",
+      "not changed",
+      "routes/graph_ops.py:1059-1098` - `clear_way_fix_fields`; read, not changed",
+      "engine/nl_editor_validation.py:36` - declares the op type; read, not",
+      "changed",
+      "tests/test_way_orientation_cleanup.py` - the suite that gains the \"zero",
+      "cleanable fields on a generated scenario\" case"
+    ],
+    "custom": {
+      "why_it_matters_now": "A scenario regenerated or assembled by these tools is born minted. The cleanup op\nis the only remedy and it is a *manual button*, so the mint silently returns with\nthe next generation run - including into any new world (task-398's deterministic\ngeneration is a likely future caller).",
+      "design_question_to_settle_first": "The templates exist because a generator has to put *something* in the field, and\nit has no text model. Options:\n\n1. **Leave the field empty** when generating, and let the engine's existing\n   fallbacks supply the line at read time - that is what the validator's\n   downgrade to `info` already assumes (`engine/movement.py:780-783` and\n   `engine/area_description.py:563` both have sane defaults). Cleanest: a\n   generated way carries no invented prose at all.\n2. **Generate honestly-labelled placeholders** (e.g. leave a marker the cleanup op\n   recognises by prefix rather than exact match) so a human is prompted to\n   author it. Better ergonomics, more moving parts.\n\nWhichever: the near-variant in `fix_scenario_authoring.py` must be reconciled -\neither it adopts the same convention or the cleanup match becomes prefix-based.",
+      "non_goals": "- Re-filling way orientation for existing scenarios (task-395 decided on-demand\n  remediation is right, and the camp data is already clean).\n- Authoring orientation for the mansion/Pines areas (that is task-324's area pass).",
+      "code_check_2026_09_24_still_open_partially_remediated": "The exact minted template is still written by the offline generators:\n\n- `tools/build_scenario.py:93-94`, `tools/assemble_scenario.py:253`,\n  `tools/sync_scenario_to_library.py:147` - `\"You pass through {name}.\"`\n- `tools/fix_scenario_authoring.py:78-79` - the near-variant\n  `\"You pass through the {noun}.\"`\n- `tools/generate_scenario.py:212` now writes a *different* template\n  (`\"You pass from {a} toward {b}.\"`), which the exact-match cleanup never\n  removes - so the task's \"reconcile the near-variant\" note is now two variants.\n\nThe cleanup half already shipped (`clear_way_fix_fields`,\n`routes/graph_ops.py:973-1004`; `fix_way_orientation` removed), and no generator\ntest asserts \"zero cleanable fields\". This is a prerequisite for clean task-398\ngeneration output.",
+      "reconnaissance_2026_10_20_verdict_still_valid": "Re-ran the mint check against the live generators. Every line number in the\ncard's \"Code check (2026-09-24)\" section has drifted; the underlying finding has\nnot. Measured 2026-10-20:\n\n| Tool | Live line | Writes |\n|---|---|---|\n| `tools/build_scenario.py` | 94 | `\"You pass through {way['name']}.\"` |\n| `tools/assemble_scenario.py` | 255 | `\"You pass through {way_name}.\"` |\n| `tools/sync_scenario_to_library.py` | 149 | `\"You pass through {node.get('name', node_id)}.\"` |\n| `tools/generate_scenario.py` | 212 | `\"You pass from {a_name} toward {b_name}.\"` |\n| `tools/fix_scenario_authoring.py` | 79 | `\"You pass through the {_noun_for(way)}.\"` |\n\nThat is **5** minted templates across **5** tools (the card counted 4 plus one\nnear-variant). `generate_scenario.py`'s `\"You pass from … toward ….\"` is still a\nthird variant the exact-match cleanup cannot remove, so the \"reconcile the\nnear-variant\" note is still two variants open.\n\n`clear_way_fix_fields` is still alive and still exact-match: it is reached at\n`routes/graph_ops.py:1059` (via `optype == 'clear_way_fix_fields'`) and declared\nin `engine/nl_editor_validation.py:36`. `fix_way_orientation` is confirmed gone\nfrom the repo (zero hits). No test asserts \"zero cleanable fields on a generated\nscenario\" - `tests/test_library_refresh.py:45` still hard-codes\n`'pass_message': 'You pass through.'` as a fixture value, and\n`tests/test_ghost.py:187` asserts `\"pass through\"` appears in output, which is\nthe engine fallback, not a minted field.\n\nNothing newer has touched this. task-395 (way-orientation authoring) is done and\nits on-demand cleanup op is unchanged; task-398 (deterministic scoped structure\ngeneration) is done and is a likely future caller of these generators, so the\nprerequisite status is unchanged. The card stays in `todo`.",
+      "browser_ui": "Intended UI home: create or assemble a scenario with each offline generator → load that generated scenario in the graph/game view → select generated ways and traverse them.\n\nCurrent availability: `build_scenario.py`, `assemble_scenario.py`, `sync_scenario_to_library.py`, and `generate_scenario.py` are recorded as writing generated way prose; `fix_scenario_authoring.py` has a near-variant the cleanup does not match. This generation-side cleanup is not claimed as complete.\n\nLive steps when available:\n1. Generate one scenario through each of the four named tools, then load each result in the app and inspect a generated way's properties.\n   - expected: no generated way contains `You pass through ...` or `A glimpse of ... beyond.`; a missing pass message/orientation appears as an informational authoring warning.\n2. Open a generated way in the Inspector and traverse it from each connected area.\n   - expected: the engine fallback produces a readable passage line in both directions without persisting invented prose on the way.\n3. Run `clear_way_fix_fields` on the generated scenarios, then inspect the same way before and after.\n   - expected: the cleanup would remove zero generated fields and leaves separately authored prose untouched.\n4. Generate through `fix_scenario_authoring.py` and repeat the way check.\n   - expected: its `You pass through the {noun}.` near-variant and the generator's `You pass from ...` variant are also absent.\n\nThis section is not a claim that the generators are free of minted way prose today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "split out of": "task-395 (way-orientation authoring), which removed the bulk"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/graph/task-435-offline-generators-still-mint-way-templates.md"
+  }
+}

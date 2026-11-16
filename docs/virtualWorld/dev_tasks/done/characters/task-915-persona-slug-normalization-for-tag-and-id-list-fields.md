@@ -12,6 +12,10 @@ related: ["task-903", "bug-570"]
 **Filed:** 2026-10-31
 **Related:** task-903, bug-570
 
+<!-- deps:start -->
+**Related:** [[task-903-persona-mapping-reference-doc-10-improvement-ideas]], [[bug-570-persona-compile-media-is-prose-not-identity-id-list-fields-must-be-tag-slugs]]
+<!-- deps:end -->
+
 ## What
 
 Automatically normalize id-list inputs in the Persona tab and import pipeline to valid lower-case kebab-case/snake-case slugs (`^[a-z0-9][a-z0-9_-]*$`) rather than rejecting unnormalized typed input or letting uppercase display strings enter the tag arrays.
@@ -36,5 +40,5 @@ Id-list fields (`likes`, `dislikes`, `fears`, `interests`, `kinks`, `turn_ons`, 
 ## Verification
 
 - Completed and verified 2026-10-31.
-- Unit tests in 	ests/test_character_appearance.py and 	ests/test_character_store.py passing.
+- Unit tests in tests/test_character_appearance.py and tests/test_character_store.py passing.
 - TS build green and zero em-dashes.

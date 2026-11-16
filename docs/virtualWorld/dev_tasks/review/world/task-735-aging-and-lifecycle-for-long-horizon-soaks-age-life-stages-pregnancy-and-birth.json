@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "id": "task-735",
+  "kind": "task",
+  "number": 735,
+  "title": "Aging and lifecycle for long-horizon soaks: age, life stages, pregnancy and birth",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-08",
+  "updated": "2026-10-08",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-670",
+      "task-733",
+      "task-685",
+      "task-846",
+      "task-295",
+      "task-537"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make a 10-year soak credible: a character has an age that advances with sim time (birth tick + elapsed), passes through life stages, and can conceive, gestate and bear children, with the offspring becoming real characters. This is the clock and demographics a long-horizon simulation needs, not just two fields.",
+    "why": "Long-horizon simulation soaks required persistent life stages, chronological aging, pregnancy progression, and death.",
+    "how": "`age` only means something with a clock. The system:\n\n- **Age** - a birth tick (or an authored starting age resolved to a birth tick\n  from the world's current date), so `age = elapsed / year`. Advances with sim\n  time, not wall time.\n- **Life stages** - child / adolescent / adult / elder, gating behaviour,\n  capability and fertility. Feeds prose and prompts (task-733's `age` field).\n- **Fertility + pregnancy** - conception given willingness, fertility by stage,\n  gestation over sim time, birth, and the outcome (a child) becoming a real\n  character (spawn-character, task-295) placed at the parent's location.\n- **Death by age** - lifespan by species, so a 10-year soak actually loses people.\n\nThis is a demographics/lifecycle layer over the background simulation, not two\nfields. `pronouns` (task-733) is the prose side and is trivial by comparison.",
+    "verify": "1. Advance simulation calendar by one year\n   - expected: Character age advances and life stages transition at configured thresholds\n   - observed: Verified in tests/test_lifecycle.py",
+    "acceptance": [
+      {
+        "text": "A soak advances a character's age; life stage changes at defined thresholds.",
+        "done": true
+      },
+      {
+        "text": "(`engine/lifecycle.py`: birth_tick + elapsed sim time; child/adolescent/adult/elder; transitions emit turn events. 9 tests in `tests/test_lifecycle.py`.)",
+        "done": false
+      },
+      {
+        "text": "Fertility/willingness can result in pregnancy → gestation → birth over sim",
+        "done": false
+      },
+      {
+        "text": "time, and the child exists as a character afterwards.",
+        "done": false
+      },
+      {
+        "text": "(Split to task-846 - consent-gated system of its own, not clock work.)",
+        "done": false
+      },
+      {
+        "text": "Death by old age is possible.",
+        "done": true
+      },
+      {
+        "text": "(Annual probabilistic roll past species lifespan via `world.kill_player`; bounded to one roll per game-year.)",
+        "done": false
+      },
+      {
+        "text": "`age` and `pronouns` are available to prose/prompts.",
+        "done": true
+      },
+      {
+        "text": "(Authored age resolves to a birth tick once; `lifecycle.status()` read model served on `GET /record`; pronouns explicit-first.)",
+        "done": false
+      },
+      {
+        "text": "No additional unbounded per-character store is introduced.",
+        "done": true
+      },
+      {
+        "text": "(Three scalars: birth_tick, life_stage, last_mortality_year. Serialized in saves, stripped from scenario files.)",
+        "done": false
+      },
+      {
+        "text": "Live: run a timeskip across a life-stage threshold and observe the change.",
+        "done": true
+      },
+      {
+        "text": "(2026-10-16 live on :4444: Arix null → age 12/child via PUT,",
+        "done": false
+      },
+      {
+        "text": "date jump year 1→7 → age 18/adult in `GET /record lifecycle`;",
+        "done": false
+      },
+      {
+        "text": "reverted after (DELETE + year restore). Two fixes fell out:",
+        "done": false
+      },
+      {
+        "text": "`set_game_date` now runs `on_clock` (date jumps are time travel),",
+        "done": false
+      },
+      {
+        "text": "and DELETE clears derived clock state (prose-only is fully",
+        "done": false
+      },
+      {
+        "text": "prose-only again). Both backend-tested; live re-verify on restart.",
+        "done": false
+      },
+      {
+        "text": "Note: live Arix still carries the pre-fix birth_tick (invisible,",
+        "done": false
+      },
+      {
+        "text": "resolves on next restart + DELETE).)",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/lifecycle.py",
+      "tests/test_lifecycle.py"
+    ],
+    "custom": {
+      "grounding_measured_2026_10_07": "- A ViWo character has `size` and `species` (`player.py:280-288`) but **no `age`**\n  and **no pronoun**.\n- There is **no aging mechanic**. The only `age` in the tree is `age_effect`\n  (task-537), which is a spell effect, not lifecycle.\n- Time advances via timeskip and the soak (`docs/design/long-horizon-simulation-progress.md`,\n  task-670). So a 10-year soak currently changes nothing about who ages, who can\n  bear children, or who dies of old age.",
+      "built_2026_10_16_this_pass": "- `engine/lifecycle.py` (new): birth_tick resolution (authored age → date,\n  once), effective age (species rate, goblin 3x per race bible), stages,\n  species lifespans, annual probabilistic mortality, `on_clock` hook,\n  `status()` read model. Clock = `world.time_ticks` (the sim clock;\n  TickManager is constructed with the world in that seat).\n- Wiring: `birth_tick`/`life_stage`/`last_mortality_year` on Player,\n  serialized in saves, stripped from scenario files; `on_clock` runs\n  in `advance_clock` (turns, ticks, timeskips, rest); `advance_age`\n  effect shifts the birth tick too; `GET /record` serves `lifecycle`\n  status for prompts.\n- `tests/test_lifecycle.py`: 9 tests (resolution-once, thresholds,\n  transition events, mortality gating/yearliness, clock hook,\n  advance-age agreement, save round-trip).\n- Open design questions answered: age is runtime (birth tick on the\n  Player) with authored age resolving once; year length from the\n  calendar config (default 360d).",
+      "scale_note": "A 10-year soak with the now-permanent memory model is its own problem: memories\nare never trimmed (task-727/lived-log work), so a decade of events is a large\nper-character memory set. Aging/pregnancy must not add another unbounded store\nper character.",
+      "open_questions": "- Is `age` a definition field (authored) or runtime (birth tick + elapsed)? The\n  answer decides whether it lives on the node (task-724) or the Player.\n- Does the world have a real calendar/date, or only `time_ticks`? Aging needs a\n  year length.\n- Pregnancy, birth, and child characters are a large content surface (do children\n  get behaviours/plans?). Confirm scope before building.",
+      "browser_ui": "Intended UI home: select a character → Character Inspector/Bio for age and pronouns; after a long timeskip, reopen Mind/Bio and inspect life stage, pregnancy, birth, and any age-related death events.\n\nCurrent availability: age/life-stage transitions, fertility, gestation, birth, and old-age death are proposed for long-horizon simulation. Age and pronouns are not claimed as a complete lifecycle mechanic by this card.\n\nLive steps when available:\n1. Create a scratch character just before an authored life-stage threshold and record age, birth tick, pronouns, and current life stage in Bio and `/api/state`.\n2. Advance simulation time across the threshold using a timeskip, then reopen Bio and inspect the event stream and prompt context.\n   - expected: age advances from elapsed simulation time and the life stage changes at the documented threshold; pronouns and age are available to prose/prompt generation.\n3. Run a controlled fertility/gestation sequence across the authored duration.\n   - expected: pregnancy and birth are visible as events and the child is a real character node with a valid location and private Player state.\n4. Advance an elderly character through the old-age mortality check.\n   - expected: death can occur through the documented age rule and appears in the character's existing life/memory surfaces.\n5. Inspect saved state size across the long run.\n   - expected: lifecycle tracking uses bounded existing character state and does not create an unbounded per-character event store.\n\nThis section is not a claim that the lifecycle system is implemented today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-735-aging-and-lifecycle-for-long-horizon-soaks-age-life-stages-pregnancy-and-birth.md"
+  }
+}

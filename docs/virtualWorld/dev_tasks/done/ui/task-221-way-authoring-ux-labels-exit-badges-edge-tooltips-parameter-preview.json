@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-221",
+  "kind": "task",
+  "number": 221,
+  "title": "Way Authoring UX - Labels, Exit Badges, Edge Tooltips, Parameter Preview",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-13",
+  "updated": "2026-08-13",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Way state UI is usable but labels mislead (e.g. \"Description\" reads like room prose, not closed-door appearance). Graph connection edge tooltips are thin. Agent prompt exits block doesn't show **requires climb/jump** or clearance tags. `{param:light}` in door text is easy to forget when parameters live on the way node.\n\nLabs pain points this addresses:\n\n- Generic `clearance` tag on doors + keycard `has_tag target clearance` (correct pattern - door tagged, not card)\n- Stray tags on wrong ways (clearance on jump pit)\n- Movement verbs not visible in prompt preview",
+    "how": "TODO",
+    "verify": "- [x] `resolveWayParams` + preview block in `helpers.js`; shared badges in `way-authoring.js`\n- [x] Area exit rows show state/movement/tag/param badges (`area-view.js`)\n- [x] Graph area→way edge tooltips show command/state/movement/tags/view (`network-manager.js`)\n- [x] Room context exit lines append movement hints (`room-context.js`)\n- [x] Create-modal connection labels renamed\n- [ ] Hover area→way edge on graph → see command + state + view snippet (browser)\n- [ ] Area exit row for ladder shows 🧗 climb after `requires: climb` set (browser)\n- [ ] Door with `{param:light}` + `parameters.light=red` shows resolved preview (browser)\n- [ ] Agent Lens exits section matches badges (browser)",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/way-view.js",
+      "static/js/inspector/area-view.js",
+      "static/js/graph/network-manager.js",
+      "static/js/inspector/helpers.js` - `resolveWayParams(text, parameters)"
+    ],
+    "custom": {
+      "deliverables": "### 1. Inspector label pass\n\nApply renames from task-220 across:\n\n- `way-view.js`\n- `area-view.js` exit rows (`_renderExitItem`)\n- Create-modal connection fields (if still separate)\n\nAdd **section hints** (small grey text) explaining what feeds agent vs human `look`.\n\n### 2. Area exit row enrichment\n\nIn area inspector exit list, show badges:\n\n| Badge | Source |\n|-------|--------|\n| 🔒 locked / 🟢 open / … | way state |\n| 🧗 climb / 🦘 jump / 🐛 crawl | way `requires` |\n| 🏷 clearance, … | way tags (first 2) |\n| `{param:light}` resolved | inline preview if parameters set |\n\nClick badge → jump to way in inspector.\n\n### 3. Graph connection edge tooltips\n\nExtend `network-manager.js` edge tooltips (area→way connections):\n\n```\n🔗 Living Room → way_swinging_door\nCommand: go \"swinging door\" → Kitchen\nWay state: closed\nMovement: go (default)\nTags: -\nView when open: \"Through the door you see…\"\n```\n\nWay node tooltips already show state + requires - add **area_from / area_to** and tag list.\n\nOverlaps [[todo/graph/task-129-graph-tooltips-environment-info|task-129]] - implement connection-edge portion here; area env tooltips stay in 129.\n\n### 4. Parameter live preview\n\nWhere way description contains `{param:key}`:\n\n- Show resolved string below textarea (uses way `parameters` dict)\n- Warn if unresolved key\n\nSame helper usable in Agent Lens (task-219) and unified way editor (task-220).\n\n### 5. Tag sanity hints (optional, non-blocking)\n\nSoft ⚠ in way inspector / lens - not a validator panel:\n\n- `clearance` tag on way with `requires: jump`\n- Locked way with no tags and no visible unlock trigger (heuristic only)",
+      "related": "- [[todo/ui/task-219-agent-lens-left-panel|task-219]]\n- [[todo/ui/task-220-unified-way-editor|task-220]]\n- [[review/triggers/task-keycard-clearance-target_has_tag-unlock_way-target|keycard clearance pattern]]",
+      "browser_ui": "Intended UI home: Graph → hover an area-to-way edge; select an area → Inspector\n→ Exits; select a way → Inspector → Passage; left-panel Agent Lens → Exits.\n\nCurrent availability: The card records the labels, exit badges, edge tooltip,\nparameter resolver, and room-context hints as implemented. It still lists the\nedge-hover, ladder badge, resolved-parameter, and Agent Lens browser checks as\npending.\n\nLive steps when available:\n1. Hover the Living Room-to-swinging-door edge in Graph view.\n   - expected: the tooltip names source area, command, destination, way state,\n     movement requirement, tags, and the open-view text.\n2. In the area Inspector, set the Ladder's `requires` to `climb` and inspect\n   the Ladder exit row; in the way Inspector set description to\n   `{param:light} glow` and `parameters.light` to `warm red`.\n   - expected: the exit row shows a 🧗 climb badge, and the preview resolves\n     the phrase to “warm red glow” without hiding the raw field.\n3. Select the area in Agent Lens and expand Exits.\n   - expected: movement hints and resolved parameter text agree with the\n     Inspector and runtime room-context output.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[dev_tasks/level-design-workflow]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-221-way-authoring-ux-and-tooltips.md"
+  }
+}

@@ -1,7 +1,7 @@
-# Bug-15: Area inspector event log crashes — EventBus.getActionIcon is not a function
+# Bug-15: Area inspector event log crashes - EventBus.getActionIcon is not a function
 
-**Status:** Done — verified 2026-08-16 (browser re-check: area inspector event log renders), moved from todo.
-**Area:** UI — Area Inspector being-view event log
+**Status:** Done - verified 2026-08-16 (browser re-check: area inspector event log renders), moved from todo.
+**Area:** UI - Area Inspector being-view event log
 **Observed:** Clicking an area in the map editor to open its inspector throws:
 `area-view.js:72 Uncaught TypeError: EventBus.getActionIcon is not a function`
 
@@ -21,9 +21,9 @@ Restored the two static helpers into the `EventBus` class in
 `static/js/event-stream.js` (right after `tickToTime`), exactly matching what `d3b402ec`
 removed:
 
-- `EventBus.getActionIcon(entry)` — icon from the event `result` string (`▶️` success /
+- `EventBus.getActionIcon(entry)` - icon from the event `result` string (`▶️` success /
   `⚠️` error / `✕` death-kill).
-- `EventBus.getActionColor(entry)` — `var(--green)` / `var(--orange)` / `var(--red)`.
+- `EventBus.getActionColor(entry)` - `var(--green)` / `var(--orange)` / `var(--red)`.
 
 `EventBus.tickToTime` (also called by area-view) was unaffected.
 
@@ -36,5 +36,5 @@ removed:
 ## Prevention note
 
 DOM inspector views have no unit-test coverage, and `node --check` can't catch callers of
-undefined methods — only a lint pass with an undefined-reference rule or a browser E2E
+undefined methods - only a lint pass with an undefined-reference rule or a browser E2E
 step that opens an area of the map editor would have caught this.

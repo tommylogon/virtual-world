@@ -12,6 +12,10 @@ related: ["task-744", "task-855", "task-316", "task-457"]
 **Filed:** 2026-10-30
 **Related:** task-744, task-855, task-316, task-178, task-457
 
+<!-- deps:start -->
+**Related:** [[task-744-equipment-and-body-one-edge-truth-for-worn-gear-layered-coverage-body-marks-body-centric-ui]], [[task-855-character-focused-runtime-state-scales-by-scope-not-world-size]], [[task-316-id-backed-character-identity]], [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+<!-- deps:end -->
+
 ## What
 
 Execute the architectural transition defined in `docs/design/character-entity-refactor-plan.md` (Phase 2 / task-457) to eliminate duplicate character representations and establish `Node.properties` as the single authoritative home for authored definition:

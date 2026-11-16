@@ -26,9 +26,9 @@ Insulation should react to wet and wind. Right now a garment contributes a flat 
 
 ## Files
 
-- `engine/equipment_bonuses.py` — fold wind/wet modifiers into total insulation
-- `engine/equipment.py` — track wet state per equipped slot
-- `engine/environment_propagation.py` — wind as an area-level factor that adjusts effective_temp
+- `engine/equipment_bonuses.py` - fold wind/wet modifiers into total insulation
+- `engine/equipment.py` - track wet state per equipped slot
+- `engine/environment_propagation.py` - wind as an area-level factor that adjusts effective_temp
 
 ## What
 

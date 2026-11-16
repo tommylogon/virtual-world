@@ -87,3 +87,9 @@ This section defines intended access and live acceptance. It is not a claim that
 - `templates/commons.html`
 - `static/js/commons/commons-ui.js`
 - `tools/unit/test_inspector_modular.js`
+
+## Erratum (2026-11-12)
+
+The client domain model wrappers introduced in `static/js/types/models/` (`entities.ts`, `player.ts` declaring `AreaModel`, `ItemModel`, `PlayerModel`) have 0 real call sites across the application.
+
+VirtualWorld is fundamentally an Entity-Component / Property Graph simulation: the graph (`worldState.graph.nodes[id].properties`) is the single authoritative source of truth. Classical OOP wrapper models create a second source of truth and fight graph dynamism. Future architecture work must not build or depend on duplicate object wrappers around graph nodes; inspect and mutate graph node properties directly.

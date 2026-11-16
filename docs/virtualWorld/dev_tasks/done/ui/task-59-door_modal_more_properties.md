@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: Done — verified 2026-08-03. Full way/connection modal properties in static/js/ui/create-modal.js (way state, pass message, skill check, auto-close, see-through, tags, triggers). Key-item selector intentionally dropped (`locked_with` obsolete).
+**Status**: Done - verified 2026-08-03. Full way/connection modal properties in static/js/ui/create-modal.js (way state, pass message, skill check, auto-close, see-through, tags, triggers). Key-item selector intentionally dropped (`locked_with` obsolete).
 
 ---
 
@@ -38,12 +38,12 @@ In `main.js:openCreateModal()` (line 409-417), the connection form has:
 ### Missing Properties
 
 Compared to the full door model in the inspector:
-- **Way ID** — auto-generated, not editable
-- **Description** — no field for door description (e.g., "A heavy oak door")
-- **Way State** — limited to locked/unlocked, but ways support: open, closed, locked, hidden, blocked, broken
-- **Lock Picking DC** — Skill check DC for lockpicking
-- **Key Item** — which item unlocks this door (vs freeform text)
-- **Hidden/Secret Way** — toggle for hidden ways
+- **Way ID** - auto-generated, not editable
+- **Description** - no field for door description (e.g., "A heavy oak door")
+- **Way State** - limited to locked/unlocked, but ways support: open, closed, locked, hidden, blocked, broken
+- **Lock Picking DC** - Skill check DC for lockpicking
+- **Key Item** - which item unlocks this door (vs freeform text)
+- **Hidden/Secret Way** - toggle for hidden ways
 
 ## Proposed Change
 
@@ -63,7 +63,7 @@ Expand the connection modal with additional fields:
 ### Advanced Properties (collapsible)
 
 - Lockpicking DC (number, 5-30, only shown if locked)
-- Way properties (material, etc. — freeform tags)
+- Way properties (material, etc. - freeform tags)
 
 ### Implementation
 
@@ -82,9 +82,9 @@ Use the same collapsible sections pattern used elsewhere in the UI:
 
 ## Files
 
-- `static/js/main.js` — expand connection modal form
-- `templates/index.html` — may need additional modal HTML
-- `app.py` — ensure all new fields are passed to the backend
+- `static/js/main.js` - expand connection modal form
+- `templates/index.html` - may need additional modal HTML
+- `app.py` - ensure all new fields are passed to the backend
 
 ## How
 

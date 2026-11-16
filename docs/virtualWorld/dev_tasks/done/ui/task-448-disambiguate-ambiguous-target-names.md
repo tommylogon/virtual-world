@@ -14,8 +14,8 @@ priority: medium
 
 ## Why
 
-When a spoken name matches more than one character — two people called "Violet",
-or two sharing the nickname "Vi" — the engine must **ask**, not guess. The matcher
+When a spoken name matches more than one character - two people called "Violet",
+or two sharing the nickname "Vi" - the engine must **ask**, not guess. The matcher
 already detects this and returns candidates (`name is None, candidates=[...]`),
 but the prompt lists bare names (or internal keys), so "Violet or Violet?" is
 unanswerable.
@@ -27,8 +27,8 @@ and populated worlds reuse generic names (task-357, task-446).
 
 - When `_match_character_name` (and item/exit equivalents) reports ambiguity,
   render a **chooser** that shows, per candidate: display name **plus a
-  distinguishing detail** — description / `unknown_display_name()` / current
-  area / a visible item — using the identity key as the value.
+  distinguishing detail** - description / `unknown_display_name()` / current
+  area / a visible item - using the identity key as the value.
 - Accept the choice and resolve it to the identity key so the action targets the
   chosen character (relationships, grapple, give/take, attack all use the key).
 - Works in both the text command path and the human turn composer / inspector.
@@ -50,7 +50,7 @@ and populated worlds reuse generic names (task-357, task-446).
   stream / human turn**: `EventStream.logChoices()` renders one button per
   candidate and the click re-runs the corrected action; `agentEngine` renders it
   after a human action and the HTC interject path renders it too.
-- [x] **Never auto-picks** while the set is ambiguous — the bare name still
+- [x] **Never auto-picks** while the set is ambiguous - the bare name still
   returns `(None, candidates)`.
 - [x] Ambiguity is now also detected for `grab` and `lead` (previously `grab`
   silently fell through to item-taking, `lead` said "no one by that name").
@@ -78,7 +78,7 @@ Targeted regression (matching/actions/grapple/skills/checks): 188 passed.
 Live browser (`VW_PORT=4463`, Playwright; chooser logged then buttons clicked):
 
 ```
-CHOOSER buttons ["Violet — a woman in a green cloak", "Violet — a woman in a red dress"]
+CHOOSER buttons ["Violet - a woman in a green cloak", "Violet - a woman in a red dress"]
         titles  ["Target Violet", "Target Violet__d4e5f6"]
 click 2 -> ApiClient.action "attack key:Violet__d4e5f6"
 click 1 -> ApiClient.action "attack key:Violet"
@@ -89,12 +89,12 @@ JS units 491 passed; `npm run lint` / `npm run typecheck` clean.
 
 ## Files
 
-- `engine/matching.py` — `key:` identity tier, `character_candidate_details`.
-- `virtual_world_engine.py` — forward `character_candidate_details`.
-- `routes/action_handlers.py` — `note_ambiguity` (attack/grab/lead/intimacy),
+- `engine/matching.py` - `key:` identity tier, `character_candidate_details`.
+- `virtual_world_engine.py` - forward `character_candidate_details`.
+- `routes/action_handlers.py` - `note_ambiguity` (attack/grab/lead/intimacy),
   `choices` on the response.
-- `static/js/event-stream.js` — `logChoices`.
-- `static/js/agent-engine.js`, `static/js/agent/human-turn-composer.js` — render
+- `static/js/event-stream.js` - `logChoices`.
+- `static/js/agent-engine.js`, `static/js/agent/human-turn-composer.js` - render
   the chooser.
 - `tests/test_matching.py`, `tests/test_ambiguous_target.py`.
 
@@ -103,7 +103,7 @@ JS units 491 passed; `npm run lint` / `npm run typecheck` clean.
 Review caught that the ambiguity guard I added to `lead` was incomplete: it set
 `lead_ambiguous` and left `target_player` as `None`, then fell through to
 `elif target_player.current_area`, so `lead violet` raised `AttributeError` and
-the route returned **500 with the chooser discarded** — the exact opposite of
+the route returned **500 with the chooser discarded** - the exact opposite of
 "ask, never guess". `attack`/`grab` were guarded; `lead` was not, and my
 integration test only covered `attack`.
 

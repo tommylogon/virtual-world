@@ -16,20 +16,20 @@ Make the WorldPainter say why a scope cannot be compiled, and what to paint next
 before the author presses Generate.
 
 **Filed from a real session.** An author made a 30×20 town grid, and the painter
-offered no sequence, no per-mode guidance, and — when they pressed the button —
+offered no sequence, no per-mode guidance, and - when they pressed the button -
 a red line saying only "Generate failed". Two conditions were involved and
 neither was discoverable from the UI:
 
 - The scope had `paint_policy: "baked"` because it was made with
   **🪜 Make this a scope…**, which *promotes* areas the author had already
   written. A promoted scope is authored rather than painted, carries no paint, and
-  can never be compiled — yet nothing displayed the field, and
+  can never be compiled - yet nothing displayed the field, and
   `compile_grid`'s message ("compile it once then author by hand") is advice a
   promoted scope **cannot follow**, since it is precisely how it ended up with no
   paint.
 - The scope sat on world cell (17,3), where the parent's paint has a gap. A
   gateway needs a compiled region on that cell, so `_gateway` skipped it and
-  **no gateway was ever minted** — no error, no warning, just an unreachable
+  **no gateway was ever minted** - no error, no warning, just an unreachable
   scope.
 
 ## Acceptance

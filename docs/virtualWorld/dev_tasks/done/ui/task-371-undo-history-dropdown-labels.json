@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-371",
+  "kind": "task",
+  "number": 371,
+  "title": "undo-history-dropdown-labels",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-30",
+  "updated": "2026-08-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "what_was_built": "- `static/js/ui/undo-history.js` - undo history dropdown (📜) listing the recent\n  labeled snapshots (`before: reset`, `duplicate X`, `loaded Y`, `edited node <id>`…);\n  click a row to restore that state.\n- `routes/saveload.py` - `_push_undo_snapshot(app, label)` stores every mutation with a\n  label; `GET /api/undo/list` exposes the stack.\n- **Per-edit snapshots (same session, follow-up)**: every graph/player/build mutation now\n  pushes a labeled entry in the `after_request` hook - minor edits show up in history\n  (was: only loads/resets). `POST /api/undo {steps:N}` pops N snapshots.\n- Tests: `tests/test_undo_history.py` (+5: labeled snapshots, multi-step, redo, empty→400).",
+      "note": "Follow-up note from 2026-08-30 kept for context: the per-edit push moved OUTSIDE the\nTESTING gate so test worlds still record (autosave remains TESTING-gated). Original\naudit text: \"10-deep stack with labels; click = restore\" - stack depth is controlled by\nthe server (default keeps ~50 in memory; UI shows the newest 10)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-371-undo-history-dropdown-labels.md"
+  }
+}

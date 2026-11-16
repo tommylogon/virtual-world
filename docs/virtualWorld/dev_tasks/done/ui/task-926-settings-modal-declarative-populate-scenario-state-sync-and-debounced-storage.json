@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "task-926",
+  "kind": "task",
+  "number": 926,
+  "title": "Settings modal declarative populate, scenario state sync, and debounced storage",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-31",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-925",
+      "task-845",
+      "task-894"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Complete the Settings modal MVC refactor started in task-925:\n\n1. **Declarative Bi-directional Binding in `SettingsView.populateForm()`**:\n   - Modernize `populateForm()` to read declaratively from `CONFIG_SCHEMA` and `[data-config]` attributes across all tabs.\n   - Eliminate ~100 lines of manual `document.getElementById` and fallback defaults that drift from the model schema.\n   - Automatically format and update companion `-val` display spans for range sliders in a single helper.\n   - Add `data-config` attributes to all controls in `tab-graph` in `templates/index.html` while preserving existing `GraphNetwork.applyGraphSettings()` call assertions.\n\n2. **Scenario Flag Synchronization on Save**:\n   - Toggling scenario-scoped flags in the modal (`mature_content`, `ghost_mode`, `auto_generate_descriptions`) must synchronize to their corresponding server endpoints (`/api/settings/mature_content`, `/api/settings/ghost_mode`, `/api/settings/auto_generate_descriptions`).\n   - Prevents desync where client IndexedDB reflects a toggled state while the backend simulation and the Benchmark Lab (`templates/benchmark.html`) continue running with stale scenario values.\n\n3. **Debounced `config.save()` for Range Sliders**:\n   - Add a 150ms debounce window to `config.save()` when slider values change.\n   - Retain instant 60fps canvas updates via `GraphNetwork.applyGraphSettings()` during mouse drags while eliminating IndexedDB transaction flooding.\n\n4. **Benchmark Lab Access & Shared State**:\n   - Verify that `(window as any).CONFIG_SCHEMA` and `config` profiles remain fully accessible and functional in `templates/benchmark.html` and `static/js/benchmark/benchmark.js`.",
+    "why": "1. `task-925` introduced `CONFIG_SCHEMA` and made `readForm()` declarative, but `populateForm()` was left with 120 lines of manual DOM lookups and hardcoded fallback defaults that drift when schema values change.\n2. Scenario flags like `matureContent` were saved only to client IndexedDB, leaving `app.world.mature_content` desynchronized on the server.\n3. Continuous dragging on physics range sliders generates 60-100 async IndexedDB transactions per second, introducing unnecessary I/O friction.",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "`SettingsView.populateForm()` populates all `[data-config]` inputs declaratively from `config` / `CONFIG_SCHEMA`.",
+        "done": true
+      },
+      {
+        "text": "Companion `-val` display spans update automatically for all range sliders without manual boilerplate.",
+        "done": true
+      },
+      {
+        "text": "Saving settings synchronizes scenario flags (`mature_content`, `ghost_mode`, `auto_generate_descriptions`) to server endpoints.",
+        "done": true
+      },
+      {
+        "text": "`config.save()` is debounced during slider input to prevent transaction spamming.",
+        "done": true
+      },
+      {
+        "text": "All 14 `GraphNetwork.applyGraphSettings()` in-place calls in `templates/index.html` remain intact, passing `test_graph_tuning.js`.",
+        "done": true
+      },
+      {
+        "text": "`templates/benchmark.html` and `static/js/benchmark/benchmark.js` boot cleanly with shared config and world state.",
+        "done": true
+      },
+      {
+        "text": "Full unit test gate (`python tools/ts_convert.py check --lenient-guards`) is green.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/config.ts",
+      "static/js/ui/settings-view.ts",
+      "templates/index.html",
+      "tools/unit/test_settings_view.js"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Settings & Configuration]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "closed": "2026-10-31"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-926-settings-modal-declarative-populate-scenario-sync-and-debounced-storage.md"
+  }
+}

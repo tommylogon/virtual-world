@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "id": "task-600",
+  "kind": "task",
+  "number": 600,
+  "title": "No data authors the structured personality shape (likes/dislikes/fears), so the mechanic is wired but unreachable",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-593",
+      "bug-514",
+      "task-599",
+      "task-601"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "engine/character_appearance.py reads a structured personality object with likes, dislikes, fears, kinks and turn_offs (PERSONALITY_FIELDS at :51, consumed at :146, :364, :383, :414) and tests cover it, but every character in data/ authors personality as a plain prose string instead - all 23 Kraktooth characters, and the library characters. The mechanic is implemented, wired and tested but no content can reach it, so it is untested in the simulation. Two things to settle: author the structured shape for a representative character or two so the wired mechanic can actually occur, and decide how the prose-string and structured-object forms of the same field are meant to coexist.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "**The strict `personality` schema carries the id lists** - `fears`,",
+        "done": false
+      },
+      {
+        "text": "`likes`, `dislikes` at minimum - alongside the existing prose fields, so the",
+        "done": false
+      },
+      {
+        "text": "shape the engine reads has a slot in the response. `kinks`/`turn_offs` only",
+        "done": false
+      },
+      {
+        "text": "if decision 2 finds them a vocabulary.",
+        "done": false
+      },
+      {
+        "text": "**The prompt names the fields it wants populated** and does not mention",
+        "done": false
+      },
+      {
+        "text": "fears and motivations while providing nowhere to put them.",
+        "done": false
+      },
+      {
+        "text": "**Ids are chosen from the real vocabulary**, by the same route the interest",
+        "done": false
+      },
+      {
+        "text": "and fear generators use (`/api/tags/search`, world-in-use plus library), and",
+        "done": false
+      },
+      {
+        "text": "**validated** before they are written, so a rename cannot orphan them. Invented",
+        "done": false
+      },
+      {
+        "text": "ids are dropped, and the drop is visible.",
+        "done": false
+      },
+      {
+        "text": "**`temperature` is lowered** to roughly 0.7, with the note that the output is",
+        "done": false
+      },
+      {
+        "text": "permanent.",
+        "done": false
+      },
+      {
+        "text": "**The call receives context** - name, role, existing description - so it is",
+        "done": false
+      },
+      {
+        "text": "not inventing a stranger.",
+        "done": false
+      },
+      {
+        "text": "**The `'A mysterious character.'` silent fallback is gone.** An unusable",
+        "done": false
+      },
+      {
+        "text": "response is an error with a visible message and **no write**, because the",
+        "done": false
+      },
+      {
+        "text": "current behaviour overwrites a hand-authored character with a clichÃ© and calls",
+        "done": false
+      },
+      {
+        "text": "it success.",
+        "done": false
+      },
+      {
+        "text": "**The prose field still works.** Whatever is decided in decision 1, a",
+        "done": false
+      },
+      {
+        "text": "character with only prose keeps loading and keeps feeding prompts.",
+        "done": false
+      },
+      {
+        "text": "**At least one Kraktooth character and one library character carry the",
+        "done": false
+      },
+      {
+        "text": "structured shape in `data/`**, so the mechanic is exercised by real content",
+        "done": false
+      },
+      {
+        "text": "and not only by tests.",
+        "done": false
+      },
+      {
+        "text": "`tests/test_templates.py`-style template coverage still passes, and the",
+        "done": false
+      },
+      {
+        "text": "schema change is reflected in whatever validates strict schemas.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "observed_2026_09_30_the_generate_button_produces_exactly_the_unusable_shape": "Pressing **Generate from Personality** in the inspector does not fail and does not\nreport anything. It writes a persona, and the persona reads as generic - which is\nthe *symptom* of this task, not a separate one. Four defects, each traceable:\n\n1. **The response schema forbids the useful shape.**\n   `static/js/shared/json-schemas.js:154` declares `personality` as a **strict**\n   schema of exactly two nullable strings: `{personality, description}`. The model\n   is therefore *required* to compress an entire character into one prose blob, and\n   prose is what reads as adjective soup. There is no field for a fear, a motive or\n   a contradiction, so none can appear. The shape `character_appearance.py` reads\n   - `fears`, `likes`, `dislikes`, `kinks`, `turn_offs`, each a list of tag **ids**\n   - has no slot here at all.\n\n2. **The prompt asks for nothing usable.**\n   `static/js/inspector/agent-view.js:1338` is the whole instruction: *\"You are a\n   character designer. Generate a personality based on the prompt. Respond with\n   ONLY raw JSON: {personality: 'Detailed character personality, fears,\n   motivations, quirks.'}\"* It names fears and motivations and then provides no\n   place to put either.\n\n3. **`temperature: 0.9`** (`agent-view.js:1344`) for a first draft that is saved\n   permanently and - per the comment at :1471 - *\"feeds EVERY prompt forever and is\n   seen by other characters\"*. High temperature is \"surprise me\" on the one output\n   nobody can undo. The variety belongs in the prompt; the sampler should be cool.\n\n4. **No context, and a silent bad fallback.** The call gets one line of user\n   prompt and nothing else - no name, no role, no setting, no existing\n   description - so it reaches for the nearest stock archetype. Worse,\n   `agent-view.js:1353` is `parsed.personality || 'A mysterious character.'`: a\n   model that returns nothing usable **silently** writes a clichÃ© over the\n   character, with no error and no log. That is a failure the author cannot\n   distinguish from a good result, and it is worth fixing regardless of everything\n   else here.\n\n**The authoring path already exists and is nearly right.** `_generateInterestTags`\nand `_generateFearTags` (the same file) fetch `/api/tags/search`, show the model\nboth the world-in-use and the library vocabularies, and write ids onto\n`interest_tags` / `fear_tags`. The personality button is the odd one out: it\ninvents prose where its siblings write ids.",
+      "decisions_to_make_before_implementation": "1. **Does the prose `personality` field stay?** It feeds every prompt (task-345)\n   and is what a person reads in the inspector, so removing it is a regression.\n   *Recommendation: keep prose **and** add the id lists beside it.* The prose is\n   the voice; the lists are the mechanic, and they are read by different code. The\n   thing that must be settled is what happens when they disagree - and the honest\n   answer is that they cannot, because the ids are generated *from* the prose in the\n   same call, so the lists are a mechanical reading of the paragraph and never a\n   separate claim about the character.\n2. **Which id vocabulary?** `fears` feeds `engine.fear fear_tags`, which uses the\n   same id vocabulary as the tag library - so the ids must come from that\n   vocabulary and be validated against it, or a rename orphans every fear in the\n   world. **This is blocked on task-601**, which has not settled whether a tag id\n   may contain `:` and spaces (the data does; the declared pattern allows\n   neither). Validating ids against a charset that is about to change is building\n   the validator twice, so 601 answers this first. `kinks`/`turn_offs` may not\n   have a vocabulary at all yet; check before asking for ids.\n3. **Does this task absorb bug-514?** It does not reproduce - the button is not\n   silent when no LLM is configured; `agent-view.js:1333` toasts *\"Configure API\n   key and model in Settings first.\"* bug-514's premise was wrong; its narrower\n   case (no key) is already handled. Leave it filed unless that reading is wrong.",
+      "notes": "- This is the reason the mechanic is untestable in play: a fear needs an id, an id\n  needs a vocabulary, and every generator that would supply one currently writes\n  prose. Nothing downstream is wrong - `character_appearance.py` and `engine/fear.py`\n  are correct and covered.\n- The sibling generators (`_generateInterestTags`, `_generateFearTags`) are the\n  template for all of this and should not be rewritten in passing; the only thing\n  they lack is the personality side.\n- `bug-514` was filed from the same session on the premise that the button failed\n  silently. It did not - see decision 3.",
+      "cancellation_the_finding_is_refuted": "Cancelled 2026-09-30. `GET /api/state` shows **all 3 players in the loaded world\ncarry a fully-authored `personality`**, and it is substantial prose rather than a\nplaceholder:\n\n- **Kaelen Voss** -- \"you are Kaelen Voss, A Human who is a Disgraced Investigator\n  for the Galser Office of Justice ... Formerly a rising star in the Ulus of\n  Galser's bureaucratic machine, you were exiled after you refused to hand over a\n  'magical item of interest' ... your left leg clicks with a clockwork prosthetic\"\n- **Lyrie** -- a 79-year-old elven maiden, with Personality / Mind sections\n- **rat** -- \"A scruffy brown rat with bright, clever eyes and twitching whiskers.\"\n\n`personality` is present on 3 of 3 players, so nothing is `[]` and nothing is\nleft unpopulated. The second half of the original claim also misdescribes the\nfield: `personality` is a **string** (prose handed to the prompt), not a\nstructured shape, so \"no data authors the personality shape\" does not describe\nthe thing at all.\n\nThis is the ninth finding in the live audit retracted after checking it against\nthe running app rather than against the markup."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/characters/task-600-no-data-authors-the-structured-personality-shape-likes-dislikes-fears-so-the-mechanic-is-wired-but-unreachable.md"
+  }
+}

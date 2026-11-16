@@ -37,7 +37,7 @@ Live before, on `kraktooth_goblin_camp`:
     retreat  -> "Belne retreat."
     disengage-> "Belne disengage."
 
-All four fell through to the emote catch-all — the same gibberish task-629
+All four fell through to the emote catch-all - the same gibberish task-629
 removed everywhere else. And `retreat` only *appeared* to work because the
 **waiting** state string-matched the word "retreat" to cancel itself; on its own
 it was an emote too.
@@ -62,7 +62,7 @@ differently, the rule to change is the exit choice and nothing else.
     flee          -> Chief's Pit
 
 One implementation note: the first attempt used `world.gs`, which does not exist
-— the accessors are `world._get_current_area_id()` and
+- the accessors are `world._get_current_area_id()` and
 `world.movement.name_matcher`. It 500'd on every call until corrected.
 
 - TODO

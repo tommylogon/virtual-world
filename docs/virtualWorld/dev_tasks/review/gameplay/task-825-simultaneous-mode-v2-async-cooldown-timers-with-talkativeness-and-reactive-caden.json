@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "task-825",
+  "kind": "task",
+  "number": 825,
+  "title": "Simultaneous mode v2: async cooldown timers with talkativeness and reactive cadence",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-14",
+  "updated": "2026-10-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-824",
+      "task-854"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace batch-at-once simultaneous turns with independent per-character async cooldown timers, and implement human-like reactive conversational cadence in The Commons (startup talkativeness randomization, cold-start timer staggering, mention fast-tracking, and floor-yielding, strictly excluding simple NPCs).",
+    "why": "The original simultaneous turn mode and initial Commons pacing triggered characters on fixed identical intervals (e.g. all waking up at T=25s), producing artificial thundering herds where multiple LLMs fire simultaneously and talk over each other. Real conversations require asymmetric pacing, randomized starting cadence, reactive wake-up upon direct mentions or DMs, and floor-yielding cooldown extensions so participants do not monologue. Simple NPCs must be excluded from LLM timers.",
+    "how": "1. **Startup Talkativeness Randomization & Staggering**\n   - For all active LLM participants (`control_mode === 'llm'`) in `CommonsAgent.scheduleAll(initialStartup)`:\n     - If talkativeness is unconfigured in `config.talkativenessByCharacter`, assign a randomized baseline pace across the active range (15s to 60s).\n     - On initial startup, stagger the initial countdowns across a random phase offset (e.g. 15% to 85% of base cooldown) so characters wake up at distinct seconds instead of all at T=25s.\n     - Strictly ignore `User`, humans (`control_mode === 'human'`), and simple NPCs (`control_mode === 'npc'`).\n2. **Reactive Notification Wake-Up**\n   - In `CommonsAgent.onMessageReceived(message)`:\n     - Identify other active LLM members in the channel.\n     - If the message is a direct message or contains an @mention of their name, accelerate their pending deadline to 1.5s - 3.5s so they react quickly to direct communication.\n3. **Dynamic Burst Governor & Floor-Yielding**\n   - When a character acts and successfully posts a message in a channel, evaluate burst momentum:\n     - Characters roll a burst chance weighted by their talkativeness pace and personality traits (`impulsive`, `talkative` vs `stoic`, `reserved`).\n     - On burst hit (under safety cap of 3), fast-track next turn to 1.5s - 3.5s for rapid double-texting.\n     - On burst miss or when reaching the cap, reset burst momentum and apply standard cooldown (+8s if coming off a multi-message burst) to yield the floor.\n   - Physical state gating: sleeping or unconscious characters (`state: 'sleeping' | 'unconscious'`) are excluded from timers.\n4. **Clean Verification**\n   - Unit tests in `tools/unit/test_commons_agent.js` covering startup randomization, simple NPC exclusion, initial staggering, mention wake-up, physical state gating, and burst governor double-texting with safety caps.",
+    "verify": "1. Follow the intended live path in Browser UI and intended live verification when that surface is available.\n   - expected: Commons participants show randomized starting talkativeness and desynchronized startup execution with simple NPCs excluded.\n   - observed: Planned; to be tested upon implementation.\n2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).\n   - expected: Inspecting /commons and posting direct messages verifies reactive wake-up and floor-yielding cadence without console errors.\n   - observed: Planned; to be tested upon implementation.\n3. Run the targeted regression test for the mechanism.\n   - expected: Node unit tests in tools/unit/test_commons_agent.js and tools/unit/test_simultaneous.js pass with 0 failures; npm run build:ts compiles with 0 errors.\n   - observed: Planned; to be tested upon implementation.",
+    "acceptance": [
+      {
+        "text": "Unconfigured LLM characters receive randomized starting talkativeness on startup (excluding simple NPCs and humans).",
+        "done": false
+      },
+      {
+        "text": "Initial countdown timers are staggered on startup to eliminate the 25s thundering herd.",
+        "done": false
+      },
+      {
+        "text": "`CommonsAgent.onMessageReceived` fast-tracks recipients on direct messages and @mentions to 1.5s - 3.5s.",
+        "done": false
+      },
+      {
+        "text": "Characters that post a message evaluate burst momentum (double-texting under cap 3) or yield the floor.",
+        "done": false
+      },
+      {
+        "text": "Sleeping or unconscious characters (`state: 'sleeping' | 'unconscious'`) are excluded from timers.",
+        "done": false
+      },
+      {
+        "text": "Simple NPCs (`control_mode === 'npc'`) are never scheduled for LLM turns or randomized.",
+        "done": false
+      },
+      {
+        "text": "Unit tests pass cleanly in `tools/unit/test_commons_agent.js`.",
+        "done": false
+      },
+      {
+        "text": "TypeScript compiles with 0 errors.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/commons/commons-agent.ts",
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-ui.ts",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "custom": {
+      "integration": "This augments both `VWSimultaneous` turn infrastructure and `CommonsAgent` async timer loops:\n\n| Mode | Behavior |\n|---|---|\n| No turns | As today |\n| Sequential | Round-robin, one at a time |\n| Random | Random order per round |\n| Simultaneous (async) | Independent per-character cooldown timers with reactive cadence |",
+      "browser_ui": "Intended UI home: `/commons` participants panel and turn-mode selector -> **Simultaneous**\n\nCurrent availability: always (The Commons page is live in the app with talkativeness sliders)\n\nLive steps when available:\n1. Open http://localhost:4444/commons and observe the Participants panel\n   - expected: Active LLM characters show randomized turn pace sliders rather than all defaulting to identical 25s values; simple NPCs show 'Simple NPC: no LLM turn' note with disabled controls.\n2. Resume simulation in The Commons\n   - expected: Characters start their initial turns at staggered intervals rather than all firing simultaneously at 25 seconds.\n3. Post a message mentioning a character (e.g. '@Mira hello') or send a Direct Message\n   - expected: Target character's presence accelerates and responds promptly rather than waiting for a full initial cooldown cycle.\n4. Observe character turns after a message is sent\n   - expected: The speaker yields the floor and does not post consecutive messages before others have an opportunity to react.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness.md"
+  }
+}

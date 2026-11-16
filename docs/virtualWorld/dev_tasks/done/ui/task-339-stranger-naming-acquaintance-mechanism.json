@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "task-339",
+  "kind": "task",
+  "number": 339,
+  "title": "Stranger naming & acquaintance mechanism",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "- `Player.learn_name(other, tick)` / `Player.knows_name(other)` - the\n  name-knowledge primitives (`first_sighting` = name unknown).\n- `SpeechBroadcaster._teach_names_from_speech` - the scan, hooked into\n  `broadcast_speech` after same-area hearing entries; logs\n  \"[listener] learns that the woman is called \\\"rosa\\\".\" per actual\n  learning; idempotent.\n- `area_description.py` - recognition-only sighting; name_known gates\n  the label AND the full-description prose.\n- `scene_snapshot.py` - same contract for the panel (`knows_name`).\n- `examine_actions.py` - `_mask_character_name_for_viewer` +\n  `_wears_nametag` on both character-examine branches.\n- Panel hover foot reads \"recognized/stranger - you don't know their\n  name yet\".",
+    "verify": "`tests/test_name_learning.py` (8): self-intro teaches, third-party\nmention teaches, non-matching speech doesn't, speaker doesn't learn own\nname, idempotent + logged once, scene never reveals by re-sighting but\nflips after learning, examine masks, nametag reveals. Updated two\n`test_area_description.py` tests that pinned the old sighting-reveal.\nFull suite 1108 green.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "the_decided_design_tommy_s_call": "\"Hi, my name is X\" is the human way, and the old sighting-reveal was\nunrealistic (\"how do you SEE someone's name?\"). Decided:\n\n- **A name spoken aloud in earshot teaches that name.** One mechanism\n  covers self-intros (\"hi, I'm rosa\"), direct address (\"hey Miki, look\n  over here\"), and third-party mentions (\"order up for rosa!\") - no\n  phrase parsing, just word-boundary matching against the real names +\n  aliases of characters present in the area. Same-area only: muffled\n  speech through a wall teaches nothing. Directed whispers never teach\n  (the content was private).\n- **Sight = recognition, not knowledge.** Seeing someone registers the\n  relationship (stable masked label, closeness/entertainment anchor) but\n  the `first_sighting` flag - now semantically \"name unknown\" - is only\n  cleared by learning the name. Re-looking never reveals anything.\n- **Examine doesn't mind-read.** An unmet character's examine output\n  masks their real name and aliases (replaced by\n  `unknown_display_name()`), UNLESS they wear an item tagged `nametag`\n  → \"A name tag reads \\\"rosa\\\"\". Authors use the nametag prop for\n  intentional description-based reveals.\n- The full room description also gates the full-description prose on\n  name knowledge (descriptions may name people in text).",
+      "browser_ui": "Intended UI home: Human Turn scene → People chips / hover card; Game command\ninput or public speech action → Event Stream; observer's scene updates after\nhearing a name.\n\nCurrent availability: Name learning is implemented on same-area audible\nspeech; sight only registers recognition. Examine masks unknown names unless a\nvisible `nametag` item reveals one. The card records mechanism tests but no\nbrowser path through the integrated Human Turn panel.\n\nLive steps when available:\n1. In a scratch scenario, put Rosa, Alice, and an observer in one room; use the\n   observer's scene and hover card before Rosa speaks.\n   - expected: the observer recognizes Rosa but sees a stable masked label and\n     the hint that her name is not known.\n2. Have Rosa use public speech that contains her name, then refresh the\n   observer's People chips and inspect the Event Stream.\n   - expected: a same-room listener learns “Rosa”; the label changes to the\n     real name and one learning event is logged.\n3. Repeat with a directed whisper and with Rosa speaking from behind a closed\n   wall; also examine an unknown person wearing a `nametag` item.\n   - expected: neither private nor muffled speech teaches the name; the tag\n     explicitly reveals the written name on examine.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-339-stranger-naming-acquaintance.md"
+  }
+}

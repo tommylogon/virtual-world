@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-636",
+  "kind": "task",
+  "number": 636,
+  "title": "The two trigger representations never meet",
+  "status": "done",
+  "priority": "high",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "logic_trigger nodes and trigger arrays on items coexist with no compiler between them in the UI, so a mechanic authored one way is invisible the other way.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "interpretation_2026_10_02": "A trigger is physically stored twice: on the `triggers` **edge** and on the\ntarget `logic_trigger` **node**. The engine reads the edge first and falls back\nto the node (`engine/triggers/execution.py`). Each UI surface previously read\nonly one copy - `item-library._extractTriggersFromEdges` read the edge,\n`trigger-helpers._getNodeTriggerData` read the node - so the two representations\nhad no single compiler and could disagree invisibly.",
+      "acceptance_implemented_2026_10_02": "- [x] One graph→definition compiler, `TriggerGraph.triggerDefFromEdge(edge,\n      nodes)` / `TriggerGraph.triggersFromGraphEdges(edges, nodes, sourceId)`:\n      merges both copies with the engine's precedence (edge wins, node\n      fallback), normalises `effects[]` vs legacy `effect_type/effect_params`,\n      and normalises tree / flat-list / singular conditions.\n- [x] The item library (`_extractTriggersFromEdges`) and the inspector\n      (`_openGraphEditor`, `_getNodeTriggerData`, `buildTriggersHtml`,\n      `_applyTriggerDiff`) all derive their trigger sets from that compiler -\n      no surface reads one copy directly any more.\n- [x] The reverse direction already existed (`TriggerGraph.triggerToGraph` +\n      `compileToEngine`), so inline array → graph → array round-trips.\n- [x] `node tools/unit/run.cjs` green, incl. `test_trigger_representations.js`\n      (edge-only, node-only, edge-wins-per-field, flat→tree, singular→AND,\n      legacy effect, full OR round-trip, source/type filtering).",
+      "remaining_not_in_this_slice": "- Trigger **arrays** in library JSON are still the authoring source and the\n  graph nodes the runtime source; a linked world node is exported to the\n  library via the shared compiler on \"Save to library\", not continuously.\n- The inspector graph editor still edits the **first** trigger of a node\n  (warns and defers the rest to ✏️) - a separate UX limitation.\n- No data migration was attempted for already-divergent edge/node copies; the\n  compiler defines which one wins if they disagree."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "- Commit `9a0348f`; `node tools/unit/run.cjs` = 497 passed / 0 failed.",
+    "- Live browser (app on :4469, Playwright): on the live world graph,",
+    "`TriggerGraph.triggersFromGraphEdges` and `VW.itemLib._extractTriggersFromEdges`",
+    "returned byte-identical trigger sets for a node with a materialised trigger -",
+    "the item library and the inspector now read the same compiler."
+  ],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-636-the-two-trigger-representations-never-meet.md"
+  }
+}

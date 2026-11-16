@@ -34,7 +34,7 @@ Evidence, live on port 4461:
     -> 17 images, none matching "wrong orient"
     -> /static/images/backgrounds/eldenford.webp still present
 
-`python -m pytest tests/test_painter_backgrounds.py -q` — 1 passed.
+`python -m pytest tests/test_painter_backgrounds.py -q` - 1 passed.
 
 ## Verified (2026-10-09)
 
@@ -42,7 +42,7 @@ Re-confirmed: `static/images/backgrounds/_rejected/eldenford - wrong
 orientatoin.webp` exists (moved, not deleted) and
 `tests/test_painter_backgrounds.py` passes. Closed to `done`.
 
-## Sweep of the backgrounds directory (2026-09-30) — leaving this one to Tommy
+## Sweep of the backgrounds directory (2026-09-30) - leaving this one to Tommy
 
 `/api/world/painter/backgrounds` lists 19 files in `static/images/backgrounds`,
 nearly all ~4 MB. Beyond the known-bad entry, the sweep found:

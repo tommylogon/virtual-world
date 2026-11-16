@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-318",
+  "kind": "task",
+  "number": 318,
+  "title": "Graph Editor: Flip Edge Direction",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-08-20",
+  "updated": "2026-08-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "Added a \"Flip Edge\" option to the graph editor's edge context menu (right-click on an edge).\n\nBackend (`routes/graph.py`):\n- New `POST /api/graph/edge/flip` endpoint that swaps source/target of an edge while preserving type and properties.\n- Blocks flipping of `connection`, `triggers`, and `requires` edges (returns 400).\n\nFrontend (`static/js/`):\n- `api.js`: added `ApiClient.flipEdge(source, target, type)`.\n- `graph/context-menu.js`: added \"🔀 Flip Edge\" to edge context menu and `flip_edge` case in `ctxAction()`.\n- Frontend also blocks `connection`/`triggers`/`requires` edges before calling the API.",
+    "verify": "- JS syntax check passed for `context-menu.js`, `api.js`, `network-manager.js`\n- Python tests pass (same 3 pre-existing failures in `test_trigger_system.py`, unrelated)\n\n---",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "idea": "Add a \"Flip Edge\" button/action to the graph editor that reverses the direction of a selected edge (swaps source and target).\n\nContext:\n- Currently edges are directed (e.g. `in`, `on`, `carrying`, `equipped`, `connection`).\n- Some edge types are semantically directional and flipping them makes no sense (e.g. `connection` between areas, or `triggers`).\n- Other edges are naturally bidirectional or may be connected the wrong way around during editing.\n- A right-click context menu item on edges would be the natural place for this.",
+      "notes": "- Should only flip edges where direction is meaningful to reverse (not `connection`, `triggers`, etc.).\n- The edge type itself should probably stay the same - only source/target swap.\n- Backend endpoint needed: `POST /api/graph/edge/flip` (or reuse `edge/update` with a `flip` flag).\n- Frontend: add menu item in `static/js/graph/context-menu.js` edge context menu, wire through `api.js` and `graph-manager.js`.",
+      "related": "- `routes/graph.py` edge endpoints\n- `static/js/graph/context-menu.js`\n- `static/js/api.js`"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-318-graph-editor-flip-edge.md"
+  }
+}

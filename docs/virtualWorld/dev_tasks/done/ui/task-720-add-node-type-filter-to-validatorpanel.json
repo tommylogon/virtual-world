@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-720",
+  "kind": "task",
+  "number": 720,
+  "title": "Add node type filter to ValidatorPanel",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-06",
+  "updated": "2026-10-06",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a node type dropdown selector in the ValidatorPanel toolbar that filters validation results by node type. Backend /api/triggers/validate needs a node_type query parameter threaded through to the validator.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: a node-type select filters the panel; header shows the filtered count.\n- observed (2026-10-10 live): select options All/area/character/item/logic_trigger/way; picking item -> '270 (0 err . 53 warn) in item nodes' (from 4397); API ?node_type=item returns 270 item-only rows; reset restores 4397.",
+    "acceptance": [
+      {
+        "text": "node type select present, All default (verified).",
+        "done": true
+      },
+      {
+        "text": "selecting a type refreshes via ?node_type= and shows only matching nodes (270 item rows).",
+        "done": true
+      },
+      {
+        "text": "backend + engine filter threaded (validate_triggers node_type).",
+        "done": true
+      },
+      {
+        "text": "header shows filtered count ('in item nodes').",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "related_files": "- `static/js/validator-panel.ts`: add filter dropdown, wire refresh with `node_type`.\n- `templates/index.html`: validator section markup (toolbar).\n- `routes/triggers.py`: add `node_type` query param.\n- `virtual_world_engine.py::validate_triggers`: add type filter."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-720-add-node-type-filter-to-validatorpanel.md"
+  }
+}

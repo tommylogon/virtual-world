@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: In code — `player.py` `CONDITION_DEFINITIONS`
+**Status**: In code - `player.py` `CONDITION_DEFINITIONS`
 **Source**: Existing catalog
 
 ---
@@ -35,22 +35,22 @@ Terminal state. The character cannot act, cannot move, and drops everything they
 
 ## Behavior breakdown
 
-- **Gates**: `blocks_actions` and `blocks_movement` True; `blocks_speech` False (a corpse can't speak as a mechanical rule, but the gate is left off — verify whether that's intended).
+- **Gates**: `blocks_actions` and `blocks_movement` True; `blocks_speech` False (a corpse can't speak as a mechanical rule, but the gate is left off - verify whether that's intended).
 - **Saves/checks**: auto-fails STR/DEX/CON.
 - **Combat**: neutral mods, but `speed_mult: 0.0` locks movement entirely.
-- **Movement**: `drops_held_items: True` — held items drop on death (hooked at combat death).
+- **Movement**: `drops_held_items: True` - held items drop on death (hooked at combat death).
 - **Periodic**: none.
-- **Lifecycle**: `stack: "noop"`, `default_duration: None`, `excludes: []` — nothing is removed when death applies.
+- **Lifecycle**: `stack: "noop"`, `default_duration: None`, `excludes: []` - nothing is removed when death applies.
 - **Revival**: not handled by this condition alone; a reviver would need to remove `dead` and restore vitals (see `dead`-keyed triggers and the "ally-administered" cure pattern).
 
 ## Perception
 
-`known: True` — rendered to observers/agents as lifeless.
+`known: True` - rendered to observers/agents as lifeless.
 
 ## Integration points
 
-- `player.py:41-50` — catalog entry.
-- `engine/conditions.py` — `_PERCEPTION_SKIP` (not rendered as a symptom).
+- `player.py:41-50` - catalog entry.
+- `engine/conditions.py` - `_PERCEPTION_SKIP` (not rendered as a symptom).
 - Combat death path → applies `dead` + drops items.
 - Cures: `remove_condition dead` via ally-administered items (`target: "target"` + `on_use_on`) per `Conditions System.md` §4.
 - `ghost_mode` (dead characters can act) at the system level, not the catalog.

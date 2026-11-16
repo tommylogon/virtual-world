@@ -14,8 +14,8 @@ priority: medium
 
 Introduce a per-node `quantity` property (default 1) so one item node can
 represent *many of the same kind*. It is chiefly a presentation and data-model
-win — **"1 giant tree"** or **"3 berries"** reads correctly and is far cheaper to
-store than hundreds of nodes — but hidden underneath it is the **pooled
+win - **"1 giant tree"** or **"3 berries"** reads correctly and is far cheaper to
+store than hundreds of nodes - but hidden underneath it is the **pooled
 resource node**: a bush, plant, rock, thicket or tree that is one node described
 plural and depletes by yielding real item copies.
 
@@ -67,7 +67,7 @@ carry at all.
 Harvesting is **skill-gated**: a check (Survival / Nature / Medicine, per the
 foraging tables) sets how many units the attempt yields, bounded by the pool's
 remaining `quantity`. The spawned **unit** is a normal item copy with its own
-`uses` — that is the per-unit shelf life, and it is *item-specific*:
+`uses` - that is the per-unit shelf life, and it is *item-specific*:
 
 - `berries` unit → `uses: 1` (a handful eaten once);
 - `apple` unit → `uses: 3` (eats in three bites).
@@ -126,7 +126,7 @@ WorldPainter scope/zone work (task-495/496/500). The generator authors
   baseline unchanged).
 - An area renderer shows `1 giant tree` for `quantity: 1` and `40 berries` for a
   thicket, in **both** perception paths (`area_description.py` and
-  `scene_snapshot.py`) — one shared helper, no re-implementation (room_perception
+  `scene_snapshot.py`) - one shared helper, no re-implementation (room_perception
   charter).
 - `take 3 berries` from a pool of 40 yields three real `berries` item nodes and
   leaves the pool at 37; taking the last unit removes the pool node.
@@ -157,7 +157,7 @@ WorldPainter scope/zone work (task-495/496/500). The generator authors
 ## Non-goals
 
 - Currency / abstract counters (a separate wallet concept if ever needed).
-- Stacking carried copies — that stays task-155.
+- Stacking carried copies - that stays task-155.
 - Renaming display names on collision (ids only; project constraint).
 
 ## Steps to verify

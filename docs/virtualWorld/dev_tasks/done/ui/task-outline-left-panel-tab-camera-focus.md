@@ -14,7 +14,7 @@ Remove the 🔍 Analyze toolbar button (replaced by the world outline) and move 
 ## Requirements
 
 - Remove the `🔍 Analyze` toolbar button (was `graphEditor.analyze()` → `GraphTreeView.showAnalysis()`)
-- Remove the `📋 Outline` graph view-toggle (`setViewMode('outline')`) — the outline now lives in the left panel
+- Remove the `📋 Outline` graph view-toggle (`setViewMode('outline')`) - the outline now lives in the left panel
 - Left panel gets a tab bar: 🧍 Agents | ⚔️ Initiative | 🗺️ Outline (Agents active by default)
 - Outline tab renders the world tree into `#outline-container`:
   - Rooms sorted with env badge, collapsible children (exits, items, players)
@@ -24,7 +24,7 @@ Remove the 🔍 Analyze toolbar button (replaced by the world outline) and move 
 
 ## Audit
 
-**Status**: In Review — implemented 2026-08-09, verified with Playwright smoke test (14/14 checks)
+**Status**: In Review - implemented 2026-08-09, verified with Playwright smoke test (14/14 checks)
 **How to test**:
 - Analyze button and Outline view-toggle are gone from the graph toolbar
 - Left panel shows Agents / Initiative / Outline tabs; switching works
@@ -34,10 +34,10 @@ Remove the 🔍 Analyze toolbar button (replaced by the world outline) and move 
 
 ## Files Changed
 
-- `templates/index.html` — removed Analyze + Outline buttons; added left-panel tab bar and `#outline-container`
-- `static/css/style.css` — `.left-tabs` / `.left-tab` / `.left-tab-pane` / `.left-outline` + initiative item styles
-- `static/js/main.js` — removed `graphEditor.analyze()`
-- `static/js/graph-manager.js` — added `focusNode()` / `showNodeAndFocus()`; `_selectRoom()` now focuses; dropped dead `showAnalysis()` / `_copyTree()` / `_renderOutlineView()` / `_copyOutlineTree()` and the outline branches of `setViewMode()` / `_renderCurrentView()`
-- `static/js/graph/tree-view.js` — added `renderOutlinePanel()` (replaces content, clickable exits); removed dead `showAnalysis()` / `copyTree()` / `renderOutlineView()`
-- `static/js/ui-controller.js` — added `switchLeftTab()` / `showAgentAndFocus()`; `selectAgent()` focuses camera; `renderAll()` refreshes outline when its tab is active; initiative hint when turn-based off
-- `docs/virtualWorld/World Building/Graph System.md` — updated tree-view.js description
+- `templates/index.html` - removed Analyze + Outline buttons; added left-panel tab bar and `#outline-container`
+- `static/css/style.css` - `.left-tabs` / `.left-tab` / `.left-tab-pane` / `.left-outline` + initiative item styles
+- `static/js/main.js` - removed `graphEditor.analyze()`
+- `static/js/graph-manager.js` - added `focusNode()` / `showNodeAndFocus()`; `_selectRoom()` now focuses; dropped dead `showAnalysis()` / `_copyTree()` / `_renderOutlineView()` / `_copyOutlineTree()` and the outline branches of `setViewMode()` / `_renderCurrentView()`
+- `static/js/graph/tree-view.js` - added `renderOutlinePanel()` (replaces content, clickable exits); removed dead `showAnalysis()` / `copyTree()` / `renderOutlineView()`
+- `static/js/ui-controller.js` - added `switchLeftTab()` / `showAgentAndFocus()`; `selectAgent()` focuses camera; `renderAll()` refreshes outline when its tab is active; initiative hint when turn-based off
+- `docs/virtualWorld/World Building/Graph System.md` - updated tree-view.js description

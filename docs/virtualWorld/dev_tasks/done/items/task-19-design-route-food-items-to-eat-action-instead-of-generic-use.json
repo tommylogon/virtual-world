@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-19",
+  "kind": "task",
+  "number": 19,
+  "title": "Design: Route Food Items to \"eat\" Action Instead of Generic \"use\"",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-15 → **Implemented**: 2026-07-20",
+  "updated": "2026-07-15 → **Implemented**: 2026-07-20",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Food items (tagged with `food`, `consumable`, etc.) previously worked through the generic `use` command. Now they have dedicated `eat_item()` and `drink_item()` processing paths that fire `on_eat`/`on_drink` triggers exclusively - no `on_use` fallback.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. Start server: `python app.py`\n2. In a game with food items:\n   - `take apple` then `eat apple` → should fire `on_eat` triggers (\"Cruncy and delicious\"), NOT `on_use`\n   - `take water_pitcher` then `drink water_pitcher` → should fire `on_drink` triggers (\"the cool water quences your thirst\"), NOT `on_use`\n   - `use apple` → should fire ONLY `on_use` triggers (no food messages from `on_eat`)\n   - `eat` a non-food item → should show contextual failure (\"I pause - that's not food.\")\n3. Verify existing food items still work via `eat` command",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` - added `eat_item()`, `drink_item()`, `_consume_item()`; updated `_check_ghost_action()`, streamlined `use_item()",
+      "app.py` - routing `eat`/`drink` to new methods",
+      "static/js/item-library.js` - no changes needed (already had trigger types)"
+    ],
+    "custom": {
+      "what_was_already_done": "- `TRIGGER_TYPES` in both engine and frontend already included `on_eat` and `on_drink`\n- `ACTION_OPTIONS` and UI already included `eat` and `drink` actions\n- `world_template.json` already had food items with `on_eat`/`on_drink` trigger nodes\n- `app.py` already had `eat`/`drink` command handlers (but routed to `use_item()`)",
+      "what_changed": "### `virtual_world_engine.py`\n\n1. **Added `eat_item(item_name)`** - public method that fires only `on_eat` triggers\n2. **Added `drink_item(item_name)`** - public method that fires only `on_drink` triggers\n3. **Added `_consume_item(item_name, trigger_type, action_verb)`** - shared internal implementation for both eat/drink:\n   - Ghost check with proper action type (\"eat\"/\"drink\")\n   - Item lookup and state validation\n   - Action validation (`\"eat\" in actions or \"food\" in tags` / `\"drink\" in actions or \"drink\" in tags`)\n   - Exhaustion reset on successful consumption\n   - **No `on_use` fallback** - fires only the specified trigger type\n   - Skill check support\n   - Action costs (item-specific `action_costs.eat`/`action_costs.drink`, falling back to `ACTION_COSTS[\"use\"]`)\n   - Legacy effects (vital adjustments, environment changes)\n   - Consumable decrement (uses tracking)\n   - Turn event recording with correct verb (ate/drank)\n4. **Refactored `use_item()`** - simplified to handle only `\"use\"` action; eat/drink validation logic moved to `_consume_item()`\n5. **Updated `_check_ghost_action()`** - added `\"eat\"` and `\"drink\"` to `physical_actions` list so ghosts can't eat/drink without a Perception check\n\n### `app.py`\n\n- `eat` command now routes to `world.eat_item(item_name)` instead of `world.use_item(item_name, trigger_type=\"on_eat\")`\n- `drink` command now routes to `world.drink_item(item_name)` instead of `world.use_item(item_name, trigger_type=\"on_drink\")`\n\n### `static/js/item-library.js`\n\n- ✅ No changes needed - `on_eat` and `on_drink` were already in `TRIGGER_TYPES`",
+      "key_design_decisions": "- **Option B (proper separation)** chosen over Options A and C\n- `on_eat` and `on_drink` triggers fire exclusively - no `on_use` fallback\n- This means food items won't trigger traps that listen for `on_use`\n- Items can have BOTH `\"use\"` and `\"eat\"` in their actions list for dual functionality\n- The `_consume_item()` internal method shares ~90% of the logic with `use_item()` without duplicating code"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-19-food_items_eat_action.md"
+  }
+}

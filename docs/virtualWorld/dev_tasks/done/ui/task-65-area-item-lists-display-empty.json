@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-65",
+  "kind": "task",
+  "number": 65,
+  "title": "Area Item Lists Display Empty",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The room inspector shows \"No items\" even when the room has items. The item list in the room inspector is always empty regardless of actual room contents.",
+    "why": "In `inspector.js:_showRoom()` (line 588-592), the items rendering uses:\n\n```js\nconst items = worldState.getItemsInArea(name);\n```\n\nThis calls `worldState.getItemsInArea(name)` which presumably queries the graph for `contains` or `location` edges. If this function returns empty results despite items existing in the room, either:\n\n1. The function's graph query is wrong (checking wrong edge type, wrong direction)\n2. The world state hasn't been fetched/updated properly\n3. The items are stored differently in `worldState.areas[name].items` vs graph edges",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector.js` - fix items rendering in `_showRoom()",
+      "static/js/world-state.js` - may need to fix `getItemsInArea()` if that's the root cause",
+      "static/js/api.js` - verify that `/api/state` returns items correctly"
+    ],
+    "custom": {
+      "investigation_needed": "1. Check `worldState.getItemsInArea()` - in `world-state.js`\n2. Check `worldState.areas[name].items` - which items array is populated and when\n3. Check if graph edges of type `contains`/`location` exist between areas and items\n\nThe room data structure (`worldState.areas`) may have items listed directly (from the API response `/api/state`), while `getItemsInArea()` queries the graph. These could be out of sync.",
+      "workaround_quick_fix": "If the room data already contains items in `worldState.areas[name].items`, the inspector should use that array rather than (or in addition to) the graph query.\n\n```js\n// Try both sources\nconst itemsFromGraph = worldState.getItemsInArea(name);\nconst itemsFromRoomData = (worldState.areas[name]?.items || []).map(i => i.name || i);\n```"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-65-fix_room_item_lists_empty.md"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "id": "task-706",
+  "kind": "task",
+  "number": 706,
+  "title": "LLM output is never truncated: length stops re-request with a larger budget",
+  "status": "review",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [],
+  "created": "2026-10-05",
+  "updated": "2026-10-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-700"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A length stop from the provider re-requests with a doubled budget instead of handing a fragment to the caller.",
+    "why": "When LLM generation hits token limits, truncated JSON responses break downstream parsers. Automatically re-requesting with escalated token budget preserves valid schema outputs without losing context.",
+    "how": "`static/js/llm-client.ts`:\n\n- `_truncationReason(completion, isResponses)` - the provider's own stop signal.\n- `_nextTokenBudget(base, retry)` - doubling from `base`, clamped.\n- `_warnTruncated(label, budget, content)` - the last-resort event-stream line.\n- `_handleStream(..., info?)` - records the finish reason off the final SSE chunk.\n- In `chat()`: `effectiveMaxTokens` is what goes on the wire, escalating on a\n  length stop via `continue`.",
+    "verify": "1. Simulate length stop response\n   - expected: Adapter re-requests with doubled max_tokens budget (up to max limit)\n   - observed: Budgets escalated 300, 600, 1200, 2400 without unhandled exception\n2. Parse completed response on second attempt\n   - expected: Full JSON parsed cleanly\n   - observed: Successfully delivered valid grounded steps",
+    "acceptance": [
+      {
+        "text": "**Wired:** the runtime path reaches it. Every `llmClient.chat()` call goes",
+        "done": false
+      },
+      {
+        "text": "through the escalation - there is no opt-in and no second client to bypass it.",
+        "done": false
+      },
+      {
+        "text": "A Chat Completions `finish_reason: 'length'` and a Responses API",
+        "done": false
+      },
+      {
+        "text": "`incomplete_details.reason: 'max_output_tokens'` (or `status: 'incomplete'`)",
+        "done": false
+      },
+      {
+        "text": "are both detected. A `stop` / `tool_calls` / missing signal is not.",
+        "done": false
+      },
+      {
+        "text": "A length stop re-requests with 2x the CALLER's cap, up to 3 retries, clamped",
+        "done": false
+      },
+      {
+        "text": "at 32768.",
+        "done": false
+      },
+      {
+        "text": "An answer still truncated after the budget is **reported** to the event",
+        "done": false
+      },
+      {
+        "text": "stream with its tail, not returned silently.",
+        "done": false
+      },
+      {
+        "text": "A provider that omits the stop reason never triggers a spurious retry (the",
+        "done": false
+      },
+      {
+        "text": "old `_truncationReason` had to distinguish this from a length stop).",
+        "done": false
+      },
+      {
+        "text": "Streaming does not paint a second overlapping stream over the partial text",
+        "done": false
+      },
+      {
+        "text": "already on screen: `onChunk` is suppressed once the retry budget is in play.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_prompt.py",
+      "engine/llm_client.py",
+      "tests/test_llm_client.py"
+    ],
+    "custom": {
+      "why_this_is_the_layer": "`max_tokens` is a hard cap at the provider. Every caller was receiving a\nsilently cut-off string with no way to tell it from a complete one - the plan\nphase turned a half-written JSON plan into **no plan** and logged nothing. The\n16 `max_tokens` call sites cannot each defend themselves, and `config.maxTokens`\nplus per-call caps means there is no single number to raise. So the fix belongs\nwhere the truncation happens.",
+      "two_defects_this_change_itself_introduced_and_what_caught_them": "1. **Truncation retries shared the transport-retry counter.** Three length stops\n   exhausted `maxRetries` and the call threw \"LLM request failed after retries\"\n   having never failed at transport. Transport and truncation now have separate\n   budgets (`maxIterations = maxRetries + MAX_TRUNCATION_RETRIES`).\n   *Caught by:* the unit test that stubs four consecutive length stops.\n2. **The escalation compounded.** `_nextTokenBudget` was handed the previously\n   escalated budget instead of the caller's cap: 300 -> 600 -> 2400 -> 19200.\n   On a local model that is one very long doomed generation instead of three\n   quick ones. *Caught by:* the live browser run, not the unit tests - the\n   helper-only tests could not see how the caller used the return value. Fixed\n   to 300 -> 600 -> 1200 -> 2400, and pinned by a test that asserts the whole\n   sequence.",
+      "known_remaining_gap": "`task-700`'s `_salvageTypedSteps` is now a second line of defence rather than the\nprimary fix, and stays: it also covers a provider that returns cut-off text\n**without** a stop reason (some local proxies), which no amount of budget\nescalation can detect."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "Unit: `tools/unit/test_llm_truncation.js`, 9 tests. Gate green",
+    "(`python tools/ts_convert.py check`), 610 unit tests passing.",
+    "Live (browser, real loaded `window.llmClient`, stubbed provider), 2026-10-04:",
+    "| Scenario | Result |",
+    "|---|---|",
+    "| provider always length-stops | budgets requested `300,600,1200,2400`, no throw |",
+    "| first response cut, second complete | caller received `{\"steps\":[{\"act\":\"go\",\"target\":\"west passage\"}]}` |"
+  ],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/prompting/task-706-llm-output-is-never-truncated-length-stops-re-request-with-a-larger-budget.md"
+  }
+}

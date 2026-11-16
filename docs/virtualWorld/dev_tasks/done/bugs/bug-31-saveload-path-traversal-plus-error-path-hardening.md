@@ -5,9 +5,9 @@ area: bugs
 priority: medium
 ---
 
-# Bug 31 — Save-load filename path traversal + two adjacent hardening fixes
+# Bug 31 - Save-load filename path traversal + two adjacent hardening fixes
 
-**Status**: Done — all three items verified resolved 2026-09-22 (fixed 2026-08-30).
+**Status**: Done - all three items verified resolved 2026-09-22 (fixed 2026-08-30).
 
 Verification (2026-09-22): `_safe_save_path` (`routes/saveload.py:52`) is used by
 load (`:334`), delete (`:349`) and rename (`:299`); `handle_get_state` returns a
@@ -18,25 +18,25 @@ it; closed now.
 
 ## Found
 
-1. **Path traversal** — `routes/saveload.py:129-152`: `/api/load-game/<filename>`
+1. **Path traversal** - `routes/saveload.py:129-152`: `/api/load-game/<filename>`
    and its DELETE do `os.path.join(saves_dir, filename)` on the raw URL segment.
    `..%2F..%2F` style input escapes the saves dir (Windows backslash encoding
    too). Note `_save_game`/`_save_scenario` already sanitize correctly via
-   `routes/helpers.py:228,250` — reuse exactly that helper on the load/delete
+   `routes/helpers.py:228,250` - reuse exactly that helper on the load/delete
    side.
 
    **RESOLVED (verified 2026-08-30):** `load_game`/`delete_save_game` now route
    through `_safe_save_path` (saveload.py:42) which rejects `..`, non-`.json`,
    and basename/path mismatches; the remaining `os.path.join` sites are fed by
    `os.listdir` or `os.path.basename`, so no traversal is possible. Item closed.
-2. **Guaranteed-500 error path** — `routes/action_handlers.py:118-119`:
+2. **Guaranteed-500 error path** - `routes/action_handlers.py:118-119`:
    `handle_get_state` catches an exception inside the handler then falls off
    the end returning None → Flask raises TypeError → 500 for a handled error.
    Return a proper error JSON + status.
 
    **RESOLVED (2026-08-30):** `handle_get_state` now returns
    `jsonify({"error": str(e)}), 500` on failure.
-3. **debug=True by default** — `app.py:134`: Werkzeug debugger exposed means
+3. **debug=True by default** - `app.py:134`: Werkzeug debugger exposed means
    arbitrary code execution for anything local that can reach :4444. Gate on
    env var (`VW_DEBUG=1`) or config default False.
 
@@ -45,7 +45,7 @@ it; closed now.
    `VW_DEBUG=1`.
 
 MCP server trust model (localhost agent can delete saves etc.) is explicitly
-OUT of scope here — local-trust is a documented decision.
+OUT of scope here - local-trust is a documented decision.
 
 ## Fix sketch
 

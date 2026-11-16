@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-2",
+  "kind": "task",
+  "number": 2,
+  "title": "Crafting and Recipe System",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-197",
+      "task-831",
+      "task-155"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a crafting/recipe system where items can be combined to create new items. Example: if character has recipe for \"fried eggs\" and uses egg on pan while oven is on → spawn fried_egg. If requirements not met → descriptive error message.",
+    "why": "",
+    "how": "### Recipe Format\n\n> RETRACTED 2026-10-15: recipes are NEVER graph nodes. Graph nodes are\n> physical entities; knowledge lives ON things (item properties, character\n> knowledge, library data files). The `type: recipe` shape below is preserved\n> as history only - the canonical shape is task-831 (recipe entries in\n> `data/library/recipes/`, never nodes). `engine/crafting.py` still reads\n> nodes at the time of writing; that lookup is tech debt, not the pattern.\n\nRecipes stored ~~as a new node type or~~ as item properties:\n\n```json\n{\n  \"id\": \"recipe_fried_eggs\",\n  \"type\": \"recipe\",\n  \"name\": \"Fried Eggs\",\n  \"properties\": {\n    \"inputs\": [\n      { \"item\": \"egg\", \"count\": 1, \"consumed\": true },\n      { \"item\": \"pan\", \"state_required\": \"present\" }\n    ],\n    \"conditions\": [\n      { \"type\": \"state_equals\", \"target\": \"oven\", \"value\": \"on\" },\n      { \"type\": \"in_area\", \"room\": \"Kitchen\" }\n    ],\n    \"outputs\": [\n      { \"item\": \"fried_egg\", \"count\": 1 }\n    ],\n    \"skill_check\": { \"skill\": \"Cooking\", \"dc\": 10 }\n  }\n}\n```\n\n### Execution Flow\n\nWhen a player uses \"craft fried_eggs\" or \"make fried_eggs\":\n1. Check player knows the recipe (has recipe item, or recipe is global)\n2. Check all input items exist in inventory or room\n3. Check all conditions are met (oven is on, in kitchen)\n4. Roll skill check (if applicable)\n5. Consume input items (or mark them as used)\n6. Spawn output items in inventory or room\n7. Return success message\n8. If any check fails, return specific error message\n\n### Discovery\n\nRecipes can be:\n- **Learned**: character has a recipe item (e.g., \"cookbook\" containing recipes)\n- **Innate**: character knows it by default (e.g., based on skills/traits)\n- **Discovered**: first successful attempt teaches the recipe\n\n### UI\n\n- Recipe book / crafting menu accessible from inspector\n- List of known recipes with requirements shown\n- \"Craft\" button if requirements met, grayed out with reason if not\n- Recipe browser in library (new recipe type)\n\n### Trigger-based alternative\n\nAn alternative approach uses triggers instead of a recipe system:\n- Item \"egg\" has `on_use_on` trigger: target \"pan\", condition oven=on → spawn fried_egg\n- This works for simple cases but doesn't scale:\n  - No way to check multiple inputs\n  - No recipe discovery\n  - No skill checks\n  - No multiple outputs\n\nRecommendation: Recipe system for complex crafting, triggers for simple single-item effects.",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Crafting recipes match required ingredient items in character inventory.",
+        "done": true
+      },
+      {
+        "text": "Successful crafting consumes ingredients and materializes output item.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/crafting.py",
+      "tests/test_crafting.py"
+    ],
+    "custom": {
+      "refactoring_impact_july_2026": "Engine is modular. Create engine/crafting.py - constructor receives graph, player_manager, item_actions, game_state. Wire in virtual_world_engine.py. Recipe data in data/recipes.json. API routes in new routes/crafting.py.\n\n---",
+      "supersession_pointer_amended_2026_10_05": "The recipe-entry format (task-831) described here is the authoring basis for\nthe `todo/crafting/` card family (task-831 through task-839, 101 recipes).\nThe recipe owns transformation requirements, process duration, skill/quality\noutcomes, and produced items. Pursuit templates from task-701 may refer to a\nrecipe when they lead an actor to cook; the cooking Activity is the visible\nprocess, and the recipe owns the transformation rules. See task-699 for the\npursuit/activity/schedule distinction. The engine execution layer built for\nthis task (`craft_item`, condition leaves, `give_item` outputs) is expected\nto survive the data migration; the graph-node format should not remain a\nsecond source of truth alongside the world-recipe entry."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Items Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-2-crafting_and_recipes.md"
+  }
+}

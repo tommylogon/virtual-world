@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "task-346",
+  "kind": "task",
+  "number": 346,
+  "title": "Dedup same-tick near-verbatim memory writes",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-178",
+      "task-403"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Each duplicate permanently occupies recall slots and shows up together in\nevery future I REMEMBER block - attention tax on every subsequent turn, and\nthe character treats one insight as three distinct beats when reflecting.",
+    "how": "TODO",
+    "verify": "Unit test: post same-text observation+thought+memory entries in one tick →\none stored row survives. Play session where a discoverable fact triggers\nmultiple writes → single line in next turn's I REMEMBER.\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "Mansion session, sammy lopez decide-phase `=== I REMEMBER ===`:\n\n```\n[1 minute ago] 💭 the calling cards in the foyer name the family:\n    augustus, cordelia, and three blackwood children - likely connected to the diary...\n[1 minute ago] 👁️ jake's idea. it's always jake's idea...\n[1 minute ago] 📝 the calling cards in the foyer name the family:\n    augustus, cordelia, and three blackwood children - likely connected to the diary...\n```\n\nThe identical insight written as both a thought (💭) and a memory write (📝)\nwithin the same turn. Existing dedup (`static/js/agent/memory-manager.js`\n`_storeReactionMemory`: dedup by text + tick±1) only guards the reaction\nmemory against itself; it doesn't compare across writers (think-phase 💭,\nobserved 👁️ events surfacing as memories, react 📝).",
+      "fix_sketch": "At write time, compare candidate entry against recent entries (same tick\nwindow ±2) with normalized-text similarity (casefold, strip punctuation,\nmaybe token Jaccard > 0.8) regardless of type; skip or merge types keeping\nhighest importance. Server-side guard preferable (single choke point on\n`POST /api/players/{name}/memories/entry`) so all writers benefit.\n\nRelated context: recall ALREADY-KNOWN guard exists client-side\n(memory-context.js) - this is the WRITE-side sibling.",
+      "implementation_2026_08_27": "- **Server-side write choke point** `routes/memories.py::add_player_memory`\n  (`POST /api/players/<name>/memories/entry`). Before appending, it scans the\n  character's existing memories for a near-verbatim duplicate within a small\n  tick window (`_is_near_duplicate`, Jaccard ≥ 0.8 on normalized lowercase\n  tokens, `tick` within ±2), **regardless of type**. On a hit it merges the\n  higher importance + union of tags, keeps the longer text, and returns the\n  existing entry with `\"deduped\": true` instead of appending a third copy.\n- **Opt-out**: `force: true` in the payload bypasses dedup - used by the manual\n  memory editor / generator saves so a deliberate user save is never silently\n  collapsed.\n- **Tests**: `tests/test_memory_api.py` - `test_write_dedup_collapses_same_tick_near_verbatim`\n  (two same-tick writes → one row, highest importance kept) and\n  `test_write_dedup_allows_force_and_distinct` (force bypass + distinct text\n  stays). `tests/test_memory_api.py`, `tests/test_memory_effects.py`,\n  `tests/test_vector_store.py` all pass (43 total)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-346-memory-write-dedup-same-tick-type-varied.md"
+  }
+}

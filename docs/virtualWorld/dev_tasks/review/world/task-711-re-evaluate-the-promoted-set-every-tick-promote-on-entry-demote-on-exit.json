@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "id": "task-711",
+  "kind": "task",
+  "number": 711,
+  "title": "Re-evaluate the promoted set every tick: promote on entry, demote on exit",
+  "status": "review",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-05",
+  "updated": "2026-10-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-710",
+      "task-399",
+      "task-670"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The scope selection is a standing rule, not a one-shot click. A character who walks into the selected scope promotes; one who walks out goes back to backsim. Re-evaluated per tick against the focused scope's own areas.\n\nThis is the continuous half of the feature; task-710 owns the resolution rule and the Whole-world mode.\n\nKnown accepted cost: each demote->promote cycle writes one bounded background memory, so a character pacing across the scope boundary accrues one per crossing. The designer has accepted this for now and will revisit it only if it shows up as a problem.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Each tick compares every character's current area against the focused",
+        "done": false
+      },
+      {
+        "text": "scope's own areas and queues the transition both ways. Entry promotes,",
+        "done": false
+      },
+      {
+        "text": "exit demotes.",
+        "done": false
+      },
+      {
+        "text": "The negative case is tested explicitly: a character that **leaves** the",
+        "done": false
+      },
+      {
+        "text": "selected scope goes background. A test that only proves promotion passes",
+        "done": false
+      },
+      {
+        "text": "against the shipped code.",
+        "done": false
+      },
+      {
+        "text": "Demotion goes through `promotion.offload` so the span boundary is stamped",
+        "done": false
+      },
+      {
+        "text": "and the later promotion consolidates it. A demotion that merely sets",
+        "done": false
+      },
+      {
+        "text": "`simulation_mode` would silently produce an unsummarised span.",
+        "done": false
+      },
+      {
+        "text": "Characters holding a `soak_order` are never touched by either direction.",
+        "done": false
+      },
+      {
+        "text": "Whole-world mode short-circuits: no per-tick comparison, no demotion, no",
+        "done": false
+      },
+      {
+        "text": "queued transitions at all.",
+        "done": false
+      },
+      {
+        "text": "Transitions land through `promotion.flush()` at one tick boundary, so a",
+        "done": false
+      },
+      {
+        "text": "character cannot be promoted and demoted inside a single turn.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "the_half_that_does_not_exist_yet": "There is currently **no focus-driven demote anywhere in the engine.** Verified by\ngrepping production writers of `simulation_mode`: `promotion.py` (the bridge\nitself), `serialization.py` (load), `soak_runner.py` and `timeskip.py` (span-scoped,\nrestored on exit), `structures.py` (materialisation side effect) and `soak.py`\n(per-character orders). `activate_scope` only ever queues `\"active\"`.\n\nSo promotion exists and demotion does not. Left as-is, walking into a scope\npromotes its residents and they stay agents forever.",
+      "measurement_not_assertion": "The regression test should assert the *mode* of a named character read from\ninside the tick, the way task-670 measures `simulation_mode` from within\n`tick_turn` rather than after the restore. Asserting the end state after the\nspan passes even when the transition happened at the wrong moment.",
+      "accepted_cost": "Memory churn on the boundary is accepted by the designer for now and is recorded\nhere so it is a decision rather than an oversight. Revisit only if it becomes a\nproblem - the lever, if it does, is a minimum background span before a span is\nworth summarising, or hysteresis on the boundary.",
+      "browser_ui": "Intended UI home: select a scope in the graph editor → observe the promoted/backsim state in Agents → move a character across the scope boundary → inspect the next tick's transition and span summary.\n\nCurrent availability: task-710 defines the level-scoped selection rule and whole-world mode; this card adds re-evaluation each tick. Continuous promote-on-entry and demote-on-exit are acceptance criteria, not claimed as complete.\n\nLive steps when available:\n1. Select `goblin_camp`, then move a background character from an outside area into one of the scope's own areas. Inspect Agents and the event stream after the tick boundary.\n   - expected: the character is queued and promoted at one boundary, then appears in the active set.\n2. Move that character back outside the selected scope and inspect the next boundary.\n   - expected: the character is offloaded through the background transition, is no longer active, and its span boundary is stamped for later consolidation.\n3. Repeat with a character holding `soak_order`.\n   - expected: neither entry nor exit processing changes the soak-owned character's mode.\n4. Clear the scope into explicit whole-world mode and allow several ticks.\n   - expected: no per-tick scope transitions are queued and no character is demoted.\n5. Move a character across and back within one tick in a scratch case.\n   - expected: queued transitions flush once at the tick boundary; the character is not promoted and demoted inside one turn.\n\nThis section is not a claim that per-tick scope re-evaluation is implemented today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Building Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-711-re-evaluate-the-promoted-set-every-tick-promote-on-entry-demote-on-exit.md"
+  }
+}

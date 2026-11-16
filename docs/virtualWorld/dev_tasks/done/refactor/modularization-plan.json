@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "modularization-plan",
+  "kind": "task",
+  "number": null,
+  "title": "Modularization & Clean Code Plan (COMPLETED)",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Branch: `refactor/modularization-plan`\nAll modules extracted. 22 Python engine modules, 13 route modules, 52 JS modules.\nBugs found and fixed during this phase are documented in the extraction bug-fix commits.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "python_side": "### `virtual_world_engine.py` (~5000 lines → ~20 files)\n\nThe biggest file in the project. Currently one `VirtualWorld` class with 22+ functional areas.\n\n**Splitting approach:** Bottom-up. Pure functions first, then graph helpers, then mechanical subsystems, then game logic, then orchestration.\n\n| Phase | Module | What goes in it | Est. lines |\n|-------|--------|----------------|------------|\n| 1 | `engine/node_ids.py` | `_area_node_id()`, `_way_node_id()`, `_item_node_id()`, `_player_node_id()` | 40 |\n| 1 | `engine/skills.py` | `roll_dice()`, `skill_check()`, `_render_template()` | 120 |\n| 1 | `engine/logging_events.py` | `add_log_entry()`, `record_turn_event()`, `clear_turn_events()`, `get_turn_events_for_area()`, `broadcast_speech()`, `save_run_log()` | 120 |\n| 2 | `engine/matching.py` | `_match_exit_direction()`, `_match_item_name()`, `_find_item_node()` | 140 |\n| 2 | `engine/location.py` | `_get_current_area_id()`, `_set_player_area()`, `_is_item_reachable()` | 40 |\n| 2 | `engine/lighting.py` | `_light_to_level()`, `_get_light_int()`, `_get_ambient_light()`, `_can_see_in_dark()` | 100 |\n| 2 | `engine/legacy_compat.py` | `areas` property, `current_area` property, `player` property, `_build_exits_for_area()` | 80 |\n| 3 | `engine/action_costs.py` | `apply_action()`, `action_calculation()` | 50 |\n| 3 | `engine/player_manager.py` | `add_player()`, `set_active_player()`, `get_players_in_area()`, `get_all_dead_players()`, etc. | 50 |\n| 3 | `engine/area_manager.py` | `add_area()`, `set_current_area()`, `connect_areas()`, `_set_exit_state()` | 60 |\n| 3 | `engine/agent_memory.py` | `plan()`, `remember()`, `recall_all()`, `recall()` | 60 |\n| 3 | `engine/ghost.py` | `_check_ghost_action()`, `_spawn_body_item()` | 120 |\n| 4 | `engine/trigger_system.py` | `_execute_triggers()`, `TRIGGER_TYPES`, `EFFECT_TYPES`, condition evaluation | 380 |\n| 4 | `engine/effects.py` | ALL effect type handlers (damage, heal, spawn, set_state, teleport, etc.) | 400 |\n| 4 | `engine/toggleable_items.py` | `toggle_item_status()`, `_remove_item_effect()`, `_sync_active_effects()` | 80 |\n| 4 | `engine/equipment.py` | `equip_item()`, `unequip_item()`, `get_equipment_narrative()`, `_update_equipment_description()` | 300 |\n| 5 | `engine/combat.py` | `_player_attack()`, `_find_weapon_in_inventory()`, `is_slasher()` | 80 |\n| 5 | `engine/description.py` | `get_area_description()`, `get_area_items()`, `get_item_desc()` | 340 |\n| 5 | `engine/movement.py` | `move_to_area()`, `toggle_way()`, `toggle_way_by_id()` | 250 |\n| 5 | `engine/item_actions.py` | `take_item()`, `drop_item()`, `get_inventory()`, `eat_item()`, `drink_item()`, `use_item()`, `use_item_on()`, `_consume_item()` | 450 |\n| 5 | `engine/npc_behaviors.py` | `process_simple_npcs()`, `hunt()`, `_get_path_to_area()` | 200 |\n| 6 | `engine/tick_cycle.py` | `tick_turn()`, `tick()`, `advance_clock()`, `get_current_time()`, `rest()` | 300 |\n| 6 | `engine/narration.py` | `process_emote()`, `get_narration_context_for_area()`, `inject_narration()`, `fumble_around()` | 200 |\n| 6 | `engine/serialization.py` | `to_dict()`, `to_scenario_dict()`, `load_from_dict()`, legacy conversion | 400 |\n| - | `engine/engine.py` | Slim VirtualWorld class, imports and delegates to all modules | 100 |\n\n**Key decisions:**\n- **Approach A: Dependency Injection.** Each module receives only the shared state it needs (graph, players dict, etc.), not the entire engine.\n- **Event bus for cross-cutting concerns.** Movement → NPC behavior (player enters room triggers NPC reaction) goes through an event bus, not direct calls.\n- **No file > 500 lines** after extraction.\n\n### `app.py` (~2200 lines → `routes/` package)\n\n| Module | Routes | Est. lines |\n|--------|--------|-----------|\n| `routes/helpers.py` | - (shared utilities) | 50 |\n| `routes/pages.py` | 4 (HTML pages) | 20 |\n| `routes/action.py` | 4 (state, action, emote, turn) | 320 |\n| `routes/players.py` | 12 (player CRUD, speak, kill, import) | 350 |\n| `routes/graph.py` | 14 (nodes/edges CRUD, legacy build) | 390 |\n| `routes/saveload.py` | 8 (save game, load, reset) | 150 |\n| `routes/registry.py` | 8 (items, traits, characters registry) | 160 |\n| `routes/settings.py` | 10 (ghost, narration, time, embed) | 160 |\n| `routes/llm.py` | 4 (tools, call + disabled variants) | 60 |\n| `routes/world.py` | 5 (lore CRUD) | 60 |\n| `routes/memories.py` | 6 (memory CRUD) | 80 |\n| `routes/debug.py` | 2 | 30 |\n\n**Pattern:** Each module exports a `register_<domain>_routes(app)` function. `app.py` calls each one.\n\n---",
+      "javascript_side": "### Shared utilities (new files)\n\n| File | What | Used by |\n|------|------|---------|\n| `shared/dom-utils.js` | `escHtml()`, `escJsStr()` - unified HTML/JS escaping | All files |\n| `shared/json-utils.js` | `parseJSONFromResponse()` - code fence stripping + JSON parsing | agent-engine, item-library, main |\n| `shared/trigger-editor.js` | Overlay modal + effects/conditions grid | inspector, item-library (replaces 400 duplicated lines) |\n| `shared/ai-generator.js` | System message builder + LLM call + form population | item-library, main (replaces 200 duplicated lines) |\n\n### `inspector.js` breakdown (~3500 lines → 11 files)\n\n| File | Responsibility |\n|------|---------------|\n| `inspector/index.js` | Thin router (showNode/showAgent → dispatches to views) |\n| `inspector/agent-view.js` | Stats, skills, vitals, bio, personality, export/import |\n| `inspector/room-view.js` | Area description, environment, exits, room event log |\n| `inspector/item-view.js` | Item metadata, actions grid, properties, tags |\n| `inspector/door-view.js` | Way state, descriptions, cardinals, auto-close |\n| `inspector/paperdoll-view.js` | Equipment grid, stacking popup, equip picker |\n| `inspector/inventory-view.js` | Carried items grid, add-item picker |\n| `inspector/behaviors-view.js` | NPC behavior editor |\n| `inspector/memory-view.js` | Memory CRUD |\n| `inspector/lore-view.js` | World lore editor |\n| `inspector/helpers.js` | Shared HTML builders, gravity control, tag helpers |\n\n### `agent-engine.js` breakdown (~1250 lines → 5 files)\n\n| File | Responsibility |\n|------|---------------|\n| `agent/engine.js` | Orchestrator: step(), start/stop, turn queue |\n| `agent/prompt-builder.js` | ALL `_build*Context()` and `_build*Prompt()` methods (~600 lines) |\n| `agent/response-parser.js` | `_parseObservation()`, `_parseReaction()`, etc. + shared JSON extraction |\n| `agent/plan-manager.js` | `generatePlan()`, plan state tracking |\n| `agent/agent-memory.js` | `reflect()`, entity index, store memory |\n\n### `graph-manager.js` breakdown (~1205 lines → 5 files)\n\n| File | Responsibility |\n|------|---------------|\n| `graph/manager.js` | vis.js network lifecycle, init, load, click handlers |\n| `graph/context-menu.js` | Right-click menu HTML + action dispatch |\n| `graph/layout-engine.js` | BFS cardinal layout algorithm (shared with map view) |\n| `graph/map-view.js` | SVG map rendering |\n| `graph/tree-view.js` | Outline view + world tree + clipboard |\n\n### `main.js` cleanup (~1654 lines)\n\n| Change | Impact |\n|--------|--------|\n| Remove duplicate `generateWithAI` → use shared `ai-generator.js` | -200 lines |\n| Move create modal forms to `ui/create-modal.js` | -220 lines |\n| Move legacy global wrappers to event delegation | -500 lines |\n| Move settings UI to `ui-controller.js` | -150 lines |\n| Keep bootstrap/init in `main.js` | ~120 lines final |\n\n---",
+      "variable_renaming_all_files": "The following cryptic names appear across the codebase and will be renamed:\n\n| Old | New | Files affected |\n|-----|-----|---------------|\n| `p` (player) | `player` | engine.py (200+), app.py, agent-engine.js |\n| `n` (node) | `node` | engine.py (200+), inspector.js, graph-manager.js |\n| `e` (edge/event) | `edge` or `event` | engine.py (100+), app.py |\n| `d` (direction) | `direction` | engine.py (50+) |\n| `c` (condition) | `condition` | engine.py (30+) |\n| `k` (key) | `key` | engine.py (20+) |\n| `v` (value) | `value` | engine.py (30+) |\n| `o` (output) | `output` | engine.py (50+) |\n| `tn` | `target_node` | engine.py |\n| `tp` | `trigger_properties` | engine.py |\n| `rn` | `area_node` | engine.py |\n| `ep` | `effect_params` | engine.py |\n| `gs` | `grid_slot` | inspector.js |\n| `esc` (function) | `escHtml` or `escJsStr` | All JS files |\n| `escName` | `escaped_name` | inspector.js |\n| `escId` | `escaped_id` | inspector.js |\n\n**One-time pass:** Rename only when modifying a file for another reason (boy-scout rule from AGENTS.md).\n\n---",
+      "package_suggestions": "### None required for Python.\n\nThe modularization is pure file-splitting with imports. No new dependencies. The existing `graph.py`, `player.py`, `room.py`, `item.py` already follow a clean data-model separation.\n\n### None required for JavaScript.\n\nThe existing architecture (ES6 modules via `<script>` tags, no bundler) works fine for this scale. The files are small enough individually that HTTP/1.1 connection overhead isn't a concern. A build step (Webpack/Vite) would add complexity without solving any real problem.\n\n**What would help (already loaded via CDN):**\n- Tippy.js (tooltips) - ✅ already loaded\n- Notyf (toasts) - ✅ already loaded  \n- Choices.js (multi-select) - ✅ already loaded\n\n**What I'd avoid:**\n- React/Vue/Svelte - would require a full rewrite of the HTML-in-JS pattern\n- TypeScript - no build step, adds compilation complexity. JSDoc comments could provide typing without a compiler.\n- Webpack/Vite - not needed at this scale, adds a bundler requirement"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "current status": "100/104 tests pass (4 remaining are backend server restart needed for trigger_system routing fixes)."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/modularization-plan.md"
+  }
+}

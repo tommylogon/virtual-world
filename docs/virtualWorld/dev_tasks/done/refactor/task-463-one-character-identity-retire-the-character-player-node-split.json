@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "id": "task-463",
+  "kind": "task",
+  "number": 463,
+  "title": "One character identity - retire the character_/player_ node split",
+  "status": "done",
+  "priority": "high",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-408",
+      "task-316",
+      "task-446",
+      "task-457",
+      "task-439"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "A character has exactly one graph node. Today the offline generator authors character_<slug> (description + in/carrying edges) while the runtime anchors player_<Name> (x/y + at/equipped/grappled edges) - the kraktooth scenario has 46 character nodes for 23 players, with a compatibility shim at engine/area_description.py:378. Pick one canonical node id (id-derived per task-316/446, unique names keeping the legacy derived id), merge authored nodes/edges into it at load, add a migration tool for existing scenarios/saves, and change tools/assemble_scenario.py + build_scenario.py + generate_scenario.py so the duplication cannot recur.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A character has exactly one graph node. A load-time normalizer collapses",
+        "done": true
+      },
+      {
+        "text": "the authored `character_<slug>` node into the runtime `player_<Name>`",
+        "done": false
+      },
+      {
+        "text": "anchor: `engine/character_identity.py:collapse_character_identity`,",
+        "done": false
+      },
+      {
+        "text": "called from `engine/serialization.py:load_from_dict`.",
+        "done": false
+      },
+      {
+        "text": "Retired ids stay resolvable: `WorldGraph.register_alias` /",
+        "done": true
+      },
+      {
+        "text": "`_id_aliases`, so `graph.get_node(\"character_arix\")` returns the",
+        "done": false
+      },
+      {
+        "text": "canonical node and authored references do not dangle.",
+        "done": false
+      },
+      {
+        "text": "`character_<slug>` is an alias in the graph's id index; edges of every",
+        "done": true
+      },
+      {
+        "text": "type are rewritten onto the canonical node and duplicate location edges",
+        "done": false
+      },
+      {
+        "text": "deduped.",
+        "done": false
+      },
+      {
+        "text": "The `engine/area_description.py` `character_`/`player_` shim is gone;",
+        "done": true
+      },
+      {
+        "text": "the \"knows this character\" check resolves the canonical anchor id",
+        "done": false
+      },
+      {
+        "text": "(case-insensitively). The frontend `known` checks match it too.",
+        "done": false
+      },
+      {
+        "text": "Authored `known` lists naming a retired id are rewritten at load.",
+        "done": true
+      },
+      {
+        "text": "Offline migration tool: `tools/migrate_character_identity.py`",
+        "done": true
+      },
+      {
+        "text": "(dry-run by default, `--write`, idempotent).",
+        "done": false
+      },
+      {
+        "text": "Generators emit the canonical node only: `tools/build_scenario.py`",
+        "done": true
+      },
+      {
+        "text": "(`canonicalize_character_ids`) and `tools/assemble_scenario.py` (collapses",
+        "done": false
+      },
+      {
+        "text": "a dual-identity seed).",
+        "done": false
+      },
+      {
+        "text": "Tests: kraktooth loads as 23 character nodes (not 46), no `character_*`",
+        "done": true
+      },
+      {
+        "text": "orphans, location/possession resolve, and a save round-trips",
+        "done": false
+      },
+      {
+        "text": "(`tests/test_character_identity.py`, 9 tests).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implementation_notes": "- Canonical id stays `player_<Name>` for a unique display name (no save churn);\n  duplicates keep the task-446 `__<uid6>` suffix. The normalizer mirrors\n  `PlayerManager.reindex` (`engine/character_identity.anchor_node_id`).\n- The normalizer is pure data (no graph/Flask), so the loader and the offline\n  tool share one definition. It works on shallow copies so a live\n  `to_dict()` payload is never mutated through its shared property references.\n- Migration is not run on the tracked kraktooth scenario (that data cleanup is\n  task-408); the loader collapses it at load, and the next save writes the\n  single-identity form."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-463-one-character-identity-retire-the-character-player-node-split.md"
+  }
+}

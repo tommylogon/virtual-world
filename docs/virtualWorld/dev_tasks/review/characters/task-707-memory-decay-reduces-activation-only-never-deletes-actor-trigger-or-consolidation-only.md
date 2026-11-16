@@ -180,8 +180,8 @@ Deleting memories when activation falls below a threshold destroys narrative con
 - engine/player.py
 - engine/tick_manager.py
 - static/js/inspector/mind-view.ts
-- 	ests/test_memory_decay.py
-- 	ests/test_memory_retention.py
+- tests/test_memory_decay.py
+- tests/test_memory_retention.py
 
 ## Browser UI and intended live verification
 

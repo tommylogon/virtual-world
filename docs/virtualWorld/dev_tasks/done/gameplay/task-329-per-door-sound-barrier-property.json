@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-329",
+  "kind": "task",
+  "number": 329,
+  "title": "Per-Door Sound Barrier Property",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Ways get an optional `sound_barrier` float property. When set, it replaces the\nstate-derived barrier while the door is in a solid state (`closed`, `blocked`,\n`locked`). Unset → existing behavior unchanged (per-state Engine Config defaults,\n`sound.way_closed`=1 etc.). Open (0.5), hidden (2), and see_through (0.75) paths\nare untouched; see_through still wins over state lookup as today (sound.py:83).\n\nSingle value per door - no separate closed/locked/blocked overrides on the node.\nFalls back to the task-304 config chain so Engine Config remains the global tuner.",
+    "why": "Hidden/solid doors currently block even shouts (barrier 2 ≥ shout penetration 2).\nDesigners need doors with different acoustic mass (vault door vs thin wooden door)\nwithout editing global config per scenario.",
+    "how": "1. `engine/sound.py` - `get_way_barrier()`: read `properties.sound_barrier`\n   (float-coerced) before the see_through/state lookup, only for solid states.\n   Absent/invalid → exact current behavior (zero regression when unused).\n2. `static/js/inspector/way-view.js` - number input in the passage settings block\n   (next to Max size / Edge Length): blank = default, saves float or clears.\n3. `routes/library_routes.py` - add `sound_barrier` to way library prop maps\n   (full-refresh dict + section map) so library round-trips preserve it.\n4. Way-view save/refresh-from-library payloads + diff sections: include the key.\n5. AI improve prompt PROPERTIES doc line: mention the new optional key.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "verification_plan": "- Unit test(s) in the existing sound test file: custom value honored for\n  closed/blocked/locked; ignored for open/hidden; absent property → unchanged\n  defaults; see_through precedence preserved.\n- `pytest` sound suite + guard suites.\n- Live: way inspector field renders, saves via api.updateNode, propagation\n  reflects the custom value."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-329-per-door-sound-barrier.md"
+  }
+}

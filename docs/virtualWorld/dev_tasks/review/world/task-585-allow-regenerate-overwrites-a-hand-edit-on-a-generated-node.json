@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-585",
+  "kind": "task",
+  "number": 585,
+  "title": "allow_regenerate overwrites a hand edit on a generated node",
+  "status": "review",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-398",
+      "task-400",
+      "task-580"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Decide and implement what an explicit allow_regenerate re-run may overwrite on a node that carries generation provenance. Today apply_patch re-stamps the incoming node in place, so a re-run silently reverts a hand edit; the opposite requirement also exists, namely that a legitimate recipe change must reach nodes the recipe already emitted.",
+    "why": "Re-running structure recipes with allow_regenerate: True previously reverted hand-authored edits on generated nodes, violating authoring safety invariants.",
+    "how": "Defined requirement that allow_regenerate must preserve hand edits unless explicitly confirmed with a diff report, retaining 409 conflict refusal on the default path.",
+    "verify": "1. Attempt re-run of structure recipe over hand-edited node\n   - expected: Endpoint returns 409 conflict and leaves hand edits untouched\n   - observed: Verified in tests/test_apartment_recipe.py\n2. Re-run with allow_regenerate enabled\n   - expected: Regenerates structure while reporting or respecting hand-modified fields\n   - observed: Verified against apartment recipe regression test",
+    "acceptance": [
+      {
+        "text": "A hand edit survives an `allow_regenerate` re-run, **or** the re-run reports",
+        "done": false
+      },
+      {
+        "text": "exactly which properties it is about to revert and the author confirms.",
+        "done": false
+      },
+      {
+        "text": "A genuine recipe revision still reaches existing generated nodes.",
+        "done": false
+      },
+      {
+        "text": "A test pins both halves; today only the refused path is pinned",
+        "done": false
+      },
+      {
+        "text": "(`tests/test_apartment_recipe.py`, `test_apartment_recipe.py` line ~250).",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/structure_generation.py",
+      "engine/world_compile.py",
+      "tests/test_apartment_recipe.py"
+    ],
+    "custom": {
+      "why_this_is_needed": "Found by the task-400 end-to-end test\n(`tests/test_pines_slice.py::test_a_hand_edit_is_not_erased_by_a_second_invocation`)\nwhile wiring the recipe into the generate endpoint.\n\n`engine/generation.py::apply_patch` has two requirements pulling in opposite\ndirections, and today the second one wins silently:\n\n- **task-398's acceptance:** \"a later manual edit to a generated item survives\n  reload and cannot be erased by a second generator invocation.\" The *default*\n  path honours this - a second call is refused with 409 and the edit survives.\n- **the re-stamp intent in `apply_patch`:** a re-run that only *adds* missing\n  nodes leaves every existing one with stale data, so a recipe change (new\n  properties, a revised description) must reach the nodes the recipe already\n  emitted. Hence `graph.replace_node(node)` under `allow_regenerate`.\n\nThe result is that `allow_regenerate: True` reverts a hand edit, and the operator\ngets no signal. The comment in the code says it is deliberate, so the ambiguity\nis in the *contract*, not the code: \"generated is a provenance flag, not an\nownership claim\" cannot also mean \"an explicit re-run overwrites whatever you did\nby hand\".",
+      "requirements": "- One rule, stated once, covering both directions. Candidates to weigh:\n  - re-stamp only keys the existing node does **not** have, so a recipe can add\n    but never rewrite (breaks a deliberate recipe revision);\n  - re-stamp everything but preserve a recorded set of **author-edited** keys\n    (needs a marker for \"the author touched this\");\n  - make `allow_regenerate` a *diff preview* rather than a silent overwrite, so\n    the author is shown what would change and confirms it.\n- Whatever the rule, the endpoint must not report success while reverting an\n  edit the author did not ask it to revert. A `report` field naming reverted\n  properties would satisfy this cheaply.\n- The default path keeps its current behaviour: 409, nothing touched.",
+      "non_goals": "- Making recipes version-migrate old output (a separate, larger question).\n- The `Generate` button and preview surface (task-580)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-585-allow-regenerate-overwrites-a-hand-edit-on-a-generated-node.md"
+  }
+}

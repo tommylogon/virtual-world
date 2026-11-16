@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-634",
+  "kind": "task",
+  "number": 634,
+  "title": "Vital decay of ~0.0034/turn makes hunger a permanent alarm",
+  "status": "cancelled",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "0 to 100 takes ~26,500 turns (about 2,700 in-game days), yet the engine shouts urgency at 90. Hunger can only be relieved by eating, so every character is permanently 'very hungry' from tick one. The vital modal compounds it by labelling the quantity 'decay' and 'TIME TO EMPTY' when hunger fills.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "cancellation": "Cancelled 2026-09-30. The rate is **deliberate and documented**, and every\ndocumented figure matches the value. `vital_rates.py` lines 29-32:\n\n    From a FULL meter: Hunger reaches the starvation edge at ~3 weeks,\n    Thirst the dehydration edge at ~3 days, Energy empties over a ~16h\n    waking day. Social/Hygiene/Entertainment run on a ~1-2 day cycle;\n    Sanity is deliberately slow (~14 days) and mostly condition-driven.\n\nChecked against 100/rate in in-game minutes:\n\n    Hunger  100/0.0034 = 29,412 min = 20.4 days   (documented ~3 weeks)\n    Thirst  100/0.0250 =  4,000 min =  2.8 days   (documented ~3 days)\n    Energy  100/0.1040 =    961 min = 16.0 hours  (documented ~16h)\n    Sanity  100/0.0050 = 20,000 min = 13.9 days   (documented ~14 days)\n\nAll four match. The original finding read a long timescale as an accident\nwithout reading the source of truth, and `vital_rates.BASELINE_DECAY` is\ndeliberately the single source (a migration script, `migrate_decay_rates.py`,\nand a guard test, `test_decay_rate_bake.py`, both exist to keep scenarios\nbaked to it).\n\nThe genuine residue is a copy observation, not a defect: the tier messages in\n`tick_manager.get_need_message` are rate-agnostic, so a 3-week hunger drive and\na 16-hour energy draw are announced in identical urgency language. That belongs\nwith the audit's notes, not the backlog."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/gameplay/task-634-vital-decay-of-0-0034-turn-makes-hunger-a-permanent-alarm.md"
+  }
+}

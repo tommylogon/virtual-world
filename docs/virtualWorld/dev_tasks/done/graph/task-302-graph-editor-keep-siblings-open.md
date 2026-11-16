@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-19
 **Priority**: Medium
-**Status**: In Review — implemented 2026-08-20
+**Status**: In Review - implemented 2026-08-20
 
 ## How
 

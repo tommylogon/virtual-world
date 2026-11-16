@@ -7,7 +7,7 @@ priority: medium
 
 # Task-239: Browser State Change Fires State-Change Triggers?
 
-**Status**: Resolved 2026-08-30 — decision: direct editor state edits stay a cheat/direct-edit path and do NOT fire triggers (avoid cascades); the engine state-change path (set_state effect, movement toggles) remains the trigger-firing path. No code change.
+**Status**: Resolved 2026-08-30 - decision: direct editor state edits stay a cheat/direct-edit path and do NOT fire triggers (avoid cascades); the engine state-change path (set_state effect, movement toggles) remains the trigger-firing path. No code change.
 **Source:** `dev_tasks/developer ideas.md` (change state in browser triggers state change triggers?)
 
 ## What

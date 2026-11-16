@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-428",
+  "kind": "task",
+  "number": 428,
+  "title": "`npc_behaviors` cadence in game time (the last tick-quantised scheduler)",
+  "status": "done",
+  "priority": "low",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "Everything else that measures time now scales with `time_per_tick_minutes`:\nvital decay, condition durations and periodics, body-temperature drift, starvation\ngrace, background decision cadence (action credit), and plant growth\n(`adjust_parameter` with `per: \"minute\"`).\n\nTwo schedulers in `engine/npc_behaviors.py` still don't:\n\n```python\ninterval = behavior.get(\"interval\", 1) or 1\nif interval > 1 and self.gs.time_ticks % interval != 0:   # :70\n    continue\n...\ninterval = getattr(player, 'npc_action_interval', 3) or 3\nif self.gs.time_ticks % interval != 0:                    # :90\n    continue\n```\n\n`interval` is a count of **ticks**, so at 15 min/tick a behaviour authored as\n\"every 5 ticks\" fires every 75 game minutes, and a legacy `wander` NPC moves\nevery 45 minutes instead of every 3.\n\nIt is inert in the goblin camp (`process_simple_npcs` skips anyone without\n`simple_npc`, and the camp's characters are `simple_npc: false`), which is why it\nhas not surfaced - but it is a live divergence for any `simple_npc` character or\nauthored `behaviors[]` patrol.",
+    "how": "Express both intervals in **game minutes** and convert at evaluation:\n`due every max(1, round(interval_minutes / minutes_per_tick))` ticks, or reuse the\nsame action-credit idea as `background_simulation` if a behaviour should be able\nto fire more than once in a long tick.\n\nKeep the authored field's meaning documented either way - a data value whose unit\nsilently depends on a config setting is exactly the bug this task exists to\nremove.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A behaviour authored as \"every 10 minutes\" fires every 10 game minutes at 1, 5",
+        "done": false
+      },
+      {
+        "text": "and 15 min/tick.",
+        "done": false
+      },
+      {
+        "text": "Legacy `wander` moves at the same rate per game hour at any tick length.",
+        "done": false
+      },
+      {
+        "text": "No change at 1 min/tick (the authored values are unchanged in meaning there).",
+        "done": false
+      },
+      {
+        "text": "`simple_npc` characters still defer to sleeping/busy states as today.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "outcome_2026_09_21": "Done. `_interval_ticks(gs, minutes)` in `engine/npc_behaviors.py` converts an\nauthored interval from **game minutes** to whole ticks, and both sites use it:\n\n- `behaviors[].interval` (`process_simple_npcs`, the per-behaviour gate)\n- `npc_action_interval` (the legacy wander/flee fallback)\n\nQuantised to the nearest tick with a floor of one, because a tick is the smallest\nstep the scheduler has: at 15 min/tick an authored \"20 minutes\" becomes one tick\n(15 minutes), which is as close as it can get. **At the default 1 min/tick an\nauthored value's meaning is unchanged**, so nothing in existing content shifts -\nand nothing in the shipped data uses either field anyway (`rg` finds no authored\n`\"interval\"` or `\"npc_action_interval\"` in `data/` or `world_template.json`),\nwhich is exactly why the divergence went unnoticed.\n\n`tests/test_npc_behavior_intervals.py` pins the unit, the floor (a short interval\nmust not become \"never\"), and the junk fallback.",
+      "non_goals": "- The newer behaviour phases (task-389/390).\n- Deciding whether the legacy `npc_behavior` wander path should be retired -\n  untested in practice, so it stays until someone exercises or removes it\n  deliberately."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "relates": "task-389/390 (the newer behaviour phases), task-406 (standing-item"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-428-npc-behaviour-cadence-in-game-time.md"
+  }
+}

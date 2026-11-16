@@ -13,21 +13,21 @@ type: task
 
 ## Implemented (2026-08-21)
 
-- `lighting.py`: `outdoor_light_for_hour(hour)` — piecewise-linear curve (deep night ~8, dawn ramp 5-8,
+- `lighting.py`: `outdoor_light_for_hour(hour)` - piecewise-linear curve (deep night ~8, dawn ramp 5-8,
   full day 9-16 at 85, dusk ramp 17-21, night again); `is_outdoor_area(area_id)` reads the area's
   `outdoor` tag; `get_ambient_light(..., hour=None)` modulates outdoor base light when an hour is
   available. An explicitly authored `environment.light` acts as a FLOOR (magically lit glade stays
   bright at midnight), not a ceiling.
 - Wiring: `LightingSystem.hour_provider` callable set once in `VirtualWorld.__init__` to
-  `current_game_hour()` (ticks × time_per_tick + clock start, % 24) — ALL existing
+  `current_game_hour()` (ticks × time_per_tick + clock start, % 24) - ALL existing
   `get_ambient_light` call sites get time-aware outdoor lighting with zero call-site changes.
-- Tests: `tests/test_realism_perception.py` — curve values (5) + outdoor/indoor/floor/provider cases (6).
+- Tests: `tests/test_realism_perception.py` - curve values (5) + outdoor/indoor/floor/provider cases (6).
 
 # Task 230: Time-of-Day Outdoor Lighting
 
 ## What
 
-Outdoor rooms get their ambient light from the current game time, weather, and moon phase — not from a static `environment.light` value. Indoor rooms default to pitch black. Light spill from open/transparent doors connects interior spaces to the outside.
+Outdoor rooms get their ambient light from the current game time, weather, and moon phase - not from a static `environment.light` value. Indoor rooms default to pitch black. Light spill from open/transparent doors connects interior spaces to the outside.
 
 ## Light Levels by Time of Day
 
@@ -117,14 +117,14 @@ Doors with `"transparent": true` in properties allow light spill without being o
 
 ## Files
 
-1. `engine/lighting.py` — `get_time_of_day_light()`, update `get_ambient_light()`, transparent door spill
-2. `engine/tick_manager.py` — expose current hour/weather/moon to lighting system
-3. `engine/weather_forecast.py` (task-227) — weather lookup
-4. `engine/moon.py` or weather_forecast helper (task-229) — moon phase lookup
-5. `engine/area_description.py` — outdoor light descriptions
-6. `graph.py` / `way.py` — `"transparent"` property on doors
-7. `engine/effects.py` — `set_environment` can set `"transparent"` on ways
-8. `static/js/graph/network-manager.js` — light overlay uses computed ambient light
+1. `engine/lighting.py` - `get_time_of_day_light()`, update `get_ambient_light()`, transparent door spill
+2. `engine/tick_manager.py` - expose current hour/weather/moon to lighting system
+3. `engine/weather_forecast.py` (task-227) - weather lookup
+4. `engine/moon.py` or weather_forecast helper (task-229) - moon phase lookup
+5. `engine/area_description.py` - outdoor light descriptions
+6. `graph.py` / `way.py` - `"transparent"` property on doors
+7. `engine/effects.py` - `set_environment` can set `"transparent"` on ways
+8. `static/js/graph/network-manager.js` - light overlay uses computed ambient light
 
 ## Dependencies
 

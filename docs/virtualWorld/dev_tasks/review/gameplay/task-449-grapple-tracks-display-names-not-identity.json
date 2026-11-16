@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-449",
+  "kind": "task",
+  "number": 449,
+  "title": "Grapple tracks display names, not identity",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-446"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`routes/player_ops.py`",
+    "why": "",
+    "how": "- Add a reverse lookup on `PlayerManager` - `key_for_node_id(node_id)` (maintain a\n  `node_id → key` index in `add_player`/`reindex`).\n- Make `_grappling_targets` / `_grappler_of` return **keys** (map the edge's node\n  id back through that lookup, falling back to `node.name` only if unknown).\n- `_add_edge` / `_remove_edge` / `release` / `_release_target` accept keys.\n- Update callers to pass the key (e.g. `routes/player_ops.py` should use the\n  player's registry key, not `.name`).",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Grapple participant state keys on canonical node IDs instead of display names.",
+        "done": true
+      },
+      {
+        "text": "Renaming a grappled character does not break grapple tracking or resolution.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/combat.py"
+    ],
+    "custom": {
+      "problem_functional": "`engine/grapple.py` identifies held targets by **display name**, not identity:\n\n- `_grappling_targets(grappler_name)` (`:145`) and `_grappler_of(target_name)`\n  (`:162`) return `node.name` - the anchor node's **display name**.\n- `_add_edge` / `_remove_edge` (`:187`, `:196`) take names and run them through\n  `get_player_node_id(name)`.\n- `routes/player_ops.py:597` passes `player.name` into `_remove_edge`.\n\nWith two characters sharing a name, `players.get(display_name)` and\n`node_id_for(display_name)` resolve to the **primary**, so grabbing, holding,\nreleasing, or the desync repair (`sync()`, `:209`) can hit the **wrong**\nsame-named character. Not exercised yet (no duplicate names in data), but it is\nthe one *functional* duplicate-name bug left after task-446.",
+      "also_cosmetic_same_theme": "A few log strings print the registry key for a duplicated character. Use\n`p.name`:\n- `engine/npc_behaviors.py:146` (`[NPC] {pname} wanders…`), `:175` (flees)\n- `engine/tick_manager.py:433` (`[{pname}] GAME OVER…`), `:668` (`[{pname}] gained the {trait}`)",
+      "implemented_2026_09_22": "- `PlayerManager`: added `_players_by_node_id` (maintained in `add_player` and\n  `reindex`) and `key_for_node_id(node_id)` - the reverse of\n  `get_player_node_id`, with a case-insensitive fallback.\n- `engine/grapple.py`: `_grappling_targets` and `_grappler_of` now resolve each\n  edge endpoint back to its identity key, falling back to `node.name` only for an\n  unknown node. `_add_edge` / `_remove_edge` already route refs through\n  `get_player_node_id`, so keys work end to end.\n- `routes/player_ops.py`: the \"remove_condition grappled\" cleanup uses the\n  player's registry key instead of `.name`.\n- Log label leaks fixed: `engine/npc_behaviors.py` (wander/flee msgs) and\n  `engine/tick_manager.py` (GAME OVER / trait-gained msgs) print the display name.\n- Tests: `tests/test_grapple.py::TestGrappleIdentity` (3) - grab targets the\n  right same-named body, release only affects that identity, and `sync()` repairs\n  the right body.\n- Regression: full suite unchanged (same 60 pre-existing failures; no new)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-449-grapple-identity-not-display-name.md"
+  }
+}

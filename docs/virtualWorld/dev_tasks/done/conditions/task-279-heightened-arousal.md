@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: Planned — task-209 (Arousal State Conditions & Threshold Triggers)
+**Status**: Planned - task-209 (Arousal State Conditions & Threshold Triggers)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
@@ -46,18 +46,18 @@ High arousal band (Arousal 50–90). Strong stimulation, Energy cost, significan
 - **Saves/checks**: auto-fails `perception`, `concentration`, and `willpower` checks.
 - **Combat**: `attack_mod −3`, `defense_mod −3`.
 - **Movement**: full speed (for now; may drop at `frantic`).
-- **Periodic**: `Stimulation +3` and `Energy −2` per tick — the arousal is now taxing.
+- **Periodic**: `Stimulation +3` and `Energy −2` per tick - the arousal is now taxing.
 - **Lifecycle**: `stack: "refresh"`. Applied at Arousal 50–90; replaced at 90 (`frantic`); reverts below 50.
 
 ## Perception
 
-`known: True` — intense, obvious.
+`known: True` - intense, obvious.
 
 ## Integration points space
 
-- `engine/player.py` — `CONDITION_DEFINITIONS` entry.
-- `engine/tick_manager.py` — threshold checks in `tick_turn()`.
-- `engine/conditions.py` — auto-fail checks, combat mods, `process_tick`.
+- `engine/player.py` - `CONDITION_DEFINITIONS` entry.
+- `engine/tick_manager.py` - threshold checks in `tick_turn()`.
+- `engine/conditions.py` - auto-fail checks, combat mods, `process_tick`.
 - Energy cost interplay with `exhausted` (both drain Energy).
 
 ## Testing (proposed)
@@ -70,7 +70,7 @@ High arousal band (Arousal 50–90). Strong stimulation, Energy cost, significan
 ## Open questions / things to work out
 
 - Does `willpower` share the `auto_fail_checks` pathway, or is it an ability save (`auto_fail_saves`)? Confirm the check taxonomy.
-- Energy drain stacking with `exhausted` — should this accelerate collapse?
+- Energy drain stacking with `exhausted` - should this accelerate collapse?
 
 ## Why
 

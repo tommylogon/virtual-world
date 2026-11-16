@@ -27,7 +27,7 @@ Tommy asked for the Eldenford town map to be finished. Measured from GET /api/wo
       `kraktooth_goblin_camp` returns `sparse_forest = 0`, 42 biome cells, 29
       names; the painter renders the town and each cell's inspector reads its
       name and exits.
-- [x] The graph is deliberately left alone — the scope is `baked`, the ticket
+- [x] The graph is deliberately left alone - the scope is `baked`, the ticket
       measures the grid payload, and re-generating would rewrite the authored
       world; the paint is the authoring source it names.
 

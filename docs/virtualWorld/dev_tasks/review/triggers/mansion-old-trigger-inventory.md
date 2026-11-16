@@ -1,10 +1,10 @@
-# Mansion — old-style trigger inventory
+# Mansion - old-style trigger inventory
 
 Extracted from `virtual_world/data/scenarios/mansion.json` on 2026-08-09.
 
-> The same 64 old trigger pairs exist **identically** in `data/scenarios/mansion2.json` and `data/library/rooms/mansion.json` — one inventory covers all three copies. Convert one, propagate (or re-extract) to the others.
+> The same 64 old trigger pairs exist **identically** in `data/scenarios/mansion2.json` and `data/library/rooms/mansion.json` - one inventory covers all three copies. Convert one, propagate (or re-extract) to the others.
 
-These triggers still use the LEGACY flat format (`effect_type` + `effect_params`) and are **silently dead** in the current engine — `engine/trigger_system.py` only reads `effects[]`, so they fire as empty messages. Convert each to the new format:
+These triggers still use the LEGACY flat format (`effect_type` + `effect_params`) and are **silently dead** in the current engine - `engine/trigger_system.py` only reads `effects[]`, so they fire as empty messages. Convert each to the new format:
 
 ```json
 "trigger_type": ["on_examine"],
@@ -20,7 +20,7 @@ Total: 64 trigger edges across 53 source nodes. Old effect types seen: `message`
 
 ## flashlight (`inv_Elena Vance_flashlight`)
 
-### 1. `trigger_inv_Elena Vance_flashlight_on_depleted_0` — on_depleted → message
+### 1. `trigger_inv_Elena Vance_flashlight_on_depleted_0` - on_depleted → message
 
 effect_params:
 ```json
@@ -31,7 +31,7 @@ effect_params:
 
 ## altar (`item_altar`)
 
-### 1. `trigger_item_altar_on_examine_0` — on_examine → message
+### 1. `trigger_item_altar_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -42,7 +42,7 @@ effect_params:
 
 ## boarded_window (`item_boarded_window`)
 
-### 1. `trigger_item_boarded_window_on_examine_0` — on_examine → message
+### 1. `trigger_item_boarded_window_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -53,7 +53,7 @@ effect_params:
 
 ## brass_key (`item_brass_key`)
 
-### 1. `trigger_item_brass_key_on_take_0` — on_take → message
+### 1. `trigger_item_brass_key_on_take_0` - on_take → message
 
 effect_params:
 ```json
@@ -64,18 +64,18 @@ effect_params:
 
 ## broken_key (`item_broken_key`)
 
-### 1. `trigger_item_broken_key_on_examine_0` — on_examine → message
+### 1. `trigger_item_broken_key_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "The heat-seal cracks as you examine the joined halves. The key is whole again. It feels powerful — and sad. This key was meant to keep something locked away forever."
+  "message": "The heat-seal cracks as you examine the joined halves. The key is whole again. It feels powerful - and sad. This key was meant to keep something locked away forever."
 }
 ```
 
 ## candle (`item_candle`)
 
-### 1. `trigger_item_candle_on_depleted_3` — on_depleted → message
+### 1. `trigger_item_candle_on_depleted_3` - on_depleted → message
 
 effect_params:
 ```json
@@ -84,7 +84,7 @@ effect_params:
 }
 ```
 
-### 2. `trigger_item_candle_on_toggle_off_2` — on_toggle_off → message
+### 2. `trigger_item_candle_on_toggle_off_2` - on_toggle_off → message
 
 effect_params:
 ```json
@@ -93,7 +93,7 @@ effect_params:
 }
 ```
 
-### 3. `trigger_item_candle_on_toggle_on_1` — on_toggle_on → message
+### 3. `trigger_item_candle_on_toggle_on_1` - on_toggle_on → message
 
 effect_params:
 ```json
@@ -102,7 +102,7 @@ effect_params:
 }
 ```
 
-### 4. `trigger_item_candle_on_use_0` — on_use → message
+### 4. `trigger_item_candle_on_use_0` - on_use → message
 
 effect_params:
 ```json
@@ -113,7 +113,7 @@ effect_params:
 
 ## child_dress_item (`item_child_dress_item`)
 
-### 1. `trigger_item_child_dress_item_on_take_0` — on_take → message
+### 1. `trigger_item_child_dress_item_on_take_0` - on_take → message
 
 effect_params:
 ```json
@@ -124,7 +124,7 @@ effect_params:
 
 ## coat_rack (`item_coat_rack`)
 
-### 1. `trigger_item_coat_rack_on_examine_0` — on_examine → message
+### 1. `trigger_item_coat_rack_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -135,18 +135,18 @@ effect_params:
 
 ## crate (`item_crate`)
 
-### 1. `trigger_item_crate_on_examine_0` — on_examine → message
+### 1. `trigger_item_crate_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "Through a gap in the crate's slats, you can see moldy burlap sacks. But something glints beneath them — a bottle of something expensive."
+  "message": "Through a gap in the crate's slats, you can see moldy burlap sacks. But something glints beneath them - a bottle of something expensive."
 }
 ```
 
 ## crystal_skull (`item_crystal_skull`)
 
-### 1. `trigger_item_crystal_skull_on_drop_3` — on_drop → message
+### 1. `trigger_item_crystal_skull_on_drop_3` - on_drop → message
 
 effect_params:
 ```json
@@ -155,16 +155,16 @@ effect_params:
 }
 ```
 
-### 2. `trigger_item_crystal_skull_on_examine_0` — on_examine → message
+### 2. `trigger_item_crystal_skull_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You peer into the crystal skull's eye sockets. For just a moment, you see a reflection that isn't yours — a young girl with dark hair and sad eyes, standing behind you. You spin around. There's no one there."
+  "message": "You peer into the crystal skull's eye sockets. For just a moment, you see a reflection that isn't yours - a young girl with dark hair and sad eyes, standing behind you. You spin around. There's no one there."
 }
 ```
 
-### 3. `trigger_item_crystal_skull_on_take_1` — on_take → damage
+### 3. `trigger_item_crystal_skull_on_take_1` - on_take → damage
 
 effect_params:
 ```json
@@ -175,7 +175,7 @@ effect_params:
 }
 ```
 
-### 4. `trigger_item_crystal_skull_on_take_2` — on_take → message
+### 4. `trigger_item_crystal_skull_on_take_2` - on_take → message
 
 effect_params:
 ```json
@@ -186,7 +186,7 @@ effect_params:
 
 ## dead_vine (`item_dead_vine`)
 
-### 1. `trigger_item_dead_vine_on_examine_0` — on_examine → message
+### 1. `trigger_item_dead_vine_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -197,53 +197,53 @@ effect_params:
 
 ## doll (`item_doll`)
 
-### 1. `trigger_item_doll_on_drop_1` — on_drop → spawn_item
+### 1. `trigger_item_doll_on_drop_1` - on_drop → spawn_item
 
 effect_params:
 ```json
 {
-  "description": "A tiny scrap of paper that falls from the doll's hollow arm: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. — E.'",
+  "description": "A tiny scrap of paper that falls from the doll's hollow arm: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. - E.'",
   "item_id": "item_hidden_note_doll",
   "name": "hidden_note"
 }
 ```
 
-### 2. `trigger_item_doll_on_take_0` — on_take → damage
+### 2. `trigger_item_doll_on_take_0` - on_take → damage
 
 effect_params:
 ```json
 {
   "amount": 8,
-  "message": "A piercing headache lances through your skull as you pick up the doll. You feel a presence — angry, trapped, desperate.",
+  "message": "A piercing headache lances through your skull as you pick up the doll. You feel a presence - angry, trapped, desperate.",
   "target": "self"
 }
 ```
 
 ## family_photo (`item_family_photo`)
 
-### 1. `trigger_item_family_photo_on_examine_0` — on_examine → message
+### 1. `trigger_item_family_photo_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You hold the photograph closer. The youngest child's face isn't blurred by movement — it's been deliberately scratched out. But beneath the scratches, you can just make out a small, sad face. The name on the back: 'Eleanor the Younger, age 3. Taken October 1890.'"
+  "message": "You hold the photograph closer. The youngest child's face isn't blurred by movement - it's been deliberately scratched out. But beneath the scratches, you can just make out a small, sad face. The name on the back: 'Eleanor the Younger, age 3. Taken October 1890.'"
 }
 ```
 
 ## family_plot (`item_family_plot`)
 
-### 1. `trigger_item_family_plot_on_examine_0` — on_examine → message
+### 1. `trigger_item_family_plot_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You kneel to examine the smallest headstone — Eleanor the Younger's. The earth at its base has settled unevenly, as if something was buried here recently. A small handful of wilted rose petals — from the red rose bush in the garden — are scattered on the ground."
+  "message": "You kneel to examine the smallest headstone - Eleanor the Younger's. The earth at its base has settled unevenly, as if something was buried here recently. A small handful of wilted rose petals - from the red rose bush in the garden - are scattered on the ground."
 }
 ```
 
 ## fireplace (`item_fireplace`)
 
-### 1. `trigger_item_fireplace_on_examine_0` — on_examine → message
+### 1. `trigger_item_fireplace_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -254,18 +254,18 @@ effect_params:
 
 ## flowers (`item_flowers`)
 
-### 1. `trigger_item_flowers_on_examine_0` — on_examine → message
+### 1. `trigger_item_flowers_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "The single red rose bush seems out of place in this garden of decay. As you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'For our Eleanor, who loved roses. Gone but never forgotten. — Mother and Father.' This is a grave."
+  "message": "The single red rose bush seems out of place in this garden of decay. As you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'For our Eleanor, who loved roses. Gone but never forgotten. - Mother and Father.' This is a grave."
 }
 ```
 
 ## fountain (`item_fountain`)
 
-### 1. `trigger_item_fountain_on_examine_0` — on_examine → message
+### 1. `trigger_item_fountain_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -276,23 +276,23 @@ effect_params:
 
 ## ghostly_figure (`item_ghostly_figure`)
 
-### 1. `trigger_item_ghostly_figure_on_examine_0` — on_examine → message
+### 1. `trigger_item_ghostly_figure_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "Where the figure stood, you find a small, cold spot on the floor. A single white feather lies there, untouched by dust. You pick it up — it's real."
+  "message": "Where the figure stood, you find a small, cold spot on the floor. A single white feather lies there, untouched by dust. You pick it up - it's real."
 }
 ```
 
 ## glasses_case (`item_glasses_case`)
 
-### 1. `trigger_item_glasses_case_on_take_0` — on_take → spawn_item
+### 1. `trigger_item_glasses_case_on_take_0` - on_take → spawn_item
 
 effect_params:
 ```json
 {
-  "description": "A crumpled note that was stuck to the glasses case: 'Augustus — I've found what you requested. The crystal skull is not a legend. It is in the catacombs beneath Prague. I will bring it to the manor on All Hallows Eve. Your servant, Prof. Aldridge.'",
+  "description": "A crumpled note that was stuck to the glasses case: 'Augustus - I've found what you requested. The crystal skull is not a legend. It is in the catacombs beneath Prague. I will bring it to the manor on All Hallows Eve. Your servant, Prof. Aldridge.'",
   "item_id": "item_professors_note",
   "name": "professor's_note"
 }
@@ -300,12 +300,12 @@ effect_params:
 
 ## hidden_shelf (`item_hidden_shelf`)
 
-### 1. `trigger_item_hidden_shelf_on_examine_0` — on_examine → spawn_item
+### 1. `trigger_item_hidden_shelf_on_examine_0` - on_examine → spawn_item
 
 effect_params:
 ```json
 {
-  "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The book falls open to a marked page: 'The Ritual of the Firstborn — To release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
+  "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The book falls open to a marked page: 'The Ritual of the Firstborn - To release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
   "item_id": "item_ritual_book",
   "name": "ritual_book"
 }
@@ -313,7 +313,7 @@ effect_params:
 
 ## iron_key (`item_iron_key`)
 
-### 1. `trigger_item_iron_key_on_take_0` — on_take → message
+### 1. `trigger_item_iron_key_on_take_0` - on_take → message
 
 effect_params:
 ```json
@@ -324,29 +324,29 @@ effect_params:
 
 ## jewelry_box (`item_jewelry_box`)
 
-### 1. `trigger_item_jewelry_box_on_examine_0` — on_examine → message
+### 1. `trigger_item_jewelry_box_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "The jewelry box is locked, but the keyhole is tiny. A key no larger than your thumb would fit — like the one from the foyer vase."
+  "message": "The jewelry box is locked, but the keyhole is tiny. A key no larger than your thumb would fit - like the one from the foyer vase."
 }
 ```
 
 ## key_fragment_2 (`item_key_fragment_2`)
 
-### 1. `trigger_item_key_fragment_2_on_take_0` — on_take → message
+### 1. `trigger_item_key_fragment_2_on_take_0` - on_take → message
 
 effect_params:
 ```json
 {
-  "message": "As you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. They fit together perfectly — the heat-seal is an occult binding, not a physical break."
+  "message": "As you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. They fit together perfectly - the heat-seal is an occult binding, not a physical break."
 }
 ```
 
 ## lullaby_box (`item_lullaby_box`)
 
-### 1. `trigger_item_lullaby_box_on_use_0` — on_use → heal
+### 1. `trigger_item_lullaby_box_on_use_0` - on_use → heal
 
 effect_params:
 ```json
@@ -356,29 +356,29 @@ effect_params:
 }
 ```
 
-### 2. `trigger_item_lullaby_box_on_use_1` — on_use → message
+### 2. `trigger_item_lullaby_box_on_use_1` - on_use → message
 
 effect_params:
 ```json
 {
-  "message": "The lullaby fills the room. For a moment, the cold recedes, and you feel an overwhelming sense of peace — and profound sadness."
+  "message": "The lullaby fills the room. For a moment, the cold recedes, and you feel an overwhelming sense of peace - and profound sadness."
 }
 ```
 
 ## mirror_bath (`item_mirror_bath`)
 
-### 1. `trigger_item_mirror_bath_on_examine_0` — on_examine → message
+### 1. `trigger_item_mirror_bath_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You stare at the mirror, focusing on the fragment that doesn't match your movement. It's not a reflection — it's something behind the mirror, watching you. You see the outline of a small handprint on the other side of the glass."
+  "message": "You stare at the mirror, focusing on the fragment that doesn't match your movement. It's not a reflection - it's something behind the mirror, watching you. You see the outline of a small handprint on the other side of the glass."
 }
 ```
 
 ## mouse_nest (`item_mouse_nest`)
 
-### 1. `trigger_item_mouse_nest_on_examine_0` — on_examine → message
+### 1. `trigger_item_mouse_nest_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -389,7 +389,7 @@ effect_params:
 
 ## music_box (`item_music_box`)
 
-### 1. `trigger_item_music_box_on_use_0` — on_use → heal
+### 1. `trigger_item_music_box_on_use_0` - on_use → heal
 
 effect_params:
 ```json
@@ -399,7 +399,7 @@ effect_params:
 }
 ```
 
-### 2. `trigger_item_music_box_on_use_1` — on_use → message
+### 2. `trigger_item_music_box_on_use_1` - on_use → message
 
 effect_params:
 ```json
@@ -410,7 +410,7 @@ effect_params:
 
 ## plant (`item_plant`)
 
-### 1. `trigger_item_plant_on_examine_0` — on_examine → message
+### 1. `trigger_item_plant_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -421,7 +421,7 @@ effect_params:
 
 ## pocket_watch (`item_pocket_watch`)
 
-### 1. `trigger_item_pocket_watch_on_take_0` — on_take → message
+### 1. `trigger_item_pocket_watch_on_take_0` - on_take → message
 
 effect_params:
 ```json
@@ -432,51 +432,51 @@ effect_params:
 
 ## portrait (`item_portrait`)
 
-### 1. `trigger_item_portrait_on_examine_0` — on_examine → message
+### 1. `trigger_item_portrait_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "As you study the portrait, you notice the eyes are painted with an unsettling attention to detail. They seem to follow you. But more importantly — there's a faint line around the frame. It's a door. The portrait is a door."
+  "message": "As you study the portrait, you notice the eyes are painted with an unsettling attention to detail. They seem to follow you. But more importantly - there's a faint line around the frame. It's a door. The portrait is a door."
 }
 ```
 
 ## portrait_f665a200 (`item_portrait_f665a200`)
 
-### 1. `trigger_item_portrait_f665a200_on_examine_0` — on_examine → message
+### 1. `trigger_item_portrait_f665a200_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "The crack in the painting seems to form the shape of a '7'. You study Eleanor's face more closely. Her expression is stern, but her eyes hold a deep sadness — and something else. Recognition? As if she knows why you're here."
+  "message": "The crack in the painting seems to form the shape of a '7'. You study Eleanor's face more closely. Her expression is stern, but her eyes hold a deep sadness - and something else. Recognition? As if she knows why you're here."
 }
 ```
 
 ## portrait_hall (`item_portrait_hall`)
 
-### 1. `trigger_item_portrait_hall_on_examine_0` — on_examine → message
+### 1. `trigger_item_portrait_hall_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You touch the crack in the canvas. Behind the painting, taped to the back, you find a small photograph. It shows Augustus with a woman who is NOT his wife — the same woman from the love letters in the library. They're holding hands. On the back: 'My dearest Margaret. Someday we'll be free.'"
+  "message": "You touch the crack in the canvas. Behind the painting, taped to the back, you find a small photograph. It shows Augustus with a woman who is NOT his wife - the same woman from the love letters in the library. They're holding hands. On the back: 'My dearest Margaret. Someday we'll be free.'"
 }
 ```
 
 ## railing (`item_railing`)
 
-### 1. `trigger_item_railing_on_examine_0` — on_examine → message
+### 1. `trigger_item_railing_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "The blue silk ribbon tied to the railing is old but well-preserved. It's tied in a complex knot — a lover's knot. Someone stood here, looking out at the garden, waiting for someone who never came."
+  "message": "The blue silk ribbon tied to the railing is old but well-preserved. It's tied in a complex knot - a lover's knot. Someone stood here, looking out at the garden, waiting for someone who never came."
 }
 ```
 
 ## remains (`item_remains`)
 
-### 1. `trigger_item_remains_on_examine_0` — on_examine → message
+### 1. `trigger_item_remains_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -487,7 +487,7 @@ effect_params:
 
 ## rocking_horse (`item_rocking_horse`)
 
-### 1. `trigger_item_rocking_horse_on_examine_0` — on_examine → message
+### 1. `trigger_item_rocking_horse_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -498,7 +498,7 @@ effect_params:
 
 ## root (`item_root`)
 
-### 1. `trigger_item_root_on_examine_0` — on_examine → message
+### 1. `trigger_item_root_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -509,20 +509,20 @@ effect_params:
 
 ## rug (`item_rug`)
 
-### 1. `trigger_item_rug_on_examine_0` — on_examine → message
+### 1. `trigger_item_rug_on_examine_0` - on_examine → message
 
-**ALREADY has new `effects[]`** — old fields are stale leftovers, safe to delete.
+**ALREADY has new `effects[]`** - old fields are stale leftovers, safe to delete.
 
 effect_params:
 ```json
 {
-  "message": "As you lift the rug, you notice faint scratch marks on the marble tile beneath. Something was dragged here recently — and left scratches pointing toward the library."
+  "message": "As you lift the rug, you notice faint scratch marks on the marble tile beneath. Something was dragged here recently - and left scratches pointing toward the library."
 }
 ```
 
 ## sarcophagus (`item_sarcophagus`)
 
-### 1. `trigger_item_sarcophagus_on_examine_0` — on_examine → message
+### 1. `trigger_item_sarcophagus_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -533,12 +533,12 @@ effect_params:
 
 ## secret_drawer (`item_secret_drawer`)
 
-### 1. `trigger_item_secret_drawer_on_examine_0` — on_examine → spawn_item
+### 1. `trigger_item_secret_drawer_on_examine_0` - on_examine → spawn_item
 
 effect_params:
 ```json
 {
-  "description": "A bundle of letters from Margaret Holloway to James Blackwood. 'Dear James, I know we cannot be together in this house. But I watch for you at the garden gate every evening. Meet me by the oak tree. I have news I can only share in person. — Yours, forever, M.'",
+  "description": "A bundle of letters from Margaret Holloway to James Blackwood. 'Dear James, I know we cannot be together in this house. But I watch for you at the garden gate every evening. Meet me by the oak tree. I have news I can only share in person. - Yours, forever, M.'",
   "item_id": "item_margaret_letters",
   "name": "margaret_letters"
 }
@@ -546,18 +546,18 @@ effect_params:
 
 ## stove (`item_stove`)
 
-### 1. `trigger_item_stove_on_examine_0` — on_examine → message
+### 1. `trigger_item_stove_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You open the stove door. Inside, you find a charred fragment of a photograph. It shows a woman in a dark dress — her face has been burned away. On the back, in shaky handwriting: 'Forgive me, Eleanor. I couldn't protect you.'"
+  "message": "You open the stove door. Inside, you find a charred fragment of a photograph. It shows a woman in a dark dress - her face has been burned away. On the back, in shaky handwriting: 'Forgive me, Eleanor. I couldn't protect you.'"
 }
 ```
 
 ## strange_compass (`item_strange_compass`)
 
-### 1. `trigger_item_strange_compass_on_examine_0` — on_examine → message
+### 1. `trigger_item_strange_compass_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -568,7 +568,7 @@ effect_params:
 
 ## stuffed_rabbit (`item_stuffed_rabbit`)
 
-### 1. `trigger_item_stuffed_rabbit_on_drop_1` — on_drop → message
+### 1. `trigger_item_stuffed_rabbit_on_drop_1` - on_drop → message
 
 effect_params:
 ```json
@@ -577,7 +577,7 @@ effect_params:
 }
 ```
 
-### 2. `trigger_item_stuffed_rabbit_on_take_0` — on_take → damage
+### 2. `trigger_item_stuffed_rabbit_on_take_0` - on_take → damage
 
 effect_params:
 ```json
@@ -590,18 +590,18 @@ effect_params:
 
 ## table (`item_table`)
 
-### 1. `trigger_item_table_on_examine_0` — on_examine → message
+### 1. `trigger_item_table_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You count the place settings carefully. Seven. But there are eight chairs. The eighth chair — at the far end of the table — is pushed slightly away from the table, as if an invisible guest is seated there. A dusty plate sits before it, completely clean. No dust on this one."
+  "message": "You count the place settings carefully. Seven. But there are eight chairs. The eighth chair - at the far end of the table - is pushed slightly away from the table, as if an invisible guest is seated there. A dusty plate sits before it, completely clean. No dust on this one."
 }
 ```
 
 ## tainted_wine (`item_tainted_wine`)
 
-### 1. `trigger_item_tainted_wine_on_take_0` — on_take → message
+### 1. `trigger_item_tainted_wine_on_take_0` - on_take → message
 
 effect_params:
 ```json
@@ -612,7 +612,7 @@ effect_params:
 
 ## tiny_key (`item_tiny_key`)
 
-### 1. `trigger_item_tiny_key_on_take_0` — on_take → message
+### 1. `trigger_item_tiny_key_on_take_0` - on_take → message
 
 effect_params:
 ```json
@@ -623,40 +623,40 @@ effect_params:
 
 ## toy_box (`item_toy_box`)
 
-### 1. `trigger_item_toy_box_on_examine_0` — on_examine → message
+### 1. `trigger_item_toy_box_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "At the very bottom of the toy box, beneath all the broken toys, you find a small music box. It's dented but intact. When you wind it, it plays a haunting, tinny lullaby — the same melody as the one in the nursery."
+  "message": "At the very bottom of the toy box, beneath all the broken toys, you find a small music box. It's dented but intact. When you wind it, it plays a haunting, tinny lullaby - the same melody as the one in the nursery."
 }
 ```
 
 ## trunk (`item_trunk`)
 
-### 1. `trigger_item_trunk_on_examine_0` — on_examine → message
+### 1. `trigger_item_trunk_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You press your ear to the trunk. The tapping stops. Then a voice — a child's whisper, muffled by the wood: 'Let me out. She's not who she says she is.'"
+  "message": "You press your ear to the trunk. The tapping stops. Then a voice - a child's whisper, muffled by the wood: 'Let me out. She's not who she says she is.'"
 }
 ```
 
 ## tub (`item_tub`)
 
-### 1. `trigger_item_tub_on_examine_0` — on_examine → message
+### 1. `trigger_item_tub_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You lean closer to the tub. Beneath the grimy water, something glints. You reach in — it's cold, colder than the water should be — and pull out a small silver locket. Identical to the one in the pantry, but this one contains a tiny photograph of a woman with sad eyes."
+  "message": "You lean closer to the tub. Beneath the grimy water, something glints. You reach in - it's cold, colder than the water should be - and pull out a small silver locket. Identical to the one in the pantry, but this one contains a tiny photograph of a woman with sad eyes."
 }
 ```
 
 ## unlabeled_vial (`item_unlabeled_vial`)
 
-### 1. `trigger_item_unlabeled_vial_on_use_0` — on_use → heal
+### 1. `trigger_item_unlabeled_vial_on_use_0` - on_use → heal
 
 effect_params:
 ```json
@@ -666,7 +666,7 @@ effect_params:
 }
 ```
 
-### 2. `trigger_item_unlabeled_vial_on_use_1` — on_use → message
+### 2. `trigger_item_unlabeled_vial_on_use_1` - on_use → message
 
 effect_params:
 ```json
@@ -677,7 +677,7 @@ effect_params:
 
 ## vanity (`item_vanity`)
 
-### 1. `trigger_item_vanity_on_examine_0` — on_examine → message
+### 1. `trigger_item_vanity_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
@@ -688,23 +688,23 @@ effect_params:
 
 ## vase (`item_vase`)
 
-### 1. `trigger_item_vase_on_examine_0` — on_examine → message
+### 1. `trigger_item_vase_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "Inside the vase, you find a tiny key — no larger than your thumb — taped to the inner wall. It's a jewelry box key."
+  "message": "Inside the vase, you find a tiny key - no larger than your thumb - taped to the inner wall. It's a jewelry box key."
 }
 ```
 
 ## watering_can (`item_watering_can`)
 
-### 1. `trigger_item_watering_can_on_take_0` — on_take → spawn_item
+### 1. `trigger_item_watering_can_on_take_0` - on_take → spawn_item
 
 effect_params:
 ```json
 {
-  "description": "Half of a broken brass key, snapped cleanly in two. The teeth are intricate — this was a finely made key. Without the other half, it's useless.",
+  "description": "Half of a broken brass key, snapped cleanly in two. The teeth are intricate - this was a finely made key. Without the other half, it's useless.",
   "item_id": "item_key_fragment",
   "name": "key_fragment"
 }
@@ -712,11 +712,11 @@ effect_params:
 
 ## wilting_lilies (`item_wilting_lilies`)
 
-### 1. `trigger_item_wilting_lilies_on_examine_0` — on_examine → message
+### 1. `trigger_item_wilting_lilies_on_examine_0` - on_examine → message
 
 effect_params:
 ```json
 {
-  "message": "You pick up the lilies. They're real, still moist at the stems. Beneath them, you find a small card. 'Welcome home, little one. — Mother.' The handwriting is elegant, old-fashioned. Fresh."
+  "message": "You pick up the lilies. They're real, still moist at the stems. Beneath them, you find a small card. 'Welcome home, little one. - Mother.' The handwriting is elegant, old-fashioned. Fresh."
 }
 ```

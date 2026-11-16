@@ -35,7 +35,7 @@ Give the WorldPainter the selection/move ergonomics of a real paint tool (Unity/
 - [x] **Select tool: click, shift-click, and a drag-a-marquee** multi-selection.
       A click on an already-selected cell deselects it, so the same gesture that
       made the selection takes it back.
-- [x] **Ctrl+A selects all, Escape clears** — and Escape drops the selection
+- [x] **Ctrl+A selects all, Escape clears** - and Escape drops the selection
       *before* it resets the tool, peeling off the least-committed thing first.
 - [x] **Every paint/erase operation then acts on the whole selection in one
       request**: one `paint_batch` over the selected cells, one undo step.
@@ -49,7 +49,7 @@ Give the WorldPainter the selection/move ergonomics of a real paint tool (Unity/
       drawn into its own layer, so it moves with the map and does not fight the
       cell colours.
 - [x] **It does not fight the paint stroke**: a drag means marquee in Select,
-      stroke in Paint/Erase, and pan otherwise — decided by the active tool, and
+      stroke in Paint/Erase, and pan otherwise - decided by the active tool, and
       `draggable` is re-asked on every tool change so switching tools cannot leave
       the canvas panning when it should be painting.
 

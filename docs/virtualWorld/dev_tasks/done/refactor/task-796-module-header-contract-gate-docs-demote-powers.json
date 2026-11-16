@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "task-796",
+  "kind": "task",
+  "number": 796,
+  "title": "Module header contract: gate @docs, demote @powers",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-792"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Settle the front-end module header contract: keep `@docs` as the gated module -> note edge, and demote `@powers` to optional prose (or make it a controlled field that must name a Feature Map label verbatim). Build the feature <-> module index from `@docs`, not from `@powers`.",
+    "why": "`@powers` is free-text prose (266 distinct strings across 156 modules) that `feature_index.py --check` pretends to check - a module can name the wrong feature and nothing catches it, because nothing runtime-linked reads it. `@docs` is a real path to a vault note and `js_module_index.py` already fails on a dead/folder target. The useful half is the join; the gate is theatre.",
+    "how": "Relax the `@powers` gate in `tools/feature_index.py`; source the feature->module reverse index from each module's `@docs` target. Regenerate `docs/design/feature-index.md`.",
+    "verify": "1. `python tools/feature_index.py --check`.\n   - expected: passes without the prose word-match.\n   - observed: TODO\n2. `python tools/feature_index.py --report`.\n   - expected: feature -> modules built from `@docs`.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "the `@powers` gate no longer fails on free prose",
+        "done": false
+      },
+      {
+        "text": "`@docs` remains the gated, checkable module -> note edge",
+        "done": false
+      },
+      {
+        "text": "the feature -> module join is built from `@docs`",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/feature_index.py",
+      "tools/js_module_index.py",
+      "docs/design/feature-index.md"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-796-module-header-contract-gate-docs-demote-powers.md"
+  }
+}

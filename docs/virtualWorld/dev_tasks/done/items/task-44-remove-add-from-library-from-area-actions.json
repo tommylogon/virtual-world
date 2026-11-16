@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-44",
+  "kind": "task",
+  "number": 44,
+  "title": "Remove \"Add from Library\" from Area Actions",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-15",
+  "updated": "2026-07-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The room inspector panel has an \"Add from Library\" button under Area Actions. This button duplicates functionality that already exists via the toolbar \"Item Library\" button (which also supports placing items in specific areas). The room-level action is redundant. we also already have a right click context menu to add items to a room directly",
+    "why": "In `inspector.js:_showRoom()` (line 552), the room inspector renders:\n\n```html\n<button class=\"btn btn-sm btn-yellow\" onclick=\"VW.itemLib.openForRoom('...')\">\n  📚 Add from Library\n</button>\n```\n\nThe same `openForRoom` is accessible from the graph toolbar \"📚 Item Library\" button, then selecting a room. The room inspector's version adds clutter.",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector.js` - remove button HTML and its action section if empty"
+    ],
+    "custom": {
+      "proposed_change": "Remove the \"Add from Library\" button from the Area Actions section in `inspector.js:_showRoom()`.\n\nIf the room inspector feels empty after removal, consider replacing with a text hint like \"Use 📚 Item Library in the toolbar to add items.\" instead.",
+      "audit": "**Status**: Ready to test\n**How to test**:\n- Open the inspector for any room. Under \"Area Actions\", verify the \"📚 Add from Library\" button is **not** present.\n- Verify the 📚 Item Library toolbar button still works for adding items to areas."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-44-remove_add_from_library.md"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-508",
+  "kind": "task",
+  "number": 508,
+  "title": "Consume depletion contract - engine auto-decrement vs item-authored",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-424",
+      "task-506",
+      "task-155",
+      "task-196"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Decide, implement, and document **one** rule for how an item's `uses` (`uses` =\ncharges/durability, task-155) is spent on `eat`/`drink`, so the engine and the\ntrigger-authoring layer agree. Today they don't, and the disagreement silently\ncreates infinite food.",
+    "why": "",
+    "how": "",
+    "verify": "- Unit: `eat` an authored item with `uses: 2`, no `adjust_uses` → after one eat\n  `uses == 1`, item present; after two, removed.\n- Unit: permanent (`uses: -1`) authored item survives any number of eats.\n- Unit: persistent-empty (`set_state empty`) item stops at 0 and stays.\n- Regression: a \"suggested\" item (heuristic output) is finite, not infinite.\n- Soak: camp 23/23 at 1 and 15 min/tick; graph node growth bounded.",
+    "acceptance": [
+      {
+        "text": "Engine owns automatic use decrementing on consumable items upon successful consume.",
+        "done": true
+      },
+      {
+        "text": "Trigger suggestions omit redundant manual use decrement effects.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/actions.py",
+      "engine/triggers.py"
+    ],
+    "custom": {
+      "the_mismatch_measured_2026_09_24": "Two mechanisms exist and only one fires for consume:\n\n- **`use` action auto-decrements.** `engine/items/use_actions.py:160-170`:\n  every `use` does `uses -= 1` and detaches the item at 0, regardless of triggers.\n- **`eat`/`drink` never auto-decrement.** `engine/items/consume_actions.py` has no\n  decrement; `_deplete_if_spent` (`:132`) only *reacts* to a count that a trigger\n  already drove to 0. So consume depletion must be hand-authored via\n  `adjust_uses` / `remove_item` / persistent `set_state`.\n\nNow the authoring layer. The trigger suggester and its AI prompt were built on the\nopposite assumption:\n\n- `static/js/shared/trigger-suggest-ai.js:122` tells the model: *\"The engine\n  auto-decrements uses and removes the item at 0 - do NOT hand-add\n  `adjust_uses`/`destroy_item`.\"*\n- `static/js/item-library/consumable-triggers.js:298-301` emits a `uses_above 0`\n  condition + an \"empty\" fail message, but **no** `adjust_uses`.\n\nSo a finite consumable produced by \"⚡ Suggest\" / \"✨ Suggest (AI)\" has a guard that\ncan never become false: the guard asks \"are there uses left?\", nothing ever spends\none, and the item is **infinite**. This is exactly why `rations_of_dried_meat`\n(`uses: 3`) and `apple` (`uses: 1`) never deplete once the authored path is live\n(see task-424 / task-506).\n\nIt also means task-424's chosen model (item-authored `adjust_uses`, hand-written\ninto the camp's five consumables) directly contradicts the contract the authoring\ntools assume - one of the two is wrong and the difference is invisible until\nsomeone soaks it.",
+      "the_fork": "**A - engine auto-decrement for consume (recommended).**\nMake `eat`/`drink` spend `uses` exactly as `use` does, so the AI prompt's\nstatement becomes true. Consequences:\n- Consume triggers author only `adjust_vital` (+ conditions/messages); they never\n  touch `uses`. The `uses_above 0` guard becomes meaningful.\n- The persistent-empty hook (`on_depleted`, `set_state empty`) attaches to the\n  engine decrement (`uses_before > 0 → 0`) instead of to a hand-authored\n  `adjust_uses`.\n- The camp's five consumables drop their hand `adjust_uses`\n  (`tools/author_camp_consumables.py` is a one-line change) - no double-decrement.\n- One decrement path for both verbs; the \"forgot `adjust_uses` → infinite\" bug\n  class disappears.\n- Risk: any existing trigger that *also* hand-authors `adjust_uses` on consume\n  would double-decrement and must be found and cleaned (audit `data/`).\n\n**B - item-authored depletion stays.**\nKeep task-424's model and instead fix the tools: update the AI prompt and the\nheuristic suggester to emit `adjust_uses`, and batch-run them. Consequences:\n- No engine change; the `use` path and the consume path stay different rules.\n- Every consumable, forever, must remember to deplete itself; the failure mode is\n  silent and only a soak catches it.\n\nRecommendation: **A** - it is the contract the authoring layer already assumes,\nit removes a silent-infinite failure class, and it matches the one place the\nengine already auto-spends `uses`.",
+      "design_questions_to_settle": "- Does auto-decrement apply when `uses == -1`? (No - \"no charge model\"; keep\n  permanent items permanent, as `use` already does.)\n- Does a consume trigger that wants the item to *survive* (the water skin that\n  empties) rely on `set_state` + a persistent empty state, not on skipping the\n  decrement? (Yes.)\n- Ordering: decrement before or after the item's triggers fire? `use` decrements\n  *after* its triggers (`use_actions.py:160` is past the trigger exec); match that\n  so a trigger can read the pre-spend count.\n- Migration: find every consume trigger in `data/` that hand-authors `adjust_uses`\n  or `remove_item` and remove the now-redundant spend (keep `remove_item` only\n  where \"destroy, don't persist\" is genuinely intended and distinct from\n  `uses: 1`).",
+      "non_goals": "- Per-item nutrition/restore amounts (that is task-506).\n- Changing what counts as food/drink (`FOOD_TAGS`/`DRINK_TAGS`).\n- The `use` path's existing auto-decrement (it is already correct).",
+      "progress_2026_09_24_fork_a_implemented": "**Fork A chosen** (engine auto-decrement), exactly as recommended: it is the\ncontract the authoring layer already assumes, it matches the `use` path, and it\nremoves the silent-infinite failure class.\n\n- `engine/items/consume_actions.py`: `_spend_uses()` spends one charge on\n  `eat`/`drink` (skips `uses <= 0`, so `-1` stays permanent), called **after**\n  the item's triggers fire and before `_deplete_if_spent`, so a trigger can read\n  the pre-spend count. The `on_depleted`/persist-or-remove behaviour is\n  unchanged.\n- `tools/author_camp_consumables.py`: the camp's `on_eat`/`on_drink` effects are\n  now `adjust_vital` only; re-ran with `--write`, so the five camp consumables\n  no longer hand-spend (`data/scenarios/kraktooth_goblin_camp.json`, −35 lines,\n  6 triggers updated in place).\n- Data audit of every `on_eat`/`on_drink` trigger in `data/`:\n  - `data/library/items/carcass.json` - removed the hand `adjust_uses`.\n  - `data/scenarios/mansion.json` - removed the hand `adjust_uses` from the\n    `energy_drink` trigger (shared `on_use`/`on_drink`).\n  - Remaining `consume_item` effects in `autosave.json` / `taco_bell_date.json`\n    are no-ops (their params lack the `item` key the handler reads), so they do\n    not spend.\n- No JS change needed: `trigger-suggest-ai.js:122` already states the engine\n  auto-decrements, and `consumable-triggers.js` already emits the `uses_above 0`\n  guard with no spend - both are now true.\n- Tests:\n  - `tests/test_consume_depletion.py` updated to the new contract (fixtures\n    author `adjust_vital` only) and extended: engine spends a charge, suggested\n    shape is finite, permanent `uses: -1` survives 5 drinks, persistent-empty\n    stops at 0.\n  - `tests/test_camp_consumables.py` now asserts the camp triggers do **not**\n    hand-write `adjust_uses`.\n  - `tests/test_consume_contract.py` (new): scans all scenario/library data and\n    fails if any consume trigger hand-spends (`adjust_uses`/`remove_item`/\n    `destroy_item`).\n- Soak: Kraktooth camp, one game week, `--background-all --mature` -\n  **23/23 alive at 1 and 15 min/tick** (graph 188/190 nodes, bounded)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "blocks": "506 (the library-wide consumable pass cannot be authored correctly until the depletion model is fixed)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-508-consume-depletion-contract-engine-auto-decrement-vs-item-authored-fix-the-trigger-suggester-ai-assumption.md"
+  }
+}

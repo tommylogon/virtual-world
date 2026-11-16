@@ -1,0 +1,48 @@
+{
+  "id": "task-242",
+  "kind": "task",
+  "number": 242,
+  "title": "Allow Agents to Create Triggers on Items",
+  "status": "review",
+  "area": "triggers",
+  "priority": "medium",
+  "relations": {
+    "related": [
+      "task-203",
+      "task-380",
+      "task-388"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-203-set-adjust-parameters]]",
+      "[[task-380-trigger-snippet-palette]]",
+      "[[task-388-trigger-graph-editor-overhaul]]"
+    ]
+  },
+  "sections": {
+    "what": "Let AI agents add triggers to items at runtime - e.g. an agent crafts or enchants an item\nand binds a behaviour (`on_use`, `on_take`, `on_examine`, timing) to it - moving trigger\nauthoring beyond the human designer.",
+    "acceptance": [
+      {
+        "text": "Agent actions can synthesize and attach valid trigger rules to items in runtime.",
+        "done": true
+      },
+      {
+        "text": "Runtime trigger compiler validates condition/effect syntax before attaching.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/triggers.py",
+      "engine/actions.py"
+    ],
+    "custom": {
+      "notes_open_questions": "- New agent action + schema field (e.g. `create_trigger`: `{item, when, effect}`), routed\n  through the existing `normalizeStructuredAction` and `/api/action` path.\n- Security/sanity: scope what agents can express (supported effect/condition sets), and\n  whether agent-created triggers persist (graph) and serialize.\n- Interaction with the shared TriggerEditor data model (edge properties vs\n  `logic_trigger` nodes) - reuse the same internals so human editors can see/edit them."
+    }
+  },
+  "extra": {
+    "inline_meta": {
+      "source": "`dev_tasks/developer ideas.md` (allow agents to create their own triggers on items)"
+    }
+  }
+}

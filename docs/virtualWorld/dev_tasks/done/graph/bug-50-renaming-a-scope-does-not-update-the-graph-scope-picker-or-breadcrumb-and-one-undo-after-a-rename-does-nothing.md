@@ -14,19 +14,19 @@ priority: high
 ## Symptom
 
 The author renamed a scope (`deep_woods_2` → "goblin camp") and the graph still
-showed the old name — in the scope picker chip at the top of the canvas and in the
+showed the old name - in the scope picker chip at the top of the canvas and in the
 scope bar's breadcrumb. It only changed after a full page reload. The rename
 itself was correct all along: `GET /api/world/scopes?flat=1` returned
 `name: "goblin camp"`, and the WorldPainter breadcrumb (which fetches its own
 payload) showed it.
 
-## Cause 1 — nothing refreshed the derived labels
+## Cause 1 - nothing refreshed the derived labels
 
 The picker and the breadcrumb are both derived from
 `graphManager._scopeSummaries`, filled by `loadScopeFilterOptions()`. Nothing
 called it after a rename, and the `world_changed` subscriber in `world-state.js`
-only does `worldState.fetch()`, which does not carry scope names. So any rename —
-from this app, from an agent over MCP, or reverted by Undo — left both labels
+only does `worldState.fetch()`, which does not carry scope names. So any rename -
+from this app, from an agent over MCP, or reverted by Undo - left both labels
 stale.
 
 Fix: `graphManager._watchScopeChanges()` subscribes to the existing
@@ -42,7 +42,7 @@ also live under `/api/world/scopes/…` and fire the same event, so matching tha
 prefix would refetch the list on every stroke. (Verified: three paint strokes
 produced **0** extra requests.)
 
-## Cause 2 — `/rename`, `/delete` and `/offset` pushed two undo snapshots
+## Cause 2 - `/rename`, `/delete` and `/offset` pushed two undo snapshots
 
 Every WorldPainter scope handler pushes its own **pre**-state snapshot, and
 `app.py`'s `after_request` hook must skip a second push for those paths, or the
@@ -52,7 +52,7 @@ written as a set of suffixes (`== '/api/world/scopes'`, `endswith('/grid')`,
 suffixes outside `/grid/`, so each of them double-pushed. task-539's `/areas`
 was the same class of miss, which is how it was found.
 
-Fix: one rule instead of a suffix list — any mutation under
+Fix: one rule instead of a suffix list - any mutation under
 `/api/world/scopes` pushes its own snapshot. Regression test:
 `test_every_scope_route_is_one_undo_step` asserts a single stack entry, and that
 **one** undo reverts, for rename / offset / paint / delete.

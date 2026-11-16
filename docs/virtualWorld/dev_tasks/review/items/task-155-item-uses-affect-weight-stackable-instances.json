@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "task-155",
+  "kind": "task",
+  "number": 155,
+  "title": "Item Uses Affect Weight + Stackable Instances",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [
+    "items",
+    "weight",
+    "containers",
+    "realism",
+    "inventory",
+    "merging"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-205",
+      "task-103",
+      "task-102",
+      "task-196",
+      "task-508"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Two related concerns for multi-use consumable items:\n\n1. **Weight tracks remaining uses** - A bread with 4 uses at 0.5 kg should weigh less as it\n   gets eaten. Each use consumed reduces the item's weight proportionally.\n2. **Stackable instances** - When the player has multiple copies of the same consumable\n   (e.g. two breads), they should be combinable / splittable rather than managed as\n   separate nodes, with weight and uses correctly merged or partitioned.",
+    "why": "### Weight is static\n\n`weight` is a static property on item nodes. `adjust_uses` / `drain` / `_consume_item`\nchange `uses` but never touch weight (`engine/effects.py:847-931`,\n`engine/item_actions.py:1228`). A half-eaten loaf weighs the same as a full one, which\nbreaks container capacity (task-103) and encumbrance logic (task-205).\n\n### No instance combine / split\n\nTwo identical items (e.g. two `bread` nodes, each 4 uses, 0.5 kg) are two separate graph\nnodes. The player can't merge them into one 8-use 1.0 kg loaf, split one into two halves,\nor destroy a partial loaf to top up another. This clutters inventory and makes weight\naccounting wrong when uses are consumed on only one copy.",
+    "how": "### A. Weight Per Unit\n\n- Add optional `max_uses` tracking on item nodes (already exists as a concept in task-102,\n  but not always populated). `base_weight` = original weight when `uses == max_uses`.\n- On every use decrement (`_consume_item`, `handle_adjust_uses`, `handle_drain`), recompute:\n  ```\n  weight = round(base_weight * (uses_left / max_uses), 3)\n  ```\n  - When `max_uses` is unknown or `-1` (infinite), keep full `weight` unchanged.\n  - When `uses` hits 0, the item is consumed/destroyed (existing `on_use` triggers handle removal).\n- `base_weight` is a new optional property; if absent, derive it from the library entry at\n  build time (or fall back to current `weight` with no scaling).\n\n### B. Stackable Instances - Combine\n\nWhen the player has two or more items with the same `library_id` (or same `name` + `tags` +\n`actions` + `uses` baseline) and the same `max_uses`:\n\n- **Combine** (e.g. `combine bread with bread`):\n  - Target item's `uses += source item's uses` (clamp at `max_uses` if defined)\n  - Weight is recomputed via rule A (now `uses_left` is higher → weight is higher)\n  - Source item node is destroyed; its `EDGE_CARRYING` / spatial edges removed\n  - Container capacity re-checked: destroying the source frees space; the combined item may\n    be heavier and need a container with enough remaining capacity\n- **Destroy + transfer** (special case of combine when the target is at `max_uses`):\n  - If target can't absorb more uses, but you want to \"pour\" from source to target:\n    - Destroy the source instance\n    - Increase target's `uses` by the source's `uses` (beyond `max_uses` if no cap, or\n      clamp and note overflow)\n    - Recompute weight\n\n### C. Stackable Instances - Split\n\nWhen an item has many uses and you want to divide it:\n\n- **Split** (e.g. `split bread` or `split bread into two`):\n  - Target item's `uses` is halved (or divided by N)\n  - A new item node is created with the same properties, `uses = original - target.uses`\n  - `base_weight` / `weight` is partitioned proportionally to the new uses counts\n  - The split-off item is placed in the same container / area / hand\n  - Container capacity re-checked for the split-off item\n\n### D. Matching & Identity\n\n- Two items are \"stackable twins\" when they share the same `library_id` (if present) and\n  all of: `actions`, `tags`, `current_state`, `equip_slots`, and `max_uses` (if set).\n- Items with different `current_state` (e.g. \"sharp\" vs \"dull\" sword) are NOT stackable even\n  if same base item.\n- The existing `find_item_node` / matching system (`engine/matching.py:301`) already\n  returns the first carry match - combine/split need to enumerate ALL matching carry edges\n  and disambiguate (numbered take: \"take bread 2\").",
+    "verify": "- [ ] Bread with 4 uses at 0.5kg → after eating 1 use, weight = 0.375kg\n- [ ] Bread with 4/4 uses → weight = full `base_weight`\n- [ ] Infinite-use item (`uses = -1`) keeps static weight (no scaling)\n- [ ] `combine bread bread` → one item with 8 uses, weight = 1.0kg, source node gone\n- [ ] `combine bread bread` when target at max_uses → destroy source, transfer uses\n- [ ] `split bread` → two items at half uses each, weights partitioned correctly\n- [ ] Container capacity re-checked after combine (heavier item may not fit)\n- [ ] Items with different `current_state` are not combinable\n- [ ] Container capacity respects the reduced weight after partial consumption",
+    "acceptance": [
+      {
+        "text": "Item total weight recalculates based on current charges or remaining fluid units.",
+        "done": true
+      },
+      {
+        "text": "Empty container weight reverts to tare weight.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/inventory.py",
+      "tests/test_inventory.py"
+    ],
+    "custom": {
+      "implementation": "### Backend\n\n1. `engine/item_actions.py`\n   - Add `_reconcile_item_weight(node)` - recompute `weight` from `base_weight`,\n     `uses`, `max_uses` (rule A). Call it after every `adjust_uses` / `drain` /\n     `_consume_item`.\n   - Add `_get_stackable_item_nodes(player_manager, item_name)` - enumerate all\n     `EDGE_CARRYING` / `EDGE_EQUIPPED` edges matching the name, return list of nodes.\n   - Add `combine_items(player_manager, source_name, target_name)` - merge uses,\n     recompute weight, destroy source, re-check capacity.\n   - Add `split_item(player_manager, item_name, parts=2)` - partition uses + weight,\n     create new node, place in same location.\n2. `engine/effects.py`\n   - Call `_reconcile_item_weight` inside `handle_adjust_uses` (line 847) and\n     `handle_drain` (line 904) after modifying `uses`.\n3. `routes/graph.py` or `routes/items_registry.py`\n   - Expose `combine` / `split` as API endpoints (or reuse the action endpoint).\n   - Add `base_weight` and `max_uses` to the item library editable fields.\n4. `engine/matching.py` - ensure `find_item_node` disambiguates numbered requests\n   (already handled by task-81; verify it returns the Nth match so combine/split can\n   target specific instances).\n\n### Frontend\n\n- `static/js/inspector/item-view.js` - show `base_weight`, `max_uses`, computed\n  `weight` (recalc on `uses` change) in the item editor.\n- Inventory grid: right-click menu on stackable items → \"Combine\", \"Split\",\n  \"Destroy + Transfer\".\n- Item library contents editor: show weight per use when `max_uses` is set.",
+      "files_to_modify": "1. `engine/item_actions.py` - weight reconciliation, combine/split/stack logic\n2. `engine/effects.py` - call weight reconciliation in `handle_adjust_uses` / `handle_drain`\n3. `routes/graph.py` - combine/split API endpoints\n4. `routes/items_registry.py` - `base_weight`, `max_uses` library fields\n5. `static/js/inspector/item-view.js` - editable base_weight, computed weight display\n6. `static/js/inspector/inventory-grid.js` - stack context menu (combine/split/destroy)\n7. `engine/matching.py` - numbered match disambiguation for combine/split targets",
+      "related": "- [[todo/items/task-156-weight-affects-energy-decay|task-156: Weight affects energy decay]]\n- [[review/items/task-103-weight-volume-container-limits|task-103: Weight/Volume Limits for Containers]]\n- [[todo/items/task-205-player-carry-capacity-system|task-205: Player Carry Capacity System]]\n- [[todo/items/task-102-progressive-item-status-multi-use.md|task-102: Progressive Item Status]]",
+      "browser_ui": "Intended UI home: Character Inventory → inspect a multi-use consumable's remaining uses and weight → combine or split identical stacks using the inventory actions.\n\nCurrent availability: the card proposes weight that falls with remaining uses and stackable/splittable instances. The card does not claim those inventory controls or derived weights are implemented.\n\nLive steps when available:\n1. Put a bread item with four authored uses into a character's inventory and record its initial weight and total carried weight.\n   - expected: the inventory shows the item's remaining uses and weight using the authored per-item rule.\n2. Consume one use and reopen Inventory.\n   - expected: remaining uses drop by one and item/carried weight drops by the documented proportional amount; the item remains until its uses are exhausted.\n3. Add a second matching bread and combine the two stacks, then split one unit back out.\n   - expected: total quantity, remaining uses, and weight are conserved across combine/split; no extra item node or duplicated uses are created.\n4. Save/reload and compare the two inventories.\n   - expected: stack quantities and remaining-use weights round-trip exactly.\n\nThis section is not a claim that use-based weight and stack controls are implemented today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Items & Inventory/Inventory]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "updated": "2026-08-11"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-155-item-uses-affect-weight.md"
+  }
+}

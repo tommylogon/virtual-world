@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "task-94",
+  "kind": "task",
+  "number": 94,
+  "title": "Closeness as Behavioral Gate",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-22",
+  "updated": "2026-07-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Relationships with closeness values exist but are purely informational - injected into the prompt as context. humanoidagents uses closeness as a **behavioral gate**: it checks closeness before deciding whether to react to another agent, and adjusts dialogue tone based on closeness level.\n\nThis task makes closeness actively gate agent social behavior, not just decorate the prompt.\n\n---",
+    "why": "TODO",
+    "how": "### 1. Add closeness gate to agent reaction check\n\nIn `agent-engine.js`, before the agent generates a reaction/speech, add a boolean check like humanoidagents:\n\n```\nCloseness: Piper is feeling distant/close/very close to Tommy\nShould Piper react to what just happened?\n```\n\nIf the LLM says no, the agent doesn't generate speech that turn (just inner monologue + action).\n\n### 2. Add post-conversation closeness adjustment\n\nAfter an agent speaks to another character, make a lightweight LLM call:\n```\nPiper just spoke with Tommy: \"{dialogue}\"\nDid Piper enjoy this interaction? Answer yes or no.\n```\nAdjust closeness by ±5 (on the -100 to 100 scale).\n\n### 3. Include closeness in reaction prompt generation\n\nThe closeness description is already in `buildRelationshipContext()` - but make sure it appears in the reaction-prompt path (not just the observation prompt). Check that `buildReactionPrompt()` injects relationship context. Currently it does at line 586, so this may already work - verify.\n\n### 4. Add backend endpoint for closeness adjustment\n\nCurrently `player.py:233` has `update_relationship()` but it's only called from specific actions (attack, etc.). Add a generic endpoint or method so the frontend can report closeness changes after LLM sentiment analysis.\n\n---",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "implemented_2026_08_21_the_no_extra_llm_call_variant": "- **Prompt-side gate**: `character-state.js` `buildRelationshipContext` now appends a behavioral clause per\n  tier via `relationshipGuidance(closeness)` - e.g. \"…a rival (-30/100) - keep interactions cold and\n  minimal; never turn your back on them\". Injected into observe/decide/react phases (existing plumbing).\n- **Heuristic closeness movement** (no sentiment LLM calls):\n  - Directed whisper (task-248): +2 both directions (`narration.py`, after event build).\n  - `give_item`: recipient → giver +5 (`item_actions.py`).\n  - Attack: −30 attacker-directed already existed in `combat.py`.\n- **Deliberate deviation from the doc's steps 1+2+4**: no boolean reaction LLM call, no post-conversation\n  sentiment LLM call, no new endpoint - the guidance clauses shape tone inside prompts the engine already\n  sends, and outcomes move closeness heuristically. Same realism, zero added latency/cost.\n- Tests: `tests/test_realism_perception.py::TestClosenessHooks` (2 tests).\n\n---",
+      "test": "1. Set up two characters with closeness=0 (neutral)\n2. Observe that they rarely react to each other's actions\n3. Increase closeness to 75 (close friend)\n4. Observe that they react more frequently and warmly"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/NPC Behavior System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "humanoidagents `humanoid_agent.py:357-373`:",
+    "```python",
+    "def get_closeness_between_self_and_other_agent(self, other_agent):",
+    "closeness_value = self.social_relationships[other_agent.name]['closeness']",
+    "if closeness_value < 5:    description = \"distant\"",
+    "elif closeness_value < 10: description = \"rather close\"",
+    "elif closeness_value < 15: description = \"close\"",
+    "else:                      description = \"very close\"",
+    "```",
+    "humanoidagents `humanoid_agent.py:376-407` - closeness is included in the **boolean reaction check**:",
+    "```",
+    "Should {self.name} react to the observation? Please respond with only yes or no.",
+    "```",
+    "humanoidagents `humanoid_agent.py:212-219` - closeness adjusts **after conversation**:",
+    "```python",
+    "def get_sentiment_about_conversation(self, conversation_history, other_agent):",
+    "prompt = f\"Did {self.name} enjoy the conversation?\"",
+    "response = self.LLM.get_llm_response(prompt)",
+    "self.social_relationships[other_agent.name]['closeness'] += 1 if 'yes' else -1",
+    "```",
+    "**Virtual_world currently:**",
+    "- `player.py:122-124` - relationships dict with closeness (-100 to 100)",
+    "- `player.py:233-271` - `update_relationship()` / `get_relationship_description()`",
+    "- `prompt-builder.js:80-91` - `buildRelationshipContext()` injects labels like \"Piper considers Tommy a friend (closeness: 50/100)\"",
+    "- BUT: no behavioral consequences - closeness doesn't gate reactions, doesn't affect dialogue initiation, doesn't change after conversation",
+    "---"
+  ],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-94-closeness_as_behavioral_gate.md"
+  }
+}

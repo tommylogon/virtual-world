@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "task-345",
+  "kind": "task",
+  "number": 345,
+  "title": "Grammar guardrail for LLM-generated appearance text",
+  "status": "review",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-328"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "fallback. One design correction from the filing: the desired voice is **consistent\nthird person** (not second person) because `player.description` is consumed by other\ncharacters' views (stranger labels, examine - task-154) and converted to second\nperson at prompt time by `secondPersonDesc`. Implemented in\n`static/js/inspector/agent-view.js`: extended `_generateDescription` directives\n(third-person rule, exact-agreement rule, 2 few-shot lines) +\n`AV._appearanceGrammarIssues` (first/second-person leaks + the repro slips\n`you is` / `you was` / `body is who`) + `AV._sanitizeAppearanceGrammar` (one\nsilent repair LLM pass; if still flagged → safe client-side merge fallback, never\npersist broken text). Note: the backend `_update_equipment_description` prompt\n(equipment.py:558) is currently log-only - the LLM call was removed in a prior\nrefactor; the true generation path is this browser-side call.",
+    "why": "",
+    "how": "",
+    "verify": "Generate appearances across several providers/models (incl. small local ones\n- the repro came from stealth/ox-alpha) → zero `\\byou is\\b|\\byou was\\b` hits;\nregression: pre-existing broken text can be repaired via a regenerate action.",
+    "acceptance": [
+      {
+        "text": "Grammar guardrail prevents second-person and pronoun-verb drift in appearance output.",
+        "done": true
+      },
+      {
+        "text": "Generated prose strictly conforms to descriptive noun phrases.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/character_appearance.py",
+      "tests/test_character_appearance.py"
+    ],
+    "custom": {
+      "found": "Mansion session (mansion_event_log_2026-08-23T15-04-54.txt), sammy lopez's\n`Your appearance:` block, which is RE-SENT on every prompt:\n\n> \"your body is who lean and completely flat-chested, a fact **you is**\n> deeply self-conscious about... **you is** tall and coltish at 171cm\"\n\nThe appearance-generation call produced broken second-person grammar\n(\"you is\", \"body is who\"), and generated text is stored once and echoed into\nevery system/user prompt forever - errors become permanent, load-bearing\ncontext that models also mirror in prose.",
+      "fix_options": "(a) Prompt-side: appearance generation already gets voice rules; add explicit\n\"always second-person singular ('you are/your'), never verb-agreement slips\"\n+ 2 few-shot lines of correct output.\n(b) Validation-side: after generation, cheap check for known slip patterns\n(`\\byou is\\b`, `\\byou was\\b`, `\\bbody is who\\b`) → one silent repair pass or\nregen before persisting.\n(c) Editor-side: task-42 memory editor / inspector could flag suspect grammar\nfor human touch-up.\n\nRecommend (a)+(b): instruction plus automated catch. (c) optional."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/prompting/task-345-appearance-generation-grammar-guardrail.md"
+  }
+}

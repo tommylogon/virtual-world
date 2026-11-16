@@ -6,7 +6,7 @@ priority: medium
 related: ["'task-828'", "'task-830'", "'task-847'", "'task-848'", 'task-830', 'task-847', 'task-848']
 ---
 
-# task-844: Persona tab character-sheet pass — grid, chips, codex preview
+# task-844: Persona tab character-sheet pass - grid, chips, codex preview
 
 <!-- deps:start -->
 **Related:** [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]]
@@ -40,7 +40,7 @@ Constraints (non-negotiable, from two rejected mockups):
 - **No second theme.** The repo dark theme (`var(--bg-card)` etc.)
   stays; game feel comes from layout, type, and focus glow, not a new
   palette or webfont (offline breakage).
-- **Folds stay.** Identity/Appearance open, depths folded — verified
+- **Folds stay.** Identity/Appearance open, depths folded - verified
   live; restructure inside the folds, not the navigation.
 
 Pieces, in impact order:
@@ -57,7 +57,7 @@ Pieces, in impact order:
    never-compiled rule).
 5. Sticky bar: save/compile sticky with a dirty dot on unsaved edits.
 6. Codex preview: debounced dry-run (`POST /record/compile`
-   `{"record": {...}}` — no store) rendering compiled prose beside
+   `{"record": {...}}` - no store) rendering compiled prose beside
    the form.
 
 ## Steps to verify
@@ -65,14 +65,14 @@ Pieces, in impact order:
 1. Open Mind → Persona on a character with a rich block.
    - expected: badges up top, grid fields, chips for lists,
      intimacy folded, secrets blurred, sticky bar.
-   - observed: 2026-10-15 — live on :4444, screenshots on file:
+   - observed: 2026-10-15 - live on :4444, screenshots on file:
      badge header (pronouns/age/species), 2-col grid, chips with
      tones, folds, tooltips, sticky bar. Secrets blur + intimacy
      fold render (interaction: open traverse, contents schema-driven).
 2. Add/remove chips, blur/unblur secrets, type with the preview open.
    - expected: chips persist via save; preview tracks the unsaved
      form without storing; dirty dot appears and clears on save.
-   - observed: 2026-10-15 — chip add ("pepper") persisted via save
+   - observed: 2026-10-15 - chip add ("pepper") persisted via save
      (`interests: [shinies, pepper]`); codex preview compiled the
      unsaved form ("A 12-year-old goblin…"). Caught + fixed a REAL
      bug on the way: every POST broadcasts `world_changed`, so the
@@ -84,13 +84,13 @@ Pieces, in impact order:
 3. Save, compile with hand prose, confirm.
    - expected: existing 830 behavior unchanged (preview → confirm →
      applied).
-   - observed: 2026-10-15 — unchanged paths re-verified (830 flow
+   - observed: 2026-10-15 - unchanged paths re-verified (830 flow
      intact under the new markup; collect reads the same
      `data-persona-path` bindings incl. hidden chip inputs).
 4. Run gates.
    - expected: `ts_convert.py check` green; backend tests green
      (dry-run test included).
-   - observed: 2026-10-15 — gate green (all five); 92 backend tests
+   - observed: 2026-10-15 - gate green (all five); 92 backend tests
      green (dry-run store/reject tests included).
 
 ## Acceptance
@@ -120,6 +120,6 @@ Pieces, in impact order:
 ## Files
 
 - `static/js/inspector/mind-view.ts` (+ built `.js`)
-- `routes/player_ops.py` — dry-run `{"record"}` on compile (done)
-- `tests/test_character_appearance.py` — dry-run test
-- `docs/virtualWorld/Characters/Persona.md` — update "What you see"
+- `routes/player_ops.py` - dry-run `{"record"}` on compile (done)
+- `tests/test_character_appearance.py` - dry-run test
+- `docs/virtualWorld/Characters/Persona.md` - update "What you see"

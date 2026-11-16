@@ -6,7 +6,7 @@ status: done
 priority: medium
 ---
 
-# Task 114: Trigger Editor — Nested Rule Tree Conditions + Flow Reorder
+# Task 114: Trigger Editor - Nested Rule Tree Conditions + Flow Reorder
 
 **Status**: Done  
 **Priority**: High  
@@ -30,13 +30,13 @@ Rework the TriggerEditor (form-based) to:
 
 `_execute_triggers` reads `conditions` (plural) but serialization stores `condition` (singular). Most library item conditions are dead code.
 
-**Fix**: Add fallback lookup in `_execute_triggers` — if `conditions` (plural) is empty/absent, check `condition` (singular) and wrap it in a list.
+**Fix**: Add fallback lookup in `_execute_triggers` - if `conditions` (plural) is empty/absent, check `condition` (singular) and wrap it in a list.
 
 ### Unify condition evaluation
 
 Two separate evaluators exist:
-- `_evaluate_trigger_condition` — flat list, item context (has_item, skill_check, etc.)
-- `_evaluate_conditions` — tree format, NPC context (eq, in_area, proximity, etc.)
+- `_evaluate_trigger_condition` - flat list, item context (has_item, skill_check, etc.)
+- `_evaluate_conditions` - tree format, NPC context (eq, in_area, proximity, etc.)
 
 **Fix**: Make `_execute_triggers` detect tree format (dict with `"operator"` key) and dispatch to `_evaluate_conditions`. Add missing item-trigger condition types to `_evaluate_conditions` (skill_check, temperature_below/above, uses_reached/above, has_trait).
 
@@ -106,12 +106,12 @@ Replace the flat conditions section with a visual rule tree builder:
 ```
 
 #### UI elements:
-- **AND/OR pill** at start of each row — toggleable, determines logic between this and previous sibling
-- **Condition row** — type dropdown + params (same as current)
-- **Group row** — visual bracket/indent containing child conditions, same AND/OR logic
-- **➕ Add Condition** — adds a leaf row
-- **➕ Add Group** — adds a nested sub-group
-- **Group/ungroup** — maybe a button to wrap selected? Or just manual grouping via "Add Group"
+- **AND/OR pill** at start of each row - toggleable, determines logic between this and previous sibling
+- **Condition row** - type dropdown + params (same as current)
+- **Group row** - visual bracket/indent containing child conditions, same AND/OR logic
+- **➕ Add Condition** - adds a leaf row
+- **➕ Add Group** - adds a nested sub-group
+- **Group/ungroup** - maybe a button to wrap selected? Or just manual grouping via "Add Group"
 - **✕ Remove** on each row (same as current)
 
 #### Visual design:
@@ -163,7 +163,7 @@ The context menu in `trigger-graph.js` has a z-index lower than the canvas overl
 |------|--------|
 | `static/js/shared/trigger-graph.js` | Fix z-index on context menu |
 | `engine/trigger_system.py` | Unify condition evaluation |
-| `static/js/shared/trigger-editor.js` | Major rework — flow reorder, nested rule tree |
+| `static/js/shared/trigger-editor.js` | Major rework - flow reorder, nested rule tree |
 | `static/css/main.css` | Maybe add rule tree styles |
 
 ---
@@ -171,7 +171,7 @@ The context menu in `trigger-graph.js` has a z-index lower than the canvas overl
 ## Steps to verify
 
 1. Open Inspector → Add Trigger → verify conditions section has nested builder
-2. Build `(has_item key AND skill_check) OR (state_equals door open)` — confirm tree renders right
+2. Build `(has_item key AND skill_check) OR (state_equals door open)` - confirm tree renders right
 3. Save trigger → reload → confirm conditions load correctly
 4. Check existing triggers in world still fire correctly (backward compat)
 5. Right-click in TriggerGraph → menu visible above canvas
@@ -207,11 +207,11 @@ All items implemented and verified:
 | Item | Status | Location |
 |------|--------|----------|
 | Flow reorder (Trigger → Conditions → Effects → Messages) | ✅ | `trigger-editor.js:98` (conditions before effects) |
-| Nested rule tree UI | ✅ | `trigger-editor.js:316-638` — `_loadConditionTree()`, `_renderConditionGroup()`, `_collectConditionGroup()` |
+| Nested rule tree UI | ✅ | `trigger-editor.js:316-638` - `_loadConditionTree()`, `_renderConditionGroup()`, `_collectConditionGroup()` |
 | Singular condition fallback | ✅ | `trigger_system.py:1146-1153` |
 | Tree format detection | ✅ | `trigger_system.py:1173-1183` |
-| Unified condition evaluator | ✅ | `trigger_system.py:337` — `_evaluate_conditions()` handles both tree and flat |
-| TriggerGraph z-index fix | ✅ | `trigger-graph.js:522` — context menu z-index:10001 > modal z-index:9999 |
+| Unified condition evaluator | ✅ | `trigger_system.py:337` - `_evaluate_conditions()` handles both tree and flat |
+| TriggerGraph z-index fix | ✅ | `trigger-graph.js:522` - context menu z-index:10001 > modal z-index:9999 |
 
 ## Why
 

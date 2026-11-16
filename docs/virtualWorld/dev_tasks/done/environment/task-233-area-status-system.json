@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-233",
+  "kind": "task",
+  "number": 233,
+  "title": "Area Status System",
+  "status": "done",
+  "priority": "medium",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-15",
+  "updated": "2026-08-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [
+      "task-138"
+    ],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a general-purpose `statuses` list to area nodes, mirroring the character condition instance schema. This is the framework for dynamic environmental effects: `on_fire`, `flooded`, `poison_gas`, `blessed`, `darkness_magic`, etc. Statuses can tick damage to characters, modify environment properties, and propagate through open connections.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- `on_fire` raises room temp +10/tick, deals 1 HP/tick, produces smoke\n- `flooded` propagates to adjacent areas through open doors\n- `poison_gas` spreads and applies `poisoned` condition to characters\n- Status with `duration: 10` expires after 10 ticks\n- `clear_area_status` removes status immediately\n- Statuses persist through save/load",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/area_statuses.py` - new module",
+      "engine/tick_manager.py` - call `area_statuses.process_tick()` each turn",
+      "engine/trigger_system.py` - add status conditions/effects",
+      "engine/trigger_validator.py` - validate status params",
+      "engine/effects.py` - `apply_area_status`, `clear_area_status` effect handlers",
+      "engine/area.py` - ensure `statuses` field is initialized",
+      "engine/serialization.py` - save/load `statuses",
+      "engine/area_description.py` - render active statuses in description"
+    ],
+    "custom": {
+      "why_area_statuses_are_separate_from_character_conditions": "The character condition system (`engine/conditions.py`) is tightly coupled to character state management. Area statuses look similar on the surface (type, severity, duration, tick_effects) but have fundamentally different requirements:\n\n| Concern | Character Conditions | Area Statuses |\n|---------|---------------------|---------------|\n| State hierarchy | `awake` → `sleeping` → `unconscious` → `dead` | No state hierarchy |\n| Gate system | `blocks_speech`, `drops_held_items`, `blocks_movement` | No action gates |\n| Stack behavior | `accumulate` / `refresh` / `noop` | Simple: stack severity up to 5 |\n| Spatial propagation | None | Spreads through open ways |\n| Environment mutation | None | Modifies env.temperature, env.air, env.light |\n| Damage types | Vital-specific | HP + condition application to everyone |\n\nForcing area statuses into conditions would require inventing fake \"area states\" and meaningless gates. Keep them separate. Share the pattern (registry, instance schema) but not the code. Area statuses can apply character conditions via the existing `apply_condition` effect.",
+      "status_schema": "Each status instance on an area:\n\n```json\n{\n    \"type\": \"on_fire\",\n    \"severity\": 3,\n    \"duration\": null,\n    \"source\": \"fireplace_item\",\n    \"tick_effects\": {\n        \"temperature\": 15,\n        \"air\": \"smoke\",\n        \"light\": 20,\n        \"damage\": {\"hp\": 2, \"fire\": 1}\n    },\n    \"propagation\": {\n        \"type\": \"through_open_ways\",\n        \"rate\": 0.05,\n        \"target_statuses\": [\"on_fire\", \"smoke\"]\n    },\n    \"clear_conditions\": [\"extinguished\", \"duration_expired\"]\n}\n```",
+      "status_type_definitions": "Stored in `engine/area_statuses.py` as a registry:\n\n```python\nAREA_STATUS_DEFINITIONS = {\n    \"on_fire\": {\n        \"name\": \"On Fire\",\n        \"default_tick_effects\": {\"temperature\": 10, \"air\": \"smoke\", \"light\": 15, \"damage\": {\"hp\": 1}},\n        \"clear_on\": [\"extinguished\", \"duration_expired\"]\n    },\n    \"flooded\": {\n        \"name\": \"Flooded\",\n        \"default_tick_effects\": {\"movement_cost\": 1},\n        \"propagation\": {\"type\": \"through_open_ways\", \"rate\": 0.02, \"target_statuses\": [\"flooded\"]}\n    },\n    \"poison_gas\": {\n        \"name\": \"Poison Gas\",\n        \"default_tick_effects\": {\"damage\": {\"hp\": 2}, \"condition\": \"poisoned\"},\n        \"propagation\": {\"type\": \"through_open_ways\", \"rate\": 0.03, \"target_statuses\": [\"poison_gas\"]}\n    }\n}\n```",
+      "engine_module": "New file: `engine/area_statuses.py`\n\n```python\nclass AreaStatusSystem:\n    def __init__(self, graph):\n        self.graph = graph\n\n    def apply_status(self, area_id: str, status_type: str, severity: int = 1, duration: int = None, source: str = None) -> None:\n        area = self.graph.get_node(area_id)\n        if not area:\n            return\n        statuses = area.properties.setdefault(\"statuses\", [])\n        for s in statuses:\n            if s[\"type\"] == status_type:\n                s[\"severity\"] = min(5, s[\"severity\"] + severity)\n                if duration and s.get(\"duration\") is not None:\n                    s[\"duration\"] = max(s[\"duration\"], duration)\n                return\n        definition = AREA_STATUS_DEFINITIONS.get(status_type, {})\n        new_status = {\n            \"type\": status_type,\n            \"severity\": severity,\n            \"duration\": duration,\n            \"source\": source,\n            \"tick_effects\": dict(definition.get(\"default_tick_effects\", {})),\n            \"propagation\": definition.get(\"propagation\"),\n            \"clear_conditions\": list(definition.get(\"clear_on\", []))\n        }\n        statuses.append(new_status)\n\n    def process_tick(self) -> None:\n        for area in self.graph.nodes.values():\n            if area.type != \"area\":\n                continue\n            statuses = area.properties.get(\"statuses\", [])\n            if not statuses:\n                continue\n            env = area.properties.setdefault(\"environment\", {})\n            alive = []\n            for status in statuses:\n                effects = status.get(\"tick_effects\", {})\n                if \"temperature\" in effects:\n                    env[\"temperature\"] = float(env.get(\"temperature\", 21)) + effects[\"temperature\"]\n                if \"air\" in effects:\n                    env[\"air\"] = effects[\"air\"]\n                if \"light\" in effects:\n                    env[\"light\"] = max(0, min(100, int(env.get(\"light\", 0)) + effects[\"light\"]))\n                if \"damage\" in effects:\n                    self._apply_area_damage(area.id, effects[\"damage\"])\n                if \"condition\" in effects:\n                    self._apply_area_condition(area.id, effects[\"condition\"])\n                if status.get(\"duration\") is not None:\n                    status[\"duration\"] -= 1\n                    if status[\"duration\"] <= 0:\n                        continue\n                alive.append(status)\n            area.properties[\"statuses\"] = alive\n            for status in alive:\n                if status.get(\"propagation\"):\n                    self._propagate_status(area.id, status)\n```",
+      "trigger_integration": "New trigger conditions:\n- `area_has_status` - checks if area has a status type\n- `on_status_applied` - fires when a status is added\n- `on_status_tick` - fires each tick a status is active\n- `on_status_cleared` - fires when a status expires or is cleared\n\nNew trigger effects:\n- `apply_area_status` - adds a status to a area\n- `clear_area_status` - removes a status type from a area",
+      "dependencies": "- **Blocked by**: task-227 (forecast drives base environment; statuses layer on top)\n- **Blocks**: task-232 (humidity could be a status or env property)",
+      "implemented_2026_09_02_this_audit": "Implemented in this pass - nothing existed before. Adds\n`engine/area_statuses.py` (registry: on_fire, smoke, flooded, poison_gas,\nblessed, darkness_magic; `AreaStatusSystem` with apply/clear/has_status,\nper-tick environment mutation + area damage (vitals) + condition application\nto every character present + duration expiry + propagation through open ways),\nengine wiring (`world.area_statuses`, `_area_statuses_tick()` in tick_turn),\n`apply_area_status` / `clear_area_status` effects (registered + validated,\nnode-ref params), the `area_has_status` trigger condition, status flavour\nlines in `area_description`, and tests (`tests/test_area_statuses.py`).\nBoth trigger editors expose the new effects/condition."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "filed": "2026-08-15",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-233-area-status-system.md"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "bug-8",
+  "kind": "bug",
+  "number": 8,
+  "title": "\"Max turns\" input counts individual character steps, not full turns",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-07-23",
+  "updated": "2026-07-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The \"Max turns\" input in settings actually counts individual character steps (actions) rather than full turns (rounds where all characters act once). A value of 10 stops after 10 individual character actions, not 10 full rounds.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [
+      "templates/index.html:52` - `title=\"Max turns before auto-stop\"",
+      "static/js/agent-engine.js:465-468` - step counting loop"
+    ],
+    "custom": {
+      "root_cause": "The counting logic in `agent-engine.js:465-468` increments the counter on each character step rather than tracking completed rounds. The label `title=\"Max turns before auto-stop\"` is misleading.",
+      "fix": "Two options taken:\n1. Relabeled the input to \"Max Steps (character actions)\" to match actual behavior\n2. Updated the title attribute accordingly",
+      "verification": "### Manual Test Steps:\n1. Open the game in browser at http://127.0.0.1:4444\n2. Open Settings → Behavior & Automation tab\n3. Find the \"Max Steps\" or \"Max Turns\" input field\n4. **Expected**: The label/title clearly indicates it counts \"steps\" (individual actions) not \"turns\" (full rounds)\n5. Set max steps to 2, run agents - should stop after ~2 character actions\n6. The count behavior should match what the label says\n\n---\n_Audited 2026-08-03 - duplicate file consolidated into this record._"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/NPC Behavior System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "status_note": "Fixed",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-8-max-steps-counts-characters-not-turns.md"
+  }
+}

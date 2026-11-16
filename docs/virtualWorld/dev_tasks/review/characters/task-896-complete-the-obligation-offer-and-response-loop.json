@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "id": "task-896",
+  "kind": "task",
+  "number": 896,
+  "title": "Complete the obligation offer and response loop",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-21",
+  "updated": "2026-10-21",
+  "horizon": "next",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-813",
+      "task-714"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Complete the obligation exchange from offer through response and fulfillment. A human author must be able to create an offer in the browser, and an agent must be able to offer an obligation to another agent through an explicit in-world action. The recipient owns the offered record on its Player. Keep obligations as character-private mind data; do not add mission or obligation graph nodes.",
+    "why": "Task 813 added the record, display, and response handler, but the offer helper has no production caller. The Mind panel displays existing obligations without creating or answering them. An agent can see obligation text in its MOSIAC context, but the prompt does not instruct it how to decide or respond. A person cannot use the feature end to end without manually seeding character data.",
+    "how": "1. Keep Player.obligations as the persisted source of truth and reuse the existing goal, action, name-resolution, and serialization systems.\n2. Add a Mind-panel authoring flow for a human editor to create and revise an offer, including its request, recipient, issuer, due condition, reward, and any fulfillment criteria supported by existing goal resolution.\n3. Add a discoverable targeted in-world offer action. The issuing character addresses a recipient character; the offer is recorded on the recipient's Player with the issuer's stable node ID. Do not turn arbitrary speech into an accepted obligation.\n4. Give the recipient visible Accept, Decline, and Counteroffer or Clarify choices. Human-controlled recipients use the Mind panel or command surface. Agent prompts must describe pending offers and the available responses, and agents must decide from their character's context rather than auto-accept.\n5. Give every offer a stable unique ID independent of its charge text. Keep legacy records readable, resolving legacy issuer names without losing their displayed provenance.\n6. Define and enforce the lifecycle, including unanswered expiry versus accepted-but-overdue, refusal, revision, completion, and abandonment. Reconcile the linked goal and obligation so a reached goal completes its obligation exactly once. If fulfillment cannot be derived from existing goal conditions, keep completion explicit and show that clearly in the UI.\n7. Record offer, response, revision, and resolution in the event stream. Add authored scenario content with two agent characters to exercise an agent-to-agent offer and response in the browser.",
+    "verify": "1. Use the authored two-agent scenario to offer, decline, accept, and complete a mission in the browser.\n   - expected: The recipient sees the offer and chooses a response; the linked goal and final obligation state are visible in the UI and event stream.\n   - observed: Pending implementation.\n2. Repeat the same charge from a second issuer and submit the same acceptance twice.\n   - expected: Distinct offers remain distinct, and repeated acceptance creates no duplicate goal or history transition.\n   - observed: Pending implementation.\n3. Run targeted tests for offer routing, recipient ownership, lifecycle transitions, goal synchronization, serialization, and agent prompt/action wiring.\n   - expected: The tests prove the mechanism and that Agent A cannot write directly into Agent B's state without using the offer action.\n   - observed: Pending implementation.",
+    "acceptance": [
+      {
+        "text": "A human can create, revise, accept, decline, and inspect an obligation through the browser without editing raw character data.",
+        "done": false
+      },
+      {
+        "text": "An agent can explicitly offer an obligation to another agent in-world; the recipient owns the offered record and the issuer is identified by stable node ID.",
+        "done": false
+      },
+      {
+        "text": "Agent prompts expose the offer and response choices, and the recipient chooses whether to accept, decline, clarify, or counteroffer.",
+        "done": false
+      },
+      {
+        "text": "Unique offer identity prevents same-text requests from different issuers from overwriting each other; repeated responses are idempotent.",
+        "done": false
+      },
+      {
+        "text": "The obligation-to-goal relationship has defined lifecycle semantics for acceptance, deadlines, completion, and abandonment.",
+        "done": false
+      },
+      {
+        "text": "Event history and scenario save/load preserve offer provenance, terms, responses, and resolution.",
+        "done": false
+      },
+      {
+        "text": "Authored two-agent scenario content exercises the complete exchange in the browser.",
+        "done": false
+      },
+      {
+        "text": "No mission or obligation graph node is introduced.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/goals.py",
+      "engine/action_verbs.py",
+      "engine/action_tiers.py",
+      "routes/action_handlers.py",
+      "routes/player_ops.py",
+      "player.py",
+      "engine/serialization.py",
+      "engine/mosiac.py",
+      "static/js/inspector/mind-view.ts",
+      "static/js/agent/prompt-builder/character-state.ts",
+      "data or scenario fixture for the authored two-agent exchange",
+      "tests/test_goals.py",
+      "tests for agent action and prompt wiring"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector > Mind tab for authoring and responding; the live character interaction and event stream for agent-to-agent offers.\n\nCurrent availability: Not complete end to end. Mind currently displays obligations only. The response command exists, but offer_obligation has no production caller and there is no browser offer or response control.\n\nLive steps when available:\n1. Load the authored obligation-exchange scenario. Select the recipient in the character inspector, open Mind, and create an offer with an issuer, request, and deadline.\n   - expected: The recipient Mind panel shows the offer as offered, with its issuer and terms.\n   - observed: Pending implementation.\n2. Run the scene so Agent A uses the in-world offer action to address Agent B. Inspect the event stream and Agent B's Mind panel.\n   - expected: The stream records the offer, and only Agent B receives an offered obligation linked to Agent A.\n   - observed: Pending implementation.\n3. As the recipient, decline one offer and accept a separate offer. Complete the authored fulfillment goal for the accepted offer.\n   - expected: Decline creates no goal. Accept creates one linked goal. Completing it resolves the obligation once, and the panels and event stream agree.\n   - observed: Pending implementation.\n4. Counter or revise an offer, let one unanswered offer expire, and let one accepted offer pass its due condition. Save, reload, and inspect both characters.\n   - expected: Lifecycle outcomes remain distinct and visible; issuer identity, terms, statuses, and goal links survive reload without duplicate offers.\n   - observed: Pending implementation.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-896-complete-the-obligation-offer-and-response-loop.md"
+  }
+}

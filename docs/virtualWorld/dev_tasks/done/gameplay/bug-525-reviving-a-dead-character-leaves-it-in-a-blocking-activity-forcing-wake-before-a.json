@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "id": "bug-525",
+  "kind": "bug",
+  "number": 525,
+  "title": "Reviving a dead character leaves it in a blocking activity, forcing wake before any interaction",
+  "status": "done",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-07",
+  "updated": "2026-10-07",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-725",
+      "task-131"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Death must end the character's activity, and a manual revive (HP/Energy restored, conditions cleared) must leave the character able to act. Today clearing the conditions does not clear player.activity, so the activity gate keeps blocking everything except wake even though the character is otherwise awake.",
+    "why": "Conditions (e.g. dead, unconscious) and ongoing activities (e.g. sleeping, crafting) are distinct systems. When a character died while performing a blocking activity (like sleeping), death added the dead condition but never cleared player.activity. Later, when an operator revived the character by clearing conditions and restoring HP/Energy, _activity_gate continued blocking all user commands except wake because player.activity remained stuck in sleeping.",
+    "how": "- End the character's activity on death (and on any death→revive path), so a\n  revived character is not stuck in a blocking activity.\n- Decide whether a proper revive path/command is warranted (there is none today;\n  manual condition clearing leaves `activity` and other state inconsistent).\n  Related: task-725 (memories on death/revive) and task-131 (activity system).",
+    "verify": "1. Put a character into a blocking activity (e.g. sleeping) and kill them via engine kill_player or death damage.\n    - expected: Character dies and player.activity is immediately cleared (end_activity called with reason='died').\n    - observed: Belne started `resting` in Camp Entrance; `/api/players/Belne/kill` returned `newly_dead: true` and left `activity: null`. `tests/test_activities.py::test_death_clears_a_blocking_activity` drives the same path from the inert fixture.\n2. Revive the character by restoring HP and clearing the dead / unconscious conditions.\n    - expected: Character can immediately accept a gated action (go, take, open, attack) without requiring a manual wake command. `look` proves nothing: a sleeping character is allowed look, examine, inventory, stats and wake.\n    - observed: after the hand-revive, `go south trail` moved Belne to Camp Entrance Trail and `take granola_bar` / `look` resolved. No `wake` was issued. Negative control: Leslie, put to sleep and never killed, was still gated - `go south trail` returned `You're sleeping (until woken) - you can't do that right now.` until the unconscious condition and the activity were cleared by hand.\n3. Check event logs.\n    - expected: Activity termination event records died as reason.\n    - observed: the reason is on the code path (`virtual_world_engine.py:561`), and the regression test asserts `activity is None` afterwards; the log line itself is not asserted.",
+    "acceptance": [
+      {
+        "text": "On death, `player.activity` is cleared (the character is not left",
+        "done": true
+      },
+      {
+        "text": "\"sleeping\").",
+        "done": false
+      },
+      {
+        "text": "observed: `virtual_world_engine.py:559-563` calls",
+        "done": false
+      },
+      {
+        "text": "`self.activities.end_activity(player_name, reason=\"died\")` before",
+        "done": false
+      },
+      {
+        "text": "`player.state = \"dead\"`, guarded by `getattr(player, \"activity\", None)`.",
+        "done": false
+      },
+      {
+        "text": "Reproduce the hand-revive: after HP/Energy restored and conditions",
+        "done": true
+      },
+      {
+        "text": "cleared, the character can act without `wake`.",
+        "done": false
+      },
+      {
+        "text": "observed: live on port 4444, `kraktooth_goblin_camp`. Belne started",
+        "done": false
+      },
+      {
+        "text": "`resting` in Camp Entrance. Killed via `/api/players/Belne/kill` ->",
+        "done": false
+      },
+      {
+        "text": "HP 0, `activity` null, `state` dead. Hand-revived via",
+        "done": false
+      },
+      {
+        "text": "`PATCH /api/players/Belne/vitals/HP` (100), `PATCH .../Energy` (50),",
+        "done": false
+      },
+      {
+        "text": "`POST /api/players/Belne {remove_condition: 'dead'}` -> HP 100, Energy",
+        "done": false
+      },
+      {
+        "text": "50, `activity` null, `state` wet. Then, with no `wake` issued:",
+        "done": false
+      },
+      {
+        "text": "`go south trail` moved the character to Camp Entrance Trail, and",
+        "done": false
+      },
+      {
+        "text": "`take granola_bar` and `look` both resolved. The defect string",
+        "done": false
+      },
+      {
+        "text": "`You're sleeping - you can't do that right now.` did not appear.",
+        "done": false
+      },
+      {
+        "text": "A regression test proves a dead-then-revived `sleeping` character can act.",
+        "done": true
+      },
+      {
+        "text": "observed: `tests/test_activities.py` gained",
+        "done": false
+      },
+      {
+        "text": "`test_death_clears_a_blocking_activity`,",
+        "done": false
+      },
+      {
+        "text": "`test_revived_character_can_act_without_wake` and",
+        "done": false
+      },
+      {
+        "text": "`test_sleeping_character_is_still_gated` (the last is the negative",
+        "done": false
+      },
+      {
+        "text": "control - a genuinely sleeping character is still gated). All three",
+        "done": false
+      },
+      {
+        "text": "pass; the file is 35 passed.",
+        "done": false
+      },
+      {
+        "text": "Live: kill a sleeping character, restore it, confirm no `wake` is needed.",
+        "done": true
+      },
+      {
+        "text": "observed: the live repro above. The fix is on the single death path",
+        "done": false
+      },
+      {
+        "text": "(`kill_player`); the other two production death sites",
+        "done": false
+      },
+      {
+        "text": "(`engine/combat.py:573-576`, `engine/lifecycle.py:219`) delegate to it,",
+        "done": false
+      },
+      {
+        "text": "and their inline `state = \"dead\"` fallbacks only run for an isolated",
+        "done": false
+      },
+      {
+        "text": "harness double with no world behind it.",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py` (`kill_player`)",
+      "engine/activities.py` (`end_activity`)",
+      "routes/action_handlers.py` (`_activity_gate`, reference)",
+      "tests/test_activities.py` (needs the bug-525 regression test)"
+    ],
+    "custom": {
+      "repro_user_2026_10_07": "A character died. There is no revive command, so the user revived it by hand in\nthe inspector: added HP, added Energy, and cleared the `dead` and `unconscious`\nconditions. The character then still refused interaction until `wake` was issued.",
+      "cause_the_activity_gate_not_the_condition_gate": "Two gates stack in `routes/action_handlers.py`:\n\n- `_action_block_gate` (line 97): `world.conditions.can_act(name)` is false while\n  any `BLOCKING_CONDITIONS` are present.\n- `_activity_gate` (line 78): a **blocking activity** (`ACTIVITY_BLOCKING`, e.g.\n  `sleeping`, `interruptible: false`) blocks every command except a small\n  allow-list - and `wake` is on that list (`_activity_cmd_allowed`).\n\n`Player.state` is **derived** (`player.py:488` → `get_state()` reads the\nconditions), so a stale state string is not the cause. `sleeping` is an\n**activity** that *applies* the `unconscious` **condition** (`source: \"sleep\"`,\n`engine/activities.py:151`). The user cleared the condition, but\n`player.activity` remained - and nothing clears it on death (only\n`end_activity`, which `wake` calls). So the character was \"awake but still\nsleeping\", and the activity gate demanded `wake`.\n\nBeing dead and being unconscious are **conditions**; the activity was `sleeping`.",
+      "implemented_2026_10_07": "`virtual_world_engine.py::kill_player` now ends any active activity before\nsetting `dead` (`self.activities.end_activity(player_name, reason=\"died\")`,\nguarded). So a revived character is no longer stuck in `sleeping` behind the\nactivity gate. `python -m py_compile` clean; frontend unit runner 618 passed.\nNot yet verified live (needs a server restart). Still open: a proper revive path\n(none exists; the user revived by hand).",
+      "verified_2026_10_21": "- The fix is present: `virtual_world_engine.py:559-563` calls\n  `self.activities.end_activity(player_name, reason=\"died\")` before\n  `player.state = \"dead\"`, guarded by `getattr(player, \"activity\", None)`.\n- Both other production death sites delegate to `kill_player`\n  (`engine/combat.py:573-576`, `engine/lifecycle.py:219`); their inline\n  `state = \"dead\"` fallbacks only run for an isolated harness double with no\n  world behind it.\n- There is a second safety net: `test_tick_clears_activity_when_dead`\n  (`tests/test_activities.py:184`) sets `state = \"dead\"` by hand and ticks, and\n  the activity is cleared. That proves the tick path, not the death path and not\n  the revive.\n- Closed 2026-10-21. The regression test the acceptance asked for now exists\n  (`test_death_clears_a_blocking_activity`,\n  `test_revived_character_can_act_without_wake`,\n  `test_sleeping_character_is_still_gated`) and the live repro is recorded\n  above; the card's earlier \"NOT verified\" wording is superseded by both.",
+      "browser_ui": "UI home: the character inspector and the command line. A kill control does\nexist (character inspector -> Advanced tab -> `💾 Library` -> `💀 Kill`, behind a\nconfirm dialog). There is no revive control and no state editor, so restoring\nthe character is one HP edit in the vitals modal plus one console call to clear\n`state`. The first action is then typed into `#command-input` like any other.\n\nPrerequisites: `python app.py` on http://localhost:4444 and a loaded scenario with\none controlled character. No console is needed; the whole revive is in the\ninspector.\n\n1. Type `look` in `#command-input` (the \"Override - engine command\" box) and note\n   one direction the room offers.\n2. Type `sleep` and press Enter.\n   - expected: a log line saying the character is sleeping, and the You strip\n     shows the activity.\n3. Click the character in the graph to open the inspector, go to the `Advanced`\n   tab, find `💾 Library`, click `💀 Kill`, and confirm.\n   - expected: HP drops to 0, `[System] ... has been killed.` is logged, the\n     state badge reads `dead`, and the activity is gone.\n4. Revive from the inspector:\n   a. Click the character's `HP` bar in the inspector header, expand\n      `Advanced - edit value`, set it to 10, click `💾 Save`.\n   b. In the status row, open the `dead` condition chip and click `✕ Clear dead`.\n   - expected: the bar leaves 0 and the bad state clears. Because `state` is\n     derived from conditions, clearing `dead` is the revive; there is no\n     separate \"alive\" value to set.\n5. Do **not** type `wake`. Type `go <direction>` from step 1 and press Enter.\n   - expected: the move resolves, or refuses for a world reason (\"You can't go\n     that way\"). The defect reads `You're sleeping - you can't do that right\n     now.` and is the failure this card is about.\n   - `take`, `open` and `attack` are equally valid gated verbs. `look`,\n     `examine`, `inventory`, `stats` and `wake` are allowed while sleeping and\n     prove nothing.\n6. Read-only console check after the kill:\n   `VW.state.data.players['<name>'].activity` should be `null`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/bug-525-reviving-a-dead-character-leaves-it-in-a-blocking-activity-forcing-wake-before-any-interaction.md"
+  }
+}

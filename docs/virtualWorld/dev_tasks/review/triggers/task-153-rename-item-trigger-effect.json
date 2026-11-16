@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-153",
+  "kind": "task",
+  "number": 153,
+  "title": "Rename Item Trigger Effect",
+  "status": "review",
+  "priority": "high",
+  "area": "triggers",
+  "tags": [
+    "triggers",
+    "items",
+    "discovery"
+  ],
+  "created": "2026-08-02",
+  "updated": "2026-08-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Implement the `rename` trigger effect so a trigger can change an item's name. This is the key enabler for the \"unknown name\" discovery flow: a character examines an item and it goes from a generic/unknown name (e.g. `photo`) to its true name (e.g. `photo of james`).",
+    "why": "`rename` is listed in `EFFECT_TYPES` (engine/trigger_system.py:55) and the trigger editor already renders a rename field (static/js/shared/trigger-editor.js:258,746), **but there is no `handle_rename` method in engine/effects.py**, so executing it returns `[Unknown effect type: rename]`. The frontend lies to the user - the editor lets you configure the effect but it silently fails at runtime.",
+    "how": "### Backend effect handler\n\nAdd `handle_rename` to `engine/effects.py` - ✅ done 2026-08-05:\n\n- Read `params.get(\"node_id\")`; fall back to `item_node` (for `on_examine`, `on_use`, `on_take`, etc.)\n- If `node_id == \"self\"`, target the triggering item node\n- Set `target_node.name = new_name` (also set `properties[\"name\"]` if the node stores the display name there)\n- Optionally support `params.get(\"message\")` as the result message\n- Return the result message so it shows in the action output\n\n### Frontend\n\nVerify the existing rename field in the trigger editor serializes `params.name` correctly (it currently sends `eff.params.name = ...`), and that the effect renders for the right trigger types. - ✅ verified: `trigger-editor.js:259` sends `params.name`, `:748` renders the \"New Name\" input. No `node_id` field exists; default targeting covers the discovery flow.",
+    "verify": "1. Trigger on_examine with rename effect\n   - expected: Item name changes in graph for target node, self, or default\n   - observed: Verified by unit tests across all targeting modes\n2. Inspect renamed item across inventory and area descriptions\n   - expected: Canonical display name reflects the updated name\n   - observed: Updated name renders in examination output and inventory",
+    "acceptance": [
+      {
+        "text": "Rename effect handler handle_rename implemented in engine/effects.py.",
+        "done": true
+      },
+      {
+        "text": "Trigger editor frontend serializes params.name properly.",
+        "done": true
+      },
+      {
+        "text": "Node targeting supports default target,",
+        "done": true
+      },
+      {
+        "text": "ode_id, and self.",
+        "done": false
+      },
+      {
+        "text": "Renamed item reflects across examination, inventory, and area lookups.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/effects.py",
+      "static/js/shared/trigger-editor.js",
+      "engine/trigger_system.py",
+      "tests/test_triggers.py"
+    ],
+    "custom": {
+      "files_to_modify": "1. `engine/effects.py` - add `handle_rename`\n2. `static/js/shared/trigger-editor.js` - verify rename field wiring\n3. `engine/trigger_system.py` - no change needed (`rename` already in EFFECT_TYPES)",
+      "related": "- [[todo/characters/task-154-target-by-description-when-name-unknown|task-154: Target by description when name unknown]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/triggers/task-153-rename-item-trigger-effect.md"
+  }
+}

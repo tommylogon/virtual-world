@@ -8,7 +8,7 @@ priority: medium
 # task-373: changes-since-source-panel
 
 **Filed**: 2026-08-30
-**Status**: In Review — implemented 2026-08-31 (panel + extended diff + per-group apply).
+**Status**: In Review - implemented 2026-08-31 (panel + extended diff + per-group apply).
 
 ## What was built
 
@@ -18,7 +18,7 @@ priority: medium
   `added/removed/changed_ways`, `added/removed_players`. Item/way drift is
   fingerprinted over the graph nodes (name + current_state + description),
   keyed by node id so a rename doesn't show as remove+add.
-- **`POST /api/scenario/diff/apply`** — per-group action:
+- **`POST /api/scenario/diff/apply`** - per-group action:
   - `{"commit": ["areas"|"items"|"ways"|"players"]}` merges the live values of
     that group INTO the source file (atomic tmp+replace write, resets commit_seq).
   - `{"discard": [...]}` restores that group FROM source INTO the live world,
@@ -41,7 +41,7 @@ priority: medium
 ## Note
 
 The audit text asked for "per-group Commit/Discard; reuse sync-diff internals".
-Commit is per-section (not per-node) for v1 — per-node commit would be
+Commit is per-section (not per-node) for v1 - per-node commit would be
 checkboxed UI over the same apply endpoint; noted as a possible v2.
 
 ## What

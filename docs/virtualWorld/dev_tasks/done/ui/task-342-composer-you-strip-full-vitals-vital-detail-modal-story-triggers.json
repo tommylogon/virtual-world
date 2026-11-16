@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "task-342",
+  "kind": "task",
+  "number": 342,
+  "title": "Composer you-strip: full vitals + vital detail modal + story triggers",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "2026-08-24 playtest feedback (Tommy): the turn composer's YOU strip\nshowed only 6 hardcoded vitals with pre-task-337 identity colors (Hunger\n72 rendered GREEN - misleading for a drive), and there was no way to\nopen the vital detail modal from the panel. Second point: native engine\nverbs (take/open/search) don't NEED triggers, but flavor triggers give\nitems story - the audit's \"no triggers\" flags were opportunities, not bugs.",
+    "how": "- `static/js/shared/vital-color.js` (new) - ONE polarity-aware\n  bar-color/percent/suffix implementation reading `vital_polarity` from\n  world state. Inspector `agent-view.js` refactored onto it (was a local\n  copy); composer `turn-you-strip.js` now uses it too - the strip's\n  fixed identity colors are gone, Hunger/Thirst/Bladder go red when high\n  exactly like the inspector.\n- `turn-you-strip.js` - renders ALL vitals (preferred order + any\n  extras, `Max_*` skipped), Temperature shows °C with the 25–45 window\n  mapping, every vital is clickable → the shared `openVitalModal`\n  (task-113 modal, already global in index.html).\n- `engine/scene_snapshot.py` - `scene.you.name` added so the strip can\n  address the modal (test: `test_you_strip_carries_character_name`).\n- taco_bell scenario: 5 story triggers on native-action items -\n  earring/monster can/phone `on_examine`, cash register `on_open`\n  (Tyler's stare), register drawer `on_search` (the DO NOT COUNT post-it).",
+    "verify": "- pytest 1130 passed; `node --check` on all three touched JS files\n- Scenario audit: HIGH 0, MED 0 (was H=1 M=14 after the wardrobe pass)\n- Browser: composer strip shows all vitals with inspector-matching\n  colors; click a vital → detail modal; examine the earring → flavor.",
+    "acceptance": [
+      {
+        "text": "The composer you-strip renders ALL vitals (preferred order + extras, `Max_*` skipped) with polarity-aware colors from the shared `vital-color.js` - Hunger/Thirst/Bladder go red when high, exactly like the inspector.",
+        "done": false
+      },
+      {
+        "text": "Temperature renders in °C with the 25–45 window mapping.",
+        "done": false
+      },
+      {
+        "text": "Every vital chip is clickable and opens the shared `openVitalModal` (character name sourced from `scene.you.name`).",
+        "done": false
+      },
+      {
+        "text": "Story triggers author flavour on native-action items (earring/can/phone `on_examine`, register `on_open`, drawer `on_search`) in the taco_bell scenario.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-342-composer-vitals-modal-story-triggers.md"
+  }
+}

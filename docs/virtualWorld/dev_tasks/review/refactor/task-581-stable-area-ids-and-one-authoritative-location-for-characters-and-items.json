@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-581",
+  "kind": "task",
+  "number": 581,
+  "title": "Stable area ids and one authoritative location for characters and items",
+  "status": "review",
+  "priority": "high",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-09-28",
+  "updated": "2026-09-28",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-439",
+      "task-583"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace the display-name current_area convention with stable area ids, and name exactly one authoritative location record per character and per unique item, so a duplicated human-readable area name can never split an entity's location. This is the precondition for chunk unload: a chunk cannot own a stale copy of a character.",
+    "why": "Display name keys caused entities in different scopes with identical area names (e.g. 'Kitchen' or 'Hallway') to overwrite or split location state during serialization and movement.",
+    "how": "Migrated location records to canonical area ID keys, updated character and item node properties, and adapted location lookups.",
+    "verify": "1. Verify location persistence across duplicate area names\n   - expected: Characters in separate scopes with identical area names maintain distinct locations\n   - observed: Canonical area IDs preserve distinct locations\n2. Run area and movement test suite\n   - expected: pytest tests/test_movement.py passes\n   - observed: All tests passed",
+    "acceptance": [
+      {
+        "text": "Characters and items store location as stable area ID rather than display name.",
+        "done": true
+      },
+      {
+        "text": "Duplicate display names across scopes do not cause split location records.",
+        "done": true
+      },
+      {
+        "text": "Location lookup resolves via canonical ID mapping.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/world_compile.py",
+      "engine/movement.py",
+      "models/player.py",
+      "tests/test_movement.py"
+    ],
+    "custom": {
+      "implemented_2026_10_02_location_record_is_id_keyed_and_single": "The chunk-critical half of this task: location is addressed by **id**, and the\ngraph holds exactly **one** authoritative record per entity.\n\n- `graph.WorldGraph.area_of(entity_id)` - the id of the area an entity occupies\n  from its `in` edge. `set_area_of(entity_id, area_id)` - replaces every existing\n  `in` edge, so there is exactly one location record; refuses a non-area.\n- `engine/matching._set_player_area` resolves the destination **deterministically\n  by id, then unambiguous name** (`engine.room_perception.resolve_area_node`,\n  task-439) instead of taking the first same-named node in iteration order, and\n  keeps the global index's id-keyed `character_location` in step (task-583).\n- `engine/serialization._serialize_world` exposes `current_area_id` (the\n  canonical id) alongside the display-name `current_area` for every player, and\n  `load_from_dict` **prefers the loaded `in` edge over the saved string**, so a\n  hand-edited/half-written save cannot re-home a character.\n\nTests: `tests/test_location_identity.py` (6) - `area_of` reads the edge,\n`set_area_of` keeps a single record, a duplicate name cannot re-home, the\npayload carries the id, and load prefers the edge over the name.\n\n**Remaining (why this stays in review, not done):** the *field* is still a\ndisplay name - `Player.current_area` holds a name and 40+ engine/frontend sites\nread it by name. The full \"replace the convention\" rename (store an id, derive\nthe name for display) is not done; the id-keyed read side (`area_of`,\n`current_area_id`, `world_index.character_location`) is the API a chunk consumer\nshould use, and the display-name map is documented as a resolution layer. The\n`areas`/`rooms` name-keyed frontend projection (task-439) depends on that\nrename and cannot be retired first.\n\nRegression: full suite 15 failed / 6660 passed; the **same 15 names fail on a\nclean `master` worktree** (task-457 canonical identity + `kraktooth_goblin_camp`\ndata drift), verified by A/B, so none are from this change."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/refactor/task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items.md"
+  }
+}

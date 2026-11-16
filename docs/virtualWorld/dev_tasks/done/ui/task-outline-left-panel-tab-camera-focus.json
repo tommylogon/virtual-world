@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "task-outline-left-panel-tab-camera-focus",
+  "kind": "task",
+  "number": null,
+  "title": "World Outline Tab + Camera Focus on Click",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Remove the 🔍 Analyze toolbar button (replaced by the world outline) and move the outline from the graph-container view into a tab in the left panel, alongside Agents and Initiative Order. Clicking an agent in the agent list, or an area / item / way / player in the outline, moves the graph camera to that node (and opens the inspector).",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [],
+    "files": [],
+    "custom": {
+      "requirements": "- Remove the `🔍 Analyze` toolbar button (was `graphEditor.analyze()` → `GraphTreeView.showAnalysis()`)\n- Remove the `📋 Outline` graph view-toggle (`setViewMode('outline')`) - the outline now lives in the left panel\n- Left panel gets a tab bar: 🧍 Agents | ⚔️ Initiative | 🗺️ Outline (Agents active by default)\n- Outline tab renders the world tree into `#outline-container`:\n  - Rooms sorted with env badge, collapsible children (exits, items, players)\n  - Exits now clickable when `way_id` is present (opens way inspector + focuses way node)\n- Camera focus: clicking an agent in the agent list, or an area / item / way / player in the outline, focuses the graph node (`network.selectNodes` + `network.focus` with animation) and switches back to graph view if an overlay was active\n- Initiative tab shows a hint when turn-based mode is off (previously the whole section hid)",
+      "audit": "**Status**: In Review - implemented 2026-08-09, verified with Playwright smoke test (14/14 checks)\n**How to test**:\n- Analyze button and Outline view-toggle are gone from the graph toolbar\n- Left panel shows Agents / Initiative / Outline tabs; switching works\n- Outline tab lists all rooms; clicking a room / item / way / player opens the inspector AND pans/zooms the graph to that node (overlay views are exited first)\n- Clicking an agent in the Agents list pans the camera to that character's graph node\n- Initiative tab with turn-based mode off shows the \"Turn-based mode is off\" hint",
+      "files_changed": "- `templates/index.html` - removed Analyze + Outline buttons; added left-panel tab bar and `#outline-container`\n- `static/css/style.css` - `.left-tabs` / `.left-tab` / `.left-tab-pane` / `.left-outline` + initiative item styles\n- `static/js/main.js` - removed `graphEditor.analyze()`\n- `static/js/graph-manager.js` - added `focusNode()` / `showNodeAndFocus()`; `_selectRoom()` now focuses; dropped dead `showAnalysis()` / `_copyTree()` / `_renderOutlineView()` / `_copyOutlineTree()` and the outline branches of `setViewMode()` / `_renderCurrentView()`\n- `static/js/graph/tree-view.js` - added `renderOutlinePanel()` (replaces content, clickable exits); removed dead `showAnalysis()` / `copyTree()` / `renderOutlineView()`\n- `static/js/ui-controller.js` - added `switchLeftTab()` / `showAgentAndFocus()`; `selectAgent()` focuses camera; `renderAll()` refreshes outline when its tab is active; initiative hint when turn-based off\n- `docs/virtualWorld/World Building/Graph System.md` - updated tree-view.js description"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Graph System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "group": "UI & Settings",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-outline-left-panel-tab-camera-focus.md"
+  }
+}

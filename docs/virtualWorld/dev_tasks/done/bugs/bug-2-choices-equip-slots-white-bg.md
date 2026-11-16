@@ -2,7 +2,7 @@
 wiki: "[[UI & Settings/Inspector Panels]]"
 ---
 
-# Bug 2: Equipment slot selector — white background, unreadable text
+# Bug 2: Equipment slot selector - white background, unreadable text
 
 **Filed**: 2026-07-23
 **Priority**: High
@@ -20,17 +20,17 @@ Choices.js default light theme with no dark-mode CSS overrides. The library appl
 
 Add dark-theme CSS overrides for Choices.js elements in `static/css/style.css`. Key classes to override:
 
-- `.choices__inner` — input area background/border
-- `.choices__list--dropdown` — dropdown background/border
-- `.choices__list--dropdown .choices__item--selectable` — item text color
-- `.choices__list--dropdown .choices__item--selectable.is-highlighted` — hover/selected state
-- `.choices__input` — search input inside the widget
+- `.choices__inner` - input area background/border
+- `.choices__list--dropdown` - dropdown background/border
+- `.choices__list--dropdown .choices__item--selectable` - item text color
+- `.choices__list--dropdown .choices__item--selectable.is-highlighted` - hover/selected state
+- `.choices__input` - search input inside the widget
 
 Colors should match the existing dark palette: `--bg-input`, `--bg-card`, `--text`, `--text-muted`, `--border`.
 
 ## Files
 
-`static/css/style.css` — add Choices.js dark-theme overrides
+`static/css/style.css` - add Choices.js dark-theme overrides
 
 ## Verification
 

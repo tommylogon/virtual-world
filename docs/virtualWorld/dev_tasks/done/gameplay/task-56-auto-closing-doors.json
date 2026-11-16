@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-56",
+  "kind": "task",
+  "number": 56,
+  "title": "Auto-Closing Doors",
+  "status": "done",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Doors that automatically close after use. Examples:\n- **Convenience store door** - swings shut behind you\n- **Unbalanced door** - slowly drifts closed on its own\n- **Swing door / saloon door** - double swinging door that always returns to closed\n- **Spring-loaded door** - snaps shut immediately",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "approaches": "### Option A: Way property `auto_close`\n\nAdd a property to door nodes, e.g. `auto_close: true` or `auto_close_delay: 0` (ticks). When a player moves through the door, the engine automatically changes its state back to `closed` after the specified delay.\n\nImplementation:\n- Add `auto_close_delay` field to door node properties (0 = immediate, 1+ = wait N ticks)\n- In the movement handler (`move_to_area()` or the `go` handler), after the move completes, schedule a state change back to `closed`\n- If delay > 0, queue it on the tick system to fire later\n\n### Option B: Trigger-based\n\nAlready possible using existing trigger system - players can create an `on_enter` or `on_exit` trigger on the door that fires `set_state` to `closed`. But this requires manual setup per door.\n\nExpose this as a checkbox in the door inspector: \"Auto-close\" that creates the trigger automatically.\n\n### Option C: Edge property\n\nAdd `auto_close` to the door connection edge instead of the door node, so each side of a door can have different auto-close behavior.",
+      "way_types": "| Type | Behavior | Delay |\n|------|----------|-------|\n| Convenience store | Swings shut slowly | 1-2 ticks |\n| Unbalanced | Drifts closed eventually | 3-5 ticks |\n| Swing / saloon | Always returns to closed | 0 ticks (immediate) |\n| Spring-loaded | Snaps shut fast | 0 ticks |",
+      "files_likely_affected": "- `virtual_world_engine.py` - auto-close logic in movement handler\n- `static/js/inspector.js` - auto-close property in door inspector\n- `static/js/main.js` - auto-close option in connection modal\n- `static/js/graph-manager.js` - property passthrough\n- `world_template.json` / templates - default property",
+      "open_questions": "- Should auto-close only fire when a player passes through, or also NPCs?\n- Should a door that's `locked` still auto-close? (Probably not - it should remain locked)\n- What about `blocked` or `broken` state ways?"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/gameplay/task-56-auto_closing_doors.md"
+  }
+}

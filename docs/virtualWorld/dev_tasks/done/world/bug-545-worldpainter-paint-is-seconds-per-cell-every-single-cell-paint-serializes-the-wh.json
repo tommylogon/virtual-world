@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "id": "bug-545",
+  "kind": "bug",
+  "number": 545,
+  "title": "WorldPainter paint is seconds-per-cell: every single-cell paint serializes the whole world for undo, then rebuilds the full payload",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-520",
+      "task-716"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Painting a single cell in WorldPainter takes **several seconds to appear**, and it\ngets worse the larger the world (reported live in the kraktooth world scope,\n2026-10-11). The single-cell paint path does far more work per cell than setting\none value:\n\n- `static/js/worldpainter/editor.ts:2848` - a one-cell stroke sends\n  `POST /api/world/scopes/<id>/grid/paint` (one cell per request), then awaits it\n  before `render()` (pessimistic: nothing shows until the response lands).\n- `routes/world_grid_ops.py:484` - `handle_paint_cell` calls\n  `_snapshot(app, …)` **per cell**.\n- `routes/saveload.py:22-33` - `_snapshot(world)` is `world.to_dict()`, i.e. a\n  **full serialization of the entire world** (every node, edge, player, memory,\n  history), pushed onto the undo stack on every paint.\n- `routes/world_grid_ops.py:488` - `_commit` **clears the biomes taxonomy\n  cache** on every paint, so the `blockers: world_compile.preflight(...)` in the\n  payload rebuild re-reads the taxonomy per paint (see the `_commit` docstring:\n  preflight is the expensive part; task-716 was a ~7-minute grid read).\n- `routes/world_grid_ops.py:491` - the response then ships the **whole grid\n  payload** back (`_grid_payload`), including `layers` copies, `placements`,\n  `boundary_ways`, and `_unplaced_areas` (which scans **all** graph nodes).\n\nMechanism confirmed by reading the path; not yet measured. The `world.to_dict()`\nper cell is the prime suspect because it scales with world size, which matches\n\"worse in a big world\".",
+    "why": "It makes painting unusably slow exactly when a world is worth painting (a large\nscope). A 20-cell drag is 20 full-world serializations on the single-cell path.\nThe code already promises \"one request, one undo\" - that promise is being kept by\nserializing the world, not by a cheap delta.",
+    "how": "Ranked; confirm dominance with a timing measurement before/after each.\n\n1. **Do not full-snapshot the world per cell.** A grid paint's undo entry should\n   be a delta - `{scope_id, cell, layer, previous_value}` - not `world.to_dict()`.\n   Same for `paint_batch` (one snapshot per stroke, cheaply). Keep the undo stack\n   semantics (task-371); only the *representation* of a paint entry changes.\n2. **Stop clearing the biome taxonomy cache on a paint.** A paint changes the\n   *grid*, not the biome *record* files. If preflight needs a grid-derived memo,\n   that is a different cache from the 106-file record cache - clearing the record\n   cache (`world_grid_ops.py:60`) on every paint is almost certainly wrong, and\n   it re-heats it on the very next payload build.\n3. **Compact ack + optimistic paint.** Return `{ok, version}` instead of the full\n   grid manifest, apply the edit to the local layer map and redraw immediately,\n   and reconcile only on error/version mismatch. This removes the round-trip and\n   the full `render()` from the perceived latency (pairs with the render-split\n   work).",
+    "verify": "1. Time one single-cell paint in a large scope (kraktooth world).\n    - expected: the change appears in well under a second.\n    - observed: 2026-10-16 LIVE on :4444 (world scope, 629 areas):\n      paint `14 ms` (was `2016 ms` before the autosave skip),\n      slim ack confirmed, undo `success`. ~144x end to end.\n2. Measure the three costs separately: `world.to_dict()` time, `preflight` time,\n   payload build/ship time.\n    - expected: the snapshot and/or preflight dominates, not the paint itself.\n    - observed: 2026-10-15 - `to_dict 0.20 s` dominated; `preflight`\n      `0.02 s` cold / `0.00 s` warm; `_grid_payload` `0.02 s`. 2026-10-16\n      live: autosave write `~1.7 s` dominated everything else combined.\n      Final ranking: autosave write > undo snapshot > payload ≈ preflight.\n3. Push a 20-cell stroke (one `paint_batch`) and compare to 20 single paints.\n    - expected: one request, one snapshot, no linear blow-up.\n    - observed: 2026-10-15 - one request, one *delta* entry\n      (`test_paint_batch_is_one_undo_entry`); 20 singles are 20\n      requests by design (each its own cell) but each is now bytes.",
+    "acceptance": [
+      {
+        "text": "A single-cell paint no longer serializes the whole world for undo.",
+        "done": true
+      },
+      {
+        "text": "(Delta entries; `test_paint_pushes_a_delta_not_a_snapshot`.)",
+        "done": false
+      },
+      {
+        "text": "A paint no longer invalidates the biome record cache (or the cache split is made explicit and the per-paint re-read is gone).",
+        "done": false
+      },
+      {
+        "text": "(Measured `0.02 s`: kept deliberately for task-716 correctness -",
+        "done": false
+      },
+      {
+        "text": "the re-read is cheap, not gone. Revisit only with a split cache.)",
+        "done": false
+      },
+      {
+        "text": "One stroke is one undo entry and one request; time-to-appear is sub-second on a large scope.",
+        "done": true
+      },
+      {
+        "text": "(Batch: one delta. Single: `slim=1` ack + optimistic local patch,",
+        "done": false
+      },
+      {
+        "text": "no full `render()`; backend `0.007 s`, live `14 ms` on the world",
+        "done": false
+      },
+      {
+        "text": "scope with slim ack confirmed; live undo `success`.)",
+        "done": false
+      },
+      {
+        "text": "A timing measurement (before/after) is recorded on the card.",
+        "done": true
+      },
+      {
+        "text": "(`to_dict 0.20 s` → delta bytes; paint `~0.25 s` → `0.007 s`",
+        "done": false
+      },
+      {
+        "text": "route-level → `14 ms` live; the live path also caught and fixed",
+        "done": false
+      },
+      {
+        "text": "the autosave write that cost `~1.7 s` per paint.)",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/world_grid_ops.py` - `handle_paint_cell` / `handle_paint_batch`, `_commit`, `_snapshot`, `_grid_payload`.",
+      "routes/saveload.py` - `_snapshot` / `_push_undo_snapshot` (the paint delta path).",
+      "engine/world_compile.py` - `preflight` cost / cache split.",
+      "static/js/worldpainter/editor.ts` - `_commitStroke` (compact ack + optimistic)."
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Build → WorldPainter → paint a cell in a large scope; observe canvas feedback and undo.\n\nCurrent availability: Single-cell paint latency is measured in seconds; delta-based undo and the cheaper payload path remain open.\n\nLive steps when available:\n\n1. In a scratch copy of the large Kraktooth scope, paint one cell and time until the canvas updates.\n   - expected: The cell appears in under one second and only the intended cell changes.\n\n2. Paint a 20-cell stroke and undo it once while measuring the operation.\n   - expected: One stroke is one request/undo entry and undo restores all cells without a full-world snapshot per cell.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/bug-545-worldpainter-paint-is-seconds-per-cell-every-single-cell-paint-serializes-the-whole-world-for-undo-then-rebuilds-the-full-payload.md"
+  }
+}

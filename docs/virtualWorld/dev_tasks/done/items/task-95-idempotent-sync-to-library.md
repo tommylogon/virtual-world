@@ -6,7 +6,7 @@ status: done
 priority: medium
 ---
 
-# Idempotent Sync to Library — Conflict-Aware Entity Sync
+# Idempotent Sync to Library - Conflict-Aware Entity Sync
 
 **Filed**: 2026-07-23 (updated 2026-07-31)
 **Priority**: High
@@ -25,17 +25,17 @@ Built as part of task 115 (`static/js/shared/diff-modal.js`). Reusable modal wit
 - Returns result: `{ action: 'update', sections: [...] }` or `{ action: 'duplicate', name, id }`
 
 ### Single-item world→library sync (item-level)
-`item-library.js:saveWorldItem()` — saves one world item to library:
+`item-library.js:saveWorldItem()` - saves one world item to library:
 - Reads `locked_fields` to preserve locked properties
 - If no existing library entry → saves directly
 - If conflict → shows `DiffModal` for section-by-section merge
 - Supports duplicate with auto-generated ID
 
 ### Character save to library (no conflict handling)
-`library-browser.js:saveWorldToCharacter()` — saves character to library:
+`library-browser.js:saveWorldToCharacter()` - saves character to library:
 - Builds entry from `worldState.players[name]` with embedded inventory
 - Saves via `ApiClient.saveLibraryType('characters', ...)`
-- **Silent overwrite** — no DiffModal, no conflict detection
+- **Silent overwrite** - no DiffModal, no conflict detection
 
 ---
 
@@ -67,9 +67,9 @@ No world→area-library sync exists. Needs:
 ### 4. "Sync from World" buttons per library tab
 
 Library browser (`library-browser.js`) has 3 tabs (Items, Characters, Rooms):
-- **Items tab** — button that calls `syncAllWorldItems()` with DiffModal
-- **Characters tab** — button that syncs all `worldState.players` with individual DiffModals per character
-- **Rooms tab** — button that syncs all `type: "area"` graph nodes with individual DiffModals
+- **Items tab** - button that calls `syncAllWorldItems()` with DiffModal
+- **Characters tab** - button that syncs all `worldState.players` with individual DiffModals per character
+- **Rooms tab** - button that syncs all `type: "area"` graph nodes with individual DiffModals
 
 The global "📋 Sync to Library" toolbar button (`main.js`) should open the library browser and trigger the appropriate tab's sync.
 
@@ -81,7 +81,7 @@ When importing a self-contained character or room that has embedded item definit
 
 ### 6. Export templates, not connections
 
-Area exits save as templates (descriptive + state fields + `target_room_hint` string), not graph connections. Already designed in the task — needs implementation in the area sync builder.
+Area exits save as templates (descriptive + state fields + `target_room_hint` string), not graph connections. Already designed in the task - needs implementation in the area sync builder.
 
 ---
 
@@ -94,13 +94,13 @@ Area exits save as templates (descriptive + state fields + `target_room_hint` st
 | `static/js/main.js` | Update "📋 Sync to Library" to open library browser + trigger tab sync |
 | `static/js/api.js` | May need generic save wrapper |
 | `routes/library_routes.py` | Verify import handles inline items |
-| — | New area sync builder (could be in library-browser.js or a new module) |
+| - | New area sync builder (could be in library-browser.js or a new module) |
 
 ---
 
 ## Implementation Order
 
-1. Add DiffModal to `syncAllWorldItems()` — replace silent overwrite with conflict-aware batch
+1. Add DiffModal to `syncAllWorldItems()` - replace silent overwrite with conflict-aware batch
 2. Wire DiffModal into `saveWorldToCharacter()`
 3. Build area sync builder + wire into DiffModal
 4. Add "Sync from World" buttons to each library tab

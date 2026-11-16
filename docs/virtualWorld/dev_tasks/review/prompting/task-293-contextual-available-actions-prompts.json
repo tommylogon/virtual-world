@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "task-293",
+  "kind": "task",
+  "number": 293,
+  "title": "Contextual \"Available Actions\" prompts",
+  "status": "review",
+  "area": "prompting",
+  "priority": "medium",
+  "relations": {
+    "related": [
+      "task-321",
+      "task-361"
+    ]
+  },
+  "links": {
+    "wiki": [
+      "[[task-321-conversation-response-instinct]]",
+      "[[task-361-invalid-action-auto-retry]]"
+    ]
+  },
+  "sections": {
+    "what": "Replace the static 30-row ACTIONS table in the character system prompt with a compact\nstatic core plus a per-turn `=== AVAILABLE ACTIONS ===` block built from each character's\ncurrent context (room, exits, items, people, vitals, conditions, light). Add per-item\naction brackets to the \"Items that catch your attention:\" list and the \"Carrying:\" line so\nthe agent sees exactly what it can do right now instead of a wall of verbs.",
+    "how": "- New `static/js/agent/prompt-builder/contextual-actions.js`:\n  - `computeItemActions(item, player, carry)` - the allowed verbs for an item, mirroring\n    the backend `_get_available_actions` (engine/trigger_system.py) client-side from\n    `properties.actions` (string-or-array), `tags`, `current_state`, and `triggers` edges.\n    `examine` is shown **unless** the character has already examined/discovered the item\n    (per design decision).\n  - `formatActionBrackets(verbs)` - `[take, use]` bracket, `''` when empty.\n  - `buildAvailableActionsBlock(state, charName, player, currentArea)` - the per-turn\n    `=== AVAILABLE ACTIONS ===` text with concrete targets, gated by context.\n  - `carriedItemNodes(charName)` - carried/equipped item nodes for the Carrying brackets.\n- `static/js/agent/prompt-builder/helpers.js`: moved `wayHandle` out of `room-context.js`\n  into a shared `PromptBuilder.wayHandle(exitData, doorNode, areaName)`.\n- `static/js/agent/prompt-builder/room-context.js`:\n  - Inserts `=== AVAILABLE ACTIONS ===` before the WITNESSED block (agent framing only).\n  - Adds item action brackets to the attention list + dim/dark + blind known-item lists.\n  - Adds brackets to the \"Carrying:\" line.\n- `static/js/agent/prompt-builder/system-prompt.js`:\n  - Deleted `ACTIONS_TABLE` (the ~700-token wall). Replaced with a compact `ACTIONS_CORE`\n    that points at `=== AVAILABLE ACTIONS ===` and keeps the essential static rules.\n  - Kept `GHOST_ACTIONS`, `ACTION_STRUCTURE` (verb-list line kept as a safety net),\n    `SPEECH_VOLUME`, `JSON RULES`; refreshed `ITEMS_VS_FLAVOR` to match the real header\n    and mention item brackets.\n- `static/js/agent/prompt-builder/turn-prompts.js`: reaction prompt now points at\n  `=== AVAILABLE ACTIONS ===`.\n- `templates/index.html` + `static/js/agent/prompt-builder/index.js`: registered the new\n  `contextual-actions.js` module.",
+    "verify": "- `node --check` on all touched JS files.\n- Browser smoke via the inspector / agent-lens reaction prompt (gates per room content:\n  empty room → no take/attack; takeable item → `take - <name>`; person present →\n  give/steal/attack/grab/lead; grappled → escape; dark → fumble; crawl/climb/jump way →\n  matching verb; low energy → rest; high bladder → relieve).",
+    "acceptance": [
+      {
+        "text": "Prompt builder injects contextual available actions based on location and inventory.",
+        "done": true
+      },
+      {
+        "text": "Character prompts surface valid interactions without hallucinated verbs.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/character_prompt.py",
+      "tests/test_character_prompt.py"
+    ],
+    "custom": {
+      "what_was_implemented": "- New `static/js/agent/prompt-builder/contextual-actions.js`:\n  - `computeItemActions(item, player, carry)` - the allowed verbs for an item, mirroring\n    the backend `_get_available_actions` (engine/trigger_system.py) client-side from\n    `properties.actions` (string-or-array), `tags`, `current_state`, and `triggers` edges.\n    `examine` is shown **unless** the character has already examined/discovered the item\n    (per design decision).\n  - `formatActionBrackets(verbs)` - `[take, use]` bracket, `''` when empty.\n  - `buildAvailableActionsBlock(state, charName, player, currentArea)` - the per-turn\n    `=== AVAILABLE ACTIONS ===` text with concrete targets, gated by context.\n  - `carriedItemNodes(charName)` - carried/equipped item nodes for the Carrying brackets.\n- `static/js/agent/prompt-builder/helpers.js`: moved `wayHandle` out of `room-context.js`\n  into a shared `PromptBuilder.wayHandle(exitData, doorNode, areaName)`.\n- `static/js/agent/prompt-builder/room-context.js`:\n  - Inserts `=== AVAILABLE ACTIONS ===` before the WITNESSED block (agent framing only).\n  - Adds item action brackets to the attention list + dim/dark + blind known-item lists.\n  - Adds brackets to the \"Carrying:\" line.\n- `static/js/agent/prompt-builder/system-prompt.js`:\n  - Deleted `ACTIONS_TABLE` (the ~700-token wall). Replaced with a compact `ACTIONS_CORE`\n    that points at `=== AVAILABLE ACTIONS ===` and keeps the essential static rules.\n  - Kept `GHOST_ACTIONS`, `ACTION_STRUCTURE` (verb-list line kept as a safety net),\n    `SPEECH_VOLUME`, `JSON RULES`; refreshed `ITEMS_VS_FLAVOR` to match the real header\n    and mention item brackets.\n- `static/js/agent/prompt-builder/turn-prompts.js`: reaction prompt now points at\n  `=== AVAILABLE ACTIONS ===`.\n- `templates/index.html` + `static/js/agent/prompt-builder/index.js`: registered the new\n  `contextual-actions.js` module.",
+      "how_verified": "- `node --check` on all touched JS files.\n- Browser smoke via the inspector / agent-lens reaction prompt (gates per room content:\n  empty room → no take/attack; takeable item → `take - <name>`; person present →\n  give/steal/attack/grab/lead; grappled → escape; dark → fumble; crawl/climb/jump way →\n  matching verb; low energy → rest; high bladder → relieve).",
+      "notes": "- Gating is **guidance, not enforcement** - the backend still resolves verbs leniently, so\n  a missed gate only hides a verb from the prompt, never breaks resolution.\n- The system prompt is cached per character (`agent-engine.js:26`) - a page reload rebuilds\n  it so the trimmed prompt applies.\n- `docs/design/*` are stale design snapshots; not in scope to sync."
+    }
+  }
+}

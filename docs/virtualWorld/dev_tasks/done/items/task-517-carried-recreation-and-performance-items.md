@@ -12,8 +12,8 @@ priority: medium
 
 ## What
 
-Let carried entertainment items — Rikka's juggling stones, string puppet, cups,
-little drum — restore Entertainment and be usable by background NPCs, beyond
+Let carried entertainment items - Rikka's juggling stones, string puppet, cups,
+little drum - restore Entertainment and be usable by background NPCs, beyond
 today's area-fixture-only recreation.
 
 ## Context

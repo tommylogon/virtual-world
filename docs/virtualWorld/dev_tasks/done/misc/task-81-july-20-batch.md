@@ -5,14 +5,14 @@ area: misc
 priority: medium
 ---
 
-# July 20 Batch — Cross-Entity Effects, Inspector UI, Item Library
+# July 20 Batch - Cross-Entity Effects, Inspector UI, Item Library
 
 ## Engine (`virtual_world_engine.py`)
 
-- Added `set_hidden` effect — `{ node_id, hidden: true/false }`
-- Added `adjust_uses` effect — `{ node_id, delta: -1 }`
-- Added `end_scenario` effect — sets `scenario_ended` flag, stops agent
-- Added `restart_scenario` effect — sets flag, frontend auto-reloads via `/api/reset`
+- Added `set_hidden` effect - `{ node_id, hidden: true/false }`
+- Added `adjust_uses` effect - `{ node_id, delta: -1 }`
+- Added `end_scenario` effect - sets `scenario_ended` flag, stops agent
+- Added `restart_scenario` effect - sets flag, frontend auto-reloads via `/api/reset`
 - Added `locked` to item state dropdown options
 - `state_equals` condition checks `current_state` on trigger source node
 
@@ -52,10 +52,10 @@ priority: medium
 
 ## API (`api.js`, `app.py`)
 
-- `ApiClient.resetWorld()` — new method
-- `ApiClient.placeItemFromLibrary()` — now accepts `{ type, name/id }` for room/container/character
-- `app.py` `/api/build/item-from-library` — accepts `container`/`character` fields, creates appropriate edge
-- `/api/action` and `/api/state` — now return `scenario_ended` and `_restart_requested` flags
+- `ApiClient.resetWorld()` - new method
+- `ApiClient.placeItemFromLibrary()` - now accepts `{ type, name/id }` for room/container/character
+- `app.py` `/api/build/item-from-library` - accepts `container`/`character` fields, creates appropriate edge
+- `/api/action` and `/api/state` - now return `scenario_ended` and `_restart_requested` flags
 
 ## Graph Context Menu (`graph-manager.js`)
 
@@ -67,7 +67,7 @@ priority: medium
 
 ## Task Tracking
 
-- **Cancelled**: task-14 (action_costs_to_time) — doesn't fit turn-based model
+- **Cancelled**: task-14 (action_costs_to_time) - doesn't fit turn-based model
 - **Updated**: task-15 (way_trigger_events → cross-entity trigger effects)
 
 ## What

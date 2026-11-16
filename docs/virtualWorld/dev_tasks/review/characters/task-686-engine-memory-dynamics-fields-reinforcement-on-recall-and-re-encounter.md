@@ -89,8 +89,8 @@ Previously, memory recall simply ratcheted importance up by +1 until capping at 
 - engine/memory_dynamics.py
 - engine/player.py (add_memory, get_relevant_memories)
 - 
-outes/memories.py
-- 	ests/test_memory_dynamics.py
+routes/memories.py
+- tests/test_memory_dynamics.py
 
 ## Browser UI and intended live verification
 

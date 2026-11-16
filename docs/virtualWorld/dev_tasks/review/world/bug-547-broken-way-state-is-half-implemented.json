@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "bug-547",
+  "kind": "bug",
+  "number": 547,
+  "title": "broken way state is half-implemented",
+  "status": "review",
+  "priority": "medium",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "current_state 'broken' is offered by the inspector (STATE_OPTIONS, way-view.ts:25) and refuses open/close (movement.py:1118), but the traversal gate in move_to_area never tests it, so a broken way can be walked through; and engine/barriers.py has no broken rung, so it resolves to UNKNOWN_STATE_FALLBACK open (barriers.py:71) for light and sound. Either implement broken across the passage gate and both barrier tables, or remove it from the dropdown. See the States section of Ways.md.",
+    "why": "`broken` is a state an author can select in the Inspector, and the engine\nalready treats it as a real, blocking state in one place (the open/close\naction). That makes it worse than a state that was never implemented: the world\nmodel advertises it, one code path honours it, and the two paths that matter\nmost - walking through, and light/sound across the way - do not. An author who\nsets a door to `broken` gets a passage that looks broken, refuses to be opened\nor closed, and is nonetheless walk-through and fully transparent to light and\nsound.\n\nThe state ladder in `engine/barriers.py` is explicit about this failure mode:\n`WAY_STATES` is the shared contract, and a test asserts both tables are\nnon-increasing along it. `broken` is absent from that tuple, so it never had a\nrung to be non-increasing on.",
+    "how": "Three places disagree about `broken`:\n\n| Where | Behaviour for `broken` | File:line |\n|---|---|---|\n| Inspector dropdown | offered as a selectable state | `static/js/inspector/way-view.ts:25` (`STATE_OPTIONS`) |\n| open/close action | refused: \"The {direction} is broken.\" | `engine/movement.py:1129-1130` |\n| traversal gate (`move_to_area`) | **not tested** - falls through | `engine/movement.py:580-598` |\n| sound cost | falls back to `open` (0.5) | `engine/barriers.py:42-49`, `:71`, `:93-98` |\n| light transmission | falls back to `open` (1.0) | `engine/barriers.py:60-67`, `:71`, `:101-106` |\n\nThe traversal gate reads `current_state` and refuses on `locked`\n(`movement.py:592`), `blocked` (`:595`) and `closed` (`:598`), plus the\n`refusal_message` short-circuit at `:588-591`. There is no `broken` branch, so\na broken way is crossed.\n\nBoth barrier tables are keyed by state and `broken` is in neither:\n`DEFAULT_SOUND_COSTS` (`barriers.py:42-49`) and `DEFAULT_LIGHT_TRANSMISSION`\n(`barriers.py:60-67`) list only `open`, `see_through`, `closed`, `locked`,\n`blocked`, `hidden`. `WAY_STATES` (`barriers.py:36-38`) is the same six.\n`_normalise_state` maps an unrecognised state to `UNKNOWN_STATE_FALLBACK`\n(`barriers.py:71`, `:109-114`), so `broken` resolves to **open**: full light\ntransmission and the lowest sound cost.\n\nThe fix has two consistent options, and the card's own framing is right that\nonly one of them is a real fix:\n\n1. **Implement `broken` properly.** Add it to `WAY_STATES`, give it rungs in\n   both tables (a broken passage is opaque and muffles sound, so\n   `light_transmission` 0.0 and a sound cost at or above `blocked`), add a\n   `broken` refusal to the traversal gate, and extend the ladder test to cover\n   it.\n2. **Remove it from the dropdown.** Cheaper and coherent, but it drops a state\n   an author may already be using, so the data needs a sweep first.\n\nOption 1 is the one that keeps the advertised state honest.",
+    "verify": "1. Confirm `broken` is offered in the Inspector.\n   - expected: the state is selectable, so the engine must honour it.\n   - observed: CONFIRMED. `static/js/inspector/way-view.ts:25` -\n     `STATE_OPTIONS = ['open', 'closed', 'locked', 'blocked', 'broken', 'hidden']`,\n     rendered at `:291`.\n2. Confirm the traversal gate does not test `broken`.\n   - expected: a broken way refuses to be crossed.\n   - observed: FAILS. `engine/movement.py:580-598` tests `refusal_message`,\n     `locked`, `blocked` and `closed` only. `broken` is not tested, so a broken\n     way is walked through.\n3. Confirm the barrier tables have no `broken` rung.\n   - expected: `broken` has a sound cost and a light transmission.\n   - observed: FAILS. `WAY_STATES` (`barriers.py:36-38`),\n     `DEFAULT_SOUND_COSTS` (`:42-49`) and `DEFAULT_LIGHT_TRANSMISSION`\n     (`:60-67`) contain six states each, none of them `broken`.\n     `_normalise_state` (`:109-114`) therefore resolves it to\n     `UNKNOWN_STATE_FALLBACK = \"open\"` (`:71`): light transmission 1.0, sound\n     cost 0.5.\n4. Confirm the open/close path does refuse `broken`.\n   - expected: consistent handling.\n   - observed: CONFIRMED. `engine/movement.py:1129-1130` raises\n     \"The {direction} is broken.\" So one path already treats it as blocking,\n     which is what makes the other two a defect rather than an omission.\n5. Re-run the live traversal, light and sound checks.\n   - expected: a broken way cannot be crossed, blocks light, and muffles sound\n     consistently from both sides.\n   - observed: not re-run in this turn. The static findings above are what the\n     code shows, not a fresh live reproduction.",
+    "acceptance": [
+      {
+        "text": "`broken` is in `WAY_STATES` and has a rung in both",
+        "done": true
+      },
+      {
+        "text": "`DEFAULT_SOUND_COSTS` and `DEFAULT_LIGHT_TRANSMISSION`, with the ladder",
+        "done": false
+      },
+      {
+        "text": "ordering test extended to cover it.",
+        "done": false
+      },
+      {
+        "text": "The traversal gate in `move_to_area` refuses a `broken` way with a",
+        "done": true
+      },
+      {
+        "text": "message consistent with the open/close path.",
+        "done": false
+      },
+      {
+        "text": "A broken way blocks light and muffles sound per the barrier tables, not",
+        "done": true
+      },
+      {
+        "text": "per `UNKNOWN_STATE_FALLBACK`.",
+        "done": false
+      },
+      {
+        "text": "The `Ways.md` States section matches the implemented behaviour for every",
+        "done": true
+      },
+      {
+        "text": "state the Inspector offers.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/way-view.ts` - `STATE_OPTIONS` (`:25`, rendered `:291`)",
+      "engine/movement.py` - the traversal gate (`:580-598`) and the open/close",
+      "refusal (`:1129-1130`)",
+      "engine/barriers.py` - `WAY_STATES` (`:36-38`), `DEFAULT_SOUND_COSTS",
+      "(`:42-49`), `DEFAULT_LIGHT_TRANSMISSION` (`:60-67`), `UNKNOWN_STATE_FALLBACK",
+      "(`:71`), `_normalise_state` (`:109-114`)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: select a `way` in the graph → Way Inspector → set `current_state` to `broken` → try passage actions and inspect area description, light, and sound across the way.\n\nCurrent availability: re-checked 2026-10-20. `broken` is still offered in the Inspector (`static/js/inspector/way-view.ts:25`), still refused by the open/close action (`engine/movement.py:1129-1130`), and still absent from the traversal gate and from both barrier tables. The three-way disagreement is unchanged, so the state is still half-implemented. The card's cited path for the dropdown was `way-view.ts`; the file is at `static/js/inspector/way-view.ts`.",
+      "reconnaissance_2026_10_20_still_valid": "Re-checked the cited code on 2026-10-20 against the newer way work (task-187\ntraversal verbs, task-243 item gates, task-309 incorporeal phasing, task-563\n`refusal_message`). None of them added a `broken` rung or a `broken` refusal to\nthe traversal gate, and the barrier ladder is still six states wide.\n\nThe card's own conclusion holds and is now sharper: the open/close path\n*already* refuses `broken` (`movement.py:1129-1130`), so the state is not\nmerely unimplemented, it is implemented in one place and ignored in the two that\nmatter. The fix is to add `broken` to `WAY_STATES` and both barrier tables and\nto refuse it in the traversal gate, not to remove it from the dropdown.\n\nVerdict: STILL_VALID. The card stays in todo.\n\nLive steps when available:\n1. In a scratch world, set a connected way to `broken` in its Inspector and attempt `go`/crossing from both connected areas.\n   - expected: either the way is explicitly removed from the state selector, or the broken state consistently blocks passage according to the chosen design; it cannot look broken and still be traversable.\n2. Stand on each side and examine the exit line.\n   - expected: both directions describe the same broken passage state; no side presents it as open.\n3. Put a light source and a sound source on one side and observe from the other.\n   - expected: broken-state light and sound behavior follow the barrier tables, not `UNKNOWN_STATE_FALLBACK` open.\n4. Save and reload the scenario, then inspect the way state and repeat traversal.\n   - expected: the selected policy survives serialization and remains consistent across passage, light, and sound.\n\nThis section is not a claim that broken-way behavior is implemented consistently today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Ways]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/bug-547-broken-way-state-is-half-implemented.md"
+  }
+}

@@ -14,11 +14,11 @@ priority: high
 
 Stimulation is a single anonymous scalar, so nothing can tell a release threshold which path produced it. Record the source of Stimulation gains per player so path-sensitive effects have something to read.
 
-## Measured (2026-09-27) — why task-488 is not a one-line trait consumer
+## Measured (2026-09-27) - why task-488 is not a one-line trait consumer
 
 - `engine/pleasure_actions.py` `apply_stimulation()` already receives everything a
-  "path" could be built from — `actor`, `target`, `verb`, `region_id`, `intensity`,
-  `covered`, `closeness` — and folds all of it into one integer:
+  "path" could be built from - `actor`, `target`, `verb`, `region_id`, `intensity`,
+  `covered`, `closeness` - and folds all of it into one integer:
   `vitals["Stimulation"] += stim_gain`. The inputs are discarded on return; the
   report dict carries `region` back to the caller for the message text and nothing
   else.
@@ -32,7 +32,7 @@ Stimulation is a single anonymous scalar, so nothing can tell a release threshol
 - The mature conditions also add `Stimulation` on their own (`warming_up` +1,
   `aroused` +2, `highly_aroused` +3, `frantic` +4, `sensitized` +1, clothing
   friction in the tick pass), so periodic and friction sources would need a
-  distinguishable path too — otherwise "only the designated path releases" would
+  distinguishable path too - otherwise "only the designated path releases" would
   also block the background drip.
 - `data/library/traits/single_track.json` (and the runtime definition in
   `engine/traits.py`) declare `effects: {"single_track": true}` with no consumer.
@@ -55,18 +55,18 @@ Stimulation is a single anonymous scalar, so nothing can tell a release threshol
 ## Acceptance
 
 - [x] **A `Stimulation` gain records its source (path key)** on the affected
-      player — `apply_stimulation` files it under the resolved `region_id` before
+      player - `apply_stimulation` files it under the resolved `region_id` before
       the inputs are discarded.
-- [x] **The record survives accumulation and is cleared by a release** — the
+- [x] **The record survives accumulation and is cleared by a release** - the
       release cascade empties it, and the record is transient (not serialized),
       so a save cannot restore a build history the character never lived through.
 - [x] **The release check can read the recorded path**, so a path-gated gate is
-      expressible without re-deriving history — that is task-488, and it reads
+      expressible without re-deriving history - that is task-488, and it reads
       `stimulation_from_path`.
 - [x] **Non-intimate sources are distinguishable from interaction sources.** The
       key carries a `source`: an interaction files under its region, the
       clothing-friction trickle files under `clothing_friction`.
-- [x] **Mature-gated throughout** — with `world.mature_content` off nothing is
+- [x] **Mature-gated throughout** - with `world.mature_content` off nothing is
       recorded and no state is created; and turning the toggle *off* clears an
       existing record rather than leaving invisible bookkeeping.
 - [x] Tests in `tests/test_stimulation_paths.py` (21 tests across 545/546/488).
@@ -79,7 +79,7 @@ Stimulation is a single anonymous scalar, so nothing can tell a release threshol
    to the same route counts" false.
 2. **The designated path lives in the trait params** (`path` / `region` /
    `route`), not in a new field on the character.
-3. **Attribution, not a single "last path"** — `stimulation_paths` is a
+3. **Attribution, not a single "last path"** - `stimulation_paths` is a
    path→points map, so "you have been edged on everything but X" is answerable,
    *and* `stimulation_last_path` is kept for the "what is happening right now"
    question that a dict's insertion order answers arbitrarily.
@@ -88,20 +88,20 @@ Stimulation is a single anonymous scalar, so nothing can tell a release threshol
    path gate distinguish "you were touched elsewhere" from "nobody touched you,
    your clothes did".
 
-## Implementation — 2026-10-02 (WT-characters-engine)
+## Implementation - 2026-10-02 (WT-characters-engine)
 
 ### Files
 
-- `player.py` — `stimulation_paths` / `stimulation_last_path`, the
+- `player.py` - `stimulation_paths` / `stimulation_last_path`, the
   `stimulation_path_key` staticmethod, `record_stimulation_path`,
   `stimulation_from_path`, `clear_stimulation_paths`,
   `stimulation_path_total`; and the toggle-off clear inside
   `sync_pleasure_vitals`.
-- `engine/pleasure_actions.py` — `apply_stimulation` files the gain and adds
+- `engine/pleasure_actions.py` - `apply_stimulation` files the gain and adds
   `report["path"]`.
-- `engine/tick_manager.py` — the friction trickle records its own source; the
+- `engine/tick_manager.py` - the friction trickle records its own source; the
   release clears the record.
-- `tests/test_stimulation_paths.py` — **new**, 21 tests (shared with 546/488).
+- `tests/test_stimulation_paths.py` - **new**, 21 tests (shared with 546/488).
 
 ### A non-positive gain records nothing
 
@@ -134,9 +134,9 @@ updated with the reason, not loosened.
 
 ## Related
 
-- task-488 — the consumer this unblocks
-- task-546 — frustration, the other half of task-488
-- task-212 / task-213 (done) — the multiplier pipeline this sits in
+- task-488 - the consumer this unblocks
+- task-546 - frustration, the other half of task-488
+- task-212 / task-213 (done) - the multiplier pipeline this sits in
 
 ## Why
 

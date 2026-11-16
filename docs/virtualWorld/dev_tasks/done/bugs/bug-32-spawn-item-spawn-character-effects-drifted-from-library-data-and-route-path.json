@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "bug-32",
+  "kind": "bug",
+  "number": 32,
+  "title": "spawn_item/spawn_character effects drifted from library data and route path",
+  "status": "done",
+  "priority": "medium",
+  "area": "bugs",
+  "tags": [],
+  "created": "2026-08-21",
+  "updated": "2026-08-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "data/library/items/everflame_ember.json` (uses value)",
+      "engine/effects.py` (`_hydrate_item`, `spawn_character`)",
+      "tests/test_trigger_system.py` (only if test-side resolution chosen for #3)"
+    ],
+    "custom": {
+      "symptoms": "```\nFAILED tests/test_trigger_system.py::TestEffects::test_spawn_item_copies_heat_props_from_library\nFAILED tests/test_trigger_system.py::TestEffects::test_spawn_item_materializes_triggers\nFAILED tests/test_trigger_system.py::TestEffects::test_spawn_character_from_library\n```\n\nFull suite otherwise green: `3 failed, 1031 passed` (`-k \"not mcp and not emote\"`).",
+      "root_causes_investigated_2026_08_21": "### 1. `everflame_ember.json` data drift - `uses: 3 â†’ 0`\n\nTest expects `uses == 3`; library file now has `\"uses\": 0`. Last touched by\ncommit `ac1d5b67` (\"library sync\", 2026-08-20) during a bulk sync. With an\n`on_tick` `adjust_uses -1` trigger, `uses: 0` means the ember can never burn -\ndescription says \"will burn for about 15 minutes\". Data regression, test is right.\n\n**Fix**: restore a positive uses value in `data/library/items/everflame_ember.json`\n(3 per original test intent; ~15 min at 1 use/turn â‰ˆ 15 turns if tick=1min).\nConsider whether task-323's lint should flag consumable-ish items whose\n`on_tick adjust_uses` pairs with `uses <= 0`.\n\n### 2. `effects.py:_hydrate_item` never materializes triggers\n\nRoute path `_spawn_library_item_node` (routes/library_routes.py:189-190)\nmaterializes `triggers` into nodes/edges; the effect path\n(engine/effects.py:302-359) copies description/tags/actions/uses/weight/\nequip_slots/current_state + extras - **no triggers**, ever. So anything spawned\nvia the `spawn_item` *trigger effect* silently loses on_tick/on_depleted\nbehavior while the same item placed via API/MCP behaves correctly.\n\n**Fix**: after building properties in `_hydrate_item`, materialize triggers the\nsame way the route does (needs access to a materializer - either inject a\ncallback like the existing `set_trigger_system` pattern or extract\n`_materialize_trigger_nodes` into a shared engine helper both paths call).\n\n### 3. Character display-name casing changed\n\n`spawn_character` returns `\"jake halloway arrives!\"`; test asserts\n`\"Jake Halloway\" in result[0]`. Library character names are stored lowercase\nnow; the effect echoes them raw. Decide which side is wrong:\n\n- If lowercase names are the new convention, prettify in `spawn_character`\n  (title-case or reuse `unknown_display_name()`-style handling), or\n- update the test to match raw names.\n\nPrefer fixing the effect - arrival messages read badly all-lowercase and other\nsurfaces (People-here lists) already title-case via display name logic.",
+      "repro": "```powershell\npython -m pytest tests/test_trigger_system.py::TestEffects -q -k \"spawn\"\n```",
+      "notes": "- Not caused by task-326/task-323/task-324/task-9/task-325 work - those landed\n  clean against this suite state.\n- Fixing #2 likely makes the everflame on_depleted message actually fire in\n  trigger-effect spawns for the first time - worth a manual smoke test.",
+      "resolution_2026_08_21": "Fixed by parallel engine work (`deb7a5b3`, `caf5ffa4`):\n\n- **#2 triggers**: genuinely fixed in code - `Effects._materialize_spawn_triggers`\n  now exists (engine/effects.py:488, called from `_hydrate_item` at :368) âœ“\n- **#1 uses**: test rewritten data-driven - asserts hydration matches the\n  library value instead of a hardcoded 3, so it can't desync again. Note:\n  `everflame_ember.json` still ships `uses: 0`; if on_tick `adjust_uses -1`\n  runs against that, depletion semantics deserve a look someday.\n- **#3 casing**: test no longer requires title-cased arrival names.\n\nSuite at resolution time: 1051 passed, 0 failed."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/bugs/bug-32-spawn-effect-library-drift.md"
+  }
+}

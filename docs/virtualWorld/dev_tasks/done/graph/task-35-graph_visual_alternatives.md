@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: Low
-**Status**: In Review — implemented (code-verified 2026-08-11). Three view modes in `static/js/graph-manager.js` (🔮 Graph / 🗺 Map / 📋 Outline), toolbar toggles at `index.html:77-109`. Audit section below already says "Ready to test".
+**Status**: In Review - implemented (code-verified 2026-08-11). Three view modes in `static/js/graph-manager.js` (🔮 Graph / 🗺 Map / 📋 Outline), toolbar toggles at `index.html:77-109`. Audit section below already says "Ready to test".
 
 ---
 
@@ -88,9 +88,9 @@ A simple collapsible tree view in the left or right panel:
 
 ## Files
 
-- `static/js/graph-manager.js` — add view mode switching
-- `static/css/style.css` — styles for alternative views
-- `templates/index.html` — toolbar toggle buttons
+- `static/js/graph-manager.js` - add view mode switching
+- `static/css/style.css` - styles for alternative views
+- `templates/index.html` - toolbar toggle buttons
 
 ## Why
 

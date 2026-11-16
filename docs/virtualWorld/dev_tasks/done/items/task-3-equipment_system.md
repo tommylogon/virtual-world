@@ -20,15 +20,15 @@ A slot-based equipment system where items are worn in layered stacks on body slo
 
 ## What Was Implemented (2026-07-21)
 
-### Engine — Complete
+### Engine - Complete
 
-- `player.py` — `equipped` dict with 12 slots (head, neck, torso, arms, hands, legs, feet, back, waist, accessory, hand_left, hand_right). Each slot holds a stack (list of item node IDs). Added `base_description` field for baseline appearance.
-- `virtual_world_engine.py` — `equip_item()`, `unequip_item()`, `get_visible_equipment()`, `get_full_equipment()`, `get_equipment_narrative()`. Two-handed item support with marker system. Drop auto-unequips. `get_item_desc()` now handles examining other characters (shows base_description + visible equipment).
-- `app.py` — commands `wear`/`equip`, `remove`/`unequip`, `undress`, `strip`. Inventory command shows [WORN] items. Player update endpoint accepts `base_description`.
+- `player.py` - `equipped` dict with 12 slots (head, neck, torso, arms, hands, legs, feet, back, waist, accessory, hand_left, hand_right). Each slot holds a stack (list of item node IDs). Added `base_description` field for baseline appearance.
+- `virtual_world_engine.py` - `equip_item()`, `unequip_item()`, `get_visible_equipment()`, `get_full_equipment()`, `get_equipment_narrative()`. Two-handed item support with marker system. Drop auto-unequips. `get_item_desc()` now handles examining other characters (shows base_description + visible equipment).
+- `app.py` - commands `wear`/`equip`, `remove`/`unequip`, `undress`, `strip`. Inventory command shows [WORN] items. Player update endpoint accepts `base_description`.
 - Item editor: `equip_slots` (multiselect) in both item library and item inspector. `build_item_from_library` transfers `equip_slots`.
 - LLM prompts and prompt-docs.js updated with equipment fields.
 
-### Frontend — Done
+### Frontend - Done
 
 - ✅ Paperdoll view with 12 body slots, tooltips, click-to-inspect, equip/unequip buttons
 - ✅ Grid inventory with icons, weight badges, click-to-inspect, drop/equip buttons, add-item picker
@@ -37,14 +37,14 @@ A slot-based equipment system where items are worn in layered stacks on body slo
 
 ### Equipment Bonuses (2026-07-27)
 
-- ✅ `engine/equipment_bonuses.py` — Tag-to-bonus aggregation module:
+- ✅ `engine/equipment_bonuses.py` - Tag-to-bonus aggregation module:
   - `defense` from `armor`/`clothing`-tagged items
   - `damage` from `weapon`-tagged items
-  - `insulation` — temperature shift (sum of all equipped, shifts effective temp ±N°C)
-  - `resistances` — tag-based: `fire_resistant`, `cold_resistant`, `toxic_resistant`, `magic_resistant`, `vacuum_sealed`
+  - `insulation` - temperature shift (sum of all equipped, shifts effective temp ±N°C)
+  - `resistances` - tag-based: `fire_resistant`, `cold_resistant`, `toxic_resistant`, `magic_resistant`, `vacuum_sealed`
   - Custom `resistances` dict on items overrides tag defaults
-- ✅ `tick_manager.py` — Effective temperature from `insulation` used for environmental checks and core temp drift; toxic air reduced by `toxic_resistant`
-- ✅ `combat.py` — Target defense subtracted from weapon damage
+- ✅ `tick_manager.py` - Effective temperature from `insulation` used for environmental checks and core temp drift; toxic air reduced by `toxic_resistant`
+- ✅ `combat.py` - Target defense subtracted from weapon damage
 - ✅ Library items updated: cleaver (weapon+damage), heavy_fur_lined_coat (defense+insulation+cold_resistant), boots (defense), EVA suit (armor+defense+insulation+vacuum_sealed)
 - ✅ Equipment & Paperdoll, Combat System, Temperature System docs updated
 
@@ -55,7 +55,7 @@ A slot-based equipment system where items are worn in layered stacks on body slo
 
 ## Equipment Slots
 
-Each slot holds a **stack** of items. Stack order IS the layering — items worn first are closer to the skin, items worn later go on top.
+Each slot holds a **stack** of items. Stack order IS the layering - items worn first are closer to the skin, items worn later go on top.
 
 | Slot | Max Stack | Examples |
 |------|-----------|---------|
@@ -102,9 +102,9 @@ Items declare equipment compatibility. Boolean properties (`two_handed`, `contai
 }
 ```
 
-- `equip_slots` — which slots the item can be worn on (e.g. full plate could be `["torso", "arms", "legs"]`)
-- `tags` — includes `"two_handed"` for two-handed items, `"container"` for containers
-- `capacity_kg` — weight limit for contained items
+- `equip_slots` - which slots the item can be worn on (e.g. full plate could be `["torso", "arms", "legs"]`)
+- `tags` - includes `"two_handed"` for two-handed items, `"container"` for containers
+- `capacity_kg` - weight limit for contained items
 
 ## Tag-based Properties (2026-07-25)
 
@@ -138,27 +138,27 @@ Item at index 0 = closest to skin. Last item = outermost.
 
 ### Core methods (virtual_world_engine.py)
 
-- `equip_item(player, item_name, under=None)` — adds item to auto-detected slot. If `under` is specified (e.g. "under jacket"), inserts below that item in the stack. Auto-detects slot from item's `equip_slots`. If multiple slots possible, fills all.
-- `unequip_item(player, slot=None, item_name=None)` — removes item from stack. For multi-slot items, removes from all occupied slots.
+- `equip_item(player, item_name, under=None)` - adds item to auto-detected slot. If `under` is specified (e.g. "under jacket"), inserts below that item in the stack. Auto-detects slot from item's `equip_slots`. If multiple slots possible, fills all.
+- `unequip_item(player, slot=None, item_name=None)` - removes item from stack. For multi-slot items, removes from all occupied slots.
 - `get_visible_equipment(player)` → returns outermost items per slot (what others see at a glance).
 - `get_full_equipment(player)` → returns all stacks (for own knowledge, search, intimacy).
 - `get_equipment_narrative(player, viewer)` → plain English description.
 
 ### Commands
 
-- `wear chainmail` — equip to auto-detected slot
-- `wear chainmail under shirt` — equip with specific ordering
-- `remove chainmail` — unequip by item name
-- `remove from torso` — unequip top item from a slot
-- `undress` — remove outermost layer from each slot
-- `strip` — remove all equipment
-- `inventory` — show equipped items (marked with [WORN]) and carried items
-- `put key in backpack` — move item into a container item's contents
-- `take key from backpack` — retrieve item from container
+- `wear chainmail` - equip to auto-detected slot
+- `wear chainmail under shirt` - equip with specific ordering
+- `remove chainmail` - unequip by item name
+- `remove from torso` - unequip top item from a slot
+- `undress` - remove outermost layer from each slot
+- `strip` - remove all equipment
+- `inventory` - show equipped items (marked with [WORN]) and carried items
+- `put key in backpack` - move item into a container item's contents
+- `take key from backpack` - retrieve item from container
 
 ### Triggers
 
-- `on_equip` / `on_unequip` — already exist in TRIGGER_TYPES. Fire when items are worn/removed.
+- `on_equip` / `on_unequip` - already exist in TRIGGER_TYPES. Fire when items are worn/removed.
 - Items can have `on_equip` triggers for magical effects, stat adjustments, narrative messages.
 
 ## Create-Item Modal (2026-07-25)
@@ -172,9 +172,9 @@ The create-item modal (`static/js/ui/create-modal.js`) now includes:
 ## Edge Model (planned)
 
 See `task-105-edge-refactor.md` for the edge type refactor:
-- `in` — item/character in room or container (replaces `location` + `contains`)
-- `carried` — item in character inventory (replaces `carried_by`)
-- `equipped` — item equipped on character (slot in edge properties)
+- `in` - item/character in room or container (replaces `location` + `contains`)
+- `carried` - item in character inventory (replaces `carried_by`)
+- `equipped` - item equipped on character (slot in edge properties)
 
 ## Why
 

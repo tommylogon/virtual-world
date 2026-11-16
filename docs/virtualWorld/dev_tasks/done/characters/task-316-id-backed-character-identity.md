@@ -5,9 +5,9 @@ area: characters
 priority: medium
 ---
 
-# task-316 — ID-backed character identity (same-name support)
+# task-316 - ID-backed character identity (same-name support)
 
-**Status**: Done — identity delivered under task-446 Slice A; fresh character
+**Status**: Done - identity delivered under task-446 Slice A; fresh character
 spawns completed 2026-09-23.
 
 ## Outcome
@@ -26,7 +26,7 @@ cites task-316 as the source of the opaque `Player.id`:
 - Save/load persists and restores `Player.id` with a legacy fallback
   (`engine/serialization.py`).
 
-**Completed here (2026-09-23):** `spawn_character` is now always *fresh* —
+**Completed here (2026-09-23):** `spawn_character` is now always *fresh* -
 `_hydrate_character(..., always_fresh=True)` builds a new `Player`/identity per
 call (mirroring `spawn_item`), and `handle_spawn_character` places the new
 entity by its registry key rather than its display name (which would resolve to
@@ -47,7 +47,7 @@ display name remains the human/LLM addressing surface.
 ## Background / motivation
 
 Library = templates, world = instances. Items already spawn as unique fresh copies
-(`always_fresh`, `library_id` stamped — done 2026-08-19 in effects.py). Characters do
+(`always_fresh`, `library_id` stamped - done 2026-08-19 in effects.py). Characters do
 not: `_hydrate_character` dedupes by `char_id`, `player_manager.players` is keyed by
 display name, relationships are keyed by the other character's display name, and the
 frontend agent engine addresses agents by `worldState.players[charName]`.
@@ -57,16 +57,16 @@ Consequences today:
 - Two same-named characters silently overwrite each other in the registry
   (player_manager.py:36) and merge into one relationship slot (player.py:779).
 - `graph.add_node` raises on duplicate area ids but only suffixes item/door/logic_trigger
-  ids — characters collide and overwrite (graph.py:74).
+  ids - characters collide and overwrite (graph.py:74).
 
 ## Design (confirmed with user)
 
 - **Stable backend `Player.id`** (opaque, unique, never shown to agents/LLM).
 - **Display name stays the addressing surface**: commands target by name, alias, or
   descriptive/spatial qualifiers ("attack the ugly one", "attack the zombie at the door").
-  No new targeting needed — matching (aliases, descriptions, spatial position) already
+  No new targeting needed - matching (aliases, descriptions, spatial position) already
   exists.
-- With 100 identical zombies and no qualifier, first-match is correct — any zombie is a
+- With 100 identical zombies and no qualifier, first-match is correct - any zombie is a
   valid target.
 - **Registry keyed by id internally**, with name → id resolution for the command surface.
 - **Relationships keyed by id**, so two Violets don't share a relationship slot.

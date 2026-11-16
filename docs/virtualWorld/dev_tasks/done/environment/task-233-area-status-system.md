@@ -148,25 +148,25 @@ class AreaStatusSystem:
 ## Trigger Integration
 
 New trigger conditions:
-- `area_has_status` — checks if area has a status type
-- `on_status_applied` — fires when a status is added
-- `on_status_tick` — fires each tick a status is active
-- `on_status_cleared` — fires when a status expires or is cleared
+- `area_has_status` - checks if area has a status type
+- `on_status_applied` - fires when a status is added
+- `on_status_tick` - fires each tick a status is active
+- `on_status_cleared` - fires when a status expires or is cleared
 
 New trigger effects:
-- `apply_area_status` — adds a status to a area
-- `clear_area_status` — removes a status type from a area
+- `apply_area_status` - adds a status to a area
+- `clear_area_status` - removes a status type from a area
 
 ## Files
 
-1. `engine/area_statuses.py` — new module
-2. `engine/tick_manager.py` — call `area_statuses.process_tick()` each turn
-3. `engine/trigger_system.py` — add status conditions/effects
-4. `engine/trigger_validator.py` — validate status params
-5. `engine/effects.py` — `apply_area_status`, `clear_area_status` effect handlers
-6. `engine/area.py` — ensure `statuses` field is initialized
-7. `engine/serialization.py` — save/load `statuses`
-8. `engine/area_description.py` — render active statuses in description
+1. `engine/area_statuses.py` - new module
+2. `engine/tick_manager.py` - call `area_statuses.process_tick()` each turn
+3. `engine/trigger_system.py` - add status conditions/effects
+4. `engine/trigger_validator.py` - validate status params
+5. `engine/effects.py` - `apply_area_status`, `clear_area_status` effect handlers
+6. `engine/area.py` - ensure `statuses` field is initialized
+7. `engine/serialization.py` - save/load `statuses`
+8. `engine/area_description.py` - render active statuses in description
 
 ## Dependencies
 
@@ -184,7 +184,7 @@ New trigger effects:
 
 ## Implemented (2026-09-02, this audit)
 
-Implemented in this pass — nothing existed before. Adds
+Implemented in this pass - nothing existed before. Adds
 `engine/area_statuses.py` (registry: on_fire, smoke, flooded, poison_gas,
 blessed, darkness_magic; `AreaStatusSystem` with apply/clear/has_status,
 per-tick environment mutation + area damage (vitals) + condition application

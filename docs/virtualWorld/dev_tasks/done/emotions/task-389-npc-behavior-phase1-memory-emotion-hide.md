@@ -9,13 +9,13 @@ priority: medium
 
 **Filed**: 2026-09-02
 **Priority**: High
-**Status**: Done — the actions exist in `engine/triggers/behaviors.py` (`add_memory`, `set_emotion`, `set_flag`, `hide_in`/`hide_behind`/`hide_under`, `unhide`) and the matching conditions are in `engine/triggers/condition_tree.py`. Phase 2 (task-390) built on this. Kept in todo only as a record.
+**Status**: Done - the actions exist in `engine/triggers/behaviors.py` (`add_memory`, `set_emotion`, `set_flag`, `hide_in`/`hide_behind`/`hide_under`, `unhide`) and the matching conditions are in `engine/triggers/condition_tree.py`. Phase 2 (task-390) built on this. Kept in todo only as a record.
 
 ---
 
 ## What
 
-Simple NPCs (behavior tree) currently have only 10 action types and cannot write to their own character data. This task adds the foundational actions and conditions that enable NPCs to form memories, track emotions, set flags, and hide — closing the gap with agent/player characters.
+Simple NPCs (behavior tree) currently have only 10 action types and cannot write to their own character data. This task adds the foundational actions and conditions that enable NPCs to form memories, track emotions, set flags, and hide - closing the gap with agent/player characters.
 
 Hiding is a **universal action** available to all characters (players, agents, and simple NPCs). Items that can be hidden in/behind/under are marked with a `hideable` tag.
 
@@ -23,7 +23,7 @@ Hiding is a **universal action** available to all characters (players, agents, a
 
 `engine/triggers/behaviors.py` (`_execute_behavior_actions`) supports only: `message`, `speak`, `llm_respond`, `set_npc_state`, `damage`, `heal`, `set_environment`, `spawn_item`, `teleport`, `go`.
 
-Characters already have `memories`, `emotion`, `tags`, `npc_state` fields — but no behavior actions write to them.
+Characters already have `memories`, `emotion`, `tags`, `npc_state` fields - but no behavior actions write to them.
 
 ## New Behavior Actions
 
@@ -126,7 +126,7 @@ Ensure all Player objects have:
 - `flags: dict` (default `{}`)
 - `hidden: bool` (default `False`)
 
-Hiding itself is stored as a **graph edge** (`hidden` type) from character to item — consistent with existing spatial edges (`in`, `on`, `under`, `behind`). The `player.hidden` boolean is a fast lookup flag; the edge is the source of truth.
+Hiding itself is stored as a **graph edge** (`hidden` type) from character to item - consistent with existing spatial edges (`in`, `on`, `under`, `behind`). The `player.hidden` boolean is a fast lookup flag; the edge is the source of truth.
 
 ### Hideable Items (new tag)
 
@@ -211,11 +211,11 @@ Add new condition types to the behavior condition editor dropdown.
 
 ## Issues to Consider
 
-- Hidden characters: can they be found by `search`? Can they `attack` from hiding? (Recommendation: yes to both — hiding is visual stealth, not invincibility)
+- Hidden characters: can they be found by `search`? Can they `attack` from hiding? (Recommendation: yes to both - hiding is visual stealth, not invincibility)
 - Edge persistence: `hidden` edges must survive save/load via `serialization.py`
-- Capacity: should we limit how many characters can hide in one item? (Recommendation: not v1 — tag-based only)
-- Hidden edge vs spatial edge: can a character hide in an item that also has spatial edges? (Recommendation: yes — `hidden` is a separate edge type)
-- Search interaction: `search wardrobe` should reveal hidden characters inside (Recommendation: yes — search examines contents + hidden edges)
+- Capacity: should we limit how many characters can hide in one item? (Recommendation: not v1 - tag-based only)
+- Hidden edge vs spatial edge: can a character hide in an item that also has spatial edges? (Recommendation: yes - `hidden` is a separate edge type)
+- Search interaction: `search wardrobe` should reveal hidden characters inside (Recommendation: yes - search examines contents + hidden edges)
 
 ## Audit
 
@@ -228,13 +228,13 @@ Add new condition types to the behavior condition editor dropdown.
 
 ## Files
 
-- `engine/triggers/behaviors.py` — new action handlers (hide_in, hide_behind, hide_under, unhide, add_memory, set_emotion, set_flag)
-- `engine/triggers/condition_tree.py` — new condition evaluators (npc_emotion_is, npc_is_hidden, character_has_tag)
-- `graph.py` — ensure `hidden` edge type is supported alongside `in`/`on`/`under`/`behind`
-- `player.py` — ensure `flags` dict and `hidden` bool fields exist
-- `engine/serialization.py` — persist `hidden` edges and `flags` dict
-- `static/js/inspector/behaviors-view.js` — UI for new actions/conditions
-- `engine/npc_behaviors.py` — edge cleanup on character death/relocation
+- `engine/triggers/behaviors.py` - new action handlers (hide_in, hide_behind, hide_under, unhide, add_memory, set_emotion, set_flag)
+- `engine/triggers/condition_tree.py` - new condition evaluators (npc_emotion_is, npc_is_hidden, character_has_tag)
+- `graph.py` - ensure `hidden` edge type is supported alongside `in`/`on`/`under`/`behind`
+- `player.py` - ensure `flags` dict and `hidden` bool fields exist
+- `engine/serialization.py` - persist `hidden` edges and `flags` dict
+- `static/js/inspector/behaviors-view.js` - UI for new actions/conditions
+- `engine/npc_behaviors.py` - edge cleanup on character death/relocation
 
 ## How
 

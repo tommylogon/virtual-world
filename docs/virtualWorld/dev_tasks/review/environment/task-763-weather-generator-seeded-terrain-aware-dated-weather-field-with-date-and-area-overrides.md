@@ -33,10 +33,10 @@ Findings from the standalone preview (tools/weather_preview.py), 2026-10-10. (a)
 
 Implemented, and it addresses all four preview findings:
 
-- **(a) snowy reachable** — season and terrain now **add** a weighted edge; winter
+- **(a) snowy reachable** - season and terrain now **add** a weighted edge; winter
   from `clear` gives `snowy` a weight the base table never had, and a 30-day
   winter field produces snow.
-- **(b) extreme tail** — every registry state marked `kind: extreme` is a
+- **(b) extreme tail** - every registry state marked `kind: extreme` is a
   candidate (`EXTREME_BASE_WEIGHT`), raisable by season/terrain up to
   `EXTREME_CAP` and **suppressible to zero** by a negative bias (no summer
   blizzard, no desert thunderstorm); the roll is over the **full** distribution
@@ -44,19 +44,19 @@ Implemented, and it addresses all four preview findings:
   extremes ship as library content (`blizzard`, `thunderstorm`, `heatwave`,
   `cold_snap`); the *set* is still library data (task-772), so a world adds its
   own setting-specific ones (acid rain, sandstorm, ion storm, blood rain).
-- **precipitation amount** — the state carries millimetres per hour
+- **precipitation amount** - the state carries millimetres per hour
   (`WEATHER_TUNING[...]["precipitation"]`), written to open-sky areas only when
   falling, and read back to scale the snow rate, so heavy snow settles faster
   than light snow.
-- **(c) state implies more than a word** — `WEATHER_TUNING` gives each state a
+- **(c) state implies more than a word** - `WEATHER_TUNING` gives each state a
   wind magnitude, a humidity tendency and a temperature nudge, applied per area
   at the write point.
-- **(d) deterministic mode** — fixed earlier under bug-537.
+- **(d) deterministic mode** - fixed earlier under bug-537.
 
 ## Steps to verify
 
 1. Run `python -m pytest tests/test_weather_generator.py`.
-   - expected: 15 passed — the snow edge, terrain summation, the extreme cap and
+   - expected: 15 passed - the snow edge, terrain summation, the extreme cap and
      the season/terrain *gating* of extremes, the snow-tagged-extreme rule,
      precipitation scaling the snow rate, the painted-climate bias, the records
      being registered, the no-truncation roll, the seeded reproducible per-area
@@ -64,7 +64,7 @@ Implemented, and it addresses all four preview findings:
      precedence, and the per-area application to `environment`.
    - observed: 15 passed.
 2. Run `python tools/weather_library_check.py --report`.
-   - expected: 0 errors, 0 warnings (11 records) — reachability now counts
+   - expected: 0 errors, 0 warnings (11 records) - reachability now counts
      season, terrain and the extreme tail, not just the base table.
    - observed: 11 records, 0 error(s), 0 warning(s).
 3. Run the environment/weather regression slice.
@@ -101,30 +101,30 @@ Implemented, and it addresses all four preview findings:
 
 ## Files
 
-- `engine/weather_forecast.py` — `SEASON_WEATHER_BIAS`, `TERRAIN_WEATHER_BIAS`,
+- `engine/weather_forecast.py` - `SEASON_WEATHER_BIAS`, `TERRAIN_WEATHER_BIAS`,
   `CLIMATE_WEATHER_BIAS` (reads task-557's compiled `climate`),
   `EXTREME_BASE_WEIGHT`/`EXTREME_CAP`, `WEATHER_TUNING`, `SNOW_CM_PER_MM`, and the
   pure `weather_state_kind`, `terrain_weather_bias`, `conditioned_weights`,
   `roll_from_weights`, `generate_weather_field`, `apply_field_overrides`,
   `weather_tuning`, `weather_produces_snow`.
-- `engine/weather_types.py` — `WEATHER_ALIASES` no longer folds `blizzard` into
+- `engine/weather_types.py` - `WEATHER_ALIASES` no longer folds `blizzard` into
   `snowy` or `thunderstorm` into `stormy` (they are their own types now).
-- `data/library/weather/{blizzard,thunderstorm,heatwave,cold_snap}.json` — the
+- `data/library/weather/{blizzard,thunderstorm,heatwave,cold_snap}.json` - the
   extreme records (kind `extreme`).
-- `virtual_world_engine.py` — `_area_terrain_index`, `_weather_field_for_day`,
+- `virtual_world_engine.py` - `_area_terrain_index`, `_weather_field_for_day`,
   the day roll in `_forecast_tick`, and the per-area `_apply_forecast_env`
   (weather from the field; wind/humidity/precipitation/temperature from the
   area's state; precipitation feeds the snow rate).
-- `routes/settings.py` — the forecast GET exposes the field; the POST passes
+- `routes/settings.py` - the forecast GET exposes the field; the POST passes
   `area_overrides`/`date_overrides` through and resets the field.
-- `tools/weather_library_check.py` — reachability now counts season, terrain and
+- `tools/weather_library_check.py` - reachability now counts season, terrain and
   the extreme tail.
-- `tests/test_weather_generator.py` — mechanism and wiring.
+- `tests/test_weather_generator.py` - mechanism and wiring.
 
 ## Intentionally not implemented
 
 - **Elevation.** task-557 (done) deliberately did **not** restore a painted
-  elevation layer — it was removed for meaning two things — so there is no
+  elevation layer - it was removed for meaning two things - so there is no
   elevation input for the generator to read. The compiled **climate**
   (`arctic`/`alpine`/`temperate`/`arid`/`tropical`, task-557) *is* read now, via
   `CLIMATE_WEATHER_BIAS`, alongside biome tags; `base_temperature` continues to

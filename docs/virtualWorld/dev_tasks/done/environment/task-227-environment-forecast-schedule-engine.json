@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-227",
+  "kind": "task",
+  "number": 227,
+  "title": "Environment Forecast Schedule Engine",
+  "status": "done",
+  "priority": "high",
+  "area": "environment",
+  "tags": [],
+  "created": "2026-08-15",
+  "updated": "2026-08-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [
+      "task-85"
+    ],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace ad-hoc weather with a **forecast schedule** system. The scenario designer (or GM) defines environment properties at any game time as a authored schedule - hourly detail, weekly averages, or yearly climate patterns. Triggers and API calls can temporarily override the forecast for story moments.\n\nThis is not a weather simulation. It is a **time-aware environment overlay** that `tick_turn()` applies each turn.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Hourly forecast changes ambient light at hour boundary\n- Weekly forecast changes on day boundary\n- Yearly forecast changes on season boundary\n- GM override supersedes forecast\n- Timed override reverts after duration expires\n- Weather change narration fires on transition\n- Forecast persists through save/load",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/weather_forecast.py` - new module",
+      "engine/tick_manager.py` - call forecast each turn, apply overrides, fire change events",
+      "virtual_world_engine.py` - initialize forecast from world state, expose helper",
+      "routes/settings.py` - `GET/POST /api/settings/forecast`, `GET/POST /api/settings/forecast-override",
+      "routes/state.py` - expose `forecast_schedule` and `forecast_override` in `/api/state",
+      "engine/effects.py` - add `forecast_override` effect to trigger system",
+      "engine/trigger_validator.py` - validate forecast override params",
+      "static/js/world-state.js` - parse new state fields",
+      "docs/virtualWorld/Environment/Time & Weather.md` - update design doc"
+    ],
+    "custom": {
+      "forecast_modes": "The forecast engine supports three modes, selectable per scenario:\n\n### Mode 1: Authored Schedule (default)\n\nExplicit entries as shown below. Designer places environment overrides at specific times. Most control, most work.\n\n### Mode 2: Deterministic State Machine\n\nA configurable state machine where weather transitions between states with **fixed probabilities** (no randomness). Useful for predictable seasonal patterns or scripted weather arcs.\n\n```python\n{\n    \"mode\": \"deterministic\",\n    \"transition_table\": {\n        \"clear\":   {\"clear\": 7, \"cloudy\": 2, \"windy\": 1},\n        \"cloudy\":  {\"clear\": 2, \"cloudy\": 4, \"rainy\": 2, \"foggy\": 1, \"windy\": 1},\n        \"rainy\":   {\"clear\": 1, \"cloudy\": 2, \"rainy\": 3, \"stormy\": 2, \"foggy\": 2},\n        \"stormy\":  {\"rainy\": 3, \"cloudy\": 2, \"clear\": 1},\n        \"foggy\":   {\"clear\": 2, \"foggy\": 3, \"cloudy\": 2, \"rainy\": 1},\n        \"windy\":   {\"clear\": 3, \"cloudy\": 2, \"windy\": 2, \"stormy\": 1}\n    },\n    \"current_state\": \"clear\",\n    \"transition_interval\": \"hourly\"\n}\n```\n\nWeights sum to 10 = percentages. The engine rolls a weighted pick at each interval. GM overrides still work.\n\n### Mode 3: Random (Stochastic)\n\nSame transition table as deterministic, but uses `random` at each interval. Can be seeded for reproducibility:\n\n```python\n{\n    \"mode\": \"random\",\n    \"seed\": 42,\n    \"transition_table\": { ... }\n}\n```\n\n### Hybrid\n\nAuthored schedule defines base environment. State machine defines **weather variations** layered on top. E.g., authored schedule says `temperature_mod: 0`, but the state machine adds `weather: \"rainy\"` on top of it.",
+      "forecast_data_model": "Stored in world state as `forecast_schedule`:\n\n```python\n{\n    \"mode\": \"authored\",\n    \"seed\": None,\n    \"granularity\": \"hourly\",\n    \"current_state\": \"clear\",\n    \"transition_interval\": 1,\n    \"transition_table\": { ... },\n    \"entries\": [\n        {\n            \"offset\": 0,\n            \"weather\": \"clear\",\n            \"wind\": \"breeze\",\n            \"temperature_mod\": 0,\n            \"light_mod\": 0,\n            \"air\": \"fresh\",\n            \"message\": \"The morning is clear and calm.\"\n        },\n    ]\n}\n```\n\nPeriod lengths:\n- `hourly`: 1440 minutes (1 day) - entries repeat daily\n- `weekly`: 10080 minutes (7 days) - entries repeat weekly\n- `yearly`: 525600 minutes (365 days) - entries repeat yearly (or cycle through seasons)",
+      "engine_module": "New file: `engine/weather_forecast.py`\n\n```python\nclass ForecastSchedule:\n    def __init__(self, schedule: dict):\n        self.granularity = schedule.get(\"granularity\", \"hourly\")\n        self.entries = sorted(schedule.get(\"entries\", []), key=lambda e: e.get(\"offset\", 0))\n        self.period = {\"hourly\": 1440, \"weekly\": 10080, \"yearly\": 525600}[self.granularity]\n        self._last_entry = None\n\n    def get_entry_for_time(self, total_minutes: int) -> dict:\n        offset = total_minutes % self.period\n        for i, entry in enumerate(self.entries):\n            next_off = self.entries[i + 1].get(\"offset\", self.period) if i + 1 < len(self.entries) else self.period\n            if entry.get(\"offset\", 0) <= offset < next_off:\n                return entry\n        return self.entries[0] if self.entries else {}\n\n    def get_environment_overrides(self, time_ticks: int, time_per_tick_minutes: float, game_day: int) -> dict:\n        total_minutes = time_ticks * time_per_tick_minutes\n        if self.granularity in (\"weekly\", \"yearly\"):\n            total_minutes += game_day * 1440\n        return self.get_entry_for_time(int(total_minutes))\n```",
+      "gm_override": "A separate `forecast_override` dict in world state (or per-area) that **supersedes** the schedule. Can be:\n- Set via API `POST /api/settings/forecast-override`\n- Set via trigger effect `forecast_override`\n- Timed: includes `duration_ticks` and auto-reverts when expired",
+      "integration_with_tick_turn": "In `tick_turn()`, after `advance_clock(1)`:\n\n1. Query `ForecastSchedule` for current environment overrides\n2. If active GM override exists, use that instead\n3. Apply overrides to all exterior areas (or all areas, per config)\n4. If forecast entry changed since last tick, fire narration event using `entry[\"message\"]`\n\n`set_environment` / `adjust_environment` trigger effects are **temporary** (they modify the area's static env dict for one tick or until cleared). The forecast is the **baseline** that gets re-applied each turn.",
+      "dependencies": "- **Blocked by**: Nothing\n- **Blocks**: task-228 (date tracking), task-229 (moon phase), task-230 (outdoor lighting)",
+      "implemented_audit_2026_09_02": "Fully implemented before this audit: `engine/weather_forecast.py` (authored /\ndeterministic / random / hybrid modes, seed support), tick integration via\n`_forecast_tick()`, narration on forecast changes, serialization, and\n`GET/POST /api/settings/forecast`. This audit added: `set_time`, `set_date`,\n`set_weather`, `forecast_override`, `adjust_forecast` registered in\n`EFFECT_TYPES` + validator + both trigger editors (they existed as handlers\nbut were unregistered, so validation and the editors rejected them).\nGM override UI lives in the SkyScape widget / World Sky panel (`sky-scape.js`)."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "filed": "2026-08-15",
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/environment/task-227-environment-forecast-schedule.md"
+  }
+}

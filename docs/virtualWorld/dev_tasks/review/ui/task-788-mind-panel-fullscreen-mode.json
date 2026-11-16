@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-788",
+  "kind": "task",
+  "number": 788,
+  "title": "Mind panel: fullscreen mode",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-691",
+      "task-787",
+      "task-820",
+      "task-785"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Let the Mind panel expand to fullscreen so a long memory list and its detail pane are readable.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector → 🧠 Mind panel header → Fullscreen control; return with the same control or Escape.\n\nCurrent availability: The Mind panel is a tabbed modal and the full-screen mode is planned; the card records no current full-screen control.\n\nLive steps when available:\n1. Open Mind → Memories for a character with a long memory list and select a memory; activate Fullscreen.\n   - expected: the panel fills the viewport, the memory list and detail have usable space, and the selected character/title remain unchanged.\n2. Switch to Mind, Perception, and People while fullscreen; scroll to the bottom of each tab.\n   - expected: every tab remains reachable, no body content is cut off, and the panel-not the page behind it-owns scrolling.\n3. Exit fullscreen with the control and with Escape, then reopen Mind from the inspector.\n   - expected: the panel returns to its original modal size, the opener receives focus, and reopening does not create a second Mind instance.\n4. Resize the browser while fullscreen and after exit.\n   - expected: the tab content reflows without horizontal clipping and the original inspector remains intact behind the modal.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-788-mind-panel-fullscreen-mode.md"
+  }
+}

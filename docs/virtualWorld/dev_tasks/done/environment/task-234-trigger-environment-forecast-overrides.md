@@ -22,9 +22,9 @@ These terms are used throughout the engine and trigger system. They are distinct
 | **tick_turn()** | The full processing cycle that runs when a turn ends. Calls `conditions.process_tick()`, vitals decay, environmental effects, heat propagation, sound sources, NPC behavior, then `advance_clock(1)`. This is what `/api/turn/apply` invokes. |
 | **turn** | One complete player action cycle: player takes action → `tick_turn()` runs → `/api/turn/clear` increments `turn_number`. One turn = one `tick_turn()` call = +1 tick = +5 game minutes. |
 | **turn_number** | An integer incremented by `clear_turn_events()` AFTER `tick_turn()` completes. Used for logging, event tracking, and turn-gated conditions. |
-| **step** | An NPC movement step or activity progress step. Not a global time concept — NPCs may take multiple steps per turn. |
+| **step** | An NPC movement step or activity progress step. Not a global time concept - NPCs may take multiple steps per turn. |
 
-### `on_tick` trigger type — clarification
+### `on_tick` trigger type - clarification
 
 `on_tick` is currently an **item trigger type** that fires during `tick_turn()`. Despite the name, it fires **once per turn**, not once per time tick. It exists so lit items (torches, embers) can burn down and fire `on_depleted` when their `uses` reach 0.
 
@@ -34,22 +34,22 @@ Renaming `on_tick` is not feasible (100+ references in data files). Instead:
 
 ## Trigger Effect Expansions
 
-### `set_environment` — New Keys
+### `set_environment` - New Keys
 
 Currently supports: `light`, `temperature`, `air`, `smell`, `noise`.
 
 Add support for:
-- `weather` — set `environment.weather` on a area
-- `wind` — set `environment.wind` (none / breeze / wind / gale / storm / hurricane)
-- `humidity` — set `environment.humidity` (dry / humid / wet / flooding)
-- `transparent` — set `"transparent": true/false` on a way node
+- `weather` - set `environment.weather` on a area
+- `wind` - set `environment.wind` (none / breeze / wind / gale / storm / hurricane)
+- `humidity` - set `environment.humidity` (dry / humid / wet / flooding)
+- `transparent` - set `"transparent": true/false` on a way node
 
-### `adjust_environment` — New Keys
+### `adjust_environment` - New Keys
 
 Same additions as `set_environment`, but incrementally:
-- `adjust_weather` — cycle weather by N steps
-- `adjust_wind` — cycle wind by N steps
-- `adjust_humidity` — cycle humidity by N steps
+- `adjust_weather` - cycle weather by N steps
+- `adjust_wind` - cycle wind by N steps
+- `adjust_humidity` - cycle humidity by N steps
 
 ### `forecast_override` Effect
 
@@ -152,7 +152,7 @@ def tick_turn(self, skip_npcs=False):
     self._fire_turn_triggers("on_turn_end")
 ```
 
-`_fire_turn_triggers()` iterates all area nodes and fires the given trigger type on any node that has it registered. This is separate from the item `on_tick` loop — `on_turn_start`/`on_turn_end` fire on **areas, characters, and ways**, not just items.
+`_fire_turn_triggers()` iterates all area nodes and fires the given trigger type on any node that has it registered. This is separate from the item `on_tick` loop - `on_turn_start`/`on_turn_end` fire on **areas, characters, and ways**, not just items.
 
 ## API Endpoints
 
@@ -181,7 +181,7 @@ Pass `null` values to clear specific keys. Pass `"clear_all": true` to remove al
 
 ### `GET /api/settings/weather`
 
-Legacy endpoint — returns current effective weather.
+Legacy endpoint - returns current effective weather.
 
 ## GM Control Panel (UI)
 
@@ -208,15 +208,15 @@ if override:
 
 ## Files
 
-1. `engine/effects.py` — add `forecast_override`, `adjust_forecast`, expand `set_environment` keys
-2. `engine/trigger_system.py` — register new effect types + time/moon conditions + `on_turn_start`/`on_turn_end` trigger types
-3. `engine/trigger_validator.py` — validate new params + time/moon conditions
-4. `engine/tick_manager.py` — forecast override revert logic, `_fire_turn_triggers()` for turn start/end
-5. `engine/weather_forecast.py` — expose override-aware lookup, moon phase helper
-6. `routes/settings.py` — new forecast endpoints
-7. `routes/state.py` — expose forecast + override in state
-8. `static/js/settings-view.js` — weather/forecast GM panel
-9. `static/js/world-state.js` — parse new fields
+1. `engine/effects.py` - add `forecast_override`, `adjust_forecast`, expand `set_environment` keys
+2. `engine/trigger_system.py` - register new effect types + time/moon conditions + `on_turn_start`/`on_turn_end` trigger types
+3. `engine/trigger_validator.py` - validate new params + time/moon conditions
+4. `engine/tick_manager.py` - forecast override revert logic, `_fire_turn_triggers()` for turn start/end
+5. `engine/weather_forecast.py` - expose override-aware lookup, moon phase helper
+6. `routes/settings.py` - new forecast endpoints
+7. `routes/state.py` - expose forecast + override in state
+8. `static/js/settings-view.js` - weather/forecast GM panel
+9. `static/js/world-state.js` - parse new fields
 
 ## Dependencies
 
@@ -242,7 +242,7 @@ Mostly implemented before this audit: `set_environment` new keys
 (weather/wind/humidity/transparent), adjust cycling, `forecast_override` /
 `adjust_forecast` handlers, `on_turn_start`/`on_turn_end`
 (`_fire_turn_triggers`), time/moon triggers (`_fire_time_triggers`: on_dawn,
-on_dusk, on_day, on_night, on_full_moon, on_blood_moon — one-shot per
+on_dusk, on_day, on_night, on_full_moon, on_blood_moon - one-shot per
 game-day cache), and the GM panel (SkyScape World Sky panel: override
 weather/wind/humidity/duration + Set/Clear against
 `/api/settings/forecast-override`).

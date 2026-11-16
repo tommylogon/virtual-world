@@ -9,7 +9,7 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: High
-**Status**: Done — area inspector renders items via worldState.getItemsInArea() (static/js/inspector/area-view.js:103-110). Audited 2026-08-03
+**Status**: Done - area inspector renders items via worldState.getItemsInArea() (static/js/inspector/area-view.js:103-110). Audited 2026-08-03
 
 ---
 
@@ -33,8 +33,8 @@ This calls `worldState.getItemsInArea(name)` which presumably queries the graph 
 
 ## Investigation Needed
 
-1. Check `worldState.getItemsInArea()` — in `world-state.js`
-2. Check `worldState.areas[name].items` — which items array is populated and when
+1. Check `worldState.getItemsInArea()` - in `world-state.js`
+2. Check `worldState.areas[name].items` - which items array is populated and when
 3. Check if graph edges of type `contains`/`location` exist between areas and items
 
 The room data structure (`worldState.areas`) may have items listed directly (from the API response `/api/state`), while `getItemsInArea()` queries the graph. These could be out of sync.
@@ -51,9 +51,9 @@ const itemsFromRoomData = (worldState.areas[name]?.items || []).map(i => i.name 
 
 ## Files
 
-- `static/js/inspector.js` — fix items rendering in `_showRoom()`
-- `static/js/world-state.js` — may need to fix `getItemsInArea()` if that's the root cause
-- `static/js/api.js` — verify that `/api/state` returns items correctly
+- `static/js/inspector.js` - fix items rendering in `_showRoom()`
+- `static/js/world-state.js` - may need to fix `getItemsInArea()` if that's the root cause
+- `static/js/api.js` - verify that `/api/state` returns items correctly
 
 ## How
 

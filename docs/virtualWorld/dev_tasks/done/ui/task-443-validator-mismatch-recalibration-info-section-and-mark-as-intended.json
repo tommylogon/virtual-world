@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "task-443",
+  "kind": "task",
+  "number": 443,
+  "title": "Validator mismatch recalibration, info section, and mark-as-intended",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-09-21",
+  "updated": "2026-09-21",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-393",
+      "design",
+      "sections",
+      "f",
+      "task-324",
+      "domain",
+      "tags",
+      "untitled",
+      "feeds",
+      "mechanical-tag-missing-props"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Finish the three pieces of the validator triage panel that were specified but never\nbuilt, so the mansion run's noise floor drops.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- expected: library_mismatch split into warning vs info; info section default-collapsed; header count includes info.\n- observed (2026-10-10 live): library_mismatch severities {warning:22, info:216}; panel header '4397 (0 err . 53 warn)' with '3 info notes' sections; way_missing_* rows are info.",
+    "acceptance": [
+      {
+        "text": "Trivial-field `library_mismatch` warnings fall sharply: in the live",
+        "done": true
+      },
+      {
+        "text": "mansion run, 23 of 30 `library_mismatch` rows became **info** and only 7",
+        "done": false
+      },
+      {
+        "text": "remain warnings (identity/structural/mechanical drift). No real mechanical",
+        "done": false
+      },
+      {
+        "text": "drift is lost - `actions`/`uses` drift still warns (new test",
+        "done": false
+      },
+      {
+        "text": "`test_actions_drift_still_warns`).",
+        "done": false
+      },
+      {
+        "text": "\"Mark instance as intended\" suppresses a mismatch on that node only,",
+        "done": true
+      },
+      {
+        "text": "survives reload, and expires when the node is edited after the mark - it",
+        "done": false
+      },
+      {
+        "text": "reuses the shipped `ignored_issues` / `_ignored_at` mechanism via",
+        "done": false
+      },
+      {
+        "text": "`/api/triggers/ignore` (no second mechanism). The validator's expiry test",
+        "done": false
+      },
+      {
+        "text": "already exists.",
+        "done": false
+      },
+      {
+        "text": "Info rows sit in a default-collapsed `info` section; the pinned header",
+        "done": true
+      },
+      {
+        "text": "count still reflects them (`85 (2 err · 21 warn)` with 63 info included).",
+        "done": false
+      },
+      {
+        "text": "Manual browser pass recorded (below).",
+        "done": true
+      },
+      {
+        "text": "`tests/test_trigger_validator.py` updated for the recalibration; targeted",
+        "done": true
+      },
+      {
+        "text": "suite green.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/trigger_validator.py` - `LIBRARY_MISMATCH_TRIVIAL_PROPS`,",
+      "LIBRARY_MECHANICAL_PROPS`, split `_validate_library_sync`.",
+      "static/js/validator-panel.js` - `_infoSection` (default-collapsed), group",
+      "split, ✓ \"mark as intended\" for library_mismatch.",
+      "tests/test_trigger_validator.py`."
+    ],
+    "custom": {
+      "what_is_missing_verified_2026_09_21": "1. **`library_mismatch` recalibration - not done, and task-393's claim about it was false.**\n   The panel was supposed to fire `library_mismatch` only on **mechanical** field drift\n   (vitals / triggers / actions / uses) and not on `light_level` / `contents`, because\n   instance divergence on those is the *normal* authoring flow. It still includes them:\n   `LIBRARY_SYNC_PROPS` (`engine/trigger_validator.py:147-151`) carries `light_level`,\n   `target_temperature`, `heating_rate`, `contents` and `aliases`; the severity is still\n   `warning` (`:728`); and `tests/test_trigger_validator.py:428-439` asserts a\n   `light_level` mismatch **is** reported. Note `DEFAULTED_MECHANICAL_DEFAULTS`\n   (`:135-139`) already declares the first three as engine-defaulted → they belong with\n   `mechanical_tag_missing_props` (info), not `library_mismatch` (warning).\n2. **No \"mark instance as intended\" action.** Task-393 design section E calls for batch\n   \"mark instance as intended\" (set an explicit override) rather than resync. No such\n   action exists anywhere - no route, no property, no UI.\n3. **No default-collapsed `info` section.** Grouping sorts by worst severity\n   (`static/js/validator-panel.js:293-300`) but info rows render inline.\n\nAlso owed: the **manual browser pass** task-393 never had (grouping UI, scroll,\ndismiss-until-touched persistence across reload).",
+      "design_notes": "- **Recalibrate by moving props, not by loosening the check.** Keep `library_mismatch`\n  for the props where divergence is a real bug; route `light_level` /\n  `target_temperature` / `heating_rate` to the existing `mechanical_tag_missing_props`\n  (info) path, and decide `contents` / `aliases` explicitly (they are structural, so\n  likely stay - but then the message should say why).\n- **Mark-as-intended is a node override**, not a library edit: a property on the placed\n  node that suppresses its own mismatch until the node is edited again - the same\n  dismiss-until-edited shape `ignored_issues` / `_ignored_at` already uses\n  (`engine/trigger_validator.py:184-219`). Reuse it rather than inventing a second\n  mechanism.\n- **The info section is grouping, not filtering** - it must not hide info rows from the\n  count in the pinned header.",
+      "recalibration_decision_engine_trigger_validator_py": "Split `LIBRARY_SYNC_PROPS` drift into three buckets:\n\n- **warning `library_mismatch`** - `name`, `tags`, `actions`, `uses`, `weight`,\n  `equip_slots`; the message says \"mechanical fields determine behaviour\" when\n  `actions`/`uses` differ, else \"these change what the item is\".\n- **info `mechanical_tag_missing_props`** - `light_level`, `target_temperature`,\n  `heating_rate` (engine defaults from `DEFAULTED_MECHANICAL_DEFAULTS`); the\n  existing ⚙ quick-fix sets them, so the info row is actionable.\n- **info `library_mismatch`** - `current_state`, `contents`, `description`,\n  `aliases`: runtime/per-instance state or free text, which is exactly what an\n  instance is for. Decided explicitly (see `LIBRARY_MISMATCH_TRIVIAL_PROPS`).",
+      "verification_2026_10_02": "Engine:\n\n```\npython -m pytest tests/test_trigger_validator.py -q -> 51 passed\n  new: test_engine_defaulted_drift_alone_is_info, test_actions_drift_still_warns,\n       test_runtime_state_drift_is_info_not_warning; test_library_mismatch_detected\n       updated (name warns, light_level is info).\n```\n\nLive browser (`VW_PORT=4463`, Playwright; real tab click `ui.switchLeftTab('issues')`):\n\n```\nPANEL countText \"86 (2 err · 21 warn)\"; 76 groups; 32 info sections;\n      infoOpenByDefault all false; 31 \"Mark this instance as intended\" buttons.\ngroup expanded -> nested \"↳ N info notes\" stays collapsed; opening it shows the\n      individual info rows.\nclick ✓ on a library_mismatch node -> library_mismatch 31 -> 30, total 86 -> 85;\nreload -> still 30/85 (persisted on the node).\nSeverity split after recalibration: library_mismatch {warning: 7, info: 23}.\n```\n\nScreenshots: `review-verify/443-validator-top.png`,\n`review-verify/443-info-section.png` (collapsed info sub-section),\n`review-verify/443-info-open.png` (info rows expanded).",
+      "non_goals": "- The triage mechanics themselves (grouping, scroll, empty-trigger collapse, dismiss,\n  fix-all, progress bar) - those shipped with task-393.\n- Changing the derived-progress definition - task-393 settled it on the shipped\n  formula; see that task's Outcome block."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "supersedes": "the unimplemented residuals of task-393 (the triage mechanics shipped; that task is closed)"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-443-validator-mismatch-recalibration-and-info-section.md"
+  }
+}

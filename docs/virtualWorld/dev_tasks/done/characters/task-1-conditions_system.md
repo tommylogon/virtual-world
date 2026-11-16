@@ -9,13 +9,13 @@ priority: medium
 
 **Filed**: 2026-07-15
 **Priority**: High
-**Status**: Done — merged into commit 8e6ad9f (2026-07-22)
+**Status**: Done - merged into commit 8e6ad9f (2026-07-22)
 
 ---
 
 ## What
 
-Characters need a proper conditions/status effects system. Currently states are limited to: awake, sleeping, dead, unconscious. A conditions system should support: awake, dead, asleep, unconscious, paralysed, blind, deaf, sick, poisoned, grappled, restrained — where multiple conditions can apply simultaneously with independent effects.
+Characters need a proper conditions/status effects system. Currently states are limited to: awake, sleeping, dead, unconscious. A conditions system should support: awake, dead, asleep, unconscious, paralysed, blind, deaf, sick, poisoned, grappled, restrained - where multiple conditions can apply simultaneously with independent effects.
 
 ## Why
 
@@ -25,7 +25,7 @@ Characters need a proper conditions/status effects system. Currently states are 
 self.state = "awake"  # single string, one at a time
 ```
 
-States are mutually exclusive. A character cannot be simultaneously "sleeping" and "poisoned" — the state system doesn't support this.
+States are mutually exclusive. A character cannot be simultaneously "sleeping" and "poisoned" - the state system doesn't support this.
 
 ### State-based restrictions (`virtual_world_engine.py`)
 
@@ -93,10 +93,10 @@ Click to inspect condition details. Show condition source and remaining duration
 
 ## Files
 
-- `player.py` — replace `state` with `conditions` set
-- `virtual_world_engine.py` — update all state checks, add condition processing, add trigger effects
-- `static/js/inspector.js` — display conditions in agent inspector
-- `static/js/api.js` — condition update API
+- `player.py` - replace `state` with `conditions` set
+- `virtual_world_engine.py` - update all state checks, add condition processing, add trigger effects
+- `static/js/inspector.js` - display conditions in agent inspector
+- `static/js/api.js` - condition update API
 
 ## How
 

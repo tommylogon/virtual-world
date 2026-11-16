@@ -87,9 +87,9 @@ Retrieval previously picked a flat list of highest-importance memories, resultin
 
 - engine/memory.py
 - 
-outes/memories.py
+routes/memories.py
 - static/js/agent/memory-context.ts
-- 	ests/test_memory_retrieval.py
+- tests/test_memory_retrieval.py
 
 ## Browser UI and intended live verification
 

@@ -30,11 +30,16 @@ Intended UI home: Mind > Persona import
 Current availability: always
 
 Live steps when available:
-1. Open mind persona
-2. Check likes/dislikes/fears/interests/kinks/turn_ons/turn_offs/traumas/boundaries are tag ids
-3. Check media is prose (not identity)
-4. Verify speech_pattern is prose
-5. Confirm habits/quirks/traits/aspirations are tag ids
+1. Open Character Inspector -> Mind -> Persona tab.
+   - expected: Persona tab opens cleanly with structured sections for identity, narrative, and personality.
+2. Check likes/dislikes/fears/interests/kinks/turn_ons/turn_offs/traumas/boundaries fields.
+   - expected: Values render as tag slugs, rejecting raw non-slug display names.
+3. Check favourite media field in narrative section.
+   - expected: Media renders as free-form prose text, not an identity ID list.
+4. Verify speech pattern field.
+   - expected: Speech pattern renders as descriptive prose text.
+5. Confirm habits/quirks/traits/aspirations lists.
+   - expected: Values render and save as valid tag IDs.
 
 This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 

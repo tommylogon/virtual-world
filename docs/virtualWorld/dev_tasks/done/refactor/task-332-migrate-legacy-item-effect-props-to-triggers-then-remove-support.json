@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "task-332",
+  "kind": "task",
+  "number": 332,
+  "title": "Migrate Legacy Item Effect Props to Triggers, Then Remove Support",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [
+    "refactor",
+    "engine",
+    "items",
+    "deprecation",
+    "data-migration"
+  ],
+  "created": "2026-08-23",
+  "updated": "2026-10-31",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The legacy consumable shortcut `effect_stat` / `effect_amount` / `effect_target` must be\n**migrated to trigger-based functionality** across all scenario and library data (especially\nthe mansion scenarios), after which engine support is removed. Not a blind deletion: every\nfunctional use gets an equivalent `on_use`/`on_eat`/`on_drink` trigger first.\n\nNOTE ON GRAPH REPRESENTATION (task-886): Previous revisions of this task instructed the script\nto emit `logic_trigger` graph nodes and `triggers` edges for graph-format saves. This is obsolete.\nTask-886 moved all trigger storage into `node.properties[\"triggers\"]`. The migration script must\nemit inline `properties[\"triggers\"]` on the item node itself for both graph-format and template-format\nsaves.",
+    "why": "The legacy consumable shortcut `effect_stat` / `effect_amount` / `effect_target` is a second, parallel way to express what triggers already express. An item effect is a trigger (`on_use`/`on_eat`/`on_drink` with `adjust_vital`), and the legacy props are a pre-trigger spelling of the same fact. Keeping both means two readers, two writers, and a data migration that has to be right twice.\n\nTask-886 established that triggers belong in `node.properties[\"triggers\"]`, retiring `logic_trigger` nodes and `triggers` edges. Migrating legacy item effects directly into inline triggers aligns all items with current simulation invariants.",
+    "how": "",
+    "verify": "1. Data migration\n   - expected: `python tools/migrate_legacy_item_effects.py --apply` migrates all 535 objects across data files (strips nulls, converts functional vitals and lights); script is idempotent.\n   - observed: 625 items migrated across 19 files; subsequent dry-run reports 0 pending items.\n\n2. Engine removal\n   - expected: legacy read blocks removed from `engine/items/use_actions.py`; serialization stops writing keys and scrubs on load.\n   - observed: lines removed from `use_actions.py`, `serialization_legacy.py`, `serialization_template.py`, and `routes/graph_ops.py`. `_migrate_legacy_item_effects()` added to `engine/serialization.py`.\n\n3. Spot checks\n   - expected: mansion2 inventory items still restore vitals when used (5 items); hand_lamp-style lights work natively; old save with legacy props loads cleanly.\n   - observed: Tested live in Python; `protein_bar` restored Hunger from 10 to 45 (+35); legacy save with `test_apple` and `test_lamp` scrubbed and converted to triggers/light tags seamlessly.\n\n4. Cleanup\n   - expected: `rg \"effect_stat|effect_amount|effect_target\"` over `data/scenarios/`, `data/library/`, `engine/`, `static/js/` returns zero production hits.\n   - observed: Zero hits across data and frontend; only `_migrate_legacy_item_effects` scrub helper in engine.",
+    "acceptance": [
+      {
+        "text": "`rg \"effect_stat|effect_amount|effect_target\"` over `data/scenarios/`, `data/library/`, `engine/`, `static/js/` returns zero production hits.",
+        "done": true
+      },
+      {
+        "text": "`mansion2.json` inventory items still restore vitals when used (spot-check 5).",
+        "done": true
+      },
+      {
+        "text": "`hand_lamp`-style lights still work natively.",
+        "done": true
+      },
+      {
+        "text": "Old saves containing legacy props load cleanly post-removal (scrub path).",
+        "done": true
+      },
+      {
+        "text": "Targeted tests pass (not full suite); script idempotent and dry-run by default.",
+        "done": true
+      }
+    ],
+    "files": [
+      "tools/migrate_legacy_item_effects.py` - new migration script (idempotent, dry-run default, --apply)",
+      "engine/items/use_actions.py` - removed legacy effect_stat/effect_amount/effect_target read block",
+      "engine/serialization_legacy.py`, `engine/serialization_template.py`, `engine/serialization.py`, `routes/graph_ops.py` - stopped writing legacy keys; scrub-on-load for old saves",
+      "data/scenarios/*.json`, `world_template.json`, `data/library/**/*.json`, `tests/fixtures/world.json` - migrated by script",
+      "tests/test_trigger_migration.py` - added `test_migrate_legacy_item_effect_props"
+    ],
+    "custom": {
+      "survey_remeasured_2026_10_31": "Across `data/`, 535 items carry at least one of the three keys (575 total occurrences in `data/`,\nplus 62 in root `world_template.json` and 62 in `tests/fixtures/world.json`):\n\n| File | Items | Notes |\n|---|---|---|\n| `data/scenarios/mansion2.json` | **172** | Primary migration target: mostly `inv_*` character inventory items |\n| `data/scenarios/pines.json` | 97 | |\n| `world_template.json` / `data/scenarios/world_template.json` | 62 | Root template and scenario copy |\n| `tests/fixtures/world.json` | 62 | Test regression fixture |\n| `data/scenarios/The Valerious Case.json` | 62 | |\n| `data/scenarios/testapartment.json` | 47 | |\n| `data/scenarios/labs.json` | 31 | |\n| `data/library/rooms/world_template.json` | 24 | |\n| `data/scenarios/corsair.json` | 22 | |\n| `data/scenarios/morphocene.json` | 13 | |\n| `data/scenarios/deepseek_thinking-with-guide_json_20260811_55aa77.json` | 9 | |\n| `data/scenarios/apartment.json` | 7 | |\n| `data/scenarios/art_heist.json` | 4 | |\n| `data/scenarios/heist.json` | 3 | |\n| `data/library/characters/lyrie.json` | 3 | |\n| `data/scenarios/taco_bell_date.json` | 2 | |\n| `data/library/items/table_35eb71c1.json` | 1 | |\n| `data/library/items/portrait_e2e1ec7b.json` | 1 | |\n| `data/library/items/photograph.json` | 1 | |\n\nBreakdown of the 535 items in `data/`:\n- **436 items: keys present but `effect_stat: null` / `None`** - pure save pollution, safe to strip.\n- **81 items: vitals** - `effect_stat` in `Hunger` (22), `energy` (19), `thirst` (16), `hygiene` (8),\n  `Energy` (7), `hunger` (6), `thirst` (2), `hp` (1). Target is `player` or `self`.\n  - Mansion2 items (44): `inv_water_bottle` (+25 thirst), `inv_protein_bar` (+35 hunger),\n    `inv_portable_charger` (+5 energy), `inv_canned_peaches` (+30 hunger), etc.\n- **16 light items** - `effect_stat: \"light\"`, `effect_target: \"room\"` (e.g. `item_hand_lamp`,\n  `inv_hand_lamp` in mansion2, plus labs / pines / taco_bell).\n- **1 connection item** - `data/scenarios/heist.json` sets a used-on way's `current_state` from `effect_stat`.\n- **1 miscellaneous** - `effect_stat: \"strength\"` in morphocene.",
+      "plan": "### 1. Data migration (`tools/migrate_legacy_item_effects.py`)\n\nRules, in order:\n\n| Condition | Action |\n|---|---|\n| keys present, `effect_stat` falsy | strip keys (no behavior lost) |\n| stat in {hunger, thirst, energy} any casing, target player/self | normalize casing to vitals key (`Hunger`/`Thirst`/`Energy`), append inline trigger to `properties.triggers` (graph nodes) or `triggers` array (template items): `{\"trigger_type\": \"on_use\", \"effects\": [{\"adjust_vital\": {\"stat\": <Stat>, \"amount\": <amount>}, \"target\": \"self\"}]}`. Do NOT emit `logic_trigger` nodes (per task-886). |\n| stat == `\"light\"`, target room | Ensure `light_source` tag exists, set `light_level` from `effect_amount` if missing, ensure a `toggle`/`light` action exists, then strip legacy props. |\n| stat == `\"connection\"` | Target-aware way state toggle or manual review bucket. |\n| anything else | leave untouched and report for manual review |\n\nScript must be idempotent, dry-run by default (`--apply` to write), and print a per-file before/after count.\n\n### 2. Engine removal (after migration lands)\n\n- Delete legacy read block `engine/items/use_actions.py:187-205`.\n- Audit and delete way connection block `engine/items/use_actions.py:419-426`.\n- Remove legacy serialization writes from `engine/serialization_legacy.py:98-100` and `engine/serialization_template.py:160-162`.\n- Add scrub-on-load in `engine/serialization.py` for legacy saves.\n\n### 3. Docs\n\nUpdate ScenarioCreationGuide: replace legacy `effect_stat` documentation with canonical `properties.triggers` and `adjust_vital`.",
+      "verification_2026_10_31": "- Verified with targeted test selection:\n  - `python -m pytest tests/test_trigger_migration.py tests/test_fixture_contract.py tests/test_item_actions.py tests/test_trigger_system.py`: 273 passed.\n  - Zero em-dashes introduced across all touched files."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-332-migrate-legacy-item-effect-props-to-triggers.md"
+  }
+}

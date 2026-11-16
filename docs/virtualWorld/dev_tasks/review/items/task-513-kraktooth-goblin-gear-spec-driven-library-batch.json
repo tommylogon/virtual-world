@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "task-513",
+  "kind": "task",
+  "number": 513,
+  "title": "Kraktooth goblin gear spec-driven library batch",
+  "status": "review",
+  "priority": "high",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-9",
+      "task-519",
+      "task-514"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Turn the six-goblin gear matrix into real `data/library/items/*.json` templates\nvia a compact, reviewable spec, so the kit exists, validates, and can be\nattached to the characters (task-519).",
+    "why": "Authoring sixty distinct goblin items by hand creates naming drift, inconsistent tag sets, missing combat/defense stats, and redundant duplicate files for shared materials. A spec-driven batch compiler guarantees uniform properties, deterministic serialization, and automated library linting across the goblin cast.",
+    "how": "1. Define the item matrix in data/library/items/_specs/kraktooth_gear.json.\n2. Implement tools/gen_library_items.py with --spec, --check, and --apply flags to emit byte-identical, schema-valid JSON templates.\n3. Map partial armor pieces to valid coarse equipment slots (arms, hands, legs, feet, torso) with descriptive flavor.\n4. Run tools/lint_library.py to validate tag vocabularies, slots, and stats.",
+    "verify": "- `python tools/gen_library_items.py --check` (compile-twice equality).\n- `python tools/lint_library.py`.\n- Targeted item/library tests via `python -m pytest tests/ -q`.",
+    "acceptance": [
+      {
+        "text": "Every unique item in the matrix exists as a valid library template, or is",
+        "done": false
+      },
+      {
+        "text": "explicitly deferred with a reason.",
+        "done": false
+      },
+      {
+        "text": "Re-running the generator changes nothing (`--check` clean).",
+        "done": false
+      },
+      {
+        "text": "`tools/lint_library.py` stays clean.",
+        "done": false
+      },
+      {
+        "text": "Emitted items carry the fields required by their category (wearables have",
+        "done": false
+      },
+      {
+        "text": "valid `equip_slots`; weapons have `damage`/`damage_type`).",
+        "done": false
+      },
+      {
+        "text": "The partial-armor mapping decision is documented.",
+        "done": false
+      },
+      {
+        "text": "No duplicate/near-duplicate templates for a shared material.",
+        "done": false
+      }
+    ],
+    "files": [
+      "data/library/items/_specs/kraktooth_gear.json",
+      "tools/gen_library_items.py",
+      "tools/lint_library.py",
+      "data/library/items/"
+    ],
+    "custom": {
+      "why_a_spec_instead_of_hand_written_json": "The matrix names roughly sixty distinct items across clothing, armor, weapons,\ntools, accessories and shared materials. Hand-authoring each JSON invites drift\n(the same hunting bow in three spellings, three tags lists). A spec table is\nsmall, reviewable and re-runnable, matching the folder-authoring precedent\n(`tools/compile_scenario.py`, `tools/build_scenario.py`) and the tag-chain\npopulation engine (`engine/population.py`, task-9).\n\nNote the distinction from task-9: `engine/population.py` *places existing*\nlibrary items by tag and deliberately does not mint new ones. This task mints\nthe templates that population/loadouts then use.",
+      "source_matrix_condensed": "| Goblin | Clothing | Armor / protection | Weapons | Tools / utility | Accessories / personal |\n|---|---|---|---|---|---|\n| Zikka | patchwork leather vest, leather leg wraps, reinforced waist cloth | scavenged metal shoulder plate, leather knee guards, heavy boots | short goblin cleaver, hooked knife, hidden backup knife (task-516) | whetstone, leather repair strips, rope loops, hooks | bone necklace, ear piercings, trophy tags, old human buckle, scar-marked leather strips |\n| Mikka | pocket work vest, shortened sleeves, work trousers, fingerless gloves | reinforced palms/elbows/knees, scrap-metal plates | improvised pry-bar/dagger, small utility blade | hammer, pliers, wrench, awl, files, wire, nails, screws, springs, glue, pitch, lockpicks | copper earrings, gears, washers, broken keys, dwarven mechanism component |\n| Gribba | butcher's apron, loose leather clothing, cloth head wrap | thick leather forearm guards, heat-resistant scraps around hands | heavy butcher's knife, meat hook | cooking spoon, cleaver, scraper, skewers, flint, salt, herbs, spices, containers | fish teeth, mushrooms, bones, food charms, the Good Knife (task-515) |\n| Rikka | asymmetric leather and cloth, hanging strips, colorful scraps | light leather (unrestricted movement) | throwing knives, small club/performance stick | juggling stones, string puppet, cups, feathers, little drum | bells, beads, colored glass, cheap jewelry, feathers |\n| Vekka | close-fitting layered leather, dull cloth, hooded cloak | thin forearm/knee protection | compact hunting bow (task-518), curved knife | rope, string markers, chalk, charcoal, flint, small mirror, water container, folded map | found stones, feathers, pottery fragments, glass bits |\n| Krikka | lightweight fitted leather and cloth | reinforced palms, climbing knee/ankle protection | small hooked blade, backup knife | climbing rope, hooks, harness, resin, small pouches | coins, beads, glass, shiny stones, metal scrap, hidden pouch (task-516) |\n\nShared Kraktooth vocabulary: belts, pouches, rope, wire, bone, metal scrap,\ncloth, leather, feathers, coins, glass, hooks, scrap.",
+      "item_schema_to_emit": "Per `data/library/items/cleaver.json` and `data/library/items/rope.json`:\n`name, description, actions, uses, weight, current_state, light_level,\ndefense, damage, damage_type, insulation, tags, triggers, contents`.\nWearables add `equip_slots`; the valid set is\n`head, neck, torso, arms, hands, legs, feet, back, waist, accessory,\nhand_left, hand_right` (`engine/equipment.py:24-37`,\n`tools/fix_item_equipment.py:76-79`).",
+      "proposed_shape": "- A spec file (e.g. `data/library/items/_specs/kraktooth_gear.json`) keyed by\n  item id, holding `name`, one-line `description`, `category`\n  (clothing/armor/weapon/tool/accessory/material), `equip_slots`,\n  `damage`/`damage_type`, `defense`, `insulation`, `uses`, `weight`, `tags`,\n  `actions`.\n- `tools/gen_library_items.py --spec <file> [--check|--apply]`: deterministic\n  emission to `data/library/items/<id>.json` (sorted keys, stable order,\n  byte-identical on re-run); `--check` is the CI/lint mode.\n- Dedupe shared materials across goblins to one template each (rope, hook,\n  bone, coin, glass...). Give per-goblin flavor at instance level (task-514\n  provenance) or in `description`, not by cloning near-identical templates.",
+      "open_question_partial_armor_mapping": "The matrix names palms, elbows, knees, shoulders, forearms and ankle\nprotection; the slot set has no such granularity. Decide whether to map those\nonto the coarse slots (`arms`, `hands`, `legs`, `feet`, `torso`) with\n`description` flavor, or to add finer slots later. Record the decision here; do\nnot block the batch on new slots.",
+      "non_goals": "- Attaching items to characters (task-519).\n- New engine mechanics for concealment (task-516), ownership (task-515) or\n  ammunition (task-518); those get their own fields once decided.",
+      "browser_ui": "Intended UI home: run the gear-spec generator/checker → open Library Browser and search the six goblin gear templates → import them using Character Inspector loadouts.\n\nCurrent availability: the card defines a spec-driven library batch consumed by task-519. The data generation, linting, and loadout attachment are not claimed complete by this task.\n\nLive steps when available:\n1. Open the Library Browser and inspect every unique gear item from the six-goblin matrix.\n   - expected: each matrix item appears once or is explicitly documented as deferred; wearables expose valid equip slots and weapons expose damage/type.\n2. Import the selected items into a scratch Kraktooth cast and open each goblin's Inventory/Paperdoll.\n   - expected: the authored gear is carried/equipped by the intended character and preserves its category-specific properties.\n3. Rerun the generator in check mode and inspect the library list for near-duplicates.\n   - expected: `--check` is clean, no duplicate templates appear, and the partial-armor mapping follows the documented decision.\n4. Save/reload and reopen the six loadouts.\n   - expected: item and character links resolve without duplicate/orphan items.\n\nThis section is not a claim that the gear spec batch is complete today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-513-kraktooth-goblin-gear-spec-driven-library-batch.md"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-217",
+  "kind": "task",
+  "number": 217,
+  "title": "Raw LLM bubble ordering + parse error feedback",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Two UI/UX improvements for the event stream:\n\n1. **Raw LLM bubbles move inside turn cards, before parsed content**\n   `logRawLLM`/`logRawLLMRequest` append inside the turn-card body, ordered before\n   parsed content; filter recursion into `.turn-card-body`.\n2. **Parse failures surface visually** - parsers return a `parseError` string;\n   agent-engine emits a visible error bubble; raw response inspectable (task-238\n   click-to-expand lives in the same module).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "- Full suite green at implementation (1010-ish); stream v2 tests + `node --check`\n  all touched files. Browser verification is live under task-340's E2E pending.",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/event-stream.js` (+ `stream/stream-raw-llm.js` after the split)",
+      "static/js/agent-engine.js",
+      "static/js/shared/json-utils.js` (`repairJSON`)"
+    ],
+    "custom": {
+      "status": "In Review - implemented 2026-08-12, then folded into task-340's stream v2\n(2026-08-24); the parse-error expansion UX now lives in\n`static/js/stream/stream-raw-llm.js` (logParseError + view-raw + streak export).",
+      "browser_ui": "Intended UI home: Game view → Event Stream → expand an agent turn card; use\nManual Response mode to provide a malformed response for the parse-error path.\n\nCurrent availability: Raw request/response bubbles and parse-error expansion\nare implemented in the stream modules. This card says the later task-340\nbrowser E2E owns the live stream check; no independent browser observation is\nrecorded here.\n\nLive steps when available:\n1. Run an agent turn with the raw LLM display enabled and expand its turn card.\n   - expected: the raw request/response bubbles appear inside that turn card\n     before the parsed action/result content; stream filters still include the\n     nested bubbles.\n2. In Manual Response mode, return malformed JSON for one agent call, then\n   click the parse-error bubble's raw-response control.\n   - expected: the parse failure is visible in the stream, the malformed text\n     can be inspected, and the affected turn remains identifiable.\n3. Use the stream's parse-error filter and export the error streak.\n   - expected: the same failed turn remains discoverable in the filtered view\n     and the exported streak includes its raw response evidence.\n\nThis section defines intended access and live acceptance. It is not a claim\nthat planned UI exists or works today."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-217-raw-llm-bubble-ordering-and-parse-error-feedback.md"
+  }
+}

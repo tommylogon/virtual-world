@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "id": "task-10",
+  "kind": "task",
+  "number": 10,
+  "title": "Proximity-Based Detection (EMF Reader, Future Tools)",
+  "status": "review",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-07-18",
+  "updated": "2026-07-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-320"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Items like Elena's EMF reader should be able to detect nearby entities (characters, items, ways, areas) based on proximity in the graph. The EMF reader currently just has a static examine message.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Proximity detection fires when sensor item is within configured radius of target tag.",
+        "done": true
+      },
+      {
+        "text": "Signal intensity scales inverse-linearly with distance to source.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/proximity.py",
+      "tests/test_proximity.py"
+    ],
+    "custom": {
+      "requirements": "1. **Proximity detection**: When an item has a `proximity_effect` tag or property, it should detect nearby:\n   - Characters (living or dead)\n   - Special items (the skull, etc.)\n   - Doors with certain states\n   - Rooms with certain environments\n\n2. **EMF Reader specifically**: On use or examine, check the distance from the player's current room to nearby entities. If a \"hotspot\" entity (like the crystal skull) is within N areas, the EMF needle flickers more.\n\n3. **Extensible**: The system should support future detection tools (motion sensors, dowsing rods, etc.)",
+      "design_notes": "- Graph distance: number of room-to-room edges between current room and target's room\n- Detection threshold: configurable per item (EMF: 3 areas)\n- Output: narrative description of the readings\n- If the target is in the same room: strong reading\n- If adjacent (1 room away): moderate\n- If 2+ areas away: faint/unreliable\n\n**Deferred**: Post-merge feature branch. This branch is refactoring/testing only.",
+      "refactoring_impact_july_2026": "Engine is modular. Create engine/proximity.py following DI. Wire in virtual_world_engine.py. Depends on player position and item graph positions. UI in static/js/inspector/."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Environment/Light System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/items/task-10-proximity_detection_emf.md"
+  }
+}

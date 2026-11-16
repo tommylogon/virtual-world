@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "id": "task-533",
+  "kind": "task",
+  "number": 533,
+  "title": "Simultaneous mode never runs the world turn pipeline",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-27",
+  "updated": "2026-09-27",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-101",
+      "simultaneous",
+      "task-352",
+      "task-436",
+      "task-437"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Simultaneous mode should be **turn-based with the wait removed**: every autonomous\ncharacter resolves their turn without waiting for the previous one, and the world\nstill advances its clock - by the normal increment - once **all** characters have\nfinished their turns.\n\nThat is the whole fix. There is no separate clock model for simultaneous mode, and\nthe increment is unchanged: still `time_per_tick_minutes` per round.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "The world clock advances in simultaneous mode. Pinned by a test that runs a",
+        "done": false
+      },
+      {
+        "text": "simultaneous round and asserts `time_ticks` moved.",
+        "done": false
+      },
+      {
+        "text": "`tick_turn` runs in simultaneous mode: a test asserts vitals decay,",
+        "done": false
+      },
+      {
+        "text": "`BackgroundSimulation.process_due` and `soak.apply_orders(gs)` are reached.",
+        "done": false
+      },
+      {
+        "text": "The increment is unchanged - still `time_per_tick_minutes` per round, not per",
+        "done": false
+      },
+      {
+        "text": "character turn. A round is the unit, not a turn.",
+        "done": false
+      },
+      {
+        "text": "The human is a full participant: never auto-acted, but the round does not",
+        "done": false
+      },
+      {
+        "text": "complete until they have taken their turn, so a slow player stalls the world",
+        "done": false
+      },
+      {
+        "text": "advance rather than being run ahead of. Pinned by a test that starts a",
+        "done": false
+      },
+      {
+        "text": "simultaneous round with a human mid-turn and asserts `time_ticks` has **not**",
+        "done": false
+      },
+      {
+        "text": "moved until the human resolves.",
+        "done": false
+      },
+      {
+        "text": "A stalled human does not deadlock the run loop - cancelling or skipping the",
+        "done": false
+      },
+      {
+        "text": "turn must still be able to close the round.",
+        "done": false
+      },
+      {
+        "text": "`_clock_advanced_by_task` is reset correctly or removed, with a test covering",
+        "done": false
+      },
+      {
+        "text": "the `rest` → next-action lifecycle rather than setting the flag by hand.",
+        "done": false
+      },
+      {
+        "text": "`static/js/agent/turn-queue.js` is not left with a `config.turnBased` guard",
+        "done": false
+      },
+      {
+        "text": "that can silently disable the advance in a future mode. If the guard is",
+        "done": false
+      },
+      {
+        "text": "load-bearing, say why in a comment.",
+        "done": false
+      },
+      {
+        "text": "`docs/virtualWorld/Environment/Time & Weather.md` is corrected - lines 24, 77",
+        "done": false
+      },
+      {
+        "text": "and 94 still describe `time_per_tick_minutes = 5` (the code default is 1),",
+        "done": false
+      },
+      {
+        "text": "actions that \"consume time\", and costs \"multiplied by time ticks consumed\".",
+        "done": false
+      },
+      {
+        "text": "All three are stale under task-436.",
+        "done": false
+      },
+      {
+        "text": "`docs/virtualWorld/Simulation Model.md` is reconciled: it says every",
+        "done": false
+      },
+      {
+        "text": "character fills a timeframe in every mode, which is currently untrue.",
+        "done": false
+      },
+      {
+        "text": "Per the standing rule, the time model is documented in code comments and the",
+        "done": false
+      },
+      {
+        "text": "user guide / technical docs, not only here.",
+        "done": false
+      },
+      {
+        "text": "Full suite compared against the ~60 failed / 3239 passed baseline.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "the_defect": "`config.turnBased` is forced off whenever a simultaneous mode is selected\n(`static/js/config.js`):\n\n```js\n156: async setTurnMode(mode) {\n158: if (window.VWSimultaneous.isSimultaneous(this.turnOrder)) {\n159: this.turnBased = false;\n```\n\nBut **every** call site that drives the turn queue is guarded by `config.turnBased`\n- `static/js/agent-engine.js` - and\n`static/js/agent/turn-queue.js` (`reconcile`) returns early without it. The run\nloop excludes it explicitly (`agent-engine.js`):\n\n```js\n930: if (!config.turnBased && config.controllingPlayer && !config.simultaneousMode) { await TurnQueue.endTurn; ... }\n```\n\nSo in simultaneous mode the queue never advances, `TurnQueue.endTurn` never runs,\n`POST /api/turn/apply` is never sent, and **`TickManager.tick_turn` is never\ncalled**. It is not that the clock stalls - the entire world turn pipeline is frozen,\nand only the characters the frontend happens to step do anything.\n\nEverything in `engine/tick_manager.py` is skipped:\n\n| Skipped |\n|---------|\n| `promotion.flush(gs)` |\n| `on_turn_start` triggers |\n| `conditions.process_tick` |\n| vitals decay, drive grace/drain |\n| environment effects, activity ticks |\n| lit/standing item `on_tick` triggers |\n| **`advance_clock(1)`** |\n| time triggers |\n| `npc_behaviors.process_simple_npcs` |\n| **`BackgroundSimulation.process_due`** |\n| **`soak.apply_orders(gs)`** |\n| delayed events |\n| heat / temperature / air / sound propagation |\n| `on_turn_end` triggers |\n\nObservable consequences: nobody gets hungry, tired, dirty or sick; no background\ncharacter acts; no item ticks; no time passes; no soak order progresses; triggers\nbound to the turn never fire. A simultaneous-mode session looks alive because the\nLLM characters are being stepped, and nothing else is happening at all.",
+      "fix_shape": "Advance the world once per **round** - when every character has had their turn,\nhuman included - rather than per queue wrap, so it is independent of the mode.\nConcretely: track which characters have resolved this round and call\n`TurnQueue.endTurn` (or `POST /api/turn/apply`) when the set is complete, in both\nturn-based and simultaneous paths. `_simultaneousStep` (`agent-engine.js`)\nalready processes exactly one ready character per iteration (`ready[0]`, line 960),\nso it has the per-round bookkeeping it needs.\n\n### The human is a participant, not an exemption\n\nTwo separate things, and the fix must not conflate them:\n\n- **Never auto-act the human.** `agent-engine.js`\n (`if (!events.isAutonomous(name)) return false;`) stays. The world does not\n puppet a player character in any mode.\n- **But do wait for them.** The human is in the round. A round is not complete until\n the human has taken their turn, so a slow player - or one who stops mid-turn -\n simply stalls the world advance. That is correct, and it is already how turn-based\n behaves: the human sits in the turn queue, `step` awaits the composer, and the\n wrap to `endTurn` waits on them. The fix should reproduce that in simultaneous\n mode, not carve the human out of it.\n\nSo the round-completion condition is \"everyone has taken a turn\", and \"everyone\"\nincludes the controlling player. Do not implement the advance as \"all autonomous\ncharacters are done\" - that would silently make the world run ahead of a human who\nis still deciding, which is a worse bug than the one being fixed.\n\nNote that `_simultaneousStep` is not truly parallel - it serialises one character\nper loop iteration and paces them with per-character cooldowns\n(`VWSimultaneous.cooldownFor` / `tickCountdowns`). That is fine and is what \"don't\nwait for the previous character\" means in practice; it is only the *clock* that was\nmissing.",
+      "also_in_scope_same_code_path": "`world._clock_advanced_by_task` is initialised `False`\n(`virtual_world_engine.py`), set `True` by `rest`\n(`engine/tick_manager.py`), and **never reset**. After one `rest` anywhere in\nthe world's life, `tools/game_tools.py` short-circuits its per-action tick\npermanently. `tests/test_action_costs.py` sets the flag explicitly rather than\nexercising the lifecycle, so nothing covers it. Fix or remove it here.",
+      "non_goals": "- **Changing the increment.** It stays `time_per_tick_minutes` per round. An earlier\n draft of this task explored per-action weighted durations and a 5-second\n increment; both are dropped. A turn *is* a timeframe, so actions within a turn\n being free in time is correct, and how many of them you may do is task-352's\n question, not this one's.\n- True parallelism (all characters resolving against a snapshot). `Simulation\n Model.md` already names that as the fourth mode on the resolution-order dial\n and points at task-437.\n- Reactions or off-turn triggers.",
+      "related": "- task-352 - action economy. **Independent of this task**: the tier budget bounds how\n many actions fit in a turn, the round increment bounds the time. An earlier draft\n claimed the two had to be decided together because of a per-action time cost; that\n was wrong, because a turn is already the timeframe.\n- task-436 (review) - removed time costs from `ACTION_COSTS`; left the\n `apply_action` comment claiming the caller advances the clock.\n- task-437 - resolution order; the per-round advance must not make order dependence\n  worse.\n- `docs/virtualWorld/Simulation Model.md` - the timeframe model.",
+      "verified_2026_10_02": "The fix was already present on this branch (`static/js/agent/sim-round.js`,\n`agent-engine.js` `_simRoundComplete`/`_closeSimRoundIfComplete`/`endSimRound`,\nthe `#sim-end-round` control); this pass **verified it end-to-end** rather than\nre-deriving it.\n\n- **Live browser (proof).** Server on `VW_PORT=4468`, Playwright. Set Kaelen\n  Voss human (`autonomy=false`), killed the two autonomous characters so the\n  human is the only round participant, switched to `simultaneous` via\n  `config.setTurnMode`, then `await VW.agent.endSimRound()`. Result:\n  `TICKS 0 -> 1 advanced=true`, `PAGEERRORS []`, and the event stream shows\n  \"Kaelen Voss passes - round closed.\" with the clock at 08:05. A world turn\n  (applyTurn -> tick_turn) ran under simultaneous mode.\n- **Mechanism pin.** `tools/unit/test_sim_round.js` gained a guard that the\n  `_closeSimRoundIfComplete` body gates on round completion and calls\n  `TurnQueue.endTurn()`. Full JS unit suite: `node tools/unit/run.cjs` ->\n  486 passed, 0 failed.\n- **Engine side already pinned:** `_clock_advanced_by_task` is consumed in\n  `tools/game_tools.py` and covered by `tests/test_health_model_fixes.py` /\n  `tests/test_action_costs.py`.\n\nMoved to `done` on the strength of the live-browser observation, not the unit\ntests alone."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "origin": "found while scoping task-352 (action economy)."
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-533-simultaneous-mode-never-runs-the-turn-pipeline.md"
+  }
+}

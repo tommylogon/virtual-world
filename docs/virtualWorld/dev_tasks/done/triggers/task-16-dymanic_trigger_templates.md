@@ -7,11 +7,11 @@ priority: medium
 ---
 
 		
-# Dynamic Trigger Templates — Variable Substitution in Trigger Messages
+# Dynamic Trigger Templates - Variable Substitution in Trigger Messages
 
 **Filed**: 2026-07-17 (completed 2026-07-21)
 **Priority**: Low
-**Status**: ✅ Complete — implemented as part of task-21 (item parameters system)
+**Status**: ✅ Complete - implemented as part of task-21 (item parameters system)
 
 ---
 
@@ -21,16 +21,16 @@ Trigger messages support `{variable_name}` template substitution referencing gam
 
 ## What Was Implemented
 
-### 1. `_render_template(text, context)` — `virtual_world_engine.py:4474`
+### 1. `_render_template(text, context)` - `virtual_world_engine.py:4474`
 
 Replaces `{variable}` placeholders from context dict. Supports three patterns:
-- `{variable_name}` — direct lookup in context dict
-- `{param:<key>}` — lookup in `context['item_params']` (custom parameters)
-- `{prop:<key>}` — lookup in `context['item_properties']`
+- `{variable_name}` - direct lookup in context dict
+- `{param:<key>}` - lookup in `context['item_params']` (custom parameters)
+- `{prop:<key>}` - lookup in `context['item_properties']`
 
 Unrecognized variables are left unchanged in the output.
 
-### 2. Context building in `_execute_triggers()` — `virtual_world_engine.py:1376`
+### 2. Context building in `_execute_triggers()` - `virtual_world_engine.py:1376`
 
 Context dict built once per trigger execution with all available variables:
 
@@ -68,13 +68,13 @@ The clock reads: {game_time}. The pendulum swings steadily.
 
 A container with custom params:
 ```
-{param:content_type} — {param:quantity} remaining
+{param:content_type} - {param:quantity} remaining
 ```
-→ "Gold Coins — 5 remaining"
+→ "Gold Coins - 5 remaining"
 
 ## Files
 
-- `virtual_world_engine.py` — `_render_template()` method, context expansion in `_execute_triggers()`
+- `virtual_world_engine.py` - `_render_template()` method, context expansion in `_execute_triggers()`
 
 ## Why
 

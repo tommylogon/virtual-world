@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-343",
+  "kind": "task",
+  "number": 343,
+  "title": "Consolidate the two divergent condition evaluators into one",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "One evaluator, one leaf registry:\n\n- Deletable: evaluation.py's duplicated leaves (delegate to condition_tree or\n  a shared leaf-dispatch table), and the dead :454-494 block.\n- New conditions register once (ideally data-driven like effect_handlers -\n  10 modules + registry merge pattern is proven here).\n- `random_chance` semantics pinned by unit test so the divergence can't\n  silently return.\n- movement.requires_open keeps behavior: same results on a mansion-style\n  scenario before/after (golden compare over test_world scenarios).",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "pytest suite green; new test asserting both call paths give identical answers\nfor a fixture matrix of every leaf type incl. random_chance (seeded).\n\n1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "found": "Two near-complete parallel implementations of trigger-condition evaluation:\n\n1. `engine/triggers/condition_tree.py::_evaluate_conditions` - ~25 leaf types,\n   string-keyed if/elif chain. Used by the main trigger system.\n2. `engine/triggers/evaluation.py:91` `_evaluate_trigger_condition`\n   (EvaluationMixin) - duplicates nearly all leaves; used ONLY by\n   movement.py:328 (`requires_open`).\n\nThey already disagree: `random_chance` always Ã·100 in evaluation.py:216 vs\nheuristic handling in condition_tree.py:111-118.\n\nDead copy-paste inside condition_tree.py itself: `sound_heard`\n(:180-201) and `speech_matches` (:203-220) are re-implemented VERBATIM later\nin the same elif chain (:454-494) - unreachable branches that will rot first."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-343-consolidate-dual-condition-evaluators.md"
+  }
+}

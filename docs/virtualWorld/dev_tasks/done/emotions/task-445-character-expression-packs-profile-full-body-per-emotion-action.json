@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "task-445",
+  "kind": "task",
+  "number": 445,
+  "title": "Character Expression Packs (profile + full body per emotion/action)",
+  "status": "done",
+  "priority": "medium",
+  "area": "emotions",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "shipped": "A character node carries live art keyed by emotion or action - a\nSillyTavern-style pack:\n\n```\n\"expressions\": {\n  \"neutral\": { \"profile\": \"...\", \"full\": \"...\" },\n  \"angry\":   { \"profile\": \"...\", \"full\": \"...\" },\n  \"attack\":  { \"full\": \"...\" }\n}\n```\n\n`image` (full-body neutral) and `profile_image` (profile neutral) remain the\nlegacy fallbacks, so single-image characters and non-character nodes are\nunchanged.\n\n- **API** (`routes/graph_ops.py`, `routes/graph.py`): `POST\n  /api/graph/node/<id>/image` takes `kind` (`profile`|`full`) + `expression`;\n  `POST /api/graph/node/<id>/image/remove` clears a slot and deletes the file.\n  Real files under `static/images/nodes/`, never base64.\n- **Resolver**: `expressions[emotion].profile → neutral → profile_image → image\n  → icon`. Graph thumbnail keeps `image`.\n- **Library round-trip**: spawn (`engine/effect_handlers/spawn.py`), library\n  import/refresh (`routes/library_ops.py`), and the save card\n  (`_buildCharacterCard` + `_saveCharacter`) all carry the pack.\n- **Editor** (`static/js/inspector/helpers.js` + `agent-view.js`): gallery in\n  the character header **under the name** (moved out of Advanced), Profile /\n  Full-body tabs, one row per expression with upload/clear + \"add expression\".\n- **Avatar** (`static/js/agent-lens.js`): the header avatar follows the\n  character's current emotion.\n- **Tests**: `tests/test_character_expressions.py` (10).\n- **Docs**: [[Characters/Character Images & Expression Packs]] (technical),\n  [[UI & Settings/Inspector Panels]] (user guide),\n  [[ScenarioCreationGuide]] §2.4 Character.",
+      "follow_ups_not_done": "- Action keys (`attack`, `sleeping`) are stored and selectable but nothing\n  drives them at runtime yet - a \"current expression\" hook is needed, analogous\n  to `emotion.current`.\n- The graph thumbnail still uses the full-body `neutral` rather than the\n  current emotion.",
+      "related": "- [[Characters/Emotion & Affect System]]"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/emotions/task-445-character-expression-packs.md"
+  }
+}

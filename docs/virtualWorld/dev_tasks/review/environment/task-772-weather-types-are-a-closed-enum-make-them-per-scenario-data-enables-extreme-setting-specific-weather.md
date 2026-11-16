@@ -44,8 +44,8 @@ Mechanism: make weather types a library registry exactly like biomes, so add/edi
 
 ## Acceptance
 
-- [x] `weather` is a library registry: `data/library/weather/<id>.json`, registered in `VOCABULARY_TYPES` (`routes/library_ops.py`) — so add/edit/remove and tags come from the existing library surface
-- [x] Save is validated: `_vocabulary_problems` routes `weather` to `engine.weather_types.record_problems` (found live — it had no branch and fell through to the *floor-plan* validator). Verified on a running app: `POST /api/vocabulary/weather/acid_rain` 200 and it appears in the list, a record missing `icon` 400, `DELETE` 200 and the list is back to seven
+- [x] `weather` is a library registry: `data/library/weather/<id>.json`, registered in `VOCABULARY_TYPES` (`routes/library_ops.py`) - so add/edit/remove and tags come from the existing library surface
+- [x] Save is validated: `_vocabulary_problems` routes `weather` to `engine.weather_types.record_problems` (found live - it had no branch and fell through to the *floor-plan* validator). Verified on a running app: `POST /api/vocabulary/weather/acid_rain` 200 and it appears in the list, a record missing `icon` 400, `DELETE` 200 and the list is back to seven
 - [x] `engine/weather_types.py` loads the records and derives `WEATHER_STATES` / `WEATHER_TIME_DC` / `WEATHER_LIGHT_MULT` / `WEATHER_PROSE`, falling back to the original seven when the directory is absent
 - [x] `engine/weather_forecast.py` re-exports the registry names (existing imports unchanged); `engine/area_description.py` prose now reads the registry
 - [x] `tools/weather_library_check.py` validates records and flags an unreachable type (it already flags `snowy`); wired into `npm run precommit` (+ `npm run weather:check`)

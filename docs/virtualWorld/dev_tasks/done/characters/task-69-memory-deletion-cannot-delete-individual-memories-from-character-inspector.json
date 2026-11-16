@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "task-69",
+  "kind": "task",
+  "number": 69,
+  "title": "Memory Deletion - Cannot Delete Individual Memories from Character Inspector",
+  "status": "done",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The character inspector in the UI shows a 🗑 delete button for each memory entry, but clicking it fails to delete the memory. The backend DELETE endpoint exists and works, but the frontend call encounters an issue - likely the entry ID being empty or mismatched, or the frontend state not syncing properly after deletion.",
+    "why": "### Backend endpoint (`app.py:1648`)\n\n```python\n@app.route('/api/players/<name>/memories/entry/<entry_id>', methods=['DELETE'])\ndef delete_player_memory(name, entry_id):\n    p = app.world.players.get(name)\n    if not p:\n        return jsonify({\"error\": \"Player not found\"}), 404\n    old_len = len(p.memories)\n    p.memories = [m for m in p.memories if m.get(\"id\") != entry_id]\n    if len(p.memories) == old_len:\n        return jsonify({\"error\": \"Entry not found\"}), 404\n    return jsonify({\"status\": \"success\"})\n```\n\n### Frontend call (`api.js:240`)\n\n```javascript\nstatic async deletePlayerMemory(name, entryId) {\n    const resp = await fetch(`/api/players/${encodeURIComponent(name)}/memories/entry/${encodeURIComponent(entryId)}`, { method: 'DELETE' });\n    ...\n}\n```\n\n### Frontend delete handler (`inspector.js:2732`)\n\n```javascript\n_deleteMemory(charName, entryId) {\n    if (!entryId) return;         // <-- GUARD: silently exits if no entryId\n    ApiClient.deletePlayerMemory(charName, entryId).then(() => {\n        worldState.fetch().then(() => this._reRender());\n    });\n}\n```\n\n### Memory entry display (`inspector.js:228`)\n\n```javascript\nconst id = m.id || `mem_${i}`;\n```\n\nThe memory ID is displayed using a fallback `mem_${i}` if `m.id` is missing. But the delete button sends `m.id || ''` - so if `m.id` is undefined/null, the entryId is an empty string, and the guard `if (!entryId) return;` silently aborts.",
+    "how": "1. **Ensure all memories have IDs**: Backfill missing IDs in `player.py` constructor or `add_memory()`\n2. **Fix the frontend guard**: The `if (!entryId) return;` guard should not silently fail - it should log a warning or attempt to match by index\n3. **Add migration**: For existing saves, add IDs to any memory entries that lack them on `from_dict()` restore\n4. **Verify**: Delete button sends the correct entry ID, and refresh after delete succeeds",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "player.py` - ensure `id` field on all memories during init/restore",
+      "virtual_world_engine.py` - memory restore in `from_dict()`, add ID backfill",
+      "static/js/inspector.js` - `_deleteMemory()`, improve guard and error handling",
+      "static/js/api.js` - `deletePlayerMemory()`, add error handling"
+    ],
+    "custom": {
+      "root_cause": "Memories stored via `player.add_memory()` (called from `app.py:407-408`):\n\n```python\nmemory_text = f\"{cmd}: {final_output[:200]}\"\np.add_memory(memory_text, world.time_ticks, importance=importance, memory_type='action')\n```\n\nIn `player.py:180`, `add_memory()` generates an ID:\n\n```python\nself.memories.append({\n    \"id\": str(uuid.uuid4())[:8],\n    ...\n})\n```\n\nHowever, some memories (especially those loaded from save data or created by the MemoryStore frontend) may lack the `id` field entirely. The frontend display uses a fallback `mem_${i}` for rendering but the delete function passes the actual `m.id` which could be `undefined`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/task-69-memory_deletion_from_inspector.md"
+  }
+}

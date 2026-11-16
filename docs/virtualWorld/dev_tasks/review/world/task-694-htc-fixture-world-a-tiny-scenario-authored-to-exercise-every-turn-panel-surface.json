@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "id": "task-694",
+  "kind": "task",
+  "number": 694,
+  "title": "HTC fixture world: a tiny scenario authored to exercise every turn-panel surface",
+  "status": "review",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-10-04",
+  "updated": "2026-10-04",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-677",
+      "task-448",
+      "bug-23",
+      "bug-521",
+      "task-679"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A small world (10-20 areas) authored ONCE so the harness (task-693) can exercise",
+        "done": false
+      },
+      {
+        "text": "everything the human turn panel does. Content before instrumentation - the fixture",
+        "done": false
+      },
+      {
+        "text": "is what makes the checks real.",
+        "done": false
+      },
+      {
+        "text": "Painted `cell` + `world_scope_id` on every area, so the minimap lattice draws",
+        "done": false
+      },
+      {
+        "text": "(mansion cannot - see task-677's UNMET note).",
+        "done": false
+      },
+      {
+        "text": "TWO characters sharing a display name in one area, and two sharing a",
+        "done": false
+      },
+      {
+        "text": "nickname across areas - exercises the engine's `__suffix` uniquing, the",
+        "done": false
+      },
+      {
+        "text": "duplicate-import path (bug-521) and task-448's chooser.",
+        "done": false
+      },
+      {
+        "text": "One hidden way behind a false wall, one locked door, one blocked way -",
+        "done": false
+      },
+      {
+        "text": "exercises bug-23's negative and the way-knowledge gate.",
+        "done": false
+      },
+      {
+        "text": "One scripted simple NPC with the zombie's behavior shapes (message, damage on",
+        "done": false
+      },
+      {
+        "text": "enter, go-toward-noise) and one human-controlled character with",
+        "done": false
+      },
+      {
+        "text": "preconceived knowledge.",
+        "done": false
+      },
+      {
+        "text": "At least one item with a flavor trigger and one grapple-ready prop.",
+        "done": false
+      },
+      {
+        "text": "The harness boots into it and the turn panel opens on the human's slot",
+        "done": false
+      },
+      {
+        "text": "without authoring errors (`tools/tasks.py validate`-equivalent: scenario",
+        "done": false
+      },
+      {
+        "text": "integrity checks green).",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: load the dedicated HTC fixture through the task-693 harness → open the Human Turn panel on the human-controlled character's slot → exercise the scene, people, ways, item, and grapple surfaces from this one world.\n\nCurrent availability: the card requires a once-authored 10–20-area fixture with painted cells/scopes, duplicate names/nicknames, a hidden false-wall way, locked/blocked ways, a scripted NPC, preconceived human knowledge, a flavor trigger, and a grapple-ready prop. The fixture is not claimed as authored here.\n\nLive steps when available:\n1. Start the fixture with the harness and open the human's turn panel.\n   - expected: the minimap lattice draws from every area's `cell` and `world_scope_id`; the panel opens on the human slot with no scenario-integrity errors.\n2. Inspect the two same-name characters in one area and the shared nickname across areas; open the person chooser.\n   - expected: each character remains separately selectable by its unique node ID and the chooser resolves the right person despite duplicate labels/nicknames.\n3. Read WAYS OUT at the false wall and inspect the locked door and blocked way through the panel.\n   - expected: the undiscovered hidden way stays absent; the locked and blocked ways expose only the actions/knowledge their states allow.\n4. Trigger the scripted NPC's enter damage/noise behavior, use the flavor-trigger item, and grapple with the prop.\n   - expected: each event is visible once in the event stream with the correct actor/target; the NPC behavior and grapple use the normal action surfaces.\n\nThis section is not a claim that the fixture has been authored or that every turn-panel surface is covered today."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Building Overview]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/world/task-694-htc-fixture-world-a-tiny-scenario-authored-to-exercise-every-turn-panel-surface.md"
+  }
+}

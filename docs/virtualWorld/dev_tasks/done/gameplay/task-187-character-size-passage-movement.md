@@ -33,7 +33,7 @@ you don't fit. New movement verbs `crawl`, `climb`, `jump`, and **jump/climb fai
 
 ### Ways
 
-- `max_size` property (dropdown: none/tiny/small/normal/huge/giant/titanic) — the
+- `max_size` property (dropdown: none/tiny/small/normal/huge/giant/titanic) - the
   largest size that passes **walking**.
 - `requires` property (dropdown: none / crawl / climb / jump).
 - Passing rules on `go`:
@@ -41,22 +41,22 @@ you don't fit. New movement verbs `crawl`, `climb`, `jump`, and **jump/climb fai
   - `max_size` < size ≤ `max_size`+1 tier (e.g. `normal` in a `small` tunnel) →
     **auto-crawl**: `go` converts to a crawl move, narrates
     "You drop to your hands and knees and crawl through..." (no persistent condition
-    in v1 — the move itself is the crawl).
+    in v1 - the move itself is the crawl).
   - size ≥ 2 tiers over `max_size` → **blocked**: "You don't fit through the X."
 - `requires: climb` → only `climb <dir>` passes (or `go` returns "you need to climb").
 - `requires: jump` → only `jump <dir>` passes.
 
 ### Movement verbs (no cost scaling)
 
-- `crawl <dir>` — explicit crawl through a tight/crawl way.
-- `climb <dir>` — only on `requires: climb` ways.
-- `jump <dir>` — only on `requires: jump` ways; risky.
+- `crawl <dir>` - explicit crawl through a tight/crawl way.
+- `climb <dir>` - only on `requires: climb` ways.
+- `jump <dir>` - only on `requires: jump` ways; risky.
 - **No time/energy multiplier in v1.** The way's authored `cost` applies as-is.
   The `time` field is a *duration* hint for the future stateful-action system
-  (task-131) — the clock advances exactly once per turn for all characters
+  (task-131) - the clock advances exactly once per turn for all characters
   (`tick_turn` → `advance_clock(1)`), never per action, so scaling it here would
   be both wrong and desync-prone. Crawl is flavor + gating only.
-- `stand` — reserved for a persistent crawling state; not needed in v1 (crawl resolves
+- `stand` - reserved for a persistent crawling state; not needed in v1 (crawl resolves
   per move).
 
 ### Jump/climb failure = trigger-driven
@@ -69,28 +69,28 @@ you don't fit. New movement verbs `crawl`, `climb`, `jump`, and **jump/climb fai
 
 ## Files to Modify
 
-1. `data/library/traits/size_*.json` — six size traits (new)
-2. `engine/grapple.py` or new `engine/size.py` — size tier lookup helper
-3. `engine/movement.py` — max_size checks + auto-crawl + crawl/climb/jump + multipliers
-4. `routes/action.py` — `crawl`/`climb`/`jump` commands
-5. `static/js/inspector/way-view.js` — `max_size` + `requires` dropdowns
-6. `static/js/agent/prompt-builder.js` — action rows + size context
-7. `static/js/agent-engine.js` — validate/normalize crawl/climb/jump/stand
-8. `tests/test_movement.py` — size/passage tests
+1. `data/library/traits/size_*.json` - six size traits (new)
+2. `engine/grapple.py` or new `engine/size.py` - size tier lookup helper
+3. `engine/movement.py` - max_size checks + auto-crawl + crawl/climb/jump + multipliers
+4. `routes/action.py` - `crawl`/`climb`/`jump` commands
+5. `static/js/inspector/way-view.js` - `max_size` + `requires` dropdowns
+6. `static/js/agent/prompt-builder.js` - action rows + size context
+7. `static/js/agent-engine.js` - validate/normalize crawl/climb/jump/stand
+8. `tests/test_movement.py` - size/passage tests
 
 ## Steps to verify
 
-- [x] Fits: normal walks a normal door (no change) — `test_go_passes_through_plain_way`
-- [x] Tight fit: normal auto-crawls a small tunnel (no cost scaling) — `test_tight_fit_auto_crawls_without_scaling_cost`
-- [x] Blocked: huge cannot pass a small tunnel — `test_two_tiers_over_max_size_blocked`, `test_one_tier_over_climb_way_blocked`
-- [x] `climb` gated to `requires: climb` ways — `test_climb_way_rejects_go`, `test_climb_success_moves`
-- [x] `jump` gated to `requires: jump` ways; failure fires the way's failure trigger — `test_jump_failure_fires_on_fail_jump_trigger`, `test_jump_success_moves`, `test_jump_failure_without_trigger_uses_generic_message`
-- [x] Agent prompt lists crawl/climb/jump and surfaces size — `buildSizeContext` in prompt-builder.js, action table rows
+- [x] Fits: normal walks a normal door (no change) - `test_go_passes_through_plain_way`
+- [x] Tight fit: normal auto-crawls a small tunnel (no cost scaling) - `test_tight_fit_auto_crawls_without_scaling_cost`
+- [x] Blocked: huge cannot pass a small tunnel - `test_two_tiers_over_max_size_blocked`, `test_one_tier_over_climb_way_blocked`
+- [x] `climb` gated to `requires: climb` ways - `test_climb_way_rejects_go`, `test_climb_success_moves`
+- [x] `jump` gated to `requires: jump` ways; failure fires the way's failure trigger - `test_jump_failure_fires_on_fail_jump_trigger`, `test_jump_success_moves`, `test_jump_failure_without_trigger_uses_generic_message`
+- [x] Agent prompt lists crawl/climb/jump and surfaces size - `buildSizeContext` in prompt-builder.js, action table rows
 - [x] Full suite green: 538 passed, 1 skipped (`-k "not mcp and not emote"`)
 
 ## Status
 
-**Implemented 2026-08-06** — all eight backend + frontend touchpoints landed; moving to `review/` pending browser E2E.
+**Implemented 2026-08-06** - all eight backend + frontend touchpoints landed; moving to `review/` pending browser E2E.
 
 ## Why
 

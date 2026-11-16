@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-675",
+  "kind": "task",
+  "number": 675,
+  "title": "Character editor: three-column body with section nav rail",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-02",
+  "updated": "2026-10-02",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-744",
+      "task-847",
+      "task-848"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Phase 3 of docs/design/full-entity-editors.md. The Bio tab is 3346px of content in a 960px viewport - 3.5x overflow across 15 sections. Give the full-surface editor a purpose-built layout: (a) promote the existing 4 tabs (Inventory, Bio, Images, Advanced) to a segmented control in the editor header, so the body is scoped to the active tab; (b) for Bio, lay the 15 sections into three columns - Identity and persona (name, description, personality, appearance, emotion, tags, aliases), Mechanics (stats, skills, traits, recipes, vitals), Knowledge (what I see, latest thoughts, memories, relationships, interest tags, fear tags); (c) keep the Appearance first-impression preview adjacent to the description it derives from rather than in another column, since it is a dependent live preview; (d) give Relationships its own row under Knowledge so it can scroll independently; (e) add a sticky left rail of section links built from the sections actually rendered; (f) Images and Inventory stay single-column - they are already narrow. Save-on-change semantics stay as they are. Verify in a live browser at 1600x1000, at 900-1200px where it should drop to two columns, and confirm the peek and the full editor cannot disagree.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character full-surface editor → Bio tab, opened from the inspector's expand control or a canvas-node double-click. Its header has segmented Inventory/Bio/Images/Advanced tabs; Bio has a sticky section-navigation rail and three content columns.\n\nCurrent availability: The card measured the existing Bio content at 3,346px across 15 sections in a 960px viewport. This layout is planned; the frame prerequisite is task-673.\n\nLive steps when available:\n1. At 1600×1000, open the full character editor and select Bio.\n   - expected: Identity/persona, Mechanics, and Knowledge are distinct columns; Appearance preview sits beside its source description; Relationships has its own row; the rail links only to sections currently rendered.\n2. Use each rail link to jump to Relationships, then scroll that section independently.\n   - expected: the active section is reachable without losing the other columns' scroll positions or hiding its heading under the sticky header.\n3. Resize to 900–1200px, then below the confirmed responsive breakpoint.\n   - expected: three columns drop to two at the stated range and then reflow without horizontal clipping; Inventory and Images remain single-column.\n4. Edit a character field from the peek, open the full editor, edit it there, then return to the peek.\n   - expected: both views read the same character data and neither displays a stale copy.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI Reference/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-675-character-editor-three-column-body-with-section-nav-rail.md"
+  }
+}

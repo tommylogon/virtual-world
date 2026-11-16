@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "task-7",
+  "kind": "task",
+  "number": 7,
+  "title": "Modularize app.py into Route Modules",
+  "status": "done",
+  "priority": "medium",
+  "area": "refactor",
+  "tags": [],
+  "created": "2026-07-16",
+  "updated": "2026-07-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Split `app.py` (1560 lines, 69 routes in one `register_routes()` function) into per-domain modules under a `routes/` package. Each module exports a `register_<domain>_routes(app)` function that the main `register_routes()` calls.\n\n**Approach: sub-register functions (not Blueprints).**\nThis keeps every route handler unchanged - no need to rewrite `app.world` → `current_app.world` or handle conditional registration differently. Each route function still captures `app` by closure, exactly as it does today. The split is purely organizational.\n\n---",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "module_structure": "```\napp.py                         # create_app() + imports + top-level register_routes() dispatcher\nroutes/\n  __init__.py                  # empty or just metadata\n  pages.py                     # 4 routes: favicon, /, /GLM, /deepseek\n  action.py                    # 3 routes: /api/state, /api/action (260-line dispatcher), /api/turn/apply\n  registry.py                  # 7 routes: items CRUD, traits, characters, import, build-item-from-library\n                              #   + helpers: handle_registry_post, load_registry, save_registry\n  players.py                   # 7 routes: players CRUD, move, speak, update, import-character\n  graph.py                     # 12 routes: nodes/edges CRUD, reconnect, rename, build-room/item/connect, update-edge\n  save_load.py                 # 3 routes: /api/save, /api/load, /api/reset\n                              #   + helper: _save_world_template\n  settings.py                  # 7 routes: ghost_mode GET/POST, narration GET/POST/context/inject, time_per_tick GET/POST\n  debug.py                     # 2 routes: /api/debug/save_log, /api/debug/state\n  llm.py                       # 2 routes: /api/llm/tools, /api/llm/call (with enabled/disabled variants)\n  world.py                     # 4 routes: world lore CRUD\n  memories.py                  # 6 routes: per-player memory CRUD\n```\n\nAlso:\n- `routes/helpers.py` - shared helpers: `load_registry`, `save_registry`, `_save_world_template`\n\n---",
+      "file_sizes_after_split": "| File | Lines (est.) | Routes |\n|---|---|---|\n| `app.py` | ~90 | 0 (just factory) |\n| `routes/helpers.py` | ~40 | - |\n| `routes/pages.py` | ~20 | 4 |\n| `routes/action.py` | ~280 | 3 |\n| `routes/registry.py` | ~140 | 7 |\n| `routes/players.py` | ~180 | 7 |\n| `routes/graph.py` | ~370 | 12 |\n| `routes/save_load.py` | ~60 | 3 |\n| `routes/settings.py` | ~130 | 7 |\n| `routes/debug.py` | ~40 | 2 |\n| `routes/llm.py` | ~60 | 2 (x2 variants) |\n| `routes/world.py` | ~60 | 4 |\n| `routes/memories.py` | ~80 | 6 |\n\n---",
+      "migration_steps": "### Step 1: Create package structure\n- Create `routes/` directory\n- Create `routes/helpers.py`\n\n### Step 2: Extract helpers to `routes/helpers.py`\n- Move `_save_world_template(world)` from global scope (line 1527)\n- Move `load_registry(data_dir, filename)` (line 1538)\n- Move `save_registry(data_dir, filename, data)` (line 1549)\n- Update imports in all route modules\n\n### Step 3: Create each route module\nFor each domain:\n1. Create `routes/<domain>.py`\n2. Copy the relevant `@app.route(...)` functions from `register_routes()`\n3. Wrap them in `def register_<domain>_routes(app):`\n4. Import needed helpers from `routes.helpers`\n\n### Step 4: Update `register_routes()` in `app.py`\nReplace the entire function body with calls to each sub-register:\n\n```python\ndef register_routes(app):\n    \"\"\"Dispatch to per-domain route modules.\"\"\"\n    from routes.pages import register_pages_routes\n    from routes.action import register_action_routes\n    from routes.registry import register_registry_routes\n    from routes.players import register_players_routes\n    from routes.graph import register_graph_routes\n    from routes.save_load import register_save_load_routes\n    from routes.settings import register_settings_routes\n    from routes.debug import register_debug_routes\n    from routes.llm import register_llm_routes\n    from routes.world import register_world_routes\n    from routes.memories import register_memories_routes\n\n    register_pages_routes(app)\n    register_action_routes(app)\n    register_registry_routes(app)\n    register_players_routes(app)\n    register_graph_routes(app)\n    register_save_load_routes(app)\n    register_settings_routes(app)\n    register_debug_routes(app)\n    register_llm_routes(app)\n    register_world_routes(app)\n    register_memories_routes(app)\n```\n\n### Step 5: Handle conditional LLM route registration\nThe LLM routes have an `if app.config[\"LLM_ENABLED\"]:` guard. In the module, move the conditional inside `register_llm_routes(app)` and register both variants conditionally just like current code.\n\n### Step 6: Update imports\n- `app.py`: remove imports only used by routes (items, areas, etc.) - but keep if used in `create_app()`\n- Each route module: import what it needs (Flask, engine classes, helpers)\n\n### Step 7: Verify\n- Run `python app.py` and check startup logs for errors\n- Test core routes: load page, get state, take action, etc.\n- Run the Playwright test script if available (`node tools/test_ways.cjs`)\n- Check Flask auto-reload picks up changes in `routes/*.py` files\n\n---",
+      "risks_mitigations": "| Risk | Mitigation |\n|---|---|\n| Circular imports | Each module only imports Flask + helpers + domain classes. No module imports another route module. The `register_routes()` dispatcher is the only integration point. |\n| Flask debug reload misses new files | Flask monitors imported modules by default. Since `register_routes()` imports from `routes.*`, any change in those files triggers reload. |\n| Nested helper `handle_registry_post` uses `request` closure | It's defined inside `register_routes()` and captures `request` by closure. Moving it to module scope works because Flask's `request` is a proxy that works outside route context. |\n| `take_action` captures `add_output` closure | `add_output` is defined inside the route function. Moving the function to a module doesn't affect this - closures work the same way. |\n| Dead code `_build_narration_context_for_current_area` | It's defined but never called. Leave it in the original location (move with action.py) or remove. Recommend moving as-is to avoid behavioral changes. |\n\n---",
+      "future_options": "Once the file is modularized, each module can be individually:\n- Upgraded to Flask Blueprints for URL prefixing\n- Unit-tested independently with mocked `app`\n- Refactored (e.g., splitting `take_action` into a command-pattern dispatcher)"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/refactor/task-7-modularize_app_routes.md"
+  }
+}

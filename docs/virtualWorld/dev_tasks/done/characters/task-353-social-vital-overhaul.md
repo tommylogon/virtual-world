@@ -5,11 +5,11 @@ area: characters
 priority: medium
 ---
 
-# Task 353: Social Vital Overhaul — Real Social Mechanics
+# Task 353: Social Vital Overhaul - Real Social Mechanics
 
 **Filed**: 2026-08-15  
 **Priority**: Medium  
-**Status**: Done — shipped in v1.4.0
+**Status**: Done - shipped in v1.4.0
 
 ---
 
@@ -19,7 +19,7 @@ Social vital currently mixes **social connection** (talking, being with people) 
 
 ## Scope
 
-### Remove — physical comfort masquerading as social
+### Remove - physical comfort masquerading as social
 
 | Current behavior | File | Fix |
 |-----------------|------|-----|
@@ -28,7 +28,7 @@ Social vital currently mixes **social connection** (talking, being with people) 
 
 These are sensory/physical comfort effects. A character can be socially fulfilled in a humid room, and miserable in a perfumed one if alone.
 
-### Implement — real social mechanics
+### Implement - real social mechanics
 
 #### 1. Isolation timer + accelerated decay
 
@@ -58,7 +58,7 @@ Replace the hardcoded `+1` in `tick_manager.py:290` with a TraitSystem lookup.
 
 #### 3. Self-talk / monologue social gain
 
-When a character speaks but no other living character is in the same area, give a small Social gain (+1) — better than nothing, but less than real conversation. Hook into `narration.py broadcast_speech()`.
+When a character speaks but no other living character is in the same area, give a small Social gain (+1) - better than nothing, but less than real conversation. Hook into `narration.py broadcast_speech()`.
 
 Check after the listener loop: if no listeners received the speech, apply +1 to speaker.
 
@@ -79,9 +79,9 @@ Check after the listener loop: if no listeners received the speech, apply +1 to 
 
 Low Social should influence AI decision-making, not just narration. Inject into prompt state:
 
-- `< 50`: Add flag `social_need: moderate` — agent should consider speech action more often
-- `< 25`: Add flag `social_need: desperate` — agent prioritizes finding people, may ramble/beg/speak without purpose
-- `< 10`: Add condition `social_breakdown` — unpredictable behavior, random speech, possible hallucination narration
+- `< 50`: Add flag `social_need: moderate` - agent should consider speech action more often
+- `< 25`: Add flag `social_need: desperate` - agent prioritizes finding people, may ramble/beg/speak without purpose
+- `< 10`: Add condition `social_breakdown` - unpredictable behavior, random speech, possible hallucination narration
 
 These flags feed into the agent's decision prompt so the LLM actually acts on them.
 
@@ -109,11 +109,11 @@ Scenario setup: characters with different traits placed in controlled environmen
 - `task-137`: original design doc (conversation tracking + on_speech already done)
 - `task-94`: closeness as behavioral gate (complementary social dimension)
 - `task-92`: needs-driven autonomous replanning (Social urgency feeds into priority queue)
-- `tick_manager.py` — per-tick vital processing
-- `narration.py` — speech broadcast with Social gains
-- `traits.py` — extrovert/introvert/SOCIAL_GAIN/GROUP_ENERGY_DRAIN
-- `character-state.js:150-152` — low Social narration injection
-- `game_tools.py:167-168` — advice for low Social
+- `tick_manager.py` - per-tick vital processing
+- `narration.py` - speech broadcast with Social gains
+- `traits.py` - extrovert/introvert/SOCIAL_GAIN/GROUP_ENERGY_DRAIN
+- `character-state.js:150-152` - low Social narration injection
+- `game_tools.py:167-168` - advice for low Social
 
 ## What
 

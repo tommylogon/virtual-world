@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-842",
+  "kind": "task",
+  "number": 842,
+  "title": "Crafting UI - library recipes tab, turn modal, activity banner",
+  "status": "review",
+  "priority": "medium",
+  "area": "crafting",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-14",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-831",
+      "task-840",
+      "task-841"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Three surfaces, three jobs. Nothing crafts from the editor, nothing\nauthors from the turn modal.\n\n**1. Library Recipes tab (browse + author).** Add `'recipes'` to\n`REGISTRY_TYPES` (`routes/library_ops.py:27`) - the generic\n`/api/library/<type>` CRUD then serves `data/library/recipes/*.json`\nwith no new backend code. Tab polish in one module (`recipe-library.ts`,\nmirroring `item-library/`): outcome ladder (crit → success → fail →\ncrit-fail with fail items named), inventory checkmarks per ingredient,\n`variant_of` grouping, ➕ New scaffolding the task-831 shape,\n`recipe_check.py` on save naming the exact bad field. Browse and author\nonly - no Cook button here.\n\n**2. Turn modal / command line (execute).** `Make X` is a character\naction like any verb: requirement check first (fail-closed missing list),\nthen Activity start. Craftable-now recipes appear in contextual guidance.\nCompletion toast carries the tier flavor (\"Fluffy and golden!\" /\n\"Burned beyond eating.\"); outputs land in inventory; fail items get\ntheir own icon. This is the ONLY execution surface alongside the agent\nverb and backsim.\n\n**3. Activity banner (watch + abort).** While cooking: banner shows\nrecipe name, station, ticks remaining (existing `activity_description`),\nplus Stop (= `stop_activity()`). Interruption for any reason shows\n\"the pot waits\" and consumes nothing. Completion shows the tier result.\n\nMinigame: not built. The banner reserves a stage area the future\nstaged-roll minigame (task-840 seam) will fill.",
+    "why": "Each surface does one job so the invariants hold: authorship never\nexecutes, knowledge never acts, actions stay in the turn system.",
+    "how": "1. One-line registry addition; verify the 4 existing recipe files list.\n2. `recipe-library.ts` tab polish (ladder, checkmarks, variants, New).\n3. Turn modal `Make X` path + completion toast (wires existing route).\n4. Activity banner ticks-remaining + Stop (existing data + command).",
+    "verify": "1. Open Library → Recipes.\n    - expected: 4 files listed; entry shows ladder + checks; no Cook.\n    - observed: 2026-10-16 - live on :4444, screenshot on file:\n      105 entries, ladder (crit/success/fail/crit-fail items),\n      inventory checkmarks, zero Cook buttons. Save-reject proven\n      via test client (400 naming the field).\n2. `Make boiled_water` at a lit fire, Stop mid-way, re-make to finish.\n    - expected: abort consumes nothing; completion toasts the tier.\n    - observed: 2026-10-16 - live on :4444 as Cullen (breadcrumbs):\n      take → Make → \"You start cooking breadcrumbs (5 min)\";\n      banner chip reads \"cooking make breadcrumbs · 5m left ✕\"\n      (screenshot); Stop → \"You stop cooking.\", bread intact, no\n      outputs. Bonus Q4 proof en route: the Make while Cullen was\n      fishing first stopped the fishing via the activity gate, then\n      fail-closed on the missing list. Live scratch disclosed:\n      Cullen holds the test stale bread; his fishing was\n      interrupted by the test.",
+    "acceptance": [
+      {
+        "text": "Recipes tab browses/authors; zero execution paths.",
+        "done": true
+      },
+      {
+        "text": "Turn modal executes; activity banner watches/aborts.",
+        "done": true
+      },
+      {
+        "text": "Mind panel (task-841) links to library entries read-only.",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/library_ops.py` - add `'recipes'` to REGISTRY_TYPES",
+      "static/js/recipe-library.ts` - new tab module",
+      "Turn modal + banner wiring"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Library → Recipes tab; turn modal → Make X; activity\nbanner during the cook.\n\nCurrent availability: card only; registry line not yet added.\n\nLive steps when available:\n1. Browse fried_egg in the Recipes tab, then Make it in the turn modal.\n   - expected: tab shows ladder with burned_egg named; modal crafts\n     with tiered toast; banner aborts cleanly mid-cook."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/crafting/task-842-crafting-ui-library-recipes-tab-turn-modal-activity-banner.md"
+  }
+}

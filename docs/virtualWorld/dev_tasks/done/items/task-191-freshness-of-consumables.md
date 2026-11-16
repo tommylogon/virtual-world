@@ -15,7 +15,7 @@ priority: medium
 
 ## Why
 
-There is no way to track the state of food — it can't be fresh, cooked, or spoiled. This matters narratively: food should go bad over time and cooking should change its state.
+There is no way to track the state of food - it can't be fresh, cooked, or spoiled. This matters narratively: food should go bad over time and cooking should change its state.
 
 ## How
 
@@ -26,8 +26,8 @@ There is no way to track the state of food — it can't be fresh, cooked, or spo
 
 ## Files
 
-- `engine/item_actions.py` — cooking transitions, spoil behavior on item use.
-- `engine/conditions.py` — condition instances for freshness states on items.
+- `engine/item_actions.py` - cooking transitions, spoil behavior on item use.
+- `engine/conditions.py` - condition instances for freshness states on items.
 
 ## What
 

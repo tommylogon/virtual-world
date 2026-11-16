@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "task-179",
+  "kind": "task",
+  "number": 179,
+  "title": "Event Stream Redesign - Turn Cards, Structured Events, LLM Chips",
+  "status": "cancelled",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-08-05",
+  "updated": "2026-08-05",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "why_cancelled": "This design doc (plus `docs/design/event-stream-demo.html`) was the precursor to\ntask-340, which implemented the full structured timeline UI on 2026-08-24:\nturn cards, structured event rows, collapsed LLM chips, filters, persistence\ncap, scrubber, raw-LLM inspection, story mode. Everything this task envisioned\nis live under task-340 - see `review/ui/task-340-event-stream-v2.md`.\n\nKept here for the callsite audit table (234 `events.log()` callsites across 27\nfiles) which task-340 used as its contracting scope."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/cancelled/ui/task-179-event-stream-redesign.md"
+  }
+}

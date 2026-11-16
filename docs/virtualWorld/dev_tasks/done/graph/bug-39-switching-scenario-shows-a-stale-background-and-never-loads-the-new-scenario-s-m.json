@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "bug-39",
+  "kind": "bug",
+  "number": 39,
+  "title": "Switching scenario shows a stale background and never loads the new scenario's map",
+  "status": "done",
+  "priority": "high",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-22",
+  "updated": "2026-09-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-38",
+      "task-451",
+      "multiple",
+      "images",
+      "task-408",
+      "scenario",
+      "naming"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "A record now has to actually contain something. Added `_hasBackground(record)`: true when it\nhas an `image`, a `rect`, or non-empty `positions`. The world block is used only if it passes\nthat test, and the same test guards the cached record before it is accepted. The clear branch\ntherefore runs for a genuinely empty world, and the per-scenario cache is reachable again.\n\nAlso hardened while in there: the outgoing image is dropped when the incoming source differs,\nso the new scenario's rect is never drawn with the previous scenario's pixels while the new\nimage decodes; and a record with no image clears `state.image`/`state.imagePath` rather than\nleaving a transform pointing at nothing.",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Switching to a scenario with no map clears the previous map (no stale pixels, layer hidden).",
+        "done": false
+      },
+      {
+        "text": "Switching to a scenario whose map lives only in the local cache restores it.",
+        "done": false
+      },
+      {
+        "text": "Switching to a scenario whose map lives in the world/file restores it.",
+        "done": false
+      },
+      {
+        "text": "No flicker of the previous scenario's image under the new rect.",
+        "done": false
+      },
+      {
+        "text": "Rapid successive switches settle on the last scenario's map.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/graph/graph-background.js` - `_hasBackground()` and `_restore()"
+    ],
+    "custom": {
+      "symptom": "Reported live: switching scenarios through the **Scenario Manager** did not switch the\ngraph's background image to the new scenario's. The old map did not come back correctly\neither - the layer simply ended up hidden, and the new scenario's own map never appeared\neven though it existed on the client.",
+      "root_cause": "`_restore()` (`static/js/graph/graph-background.js`) read the world's block as:\n\n```js\nlet record = (worldState?.data?.graph_background) || null;\nif (!record && identity && storage) { record = await storage.get(STORE, state.key); }\nif (!record) { if (state.image || state.rect) reset(); return; }\n```\n\nA scenario with no map **still serializes the key**, as `{}`\n(`engine/serialization.py:494` stores `background if isinstance(background, dict) else {}`,\nand `:236` writes it back). In JavaScript **`{}` is truthy**, so an empty block was taken as\na real record. That single mistake broke both halves of the rest of the function:\n\n- the `if (!record)` branch never ran, so the previous scenario's image was **never cleared**;\n- the IndexedDB fallback was **never consulted**, so the new scenario's locally-cached map\n  could never be restored;\n- `state.rect = record.rect || null` then set `rect` to `null` while `state.image` still held\n  the old image, and `_render()` computes `has = !!(state.image && state.rect)` - so the layer\n  was hidden and the old map appeared to vanish.\n\nNet effect: the world's missing map was read as \"a map with nothing in it\", which is a\ndifferent thing from \"no map\".\n\nData corroboration: only `data/scenarios/kraktooth_goblin_camp.json` carries a\n`graph_background` block. Every other scenario file has none, while\n`static/images/backgrounds/` holds five images - i.e. per-scenario maps exist locally but the\nworld block is empty, which is exactly the failing input.",
+      "verification_live_in_the_running_app_the_tester_s_world_was_not_reloaded": "Probed through the real `state:updated` -> `_onWorldRefetched()` -> `_restore()` path:\n\n| probe | input | result |\n|---|---|---|\n| T1 | fabricated previous map on screen + world block `{}` | cleared: `image=false`, `rect=false`, layer `none` |\n| T2 | world block `{}` + a cached record under the new scenario's key | restored **from cache**: `image=true`, `rect=true`, `opacity=0.42`, layer `block` |\n| T3 | the real block put back | restored: `image=true`, `rect=true`, `imagePath=/static/images/backgrounds/…`, layer `block` |\n\nT1 and T2 are the two behaviours the bug destroyed. The probe record was deleted and the live\nscenario (`kraktooth_goblin_camp`) confirmed intact afterwards.",
+      "note_for_task_451": "When backgrounds become a **list**, the emptiness test must move with them: an empty list or\nan empty block must still clear. The predicate is `_hasBackground()`, kept as one place so the\nlist form has a single thing to extend.",
+      "second_live_verification_2026_10_02_port_4471": "Exercised the real `state:updated → _onWorldRefetched() → _restore()` path in the\nrunning app: fabricated an empty world block (`worldState.data.graph_background = {}`,\nexactly what a mapless scenario serializes) and emitted `state:updated`.\n\n| step | layers | image | rect |\n|---|---|---|---|\n| before (world_template) | 2 | true | true |\n| empty block + refetch | **0** | **false** | **false** |\n| after reload | 2 | true | true |\n\n`imagePath` also went `null` and came back. So a genuinely empty block now\n**clears** the previous map instead of being taken as a real record (the old\n`{}`-is-truthy bug). Additionally, `tools/unit/test_graph_background.js` covers\n`_hasBackground({}) === false` and `_hasBackground({layers: []}) === false`\n(green in the 485-test run). No page errors."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/bug-39-switching-scenario-shows-a-stale-background-and-never-loads-the-new-scenario-s-map.md"
+  }
+}

@@ -12,6 +12,10 @@ related: ["task-910", "task-911"]
 **Filed:** 2026-10-30
 **Related:** task-910, task-911, task-405
 
+<!-- deps:start -->
+**Related:** [[task-910-backend-provider-profiles-and-env-credentials-persistence]], [[task-911-lm-studio-native-api-model-selector-and-response-speed-telemetry]]
+<!-- deps:end -->
+
 ## What
 
 Capture and display extended metadata provided by OpenRouter's `/api/v1/chat/completions` and `/api/v1/responses` endpoints:

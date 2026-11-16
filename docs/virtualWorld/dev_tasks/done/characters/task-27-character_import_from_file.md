@@ -45,9 +45,9 @@ There IS `/api/registry/characters/import` but it only imports from the saved ch
 
 ## Files
 
-- `static/js/inspector.js` — import button + `_importCharacter()`, `_saveDescription()`, Appearance textarea
-- `static/js/api.js` — `importPlayer()` method
-- `app.py` — `/api/players/import` endpoint
+- `static/js/inspector.js` - import button + `_importCharacter()`, `_saveDescription()`, Appearance textarea
+- `static/js/api.js` - `importPlayer()` method
+- `app.py` - `/api/players/import` endpoint
 
 ## Why
 

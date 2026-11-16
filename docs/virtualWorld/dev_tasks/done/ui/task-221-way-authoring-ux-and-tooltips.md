@@ -6,11 +6,11 @@ status: done
 priority: medium
 ---
 
-# Way Authoring UX — Labels, Exit Badges, Edge Tooltips, Parameter Preview
+# Way Authoring UX - Labels, Exit Badges, Edge Tooltips, Parameter Preview
 
 **Filed**: 2026-08-13  
 **Priority**: Medium  
-**Status**: In Review — implemented 2026-08-13, pending browser verify
+**Status**: In Review - implemented 2026-08-13, pending browser verify
 
 ---
 
@@ -20,7 +20,7 @@ Way state UI is usable but labels mislead (e.g. "Description" reads like room pr
 
 Labs pain points this addresses:
 
-- Generic `clearance` tag on doors + keycard `has_tag target clearance` (correct pattern — door tagged, not card)
+- Generic `clearance` tag on doors + keycard `has_tag target clearance` (correct pattern - door tagged, not card)
 - Stray tags on wrong ways (clearance on jump pit)
 - Movement verbs not visible in prompt preview
 
@@ -58,13 +58,13 @@ Extend `network-manager.js` edge tooltips (area→way connections):
 Command: go "swinging door" → Kitchen
 Way state: closed
 Movement: go (default)
-Tags: —
+Tags: -
 View when open: "Through the door you see…"
 ```
 
-Way node tooltips already show state + requires — add **area_from / area_to** and tag list.
+Way node tooltips already show state + requires - add **area_from / area_to** and tag list.
 
-Overlaps [[todo/graph/task-129-graph-tooltips-environment-info|task-129]] — implement connection-edge portion here; area env tooltips stay in 129.
+Overlaps [[todo/graph/task-129-graph-tooltips-environment-info|task-129]] - implement connection-edge portion here; area env tooltips stay in 129.
 
 ### 4. Parameter live preview
 
@@ -77,7 +77,7 @@ Same helper usable in Agent Lens (task-219) and unified way editor (task-220).
 
 ### 5. Tag sanity hints (optional, non-blocking)
 
-Soft ⚠ in way inspector / lens — not a validator panel:
+Soft ⚠ in way inspector / lens - not a validator panel:
 
 - `clearance` tag on way with `requires: jump`
 - Locked way with no tags and no visible unlock trigger (heuristic only)
@@ -87,7 +87,7 @@ Soft ⚠ in way inspector / lens — not a validator panel:
 - `static/js/inspector/way-view.js`
 - `static/js/inspector/area-view.js`
 - `static/js/graph/network-manager.js`
-- `static/js/inspector/helpers.js` — `resolveWayParams(text, parameters)`
+- `static/js/inspector/helpers.js` - `resolveWayParams(text, parameters)`
 
 ## Steps to verify
 

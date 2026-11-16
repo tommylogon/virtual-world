@@ -1,4 +1,4 @@
-# Critical Review — Mujeeroth Scale Task Files vs. Real Code
+# Critical Review - Mujeeroth Scale Task Files vs. Real Code
 
 **Date**: 2026-09-08  
 **Scope**: task-397 through task-402, task-9, task-323, task-324  
@@ -8,11 +8,11 @@
 
 ## Executive Summary
 
-The six world-scale tasks are architecturally reasonable in direction, but every single one depends on a serialization/identity layer that is not ready for scale. The core problem is not the tasks themselves — it's that the current code has three latent bugs that become showstoppers at million-node scale, and none of the tasks acknowledge them:
+The six world-scale tasks are architecturally reasonable in direction, but every single one depends on a serialization/identity layer that is not ready for scale. The core problem is not the tasks themselves - it's that the current code has three latent bugs that become showstoppers at million-node scale, and none of the tasks acknowledge them:
 
-1. **`areas` dict is keyed by display name, not node ID** — two scopes both containing a "kitchen" silently overwrite each other.
-2. **`Player.current_area` is a string name in 47+ references across 10 files** — cross-chunk movement requires stable node IDs.
-3. **`WorldGraph.load_from_dict()` is a full clear-and-replace** — chunk loading requires a merge API that doesn't exist.
+1. **`areas` dict is keyed by display name, not node ID** - two scopes both containing a "kitchen" silently overwrite each other.
+2. **`Player.current_area` is a string name in 47+ references across 10 files** - cross-chunk movement requires stable node IDs.
+3. **`WorldGraph.load_from_dict()` is a full clear-and-replace** - chunk loading requires a merge API that doesn't exist.
 
 Beyond those, the trigger system, sound propagation, temperature propagation, and air propagation all do full-graph scans every tick. The editor fetches all nodes and edges and rebuilds the entire dataset on every load. None of the tasks address any of this.
 
@@ -83,7 +83,7 @@ graphManager.nodes.clear();
 ...
 graphManager.network.setData({ nodes: visNodes, edges: visEdges });
 ```
-There is no incremental merge, no scope-aware fetch, no partial load. task-397's projection endpoints are necessary but not sufficient — the editor needs a data-flow redesign that no task file addresses.
+There is no incremental merge, no scope-aware fetch, no partial load. task-397's projection endpoints are necessary but not sufficient - the editor needs a data-flow redesign that no task file addresses.
 
 ### Trigger System
 
@@ -118,7 +118,7 @@ for node in self.graph.nodes.values():
     if node.type == "area":
         areas_dict[node.id] = node
 ```
-Then iterates `areas_dict.items()` and calls `get_sound_sources_in_area` for each area — meaning the full-edge scan runs once per area per tick.
+Then iterates `areas_dict.items()` and calls `get_sound_sources_in_area` for each area - meaning the full-edge scan runs once per area per tick.
 
 ### Temperature and Air Propagation
 
@@ -157,7 +157,7 @@ File: `engine/lighting.py:116-124`
 ```python
 for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
 ```
-Same issue — scoped to one area, but the underlying scan is linear over all edges.
+Same issue - scoped to one area, but the underlying scan is linear over all edges.
 
 ### Delayed Events
 
@@ -178,9 +178,9 @@ If the target node is in an unloaded chunk, the event cannot fire when due. Ther
 **No background simulation code exists**  
 Verified by directory listing of `engine/`: no `background_simulation.py`.  
 **No `simulation_mode` field on Player**  
-Verified by reading `player.py` — no such field.  
+Verified by reading `player.py` - no such field.  
 **No per-character schedule store**  
-Verified — `DelayedEventQueue` is the only scheduling mechanism, and it's global/fire-and-forget.
+Verified - `DelayedEventQueue` is the only scheduling mechanism, and it's global/fire-and-forget.
 
 ### Pines Scenario
 
@@ -241,17 +241,17 @@ My earlier review incorrectly stated it did not. I checked `saves/` instead of `
 
 ## What Needs to Happen Before Any Task Can Start
 
-1. **Fix the `areas` dict name-keying** — change `rooms_serialized[node.name]` to `rooms_serialized[node.id]` in `_serialize_world`. One line. Must land before task-397.
+1. **Fix the `areas` dict name-keying** - change `rooms_serialized[node.name]` to `rooms_serialized[node.id]` in `_serialize_world`. One line. Must land before task-397.
 
-2. **Decide on `current_area` strategy** — Either: (a) keep string names and accept that cross-chunk movement requires name resolution at every boundary, or (b) refactor to `current_area_id` across 47+ call sites. This decision gates task-401.
+2. **Decide on `current_area` strategy** - Either: (a) keep string names and accept that cross-chunk movement requires name resolution at every boundary, or (b) refactor to `current_area_id` across 47+ call sites. This decision gates task-401.
 
-3. **Design the chunk merge API** — task-401 says "add one" but doesn't say what it looks like. Before task-401 starts, someone needs to write the API shape: `merge_chunk(chunk_data)` → what? `unload_chunk(scope_id)` → where do characters go?
+3. **Design the chunk merge API** - task-401 says "add one" but doesn't say what it looks like. Before task-401 starts, someone needs to write the API shape: `merge_chunk(chunk_data)` → what? `unload_chunk(scope_id)` → where do characters go?
 
-4. **Decide scope-aware strategy for global systems** — The trigger, lighting, sound, temperature, and air systems all do full-graph scans. Options: (a) make them scope-aware (only process loaded chunks), (b) keep them global but make chunk unloading a no-op for these systems, (c) replace them with indexed versions. This is a cross-cutting concern that touches 6+ engine files and should be its own task.
+4. **Decide scope-aware strategy for global systems** - The trigger, lighting, sound, temperature, and air systems all do full-graph scans. Options: (a) make them scope-aware (only process loaded chunks), (b) keep them global but make chunk unloading a no-op for these systems, (c) replace them with indexed versions. This is a cross-cutting concern that touches 6+ engine files and should be its own task.
 
-5. **Pick a delayed-event policy for unloaded nodes** — task-401 says "silently dropping is forbidden" but doesn't pick between: load-on-fire, park-on-chunk, or escalate. Each has different consistency implications.
+5. **Pick a delayed-event policy for unloaded nodes** - task-401 says "silently dropping is forbidden" but doesn't pick between: load-on-fire, park-on-chunk, or escalate. Each has different consistency implications.
 
-6. **task-402 needs a benchmark tool and a number** — Install `pytest-benchmark` or write a custom script, and set a hard payload limit (e.g., 200KB per scope projection).
+6. **task-402 needs a benchmark tool and a number** - Install `pytest-benchmark` or write a custom script, and set a hard payload limit (e.g., 200KB per scope projection).
 
 ---
 

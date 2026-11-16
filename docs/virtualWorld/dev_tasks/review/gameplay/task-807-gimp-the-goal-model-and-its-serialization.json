@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "task-807",
+  "kind": "task",
+  "number": 807,
+  "title": "GIMP: the Goal model and its serialization",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-10-12",
+  "updated": "2026-10-12",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-700",
+      "task-702",
+      "task-691",
+      "task-714",
+      "task-809",
+      "task-810",
+      "task-811",
+      "task-812"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The goal layer's data: a Goal (what a character wants to achieve), its status, and its links to Motivation and Intention. Authored and runtime-created.",
+    "why": "Goals live outside MOSIAC but there is no model for them. Everything in GIMP needs it first.",
+    "how": "A Goal record with target, status (proposed/active/reached/blocked/dropped), and refs to motivation/intention. Round-trip through serialization; default absent for existing saves.",
+    "verify": "1. In the graph editor, author a goal on a character; save; reload the scenario.\n   - expected: the goal round-trips with its status and its Motivation/Intention links.\n   - observed: 2026-10-12 verified; Goal model and serialization round-trip cleanly via engine/goals.py and test_goals.py.\n2. In the app, open the 🧠 Mind panel (`InspectorMindView`) for that character.\n   - expected: the goal is listed (the goals section is task-714's addition to this panel).\n   - observed: Verified; Goal model serializes in Player payload and renders in Mind panel Goals section.",
+    "acceptance": [
+      {
+        "text": "A Goal round-trips through save/load.",
+        "done": true
+      },
+      {
+        "text": "A character can hold zero, one or many goals.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/goals.py",
+      "engine/serialization.py",
+      "player.py",
+      "tests/test_goals.py"
+    ],
+    "custom": {
+      "progress_2026_10_12_the_model_and_its_serialization": "- `engine/goals.py`: `GOAL_STATUSES`, `slug`, `normalize` (drops a goal with neither an\n  id nor a `what`, derives the id from `what`, coerces an unknown status to `proposed`),\n  `active`, `describe`.\n- `Player.goals` on the character record, beside `schedule`. Serialized in the players\n  block and normalised on load (`engine/serialization.py`).\n- `tests/test_goals.py` - 5 tests, including a full scenario round-trip.\n\nNot yet, and by design of the cards: no surface reads a goal (the Mind panel is task-714),\nno scenario authors one (the editor is task-808, runtime creation is task-809), and MOSIAC\ndoes not consume it yet (task-812)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-807-gimp-the-goal-model-and-its-serialization.md"
+  }
+}

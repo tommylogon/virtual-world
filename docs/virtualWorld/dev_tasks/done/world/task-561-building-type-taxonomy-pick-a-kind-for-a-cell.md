@@ -12,8 +12,8 @@ priority: high
 
 ## What
 
-The author wants to select a *building type* per cell — residential, religious,
-shopping mall, market, fast food, mansion, castle — and have it be the cell's
+The author wants to select a *building type* per cell - residential, religious,
+shopping mall, market, fast food, mansion, castle - and have it be the cell's
 identity, so a painted town is more than a column of coordinates. Extend the
 taxonomy with a settlement vocabulary, so a cell painted `inn` compiles with the
 right tags, prose and distribution. Pairs with task-560: a type without a name is
@@ -21,15 +21,15 @@ right tags, prose and distribution. Pairs with task-560: a type without a name i
 
 ## Acceptance
 
-- [x] **Building types are biomes, not features.** A building is a *place* — a
-      cell with an identity and prose — so it belongs in `biomes`. The file already
+- [x] **Building types are biomes, not features.** A building is a *place* - a
+      cell with an identity and prose - so it belongs in `biomes`. The file already
       had `town`, `village`, `building`, `ruin` and `gate` as **features**, which
       meant painting "building" put a cell the compiler read as a *road*: it merged
       with the street and described itself as a thoroughfare. Those feature entries
       are left alone (removing them is a separate decision) and the real vocabulary
       is added as biomes.
-- [x] **31 types across 9 categories** — residential, religious, commercial,
-      civic, craft, industrial, military, rural, transport — from the Millbrook map
+- [x] **31 types across 9 categories** - residential, religious, commercial,
+      civic, craft, industrial, military, rural, transport - from the Millbrook map
       and the author's own list: cottage, tenement, inn, tavern, brothel, shrine,
       temple, chapel, shop, market, fast_food, mall, bank, warehouse, smithy,
       workshop, mill, town_hall, watch_house, infirmary, school, library, stable,
@@ -37,7 +37,7 @@ right tags, prose and distribution. Pairs with task-560: a type without a name i
       `castle`, `mansion`, `ruin`.
 - [x] **Three tag families, so a later task can ask the question an author has**:
       `building`+`settlement` (it is a made place), a category (the coarse pick),
-      and purposes — `sleeps`, `food`, `drink`, `hygiene`, `trade`, `craft`,
+      and purposes - `sleeps`, `food`, `drink`, `hygiene`, `trade`, `craft`,
       `worship`, `medical`, `storage`, `transport` (what a character might want it
       for; task-566).
 - [x] **A building is exempt from the wild-country contract, deliberately.** The
@@ -56,19 +56,19 @@ right tags, prose and distribution. Pairs with task-560: a type without a name i
       A building reads as `open` until a settlement register is designed.
 - [x] **Tests.** `tests/test_biomes.py` now states the contract as it actually
       is: *every wild* biome is forageable and has distribution rules, and a
-      building is exempt. A building is still a biome — the exemption is not a
+      building is exempt. A building is still a biome - the exemption is not a
       way to smuggle in a record with no name or no surface.
 
 ## Verified
 
 `biomes.validate()` is clean on the shipped 47-biome taxonomy, and a tavern cell
 compiles to an area tagged `['building', 'settlement', 'commercial', 'food',
-'drink']` (see task-560's verification) — the hook task-566 needs is already
+'drink']` (see task-560's verification) - the hook task-566 needs is already
 carried on the node.
 
 ## Not here
 
-- **A type does not yet change what a place *does*** — no entering a building
+- **A type does not yet change what a place *does*** - no entering a building
   (task-563), no generated interior (task-567), no `urban` prose register.
 - **The stale feature entries are still there**, so `building` and `town` are
   paintable in two senses. Worth a decision: drop them, or keep them as paintable

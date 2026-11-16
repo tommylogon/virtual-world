@@ -18,13 +18,13 @@ related: ["'task-178'", "'task-346'", 'task-178', 'task-346']
 
 ## Progress
 
-**Slice 1 — observation memories (done, 2026-09-21).** The prerequisite
-task-425 was blocked on (`entity_ids` populated — was 0/17 — plus a per-subject
+**Slice 1 - observation memories (done, 2026-09-21).** The prerequisite
+task-425 was blocked on (`entity_ids` populated - was 0/17 - plus a per-subject
 index) now exists:
 
 - `engine/observation.py` records one **live observation memory per subject**:
   the area the character stands in and each item it can see there. Perception is
-  not re-implemented — it reuses `engine/room_perception` (the shared
+  not re-implemented - it reuses `engine/room_perception` (the shared
   prompt/panel source of truth), and the area itself is recorded
   unconditionally while its *contents* need light
   (`can_perceive`: dead/unconscious/asleep see nothing, darkvision counts).
@@ -32,19 +32,19 @@ index) now exists:
   **People are deliberately not observed here** (changed 2026-09-21, task-434): a
   character is claimed by `Player.register_first_meeting`, which is also what
   pays for meeting them. If arrival stamped them too, the meeting grant would read
-  a tick this had just refreshed and pay nothing — and paying on *sight* saturated
+  a tick this had just refreshed and pay nothing - and paying on *sight* saturated
   Entertainment, because a crowded camp re-observes five to ten people on every
   arrival and they go stale again within the novelty window.
 - `Player.record_observation` refreshes that memory **in place** rather than
   appending, so the store is bounded by *subjects*, not by visits. Measured:
   **908 memories after 10,080 ticks (1 min/tick) vs 912 after 672 ticks
-  (15 min/tick)** — fifteen times the game time, the same number of memories.
+  (15 min/tick)** - fifteen times the game time, the same number of memories.
 - `Player.memory_index` (`subject_id -> memory_id`) takes "which memory is about
   this subject?" out of the memory list entirely, so it does not have to be found
   by scanning for a matching `entity_ids` entry. `has_seen` /
   `observation_tick` / `supersede_observation` read it; `observation_memory`
   returns `None` and falls back to a scan when the index has no usable entry, and
-  the scan **repairs** the index — so the index can never silently disagree with
+  the scan **repairs** the index - so the index can never silently disagree with
   the store. (Resolving the id back to the entry is still one pass; that is
   cheap next to the subject scan it removes, and a second id→entry map would be
   another structure to keep in sync with three writers.)
@@ -54,11 +54,11 @@ index) now exists:
 - `superseded_by` retires a belief that was replaced (the bread was eaten) so
   recall stops surfacing it. Sightings *refresh*; they do not chain.
 - Wired: on area entry (`engine/movement.py`, which the background tier also
-  passes through — `_travel_toward` swaps `gs.active_player`) and once per
+  passes through - `_travel_toward` swaps `gs.active_player`) and once per
   character at load, since nothing is observed without a move and the starting
   area must not be the one place a character can never remember.
 - Cost: **~5%** of a background week (measured by alternating A/B with warm-up;
-  cProfile agrees). A first measurement of 43% was a cold-start artifact — the
+  cProfile agrees). A first measurement of 43% was a cold-start artifact - the
   first run paid import/parse costs.
 - Tests: `tests/test_observation_memory.py` (14), plus round-trip and load-time
   cases in `tests/test_serialization.py`. Soak unchanged: 23/23 alive, vitals
@@ -77,7 +77,7 @@ Current state: knowledge is spread across `Player.memories`,
 `SpatialMemory`, `VectorStore`, `known_way_aspects`, `investigation_statuses`,
 `traits`, `emotion` recall, and trigger `add_memory`. None of these share a
 query interface. An agent cannot answer "where is food?" because that question
-touches spatial memory, item tags, visited areas, and stored memories — and
+touches spatial memory, item tags, visited areas, and stored memories - and
 there is no layer that joins them.
 
 This task does not replace any existing system. It defines the unified model
@@ -238,8 +238,8 @@ For each memory in `player.memories`:
 
 ## Files
 
-- `engine/agent_memory.py` (new — the `AgentMind` facade; still to do)
-- `engine/observation.py` (new — slice 1: perception → observation memories)
+- `engine/agent_memory.py` (new - the `AgentMind` facade; still to do)
+- `engine/observation.py` (new - slice 1: perception → observation memories)
 - `player.py` (slice 1: `memory_index`, `record_observation`,
   `observation_memory`, `observation_tick`, `has_seen`,
   `supersede_observation`, `add_memory` entity_ids/location/salience)
@@ -270,7 +270,7 @@ absence means "blank slate."
 - Save/load a character with preconceived memories, known ways, and
   investigation statuses. Verify they round-trip through
   `engine/serialization.py`.
-- Run `python tools/lint_library.py` — trait files must validate.
+- Run `python tools/lint_library.py` - trait files must validate.
 
 ## Non-goals
 
@@ -278,28 +278,28 @@ absence means "blank slate."
 - Automatic generation of preconceived knowledge from world topology.
 - Replacing `VectorStore` or `SpatialMemory` with a single backend.
 
-## Progress — 2026-09-24 (slice 2: AgentMind)
+## Progress - 2026-09-24 (slice 2: AgentMind)
 
 `engine/agent_memory.py` (new) lands the facade and the three missing pieces.
-It stores nothing itself — it delegates to `player.memories`, `player.known`,
+It stores nothing itself - it delegates to `player.memories`, `player.known`,
 `player.known_way_aspects`, `player.memory_index` and `engine/promotion.py`.
 
-- **`AgentMind(player, graph, game_state, vector_store)`** — `recall(query, need,
+- **`AgentMind(player, graph, game_state, vector_store)`** - `recall(query, need,
   context, limit)` (tag/keyword match, ranked `importance * salience *
   recall_boost * urgency`, filtered by `max_importance_cap`), `remember(...)`,
   `know_area`/`knows_area`, `knows_way`, and `consolidation_summary(since_tick)`
   (delegates to `promotion.pending_span` + `promotion.summarize`).
-- **Preconceived knowledge** — `load_preconceived(pdata)` injects authored
+- **Preconceived knowledge** - `load_preconceived(pdata)` injects authored
   `memories` (source `preconceived`), `known_areas`, `known_items` and
   `known_ways`. Idempotent by memory text. Wired into
   `engine/serialization._deserialize_player`, so a scenario or save carrying the
   keys bootstraps the character's knowledge; absent keys are a no-op.
-- **Need-driven recall** — `surface_need_memory(need, tick, urgency, day_key)`
+- **Need-driven recall** - `surface_need_memory(need, tick, urgency, day_key)`
   recalls for a pressing need, writes one `source: need_recall` memory, and
   dedupes to once per in-game day per need. It never fabricates a location. Wired
   into `background_simulation._act` at the thirst and hunger thresholds (memory
-  only — it cannot change an action).
-- **Memory traits + decay** — `perfect_memory` (recall ×2, no decay) and
+  only - it cannot change an action).
+- **Memory traits + decay** - `perfect_memory` (recall ×2, no decay) and
   `poor_memory` (recall ×0.5, `memory_decay_per_tick` 0.02, importance cap 6)
   added to `TRAIT_DEFINITIONS` with the new effect keys
   (`memory_recall_boost`, `memory_decay_per_tick`, `memory_decay_reduction`,
@@ -309,7 +309,7 @@ It stores nothing itself — it delegates to `player.memories`, `player.known`,
   `player.memory_index` consistent on removal. Wired into the per-player
   `tick_turn` loop, guarded by the trait so default behaviour is unchanged.
 
-Tests: `tests/test_agent_memory.py` (13) — injection + idempotence, recall
+Tests: `tests/test_agent_memory.py` (13) - injection + idempotence, recall
 match/rank/no-match, the poor-memory cap, once-per-day need recall (no
 fabrication), decay inertness/removal/preconceived immunity, and a
 preconceived-knowledge world load. Related suites

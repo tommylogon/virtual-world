@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "bug-607",
+  "kind": "bug",
+  "number": 607,
+  "title": "Filter hidden items, stealthed NPCs, and unmet stranger names in Mind Inspector _whatISeeHtml",
+  "status": "todo",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [
+    "ui",
+    "mind-panel",
+    "fog-of-war",
+    "name-masking",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-14",
+  "horizon": "next",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-597",
+      "bug-588"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Align Mind Inspector's \"What I see\" card (_whatISeeHtml) with per-agent perception and fog-of-war masking rules so it stops exposing hidden items, stealthed NPCs, and unmet stranger names.",
+    "why": "static/js/inspector/mind-view.ts lines 857-870 renders `area.items` directly without filtering hidden items and iterates `worldState.players` without skipping `hidden`/`stealthed` actors or masking unmet strangers via `isKnownToViewer`/`anonymousName`, contradicting the Subjective Mind framing labeled \"What I see - the room right now\".",
+    "how": "1. Update `_whatISeeHtml` in static/js/inspector/mind-view.ts (lines 857-872) to filter out `hidden` items (and respect darkness/lighting parity with PromptBuilder / room-context.ts).\n2. Exclude players with `state === 'hidden'` or `'stealthed'` (or matching room visibility snapshot `players_in_area` when available) and format visible co-located strangers through `PromptBuilder.anonymousName` / `isKnownToViewer` so unmet real names are masked consistently with the character's Subjective Mind view.\n3. Add JS unit coverage verifying hidden items, hidden NPCs, and unmet strangers do not leak in `_whatISeeHtml`.",
+    "verify": "1. Run npm run build:ts and JS unit tests for InspectorMind asserting _whatISeeHtml hides concealed/hidden items, omits hidden/stealthed players, and masks unmet stranger real names.",
+    "acceptance": [
+      {
+        "text": "mind-view.ts _whatISeeHtml excludes hidden items and dim/unlit invisible objects matching room perception rules.",
+        "done": false
+      },
+      {
+        "text": "mind-view.ts _whatISeeHtml excludes hidden/stealthed players and masks unmet strangers using unknown_name / PromptBuilder.anonymousName instead of exposing real registry names.",
+        "done": false
+      },
+      {
+        "text": "Unit test covers hidden items, stealthed NPCs, and unmet strangers in _whatISeeHtml rendering.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/mind-view.ts",
+      "static/js/agent/prompt-builder/helpers.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind -> \"What I see - the room right now\" card (static/js/inspector/mind-view.ts).\n\nCurrent availability: mind-view.ts _whatISeeHtml (lines 857-870) reads raw `area.items` and raw `Object.entries(worldState.players)` matching `current_area`, leaking hidden items, stealthed NPCs, and true names of unmet strangers.\n\nManual verification steps:\n1. Place an unmet stranger, a hidden/stealthed character, and a hidden item in a character's room.\n2. Open Character Inspector -> Mind and inspect the \"What I see - the room right now\" box.\n   - expected: Hidden item and hidden/stealthed character are omitted, and the unmet stranger renders with their masked stranger label (unknown_name) rather than their true name."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Per-Agent Knowledge (Fog of War)]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

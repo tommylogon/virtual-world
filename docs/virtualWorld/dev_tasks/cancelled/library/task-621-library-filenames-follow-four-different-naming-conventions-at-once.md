@@ -18,7 +18,7 @@ mixed case, kebab-case, snake_case and spaced names coexist across data/library 
 
 - TODO
 
-## Cancellation — duplicate of task-601 (check) and task-646 (the rename)
+## Cancellation - duplicate of task-601 (check) and task-646 (the rename)
 
 The claim is true, and it is **the same problem** already measured under
 task-601, so carrying it as a second ticket only inflates the backlog.

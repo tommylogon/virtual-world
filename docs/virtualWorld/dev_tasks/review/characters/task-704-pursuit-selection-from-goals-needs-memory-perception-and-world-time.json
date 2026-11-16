@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "task-704",
+  "kind": "task",
+  "number": 704,
+  "title": "Pursuit selection from goals, needs, memory, perception, and world time",
+  "status": "review",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-15",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-701",
+      "task-702",
+      "task-705"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-409",
+      "task-426",
+      "task-685",
+      "task-699",
+      "task-701",
+      "task-702",
+      "task-822",
+      "task-849"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Choose or propose a suitable **pursuit** when needs, a goal, an accepted mission, a meaningful event, or a schedule reminder makes one relevant. A pursuit has a character's reason and longer-term objective; its short-term plan handles the present situation; an Activity begins when the character reaches a place and performs something over time.\n\nSelection must read the actor's real state and knowledge. Needs, personality, memories and perceptions shape what the character wants and believes; calendar conditions, seasons, weather, daylight, moon, routes, people, items, and available actions constrain what is possible. Use the existing VirtualWorld world-time and environment sources.\n\n**This card owns `goal_alignment`** - the second term of the score formula in [[Character Pursuits]]:\n\n```\nscore(action) = disposition_weights . action_features + goal_alignment(action, active_goal)\n```\n\n`goal_alignment` reads the active goal's **`achieve`** refs (task-822) and the bound pursuit's next step: does this action advance one? It is the term that connects GIMP to the pick, and nothing computes it today. **`priority` is this card's input too** - it is declared 1-is-highest in task-822, and choosing *which* of a character's active goals is the active one is this card's job. With several active goals and no ranking, the formula has no `active_goal` to align to.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. In a micro-scenario, give the same goblin two competing active goals, a hungry/lonely need state, and two library-backed pursuit candidates; run selection once with a relevant memory and known route.\n   - expected: the selected binding names only known, reachable targets, includes a readable reason tied to the active goal's `achieve` refs, and does not create an item, route, permission, or skill.\n   - observed: Not run. The selector is not implemented; this card is blocked by tasks 701, 702, and 705.\n2. Keep the character and candidates the same, then change the stronger personal reason and repeat the selection cycle with one candidate declined.\n   - expected: the character can decline without a retry penalty or same-cycle re-proposal; the other character's response is unchanged.\n   - observed: Not run. The selector is not implemented; this card is blocked by tasks 701, 702, and 705.\n3. Repeat the fixture with both an LLM agent and a simple background NPC, then change the calendar cue and falsify the remembered route premise.\n   - expected: both use the same pursuit template and world-action semantics; the LLM can adapt or decline, while the simple NPC uses the deterministic rule; the stale premise causes reselection rather than an invented destination.\n   - observed: Not run. The selector is not implemented; this card is blocked by tasks 701, 702, and 705.",
+    "acceptance": [
+      {
+        "text": "Selection runs on meaningful triggers-need signals, mission offer/acceptance, Activity completion or interruption, pursuit completion/invalidation, relevant perception/memory, or schedule/calendar cue-not once per simulation tick.",
+        "done": false
+      },
+      {
+        "text": "Candidate pursuits come from the shared character-agnostic template library or explicit actor-authored content. The selector binds only targets and facts supported by the actor's knowledge and the authoritative world.",
+        "done": false
+      },
+      {
+        "text": "Each bound pursuit carries a readable character reason and structured objective, where, when, supplies/requirements, stop condition, and progress fields. A character's hoped-for consequence is prose/motive; actual consequences are determined by world and relationship rules.",
+        "done": false
+      },
+      {
+        "text": "Personality can shape goal weights and soft preferences. It cannot create an item, route, skill, permission, or outcome that the world does not support.",
+        "done": false
+      },
+      {
+        "text": "Memory can make a goal/pursuit relevant; when perception falsifies the remembered premise, the normal correction path updates knowledge and selection can adapt (task-685).",
+        "done": false
+      },
+      {
+        "text": "Calendar cues use existing game date, clock, `current_season`, weather/forecast, sun/daylight, and moon phase. Schedules provide timing prompts; they do not become pursuits or Activities.",
+        "done": false
+      },
+      {
+        "text": "LLM agents receive the current pursuit and candidate information in prose plus structured data. The agent can accept, adapt, pause, replace, or decline without a retry penalty. Its immediate plan is separately generated and can change after interruptions.",
+        "done": false
+      },
+      {
+        "text": "Simple NPCs can accept assigned pursuits or choose through deterministic rules, then carry them out using the same Activity and world-action systems without LLM calls.",
+        "done": false
+      },
+      {
+        "text": "Background simulation uses the same pursuit and Activity semantics at coarser decision intervals; there is no parallel “schedule activity” vocabulary.",
+        "done": false
+      },
+      {
+        "text": "Actor sovereignty holds: selecting one character's pursuit never predicts or sets another character's response.",
+        "done": false
+      },
+      {
+        "text": "A rejection is a choice, not failure. No retry penalty, replan penalty, or forced re-proposal of the same rejected pursuit in the same selection cycle.",
+        "done": false
+      },
+      {
+        "text": "Demonstrate conflicting needs with one hungry, lonely goblin that accepts a suggested pursuit and another moment where the same goblin declines it for a stronger personal reason, using the same catalog and no character-specific special case.",
+        "done": false
+      },
+      {
+        "text": "task-426's haul/gather/rally content is either absorbed as initial pursuit templates or explicitly retired. No second archetype system remains beside the pursuit catalog.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Select the actor → Inspector → Bio → 🧠 Mind → Goals and Pursuit & plan. The visible world and its normal action surface show whether the selected plan actually moves, gathers, or starts an Activity.\n\nCurrent availability: The MOSIAC selector is planned and blocked by tasks 701, 702, and 705. The saved Mind surface can display goals and character-side pursuits, but it does not yet demonstrate this selector choosing or declining candidates.\n\nLive steps when available:\n1. Load the hungry/lonely goblin micro-scenario, select that goblin, open Mind, and record the two active goals and the candidate reasons; advance the selector trigger once.\n   - expected: the selected pursuit and reason appear under Pursuit & plan, and its bound target is visible to that character in the world.\n2. Change the fixture so the same goblin has the stronger personal reason, then trigger selection again and inspect the other goblin in the same scenario.\n   - expected: the first goblin can decline the suggested pursuit without a retry penalty, and the other actor's plan remains their own choice.\n3. Let the accepted pursuit execute through its next step, then inspect the actor and Mind again after changing the remembered route premise.\n   - expected: the actor's actual position/Activity and Mind's plan agree; a falsified premise leads to a grounded new choice without erasing the longer pursuit automatically.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[design/Character Pursuits]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "system name": "the **MOSIAC** selector - the *Choice* step of MOSIAC (Motivation, Obligations, Schedules, Intentions, Attention, Choice). It reads those inputs and binds a plan.",
+      "clarified": "2026-10-05"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/characters/task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans.md"
+  }
+}

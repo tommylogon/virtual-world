@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "task-51",
+  "kind": "task",
+  "number": 51,
+  "title": "Multi-Effect / Multi-Condition Triggers",
+  "status": "done",
+  "priority": "medium",
+  "area": "triggers",
+  "tags": [],
+  "created": "2026-07-17",
+  "updated": "2026-07-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Triggers currently support one `effect_type` + `effect_params` and one `condition`. To support recipes (lighting a fireplace needs: consume kindling + set_state + set_environment + message), triggers need arrays of both effects and conditions.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "current_format": "```json\n{\n  \"trigger_type\": \"on_use\",\n  \"condition\": { \"type\": \"has_item\", \"value\": \"kindling\" },\n  \"effect_type\": \"message\",\n  \"effect_params\": { \"message\": \"...\" }\n}\n```",
+      "proposed_format": "```json\n{\n  \"trigger_type\": \"on_use\",\n  \"conditions\": [\n    { \"type\": \"has_items\", \"value\": [\"kindling\", \"tinderbox\"] },\n    { \"type\": \"state_equals\", \"target\": \"fireplace\", \"value\": \"off\" }\n  ],\n  \"failure_message\": \"You need kindling and a tinderbox to light the fireplace.\",\n  \"effects\": [\n    { \"type\": \"message\", \"text\": \"You arrange the kindling...\" },\n    { \"type\": \"set_state\", \"target\": \"fireplace\", \"value\": \"on\" },\n    { \"type\": \"consume_item\", \"item\": \"kindling\" },\n    { \"type\": \"set_environment\", \"params\": { \"temperature\": 22, \"light\": 80, \"noise\": \"crackling fire\", \"smell\": \"woodsmoke\" } }\n  ]\n}\n```",
+      "requirements": "### Format\n- `effects` array → executed in order, all effects run\n- `conditions` array → ALL must pass for trigger to fire (AND logic)\n- `failure_message` → shown when conditions fail, can reference missing items\n- Backward compatible: if `effects` absent, use `effect_type`/`effect_params`\n- Backward compatible: if `conditions` absent, use single `condition`\n\n### New Condition Types\n- `has_items` - checks player carries ALL listed items (via graph edges, NOT `self.player.inventory`)\n  - Similar to existing `has_item` but takes an array and uses correct inventory source\n  - Fix the existing `has_item` bug simultaneously (it reads dead `self.player.inventory` list instead of graph)\n- `state_equals` - checks `current_state` on a target node (exists but may need polish)\n\n### New Effect Types\n- `set_state` - set `current_state` on a target node (e.g. `\"on\"`, `\"lit\"`, `\"open\"`)\n- `consume_item` - decrement uses or remove item from player inventory\n- `message` - display text to player (already exists as effect_type but needs to work as array entry)\n\n### New Trigger Types (if needed)\n- `on_state_enter` / `on_state_exit` - fires when a node's state changes TO/FROM a value (from stateful_continuous_triggers card)",
+      "execution_logic": "In `_execute_triggers()`:\n1. Collect all triggers matching the event (e.g. `on_use`)\n2. For each trigger, evaluate ALL conditions\n3. If all pass, execute ALL effects in order\n4. If conditions fail and `failure_message` exists, show it",
+      "engine_changes": "- `virtual_world_engine.py` - `_execute_triggers()` format parsing, new condition/effect dispatch\n- `static/js/item-library.js` - trigger editor UI for array of effects\n- `world_template.json` - migrate the fireplace triggers once format is stable",
+      "dependencies": "- Prerequisite for: fireplace_lighting_recipe, way_trigger_events, heat_propagation"
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Triggers & Effects]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/triggers/task-51-trigger_multi_effect_conditions.md"
+  }
+}

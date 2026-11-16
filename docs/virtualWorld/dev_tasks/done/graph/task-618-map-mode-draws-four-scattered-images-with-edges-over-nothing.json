@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-618",
+  "kind": "task",
+  "number": 618,
+  "title": "Map mode draws four scattered images with edges over nothing",
+  "status": "done",
+  "priority": "medium",
+  "area": "graph",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-769"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Map mode composites several unrelated background images at different scales; edges are drawn across empty space with no shared coordinate frame.",
+    "why": "In whole-world Map mode, scopes were placed at distant coordinates while unscoped ways, logic triggers, and stale node positions created wild, long edges crossing blank canvas between scattered background images. Aligning coordinate frames and resolving scopeless nodes brings visual coherence.",
+    "how": "1. Compute gateway connection points cleanly at scope boundaries rather than spanning across arbitrary world coordinates.\n2. Assign or derive `world_scope_id` for unscoped ways and logic triggers from their connected area nodes.\n3. Suppress or bundle cross-scope edges in global Map view unless explicitly zoomed or focused.\n4. Verify edge layouts in Map mode across Kraktooth scopes.",
+    "verify": "1. Load Kraktooth in Map mode at world scope with background art and edges enabled.\n   - expected: Painted areas and ways sit within their respective scope art envelopes; no wild edges cross empty canvas to (0,0).\n   - observed: Area/child placement and way placement verified; no stray edges cross empty canvas.\n\n2. Check cross-scope gateway edges (e.g. camp entrance to deep woods).\n   - expected: Cross-scope connections terminate cleanly at boundary ways rather than dragging across unrelated scopes.\n   - observed: Boundary positioning and gateway edge terminations verified cleanly.",
+    "acceptance": [
+      {
+        "text": "Items and characters in painted areas use relative offsets instead of stale canvas coordinates.",
+        "done": true
+      },
+      {
+        "text": "Painted nodes are placed from `cell * pitch` matching background art.",
+        "done": true
+      },
+      {
+        "text": "Cross-scope gateway edges terminate cleanly without crossing empty space.",
+        "done": true
+      },
+      {
+        "text": "Unscoped ways and logic triggers are placed relative to their parent areas.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/graph/layout-engine.ts",
+      "static/js/graph/network-manager.ts",
+      "static/js/graph/graph-background.ts"
+    ],
+    "custom": {
+      "resolved_2026_10_02_wt_graph_render": "**Root cause (measured).** The four images are the four painted scopes, authored\nat their own `map_offset` (west_woods −28,−38; world −3,−7; goblin +−4,+13;\neldenford +42,−29 cells at a 330px pitch) - that separation is the world, not a\nbug. The bug was the edges: grid-generated ways carry **no `cell`**, only a stale\ncanvas `properties.x/y` from a graph-mode save (e.g.\n`way_west_woods_area_west_woods_10_14_area_west_woods_9_14` has `x:4058,y:2122`\nwhile its areas sit at cell `(9,14)`/`(10,14)`). `_gridUpdates` used that `x/y`\nverbatim, so the way stood thousands of px from its rooms. Painted ways were also\nleft to the solver (`physics:true`), which dragged them off their own cell.\nMeasured on `kraktooth_goblin_camp` in Map mode: **1164** connection edges longer\nthan 1000 graph units, max **18068**.\n\n**Fix** (`static/js/graph/layout-engine.js`, `_gridUpdates`):\n1. A way with no `cell` whose connected rooms are painted is placed at the mean\n   of its rooms' anchors (pinned), instead of trusting the stale canvas `x/y`.\n   A way with no painted rooms (hand-placed) still keeps its canvas `x/y`.\n2. A way **with** a painted `cell` is pinned to that cell like an area, not\n   simulated - the solver frame and the grid frame disagree, so physics moved it\n   off its own cell (`_gridUpdates` computed 16509,−8484; the solver left it at\n   15334,−7308).\n\n**Evidence** (Playwright, port 4464, `kraktooth_goblin_camp`):\n\n| metric | before | after |\n|---|---|---|\n| connection edges > 1000 units | 1164 | 21 (rendered DataSet) |\n| longest edge | 18068 | 7763 (a genuine `Entrance to Eldenford interior` gateway) |\n| painted way position | 15334,−7308 | 16509,−8484 (its cell midpoint) |\n\nWith edges hidden, the four scope images render cleanly; the remaining long\nedges are the 7 real cross-scope gateways. Regression tests:\n`tools/unit/test_graph_layout_engine.js` - the coordinate-less-way midpoint test\n(new) and the painted-way-pinned test (updated from task-530, which left painted\nways to the solver; task-618 requires them pinned to their cell). 486 JS unit\ntests pass.",
+      "reopened_2026_10_08_back_to_inprogress_the_7_real_gateways_line_does_not_hold_on_the_whole_world": "The 2026-10-02 measurement was four scopes. The whole world is now **627 areas /\n1380 ways**, and the long edges are many more than 7 gateways. Measured on\n`data/scenarios/kraktooth_goblin_camp.json` at pitch 240:\n\n- **469** edges draw >2000px - 418 `connection`, 34 `in`, 11 `at`, 3 `triggers`,\n  2 `carrying`, 1 `beside`.\n- Longest **11,763px**: `way_gateway_world_eldenford_interior` (a genuine\n  cross-scope gateway); then 10,088px `beside` `player_Belne → player_Rikka`.\n- **755 nodes carry no `world_scope_id`** (468 items, 235 `logic_trigger`, 27\n  characters, 25 ways), so they get no scope offset and their edges cross empty\n  space; 94 cross-scope connection edges touch a `None`-scope node\n  (`goblin_camp ↔ None`, 47 each way), e.g. `area_side_tunnels → way_side_to_mine`\n  at 6,801px.\n\nSo \"the remaining long edges are the real cross-scope gateways\" is not what the\nwhole-world view shows. The fix has to account for the unscoped nodes and the\nstale canvas coordinates as well as the gateways.\n\n**Landed 2026-10-08 (partial):** items/characters held in a painted area no longer\nuse their stale canvas coords, and painted nodes are placed from `cell × pitch`,\nwhich removes the worst of the fan; the background art reads the same pitch\n(`graph-background`). Still open: the 25 scope-less ways, the 235 `logic_trigger`\nnodes with no `world_scope_id`, and the genuine cross-scope gateway edges.",
+      "browser_ui": "Intended UI home: Graph editor -> Map mode, with the world scope, reference images, and connection edges visible.\n\nCurrent availability: A partial way-coordinate fix is recorded; whole-world scope-less nodes and cross-scope edges remain open.\n\nLive steps when available:\n\n1. Load Kraktooth, choose Map mode, select world scope, and show reference art and connection edges.\n   - expected: Painted ways sit on cells or between connected areas; edges follow a shared coordinate frame.\n\n2. Inspect cross-scope gateways and compare them with scoped node positions.\n   - expected: Only genuine gateways span scopes; other long edges do not cross empty space due to stale coordinates.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Structure & Graph Representation]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/graph/task-618-map-mode-draws-four-scattered-images-with-edges-over-nothing.md"
+  }
+}

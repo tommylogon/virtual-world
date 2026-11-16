@@ -8,7 +8,7 @@ priority: high
 # task-412: Promotion/demotion and trace→memory consolidation
 
 **Superseded by task-399 (2026-09-24).** The background runner (task-399) already
-existed, so its one remaining gap — this seam — was built directly there rather
+existed, so its one remaining gap - this seam - was built directly there rather
 than as a separate task. The promotion/demotion **memory bridge** now lives in
 `engine/promotion.py` (`offload` / `promote` / `pending_span` / `summarize`),
 with `last_offload_tick` + `background_consolidated_through` marks on `Player`.
@@ -40,7 +40,7 @@ without ever becoming a different person or rewriting their past.
 2. **Demotion handoff.** Roll the foreground span into the trace as facts +
    reasons; keep live memories in the memory store; mark the span consolidated
    so repeated activation is idempotent.
-3. **Atomic transitions.** Activate/offload is atomic at its tick — no action is
+3. **Atomic transitions.** Activate/offload is atomic at its tick - no action is
    resolved twice.
 4. **Invariants.** Enforce position continuity, object conservation, vital
    continuity, relationship symmetry, stable opaque id (task-316),

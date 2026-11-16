@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "id": "task-587",
+  "kind": "task",
+  "number": 587,
+  "title": "Executable manual test plan - one scratch world per phase, zero writes to shipped scenarios",
+  "status": "review",
+  "priority": "high",
+  "area": "testing",
+  "tags": [],
+  "created": "2026-09-29",
+  "updated": "2026-09-29",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-586",
+      "task-444",
+      "task-572",
+      "task-574",
+      "bug-54"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [
+      "test-plan-100-items"
+    ],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The 215-step click list in `done/testing/test-plan-100-items.md` is a presence check, not a plan: it has no world per step, no write-safety, and no contamination gate, so every step silently runs against the booted default world and is allowed to write to it. Restructure it so each phase runs in its own scratch scenario, each step declares what it may write, and a git-clean gate voids the run if anything touched a shipped file.",
+    "why": "Executing manual verification on live or template scenarios risks data contamination, races autosave and commit handlers, causes test results to bleed across runs, and risks corrupting shipped files (e.g. world_template.json). Structuring the test plan around independent scratch worlds with an enforced git-clean gate guarantees test isolation, reproducible failure states, and zero writes to shipped repository assets.",
+    "how": "1. Structure the 224 manual verification steps into distinct phases (Phases 0 through 10) in docs/virtualWorld/testing/manual-test-plan.md.\n2. Each step specifies: id, pre (scratch/continue), action, expect, may-write boundary (\nothing / scratch-only / scratch+assets), and observable evidence.\n3. Boot each test phase with _scenario_source unset under a temporary data/saves/<run-id>/ directory.\n4. Implement tools/test_plan_gate.cjs to enforce that git status --porcelain is clean after every phase and void runs if shipped files are touched.",
+    "verify": "1. Run the test plan validation gate (\node tools/test_plan_gate.cjs).\n   - expected: Validates that all steps declare a may-write boundary and verifies git status is clean outside scratch paths.\n   - observed: Gate passed: 224 steps validated, every step declares may-write.\n2. Execute representative browser suite across test plan phases (\node tools/test_runner.cjs --suite full).\n   - expected: Automated test harness passes without dirtying repository working tree.\n   - observed: 11/11 passed covering phases 0, 4, 5, 8 with clean git status.\n3. Inspect docs/virtualWorld/testing/manual-test-plan.md.\n   - expected: Contains complete phased breakdown superseding legacy unmaintained test plan.\n   - observed: 224 steps organized across phases 0 to 10.",
+    "acceptance": [
+      {
+        "text": "`docs/virtualWorld/testing/manual-test-plan.md` exists, with all 215 existing steps re-expressed in the six-field form and mapped to a phase, plus the missing phases 1, 9 and the newer subsystems.",
+        "done": true
+      },
+      {
+        "text": "The old file is removed or reduced to a pointer, and no 215-step plan sits in `done/` without results.",
+        "done": true
+      },
+      {
+        "text": "Every step has a `may-write` value, and no step writes outside its scratch world.",
+        "done": true
+      },
+      {
+        "text": "The gate is scripted (`tools/test_plan_gate.cjs`) and fails on a dirty `git status`.",
+        "done": true
+      },
+      {
+        "text": "The plan names its blind spots explicitly: what is **not** covered and why.",
+        "done": true
+      },
+      {
+        "text": "A first run is recorded with real per-step results, and `git status` is clean afterwards. **Partial** - see Outcome.",
+        "done": false
+      }
+    ],
+    "files": [
+      "docs/virtualWorld/testing/manual-test-plan.md",
+      "tools/test_plan_gate.cjs",
+      "tools/test_runner.cjs",
+      "tools/test_helpers.cjs"
+    ],
+    "custom": {
+      "overlaps_task_574_do_not_write_the_same_steps_twice": "`task-574` (inprogress) is a per-feature test guide for everything built on 2026-09-27, in exactly the right shape already: **what it is / how to test it by hand / what passing looks like / the automated coverage that already guards it**. That is the per-feature content. This task supplies what a guide cannot: the world each step runs in, what it may write, and the gate. So phase 9 (painted world) should link to task-574's entries rather than restate them, and the WorldPainter steps should move under this task's phase structure rather than being duplicated.",
+      "there_is_already_a_checklist_do_not_write_a_second_one": "`done/testing/test-plan-100-items.md`: 20 sections, **215 numbered steps**, method \"Playwright headless against `http://127.0.0.1:4444`\". Problems, in order of severity:\n\n- **It has never been run to a result.** The status column is `✅ / ❌ / ~` and every cell is empty; the glyphs are also mojibake (`âœ“`), so the file is both unmaintained and broken UTF-8.\n- **It is filed under `done/`.** A 215-step plan with no results is not done.\n- **It has no world model.** No step says which world it runs in or what it may write. Every step implicitly runs on whatever the server booted - the root `world_template.json` - and is permitted to write to it.\n- **It predates the newer subsystems.** No coverage of WorldPainter/compiled regions, scopes, the staging batch path, the changes panel (`GET /api/scenario/diff` -> apply/discard), tags, population, timeskip, world lore, or the background simulation. bug-54's missing open-sky tag on compiled areas is exactly the class of defect a \"load a painted world and look at the light\" step would catch, and no such step exists.\n\nThe Playwright side is not missing either: `tools/test_helpers.cjs` plus 28 `.cjs` harnesses already drive a live server, and **task-444** tracks finishing them. This task is about the *plan* they and a human share.",
+      "why_edit_a_scenario_and_revert_it_cannot_be_the_model": "Not a style preference - four concrete failures:\n\n1. **No lock, and there is a second writer.** Autosave runs on turn (`routes/helpers.py`), `POST /api/save-game` writes from the same world (`tools/test_all.cjs:227`), and the editor writes node images. A `git checkout` revert races all three, and the result is a corrupted shipped scenario rather than a reverted one.\n2. **A booted world is designed to write itself back.** `POST /api/scenario/commit` writes to `_scenario_source`, which after a normal boot is the root `world_template.json` (`app.py:62`). \"Test on the template, revert after\" is one stray keystroke from destroying the file, and the test cannot report that it happened.\n3. **A failure needs the state as of that step, not twelve steps later.** One world reused across a phase means every rerun starts from a different place, so \"it failed\" is not reproducible.\n4. **Contamination reads as an application bug.** bug-55 is the worked example: a full turn let the cast wander into the room under test, and the resulting order-dependent failures were filed as a `create_app()` isolation defect. A plan that reuses a mutable world will keep manufacturing that class of false positive.",
+      "the_model_that_replaces_it": "**One scratch world per phase, created fresh, never reused across phases, never a shipped file.** Each step declares six fields so a human and a Playwright script can execute the same line:\n\n| Field | Example |\n|---|---|\n| `id` | `2.7` - stable, referenced by the `.cjs` harnesses |\n| `pre` | which world: `scratch` (fresh this phase) / `continue` (previous step's world) |\n| `action` | one user-visible action, or one API call |\n| `expect` | the observable that must be true - an assertion, not \"it looks right\" |\n| `may-write` | `nothing` / `scratch-only` / `scratch+assets` |\n| `evidence` | the log line, screenshot or JSON path that proves it |\n\nPhases, each starting a new scratch world:\n\n| Phase | Subject | Note |\n|---|---|---|\n| 0 | Boot & shell | server starts, no console errors, tabs present, **no file written by boot alone** |\n| 1 | Empty scenario | **no such route exists today** - see below |\n| 2 | Graph editor: empty -> one area | add, tag, light, save, reload, persisted |\n| 3 | Two areas + a way | assert the *documented* id rule, not a guess: areas hard-error on duplicate id, items/ways/characters get suffixed (`graph.py:167-172`) |\n| 4 | Items | library item into an area, takeable vs not per its declared actions, container, `uses` charge |\n| 5 | Characters | add from the editor skeleton, traits, identity - and resolve the orphan `data/graph_editor_character_template.json` (nothing in `routes/`, `templates/`, `static/` or `tools/` references it by name) |\n| 6 | Triggers | create, fire on a turn, and one undo snapshot per `POST /api/graph/batch` (`static/js/staging.js:177-193` claims atomic + strict validation - assert it) |\n| 7 | Play a turn | movement, vitals, log lines, export the log, `node tools/log_lint.cjs` on it |\n| 8 | Persistence round-trip | save -> reload -> assert equality, including two same-named areas in different scopes (task-446) |\n| 9 | Painted world | compile a WorldPainter world, load, check areas carry `world_scope_id` - and the open-sky/light behaviour bug-54 leaves open |\n| 10 | Changes panel | `GET /api/scenario/diff` -> apply / discard, and that apply is a single commit |",
+      "the_gate_this_is_the_part_that_makes_the_plan_trustworthy": "After **every** phase, and at the end of the run:\n\n1. `git status --porcelain` is empty except the scratch directory and its assets.\n2. The scratch world was created under `data/saves/<run-id>/` (or a temp `DATA_DIR`), never under `data/scenarios/`.\n3. The runner booted with `_scenario_source` unset, so a stray commit **fails loudly** instead of writing to `world_template.json`.\n\nA phase that trips any of the three voids the run and names the step. This is the whole anti-contamination mechanism and it costs one shell command.",
+      "phase_1_is_a_finding_not_a_test": "There is no \"new empty scenario\" route. `/api/scenarios` offers list / duplicate / rename / delete / get; `/api/scenario` offers `name`, `commit`, `append`, `diff`, `diff/apply`, `status`. Starting from nothing is not a supported journey - `app.py:52-59` falls back to a single `Area(\"Living Area\")`. Either add the route or accept that phase 2 starts from `duplicate` of a hand-made empty file. Decide before writing step 1.1; the plan is wrong either way until it is.",
+      "outcome_2026_10_02": "**Delivered.** `docs/virtualWorld/testing/manual-test-plan.md` (325 lines, **224\nsteps**): all 215 old rows migrated to the six-field table form and grouped under\nphases 0/2/3/4/5/6/7/8, plus hand-written phases 1 (the missing-route finding),\n9 (painted world) and 10 (changes panel). The old file is reduced to a pointer\nwith `status: superseded`. `tools/test_plan_gate.cjs` validates that every step\ndeclares `nothing` / `scratch-only` / `scratch+assets` **and** that\n`git status --porcelain` is empty outside `data/saves/<run-id>/` and `evidence/`.\n\n**Gate, proven both ways:**\n- on the uncommitted tree: `plan gate: FAIL - 3 shipped file(s) changed outside\n  the scratch world` … exit 1;\n- after commit: `plan gate: OK` … exit 0.\n- plan validation: `plan gate: 224 steps, every one declares a may-write value`.\n\n**First run - partial, recorded honestly.** Boot on `VW_PORT=4470`; the\nrepresentative browser run (`node tools/test_runner.cjs --suite full`) was\n**11/11 passed** covering representative steps from phases 0, 4, 5 and 8, and\n`git status` was clean afterwards (the temporary save slot and autosave were\nremoved). Phases 1/2/3/6/7/9/10 have **not** been executed; the plan's \"First\nrun\" section records that as the state, not as passes. The remaining execution\nis a runner keyed by step id (task-444's `test_runner.cjs` is the foundation).\n\n**Blind spots**, named in the plan: `may-write` is inferred from a step's verbs\nrather than measured; the migrated steps carry no results; there is no empty-\nscenario route (phase 1 is a decision); and `--phase` browser execution does not\nexist yet.\n\n**Why this is not `done`:** the last acceptance line needs a full per-step run,\nwhich is execution work on top of an intact plan and gate. The plan is complete\nand executable; the run is not.",
+      "follow_ups": "- **task-586** is the foundation: the scratch world and the fixture should share one loader, and `solo()`/`company()` should be the only way isolation is expressed.\n- **task-444** implements the steps that need a browser; this task only has to make them addressable by step id.\n- **`data/scenarios/world_template.json`** is a hand-made backup of the root template, byte-identical, and it sits in the directory the scenario picker and `soak_runner` scan. It should move somewhere the app does not list - but it is the user's backup, so that move is theirs to approve.",
+      "browser_ui": "Intended UI home: Not applicable - this card has no browser-facing behavior.\n\nCurrent availability: The plan and scratch-world gate exist; the first run is partial and remaining phases are explicitly unexecuted.\n\nLive steps when available:\n\nWhy no browser UI: This authors and gates a manual test-plan document; it adds no game UI. The plan itself describes browser journeys for covered features.\n\nAlternative verification steps:\n\n1. Run the plan gate against a clean scratch run and inspect entries for phase, action, expectation, may-write, and evidence.\n   - expected: Every step declares its write boundary; the gate accepts a clean scratch-only run without implying every phase ran.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.",
+      "blocker_note_2026_10_19": "- Blocked on live server execution of remaining manual test phases (Phases 1, 2, 3, 6, 7, 9, 10).\n- Acceptance criteria 1-5 delivered (phased plan created with 224 steps, zero unmanaged writes, gate scripted).\n- The final acceptance item requires a clean-tree full-pass execution session."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Feature Map]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "supersedes": "`docs/virtualWorld/dev_tasks/done/testing/test-plan-100-items.md`"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/testing/task-587-executable-manual-test-plan-one-scratch-world-per-phase-zero-writes-to-shipped-scenarios.md"
+  }
+}

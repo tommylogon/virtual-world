@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "bug-546",
+  "kind": "bug",
+  "number": 546,
+  "title": "WorldPainter placed-area names never render: the draw gate compares the constant CELL (22) against 26, so it is always false",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-11",
+  "updated": "2026-10-11",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-540"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Placed areas draw their marker but **never their name**, at any zoom. Found by\nreading the draw path (a model review pointed at it; confirmed in code).\n\n`editor.ts:2753`, inside `_drawFeatures`:\n\n```\nif (CELL >= 26) {  … ctx.fillText(name …) }\n```\n\n`CELL` is the module constant `22` (`editor.ts:394`, \"base px per cell at\nscale 1\"). So the comparison is a constant `22 >= 26` → **always false**, and the\nname branch never runs. The adjacent comment states the intent - \"A name is worth\nshowing when the cell is big enough to hold one; at 1x the map is a mosaic\" - so\nthe gate was meant to test the **on-screen** cell size, not the base constant.",
+    "why": "An author zoomed into a scope with placed areas sees house markers with no names,\nand cannot tell which area is which without opening the inspector - the exact\nthing the label was added for (task-540).",
+    "how": "Gate on the scaled cell size, not the base constant:\n\n```\nconst onScreen = CELL * (state.stage ? state.stage.scaleX() : 1);\nif (onScreen >= 26) { … }\n```\n\nKeep the marker itself always drawn; only the name is gated. Check other call\nsites that intend \"big enough to label\" for the same constant-vs-scaled mistake.",
+    "verify": "1. Open a scope with placed areas; zoom in past ~1.2× (so cells exceed 26px).\n   - expected: names appear once the on-screen cell is ≥26px; stay hidden when zoomed out to a mosaic.\n   - observed: 2026-10-15 live on :4444, `world` scope. Scale 1.875 (41.25px): 15 fillTexts, 9 area names (Blackmarsh, Murk Lake, Deep Forest, Raven River, Human Road, Camp Entran…, Old Dwarven…, Northern Hi…, Abandoned F…). Scale 1.2 (26.4px): same 9 names. Scale 0.96 (21.1px): 6 fillTexts, 0 area names - only grid label + house glyphs. Markers always drawn.",
+    "acceptance": [
+      {
+        "text": "Placed-area names draw when the on-screen cell is big enough, and stay hidden when it is not.",
+        "done": true
+      },
+      {
+        "text": "The gate uses the scaled cell size, not the constant `CELL`.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor.ts` - `_drawFeatures` (`:2729`, gate `:2753`), const `CELL` (`:394`).",
+      "static/js/worldpainter/editor.js` - emitted; rebuild with `npm run build:ts`."
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Build → WorldPainter → painted scope in Map mode, with placed-area labels visible.\n\nCurrent availability: The label gate compares a constant cell value; scaled on-screen-size behavior remains to be verified after the fix.\n\nLive steps when available:\n\n1. Open a scope with placed areas and zoom until a cell is at least 26 screen pixels.\n   - expected: Area names appear when the scaled cell reaches the label threshold.\n\n2. Zoom back to mosaic scale.\n   - expected: Names hide below threshold while area markers remain drawn.\n\nThis section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/bug-546-worldpainter-placed-area-names-never-render-the-draw-gate-compares-the-constant-cell-22-against-26-so-it-is-always-false.md"
+  }
+}

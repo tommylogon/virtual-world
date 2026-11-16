@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "id": "task-93",
+  "kind": "task",
+  "number": 93,
+  "title": "Library Browser - Unified UI for All Entity Types",
+  "status": "done",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-07-22",
+  "updated": "2026-07-22",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replaced the monolithic JSON registry files (`data/items.json` at 3819 lines, `data/characters.json`) with per-entity files under `data/library/`, and built a unified tabbed library browser UI covering Items, Characters, Rooms, Traits, Conditions, and Behaviours.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "TODO",
+        "done": false
+      }
+    ],
+    "files": [
+      "tools/migrate_library.py` - new, one-time migration script",
+      "routes/helpers.py` - per-file load_registry/save_registry",
+      "routes/library_routes.py` - new, unified CRUD + import routes",
+      "app.py` - register library routes",
+      "static/js/library-browser.js` - new, LibraryBrowser class",
+      "static/js/api.js` - new API methods for library CRUD + import",
+      "static/js/item-library.js` - updated modal ID references",
+      "static/js/main.js` - VW namespace + global wrappers",
+      "templates/index.html` - tabbed library modal, updated toolbar button",
+      "static/css/style.css` - .lib-tab / .lib-tab-pane styles",
+      "data/library/` - directory structure with 231 item files, 6 character files, 2 room files"
+    ],
+    "custom": {
+      "key_design_decisions": "### Per-file library format (no inheritance)\nEach entity type gets a subdirectory under `data/library/`. Each entry is its own `.json` file. No cross-file references - a character file can hold its inventory inline; a room file holds its items inline. This is NOT Unity prefabs - copies are independent after import. The \"sync to library\" function still works transparently.\n\n### Unified modal, not separate modals\nThe old `item-library-modal` was replaced with a single `library-modal` with tab navigation. Items tab reuses the existing 961-line ItemLibrary class (AI generation, triggers, containers, placement all preserved). Other tabs have simpler list+editor patterns built into LibraryBrowser.\n\n### Backend is generic CRUD\nA single `/api/library/<type>` route handles all entity types. Import endpoints for characters and rooms create full graph nodes with inventory/items inline.",
+      "changes_made": "### Data Migration\n- **`tools/migrate_library.py`** - one-time script splitting monolithic JSONs into per-entity files\n- `data/items.json` (3819 lines, 231 items) → `data/library/items/*.json` (231 files)\n- `data/characters.json` (2 chars) → `data/library/characters/Miki.json`, `Kaelen Voss.json`\n- Standalone files (`jake.json`, `kyrie.json`, etc.) copied to `data/library/characters/`\n- `data/traits.json` (empty) → `data/library/traits/` (ready)\n- New empty dirs: `data/library/rooms/`, `data/library/areas/`, `data/library/ways/`\n- Scenario files (`mansion.json`, `world_template.json`) also copied to `library/rooms/`\n\n### Backend - `routes/helpers.py`\n- `load_registry(data_dir, filename)` now reads per-entity JSON files from `data/library/<type>/` instead of a single monolithic file\n- `save_registry(data_dir, filename, data)` writes one file per entry, removes files for deleted keys\n- All existing API endpoints (`/api/registry/items`, `/api/registry/characters`, `/api/registry/traits`) continue to work unchanged\n\n### Backend - `routes/library_routes.py` (new)\n- `GET /api/library/entities` - returns summary of all entity types and counts\n- `GET/POST/DELETE /api/library/<type>` - generic CRUD for items, characters, rooms, traits, conditions, behaviours\n- `POST /api/library/import/character/<id>` - imports a character from library into the world as active player, including inventory items\n- `POST /api/library/import/room/<id>` - imports a room from library into the world graph, including items\n\n### Frontend - `static/js/library-browser.js` (new)\n- `LibraryBrowser` class with tab switching, list rendering, inline editors\n- Items tab delegates to existing `ItemLibrary` (no duplication)\n- Characters tab: list + editor (name, personality, description, behaviours, NPC config) + Import to World + Save from World\n- Rooms tab: list + editor (name, description, tags, items) + Import to World\n- Traits tab: list + editor (name, description, category, modifier JSON)\n- Conditions tab: list + editor (name, description, duration, severity, stat effects JSON)\n- Behaviours tab: list + editor (name, description, pattern, config JSON)\n- Each editor generates forms dynamically from field configs\n\n### Frontend - `static/js/api.js`\n- Added `saveCharacterToRegistry()` - POST to `/api/registry/characters`\n- Added `getLibraryEntities()`, `getLibraryType()`, `saveLibraryType()`, `deleteLibraryType()`\n- Added `importCharacterFromLibrary()`, `importRoomFromLibrary()`\n\n### Frontend - `templates/index.html`\n- Replaced `#item-library-modal` with `#library-modal` containing tabbed panes\n- Items pane keeps all legacy element IDs (`item-lib-list`, `item-lib-editor`, etc.) for backward compat\n- Added script include for `library-browser.js`\n- Toolbar button changed from \"📚 Item Library\" to \"📚 Library\" (opens unified browser)\n\n### Frontend - `static/js/item-library.js`\n- Updated `open()` and `close()` to reference `#library-modal` instead of `#item-library-modal`\n- `open()` now calls `VW.libraryBrowser.switchTab('items')` to ensure Items tab is selected\n\n### Frontend - `static/js/main.js`\n- Added `VW.libraryBrowser` to the global namespace\n- Added `openLibraryBrowser()` and `closeLibraryBrowser()` wrapper functions\n\n### CSS - `static/css/style.css`\n- Added `.lib-tab`, `.lib-tab.selected`, `.lib-tab-pane`, `.lib-tab-pane.active` styles\n- Responsive: `.library-tabs` wraps on narrow screens",
+      "ui_flow": "### Opening the Library Browser\n1. User clicks **📚 Library** toolbar button → `openLibraryBrowser()` → `libraryBrowser.open()`\n2. LibraryBrowser calls `refreshAll()` to load all entity types from `/api/library/entities`\n3. Switches to Items tab (default) → delegates to `itemLib.open()` which refreshes items data and renders the item list\n4. Modal displays with 6 tabs at top: 📦 Items | 🧍 Characters | 🏠 Rooms | 🏷️ Traits | 💊 Conditions | 🤖 Behaviours\n\n### Items Tab (existing ItemLibrary)\n1. Search box filters 231 library items by name/description/tags\n2. Sort dropdown: A-Z, By Type, Recent\n3. Click list item → right panel shows full editor with: AI generation, name/description/tags, action checkboxes, properties (uses, weight, state, hidden, locked, equip slots), container contents editor, trigger editor (multi-effect with conditions)\n4. \"📌 Place in Area\" button - single or multi-select placement\n5. \"📋 Sync to Library\" - saves all world items not already in library\n6. \"➕ New\" - creates blank item template\n\n### Characters Tab\n1. Lists 6 library characters (Miki, Kaelen Voss, jake, kyrie, kayla, sammy)\n2. Click a character → editor shows: Name, Personality, Description, Default Area, Behaviours JSON, NPC Behavior dropdown, Simple NPC toggle\n3. **🌍 Import to World** - prompts for target room, calls `POST /api/library/import/character/<id>` which creates a Player node, sets stats/vitals/skills/traits/personality, spawns inventory items as graph nodes with `carried_by` edges, places in room, sets as active player\n4. **📤 Save from World** - prompts for which world character to save, collects full character card (personality, stats, vitals, skills, traits, inventory, emotion, memories, relationships, behaviours) and POSTs to library\n5. **💾 Save to Library** - saves current editor content\n6. **🗑️ Delete** - removes from library (prompts confirmation)\n\n### Rooms Tab\n1. Lists 2 room entries (mansion.json, world_template.json)\n2. Click a room → editor shows: Name, Description, Tags, Item IDs\n3. **🌍 Import to World** - prompts for new room name, calls `POST /api/library/import/room/<id>`, creates Area + room node, spawns referenced items from library as graph nodes with `location` edges\n4. **💾 Save** / **🗑️ Delete** - standard library CRUD\n\n### Traits Tab\n1. Lists traits (empty initially - `data/library/traits/` is empty)\n2. Editor: Name, Description, Category (physical/mental/social/combat/exploration/custom), Modifiers JSON\n3. **💾 Save** → creates `data/library/traits/<id>.json`\n\n### Conditions Tab\n1. Lists conditions (empty initially)\n2. Editor: Name, Description, Duration (ticks), Severity (1-5), Stat Effects JSON\n3. **💾 Save** → creates `data/library/conditions/<id>.json`\n\n### Behaviours Tab\n1. Lists behaviours (empty initially)\n2. Editor: Name, Description, Pattern (wander/still/patrol/flee/guard/follow/flee_from/investigate), Config JSON\n3. **💾 Save** → creates `data/library/behaviours/<id>.json`",
+      "open_issues_future_work": "- Library browser should support drag-and-drop from library into graph canvas\n- Character import currently creates item nodes from library item IDs referenced in the character's inventory - inline item data (full dicts) also supported\n- Area import creates items from library item IDs - inline item dicts also supported\n- Areas and Ways directories exist but have no UI tab yet - could be added when the concept is implemented\n- Library entries can be bulk-imported from world via existing \"Sync to Library\" on items tab\n- Trigger templates as a standalone library type could be useful for reusing trigger configs across items/rooms"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/ui/task-93-library-browser.md"
+  }
+}

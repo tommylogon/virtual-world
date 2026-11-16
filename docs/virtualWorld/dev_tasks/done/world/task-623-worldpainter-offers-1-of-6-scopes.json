@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "task-623",
+  "kind": "task",
+  "number": 623,
+  "title": "Worldpainter offers 1 of 6 scopes",
+  "status": "done",
+  "priority": "high",
+  "area": "world",
+  "tags": [],
+  "created": "2026-09-30",
+  "updated": "2026-09-30",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "The WorldPainter scope picker exposes only one scope, so most world-scope authoring work cannot be reached through the UI.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "The chooser lists every scope, not only the root",
+        "done": true
+      },
+      {
+        "text": "Child zones are shown, not just their parent",
+        "done": true
+      },
+      {
+        "text": "A scope nested two deep is shown",
+        "done": true
+      },
+      {
+        "text": "Each card shows state and how much content it holds",
+        "done": true
+      },
+      {
+        "text": "Depth is visible, so a child reads as belonging to its parent",
+        "done": true
+      },
+      {
+        "text": "Verified live against a 6-scope world",
+        "done": true
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "resolution_2026_09_30_this_gated_the_eldenford_work_entirely": "Tommy asked me to open the WorldPainter and finish the Eldenford town map. **I\ncould not reach Eldenford at all.** The chooser read:\n\n    Choose a scope to open its grid.\n    [ world ]  scope Â· materialized\n    [+ New root scope]\n\nOne scope, no counts. `world` is 205 areas; Eldenford interior is 71 of them.\n**5 of 6 scopes were unreachable from the painter**, including the two the\nEldenford map is made of.\n\n**Root cause**, `editor.js:567`:\n\n    const scopes = root.children || [];\n\n`BASE` is `/api/world/scopes`, which answers a tree whose root has the zones as\nits children -- so `root.children` is `[world]` and the zones one level down were\nnever walked. A second defect sat behind it: the *bare* endpoint does not inline\nanything past the first level at all, so a scope two deep (`goblin_camp` > `test`)\nwas absent from the payload too.\n\n**Fixed** in three parts:\n\n1. Walk the whole tree (`ScopeOptions.flattenScopes`) instead of reading\n   `root.children`.\n2. Point the chooser at `/api/world/scopes?flat=1`, which returns every scope\n   with `depth` and `parent_id` -- the complete list, where the bare endpoint is\n   not. `BASE` is unchanged for the per-scope grid payloads that expect nested.\n3. Each card now shows `state Â· N areas Â· M items`, indented by depth, so the\n   chooser is a chooser rather than a list of names -- and, per task-615, never\n   implies a scope with content is unbuilt.\n\n**Verified live** on `kraktooth_goblin_camp` (screenshot\n`audit/89-painter-scopes.png`):\n\n    world               scope Â· materialized Â· 205 areas Â· 47 items\n    deep woods          scope Â· unmade Â· 0 areas\n    goblin camp         scope Â· unmade Â· 21 areas Â· 25 items\n      test              scope Â· unmade Â· 0 areas          <- depth 2, indented\n    West woods          scope Â· materialized Â· 53 areas\n    Eldenford interior  scope Â· materialized Â· 71 areas Â· 3 items\n\nEldenford interior is now openable, which is what made the rest of Tommy's\nrequest possible at all.\n\n**Knock-on:** this was one of ~20 `review/` tasks that could not be live-verified\nbecause the painter would not open their scope. Those are unblocked now.\n\n- TODO"
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/world/task-623-worldpainter-offers-1-of-6-scopes.md"
+  }
+}

@@ -5,7 +5,7 @@ area: triggers
 priority: medium
 ---
 
-# Trigger Effect Improvements — adjust_vital, set_state, Memory, TurnQueue
+# Trigger Effect Improvements - adjust_vital, set_state, Memory, TurnQueue
 
 **Filed**: 2026-07-18
 **Priority**: High
@@ -17,16 +17,16 @@ priority: medium
 
 Four fixes/improvements applied across multiple files:
 
-1. **adjust_vital Stat dropdown** — free-text stat field replaced with `<datalist>` of common vitals
-2. **set_state Node ID / State dropdowns** — Node ID defaults to "self", state uses datalist of common states
-3. **Area observation memory** — spatial context stored as memory each step for agent recall
-4. **Scenario load turnQueue bug** — stale characters from previous scenario persisted in initiative order after reload
+1. **adjust_vital Stat dropdown** - free-text stat field replaced with `<datalist>` of common vitals
+2. **set_state Node ID / State dropdowns** - Node ID defaults to "self", state uses datalist of common states
+3. **Area observation memory** - spatial context stored as memory each step for agent recall
+4. **Scenario load turnQueue bug** - stale characters from previous scenario persisted in initiative order after reload
 
 ---
 
 ## How
 
-### 1. adjust_vital — Stat datalist
+### 1. adjust_vital - Stat datalist
 
 **Files**: `item-library.js`, `inspector.js`
 
@@ -38,7 +38,7 @@ Four fixes/improvements applied across multiple files:
 
 **Why**: Agents need to adjust vitals like HP, Energy, Bladder, Sanity, etc. Free-text was error-prone.
 
-### 2. set_state — Node ID default "self" + State datalist
+### 2. set_state - Node ID default "self" + State datalist
 
 **Files**: `item-library.js`, `inspector.js`
 

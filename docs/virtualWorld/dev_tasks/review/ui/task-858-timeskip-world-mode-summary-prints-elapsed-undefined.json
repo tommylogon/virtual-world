@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "task-858",
+  "kind": "task",
+  "number": 858,
+  "title": "Timeskip world-mode summary prints Elapsed undefined",
+  "status": "review",
+  "priority": "low",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-10-17",
+  "updated": "2026-10-17",
+  "horizon": "next",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "`_summarize` in `static/js/ui/timeskip.js:177-187` has `if (data.mode === 'world') { ... } if (data.mode === 'soak') { ... } else { ... }`. The `else` binds only to the second `if`, so for `mode === 'world'` both the `No active character - the world advances.` line and the elapsed line run, and the elapsed line prints `Elapsed: undefined min (undefined ticks) -> ` because a world advance carries no `elapsed_minutes`, `ticks` or `clock_after`.",
+    "why": "A world-advance skip (no active character) is a normal case, and its summary currently shows a broken line. `_summarize` is documented as pure and unit-testable, so the fix is small and safe.",
+    "how": "Change the second `if (data.mode === 'soak')` to `else if (data.mode === 'soak')` so `mode === 'world'` prints only its own line. Add or extend a unit test for `_summarize({ mode: 'world', order: null })` asserting no `undefined` appears and that the elapsed line is absent.",
+    "verify": "1. `node tools/unit/run.cjs` for the timeskip summary test.\n   - expected: pass, and `_summarize({ mode: 'world' })` contains no `undefined`.\n   - observed: passed in tools/unit/test_timeskip.js (test: timeskip world mode prints only the world-advance line and never undefined (task-858)).\n2. Live: request a world timeskip with no active character.\n   - expected: the summary shows only the world-advance line.\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "`mode: 'world'` prints only the world-advance line.",
+        "done": false
+      },
+      {
+        "text": "A unit test asserts `_summarize` never emits `undefined` for the world mode.",
+        "done": true
+      }
+    ],
+    "files": [
+      "static/js/ui/timeskip.js` (`_summarize`)"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: the timeskip result summary. Current availability: the bug is visible any time a timeskip runs with no active character. Live path: with no active character, request a timeskip and confirm the summary shows only the world-advance line, with no `Elapsed: undefined` line."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[timeskip|Timeskip]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/ui/task-858-timeskip-world-mode-summary-prints-elapsed-undefined.md"
+  }
+}

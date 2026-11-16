@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "bug-524",
+  "kind": "bug",
+  "number": 524,
+  "title": "Inspector shows personality as \"undefined\" and descriptions blank because it reads them from the Player while they live on the character node",
+  "status": "done",
+  "priority": "high",
+  "area": "characters",
+  "tags": [],
+  "created": "2026-10-07",
+  "updated": "2026-10-07",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-724",
+      "task-447",
+      "task-463"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "TODO",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "Whichever home task-724 picks, the Bio tab shows Belne's real personality",
+        "done": false
+      },
+      {
+        "text": "and both descriptions, and an edit round-trips across a refresh.",
+        "done": false
+      },
+      {
+        "text": "The personality interpolation is guarded (`|| ''`) so a missing field is",
+        "done": false
+      },
+      {
+        "text": "empty, never the literal `undefined`.",
+        "done": false
+      },
+      {
+        "text": "The LLM prompt contains the \"You are <name>. Personality: …\" preamble again",
+        "done": false
+      },
+      {
+        "text": "(task-724's acceptance), proving the prompt path reads the same home.",
+        "done": false
+      },
+      {
+        "text": "No new copy of the data is introduced.",
+        "done": false
+      },
+      {
+        "text": "`node tools/unit/run.cjs` and `npm run build:ts` pass.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {
+      "symptom_verified_live_2026_10_07": "Character inspector, Bio tab: the Personality textarea shows the literal word\n`undefined`; Base Description and Current Description are blank. A value typed in\nand blurred does not survive a refresh.",
+      "what_is_and_is_not_true": "The character **has the data**. It is on the character **node**, not the Player:\n\n```\nGET /api/state → graph.nodes.player_Belne.properties\n  personality      = \"You are Belne, a banished goblin from a savage tribe…\"\n  description      = \"A quiet, hardened goblin traveler with wary eyes.\"\n  base_description = \"Female goblin wanderer. Smaller than average, scarred, wary…\"\n\nGET /api/state → players.Belne\n  no `personality` key, no `description` key, no `base_description` key\n\nGET /api/players/Belne/record\n  {\"appearance\":{},\"personality\":{},\"prose\":\"\",\"record\":{}} → the record prose is empty\n```\n\nThe authored source agrees with the node: `data/library/characters/Belne.json` and\n`data/scenarios/kraktooth_goblin_camp.json` both carry the prose under the\ncharacter node properties.",
+      "cause": "A read-path split, already documented in **task-724** (same finding, verified with\n`Rikka`):\n\n- The **node** (`properties`) owns the authored prose: `base_description`,\n  `description`, `personality` (plus `expressions`, `profile_image`, `tags`,\n  `traits`, `x`, `y`). This is the node's \"node-level definition\" role.\n- The **Player** never receives it on load. `player.py:186` declares\n  `self.personality` and `to_dict` publishes it, but the live world creates the\n  Player with no value copied from the node, so `_serialize_player`\n  (`engine/serialization.py:150`) - which does not emit the field at all - is a\n  co-factor, not the whole story.\n- The **inspector reads the Player**: `agent-view.ts:832` `${player.personality}`,\n  `:839` `${player.base_description}`, `:841` `${player.description}`. So it reads\n  the empty home. The same is true of the LLM prompt (`room-context.ts`\n  `player.personality` / `player.description`) - personality and appearance are\n  silently absent from every prompt, which is the other half of task-724.\n\nNote the internal inconsistency, which is the giveaway: the inspector already\nreads `expressions` / `profile_image` **from the node**, but personality and the\ndescriptions **from the Player**. The node carries all of them.",
+      "secondary_defect_independent_fixable_now": "`agent-view.ts:832` interpolates `${player.personality}` with **no** `|| ''`\nguard, so a missing field renders the string `undefined`. Lines 839 and 841 use\n`|| ''`, which is why the descriptions are blank rather than `undefined`. The\nguard is worth fixing regardless of which home wins.",
+      "fix_blocked_on_task_724_s_decision_not_on_implementation_effort": "task-724 lists the two options and owns the choice:\n\n1. **Node stays authoritative for authored prose** → readers (inspector, prompt)\n   read `node.properties.personality` / `.description` / `.base_description`,\n   matching how the inspector already reads `expressions` / `profile_image`.\n2. **Player stays authoritative** → hydrate the prose onto the Player at load\n   (node → Player) and publish it in `_serialize_player`.\n\nDo not do both, and do not add a third copy.",
+      "fix_landed_2026_10_07_awaiting_restart_verification": "Decision recorded in task-724: the character node is the persisted home for\nauthored definition; the Player reads it. First landing:\n\n- `engine/serialization.py::_serialize_player` now publishes `personality`,\n  `base_description`, `description` on the live read payload, sourced from the\n  character node (`personality`/`base_description` node-first, `description`\n  Player-first so an equipment-derived current description still wins).\n- `engine/serialization.py::to_scenario_dict` strips the three from the players\n  block, so a saved file keeps them only on the node (single home).\n- `routes/player_ops.py::handle_update_player` mirrors a definition edit onto\n  the node, so an inspector save lands on the persisted home.\n- `static/js/inspector/agent-view.ts:832` guards `${player.personality || ''}`.\n\nGates: `npm run build:ts` clean, `node tools/unit/run.cjs` 618 passed,\n`python -m py_compile` clean. **Verified live 2026-10-07** after a server\nrestart: the personality and both descriptions display and round-trip in the\nBio tab. Location and tags/traits de-duplication (task-724) remain open.",
+      "note_on_the_duplication": "This bug is the UI-visible face of task-724's `personality`/`description`\nfinding. It is filed separately only because it is a concrete, reproducible\ndefect (screenshot + live payload). If task-724 is actioned first, close this\nagainst it rather than fixing twice."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/characters/bug-524-character-personality-and-appearance-descriptions-are-dropped-from-api-state-so-the-inspector-shows-undefined-blank-and-edits-look-unsaved.md"
+  }
+}

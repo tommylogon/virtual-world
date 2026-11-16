@@ -15,7 +15,7 @@ priority: medium
 
 ## What
 
-A flexible area status/effect system that models dynamic conditions in areas — fire, smoke, poison gas, extreme temperature, slime, magical fields, etc. — and how they affect characters and items. Trigger-driven for custom behavior.
+A flexible area status/effect system that models dynamic conditions in areas - fire, smoke, poison gas, extreme temperature, slime, magical fields, etc. - and how they affect characters and items. Trigger-driven for custom behavior.
 
 ---
 
@@ -54,16 +54,16 @@ Each area gets a `statuses` list/dict, similar to how characters have conditions
 - **Triggers**: `on_status_applied`, `on_status_tick`, `on_status_cleared`
 - **Hygiene connection**: certain area statuses affect hygiene (standing in slime, smoke residue, blood)
 - **Items**: items can apply/clear area statuses (fire extinguisher clears `on_fire`)
-- **Characters**: area statuses affect characters just like conditions — tick damage, stat modifiers, movement restrictions
+- **Characters**: area statuses affect characters just like conditions - tick damage, stat modifiers, movement restrictions
 - **Lighting**: smoke reduces light, fire increases light
 - **Description**: area descriptions should reflect active statuses ("The room is filled with thick, acrid smoke...")
 
 ### Implementation Notes
 - Build on top of the trigger system for custom behaviors
 - `area.py`: add `statuses` field
-- `engine/conditions.py` or new `engine/area_statuses.py` — process status ticks
+- `engine/conditions.py` or new `engine/area_statuses.py` - process status ticks
 - **Mirror the condition instance schema** (see [[review/characters/task-trait-condition-system-v2|task: Trait & Condition System v2]]): `tick_effects` ≈ per-instance `periodic`, `clear conditions` ≈ `ends_on`, `severity` ≈ `level`. Area statuses can apply character conditions via the same `apply_condition` effect (poison gas → `poisoned` instance).
-- `engine/trigger_system.py` — area status triggers
+- `engine/trigger_system.py` - area status triggers
 - Propagation tick similar to heat propagation
 - UI: show active statuses in area inspector with severity indicators
 

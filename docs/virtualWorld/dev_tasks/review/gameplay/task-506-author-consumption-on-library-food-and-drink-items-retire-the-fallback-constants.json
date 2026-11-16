@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "task-506",
+  "kind": "task",
+  "number": 506,
+  "title": "Author consumption on library food and drink items (retire the fallback constants)",
+  "status": "review",
+  "priority": "low",
+  "area": "gameplay",
+  "tags": [],
+  "created": "2026-09-24",
+  "updated": "2026-09-24",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-424",
+      "task-410",
+      "task-483"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Give every edible/drinkable library item its own `on_eat`/`on_drink` trigger\n(`adjust_vital` + depletion), so nothing usable as food depends on the background\ntier's hardcoded fallback - and then `MEAL_RESTORE` / `DRINK_RESTORE`, and with\nthem the whole fallback branch in `BackgroundSimulation._consume_here`, can be\nretired.",
+    "why": "",
+    "how": "",
+    "verify": "",
+    "acceptance": [
+      {
+        "text": "Library food and drink items author explicit consumption recovery values.",
+        "done": true
+      },
+      {
+        "text": "Fallback hardcoded nutrition constants retired from engine.",
+        "done": true
+      }
+    ],
+    "files": [
+      "data/library/items/*.json",
+      "engine/vitals.py"
+    ],
+    "custom": {
+      "why_measured_2026_09_24": "The data is far thinner than task-424's scoping note assumed:\n\n- **78** library items are edible/drinkable (a `food`/`drink` tag or an\n  `eat`/`drink` action).\n- Only **13** author an `on_eat`/`on_drink` trigger.\n- **65 are tag-only** - accepted as consumable purely by tag and restored solely\n  by the fallback constant.\n\nAnd \"authored\" is not the same as \"complete\". Several that *do* have a trigger\nnever deplete, which - now that the authored path is live (task-424) - makes them\n**infinite** food:\n\n- `rations_of_dried_meat` (`uses: 3`): one `adjust_vital` (`-25`), no\n  `adjust_uses`/`remove_item` → eating leaves `uses` at 3 forever.\n- `apple` (`uses: 1`): `adjust_vital stat \"hunger\"` (`-2`) only (the lowercase\n  stat also silently no-op'd until the case-insensitive fix in task-424).\n\nThe camp itself is fine (all five of its consumables now author their own\n`adjust_vital` + `adjust_uses`, task-424), but the library feeds two paths that\nmatter:\n\n- **foraging** (task-483) spawns library items into the world as fresh copies;\n- **library placement** (`_spawn_library_item_node`) puts them in authored areas.\n\nSo any soak where a character forages or finds a store can meet an infinite or\nnon-nourishing item.",
+      "why_the_constants_cannot_simply_be_deleted_yet": "`_consume_here` has exactly two branches:\n\n1. **authored** - the item has `on_eat`/`on_drink`; its triggers own *both* the\n   restore and the depletion, and the constants are not applied.\n2. **fallback** - the item authors nothing; the background tier hardcodes the\n   depletion (`count-1` → `uses-1` → remove) *and* applies `MEAL_RESTORE=45` /\n   `DRINK_RESTORE=50`.\n\nDelete the constants (or zero them) before branch 1 covers these items and either\n\n- the fallback still runs but restores nothing → 65 foods are eaten and the\n  character stays hungry (starvation), or\n- the fallback is removed too → a tag-only item fires no trigger, so it neither\n  restores nor depletes → an **infinite, useless loaf** (the exact failure task-424\n  flagged).\n\nHence: author first, retire second.",
+      "re_measured_2026_09_27_implementation_pass_7_of_71_and_the_tiers_disagreed": "The 2026-09-24 numbers were close but the framing was wrong in a way that\nmattered.\n\n**Counts.** 71 edible/drinkable library items (a `food`/`drink` tag or an\n`eat`/`drink` action). **7** author a relieving `adjust_vital` on the right\ntrigger. **64 do not.** (The file said 78/13/65.)\n\nTwo measurement traps, both of which produced a confidently wrong answer first:\n\n- `trigger_type` may be a **list**. `apple.json` ships `\"trigger_type\":\n  [\"on_eat\"]`. A checker comparing only against a string reports all 71 items as\n  unauthored - or, checked the other way, misses real gaps.\n- Hunger and Thirst are **drives** that fill upward, so relief is a **negative**\n  amount. `rations_of_dried_meat` ships `{\"stat\": \"Hunger\", \"amount\": -25}` and\n  is correctly authored; a check for a positive amount calls it broken.\n\n### The \"authored but never depletes\" problem is already fixed\n\nThe file's second finding - that `rations_of_dried_meat` (`uses: 3`) never\ndepletes, making it infinite food - **no longer holds.** task-508 landed:\n`ConsumeActionsMixin._spend_uses` (`engine/items/consume_actions.py:139-149`)\nspends a charge on *every* consume, after the item's triggers, and the trigger\nsuggester is explicitly told not to hand-write `adjust_uses`. The 64 items are\nnot infinite; they are simply **nutritionally inert**.\n\n### The part the file did not anticipate: the two tiers disagreed\n\n`ConsumeActionsMixin._consume_item` - the player's own `eat`/`drink` - has **no\nfallback**. It runs the item's triggers and that is the entire effect. The\n`MEAL_RESTORE`/`DRINK_RESTORE` constants live only in\n`BackgroundSimulation._consume_here`, the deterministic background path.\n\nSo for a tag-only library item:\n\n- a **background** goblin ate it and got the hardcoded 45 Hunger back;\n- the **player** ate it, read `\"You eat the Bread. It tastes good\"`, and got\n  **nothing at all**.\n\n`bread.json` is the cleanest example: its `on_eat` existed and fired, and its\nonly effect was a `message`. It read as authored, passed a casual read of the\nfile, and was nutritionally inert on the path a human actually uses. Foraging\n(task-483) and library placement both spawn these into the world, so this was\nreachable in normal play - not a corner case.\n\n### The 26 fixtures wearing a `food` tag\n\n`ConsumeActionsMixin._is_valid_for` accepts a consumable by **tag alone**. A\nmistagged fixture is therefore not cosmetic: a background character will\ncheerfully eat the barrel. Twenty-six library items carry `food`/`drink` while\nbeing furniture - `apple_tree`, `barrel`, `cauldron`, `cheese_shred`,\n`coffee_grinder`, `dairy_case`, `flour`, `meat_hooks`, `spice_rack`,\n`bread_plate`, `candy_jar`, `teacup`, `water_glass`, `water_jug`, `thermos`,\n`wine_case`, `wine_cask`, `baja_blast_cup`, `taco_bell_drink_cup`,\n`mystery_cream_sauce`, `seasoned_beef_pan`, `water_carboy`,\n`hanging_dried_meats`, `boxed_shell_cases`, `frozen_berries_7dtx`.\n\n**Not fixed here.** Un-tagging 26 items changes what a foraging character can\nfind and what a `put` can reach, and it is a content decision, not a\nrefactor. They are listed in `tools/lint_library.py:FOOD_ADJACENT_FIXTURES` as\nthe honest exception set, with the reason.",
+      "implemented_2026_09_27": "### 1. Authored - 42 items\n\nEvery genuinely edible/drinkable library item now carries an `on_eat`/\n`on_drink` whose `adjust_vital` relieves the drive. 41 authored, plus `apple`\ncorrected.\n\n**The values are uniform and deliberately match the constants they replace**\n(Hunger −45, Thirst −50). The non-goal says per-item restore tuning is a\nseparate content pass, and the whole point of retiring the constant is that the\nauthored value becomes the only one. Authoring at the library's own smaller\nhouse values (−25/−15, as `carcass`/`wheel_of_cheese`/`water_pitcher` use) would\nhave silently made wild characters eat roughly twice as often - a balance change\ndisguised as a refactor. Tuning is now a one-line change per item with no\nengine involvement.\n\n**`apple` was a measured bug, not a tuning choice:** it shipped\n`{\"stat\": \"hunger\", \"amount\": -2}`. Eating an apple relieved 2 out of 100, so a\nforager that found one stayed starving. Now −45.\n\nNo `adjust_uses` anywhere: task-508 owns depletion.\n\n### 2. `tools/lint_library.py --check unauthored_consumables` - the regression guard\n\nAn ERROR check that fires when an edible/drinkable item authors no relieving\n`adjust_vital` for the verb it claims. It accepts both trigger shapes in the\ndata, both `trigger_type` forms, either stat casing, and skips only the\ndeclared fixture set. It checks the **stat matches the drive** - an `on_eat`\nwhose only `adjust_vital` is `Sanity -10` is not a meal, and accepting it would\nleave the item starving with a green lint. That hole was in my first version.\n\n`tests/test_library_lint_consumables.py` - 16 tests pinning the rules, including\none per trap above, plus `test_the_shipped_library_passes` so the criterion\ncannot silently regress.\n\n### 3. Constants retired, with the water case split out\n\n`MEAL_RESTORE`/`DRINK_RESTORE` are renamed `UNAUTHORED_MEAL_RESTORE`/\n`UNAUTHORED_DRINK_RESTORE` and **kept**, not deleted. The file anticipated this\n(\"keep the branch only for legacy saves, with an explicit note\") and the reason\nholds: a save or scenario written before this pass holds a tag-only item nothing\nauthored, and both alternatives are worse. Deleting it makes that item an\ninfinite, useless loaf; zeroing it makes 42 real foods restore nothing.\n\n**The finding that changed the shape of this:** `DRINK_RESTORE` was *also* the\nrestore for drinking from a **water area** - natural water is an area tag\n(`_in_water_area`), not an item, so it has no authored trigger and never had\none. Before this pass, \"how much is a river worth\" and \"how much is a\nhardcoded fallback worth\" were literally the same number under the same name.\nThat case now has its own constant, `WATER_AREA_DRINK_RESTORE`.",
+      "re_measured_2026_09_27_after": "- `python tools/lint_library.py --check unauthored_consumables` → **0 errors**.\n- New tests: `test_library_lint_consumables.py` 16, `test_library_consumable_relief.py` 5.\n  Against the **un-authored** library in a clean `HEAD` worktree, **5 of them\n  fail** - including `eating bread left Hunger at 80` and `drinking water_skin\n  left Thirst at 80`. They are real guards, not assertions that were always true.\n- Camp week soak, `tools/soak_sim.py --background-all`, measured in an isolated\n  worktree at `HEAD` for the baseline:\n\n  | | baseline | after |\n  |---|---|---|\n  | 1 min/tick (10080 ticks) | 22/23 alive, 1 dead (exhaustion) @ 0d05h32m | 22/23 alive, 1 dead (exhaustion) @ 0d07h57m |\n  | 15 min/tick (672 ticks) | **21/23** alive, 2 dead (exhaustion, dehydration) | **22/23** alive, 1 dead (exhaustion) |\n\n  **The acceptance criterion of 23/23 at both was not met at baseline either**,\n  so it is a pre-existing shortfall, not a regression. The change is neutral at\n  1 min/tick and gains a survivor at 15. The 15-minute gain is the foreground\n  fix showing through: the camp scenario references `bread`, `berries`,\n  `dried_meat`, `mushrooms`, `poison` and `water_skin` from the library, and a\n  character eating those on the background path was getting the constant while\n  the same character on the player path got nothing.\n- Full suite: **not run for this task** - the run was stopped at the user's\n  request to defer testing. The last full-suite result on this branch is\n  **62 failed / 4038 passed**, measured after task-494 against the same\n  baseline; this task adds **21** collected tests\n  (`--collect-only` on the two new files), so the expected total is\n  **4059 passed** with the failure count unchanged. That is an expectation, not\n  a measurement - re-run the suite before moving this task to `done`.",
+      "non_goals": "- Nutrition/diet detail; per-item restore tuning is a separate content pass.\n- Changing `FOOD_TAGS`/`DRINK_TAGS`."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "depends on": "508 - the consume depletion contract must be settled first, or"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/review/gameplay/task-506-author-consumption-on-library-food-and-drink-items-retire-the-fallback-constants.md"
+  }
+}

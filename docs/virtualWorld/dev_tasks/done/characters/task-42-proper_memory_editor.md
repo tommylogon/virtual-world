@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-15 (updated 2026-07-16)
 **Priority**: High
-**Status**: In Review — implemented (code-verified 2026-08-11). World lore CRUD in `routes/world_lore.py` + `static/js/inspector/lore-view.js`, lore injected via `system-prompt.js:28`; unified per-character memory system (task-178).
+**Status**: In Review - implemented (code-verified 2026-08-11). World lore CRUD in `routes/world_lore.py` + `static/js/inspector/lore-view.js`, lore injected via `system-prompt.js:28`; unified per-character memory system (task-178).
 
 ---
 
@@ -18,8 +18,8 @@ priority: medium
 
 Replace the single-textarea memory system with two complementary list-based systems:
 
-1. **World Lore (shared knowledge)** — a list of structured lore entries that every character sees as common knowledge.
-2. **Per-Character Memory (structured list)** — individual memories with type, tick, location, importance, tags. Editable per character.
+1. **World Lore (shared knowledge)** - a list of structured lore entries that every character sees as common knowledge.
+2. **Per-Character Memory (structured list)** - individual memories with type, tick, location, importance, tags. Editable per character.
 
 Both systems use the same underlying list structure so they can be unified for future RAG/embedding support (see `vector_embeddings_rag_prep.md`).
 
@@ -29,7 +29,7 @@ Both systems use the same underlying list structure so they can be unified for f
 
 ### Concept
 
-A list of structured lore entries stored at the world level. Every character sees them in their system prompt as "common knowledge everyone in this world knows." Not a flat text blob — individual entries with titles, categories, and metadata.
+A list of structured lore entries stored at the world level. Every character sees them in their system prompt as "common knowledge everyone in this world knows." Not a flat text blob - individual entries with titles, categories, and metadata.
 
 ### Lore Entry Structure
 
@@ -87,11 +87,11 @@ Only include lore entries with importance >= threshold (configurable, default sh
 
 ### API
 
-- `GET /api/world/lore` — returns `{ "lore": [...] }`
-- `PUT /api/world/lore` — replaces entire lore list
-- `POST /api/world/lore/entry` — add single entry
-- `PUT /api/world/lore/entry/<id>` — update single entry
-- `DELETE /api/world/lore/entry/<id>` — delete single entry
+- `GET /api/world/lore` - returns `{ "lore": [...] }`
+- `PUT /api/world/lore` - replaces entire lore list
+- `POST /api/world/lore/entry` - add single entry
+- `PUT /api/world/lore/entry/<id>` - update single entry
+- `DELETE /api/world/lore/entry/<id>` - delete single entry
 - Persisted in `world_template.json`: `{ "world_lore": [...], ... }`
 
 ### Auto-Propagation
@@ -140,12 +140,12 @@ Replace the single textarea with a list view (same visual pattern as world lore)
 
 [+ Add Memory] [🗑 Clear All]
 
-📌 Day 1, 14:30 — Observation
+📌 Day 1, 14:30 - Observation
    "Tommy was in the Kitchen cooking eggs."
    📍 Kitchen | ⭐ Importance: 3 | 🏷️ character:Tommy
    [✏️ Edit] [🗑 Delete]
 
-📌 Day 1, 14:00 — Location
+📌 Day 1, 14:00 - Location
    "Moved from Foyer to Kitchen."
    📍 Kitchen
    [✏️ Edit] [🗑 Delete]
@@ -197,14 +197,14 @@ See `vector_embeddings_rag_prep.md` for the future RAG integration plan.
 
 ## Files
 
-- `virtual_world_engine.py` — add `world_lore` list field, auto-memory on events
-- `player.py` — add structured `memories` field
-- `app.py` — world lore CRUD API + memory CRUD API endpoints
-- `static/js/api.js` — API calls for both systems
-- `static/js/inspector.js` — world lore list editor + memory list editor
-- `static/js/agent-engine.js` — inject world lore + structured memories into prompt
-- `world_template.json` — add `world_lore` top-level field (list)
-- `static/css/style.css` — optional styling for list editors
+- `virtual_world_engine.py` - add `world_lore` list field, auto-memory on events
+- `player.py` - add structured `memories` field
+- `app.py` - world lore CRUD API + memory CRUD API endpoints
+- `static/js/api.js` - API calls for both systems
+- `static/js/inspector.js` - world lore list editor + memory list editor
+- `static/js/agent-engine.js` - inject world lore + structured memories into prompt
+- `world_template.json` - add `world_lore` top-level field (list)
+- `static/css/style.css` - optional styling for list editors
 
 ## Why
 

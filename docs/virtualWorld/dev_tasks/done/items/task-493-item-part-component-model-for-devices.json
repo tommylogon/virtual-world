@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-493",
+  "kind": "task",
+  "number": 493,
+  "title": "Item part/component model for devices",
+  "status": "done",
+  "priority": "medium",
+  "area": "items",
+  "tags": [],
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-299"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Define and implement the 'device assembled from items' model agreed in the task-299 discussion: parts are child items of a parent (non-takeable by default by omitting 'take' from actions, so no new edge type is required), each part carries its own triggers/state/uses, charge is the generic 'uses' rather than a new 'power' property, and depletion uses the existing patterns (carried lit -> unlit + on_depleted; detach/break per part). Cover addressing/naming, and align prompt visibility with engine/item_reach (single-level, state-blind today vs any-depth, state-gated). No per-item named verbs.",
+    "why": "TODO",
+    "how": "TODO",
+    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "acceptance": [
+      {
+        "text": "A device is a parent item with child part items; a part with no `take` in `actions` cannot be taken/dropped/stolen/put (tested), while staying reachable/usable via `item_reach`.",
+        "done": false
+      },
+      {
+        "text": "Charge uses the generic `uses`; no new per-device-type property (no `power`/`charge` field) is added to the base item.",
+        "done": false
+      },
+      {
+        "text": "Part depletion has an explicit, chosen semantic (e.g. carried lit → `unlit` + `on_depleted`) and does not silently detach unless intended (tested).",
+        "done": false
+      },
+      {
+        "text": "Prompt visibility agrees with `item_reach`: depth and container-state gating match (fix the single-level, state-blind client listing).",
+        "done": false
+      },
+      {
+        "text": "A worked example (e.g. a phone with a battery part) is authored in the library and exercised in a test.",
+        "done": false
+      }
+    ],
+    "files": [
+      "TODO"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/done/items/task-493-item-part-component-model-for-devices.md"
+  }
+}
