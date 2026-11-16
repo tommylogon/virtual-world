@@ -27,7 +27,7 @@
 // top-level `const` here would collide with the same binding in
 // test_inspector_tag_generation.js. Scoped to keep the globals clean.
 (function () {
-const AV = window.InspectorAgentView;
+var AV = window.InspectorAgentView;
 
 const POOL = [
     { lib_id: 'apron', name: 'apron', tags: ['clothing'], slots: ['torso'] },

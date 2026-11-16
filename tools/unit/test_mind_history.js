@@ -63,4 +63,22 @@
             }
         }
     });
+
+    test('formatTickWithWorldTime formats positive calendar ticks, negative relative ticks, and age (task-973)', () => {
+        assertTrue(typeof MV.formatTickWithWorldTime === 'function', 'MV.formatTickWithWorldTime exists');
+
+        const ws = { time_per_tick_minutes: 5, clock_start_hour: 8, clock_start_minute: 0, time_ticks: 0 };
+        assertEq(MV.formatTickWithWorldTime(12, ws), 'tick 12 (Day 1, 09:00)', 'positive tick calendar time');
+        assertEq(MV.formatTickWithWorldTime(-5000, ws), 'tick -5000 (~17d ago)', 'negative tick relative days');
+        assertEq(
+            MV.formatTickWithWorldTime(-2102400, ws, 25),
+            'tick -2102400 (~20y ago, age ~5)',
+            'negative tick with playerAge shows approximate age'
+        );
+        assertEq(
+            MV.formatTickWithWorldTime(12, { time_per_tick_minutes: 10, clock_start_hour: 6, clock_start_minute: 30 }, 30),
+            'tick 12 (Day 1, 08:30, age ~30)',
+            'respects custom time_per_tick_minutes and clock_start'
+        );
+    });
 })();

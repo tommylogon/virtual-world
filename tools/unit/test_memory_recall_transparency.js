@@ -8,7 +8,7 @@
  */
 
 test('PromptBuilder.buildAlreadyKnownContext surfaces kind: "absence" memories (task-786)', () => {
-    const PB = window.PromptBuilder;
+    var PB = window.PromptBuilder;
     assertTrue(typeof PB.buildAlreadyKnownContext === 'function', 'buildAlreadyKnownContext exists');
 
     const prevPlayers = window.worldState.data?.players;

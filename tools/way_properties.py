@@ -99,6 +99,16 @@ PROPERTIES: Tuple[WayProperty, ...] = (
         notes="Overrides the generated KIND_MOVE_LINE when present.",
     ),
     WayProperty(
+        name="entry_phrase",
+        axis="identity",
+        reads=(
+            ("engine/area_description.py", 696, "pre-movement description phrase"),
+            ("engine/world_compile.py", 876, "compiled onto gateway ways"),
+        ),
+        notes="Prose prefix describing how entering occurs (e.g. 'steps through the door').",
+        expect=(),
+    ),
+    WayProperty(
         name="refusal_message",
         axis="passage",
         reads=(("movement.py", 572, "what a closed way says instead of letting you through"),),
@@ -147,13 +157,22 @@ PROPERTIES: Tuple[WayProperty, ...] = (
     WayProperty(
         name="current_state",
         axis="passage",
-        values=("open", "see_through", "closed", "locked", "blocked", "broken"),
+        values=("open", "closed", "locked", "blocked", "broken", "hidden"),
         reads=(
             ("engine/barriers.py", 135, "declared_state, normalised"),
             ("engine/movement.py", 564, "whether a traverse is refused"),
             ("engine/barriers.py", 148, "outranked by see_through for light and sound"),
         ),
         notes="The passage ladder. Movement gates on THIS, never on see_through.",
+    ),
+    WayProperty(
+        name="requires_item",
+        axis="passage",
+        reads=(
+            ("engine/movement.py", 507, "item tag or name required in inventory/equipped to traverse"),
+        ),
+        notes="Gates passage on carrying or wearing a required item (e.g. key or token).",
+        expect=(),
     ),
     WayProperty(
         name="one_way",
@@ -189,7 +208,7 @@ PROPERTIES: Tuple[WayProperty, ...] = (
     WayProperty(
         name="requires",
         axis="verb",
-        values=("", "crawl", "climb", "jump"),
+        values=("", "crawl", "climb", "jump", "swim", "dive"),
         reads=(
             ("engine/movement.py", 462, "verb gate; 'go' auto-converts to crawl"),
             ("engine/movement.py", 542, "Athletics roll against <requires>_dc"),
@@ -266,7 +285,7 @@ PROPERTIES: Tuple[WayProperty, ...] = (
     WayProperty(
         name="max_size",
         axis="size",
-        values=("tiny", "small", "normal", "huge", "giant", "titanic"),
+        values=("", "none", "tiny", "small", "normal", "huge", "giant", "titanic"),
         reads=(("engine/movement.py", 469, "two tiers over is blocked; one over crawls"),),
         notes="SIZE_TIERS is the whole model - engine/size.py:10 states there is no "
               "height or girth property. Carrying at >= 50% capacity adds one tier "

@@ -51,14 +51,14 @@ test('SettingsView.populateForm populates inputs declaratively from config and s
 
     const modalInputs = [
         createMockInput('api-base-input', 'input', 'text', 'apiBase'),
-        createMockInput('agent-temperature', 'input', 'range', 'temperature', '0.05'),
+        createMockInput('hub-temperature', 'input', 'range', 'temperature', '0.05'),
         createMockInput('graph-repulsion', 'input', 'range', 'graphGravitationalConstant', '5'),
         createMockInput('agent-mature-content', 'input', 'checkbox', 'matureContent'),
         createMockInput('agent-ghost-mode', 'input', 'checkbox', 'ghostMode')
     ];
 
     // Companion -val spans
-    const tempVal = createMockInput('agent-temperature-val', 'span');
+    const tempVal = createMockInput('hub-temperature-val', 'span');
     const grVal = createMockInput('graph-repulsion-val', 'span');
 
     const modalEl = {
@@ -97,7 +97,7 @@ test('SettingsView.populateForm populates inputs declaratively from config and s
         assertEq(elements.get('api-base-input').value, 'http://custom-host:8000/v1', 'apiBase populated');
 
         // 2. Range input and companion span formatted with decimal precision
-        assertEq(elements.get('agent-temperature').value, '1.25', 'temperature value');
+        assertEq(elements.get('hub-temperature').value, '1.25', 'temperature value');
         assertEq(tempVal.textContent, '1.25', 'temperature -val span formatted');
 
         // 3. Integer range input

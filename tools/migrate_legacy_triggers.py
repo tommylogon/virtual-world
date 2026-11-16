@@ -30,7 +30,6 @@ from engine.trigger_system import _legacy_effects_from_properties  # noqa: E402
 DEFAULT_MANSION_FILES = (
     ROOT / "data" / "scenarios" / "mansion.json",
     ROOT / "data" / "scenarios" / "mansion2.json",
-    ROOT / "data" / "library" / "rooms" / "mansion.json",
 )
 
 
@@ -221,7 +220,7 @@ def main() -> int:
     parser.add_argument(
         "--all-mansion",
         action="store_true",
-        help="Migrate mansion.json, mansion2.json, and library/rooms/mansion.json",
+        help="Migrate mansion.json and mansion2.json",
     )
     parser.add_argument("--apply", action="store_true", help="Write changes (default: dry run)")
     parser.add_argument(

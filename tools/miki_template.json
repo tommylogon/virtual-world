@@ -1,0 +1,450 @@
+{
+  "name": "Explorer",
+  "id": "player_explorer",
+  "skills": {
+    "Athletics": 1,
+    "Acrobatics": 1,
+    "Stealth": 1,
+    "Perception": 1,
+    "Survival": 1,
+    "Persuasion": 1,
+    "Animal Handling": 0,
+    "Arcana": 0,
+    "Deception": 0,
+    "History": 0,
+    "Insight": 0,
+    "Intimidation": 0,
+    "Investigation": 0,
+    "Medicine": 0,
+    "Nature": 0,
+    "Performance": 0,
+    "Religion": 0,
+    "Sleight of Hand": 0
+  },
+  "stats": {
+    "CHA": 12,
+    "CON": 10,
+    "DEX": 12,
+    "INT": 14,
+    "STR": 8,
+    "WIS": 8
+  },
+  "vitals": {
+    "HP": 100.0,
+    "Max_HP": 100,
+    "Hunger": 80,
+    "Thirst": 80,
+    "Hygiene": 97,
+    "Energy": 94,
+    "Social": 100,
+    "Bladder": 15,
+    "Sanity": 97,
+    "Entertainment": 99,
+    "Temperature": 37
+  },
+  "decay_rates": {
+    "Bladder": 0.42,
+    "Energy": 0.104,
+    "Entertainment": 0.03,
+    "Hunger": 0.0034,
+    "Hygiene": 0.02,
+    "Sanity": 0.005,
+    "Social": 0.02,
+    "Thirst": 0.025,
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1
+  },
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "source": null,
+        "level": 0
+      }
+    ]
+  },
+  "flags": {},
+  "personality_dials": {},
+  "disposition": {
+    "weights": [
+      {
+        "name": "survive.utility.need_relief",
+        "value": 35.0,
+        "kind": "utility",
+        "base": 0.0,
+        "lo": 0.0,
+        "hi": 100.0
+      },
+      {
+        "name": "attention.salience.remembered",
+        "value": 1.0,
+        "kind": "salience",
+        "base": 0.0,
+        "lo": 0.0,
+        "hi": 100.0
+      }
+    ],
+    "dials": {},
+    "gated": [],
+    "actions": [
+      {
+        "verb": "drink",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "eat",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "sleep",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "rest",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "relieve",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "bathe",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "go",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "approach",
+        "scores": [
+          "survive.utility.need_relief"
+        ]
+      },
+      {
+        "verb": "chat",
+        "scores": [
+          "social.weight.chat"
+        ]
+      },
+      {
+        "verb": "joke",
+        "scores": [
+          "social.weight.joke"
+        ]
+      },
+      {
+        "verb": "compliment",
+        "scores": [
+          "social.weight.compliment"
+        ]
+      },
+      {
+        "verb": "tease",
+        "scores": [
+          "social.weight.tease"
+        ]
+      },
+      {
+        "verb": "confide",
+        "scores": [
+          "social.weight.confide"
+        ]
+      },
+      {
+        "verb": "flirt",
+        "scores": [
+          "social.weight.flirt"
+        ]
+      },
+      {
+        "verb": "apologise",
+        "scores": [
+          "social.weight.apologise"
+        ]
+      },
+      {
+        "verb": "bully",
+        "scores": [
+          "social.weight.bully"
+        ]
+      }
+    ]
+  },
+  "body_state": {
+    "arm_left": {
+      "sensitivity": 0.3
+    },
+    "arm_right": {
+      "sensitivity": 0.3
+    },
+    "back": {
+      "sensitivity": 0.2
+    },
+    "balls": {
+      "sensitivity": 0.7
+    },
+    "breast_left": {
+      "sensitivity": 0.6
+    },
+    "breast_right": {
+      "sensitivity": 0.6
+    },
+    "cheeks": {
+      "sensitivity": 0.6
+    },
+    "face": {
+      "sensitivity": 0.5
+    },
+    "foot_left": {
+      "sensitivity": 0.2
+    },
+    "foot_right": {
+      "sensitivity": 0.2
+    },
+    "genitals": {
+      "sensitivity": 0.8
+    },
+    "hand_left": {
+      "sensitivity": 0.4
+    },
+    "hand_right": {
+      "sensitivity": 0.4
+    },
+    "head": {
+      "sensitivity": 0.2
+    },
+    "leg_left": {
+      "sensitivity": 0.3
+    },
+    "leg_right": {
+      "sensitivity": 0.3
+    },
+    "lips": {
+      "sensitivity": 0.8
+    },
+    "neck": {
+      "sensitivity": 0.4
+    },
+    "nipple_left": {
+      "sensitivity": 0.9
+    },
+    "nipple_right": {
+      "sensitivity": 0.7
+    },
+    "torso": {
+      "sensitivity": 0.3
+    }
+  },
+  "body_region_names": {
+    "head": "Head",
+    "neck": "Neck",
+    "torso": "Torso",
+    "back": "Back",
+    "arm_left": "Left Arm",
+    "arm_right": "Right Arm",
+    "hand_left": "Left Hand",
+    "hand_right": "Right Hand",
+    "leg_left": "Left Leg",
+    "leg_right": "Right Leg",
+    "foot_left": "Left Foot",
+    "foot_right": "Right Foot",
+    "face": "Face",
+    "cheeks": "Cheeks",
+    "lips": "Lips",
+    "breast_left": "Left Breast",
+    "breast_right": "Right Breast",
+    "nipple_left": "Left Nipple",
+    "nipple_right": "Right Nipple",
+    "genitals": "Genitals",
+    "balls": "Balls"
+  },
+  "region_exposed": {
+    "head": true,
+    "neck": true,
+    "torso": true,
+    "back": true,
+    "arm_left": true,
+    "arm_right": true,
+    "hand_left": true,
+    "hand_right": true,
+    "leg_left": true,
+    "leg_right": true,
+    "foot_left": true,
+    "foot_right": true,
+    "face": true,
+    "cheeks": true,
+    "lips": true,
+    "breast_left": true,
+    "breast_right": true,
+    "nipple_left": true,
+    "nipple_right": true,
+    "genitals": true,
+    "balls": true
+  },
+  "mosiac": {
+    "character": "miki",
+    "tick": 0,
+    "M": "the need to satisfy hunger",
+    "O": [],
+    "S": {
+      "now": 480,
+      "step": null,
+      "day": "no schedule"
+    },
+    "I": "",
+    "A": [
+      {
+        "need": "hunger",
+        "value": 80.0,
+        "why": "drive"
+      },
+      {
+        "need": "thirst",
+        "value": 80.0,
+        "why": "drive"
+      }
+    ],
+    "C": {
+      "minor": [
+        "approach",
+        "disengage",
+        "drink",
+        "eat",
+        "equip",
+        "flee",
+        "grab",
+        "lead",
+        "manifest",
+        "place",
+        "put",
+        "release",
+        "remove",
+        "stand",
+        "stow",
+        "toggle",
+        "unequip",
+        "vanish",
+        "wake",
+        "wear",
+        "withdraw"
+      ],
+      "major": [
+        "attack",
+        "bind",
+        "climb",
+        "combine",
+        "craft",
+        "crawl",
+        "dash",
+        "enchant",
+        "escape",
+        "examine",
+        "find",
+        "fix",
+        "frisk",
+        "get",
+        "give",
+        "go",
+        "jump",
+        "make",
+        "pick",
+        "pickup",
+        "relieve",
+        "search",
+        "split",
+        "steal",
+        "struggle",
+        "take",
+        "teach",
+        "treat",
+        "use"
+      ],
+      "activity": [
+        "bath",
+        "bathe",
+        "dress",
+        "lay",
+        "lie",
+        "meditate",
+        "rest",
+        "sit",
+        "sleep",
+        "strip",
+        "undress",
+        "wait"
+      ],
+      "free": [
+        "close",
+        "do",
+        "drop",
+        "fear",
+        "goal",
+        "guess",
+        "i",
+        "interest",
+        "inv",
+        "inventory",
+        "label",
+        "listen",
+        "look",
+        "name",
+        "obligation",
+        "open",
+        "recall",
+        "say",
+        "schedule",
+        "scream",
+        "shout",
+        "sing",
+        "speak",
+        "stats",
+        "status",
+        "stop",
+        "whisper"
+      ]
+    },
+    "goals": []
+  },
+  "simple_npc": false,
+  "autonomy": true,
+  "behaviors": [],
+  "known": [
+    "Courtyard",
+    "Great Hall"
+  ],
+  "preconceived_knowledge": {
+    "known_areas": [
+      "Courtyard",
+      "Great Hall"
+    ]
+  },
+  "discovered_exits": [],
+  "memories": [],
+  "relationships": {},
+  "current_area": null,
+  "grappled_by": null,
+  "at_way_id": null,
+  "facing": null,
+  "entered_from_way": null,
+  "spatial_position": null
+}

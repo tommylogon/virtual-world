@@ -1,7 +1,7 @@
 /**
  * Unit tests for the sprite-sheet grid geometry (task-678).
  *
- * Covers the pure half in static/js/inspector/sprite-sheet-geometry.js — the
+ * Covers the pure half in static/js/inspector/sprite-sheet-geometry.js - the
  * frame-plus-dividers model, its drag/edit operations, and whitespace
  * auto-detection. The canvas half cannot run in this Node sandbox.
  */
@@ -107,7 +107,7 @@ test('recountCuts keeps the frame and the divider count the inputs asked for', (
     const cuts = { x0: 100, y0: 90, x1: 700, y1: 490, colCuts: [333], rowCuts: [] };
     const more = G.recountCuts(cuts, 3, 4);
     assertEq(more.x0, 100, 'frame left preserved');
-    assertEq(more.y0, 90, 'frame top preserved — the banner stays excluded');
+    assertEq(more.y0, 90, 'frame top preserved - the banner stays excluded');
     assertEq(more.x1, 700, 'frame right preserved');
     assertEq(more.y1, 490, 'frame bottom preserved');
     assertEq(more.colCuts.length, 4 - 1, '4 columns -> 3 dividers');
@@ -176,7 +176,7 @@ test('cutsFromProfiles scales SAMPLE indices back into source pixels', () => {
     // A 100-sample profile describing a 1000px sheet: every detected position must
     // land 10x further along. profileRects caps the long edge at 400px, so using
     // the raw index would put every cut at 1/2.5th of where it belongs on a real
-    // reference sheet — the failure this test exists to catch.
+    // reference sheet - the failure this test exists to catch.
     const rowP = new Array(100).fill(1);
     const colP = new Array(100).fill(1);
     for (let i = 0; i < 10; i++) { rowP[i] = 0; colP[i] = 0; }          // top/left margin

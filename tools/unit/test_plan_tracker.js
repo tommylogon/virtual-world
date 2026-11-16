@@ -1,6 +1,6 @@
 /** Unit tests for plan-tracker.js — critical needs + crossing-gated replanning (task-92). */
 'use strict';
-const PT = window.PlanTracker;
+var PT = window.PlanTracker;
 
 function freshTracker(name) {
     PT.reset(name);

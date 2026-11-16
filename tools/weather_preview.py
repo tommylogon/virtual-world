@@ -137,7 +137,7 @@ def main() -> int:
     month = ((day - 1) // dpm % mpy) + 1
     season = season_for_month(month)
 
-    fs = sc.get("forecast_schedule") or {}
+    fs = sc.get("forecast") or sc.get("forecast_schedule") or {}
     authored = fs.get("entries") or []
     start = normalize_weather(fs.get("current_state")) or (
         normalize_weather((authored[0] or {}).get("weather")) if authored else "") or "clear"

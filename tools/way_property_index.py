@@ -23,7 +23,8 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from way_properties import AXES, PROPERTIES, SPAWN_LISTS  # noqa: E402
 
@@ -262,6 +263,60 @@ def build_page() -> str:
     return "\n".join(out) + "\n"
 
 
+def validate_values() -> list:
+    """Validate declared property values against authoritative engine definitions."""
+    from engine.barriers import WAY_STATES
+    from engine.size import SIZE_TIERS
+
+    problems = []
+    prop_map = {p.name: p for p in PROPERTIES}
+
+    # 1. current_state validation against engine/barriers.py WAY_STATES
+    cs = prop_map.get("current_state")
+    if not cs or not cs.values:
+        problems.append("current_state: missing or has no values declared")
+    else:
+        if "see_through" in cs.values:
+            problems.append(
+                "current_state: declares 'see_through' as a value, but see_through "
+                "is an independent transparency axis/override, not a declared state"
+            )
+        expected_states = set(WAY_STATES) - {"see_through"}
+        actual_states = set(cs.values)
+        missing_states = expected_states - actual_states
+        if missing_states:
+            problems.append(
+                f"current_state: omits states from engine/barriers.py WAY_STATES -> {', '.join(sorted(missing_states))}"
+            )
+        extra_states = actual_states - expected_states
+        if extra_states:
+            problems.append(
+                f"current_state: carries values not in engine/barriers.py WAY_STATES -> {', '.join(sorted(extra_states))}"
+            )
+
+    # 2. max_size validation against engine/size.py SIZE_TIERS
+    ms = prop_map.get("max_size")
+    if not ms or not ms.values:
+        problems.append("max_size: missing or has no values declared")
+    else:
+        if "none" not in ms.values:
+            problems.append("max_size: omits accepted 'none' value")
+        expected_tiers = set(SIZE_TIERS)
+        actual_tiers = set(ms.values) - {"", "none"}
+        missing_tiers = expected_tiers - actual_tiers
+        if missing_tiers:
+            problems.append(
+                f"max_size: omits tiers from engine/size.py SIZE_TIERS -> {', '.join(sorted(missing_tiers))}"
+            )
+        extra_tiers = actual_tiers - expected_tiers
+        if extra_tiers:
+            problems.append(
+                f"max_size: carries values not in engine/size.py SIZE_TIERS -> {', '.join(sorted(extra_tiers))}"
+            )
+
+    return problems
+
+
 def drift() -> list:
     """Real differences between the declaration and the guarded lists.
 
@@ -284,6 +339,7 @@ def drift() -> list:
         if missing:
             problems.append(f"{label}: omits {len(missing)} declared "
                             f"properties -> {', '.join(missing)}")
+    problems.extend(validate_values())
     return problems
 
 

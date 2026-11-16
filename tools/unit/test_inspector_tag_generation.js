@@ -23,7 +23,7 @@
  * a tag could never be removed by hand.
  */
 
-const AV = window.InspectorAgentView;
+var AV = window.InspectorAgentView;
 
 // ─────────────────────────── the union itself ───────────────────────────────
 

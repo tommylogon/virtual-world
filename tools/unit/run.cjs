@@ -209,6 +209,7 @@ load('static/js/inspector/agent-view.js');
 // window.AutoDressModal at click time (not at eval time), but grouping first
 // keeps the load order matching the template's script order.
 load('static/js/inspector/auto-dress-modal.js');
+load('static/js/inspector/entity-editor.js');
 load('static/js/agent/prompt-builder/helpers.js');
 load('static/js/agent/prompt-builder/character-state.js');
 load('static/js/agent/prompt-builder/memory-context.js');
@@ -222,6 +223,7 @@ load('static/js/agent/prompt-builder/contextual-actions.js');
 load('static/js/agent/prompt-builder/turn-prompts.js');
 load('static/js/agent/prompt-builder/system-prompt.js');
 load('static/js/agent/prompt-builder/room-context.js');
+load('static/js/agent/action-interpreter.js');
 // capture.js - the shared "what would this character's turn prompt be?"
 // capture used by the benchmark harnesses. It only reaches the other
 // prompt-builder modules at call time, so it loads after them.

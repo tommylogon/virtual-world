@@ -4,7 +4,7 @@
  * Qualitative physical sensations without arcade imperative barks (task-905).
  */
 'use strict';
-const PB = window.PromptBuilder;
+var PB = window.PromptBuilder;
 
 test('describeVital returns empty for missing or healthy vitals', () => {
     assertEq(PB.describeVital({}, 'Hunger'), '', 'missing vital');

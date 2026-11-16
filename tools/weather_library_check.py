@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 REGISTRY = ROOT / "data" / "library" / "weather"
-START_STATE = "clear"   # ForecastSchedule.current_state default
+START_STATE = "clear"   # Forecast.current_state default
 
 
 def _load() -> list[tuple[Path, dict]]:

@@ -70,16 +70,18 @@ def _one(kind: str, num: int):
 
 
 @mcp.tool()
-def list_tasks(status: str = "", area: str = "", kind: str = "") -> str:
+def list_tasks(status: str = "", area: str = "", kind: str = "",
+               tag: str = "") -> str:
     """List dev-task cards, optionally filtered.
 
     Args:
         status: todo | inprogress | review | done | cancelled (blank = all).
         area: topic folder, e.g. gameplay, ui, graph (blank = all).
         kind: task | bug (blank = both).
+        tag: normalized tag slug to match (blank = all).
     """
     _, out = _run(tasks.cmd_list, status=status or None,
-                  area=area or None, kind=kind or None)
+                  area=area or None, kind=kind or None, tag=tag or None)
     return out or "no matching cards"
 
 
@@ -165,6 +167,8 @@ def _fm_updates_from_fields(fields: Optional[Dict]) -> Dict[str, str]:
             continue
         if key == "wiki":
             updates["wiki"] = f'"{value}"'
+        elif key == "tags":
+            updates["tags"] = tasks._format_yaml_list(tasks._as_tags(value))
         elif key in tasks.DEPENDENCY_KEYS:
             updates[key] = f"[{tasks._fmt_refs(value)}]"
         else:

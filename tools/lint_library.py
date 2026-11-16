@@ -45,7 +45,7 @@ DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
 _CHARSET_REGISTRIES = ("items", "characters", "areas", "tags", "ways")
 
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
-                "unauthored_consumables", "resource_pools")
+                "unauthored_consumables", "resource_pools", "duplicate_surrogate_ids")
 WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset",
 "duplicate_area_names", "biome_coverage", "stray_library_dirs")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
@@ -513,6 +513,29 @@ def check_area_tag_gaps(areas, report):
                     f"{len(untagged)} areas have no tags: {', '.join(untagged)}")
 
 
+def check_duplicate_surrogate_ids(ctx, report):
+    """Ensure surrogate IDs (character_id, item_id, area_id, way_id) are unique across entries (task-667)."""
+    fields = {
+        "characters": "character_id",
+        "items": "item_id",
+        "areas": "area_id",
+        "ways": "way_id",
+    }
+    for reg_type, field in fields.items():
+        entries = ctx.get(reg_type) or {}
+        seen = {}
+        for file_key, val in entries.items():
+            if not isinstance(val, dict):
+                continue
+            surrogate = str(val.get(field) or val.get("id") or "").strip()
+            if surrogate:
+                if surrogate in seen:
+                    report.error("duplicate_surrogate_ids",
+                                 f"{reg_type}: duplicate surrogate ID '{surrogate}' shared by '{seen[surrogate]}' and '{file_key}'")
+                else:
+                    seen[surrogate] = file_key
+
+
 CHECKS = {
     "dead_interests": lambda ctx, r: check_dead_interests(ctx["items"], ctx["characters"], r),
     "dead_fears": lambda ctx, r: check_dead_fears(ctx["items"], ctx["characters"], ctx["areas"], r),
@@ -534,6 +557,7 @@ CHECKS = {
 "duplicate_area_names": lambda ctx, r: check_duplicate_area_names(ctx["areas"], r),
     "biome_coverage": lambda ctx, r: check_biome_coverage(ctx["items"], ctx["biomes"], r),
     "stray_library_dirs": lambda ctx, r: check_stray_library_dirs(ctx["lib_dir"], r),
+    "duplicate_surrogate_ids": lambda ctx, r: check_duplicate_surrogate_ids(ctx, r),
 }
 
 

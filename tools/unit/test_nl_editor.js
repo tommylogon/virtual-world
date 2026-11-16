@@ -1,5 +1,5 @@
 /**
- * test_nl_editor.js — Unit tests for Natural-Language Editor (task-387).
+ * test_nl_editor.js - Unit tests for Natural-Language Editor (task-387).
  * Tests staging buffer, overlay graph view, and atomic context window pruning.
  */
 'use strict';
@@ -217,6 +217,30 @@ test('AgentLoop._extractXmlToolCalls parses XML-ish tool prose into real tool_ca
     assertTrue(calls[0].id.startsWith('xml_'), 'call id prefixed for history tracking');
 });
 
+test('AgentLoop._extractXmlToolCalls parses pipe-delimited <|tool_calls|><|invoke|> shape (bug-539)', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const agent = new NLEditorAgent.AgentLoop(staging, router);
+
+    // Exact reproduction markup from bug-539
+    const recorded = '<|tool_calls|><|invoke|>search_library_items<|parameter|>query||<|parameter|>tags[]string<|parameter|>[]<|/invoke|><|/tool_calls|>';
+    const calls = agent._extractXmlToolCalls(recorded);
+    assertEq(calls.length, 1, 'pipe-delimited tool_calls must parse into executable call');
+    assertEq(calls[0].function.name, 'search_library_items');
+    const args = JSON.parse(calls[0].function.arguments);
+    assertEq(args.query, '');
+    assertEq(JSON.stringify(args.tags), '[]');
+
+    // Multi-call pipe-delimited sequence
+    const multi = '<|tool_calls|><|invoke|>search_library_items<|parameter|>query||lantern<|/invoke|><|invoke|>get_node<|parameter|>node_id||player_Zoe<|/invoke|><|/tool_calls|>';
+    const multiCalls = agent._extractXmlToolCalls(multi);
+    assertEq(multiCalls.length, 2, 'both multi-calls parsed');
+    assertEq(multiCalls[0].function.name, 'search_library_items');
+    assertEq(JSON.parse(multiCalls[0].function.arguments).query, 'lantern');
+    assertEq(multiCalls[1].function.name, 'get_node');
+    assertEq(JSON.parse(multiCalls[1].function.arguments).node_id, 'player_Zoe');
+});
+
 test('AgentLoop._extractXmlToolCalls parses the <tool_call>/<parameter> shape (live bug)', () => {
     const staging = new NLEditorStaging.StagingBuffer();
     const router = new NLEditorTools.ToolRouter(staging);
@@ -343,7 +367,7 @@ test('OverlayGraphView previews a staged bulk patch on every matched node', () =
 
 // ── AgentLoop: Apply must not flush the conversation ──
 
-/** Minimal router/staging pair — buildSystemPrompt only needs listWorldSummary. */
+/** Minimal router/staging pair - buildSystemPrompt only needs listWorldSummary. */
 function _fakeLoop() {
     const staging = new NLEditorStaging.StagingBuffer();
     const router = { overlay: { listWorldSummary: () => '- world summary' } };
@@ -361,7 +385,7 @@ test('afterApply keeps the conversation and records the commit', () => {
     loop.onUpdate((e) => events.push(e));
     loop.afterApply(3, 0);
 
-    // The whole conversation survives — this is the regression: Apply used to
+    // The whole conversation survives - this is the regression: Apply used to
     // call resetSession(), wiping `messages` and the chat transcript.
     assertEq(loop.messages.length, before + 1);
     assertTrue(loop.messages.some(m => m.content === 'add a lamp'), 'user turn kept');
@@ -421,3 +445,84 @@ test('ToolRouter execute handles list_world_issues with filtering and severity b
         window.ApiClient = origApi;
     }
 });
+
+// ── Per-op undo for an applied batch (task-743) ──
+
+test('StagingBuffer tracks appliedOps with inverse_op and performs per-op undo', async () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const op1 = staging.addOp('create_node', {
+        node: { id: 'item_gem_1', type: 'item', name: 'Gem' }
+    }, 'Create Gem');
+    const op2 = staging.addOp('create_node', {
+        node: { id: 'item_gem_2', type: 'item', name: 'Gem 2' }
+    }, 'Create Gem 2');
+
+    const origApi = window.ApiClient;
+    let undoCalls = [];
+    window.ApiClient = {
+        post: async (url, data) => {
+            if (url === '/api/graph/batch') {
+                return {
+                    status: 'success',
+                    applied: [
+                        { index: 0, inverse_op: { type: 'delete_node', payload: { node_id: 'item_gem_1' } } },
+                        { index: 1, inverse_op: { type: 'delete_node', payload: { node_id: 'item_gem_2' } } },
+                    ],
+                    errors: [],
+                };
+            }
+            if (url === '/api/graph/batch/undo-op') {
+                undoCalls.push(data);
+                return { status: 'success' };
+            }
+            return { status: 'success' };
+        }
+    };
+
+    try {
+        const res = await staging.apply();
+        assertTrue(res.success, 'batch apply succeeds');
+        assertEq(staging.getOps().length, 0, 'staged ops cleared on apply');
+        const applied = staging.getAppliedOps();
+        assertEq(applied.length, 2, 'two ops recorded in appliedOps');
+        assertEq(applied[0].id, op1.id);
+        assertTrue(applied[0].inverse_op !== undefined, 'inverse_op preserved');
+
+        // Undo op1 only
+        const undoRes = await staging.undoOp(op1.id);
+        assertTrue(undoRes.success, 'undoOp succeeds');
+        assertEq(undoCalls.length, 1, 'one call to /api/graph/batch/undo-op');
+        assertEq(undoCalls[0].inverse_op.type, 'delete_node');
+        assertEq(undoCalls[0].inverse_op.payload.node_id, 'item_gem_1');
+
+        // appliedOps now only has op2
+        assertEq(staging.getAppliedOps().length, 1);
+        assertEq(staging.getAppliedOps()[0].id, op2.id);
+    } finally {
+        window.ApiClient = origApi;
+    }
+});
+
+test('UI._renderAppliedRow renders checkmark and undo button', async () => {
+    const mockController = {
+        staging: {
+            undoOp: async (id) => ({ success: true }),
+        }
+    };
+    const ui = new NLEditorUI.UI(mockController);
+    const op = {
+        id: 'op_test_1',
+        summary: 'Create Gem',
+        applied: true,
+        inverse_op: { type: 'delete_node', payload: { node_id: 'item_gem_1' } },
+    };
+
+    const row = ui._renderAppliedRow(op);
+    assertTrue(row !== null, 'rendered row exists');
+    // Check children in stub DOM environment
+    const texts = (row.children || []).map(c => c.textContent);
+    assertTrue(texts.some(t => t.includes('✔')), 'contains checkmark badge');
+    assertTrue(texts.some(t => t.includes('Create Gem')), 'contains summary');
+    assertTrue(texts.some(t => t.includes('Undo')), 'contains Undo button');
+});
+

@@ -1,4 +1,4 @@
-/** Unit tests for conversation-context.js — speech salience + anti-repeat (task-321). */
+/** Unit tests for conversation-context.js - speech salience + anti-repeat (task-321). */
 'use strict';
 const CC = window.PromptBuilder;
 
@@ -94,12 +94,12 @@ test('buildConversationInstinct empty when nothing notable', () => {
 // ── verbatim speech text (bug-28) ──
 //
 // A 2026-08-23 export showed the anti-repeat section quoting a character's own
-// line back as "that s— that s advanced dlc content" — apostrophes replaced by
-// spaces and everything lowercased — while the "You said:" echo of the same
+// line back as "that s- that s advanced dlc content" - apostrophes replaced by
+// spaces and everything lowercased - while the "You said:" echo of the same
 // utterance in the same turn was verbatim. The transform no longer exists; these
 // pin the invariant so a normalising pass cannot creep back in.
 
-const PUNCTY = "NO. No licking — that's NOT weird, I'm sure! You've... *stop*";
+const PUNCTY = "NO. No licking - that's NOT weird, I'm sure! You've... *stop*";
 
 test('ownRecentSpeech preserves apostrophes and capitalisation', () => {
     const player = { recent_hearing: [{ type: 'speech', speaker: 'Lyrie', text: PUNCTY }] };
@@ -117,9 +117,9 @@ test('buildConversationInstinct emits the line verbatim', () => {
 });
 
 test('markSpeechLine leaves the spoken text untouched', () => {
-    const line = '[Heard] a voice said: "I\'m fine, don\'t worry — truly"';
+    const line = '[Heard] a voice said: "I\'m fine, don\'t worry - truly"';
     assertEq(
-        CC.markSpeechLine(line, 'I\'m fine, don\'t worry — truly', 'Lyrie', {}),
+        CC.markSpeechLine(line, 'I\'m fine, don\'t worry - truly', 'Lyrie', {}),
         line
     );
 });
@@ -130,4 +130,24 @@ test('dedupe is case-insensitive but keeps the first spelling', () => {
         { type: 'speech', speaker: 'Lyrie', text: "i'm fine." },
     ] };
     assertEq(CC.ownRecentSpeech(player, 'Lyrie'), ['"I\'m Fine."']);
+});
+
+// -- task-683: WITNESSED speech line attribution --
+
+test('markSpeechLine with heard from direction keeps speaker attribution intact', () => {
+    const line = '[Heard] a woman\'s voice from the library door said: "elena!! the bookcase"';
+    const result = CC.markSpeechLine(line, 'elena!! the bookcase', 'Elena', {});
+    assertEq(
+        result,
+        '[Heard \u2192 addressed to you] a woman\'s voice from the library door said: "elena!! the bookcase"'
+    );
+});
+
+test('legacy heard line with bracketed direction does not attribute speech to door', () => {
+    const line = '[Heard from the library_door_back] a woman\'s voice said: "elena!! the bookcase"';
+    const result = CC.markSpeechLine(line, 'elena!! the bookcase', 'Elena', {});
+    assertEq(
+        result,
+        '[Heard \u2192 addressed to you] (from the library door) a woman\'s voice said: "elena!! the bookcase"'
+    );
 });

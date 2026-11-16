@@ -132,7 +132,7 @@ DEPENDENCY_KEYS = ("related", "blocks", "blocked_by", "depends_on",
                    "supersedes", "parent", "children")
 # Frontmatter keys the schema knows, in the order `new`/`set` emit them.
 CANONICAL_FRONTMATTER = ("type", "status", "area", "priority", "horizon",
-                         "effort", "goal", "wiki") + DEPENDENCY_KEYS
+                         "effort", "goal", "wiki", "tags") + DEPENDENCY_KEYS
 HORIZONS = ("now", "next", "later")
 PRIORITIES = ("low", "medium", "high")
 EFFORTS = ("S", "M", "L")
@@ -290,6 +290,49 @@ def browser_ui_issue(text: str) -> str:
 
 def default_root() -> Path:
     return Path(__file__).resolve().parent.parent / "docs" / "virtualWorld" / "dev_tasks"
+
+
+DONE_BASELINE_NAME = "done-validation-baseline.txt"
+
+
+def done_baseline_path(root: Path) -> Path:
+    return Path(root) / DONE_BASELINE_NAME
+
+
+def read_done_baseline(root: Path) -> Set[str]:
+    path = done_baseline_path(root)
+    if not path.exists():
+        return set()
+    return {
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#")
+    }
+
+
+def write_done_baseline(root: Path, rel_paths: Iterable[str]) -> Path:
+    path = done_baseline_path(root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    header = (
+        "# Grandfathered done tasks lacking checked acceptance or evidence.\n"
+        "# Existing debt recorded so legacy cards do not block validation;\n"
+        "# new work moved to done must have checked acceptance and evidence.\n"
+        "# Regenerate: python tools/tasks.py validate --update-baseline\n"
+    )
+    lines = [header] + [p + "\n" for p in sorted(set(rel_paths))]
+    path.write_text("".join(lines), encoding="utf-8")
+    return path
+
+
+def has_checked_acceptance(text: str) -> bool:
+    secs = body_sections(text)
+    acc = secs.get("acceptance", "")
+    return bool(re.search(r"^\s*[-*]\s*\[[xX]\]", acc, re.MULTILINE))
+
+
+def has_evidence_marker(text: str) -> bool:
+    return bool(re.search(r"verified|repro|test|screenshot", text, re.IGNORECASE))
+
 
 
 # ── dependency wikilinks ─────────────────────────────────────────────────
@@ -601,6 +644,30 @@ def _as_refs(value) -> List[str]:
         for kind, num in REF_RE.findall(str(item)):
             out.append(f"{kind.lower()}-{int(num)}")
     return out
+
+
+def _as_tags(value) -> List[str]:
+    """Normalise frontmatter/payload ``tags`` into unique lowercase slugs."""
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        raw_items = value
+    else:
+        raw_items = re.split(r"[,]+", str(value))
+    out: List[str] = []
+    seen = set()
+    for item in raw_items:
+        tag = re.sub(r"\s+", "-", str(item).strip().strip("#").lower())
+        tag = tag.strip("-")
+        if tag and tag not in seen:
+            seen.add(tag)
+            out.append(tag)
+    return out
+
+
+def _format_yaml_list(items: List[str]) -> str:
+    """Render a compact inline YAML list for frontmatter fields like tags."""
+    return "[" + ", ".join(items) + "]"
 
 
 def _parse_one(path: Path, root: Path) -> Tuple[Entry, int, int]:
@@ -1039,6 +1106,9 @@ def render_card(*, kind: str, num: int, title: str, status: str, area: str,
     w = str(payload.get("wiki") or wiki or "").strip()
     if w:
         fm.append(f'wiki: "{w}"')
+    tags = _as_tags(payload.get("tags"))
+    if tags:
+        fm.append(f"tags: {_format_yaml_list(tags)}")
     linked_dict = payload.get("linked", {}) if isinstance(payload.get("linked"), dict) else {}
     for key in DEPENDENCY_KEYS:
         val = payload.get(key) or linked_dict.get(key)
@@ -1056,6 +1126,114 @@ def render_card(*, kind: str, num: int, title: str, status: str, area: str,
     for key, heading, _aliases in CANONICAL_SECTIONS:
         out += [f"## {heading}", "", _section_md(key, payload.get(key)), ""]
     return "\n".join(out).rstrip() + "\n"
+
+
+def _strip_frontmatter(text: str) -> str:
+    """Return card markdown body without the leading YAML frontmatter block."""
+    if _split_frontmatter(text) is None:
+        return text
+    end = text.find("\n---", 3)
+    return text if end == -1 else text[end + 4:].lstrip("\n")
+
+
+def entry_to_json(entry: Entry, root: Optional[Path] = None) -> Dict:
+    """Export one Markdown task card into the canonical JSON schema."""
+    text = read_text(entry.path)
+    fm = entry.frontmatter()
+    body = _strip_frontmatter(text)
+
+    filed_match = re.search(r"(?im)^\*\*Filed:\*\*[ \t]*([^\r\n]+)", body)
+    filed = filed_match.group(1).strip() if filed_match else str(fm.get("filed") or "").strip()
+
+    linked: Dict[str, List[str]] = {}
+    for key in DEPENDENCY_KEYS:
+        refs = _as_refs(fm.get(key))
+        if refs:
+            linked[key] = refs
+
+    sections: Dict[str, str] = {}
+    extra_sections: Dict[str, str] = {}
+    for heading, chunk in iter_h2(body):
+        key = SECTION_KEY_BY_HEADING.get(heading.lower())
+        if key and key not in sections:
+            sections[key] = chunk.strip()
+        elif heading not in extra_sections:
+            extra_sections[heading] = chunk.strip()
+
+    rel_path = (entry.path.relative_to(root).as_posix()
+                if root is not None else entry.path.name)
+    return {
+        "schema_version": 1,
+        "id": entry.id,
+        "kind": entry.kind,
+        "num": entry.num,
+        "slug": entry.slug,
+        "title": entry.title(),
+        "status": entry.status or str(fm.get("status") or "").strip(),
+        "area": entry.area or str(fm.get("area") or "").strip(),
+        "priority": str(fm.get("priority") or "medium").strip(),
+        "horizon": str(fm.get("horizon") or "").strip(),
+        "effort": str(fm.get("effort") or "").strip(),
+        "goal": str(fm.get("goal") or "").strip(),
+        "wiki": str(fm.get("wiki") or "").strip(),
+        "filed": filed,
+        "tags": _as_tags(fm.get("tags")),
+        "linked": linked,
+        "superseded_by": _as_refs(fm.get("superseded_by")),
+        "invalidated_at": str(fm.get("invalidated_at") or "").strip(),
+        "sections": sections,
+        "extra_sections": extra_sections,
+        "source_path": rel_path,
+    }
+
+
+def render_markdown_from_json(doc: Dict, *,
+                              stems: Optional[Dict[str, str]] = None) -> str:
+    """Render a task JSON document back into a temporary Markdown preview."""
+    kind = str(doc.get("kind") or "task").strip() or "task"
+    num = int(doc.get("num") or 0)
+    if not num and isinstance(doc.get("id"), str):
+        m = REF_RE.search(doc["id"])
+        if m:
+            kind = m.group(1).lower()
+            num = int(m.group(2))
+    payload: Dict = {
+        "horizon": doc.get("horizon") or "",
+        "effort": doc.get("effort") or "",
+        "goal": doc.get("goal") or "",
+        "wiki": doc.get("wiki") or "",
+        "tags": doc.get("tags") or [],
+        "linked": doc.get("linked") if isinstance(doc.get("linked"), dict) else {},
+    }
+    sections = doc.get("sections") if isinstance(doc.get("sections"), dict) else {}
+    for key, _heading, _aliases in CANONICAL_SECTIONS:
+        if key in sections:
+            payload[key] = sections[key]
+
+    related = ""
+    if isinstance(payload["linked"], dict) and payload["linked"].get("related"):
+        related = ", ".join(_as_refs(payload["linked"]["related"]))
+
+    md = render_card(
+        kind=kind,
+        num=num,
+        title=str(doc.get("title") or "Untitled").strip(),
+        status=str(doc.get("status") or "todo").strip() or "todo",
+        area=str(doc.get("area") or "general").strip() or "general",
+        priority=str(doc.get("priority") or "medium").strip() or "medium",
+        filed=str(doc.get("filed") or _dt.date.today().isoformat()).strip(),
+        related=related,
+        wiki=str(doc.get("wiki") or "").strip(),
+        payload=payload,
+        stems={} if stems is None else stems,
+    )
+    extra = doc.get("extra_sections")
+    if isinstance(extra, dict) and extra:
+        chunks = [md.rstrip("\n"), ""]
+        for heading, body in extra.items():
+            chunks.extend([f"## {heading}", "", str(body or "").strip(), ""])
+        md = "\n".join(chunks).rstrip() + "\n"
+    return md
 
 
 # --- merge writer ---------------------------------------------------------
@@ -1213,9 +1391,11 @@ def cmd_new(args) -> int:
             print(f"error: --json is not valid JSON: {exc}", file=sys.stderr)
             return 1
 
-    # --goal / --related still work alongside --json; the payload wins.
+    # --goal / --related / --tags still work alongside --json; the payload wins.
     if args.goal and "what" not in payload:
         payload["what"] = args.goal
+    if getattr(args, "tags", "") and "tags" not in payload:
+        payload["tags"] = _as_tags(args.tags)
 
     # Policy (task-797): a card must name the note it concerns, so that note can
     # carry a real changelog of the work that touched it. Without this the
@@ -1387,6 +1567,8 @@ def cmd_set(args) -> int:
             fm_updates[key] = str(value)
     if getattr(args, "wiki", None) is not None:
         fm_updates["wiki"] = f'"{args.wiki}"'
+    if getattr(args, "tags", None) is not None:
+        fm_updates["tags"] = _format_yaml_list(_as_tags(args.tags))
     for key in DEPENDENCY_KEYS:
         value = getattr(args, key, None)
         if value is not None:
@@ -1437,17 +1619,115 @@ def cmd_index(args) -> int:
     return 0
 
 
-def cmd_list(args) -> int:
-    rows = [e for e in iter_entries(args.root) if e.kind]
-    if args.status:
-        rows = [e for e in rows if e.status == args.status]
-    if args.area:
-        rows = [e for e in rows if e.area == args.area]
-    if args.kind:
-        rows = [e for e in rows if e.kind == args.kind]
+def _filter_entries(entries: List[Entry], *, status: Optional[str] = None,
+                    area: Optional[str] = None, kind: Optional[str] = None,
+                    tag: Optional[str] = None) -> List[Entry]:
+    """Filter task entries by status folder, area, kind, and normalized tag."""
+    rows = [e for e in entries if e.kind]
+    if status:
+        rows = [e for e in rows if e.status == status]
+    if area:
+        rows = [e for e in rows if e.area == area]
+    if kind:
+        rows = [e for e in rows if e.kind == kind]
+    want_tags = _as_tags(tag) if tag else []
+    if want_tags:
+        want = set(want_tags)
+        rows = [e for e in rows
+                if want.issubset(set(_as_tags(e.frontmatter().get("tags"))))]
     rows.sort(key=lambda e: (e.kind, e.num))
+    return rows
+
+
+def cmd_list(args) -> int:
+    rows = _filter_entries(
+        iter_entries(args.root),
+        status=args.status,
+        area=args.area,
+        kind=args.kind,
+        tag=getattr(args, "tag", None),
+    )
     for e in rows:
         print(f"{e.id:<10} {e.status:<10} {e.area:<12} {e.title()}")
+    return 0
+
+
+def cmd_export_json(args) -> int:
+    """Export one task card or a filtered set into canonical JSON."""
+    entries = [e for e in iter_entries(args.root) if e.kind]
+    card_id = getattr(args, "id", None)
+    if card_id is not None:
+        kind = getattr(args, "kind", None) or "task"
+        matches = find_by_id(entries, kind, card_id)
+        if not matches:
+            print(f"error: no {kind}-{card_id} found", file=sys.stderr)
+            return 1
+        if len(matches) > 1:
+            print(f"error: {kind}-{card_id} is ambiguous", file=sys.stderr)
+            return 1
+        payload: Dict = entry_to_json(matches[0], root=args.root)
+    else:
+        rows = _filter_entries(
+            entries,
+            status=getattr(args, "status", None),
+            area=getattr(args, "area", None),
+            kind=getattr(args, "kind", None),
+            tag=getattr(args, "tag", None),
+        )
+        out_dir = getattr(args, "dir", None)
+        if out_dir:
+            base = Path(out_dir)
+            for e in rows:
+                dest = (base / (e.status or "unfiled") / (e.area or "general")
+                        / f"{e.kind}-{e.num}-{e.slug}.json")
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_text(
+                    json.dumps(entry_to_json(e, root=args.root), indent=2,
+                               ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+            print(f"exported {len(rows)} tasks -> {base}")
+            return 0
+        payload = {
+            "schema_version": 1,
+            "count": len(rows),
+            "tasks": [entry_to_json(e, root=args.root) for e in rows],
+        }
+
+    rendered = json.dumps(payload, indent=2, ensure_ascii=False)
+    out_file = getattr(args, "out", None)
+    if out_file:
+        target = Path(out_file)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(rendered + "\n", encoding="utf-8")
+        print(str(target))
+    else:
+        print(rendered)
+    return 0
+
+
+def cmd_preview_md(args) -> int:
+    """Render a task JSON file as a temporary canonical Markdown preview."""
+    src = Path(args.file)
+    try:
+        doc = json.loads(src.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        print(f"error: failed to read task JSON {src}: {exc}", file=sys.stderr)
+        return 1
+    if not isinstance(doc, dict):
+        print(f"error: {src} must contain a JSON object", file=sys.stderr)
+        return 1
+    root = Path(args.root)
+    stems = dep_stems(root) if root.is_dir() else {}
+    md = render_markdown_from_json(doc, stems=stems)
+    out_file = getattr(args, "out", None)
+    if out_file:
+        target = Path(out_file)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(md, encoding="utf-8")
+        print(str(target))
+    else:
+        print(md.rstrip("\n"))
     return 0
 
 
@@ -1971,10 +2251,17 @@ def _schema_warnings(entries: List[Entry]) -> List[str]:
         needs = _frontmatter_needs(text)
         if needs:
             out.append(f"{e.id} ({e.status}) missing frontmatter: {', '.join(needs)}")
+        if e.status == "review":
+            if not has_checked_acceptance(text):
+                out.append(f"{e.id} review with zero checked acceptance boxes")
         if e.status == "done":
             secs = body_sections(text)
             if re.search(r"^\s*-\s*\[ \]", secs.get("acceptance", ""), re.MULTILINE):
                 out.append(f"{e.id} done with an unchecked acceptance box")
+            if not has_checked_acceptance(text):
+                out.append(f"{e.id} done with zero checked acceptance boxes")
+            if not has_evidence_marker(text):
+                out.append(f"{e.id} done with no evidence marker (/verified|repro|test|screenshot/i)")
         if e.status in ("review", "done"):
             secs = body_sections(text)
             if re.search(r"observed\s*:\s*TODO", secs.get("verify", ""), re.IGNORECASE):
@@ -1987,6 +2274,12 @@ def cmd_validate(args) -> int:
     errors: List[str] = []
     warnings: List[str] = []
     stems = {e.id: e.path.stem for e in entries if e.kind}
+
+    baseline = read_done_baseline(args.root)
+    update_baseline = getattr(args, "update_baseline", False)
+    new_baseline_entries: List[str] = []
+    baselined_done_count = 0
+    review_no_acc: List[str] = []
 
     # Duplicate ids
     seen: Dict[Tuple[str, int], List[Entry]] = {}
@@ -2062,6 +2355,29 @@ def cmd_validate(args) -> int:
         if gap:
             warnings.append(f"{e.id}: {gap} (run link-deps --write)")
 
+        # task-697: Acceptance and evidence validation gate
+        effective_status = e.status or folder_status or declared_status
+        if is_task_card and effective_status == "done":
+            try:
+                rel_path = str(e.path.resolve().relative_to(browser_ui_root)).replace("\\", "/")
+            except ValueError:
+                rel_path = e.path.name
+            acc_ok = has_checked_acceptance(text)
+            ev_ok = has_evidence_marker(text)
+            if not acc_ok or not ev_ok:
+                if update_baseline:
+                    new_baseline_entries.append(rel_path)
+                elif rel_path in baseline:
+                    baselined_done_count += 1
+                else:
+                    if not acc_ok:
+                        errors.append(f"{e.id or rel_path}: done card has zero checked '- [x]' boxes in Acceptance")
+                    if not ev_ok:
+                        warnings.append(f"{e.id or rel_path}: done card has no evidence marker (/verified|repro|test|screenshot/i)")
+        elif is_task_card and effective_status == "review":
+            if not has_checked_acceptance(text):
+                review_no_acc.append(e.id or e.path.stem)
+
     # wiki: policy. A card with no `wiki:` is not tied to any note, so that note
     # cannot show a changelog of the work that touched it. Reported as one count
     # rather than per card: most of the tree predates the policy, and 900 lines
@@ -2089,6 +2405,25 @@ def cmd_validate(args) -> int:
 
     if getattr(args, "schema", False):
         warnings.extend(_schema_warnings(entries))
+
+    if update_baseline:
+        out_path = write_done_baseline(args.root, new_baseline_entries)
+        print(f"wrote {out_path} ({len(new_baseline_entries)} grandfathered done card(s))")
+        return 0
+
+    if baselined_done_count > 0:
+        warnings.append(
+            f"{baselined_done_count} grandfathered done card(s) lack checked acceptance/evidence "
+            f"(accepted in {DONE_BASELINE_NAME})"
+        )
+
+    if review_no_acc:
+        examples = ", ".join(review_no_acc[:4])
+        suffix = "" if len(review_no_acc) <= 4 else f" (+{len(review_no_acc) - 4} more)"
+        warnings.append(
+            f"{len(review_no_acc)} review card(s) have zero checked acceptance boxes "
+            f"(review permits partial work): {examples}{suffix}; run validate --schema for per-card details"
+        )
 
     if not args.quiet:
         for w in warnings:
@@ -3454,6 +3789,7 @@ def build_parser() -> argparse.ArgumentParser:
     nw.add_argument("--goal", default="")
     nw.add_argument("--json", help="JSON payload: section bodies + frontmatter (or @file)")
     nw.add_argument("--wiki", default="", help='Obsidian link, e.g. "[[Feature Map]]"')
+    nw.add_argument("--tags", default="", help="comma-separated tags, e.g. memory,soak")
     nw.add_argument("--allow-stubs", "--scaffold", dest="allow_stubs", action="store_true",
                     help="permit placeholder/TODO stubs (default: rejected)")
     nw.add_argument("--force", action="store_true")
@@ -3474,6 +3810,7 @@ def build_parser() -> argparse.ArgumentParser:
     se.add_argument("--effort", choices=EFFORTS)
     se.add_argument("--goal")
     se.add_argument("--wiki")
+    se.add_argument("--tags", help="comma-separated tags (pass empty string to clear)")
     for _key in DEPENDENCY_KEYS:
         se.add_argument("--" + _key.replace("_", "-"), dest=_key)
     se.add_argument("--section", choices=sorted(SECTION_TITLE_BY_KEY),
@@ -3486,7 +3823,23 @@ def build_parser() -> argparse.ArgumentParser:
     ls.add_argument("--status", choices=STATUSES)
     ls.add_argument("--area")
     ls.add_argument("--kind", choices=KINDS)
+    ls.add_argument("--tag", help="filter by normalized tag")
     ls.set_defaults(func=cmd_list)
+
+    ej = sub.add_parser("export-json", help="export card(s) into canonical JSON")
+    ej.add_argument("--id", type=int, help="export a single card id")
+    ej.add_argument("--status", choices=STATUSES)
+    ej.add_argument("--area")
+    ej.add_argument("--kind", choices=KINDS)
+    ej.add_argument("--tag", help="filter by normalized tag")
+    ej.add_argument("--out", help="write JSON bundle or card to this file path")
+    ej.add_argument("--dir", help="write individual JSON files under this directory")
+    ej.set_defaults(func=cmd_export_json)
+
+    pm = sub.add_parser("preview-md", help="render a task JSON file as Markdown")
+    pm.add_argument("--file", required=True, help="input task JSON file path")
+    pm.add_argument("--out", help="write temporary Markdown preview to this file path")
+    pm.set_defaults(func=cmd_preview_md)
 
     st = sub.add_parser("status", help="counts by status/area/horizon")
     st.add_argument("--json", action="store_true")
@@ -3529,6 +3882,8 @@ def build_parser() -> argparse.ArgumentParser:
     v.add_argument("--quiet", action="store_true")
     v.add_argument("--schema", action="store_true",
                    help="also list per-card canonical-schema gaps (including browser UI intent)")
+    v.add_argument("--update-baseline", action="store_true",
+                   help="record the grandfathered done-validation baseline")
     v.set_defaults(func=cmd_validate)
 
     ix = sub.add_parser("index", help="rebuild or clear the derived frontmatter cache")

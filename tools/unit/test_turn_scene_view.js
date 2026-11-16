@@ -128,6 +128,15 @@ test('scene menus gate budgeted rows on remaining turn slots (bug-562)', () => {
     const personWhisper = personMenuSpent.find((m) => m.label && m.label.startsWith('Whisper'));
     assertTrue(personWhisper.enabled !== false, 'Whisper (free) is enabled');
 
+    const personApproach = personMenuSpent.find((m) => m.label && m.label.startsWith('Approach'));
+    assertTrue(!!personApproach, 'Approach row exists in person menu');
+    assertTrue(personApproach.enabled !== false, 'Approach (minor) is enabled when minor slot remains');
+
+    const personMenuNoMinor = TSV.buildPersonMenu(person, scene, { major: 0, minor: 0, free: 3 });
+    const personApproachNoMinor = personMenuNoMinor.find((m) => m.label && m.label.startsWith('Approach'));
+    assertEq(personApproachNoMinor.enabled, false, 'Approach is disabled when both minor and major are spent');
+    assertEq(personApproachNoMinor.reason, 'no minor action left');
+
     const personGrab = personMenuSpent.find((m) => m.label && m.label.startsWith('Grab'));
     assertTrue(personGrab.enabled !== false, 'Grab (minor) is enabled');
 

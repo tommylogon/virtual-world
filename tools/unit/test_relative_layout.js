@@ -390,7 +390,15 @@ test('dropping a painted node never overwrites its engine units', () => {
     // position over them double-converts, so the node ends up further away on
     // every later layout. Areas were exempted by bug-52; ways and characters
     // were not, and this runs on every dragEnd.
+    //
+    // Under task-767:
+    // - characters and items are never persisted on drop.
+    // - painted areas/ways persist their position converted to `properties.cell`,
+    //   never overwriting `properties.x/y` engine units.
+    // - unpainted areas/ways persist `properties.x/y`.
     const previousGraphManager = globalThis.graphManager;
+    const previousConfig = globalThis.config;
+    globalThis.config = { graphMapSpacing: 800 };
     globalThis.graphManager = {
         _graphNodesObj: {
             way_painted: {
@@ -407,7 +415,7 @@ test('dropping a painted node never overwrites its engine units', () => {
         network: {
             body: {
                 nodes: {
-                    way_painted: { x: 12.3, y: 56.8 },
+                    way_painted: { x: 400, y: 800 },
                     char_painted: { x: 300, y: 400 },
                     way_hand: { x: 12.34, y: 56.78 },
                 },
@@ -416,11 +424,17 @@ test('dropping a painted node never overwrites its engine units', () => {
     };
     try {
         const ops = GraphRelativeLayout.frozenDropOps(['way_painted', 'char_painted', 'way_hand']);
-        assertEq(ops.length, 1, 'only the hand-placed node is written back');
-        assertEq(ops[0].payload.node_id, 'way_hand');
-        assertEq(ops[0].payload.patch.properties, { x: 12.3, y: 56.8 });
+        assertEq(ops.length, 2, 'painted way and unpainted way written back, char ignored');
+        // way_painted converted to cell coords (400 / 800 = 0.5, 800 / 800 = 1.0)
+        assertEq(ops[0].payload.node_id, 'way_painted');
+        assertEq(ops[0].payload.patch.properties, { cell: { x: 0.5, y: 1 } });
+        assertEq(ops[0].payload.patch.properties.x, undefined, 'engine units not overwritten');
+        // way_hand persisted as canvas x/y
+        assertEq(ops[1].payload.node_id, 'way_hand');
+        assertEq(ops[1].payload.patch.properties, { x: 12.3, y: 56.8 });
     } finally {
         globalThis.graphManager = previousGraphManager;
+        globalThis.config = previousConfig;
     }
 });
 
