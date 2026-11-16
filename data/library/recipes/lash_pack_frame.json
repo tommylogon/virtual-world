@@ -44,7 +44,7 @@
           "count": 1
         }
       ],
-      "message": "True angles, tight lashings — carries like a dream. (Carry bonus is a task-703-level effect hook; the frame is the prerequisite.)"
+      "message": "True angles, tight lashings - carries like a dream. (Carry bonus is a task-703-level effect hook; the frame is the prerequisite.)"
     },
     "success": {
       "outputs": [
@@ -63,12 +63,12 @@
           "count": 1
         }
       ],
-      "message": "Creaky and burden-heavy — no bonus, just burden."
+      "message": "Creaky and burden-heavy - no bonus, just burden."
     },
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Broken frame — materials kept, lesson learned."
+      "message": "Broken frame - materials kept, lesson learned."
     }
   },
   "learned_by": [

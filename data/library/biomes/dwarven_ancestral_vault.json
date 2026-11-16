@@ -1,0 +1,15 @@
+{
+  "name": "Ancestral Vault",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "sepulchral",
+    "quiet",
+    "warded"
+  ],
+  "descriptions": [
+    "Granite sarcophagi etched with genealogies and runic curses against theft."
+  ]
+}

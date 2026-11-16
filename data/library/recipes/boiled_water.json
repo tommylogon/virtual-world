@@ -1,7 +1,7 @@
 {
   "id": "boiled_water",
   "name": "Boiled Water",
-  "description": "Water brought to a rolling boil — safe to drink.",
+  "description": "Water brought to a rolling boil - safe to drink.",
   "ingredients": [
     {
       "item": "water_skin",
@@ -40,7 +40,7 @@
           "count": 2
         }
       ],
-      "message": "A full rolling boil — plenty."
+      "message": "A full rolling boil - plenty."
     },
     "success": {
       "outputs": [
@@ -64,7 +64,7 @@
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Pot boiled dry — water lost."
+      "message": "Pot boiled dry - water lost."
     }
   },
   "learned_by": [

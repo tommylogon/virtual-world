@@ -35,5 +35,6 @@
   "library_id": "kyrie_running_shoes",
   "equip_slots": [
     "feet"
-  ]
+  ],
+  "item_id": "item_b13c83ee"
 }

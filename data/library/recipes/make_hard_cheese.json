@@ -44,7 +44,7 @@
           "count": 2
         }
       ],
-      "message": "Firm golden wheels — double."
+      "message": "Firm golden wheels - double."
     },
     "success": {
       "outputs": [
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Never set hard — eat it now."
+      "message": "Never set hard - eat it now."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -73,7 +73,7 @@
           "count": 1
         }
       ],
-      "message": "Curdled wrong — fit for pigs."
+      "message": "Curdled wrong - fit for pigs."
     }
   },
   "learned_by": [

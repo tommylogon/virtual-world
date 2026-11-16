@@ -1,6 +1,6 @@
 {
   "name": "matches",
-  "description": "a small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. it rattles — there are several inside.",
+  "description": "a small box of matches has fallen from the coat pocket - a matchbox with a faded illustration of a raven. it rattles - there are several inside.",
   "actions": "examine,take,use,equip,unequip,drop",
   "uses": 8,
   "weight": 0.1,
@@ -17,6 +17,172 @@
     "survival",
     "toggleable"
   ],
-  "triggers": [],
-  "contents": []
+  "triggers": [
+    {
+      "id": "trigger_1788810108857_2y4h",
+      "trigger_type": "on_examine",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [
+        {
+          "type": "uses_above",
+          "value": 0
+        }
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "A small cardboard box, faded and worn at the edges. The illustration of a raven is peeling, its wings spread as if in flight. You shake it gently - a dry, rapid rattle tells you there are still several matches inside."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788810108857_cu2i",
+      "trigger_type": "on_use",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [
+        {
+          "type": "uses_above",
+          "value": 0
+        }
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You strike a match against the striker strip. The sulfur ignites with a sharp hiss, casting a brief, warm glow that dances across your fingertips."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": "The matchbox is empty - no more sparks to be had."
+    },
+    {
+      "id": "trigger_1788810108857_uh5x",
+      "trigger_type": "on_take",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You pick up the matchbox. It’s lighter than you expected, the cardboard soft from handling. The raven’s eyes seem to follow you as you tuck it into your pocket."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788810108857_g88m",
+      "trigger_type": "on_drop",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You set the matchbox down on the ground. It lands with a soft thud, the raven illustration now facing upward, staring blankly into the dim light."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788810108857_dneo",
+      "trigger_type": "on_equip",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You slip the matchbox into your coat pocket. It settles against your ribs, a small, dry weight - always ready when you need fire."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788810108857_che8",
+      "trigger_type": "on_unequip",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You remove the matchbox from your pocket and hold it in your hand. The raven’s image is smudged now, worn from travel and use."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788810108857_4r2k",
+      "trigger_type": "on_light",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [
+        {
+          "type": "uses_above",
+          "value": 0
+        }
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You strike a match. The flame flares to life, steady and bright - a small beacon in the dark."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": "The matchbox is empty - no more sparks to be had."
+    },
+    {
+      "id": "trigger_1788810108857_92dr",
+      "trigger_type": "on_toggle_off",
+      "target_name": "",
+      "target_state": "",
+      "conditions": [
+        {
+          "target": "self",
+          "type": "state_equals",
+          "value": "lit"
+        }
+      ],
+      "effects": [
+        {
+          "type": "set_state",
+          "params": {
+            "node_id": "self",
+            "state": "unlit"
+          }
+        },
+        {
+          "type": "message",
+          "params": {
+            "message": "The match sputters and dies, leaving behind a wisp of smoke and the faint smell of sulfur."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "item_id": "item_12d1f358"
 }

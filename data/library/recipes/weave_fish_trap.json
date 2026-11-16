@@ -41,7 +41,7 @@
           "place_in_area": true
         }
       ],
-      "message": "Tight funnel weave — fishes itself. (Placement is the task-703 executor's job; the trap spawns carried until then.)"
+      "message": "Tight funnel weave - fishes itself. (Placement is the task-703 executor's job; the trap spawns carried until then.)"
     },
     "success": {
       "outputs": [
@@ -62,7 +62,7 @@
           "place_in_area": true
         }
       ],
-      "message": "Gappy weave — half the catch escapes."
+      "message": "Gappy weave - half the catch escapes."
     },
     "crit_fail": {
       "consume_inputs": true,

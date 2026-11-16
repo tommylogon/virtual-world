@@ -1,0 +1,15 @@
+{
+  "name": "Grand Gatehouse",
+  "terrain": "rock",
+  "surface": "granite",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "defense",
+    "entrance",
+    "fortified"
+  ],
+  "descriptions": [
+    "Cyclopean stone slabs set in adamantine grooves, flanked by murder shafts."
+  ]
+}

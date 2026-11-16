@@ -1,7 +1,7 @@
 {
   "id": "barley_pottage",
   "name": "Barley Pottage",
-  "description": "Thick barley stew with onion — the medieval staple pot.",
+  "description": "Thick barley stew with onion - the medieval staple pot.",
   "ingredients": [
     {
       "item": "barley",
@@ -50,7 +50,7 @@
           "count": 3
         }
       ],
-      "message": "Hearty and thick — feeds the whole table."
+      "message": "Hearty and thick - feeds the whole table."
     },
     "success": {
       "outputs": [
@@ -79,7 +79,7 @@
           "count": 1
         }
       ],
-      "message": "Scorched to the pot — food lost, pot kept."
+      "message": "Scorched to the pot - food lost, pot kept."
     }
   },
   "learned_by": [

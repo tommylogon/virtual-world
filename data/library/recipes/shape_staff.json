@@ -34,7 +34,7 @@
           "count": 1
         }
       ],
-      "message": "Perfectly balanced — hums when spun."
+      "message": "Perfectly balanced - hums when spun."
     },
     "success": {
       "outputs": [
@@ -53,7 +53,7 @@
           "count": 1
         }
       ],
-      "message": "A bend in it — half damage, still a staff."
+      "message": "A bend in it - half damage, still a staff."
     },
     "crit_fail": {
       "consume_inputs": true,

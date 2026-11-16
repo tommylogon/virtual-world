@@ -11148,7 +11148,7 @@
     "months_per_year": 12,
     "year_start_day": 1
   },
-  "forecast_schedule": {
+  "forecast": {
     "entries": [
       {
         "air": "fresh",

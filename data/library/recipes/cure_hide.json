@@ -44,7 +44,7 @@
           "count": 2
         }
       ],
-      "message": "Supple cure — stretched to two."
+      "message": "Supple cure - stretched to two."
     },
     "success": {
       "outputs": [
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Stiff but craftable — worse cuts."
+      "message": "Stiff but craftable - worse cuts."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -73,7 +73,7 @@
           "count": 1
         }
       ],
-      "message": "Rotted on the rack — lost."
+      "message": "Rotted on the rack - lost."
     }
   },
   "learned_by": [

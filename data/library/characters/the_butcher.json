@@ -330,5 +330,6 @@
   "npc_state": "idle",
   "simple_npc": false,
   "recent_hearing": [],
-  "size": "huge"
+  "size": "huge",
+  "character_id": "ch_21fa2006"
 }

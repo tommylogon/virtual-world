@@ -45,7 +45,8 @@
         "Bladder": 24,
         "Sanity": 92,
         "Entertainment": 92,
-        "Temperature": 34.90000000000001
+        "Temperature": 34.90000000000001,
+        "Air": 100
       },
       "state": "awake",
       "perceived_conditions": [],
@@ -196,6 +197,8 @@
       "birth_tick": null,
       "life_stage": null,
       "last_mortality_year": null,
+      "pregnancy": null,
+      "reproductive_cycle": null,
       "discovered_exits": [],
       "interest_tags": [
         "clockwork",
@@ -512,6 +515,7 @@
             "message",
             "name",
             "obligation",
+            "offer",
             "open",
             "recall",
             "say",
@@ -530,6 +534,7 @@
         "goals": []
       },
       "active_pursuit": null,
+      "last_reflection_day": null,
       "plan": null,
       "completed_pursuits": [],
       "controller": "human",
@@ -592,7 +597,8 @@
         "Bladder": 32,
         "Sanity": 94,
         "Entertainment": 95,
-        "Temperature": 34.35999999999999
+        "Temperature": 34.35999999999999,
+        "Air": 100
       },
       "state": "awake",
       "perceived_conditions": [],
@@ -724,6 +730,8 @@
       "birth_tick": null,
       "life_stage": null,
       "last_mortality_year": null,
+      "pregnancy": null,
+      "reproductive_cycle": null,
       "discovered_exits": [],
       "interest_tags": [
         "accessory",
@@ -1129,6 +1137,7 @@
             "message",
             "name",
             "obligation",
+            "offer",
             "open",
             "recall",
             "say",
@@ -1147,6 +1156,7 @@
         "goals": []
       },
       "active_pursuit": null,
+      "last_reflection_day": null,
       "plan": null,
       "completed_pursuits": [],
       "controller": "human",
@@ -1209,7 +1219,8 @@
         "Bladder": 87,
         "Sanity": 80,
         "Entertainment": 92,
-        "Temperature": 35.29999999999999
+        "Temperature": 35.29999999999999,
+        "Air": 100
       },
       "state": "awake",
       "perceived_conditions": [],
@@ -1360,6 +1371,8 @@
       "birth_tick": null,
       "life_stage": null,
       "last_mortality_year": null,
+      "pregnancy": null,
+      "reproductive_cycle": null,
       "discovered_exits": [],
       "interest_tags": [],
       "fear_tags": [],
@@ -1647,6 +1660,7 @@
             "message",
             "name",
             "obligation",
+            "offer",
             "open",
             "recall",
             "say",
@@ -1665,6 +1679,7 @@
         "goals": []
       },
       "active_pursuit": null,
+      "last_reflection_day": null,
       "plan": null,
       "completed_pursuits": [],
       "controller": "inert",
@@ -9552,7 +9567,7 @@
     "months_per_year": 12,
     "year_start_day": 1
   },
-  "forecast_schedule": {
+  "forecast": {
     "mode": "authored",
     "granularity": "hourly",
     "entries": [
@@ -9639,9 +9654,19 @@
         "visible": true
       }
     ],
-    "positions": {},
     "layoutLocked": false
   },
   "commons_theme": "live_social",
+  "turn_order": "sequential",
+  "turn_order_info": {
+    "mode": "sequential",
+    "round": 0,
+    "order": [
+      "210ef457",
+      "33e94855",
+      "a4155dc6"
+    ],
+    "initiative_rolls": {}
+  },
   "schema_version": 2
 }

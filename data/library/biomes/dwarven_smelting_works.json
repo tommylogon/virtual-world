@@ -1,0 +1,15 @@
+{
+  "name": "Smelting Works",
+  "terrain": "slag",
+  "surface": "slag",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "craft",
+    "fire",
+    "industrial"
+  ],
+  "descriptions": [
+    "Troughs of vitrified slag, blast channels, and soot-blackened flues."
+  ]
+}

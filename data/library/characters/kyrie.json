@@ -117,7 +117,7 @@
           "drop"
         ],
         "damage": 12,
-        "description": "a heavy adjustable wrench. kyrie knows how to use it \u2014 both for fixing things and, if necessary, for other purposes.",
+        "description": "a heavy adjustable wrench. kyrie knows how to use it — both for fixing things and, if necessary, for other purposes.",
         "hidden": false,
         "tags": [
           "weapon",
@@ -379,7 +379,7 @@
       "location": "",
       "source": "manual",
       "tags": [],
-      "text": "\"jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong \u2014 too still, too old. i've been in tight spots before. this one feels different",
+      "text": "\"jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different",
       "tick": 0,
       "timestamp": 1784400331.234913,
       "type": "observation"
@@ -423,5 +423,6 @@
   "npc_state": "idle",
   "simple_npc": false,
   "recent_hearing": [],
-  "size": "normal"
+  "size": "normal",
+  "character_id": "ch_649bfcb8"
 }

@@ -35,5 +35,6 @@
   "library_id": "mismatched_socks",
   "equip_slots": [
     "feet"
-  ]
+  ],
+  "item_id": "item_b63ae324"
 }

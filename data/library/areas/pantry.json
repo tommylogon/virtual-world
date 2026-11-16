@@ -164,5 +164,6 @@
       "cardinal": "pantry_door_back"
     }
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_d04dc05f"
 }

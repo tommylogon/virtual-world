@@ -42,5 +42,6 @@
     }
   },
   "uses": "1",
-  "weight": "0.15"
+  "weight": "0.15",
+  "item_id": "item_f37a50dc"
 }

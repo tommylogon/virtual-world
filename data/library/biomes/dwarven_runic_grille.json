@@ -1,0 +1,14 @@
+{
+  "name": "Runic Portcullis",
+  "terrain": "iron",
+  "surface": "iron",
+  "cell_kind": "see_through",
+  "tags": [
+    "cell_kind:see_through",
+    "structure",
+    "barrier"
+  ],
+  "descriptions": [
+    "Heavy wrought iron bars inscribed with warding script; vision passes freely."
+  ]
+}

@@ -39,7 +39,7 @@
           "count": 1
         }
       ],
-      "message": "Even stitching, lofted fill — the best sleep outside a bed."
+      "message": "Even stitching, lofted fill - the best sleep outside a bed."
     },
     "success": {
       "outputs": [
@@ -58,12 +58,12 @@
           "count": 1
         }
       ],
-      "message": "All the stuffing in one corner — half rest."
+      "message": "All the stuffing in one corner - half rest."
     },
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Wasted stitching — picked apart and lost. (The card's fleece-kept/cloth-lost split needs per-input outcome flags, which the engine has no grammar for.)"
+      "message": "Wasted stitching - picked apart and lost. (The card's fleece-kept/cloth-lost split needs per-input outcome flags, which the engine has no grammar for.)"
     }
   },
   "learned_by": [

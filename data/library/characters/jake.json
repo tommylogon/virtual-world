@@ -188,7 +188,7 @@
           "take",
           "drop"
         ],
-        "description": "a water-damaged gardener's notebook. the last entry: 'october 30th \u2014 strange lights in the study again tonight. the missus says it is nothing, but i have worked here 20 years. i know what i saw. the skull. i found a sketch of it in the master's private papers. and i found where it goes \u2014 the altar in the crypt below the graveyard. tomorrow i am leaving. i do not care if they dock my pay.' the notebook ends there.",
+        "description": "a water-damaged gardener's notebook. the last entry: 'october 30th — strange lights in the study again tonight. the missus says it is nothing, but i have worked here 20 years. i know what i saw. the skull. i found a sketch of it in the master's private papers. and i found where it goes — the altar in the crypt below the graveyard. tomorrow i am leaving. i do not care if they dock my pay.' the notebook ends there.",
         "hidden": false,
         "tags": [
           "documents",
@@ -209,7 +209,7 @@
           "take",
           "drop"
         ],
-        "description": "a chewed-up no. 2 pencil. the eraser is long gone. the wood is dented with teeth marks \u2014 jake nervous habit.",
+        "description": "a chewed-up no. 2 pencil. the eraser is long gone. the wood is dented with teeth marks — jake nervous habit.",
         "hidden": false,
         "uses": -1,
         "weight": 0.05
@@ -324,7 +324,7 @@
           "drop"
         ],
         "current_state": "normal",
-        "description": "olive drab cargo shorts with six pockets. there's a mysterious dark stain on the right cargo pocket \u2014 you have no idea what it is and you're afraid to ask. the knees are frayed.",
+        "description": "olive drab cargo shorts with six pockets. there's a mysterious dark stain on the right cargo pocket — you have no idea what it is and you're afraid to ask. the knees are frayed.",
         "equip_slots": [
           "legs"
         ],
@@ -382,7 +382,7 @@
           "take",
           "drop"
         ],
-        "description": "a tiny brass key barely larger than your thumb. it was hidden inside the cracked vase \u2014 taped to the inner wall.",
+        "description": "a tiny brass key barely larger than your thumb. it was hidden inside the cracked vase — taped to the inner wall.",
         "hidden": true,
         "skill_check": {},
         "tags": [
@@ -458,7 +458,7 @@
         "banter",
         "work"
       ],
-      "text": "her name is miki. she rambles exactly like me and got mad when i claimed rambling royalties. she called my eyes fish eyes, then weird-nice. she does ASMR content, some of it lewd patreon stuff \u2014 her last date walked out over it. guys are idiots."
+      "text": "her name is miki. she rambles exactly like me and got mad when i claimed rambling royalties. she called my eyes fish eyes, then weird-nice. she does ASMR content, some of it lewd patreon stuff — her last date walked out over it. guys are idiots."
     },
     {
       "entity_ids": [
@@ -520,7 +520,7 @@
       "ghost_speech": false,
       "speaker": "miki doki",
       "speech_level": "normal",
-      "text": "\u2014and that s why i don t trust the mystery sauce, like, statistically one of us has to survive tonight, right? oh god you re not even back yet i m talking to a burrito. stop talking stop talking.",
+      "text": "—and that s why i don t trust the mystery sauce, like, statistically one of us has to survive tonight, right? oh god you re not even back yet i m talking to a burrito. stop talking stop talking.",
       "tick": 0,
       "timestamp": 1787502822.5061235
     },
@@ -538,7 +538,7 @@
       "ghost_speech": false,
       "speaker": "miki doki",
       "speech_level": "normal",
-      "text": "i\u2014 okay so it s not even like, spicy content? it s mostly me whispering at a microphone and tapping my nails on things and pretending a hairbrush is my boyfriend for forty minutes. which sounds worse out loud. anyway yeah he saw it and went full victorian about it, like i d personally betrayed his grandmother. and you re\u2014 wait, did you just call me hot? casually? mid-sentence? you can t do that, there are rules, there s a whole\u2014 okay whatever, thank you, i m putting that in the vault, moving on before my face does the thing it s already doing.",
+      "text": "i— okay so it s not even like, spicy content? it s mostly me whispering at a microphone and tapping my nails on things and pretending a hairbrush is my boyfriend for forty minutes. which sounds worse out loud. anyway yeah he saw it and went full victorian about it, like i d personally betrayed his grandmother. and you re— wait, did you just call me hot? casually? mid-sentence? you can t do that, there are rules, there s a whole— okay whatever, thank you, i m putting that in the vault, moving on before my face does the thing it s already doing.",
       "tick": 0,
       "timestamp": 1787503376.2597673
     },
@@ -556,7 +556,7 @@
       "ghost_speech": false,
       "speaker": "miki doki",
       "speech_level": "normal",
-      "text": "okay so\u2014 if you are is doing a lot of heavy lifting in that sentence, sir, because the answer is terrifyingly maybe?? like\u2014 i don t\u2014 nobody s ever been down bad for the whispering-at-a-hairbrush part before, they usually just\u2014 okay. okay. i m going to say something insane now: yes? i think i am? if you are. which makes us two people agreeing to be down bad in a taco bell, which is either the most romantic or most pathetic sentence ever constructed and i genuinely cannot tell which. also i need to pee so bad right now and that s ruining the moment, hold on, don t go anywhere, if you leave while i m in the bathroom i will simply perish here among the sauce packets.",
+      "text": "okay so— if you are is doing a lot of heavy lifting in that sentence, sir, because the answer is terrifyingly maybe?? like— i don t— nobody s ever been down bad for the whispering-at-a-hairbrush part before, they usually just— okay. okay. i m going to say something insane now: yes? i think i am? if you are. which makes us two people agreeing to be down bad in a taco bell, which is either the most romantic or most pathetic sentence ever constructed and i genuinely cannot tell which. also i need to pee so bad right now and that s ruining the moment, hold on, don t go anywhere, if you leave while i m in the bathroom i will simply perish here among the sauce packets.",
       "tick": 0,
       "timestamp": 1787503612.972623
     },
@@ -649,5 +649,6 @@
     "Temperature": 37,
     "Thirst": 24
   },
-  "size": "small"
+  "size": "small",
+  "character_id": "ch_2eb49ba1"
 }

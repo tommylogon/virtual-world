@@ -40,7 +40,7 @@
           "count": 2
         }
       ],
-      "message": "Clean render — double fill."
+      "message": "Clean render - double fill."
     },
     "success": {
       "outputs": [
@@ -64,7 +64,7 @@
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Spilled across the fire — all lost in a stinking flare."
+      "message": "Spilled across the fire - all lost in a stinking flare."
     }
   },
   "learned_by": [

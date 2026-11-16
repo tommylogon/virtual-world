@@ -24,11 +24,11 @@
   "outcomes": {
     "crit_success": {
       "outputs": [],
-      "message": "Perfectly dosed — the barrel will keep twice as long. (The keep-longer parameter is a state write the task-703 executor performs; craft resolves the spent salt here.)"
+      "message": "Perfectly dosed - the barrel will keep twice as long. (The keep-longer parameter is a state write the task-703 executor performs; craft resolves the spent salt here.)"
     },
     "success": {
       "outputs": [],
-      "message": "Salted and sealed — keeps twice as long. (Duration parameter belongs to the task-703 executor.)"
+      "message": "Salted and sealed - keeps twice as long. (Duration parameter belongs to the task-703 executor.)"
     },
     "fail": {
       "consume_inputs": true,
@@ -38,7 +38,7 @@
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Salt clumped and spoiled in the damp — lost."
+      "message": "Salt clumped and spoiled in the damp - lost."
     }
   },
   "learned_by": [

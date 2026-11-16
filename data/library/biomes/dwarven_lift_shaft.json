@@ -1,0 +1,15 @@
+{
+  "name": "Great Lift Shaft",
+  "terrain": "iron",
+  "surface": "iron",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "vertical",
+    "lift",
+    "engineering"
+  ],
+  "descriptions": [
+    "Counterweighted iron hoist cages hanging over an abyss on braided cable."
+  ]
+}

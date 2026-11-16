@@ -62,12 +62,12 @@
           "place_in_area": true
         }
       ],
-      "message": "Too slack to catch — it will hold nothing."
+      "message": "Too slack to catch - it will hold nothing."
     },
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Snapped cord across the knuckles — nothing left."
+      "message": "Snapped cord across the knuckles - nothing left."
     }
   },
   "learned_by": [

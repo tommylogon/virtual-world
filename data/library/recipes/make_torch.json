@@ -39,7 +39,7 @@
           "count": 2
         }
       ],
-      "message": "Two tight, even wraps — both will light clean."
+      "message": "Two tight, even wraps - both will light clean."
     },
     "success": {
       "outputs": [
@@ -58,12 +58,12 @@
           "count": 1
         }
       ],
-      "message": "Too much tallow, wrapped too loose — it will never light."
+      "message": "Too much tallow, wrapped too loose - it will never light."
     },
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "The wrap slides off into the dirt — wasted materials."
+      "message": "The wrap slides off into the dirt - wasted materials."
     }
   },
   "learned_by": [

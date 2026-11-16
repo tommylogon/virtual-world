@@ -34,7 +34,7 @@
           "count": 2
         }
       ],
-      "message": "Honey in every crumb — double."
+      "message": "Honey in every crumb - double."
     },
     "success": {
       "outputs": [
@@ -53,7 +53,7 @@
           "count": 1
         }
       ],
-      "message": "Half the honey on your fingers — still counts."
+      "message": "Half the honey on your fingers - still counts."
     },
     "crit_fail": {
       "consume_inputs": true,

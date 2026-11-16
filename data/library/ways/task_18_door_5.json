@@ -36,5 +36,6 @@
       "success_message": "The keycard slot and door reveals nothing usefull. defintiyl  needs a keycard",
       "fail_message": ""
     }
-  ]
+  ],
+  "way_id": "way_04b7a7cd"
 }

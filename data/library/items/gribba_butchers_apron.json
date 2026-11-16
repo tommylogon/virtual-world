@@ -18,5 +18,6 @@
   "provenance": "Taken from an abandoned farm on the way to the camp.",
   "triggers": [],
   "contents": [],
-  "_generated_by": "gen_library_items"
+  "_generated_by": "gen_library_items",
+  "item_id": "item_bdf1340d"
 }

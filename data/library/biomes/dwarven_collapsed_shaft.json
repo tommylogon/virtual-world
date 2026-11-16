@@ -1,0 +1,16 @@
+{
+  "name": "Collapsed Shaft",
+  "terrain": "rubble",
+  "surface": "rubble",
+  "cell_kind": "place",
+  "tags": [
+    "below_ground",
+    "rubble",
+    "hazard",
+    "blockage"
+  ],
+  "descriptions": [
+    "Shattered granite blocks and buckled iron stays choke the tunnel entirely."
+  ],
+  "hazard_id": "fall"
+}

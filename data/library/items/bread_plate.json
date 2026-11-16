@@ -41,5 +41,6 @@
     }
   },
   "uses": "1",
-  "weight": "0.3"
+  "weight": "0.3",
+  "item_id": "item_dd404983"
 }

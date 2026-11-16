@@ -39,7 +39,7 @@
           "count": 2
         }
       ],
-      "message": "Potent mix — double."
+      "message": "Potent mix - double."
     },
     "success": {
       "outputs": [
@@ -58,7 +58,7 @@
           "count": 1
         }
       ],
-      "message": "Weak mash — half the healing."
+      "message": "Weak mash - half the healing."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -68,7 +68,7 @@
           "count": 1
         }
       ],
-      "message": "Spoiled mash — useless for healing."
+      "message": "Spoiled mash - useless for healing."
     }
   },
   "learned_by": [

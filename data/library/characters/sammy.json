@@ -248,7 +248,7 @@
           "drop"
         ],
         "current_state": "normal",
-        "description": "light blue denim cut-off shorts with the hem rolled up once. they're short but not too short \u2014 you'd never wear anything that bold. the button is slightly loose.",
+        "description": "light blue denim cut-off shorts with the hem rolled up once. they're short but not too short — you'd never wear anything that bold. the button is slightly loose.",
         "equip_slots": [
           "legs"
         ],
@@ -332,5 +332,6 @@
   "npc_state": "idle",
   "simple_npc": false,
   "recent_hearing": [],
-  "size": "small"
+  "size": "small",
+  "character_id": "ch_696f6646"
 }

@@ -43,5 +43,6 @@
   "defense": 0,
   "damage": 0,
   "insulation": 0,
-  "library_id": "hot_cheese_burrito"
+  "library_id": "hot_cheese_burrito",
+  "item_id": "item_231a1203"
 }

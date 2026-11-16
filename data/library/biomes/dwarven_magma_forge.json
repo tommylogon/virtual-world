@@ -1,0 +1,17 @@
+{
+  "name": "Magma Forge",
+  "terrain": "obsidian",
+  "surface": "obsidian",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "craft",
+    "fire",
+    "extreme_heat",
+    "hazard"
+  ],
+  "descriptions": [
+    "Open conduits of cooling basalt and anvils bolted to glowing lava seams."
+  ],
+  "hazard_id": "fall"
+}

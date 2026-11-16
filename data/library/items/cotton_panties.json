@@ -15,5 +15,6 @@
   "equip_slots": [
     "legs"
   ],
-  "triggers": []
+  "triggers": [],
+  "item_id": "item_21f0dbd9"
 }

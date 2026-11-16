@@ -49,7 +49,7 @@
           "count": 2
         }
       ],
-      "message": "Packed tight and balanced — double."
+      "message": "Packed tight and balanced - double."
     },
     "success": {
       "outputs": [
@@ -73,7 +73,7 @@
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Spilled across the camp — gathered back one by one, nothing packed."
+      "message": "Spilled across the camp - gathered back one by one, nothing packed."
     }
   },
   "learned_by": [

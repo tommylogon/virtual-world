@@ -55,7 +55,7 @@
           "count": 1
         }
       ],
-      "message": "Better than new — the patch outlasts the pot."
+      "message": "Better than new - the patch outlasts the pot."
     },
     "success": {
       "outputs": [
@@ -74,7 +74,7 @@
           "count": 1
         }
       ],
-      "message": "Patched, half uses — cooks with watching."
+      "message": "Patched, half uses - cooks with watching."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -84,7 +84,7 @@
           "count": 1
         }
       ],
-      "message": "Ruined pot — back to scrap."
+      "message": "Ruined pot - back to scrap."
     }
   },
   "learned_by": [

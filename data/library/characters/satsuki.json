@@ -110,5 +110,6 @@
   "npc_state": "idle",
   "simple_npc": false,
   "recent_hearing": [],
-  "size": "normal"
+  "size": "normal",
+  "character_id": "ch_87f71593"
 }

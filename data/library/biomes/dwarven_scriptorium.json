@@ -1,0 +1,15 @@
+{
+  "name": "Deep Archive",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "library",
+    "research",
+    "quiet"
+  ],
+  "descriptions": [
+    "Bronze shelving holding leaden scroll cylinders and stone tablets."
+  ]
+}

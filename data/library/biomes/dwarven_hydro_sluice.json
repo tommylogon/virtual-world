@@ -1,0 +1,15 @@
+{
+  "name": "Hydro Sluice",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "water",
+    "channel",
+    "engineering"
+  ],
+  "descriptions": [
+    "Channeled mountain runoff driving dormant turbines and drainage gates."
+  ]
+}

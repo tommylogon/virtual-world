@@ -34,16 +34,16 @@
   "outcomes": {
     "crit_success": {
       "outputs": [],
-      "message": "Better than new — resoled and restitched. (Condition improvement is narrative until equipment states exist.)"
+      "message": "Better than new - resoled and restitched. (Condition improvement is narrative until equipment states exist.)"
     },
     "success": {
       "outputs": [],
-      "message": "Patched and wearable. (The repair itself is the outcome — no upgrade stat exists to write.)"
+      "message": "Patched and wearable. (The repair itself is the outcome - no upgrade stat exists to write.)"
     },
     "fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Patched but ugly — half durability, holds for now."
+      "message": "Patched but ugly - half durability, holds for now."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -53,7 +53,7 @@
           "count": 1
         }
       ],
-      "message": "Cut the worst parts out as scraps — the boots survive, barely. (Boots-destroyed needs per-input outcome flags; kept inputs are never eaten.)"
+      "message": "Cut the worst parts out as scraps - the boots survive, barely. (Boots-destroyed needs per-input outcome flags; kept inputs are never eaten.)"
     }
   },
   "learned_by": [

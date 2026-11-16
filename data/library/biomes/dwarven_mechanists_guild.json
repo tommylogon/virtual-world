@@ -1,0 +1,15 @@
+{
+  "name": "Mechanists Guild",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "craft",
+    "machinery",
+    "technical"
+  ],
+  "descriptions": [
+    "Bronze gear trains, dismantled automaton joints, pneumatic line ports."
+  ]
+}

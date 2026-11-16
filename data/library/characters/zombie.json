@@ -169,5 +169,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": true,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "character_id": "ch_2b45161a"
 }

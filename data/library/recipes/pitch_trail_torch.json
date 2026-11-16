@@ -39,7 +39,7 @@
           "count": 2
         }
       ],
-      "message": "Two torches from the resin — double."
+      "message": "Two torches from the resin - double."
     },
     "success": {
       "outputs": [
@@ -58,7 +58,7 @@
           "count": 1
         }
       ],
-      "message": "Smoky and sputtering — half light, still a torch."
+      "message": "Smoky and sputtering - half light, still a torch."
     },
     "crit_fail": {
       "consume_inputs": true,

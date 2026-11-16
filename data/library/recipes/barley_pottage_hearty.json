@@ -1,7 +1,7 @@
 {
   "id": "barley_pottage_hearty",
   "name": "Barley Pottage (Hearty)",
-  "description": "Pottage enriched with meat — a feast-day variant of the staple pot.",
+  "description": "Pottage enriched with meat - a feast-day variant of the staple pot.",
   "variant_of": "barley_pottage",
   "ingredients": [
     {
@@ -56,7 +56,7 @@
           "count": 4
         }
       ],
-      "message": "Rich and meaty — a feast in a pot."
+      "message": "Rich and meaty - a feast in a pot."
     },
     "success": {
       "outputs": [
@@ -85,7 +85,7 @@
           "count": 1
         }
       ],
-      "message": "Scorched to the pot — food lost, pot kept."
+      "message": "Scorched to the pot - food lost, pot kept."
     }
   },
   "learned_by": [

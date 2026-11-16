@@ -564,7 +564,7 @@
     "weather": "snowy",
     "wind": "gale"
   },
-  "forecast_schedule": {
+  "forecast": {
     "entries": [
       {
         "air": "fresh",

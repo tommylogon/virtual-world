@@ -39,7 +39,7 @@
           "count": 2
         }
       ],
-      "message": "Perfect steep — two fragrant cups."
+      "message": "Perfect steep - two fragrant cups."
     },
     "success": {
       "outputs": [
@@ -58,7 +58,7 @@
           "count": 1
         }
       ],
-      "message": "Weak and pale — half comfort."
+      "message": "Weak and pale - half comfort."
     },
     "crit_fail": {
       "consume_inputs": true,

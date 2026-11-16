@@ -38,7 +38,7 @@
           "count": 2
         }
       ],
-      "message": "Every split lands true — plus kindling from the trimmings."
+      "message": "Every split lands true - plus kindling from the trimmings."
     },
     "success": {
       "outputs": [
@@ -62,7 +62,7 @@
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "The axe jams deep — log kept, time lost, axe freed with effort."
+      "message": "The axe jams deep - log kept, time lost, axe freed with effort."
     }
   },
   "learned_by": [

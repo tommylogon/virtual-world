@@ -7,40 +7,38 @@
   "insulation": "0",
   "light_level": "dim",
   "name": "jerky",
-  "tags": {
-    "item": [
-      "meat",
-      "food",
-      "supplies"
-    ]
-  },
-  "triggers": {
-    "item": {
-      "conditions": "",
-      "effects": {
-        "item": [
-          {
-            "params": {
-              "amount": "-45",
-              "stat": "Hunger",
-              "target": "self"
-            },
-            "type": "adjust_vital"
-          },
-          {
-            "params": {
-              "message": "You tear off a strip of the jerky. It is leather-hard, salt-heavy and old, but the dry air kept it and your teeth are grateful for it."
-            },
-            "type": "message"
-          }
-        ]
-      },
-      "fail_message": "Only the hook is left.",
-      "success_message": "You eat the jerky.",
+  "tags": [
+    "meat",
+    "food",
+    "supplies"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
       "target_name": "jerky",
-      "trigger_type": "on_eat"
+      "target_state": "",
+      "success_message": "You eat the jerky.",
+      "fail_message": "Only the hook is left.",
+      "conditions": {},
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -45,
+            "target": "self"
+          }
+        },
+        {
+          "type": "message",
+          "params": {
+            "message": "You tear off a strip of the jerky. It is leather-hard, salt-heavy and old, but the dry air kept it and your teeth are grateful for it."
+          }
+        }
+      ]
     }
-  },
+  ],
   "uses": "1",
-  "weight": "0.1"
+  "weight": "0.1",
+  "item_id": "item_50eb6d97"
 }

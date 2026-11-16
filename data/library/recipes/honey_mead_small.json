@@ -39,7 +39,7 @@
           "count": 2
         }
       ],
-      "message": "Golden and singing — the bees would approve."
+      "message": "Golden and singing - the bees would approve."
     },
     "success": {
       "outputs": [
@@ -58,7 +58,7 @@
           "count": 1
         }
       ],
-      "message": "Sweetish and weak — the bees are disappointed."
+      "message": "Sweetish and weak - the bees are disappointed."
     },
     "crit_fail": {
       "consume_inputs": true,

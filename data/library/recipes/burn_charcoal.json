@@ -34,7 +34,7 @@
           "count": 2
         }
       ],
-      "message": "A full, even burn — double yield."
+      "message": "A full, even burn - double yield."
     },
     "success": {
       "outputs": [
@@ -57,12 +57,12 @@
           "count": 2
         }
       ],
-      "message": "Half-burned — charcoal plus a heap of ash."
+      "message": "Half-burned - charcoal plus a heap of ash."
     },
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "The pit burned through — everything lost to ash and air."
+      "message": "The pit burned through - everything lost to ash and air."
     }
   },
   "learned_by": [

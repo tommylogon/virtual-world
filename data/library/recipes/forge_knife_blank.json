@@ -55,7 +55,7 @@
           "count": 1
         }
       ],
-      "message": "True profile, clean bevels — grinds itself almost."
+      "message": "True profile, clean bevels - grinds itself almost."
     },
     "success": {
       "outputs": [
@@ -74,7 +74,7 @@
           "count": 1
         }
       ],
-      "message": "A flaw in the steel — worse edge, still a blank."
+      "message": "A flaw in the steel - worse edge, still a blank."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -84,7 +84,7 @@
           "count": 1
         }
       ],
-      "message": "Burned through — slag."
+      "message": "Burned through - slag."
     }
   },
   "learned_by": [

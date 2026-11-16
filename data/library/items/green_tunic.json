@@ -73,5 +73,6 @@
   "weight": 0.3,
   "equip_slots": [
     "torso"
-  ]
+  ],
+  "item_id": "item_0fd43913"
 }

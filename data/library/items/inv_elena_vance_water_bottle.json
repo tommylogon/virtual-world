@@ -52,5 +52,6 @@
     }
   },
   "uses": "2",
-  "weight": "0.5"
+  "weight": "0.5",
+  "item_id": "item_887e0338"
 }

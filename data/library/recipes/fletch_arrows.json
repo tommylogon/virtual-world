@@ -44,7 +44,7 @@
           "count": 8
         }
       ],
-      "message": "Straight fletching, sharp heads — extra shafts."
+      "message": "Straight fletching, sharp heads - extra shafts."
     },
     "success": {
       "outputs": [
@@ -73,7 +73,7 @@
           "count": 1
         }
       ],
-      "message": "Broken shafts — fit for the fire."
+      "message": "Broken shafts - fit for the fire."
     }
   },
   "learned_by": [

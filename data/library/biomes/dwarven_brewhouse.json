@@ -1,0 +1,15 @@
+{
+  "name": "Vault Brewhouse",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "storage",
+    "eating",
+    "drink"
+  ],
+  "descriptions": [
+    "Copper fermentation tuns and stone casks of petrified fungal stout."
+  ]
+}

@@ -42,5 +42,6 @@
     }
   },
   "uses": "2",
-  "weight": "0.3"
+  "weight": "0.3",
+  "item_id": "item_31575a14"
 }

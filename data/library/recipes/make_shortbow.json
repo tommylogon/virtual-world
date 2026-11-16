@@ -44,7 +44,7 @@
           "count": 1
         }
       ],
-      "message": "Sweet-drawing bow — casts true past its length."
+      "message": "Sweet-drawing bow - casts true past its length."
     },
     "success": {
       "outputs": [
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Weak limbs — half range."
+      "message": "Weak limbs - half range."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -73,7 +73,7 @@
           "count": 1
         }
       ],
-      "message": "Snapped stave — firewood."
+      "message": "Snapped stave - firewood."
     }
   },
   "learned_by": [

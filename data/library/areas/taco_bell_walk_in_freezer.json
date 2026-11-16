@@ -51,5 +51,6 @@
     "kitchen",
     "freezer"
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_3eb66106"
 }

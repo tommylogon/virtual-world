@@ -150,5 +150,6 @@
       "cardinal": "wine_cellar_door_back"
     }
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_8ebcd345"
 }

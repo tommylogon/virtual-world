@@ -44,7 +44,7 @@
           "count": 1
         }
       ],
-      "message": "Straight, tight, true — a splint to trust."
+      "message": "Straight, tight, true - a splint to trust."
     },
     "success": {
       "outputs": [
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Loose binding — half the support."
+      "message": "Loose binding - half the support."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -73,7 +73,7 @@
           "count": 1
         }
       ],
-      "message": "Snapped a stick binding it — start over."
+      "message": "Snapped a stick binding it - start over."
     }
   },
   "learned_by": [

@@ -60,7 +60,7 @@
           "count": 5
         }
       ],
-      "message": "Legendary pot — full servings plus seconds."
+      "message": "Legendary pot - full servings plus seconds."
     },
     "success": {
       "outputs": [
@@ -79,7 +79,7 @@
           "count": 2
         }
       ],
-      "message": "Thin in places — half rations."
+      "message": "Thin in places - half rations."
     },
     "crit_fail": {
       "consume_inputs": true,

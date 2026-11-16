@@ -1,0 +1,14 @@
+{
+  "name": "Dressed Masonry",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "solid",
+  "tags": [
+    "cell_kind:solid",
+    "structure",
+    "not_a_place"
+  ],
+  "descriptions": [
+    "Seamlessly dressed granite blocks bonded without mortar."
+  ]
+}

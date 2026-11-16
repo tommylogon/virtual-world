@@ -150,5 +150,6 @@
       "cardinal": "nursery_door_back"
     }
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_12d52826"
 }

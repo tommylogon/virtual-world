@@ -45,7 +45,7 @@
           "count": 2
         }
       ],
-      "message": "Golden and bubbling — double."
+      "message": "Golden and bubbling - double."
     },
     "success": {
       "outputs": [
@@ -64,7 +64,7 @@
           "count": 1
         }
       ],
-      "message": "Warm, not toasted — half the joy."
+      "message": "Warm, not toasted - half the joy."
     },
     "crit_fail": {
       "consume_inputs": true,

@@ -29,7 +29,7 @@
           "count": 2
         }
       ],
-      "message": "Clear reach, clean fill. (Still stream water — settle it.)"
+      "message": "Clear reach, clean fill. (Still stream water - settle it.)"
     },
     "success": {
       "outputs": [
@@ -53,7 +53,7 @@
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "The skin slips — water everywhere, skin kept, nothing carried."
+      "message": "The skin slips - water everywhere, skin kept, nothing carried."
     }
   },
   "learned_by": [

@@ -40,7 +40,7 @@
           "count": 2
         }
       ],
-      "message": "A full rolling boil — plenty, and the unsafe flag is gone."
+      "message": "A full rolling boil - plenty, and the unsafe flag is gone."
     },
     "success": {
       "outputs": [
@@ -64,7 +64,7 @@
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Pot boiled dry — water lost, pot kept."
+      "message": "Pot boiled dry - water lost, pot kept."
     }
   },
   "learned_by": [

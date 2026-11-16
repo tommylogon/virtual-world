@@ -74,7 +74,7 @@
           "count": 1
         }
       ],
-      "message": "Two fit, two do not — half effect."
+      "message": "Two fit, two do not - half effect."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -84,7 +84,7 @@
           "count": 1
         }
       ],
-      "message": "Burned the heat — slag."
+      "message": "Burned the heat - slag."
     }
   },
   "learned_by": [

@@ -34,7 +34,7 @@
           "count": 2
         }
       ],
-      "message": "Decanted clean off the silt — double yield."
+      "message": "Decanted clean off the silt - double yield."
     },
     "success": {
       "outputs": [
@@ -48,7 +48,7 @@
     "fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Stirred it back up — still cloudy, still unsafe, water kept."
+      "message": "Stirred it back up - still cloudy, still unsafe, water kept."
     },
     "crit_fail": {
       "consume_inputs": true,

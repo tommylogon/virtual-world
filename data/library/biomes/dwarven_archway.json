@@ -1,0 +1,14 @@
+{
+  "name": "Carved Archway",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "passable",
+  "tags": [
+    "cell_kind:passable",
+    "structure",
+    "portal"
+  ],
+  "descriptions": [
+    "A heavy corbelled stone archway standing between chambers."
+  ]
+}

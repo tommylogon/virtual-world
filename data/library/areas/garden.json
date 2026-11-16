@@ -186,5 +186,6 @@
       "cardinal": "graveyard_gate"
     }
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_077ade17"
 }

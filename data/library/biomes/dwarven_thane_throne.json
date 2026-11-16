@@ -1,0 +1,15 @@
+{
+  "name": "Thane High Seat",
+  "terrain": "rock",
+  "surface": "granite",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "civic",
+    "authority",
+    "leadership"
+  ],
+  "descriptions": [
+    "A tiered dais carved from living bedrock overlooking a sunken muster court."
+  ]
+}

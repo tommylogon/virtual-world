@@ -40,7 +40,7 @@
           "count": 3
         }
       ],
-      "message": "Straight, even dips — three good candles."
+      "message": "Straight, even dips - three good candles."
     },
     "success": {
       "outputs": [
@@ -64,7 +64,7 @@
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Tallow everywhere except on the wick — all lost, wick kept."
+      "message": "Tallow everywhere except on the wick - all lost, wick kept."
     }
   },
   "learned_by": [

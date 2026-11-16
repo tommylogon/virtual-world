@@ -1,0 +1,47 @@
+{
+  "name": "Timber Wolf",
+  "personality": "A wild forest predator hunting for fresh prey across woodland and wilderness.",
+  "description": "A lean grey wolf with keen yellow eyes and bared fangs.",
+  "base_description": "Grey wolf with thick wild fur and sharp teeth.",
+  "unknown_name": "a wild wolf",
+  "species": "wolf",
+  "size": "medium",
+  "simple_npc": true,
+  "npc_behavior": "wander",
+  "stats": {
+    "STR": 13,
+    "DEX": 14,
+    "CON": 12,
+    "INT": 4,
+    "WIS": 12,
+    "CHA": 6
+  },
+  "vitals": {
+    "HP": 40,
+    "Max_HP": 40,
+    "Energy": 90,
+    "Hunger": 30,
+    "Thirst": 30
+  },
+  "decay_rates": {
+    "Hunger": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Athletics": 2,
+    "Perception": 3
+  },
+  "traits": {
+    "hostile": true
+  },
+  "tags": [
+    "predator",
+    "hostile",
+    "animal",
+    "wolf"
+  ],
+  "interest_tags": [
+    "meat"
+  ],
+  "character_id": "ch_34171c1e"
+}

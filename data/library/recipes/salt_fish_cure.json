@@ -39,7 +39,7 @@
           "count": 2
         }
       ],
-      "message": "Firm, dry cure — double."
+      "message": "Firm, dry cure - double."
     },
     "success": {
       "outputs": [
@@ -68,7 +68,7 @@
           "count": 1
         }
       ],
-      "message": "Brine went wrong — spoiled."
+      "message": "Brine went wrong - spoiled."
     }
   },
   "learned_by": [

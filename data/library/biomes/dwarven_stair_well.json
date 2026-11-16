@@ -1,0 +1,14 @@
+{
+  "name": "Spiral Stairwell",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "passable",
+  "tags": [
+    "cell_kind:passable",
+    "stair",
+    "vertical"
+  ],
+  "descriptions": [
+    "A corkscrew stair carved into the shaft wall descending to lower storeys."
+  ]
+}

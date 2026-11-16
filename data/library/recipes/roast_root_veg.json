@@ -45,7 +45,7 @@
           "count": 3
         }
       ],
-      "message": "Caramelized edges, fluffy middles — extra."
+      "message": "Caramelized edges, fluffy middles - extra."
     },
     "success": {
       "outputs": [
@@ -64,7 +64,7 @@
           "count": 1
         }
       ],
-      "message": "Half raw, half done — one good portion."
+      "message": "Half raw, half done - one good portion."
     },
     "crit_fail": {
       "consume_inputs": true,

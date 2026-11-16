@@ -16,6 +16,124 @@
     "silver",
     "toggleable"
   ],
-  "triggers": [],
-  "contents": []
+  "triggers": [
+    {
+      "id": "trigger_1788803117076_iik8",
+      "trigger_type": "on_examine",
+      "target_name": "candlestick",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You examine the candlestick.\n\nA heavy silver candlestick, one of a set of eight. This one is slightly bent, as if it was used to strike something. There's a dark stain near the base."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788803117077_ro7y",
+      "trigger_type": "on_take",
+      "target_name": "candlestick",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You pick up the heavy silver candlestick. It's colder than it should be, and faintly tarnished near where that dark stain sits."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788803117077_llex",
+      "trigger_type": "on_drop",
+      "target_name": "candlestick",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You drop the candlestick. It clatters against the floor with an odd, dull thud."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788803117077_sspd",
+      "trigger_type": "on_light",
+      "target_name": "candlestick",
+      "target_state": "",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You hold the candlestick up to catch any available light, but its bent form and dark stain make it hard to see clearly."
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788803117077_wezl",
+      "trigger_type": "on_toggle_on",
+      "target_name": "candlestick",
+      "target_state": "on",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You light the wick and coax a small flame into life. The candlestick glows with a warm, flickering silver light."
+          }
+        },
+        {
+          "type": "set_environment",
+          "params": {
+            "light": 40,
+            "node_id": "current_area"
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "id": "trigger_1788803117077_zqj0",
+      "trigger_type": "on_toggle_off",
+      "target_name": "candlestick",
+      "target_state": "off",
+      "conditions": [],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The flame sputters and dies. The candlestick falls dark and cold in your hand."
+          }
+        },
+        {
+          "type": "set_environment",
+          "params": {
+            "light": 15,
+            "node_id": "current_area"
+          }
+        }
+      ],
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "item_id": "item_274436c2"
 }

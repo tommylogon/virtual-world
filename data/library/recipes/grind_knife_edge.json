@@ -34,7 +34,7 @@
           "count": 1
         }
       ],
-      "message": "Razor edge — shaves hair."
+      "message": "Razor edge - shaves hair."
     },
     "success": {
       "outputs": [
@@ -53,7 +53,7 @@
           "count": 1
         }
       ],
-      "message": "Dull edge — half damage."
+      "message": "Dull edge - half damage."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Ground through — ruined blank, scrap it."
+      "message": "Ground through - ruined blank, scrap it."
     }
   },
   "learned_by": [

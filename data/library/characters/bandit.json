@@ -1,0 +1,47 @@
+{
+  "name": "Highway Bandit",
+  "personality": "A ruthless highwayman who preys upon unwary travelers along lonely roads and borders.",
+  "description": "A rugged bandit clutching a rusty dagger, clad in patched leathers.",
+  "base_description": "Rough human highwayman in patched leather armor.",
+  "unknown_name": "a hooded bandit",
+  "species": "human",
+  "size": "medium",
+  "simple_npc": true,
+  "npc_behavior": "wander",
+  "stats": {
+    "STR": 12,
+    "DEX": 11,
+    "CON": 12,
+    "INT": 9,
+    "WIS": 9,
+    "CHA": 8
+  },
+  "vitals": {
+    "HP": 50,
+    "Max_HP": 50,
+    "Energy": 80,
+    "Hunger": 20,
+    "Thirst": 20
+  },
+  "decay_rates": {
+    "Hunger": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Athletics": 2,
+    "Stealth": 2
+  },
+  "traits": {
+    "hostile": true
+  },
+  "tags": [
+    "bandit",
+    "hostile",
+    "human"
+  ],
+  "interest_tags": [
+    "gold",
+    "weapons"
+  ],
+  "character_id": "ch_e9955581"
+}

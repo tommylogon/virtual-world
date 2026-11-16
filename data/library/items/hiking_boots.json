@@ -35,5 +35,6 @@
   "library_id": "hiking_boots",
   "equip_slots": [
     "feet"
-  ]
+  ],
+  "item_id": "item_af2d935e"
 }

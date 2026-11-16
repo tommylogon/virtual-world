@@ -50,7 +50,7 @@
           "count": 4
         }
       ],
-      "message": "Gelatin-rich and golden — extra bowls."
+      "message": "Gelatin-rich and golden - extra bowls."
     },
     "success": {
       "outputs": [
@@ -69,7 +69,7 @@
           "count": 2
         }
       ],
-      "message": "Weak extraction — thin but warm."
+      "message": "Weak extraction - thin but warm."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -79,7 +79,7 @@
           "count": 1
         }
       ],
-      "message": "Boiled dry over hours — cauldron kept, broth gone."
+      "message": "Boiled dry over hours - cauldron kept, broth gone."
     }
   },
   "learned_by": [

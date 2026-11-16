@@ -31,5 +31,6 @@
     "skill": "Survival",
     "dc": 8
   },
-  "insulation": 0
+  "insulation": 0,
+  "item_id": "item_6dde7480"
 }

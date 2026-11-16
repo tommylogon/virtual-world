@@ -55,7 +55,7 @@
           "count": 2
         }
       ],
-      "message": "Two lengths from one ingot — drawn thin and true."
+      "message": "Two lengths from one ingot - drawn thin and true."
     },
     "success": {
       "outputs": [
@@ -74,7 +74,7 @@
           "count": 1
         }
       ],
-      "message": "Short links — half the length."
+      "message": "Short links - half the length."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -84,7 +84,7 @@
           "count": 1
         }
       ],
-      "message": "Welds failed one by one — slag."
+      "message": "Welds failed one by one - slag."
     }
   },
   "learned_by": [

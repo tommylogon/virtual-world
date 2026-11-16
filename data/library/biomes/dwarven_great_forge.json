@@ -1,0 +1,16 @@
+{
+  "name": "Great Forge",
+  "terrain": "rock",
+  "surface": "stone",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "craft",
+    "fire",
+    "workshop",
+    "ancient"
+  ],
+  "descriptions": [
+    "Massive stone hearths banked with dormant anthracite, cold runic anvils."
+  ]
+}

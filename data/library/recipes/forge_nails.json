@@ -55,7 +55,7 @@
           "count": 2
         }
       ],
-      "message": "A fistful and then some — double."
+      "message": "A fistful and then some - double."
     },
     "success": {
       "outputs": [
@@ -74,7 +74,7 @@
           "count": 1
         }
       ],
-      "message": "Half bent — usable carefully."
+      "message": "Half bent - usable carefully."
     },
     "crit_fail": {
       "consume_inputs": true,

@@ -53,5 +53,6 @@
       "cardinal": "balcony_door_back"
     }
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_c740ad59"
 }

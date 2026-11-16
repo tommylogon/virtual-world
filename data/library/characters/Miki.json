@@ -2443,5 +2443,6 @@
       "profile": "/static/images/nodes/player_miki-profile-surprised-1791068268623.webp"
     }
   },
-  "profile_image": "/static/images/nodes/player_miki-profile-neutral-1791068267096.webp"
+  "profile_image": "/static/images/nodes/player_miki-profile-neutral-1791068267096.webp",
+  "character_id": "ch_b96d2ede"
 }

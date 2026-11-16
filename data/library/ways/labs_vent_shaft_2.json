@@ -15,5 +15,6 @@
   "tags": [],
   "triggers": [],
   "jump_dc": 12,
-  "climb_dc": 12
+  "climb_dc": 12,
+  "way_id": "way_c60dd8a0"
 }

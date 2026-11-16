@@ -63,5 +63,6 @@
     "exterior",
     "drive_thru"
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_6753d7f0"
 }

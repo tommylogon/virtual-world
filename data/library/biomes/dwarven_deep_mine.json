@@ -1,0 +1,15 @@
+{
+  "name": "Deep Mine Shaft",
+  "terrain": "gravel",
+  "surface": "gravel",
+  "cell_kind": "place",
+  "tags": [
+    "below_ground",
+    "mining",
+    "excavation",
+    "dark"
+  ],
+  "descriptions": [
+    "Shored timber adits following depleted iron seams down into the dark."
+  ]
+}

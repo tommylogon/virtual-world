@@ -33,7 +33,7 @@
     },
     "success": {
       "outputs": [],
-      "message": "Must gone — the skin is clean and kept."
+      "message": "Must gone - the skin is clean and kept."
     },
     "fail": {
       "consume_inputs": true,
@@ -48,7 +48,7 @@
           "count": 1
         }
       ],
-      "message": "Scrubbed through — ruined skin, kept as scraps."
+      "message": "Scrubbed through - ruined skin, kept as scraps."
     }
   },
   "learned_by": [

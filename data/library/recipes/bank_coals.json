@@ -49,7 +49,7 @@
     "fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "The coals go out in the night — relight from scratch."
+      "message": "The coals go out in the night - relight from scratch."
     },
     "crit_fail": {
       "consume_inputs": true,

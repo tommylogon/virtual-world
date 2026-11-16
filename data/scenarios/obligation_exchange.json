@@ -1,0 +1,51 @@
+{
+  "_scenario_name": "Obligation Exchange Fixture",
+  "current_area": "Council Chamber",
+  "current_environment": {
+    "light": 70,
+    "temperature": 20,
+    "air": "fresh",
+    "smell": "parchment and cedar",
+    "noise": "quiet"
+  },
+  "player": {
+    "name": "Elder Mara",
+    "current_area": "Council Chamber",
+    "stats": {"STR": 10, "DEX": 10, "CON": 10, "INT": 14, "WIS": 16, "CHA": 14},
+    "vitals": {"HP": 100, "Max_HP": 100, "Energy": 100, "Hunger": 0, "Thirst": 0},
+    "inventory": [],
+    "obligations": []
+  },
+  "players": {
+    "Elder Mara": {
+      "name": "Elder Mara",
+      "current_area": "Council Chamber",
+      "stats": {"STR": 10, "DEX": 10, "CON": 10, "INT": 14, "WIS": 16, "CHA": 14},
+      "vitals": {"HP": 100, "Max_HP": 100, "Energy": 100, "Hunger": 0, "Thirst": 0},
+      "inventory": [],
+      "obligations": []
+    },
+    "Brek": {
+      "name": "Brek",
+      "current_area": "Council Chamber",
+      "stats": {"STR": 12, "DEX": 14, "CON": 12, "INT": 10, "WIS": 12, "CHA": 10},
+      "vitals": {"HP": 100, "Max_HP": 100, "Energy": 100, "Hunger": 0, "Thirst": 0},
+      "inventory": [],
+      "obligations": []
+    }
+  },
+  "areas": {
+    "Council Chamber": {
+      "name": "Council Chamber",
+      "description": "A stone chamber with a wooden council table.",
+      "environment": {
+        "light": 70,
+        "temperature": 20,
+        "air": "fresh",
+        "smell": "parchment and cedar",
+        "noise": "quiet"
+      },
+      "items": []
+    }
+  }
+}

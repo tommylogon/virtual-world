@@ -64,7 +64,7 @@
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Wax fire! Everything lost — beat it out and start over."
+      "message": "Wax fire! Everything lost - beat it out and start over."
     }
   },
   "learned_by": [

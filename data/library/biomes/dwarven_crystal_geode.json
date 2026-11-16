@@ -1,0 +1,15 @@
+{
+  "name": "Luminescent Geode",
+  "terrain": "crystal",
+  "surface": "crystal",
+  "cell_kind": "place",
+  "tags": [
+    "below_ground",
+    "mineral",
+    "light",
+    "natural"
+  ],
+  "descriptions": [
+    "A natural hollow spiked with towering prisms of pale glowing quartz."
+  ]
+}

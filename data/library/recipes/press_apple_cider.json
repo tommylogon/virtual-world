@@ -34,7 +34,7 @@
           "count": 2
         }
       ],
-      "message": "Every drop pressed — double yield."
+      "message": "Every drop pressed - double yield."
     },
     "success": {
       "outputs": [
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Pressed to dry pulp — pig feed, no drink."
+      "message": "Pressed to dry pulp - pig feed, no drink."
     }
   },
   "learned_by": [

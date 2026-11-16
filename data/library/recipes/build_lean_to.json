@@ -41,7 +41,7 @@
           "place_in_area": true
         }
       ],
-      "message": "Stormproof angles — sleeps two dry. (Placement is the task-703 executor's job.)"
+      "message": "Stormproof angles - sleeps two dry. (Placement is the task-703 executor's job.)"
     },
     "success": {
       "outputs": [
@@ -62,12 +62,12 @@
           "place_in_area": true
         }
       ],
-      "message": "More gaps than roof — half cover."
+      "message": "More gaps than roof - half cover."
     },
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Collapsed in a heap — materials kept, pride lost."
+      "message": "Collapsed in a heap - materials kept, pride lost."
     }
   },
   "learned_by": [

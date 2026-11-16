@@ -100,5 +100,6 @@
   "simple_npc": false,
   "recent_hearing": [],
   "size": "normal",
-  "species": "goblin"
+  "species": "goblin",
+  "character_id": "ch_005109ab"
 }

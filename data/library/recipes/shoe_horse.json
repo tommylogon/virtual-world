@@ -29,7 +29,7 @@
   "outcomes": {
     "crit_success": {
       "outputs": [],
-      "message": "Four shoes, full set, standing square — speed bonus earned. (The bonus lives on the horse character; craft resolves the consumed shoes and nails here.)"
+      "message": "Four shoes, full set, standing square - speed bonus earned. (The bonus lives on the horse character; craft resolves the consumed shoes and nails here.)"
     },
     "success": {
       "outputs": [],
@@ -38,12 +38,12 @@
     "fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "Shod loose — half bonus, refit soon."
+      "message": "Shod loose - half bonus, refit soon."
     },
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Thrown shoe — kept, retry. Nothing else lost."
+      "message": "Thrown shoe - kept, retry. Nothing else lost."
     }
   },
   "learned_by": [

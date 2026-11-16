@@ -43,5 +43,6 @@
   "defense": 0,
   "damage": 0,
   "insulation": 0,
-  "library_id": "taco_bell_steamed_meal"
+  "library_id": "taco_bell_steamed_meal",
+  "item_id": "item_e985a316"
 }

@@ -1,0 +1,15 @@
+{
+  "name": "Grand Colonnade",
+  "terrain": "marble",
+  "surface": "marble",
+  "cell_kind": "place",
+  "tags": [
+    "indoor",
+    "civic",
+    "circulation",
+    "monumental"
+  ],
+  "descriptions": [
+    "Hexagonal pillars rising fifty cubits to vaulted ribbed ceilings."
+  ]
+}

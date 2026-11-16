@@ -36,7 +36,7 @@
           "place_in_area": true
         }
       ],
-      "message": "Perfect cone — smoke by day, flame by night. (Placement is the task-703 executor's job; the pyre spawns carried until then.)"
+      "message": "Perfect cone - smoke by day, flame by night. (Placement is the task-703 executor's job; the pyre spawns carried until then.)"
     },
     "success": {
       "outputs": [
@@ -57,12 +57,12 @@
           "place_in_area": true
         }
       ],
-      "message": "Damp-laid — slow to light, but stacked."
+      "message": "Damp-laid - slow to light, but stacked."
     },
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Scattered stack — restack it, nothing lost."
+      "message": "Scattered stack - restack it, nothing lost."
     }
   },
   "learned_by": [

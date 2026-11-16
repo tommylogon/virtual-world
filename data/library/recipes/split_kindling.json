@@ -34,7 +34,7 @@
           "count": 4
         }
       ],
-      "message": "Clean splits — extra kindling."
+      "message": "Clean splits - extra kindling."
     },
     "success": {
       "outputs": [
@@ -57,12 +57,12 @@
           "count": 1
         }
       ],
-      "message": "Ragged work — one good stick and scraps."
+      "message": "Ragged work - one good stick and scraps."
     },
     "crit_fail": {
       "consume_inputs": true,
       "outputs": [],
-      "message": "The branch splits wild and the pieces scatter — nothing usable."
+      "message": "The branch splits wild and the pieces scatter - nothing usable."
     }
   },
   "learned_by": [

@@ -55,7 +55,7 @@
           "count": 3
         }
       ],
-      "message": "Falling-apart tender — the pot overflows."
+      "message": "Falling-apart tender - the pot overflows."
     },
     "success": {
       "outputs": [
@@ -74,7 +74,7 @@
           "count": 1
         }
       ],
-      "message": "Greasy and hurried — half the joy."
+      "message": "Greasy and hurried - half the joy."
     },
     "crit_fail": {
       "consume_inputs": true,

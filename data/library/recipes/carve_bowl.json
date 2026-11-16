@@ -39,7 +39,7 @@
           "count": 1
         }
       ],
-      "message": "Thin-walled and true — a bowl to hand down."
+      "message": "Thin-walled and true - a bowl to hand down."
     },
     "success": {
       "outputs": [
@@ -58,7 +58,7 @@
           "count": 1
         }
       ],
-      "message": "Hollowed through in one spot — dry goods only."
+      "message": "Hollowed through in one spot - dry goods only."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -68,7 +68,7 @@
           "count": 1
         }
       ],
-      "message": "Split log — firewood."
+      "message": "Split log - firewood."
     }
   },
   "learned_by": [

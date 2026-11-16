@@ -134,5 +134,6 @@
   "uses": -1,
   "weight": 7,
   "light_level": "dim",
-  "library_id": "lumer_axe"
+  "library_id": "lumer_axe",
+  "item_id": "item_5cfa8256"
 }

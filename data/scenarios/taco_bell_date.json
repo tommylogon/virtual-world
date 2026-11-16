@@ -262,7 +262,7 @@
   "clock_start_minute": 0,
   "current_area": "Elm Street",
   "forecast_override": null,
-  "forecast_schedule": {
+  "forecast": {
     "current_state": "clear",
     "entries": [],
     "granularity": "hourly",

@@ -35,7 +35,7 @@
           "count": 2
         }
       ],
-      "message": "Two points from one stick — split it first, harden both."
+      "message": "Two points from one stick - split it first, harden both."
     },
     "success": {
       "outputs": [
@@ -54,7 +54,7 @@
           "count": 1
         }
       ],
-      "message": "Soft in the middle — half damage, but pointed."
+      "message": "Soft in the middle - half damage, but pointed."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -64,7 +64,7 @@
           "count": 1
         }
       ],
-      "message": "Left it in the coals too long — a useless stub."
+      "message": "Left it in the coals too long - a useless stub."
     }
   },
   "learned_by": [

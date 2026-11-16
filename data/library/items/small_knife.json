@@ -17,5 +17,6 @@
   "triggers": [],
   "uses": -1,
   "weight": 1,
-  "damage_type": "piercing"
+  "damage_type": "piercing",
+  "item_id": "item_ee8729e1"
 }

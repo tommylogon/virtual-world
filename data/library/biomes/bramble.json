@@ -1,0 +1,18 @@
+{
+  "name": "Bramble thicket",
+  "terrain": "dense_foliage",
+  "tags": [
+    "bramble",
+    "thorns",
+    "dense"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "dirt",
+  "hazard_id": "thorns",
+  "descriptions": [
+    "Dense briars and thorny tangle choke the path.",
+    "Thick blackberry brambles catch on clothes and scrape exposed skin."
+  ]
+}

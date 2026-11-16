@@ -50,7 +50,7 @@
           "count": 2
         }
       ],
-      "message": "Creamy and sweet — a double pot."
+      "message": "Creamy and sweet - a double pot."
     },
     "success": {
       "outputs": [
@@ -69,7 +69,7 @@
           "count": 1
         }
       ],
-      "message": "Too much water — gruel, not porridge."
+      "message": "Too much water - gruel, not porridge."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -79,7 +79,7 @@
           "count": 1
         }
       ],
-      "message": "Stuck and scorched — pot kept, food lost."
+      "message": "Stuck and scorched - pot kept, food lost."
     }
   },
   "learned_by": [

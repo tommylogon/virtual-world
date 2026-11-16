@@ -44,7 +44,7 @@
           "count": 1
         }
       ],
-      "message": "Watertight first fill — a bucket for decades."
+      "message": "Watertight first fill - a bucket for decades."
     },
     "success": {
       "outputs": [
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Gappy staves — dry goods only."
+      "message": "Gappy staves - dry goods only."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -73,7 +73,7 @@
           "count": 1
         }
       ],
-      "message": "Split planks — firewood."
+      "message": "Split planks - firewood."
     }
   },
   "learned_by": [

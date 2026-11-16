@@ -40,7 +40,7 @@
   "outcomes": {
     "crit_success": {
       "outputs": [],
-      "message": "Better than new — the steel sings. (Restoration is narrative until equipment states exist.)"
+      "message": "Better than new - the steel sings. (Restoration is narrative until equipment states exist.)"
     },
     "success": {
       "outputs": [],
@@ -54,7 +54,7 @@
           "count": 1
         }
       ],
-      "message": "Quenched too hard — brittle, half uses."
+      "message": "Quenched too hard - brittle, half uses."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -64,7 +64,7 @@
           "count": 1
         }
       ],
-      "message": "Cracked in the quench — scrap it for the iron."
+      "message": "Cracked in the quench - scrap it for the iron."
     }
   },
   "learned_by": [

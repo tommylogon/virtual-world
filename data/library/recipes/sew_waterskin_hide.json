@@ -44,7 +44,7 @@
           "count": 1
         }
       ],
-      "message": "Watertight first fill — a skin to trust for years."
+      "message": "Watertight first fill - a skin to trust for years."
     },
     "success": {
       "outputs": [
@@ -63,7 +63,7 @@
           "count": 1
         }
       ],
-      "message": "Weeps at the seams — half capacity."
+      "message": "Weeps at the seams - half capacity."
     },
     "crit_fail": {
       "consume_inputs": true,
@@ -73,7 +73,7 @@
           "count": 1
         }
       ],
-      "message": "Ruined hide — kept as scraps."
+      "message": "Ruined hide - kept as scraps."
     }
   },
   "learned_by": [

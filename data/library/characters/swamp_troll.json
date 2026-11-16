@@ -1,0 +1,47 @@
+{
+  "name": "Swamp Troll",
+  "personality": "A foul-tempered, territorial swamp monster that attacks anything encroaching on its murky waters.",
+  "description": "A hulking, moss-draped brute with thick warty skin and mossy teeth.",
+  "base_description": "Hulking green-skinned troll draped in swamp weeds.",
+  "unknown_name": "a hulking swamp beast",
+  "species": "troll",
+  "size": "large",
+  "simple_npc": true,
+  "npc_behavior": "wander",
+  "stats": {
+    "STR": 16,
+    "DEX": 8,
+    "CON": 16,
+    "INT": 6,
+    "WIS": 7,
+    "CHA": 5
+  },
+  "vitals": {
+    "HP": 90,
+    "Max_HP": 90,
+    "Energy": 100,
+    "Hunger": 10,
+    "Thirst": 10
+  },
+  "decay_rates": {
+    "Hunger": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Athletics": 3
+  },
+  "traits": {
+    "hostile": true,
+    "hardy": true
+  },
+  "tags": [
+    "monster",
+    "hostile",
+    "troll"
+  ],
+  "interest_tags": [
+    "food",
+    "meat"
+  ],
+  "character_id": "ch_a6c48cc6"
+}

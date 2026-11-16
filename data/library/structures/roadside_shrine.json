@@ -1,0 +1,713 @@
+{
+  "schema_version": 1,
+  "template_id": "roadside_shrine",
+  "name": "Roadside Shrine",
+  "root_area": "area_shrine_courtyard",
+  "nodes": {
+    "item_incense_burner": {
+      "id": "item_incense_burner",
+      "type": "item",
+      "name": "Bronze Incense Burner",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "light"
+        ],
+        "description": "A small cast-bronze burner perforated with spiral motifs."
+      },
+      "created": 1793624336.326966,
+      "updated": 1793624336.326966
+    },
+    "way_Shrine Courtyard_north": {
+      "id": "way_Shrine Courtyard_north",
+      "type": "way",
+      "name": "Shrine Courtyard-north",
+      "properties": {
+        "current_state": "open",
+        "description": "",
+        "cost": {},
+        "area_from": "Shrine Courtyard",
+        "area_to": "Shrine Sanctum"
+      },
+      "created": 1793624336.326966,
+      "updated": 1793624336.326966
+    },
+    "area_shrine_sanctum": {
+      "id": "area_shrine_sanctum",
+      "type": "area",
+      "name": "Shrine Sanctum",
+      "properties": {
+        "description": "A quiet sanctum smelling of cedarwood and dried sage, lit by faint candlelight.",
+        "environment": {
+          "light": 80,
+          "base_temperature": 21.0,
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "neutral",
+          "noise": "quiet"
+        }
+      },
+      "created": 1793624336.326966,
+      "updated": 1793624336.326966
+    },
+    "area_shrine_courtyard": {
+      "id": "area_shrine_courtyard",
+      "type": "area",
+      "name": "Shrine Courtyard",
+      "properties": {
+        "description": "A peaceful stone courtyard shaded by ancient pines, with weathered pavers leading toward the inner sanctum.",
+        "environment": {
+          "light": 80,
+          "base_temperature": 21.0,
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "neutral",
+          "noise": "quiet"
+        }
+      },
+      "created": 1793624336.326966,
+      "updated": 1793624336.326966
+    },
+    "item_stone_altar": {
+      "id": "item_stone_altar",
+      "type": "item",
+      "name": "Stone Altar",
+      "properties": {
+        "actions": [
+          "examine"
+        ],
+        "description": "A flat slab of mossy grey granite resting on carved stone pedestals."
+      },
+      "created": 1793624336.326966,
+      "updated": 1793624336.326966
+    },
+    "way_shrine_trail": {
+      "id": "way_shrine_trail",
+      "type": "way",
+      "name": "Mountain Trail",
+      "properties": {
+        "current_state": "open",
+        "description": "A winding path trailing down into the misty pines."
+      },
+      "created": 1793624336.326966,
+      "updated": 1793624336.326966
+    },
+    "item_offering_bowl": {
+      "id": "item_offering_bowl",
+      "type": "item",
+      "name": "Carved Offering Bowl",
+      "properties": {
+        "actions": [
+          "examine",
+          "take"
+        ],
+        "description": "A shallow clay bowl containing dried mountain berries and copper bits."
+      },
+      "created": 1793624336.326966,
+      "updated": 1793624336.326966
+    }
+  },
+  "edges": [
+    {
+      "source": "area_shrine_courtyard",
+      "target": "way_Shrine Courtyard_north",
+      "type": "connection",
+      "properties": {
+        "direction": "north"
+      }
+    },
+    {
+      "source": "way_Shrine Courtyard_north",
+      "target": "area_shrine_sanctum",
+      "type": "connection",
+      "properties": {
+        "direction": "south"
+      }
+    },
+    {
+      "source": "area_shrine_sanctum",
+      "target": "way_Shrine Courtyard_north",
+      "type": "connection",
+      "properties": {
+        "direction": "south"
+      }
+    },
+    {
+      "source": "way_Shrine Courtyard_north",
+      "target": "area_shrine_courtyard",
+      "type": "connection",
+      "properties": {
+        "direction": "north"
+      }
+    },
+    {
+      "source": "item_stone_altar",
+      "target": "area_shrine_courtyard",
+      "type": "in",
+      "properties": {}
+    },
+    {
+      "source": "item_incense_burner",
+      "target": "area_shrine_sanctum",
+      "type": "in",
+      "properties": {}
+    },
+    {
+      "source": "item_offering_bowl",
+      "target": "area_shrine_sanctum",
+      "type": "in",
+      "properties": {}
+    },
+    {
+      "source": "area_shrine_courtyard",
+      "target": "way_shrine_trail",
+      "type": "connection",
+      "properties": {
+        "direction": "south"
+      }
+    },
+    {
+      "source": "player_Shrine_Keeper",
+      "target": "area_shrine_sanctum",
+      "type": "in",
+      "properties": {}
+    }
+  ],
+  "residents": [
+    {
+      "name": "Shrine Keeper",
+      "anchor_id": "player_Shrine_Keeper",
+      "player": {
+        "name": "Shrine Keeper",
+        "id": "2634db3a",
+        "equipped": {
+          "head": [],
+          "neck": [],
+          "torso": [],
+          "arms": [],
+          "hands": [],
+          "legs": [],
+          "feet": [],
+          "back": [],
+          "waist": [],
+          "accessory": [],
+          "hand_left": [],
+          "hand_right": []
+        },
+        "skills": {
+          "Athletics": 1,
+          "Acrobatics": 1,
+          "Stealth": 1,
+          "Perception": 1,
+          "Survival": 1,
+          "Persuasion": 1,
+          "Animal Handling": 0,
+          "Arcana": 0,
+          "Deception": 0,
+          "History": 0,
+          "Insight": 0,
+          "Intimidation": 0,
+          "Investigation": 0,
+          "Medicine": 0,
+          "Nature": 0,
+          "Performance": 0,
+          "Religion": 0,
+          "Sleight of Hand": 0
+        },
+        "stats": {
+          "STR": 10,
+          "DEX": 10,
+          "CON": 10,
+          "INT": 10,
+          "WIS": 10,
+          "CHA": 10
+        },
+        "vitals": {
+          "HP": 100,
+          "Max_HP": 100,
+          "Hunger": 0,
+          "Thirst": 0,
+          "Hygiene": 100,
+          "Energy": 100,
+          "Social": 100,
+          "Bladder": 0,
+          "Sanity": 100,
+          "Entertainment": 100,
+          "Temperature": 37.0
+        },
+        "state": "awake",
+        "perceived_conditions": [],
+        "conditions": {
+          "awake": [
+            {
+              "duration": null,
+              "source": null,
+              "level": 0
+            }
+          ]
+        },
+        "grappled_by": null,
+        "state_timer": 0,
+        "traits": {},
+        "trait_behavior": [],
+        "personality": "",
+        "personality_dials": {},
+        "disposition": {
+          "weights": [],
+          "dials": {},
+          "gated": [],
+          "actions": [
+            {
+              "verb": "drink",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "eat",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "sleep",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "rest",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "relieve",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "bathe",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "go",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "approach",
+              "scores": [
+                "survive.utility.need_relief"
+              ]
+            },
+            {
+              "verb": "chat",
+              "scores": [
+                "social.weight.chat"
+              ]
+            },
+            {
+              "verb": "joke",
+              "scores": [
+                "social.weight.joke"
+              ]
+            },
+            {
+              "verb": "compliment",
+              "scores": [
+                "social.weight.compliment"
+              ]
+            },
+            {
+              "verb": "tease",
+              "scores": [
+                "social.weight.tease"
+              ]
+            },
+            {
+              "verb": "confide",
+              "scores": [
+                "social.weight.confide"
+              ]
+            },
+            {
+              "verb": "flirt",
+              "scores": [
+                "social.weight.flirt"
+              ]
+            },
+            {
+              "verb": "apologise",
+              "scores": [
+                "social.weight.apologise"
+              ]
+            },
+            {
+              "verb": "bully",
+              "scores": [
+                "social.weight.bully"
+              ]
+            }
+          ]
+        },
+        "base_description": "",
+        "description": "An elderly monk in faded grey robes, peacefully trimming candle wicks.",
+        "turn_slots": {},
+        "burst_pending": 0,
+        "size": null,
+        "species": null,
+        "tags": [],
+        "flags": {},
+        "hidden": false,
+        "soak": null,
+        "simulation_mode": "active",
+        "manifested": false,
+        "known": [],
+        "crafting_known": [],
+        "birth_tick": null,
+        "life_stage": null,
+        "last_mortality_year": null,
+        "discovered_exits": [],
+        "interest_tags": [],
+        "fear_tags": [],
+        "carcass_item": null,
+        "decay_rates": {
+          "Energy": 0.104,
+          "Hunger": 0.0034,
+          "Thirst": 0.025,
+          "Social": 0.02,
+          "Hygiene": 0.02,
+          "Sanity": 0.005,
+          "Entertainment": 0.03,
+          "Bladder": 0.42
+        },
+        "body_state": {
+          "head": {
+            "sensitivity": 0.2
+          },
+          "neck": {
+            "sensitivity": 0.4
+          },
+          "torso": {
+            "sensitivity": 0.3
+          },
+          "back": {
+            "sensitivity": 0.2
+          },
+          "arm_left": {
+            "sensitivity": 0.3
+          },
+          "arm_right": {
+            "sensitivity": 0.3
+          },
+          "hand_left": {
+            "sensitivity": 0.4
+          },
+          "hand_right": {
+            "sensitivity": 0.4
+          },
+          "leg_left": {
+            "sensitivity": 0.3
+          },
+          "leg_right": {
+            "sensitivity": 0.3
+          },
+          "foot_left": {
+            "sensitivity": 0.2
+          },
+          "foot_right": {
+            "sensitivity": 0.2
+          },
+          "face": {
+            "sensitivity": 0.5
+          },
+          "cheeks": {
+            "sensitivity": 0.6
+          },
+          "lips": {
+            "sensitivity": 0.8
+          },
+          "breast_left": {
+            "sensitivity": 0.6
+          },
+          "breast_right": {
+            "sensitivity": 0.6
+          },
+          "nipple_left": {
+            "sensitivity": 0.9
+          },
+          "nipple_right": {
+            "sensitivity": 0.7
+          },
+          "genitals": {
+            "sensitivity": 0.8
+          },
+          "balls": {
+            "sensitivity": 0.7
+          }
+        },
+        "body_region_names": {
+          "head": "Head",
+          "neck": "Neck",
+          "torso": "Torso",
+          "back": "Back",
+          "arm_left": "Left Arm",
+          "arm_right": "Right Arm",
+          "hand_left": "Left Hand",
+          "hand_right": "Right Hand",
+          "leg_left": "Left Leg",
+          "leg_right": "Right Leg",
+          "foot_left": "Left Foot",
+          "foot_right": "Right Foot",
+          "face": "Face",
+          "cheeks": "Cheeks",
+          "lips": "Lips",
+          "breast_left": "Left Breast",
+          "breast_right": "Right Breast",
+          "nipple_left": "Left Nipple",
+          "nipple_right": "Right Nipple",
+          "genitals": "Genitals",
+          "balls": "Balls"
+        },
+        "region_exposed": {
+          "head": true,
+          "neck": true,
+          "torso": true,
+          "back": true,
+          "arm_left": true,
+          "arm_right": true,
+          "hand_left": true,
+          "hand_right": true,
+          "leg_left": true,
+          "leg_right": true,
+          "foot_left": true,
+          "foot_right": true,
+          "face": true,
+          "cheeks": true,
+          "lips": true,
+          "breast_left": true,
+          "breast_right": true,
+          "nipple_left": true,
+          "nipple_right": true,
+          "genitals": true,
+          "balls": true
+        },
+        "current_area": "Shrine Sanctum",
+        "current_area_id": "area_shrine_sanctum",
+        "recent_hearing": [],
+        "emotion": {
+          "current": "neutral",
+          "intensity": 0.0,
+          "expression": "neutral",
+          "description": ""
+        },
+        "emotions": {
+          "happy": 40.0,
+          "excited": 30.0,
+          "elated": 22.0,
+          "proud": 30.0,
+          "sad": 8.0,
+          "lonely": 10.0,
+          "melancholic": 12.0,
+          "nostalgic": 18.0,
+          "afraid": 10.0,
+          "anxious": 12.0,
+          "uneasy": 12.0,
+          "dread": 8.0,
+          "spooked": 10.0,
+          "angry": 8.0,
+          "irritated": 12.0,
+          "resentful": 10.0,
+          "aroused": 12.0,
+          "eager": 26.0,
+          "craving": 15.0,
+          "curious": 35.0,
+          "affectionate": 25.0,
+          "loving": 26.0,
+          "grateful": 24.0,
+          "admiring": 30.0,
+          "ashamed": 8.0,
+          "embarrassed": 10.0,
+          "guilty": 8.0,
+          "envious": 5.0,
+          "jealous": 8.0,
+          "disgusted": 5.0,
+          "repulsed": 5.0,
+          "calm": 50.0,
+          "content": 46.0,
+          "peaceful": 46.0,
+          "satisfied": 40.0,
+          "surprised": 15.0
+        },
+        "emotions_description": "",
+        "relationships": {},
+        "activity": null,
+        "lived_log": [],
+        "lived_log_memorized_through": 0,
+        "memories": [],
+        "memory_index": {},
+        "charted_cells": {},
+        "schedule": [],
+        "goals": [],
+        "goal_log": [],
+        "obligations": [],
+        "mosiac": {
+          "character": "Shrine Keeper",
+          "tick": 0,
+          "M": "",
+          "O": [],
+          "S": {
+            "now": 480,
+            "step": null,
+            "day": "no schedule"
+          },
+          "I": "",
+          "A": [],
+          "C": {
+            "minor": [
+              "approach",
+              "disengage",
+              "drink",
+              "eat",
+              "equip",
+              "flee",
+              "grab",
+              "lead",
+              "manifest",
+              "place",
+              "put",
+              "release",
+              "remove",
+              "stand",
+              "stow",
+              "toggle",
+              "unequip",
+              "vanish",
+              "wake",
+              "wear",
+              "withdraw"
+            ],
+            "major": [
+              "attack",
+              "bind",
+              "climb",
+              "combine",
+              "craft",
+              "crawl",
+              "dash",
+              "enchant",
+              "escape",
+              "examine",
+              "find",
+              "fix",
+              "frisk",
+              "get",
+              "give",
+              "go",
+              "jump",
+              "make",
+              "pick",
+              "pickup",
+              "relieve",
+              "search",
+              "split",
+              "steal",
+              "struggle",
+              "take",
+              "teach",
+              "treat",
+              "use"
+            ],
+            "activity": [
+              "bath",
+              "bathe",
+              "dress",
+              "lay",
+              "lie",
+              "meditate",
+              "rest",
+              "sit",
+              "sleep",
+              "strip",
+              "undress",
+              "wait"
+            ],
+            "free": [
+              "close",
+              "do",
+              "drop",
+              "fear",
+              "goal",
+              "guess",
+              "i",
+              "interest",
+              "inv",
+              "inventory",
+              "label",
+              "listen",
+              "look",
+              "message",
+              "name",
+              "obligation",
+              "open",
+              "recall",
+              "say",
+              "schedule",
+              "scream",
+              "shout",
+              "sing",
+              "speak",
+              "stats",
+              "status",
+              "stop",
+              "text",
+              "whisper"
+            ]
+          },
+          "goals": []
+        },
+        "active_pursuit": null,
+        "plan": null,
+        "completed_pursuits": [],
+        "controller": "llm",
+        "simple_npc": false,
+        "autonomy": true,
+        "npc_behavior": "wander",
+        "npc_action_interval": 3,
+        "npc_state": "idle",
+        "state_enter_tick": 0,
+        "behaviors": [],
+        "patrol_route": [],
+        "patrol_index": 0,
+        "feels_like": 21,
+        "current_carry_weight": 0.0,
+        "max_carry_capacity": 100.0,
+        "at_way_id": null,
+        "facing": null,
+        "entered_from_way": null,
+        "spatial_position": null
+      }
+    }
+  ],
+  "boundary_exits": [
+    {
+      "way": "way_shrine_trail",
+      "area": "area_shrine_courtyard",
+      "direction": "south",
+      "name": "Mountain Trail"
+    }
+  ],
+  "captured": {
+    "areas": 2,
+    "ways": 2,
+    "items": 3,
+    "residents": 1,
+    "boundary_exits": 1
+  }
+}

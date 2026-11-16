@@ -178,7 +178,7 @@
           "drop"
         ],
         "current_state": "normal",
-        "description": "a thin black cotton crop top that stops above the navel, showing off a flat stomach. the fabric is thin enough that the faint shadows of your breasts are visible beneath it. no bra \u2014 you don't need the hassle.",
+        "description": "a thin black cotton crop top that stops above the navel, showing off a flat stomach. the fabric is thin enough that the faint shadows of your breasts are visible beneath it. no bra — you don't need the hassle.",
         "equip_slots": [
           "torso"
         ],
@@ -239,7 +239,7 @@
       "location": "",
       "source": "manual",
       "tags": [],
-      "text": "jake's idiot idea, as always. dragged us to a real haunted mansion. i'm watching out for sammy \u2014 she's too nice to say no to him. this place feels wrong. not just haunted. watched.",
+      "text": "jake's idiot idea, as always. dragged us to a real haunted mansion. i'm watching out for sammy — she's too nice to say no to him. this place feels wrong. not just haunted. watched.",
       "tick": 0,
       "timestamp": 1784400321.9103055,
       "type": "observation"
@@ -283,5 +283,6 @@
   "npc_state": "idle",
   "simple_npc": false,
   "recent_hearing": [],
-  "size": "small"
+  "size": "small",
+  "character_id": "ch_a91f6714"
 }

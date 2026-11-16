@@ -18,5 +18,6 @@
   ],
   "triggers": [],
   "uses": 5,
-  "weight": 0.3
+  "weight": 0.3,
+  "item_id": "item_ff0519aa"
 }

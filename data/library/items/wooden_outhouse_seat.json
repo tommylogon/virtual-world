@@ -52,5 +52,6 @@
     }
   ],
   "uses": 1,
-  "weight": 0.5
+  "weight": 0.5,
+  "item_id": "item_63877545"
 }

@@ -75,5 +75,6 @@
     "storage",
     "food"
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_854a68d3"
 }

@@ -29,17 +29,17 @@
     },
     "success": {
       "outputs": [],
-      "message": "The torch takes the flame. (Torch lit — state write belongs to the task-703 executor.)"
+      "message": "The torch takes the flame. (Torch lit - state write belongs to the task-703 executor.)"
     },
     "fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Smoke but no flame — torch unlit, time lost, nothing spent."
+      "message": "Smoke but no flame - torch unlit, time lost, nothing spent."
     },
     "crit_fail": {
       "consume_inputs": false,
       "outputs": [],
-      "message": "Fumbled into the mud — torch kept but unlit and filthy."
+      "message": "Fumbled into the mud - torch kept but unlit and filthy."
     }
   },
   "learned_by": [

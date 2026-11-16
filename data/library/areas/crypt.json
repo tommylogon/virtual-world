@@ -149,5 +149,6 @@
       "cardinal": "mausoleum_door_back"
     }
   ],
-  "triggers": []
+  "triggers": [],
+  "area_id": "area_e8bdcd93"
 }

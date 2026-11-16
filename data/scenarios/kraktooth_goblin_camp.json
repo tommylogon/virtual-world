@@ -145,7 +145,7 @@
   "commons_theme": "town_board",
   "current_area": "Cooking Area",
   "forecast_override": null,
-  "forecast_schedule": {
+  "forecast": {
     "entries": [
       {
         "air": "fresh",
@@ -63291,7 +63291,8 @@
           ],
           "world_scope_id": "deep_woods",
           "x": 1400,
-          "y": 960
+          "y": 960,
+          "display_name": "Deep Woods West Bridge Approach"
         },
         "type": "area",
         "updated": 1792364476.219918
@@ -63642,7 +63643,8 @@
           ],
           "world_scope_id": "deep_woods",
           "x": 1440,
-          "y": 960
+          "y": 960,
+          "display_name": "Deep Woods Bridge Western Span"
         },
         "type": "area",
         "updated": 1792364476.219918
@@ -63954,7 +63956,8 @@
           ],
           "world_scope_id": "deep_woods",
           "x": 1480,
-          "y": 960
+          "y": 960,
+          "display_name": "Deep Woods Bridge Center Span"
         },
         "type": "area",
         "updated": 1792364476.219918
@@ -63993,7 +63996,8 @@
           ],
           "world_scope_id": "deep_woods",
           "x": 1480,
-          "y": 1000
+          "y": 1000,
+          "display_name": "Deep Woods Bridge South Span"
         },
         "type": "area",
         "updated": 1792364476.2209177
@@ -64032,7 +64036,8 @@
           ],
           "world_scope_id": "deep_woods",
           "x": 1520,
-          "y": 1000
+          "y": 1000,
+          "display_name": "Deep Woods East Bridge Approach"
         },
         "type": "area",
         "updated": 1792364476.2209177
@@ -67328,7 +67333,8 @@
           ],
           "world_scope_id": "eldenford_interior",
           "x": 680,
-          "y": 680
+          "y": 680,
+          "display_name": "Eldenford Canal Bridge"
         },
         "type": "area",
         "updated": 1790953582.771908
@@ -68027,7 +68033,8 @@
           ],
           "world_scope_id": "eldenford_interior",
           "x": 280,
-          "y": 640
+          "y": 640,
+          "display_name": "Eldenford West River Bridge"
         },
         "type": "area",
         "updated": 1790953582.771908
@@ -68132,7 +68139,8 @@
           ],
           "world_scope_id": "eldenford_interior",
           "x": 320,
-          "y": 600
+          "y": 600,
+          "display_name": "Eldenford North River Crossing"
         },
         "type": "area",
         "updated": 1790953582.771908
@@ -68166,7 +68174,8 @@
           ],
           "world_scope_id": "eldenford_interior",
           "x": 320,
-          "y": 640
+          "y": 640,
+          "display_name": "Eldenford Central River Bridge"
         },
         "type": "area",
         "updated": 1790953582.771908
@@ -68200,7 +68209,8 @@
           ],
           "world_scope_id": "eldenford_interior",
           "x": 360,
-          "y": 600
+          "y": 600,
+          "display_name": "Eldenford East River Crossing"
         },
         "type": "area",
         "updated": 1790953582.771908
@@ -224746,5 +224756,58 @@
       "sibling_traversal": true,
       "state": "materialized"
     }
+  },
+  "commons": {
+    "channels": {
+      "group_kraktooth_watch": {
+        "id": "group_kraktooth_watch",
+        "kind": "group",
+        "name": "Camp watch",
+        "members": [
+          "Vekka",
+          "Zikka",
+          "Gribba"
+        ],
+        "created_by": "Vekka"
+      },
+      "dm_vekka_gribba": {
+        "id": "dm_vekka_gribba",
+        "kind": "dm",
+        "name": "Gribba · Vekka",
+        "members": [
+          "Gribba",
+          "Vekka"
+        ],
+        "created_by": "Vekka"
+      }
+    },
+    "messages": [
+      {
+        "id": 1,
+        "channel_id": "public",
+        "author": "Zikka",
+        "text": "Human tracks cross the north trail and turn toward the ravine.",
+        "timestamp": 1792108800,
+        "tick": 0
+      },
+      {
+        "id": 2,
+        "channel_id": "group_kraktooth_watch",
+        "author": "Vekka",
+        "text": "I will take first watch. Gribba, keep the fire low.",
+        "timestamp": 1792108800,
+        "tick": 0
+      },
+      {
+        "id": 3,
+        "channel_id": "dm_vekka_gribba",
+        "author": "Vekka",
+        "text": "I found human tracks beyond camp. I wanted you to know first.",
+        "timestamp": 1792108800,
+        "tick": 0
+      }
+    ],
+    "participants": {},
+    "next_message_id": 4
   }
 }
