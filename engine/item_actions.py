@@ -6,6 +6,10 @@ verb-family split); ``ItemActions`` composes them and owns the shared context
 capacity plumbing. Public helpers (``normalize_item_actions``,
 carry-weight math, ``AmbiguousItemError``) are re-exported here so existing
 imports keep working.
+
+@module item_actions
+@contributes ItemActions, normalize_item_actions
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Optional

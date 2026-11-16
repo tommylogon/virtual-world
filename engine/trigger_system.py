@@ -2,6 +2,10 @@
 
 Manages trigger registration, condition evaluation, and effect execution
 for item interactions, NPC behaviors, and world events.
+
+@module trigger_system
+@contributes TriggerSystem
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Optional
@@ -86,6 +90,11 @@ class TriggerSystem(
         """
         if node is None:
             return False
+
+        props = getattr(node, 'properties', None) or {}
+        if props.get('hazards') or any(t in ('flooded', 'river', 'thorns', 'bramble') for t in props.get('tags', [])):
+            from engine.hazards import expand_node_hazards
+            expand_node_hazards(node)
 
         def matches(value) -> bool:
             if trigger_type is None:

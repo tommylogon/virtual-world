@@ -25,6 +25,10 @@ Growth (task-829): every field is mutable at runtime via
 ``advance_age`` so items and trigger effects can change lenses, hair,
 tattoos, prosthetics, kinks, traumas, fears - characters become more
 than they started.
+
+@module character_appearance
+@contributes StructuredError, identity_suggestions, normalize_slug, get_record, is_structured, appearance
+@docs docs/virtualWorld/AI & Narration/Memory System.md
 """
 
 from __future__ import annotations
@@ -92,6 +96,17 @@ IDENTITY_SUGGESTIONS: Dict[str, tuple] = {
                "genderfluid", "trans woman", "trans man"),
     "sexuality": ("straight", "gay", "lesbian", "bisexual", "pansexual",
                   "asexual", "queer", "demisexual"),
+    "mbti": (
+        "INTJ", "INTP", "ENTJ", "ENTP",
+        "INFJ", "INFP", "ENFJ", "ENFP",
+        "ISTJ", "ISFJ", "ESTJ", "ESFJ",
+        "ISTP", "ISFP", "ESTP", "ESFP",
+    ),
+    "alignment": (
+        "Lawful Good", "Neutral Good", "Chaotic Good",
+        "Lawful Neutral", "True Neutral", "Chaotic Neutral",
+        "Lawful Evil", "Neutral Evil", "Chaotic Evil",
+    ),
 }
 
 
@@ -134,6 +149,88 @@ PERSONALITY_FIELDS: Dict[str, str] = {
     "habits": "background behaviour tags (slugs)",
     "speech_pattern": "prompt voice (style/dialect/catchphrases)",
     "experience": "intimacy prompt context (WorldGraph experience)",
+}
+
+#: Canonical 18 skills (D&D-style skill list).
+CANONICAL_SKILLS: Tuple[str, ...] = (
+    "Acrobatics",
+    "Animal Handling",
+    "Arcana",
+    "Athletics",
+    "Deception",
+    "History",
+    "Insight",
+    "Intimidation",
+    "Investigation",
+    "Medicine",
+    "Nature",
+    "Perception",
+    "Performance",
+    "Persuasion",
+    "Religion",
+    "Sleight of Hand",
+    "Stealth",
+    "Survival",
+)
+
+_CANONICAL_SKILL_MAP: Dict[str, str] = {
+    s.lower().replace(" ", "_").replace("-", "_"): s
+    for s in CANONICAL_SKILLS
+}
+
+
+def _normalize_skill(raw: Any) -> str:
+    """Map a skill name or slug to its canonical name when it matches CANONICAL_SKILLS."""
+    text = str(raw or "").strip()
+    if not text:
+        return ""
+    key = normalize_slug(text).replace("-", "_")
+    return _CANONICAL_SKILL_MAP.get(key, text)
+
+
+def _apparent_age_bracket(age: float) -> str:
+    """Return an observable apparent-age bracket instead of an exact number."""
+    if age < 13:
+        return "child"
+    if age < 16:
+        return "young teenager"
+    if age < 18:
+        return "mid-teens"
+    if age < 20:
+        return "late teens"
+    if age < 26:
+        return "early twenties"
+    if age < 30:
+        return "late twenties"
+    if age < 34:
+        return "early thirties"
+    if age < 37:
+        return "mid-thirties"
+    if age < 40:
+        return "late thirties"
+    if age < 44:
+        return "early forties"
+    if age < 47:
+        return "mid-forties"
+    if age < 50:
+        return "late forties"
+    if age < 55:
+        return "early fifties"
+    if age < 60:
+        return "late fifties"
+    if age < 70:
+        return "sixties"
+    if age < 80:
+        return "seventies"
+    return "elderly"
+
+
+#: Capabilities fields (task-733): skills, languages, weaknesses.
+#: Project to player skills and traits.
+CAPABILITIES_FIELDS: Dict[str, Any] = {
+    "skills": ("idlist", None),
+    "languages": ("idlist", None),
+    "weaknesses": ("idlist", None),
 }
 
 #: Which personality fields hold ids (slug discipline) vs free prose.
@@ -220,6 +317,10 @@ def personality(node) -> Dict[str, Any]:
 
 def identity(node) -> Dict[str, Any]:
     return dict(get_record(node).get("identity") or {})
+
+
+def capabilities(node) -> Dict[str, Any]:
+    return dict(get_record(node).get("capabilities") or {})
 
 
 def narrative(node) -> Dict[str, Any]:
@@ -372,7 +473,7 @@ def _clean_narrative(raw: Any) -> Dict[str, Any]:
                     if not title:
                         continue
                     m_dict["title"] = title
-                    for k in ("medium", "opinion", "familiarity"):
+                    for k in ("medium", "when", "opinion", "familiarity"):
                         v = str(item.get(k, "") or "").strip()
                         if v:
                             m_dict[k] = v
@@ -438,6 +539,50 @@ def _clean_appearance(raw: Any) -> Dict[str, Any]:
         if field in out and not (bounds[0] <= out[field] <= bounds[1]):
             raise StructuredError(
                 f"appearance.{field} of {out[field]:g}{label} is not plausible")
+    return out
+
+
+def _clean_capabilities(raw: Any) -> Dict[str, Any]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise StructuredError("capabilities must be an object")
+    out: Dict[str, Any] = {}
+    for field in ("skills", "languages", "weaknesses"):
+        if field not in raw:
+            continue
+        val = raw[field]
+        if val is None:
+            continue
+        if field == "skills":
+            if isinstance(val, dict):
+                skills_dict: Dict[str, int] = {}
+                for k, v in val.items():
+                    k_str = str(k).strip()
+                    if not k_str:
+                        continue
+                    try:
+                        skills_dict[k_str] = int(v)
+                    except (TypeError, ValueError):
+                        skills_dict[k_str] = 1
+                if skills_dict:
+                    out[field] = skills_dict
+                continue
+            if isinstance(val, str):
+                val = [s.strip() for s in val.split(",") if s.strip()]
+            if not isinstance(val, (list, tuple, set)):
+                raise StructuredError("capabilities.skills must be a list or object")
+            skills_list = [str(x).strip() for x in val if str(x).strip()]
+            if skills_list:
+                out[field] = skills_list
+            continue
+        if isinstance(val, str):
+            val = [s.strip() for s in val.split(",") if s.strip()]
+        if not isinstance(val, (list, tuple, set)):
+            raise StructuredError(f"capabilities.{field} must be a list")
+        items = [str(x).strip() for x in val if str(x).strip()]
+        if items:
+            out[field] = items
     return out
 
 
@@ -541,13 +686,14 @@ def validate(record: Any) -> Dict[str, Any]:
     if not isinstance(record, dict):
         raise StructuredError("the structured block must be an object")
     unknown = sorted(set(record) - {"appearance", "personality",
-                                    "identity", "narrative"})
+                                    "identity", "capabilities", "narrative"})
     if unknown:
         raise StructuredError(f"unknown top-level keys: {unknown}")
     out: Dict[str, Any] = {}
     identity_block = _clean_identity(record.get("identity"))
     appearance_block = _clean_appearance(record.get("appearance"))
     personality_block = _clean_personality(record.get("personality"))
+    capabilities_block = _clean_capabilities(record.get("capabilities"))
     narrative_block = _clean_narrative(record.get("narrative"))
     if identity_block:
         out["identity"] = identity_block
@@ -557,6 +703,8 @@ def validate(record: Any) -> Dict[str, Any]:
         out["personality"] = personality_block
     if narrative_block:
         out["narrative"] = narrative_block
+    if capabilities_block:
+        out["capabilities"] = capabilities_block
     return out
 
 
@@ -607,7 +755,7 @@ def validate_before_compile(record: Any) -> Tuple[bool, List[str]]:
 
     errors: List[str] = []
 
-    unknown = sorted(set(record) - {"appearance", "personality", "identity", "narrative"})
+    unknown = sorted(set(record) - {"appearance", "personality", "identity", "capabilities", "narrative"})
     if unknown:
         errors.append(f"Unknown top-level sections: {unknown}")
 
@@ -657,6 +805,24 @@ def validate_before_compile(record: Any) -> Tuple[bool, List[str]]:
                         s = str(v).strip()
                         if s and not _ID_RE.match(s):
                             errors.append(f"personality.{field} contains invalid slug {v!r}")
+
+    cap = record.get("capabilities")
+    if cap is not None and not isinstance(cap, dict):
+        errors.append("capabilities section must be an object")
+    elif isinstance(cap, dict):
+        for field in ("languages", "weaknesses"):
+            if field in cap and cap[field] is not None:
+                vals = cap[field]
+                if isinstance(vals, str):
+                    vals = [vals]
+                if not isinstance(vals, (list, tuple, set)):
+                    errors.append(f"capabilities.{field} must be a list")
+        if "skills" in cap and cap["skills"] is not None:
+            vals = cap["skills"]
+            if isinstance(vals, str):
+                vals = [vals]
+            if not isinstance(vals, (list, tuple, set, dict)):
+                errors.append("capabilities.skills must be a list or object")
 
     narr = record.get("narrative")
     if narr is not None and not isinstance(narr, dict):
@@ -780,7 +946,7 @@ def clear_record(node) -> None:
 #: Dotted paths ``set_persona_field`` may write, as section -> allowed keys.
 #: ``*`` means any declared field of the section; the whole record still
 #: passes through :func:`validate`, so this is a guardrail, not the gate.
-SETTABLE_SECTIONS = ("identity", "appearance", "personality", "narrative")
+SETTABLE_SECTIONS = ("identity", "appearance", "personality", "capabilities", "narrative")
 
 
 def set_persona_field(node, path: str, value: Any) -> Dict[str, Any]:
@@ -902,49 +1068,53 @@ def prose_is_stale(node) -> bool:
 #: dotted-path -> hint. Served by GET /record so the Persona tab renders
 #: each field with its reader beside it.
 CONSUMER_HINTS: Dict[str, str] = {
-    "identity.pronouns": "narration pronouns (explicit first, tags fallback)",
-    "identity.age": "lifecycle gate (task-735 clock)",
-    "identity.gender": "prompts + address",
-    "identity.species": "compiled prose + prompts",
-    "identity.occupation": "compiled prose + background behaviour",
-    "identity.sexuality": "prompt voice + intimacy context",
-    "identity.mbti": "prompt voice (personality type)",
-    "identity.alignment": "disposition reader + prompts",
-    "identity.birthday": "birth date (dd.mm.yyyy) - lifecycle birth_tick & earliest memory gate",
-    "identity.potential_storylines": "storyline authoring (currently unwired; see task-849)",
-    "narrative.media": "agent memory / knowledge lorebook context (books, movies, games, music)",
-    "appearance.overview": "compiled prose",
-    "appearance.height_cm": "compiled prose (ft/in)",
-    "appearance.weight_kg": "compiled prose",
-    "appearance.build": "compiled prose + equipment fit",
-    "appearance.hair": "compiled prose (grows / cut via effects)",
-    "appearance.eyes": "compiled prose (lenses via effects)",
-    "appearance.skin": "compiled prose",
-    "appearance.face": "compiled prose",
-    "appearance.body": "compiled prose + equipment prose",
-    "appearance.voice": "prompt voice",
-    "appearance.scent": "prompt voice + compiled prose",
-    "appearance.style": "compiled prose + auto-dress context",
-    "personality.likes": "gifts + dialogue targeting",
-    "personality.dislikes": "gifts + dialogue targeting",
-    "personality.fears": "fear engine (fear_tags)",
-    "personality.interests": "attention (interest_tags)",
-    "personality.kinks": "affect (arousal)",
-    "personality.turn_ons": "affect (arousal)",
-    "personality.turn_offs": "affect (disgust, arousal down)",
-    "personality.traumas": "fear_tags + frightened condition",
-    "personality.boundaries": "consent gate for intimacy prompts",
-    "personality.traits": "personality prose",
-    "personality.aspirations": "goals / plans projection",
-    "personality.quirks": "prompt voice colour",
-    "personality.habits": "prompt voice + background behaviour",
-    "personality.speech_pattern": "prompt voice (style/dialect/catchphrases)",
-    "personality.experience": "intimacy prompt context",
-    "narrative.biography": "memories + prompt backstory",
-    "narrative.secrets": "Mind panel + known system (never compiled to prose)",
-    "narrative.example_dialogues": "prompt voice",
-    "narrative.role_in_town": "compiled prose + prompts",
-    "narrative.arc": "prompts + plans",
+    "identity.pronouns": "e.g. she/her, he/him, they/them; used for narration pronouns (tags fallback)",
+    "identity.age": "numeric age in years (e.g. 16); used for lifecycle gate & compiled prose",
+    "identity.gender": "gender identity label (e.g. female, non-binary); used for prompts + address",
+    "identity.species": "species / kind (e.g. human, elf); used for compiled prose + prompts",
+    "identity.occupation": "job, role, or status (e.g. Student, blacksmith); used for compiled prose + background behaviour",
+    "identity.sexuality": "orientation label (e.g. straight, bisexual, ace); used for prompt voice + intimacy context",
+    "identity.mbti": "4-letter type (e.g. INFP, INTJ); used for prompt voice",
+    "identity.alignment": "moral alignment (e.g. Neutral Good); used for disposition reader + prompts",
+    "identity.birthday": "birth date (dd.mm.yyyy); used for lifecycle birth_tick & earliest memory gate",
+    "identity.potential_storylines": "storyline hooks/ideas; authoring notes (currently unwired)",
+    "capabilities.skills": f"canonical skills ({', '.join(CANONICAL_SKILLS)}); projected to skills",
+    "capabilities.languages": "comma-separated language tags (e.g. english, spanish); used for communication checks",
+    "capabilities.weaknesses": "mechanical/situational liabilities (e.g. nearsighted, panic_freeze, peanut_allergy, clumsy); projected to traits",
+    "narrative.media": "books, movies, bands, games (title, medium, when watched/read, opinion, familiarity); hydrated as lore memories & interest_tags",
+    "appearance.overview": "1-2 sentence third-person summary of overall look/vibe; used for compiled prose",
+    "appearance.height_cm": "number in cm (e.g. 160); converted to ft/in in compiled prose",
+    "appearance.weight_kg": "number in kg (e.g. 48); used for compiled prose",
+    "appearance.build": "body frame/build (e.g. petite, slender, stocky); used for compiled prose + equipment fit",
+    "appearance.hair": "length, style, color (third-person phrases); used for compiled prose (grows/cut via effects)",
+    "appearance.eyes": "eye color/look (e.g. bright blue); used for compiled prose (lenses via effects)",
+    "appearance.skin": "skin tone/texture (e.g. pale porcelain); used for compiled prose",
+    "appearance.face": "shape, distinguishing features, makeup (third-person); used for compiled prose",
+    "appearance.body": "third-person descriptions per part (chest/waist/hips/legs/butt); used for compiled prose + equipment",
+    "appearance.voice": "pitch, accent, mannerisms (how they sound/speak); used for prompt voice + compiled prose",
+    "appearance.scent": "scent notes (e.g. black clove, rain, coffee); used for prompt voice + compiled prose",
+    "appearance.style": "typical clothing, accessories, footwear; used for compiled prose + auto-dress context",
+    "personality.likes": "comma-separated tags of things they enjoy (e.g. gummy_worms, vinyl); used for gifts + dialogue targeting",
+    "personality.dislikes": "comma-separated tags of things they hate (e.g. small_talk, neon_lights); used for gifts + dialogue targeting",
+    "personality.fears": "comma-separated tags of what scares them (e.g. abandonment, heights); used for fear engine (fear_tags)",
+    "personality.interests": "comma-separated topic tags (e.g. horror_fx, astronomy); used for attention (interest_tags)",
+    "personality.kinks": "comma-separated tags; used for affect (arousal)",
+    "personality.turn_ons": "comma-separated tags; used for affect (arousal)",
+    "personality.turn_offs": "comma-separated tags; used for affect (disgust, arousal down)",
+    "personality.traumas": "comma-separated trigger tags (e.g. bullying, drowning); used for fear_tags + frightened condition",
+    "personality.boundaries": "comma-separated limit tags; used as consent gate for intimacy prompts",
+    "personality.traits": "comma-separated personality adjectives (e.g. anxious, loyal); used for personality prose & traits",
+    "personality.aspirations": "comma-separated goal/ambition tags (e.g. fx_artist, escape_town); used for goals / plans projection",
+    "personality.quirks": "comma-separated small mannerism tags (e.g. sleeve_tugging, nail_biting); used for prompt voice colour",
+    "personality.habits": "comma-separated routine tags (e.g. late_night_sketching); used for prompt voice + background behaviour",
+    "personality.speech_pattern": "voice style, dialect, and catchphrases; used for prompt voice + compiled prose",
+    "personality.experience": "intimacy level, partners, hard/soft limits (or free text); used for intimacy prompt context",
+    "narrative.biography": "origin, backstory, current situation (third-person); used for memories + prompt backstory",
+    "narrative.secrets": "hidden truths or lies they keep; deepest_secret hydrates to internal_pressure secret memory (never compiled to prose)",
+    "narrative.secrets.known_by": "DEPRECATED - shared secrets belong in the knower's own memories",
+    "narrative.example_dialogues": "short sample lines showing how they talk; used for prompt voice",
+    "narrative.role_in_town": "DEPRECATED (use identity.occupation and narrative.biography instead); no longer compiled to description",
+    "narrative.arc": "where their story is heading or could turn; used for prompts + plans",
 }
 
 
@@ -1017,10 +1187,10 @@ def render_record_prose(record: Dict[str, Any], resolve=None) -> str:
     if face_bits:
         clauses.append(_join(face_bits))
     body = looks.get("body") or {}
-    body_bits = [body[k] for k in ("chest", "waist", "hips", "legs", "butt")
+    body_bits = [f"{k}: {body[k]}" for k in ("chest", "waist", "hips", "legs", "butt")
                  if body.get(k)]
     if body_bits:
-        clauses.append(_join(body_bits))
+        clauses.append("; ".join(body_bits))
     for mod in (body.get("modifications") or []):
         # task-852 P3: region-linked marks are stored as "area::text" in the
         # same modifications[] list. Strip the area for prose; keep legacy
@@ -1085,12 +1255,13 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
 
     ident = record.get("identity") or {}
     pers = record.get("personality") or {}
+    cap = record.get("capabilities") or {}
     narr = record.get("narrative") or {}
 
     lead_bits = []
     if ident.get("age") is not None:
         try:
-            lead_bits.append(f"{float(ident['age']):g}-year-old")
+            lead_bits.append(_apparent_age_bracket(float(ident["age"])))
         except (TypeError, ValueError):
             pass
     for key in ("species", "occupation"):
@@ -1104,12 +1275,33 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
     bio = narr.get("biography") or {}
     if bio.get("current_situation"):
         extra.append(str(bio["current_situation"]).rstrip(".") + ".")
-    if narr.get("role_in_town"):
-        extra.append(f"Role in town: {narr['role_in_town']}.")
     description = (base_description + " " + " ".join(extra)).strip()
 
     prose_bits = []
     traits = list(pers.get("traits") or [])
+    cap_skills = cap.get("skills") or []
+    cap_weaknesses = [
+        normalize_slug(w) or str(w).strip()
+        for w in (cap.get("weaknesses") or [])
+        if str(w).strip()
+    ]
+    all_traits = sorted(set(traits) | set(cap_weaknesses))
+
+    projected_skills: Dict[str, int] = {}
+    if isinstance(cap_skills, dict):
+        for k, v in cap_skills.items():
+            skill_name = _normalize_skill(k)
+            if not skill_name:
+                continue
+            try:
+                projected_skills[skill_name] = int(v)
+            except (TypeError, ValueError):
+                projected_skills[skill_name] = 1
+    elif isinstance(cap_skills, (list, tuple, set)):
+        for k in cap_skills:
+            skill_name = _normalize_skill(k)
+            if skill_name:
+                projected_skills[skill_name] = 1
     if traits:
         prose_bits.append(_join(traits).capitalize() + ".")
     for key in ("quirks", "habits", "aspirations"):
@@ -1117,11 +1309,18 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
             prose_bits.append(str(entry).rstrip(".") + ".")
     speech = pers.get("speech_pattern") or {}
     if isinstance(speech, dict):
-        style = " ".join(str(speech.get(k, "") or "").strip()
-                         for k in ("style", "dialect")).strip()
+        style_val = str(speech.get("style", "") or "").strip().rstrip(".")
+        dialect_val = str(speech.get("dialect", "") or "").strip().rstrip(".")
         catches = speech.get("catchphrases") or []
-        if style or catches:
-            line = f"Speaks {style}".strip()
+        if style_val or dialect_val or catches:
+            if style_val and dialect_val:
+                line = f"Speaks {style_val} ({dialect_val})"
+            elif style_val:
+                line = f"Speaks {style_val}"
+            elif dialect_val:
+                line = f"Speaks with a {dialect_val} dialect"
+            else:
+                line = "Speech"
             if catches:
                 quoted = ", ".join(f'"{c}"' for c in catches)
                 line += f", fond of {quoted}"
@@ -1144,6 +1343,12 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
     if ident.get("sexuality"):
         prose_bits.append(
             f"Orientation: {str(ident['sexuality']).rstrip('.')}.")
+    if ident.get("mbti"):
+        prose_bits.append(
+            f"MBTI: {str(ident['mbti']).strip().rstrip('.')}.")
+    if ident.get("alignment"):
+        prose_bits.append(
+            f"Alignment: {str(ident['alignment']).strip().rstrip('.')}.")
     dialogues = (narr.get("example_dialogues") or [])[:3]
     if dialogues:
         quoted = ", ".join(f'"{d}"' for d in dialogues)
@@ -1155,10 +1360,17 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
         "description": description,
         "personality": personality_prose,
         "interest_tags": sorted(set(pers.get("interests") or ())
-                                | set(pers.get("likes") or ())),
+                                | set(pers.get("likes") or ())
+                                | {
+                                    normalize_slug(m.get("title") if isinstance(m, dict) else m)
+                                    for m in (narr.get("media") or [])
+                                    if (m.get("title") if isinstance(m, dict) else m) and normalize_slug(m.get("title") if isinstance(m, dict) else m)
+                                }),
         "fear_tags": sorted(set(pers.get("fears") or ())
                             | set(pers.get("traumas") or ())),
-        "traits": traits,
+        "dislike_tags": sorted(set(pers.get("dislikes") or ())),
+        "traits": all_traits,
+        "skills": projected_skills,
     }
 
 
@@ -1347,6 +1559,23 @@ def schema_for_llm() -> Dict[str, Any]:
                 "type": "string",
                 "description": f"{field}: {vals}",
             }
+    capabilities_block: Dict[str, Any] = {
+        "skills": {
+            "type": "array",
+            "items": {"type": "string", "enum": list(CANONICAL_SKILLS)},
+            "description": f"canonical character skills: {', '.join(CANONICAL_SKILLS)}",
+        },
+        "languages": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "known languages (e.g. Common, Elvish, Goblin)",
+        },
+        "weaknesses": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "mechanical/situational liabilities and flaw traits (e.g. nearsighted, panic_freeze, peanut_allergy, clumsy)",
+        },
+    }
     narrative_block: Dict[str, Any] = {}
     for field, (kind, subfields) in NARRATIVE_FIELDS.items():
         if kind == "group":
@@ -1401,6 +1630,11 @@ def schema_for_llm() -> Dict[str, Any]:
                 "type": "object",
                 "additionalProperties": False,
                 "properties": personality_block,
+            },
+            "capabilities": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": capabilities_block,
             },
             "narrative": {
                 "type": "object",

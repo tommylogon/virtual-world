@@ -5,6 +5,10 @@ rules that fold it into the engine catalog. The catalog dict itself lives in
 engine/traits.py (TRAIT_DEFINITIONS) so TraitSystem and the rest of the engine
 keep importing it from one place; this module only reads/writes it through the
 trait_definitions argument so there is no second source of truth.
+
+@module trait_library
+@contributes _trait_library_dir, _trait_is_active, _merge_trait_definition, _load_trait_library, seed_trait_library
+@docs docs/virtualWorld/Characters/Activities & States.md
 """
 
 import json as _json

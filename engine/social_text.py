@@ -10,6 +10,10 @@ are the lines it is enriching.
 Every phrase takes an ``{other}`` placeholder holding the *other* participant:
 the actor's memory reads "I teased Vekka", the target's reads "Rikka teased me",
 and both come from one template per (action, landed).
+
+@module social_text
+@contributes phrase
+@docs docs/virtualWorld/AI & Narration/Memory System.md
 """
 
 from __future__ import annotations

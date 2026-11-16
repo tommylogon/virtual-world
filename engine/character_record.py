@@ -22,6 +22,10 @@ write path into the hubs gets the drift reader to verify the result.
 
 Nothing here mutates a Player or a node, so it is safe to call from anywhere,
 including a test, a route, or a one-off audit.
+
+@module character_record
+@contributes DefinitionField, groups, field, node_definition, _comparable, definition_drift
+@docs docs/virtualWorld/Characters/Persona.md
 """
 
 from __future__ import annotations
@@ -127,6 +131,8 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
                         "authored interest tags live on character node"),
         DefinitionField("fear_tags", "knowledge", ON_NODE, True,
                         "authored fear tags live on character node"),
+        DefinitionField("dislike_tags", "knowledge", ON_NODE, True,
+                        "authored dislike tags live on character node"),
         DefinitionField("known", "knowledge", ON_PLAYER, False),
         DefinitionField("discovered_exits", "knowledge", ON_PLAYER, False,
                         "a set; runtime accumulation"),
@@ -248,6 +254,8 @@ def definition_drift(player, node) -> Dict[str, List[str]]:
             continue
         p_val = getattr(player, name)
         if p_val is None:
+            continue
+        if not p_val and (name not in have or not have[name]):
             continue
         if name not in have or have[name] is None:
             missing.append(name)

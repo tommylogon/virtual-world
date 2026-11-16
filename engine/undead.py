@@ -19,6 +19,10 @@ immunity *negates*, neither of which is expressible as a flat number, and
 folding undead into the item aggregate would make a sword do less damage to a
 ghost, which is not what either rule means. So a profile is a separate, explicit
 thing with its own arithmetic.
+
+@module undead
+@contributes _has_tag, is_incorporeal_undead, damage_profile, condition_immunities, is_immune_to_condition, _matches
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from __future__ import annotations
@@ -49,6 +53,7 @@ GHOST_IMMUNE_CONDITIONS: FrozenSet[str] = frozenset({
     "blushing", "nipple_hard", "sensitized", "wet", "wetness",
     "aroused", "highly_aroused", "overstimulated", "frantic",
     "injured", "bleeding", "hypothermia", "suffocating",
+    "menstruating", "ovulating", "in_heat",
 })
 
 #: Conditions a *corporeal* undead (a zombie) is immune to. Much shorter: it has
@@ -57,6 +62,7 @@ GHOST_IMMUNE_CONDITIONS: FrozenSet[str] = frozenset({
 UNDEAD_IMMUNE_CONDITIONS: FrozenSet[str] = frozenset({
     "exhausted", "blushing", "nipple_hard", "sensitized", "aroused",
     "highly_aroused", "frantic", "overstimulated",
+    "menstruating", "ovulating", "in_heat",
 })
 
 

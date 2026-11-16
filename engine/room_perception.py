@@ -11,6 +11,10 @@ path re-implemented a shared rule, it drifted from the other (task-333
 area-id crash, bug-23 hidden-way leak, bug-24 requires:"none" gate,
 bug-26 empty panel). Renderers must call THESE functions instead of
 re-implementing the rules.
+
+@module room_perception
+@contributes normalize_name, _area_nodes_by_name, duplicate_area_names, resolve_area, resolve_area_node, normalize_requires
+@docs docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
 """
 
 import logging
@@ -204,7 +208,22 @@ def pluralise(name, count: int, plural: Optional[str] = None) -> str:
     if count == 1 or not word:
         return word
     authored = str(plural or "").strip()
-    return authored or f"{word}s"
+    if authored:
+        return authored
+    if word.endswith("s"):
+        return word
+    return f"{word}s"
+
+
+def resolve_item_name(node) -> str:
+    """Resolve an item's authored display name or normalize snake_case id fallback."""
+    if node is None:
+        return ""
+    props = getattr(node, "properties", None) or {}
+    name = str(props.get("display_name") or props.get("label") or getattr(node, "name", "") or "")
+    if "_" in name and " " not in name:
+        name = name.replace("_", " ")
+    return name
 
 
 def describe_item_quantity(node) -> str:
@@ -223,7 +242,7 @@ def describe_item_quantity(node) -> str:
     if node is None:
         return ""
     props = getattr(node, "properties", None) or {}
-    name = str(getattr(node, "name", "") or "")
+    name = resolve_item_name(node)
     if "quantity" not in props:
         return name
     count = item_quantity(node)
@@ -251,7 +270,7 @@ def describe_item(node, description: str = "") -> str:
     if any(token in desc for token in QUANTITY_TOKENS):
         line = (desc.replace("{qty}", str(count))
                     .replace("{quantity}", str(count))
-                    .replace("{name}", str(node.name or "")))
+                    .replace("{name}", resolve_item_name(node)))
         return line + provenance_suffix
     label = describe_item_quantity(node)
     line = f"{label}, {desc}" if desc else label

@@ -35,6 +35,10 @@ concentrates them instead. Drinking somebody else's water is *observed*, not
 log so "someone took mine" stops being silence. Whether that should cost a
 relationship is task-552's fear model and `engine/background_social.py`'s, not
 this module's.
+
+@module ownership
+@contributes _tags, _bare, _prefixed, factions_of, holders_of, is_owned_by
+@docs none - engine subsystem module
 """
 
 from __future__ import annotations

@@ -18,6 +18,7 @@ AUTHORED_DEFINITION_KEYS = (
     "tags",
     "interest_tags",
     "fear_tags",
+    "dislike_tags",
     "flags",
     "appearance",
     "triggers",
@@ -40,6 +41,8 @@ def to_node_properties(player: Player, existing_props: Optional[Dict[str, Any]] 
         props["interest_tags"] = list(player.interest_tags)
     if getattr(player, "fear_tags", None):
         props["fear_tags"] = list(player.fear_tags)
+    if getattr(player, "dislike_tags", None):
+        props["dislike_tags"] = list(player.dislike_tags)
     if getattr(player, "flags", None):
         props["flags"] = dict(player.flags)
     if getattr(player, "appearance", None):
@@ -53,6 +56,7 @@ def apply_node_properties(
     player: Player,
     props: Optional[Dict[str, Any]],
     pdata: Optional[Dict[str, Any]] = None,
+    world: Any = None,
 ) -> None:
     """Apply authored definition from Node.properties to a Player instance."""
     props = props or {}
@@ -84,6 +88,11 @@ def apply_node_properties(
     elif pdata.get("fear_tags") is not None:
         player.fear_tags = list(pdata["fear_tags"])
 
+    if props.get("dislike_tags") is not None:
+        player.dislike_tags = list(props["dislike_tags"])
+    elif pdata.get("dislike_tags") is not None:
+        player.dislike_tags = list(pdata["dislike_tags"])
+
     if props.get("flags") is not None:
         player.flags = dict(props["flags"])
     elif pdata.get("flags") is not None:
@@ -97,7 +106,7 @@ def apply_node_properties(
     if props.get("triggers") is not None:
         player.triggers = list(props["triggers"])
 
-    # task-922: translate narrative.media items into backstory semantic memories
+    # task-922 / task-849: translate narrative media, biography, and secrets into backstory memories
     persona = props.get("persona") or {}
     narrative = persona.get("narrative") or props.get("narrative") or {}
     media = narrative.get("media") or []
@@ -109,8 +118,10 @@ def apply_node_properties(
                 if not title:
                     continue
                 medium = str(item.get("medium") or "work").strip()
+                when = str(item.get("when") or "").strip()
                 opinion = str(item.get("opinion") or "").strip()
-                text = f"Knows {medium} '{title}'" + (f": {opinion}" if opinion else "")
+                when_bit = f" ({when})" if when else ""
+                text = f"Knows {medium} '{title}'{when_bit}" + (f": {opinion}" if opinion else "")
                 tags = ["media", medium]
             else:
                 title = str(item).strip()
@@ -129,6 +140,99 @@ def apply_node_properties(
                     category="semantic",
                 )
                 existing_texts.add(text)
+
+    # task-849: translate narrative biography and secrets into semantic memories
+    bio = narrative.get("biography") or {}
+    if isinstance(bio, dict) and hasattr(player, "add_memory") and hasattr(player, "memories"):
+        existing_texts = {m.get("text", "") for m in (player.memories or [])}
+        for stage, prefix in [("early_life", "Early life"), ("adulthood", "Adulthood"), ("current_situation", "Current situation")]:
+            prose = str(bio.get(stage) or "").strip()
+            full_text = f"{prefix}: {prose}"
+            if prose and full_text not in existing_texts:
+                player.add_memory(
+                    text=full_text,
+                    tick=0,
+                    importance=3,
+                    memory_type="semantic",
+                    tags=["biography", stage],
+                    source="backstory",
+                    category="semantic",
+                )
+                existing_texts.add(full_text)
+
+    secrets = narrative.get("secrets") or {}
+    if isinstance(secrets, dict) and hasattr(player, "add_memory") and hasattr(player, "memories"):
+        existing_texts = {m.get("text", "") for m in (player.memories or [])}
+        deepest = str(secrets.get("deepest_secret") or "").strip()
+        full_deepest = f"Deepest secret: {deepest}"
+        if deepest and full_deepest not in existing_texts:
+            player.add_memory(
+                text=full_deepest,
+                tick=0,
+                importance=5,
+                memory_type="semantic",
+                tags=["secret", "internal_pressure"],
+                source="backstory",
+                category="semantic",
+            )
+            existing_texts.add(full_deepest)
+        if world is not None and deepest:
+            players_map = getattr(world, "players", None) or {}
+            for knower_raw in (secrets.get("known_by") or []):
+                knower_name = str(knower_raw).strip()
+                if not knower_name:
+                    continue
+                knower = players_map.get(knower_name)
+                if knower is None or knower is player:
+                    continue
+                if hasattr(knower, "add_memory") and hasattr(knower, "memories"):
+                    knower_texts = {m.get("text", "") for m in (knower.memories or [])}
+                    shared_text = f"Knows {player.name}'s secret: {deepest}"
+                    if shared_text not in knower_texts:
+                        knower.add_memory(
+                            text=shared_text,
+                            tick=0,
+                            importance=4,
+                            memory_type="semantic",
+                            tags=["secret", "shared_secret"],
+                            source="backstory",
+                            category="semantic",
+                        )
+        for hf in (secrets.get("hidden_facts") or []):
+            hf_str = str(hf).strip()
+            full_hf = f"Secret fact: {hf_str}"
+            if hf_str and full_hf not in existing_texts:
+                player.add_memory(
+                    text=full_hf,
+                    tick=0,
+                    importance=4,
+                    memory_type="semantic",
+                    tags=["secret"],
+                    source="backstory",
+                    category="semantic",
+                )
+                existing_texts.add(full_hf)
+
+    # task-849: translate persona aspirations and arc into player.goals
+    personality = persona.get("personality") or props.get("personality") or {}
+    aspirations = []
+    if isinstance(personality, dict):
+        aspirations = personality.get("aspirations") or []
+    arc = str(narrative.get("arc") or "").strip()
+    if (aspirations or arc) and hasattr(player, "goals"):
+        from engine import goals as goals_engine
+        existing_whats = {str(g.get("what") or "").strip().lower() for g in (player.goals or []) if isinstance(g, dict)}
+        for asp in aspirations:
+            asp_str = str(asp).strip()
+            if asp_str and asp_str.lower() not in existing_whats:
+                new_goals, _ = goals_engine.set_goal(
+                    player.goals,
+                    what=asp_str,
+                    motivation=arc or "aspiration",
+                    intention="active",
+                )
+                player.goals = new_goals
+                existing_whats.add(asp_str.lower())
 
 
 def hydrate_player_from_node(node: Node, pdata: Optional[Dict[str, Any]] = None) -> Player:

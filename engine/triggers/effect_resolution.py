@@ -7,6 +7,10 @@ round trip once wrote a trigger definition wrapped under its own key
 (``{"item": {...}}``, and the same wrapper around ``effects``), so the store on
 disk holds definitions, wrapper objects and wrapper lists in the same field.
 Normalise on the way in (bug-566) instead of teaching every reader the shapes.
+
+@module effect_resolution
+@contributes _looks_like_trigger, _unwrap_single_key, normalize_trigger_entry, normalize_trigger_list, _legacy_effects_from_properties, _effects_list_from_properties
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import List, Optional
@@ -68,8 +72,14 @@ def normalize_trigger_entry(entry):
         fixed = []
         for effect in effects:
             effect = _unwrap_single_key(effect)
-            if isinstance(effect, dict) and effect.get("type"):
-                fixed.append(dict(effect))
+            if isinstance(effect, dict):
+                eff_type = effect.get("type") or effect.get("effect_type")
+                if eff_type:
+                    eff_dict = dict(effect)
+                    eff_dict["type"] = eff_type
+                    if "params" not in eff_dict:
+                        eff_dict["params"] = {k: v for k, v in effect.items() if k not in ("type", "effect_type", "params")}
+                    fixed.append(eff_dict)
         if fixed:
             entry["effects"] = fixed
         else:
@@ -141,7 +151,16 @@ def _effects_list_from_properties(props: Optional[dict]) -> Optional[List[dict]]
 
     effects = props.get("effects")
     if isinstance(effects, list) and effects:
-        typed = [effect for effect in effects if isinstance(effect, dict) and effect.get("type")]
+        typed = []
+        for effect in effects:
+            if isinstance(effect, dict):
+                eff_type = effect.get("type") or effect.get("effect_type")
+                if eff_type:
+                    e = dict(effect)
+                    e["type"] = eff_type
+                    if "params" not in e:
+                        e["params"] = {k: v for k, v in effect.items() if k not in ("type", "effect_type", "params")}
+                    typed.append(e)
         if typed:
             return typed
 

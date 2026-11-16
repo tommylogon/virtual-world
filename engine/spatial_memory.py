@@ -2,10 +2,14 @@
 
 Replaces the browser-side EntityIndex.buildSpatialContext / buildRoutesFrom.
 Reads the real graph directly - no extraction, no junk.
+
+@module spatial_memory
+@contributes SpatialMemory, known_route_areas
+@docs docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
 """
 
 from collections import deque
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from engine.fog import only_known, resolve_known_area
 from graph import EDGE_CONNECTION, WorldGraph
@@ -36,6 +40,13 @@ def known_route_areas(player, graph) -> Set[str]:
         node = resolve_known_area(graph, entry)
         if node is not None and getattr(node, "name", None):
             names.add(str(node.name))
+
+    for entry in (getattr(player, "known_areas", None) or ()):
+        node = resolve_known_area(graph, entry)
+        if node is not None and getattr(node, "name", None):
+            names.add(str(node.name))
+        elif entry:
+            names.add(str(entry))
     return names
 
 
@@ -152,6 +163,82 @@ class SpatialMemory:
                             queue.append((target_id, path + [step]))
 
         return None
+
+    def build_cognitive_map(self, player) -> Dict[str, Any]:
+        """Project the character's belief-based cognitive map (task-736).
+        Returns only the areas and ways that this character knows/remembers,
+        derived from spatial memory, not the full world graph.
+        """
+        known_areas = set(known_route_areas(player, self.graph))
+        current_area = getattr(player, "current_area", None)
+        if current_area:
+            known_areas.add(current_area)
+
+        area_nodes = []
+        known_area_ids = set()
+        for aname in sorted(known_areas):
+            aid = self._area_id(aname)
+            if aid and aid in self.graph.nodes:
+                known_area_ids.add(aid)
+                visited_fn = getattr(player, "visited_area_names", None)
+                is_visited = False
+                if callable(visited_fn):
+                    try:
+                        is_visited = aname in (visited_fn(self.graph) or ())
+                    except TypeError:
+                        is_visited = aname in (visited_fn() or ())
+                area_nodes.append({
+                    "id": aid,
+                    "name": aname,
+                    "is_current": (aname == current_area or aid == current_area),
+                    "visited": is_visited,
+                })
+
+        ways = []
+        known_aspects = getattr(player, "known_way_aspects", None) or {}
+        seen_ways = set()
+
+        for aid in known_area_ids:
+            aname = self._id_to_name(aid) or ""
+            for edge in self.graph.get_edges_for_source(aid, EDGE_CONNECTION):
+                wid = edge.target
+                wnode = self.graph.get_node(wid)
+                if not wnode or wnode.type != "way":
+                    continue
+                dir_label = edge.properties.get("direction", "")
+                for inner in self.graph.get_edges_for_source(wid, EDGE_CONNECTION):
+                    tid = inner.target
+                    if tid in known_area_ids and tid != aid:
+                        way_key = tuple(sorted([aid, tid]))
+                        if way_key not in seen_ways:
+                            seen_ways.add(way_key)
+                            aspects = list(known_aspects.get((aname, dir_label), ()))
+                            ways.append({
+                                "id": wid,
+                                "from_id": aid,
+                                "to_id": tid,
+                                "from_name": aname,
+                                "to_name": self._id_to_name(tid) or "",
+                                "direction": dir_label,
+                                "aspects": aspects,
+                            })
+
+        return {
+            "character": getattr(player, "name", ""),
+            "current_area": current_area,
+            "areas": area_nodes,
+            "ways": ways,
+            "known_area_count": len(area_nodes),
+            "known_way_count": len(ways),
+        }
+
+    def recall_route(self, player, target_name: str) -> Optional[List[Dict[str, str]]]:
+        """Recall a known route to target_name within the character's known cognitive map."""
+        known_areas = set(known_route_areas(player, self.graph))
+        current_area = getattr(player, "current_area", None)
+        if not current_area or not target_name:
+            return None
+        return self.find_route(current_area, target_name, known_areas)
 
     # ── helpers ──────────────────────────────────────────────────────────
 

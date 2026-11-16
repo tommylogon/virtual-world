@@ -3,6 +3,10 @@
 Handles LLM-powered emote parsing, speech broadcasting, fumbling in
 darkness, and building structured narration context for player-facing
 descriptions.
+
+@module narration
+@contributes NarrationSystem, normalize_emote_person, director_pass, resolve_action_message_precedence, is_batch_filler, BATCH_FILLER_MESSAGES
+@docs docs/virtualWorld/AI & Narration/Narration System.md
 """
 
 import random
@@ -361,14 +365,20 @@ class NarrationSystem:
                         if h.get("type") != "sound_source" and h.get("speaker") != active][-5:]
         heard_sounds = [h for h in hearing if h.get("type") == "sound_source"][-3:]
         for h in heard_speech:
-            direction = f" from the {h['heard_from']}" if h.get("heard_from") else ""
+            clean_dir = str(h.get("heard_from") or "").replace("_", " ").strip()
+            if clean_dir.endswith(" back"):
+                clean_dir = clean_dir[:-5].strip()
+            direction = f" from the {clean_dir}" if clean_dir else ""
             # Delivery is stamped on the entry by speech.py, so report it instead of
             # calling everything "said": a scream read as conversation is a scream the
             # listener was told was small talk.
             verb = SPEECH_VERBS.get(str(h.get("speech_level") or "").strip().lower(), "said")
-            lines.append(f"[Heard{direction}] {h.get('speaker')} {verb}: \"{h.get('text')}\"")
+            lines.append(f"[Heard] {h.get('speaker')}{direction} {verb}: \"{h.get('text')}\"")
         for h in heard_sounds:
-            direction = f" from the {h['heard_from']}" if h.get("heard_from") else ""
+            clean_dir = str(h.get("heard_from") or "").replace("_", " ").strip()
+            if clean_dir.endswith(" back"):
+                clean_dir = clean_dir[:-5].strip()
+            direction = f" from the {clean_dir}" if clean_dir else ""
             src = f" from the {h['source_item']}" if h.get("source_item") else ""
             lines.append(f"[Heard{direction}{src}] {h.get('sound_pattern') or 'a sound'}.")
         return " ".join(lines) if lines else "You hear nothing but silence."
@@ -536,3 +546,122 @@ class NarrationSystem:
             f"[{source_label}] {narration_text}",
             area_name=target_area,
         )
+
+
+# ----------------- Narration v2 Director Pass (task-692) -----------------
+
+BATCH_FILLER_MESSAGES = frozenset({
+    "You eat it, and it goes down easier than you expected.",
+    "You eat it, and there is a little more after.",
+    "You eat it, and wish there were more.",
+    "You eat it, gathered and not much cleaned.",
+    "You eat it. Better than nothing and not much more.",
+    "You eat it. It is not much, but it is food.",
+    "You eat it. It is worth the walk.",
+    "You eat it. That was worth stopping for.",
+})
+
+
+def is_batch_filler(message: str) -> bool:
+    """Check if message is one of the 8 batch generator filler strings."""
+    if not message:
+        return False
+    return message.strip() in BATCH_FILLER_MESSAGES
+
+
+def resolve_action_message_precedence(
+    item_props: Optional[dict] = None,
+    human_override: Optional[str] = None,
+    generated_narration: Optional[str] = None,
+    action_verb: Optional[str] = None,
+) -> tuple[str, str]:
+    """Resolve action narration precedence per task-692.
+
+    Precedence:
+    1. human override (persisted)
+    2. individually authored success_message / fail_message (not batch filler)
+    3. generated narration
+    4. batch filler
+    Returns (message_text, source_kind).
+    """
+    if human_override:
+        return human_override, "human_override"
+
+    triggers = item_props.get("triggers", []) if item_props else []
+    target_trigger = f"on_{action_verb.lower()}" if action_verb else None
+    if target_trigger:
+        matching = [t for t in triggers if isinstance(t, dict) and t.get("trigger_type") == target_trigger]
+        if matching:
+            triggers = matching
+
+    for t in triggers:
+        if not isinstance(t, dict):
+            continue
+        # Triggers have effects[].params.success_message (NOT triggers[].success_message which is empty)
+        effects = t.get("effects", [])
+        for eff in effects:
+            if not isinstance(eff, dict):
+                continue
+            params = eff.get("params", {})
+            smsg = params.get("success_message") or params.get("message")
+            if smsg:
+                if not is_batch_filler(smsg):
+                    return smsg, "authored"
+
+    if generated_narration:
+        return generated_narration, "generated"
+
+    for t in triggers:
+        if not isinstance(t, dict):
+            continue
+        for eff in t.get("effects", []):
+            if isinstance(eff, dict):
+                params = eff.get("params", {})
+                smsg = params.get("success_message") or params.get("message")
+                if smsg:
+                    return smsg, "filler"
+
+    return "", "none"
+
+
+def director_pass(
+    actor_name: str,
+    action: str,
+    result_output: str,
+    system_messages: Optional[list[str]] = None,
+    narration_mode: str = "none",
+    item_props: Optional[dict] = None,
+    human_override: Optional[str] = None,
+    generated_narration: Optional[str] = None,
+) -> dict:
+    """Director pass for task-692.
+
+    Combines the action result, actor name, and facts into a unified result.
+    """
+    facts = list(system_messages or [])
+    actor = actor_name or "Unknown"
+
+    if narration_mode == "none":
+        narration = result_output
+        source_kind = "mechanical"
+    else:
+        verb = action.split()[0] if action else None
+        text, source_kind = resolve_action_message_precedence(
+            item_props=item_props or {},
+            human_override=human_override,
+            generated_narration=generated_narration,
+            action_verb=verb,
+        )
+        narration = text if text else result_output
+
+    facts_suffix = (" " + " ".join(f"({f})" for f in facts)) if facts else ""
+    combined_prompt = narration + facts_suffix
+
+    return {
+        "actor": actor,
+        "narration": narration,
+        "facts": facts,
+        "mode": narration_mode,
+        "source": source_kind,
+        "combined_for_prompt": combined_prompt,
+    }

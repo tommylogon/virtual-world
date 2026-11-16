@@ -14,6 +14,10 @@ pointed a verb at it. Every verb that moves an item asks here.
 The reachability half is different on purpose: a part is not portable *and*
 must still be reachable and usable, which is what ``engine.item_reach`` is for.
 Portable and reachable are not opposites.
+
+@module action_contract
+@contributes item_actions, item_allows, is_portable, is_part, parent_of, portable_refusal
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from typing import Optional

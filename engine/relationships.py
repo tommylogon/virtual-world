@@ -1,14 +1,21 @@
-"""One relationship mutation path (task-420).
+"""One relationship mutation path (task-420, extended multi-axis in task-972).
 
-Relationship state is a blunt per-pair scalar:
+Relationship state is a per-pair multi-axis record:
 
     player.relationships[other] = {
-        "closeness": -100..100,
+        "closeness": -100..100,    # default 0
+        "trust": -100..100,        # default 0
+        "attraction": 0..100,      # default 0
+        "fear": 0..100,            # default 0
+        "resentment": 0..100,      # default 0
         "last_interaction_tick": int,
         "interaction_count": int,
         "label": str,              # authored declaration ("my brother")
         "first_sighting": bool,    # identity still hidden this turn
     }
+
+Legacy records that only contain `closeness` remain 100% valid; missing axes
+default to 0 on read and normalization.
 
 Every gameplay writer used to touch that dict itself - combat, the foreground
 loop, first-meeting registration, the `label` command - so two things were true:
@@ -21,22 +28,45 @@ loop, first-meeting registration, the `label` command - so two things were true:
    promotion/demotion the value could jump: the two paths never agreed on how it
    evolves.
 
-`apply_relationship_delta` is now the only writer of `closeness`. It clamps in
-one place, stamps the interaction, and records the cause on the trace. A
-deserializer replacing the whole store from a payload is not a mutation of a
-relationship and does not go through here (see `routes/player_ops.py`).
+`apply_relationship_delta` and `apply_relationship_axes_delta` are the writers
+of relationship axes. They clamp in one place, stamp the interaction, and
+record the cause on the trace. A deserializer replacing the whole store from a
+payload is not a mutation of a relationship and does not go through here (see
+`routes/player_ops.py`).
 
 `closeness_band` also lives here: the band ladder was inline in
 `Player.get_relationship_nl`, and task-423's outcome table needs the same bands,
 so it is defined once.
+
+@module relationships
+@contributes clamp_closeness, clamp_axis, RELATIONSHIP_AXES, closeness_band, band_at_least, resolve_key, display_name, get_relationship, get_relationship_axis, get_relationship_axes, normalize_relationship, normalize_relationships, apply_relationship_delta, apply_relationship_axes_delta
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from __future__ import annotations
 
+import math
 from typing import Optional
 
 CLOSENESS_MIN = -100
 CLOSENESS_MAX = 100
+TRUST_MIN = -100
+TRUST_MAX = 100
+ATTRACTION_MIN = 0
+ATTRACTION_MAX = 100
+FEAR_MIN = 0
+FEAR_MAX = 100
+RESENTMENT_MIN = 0
+RESENTMENT_MAX = 100
+
+#: Canonical relationship axes and their inclusive (min, max) bounds.
+RELATIONSHIP_AXES: dict[str, tuple[int, int]] = {
+    "closeness": (CLOSENESS_MIN, CLOSENESS_MAX),
+    "trust": (TRUST_MIN, TRUST_MAX),
+    "attraction": (ATTRACTION_MIN, ATTRACTION_MAX),
+    "fear": (FEAR_MIN, FEAR_MAX),
+    "resentment": (RESENTMENT_MIN, RESENTMENT_MAX),
+}
 
 #: Band -> the words the prompt uses. Keys are what game systems match on, so
 #: they never change; the values are prose and can.
@@ -59,13 +89,24 @@ BAND_ORDER = (
 )
 
 
-def clamp_closeness(value) -> int:
-    """Clamp to the store's range. The one place the bounds are enforced."""
+def clamp_axis(axis: str, value) -> int:
+    """Clamp a value to the bounds of ``axis``. Returns 0 on invalid input."""
+    bounds = RELATIONSHIP_AXES.get(axis)
+    if bounds is None:
+        raise ValueError(f"Unknown relationship axis: {axis!r}")
+    lo, hi = bounds
     try:
         number = float(value)
     except (TypeError, ValueError):
         return 0
-    return int(max(CLOSENESS_MIN, min(CLOSENESS_MAX, number)))
+    if math.isnan(number):
+        return 0
+    return int(max(lo, min(hi, number)))
+
+
+def clamp_closeness(value) -> int:
+    """Clamp to the closeness store's range. The one place the bounds are enforced."""
+    return clamp_axis("closeness", value)
 
 
 def closeness_band(closeness) -> str:
@@ -143,6 +184,42 @@ def get_relationship(player, other) -> Optional[dict]:
     return store.get(resolve_key(player, other))
 
 
+def get_relationship_axis(player, other, axis: str) -> int:
+    """Read a single relationship axis for ``other``, defaulting to 0."""
+    rel = get_relationship(player, other)
+    if not isinstance(rel, dict):
+        clamp_axis(axis, 0)  # validate axis name
+        return 0
+    return clamp_axis(axis, rel.get(axis, 0))
+
+
+def get_relationship_axes(player, other) -> dict[str, int]:
+    """Read all relationship axes for ``other``, defaulting missing axes to 0."""
+    rel = get_relationship(player, other)
+    if not isinstance(rel, dict):
+        return {axis: 0 for axis in RELATIONSHIP_AXES}
+    return {axis: clamp_axis(axis, rel.get(axis, 0)) for axis in RELATIONSHIP_AXES}
+
+
+def normalize_relationship(record: dict) -> dict:
+    """Return a copy of ``record`` with all relationship axes present and clamped."""
+    out = dict(record) if isinstance(record, dict) else {}
+    for axis in RELATIONSHIP_AXES:
+        out[axis] = clamp_axis(axis, out.get(axis, 0))
+    return out
+
+
+def normalize_relationships(rel_data) -> dict[str, dict]:
+    """Normalize a player's relationship map for serialization or deserialization."""
+    if not isinstance(rel_data, dict):
+        return {}
+    return {
+        str(key): normalize_relationship(rec)
+        for key, rec in rel_data.items()
+        if isinstance(rec, dict)
+    }
+
+
 def rekey_relationship(player, old_key: str, new_key: str, new_name: str = "") -> bool:
     """Re-key a relationship on ``player`` from ``old_key`` to ``new_key`` (task-619).
 
@@ -163,7 +240,7 @@ def ensure_relationship(player, other_name: str, tick: int = 0,
     """The record for ``other_name``, created if absent. Returns (record, created).
 
     Creating a record is not the same as *feeling* something: this grants no
-    novelty and moves no closeness, so callers that do care (first meeting,
+    novelty and moves no axes, so callers that do care (first meeting,
     a landed insult) apply their own delta afterwards.
     """
     if player is None or not other_name:
@@ -175,9 +252,15 @@ def ensure_relationship(player, other_name: str, tick: int = 0,
     if existing is not None:
         if not existing.get("name"):
             existing["name"] = display_name(player, other_name, key)
+        for axis in RELATIONSHIP_AXES:
+            existing.setdefault(axis, 0)
         return existing, False
     record = {
         "closeness": 0,
+        "trust": 0,
+        "attraction": 0,
+        "fear": 0,
+        "resentment": 0,
         "last_interaction_tick": int(tick or 0),
         "interaction_count": 0,
         "label": label or "",
@@ -187,10 +270,64 @@ def ensure_relationship(player, other_name: str, tick: int = 0,
     return record, True
 
 
+def apply_relationship_axes_delta(player, other_name: str, deltas: dict,
+                                  cause: str, tick: Optional[int] = None,
+                                  area_id: str = "", trace: bool = True) -> dict:
+    """Apply deltas to one or more relationship axes. Returns the updated record.
+
+    ``deltas`` maps axis names (``closeness``, ``trust``, ``attraction``,
+    ``fear``, ``resentment``) to integer deltas. Each axis is clamped to its
+    defined bounds, interaction metadata is stamped, and any non-zero changes
+    are recorded on the lived log with ``cause``.
+    """
+    record, _ = ensure_relationship(player, other_name, tick or 0)
+    if not record:
+        return {}
+    label = display_name(player, other_name, resolve_key(player, other_name))
+    applied: dict[str, int] = {}
+    if isinstance(deltas, dict):
+        for axis, raw_delta in deltas.items():
+            if axis not in RELATIONSHIP_AXES:
+                continue
+            try:
+                amount = int(raw_delta or 0)
+            except (TypeError, ValueError):
+                amount = 0
+            if amount:
+                record[axis] = clamp_axis(axis, record.get(axis, 0) + amount)
+                applied[axis] = amount
+
+    if tick is not None:
+        record["last_interaction_tick"] = int(tick)
+    record.setdefault("interaction_count", 0)
+    if applied or tick is not None:
+        record["interaction_count"] = int(record.get("interaction_count", 0)) + 1
+
+    if trace and applied:
+        try:
+            from engine.lived_log import record as lived_record
+            if list(applied.keys()) == ["closeness"]:
+                summary = f"closeness toward {label} {applied['closeness']:+d}"
+            else:
+                parts = ", ".join(f"{ax} {amt:+d}" for ax, amt in applied.items())
+                summary = f"{parts} toward {label}"
+            lived_record(
+                player, int(tick or 0), "relationship",
+                summary,
+                why=f"social:{cause}",
+                area=area_id or (getattr(player, "current_area", "") or ""),
+                tags=["rel:" + str(label), str(cause)],
+                delta={"cause": str(cause), "with": str(label), **applied},
+            )
+        except Exception:
+            pass
+    return record
+
+
 def apply_relationship_delta(player, other_name: str, delta, cause: str,
                              tick: Optional[int] = None, area_id: str = "",
                              trace: bool = True) -> dict:
-    """The only writer of `closeness`. Returns the updated record.
+    """Writer of `closeness` (delegating to `apply_relationship_axes_delta`).
 
     ``cause`` is a short token naming the deciding layer (`combat`, `dialogue`,
     `meeting`, `gift`, `derive`) and is recorded on the trace with the amount and
@@ -198,34 +335,19 @@ def apply_relationship_delta(player, other_name: str, delta, cause: str,
     fact. Every caller must supply one - an unexplained relationship change is
     the thing this function exists to prevent.
     """
-    record, _ = ensure_relationship(player, other_name, tick or 0)
-    if not record:
-        return {}
-    label = display_name(player, other_name, resolve_key(player, other_name))
-    amount = int(delta or 0)
-    if amount:
-        record["closeness"] = clamp_closeness(record.get("closeness", 0) + amount)
-    if tick is not None:
-        record["last_interaction_tick"] = int(tick)
-    record.setdefault("interaction_count", 0)
-    if amount or tick is not None:
-        record["interaction_count"] = int(record.get("interaction_count", 0)) + 1
-
-    if trace and amount:
-        try:
-            from engine.lived_log import record as lived_record
-            lived_record(
-                player, int(tick or 0), "relationship",
-                f"closeness toward {label} {amount:+d}",
-                why=f"social:{cause}",
-                area=area_id or (getattr(player, "current_area", "") or ""),
-                tags=["rel:" + str(label), str(cause)],
-                delta={"closeness": amount, "cause": str(cause),
-                       "with": str(label)},
-            )
-        except Exception:
-            pass
-    return record
+    try:
+        amount = int(delta or 0)
+    except (TypeError, ValueError):
+        amount = 0
+    return apply_relationship_axes_delta(
+        player,
+        other_name,
+        {"closeness": amount},
+        cause,
+        tick=tick,
+        area_id=area_id,
+        trace=trace,
+    )
 
 
 def apply_symmetric_delta(first, second, delta, cause: str,

@@ -4,6 +4,10 @@ Extended by task-498 with a **chained** sightline: an observer sees along a run
 of open or see-through ways, as long as the floor does not change and the run
 does not turn. See :func:`sightline_run` for the chain and the two decisions the
 task asked to have made explicitly.
+
+@module beyond_visibility
+@contributes sightline_depth, _way_floor, _is_sight_passable, sightline_run, _forward_way, _area_across
+@docs docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
 """
 
 from typing import Any, Dict, List, Optional, Set, Tuple

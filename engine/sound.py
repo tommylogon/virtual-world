@@ -2,6 +2,10 @@
 
 Handles speech levels, sound source propagation, and ambient noise dampening
 using graph-scan approach similar to the lighting system.
+
+@module sound
+@contributes _speech_levels, _way_barriers, _noise_levels, _config_get_int, _config_get_float, get_way_barrier
+@docs docs/virtualWorld/World Building/Graph System.md
 """
 from typing import List, Dict, Optional, Set, Tuple
 import heapq
@@ -331,11 +335,14 @@ def format_heard_narration(sound_pattern: str, direction: str, is_speech: bool =
     Returns:
         Formatted narration string
     """
+    clean_dir = direction.replace("_", " ").strip() if direction else ""
+    if clean_dir.endswith(" back"):
+        clean_dir = clean_dir[:-5].strip()
     if is_speech:
-        if direction:
-            return f"You hear someone speaking from the {direction}."
+        if clean_dir:
+            return f"You hear someone speaking from the {clean_dir}."
         return "You hear someone speaking nearby."
     else:
-        if direction:
-            return f"You hear {sound_pattern} from the {direction}."
+        if clean_dir:
+            return f"You hear {sound_pattern} from the {clean_dir}."
         return f"You hear {sound_pattern}."

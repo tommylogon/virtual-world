@@ -6,6 +6,10 @@ like hand-built doors from the first tick.
 
 task-357 (spawn_way), task-356 (spawn_area), task-192 (set_way_target),
 task-193 (set_way_view).
+
+@module ways
+@contributes _opposite, _resolve_area, handle_spawn_way, handle_spawn_area, handle_set_way_target, handle_set_way_view
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import time

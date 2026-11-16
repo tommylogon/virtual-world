@@ -1,3 +1,10 @@
+"""world_compile_regions module.
+
+@module world_compile_regions
+@contributes _region_authored_name, _regions, _region_climate, _merge_always_cells, _merge_never_cells, _region_components
+@docs docs/virtualWorld/World Building/WorldPainter.md
+"""
+
 from __future__ import annotations
 
 from typing import Dict, Iterable, List, Optional, Set, Tuple

@@ -4,6 +4,10 @@ Moved verbatim from engine/item_actions.py as part of the task-314
 verb-family split. Pure graph functions - no class context needed.
 `engine.item_actions` re-exports the public names so existing imports
 (routes, serialization, effects) keep working.
+
+@module carry_weight
+@contributes _node_effective_weight, _sum_container_contents, sum_carry_weight, reconcile_item_weight, get_carry_load_ratio
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from graph import EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN

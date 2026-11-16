@@ -29,6 +29,10 @@ declared ``applies_to: ["ways"]`` while its only consumer read it off the
 *area*, so ``get_transit_roles`` always returned ``None``. It also *replaced*
 a way's handle instead of aliasing it, hardcoded exactly two ways, and derived
 "back" from the way a character stood at rather than the way it came through.
+
+@module facing
+@contributes normalize_cardinal, cardinal_opposite, rotate, explain_unresolved, resolve_for_player, edge_cardinal
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from typing import Optional, Tuple

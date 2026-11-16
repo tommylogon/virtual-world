@@ -1,4 +1,9 @@
-"""Teleport and movement effect handlers (teleport, unlock_way)."""
+"""Teleport and movement effect handlers (teleport, unlock_way).
+
+@module teleport
+@contributes handle_teleport, handle_unlock_way
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 import time
 

@@ -19,6 +19,10 @@ Event catalog (v1):
 | loud_noise      | loud noise in the current area                         |
 | takes_damage    | character takes damage (extends wake-on-damage hook)   |
 | alone_in_dark   | ambient light low AND no other character in area       |
+
+@module save_on
+@contributes SaveOnResolver
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from typing import Optional

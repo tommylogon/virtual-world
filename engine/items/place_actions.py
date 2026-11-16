@@ -1,3 +1,12 @@
+"""place_actions module.
+
+@module place_actions
+@contributes PlaceActionsMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
+
+from engine.items.take_drop_actions import _display_name
+from engine.equipment import is_intrinsic_ability
 """Container / placement verbs for ItemActions.
 
 Moved verbatim from engine/item_actions.py as part of the task-314
@@ -43,6 +52,8 @@ class PlaceActionsMixin:
             moving_uncarried = item_node is not None
         if not item_node:
             raise ValueError(f"You aren't carrying '{item_name}'.")
+        if is_intrinsic_ability(item_node):
+            raise ValueError(f"Your {_display_name(item_node.name)} is an intrinsic ability, not a physical object you can place.")
         item_node_id = item_node.id
 
         # task-493: a part does not move. Both put verbs reach items through
@@ -151,6 +162,8 @@ class PlaceActionsMixin:
             moving_uncarried = item_node is not None
         if not item_node:
             raise ValueError(f"You aren't carrying '{item_name}'.")
+        if is_intrinsic_ability(item_node):
+            raise ValueError(f"Your {_display_name(item_node.name)} is an intrinsic ability, not a physical object you can place.")
         item_node_id = item_node.id
 
         if not is_portable(item_node):

@@ -22,6 +22,10 @@ verbs say no plainly, and ``steal`` is the way through.
 The marker is a node property, not an edge: ``owner`` (a character name or id)
 plus the informational ``personal`` tag. An item with no ``owner`` is nobody's
 in particular and behaves exactly as before.
+
+@module ownership
+@contributes _norm, owner_of, is_owned, is_personal, owner_player, owner_incumbent
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from typing import Optional

@@ -1,3 +1,10 @@
+"""__init__ module.
+
+@module __init__
+@contributes module initialization and namespace exports
+@docs none - package initialization
+"""
+
 from .equipment import EquipmentSystem
 from .combat import CombatSystem
 from .player_manager import PlayerManager

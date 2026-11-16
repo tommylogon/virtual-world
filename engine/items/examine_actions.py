@@ -3,6 +3,10 @@
 Moved verbatim from engine/item_actions.py as part of the task-314
 verb-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, equipment, world) via the mixin.
+
+@module examine_actions
+@contributes ExamineActionsMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import List, Optional
@@ -136,13 +140,14 @@ class ExamineActionsMixin:
         if p:
             player_is_dead = p.state == "dead"
 
-        if not player_manager.lighting.can_see_in_dark(player_manager, player_manager.active_player):
-            area_id = player_manager._get_current_area_id()
-            ambient = player_manager.lighting.get_ambient_light(area_id, player_manager.current_area.environment) if area_id else 80
-            if ambient < 20:
-                raise ValueError("It's too dark to examine anything. maybe you can turn on a light?")
-
         area_id = player_manager._get_current_area_id()
+        is_dark = False
+        if not player_manager.lighting.can_see_in_dark(player_manager, player_manager.active_player):
+            cur_area = player_manager.current_area
+            cur_env = getattr(cur_area, 'environment', None) or (cur_area.properties.get('environment') if hasattr(cur_area, 'properties') else None)
+            ambient = player_manager.lighting.get_ambient_light(area_id, cur_env) if area_id else 80
+            if ambient < 20:
+                is_dark = True
 
         target_lower = target_name.strip().lower()
         examine_self = target_lower in ("self", "me", "myself")
@@ -187,6 +192,10 @@ class ExamineActionsMixin:
                 # grab, give, steal and use-on already do.
                 approach_character(self.graph, player_manager, target_pname)
                 set_position_examining_character(self.graph, player_manager, target_pname)
+            if is_dark:
+                if is_self:
+                    return "You feel around yourself in the dark. You are unhurt and your clothing is intact."
+                return "You feel around blindly in the dark. Your hands brush against a person - you can feel warm skin and breathing, but it is too dark to make out their features or identity."
             return "\n".join(desc_parts)
 
         # Task-154: the target isn't a known name - try resolving by description
@@ -216,6 +225,8 @@ class ExamineActionsMixin:
                     )
                     approach_character(self.graph, player_manager, resolved)
                     set_position_examining_character(self.graph, player_manager, resolved)
+                    if is_dark:
+                        return "You feel around blindly in the dark. Your hands brush against a person - you can feel warm skin and breathing, but it is too dark to make out their features or identity."
                     return "\n".join(parts)
             elif candidates:
                 return f"You don't know exactly who that is. Do you mean: {', '.join(candidates)}?"
@@ -246,6 +257,8 @@ class ExamineActionsMixin:
             if player_manager.active_player:
                 pid = player_manager._player_node_id(player_manager.active_player)
                 clear_character_position_edges(self.graph, pid)
+            if is_dark:
+                return "You feel around blindly in the dark. It is pitch black - hands outstretched, you find only empty air and shadows. You cannot see your surroundings without a light source."
             area_desc = self._render_node_desc(current_area_node)
             state = current_area_node.properties.get("current_state", "")
             desc = f"You take a closer look at the {current_area_node.name}."
@@ -259,6 +272,13 @@ class ExamineActionsMixin:
             return desc
 
         matched_item = self.matching._match_item_name(target_name)
+        if not matched_item and is_dark and target_lower in ("something", "an object", "object", "shape", "the shape", "item"):
+            for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
+                cand = self.graph.get_node(edge.source)
+                if cand and cand.type == "item":
+                    matched_item = cand.name
+                    break
+
         if matched_item:
             item_node = None
             player_id = player_manager._player_node_id(player_manager.active_player)
@@ -278,6 +298,8 @@ class ExamineActionsMixin:
                 # hand, worn, or inside a carried container is left alone.
                 approach_item(self.graph, player_manager, target_name, item_node)
                 set_position_examining_item(self.graph, player_manager, target_name, item_node)
+                if is_dark:
+                    return self._get_dark_tactile_impression(item_node)
                 # task-499: examining an item teaches the item, and a map with a
                 # chart teaches the places it charts ("read" aliases examine).
                 # Gated on an authored chart: a map with no chart is a prop, and
@@ -412,6 +434,16 @@ class ExamineActionsMixin:
             if player_manager.active_player:
                 pid = player_manager._player_node_id(player_manager.active_player)
                 approach_way(self.graph, pid, way_node.id)
+            if is_dark:
+                state = way_node.properties.get("current_state", "closed")
+                if state == "open":
+                    return "You feel along the opening in the dark. Your fingers find an open passage with cool air drifting through, though the darkness prevents you from seeing beyond."
+                elif state == "locked":
+                    return "You feel along the opening in the dark. Your hands find a locked barrier, firmly held in place by a rigid latch."
+                elif state == "blocked":
+                    return "You feel along the opening in the dark. Your hands feel a blocked passage, obstructed by obstacles."
+                else:
+                    return "You feel along the opening in the dark. Your hands press against a closed barrier. You can feel the solid edges and a handle." 
             # task-499: a way is described by where it goes, so examining it
             # teaches the area on the far side.
             try:
@@ -547,10 +579,105 @@ class ExamineActionsMixin:
             groups.append("paths: " + ", ".join(paths))
         if carried:
             groups.append("carried: " + ", ".join(carried))
+        if is_dark:
+            raise ValueError(f"You grope around in the dark, but find no '{target_name}' nearby.")
         raise ValueError(
             f"You look for '{target_name}' but don't see it here. "
             f"Things you can examine right now: {'; '.join(groups) if groups else 'nothing specific'}."
         )
+
+    def _get_dark_tactile_impression(self, item_node) -> str:
+        """Produce a partial, unnamed sensory impression (shape, texture, temperature).
+
+        Used when examining an item in darkness (ambient < 20). Never reveals
+        the item's name or visual details.
+        """
+        props = item_node.properties or {}
+        desc_text = str(props.get("description", "")).lower()
+        tags = [str(t).lower() for t in props.get("tags", [])]
+
+        # 1. Temperature cue
+        temp_val = props.get("temperature")
+        temp_str = ""
+        if isinstance(temp_val, (int, float)):
+            if temp_val > 25:
+                temp_str = "radiating warmth"
+            elif temp_val < 15:
+                temp_str = "cold to the touch"
+        elif isinstance(temp_val, str) and temp_val.strip():
+            temp_str = f"{temp_val.strip()} to the touch"
+        elif "cold to the touch" in desc_text or "cold" in desc_text or "chilled" in desc_text:
+            temp_str = "cold to the touch"
+        elif "warm against" in desc_text or "warm" in desc_text or "heating" in desc_text:
+            temp_str = "warm against your hands"
+        elif "burning" in desc_text or "hot" in desc_text:
+            temp_str = "hot to the touch"
+
+        # 2. Texture / Material cue
+        texture = str(props.get("texture", "")).strip().lower()
+        material = str(props.get("material", "")).strip().lower()
+        surface = str(props.get("surface", "")).strip().lower()
+
+        if not material:
+            for mat in ("metal", "wood", "stone", "iron", "steel", "brass", "bronze", "glass", "cloth", "leather", "ceramic", "paper", "clay", "wax"):
+                if mat in tags or mat in desc_text:
+                    material = mat
+                    break
+
+        if not texture:
+            for tex in ("rough", "smooth", "coarse", "dusty", "slimy", "sticky", "carved", "serrated", "sharp", "soft", "silky", "stiff", "cracked", "scuffed"):
+                if tex in desc_text:
+                    texture = tex
+                    break
+
+        texture_str = ""
+        if texture and material:
+            texture_str = f"a {texture}, {material} surface"
+        elif texture:
+            texture_str = f"a {texture} surface"
+        elif material:
+            texture_str = f"a {material} surface"
+        elif surface:
+            texture_str = f"a {surface} surface"
+
+        # 3. Shape / Size / Form cue
+        shape = str(props.get("shape", "")).strip().lower()
+        size = str(props.get("size", "")).strip().lower()
+
+        if not shape:
+            for shp in ("cylindrical", "rectangular", "spherical", "round", "flat", "curved", "bell-shaped", "elongated", "narrow", "hollow", "pointed"):
+                if shp in desc_text:
+                    shape = shp
+                    break
+
+        if not size:
+            for sz in ("tiny", "small", "large", "heavy", "bulky", "massive", "lightweight", "slender"):
+                if sz in desc_text:
+                    size = sz
+                    break
+
+        shape_str = ""
+        if size and shape:
+            shape_str = f"a {size}, {shape} shape"
+        elif shape:
+            shape_str = f"a {shape} shape"
+        elif size:
+            shape_str = f"a {size} form"
+        else:
+            shape_str = "a distinct form"
+
+        details = []
+        if texture_str:
+            details.append(f"you feel {texture_str}")
+        if shape_str:
+            details.append(f"outlining {shape_str}")
+        if temp_str:
+            details.append(f"it is {temp_str}")
+
+        if details:
+            body = ", ".join(details)
+            return f"You feel around blindly in the dark. Touching the object, {body}."
+        return "You feel around blindly in the dark. Your fingers trace a solid shape, but the pitch darkness obscures any finer details."
 
     def _describe_flavor_target(self, player_manager, target_name: str, area_id: str) -> Optional[str]:
         """Return a narrative description when the examined target appears only

@@ -1,6 +1,10 @@
 """Condition-tree evaluation for TriggerSystem.
 
 Moved from engine/trigger_system.py.
+
+@module condition_tree
+@contributes ConditionTreeMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import random
@@ -144,6 +148,16 @@ class ConditionTreeMixin:
                             return True
                 return False
 
+            elif condition_type == "event":
+                expected = str(conditions.get("event") or conditions.get("value") or "").strip().lower()
+                actual = str(context.get("event") or context.get("event_type") or context.get("trigger_type") or "").strip().lower()
+                return actual == expected
+
+            elif condition_type in ("goal_id", "goal_matches"):
+                expected = str(conditions.get("goal_id") or conditions.get("value") or "").strip().lower()
+                actual = str(context.get("goal_id") or (context.get("goal") or {}).get("id") or context.get("what") or "").strip().lower()
+                return actual == expected
+
             # --- Shared leaf types (NPC + item triggers) ---
             elif condition_type in ("has_item", "random_chance"):
                 if condition_type == "random_chance":
@@ -152,7 +166,7 @@ class ConditionTreeMixin:
                         chance_val = conditions.get("value", 0)
                     try:
                         threshold = float(chance_val)
-                        # `chance` uses 0.0–1.0 (NPC behaviors); `value` uses 0–100 (item triggers).
+                        # `chance` uses 0.0-1.0 (NPC behaviors); `value` uses 0-100 (item triggers).
                         if chance_val is conditions.get("value"):
                             threshold /= 100.0
                         elif threshold > 1.0:
@@ -866,7 +880,7 @@ class ConditionTreeMixin:
                     threshold = float(conditions.get("threshold", conditions.get("value", 0.5)))
                 except (TypeError, ValueError):
                     threshold = 0.5
-                # 0–1 authored threshold maps onto the engine's 0–3 levels.
+                # 0-1 authored threshold maps onto the engine's 0-3 levels.
                 raw_needed = threshold * 3.0 if threshold <= 1.0 else threshold
                 if gs is None:
                     return False
@@ -902,6 +916,8 @@ class ConditionTreeMixin:
         operator = conditions.get("operator")
         if operator:
             sub_conditions = conditions.get("conditions", [])
+            if isinstance(sub_conditions, dict):
+                sub_conditions = [sub_conditions]
             if operator == "and":
                 return all(
                     self._evaluate_conditions(c, context, game_state=game_state)
@@ -1002,7 +1018,7 @@ class ConditionTreeMixin:
 
     @staticmethod
     def _recent_sound_strength(entry) -> float:
-        """Raw 0–3 sound strength for a ``recent_hearing`` entry (−1 = unknown)."""
+        """Raw 0-3 sound strength for a ``recent_hearing`` entry (−1 = unknown)."""
         if not isinstance(entry, dict):
             return -1.0
         raw = entry.get("sound_level")

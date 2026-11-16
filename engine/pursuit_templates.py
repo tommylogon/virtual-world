@@ -520,7 +520,7 @@ def _world_call(world, name, default=None):
 
 
 def _current_weather(world) -> str:
-    schedule = getattr(world, "forecast_schedule", None) or {}
+    schedule = getattr(world, "forecast", None) or getattr(world, "forecast_schedule", None) or {}
     if not isinstance(schedule, dict):
         return ""
     return str(schedule.get("current_state") or "").strip().lower()

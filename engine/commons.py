@@ -1,7 +1,7 @@
 """Conversation state for The Commons.
 
 @module commons
-@contributes channels, membership, ordered messages, and per-character read cursors
+@contributes channels, membership, ordered messages, per-character read cursors, edit and delete message
 @powers The Commons communication
 @relates VirtualWorld, routes/commons.py
 @docs docs/virtualWorld/Gameplay/The Commons.md
@@ -45,14 +45,34 @@ class Commons:
                 "active": name != "User",
                 "blocked": False,
                 "last_read_message_ids": {},
+                "muted_channels": [],
             }
         participant = self.participants[name]
         participant.setdefault("last_read_message_ids", {})
+        participant.setdefault("muted_channels", [])
         if active is not None:
             participant["active"] = bool(active)
         if blocked is not None:
             participant["blocked"] = bool(blocked)
         return participant
+
+    def set_muted(self, actor: str, channel_id: str, muted: bool) -> bool:
+        self.require_access(actor, channel_id)
+        participant = self.set_participant(actor)
+        cid = str(channel_id)
+        muted_channels = [
+            str(existing) for existing in (participant.get("muted_channels") or [])
+            if str(existing) != cid
+        ]
+        is_muted = bool(muted)
+        if is_muted:
+            muted_channels.append(cid)
+        participant["muted_channels"] = muted_channels
+        return is_muted
+
+    def is_muted(self, character: str, channel_id: str) -> bool:
+        participant = self.participants.get(character) or {}
+        return str(channel_id) in (participant.get("muted_channels") or [])
 
     def _channel(self, channel_id: str) -> Dict[str, Any]:
         channel = self.channels.get(str(channel_id))
@@ -143,13 +163,15 @@ class Commons:
     def list_channels(self, character: str) -> List[Dict[str, Any]]:
         participant = self.set_participant(character)
         cursors = participant["last_read_message_ids"]
+        muted_channels = {str(cid) for cid in (participant.get("muted_channels") or [])}
         result = []
         for channel in self.channels.values():
             if not self.can_access(character, channel["id"]):
                 continue
             latest_id = max(
                 (message["id"] for message in self.messages
-                 if message.get("channel_id", PUBLIC_CHANNEL_ID) == channel["id"]),
+                 if message.get("channel_id", PUBLIC_CHANNEL_ID) == channel["id"]
+                 and not message.get("deleted")),
                 default=None,
             )
             cursor = cursors.get(channel["id"])
@@ -158,6 +180,7 @@ class Commons:
                 if message.get("channel_id", PUBLIC_CHANNEL_ID) == channel["id"]
                 and (cursor is None or message["id"] > cursor)
                 and message.get("author") != character
+                and not message.get("deleted")
             )
             result.append({
                 **channel,
@@ -165,6 +188,7 @@ class Commons:
                 "unread_count": unread,
                 "last_read_message_id": cursor,
                 "latest_message_id": latest_id,
+                "muted": channel["id"] in muted_channels,
             })
         return sorted(result, key=lambda item: (
             item["id"] != PUBLIC_CHANNEL_ID,
@@ -172,9 +196,12 @@ class Commons:
             item["name"].casefold(),
         ))
 
-    def post_message(self, author: str, text: str, tick: int = 0,
-                     channel_id: str = PUBLIC_CHANNEL_ID) -> Dict[str, Any]:
+    def post_message(self, author: str, text: str = "", tick: int = 0,
+                     channel_id: str = PUBLIC_CHANNEL_ID,
+                     attachments: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         self.require_access(author, channel_id)
+        if not text and not attachments:
+            raise ValueError("Message must have text or attachments")
         message = {
             "id": self.next_message_id,
             "channel_id": channel_id,
@@ -183,13 +210,80 @@ class Commons:
             "timestamp": time.time(),
             "tick": tick,
         }
+        if attachments:
+            message["attachments"] = list(attachments)
         self.next_message_id += 1
         self.messages.append(message)
         return message
 
+    def edit_message(self, message_id: int, author: str, text: str,
+                     players: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Edit the text of an existing message (task-891).
+
+        Only the author may edit the message. Enforces channel access.
+        Records edited=True, original_text, and edited_at timestamp.
+        """
+        for msg in self.messages:
+            if msg["id"] == message_id:
+                if msg.get("deleted"):
+                    raise ValueError("Cannot edit a deleted message")
+                if msg.get("author") != author:
+                    raise ChatAuthorizationError("Cannot edit another author's message")
+                channel_id = msg.get("channel_id", PUBLIC_CHANNEL_ID)
+                self.require_access(author, channel_id)
+                if not msg.get("edited"):
+                    msg["original_text"] = msg.get("text", "")
+                old_text = msg.get("text", "")
+                msg["text"] = str(text or "")
+                msg["edited"] = True
+                msg["edited_at"] = time.time()
+
+                if players:
+                    for p in players.values():
+                        for mem in getattr(p, "memories", []) or []:
+                            if isinstance(mem, dict) and old_text and old_text in str(mem.get("text", "")):
+                                mem["text"] = str(mem["text"]).replace(old_text, msg["text"])
+                                mem["edited"] = True
+
+                return dict(msg)
+        raise KeyError("Message not found")
+
+    def delete_message(self, message_id: int, author: str,
+                       players: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Delete a message, keeping a tombstone (task-891).
+
+        Only the author may delete the message. Enforces channel access.
+        Retains the message in self.messages with deleted=True to keep
+        the id sequence and read cursors stable.
+        """
+        for msg in self.messages:
+            if msg["id"] == message_id:
+                if msg.get("deleted"):
+                    return dict(msg)
+                if msg.get("author") != author:
+                    raise ChatAuthorizationError("Cannot delete another author's message")
+                channel_id = msg.get("channel_id", PUBLIC_CHANNEL_ID)
+                self.require_access(author, channel_id)
+                original_text = msg.get("text", "")
+                msg["original_text"] = original_text
+                msg["deleted"] = True
+                msg["deleted_at"] = time.time()
+                msg["text"] = ""
+
+                if players:
+                    for p in players.values():
+                        for mem in getattr(p, "memories", []) or []:
+                            if isinstance(mem, dict) and original_text and original_text in str(mem.get("text", "")):
+                                mem["retracted"] = True
+                                mem["text"] = str(mem["text"]).replace(original_text, f"[Retracted by {author}]")
+
+                return dict(msg)
+        raise KeyError("Message not found")
+
     def read_messages(self, character: str, mode: str = "latest", n: int = 3,
                       from_id: Optional[int] = None, to_id: Optional[int] = None,
-                      channel_id: str = PUBLIC_CHANNEL_ID) -> List[Dict[str, Any]]:
+                      channel_id: str = PUBLIC_CHANNEL_ID,
+                      include_deleted: bool = False) -> List[Dict[str, Any]]:
         self.require_access(character, channel_id)
         participant = self.set_participant(character)
         cursors = participant["last_read_message_ids"]
@@ -198,22 +292,27 @@ class Commons:
             message for message in self.messages
             if message.get("channel_id", PUBLIC_CHANNEL_ID) == channel_id
         ]
+        visible = messages if include_deleted else [m for m in messages if not m.get("deleted")]
         if mode == "latest":
             count = max(1, min(50, n or 3))
-            results = messages[-count:]
+            results = visible[-count:]
         elif mode == "all":
-            results = [message for message in messages
+            results = [message for message in visible
                        if last_id is None or message["id"] > last_id]
         elif mode == "range":
             lower = from_id or 1
-            upper = to_id or (messages[-1]["id"] if messages else 1)
-            results = [message for message in messages
+            upper = to_id or (visible[-1]["id"] if visible else 1)
+            results = [message for message in visible
                        if lower <= message["id"] <= upper]
         else:
-            results = messages[-3:]
+            results = visible[-3:]
 
         if results:
             highest_id = max(message["id"] for message in results)
+            if last_id is None or highest_id > last_id:
+                cursors[channel_id] = highest_id
+        elif mode == "all" and messages:
+            highest_id = max(message["id"] for message in messages)
             if last_id is None or highest_id > last_id:
                 cursors[channel_id] = highest_id
         return [dict(message) for message in results]
@@ -232,6 +331,7 @@ class Commons:
             if message.get("channel_id", PUBLIC_CHANNEL_ID) == channel_id
             and (last_id is None or message["id"] > last_id)
             and message.get("author") != character
+            and not message.get("deleted")
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -241,6 +341,7 @@ class Commons:
                 name: {
                     **participant,
                     "last_read_message_ids": dict(participant.get("last_read_message_ids", {})),
+                    "muted_channels": list(participant.get("muted_channels", [])),
                 }
                 for name, participant in self.participants.items()
             },
@@ -277,6 +378,9 @@ class Commons:
                 cursors["public"] = participant["last_read_message_id"]
             participant["last_read_message_ids"] = cursors
             participant.pop("last_read_message_id", None)
+            participant["muted_channels"] = list(dict.fromkeys(
+                str(cid) for cid in (participant.get("muted_channels") or [])
+            ))
             self.participants[str(name)] = participant
         for message in self.messages:
             message.setdefault("channel_id", PUBLIC_CHANNEL_ID)

@@ -28,6 +28,10 @@ The threat pass (task-552) lives here too, and it runs *before* the social one.
 there was no substrate, not a low rate. Fear is a direction, not a scalar - a
 farmer fears ``goblin``, a goblin does not list ``goblin``, so a camp can exist
 without panicking at itself.
+
+@module background_social
+@contributes felt_axes, _apply_affect, _traits, action_weights, ignore_weight, _rng
+@docs docs/virtualWorld/Characters/Activities & States.md
 """
 
 from __future__ import annotations
@@ -389,6 +393,11 @@ def action_weights(actor, target, closeness: Optional[float] = None) -> dict:
         for name in ("joke", "tease"):
             weights[name] = weights.get(name, 0.0) * 1.3
 
+    # task-928: reproductive cycle conditions (in_heat / ovulating) raise flirt drive
+    actor_conds = getattr(actor, "conditions", {}) or {}
+    if "in_heat" in actor_conds or "ovulating" in actor_conds:
+        weights["flirt"] = weights.get("flirt", 0.0) * 2.5
+
     # task-652: what the character is *feeling* tilts the draw, after the band
     # and the traits and the needs - so a feeling is a modifier on behaviour, not
     # a replacement for it. Gated actions stay gated; this only re-weights what
@@ -645,6 +654,23 @@ def perform(gs, actor, target, area_id: str, area_name: str, tick: int,
               first_person=True)
     _remember(target, tick, action, tier, area_name, actor_name, subject_ids,
               first_person=False, actor_name=actor_name)
+
+    # Autonomous conception (task-846/928): in mature worlds when an intimate flirt lands strongly
+    if getattr(gs, "mature_content", False) and action == "flirt" and tier in ("major_success", "critical_success"):
+        try:
+            from engine import pregnancy, reproductive_cycle
+            graph = getattr(gs, "graph", None)
+            actor_sex = reproductive_cycle.resolve_sex(actor, graph)
+            target_sex = reproductive_cycle.resolve_sex(target, graph)
+            carrier, sire = None, None
+            if actor_sex == "female" and target_sex == "male":
+                carrier, sire = actor, target
+            elif target_sex == "female" and actor_sex == "male":
+                carrier, sire = target, actor
+            if carrier is not None and sire is not None and getattr(carrier, "pregnancy", None) is None:
+                pregnancy.attempt_conception(carrier, sire, gs)
+        except Exception:
+            pass
 
     _mark_interaction(gs, actor, target, tick)
 

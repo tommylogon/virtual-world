@@ -33,6 +33,10 @@ half is a field whitelist, the World -> Library half is a "never let a bare
 instance erase curated data" rule. task-290 will add ``template_ref`` variants
 and override tracking on top of :func:`locked_fields`; it is deliberately not
 implemented here, because a whitelist is not a variant system.
+
+@module sync
+@contributes AmbiguousTemplateError, TemplateSpec, _slug, spec_for, linked_template_id, is_linked
+@docs docs/virtualWorld/World Building/Graph System.md
 """
 
 import re
@@ -76,6 +80,11 @@ NEVER_SYNCED: FrozenSet[str] = frozenset({
     "id", "type", "position", "spatial_position",
     LINK_FIELD, LOCKED_FIELD, BROKEN_FIELD,
 })
+
+
+class AmbiguousTemplateError(ValueError):
+    """Raised when a template name guess matches multiple templates (task-667)."""
+    pass
 
 
 @dataclass(frozen=True)
@@ -134,7 +143,7 @@ SPECS: Dict[str, TemplateSpec] = {
         registry="characters.json",
         mutable=(
             "name", "description", "base_description", "unknown_name",
-            "personality", "stats", "skills", "traits", "tags", "interest_tags",
+            "personality", "stats", "skills", "traits", "tags", "interest_tags", "fear_tags", "dislike_tags",
             "behaviors", "npc_behavior", "npc_action_interval", "npc_state",
             "controller", "autonomy", "simple_npc", "memories", "relationships", "vitals", "decay_rates",
             "conditions", "equipped", "recent_hearing", "activity", "current_area",
@@ -167,13 +176,17 @@ def locked_fields(node) -> set:
     return {str(f) for f in (props.get(LOCKED_FIELD) or [])}
 
 
-def resolve_template_id(node, explicit: Optional[str] = None) -> str:
+def resolve_template_id(node, explicit: Optional[str] = None,
+                        registry: Optional[dict] = None) -> str:
     """The template id to sync from: explicit, then the link, then the type's guess.
 
-    This is the function that used to exist four times with three different
-    fallbacks. The per-type behaviour is declared in :data:`SPECS` instead, so
-    "which node types guess, and at what" is one table a reader can check
-    rather than four branches to compare.
+    Order: explicit -> link -> per-type guess.
+    Under task-667, `library_id` on a node may hold either a stable surrogate
+    key (e.g. `ch_8f2a1c9b`, `item_a1b2c3d4`) or a legacy filename. `load_registry`
+    indexes by both. When a link is missing and the guess mode is `node_name`,
+    resolution looks up the template's `name` property in the provided registry
+    and returns its surrogate id. If multiple templates share the same display
+    name, AmbiguousTemplateError is raised so the caller can fail loudly.
     """
     if explicit:
         return str(explicit).strip()
@@ -193,6 +206,22 @@ def resolve_template_id(node, explicit: Optional[str] = None) -> str:
     if spec.guess == "name":
         return _slug(name) if name else ""
     if spec.guess == "node_name":
+        if registry and name:
+            matching = []
+            seen_surrogates = set()
+            for k, v in registry.items():
+                if isinstance(v, dict) and v.get("name") == name:
+                    surrogate = v.get("character_id") or v.get("id") or k
+                    if surrogate not in seen_surrogates:
+                        seen_surrogates.add(surrogate)
+                        matching.append(surrogate)
+            if len(matching) == 1:
+                return matching[0]
+            if len(matching) > 1:
+                raise AmbiguousTemplateError(
+                    f"Ambiguous template name '{name}': matches multiple templates ({matching}). "
+                    f"Disambiguate by linking explicitly."
+                )
         return str(name)
     if spec.guess.startswith("node_id_prefix:"):
         prefix = spec.guess.split(":", 1)[1]

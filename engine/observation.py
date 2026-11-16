@@ -32,6 +32,10 @@ and it is measured *before* the refresh. That is the whole reason it is reported
 from here rather than recomputed by the caller: an entry both refreshes the
 observation and earns novelty, and reading the tick afterwards would report
 every arrival as stale.
+
+@module observation
+@contributes can_perceive, _item_tags, perceivable_subjects, observe_area
+@docs docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
 """
 
 from __future__ import annotations

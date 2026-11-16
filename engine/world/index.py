@@ -15,6 +15,10 @@ It is derived from the graph when the whole world is loaded (``reindex``) and
 from its own persisted form when it is not (``from_dict``). A loader callback
 lets :meth:`ensure_scope_loaded` materialise a scope on demand, which is what
 makes a gateway a real crossing rather than a dead UI shortcut.
+
+@module index
+@contributes GlobalScopeIndex, _first, _node_scope
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from __future__ import annotations

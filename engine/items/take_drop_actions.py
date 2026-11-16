@@ -3,6 +3,10 @@
 Moved verbatim from engine/item_actions.py as part of the task-314
 verb-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, equipment, ghost_system, world) via the mixin.
+
+@module take_drop_actions
+@contributes TakeDropActionsMixin, _display_name, split_leading_amount, is_resource_pool, pool_yield_names
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Optional
@@ -21,6 +25,7 @@ from graph import (
     Edge,
     Node,
 )
+from engine.equipment import is_intrinsic_ability
 from engine.items.action_contract import is_portable, portable_refusal
 from engine.items.stacking import is_stackable
 from engine.items.ownership import permission_refusal
@@ -638,6 +643,9 @@ class TakeDropActionsMixin:
             if block:
                 raise ValueError(block)
 
+        if is_intrinsic_ability(item_node):
+            raise ValueError(f"{_display_name(item_node.name)} is an intrinsic ability, not a physical object you can take.")
+
         item_actions = item_node.properties.get("actions", [])
         if isinstance(item_actions, str):
             item_actions = [a.strip() for a in item_actions.split(",")]
@@ -884,6 +892,9 @@ class TakeDropActionsMixin:
 
         item_node = self.graph.get_node(item_node_id)
 
+        if item_node is not None and is_intrinsic_ability(item_node):
+            raise ValueError(f"Your {_display_name(item_node.name)} is an intrinsic ability, not a thing you can set down.")
+
         # task-493: a part is non-portable, so it is not droppable either.
         # Before this the action list was consulted by `take` alone, which left
         # drop the one verb that would happily tear a battery out of a phone.
@@ -955,6 +966,8 @@ class TakeDropActionsMixin:
         item_node = player_manager.find_item_node(item_name)
         if not item_node:
             raise ValueError(f"You don't have '{item_name}'.")
+        if is_intrinsic_ability(item_node):
+            raise ValueError(f"Your {_display_name(item_node.name)} is an intrinsic ability, not a physical object you can stow.")
         player_id = player_manager._player_node_id(player_manager.active_player)
         held_edges = [
             e for e in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)

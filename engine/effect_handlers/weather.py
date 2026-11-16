@@ -6,6 +6,10 @@ Adds trigger effects over the forecast/clock:
   - ``forecast_override`` - full override (weather/wind/humidity/temp/light/
     air/blood_moon) with optional countdown
   - ``adjust_forecast`` - delta-shift the active override
+
+@module weather
+@contributes _set_keys, handle_set_time, handle_set_date, handle_set_weather, handle_forecast_override, handle_adjust_forecast
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 

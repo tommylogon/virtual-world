@@ -19,6 +19,10 @@ Body parts are NOT graph nodes: ``Player.body_state`` (a flat dict keyed by
 region id) holds quick numeric lookups, and region-scoped state that needs
 durations/stacking lives as condition instances with a ``body_part`` field
 (see ``data/library/conditions/injured.json`` / ``bleeding.json``).
+
+@module body_parts
+@contributes resolve_region, injury_region, region_chain, coverage_slots, effective_coverage, is_exposed
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 #: Coverage value at/above which an outer clothing layer blocks direct skin

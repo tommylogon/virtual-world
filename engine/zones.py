@@ -41,6 +41,10 @@ more than the happy path. Four, in the order they are checked:
 Refusing is the default. Anything that cannot be rebuilt is left alone, and
 :meth:`ZoneStore.releasable` is the query a caller asks before assuming a zone
 can go.
+
+@module zones
+@contributes ReleaseRefused, ZoneStore, is_generated, generated_scope_id, authored_scope_id, scope_nodes
+@docs docs/virtualWorld/World Building/Graph System.md
 """
 
 from __future__ import annotations

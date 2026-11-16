@@ -7,12 +7,16 @@ spoken-name learning (task-339), log/turn-event recording, and
 simple-NPC hearing notification.
 
 NarrationSystem.broadcast_speech is a thin delegate to this module.
+
+@module speech
+@contributes SpeechBroadcaster
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 import re
 import time
 from typing import Optional, Set
 
-from graph import EDGE_IN
+from graph import EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
 
 
 #: How close a bystander must stand to a speaker to catch a directed whisper.
@@ -459,6 +463,15 @@ class SpeechBroadcaster:
                 speaker_name, "speak", f'said: "{speech_text}"', area_name=target_area
             )
 
+        # Long-distance comms relay (task-299): radios, walkie-talkies, phones.
+        if self.graph and not is_directed_whisper:
+            try:
+                from engine.long_distance_comms import relay_comms_speech
+                relay_comms_speech(self, speaker_name, speech_text, event, target_area)
+            except Exception:
+                import logging as _logging
+                _logging.getLogger("speech").exception("comms relay failed")
+
         # Trigger NPC behaviors for hearing speech. A directed whisper's
         # content is private to its target, so room-wide simple-NPC hearing
         # is skipped for it.
@@ -490,13 +503,23 @@ class SpeechBroadcaster:
                     for edge in self.graph.get_edges_for_target(target_id, EDGE_IN):
                         node = self.graph.get_node(edge.source)
                         if node is not None and node.type == "item":
-                            # _execute_triggers(item, type, target_name, context, ...)
-                            # - pass the speech context as CONTEXT (4th arg) and
-                            # the game_state (5th) if the hook owns one.
                             if self.game_state is not None:
                                 self.trigger_fn(node, "on_speech", None, speech_ctx, None, self.game_state)
                             else:
                                 self.trigger_fn(node, "on_speech", None, speech_ctx)
+
+                    # task-299: on_speech relay extended to carried items
+                    for pname, player_obj in self.player_manager.players.items():
+                        if getattr(player_obj, "current_area", None) == target_area:
+                            pid = self.player_manager.get_player_node_id(pname)
+                            if pid:
+                                for edge in self.graph.get_edges_for_target(pid, (EDGE_CARRYING, EDGE_EQUIPPED)):
+                                    node = self.graph.get_node(edge.source)
+                                    if node is not None and node.type == "item":
+                                        if self.game_state is not None:
+                                            self.trigger_fn(node, "on_speech", None, speech_ctx, None, self.game_state)
+                                        else:
+                                            self.trigger_fn(node, "on_speech", None, speech_ctx)
             except Exception:
                 import logging as _logging
                 _logging.getLogger("speech").exception("on_speech trigger fire failed")

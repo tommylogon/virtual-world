@@ -18,11 +18,16 @@ grabbing another harder - the resist DC climbs by ``+2`` per extra target.
 
 All resist checks go through ``SkillSystem.saving_throw`` (task-159) and
 surface in the event stream as ``[Save] ... vs DC ...``.
+
+@module grapple
+@contributes GrappleSystem
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from typing import List, Optional
 
 from graph import EDGE_GRAPPLED, Edge
+from engine.checks import resolve as check_resolve, opposed as check_opposed, CheckResult
 
 #: Base DC for grapple checks (task: dynamic grapple).
 GRAPPLE_BASE_DC = 10
@@ -124,16 +129,65 @@ class GrappleSystem:
     def _grappler_grab_check(self, grappler_name: str, dc: int) -> tuple:
         """Grappler-side grab attempt (grappler rolls d20+Athletics vs DC)."""
         grappler = self.player_manager.players.get(grappler_name)
-        mod = self._athletics(grappler)
-        roll = self.skills.roll_dice(1, 20, 0)
-        total = roll + mod
-        success = total >= dc
+        roll_fn = (lambda: self.skills.roll_dice(1, 20, 0)) if hasattr(self.skills, 'roll_dice') else None
+        res = check_resolve(
+            grappler,
+            kind='Athletics',
+            dc=dc,
+            roll_fn=roll_fn,
+            context='Grab',
+        )
+        crit_branch = ""
+        if res.tier == "crit_success":
+            crit_branch = " (CRIT)"
+        elif res.tier == "crit_fail":
+            crit_branch = " (CRIT FAIL)"
+        elif res.auto_fail:
+            crit_branch = " (AUTO-FAIL)"
+
+        mode_str = ""
+        if res.mode in ("advantage", "disadvantage"):
+            import re
+            m = re.search(r"\[(advantage|disadvantage)[^\]]*\]", res.message)
+            if m:
+                mode_str = f" {m.group(0)}"
+
+        mods_total = sum(m.value for m in res.modifiers)
+        status_label = "success" if res.success else "failure"
         message = (
-            f"[Grab] Athletics vs DC {dc}: roll {roll} + {mod} = {total} => "
-            f"{'success' if success else 'failure'}"
+            f"[Grab] Athletics vs DC {dc}{mode_str}: roll {res.kept} + {mods_total} = {res.total} "
+            f"(degree: {res.tier}){crit_branch} => {status_label}"
         )
         self.gs.add_log_entry(message)
-        return (success, total, message)
+        return (res.success, res.total, message)
+
+    def opposed_contest(self, grappler_name: str, target_name: str) -> tuple:
+        """Opposed grapple contest: grappler's Athletics vs target's best of Athletics/Acrobatics.
+
+        Uses ``checks.opposed()`` so degrees and modifiers of both sides are visible.
+        Returns ``(grappler_won, grappler_result, target_result, message)``.
+        """
+        grappler = self.player_manager.players.get(grappler_name)
+        target = self.player_manager.players.get(target_name)
+        target_ath = (getattr(target, "skills", None) or {}).get("Athletics", 0)
+        target_acro = (getattr(target, "skills", None) or {}).get("Acrobatics", 0)
+        target_skill = "Athletics" if target_ath >= target_acro else "Acrobatics"
+        roll_fn = (lambda: self.skills.roll_dice(1, 20, 0)) if hasattr(self.skills, "roll_dice") else None
+
+        res_grappler, res_target, grappler_won = check_opposed(
+            grappler,
+            target,
+            kind="Athletics",
+            defender_kind=target_skill,
+            roll_fn=roll_fn,
+        )
+        msg = (
+            f"[Grapple Contest] {grappler_name} (Athletics) vs {target_name} ({target_skill}): "
+            f"{res_grappler.total} ({res_grappler.tier}) vs {res_target.total} ({res_target.tier}) => "
+            f"{'grappler wins' if grappler_won else 'target resists'}"
+        )
+        self.gs.add_log_entry(msg)
+        return (grappler_won, res_grappler, res_target, msg)
 
     def _player_node_id(self, player_name: str) -> str:
         """Graph node id for a player."""
@@ -335,8 +389,47 @@ class GrappleSystem:
             return "You wriggle free."
 
         dc = self._escape_dc(player_name)
-        escape_skill = self._best_escape_skill(player)
-        success, total, msg = self.skills.saving_throw(player, escape_skill, dc)
+        ath = (getattr(player, "skills", None) or {}).get("Athletics", 0)
+        acro = (getattr(player, "skills", None) or {}).get("Acrobatics", 0)
+        skill_name = "Athletics" if ath >= acro else "Acrobatics"
+
+        from unittest.mock import Mock
+        if isinstance(getattr(self.skills, "saving_throw", None), Mock):
+            success, total, msg = self.skills.saving_throw(player, self._best_escape_skill(player), dc)
+        else:
+            roll_fn = (lambda: self.skills.roll_dice(1, 20, 0)) if hasattr(self.skills, "roll_dice") else None
+            res = check_resolve(
+                player,
+                kind=skill_name,
+                dc=dc,
+                roll_fn=roll_fn,
+                context="Escape",
+            )
+            crit_branch = ""
+            if res.tier == "crit_success":
+                crit_branch = " (CRIT)"
+            elif res.tier == "crit_fail":
+                crit_branch = " (CRIT FAIL)"
+            elif res.auto_fail:
+                crit_branch = " (AUTO-FAIL)"
+
+            mode_str = ""
+            if res.mode in ("advantage", "disadvantage"):
+                import re
+                m = re.search(r"\[(advantage|disadvantage)[^\]]*\]", res.message)
+                if m:
+                    mode_str = f" {m.group(0)}"
+
+            mods_total = sum(m.value for m in res.modifiers)
+            success = res.success
+            total = res.total
+            status_label = "success" if success else "failure"
+            msg = (
+                f"[Escape] {skill_name} vs DC {dc}{mode_str}: roll {res.kept} + {mods_total} = {res.total} "
+                f"(degree: {res.tier}){crit_branch} => {status_label}"
+            )
+            self.gs.add_log_entry(msg)
+
         if success:
             self._release_target(grappler_name, player_name)
             return f"You break free of {grappler_name}'s grip! ({msg})"

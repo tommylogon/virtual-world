@@ -7,6 +7,10 @@ parts. Weight reconciliation (task-155A) keeps ``weight`` proportional to
 
 Methods hang off the ItemActions context (graph, matching, trigger_system,
 equipment, ghost_system, world) via the mixin pattern (task-314).
+
+@module stacking
+@contributes StackingMixin, is_stackable, _display_name, _prop_key, _base_name, stackable_twins
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import copy

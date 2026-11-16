@@ -1,4 +1,9 @@
-"""State effect handlers (set_state, set_hidden)."""
+"""State effect handlers (set_state, set_hidden).
+
+@module state
+@contributes handle_set_state, handle_set_hidden
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 import time
 

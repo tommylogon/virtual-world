@@ -1,6 +1,10 @@
 """UI helpers for TriggerSystem.
 
 Moved from engine/trigger_system.py.
+
+@module ui
+@contributes UiMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Any, List

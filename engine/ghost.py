@@ -1,3 +1,10 @@
+"""ghost module.
+
+@module ghost
+@contributes GhostSystem
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
+"""
+
 import time
 from typing import Optional
 

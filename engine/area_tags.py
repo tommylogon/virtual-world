@@ -17,6 +17,10 @@ cheap to retire: ``data/worldpainter/biomes.json`` authors write ``outdoor``,
 and a few hundred hand-authored library areas carry ``exterior`` by hand. The
 *writer* side gets the question closed (the compiler emits one tag); the *reader*
 side accepts both, so every existing world keeps working either way.
+
+@module area_tags
+@contributes is_open_sky
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from typing import Any, Iterable

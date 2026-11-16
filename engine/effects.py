@@ -4,6 +4,10 @@ Each effect type defined in the merged HANDLERS registry maps to a
 category-specific handler function. The Effects class remains the public
 composition root; private helpers live here while handler bodies live in
 engine/effect_handlers/<category>.py.
+
+@module effects
+@contributes Effects
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import inspect
@@ -266,6 +270,14 @@ class Effects:
         from engine.effect_handlers.movement import handle_push_actor
         return handle_push_actor(self, params, context, item_node=item_node, game_state=game_state)
 
+    def handle_hazard(self, params, context, item_node=None, game_state=None):
+        from engine.effect_handlers.movement import handle_hazard
+        return handle_hazard(self, params, context, item_node=item_node, game_state=game_state)
+
+    def handle_current_push(self, params, context, item_node=None, game_state=None):
+        from engine.effect_handlers.movement import handle_hazard
+        return handle_hazard(self, params, context, item_node=item_node, game_state=game_state)
+
     # ─────────────────── Private helpers ───────────────────
 
     def _hydrate_item(self, item_id, params, always_fresh=False):
@@ -422,7 +434,12 @@ class Effects:
         """Wire library triggers onto a freshly spawned item node."""
         import random
 
-        for trigger_data in lib_data.get("triggers", []) or []:
+        raw_triggers = lib_data.get("triggers", []) or []
+        if isinstance(raw_triggers, dict):
+            raw_triggers = list(raw_triggers.values())
+        for trigger_data in raw_triggers:
+            if not isinstance(trigger_data, dict):
+                continue
             trigger_type = trigger_data.get("trigger_type", "on_use")
             effects = trigger_data.get("effects", []) or []
             first_effect = effects[0].get("type", "message") if effects else "message"
@@ -553,6 +570,8 @@ class Effects:
         p.tags = list(lib_data.get("tags", []))
         p.sync_vitals_with_tags()
         p.interest_tags = list(lib_data.get("interest_tags", []))
+        p.fear_tags = list(lib_data.get("fear_tags", []))
+        p.dislike_tags = list(lib_data.get("dislike_tags", []))
         # task-427: the library item a creature drops on death (None for humans).
         p.carcass_item = lib_data.get("carcass")
         p.state = lib_data.get("state", "awake")

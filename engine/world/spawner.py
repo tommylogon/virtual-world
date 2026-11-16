@@ -11,10 +11,16 @@ likely to **hold**:
   per hostile kind, evaluated at runtime when somebody is in an area.
 
 Both are data-driven: a modder edits the JSON, not this file.
+
+@module spawner
+@contributes _weighted_pick, _resolve_tags, spawn_resources, hostile_chance, roll_hostiles, hostile_character_node
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from __future__ import annotations
 
+import json
+import os
 import random
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -168,3 +174,144 @@ def hostile_character_node(kind: str, node_id: str, *, scope_id: str,
             "generated": provenance(scope_id, HOSTILE_RECIPE_ID, seed, tick)["generated"],
         },
     )
+
+
+
+def _load_character_templates(char_dir: str) -> Dict[str, List[dict]]:
+    """Index character cards in char_dir by their tags."""
+    by_kind: Dict[str, List[dict]] = {}
+    if not os.path.isdir(char_dir):
+        return by_kind
+    for fname in os.listdir(char_dir):
+        if not fname.endswith(".json"):
+            continue
+        p = os.path.join(char_dir, fname)
+        try:
+            with open(p, "r", encoding="utf-8-sig") as f:
+                card = json.load(f)
+            tags = [str(t).lower() for t in card.get("tags") or []]
+            for tag in tags:
+                by_kind.setdefault(tag, []).append(card)
+        except Exception:
+            continue
+    return by_kind
+
+
+def spawn_hostiles_for_area(world: Any, area_name: str, *,
+                            distance_from_settlement: Optional[float] = None,
+                            seed: Optional[str] = None,
+                            tick: int = 0,
+                            data_dir: Optional[str] = None,
+                            entries: Optional[List[dict]] = None,
+                            rng: Optional[random.Random] = None,
+                            templates: Optional[Dict[str, List[dict]]] = None) -> List[Any]:
+    """Runtime consumer: evaluate hostile chances and register spawned simple_npc Players (task-570).
+
+    Computes distance from settlement (if not supplied), rolls deterministic hostile kinds,
+    resolves character definitions from the character library, registers them as live
+    simple_npc Player objects via world.add_player, and records an encounter event.
+    """
+    area_id = None
+    if hasattr(world, "_area_node_id"):
+        try:
+            area_id = world._area_node_id(area_name)
+        except Exception:
+            pass
+    elif hasattr(world, "area_node_id"):
+        try:
+            area_id = world.area_node_id(area_name)
+        except Exception:
+            pass
+
+    area_node = None
+    if area_id and getattr(world, "graph", None) is not None:
+        area_node = world.graph.get_node(area_id)
+
+    biome_id = None
+    if area_node is not None:
+        props = getattr(area_node, "properties", {}) or {}
+        biome_id = props.get("biome")
+        if distance_from_settlement is None:
+            distance_from_settlement = props.get("distance_from_settlement", props.get("settlement_distance", 0.0))
+    else:
+        area_obj = getattr(world, "movement", None)
+        if area_obj and hasattr(area_obj, "get_area"):
+            a = area_obj.get_area(area_name)
+            if a:
+                biome_id = getattr(a, "biome", None)
+
+    if not biome_id:
+        return []
+
+    dist_val = max(0.0, float(distance_from_settlement or 0.0))
+    active_rng = rng or random.Random(f"{seed or getattr(world, 'seed', 'hostiles')}|{area_name}|{tick}")
+    rolled = roll_hostiles(str(biome_id), dist_val, active_rng, entries=entries)
+    if not rolled:
+        return []
+
+    if templates is None:
+        if data_dir:
+            c_dir = os.path.join(data_dir, "library", "characters")
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            c_dir = os.path.join(base_dir, "data", "library", "characters")
+        templates = _load_character_templates(c_dir)
+
+    from player import Player
+    spawned = []
+
+    for kind in rolled:
+        candidates = templates.get(kind.lower()) or []
+        if not candidates:
+            # Fallback bare minimal card if library lacks this kind
+            cdata = {
+                "name": kind.title(),
+                "personality": f"A hostile {kind}.",
+                "description": f"A dangerous wild {kind}.",
+                "base_description": f"Wild {kind}.",
+                "tags": [kind, "hostile"],
+                "traits": {"hostile": True},
+                "stats": {"STR": 10, "DEX": 10, "CON": 10, "INT": 8, "WIS": 8, "CHA": 8},
+                "vitals": {"HP": 50, "Max_HP": 50, "Energy": 80, "Hunger": 20, "Thirst": 20},
+                "simple_npc": True,
+            }
+        else:
+            cdata = active_rng.choice(candidates)
+
+        base_name = cdata.get("name", kind.title())
+        existing = getattr(world, "players", {}) or {}
+        count = sum(1 for p in existing.values() if p.name.startswith(base_name))
+        pname = f"{base_name} {count + 1}" if count > 0 else base_name
+
+        player = Player(pname)
+        player.simple_npc = True
+        player.npc_behavior = cdata.get("npc_behavior", "wander")
+        player.personality = cdata.get("personality", "")
+        player.description = cdata.get("description", "")
+        player.base_description = cdata.get("base_description", "")
+        player.species = cdata.get("species")
+        player.size = cdata.get("size")
+        player.stats = dict(cdata.get("stats", player.stats))
+        player.vitals = {**player.vitals, **dict(cdata.get("vitals", player.vitals))}
+        player.decay_rates = dict(cdata.get("decay_rates", player.decay_rates))
+        player.skills = dict(cdata.get("skills", player.skills))
+        player.traits = dict(cdata.get("traits", player.traits))
+        player.tags = list(cdata.get("tags", player.tags))
+        player.interest_tags = list(cdata.get("interest_tags", player.interest_tags))
+        player.fear_tags = list(cdata.get("fear_tags", player.fear_tags))
+        player.dislike_tags = list(cdata.get("dislike_tags", player.dislike_tags))
+        player.current_area = area_name
+
+        if hasattr(world, "add_player"):
+            world.add_player(player)
+        if hasattr(world, "set_player_area"):
+            world.set_player_area(pname, area_name)
+
+        if hasattr(world, "add_log_entry"):
+            world.add_log_entry(f"[Encounter] A {pname} emerges in {area_name}!")
+        if hasattr(world, "record_turn_event"):
+            world.record_turn_event(pname, "encounter", f"A {pname} emerges in {area_name}.", area_name=area_name, tick=tick)
+
+        spawned.append(player)
+
+    return spawned

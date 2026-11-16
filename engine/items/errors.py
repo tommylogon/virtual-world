@@ -1,4 +1,9 @@
-"""Shared exception types for the item action mixins."""
+"""Shared exception types for the item action mixins.
+
+@module errors
+@contributes AmbiguousItemError
+@docs docs/virtualWorld/Gameplay/The Commons.md
+"""
 
 
 class AmbiguousItemError(ValueError):

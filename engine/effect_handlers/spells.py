@@ -16,6 +16,10 @@ Shared params
     How many area-hops out to reach. Sweeps pass through ways whether open or
     closed - a spell should not be blocked by a shut door, and neither should
     the reveal it casts.
+
+@module spells
+@contributes _library_dir, _load_library_entry, _way_adjacency, _areas_in_radius, _nodes_in_areas, _characters_in_areas
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import json

@@ -18,6 +18,10 @@ Provenance (task-398): every generated node carries::
 
 so a node can be told apart from hand-authored data, and a future regenerate
 flow can decide what it owns without guessing.
+
+@module generation
+@contributes GenerationReport, GenerationPatch, _value_hash, _props_baseline, _merge_regenerated, provenance
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from __future__ import annotations
@@ -218,6 +222,9 @@ def apply_patch(graph, manifest: Dict[str, dict], patch: GenerationPatch, *,
             stored = graph.get_node(node.id)
             if stored is not None:
                 baselines[stored.id] = _props_baseline(node.properties)
+                if stored.properties and 'hazards' in stored.properties:
+                    from engine.hazards import expand_node_hazards
+                    expand_node_hazards(stored)
             continue
         # Reached only when allow_regenerate and both nodes are generated (the
         # check above rejected every other case). The node must be re-stamped in
@@ -230,6 +237,9 @@ def apply_patch(graph, manifest: Dict[str, dict], patch: GenerationPatch, *,
             existing, node, baselines.get(existing.id))
         graph.replace_node(merged)
         baselines[existing.id] = _props_baseline(node.properties)
+        if merged.properties and 'hazards' in merged.properties:
+            from engine.hazards import expand_node_hazards
+            expand_node_hazards(merged)
         if preserved:
             report.preserved_properties.setdefault(existing.id, {}).update(preserved)
         if conflicts:

@@ -38,6 +38,10 @@ that. An animal that cannot use a latrine does not thereby become unable to
 relieve itself; what species changes is whether the latrine *helps*, which is a
 comfort question, and the same dignity model already in `engine.relief` still
 applies to whatever they do instead.
+
+@module species
+@contributes species_of, profile_for, can_use_service, excluded_services, describe_species
+@docs docs/virtualWorld/Characters/Background Simulation.md
 """
 
 from __future__ import annotations

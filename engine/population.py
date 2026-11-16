@@ -15,6 +15,10 @@ never depends on Flask, routes, or a live app.
 
 Placement follows the existing spatial edge vocabulary (graph.py):
 ``in`` for containment, ``on``/``beside`` for surfaces, ``at`` for floors.
+
+@module population
+@contributes Placement, PopulationPlan, LibraryIndex, _tags_of, _weighted_choice, plan_population
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from __future__ import annotations

@@ -21,6 +21,10 @@ Two nouns that are easy to confuse, so they are kept apart on purpose:
   skyscraper, which room of the stacked house, how far under the lake surface.
   An earlier revision of this taxonomy put the material under ``floor``, which
   made "floor" mean two unrelated things; the material moved to ``surface``.
+
+@module biomes
+@contributes load, clear_cache, biomes, features, _load_id_dir, _load_id_dir_cached
+@docs docs/virtualWorld/Gameplay/Search & Forage.md
 """
 
 from __future__ import annotations

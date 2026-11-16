@@ -1,4 +1,9 @@
-"""World event broadcast hub."""
+"""World event broadcast hub.
+
+@module world_events
+@contributes WorldEventHub
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
+"""
 import queue
 import threading
 import time

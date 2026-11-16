@@ -24,6 +24,10 @@ nothing wearable and falls to the generic clothing branch, which shuffles the
 whole wardrobe pool. That is how a 41-year-old smith ends up in a Guiding Cane.
 The LLM path sees a *wider* pool than the tag filter accepts and judges it
 against the character.
+
+@module dressing
+@contributes _norm_name, _wearable_entries, _apply_mature_gate, _library_dir, _player_area_env, _weather_ok
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 import json

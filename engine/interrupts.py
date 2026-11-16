@@ -15,6 +15,10 @@ The evaluator is pure: it compares two :func:`snapshot` dicts plus the events
 recorded this tick and returns structured :class:`Interrupt` reasons. It never
 mutates state and never calls an LLM, so a skip that stops on an interrupt leaves
 the world in an ordinary state at that tick (no half-applied special case).
+
+@module interrupts
+@contributes Interrupt, snapshot, events_since, evaluate, _relevant_events, _threat
+@docs docs/virtualWorld/AI & Narration/Memory System.md
 """
 
 from __future__ import annotations

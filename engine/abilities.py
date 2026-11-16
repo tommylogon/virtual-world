@@ -23,6 +23,10 @@ Deliberately **not** done here: clamping. A character is not corrected by the
 engine; it is corrected by the author, and the engine's job is to make the
 disagreement visible. A clamped stat silently loses the information that it was
 wrong.
+
+@module abilities
+@contributes is_inanimate, normalize_stat_block, stats_for_size, ability_range, tolerance_band, scale_issues
+@docs docs/virtualWorld/Characters/Persona.md
 """
 
 from __future__ import annotations

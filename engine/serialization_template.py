@@ -1,3 +1,10 @@
+"""serialization_template module.
+
+@module serialization_template
+@contributes TemplateLoader, _normalize_str_list, _connection_edge_props
+@docs docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
+"""
+
 # engine/serialization_template.py - Load from world_template.json format.
 # (Single-player, areas with items/exits - authorial content.)
 

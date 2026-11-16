@@ -1,3 +1,10 @@
+"""matching module.
+
+@module matching
+@contributes NameMatching, way_endpoint_name, display_area_name, node_aliases
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
+"""
+
 # engine/matching.py - Name and item matching utilities extracted from VirtualWorld
 
 import difflib

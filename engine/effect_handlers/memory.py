@@ -1,4 +1,9 @@
-"""Memory effect handlers (grant_memory, surface_memory, suppress_memory, unblock_memory)."""
+"""Memory effect handlers (grant_memory, surface_memory, suppress_memory, unblock_memory).
+
+@module memory
+@contributes handle_grant_memory, handle_surface_memory, handle_suppress_memory, handle_unblock_memory
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 
 def handle_grant_memory(self, params, context, item_node=None, game_state=None):
@@ -99,7 +104,18 @@ def handle_suppress_memory(self, params, context, item_node=None, game_state=Non
     keywords = params.get("keywords", "")
     duration = int(params.get("duration", 1))
     scope = params.get("scope", "self")
-    suppressed = player.suppress_memory(tags=tags, keywords=keywords, duration=duration, scope=scope)
+    memory_id = params.get("memory_id", "")
+    wildcard = bool(params.get("wildcard", False))
+    current_tick = int(getattr(game_state, "time_ticks", 0) or 0)
+    suppressed = player.suppress_memory(
+        tags=tags,
+        keywords=keywords,
+        duration=duration,
+        scope=scope,
+        memory_id=memory_id,
+        current_tick=current_tick,
+        wildcard=wildcard,
+    )
     msg = params.get("message", "")
     if suppressed and msg:
         return [msg]
@@ -124,7 +140,15 @@ def handle_unblock_memory(self, params, context, item_node=None, game_state=None
     tags = params.get("tags") or []
     keywords = params.get("keywords", "")
     scope = params.get("scope", "self")
-    unblocked = player.unblock_memory(tags=tags, keywords=keywords, scope=scope)
+    memory_id = params.get("memory_id", "")
+    wildcard = bool(params.get("wildcard", False))
+    unblocked = player.unblock_memory(
+        tags=tags,
+        keywords=keywords,
+        scope=scope,
+        memory_id=memory_id,
+        wildcard=wildcard,
+    )
     msg = params.get("message", "")
     if unblocked and msg:
         return [msg]

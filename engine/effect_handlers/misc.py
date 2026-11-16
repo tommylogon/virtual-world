@@ -1,4 +1,9 @@
-"""Miscellaneous effect handlers (message, scenario control, scheduling)."""
+"""Miscellaneous effect handlers (message, scenario control, scheduling).
+
+@module misc
+@contributes handle_message, handle_end_scenario, handle_restart_scenario, handle_schedule_trigger, handle_llm_respond
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 import time
 

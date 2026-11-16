@@ -2,6 +2,10 @@
 
 Manages equipping/unequipping items to body slots, equipment descriptions,
 and hygiene modifiers.
+
+@module equipment
+@contributes EquipmentSystem, is_intrinsic_ability
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from typing import Optional, Dict, List, Any
@@ -16,6 +20,17 @@ from graph import Node, Edge, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN, EDGE_CONNEC
 INTRINSIC_ABILITY_TAGS = frozenset(
     {"spell", "ability", "innate", "intrinsic", "power"}
 )
+
+
+def is_intrinsic_ability(item_node: Optional[Node]) -> bool:
+    """True when an item is an intrinsic ability rather than a physical object."""
+    if item_node is None:
+        return False
+    tags = item_node.properties.get("tags", [])
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",")]
+    return bool(INTRINSIC_ABILITY_TAGS.intersection(tags))
+
 
 
 # task-210/486: conditions that are outwardly visible and therefore belong in an
@@ -250,6 +265,7 @@ class EquipmentSystem:
         item_node.properties.pop("last_relation", None)
 
         trigger_outputs = self.triggers._execute_triggers(item_node, "on_equip", game_state=self.world)
+        self._maybe_grant_ability(player.name, item_node)
 
         self._maybe_update_equipment_description(player)
 
@@ -500,6 +516,7 @@ class EquipmentSystem:
                 real_item = self.graph.get_node(real_id)
                 if real_item:
                     self.triggers._execute_triggers(real_item, "on_unequip", game_state=self.world)
+                    self._maybe_revoke_granted_ability(player.name, real_item)
                     area_name = None
                     current_area = self.player_manager.current_area
                     if current_area:
@@ -527,6 +544,7 @@ class EquipmentSystem:
             item_node = self.graph.get_node(item_id)
             if item_node:
                 self.triggers._execute_triggers(item_node, "on_unequip", game_state=self.world)
+                self._maybe_revoke_granted_ability(player.name, item_node)
                 area_name = None
                 current_area = self.player_manager.current_area
                 if current_area:
@@ -562,6 +580,7 @@ class EquipmentSystem:
                                     e.properties["layer"] = idx + 1
                         if item_node:
                             self.triggers._execute_triggers(item_node, "on_unequip", game_state=self.world)
+                            self._maybe_revoke_granted_ability(player.name, item_node)
                             area_name = None
                             current_area = self.player_manager.current_area
                             if current_area:
@@ -640,12 +659,112 @@ class EquipmentSystem:
     @staticmethod
     def _is_intrinsic_ability(item_node: Optional[Node]) -> bool:
         """True when an item is an intrinsic ability rather than a physical object."""
-        if item_node is None:
-            return False
-        tags = item_node.properties.get("tags", [])
-        if isinstance(tags, str):
-            tags = [t.strip() for t in tags.split(",")]
-        return bool(INTRINSIC_ABILITY_TAGS.intersection(tags))
+        return is_intrinsic_ability(item_node)
+
+    def grant_ability(self, player_name: str, ability_def: Any, carrier_id: Optional[str] = None) -> Optional[Node]:
+        """Grant an intrinsic ability to a character, optionally tied to a carrier item."""
+        if not ability_def:
+            return None
+        if isinstance(ability_def, str):
+            ability_name = ability_def
+            ability_props = {}
+        elif isinstance(ability_def, dict):
+            ability_name = ability_def.get("name", "unnamed_ability")
+            ability_props = dict(ability_def.get("properties", {}))
+        else:
+            return None
+
+        player_id = self.player_manager.get_player_node_id(player_name)
+        if not player_id:
+            return None
+
+        for edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
+            node = self.graph.get_node(edge.source)
+            if node and is_intrinsic_ability(node) and node.name.lower() == ability_name.lower():
+                return node
+
+        tags = set(ability_props.get("tags", []))
+        tags.update(["ability", "intrinsic", "power"])
+        ability_props["tags"] = sorted(tags)
+        if carrier_id:
+            ability_props["granted_by"] = carrier_id
+
+        node_id = f"ability_{player_name.lower().replace(' ', '_')}_{ability_name.lower().replace(' ', '_')}"
+        ability_node = Node(
+            id=node_id,
+            type="item",
+            name=ability_name,
+            properties=ability_props
+        )
+        self.graph.add_node(ability_node)
+        self.graph.add_edge(Edge(
+            source=ability_node.id,
+            target=player_id,
+            type=EDGE_EQUIPPED,
+            properties={"slot": "ability", "intrinsic": True}
+        ))
+
+        player = self.player_manager.players.get(player_name)
+        if player:
+            player.equipped.setdefault("ability", []).append(ability_node.id)
+
+        return ability_node
+
+    def revoke_ability(self, player_name: str, ability_def: Any, carrier_id: Optional[str] = None) -> Optional[str]:
+        """Revoke an intrinsic ability from a character."""
+        if not ability_def:
+            return None
+        if isinstance(ability_def, str):
+            ability_name = ability_def
+        elif isinstance(ability_def, dict):
+            ability_name = ability_def.get("name", "")
+        else:
+            return None
+
+        player_id = self.player_manager.get_player_node_id(player_name)
+        if not player_id:
+            return None
+
+        revoked_id = None
+        for edge in list(self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)):
+            node = self.graph.get_node(edge.source)
+            if node and is_intrinsic_ability(node) and node.name.lower() == ability_name.lower():
+                if carrier_id and node.properties.get("granted_by") and node.properties.get("granted_by") != carrier_id:
+                    continue
+                revoked_id = node.id
+                self.graph.remove_edge(edge.source, edge.target, edge.type)
+                self.graph.remove_node(node.id)
+                break
+
+        player = self.player_manager.players.get(player_name)
+        if player and revoked_id and "ability" in player.equipped:
+            if revoked_id in player.equipped["ability"]:
+                player.equipped["ability"].remove(revoked_id)
+
+        return revoked_id
+
+    def _maybe_grant_ability(self, player_name: str, item_node: Optional[Node]) -> None:
+        if not item_node:
+            return
+        grants = item_node.properties.get("grants_ability") or item_node.properties.get("grants_abilities")
+        if grants:
+            if isinstance(grants, list):
+                for g in grants:
+                    self.grant_ability(player_name, g, carrier_id=item_node.id)
+            else:
+                self.grant_ability(player_name, grants, carrier_id=item_node.id)
+
+    def _maybe_revoke_granted_ability(self, player_name: str, item_node: Optional[Node]) -> None:
+        if not item_node:
+            return
+        grants = item_node.properties.get("grants_ability") or item_node.properties.get("grants_abilities")
+        if grants:
+            if isinstance(grants, list):
+                for g in grants:
+                    self.revoke_ability(player_name, g, carrier_id=item_node.id)
+            else:
+                self.revoke_ability(player_name, grants, carrier_id=item_node.id)
+
 
     def _drop_intrinsic_abilities(self, full: dict, player_name: str) -> dict:
         """Remove equipped intrinsic abilities from an equipment dict by name.

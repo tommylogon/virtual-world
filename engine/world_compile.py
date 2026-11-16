@@ -80,6 +80,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from graph import EDGE_CONNECTION, Edge, Node
 
 from engine import biomes as biomes_mod
+from engine import matching
 from engine import way_narratives
 from engine import world_grid as wg
 from engine.generation import GenerationPatch, GenerationReport, provenance
@@ -1639,6 +1640,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     road_layer = layers.get("road") or {}
     floor_layer = wg.layer_cells(record, "floor")
     climate_layer = wg.layer_cells(record, "climate")
+    current_layer = layers.get("current") or {}
 
     biome_of: Dict[Tuple[int, int], str] = {}
     for y in range(height):
@@ -1883,6 +1885,30 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                 if cell_region[before] != cell_region[after]:
                     opposite = (before, after)
                 break
+        if opposite is None:
+            # Diagonal corner door chamfer check (task-884):
+            # Allows 45-degree chamfered corner doors when flanked on the 90-degree
+            # corner by solid wall cells.
+            for dx, dy in ((1, 1), (1, -1)):
+                before = (cell[0] - dx, cell[1] - dy)
+                after = (cell[0] + dx, cell[1] + dy)
+                if before in cell_region and after in cell_region:
+                    if cell_region[before] != cell_region[after]:
+                        flank1_a = (cell[0], cell[1] - dy)
+                        flank1_b = (cell[0] + dx, cell[1])
+                        flank2_a = (cell[0] - dx, cell[1])
+                        flank2_b = (cell[0], cell[1] + dy)
+                        flank1_solid = (
+                            biomes_mod.cell_kind(cell_biome(flank1_a)) == "solid"
+                            and biomes_mod.cell_kind(cell_biome(flank1_b)) == "solid"
+                        )
+                        flank2_solid = (
+                            biomes_mod.cell_kind(cell_biome(flank2_a)) == "solid"
+                            and biomes_mod.cell_kind(cell_biome(flank2_b)) == "solid"
+                        )
+                        if flank1_solid or flank2_solid:
+                            opposite = (before, after)
+                            break
         if opposite is not None:
             before, after = opposite
             door_pairs.append((cell_region[before], cell_region[after],
@@ -2069,6 +2095,33 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         # to draw when windows become visible edges.
         if windows.get(index):
             props["windows"] = windows[index]
+
+        # task-747: terrain hazard pass on compiled areas
+        area_hazards: List[dict] = []
+        b_hazard = biomes_mod.biome_hazard(biome_id) if biome_id else None
+        if not b_hazard and biome_id in ("thorns", "bramble", "briar", "thorn_thicket"):
+            b_hazard = "thorns"
+        if not b_hazard and any(t in ("thorns", "bramble", "briar") for t in props.get("tags", [])):
+            b_hazard = "thorns"
+        if b_hazard:
+            area_hazards.append({
+                "hazard_id": b_hazard,
+                "strength": 5,
+                "trigger_on": "on_enter",
+            })
+        if area_hazards:
+            props["hazards"] = area_hazards
+
+        # task-638: emit human-readable display_name on area node properties
+        # so presentation layers never have to fall back to stripping coordinate suffixes
+        # or displaying raw internal coordinates.
+        if "display_name" not in props:
+            authored_label = _region_authored_name(regions[index], cell_names)
+            if authored_label:
+                props["display_name"] = authored_label
+            else:
+                props["display_name"] = _place_label(region_anchor[index], biome_of, road_of)
+
         props.update(provenance(scope_id, recipe_id, seed, tick))
 
         nodes.append(Node(
@@ -2144,7 +2197,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             "surface": biomes_mod.ground_surface(
                 (biomes_mod.features() or {}).get(str(road_id or "")),
                 biomes_mod.biome(floor_biome)),
-            "pass_message": f"You follow the path {direction} toward {to_name}.",
+            "pass_message": f"You follow the path {direction} toward {matching._GRID_SUFFIX.sub('', to_name).strip() or to_name}.",
             "world_scope_id": scope_id,
             # Midpoint of the two cells, so a way sits between its areas
             # when the graph is laid out from painted positions.
@@ -2173,12 +2226,14 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             # nonsense as a sentence. The *kind* is what they painted, so it is
             # what the sentence says; the number is only there when there is one
             # (task-568).
+            clean_to_name = matching._GRID_SUFFIX.sub("", to_name).strip() or to_name
             way_props["pass_message"] = (
                 f"You climb {storey_delta} storey"
-                f"{'s' if storey_delta != 1 else ''} to {to_name}."
-                if storey_delta else f"You take the stairs to {to_name}.")
+                f"{'s' if storey_delta != 1 else ''} to {clean_to_name}."
+                if storey_delta else f"You take the stairs to {clean_to_name}.")
         elif kind == "door":
-            way_props["pass_message"] = f"You go through the door into {to_name}."
+            clean_to_name = matching._GRID_SUFFIX.sub("", to_name).strip() or to_name
+            way_props["pass_message"] = f"You go through the door into {clean_to_name}."
         if climb:
             # A storey step too big to stride (task-525). This is the one way kind
             # that is decided by *data the author can change on the cell*, not by
@@ -2238,6 +2293,88 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         if kind in ("door", "stairs") and kind not in way_tags:
             way_tags.append(kind)
         way_props["tags"] = way_tags
+
+        # task-747: WorldPainter compiler emits terrain hazards from painted layers
+        way_hazards: List[dict] = []
+        is_water = wg.is_water_cell(record, *cell) or wg.is_water_cell(record, *nb)
+        is_bridge = (road_id == "bridge" or nb_road_id == "bridge" or "bridge" in way_tags)
+
+        # Rule 1: A way crossing water with no bridge -> river / rapids / fall
+        if is_water and not is_bridge:
+            cur = wg.derive_water_current(record, cell[0], cell[1]) or wg.derive_water_current(record, nb[0], nb[1])
+            cur_hazard = (cur and cur.get("hazard_id")) or "river"
+            cur_strength = (cur and cur.get("strength")) or 5
+            cur_bearing = (cur and cur.get("bearing")) or direction
+            cell_curr = current_layer.get(wg.cell_key(*cell)) or current_layer.get(wg.cell_key(*nb))
+            if isinstance(cell_curr, dict) and "direction" in cell_curr:
+                try:
+                    dir_idx = int(cell_curr["direction"]) % 8
+                    cur_bearing = wg.COMPASS_8_BEARINGS[dir_idx]
+                except (ValueError, TypeError):
+                    pass
+            way_hazards.append({
+                "hazard_id": cur_hazard,
+                "strength": cur_strength,
+                "direction": cur_bearing,
+                "trigger_on": "on_enter",
+            })
+
+        # Rule 2: A way with requires: jump over water -> fall into the water
+        if is_water and (way_props.get("requires") == "jump" or "jump" in way_tags):
+            cur = wg.derive_water_current(record, cell[0], cell[1]) or wg.derive_water_current(record, nb[0], nb[1])
+            cur_strength = (cur and cur.get("strength")) or 5
+            cur_bearing = (cur and cur.get("bearing")) or direction
+            way_hazards.append({
+                "hazard_id": "river",
+                "strength": cur_strength,
+                "direction": cur_bearing,
+                "trigger_on": "on_fail_jump",
+            })
+
+        # Rule 3: A _climb_step rising or falling -> cliff/fall
+        if climb and not climb.get("provided_by"):
+            step = climb.get("storeys", storey_delta)
+            rising = climb.get("rising", False)
+            h_id = "cliff" if rising else "fall"
+            if step <= 1:
+                h_str = 5
+            elif step in (2, 3):
+                h_str = 10
+            elif step in (4, 5, 6):
+                h_str = 15
+            else:
+                h_str = 20
+
+            downhill_dir = OPPOSITE.get(direction, direction) if rising else direction
+            cell_curr = current_layer.get(wg.cell_key(*cell)) or current_layer.get(wg.cell_key(*nb))
+            if isinstance(cell_curr, dict) and "direction" in cell_curr:
+                try:
+                    dir_idx = int(cell_curr["direction"]) % 8
+                    downhill_dir = wg.COMPASS_8_BEARINGS[dir_idx]
+                except (ValueError, TypeError):
+                    pass
+
+            h_desc: Dict[str, object] = {
+                "hazard_id": h_id,
+                "strength": h_str,
+                "direction": downhill_dir,
+                "trigger_on": "on_fail_climb",
+                "storey_delta": step,
+            }
+            if step >= 80:
+                h_desc["damage"] = "20d6"
+
+            way_hazards.append(h_desc)
+
+            from engine.hazards import dc_for
+            calculated_dc = dc_for(h_id, h_str) or (12 + min(step, 10))
+            way_props["climb_dc"] = calculated_dc
+            if record.get("hazard_consequences") or record.get("climb_hazard"):
+                way_props["current_state"] = "open"
+                way_props["requires"] = "climb"
+
+        if way_hazards:
+            way_props["hazards"] = way_hazards
         nodes.append(Node(id=way_id, type="way",
                           name=f"{from_name} - door" if kind == "door"
                                else f"{from_name} to {to_name}",

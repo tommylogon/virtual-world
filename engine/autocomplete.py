@@ -1,3 +1,10 @@
+"""autocomplete module.
+
+@module autocomplete
+@contributes get_autocomplete_options
+@docs docs/virtualWorld/Characters/Persona.md
+"""
+
 # engine/autocomplete.py - UI input helpers extracted from VirtualWorld facade.
 #
 # These helpers take a VirtualWorld-like object (anything exposing

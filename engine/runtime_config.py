@@ -20,6 +20,10 @@ The JSON schema is a flat ``{key: value}`` map. Keys namespaced by domain:
   - ``heat.base_rate`` / ``heat.max_delta``
   - ``light.spill_factor``
 Unknown keys in the file are ignored, so pruning an old key never crashes.
+
+@module runtime_config
+@contributes RuntimeConfig, _coerce_like_default, _refuse_if_not_a_choice
+@docs docs/virtualWorld/Characters/Persona.md
 """
 
 from __future__ import annotations

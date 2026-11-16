@@ -17,6 +17,10 @@ So the property mapping lives here, once, and both callers use it:
 
 Nothing here imports Flask or a graph. `lookup` is injected, so the same
 function serves the route, a generator, and a test.
+
+@module library_nodes
+@contributes library_item_properties, _int, _float, content_ref_id, content_relation, build_item_node
+@docs docs/virtualWorld/Library System/Library System Overview.md
 """
 from __future__ import annotations
 

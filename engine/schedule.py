@@ -18,6 +18,10 @@ picks an immediate action and the sim runs unchanged without it.
 **Time is game minutes, never ticks.** `minutes_of_day` reads the engine's own
 clock (`total_game_minutes`), so a step at 07:00 happens at 07:00 whether a tick
 is 1 minute or 15.
+
+@module schedule
+@contributes parse_start, normalize, add_step, remove_step, current_step, minutes_of_day
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from __future__ import annotations

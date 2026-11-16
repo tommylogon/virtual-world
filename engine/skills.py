@@ -3,6 +3,10 @@
 Provides a stateless skill-check service used by combat, triggers,
 and narration.  All dependencies (player manager, logging) are
 injected via the constructor.
+
+@module skills
+@contributes SkillSystem
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 import random

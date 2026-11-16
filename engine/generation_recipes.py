@@ -14,6 +14,10 @@ apartment. That is the safe default, not an oversight.
 
 Authored context (the profile text on a scope record) is treated as input data
 and never interpolated into anything executable.
+
+@module generation_recipes
+@contributes recipe, get_recipe, apartment_v1, _room_label
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 from __future__ import annotations
 

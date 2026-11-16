@@ -1,6 +1,10 @@
 """Trigger testing (editor run button) for TriggerSystem.
 
 Moved from engine/trigger_system.py.
+
+@module testing
+@contributes TestingMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Any, List, Optional

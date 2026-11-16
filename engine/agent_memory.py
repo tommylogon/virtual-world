@@ -10,6 +10,10 @@ seams between them. Nothing here calls an LLM.
 Scope of this slice: the facade, scenario-bootstrap *preconceived knowledge*,
 need-driven recall, and trait-driven memory decay. It deliberately does not
 replace ``VectorStore``/``SpatialMemory`` or build a world ontology.
+
+@module agent_memory
+@contributes AgentMind, _default_salience
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 import re
 from typing import Any, Dict, List, Optional
@@ -95,11 +99,12 @@ class AgentMind:
     def remember(self, text: str, tick: int = 0, importance: int = 5,
                  tags: Optional[List[str]] = None, source: str = "mind",
                  location: str = "", entity_ids: Optional[List[str]] = None,
-                 memory_type: str = "observation", kind: Optional[str] = None):
+                 memory_type: str = "observation", kind: Optional[str] = None,
+                 category: Optional[str] = None):
         return self.player.add_memory(
             text, tick, importance=importance, memory_type=memory_type,
             tags=tags, source=source, entity_ids=entity_ids, location=location,
-            kind=kind,
+            kind=kind, category=category,
         )
 
     def record_absence(self, target: str, location: str, tick: int = 0,
@@ -177,9 +182,12 @@ class AgentMind:
             self.remember(
                 memory["text"], tick=memory.get("tick", tick),
                 importance=memory.get("importance", 5),
-                tags=memory.get("tags"), source="preconceived",
+                tags=memory.get("tags"), source=memory.get("source", "preconceived"),
                 location=memory.get("location", ""),
                 entity_ids=memory.get("entity_ids"),
+                memory_type=memory.get("type", "observation"),
+                kind=memory.get("kind"),
+                category=memory.get("category"),
             )
             existing.add(str(memory["text"]))
             added += 1

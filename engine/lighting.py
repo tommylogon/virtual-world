@@ -1,3 +1,10 @@
+"""lighting module.
+
+@module lighting
+@contributes LightingSystem, _spill_factor, outdoor_light_for_hour
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
+"""
+
 from typing import Dict, List, Optional
 
 from graph import EDGE_CONNECTION, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED

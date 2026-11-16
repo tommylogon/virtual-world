@@ -1,4 +1,9 @@
-"""Properties effect handlers (set_parameter, adjust_parameter, set_description, append_description, rename)."""
+"""Properties effect handlers (set_parameter, adjust_parameter, set_description, append_description, rename).
+
+@module properties
+@contributes handle_set_parameter, handle_adjust_parameter, handle_set_description, handle_append_description, handle_rename
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 import time
 

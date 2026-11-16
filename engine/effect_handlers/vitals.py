@@ -6,6 +6,10 @@ that resolver existed these handlers carried their own copies of the rule, and
 `heal` had the wrong one - it clamped to a literal 100, so healing a 7-HP
 goblin by 5 produced 12 HP. That was invisible only because `Max_HP` was itself
 always 100; the moment a stat block declared a real maximum, the bug surfaced.
+
+@module vitals
+@contributes handle_damage, handle_save, _vital_ceiling, handle_heal, _resolve_vital_key, _effect_subject
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from engine.vitals import ceiling, clamp_to_ceiling

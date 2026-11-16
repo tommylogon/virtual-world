@@ -7,6 +7,10 @@ fake area nodes for buildings/floors/continents.
 The manifest is a plain dict ``{scope_id: record}`` persisted on the world as
 ``world_scopes``. Everything here is pure over (manifest, graph, players) so it
 is easily testable and safe for route handlers to call.
+
+@module world_scopes
+@contributes normalise_manifest, root_scope_ids, direct_child_ids, _scope_children_index, area_ids_in_scope, own_area_ids
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from __future__ import annotations

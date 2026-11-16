@@ -77,16 +77,218 @@ class MovementSystem:
     def add_area(self, area):
         """Add a area node to the graph from a Area object."""
         node_id = self.gs._area_node_id(area.name)
+        props = {
+            "description": area.description,
+            "environment": area.environment,
+        }
+        if getattr(area, "grid", None):
+            props["grid"] = dict(area.grid)
         node = Node(
             id=node_id,
             type="area",
             name=area.name,
-            properties={
-                "description": area.description,
-                "environment": area.environment,
-            }
+            properties=props,
         )
         self.graph.add_node(node)
+
+    def _resolve_player(self, player_or_name):
+        if hasattr(player_or_name, "name"):
+            return player_or_name
+        name = str(player_or_name or self.gs.active_player)
+        return (self.gs.players or {}).get(name)
+
+    def get_area_grid(self, area_name_or_id: str):
+        """Return the intra-area grid dictionary for an area, or None."""
+        area_node = self.graph.get_node(area_name_or_id)
+        if not area_node and hasattr(self.gs, "_area_node_id"):
+            try:
+                area_node = self.graph.get_node(self.gs._area_node_id(area_name_or_id))
+            except Exception:
+                pass
+        if not area_node:
+            needle = str(area_name_or_id).strip().lower()
+            for n in self.graph.nodes.values():
+                if getattr(n, "type", None) == "area" and n.name.lower() == needle:
+                    area_node = n
+                    break
+        if not area_node:
+            return None
+        return (area_node.properties or {}).get("grid")
+
+    def set_area_grid(self, area_name_or_id: str, grid_data: dict) -> None:
+        """Assign or update intra-area grid dictionary on an area node."""
+        area_node = self.graph.get_node(area_name_or_id)
+        if not area_node and hasattr(self.gs, "_area_node_id"):
+            try:
+                area_node = self.graph.get_node(self.gs._area_node_id(area_name_or_id))
+            except Exception:
+                pass
+        if not area_node:
+            needle = str(area_name_or_id).strip().lower()
+            for n in self.graph.nodes.values():
+                if getattr(n, "type", None) == "area" and n.name.lower() == needle:
+                    area_node = n
+                    break
+        if not area_node:
+            raise ValueError(f"Area '{area_name_or_id}' not found.")
+        if area_node.properties is None:
+            area_node.properties = {}
+        area_node.properties["grid"] = dict(grid_data)
+
+    def move_to_coord(self, player_or_name, x: int, y: int) -> dict:
+        """Move a character to specific intra-area grid coordinates (x, y).
+
+        Finds lowest-cost path with A*, checks passability, calculates energy cost,
+        deducts energy from character vitals, and updates grid['characters'].
+        """
+        player = self._resolve_player(player_or_name)
+        if not player:
+            raise ValueError(f"Unknown player '{player_or_name}'.")
+
+        area_name = getattr(player, "current_area", None)
+        if not area_name:
+            raise ValueError(f"{player.name} is not in any area.")
+
+        grid = self.get_area_grid(area_name)
+        if not grid:
+            raise ValueError(f"Area '{area_name}' does not have an intra-area grid.")
+
+        width = grid.get("width", 0)
+        height = grid.get("height", 0)
+        if x < 0 or x >= width or y < 0 or y >= height:
+            raise ValueError(f"Coordinates ({x}, {y}) are outside area grid bounds ({width}x{height}).")
+
+        from engine import pathfinding
+        if not pathfinding.is_passable(grid, x, y):
+            tile_type = pathfinding.get_tile(grid, x, y)
+            raise ValueError(f"Cannot move to ({x}, {y}): tile is impassable ({tile_type}).")
+
+        chars = grid.setdefault("characters", {})
+        current_pos = chars.get(player.name)
+        if not current_pos or not isinstance(current_pos, dict):
+            pos = getattr(player, "position", None)
+            if isinstance(pos, dict) and "x" in pos and "y" in pos:
+                start_x, start_y = pos["x"], pos["y"]
+            else:
+                start_x, start_y = 0, 0
+        else:
+            start_x, start_y = current_pos.get("x", 0), current_pos.get("y", 0)
+
+        path = pathfinding.find_path(grid, (start_x, start_y), (x, y))
+        if path is None:
+            raise ValueError(f"No passable path from ({start_x}, {start_y}) to ({x}, {y}).")
+
+        cost = pathfinding.calculate_path_cost(grid, path)
+
+        if hasattr(player, "vitals") and isinstance(player.vitals, dict):
+            current_energy = player.vitals.get("Energy", 100)
+            player.vitals["Energy"] = max(0, current_energy - cost)
+
+        chars[player.name] = {"x": x, "y": y}
+        player.position = {"x": x, "y": y}
+
+        steps = len(path) - 1
+        msg = f"You move to ({x}, {y}) across {steps} tiles (cost: {cost} energy)."
+        if hasattr(self.gs, "add_log_entry"):
+            self.gs.add_log_entry(f"[{player.name}] moved to ({x}, {y}) in {area_name} (cost: {cost} energy).")
+
+        return {
+            "ok": True,
+            "path": path,
+            "cost": cost,
+            "x": x,
+            "y": y,
+            "message": msg,
+        }
+
+    def move_to_item(self, player_or_name, item_name_or_id: str) -> dict:
+        """Move a character adjacent to a specified item on the intra-area grid."""
+        player = self._resolve_player(player_or_name)
+        if not player:
+            raise ValueError(f"Unknown player '{player_or_name}'.")
+
+        area_name = getattr(player, "current_area", None)
+        if not area_name:
+            raise ValueError(f"{player.name} is not in any area.")
+
+        grid = self.get_area_grid(area_name)
+        if not grid:
+            raise ValueError(f"Area '{area_name}' does not have an intra-area grid.")
+
+        items = grid.get("items", {})
+        target_pos = None
+        target_item_key = None
+
+        needle = str(item_name_or_id).strip().lower()
+        for ikey, pos in items.items():
+            if ikey.lower() == needle or needle in ikey.lower():
+                target_pos = pos
+                target_item_key = ikey
+                break
+
+        if not target_pos:
+            area_id = self.gs._area_node_id(area_name) if hasattr(self.gs, "_area_node_id") else None
+            if area_id:
+                for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
+                    node = self.graph.get_node(edge.source)
+                    if node and (node.name.lower() == needle or needle in node.name.lower() or node.id.lower() == needle):
+                        target_pos = items.get(node.id) or items.get(node.name)
+                        target_item_key = node.name
+                        break
+
+        if not target_pos or not isinstance(target_pos, dict):
+            raise ValueError(f"Item '{item_name_or_id}' has no known position on the area grid.")
+
+        ix, iy = target_pos.get("x", 0), target_pos.get("y", 0)
+
+        chars = grid.setdefault("characters", {})
+        current_pos = chars.get(player.name)
+        if not current_pos:
+            pos = getattr(player, "position", None)
+            if isinstance(pos, dict) and "x" in pos and "y" in pos:
+                start_x, start_y = pos["x"], pos["y"]
+            else:
+                start_x, start_y = 0, 0
+        else:
+            start_x, start_y = current_pos.get("x", 0), current_pos.get("y", 0)
+
+        from engine import pathfinding
+        path = None
+        if pathfinding.is_passable(grid, ix, iy):
+            path = pathfinding.find_path(grid, (start_x, start_y), (ix, iy))
+
+        if path is None:
+            path = pathfinding.find_path_to_adjacent(grid, (start_x, start_y), (ix, iy))
+
+        if path is None:
+            raise ValueError(f"Cannot reach item '{item_name_or_id}' at ({ix}, {iy}): path is blocked.")
+
+        dest_x, dest_y = path[-1]
+        cost = pathfinding.calculate_path_cost(grid, path)
+
+        if hasattr(player, "vitals") and isinstance(player.vitals, dict):
+            current_energy = player.vitals.get("Energy", 100)
+            player.vitals["Energy"] = max(0, current_energy - cost)
+
+        chars[player.name] = {"x": dest_x, "y": dest_y}
+        player.position = {"x": dest_x, "y": dest_y}
+
+        steps = len(path) - 1
+        item_disp = target_item_key or item_name_or_id
+        msg = f"You move next to {item_disp} at ({dest_x}, {dest_y}) (cost: {cost} energy)."
+        if hasattr(self.gs, "add_log_entry"):
+            self.gs.add_log_entry(f"[{player.name}] moved next to {item_disp} at ({dest_x}, {dest_y}) (cost: {cost} energy).")
+
+        return {
+            "ok": True,
+            "path": path,
+            "cost": cost,
+            "x": dest_x,
+            "y": dest_y,
+            "item": item_disp,
+            "message": msg,
+        }
+
 
     def set_current_area(self, area_name: str) -> str:
         """Set the active player's current area. Raises ValueError if area doesn't exist."""
@@ -211,8 +413,8 @@ class MovementSystem:
 
         Tiers:
           < 50% capacity  → 0
-          50% – 80%       → +1 energy
-          80% – 100%      → +2 energy, dash blocked
+          50% - 80%       → +1 energy
+          80% - 100%      → +2 energy, dash blocked
           >= 100%         → movement blocked entirely
         """
         player = self.gs.player
@@ -531,6 +733,24 @@ class MovementSystem:
             if not self._holds_item_gate(item_needle, tag_needle):
                 raise ValueError(self._requires_item_message(way_node, direction, item_needle, tag_needle))
 
+        # ── task-594: Deep water requires dive ──
+        if not phasing:
+            target_aid = None
+            for conn in self.graph.get_edges_for_source(way_id, EDGE_CONNECTION):
+                if conn.target != area_id:
+                    target_aid = conn.target
+                    break
+            if target_aid:
+                dest_node = self.graph.get_node(target_aid)
+                if dest_node:
+                    dprops = dest_node.properties or {}
+                    dtags = [str(t).lower() for t in dprops.get("tags", [])]
+                    ddepth = str(dprops.get("depth", "")).lower()
+                    dsurface = str(dprops.get("surface", "")).lower()
+                    if (ddepth in ("deep", "underwater") or dsurface in ("deep_water", "underwater") or "deep_water" in dtags or "underwater" in dtags):
+                        if kind != "dive" and requires != "swim":
+                            raise ValueError(f"You need to dive through the {direction} - the water is too deep to cross at the surface.")
+
         # ── Blind "go" - risk of stumbling and falling prone (unless a cane/guide) ──
         if blind and kind == "go" and requires not in ("jump", "climb", "crawl") and not phasing:
             p = self.gs.player
@@ -555,7 +775,7 @@ class MovementSystem:
         except Exception:
             phasing = False
         skill_check_msg = ""
-        if not phasing and requires in ("jump", "climb"):
+        if not phasing and requires in ("jump", "climb", "swim", "dive"):
             dc = int(way_node.properties.get(f"{requires}_dc", 12) or 12)
             if blind:
                 dc = max(dc, dc + 4 - cane_bonus)
@@ -899,6 +1119,14 @@ class MovementSystem:
     def jump_to_area(self, direction: str) -> str:
         """Jump across a gap (risk of a failed Athletics check)."""
         return self.move_to_area(direction, kind="jump")
+
+    def swim_to_area(self, direction: str) -> str:
+        """Swim across a water surface passage."""
+        return self.move_to_area(direction, kind="swim")
+
+    def dive_to_area(self, direction: str) -> str:
+        """Dive through deep water."""
+        return self.move_to_area(direction, kind="dive")
 
     def dash_to_area(self, direction: str) -> str:
         """Sprint through one exit - a fast ``go``.

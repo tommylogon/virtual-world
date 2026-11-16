@@ -3,6 +3,10 @@
 Single owner of the template context block shared by execution and the
 editor test-run path. Previously duplicated between ``execution.py`` and
 ``testing.py``; consolidated here so both paths read the same defaults.
+
+@module context
+@contributes build_template_context
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Any, Optional

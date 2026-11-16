@@ -15,6 +15,10 @@ drink, sleep, wash) already does. Risky ground rolls:
 
 Nothing here can starve anyone: eating, drinking and sleeping are the need
 policy's job and stay automatic, and a refusal only ever costs the turn.
+
+@module traversal
+@contributes HopResult, skill_for, is_routine, way_kind, _area_tags, hazard
+@docs docs/virtualWorld/Characters/Activities & States.md
 """
 
 from __future__ import annotations
@@ -52,7 +56,7 @@ HAZARD_SKILLS = {
 #: (task-478 tables), investigate (task-468 agendas).
 SOAK_ACTIONS = {
     "travel_hazard": "Survival",
-    "climb": "Athletics", "jump": "Athletics", "swim": "Athletics",
+    "climb": "Athletics", "jump": "Athletics", "swim": "Athletics", "dive": "Athletics",
     "force": "Athletics",
     "balance": "Acrobatics", "squeeze": "Acrobatics",
     "sneak": "Stealth", "avoid_notice": "Stealth",
@@ -109,7 +113,7 @@ CROSSING_HAZARD_SKILLS = {
 CROSSING_SAFE_TAGS = frozenset({"bridge"})
 
 #: Ways that need a movement verb rather than a plain walk.
-WAY_VERBS = ("crawl", "climb", "jump")
+WAY_VERBS = ("crawl", "climb", "jump", "swim", "dive")
 
 #: How long a refused hop is routed around, in game minutes.
 AVOID_MINUTES = 30

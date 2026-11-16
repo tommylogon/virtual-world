@@ -4,6 +4,10 @@
 All names formerly defined in player.py are re-exported from here so
 ``from player import CONDITION_DEFINITIONS`` keeps working via thin
 delegates in player.py.
+
+@module player_conditions
+@contributes _normalize_catalog, _condition_library_dir, _load_condition_library, reload_condition_library, seed_condition_library, _rebuild_derived_constants
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import copy
@@ -501,6 +505,16 @@ CONDITION_DEFINITIONS = {
         }, "stack": "noop", "default_duration": 5,
         "excludes": [],
     },
+    "on_a_call": {
+        "name": "On a Call", "description": "Engaged in an ongoing call on a communication device.",
+        "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
+        "auto_fail_checks": [], "auto_fail_saves": [],
+        "attack_mod": 0, "defense_mod": 0, "speed_mult": 1.0,
+        "movement_mode": None, "drops_held_items": False,
+        "periodic": {}, "ends_on": ["hang_up", "call_ended"],
+        "known": True, "symptoms": {}, "stack": "noop", "default_duration": None,
+        "excludes": [],
+    },
     "sneeze": {
         "name": "Sneeze", "description": "Your nose won't stop tickling.",
         "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
@@ -513,6 +527,52 @@ CONDITION_DEFINITIONS = {
             1: "The sneeze builds and you cannot stop it.",
         }, "stack": "refresh", "default_duration": 3,
         "excludes": [],
+    },
+    # ── Reproductive cycle phase conditions (task-928) ──────────────────
+    "menstruating": {
+        "name": "Menstruating",
+        "description": "Experiencing a monthly period. Mild cramps and fatigue.",
+        "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
+        "auto_fail_checks": [], "auto_fail_saves": [],
+        "attack_mod": 0, "defense_mod": 0, "speed_mult": 1.0,
+        "movement_mode": None, "drops_held_items": False,
+        "periodic": {"Energy": -0.2}, "ends_on": ["cycle_phase_change"],
+        "known": True, "symptoms": {
+            3: "A dull ache settles low in your abdomen.",
+            1: "Mild cramps remind you of your cycle.",
+        }, "stack": "refresh", "default_duration": None,
+        "excludes": ["ovulating", "in_heat"],
+        "tags": ["cycle"],
+    },
+    "ovulating": {
+        "name": "Ovulating",
+        "description": "In the peak fertile window of the cycle.",
+        "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
+        "auto_fail_checks": [], "auto_fail_saves": [],
+        "attack_mod": 0, "defense_mod": 0, "speed_mult": 1.0,
+        "movement_mode": None, "drops_held_items": False,
+        "periodic": {}, "ends_on": ["cycle_phase_change"],
+        "known": True, "symptoms": {
+            1: "Your body feels warm and receptive.",
+        }, "stack": "refresh", "default_duration": None,
+        "excludes": ["menstruating", "in_heat"],
+        "tags": ["cycle"],
+    },
+    "in_heat": {
+        "name": "In Heat",
+        "description": "In estrus. Restless, flushed, and biologically fertile.",
+        "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
+        "auto_fail_checks": [], "auto_fail_saves": [],
+        "attack_mod": 0, "defense_mod": 0, "speed_mult": 1.0,
+        "movement_mode": None, "drops_held_items": False,
+        "periodic": {"Arousal": 1.5, "Stimulation": 0.5},
+        "ends_on": ["cycle_phase_change"],
+        "known": True, "symptoms": {
+            3: "A restless, feverish heat coils through your body.",
+            1: "Your skin feels flushed and hypersensitive with estrus.",
+        }, "stack": "refresh", "default_duration": None,
+        "excludes": ["menstruating", "ovulating"],
+        "tags": ["cycle"],
     },
 }
 
@@ -557,6 +617,7 @@ _CATALOG_ORDER = [
     "blind", "deaf",
     "frightened", "charmed",
     "awake",
+    "menstruating", "ovulating", "in_heat",
 ]
 _PERCEPTION_SKIP_IDS = ("awake", "dead", "grappled")
 _MATURE_CONDITION_IDS = (

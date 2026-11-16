@@ -17,6 +17,10 @@ advances whole turns of that length, so the world clock stays consistent (it is
 derived from ticks x dial). A 1-minute world resolves interrupts every minute; a
 5-minute world every 5. Atomic actions keep their own 1-minute durations inside
 the flow either way.
+
+@module timeskip
+@contributes PolicyStep, TimeskipResult, everyone_soaking, _tick_delta, advance_world, frame_minutes
+@docs docs/virtualWorld/AI & Narration/Agent Engine.md
 """
 
 from __future__ import annotations
@@ -30,7 +34,7 @@ from engine.background_simulation import BackgroundSimulation, TASK_MINUTES
 from engine import interrupts as interrupts_mod
 from engine import fear as fear_mod
 from engine.lived_log import record, summarize_window
-from graph import EDGE_IN
+from graph import Edge, EDGE_IN, EDGE_CARRYING
 
 logger = logging.getLogger(__name__)
 
@@ -322,6 +326,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
                               reason="A timeskip is already running.")
 
     _ACTIVE = True
+    setattr(who, '_timeskip_bought', False)
     watch_tags = _default_watch_tags(who, intent, watch_tags)
     sim = BackgroundSimulation(gs)
     result = TimeskipResult(True, intent, requested)
@@ -498,6 +503,155 @@ def minutes_until(gs, when):
     return int((target - (now % 1440)) % 1440)
 
 
+
+def _find_vendor_in_area(gs, player):
+    """Find a vendor character or shop presence in the player's current area."""
+    area = getattr(player, "current_area", None)
+    if not area:
+        return None, None
+    players = getattr(gs, "players", None) or {}
+    for p_name, p_obj in players.items():
+        if p_obj == player or getattr(p_obj, "name", "") == getattr(player, "name", ""):
+            continue
+        if getattr(p_obj, "current_area", None) != area:
+            continue
+        if getattr(p_obj, "state", None) == "dead":
+            continue
+        role = str(getattr(p_obj, "role", "") or "").lower()
+        name = str(getattr(p_obj, "name", "") or "").lower()
+        traits = [str(t).lower() for t in (getattr(p_obj, "traits", None) or {}).keys()]
+        tags = [str(t).lower() for t in (getattr(p_obj, "tags", None) or [])]
+        is_vendor = (
+            role in ("merchant", "vendor", "trader")
+            or "merchant" in name or "vendor" in name or "trader" in name
+            or "merchant" in traits or "vendor" in traits or "trader" in traits
+            or "merchant" in tags or "vendor" in tags or "trader" in tags
+            or bool(getattr(p_obj, "is_vendor", False))
+        )
+        if is_vendor:
+            return p_obj, p_obj.name
+
+    # Check if area itself is a shop or market with items
+    graph = getattr(gs, "graph", None)
+    if graph:
+        area_node = None
+        if hasattr(gs, "_area_node_id"):
+            try:
+                area_node = graph.get_node(gs._area_node_id(area))
+            except Exception:
+                area_node = None
+        if not area_node:
+            area_node = next((n for n in graph.nodes.values() if getattr(n, "type", None) == "area" and n.name == area), None)
+        if area_node:
+            props = area_node.properties or {}
+            tags = {str(t).lower() for t in (props.get("tags") or [])}
+            prefers = {str(props.get("building") or "").lower(), str(props.get("biome") or "").lower()}
+            shop_terms = {"shop", "market", "bazaar", "stall", "trading_post", "store"}
+            if tags & shop_terms or prefers & shop_terms or any(s in str(area).lower() for s in shop_terms):
+                return None, area_node.name
+    return None, None
+
+
+def _is_coin(node) -> bool:
+    if not node:
+        return False
+    name = str(getattr(node, "name", "") or "").lower()
+    props = getattr(node, "properties", None) or {}
+    tags = {str(t).lower() for t in (props.get("tags") or [])}
+    return (
+        "coin" in tags or "currency" in tags or "gold" in tags
+        or name in ("coin", "gold", "gold coin", "gold_coin", "currency", "silver", "coins")
+        or "coin" in name or "gold" in name
+    )
+
+
+def _try_leisure_buy(gs, sim, player) -> bool:
+    """Attempt a leisure purchase from a vendor or shop in the current area."""
+    if getattr(player, "_timeskip_bought", False):
+        return False
+    vendor_char, vendor_name = _find_vendor_in_area(gs, player)
+    if not vendor_name:
+        return False
+
+    graph = getattr(gs, "graph", None)
+    if not graph:
+        return False
+
+    player_id = gs._player_node_id(player.name) if hasattr(gs, "_player_node_id") else f"player_{player.name}"
+
+    target_item = None
+    vendor_node_id = None
+    if vendor_char:
+        vendor_node_id = gs._player_node_id(vendor_char.name) if hasattr(gs, "_player_node_id") else f"player_{vendor_char.name}"
+        carried_edges = list(graph.get_edges_for_target(vendor_node_id, EDGE_CARRYING))
+        for edge in sorted(carried_edges, key=lambda e: str(e.source)):
+            node = graph.get_node(edge.source)
+            if node and getattr(node, "type", None) == "item" and not _is_coin(node):
+                props = getattr(node, "properties", None) or {}
+                if not props.get("is_intrinsic") and not props.get("intrinsic") and props.get("current_state") != "hidden":
+                    target_item = node
+                    break
+    else:
+        area_name = getattr(player, "current_area", None)
+        area_id = gs._area_node_id(area_name) if hasattr(gs, "_area_node_id") else None
+        if not area_id:
+            for n in graph.nodes.values():
+                if getattr(n, "type", None) == "area" and n.name == area_name:
+                    area_id = n.id
+                    break
+        if area_id:
+            held = list(graph.get_edges_for_target(area_id, EDGE_IN))
+            for edge in sorted(held, key=lambda e: str(e.source)):
+                node = graph.get_node(edge.source)
+                if node and getattr(node, "type", None) == "item" and not _is_coin(node):
+                    props = getattr(node, "properties", None) or {}
+                    if not props.get("is_intrinsic") and not props.get("intrinsic") and props.get("current_state") != "hidden":
+                        target_item = node
+                        break
+
+    if not target_item:
+        return False
+
+    buyer_coins = []
+    for edge in list(graph.get_edges_for_target(player_id, EDGE_CARRYING)):
+        node = graph.get_node(edge.source)
+        if _is_coin(node):
+            buyer_coins.append(node)
+
+    if buyer_coins and vendor_node_id:
+        coin_to_pay = buyer_coins[0]
+        graph.remove_edge(coin_to_pay.id, player_id, EDGE_CARRYING)
+        graph.add_edge(Edge(source=coin_to_pay.id, target=vendor_node_id, type=EDGE_CARRYING))
+
+    if vendor_node_id:
+        graph.remove_edge(target_item.id, vendor_node_id, EDGE_CARRYING)
+    else:
+        for edge in list(graph.get_edges_for_source(target_item.id, EDGE_IN)):
+            graph.remove_edge(edge.source, edge.target, EDGE_IN)
+
+    graph.add_edge(Edge(source=target_item.id, target=player_id, type=EDGE_CARRYING))
+
+    if hasattr(player, "discovered_items") and isinstance(player.discovered_items, set):
+        player.discovered_items.add(target_item.name)
+
+    tick = int(getattr(gs, "time_ticks", 0) or getattr(gs, "turn_number", 0) or 0)
+    area = getattr(player, "current_area", "")
+    record(player, tick, "buy", f"bought {target_item.name} from {vendor_name}",
+           why="leisure:shopping", area=area, tags=["buy", "leisure", "vendor"], salient=True)
+    if hasattr(gs, "add_log_entry"):
+        gs.add_log_entry(f"[{player.name}] bought {target_item.name} from {vendor_name}.")
+    if hasattr(gs, "record_turn_event"):
+        gs.record_turn_event(player.name, "buy", f"bought {target_item.name} from {vendor_name}", area_name=area)
+
+    if vendor_char and hasattr(vendor_char, "update_relationship"):
+        vendor_char.update_relationship(player.name, tick, 5)
+    if hasattr(player, "update_relationship") and vendor_char:
+        player.update_relationship(vendor_char.name, tick, 5)
+
+    player._timeskip_bought = True
+    return True
+
+
 def _policy_step(gs, sim, player, intent, target, watch_tags, target_type,
                  heading, remaining):
     """One turn of the standing-in policy. Returns a :class:`PolicyStep`."""
@@ -505,7 +659,10 @@ def _policy_step(gs, sim, player, intent, target, watch_tags, target_type,
         return PolicyStep()  # do nothing, on purpose
 
     if intent == "leisure":
-        sim.take_action(player, served=set(), remaining=remaining)
+        bought = _try_leisure_buy(gs, sim, player)
+        if not bought:
+            if not sim._seek_venue(player, "buy", "leisure:shopping"):
+                sim.take_action(player, served=set(), remaining=remaining)
         return PolicyStep()
 
     if intent == "search":
@@ -680,27 +837,118 @@ def _areas_holding(gs, name):
     return out
 
 
+
+def _find_frontier_exits(gs, player, area) -> list[str]:
+    """Return exit labels leading to a generation frontier, or [] if none exists."""
+    manifest = getattr(gs, "world_scopes", None)
+    if not manifest or not isinstance(manifest, dict):
+        return []
+
+    graph = getattr(gs, "graph", None)
+    if not graph or not area:
+        return []
+
+    from engine.fog import materialize_frontier
+    materialized = []
+    try:
+        m = materialize_frontier(gs, player, area)
+        if m:
+            materialized.extend(m)
+    except Exception:
+        pass
+
+    for heading in ("north", "south", "east", "west"):
+        try:
+            m = materialize_frontier(gs, player, area, heading=heading)
+            if m:
+                materialized.extend(m)
+        except Exception:
+            pass
+
+    try:
+        exits = gs.build_exits_for_area(area, include_hidden=True) or {}
+    except Exception:
+        return []
+
+    if not exits:
+        return []
+
+    area_node = None
+    if hasattr(gs, "_area_node_id"):
+        try:
+            area_node = graph.get_node(gs._area_node_id(area))
+        except Exception:
+            area_node = None
+    if not area_node:
+        area_node = next((n for n in graph.nodes.values() if getattr(n, "type", None) == "area" and n.name == area), None)
+    current_scope_id = (area_node.properties or {}).get("world_scope_id") if area_node else None
+
+    frontier_labels = []
+    for label, exit_data in sorted(exits.items()):
+        target_name = (exit_data or {}).get("target")
+        target_node = None
+        if target_name:
+            target_node = next((n for n in graph.nodes.values() if getattr(n, "type", None) == "area" and (n.name == target_name or n.id == target_name)), None)
+        target_props = (target_node.properties or {}) if target_node else {}
+        target_scope_id = target_props.get("world_scope_id")
+
+        is_frontier = False
+        if target_node and target_node.id in materialized:
+            is_frontier = True
+        elif target_props.get("generated"):
+            is_frontier = True
+        elif target_scope_id and current_scope_id and target_scope_id != current_scope_id:
+            is_frontier = True
+        elif target_props.get("child_scope_id"):
+            is_frontier = True
+        elif (exit_data or {}).get("way_id"):
+            way_node = graph.get_node(exit_data["way_id"])
+            if way_node and ((way_node.properties or {}).get("child_scope_id") or (way_node.properties or {}).get("target_scope_id")):
+                is_frontier = True
+
+        if is_frontier:
+            frontier_labels.append(label)
+
+    return frontier_labels
+
+
 def _explore_step(gs, player):
-    """Move through an exit, preferring one the character has not discovered."""
+    """Move through an exit, preferring one on the generation frontier or undiscovered."""
     area = getattr(player, "current_area", None)
     if not area:
         return False, "explore", "There is nowhere to go from here."
-    try:
-        from engine.fog import materialize_frontier
-        materialize_frontier(gs, player, area)
-    except Exception:
-        pass
+    frontier_labels = _find_frontier_exits(gs, player, area)
     try:
         exits = gs.build_exits_for_area(area, include_hidden=True) or {}
     except Exception:
         return False, "explore", "There is nowhere to go from here."
     if not exits:
         return False, "explore", "There is nowhere to go from here."
-    discovered = {str(x) for x in (getattr(player, "discovered_exits", []) or [])}
-    labels = sorted(exits.keys())
-    fresh = [lbl for lbl in labels if str(lbl) not in discovered]
-    label = (fresh or labels)[0]
-    return _move(gs, player, label)
+
+    is_frontier = False
+    if frontier_labels:
+        label = frontier_labels[0]
+        is_frontier = True
+    else:
+        discovered = {str(x) for x in (getattr(player, "discovered_exits", []) or [])}
+        labels = sorted(exits.keys())
+        fresh = [lbl for lbl in labels if str(lbl) not in discovered]
+        label = (fresh or labels)[0]
+
+    moved, why, detail = _move(gs, player, label)
+    if moved:
+        dest_area = getattr(player, "current_area", None)
+        tick = int(getattr(gs, "time_ticks", 0) or getattr(gs, "turn_number", 0) or 0)
+        if is_frontier:
+            record(player, tick, "explore", f"explored into {dest_area} on the frontier",
+                   why="explore:frontier", area=dest_area, tags=["explore", "frontier"], salient=True)
+            if hasattr(gs, "add_log_entry"):
+                gs.add_log_entry(f"[{player.name}] explored into {dest_area} on the frontier.")
+            if hasattr(gs, "record_turn_event"):
+                gs.record_turn_event(player.name, "explore", f"explored into {dest_area} on the frontier", area_name=dest_area)
+            player.last_explored_destination = dest_area
+        return True, "", ""
+    return False, why, detail
 
 
 def _move_heading(gs, player, heading):
@@ -826,6 +1074,7 @@ def _move(gs, player, label):
 #: Turn-event actions worth surfacing in a skip summary wherever they happen.
 NOTABLE_ACTIONS = frozenset({
     "death", "kill", "attack", "steal", "arrive", "arrival", "take", "give",
+    "buy", "purchase", "explore",
 })
 
 

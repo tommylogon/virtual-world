@@ -1,3 +1,10 @@
+"""npc_behaviors module.
+
+@module npc_behaviors
+@contributes NPCBehaviorSystem, _interval_ticks
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
+
 # engine/npc_behaviors.py - NPC behavior and AI hunting system extracted from VirtualWorld
 
 import logging
@@ -466,7 +473,9 @@ class NPCBehaviorSystem:
 
         Called from tick_turn() every tick, and from game commands with specific trigger types.
         """
-        for pname, player in list(self.gs.players.items()):
+        ordered_players = self.gs.get_turn_order() if hasattr(self.gs, "get_turn_order") else list(self.gs.players.values())
+        for player in ordered_players:
+            pname = player.name
             if not player.simple_npc:
                 continue
             # `autonomy` is the engine's one "does this character act on its own"
@@ -610,6 +619,23 @@ class NPCBehaviorSystem:
             return None
 
         mode = (action.get("mode") or "goto").lower()
+        if mode in ("move_to", "coord") or "coord" in action or ("x" in action and "y" in action):
+            x = action.get("x") if action.get("x") is not None else (action.get("coord") or {}).get("x")
+            y = action.get("y") if action.get("y") is not None else (action.get("coord") or {}).get("y")
+            if x is not None and y is not None:
+                try:
+                    res = self.gs.movement.move_to_coord(char_name, int(x), int(y))
+                    return f"[{char_name}] {res.get('message', 'moves to coord')}"
+                except Exception as e:
+                    return f"[{char_name}] cannot move to ({x}, {y}): {e}"
+        if mode in ("move_to_item", "item") or ("item" in action and mode != "goto"):
+            item_target = action.get("item") or action.get("target_item")
+            if item_target:
+                try:
+                    res = self.gs.movement.move_to_item(char_name, str(item_target))
+                    return f"[{char_name}] {res.get('message', 'moves to item')}"
+                except Exception as e:
+                    return f"[{char_name}] cannot move to {item_target}: {e}"
         if mode == "random":
             return self._go_random(char_name, player)
         if mode == "patrol":
@@ -758,12 +784,14 @@ class NPCBehaviorSystem:
         if not hunter or not hunter.current_area:
             return None
 
-        # Get all alive, non-slasher players
+        from engine.hostility import is_hostile_to
+
+        # Get all alive players that hunter is hostile toward (task-742)
         targets = [
             pname for pname, player in self.gs.players.items()
             if player.state not in ("dead",)
             and pname != hunter_name
-            and not self.player_manager.is_slasher(pname)
+            and is_hostile_to(hunter, player, self.gs)
         ]
 
         if not targets:

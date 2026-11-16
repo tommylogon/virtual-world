@@ -15,6 +15,10 @@ A GM/trigger `forecast_override` supersedes the schedule and auto-reverts
 after `duration_ticks`. Moon phases follow a deterministic 30-day cycle
 from `game_day` (see `get_moon_phase`), driving the outdoor night-light
 bonus (task-229) and the `moon_phase_equals` trigger condition (task-234).
+
+@module weather_forecast
+@contributes Forecast, normalize_wind_direction, weather_produces_snow, advance_snow_depth, snow_movement_energy, snow_forage_dc_penalty
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from __future__ import annotations
@@ -655,7 +659,7 @@ def get_moon_phase(game_day: int) -> dict:
     return phase
 
 
-class ForecastSchedule:
+class Forecast:
     """The scenario's authored / state-machine forecast."""
 
     def __init__(self, schedule: Optional[dict] = None):
@@ -778,3 +782,8 @@ class ForecastSchedule:
                 if key in override and override[key] is not None:
                     env[key] = override[key]
         return env
+
+
+# task-798: backward-compatibility alias for the ForecastSchedule class.
+ForecastSchedule = Forecast
+

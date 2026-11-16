@@ -22,6 +22,10 @@ thing a window is.
 
 Per-door overrides: ``sound_barrier`` and ``light_barrier`` float properties,
 applied while the way is solid, exactly as ``sound_barrier`` already was.
+
+@module barriers
+@contributes _config_float, sound_cost, light_transmission, _normalise_state, _props, declared_state
+@docs docs/virtualWorld/Characters/Activities & States.md
 """
 
 from __future__ import annotations

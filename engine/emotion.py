@@ -15,6 +15,10 @@ Design notes (deliberate departures from F:\\AI\\Aura\\Diary):
 Tunables come from ``engine/runtime_config`` at call time (task-304 rule):
 ``emotion.decay_per_tick``, ``emotion.recall_spike_scale``,
 ``emotion.llm_spike_max``, ``emotion.semantic_labels``.
+
+@module emotion
+@contributes _expression_margin, dominant_expression, baseline, normalize, spike, resolve_label
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from __future__ import annotations
@@ -385,7 +389,7 @@ def raised_axes(values: dict, min_margin: float | None = None) -> dict:
 
 
 def dominant_intensity(values: dict, min_margin: float | None = None) -> float:
-    """How far the leading dimension sits above baseline, as 0.0–1.0.
+    """How far the leading dimension sits above baseline, as 0.0-1.0.
 
     The scale the legacy field stored directly and the behaviour editor's slider
     still writes. Normalising by 100 means "halfway to the ceiling" reads the same
@@ -413,7 +417,7 @@ def dominant_label(values: dict, min_margin: float | None = None) -> str:
 
 
 def set_dominant(values: dict, dimension: str, intensity: float) -> dict[str, float]:
-    """Make *dimension* the leading feeling at *intensity* (0.0–1.0).
+    """Make *dimension* the leading feeling at *intensity* (0.0-1.0).
 
     Raises the named dimension to ``baseline + intensity * 100`` and **damps the
     other dimensions on the same axis** back toward their baselines, so a character

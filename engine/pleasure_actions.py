@@ -10,6 +10,10 @@ Pipeline (task-212):
     VERB_BASE → x intensity modifier → x body-part sensitivity (body_state)
     → x trait body_part multiplier → Stimulation/Arousal/Pleasure gains,
     with pain_potential flipping into negative pleasure (overstimulation).
+
+@module pleasure_actions
+@contributes parse_intensity, body_part_multiplier, resolve_body_part, apply_stimulation, _reaction_line, _verb3
+@docs docs/virtualWorld/Gameplay/The Commons.md
 """
 
 from __future__ import annotations

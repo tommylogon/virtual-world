@@ -5,6 +5,10 @@ Owner of the deterministic primitives used by ``engine.world_compile``:
 and ``stable_digest`` (FNV-1a 32-bit, for percentage decisions such as way
 blocking). Extracted so the determinism contract has one home; behaviour
 unchanged.
+
+@module world_compile_stable
+@contributes _stable_index, stable_digest
+@docs docs/virtualWorld/AI & Narration/Agent Engine.md
 """
 
 _FNV_OFFSET = 0x811C9DC5

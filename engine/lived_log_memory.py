@@ -94,17 +94,27 @@ def bridge(player, gs=None) -> int:
     if not log:
         return 0
     mark = int(getattr(player, "lived_log_memorized_through", 0) or 0)
+    processed_at_mark = getattr(player, "lived_log_memorized_at_mark", None)
     newest = mark
+    seen_at_mark = 0
+    newest_count = 0
     written = 0
     for entry in log:
         try:
             tick = int(entry.get("tick", 0) or 0)
         except (TypeError, ValueError):
             tick = 0
-        if tick <= mark:
+        if tick < mark:
             continue
+        if tick == mark:
+            seen_at_mark += 1
+            if processed_at_mark is None or seen_at_mark <= int(processed_at_mark):
+                continue
         if tick > newest:
             newest = tick
+            newest_count = 1
+        elif tick == newest and newest > mark:
+            newest_count += 1
         kind = str(entry.get("kind") or "")
         if kind not in MEMORIZABLE_KINDS:
             continue
@@ -128,6 +138,9 @@ def bridge(player, gs=None) -> int:
                            getattr(player, "name", "?"), exc)
     if newest > mark:
         player.lived_log_memorized_through = newest
+        player.lived_log_memorized_at_mark = newest_count
+    elif seen_at_mark > (int(processed_at_mark) if processed_at_mark is not None else 0):
+        player.lived_log_memorized_at_mark = seen_at_mark
     return written
 
 

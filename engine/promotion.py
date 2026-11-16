@@ -196,32 +196,119 @@ def flush(gs) -> List[str]:
 
 
 def activate_scope(gs, scope_id) -> List[str]:
-    """Queue promotion for every background resident inside *scope_id*.
+    """Queue promotion for residents inside *scope_id*, and demote residents outside it.
 
-    The scope-observation activation boundary (task-399): opening a scope is a
-    request to make its residents attended. Characters owned by an explicit soak
-    order are left to that order, and already-attended characters are untouched.
+    Level-scoped: uses ws.own_area_ids, never recursing into child scopes (task-710).
+    Whole world mode (None, '', 'all', 'whole_world') promotes everyone and demotes nobody.
+    Characters owned by an explicit soak order are untouched.
     The change lands at the next tick boundary via :func:`flush`, never mid-turn.
     """
     from engine import world_scopes as ws
 
-    manifest = ws.normalise_manifest(getattr(gs, "world_scopes", {}) or {})
-    area_ids = ws.area_ids_in_scope(manifest, gs.graph, scope_id)
-    if not area_ids:
-        return []
     queued: List[str] = []
-    for player in (getattr(gs, "players", {}) or {}).values():
+    players = getattr(gs, "players", {}) or {}
+
+    # Whole world mode: explicit no-backsim mode.
+    if not scope_id or scope_id in ("all", "whole_world"):
+        setattr(gs, "_active_scope", "whole_world")
+        for player in players.values():
+            if getattr(player, "soak_order", None):
+                continue
+            if getattr(player, "simulation_mode", "active") != "active":
+                request(gs, player, "active", reason="scope:whole_world")
+                queued.append(player.name)
+        return queued
+
+    setattr(gs, "_active_scope", scope_id)
+    area_ids = set(ws.own_area_ids(gs.graph, scope_id))
+    manifest_scope = (getattr(gs, "world_scopes", {}) or {}).get(scope_id, {})
+    if not area_ids and isinstance(manifest_scope, dict) and "area_ids" in manifest_scope:
+        area_ids.update(manifest_scope.get("area_ids", []))
+
+    for player in players.values():
         if getattr(player, "soak_order", None):
             continue
-        if getattr(player, "simulation_mode", "active") != "background":
-            continue
         try:
-            in_scope = gs.area_node_id(player.current_area) in area_ids
+            curr = player.current_area
+            if hasattr(gs, "area_node_id"):
+                node_id = gs.area_node_id(curr)
+            elif hasattr(gs, "_area_node_id"):
+                node_id = gs._area_node_id(curr)
+            elif hasattr(gs, "graph") and curr in gs.graph.nodes:
+                node_id = curr
+            else:
+                node_id = None
+            in_scope = node_id in area_ids
         except Exception:
             in_scope = False
+
         if in_scope:
-            request(gs, player, "active", reason=f"scope:{scope_id}")
-            queued.append(player.name)
+            if getattr(player, "simulation_mode", "active") != "active":
+                request(gs, player, "active", reason=f"scope:{scope_id}")
+                queued.append(player.name)
+        else:
+            if getattr(player, "simulation_mode", "active") != "background":
+                request(gs, player, "background", reason=f"scope:{scope_id}:outside")
+    return queued
+
+
+def evaluate_scope_tick(gs) -> List[str]:
+    """Re-evaluate the promoted set against the active scope per tick (task-711).
+
+    Short-circuits in Whole-world mode (or when no specific scope is active).
+    Compares each character's current area against the focused scope's own areas:
+    - Entering the scope queues promotion to active.
+    - Exiting the scope queues demotion to background.
+    Characters holding an explicit soak_order are ignored.
+    Queued transitions are flushed atomically at the tick boundary via flush().
+    """
+    if gs is None:
+        return []
+    scope_id = getattr(gs, "_active_scope", None)
+    if not scope_id or scope_id in ("all", "whole_world"):
+        return []
+
+    from engine import world_scopes as ws
+
+    graph = getattr(gs, "graph", None)
+    manifest = getattr(gs, "world_scopes", {}) or {}
+    area_ids = set(ws.own_area_ids(graph, scope_id)) if graph is not None else set()
+    manifest_scope = manifest.get(scope_id, {})
+    if not area_ids and isinstance(manifest_scope, dict) and "area_ids" in manifest_scope:
+        area_ids.update(manifest_scope.get("area_ids", []))
+    if not area_ids and scope_id not in manifest:
+        return []
+
+    players = getattr(gs, "players", {}) or {}
+    queued: List[str] = []
+
+    for player in players.values():
+        if getattr(player, "soak_order", None):
+            continue
+        try:
+            curr = player.current_area
+            if hasattr(gs, "area_node_id"):
+                node_id = gs.area_node_id(curr)
+            elif hasattr(gs, "_area_node_id"):
+                node_id = gs._area_node_id(curr)
+            elif graph is not None and curr in graph.nodes:
+                node_id = curr
+            else:
+                node_id = None
+            in_scope = node_id in area_ids
+        except Exception:
+            in_scope = False
+
+        mode = getattr(player, "simulation_mode", "active")
+        if in_scope:
+            if mode != "active":
+                request(gs, player, "active", reason=f"scope:{scope_id}:entry")
+                queued.append(player.name)
+        else:
+            if mode != "background":
+                request(gs, player, "background", reason=f"scope:{scope_id}:exit")
+                queued.append(player.name)
+
     return queued
 
 

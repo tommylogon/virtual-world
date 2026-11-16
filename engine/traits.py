@@ -8,6 +8,10 @@ traits (e.g. ``"allergic": "pollen"``), or a number.
 ``TraitSystem`` looks up the definition from ``TRAIT_DEFINITIONS`` and
 resolves the effects at runtime so engine code never hard-codes trait
 names outside this module.
+
+@module traits
+@contributes TraitSystem, _merge_trait_definition, _load_trait_library, seed_trait_library, _collect_item_tags_in_area
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Any, Dict, List, Optional, Set

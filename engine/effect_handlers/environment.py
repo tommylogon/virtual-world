@@ -1,4 +1,9 @@
-"""Environment effect handlers (set_environment, adjust_environment)."""
+"""Environment effect handlers (set_environment, adjust_environment).
+
+@module environment
+@contributes handle_set_environment, handle_adjust_environment, handle_apply_area_status, handle_clear_area_status, handle_set_wet, _active_player_obj
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 import time
 

@@ -7,6 +7,10 @@ closing doors traps heat.
 Also handles heat_source items: lit items with the heat_source tag
 push room temperature toward their target_temperature at their
 heating_rate per tick.
+
+@module environment_propagation
+@contributes _heat_base_rate, _heat_max_delta, propagate_temperature, _transfer_heat, apply_heat_sources, propagate_air
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from typing import Any, Optional

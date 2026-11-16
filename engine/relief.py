@@ -20,6 +20,10 @@ The occupancy count is the load-bearing part of the score. An author's `private`
 tag is a claim about a room; the number of people actually standing in one is
 what produced the hub, and no amount of tagging describes it. See `score_privacy`
 for the weights and why they are what they are.
+
+@module relief
+@contributes _tags, has_tag, is_private, witnesses, _area_id_of, has_fixture
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from __future__ import annotations

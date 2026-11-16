@@ -138,3 +138,112 @@ def hazard_problems(hid: str, rec: dict) -> List[str]:
         if not str(rec.get(key) or "").strip():
             problems.append(f"hazard {hid}: missing {key}")
     return problems
+
+
+def hazard_for_status_or_tag(tag: str) -> Optional[str]:
+    """Map a condition tag, terrain tag, or area status to a registered hazard id."""
+    t = str(tag or "").strip().lower()
+    if t in ("flooded", "river", "creek", "stream", "ford", "water"):
+        return "river"
+    if t in ("rapids", "cataract", "whirlpool"):
+        return "rapids"
+    if t in ("cliff", "precipice", "chasm"):
+        return "cliff"
+    if t in ("fall", "pit", "drop"):
+        return "fall"
+    if t in ("thorns", "thorn", "bramble", "briar", "dense_foliage"):
+        return "thorns"
+    if t in ("pitfall", "hidden_pit"):
+        return "pit"
+    return None
+
+
+def expand_hazard_to_trigger(h: dict, owner_id: str, index: int = 0) -> dict:
+    """Expand a compact hazard descriptor into an authoritative trigger dict."""
+    hazard_id = str(h.get("hazard_id") or "river")
+    trigger_type = str(h.get("trigger_on") or "on_enter")
+    strength = int(h.get("strength", 5))
+
+    params: Dict[str, object] = {
+        "hazard_id": hazard_id,
+        "strength": strength,
+    }
+    if "direction" in h and h["direction"]:
+        params["direction"] = str(h["direction"])
+    if "way_id" in h and h["way_id"]:
+        params["way_id"] = str(h["way_id"])
+    if "dc" in h and h["dc"] is not None:
+        params["dc"] = int(h["dc"])
+    else:
+        calculated_dc = dc_for(hazard_id, strength)
+        if calculated_dc is not None:
+            params["dc"] = calculated_dc
+    if "damage" in h and h["damage"]:
+        params["damage"] = str(h["damage"])
+    if "conditions" in h and h["conditions"]:
+        params["conditions"] = list(h["conditions"])
+    if "tags" in h and h["tags"]:
+        params["tags"] = list(h["tags"])
+    if "message_success" in h and h["message_success"]:
+        params["message_success"] = str(h["message_success"])
+    if "message_fail" in h and h["message_fail"]:
+        params["message_fail"] = str(h["message_fail"])
+
+    # Map skill / ability if not explicit
+    rec = hazard(hazard_id) or {}
+    ability = str(rec.get("ability") or "STR")
+    params.setdefault("skill", "Athletics" if ability in ("STR", "DEX") else ability)
+
+    trigger_id = f"trig_hazard_{owner_id}_{index}"
+    return {
+        "id": trigger_id,
+        "trigger_type": trigger_type,
+        "effects": [
+            {
+                "type": "hazard",
+                "params": params,
+            }
+        ]
+    }
+
+
+def expand_node_hazards(node) -> None:
+    """Expand compact node.properties['hazards'] and condition status hazards into executable triggers."""
+    if node is None or not getattr(node, "properties", None):
+        return
+    raw_hazards = list(node.properties.get("hazards") or [])
+
+    # Check for dynamic condition tags / statuses like 'flooded' (task-747)
+    tags = [str(t).lower() for t in (node.properties.get("tags") or [])]
+    statuses = node.properties.get("statuses") or {}
+    if isinstance(statuses, dict):
+        tags.extend(str(s).lower() for s in statuses.keys())
+    for t in tags:
+        mapped_hazard = hazard_for_status_or_tag(t)
+        if mapped_hazard and not any(isinstance(h, dict) and h.get("hazard_id") == mapped_hazard for h in raw_hazards):
+            raw_hazards.append({
+                "hazard_id": mapped_hazard,
+                "strength": 5,
+                "trigger_on": "on_enter",
+            })
+
+    if not raw_hazards:
+        return
+
+    trigs = node.properties.setdefault("triggers", [])
+    if not isinstance(trigs, list):
+        trigs = []
+        node.properties["triggers"] = trigs
+
+    existing_ids = {t.get("id") for t in trigs if isinstance(t, dict) and "id" in t}
+
+    for idx, item in enumerate(raw_hazards):
+        if isinstance(item, str):
+            item = {"hazard_id": item}
+        if not isinstance(item, dict):
+            continue
+        trig = expand_hazard_to_trigger(item, node.id, idx)
+        if trig["id"] not in existing_ids:
+            trigs.append(trig)
+            existing_ids.add(trig["id"])
+

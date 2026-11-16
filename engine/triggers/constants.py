@@ -1,6 +1,10 @@
 """Trigger and effect type constants.
 
 Moved from engine/trigger_system.py.
+
+@module constants
+@contributes module initialization and namespace exports
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 TRIGGER_TYPES = [
@@ -48,6 +52,9 @@ TRIGGER_TYPES = [
     "on_night",
     "on_full_moon",
     "on_blood_moon",
+    # task-823: goal reached event - fired when a character's goal reaches terminal success
+    "on_goal_reached",
+    "goal_reached",
 ]
 
 EFFECT_TYPES = [
@@ -121,6 +128,8 @@ EFFECT_TYPES = [
     # task-716: persistent activity and downstream movement for fishing slice.
     "start_activity",
     "push_actor",
+    "hazard",
+    "current_push",
     # task-829: persona growth - every 828 field changes at runtime.
     "set_persona_field",
     "add_persona_id",

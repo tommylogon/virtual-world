@@ -1,6 +1,10 @@
 """NPC behavior action execution for TriggerSystem.
 
 Moved from engine/trigger_system.py.
+
+@module behaviors
+@contributes BehaviorMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import time

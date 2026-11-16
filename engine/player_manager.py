@@ -2,6 +2,10 @@
 
 Manages player registration, active player state, location queries,
 and player trait checks.
+
+@module player_manager
+@contributes PlayerManager
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from typing import Optional, Dict, List, Any

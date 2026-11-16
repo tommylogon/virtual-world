@@ -6,6 +6,10 @@ but character descriptions routinely BEGIN with the character's name
 still leaks the name. When the viewer doesn't know the name, scrub the
 real name (and aliases) out of the prose and replace with the stranger
 label before rendering.
+
+@module name_masking
+@contributes mask_name_in_text
+@docs docs/virtualWorld/Characters/NPC Behavior System.md
 """
 
 import re as _re

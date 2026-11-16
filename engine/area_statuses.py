@@ -15,6 +15,10 @@ inflict character conditions via the existing ``apply_condition`` pathway.
 Status instances live on the area node's ``properties["statuses"]`` list, so
 they persist through the regular graph serialization - no extra save/load
 surface needed.
+
+@module area_statuses
+@contributes AreaStatusSystem, status_label
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from __future__ import annotations

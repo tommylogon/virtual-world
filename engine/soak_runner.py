@@ -637,7 +637,7 @@ class SoakRun:
             for p in players.values():
                 p.vitals["Temperature"] = 37.0
             world.forecast_override = None
-            sched = getattr(world, "forecast_schedule", None)
+            sched = getattr(world, "forecast", None) or getattr(world, "forecast_schedule", None)
             if isinstance(sched, dict):
                 sched["entries"] = []
                 sched["current_state"] = "clear"

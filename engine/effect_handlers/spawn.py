@@ -1,4 +1,9 @@
-"""Spawn/build effect handlers (spawn_item, give_item, spawn_character, remove_item)."""
+"""Spawn/build effect handlers (spawn_item, give_item, spawn_character, remove_item).
+
+@module spawn
+@contributes _natural_article, _capture_recent, handle_spawn_item, handle_give_item, handle_spawn_character, handle_remove_item
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
 

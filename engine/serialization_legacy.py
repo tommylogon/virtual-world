@@ -1,3 +1,10 @@
+"""serialization_legacy module.
+
+@module serialization_legacy
+@contributes LegacyLoader
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
+
 # engine/serialization_legacy.py - Load from legacy areas/items/players dictionary format.
 
 from typing import Optional

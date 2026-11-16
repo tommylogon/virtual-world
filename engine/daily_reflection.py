@@ -82,18 +82,29 @@ def apply_reflection_result(world, player, result: Dict[str, Any]) -> Dict[str, 
     reflection_text = str(result.get("reflection") or result.get("thought") or "").strip()
     if reflection_text:
         mem_id = f"mem_refl_{current_day}_{int(time.time() * 1000) % 100000}"
-        t_min = world.total_game_minutes() if callable(getattr(world, "total_game_minutes", None)) else getattr(world, "total_game_minutes", 0.0)
+        entity_ids = [str(e) for e in (result.get("entity_ids") or []) if e]
+        refl_lower = reflection_text.lower()
+        for pname, pobj in (getattr(world, "players", None) or {}).items():
+            if pname and str(pname).lower() in refl_lower:
+                pid = getattr(pobj, "id", None) or pname
+                if str(pid) not in entity_ids:
+                    entity_ids.append(str(pid))
+        graph = getattr(world, "graph", None)
+        for nid, node in (getattr(graph, "nodes", None) or {}).items():
+            nname = getattr(node, "name", None)
+            if nname and str(nname).lower() in refl_lower and str(nid) not in entity_ids:
+                entity_ids.append(str(nid))
         memory = {
             "id": mem_id,
             "text": reflection_text,
             "tick": current_tick,
-            "timestamp": float(t_min or 0.0),
+            "timestamp": time.time(),
             "type": "reflection",
             "category": "semantic",
             "importance": 3,
             "source": "daily_reflection",
             "reflection_depth": 1,
-            "entity_ids": [],
+            "entity_ids": entity_ids,
             "tags": ["reflection", "daily"],
         }
         if not hasattr(player, "memories") or player.memories is None:

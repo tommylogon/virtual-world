@@ -4,6 +4,10 @@ Builds a natural-language view of a DISTANT area without touching the shared
 observer pipeline: no walk/meeting registration, no agent-prompt drift - the
 scry output is a frozen narrative glance assembled from the target area's own
 rendered description + ambient light + exit summary.
+
+@module scry
+@contributes scry_view
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 

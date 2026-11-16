@@ -13,6 +13,10 @@ Fear is also **released**, not only applied (task-484). ``frightened`` gates
 behaviour toward one named source, so it is a flag about a specific thing being
 present; when that thing leaves, the flag has nothing left to be about. See
 :func:`release_absent_fears`.
+
+@module fear
+@contributes _tags, _normalise, character_tags, fear_sources_for_character, fear_sources, apply_frightening
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from __future__ import annotations
@@ -85,9 +89,17 @@ def fear_sources_for_character(gs, player, other) -> dict | None:
     matched = fears & character_tags(gs, other)
     if not matched:
         return None
+    # Group-aware fear exemption (task-742):
+    # A character does not fear a source in its own group (undead do not fear undead),
+    # by a criterion separate from the hostility exemption.
+    self_tags = character_tags(gs, player)
+    exempt = self_tags | _normalise(getattr(player, "fear_exempt_tags", None))
+    effective = matched - exempt
+    if not effective:
+        return None
     return {"kind": "character", "id": getattr(other, "id", None) or
             getattr(other, "name", ""), "name": getattr(other, "name", ""),
-            "tags": sorted(matched)}
+            "tags": sorted(effective)}
 
 
 def fear_sources(gs, player) -> list:
@@ -107,12 +119,15 @@ def fear_sources(gs, player) -> list:
     except Exception:
         area_id = None
 
+    self_tags = character_tags(gs, player)
+    exempt = self_tags | _normalise(getattr(player, "fear_exempt_tags", None))
+
     out = []
 
     # the area itself (a haunted wood, a battlefield)
     if area_id and graph is not None:
         area_node = graph.get_node(area_id)
-        matched = fears & _tags(area_node) if area_node is not None else set()
+        matched = (fears & _tags(area_node)) - exempt if area_node is not None else set()
         if matched:
             out.append({"kind": "area", "id": area_id,
                         "name": getattr(area_node, "name", area) or area,
@@ -131,7 +146,7 @@ def fear_sources(gs, player) -> list:
                 node = graph.get_node(edge.source)
                 if node is None or getattr(node, "type", "") != "item":
                     continue
-                matched = fears & _tags(node)
+                matched = (fears & _tags(node)) - exempt
                 if matched:
                     out.append({"kind": "item", "id": node.id, "name": node.name,
                                 "tags": sorted(matched)})

@@ -5,6 +5,10 @@ from the character's identity tags (female / male / …), so "Lyrie hugs
 her arms" instead of the forced-neutral "their arms" (or the old mixed
 voice "hugs yourself"). Characters without a gender tag fall back to
 neutral they/them - never a hardcoded guess.
+
+@module pronouns
+@contributes _explicit_pronouns, pronouns_for
+@docs docs/virtualWorld/AI & Narration/Memory System.md
 """
 
 PRONOUN_SETS: dict[str, dict[str, str]] = {

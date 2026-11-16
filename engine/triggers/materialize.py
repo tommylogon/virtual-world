@@ -34,6 +34,10 @@ and/or/not recursively) or a flat list combined with ``conditions_logic``. The
 materialiser stores it verbatim, so a blueprint with a condition branch reaches
 the engine unchanged - the compile-fidelity half lives in the editor
 (task-501/task-502), not here.
+
+@module materialize
+@contributes _nonempty, trigger_properties, _default_name, materialize_trigger, materialize_triggers
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Any, Callable, Dict, List, Optional

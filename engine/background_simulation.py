@@ -250,12 +250,30 @@ class BackgroundSimulation:
         a long sleep cannot leave a backlog to dump on waking.
         """
         from engine import action_tiers as _at
-        for name, p in list(self.gs.players.items()):
+        ordered_players = self.gs.get_turn_order() if hasattr(self.gs, "get_turn_order") else list(self.gs.players.values())
+        for p in ordered_players:
+            name = p.name
+            # task-822: sync reached and dropped goals for active characters
+            if getattr(p, "goals", None):
+                try:
+                    from engine import goals as _goals
+                    holder_id = (self.gs.player_manager._player_node_id(name)
+                                 if hasattr(self.gs, "player_manager")
+                                 else self.gs._player_node_id(name))
+                    resolvers = _goals.world_resolvers(self.gs.graph, holder_id, p.goals, player=p, game_state=self.gs)
+                    _goals.sync_reached(p, resolvers, tick=self.gs.time_ticks, log=getattr(p, "goal_log", None))
+                except Exception as e:
+                    pass
+
             # A declared soak order drives this character for its span (its
             # intent, not the generic need policy) - see engine/soak.
             if getattr(p, "soak_order", None):
                 continue
             focused = getattr(p, "simulation_mode", "active") != "background"
+            # Inert/paused characters are frozen and never simulated, whether
+            # focused or background (task-933).
+            if getattr(p, "controller", "") == "inert":
+                continue
             # Human-driven characters (autonomy False) are never puppeted: the
             # player's minutes are theirs. This is the documented marker
             # (player.py:194, event-stream.js:136). `gs.active_player` is a
@@ -320,7 +338,10 @@ class BackgroundSimulation:
             # "no mechanic exists".
             run_fear_pass(self.gs)
             run_social_pass(self.gs)
-            run_social_approach(self.gs)
+            active_obj = (self.gs.get_active_player_obj()
+                          if hasattr(self.gs, "get_active_player_obj") else None)
+            if getattr(active_obj, "controller", "") != "inert":
+                run_social_approach(self.gs)
             # Actor-driven agenda last (task-468): a thief reaches for something
             # after everyone has moved, and its failed attempt writes the line
             # the interrupt evaluator reads.
@@ -437,6 +458,8 @@ class BackgroundSimulation:
             served = set()
         if remaining is None:
             remaining = minutes_in_turn(self.gs)
+        if getattr(p, "controller", "") == "inert":
+            return None  # frozen/paused - never acts in background
         if p.activity:
             return None  # mid-activity (e.g. sleeping) - leave them to it
         if p.state == "unconscious":
@@ -1299,7 +1322,8 @@ class BackgroundSimulation:
             return False
         counts = {}
         for other in self.gs.players.values():
-            if other is p or getattr(other, "state", "") == "dead":
+            if (other is p or getattr(other, "state", "") == "dead"
+                    or getattr(other, "controller", "") == "inert"):
                 continue
             area = getattr(other, "current_area", None)
             if area and area != p.current_area:

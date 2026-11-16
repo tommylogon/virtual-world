@@ -24,6 +24,10 @@ project.
 Scope note: this only does anything for characters a scenario has actually
 tagged. Like task-552, the mechanic is inert until the data exists - a `pack:`
 tag with no packmate is just a character, and that is the correct answer.
+
+@module pack
+@contributes pack_of, packmates_in, _areas_within, coordinated_target, call_for_help, _mark_call
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from __future__ import annotations

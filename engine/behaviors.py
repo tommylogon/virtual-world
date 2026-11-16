@@ -24,6 +24,10 @@ the rule ``world_compile`` follows for an unknown biome id.
 Every ``*.json`` under the directory is either loaded into the catalog or
 reported in :func:`problems`; a file the engine ignores is the failure mode this
 module exists to remove.
+
+@module behaviors
+@contributes library_dir, _read_library, load, reload, problems, _ref_id
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 from __future__ import annotations
 

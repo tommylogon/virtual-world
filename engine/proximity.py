@@ -12,6 +12,10 @@ reports a narrative reading on examine/use: how far the nearest matching
 presence is (same room = sharp, adjacent = jumping needle, farther = faint
 blip). Room distance = BFS over area→way→area connections. No numbers are
 emitted - the reading is prose only.
+
+@module proximity
+@contributes _area_neighbors, _resolve_area_id, room_distance, _item_area_id, proximity_report
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from collections import deque

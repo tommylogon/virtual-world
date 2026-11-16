@@ -323,39 +323,70 @@ class CombatSystem:
                         f"an arrow, but has none. The shot is not taken.")
             self._spend_ammo(ammo)
 
-        # task-603: use the ability MODIFIER, not the raw score.
-        # `roll_dice` added STR 9 as a +9 bonus and the defender added DEX 11 as
-        # a +11 bonus, so ~10 points of free swing landed on each side and the
-        # defender won more often than the attacker. engine/checks.py already
-        # defines the canonical 5e modifier ((score - 10) // 2, never clamped)
-        # and combat never called it -- it used an inline, clamped max(0, ...)
-        # for display only, which also meant a below-average stat could never
-        # contribute negatively.
-        from engine.checks import ability_mod
-        attack_stat_mod = ability_mod(attacker.stats.get("STR", 10))
-        defense_stat_mod = ability_mod(target.stats.get("DEX", 10))
+        # task-477: resolve attack and defense rolls through central checks.resolve()
+        from engine import checks
+        roll_fn = (lambda: self.skills.roll_dice(1, 20, 0)) if hasattr(self, "skills") and hasattr(self.skills, "roll_dice") else None
 
-        # task-604: evasion is a signed attack-side modifier authored on worn
-        # gear. Positive raises the bar to hit (light armour, agility); negative
-        # lowers it, which is how a suit deliberately trades "how often I am
-        # hit" for "how much each hit matters". Omitted = 0.
         target_evasion = self._get_target_evasion(target)
+        atk_extra = [checks.Modifier("attack_mod", attack_mod)] if attack_mod else []
+        def_extra = [checks.Modifier("evasion", target_evasion)] if target_evasion else []
 
-        attack_roll = self.skills.roll_dice(1, 20, attack_stat_mod + attack_mod)
-        defense_roll = self.skills.roll_dice(1, 20, defense_stat_mod)
-        defense_total = defense_roll + target_evasion
+        attack_check = checks.resolve(attacker, kind="attack", ability="STR", extra_mods=atk_extra, roll_fn=roll_fn)
+        defense_check = checks.resolve(target, kind="defense", ability="DEX", extra_mods=def_extra, roll_fn=roll_fn)
+
+        attack_roll = attack_check.total
+        defense_total = defense_check.total
+        attack_raw = attack_check.kept
+        defense_raw = defense_check.kept
+        str_mod_display = next((m.value for m in attack_check.modifiers if m.source == "STR mod"),
+                               next((m.value for m in attack_check.modifiers if "STR" in m.source), 0))
+        defense_stat_mod = next((m.value for m in defense_check.modifiers if m.source == "DEX mod"),
+                                next((m.value for m in defense_check.modifiers if "DEX" in m.source), 0))
         evasion_display = f" + {target_evasion} evasion" if target_evasion else ""
 
-        # Break the totals back into raw die + modifier for the breakdown.
-        attack_raw = attack_roll - (attack_stat_mod + attack_mod)
-        defense_raw = defense_roll - defense_stat_mod
-        str_mod_display = attack_stat_mod
+        crit_branch = ""
+        if attack_check.tier == "crit_success":
+            crit_branch = " (CRIT)"
+        elif attack_check.tier == "crit_fail":
+            crit_branch = " (CRIT FAIL)"
+        elif attack_check.auto_fail:
+            crit_branch = " (AUTO-FAIL)"
+
+        atk_mode_note = ""
+        if attack_check.mode == "advantage":
+            import re
+            m_adv = re.search(r"\[advantage[^\]]*\]", attack_check.message)
+            atk_mode_note = f" {m_adv.group(0)}" if m_adv else " [advantage]"
+        elif attack_check.mode == "disadvantage":
+            import re
+            m_dis = re.search(r"\[disadvantage[^\]]*\]", attack_check.message)
+            atk_mode_note = f" {m_dis.group(0)}" if m_dis else " [disadvantage]"
+
+        def_mode_note = ""
+        if defense_check.mode == "advantage":
+            import re
+            m_adv = re.search(r"\[advantage[^\]]*\]", defense_check.message)
+            def_mode_note = f" {m_adv.group(0)}" if m_adv else " [advantage]"
+        elif defense_check.mode == "disadvantage":
+            import re
+            m_dis = re.search(r"\[disadvantage[^\]]*\]", defense_check.message)
+            def_mode_note = f" {m_dis.group(0)}" if m_dis else " [disadvantage]"
+
+        atk_breakdown = f"d20({attack_raw}){atk_mode_note} + {str_mod_display} STR + {attack_mod} mod = {attack_roll} (degree: {attack_check.tier}){crit_branch}"
+        def_breakdown = f"d20({defense_raw}){def_mode_note} + {defense_stat_mod} DEX = {defense_total}{evasion_display}"
 
         self.npc_behaviors.process_npcs_on_combat(
             {"combat_actors": [attacker_name, target_name]}
         )
 
-        if attack_roll >= defense_total:
+        if attack_check.auto_fail:
+            is_hit = False
+        elif attack_check.tier == "crit_success":
+            is_hit = True
+        else:
+            is_hit = (attack_roll >= defense_total)
+
+        if is_hit:
             hp_before = target.vitals.get("HP", 0)
 # task-538: the target's own ceiling, not a literal. A `or 100`
             # fallback here also swallowed an authored `Max_HP` of 0.
@@ -478,8 +509,7 @@ class CombatSystem:
                     wound = undead_note
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with {weapon_name}! "
-                    f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT - {wound}"
+                    f"Attack {atk_breakdown} vs {def_breakdown}: HIT - {wound}"
                     f" [{dmg_desc}]"
                 )
                 self.skills.record_turn_event(
@@ -489,8 +519,7 @@ class CombatSystem:
                 )
                 hit_msg = (
                     f"{attacker_name} attacks {target_name} with {weapon_name}!\n"
-                    f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → HIT\n"
+                    f"  Attack: {atk_breakdown} vs {def_breakdown} → HIT\n"
                     f"  Result: {wound}{armor_note}{resist_note}"
                 )
                 if wake_msg:
@@ -541,8 +570,7 @@ class CombatSystem:
                 armor_note = " Armor blunted the blow." if dr_label else ""
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
-                    f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT - {wound}"
+                    f"Attack {atk_breakdown} vs {def_breakdown}: HIT - {wound}"
                     f" [{dmg_desc}]"
                 )
                 self.skills.record_turn_event(
@@ -552,8 +580,7 @@ class CombatSystem:
                 )
                 hit_msg = (
                     f"{attacker_name} attacks {target_name} with bare hands!\n"
-                    f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → HIT\n"
+                    f"  Attack: {atk_breakdown} vs {def_breakdown} → HIT\n"
                     f"  Result: {wound}{armor_note}"
                 )
                 if wake_msg:
@@ -586,27 +613,25 @@ class CombatSystem:
                 return f"{hit_msg} {target_name} collapses - dead."
             return hit_msg
         else:
+            used_weapon = (weapon_node.properties.get('name') or weapon_node.name) if weapon_node else "bare hands"
             self.skills.add_log_entry(
-                f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
-                f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: MISSED"
+                f"[COMBAT] {attacker_name} attacks {target_name} with {used_weapon}! "
+                f"Attack {atk_breakdown} vs {def_breakdown}: MISSED"
             )
             self.skills.record_turn_event(
                 attacker_name, "combat",
-                f"attacks {target_name} bare-handed and misses",
+                f"attacks {target_name} with {used_weapon} and misses" if weapon_node else f"attacks {target_name} bare-handed and misses",
                 area_name=area_name
             )
             if weapon_node:
                 weapon_name = weapon_node.properties.get('name') or weapon_node.name
                 return (
                     f"{attacker_name} swings the {weapon_name} at {target_name} but misses!\n"
-                    f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → MISS"
+                    f"  Attack: {atk_breakdown} vs {def_breakdown} → MISS"
                 )
             return (
                 f"{attacker_name} lunges at {target_name} with bare hands but misses!\n"
-                f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → MISS"
+                f"  Attack: {atk_breakdown} vs {def_breakdown} → MISS"
             )
 
     def _get_target_resistances(self, target_player):

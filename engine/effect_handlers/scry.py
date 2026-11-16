@@ -6,6 +6,10 @@ params:
   fail_message (str) - used when the target can't be resolved.
 
 game_state (the world) must provide: graph, lighting, area_description.
+
+@module scry
+@contributes handle_scry
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 

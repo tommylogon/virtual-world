@@ -1,6 +1,10 @@
 """Trigger execution and effect-target resolution for TriggerSystem.
 
 Moved from engine/trigger_system.py.
+
+@module execution
+@contributes _TriggerAdapter, ExecutionMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import re
@@ -323,6 +327,11 @@ class ExecutionMixin:
         triggers = []
         seen_ids = set()
 
+        props = getattr(item_node, "properties", None) or {}
+        if props.get("hazards") or any(t in ("flooded", "river", "thorns", "bramble") for t in props.get("tags", [])):
+            from engine.hazards import expand_node_hazards
+            expand_node_hazards(item_node)
+
         prop_triggers = (item_node.properties or {}).get("triggers")
         if isinstance(prop_triggers, list):
             for t in prop_triggers:
@@ -496,14 +505,16 @@ class ExecutionMixin:
                     cond_context["target_node"] = self._find_target_node(
                         target_name, game_state
                     )
-                if not isinstance(conditions_list, dict) or "operator" not in conditions_list:
+                if isinstance(conditions_list, dict) and "type" in conditions_list:
+                    cond_tree = conditions_list
+                elif not isinstance(conditions_list, dict) or "operator" not in conditions_list:
                     # Flat list - apply conditions_logic
                     conditions_logic = trigger_edge.properties.get(
                         "conditions_logic", "and"
                     )
                     cond_tree = {
                         "operator": conditions_logic,
-                        "conditions": conditions_list,
+                        "conditions": conditions_list if isinstance(conditions_list, list) else ([conditions_list] if conditions_list else []),
                     }
                 else:
                     cond_tree = conditions_list

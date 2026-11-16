@@ -26,6 +26,10 @@ sites wrong at once, and two of them wrong *silently*:
   permanently "below maximum" and regenerated forever.
 
 Call :func:`ceiling` rather than writing the number.
+
+@module vitals
+@contributes polarity, is_drive, is_animal, clamp, ceiling, clamp_to_ceiling
+@docs docs/virtualWorld/Characters/Persona.md
 """
 
 from typing import Dict
@@ -41,6 +45,7 @@ VITAL_POLARITY: Dict[str, str] = {
     "Comfort": "resource",
     "Mana": "resource",
     "Satisfaction": "resource",   # future vital (pleasure system)
+    "Air": "resource",            # task-594: breath/air budget while submerged
     # drives: ↑ bad, fill ↑
     "Hunger": "drive",
     "Thirst": "drive",
@@ -63,6 +68,7 @@ DISPLAY_NAMES = {
     "Bladder": "bladder",
     "Social": "social",
     "Hygiene": "hygiene",
+    "Air": "air",
     "Sanity": "sanity",
     "Entertainment": "entertainment",
     "Comfort": "comfort",

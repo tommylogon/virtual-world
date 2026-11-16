@@ -8,6 +8,10 @@ canonical anchor and keeps the retired id resolvable.
 
 Pure data: no graph objects, no Flask, so both the load path and the offline
 migration tool can call it.
+
+@module character_identity
+@contributes character_slug, authored_character_node_id, canonical_character_node_id, anchor_node_id, _same, _find_key
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 from typing import Any, Dict, List, Optional, Tuple

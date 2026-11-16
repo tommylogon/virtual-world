@@ -27,6 +27,10 @@ self-heals on the next turn.
 The public/covert distinction answers "was there an audience", which
 ``engine.body_parts.is_exposed`` cannot - that answers "is this body part
 covered", and a covered body part in an empty room is nobody's business.
+
+@module observation_signal
+@contributes ObservationSignalLog, get_observation_signals, reset_observation_signals
+@docs docs/virtualWorld/Characters/Background Simulation.md
 """
 
 from __future__ import annotations

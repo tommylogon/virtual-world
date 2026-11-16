@@ -2,6 +2,10 @@
 
 Compass deltas, opposite mapping, and small direction helpers used by the
 world compiler. Re-exported by engine/world_compile.py to keep the API stable.
+
+@module world_compile_directions
+@contributes _direction_between, _compass_direction
+@docs none - engine subsystem module
 """
 
 from typing import Dict, Tuple

@@ -2,6 +2,10 @@
 
 Provides consistent node ID conventions for areas, ways, items,
 and players across the world graph.
+
+@module node_ids
+@contributes NodeIDHelper
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 

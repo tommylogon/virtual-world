@@ -4,6 +4,10 @@ A trigger can author what a character is interested in or afraid of, e.g. an
 on_enter trigger on a goblin camp adding ``goblin`` to a farmer's ``fear_tags``.
 Tags are matched case-insensitively and stored on the Player, so they persist
 with the save and drive the fear reaction in engine/fear.py.
+
+@module tags
+@contributes _target_player, _change, handle_add_fear_tag, handle_remove_fear_tag, handle_add_interest_tag, handle_remove_interest_tag
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 

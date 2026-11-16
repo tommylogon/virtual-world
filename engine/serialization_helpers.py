@@ -6,6 +6,10 @@ per-region exposure, derive goal ``blocked_by`` lists, assemble the MOSIAC
 decision context, build trait-behavior prose lines, coerce personality dials,
 and project the disposition payload. ``engine.serialization`` re-exports every
 name here so existing import paths stay stable.
+
+@module serialization_helpers
+@contributes _body_region_catalog, canonical_vitals, _region_exposure_map, _goals_payload, _mosiac_payload, _trait_behavior
+@docs docs/virtualWorld/Characters/Activities & States.md
 """
 
 import logging

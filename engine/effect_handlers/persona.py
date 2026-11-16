@@ -30,6 +30,7 @@ _MIRROR = {
     "traumas": "fear_tags",
     "interests": "interest_tags",
     "likes": "interest_tags",
+    "dislikes": "dislike_tags",
 }
 
 
@@ -182,9 +183,46 @@ def handle_advance_age(self, params, context, item_node=None,
     return [message] if message else []
 
 
+def handle_attempt_conception(self, params, context, item_node=None,
+                             game_state=None):
+    """params: {"carrier": "...", "sire": "...", "bypass_willingness": False, "message": "..."}
+
+    Invokes pregnancy.attempt_conception with carrier and sire resolved from params,
+    context, or targets.
+    """
+    if game_state is None:
+        return []
+    from engine import pregnancy
+    carrier_name = params.get("carrier")
+    sire_name = params.get("sire")
+    if not carrier_name:
+        carrier_target = params.get("target", "self")
+        if carrier_target == "target":
+            carrier_name = context.get("target_name") or (game_state.active_player or "")
+        else:
+            carrier_name = self._resolve_player_name(game_state, carrier_target)
+    if not sire_name:
+        sire_name = context.get("target_name") or params.get("partner") or (game_state.active_player or "")
+    carrier_p = (game_state.players or {}).get(carrier_name)
+    sire_p = (game_state.players or {}).get(sire_name)
+    if not carrier_p or not sire_p:
+        return []
+    success, reason = pregnancy.attempt_conception(
+        carrier_p, sire_p, game_state,
+        bypass_willingness=params.get("bypass_willingness", False)
+    )
+    if success:
+        message = params.get("success_message") or params.get("message")
+        return [message] if message else []
+    else:
+        fail_msg = params.get("fail_message")
+        return [fail_msg] if fail_msg else []
+
+
 HANDLERS = {
     "set_persona_field": handle_set_persona_field,
     "add_persona_id": handle_add_persona_id,
     "remove_persona_id": handle_remove_persona_id,
     "advance_age": handle_advance_age,
+    "attempt_conception": handle_attempt_conception,
 }

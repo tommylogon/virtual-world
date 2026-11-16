@@ -4,6 +4,10 @@ Assigns non-empty descriptions to compiled way nodes and visible_in_direction
 text to incoming connection edges (area -> way). Phrasing is driven by
 data/worldpainter/way_narratives.json, selecting deterministically via stable
 weighted indexing so adjacent ways exhibit natural variation without random drift.
+
+@module way_narratives
+@contributes load_narratives, classify_terrain, get_way_narrative
+@docs docs/virtualWorld/AI & Narration/Memory System.md
 """
 
 from __future__ import annotations

@@ -15,6 +15,10 @@ Three separable pieces of a progression model:
   scenario sets ``skill_growth``, so no existing save or soak changes.
 
 No LLM is involved and every rule is deterministic.
+
+@module skill_progress
+@contributes load_packs, clear_cache, packs, pack, apply_pack, validate
+@docs docs/virtualWorld/Characters/Persona.md
 """
 
 from __future__ import annotations

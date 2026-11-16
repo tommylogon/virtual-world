@@ -42,6 +42,10 @@ Inputs are matched carrying-first, then the current area (reachable items).
 whole node otherwise. Outputs are hydrated from the item library via the
 ``give_item`` effect (lands in the player's hands/inventory) - so output
 ``item`` values are library ids.
+
+@module crafting
+@contributes CraftingSystem, _default_recipe_dir, load_registry
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 import json
@@ -328,9 +332,19 @@ class CraftingSystem:
             if not target_name:
                 return False
             needle = str(target_name).lower()
+            # Check current area first if player is in an area
+            area_id = None
+            if player and hasattr(self.world, "area_node_id"):
+                area_id = self.world.area_node_id(getattr(player, "current_area", None))
+            if area_id and hasattr(self.world, "_spatial_items"):
+                for node in self.world._spatial_items(area_id):
+                    if needle in node.name.lower() or needle in node.id.lower():
+                        if str(node.properties.get("current_state", "")) == str(cond.get("value", "")):
+                            return True
             for node_id, node in self.graph.nodes.items():
                 if needle in node.name.lower() or needle in node_id.lower():
-                    return str(node.properties.get("current_state", "")) == str(cond.get("value", ""))
+                    if str(node.properties.get("current_state", "")) == str(cond.get("value", "")):
+                        return True
             return False
         if ctype == "has_item":
             return bool(self._input_nodes(self.player_manager, cond.get("item") or cond.get("value") or ""))
@@ -420,17 +434,23 @@ class CraftingSystem:
         return entry
 
     def _verify_inputs(self, player_manager, entry: dict, recipe_label: str) -> list:
-        """Return the entry's inputs, raising on the first gap."""
+        """Return the entry's inputs, raising on missing requirements."""
         inputs = entry.get("ingredients", entry.get("inputs", []))
         if isinstance(inputs, str):
             raise ValueError("Recipe inputs must be a JSON list.")
+        missing_labels = []
+        missing_counts = []
         for inp in inputs:
             needed = inp.get("item", "") if isinstance(inp, dict) else str(inp)
             count = int(inp.get("count", 1)) if isinstance(inp, dict) else 1
             nodes = self._input_nodes(player_manager, needed)
             total = sum(max(1, int(n.properties.get("uses", -1) or 0)) for n in nodes) if nodes else 0
             if not nodes or (count > 1 and total < count):
-                raise ValueError(f"You need {count} {needed} and don't have them.")
+                missing_labels.append(needed)
+                missing_counts.append(f"{count} {needed}" if count > 1 else f"1 {needed}")
+        if missing_labels:
+            msg = f"You are missing: {', '.join(missing_labels)}. You need {missing_counts[0]} and don't have them."
+            raise ValueError(msg)
         return inputs
 
     def start_cooking(self, player_manager, recipe_name: str) -> str:
@@ -447,9 +467,47 @@ class CraftingSystem:
             return self.craft(player_manager, recipe_name)
         player = player_manager.players.get(player_manager.active_player)
         recipe_label = entry.get("name", recipe_name)
+
+        station_target = entry.get("station")
+        if not station_target:
+            for cond in entry.get("conditions", []) or []:
+                if isinstance(cond, dict) and cond.get("type") == "state_equals" and cond.get("target"):
+                    station_target = cond.get("target")
+                    break
+
+        station_node = None
+        if station_target:
+            needle = str(station_target).lower()
+            area_id = None
+            if hasattr(self.world, "area_node_id"):
+                area_id = self.world.area_node_id(getattr(player, "current_area", None))
+            if area_id and hasattr(self.world, "_spatial_items"):
+                for node in self.world._spatial_items(area_id):
+                    if getattr(node, "type", "") != "area" and (needle in node.name.lower() or needle in node.id.lower()):
+                        station_node = node
+                        break
+            if not station_node:
+                for node in self.graph.nodes.values():
+                    if getattr(node, "type", "") != "area" and (needle in node.name.lower() or needle in node.id.lower()):
+                        station_node = node
+                        break
+
+        player_id = self._pid(player_manager, player.name)
+        if station_node and player_id:
+            try:
+                from graph import Edge
+                self.graph.add_edge(Edge(source=player_id, target=station_node.id, type="at"))
+            except Exception:
+                pass
+
+        target_item = station_node.name if station_node else (str(station_target) if station_target else None)
         self.world.activities.start_activity(
-            player.name, "cooking", duration_minutes=float(minutes),
-            recipe_id=entry.get("id", recipe_name))
+            player.name, "cooking",
+            target_item=target_item,
+            duration_minutes=float(minutes),
+            recipe_id=entry.get("id", recipe_name),
+            station_id=station_node.id if station_node else None,
+        )
         return (f"You start cooking {recipe_label.lower()} "
                 f"({minutes} min) - interruption ends it with nothing "
                 f"consumed and the pot waiting.")

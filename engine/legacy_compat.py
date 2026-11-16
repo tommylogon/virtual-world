@@ -3,6 +3,10 @@
 Provides the ``areas``, ``current_area``, and ``player`` properties
 that older code (routes, app glue, scripts) expects to find directly
 on the engine.  These are thin wrappers over the graph + subsystems.
+
+@module legacy_compat
+@contributes LegacyCompat
+@docs docs/virtualWorld/World Building/Graph System.md
 """
 
 from typing import Any, Dict, Optional

@@ -5,6 +5,10 @@ Task-343: all leaf evaluation lives in ``ConditionTreeMixin._evaluate_conditions
 helpers plus a delegating ``_evaluate_trigger_condition`` so the single-condition
 entry point (movement ``requires_open``, facade wrappers) evaluates through the
 same leaf registry as tree/list conditions.
+
+@module evaluation
+@contributes EvaluationMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Any, Optional
@@ -139,7 +143,7 @@ class EvaluationMixin:
         both entry points share one leaf implementation (previously the two
         evaluators duplicated ~20 leaves and diverged - e.g. ``random_chance``
         always divided by 100 here, while the tree honours NPC-style
-        0.0–1.0 ``chance`` vs item-trigger 0–100 ``value``).
+        0.0-1.0 ``chance`` vs item-trigger 0-100 ``value``).
 
         Returns ``True`` if *condition* is empty/met, ``False`` otherwise.
         Unknown condition types return ``False`` (fail-safe).

@@ -38,6 +38,10 @@ shopping list.
 The reachability walk is the one the rest of the sim already uses
 (``build_exits_for_area``), so a venue step is a step the engine can take - a
 venue is never somewhere a character can be routed that the player could not.
+
+@module venues
+@contributes venue, node_ids, _area_tags, serves, find_venues, _visits
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from __future__ import annotations
@@ -97,6 +101,13 @@ VENUES: Dict[str, dict] = {
         "prefers": ("infirmary", "ward", "washroom", "cellar"),
         "verb": "being tended",
         "why": "is looking for a healer",
+    },
+    "buy": {
+        "tags": ("shop", "market", "trade", "commercial"),
+        "prefers": ("shop", "market", "bazaar", "stall", "trading_post",
+                    "general_store", "store"),
+        "verb": "shopping",
+        "why": "is looking for a shop",
     },
 }
 

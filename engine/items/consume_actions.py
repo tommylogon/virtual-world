@@ -3,6 +3,10 @@
 Moved verbatim from engine/item_actions.py as part of the task-314
 verb-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, ghost_system, world) via the mixin.
+
+@module consume_actions
+@contributes ConsumeActionsMixin, _is_valid_for, _pick_consumable
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 

@@ -16,6 +16,10 @@ The bonuses are merged into the single modifier pipeline in
 :mod:`engine.checks` (alongside ability, skill value and trait mods), so
 ``skill_check``, ``resolve`` and ``opposed`` all see them and the breakdown names
 the ``role`` source. Nothing here rolls dice or calls a model.
+
+@module roles
+@contributes load, clear_cache, roles, role, _tag_role, character_roles
+@docs docs/virtualWorld/Gameplay/Search & Forage.md
 """
 
 from __future__ import annotations

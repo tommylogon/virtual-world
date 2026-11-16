@@ -23,6 +23,10 @@ Key facts:
   JSON files under ``data/library/activities/``. Authoring a new activity is
   a JSON edit; no Python change is required unless the activity needs a new
   tick action or completion checker.
+
+@module activities
+@contributes ActivitySystem, activity_description, pile_node_id, _rebuild_legacy_activity_sets
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 import json
@@ -194,6 +198,17 @@ class ActivitySystem:
                 player.conditions["awake"] = [{"duration": None, "source": None, "level": 0}]
         elif condition:
             player.remove_condition(condition)
+
+        # Unbind transient spatial relation (e.g. at station, on bed)
+        player_id = None
+        if hasattr(self.player_manager, "get_player_node_id"):
+            player_id = self.player_manager.get_player_node_id(player_name)
+        elif hasattr(self.world, "_player_node_id"):
+            player_id = self.world._player_node_id(player_name)
+        if player_id and hasattr(self.graph, "get_edges_for_source") and hasattr(self.graph, "remove_edge"):
+            for rel in ("at", "on"):
+                for edge in list(self.graph.get_edges_for_source(player_id, rel)):
+                    self.graph.remove_edge(edge.source, edge.target, edge.type)
 
         # Data-driven on-complete actions. finish_craft resolves only
         # on finished: an interrupted cook must never consume or spawn.

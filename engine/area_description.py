@@ -1,3 +1,10 @@
+"""area_description module.
+
+@module area_description
+@contributes AreaDescription, _is_intrinsic_ability, temperature_description, temperature_warning, light_description, time_of_day_prose
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
+
 from typing import Any, Dict, List, Optional
 
 from graph import EDGE_CONNECTION, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED

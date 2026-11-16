@@ -1,4 +1,9 @@
-"""Equipment effect handlers (add_tag, remove_tag, adjust_uses, destroy_self, drain, consume_item)."""
+"""Equipment effect handlers (add_tag, remove_tag, adjust_uses, destroy_self, drain, consume_item).
+
+@module equipment
+@contributes _normalize_tags, handle_add_tag, handle_remove_tag, handle_adjust_uses, handle_destroy_self, handle_drain
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 import time
 
@@ -176,6 +181,38 @@ def handle_consume_item(self, params, context, item_node=None, game_state=None):
     return [msg]
 
 
+def handle_grant_ability(self, params, context, item_node=None, target_item_node=None, game_state=None):
+    """Grant an intrinsic ability to a character via equipment system."""
+    ability_name = params.get("ability") or params.get("name")
+    target_name = params.get("target") or context.get("player_name") or getattr(game_state, "active_player", None)
+    if not ability_name or not target_name or not game_state:
+        return []
+    eq = getattr(game_state, "equipment", None)
+    if eq and hasattr(eq, "grant_ability"):
+        carrier_id = item_node.id if item_node else None
+        eq.grant_ability(target_name, ability_name, carrier_id=carrier_id)
+    msg = params.get("message")
+    if msg:
+        return [self._render_template_fn(msg, context)]
+    return []
+
+
+def handle_revoke_ability(self, params, context, item_node=None, target_item_node=None, game_state=None):
+    """Revoke an intrinsic ability from a character via equipment system."""
+    ability_name = params.get("ability") or params.get("name")
+    target_name = params.get("target") or context.get("player_name") or getattr(game_state, "active_player", None)
+    if not ability_name or not target_name or not game_state:
+        return []
+    eq = getattr(game_state, "equipment", None)
+    if eq and hasattr(eq, "revoke_ability"):
+        carrier_id = item_node.id if item_node else None
+        eq.revoke_ability(target_name, ability_name, carrier_id=carrier_id)
+    msg = params.get("message")
+    if msg:
+        return [self._render_template_fn(msg, context)]
+    return []
+
+
 HANDLERS = {
     "add_tag": handle_add_tag,
     "remove_tag": handle_remove_tag,
@@ -183,4 +220,6 @@ HANDLERS = {
     "destroy_self": handle_destroy_self,
     "drain": handle_drain,
     "consume_item": handle_consume_item,
+    "grant_ability": handle_grant_ability,
+    "revoke_ability": handle_revoke_ability,
 }

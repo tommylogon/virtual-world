@@ -9,6 +9,10 @@ were current (task-453).
 The migration itself is read-old/write-new and in memory only; it never rewrites
 the source file. A file is rewritten in the new format only when it is next
 saved/committed.
+
+@module schema
+@contributes SchemaError, _migrate_1_to_2, schema_version_of, migrate, _stamp
+@docs docs/virtualWorld/AI & Narration/Memory System.md
 """
 
 from version import SCHEMA_VERSION

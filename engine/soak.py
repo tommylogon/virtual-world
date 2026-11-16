@@ -16,6 +16,10 @@ next prompt knows what the character did and that control is theirs again.
 
 The blocking "advance the world N minutes" in engine/timeskip is the fast path
 used only when nothing attended remains (solo play, or everyone soaking).
+
+@module soak
+@contributes declare, cancel, _restore_mode, remaining, apply_orders, _step_one
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from __future__ import annotations

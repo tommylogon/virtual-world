@@ -33,6 +33,10 @@ character per cell, plus a legend), because a floor plan is a *picture* and
 authoring one as nested Python lists makes it unreadable. The fallback template
 gives every building type something walkable, so a new building is never a
 building you cannot enter.
+
+@module interior_gen
+@contributes interiors, clear_cache, plan_problems, template_for, _rectangle, plan_cells
+@docs docs/virtualWorld/World Building/WorldPainter.md
 """
 
 from __future__ import annotations

@@ -21,6 +21,10 @@ Contents
 
 The legacy `SkillSystem.skill_check` / `saving_throw` are thin adapters over
 this module and keep their old tuple + message format.
+
+@module checks
+@contributes D20Roll, Modifier, CheckResult, dc_band, ability_mod, roll_dice
+@docs docs/virtualWorld/Characters/Persona.md
 """
 
 from __future__ import annotations
@@ -351,7 +355,7 @@ def _degree(kept: int, total: int, dc) -> str:
     return "strong_success" if (total - dc) >= 5 else "success"
 
 
-def resolve(player, *, kind: str, dc=None, advantage: bool = False,
+def resolve(player, *, kind: str, ability: Optional[str] = None, dc=None, advantage: bool = False,
             disadvantage: bool = False, extra_mods=(), roll_fn=None,
             logger=None, context: str = "") -> CheckResult:
     """Resolve one d20 check for *player*.
@@ -362,11 +366,12 @@ def resolve(player, *, kind: str, dc=None, advantage: bool = False,
     success; ``dc=None`` is an opposed-style roll the caller compares.
     """
     skill = kind if kind in SKILL_ABILITY else None
-    ability = kind if kind in STAT_NAMES else None
+    if ability is None and kind in STAT_NAMES:
+        ability = kind
     if skill is not None:
         derived_ability, mods = skill_modifiers(player, skill)
         ability = derived_ability
-    elif ability is not None:
+    elif ability is not None and ability in STAT_NAMES:
         mods, _ = save_modifiers(player, ability)
     else:
         mods, _ = [], None
@@ -427,14 +432,15 @@ def resolve(player, *, kind: str, dc=None, advantage: bool = False,
 
 
 def opposed(player, defender, *, kind: str, defender_kind: str = None,
+            ability: Optional[str] = None, defender_ability: Optional[str] = None,
             roll_fn=None, defender_roll_fn=None) -> tuple:
     """Compare two checks; ties go to the defender.
 
     Returns ``(attacker_result, defender_result, attacker_wins)`` - the shape
     theft-vs-Perception and social-vs-Insight need (task-468).
     """
-    a = resolve(player, kind=kind, roll_fn=roll_fn)
-    d = resolve(defender, kind=defender_kind or kind, roll_fn=defender_roll_fn)
+    a = resolve(player, kind=kind, ability=ability, roll_fn=roll_fn)
+    d = resolve(defender, kind=defender_kind or kind, ability=defender_ability or ability, roll_fn=defender_roll_fn or roll_fn)
     winner = a.total > d.total
     a.success = winner
     d.success = not winner

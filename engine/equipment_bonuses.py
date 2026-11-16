@@ -2,6 +2,10 @@
 
 Reads item properties and tags to compute defense, weapon damage,
 effective temperature range, and type-based resistances.
+
+@module equipment_bonuses
+@contributes get_equipment_nodes, parse_damage, aggregate_bonuses, effective_temperature, resisted_damage
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 import re
 from typing import Dict, List, Optional, Tuple

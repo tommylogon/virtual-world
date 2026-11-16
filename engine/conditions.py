@@ -15,6 +15,10 @@ Condition *application* also consults ``engine/undead.py`` (task-490): a ghost
 cannot be grappled, restrained or tired, and a corporeal undead cannot tire
 either. A refusal returns False rather than raising, so a caller can tell it
 apart from a missing player.
+
+@module conditions
+@contributes ConditionsSystem, condition_definition, effective_known, effective_symptoms, effective_periodic_for, effective_speed_mult
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import logging

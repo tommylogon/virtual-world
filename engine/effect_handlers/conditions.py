@@ -1,4 +1,9 @@
-"""Condition and trait effect handlers (apply/remove condition, apply/remove trait)."""
+"""Condition and trait effect handlers (apply/remove condition, apply/remove trait).
+
+@module conditions
+@contributes handle_apply_condition, handle_remove_condition, handle_apply_trait, handle_remove_trait
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 
 def handle_apply_condition(self, params, context, item_node=None, game_state=None):

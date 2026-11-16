@@ -1,3 +1,11 @@
+"""transfer_actions module.
+
+@module transfer_actions
+@contributes TransferActionsMixin
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
+
+from engine.equipment import is_intrinsic_ability
 """Transfer verbs (give / steal) for ItemActions.
 
 Moved verbatim from engine/item_actions.py as part of the task-314
@@ -59,6 +67,8 @@ class TransferActionsMixin:
             item_node = player_manager.find_item_node(item_name)
         if not item_node:
             raise ValueError(f"You aren't carrying '{item_name}'.")
+        if is_intrinsic_ability(item_node):
+            raise ValueError(f"Your {item_node.name} is an intrinsic ability, not a physical object you can give away.")
         item_name = item_node.name
         item_node_id = item_node.id
 
@@ -162,6 +172,8 @@ class TransferActionsMixin:
             item_node = _find_in_target(item_name)
         if not item_node:
             raise ValueError(f"{target_name} doesn't have a '{item_name}' to steal.")
+        if is_intrinsic_ability(item_node):
+            raise ValueError(f"{target_name}'s {item_node.name} is an intrinsic ability, not a physical object you can steal.")
 
         item_node_id = item_node.id
 

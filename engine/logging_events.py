@@ -2,6 +2,10 @@
 
 Stores the game log, speech log, and per-turn event stream used by
 the narration system, NPC awareness, and debug output.
+
+@module logging_events
+@contributes GameLogger
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 import os

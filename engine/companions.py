@@ -14,6 +14,10 @@ Called from ``engine/tick_manager.py`` on every turn, alongside the other
 world-state sweeps. It is deliberately cheap and defensive: a companion whose
 owner has vanished, or a reveal whose node was deleted mid-duration, is cleaned
 up rather than raising.
+
+@module companions
+@contributes _owner_player, _despawn_character, expire_illusory_companions, follow_bound_companions, expire_reveals, process_companions
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 import logging

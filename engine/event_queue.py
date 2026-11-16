@@ -9,6 +9,10 @@ The queue is deliberately dumb: ``schedule()`` just records a fire time and a
 target node + trigger type. When the tick fires, whoever owns the queue (the
 TickManager) executes the target node's triggers for that trigger type
 (``on_delayed`` by default), reusing the normal trigger/effect pipeline.
+
+@module event_queue
+@contributes DelayedEventQueue
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 

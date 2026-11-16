@@ -22,6 +22,10 @@ Design rules (task-357, settled 2026-09-22):
   Grafting a stub onto the host world is manual **by design**; all wiring
   *inside* the captured group is replayed automatically.
 - Materialization is add-only and deterministic for a given ``(template, seed)``.
+
+@module structures
+@contributes _slug, _same_id, _remap_refs, _deterministic_suffix, _unique_id, _find_area_node_by_name
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from __future__ import annotations
@@ -397,12 +401,9 @@ def materialize_structure(
             # Residents default to the background tier. Use the promotion seam
             # (task-399) so the demotion boundary tick is stamped - a later
             # activation can then summarize exactly the background span.
-            mode = payload.get("simulation_mode") or "background"
-            if mode == "background":
-                from engine import promotion
-                promotion.offload(world, player_obj, reason="materialize")
-            else:
-                player_obj.simulation_mode = mode
+            # Residents default to the background tier (task-357).
+            from engine import promotion
+            promotion.offload(world, player_obj, reason="materialize")
             pm.players[instance_name] = player_obj
             anchor_id = pm.get_player_node_id(instance_name)
             if graph.get_node(anchor_id) is None:

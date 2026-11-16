@@ -29,6 +29,10 @@ The window is the other half of the farm guard, and it is deliberately comparabl
 to the decay time: Entertainment empties in roughly 2.3 days, so a 2-hour window
 means a route earns variety while loitering does not. Tune it with
 ``entertainment.novelty_recovery_minutes``.
+
+@module novelty
+@contributes recovery_minutes, _traits, _minutes_per_tick, effective_window, freshness, novelty_bonus
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
 from __future__ import annotations

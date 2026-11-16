@@ -1,3 +1,10 @@
+"""toggleable_items module.
+
+@module toggleable_items
+@contributes ToggleableItems
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
+"""
+
 from typing import Optional
 
 from graph import Node

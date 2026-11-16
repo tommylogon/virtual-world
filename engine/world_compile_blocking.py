@@ -1,3 +1,10 @@
+"""world_compile_blocking module.
+
+@module world_compile_blocking
+@contributes module initialization and namespace exports
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
+"""
+
 BLOCKED_WAY_PERCENT = 12
 
 #: What a blocked way reads as, keyed by the terrain class either side of it

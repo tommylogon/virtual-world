@@ -241,7 +241,27 @@ def on_clock(world, rng=None) -> list:
         try:
             if getattr(player, "state", "") == "dead":
                 continue
+            # task-846: Gestation progression and live birth
+            if getattr(player, "pregnancy", None):
+                try:
+                    from engine import pregnancy as _preg
+                    preg_stage, stage_ev = _preg.update_pregnancy(player, world)
+                    if stage_ev:
+                        events.append(stage_ev)
+                    if preg_stage == "due":
+                        _, birth_msg = _preg.deliver_birth(player, world)
+                        events.append(birth_msg)
+                except Exception:
+                    pass
+
             node = _character_node(world, name)
+            # task-928: Reproductive cycles (periods and heat)
+            try:
+                from engine import reproductive_cycle as _rc
+                _rc.update_cycle(player, world, node)
+            except Exception:
+                pass
+
             age = age_years(player, world, node)
             if age is None:
                 continue
@@ -287,4 +307,6 @@ def status(player, world, node=None) -> dict:
         "birth_tick_known": birth is not None,
         "birth_tick": birth,
         "birthday": birthday_str,
+        "pregnancy": getattr(player, "pregnancy", None),
+        "reproductive_cycle": getattr(player, "reproductive_cycle", None),
     }

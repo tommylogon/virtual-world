@@ -13,6 +13,10 @@ One call assembles everything the panel's scene view renders:
   activity, recent memories
 
 Pure read module: no engine state is mutated here.
+
+@module scene_snapshot
+@contributes _first_sentence, _identity_tags, _activity_type, _known_aspects, _area_node_id, build_scene
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
 from typing import Any, Dict, List
@@ -26,6 +30,7 @@ from graph import (
 from engine.room_perception import (
     characters_in_area,
     describe_item_quantity,
+    resolve_item_name,
     item_quantity,
     normalize_requires,
     resolve_area_node,
@@ -205,6 +210,8 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         scene["items"].append({
             "id": node.id,
             "name": describe_item_quantity(node),
+            "display_name": resolve_item_name(node),
+            "current_state": node.properties.get("current_state", "normal"),
             # task-504: the count is emitted raw as well, beside uses/max_uses,
             # so the panel can show "40" without re-parsing the label.
             "quantity": item_quantity(node),
@@ -309,6 +316,8 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         return {
             "id": node.id,
             "name": describe_item_quantity(node),
+            "display_name": resolve_item_name(node),
+            "current_state": node.properties.get("current_state", "normal"),
             "actions": actions,
             "desc": _first_sentence(desc),
             # task-161 presentation: durability without numbers (ratio-driven
@@ -324,7 +333,6 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         if node:
             entry = _inv_entry(node)
             entry["id"] = node.id
-            entry["name"] = node.name
             carrying.append(entry)
     # Worn = graph EDGE_EQUIPPED edges (player.equipped is a derived cache
     # that desyncs; equipment.py rebuilds it from these same edges).
@@ -334,7 +342,6 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         if node and not node.name.startswith("__"):
             entry = _inv_entry(node)
             entry["id"] = node.id
-            entry["name"] = node.name
             entry["slot"] = edge.properties.get("slot", "")
             worn.append(entry)
     worn.sort(key=lambda w: w["slot"])

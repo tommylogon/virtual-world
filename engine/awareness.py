@@ -22,6 +22,10 @@ cuts a character out of attention only when no cheaper alternate route reaches
 them, which is the physically honest outcome and the one this module is built on.
 This does not depend on bug-30 *staying* fixed: the threshold is defined against
 the returned amplitude, whatever walk produced it.
+
+@module awareness
+@contributes ChannelContext, AwarenessChannel, SoundChannel, AwarenessIndex, Anchor, normalise_anchors
+@docs docs/virtualWorld/Gameplay/The Commons.md
 """
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 

@@ -1,4 +1,4 @@
-﻿"""Character spatial position â€” relations to ways, items, and characters (task-135).
+"""Character spatial position â€” relations to ways, items, and characters (task-135).
 
 Position is a *relation*, not a coordinate (task-419). There is no metric space
 inside an area; a character's position is the set of spatial edges it holds, and
@@ -14,6 +14,10 @@ are spelled out where they are implemented:
     resource, a landmark cluster) and its 3-8 per-area budget.
   - `apply_positional_fidelity` â€” positional detail allocated by the same
     attendance decision as attention, which is what keeps `at` at O(cap).
+
+@module character_spatial
+@contributes _pm_get_player, _pm_get_player_node_id, _pm_active_player, _pm_current_area_name, _normalize_tags, clear_character_position_edges
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 import re

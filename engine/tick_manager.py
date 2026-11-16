@@ -481,11 +481,34 @@ class TickManager:
         except Exception as e:
             logger.warning("[tick] action slots reset: %s", e)
 
-        # task-399: apply queued fidelity transitions at this one boundary,
+        # task-822: sync reached and dropped goals for all characters
+        try:
+            from engine import goals as _goals
+            for pname, _p in self.player_manager.players.items():
+                if getattr(_p, "goals", None):
+                    pnode_id = self.player_manager._player_node_id(pname)
+                    res = _goals.world_resolvers(self.graph, pnode_id, _p.goals, player=_p, game_state=self.gs)
+                    _goals.sync_reached(_p, res, tick=self.player_manager.time_ticks, log=getattr(_p, "goal_log", None))
+                # task-896: a reached goal completes its obligation; due ticks
+                # forget unanswered offers and fail accepted-but-overdue ones.
+                if getattr(_p, "obligations", None):
+                    _obs = _goals.expire_obligations(_p.obligations, self.player_manager.time_ticks)
+                    _p.obligations, _done = _goals.sync_obligations(_obs, _p.goals)
+                    for _oid in _done:
+                        _o = next((o for o in _p.obligations if o["id"] == _oid), None)
+                        if _o and pname == self.player_manager.active_player:
+                            self.player_manager.add_log_entry(
+                                f"[Obligation] {_o['charge']} is {_o['status']}.")
+        except Exception as e:
+            logger.warning("[tick] sync_reached: %s", e)
+
+        # task-399, task-711: re-evaluate promoted set against active scope,
+        # then apply queued fidelity transitions at this one boundary,
         # before any character is resolved, so activate/offload is atomic and a
         # character can never act twice in a turn under two different modes.
         try:
-            from engine.promotion import flush as _flush_fidelity
+            from engine.promotion import evaluate_scope_tick, flush as _flush_fidelity
+            evaluate_scope_tick(self.gs)
             _flush_fidelity(self.gs)
         except Exception as e:
             logger.warning("[tick] fidelity flush: %s", e)
@@ -791,6 +814,29 @@ class TickManager:
                 if pname == self.player_manager.active_player:
                     self.player_manager.add_log_entry(f"[{getattr(p, 'name', pname)}] GAME OVER: You have died from {cause_of_death}.")
                 self.gs.kill_player(pname, cause_of_death, announce=False)
+
+            # task-594: Air vital drain when submerged vs replenishment at surface
+            is_sub = hasattr(p, "is_submerged") and p.is_submerged(self.graph)
+            if is_sub:
+                current_air = p.vitals.get("Air", 100)
+                new_air = max(0, current_air - 20)
+                p.vitals["Air"] = new_air
+                if new_air <= 0 and not p.has_condition("suffocating"):
+                    try:
+                        p.add_condition("suffocating", source="drowning")
+                        self.gs.add_log_entry(f"[{getattr(p, 'name', pname)}] has run out of air and is suffocating!")
+                    except Exception:
+                        pass
+            else:
+                current_air = p.vitals.get("Air", 100)
+                if current_air < 100:
+                    p.vitals["Air"] = min(100, current_air + 50)
+                if p.has_condition("suffocating"):
+                    try:
+                        p.remove_condition("suffocating")
+                        self.gs.add_log_entry(f"[{getattr(p, 'name', pname)}] reaches the surface and breathes!")
+                    except Exception:
+                        pass
 
             player_area_name = p.current_area
             if player_area_name:
@@ -1200,6 +1246,14 @@ class TickManager:
             lived_log_memory.bridge_all(self.gs)
         except Exception as e:
             logger.warning("[tick] lived_log->memory bridge: %s", e)
+
+        if callable(getattr(self.gs, "local_provider", None)):
+            try:
+                from engine import daily_reflection
+                for _p in list(getattr(self.gs, "players", {}).values()):
+                    daily_reflection.maybe_reflect(self.gs, _p)
+            except Exception as e:
+                logger.warning("[tick] daily_reflection: %s", e)
 
     def _process_wind_extinguish(self):
         """task-231: gale+ wind can snuff out lit items each tick."""

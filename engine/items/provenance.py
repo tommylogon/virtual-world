@@ -18,6 +18,10 @@ identity (``engine/items/stacking.py::_STACKABLE_KEYS``). Per-instance
 provenance would otherwise make two otherwise-identical loaves unmergeable.
 When twins combine, the surviving stack keeps its own provenance; the merged
 copy's story is discarded with it.
+
+@module provenance
+@contributes normalize_provenance, render_provenance, stamp_provenance
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 from __future__ import annotations
 

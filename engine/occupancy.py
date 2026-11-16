@@ -1,4 +1,4 @@
-﻿"""Per-area occupancy computed from the SIZE of what is standing in it (task-653).
+"""Per-area occupancy computed from the SIZE of what is standing in it (task-653).
 
 A headcount cannot express a room. "Four occupants" is no answer to "can the
 tarrasque come in?", and it is equally wrong for a fairy's house as for a throne
@@ -34,6 +34,10 @@ Authoring:
 This module reads a ``Player`` roster and/or the graph, exactly like
 :mod:`engine.relief` beside it, so the background tier and the foreground agree
 about how full a room is.
+
+@module occupancy
+@contributes _tag_source, takes_no_space, _size_source, space_of, area_budget, normalize_area_id
+@docs none - engine subsystem module
 """
 
 from __future__ import annotations
