@@ -83,12 +83,16 @@ class WorldGraph:
         self._indexed_edge_count = 0
         # Bumped on every mutation; derived caches (exits) key on this.
         self._revision = 0
+        from engine.rwlock import ReadWriteLock
+        self._rwlock = ReadWriteLock()
+        self.read_lock = self._rwlock.read_lock
+        self.write_lock = self._rwlock.write_lock
 
     # ── Case-insensitive id helpers ────────────────────────────────────
 
     def _rebuild_id_index(self):
         # Lowercase id -> stored key, so lookups survive renames in casing.
-        self._id_index = {node_id.lower(): node_id for node_id in self.nodes}
+        self._id_index = {node_id.lower(): node_id for node_id in list(self.nodes.keys())}
 
     def _resolve_id(self, node_id: str) -> Optional[str]:
         """Resolve *node_id* to the stored key, case-insensitively."""
@@ -143,12 +147,25 @@ class WorldGraph:
                         self._trigger_index.setdefault(str(t), set()).add(str(edge.source))
 
     def _rebuild_indexes(self):
-        self._edges_by_source = {}
-        self._edges_by_target = {}
-        self._spatial_edges = []
-        self._trigger_index = {}
-        for e in self.edges:
-            self._index_edge(e)
+        new_source = {}
+        new_target = {}
+        new_spatial = []
+        new_trigger = {}
+        for e in list(self.edges):
+            new_source.setdefault(str(e.source).lower(), []).append(e)
+            new_target.setdefault(str(e.target).lower(), []).append(e)
+            if e.type in SPATIAL_EDGE_TYPES:
+                new_spatial.append(e)
+            if e.type == EDGE_TRIGGERS:
+                tt = e.properties.get("trigger_type")
+                if tt:
+                    for t in (tt if isinstance(tt, (list, tuple, set)) else [tt]):
+                        if t:
+                            new_trigger.setdefault(str(t), set()).add(str(e.source))
+        self._edges_by_source = new_source
+        self._edges_by_target = new_target
+        self._spatial_edges = new_spatial
+        self._trigger_index = new_trigger
         self._indexed_edge_count = len(self.edges)
         self._revision += 1
 
@@ -527,7 +544,7 @@ class WorldGraph:
         trigger that happens to carry a string ``floor`` is none of this
         migration's business.
         """
-        for node in self.nodes.values():
+        for node in list(self.nodes.values()):
             if node.type not in ("area", "way"):
                 continue
             floor = (node.properties or {}).get("floor")
@@ -541,7 +558,7 @@ class WorldGraph:
         """Return all item nodes that have the given tag, optionally filtered by area."""
         tag = tag.lower()
         results = []
-        for node in self.nodes.values():
+        for node in list(self.nodes.values()):
             if node.type != "item":
                 continue
             node_tags = node.properties.get("tags", [])

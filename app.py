@@ -44,7 +44,7 @@ class _LogFileHandler(logging.FileHandler):
     """A marker subclass so re-attaching can find and replace it."""
 
 def create_app(config=None):
-    """Application factory pattern – allows multiple instances and easier testing."""
+    """Application factory pattern - allows multiple instances and easier testing."""
     app = Flask(__name__)
 
     # Default configuration
@@ -143,7 +143,9 @@ def create_app(config=None):
     # interleave; reads, static files and the long-lived /api/events SSE stay
     # concurrent. This is a dev-only guard, not a substitute for the engine's own
     # invariants.
-    app._vw_write_lock = threading.Lock()
+    from engine.rwlock import ReadWriteLock
+    app._vw_rwlock = getattr(world.graph, '_rwlock', None) or ReadWriteLock()
+    app._vw_write_lock = app._vw_rwlock
 
     # task-753: cache the assembled /api/state payload between mutations. The
     # server is the sole writer and every change arrives as a mutating /api/
@@ -154,16 +156,27 @@ def create_app(config=None):
     app._state_cache = {}
 
     @app.before_request
-    def _lock_mutations():
-        if request.method in ('POST', 'PUT', 'PATCH', 'DELETE') and request.path.startswith('/api/'):
-            app._vw_write_lock.acquire()
+    def _lock_requests():
+        path = request.path
+        if not path.startswith('/api/'):
+            return
+        if path in ('/api/events', '/api/bench/chat'):
+            return
+        if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            app._vw_rwlock.acquire_write()
             g._vw_write_locked = True
+        elif request.method == 'GET':
+            app._vw_rwlock.acquire_read()
+            g._vw_read_locked = True
 
     @app.teardown_request
-    def _unlock_mutations(exc):
+    def _unlock_requests(exc):
         if getattr(g, '_vw_write_locked', False):
-            app._vw_write_lock.release()
+            app._vw_rwlock.release_write()
             g._vw_write_locked = False
+        if getattr(g, '_vw_read_locked', False):
+            app._vw_rwlock.release_read()
+            g._vw_read_locked = False
 
     # Auto-save after every mutating API operation
     @app.after_request
@@ -271,6 +284,7 @@ def create_app(config=None):
                 and not g.get('no_broadcast')):
             editor = request.headers.get('X-WV-Editor', 'app')
             delta = g.get('_event_delta')
+            undo_label = g.get('_undo_label')
             from engine.world_events import hub
             ev_payload = {
                 'type': 'world_changed',
@@ -279,6 +293,8 @@ def create_app(config=None):
                 'editor': editor,
                 'rev': getattr(app, '_state_revision', 0),
             }
+            if undo_label:
+                ev_payload['label'] = undo_label
             if delta is not None:
                 ev_payload['delta'] = delta
             hub.publish(ev_payload)

@@ -236,7 +236,7 @@ class Player:
             "Hygiene": 100, "Energy": 100,
             "Social": 100,
             "Bladder": 0, "Sanity": 100,
-            "Entertainment": 100, "Temperature": 37.0
+            "Entertainment": 100, "Temperature": 37.0, "Air": 100
         }
 
         # Per-character decay rate overrides. Defaults mirror
@@ -288,6 +288,8 @@ class Player:
         self.birth_tick = None
         self.life_stage = None
         self.last_mortality_year = None
+        self.pregnancy = None
+        self.reproductive_cycle = None
         # Traits: mapping trait_id -> parameter value.
         # Boolean traits use True. Parameterized traits use a string (e.g. {"allergic": "pollen"}).
         # Example: {"dark_vision": True, "hardy": True, "glutton": True}
@@ -324,6 +326,9 @@ class Player:
         # farmers vs goblins differ purely by these lists, so no group needs a
         # global "hostile" flag that makes it panic at its own kind.
         self.fear_tags = []
+        # Things this character dislikes or is disinterested in: accelerates
+        # memory decay for low-importance matches and dampens passive recall.
+        self.dislike_tags = []
         # Library item id this creature leaves behind when it dies (task-427).
         # A rabbit drops a carcass item; a character without one leaves the
         # normal `body_<name>` item.
@@ -538,6 +543,12 @@ class Player:
         s = str(value).strip().lower()
         if s in ("human", "directed", "llm", "npc", "inert"):
             self._controller = s
+        elif s in ("paused", "pause", "frozen", "none"):
+            self._controller = "inert"
+        elif s in ("agent", "ai"):
+            self._controller = "llm"
+        elif s in ("simple", "simple_npc"):
+            self._controller = "npc"
         elif s in ("false", "off", "0"):
             self._controller = "human"
         elif s in ("true", "on", "1"):
@@ -602,6 +613,23 @@ class Player:
     def state(self, value):
         """Set a state - ADDS the condition without wiping others."""
         set_state(self, value)
+
+    def is_submerged(self, graph=None) -> bool:
+        """Check if character is submerged underwater or diving (task-594)."""
+        if hasattr(self, "has_condition") and (self.has_condition("diving") or self.has_condition("submerged")):
+            return True
+        if graph and getattr(self, "current_area", None):
+            for node in graph.nodes.values():
+                if node.type == "area" and node.name == self.current_area:
+                    props = node.properties or {}
+                    tags = [str(t).lower() for t in props.get("tags", [])]
+                    depth = str(props.get("depth", "")).lower()
+                    surface = str(props.get("surface", "")).lower()
+                    terrain = str(props.get("terrain", "")).lower()
+                    if depth in ("deep", "underwater") or surface in ("deep_water", "underwater") or terrain in ("underwater",) or "deep_water" in tags or "underwater" in tags:
+                        return True
+                    break
+        return False
 
     def has_condition(self, condition: str) -> bool:
         return condition_has_condition(self, condition)
@@ -718,7 +746,7 @@ class Player:
 
     @property
     def emotion_intensity(self) -> float:
-        """How strongly the dominant feeling is felt, 0.0–1.0 - derived.
+        """How strongly the dominant feeling is felt, 0.0-1.0 - derived.
 
         The scale the callers use: the legacy field stored it directly, and the
         behaviour editor's slider writes it. It is now *how far the leading
@@ -939,6 +967,64 @@ class Player:
         return str(aspect) in self.known_way_aspects.get(
             (str(area_name), str(direction)), ()
         )
+
+    def get_knowledge_records(self) -> list:
+        """Return unified prose+data knowledge records for recipes, known facts, places, and way aspects (task-734).
+        Each record has kind='semantic' (or 'procedural' for recipes) and category='semantic'/'procedural'.
+        """
+        records = []
+        # 1. Recipes (crafting_known) -> procedural kind
+        for r in getattr(self, "crafting_known", []) or []:
+            records.append({
+                "id": f"recipe_{r}",
+                "text": f"Knows recipe: {r}",
+                "type": "recipe",
+                "category": "procedural",
+                "kind": "procedural",
+                "source": "crafting",
+                "data": {"recipe": str(r)},
+                "importance": 7,
+            })
+        # 2. Known facts (known) -> semantic kind
+        for f in getattr(self, "known", []) or []:
+            clean_f = str(f).strip()
+            records.append({
+                "id": f"fact_{abs(hash(clean_f)) % 1000000}",
+                "text": clean_f,
+                "type": "fact",
+                "category": "semantic",
+                "kind": "semantic",
+                "source": "knowledge",
+                "data": {"fact": clean_f},
+                "importance": 6,
+            })
+        # 3. Known way aspects (known_way_aspects) -> semantic kind
+        for (area, direction), aspects in (getattr(self, "known_way_aspects", None) or {}).items():
+            for asp in sorted(aspects or []):
+                records.append({
+                    "id": f"way_{area}_{direction}_{asp}",
+                    "text": f"{area} {direction}: {asp}",
+                    "type": "way_aspect",
+                    "category": "semantic",
+                    "kind": "semantic",
+                    "source": "spatial",
+                    "data": {"area": str(area), "direction": str(direction), "aspect": str(asp)},
+                    "importance": 5,
+                })
+        # 4. Known areas -> semantic kind
+        known_areas = getattr(self, "known_areas", None) or []
+        for a in sorted(known_areas):
+            records.append({
+                "id": f"location_{a}",
+                "text": f"Known location: {a}",
+                "type": "location",
+                "category": "semantic",
+                "kind": "semantic",
+                "source": "spatial",
+                "data": {"location": str(a)},
+                "importance": 5,
+            })
+        return records
 
     def unknown_display_name(self) -> str:
         """The label others see for this character before meeting them.
@@ -1407,43 +1493,91 @@ class Player:
                 if self.memory_index.get(str(subject)) == gone.get("id"):
                     self.memory_index.pop(str(subject), None)
 
-    def suppress_memory(self, tags=None, keywords: str = "", duration: int = 1, scope: str = "self") -> list:
+    def suppress_memory(
+        self,
+        tags=None,
+        keywords: str = "",
+        duration: int = 1,
+        scope: str = "self",
+        memory_id: str = "",
+        memory_ids=None,
+        current_tick: int = 0,
+        wildcard: bool = False,
+    ) -> list:
         """Mark matching memories as inaccessible for `duration` turns.
 
         Returns list of suppressed memory ids.
         duration=0 means permanent until explicitly unblocked.
+        Positive duration sets until_tick = current_tick + duration.
         """
         tags = [t.lower() for t in (tags or []) if t]
         keywords_lower = keywords.lower().strip()
+        target_ids = {str(mid) for mid in (memory_ids or []) if mid}
+        if memory_id:
+            target_ids.add(str(memory_id))
+        if not target_ids and not tags and not keywords_lower and not wildcard:
+            return []
+
+        until_tick = (current_tick + duration) if duration > 0 else None
         suppressed_ids = []
         for m in self.memories:
             if m.get("suppressions"):
                 continue
-            mem_tags = [t.lower() for t in (m.get("tags") or [])]
-            tag_match = bool(tags) and all(t in mem_tags for t in tags)
-            kw_match = bool(keywords_lower) and keywords_lower in m.get("text", "").lower()
-            if (tags and tag_match) or (keywords_lower and kw_match) or (not tags and not keywords_lower):
+            mid = str(m.get("id", ""))
+            if target_ids:
+                matched = mid in target_ids
+            elif tags or keywords_lower:
+                mem_tags = [t.lower() for t in (m.get("tags") or [])]
+                tag_match = bool(tags) and all(t in mem_tags for t in tags)
+                kw_match = bool(keywords_lower) and keywords_lower in m.get("text", "").lower()
+                matched = (bool(tags) and tag_match) or (bool(keywords_lower) and kw_match)
+            else:
+                matched = bool(wildcard)
+
+            if matched:
                 m.setdefault("suppressions", [])
-                m["suppressions"].append({"until_tick": duration if duration > 0 else None, "source": scope})
+                m["suppressions"].append({"until_tick": until_tick, "source": scope})
                 suppressed_ids.append(m.get("id"))
         return suppressed_ids
 
-    def unblock_memory(self, tags=None, keywords: str = "", scope: str = "self") -> list:
+    def unblock_memory(
+        self,
+        tags=None,
+        keywords: str = "",
+        scope: str = "self",
+        memory_id: str = "",
+        memory_ids=None,
+        wildcard: bool = False,
+    ) -> list:
         """Remove active suppressions from matching memories.
 
         Returns list of unblocked memory ids.
         """
         tags = [t.lower() for t in (tags or []) if t]
         keywords_lower = keywords.lower().strip()
+        target_ids = {str(mid) for mid in (memory_ids or []) if mid}
+        if memory_id:
+            target_ids.add(str(memory_id))
+        if not target_ids and not tags and not keywords_lower and not wildcard:
+            return []
+
         unblocked_ids = []
         for m in self.memories:
             suppressions = m.get("suppressions", [])
             if not suppressions:
                 continue
-            mem_tags = [t.lower() for t in (m.get("tags") or [])]
-            tag_match = bool(tags) and all(t in mem_tags for t in tags)
-            kw_match = bool(keywords_lower) and keywords_lower in m.get("text", "").lower()
-            if (tags and tag_match) or (keywords_lower and kw_match) or (not tags and not keywords_lower):
+            mid = str(m.get("id", ""))
+            if target_ids:
+                matched = mid in target_ids
+            elif tags or keywords_lower:
+                mem_tags = [t.lower() for t in (m.get("tags") or [])]
+                tag_match = bool(tags) and all(t in mem_tags for t in tags)
+                kw_match = bool(keywords_lower) and keywords_lower in m.get("text", "").lower()
+                matched = (bool(tags) and tag_match) or (bool(keywords_lower) and kw_match)
+            else:
+                matched = bool(wildcard)
+
+            if matched:
                 m["suppressions"] = [s for s in suppressions if s.get("source") != scope]
                 if not m["suppressions"]:
                     unblocked_ids.append(m.get("id"))
@@ -1556,6 +1690,7 @@ class Player:
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
             "fear_tags": list(self.fear_tags),
+            "dislike_tags": list(self.dislike_tags),
             "birth_tick": getattr(self, 'birth_tick', None),
             "life_stage": getattr(self, 'life_stage', None),
             "carcass_item": getattr(self, 'carcass_item', None),

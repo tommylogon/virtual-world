@@ -1,10 +1,11 @@
 # area.py - Fixed by Yuki
 class Area:
-    def __init__(self, name, description, items, exits=None, environment=None):
+    def __init__(self, name, description, items, exits=None, environment=None, grid=None):
         self.name = name
         self.description = description
         self.items = list(items) if items else []  # COPY, not reference
         self.exits = dict(exits) if exits else {}  # COPY, not reference
+        self.grid = dict(grid) if grid else None
         self.environment = dict(environment) if environment else {
             "light": 80,
             # `temperature` is the **simulated** value: the engine rewrites it

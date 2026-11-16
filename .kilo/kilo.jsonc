@@ -1,4 +1,51 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "snapshot": false
+  "snapshot": false,
+  "mcp": {
+    "codesearch": {
+      "type": "local",
+      "command": [
+        "C:/ProgramData/miniconda3/python.exe",
+        "F:/ai/codesearch/src/codesearch/cli.py",
+        "--root",
+        "F:/AI/viwo/virtual-world",
+        "mcp"
+      ],
+      "environment": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONPATH": "F:/ai/codesearch/src"
+      },
+      "enabled": true
+    },
+    "millwood-search": {
+      "type": "local",
+      "command": [
+        "C:/ProgramData/miniconda3/python.exe",
+        "F:/ai/codesearch/src/codesearch/cli.py",
+        "--root",
+        "C:/Users/Tommy/Documents/Books/millwood",
+        "mcp"
+      ],
+      "environment": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONPATH": "F:/ai/codesearch/src"
+      },
+      "enabled": true
+    },
+    "codesearch-fai": {
+      "type": "local",
+      "command": [
+        "C:/ProgramData/miniconda3/python.exe",
+        "F:/ai/codesearch/src/codesearch/cli.py",
+        "--root",
+        "F:/ai/codesearch",
+        "mcp"
+      ],
+      "environment": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONPATH": "F:/ai/codesearch/src"
+      },
+      "enabled": true
+    }
+  }
 }

@@ -164,10 +164,10 @@ class VirtualWorld:
             "year_start_day": 1,
         }
 
-        # ── Weather forecast (task-227): authored schedule + GM override ──
+        # ── Weather forecast (task-227, task-798): authored forecast + GM override ──
         # Default: authored with ZERO entries - a strict no-op until a
-        # scenario authors a schedule or a GM sets an override.
-        self.forecast_schedule = {
+        # scenario authors a forecast or a GM sets an override.
+        self.forecast = {
             "mode": "authored",
             "seed": None,
             "granularity": "hourly",
@@ -248,6 +248,9 @@ class VirtualWorld:
         self.narration.set_name_matcher(self.name_matcher)
         self.conditions = ConditionsSystem(self.player_manager, self)
         self.activities = ActivitySystem(self)
+        from engine.turn_order import TurnOrderResolver
+        self.turn_order_mode = "sequential"
+        self.turn_order_resolver = TurnOrderResolver(mode=self.turn_order_mode, seed=getattr(self, "seed", 42))
 
         # Create default player (must happen after all subsystems are initialized)
         default_player = Player()
@@ -320,6 +323,32 @@ class VirtualWorld:
     @turn_number.setter
     def turn_number(self, value):
         self.game_logger.turn_number = value
+
+    def get_turn_order(self):
+        """Return the resolved list of Player objects for the current timeframe (task-437)."""
+        id_to_player = {}
+        for p in self.players.values():
+            id_to_player[getattr(p, "id", p.name)] = p
+        round_num = getattr(self, "turn_number", 0) or 0
+        ghost_mode = getattr(self, "ghost_mode", False)
+        self.turn_order_resolver.set_mode(self.turn_order_mode)
+        ordered_ids = self.turn_order_resolver.resolve(id_to_player, round_number=round_num, ghost_mode=ghost_mode)
+        return [id_to_player[cid] for cid in ordered_ids if cid in id_to_player]
+
+    def get_turn_order_ids(self):
+        """Return the list of character IDs in the resolved order (task-437)."""
+        id_to_player = {}
+        for p in self.players.values():
+            id_to_player[getattr(p, "id", p.name)] = p
+        round_num = getattr(self, "turn_number", 0) or 0
+        ghost_mode = getattr(self, "ghost_mode", False)
+        self.turn_order_resolver.set_mode(self.turn_order_mode)
+        return self.turn_order_resolver.resolve(id_to_player, round_number=round_num, ghost_mode=ghost_mode)
+
+    def get_turn_order_info(self):
+        """Return serialized turn order metadata (task-437)."""
+        self.get_turn_order_ids()
+        return self.turn_order_resolver.to_dict()
 
     # ────── Fuzzy match note forwarded to NameMatching ──────
     @property
@@ -453,6 +482,18 @@ class VirtualWorld:
     def move_to_area(self, direction: str) -> str:
         return self.movement.move_to_area(direction)
 
+    def move_to_coord(self, player_or_name, x: int, y: int) -> dict:
+        return self.movement.move_to_coord(player_or_name, x, y)
+
+    def move_to_item(self, player_or_name, item_name_or_id: str) -> dict:
+        return self.movement.move_to_item(player_or_name, item_name_or_id)
+
+    def get_area_grid(self, area_name_or_id: str):
+        return self.movement.get_area_grid(area_name_or_id)
+
+    def set_area_grid(self, area_name_or_id: str, grid_data: dict) -> None:
+        return self.movement.set_area_grid(area_name_or_id, grid_data)
+
     def approach(self, target: str) -> str:
         """Walk over to a way/item/person and stop (never crosses a way)."""
         return self.movement.approach(target)
@@ -468,6 +509,18 @@ class VirtualWorld:
 
     def jump_to_area(self, direction: str) -> str:
         return self.movement.jump_to_area(direction)
+
+    def swim_to_area(self, direction: str) -> str:
+        return self.movement.swim_to_area(direction)
+
+    def dive_to_area(self, direction: str) -> str:
+        return self.movement.dive_to_area(direction)
+
+    def swim(self, direction: str) -> str:
+        return self.movement.swim_to_area(direction)
+
+    def dive(self, direction: str) -> str:
+        return self.movement.dive_to_area(direction)
 
     def toggle_way(self, direction: str, action: str = "open") -> str:
         return self.movement.toggle_way(direction, action)
@@ -854,6 +907,26 @@ class VirtualWorld:
 
     def use_item_on(self, item_name: str, target_name: str = None, params: str = None, amount: int = 1) -> str:
         return self.item_actions.use_item_on(self, item_name, target_name, params=params, amount=amount)
+
+    def initiate_call(self, caller_name: str, target_name: str, phone_node=None) -> str:
+        from engine.long_distance_comms import initiate_call
+        return initiate_call(self, caller_name, target_name, phone_node)
+
+    def answer_call(self, player_name: str, phone_node=None) -> str:
+        from engine.long_distance_comms import answer_call
+        return answer_call(self, player_name, phone_node)
+
+    def end_call(self, player_name: str, phone_node=None) -> str:
+        from engine.long_distance_comms import end_call
+        return end_call(self, player_name, phone_node)
+
+    def toggle_speakerphone(self, player_name: str, device_node=None) -> str:
+        from engine.long_distance_comms import toggle_speakerphone
+        return toggle_speakerphone(self, player_name, device_node)
+
+    def tune_channel(self, player_name: str, device_node, channel: str) -> str:
+        from engine.long_distance_comms import tune_channel
+        return tune_channel(self, player_name, device_node, channel)
 
     def find_item_node(self, item_name: str) -> Optional[Node]:
         return self.player_manager.find_item_node(item_name)
@@ -1380,14 +1453,31 @@ class VirtualWorld:
             for key in list(cache)[:len(cache) - 200]:
                 cache.pop(key, None)
 
+    def fire_goal_reached_triggers(self, player, goal: dict):
+        """task-823: Fire triggers answering a reached goal."""
+        from engine.goals import dispatch_goal_reached
+        outputs = dispatch_goal_reached(self.graph, self.triggers, player, goal, self)
+        for out in outputs:
+            self.add_log_entry(out)
+        return outputs
+
+    @property
+    def forecast_schedule(self):
+        """Backward-compatibility alias for self.forecast (task-798)."""
+        return getattr(self, "forecast", None)
+
+    @forecast_schedule.setter
+    def forecast_schedule(self, value):
+        self.forecast = value
+
     def _forecast_sched(self):
-        """Cached ForecastSchedule object (survives across ticks so the
+        """Cached Forecast object (survives across ticks so the
         state machine keeps its current_state)."""
-        from engine.weather_forecast import ForecastSchedule
+        from engine.weather_forecast import Forecast
         sched = getattr(self, "_forecast_sched_obj", None)
-        raw = getattr(self, "forecast_schedule", None) or {}
+        raw = getattr(self, "forecast", None) or getattr(self, "forecast_schedule", None) or {}
         if sched is None or getattr(sched, "_raw", None) is not raw:
-            sched = ForecastSchedule(raw)
+            sched = Forecast(raw)
             sched._raw = raw
             self._forecast_sched_obj = sched
         return sched
@@ -1433,7 +1523,7 @@ class VirtualWorld:
         is reproducible and tomorrow differs from today. Ordered overrides are
         applied on top (area > date > heuristic).
         """
-        raw = getattr(self, "forecast_schedule", None) or {}
+        raw = getattr(self, "forecast", None) or getattr(self, "forecast_schedule", None) or {}
         day = int(getattr(self, "game_day", 1) or 1)
         if self._weather_field_day == day and self._weather_field:
             return self._weather_field
@@ -1491,7 +1581,7 @@ class VirtualWorld:
         from engine.weather_forecast import (
             OUTDOOR_BASE_C, apply_field_overrides, generate_weather_field,
             get_moon_phase, temp_curve_for_hour, weather_tuning)
-        raw = getattr(self, "forecast_schedule", None) or {}
+        raw = getattr(self, "forecast", None) or getattr(self, "forecast_schedule", None) or {}
         if not isinstance(raw, dict):
             raw = {}
         try:
@@ -1638,7 +1728,7 @@ class VirtualWorld:
         Called from TickManager.tick_turn() right after the clock advances.
         Strict no-op with the default authored/empty schedule.
         """
-        raw = getattr(self, "forecast_schedule", None)
+        raw = getattr(self, "forecast", None) or getattr(self, "forecast_schedule", None)
         if not isinstance(raw, dict) or not any([
             raw.get("entries"),
             raw.get("mode") in ("deterministic", "random", "hybrid", "generated"),
@@ -1659,7 +1749,9 @@ class VirtualWorld:
             bounds_crossed = (minute_now // interval_minutes) - (prev // interval_minutes)
             for _ in range(max(0, min(bounds_crossed, 10))):
                 sched.roll_state()
-            if isinstance(self.forecast_schedule, dict):
+            if isinstance(getattr(self, "forecast", None), dict):
+                self.forecast["current_state"] = sched.current_state
+            elif isinstance(getattr(self, "forecast_schedule", None), dict):
                 self.forecast_schedule["current_state"] = sched.current_state
         self._forecast_last_minute = minute_now
 
@@ -1750,7 +1842,7 @@ class VirtualWorld:
         season = self.current_season()
         # task-763: when the machine (not an authored entry) is the source, each
         # area's state also carries its wind/humidity/temperature tendency.
-        mode = (getattr(self, "forecast_schedule", None) or {}).get("mode")
+        mode = (getattr(self, "forecast", None) or getattr(self, "forecast_schedule", None) or {}).get("mode")
         tuned = mode in ("deterministic", "random", "hybrid", "generated")
         for node in self.graph.nodes.values():
             if node.type != "area":

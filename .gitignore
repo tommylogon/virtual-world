@@ -99,3 +99,9 @@ scratch/
 data/config/
 data/exports/Millwood_tick_1-3188*
 data/exports/benchmark_*
+
+# Local research folder junction
+/research/
+
+# Local codesearch index (rebuilt by python tools/codesearch/cli.py index)
+.codesearch/
