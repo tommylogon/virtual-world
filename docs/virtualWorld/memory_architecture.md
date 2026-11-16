@@ -129,3 +129,56 @@ questions! that which is the foundation of curiosity, and by extention, soul
 7. **Questions as Proactive Free Actions:**
    - `category: "question"` (`"Who stole my gum?"`) is an active mental choice emitted as a zero-turn-cost free action (an optional side-channel field in the agent JSON turn response and a free action for human turns, consuming neither major nor minor turn budget).
    - Open questions act as standing perceptual tripwires that match incoming sightings, emotes, and dialogue against watched entities/concepts, driving proactive suspicion, interrogation, and eventual resolution into beliefs.
+
+
+---
+
+## Pass 2: Grounded Audit & Architectural Synthesis (01.11.2026)
+
+Based on direct inspection of production runs (`data/exports/Millwood_tick_1-3188_event_log_2026-10-30T22-16-47.json`, `data/sandbox_autosave.json`, `data/exports/mansion_tick_6834_event_log_2026-09-07T23-26-55.md`) and the 2026 research literature (APEX-MEM, VoiceMem, HeLa-Mem, Anchor Engine, MRAgent). Full measured metrics are recorded in `docs/live-audit/2026-11-01-memory-export-audit.md`.
+
+### 1. Concrete Ground-Truth Failures Measured in Live Exports
+
+Inspection of raw runtime prompts and export logs revealed five specific failure mechanisms currently breaking agent memory and conversation:
+
+1. **Client Override Breaks Lane Budgeting:**
+   - The engine defines a budget of `max_results=6` (`engine/memory_retrieval.py:607`) with zero padding allowed.
+   - However, `static/js/agent/prompt-builder/memory-context.ts:304` hard-codes `max_results: 10`.
+   - Result: In the Millwood run, 39 of 60 recall events returned exactly 10 memories. The lane was flooded on every single turn.
+2. **False Contradiction Storm from Coarse Entity Matching:**
+   - In `data/sandbox_autosave.json`, 125 of 244 memories (51%) carry `contradicts` links across 414 unique pairs.
+   - 405 of these 414 pairs satisfy the rule in `memory_dynamics.detect_contradiction` because the shared-entity check is satisfied by room node IDs (e.g. `area_cafeteria`). Any two memories created in the same room with negation asymmetry trigger a mutual contradiction.
+   - Example from Jake: *"Searched my backpack for the anonymous love note but couldn't find it"* was linked as contradicting *"Found anonymous crimson gel pen note in bag"*. This is a chronological state transition, not an epistemological contradiction.
+   - In Jake's prompt at tick 2, 6 of the 9 recalled memories were flagged with `(⚡ this conflicts with another memory)`.
+3. **Temporal Invalidation Window is Unwritten:**
+   - While `memory_retrieval.is_active_memory` correctly checks `invalid_at` and `superseded_by`, 0 of the 244 memories in the save had either field set.
+   - The engine has no automated mechanism to expire previous world states when new facts supersede them.
+4. **Verbatim Conversational Repetition Despite Anti-Repeat Prompts:**
+   - In Millwood, Jake asked: *"hey guys, real quick - does anyone have a crimson gel pen? like, on them right now? i need to know if someone's carrying one, seems sketchy."* verbatim on both tick 1 and tick 2.
+   - Inspection of Jake's tick 2 prompt shows `=== CONVERSATION ===` did contain his prior statement under *"You recently said:"*, alongside the instruction *"Do not repeat a line you already said"*. The LLM completely ignored the prompt negative constraint.
+   - Furthermore, `Player.memories` records 0 memories of type `speech` (by design in `Memory System.md`). The agent's episodic memory substrate holds zero record of its own spoken queries, preventing associative retrieval from surfacing past dialogue commitments.
+5. **No Questions Generated:**
+   - The save holds 0 memories under `category: "question"`. The free-action path for proactive curiosity formulated in Pass 1 was never invoked in practice.
+
+### 2. Architectural Answers from the 2026 Research Corpus
+
+The research papers gathered in `research/` address these exact failure modes without requiring external graph databases:
+
+* **Append-Only Validity Intervals (APEX-MEM arXiv:2604.14362):**
+  - Solves the "could not find note" vs "found note" conflict. Instead of marking contradictory statements, fact mutations must write `invalid_at = current_tick` to the superseded memory.
+  - Historical facts remain in the database for long-term narrative consistency, but drop out of active associative recall.
+* **Separation of Factual World from Affective Persona (VoiceMem arXiv:2608.26005):**
+  - Informational Left Brain ($G_L$): entities, physical locations, item containment, and causal sequences.
+  - Affective Right Brain ($G_R$): independent traits ($V^I$) and cross-entity attitudes ($V^C$).
+  - Prevents emotional surges (e.g. Jake's paranoia about the note) from being treated as factual contradictions against physical observations.
+* **In-Process Deterministic Retrieval (Anchor Engine & HeLa-Mem):**
+  - Traversal over local adjacency lists and Hebbian co-activation weights. Eliminates multi-turn LLM query planning while preserving sub-millisecond retrieval speeds.
+
+<!-- connected:start -->
+## Connected
+
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+
+**Neighbouring notes**  -  [[Commands]], [[Emotion & Mood — Whole-System Analysis]], [[Feature Ledger]], [[Feature Map]], [[History]], [[Patch Notes 2026-08-22 to 2026-09-22]]
+
+<!-- connected:end -->

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jake Halloway - Worked Example Thought Flow</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #18181b; }
+  </style>
+</head>
+<body>
+  <div class="mermaid">
+flowchart LR
+    classDef sensory fill:#0369a1,stroke:#7dd3fc,color:#ffffff,stroke-width:2px
+    classDef factual fill:#1d4ed8,stroke:#93c5fd,color:#ffffff,stroke-width:2px
+    classDef memory fill:#b45309,stroke:#fcd34d,color:#ffffff,stroke-width:2px
+    classDef mind fill:#4338ca,stroke:#a5b4fc,color:#ffffff,stroke-width:2px
+    classDef actor fill:#047857,stroke:#6ee7b7,color:#ffffff,stroke-width:2px
+    classDef loop fill:#7e22ce,stroke:#e879f9,color:#ffffff,stroke-width:2px
+    classDef reject fill:#b91c1c,stroke:#fca5a5,color:#ffffff,stroke-width:2px
+    classDef root fill:#334155,stroke:#cbd5e1,color:#ffffff,stroke-width:1.5px
+
+    %% Column 1: Turn N Inputs (Jake Halloway in Millwood Cafeteria)
+    OBS["1. Sensory &amp; Social<br/>Loc: Millwood Cafeteria<br/>Heard [to you]: 'jake, pass me that note'<br/>Vitals: stomach drop · Sanity: steady"]:::sensory
+    FACT["Factual Lane (Unvarnished)<br/>carrying: [cracked phone]<br/>(NO note in pack)<br/>AlreadyKnown: searched pack earlier"]:::factual
+    ATTN["Interests, Fears &amp; Bias<br/>interests: [skating, mysteries]<br/>fear: being watched / framed<br/>mood: paranoid · trust(Kayla): low"]:::root
+    GIMP["GIMP &amp; Schedule<br/>Goal: Find out who planted the note<br/>M: self-protection · I: stay ahead of setup<br/>Schedule: Lunch period"]:::root
+    SEED["Memory &amp; History<br/>- 'crimson note tucked in bag'<br/>- 'searched pack, couldn't find it'<br/>- 'Observed Cafeteria...' (noise)<br/>- 'Miki ASMR...' (unrelated)"]:::root
+
+    %% Column 2: Cueing & Recall
+    CUE["2. Cue &amp; Salience Gate<br/>Cues: [Cafeteria, note, Kayla, paranoia]<br/>Cue-Change Gate: SALIENT SHIFT (Yes)"]:::memory
+    RECALL["Involuntary Recall<br/>Pulls: [note in bag, pack empty]<br/>Drops: [Observed Cafeteria, Miki]"]:::memory
+    MOSIAC["MOSIAC Ranker<br/>M+I: protect self · O+S: lunch<br/>A: paranoia + note (high)<br/>C: [speak, examine, search, leave]"]:::mind
+
+    %% Column 3: Intermediator & Active Mind
+    INTER["3. Memory Intermediator (LFM)<br/>Mood-Biased Palimpsest:<br/>'Someone slipped that note into my bag,<br/>and when I checked earlier it was gone.'"]:::memory
+    MIND["Conscious Memory + Active Mind<br/>Q: 'Who took the note back?'<br/>Assumption: 'They are setting me up.'<br/>Commitment: 'Don't tip my hand.'"]:::mind
+
+    %% Column 4: Plan & Actor
+    PLAN{"4. Active Plan<br/>Still Valid?<br/>(pressed in public)"}:::actor
+    ACTOR["Actor LLM / Soak<br/>Monologue: 'Play it cool, pack is empty.'<br/>Intent: speak('What note? Check the table.')<br/>(or Deliberate Recall if unsure)"]:::actor
+
+    %% Column 5: Grounding & Outcome
+    INTERP["5. Action Interpreter &amp; PlanGrounding<br/>Checks verb 'speak' + Factual Lane:<br/>No hallucinated note in hand"]:::actor
+    ACT["Execute &amp; Mutate<br/>Emits speech to WITNESSED<br/>Updates lived_log + Kayla tension"]:::actor
+    REJECT["Blocked Example<br/>If Actor tried 'give(note)':<br/>Blocked (not in carrying) -> Re-think"]:::reject
+
+    %% Column 6: Reconsolidation & Dreams
+    PERSIST["6. Post-Turn Save<br/>Saves Conscious Summary + Monologue<br/>+ Source Refs: [mem_note_1, mem_pack_2]"]:::loop
+    DYN["Memory Dynamics<br/>Reinforces: 'setup paranoia'<br/>Supersedes: 'note in bag' (invalid_at)<br/>(No false contradiction!)"]:::loop
+    SLEEP["Sleep / Dreams &amp; Daily Reflection<br/>consolidate_sleep() prunes clutter<br/>Belief: 'Kayla is probing me'<br/>Updates GIMP goal priority"]:::loop
+
+    %% Strict Left-to-Right Edges
+    OBS --> CUE
+    ATTN --> CUE
+    SEED --> RECALL
+    CUE --> RECALL
+    RECALL --> INTER
+    ATTN --> INTER
+    OBS --> INTER
+    INTER --> MIND
+
+    GIMP --> MOSIAC
+    ATTN --> MOSIAC
+    OBS --> MOSIAC
+
+    FACT --> PLAN
+    MOSIAC --> PLAN
+    MIND --> PLAN
+
+    PLAN -- "Replan / React" --> ACTOR
+    PLAN -- "Continue step" --> INTERP
+    ACTOR --> INTERP
+    FACT --> INTERP
+
+    INTERP -- "Valid" --> ACT
+    INTERP -- "Blocked" --> REJECT
+
+    ACT --> PERSIST
+    ACTOR --> PERSIST
+    REJECT --> PERSIST
+    PERSIST --> DYN --> SLEEP
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</body>
+</html>

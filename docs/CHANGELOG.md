@@ -4,6 +4,101 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased - "Calls, Currents & Cradles" (2026-11-04)
+
+**Long-distance communication.** `engine/long_distance_comms.py` relays speech
+between powered carried devices: `call <contact>`, `answer`, `hangup`, and
+channel tuning via `use`. Speakerphone is audible nearby; an active call applies
+the `on_a_call` condition. New items `walkie_talkie`, `radio_battery`; `phone`
+gains `use` (task-299).
+
+**Swimming and diving.** `swim` / `dive` are way verbs gated by `swim_dc` /
+`dive_dc` Athletics checks. New `Air` vital drains 20 per tick submerged, refills
+50 per tick at the surface, and triggers `suffocating` at 0. Added to
+`WAY_VERBS`, `SOAK_ACTIONS` and `tools/way_properties.py` (task-594).
+
+**Schedules and pursuits reach the prompt.** The agent turn prompt lists the full
+routine, the current step and the `schedule` add/remove syntax (task-814). The
+plan tracker seeds from `Player.active_pursuit` / `Player.plan`, shows the
+undertaking reason, and exempts pursuit plans from the 10-turn age-out (task-856).
+
+**Pregnancy, gestation and birth.** New engine/pregnancy.py; gestation advances
+in lifecycle.on_clock and birth spawns a real child. Persisted in saves. Conception
+wired via ttempt_conception trigger effect and autonomous flirt interactions in mature
+worlds (task-846).
+
+**Reproductive cycles and estrus.** New engine/reproductive_cycle.py; declares species
+cycle patterns (monthly cycle for human/elf/dwarf, estrus heat for goblin/beasts, none for undead).
+Phases cycle conditions (menstruating, ovulating, in_heat) and gate the fertility window.
+Pregnancy suspends cycles and birth resumes at day 1; consent boundaries strictly preserved.
+Mind, Persona, and Agent views display active phases and badges (task-928).
+
+**Plan executor runtime.** Unified typed runner in engine/plan_executor.py executes
+grounded sequences of travel, take, drop, activity, and wait steps. Gated on grounded
+preconditions and preempted by urgent vitals (Hunger, Thirst, Exhaustion) (task-702).
+
+**Recipe station bindings and transform outcomes.** Crafting and cooking actions
+provide explicit missing items lists on failure. In-progress crafting binds the character
+to the station fixture via a transient graph edge, unbinding cleanly on completion or
+interruption (task-703).
+
+**MOSIAC pursuit selector.** Engine-level candidate evaluator in engine/mosiac_selector.py
+ranks candidate pursuits against highest-priority active goals (1-is-highest priority)
+and disposition scoring. Supports unpenalized decline of candidate pursuits (task-704).
+
+**Daily reflection and schedule evolution.** Periodic reflection in engine/daily_reflection.py
+summarizes vitals, relationships, and memories once per in-game day, generating reflection
+memories and updating or reprioritizing active goals (task-409).
+
+**Terrain hazards compiler.** engine/hazards.py and engine/world_compile.py compile
+painted layer hazards into simulation triggers: unbridged water crossings into river
+hazards, water jumps into on_fail_jump hazards, steep drops into cliff/fall hazards,
+and bramble/briar biomes into thorns enter hazards (task-747).
+
+**Large-world projection & indexing benchmark.** tools/benchmark_scale.py verifies
+hierarchical scope scaling up to 107k nodes, bounds scope transmission ratios (< 0.2%),
+and validates 0.023ms index lookups against 20.68ms linear scans (task-402).
+
+**Chunk persistence and gateway ways.** Multi-scope chunk persistence umbrella verified
+across tasks 581, 582, 583, 584, and 402 with end-to-end tests in tests/test_chunk_lifecycle.py
+(task-401).
+
+**Child-scope procedural generators and corner doors.** Procedural generators in
+engine/scope_generators/ produce settlement, ruin/dungeon, and wilderness child scopes.
+Markov adjacency matrix in data/worldpainter/adjacency.json and engine/world_adjacencies.py
+calculates gradient buffers. 19 dwarven subterranean library biomes added. 45-degree
+chamfered corner doors supported in engine/world_compile.py guarded by solid wall checks (task-884).
+
+**Area naming pass and bridge disambiguation.** engine/world_compile.py emits human-facing
+display_name properties on compiled areas. Way pass_messages strip internal grid coordinates.
+Authoring pass on kraktooth_goblin_camp.json provides 10 distinct contextual display_names
+for repeated bridge locations (task-638).
+
+**Tooling.** tools/drive_sim.py HTTP simulation driver with JSONL telemetry
+(task-860). Simultaneous mode v2 verified and moved to review (task-825).
+
+**Tests.** tests/test_long_distance_comms.py, test_swimming_and_diving.py,
+test_pregnancy.py, test_reproductive_cycle.py, test_background_social.py,
+test_drive_sim.py, test_plan_executor.py, test_recipe_activity.py,
+test_crafting.py, test_mosiac_selector.py, test_daily_reflection.py,
+test_compiled_hazards.py, test_world_projection_benchmark.py,
+test_chunk_lifecycle.py, test_world_adjacencies.py, test_scope_generators.py,
+test_area_names.py,
+tools/unit/test_schedule_prompt_context.js,
+tools/unit/test_active_pursuit_prompt.js.
+
+---
+
+**Server-side batch time advance.** `POST /api/world/advance` runs multi-tick or multi-minute advances in chunks up to `MAX_MINUTES` with tick streaming and conflict guards (task-414).
+
+**Turn order source of truth and modes.** `engine/turn_order.py` provides deterministic `sequential`, `random`, `initiative`, and `simultaneous` order resolver owned by the engine. Synchronized across background simulation and client `turn-queue.ts` via `/api/turn/order` (task-437).
+
+**Timeskip follow-ups: leisure vendors & explore frontier.** Leisure intent buys from merchants or shops with currency exchange and event logging. Explore intent prioritizes newly materialized scopes and generation frontiers (task-482).
+
+**Area grids, movement costs & A* pathfinding.** 2D room grids (`width`, `height`, `tiles`, `costs`, `characters`, `items`, `exits`) with A* pathfinding in `engine/pathfinding.py`. Supported in `movement.py` via `move_to_coord` and `move_to_item`, CLI commands, NPC behaviors, and inspector grid view (task-99).
+
+---
+
 ## Unreleased - "Charted Ground" (2026-10-22)
 
 **Play Mode is a boundary.** Stopping a play session restores the authored world

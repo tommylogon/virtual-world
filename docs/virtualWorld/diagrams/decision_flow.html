@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sammy Lopez - Mind &amp; Decision Sequence</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #18181b; }
+  </style>
+</head>
+<body>
+  <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant W as World + Factual Lane
+    participant B as Body, Identity + Rel
+    participant R as Cue + Recall
+    participant I as Intermediator (LFM)
+    participant M as Active Mind + MOSIAC
+    participant A as Actor + Social Mask
+    participant G as Interpreter + Dynamics
+
+    Note over W,B: 1. PRESENT MOMENT AND STANDING SELF (Sammy Lopez - Millwood Cafeteria)
+    W->>B: OBS - Jake holds crimson-ink note, smells faintly of shop grease and dark coffee
+    Note right of W: Factual Lane (Unvarnished)<br/>carrying=[lip gloss], Cafeteria exits<br/>AlreadyKnown - Lulu uses crimson gel pen
+
+    B->>B: Embodied + Appraisal + Surprise<br/>Stomach drops, jealousy spikes (Lulu + shop grease)<br/>Involuntary Reflex (involuntary.ts)<br/>Chews strawberry lip gloss raw, kicks table leg
+
+    Note over R,I: 2. CUEING, INVOLUNTARY RECALL AND INTERMEDIATOR
+    B->>R: Cues [crimson note, Jake, Lulu, shop grease, jealousy]<br/>Cue-Change Gate - SALIENT SHIFT = YES
+    R->>I: Multi-hop Recall (memory_retrieval.py)<br/>Pulls [shed roof surfboard shame, Lulu note, Kayla porch]<br/>Drops [Observed Cafeteria items, river rocks, paella]
+    B->>I: Mood + Rel Lens - insecurity (Astrid reject) + Lulu hatred + Kyrie blind spot
+    I->>M: Conscious Memory (Palimpsest, zero raw DB rows)<br/>Jake is holding a crimson note and looks relaxed - like he is<br/>slipping away to someone prettier like Lulu, just like I feared.
+
+    Note over M,A: 3. ACTIVE WORKING MIND, MOSIAC AND PRIVATE VS PUBLIC SELF
+    M->>M: Active Mind + MOSIAC Ranker<br/>Q - Why did Jake smell like shop grease? Is that note from Lulu?<br/>GIMP M+I - protect claim on Jake / A - jealousy + pride<br/>C (gated verbs) - [speak, glare, examine, leave]
+    M->>A: Plan Check - Lunch plan interrupted by threat -> Replan
+    Note right of A: Private Inner Monologue<br/>My chest hurts. Don't cry in front of Lulu. Act like I don't care.<br/>Social Mask (ID pride + lie I don't care)<br/>Hides panic behind loud, sharp tomboy deflection
+
+    Note over A,G: 4. GROUNDING, EXECUTION AND RECONSOLIDATION
+    A->>G: Intent - speak(Who is writing you love notes now, Halloway?) + glare(Jake)
+    G->>W: Action Interpreter + PlanGrounding (against Factual Lane)<br/>Valid -> emits WITNESSED speech, updates lived_log + Jake/Lulu tension
+    G->>G: Post-Turn Save + Memory Dynamics<br/>Saves conscious summary + inner monologue + immutable source IDs<br/>Reinforces fear of losing Jake / Sleep/Dreams prunes Cafeteria noise
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</body>
+</html>

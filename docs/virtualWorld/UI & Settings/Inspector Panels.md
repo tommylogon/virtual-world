@@ -8,12 +8,12 @@ tags: [system/ui]
 ## What you can do
 
 Click anything in the world and edit it. The inspector is the right-hand panel
-that opens on a node — an area, an item, a way, a character, a memory, a
-behaviour, a piece of lore — and shows you what it is while letting you change
+that opens on a node - an area, an item, a way, a character, a memory, a
+behaviour, a piece of lore - and shows you what it is while letting you change
 it. Pick a different node and the panel becomes that node's editor; there is no
 separate screen per type.
 
-The Inspector is a context-sensitive right-side panel for inspecting and editing world entities — areas, items, ways, characters, memories, behaviors, lore, and more.
+The Inspector is a context-sensitive right-side panel for inspecting and editing world entities - areas, items, ways, characters, memories, behaviors, lore, and more.
 
 ## Architecture
 
@@ -21,11 +21,11 @@ The `Inspector` class (`static/js/inspector.js`) is a singleton (`window.inspect
 
 ### Rendering (lit-html, task-216)
 
-All inspector views render through a single panel owner — `InspectorPanel` (`static/js/inspector/panel.js`). **No file other than `panel.js` writes to `#inspector-panel`**; mixing `innerHTML` writes with lit's `render()` on the same container corrupts lit's part tracking.
+All inspector views render through a single panel owner - `InspectorPanel` (`static/js/inspector/panel.js`). **No file other than `panel.js` writes to `#inspector-panel`**; mixing `innerHTML` writes with lit's `render()` on the same container corrupts lit's part tracking.
 
-- `static/js/vendor/lit-html/**` — vendored lit-html (no CDN / import map)
-- `static/js/shared/lit-bootstrap.js` — deferred ES-module bootstrap exposing `window.Lit` (`html`, `render`, `nothing`, `unsafeHTML`, directives). Loaded as a module with `defer`, so classic scripts reference `window.Lit` only inside functions (at call time).
-- `static/js/inspector/panel.js` — `InspectorPanel.render(template)` / `clear()`; the single render entrypoint.
+- `static/js/vendor/lit-html/**` - vendored lit-html (no CDN / import map)
+- `static/js/shared/lit-bootstrap.js` - deferred ES-module bootstrap exposing `window.Lit` (`html`, `render`, `nothing`, `unsafeHTML`, directives). Loaded as a module with `defer`, so classic scripts reference `window.Lit` only inside functions (at call time).
+- `static/js/inspector/panel.js` - `InspectorPanel.render(template)` / `clear()`; the single render entrypoint.
 
 Converted views (area, item, way, lore, behaviors, memory modal, trigger-helpers, helpers, edge-inspector) build lit `TemplateResult`s with `window.Lit.html` and hand them to `InspectorPanel`. Inline `onclick`/`onchange` became `@click`/`@change` bindings; lit auto-escaping replaces manual `esc()`.
 
@@ -46,16 +46,19 @@ Converted views (area, item, way, lore, behaviors, memory modal, trigger-helpers
 | `EdgeInspector` | `graph/edge-inspector.js` | Graph edge properties/type editing (via `InspectorPanel`) |
 | `InspectorPanel` | `panel.js` | Single owner of `#inspector-panel` render/clear |
 
-### Inspector.js Dispatch (line 31)
+### Inspector.js Dispatch (line 249)
 
 ```javascript
 showNode(nodeId) {
     const graphNode = worldState.getNode(nodeId);
-    switch (graphNode.type) {
-        case 'room':      return this._showRoom(nodeId, graphNode);
-        case 'item':      return this._showItem(nodeId, graphNode);
-        case 'door':      return this._showDoor(nodeId, graphNode);
-        case 'character': return this.showAgent(graphNode.name);
+    if (graphNode) {
+        switch (graphNode.type) {
+            case 'area':          return this._showArea(nodeId, graphNode);
+            case 'item':          return this._showItem(nodeId, graphNode);
+            case 'way':           return this._showWay(nodeId, graphNode);
+            case 'character':     return this.showAgent(graphNode.name);
+            case 'logic_trigger': return this._showTriggerParent(nodeId);
+        }
     }
 }
 ```
@@ -74,39 +77,46 @@ if (window.appEvents) {
 
 ## Sub-Panels
 
-### Area View (`InspectorRoomView`)
+### Area View (`InspectorAreaView`)
 
 Shows:
 - Area name (editable) and description (editable textarea)
-- Environment sliders: light, temperature, air, smell, noise
-- AI Improve button — uses LLM to generate richer room descriptions
-- Exits list with door links
+- Environment section: light (numeric or preset word), temperature, air, smell, noise, weather presets
+- AI Improve button - uses LLM to generate richer room descriptions
+- Floor height control (step integer)
+- Scope membership & WorldPainter map placement
+- Ownership section (held by faction tags: `held_by:<name>`)
+- Exits list with connected way state inspection
+- Agents present in area
+- Area event log
+- Tags (with TagMultiselect)
+- Items in area
 - Graph physics controls (gravity toggle)
 
 ### Item View (`InspectorItemView`)
 
 Shows:
 - Item name (editable), description, weight, uses, hidden/locked flags
-- Actions grid — toggle which actions are enabled (examine, take, use, eat, drink, read, activate)
-- Action costs grid — set stat costs (Energy, Hunger, Thirst, HP) per action
+- Actions grid - toggle which actions are enabled from the 15 supported actions: `examine`, `take`, `use`, `open`, `close`, `eat`, `drink`, `read`, `light`, `activate`, `equip`, `unequip`, `throw`, `break`, `drop`
+- Action costs grid - set stat costs (Energy, Hunger, Thirst, HP) per action
 - Skill check configuration
 - Equip slots
 - Tags
-- AI Improve button — uses LLM to enhance item descriptions
+- AI Improve button - uses LLM to enhance item descriptions
 - Move item controls (to room or container)
 - Trigger/effect grid via TriggerHelpers
 
 ### Character/Agent View (`InspectorAgentView`)
 
-Shows a multi-tab interface (line 158, `_switchAgentTab`):
-- **Profile tab**: Name, personality (with AI generation), description (with AI generation), state, emotion slider, tags, stats, skills, vitals
-  - The **Appearance** section has a live **"First impression:"** preview — shows exactly what a stranger sees at a glance (tag-derived handle + first sentence of the description), updating as you type. See [[Library System/Tags System#First impression (the at-a-glance look)]].
+Shows a 4-tab interface (`TABS = ['Inventory', 'Bio', 'Images', 'Advanced']`):
 - **Inventory tab**: Paperdoll-style equipment slots and inventory list with context menus
-- **Behaviors tab**: Behavior editor
-- **Memories tab**: Memory list with CRUD
-- **Lore tab**: World lore browser
-- **Agent tab**: LLM agent configuration (model, temperature, etc.)
-- **Relationships tab**: Character relationships with closeness scores
+- **Bio tab**: Name, personality (with AI generation), description (with AI generation), state, emotion selector/slider, tags, stats, skills, vitals
+  - The **Appearance** section has a live **"First impression:"** preview - shows exactly what a stranger sees at a glance (tag-derived handle + first sentence of the description), updating as you type. See [[Library System/Tags System#First impression (the at-a-glance look)]].
+  - Behaviors: when a character has authored NPC behaviors, a Behaviors section renders in the bio flow.
+- **Images tab**: Expression pack gallery, profile avatar and portrait art, sprite sheet slicer
+- **Advanced tab**: LLM agent configuration (model, temperature), speech styling, raw JSON / prompt overrides
+
+(Note: World Lore is not a character tab; it lives in the top navigation bar and world inspectors. Memory dynamics live in the dedicated Mind View dashboard).
 
 Features:
 - Save/export/import character cards (library integration)
@@ -126,7 +136,7 @@ click away. (`task-512`.)
 2. Each **card** is one expression. Clicking the card (or its thumbnail, or
    pressing Enter/Space) opens the file picker to **replace** that expression's
    image. Uploads save to `static/images/nodes/` and appear immediately.
-3. `neutral` is the fallback used when no matching expression exists — set it
+3. `neutral` is the fallback used when no matching expression exists - set it
    first so the character always has a face.
 4. The known emotion cards (`happy`, `sad`, `angry`, `afraid`, `surprised`,
    `disgusted`, `aroused`, `affectionate`, `ashamed`, `envious`, `calm`) are
@@ -147,18 +157,18 @@ click away. (`task-512`.)
    keys and defaults to the canonical emotion order (then `slotN`), so edit them
    when your sheet uses, say, `excited` or `walking`. Unnamed tiles are skipped.
 7. **🗑 removes the image** but keeps the expression. **✕ deletes the expression
-   key** and its image file(s) — the right choice for the `slotN` keys a big sheet
+   key** and its image file(s) - the right choice for the `slotN` keys a big sheet
    leaves behind.
 8. **Click an expression's name to re-file it.** Type a new name and press Enter
    and the image moves with it, which fixes a sheet that was sliced into the
    wrong labels without re-uploading anything. Esc cancels. The image file itself
-   does not move — only the key it is filed under changes — so renaming `slot17` to
+   does not move - only the key it is filed under changes - so renaming `slot17` to
    `calm` keeps the very same picture. A rename onto a name that already has an
    image is refused rather than overwriting it; remove that image first.
 
 The card is deliberately a `<div>` with an explicit click handler and **not** a
 `<label>`. A `<label>` takes its labelled control as the first *labelable*
-descendant, and a `<button>` is labelable — with 🗑 ahead of the file input,
+descendant, and a `<button>` is labelable - with 🗑 ahead of the file input,
 Chrome activated the delete button, so clicking an image deleted it instead of
 opening the picker.
 
@@ -168,8 +178,8 @@ and spawning/importing the character brings the images back. See
 
 The character's **graph node** and the **"People here" chips** in the turn
 composer show their current-emotion **profile** (via
-`static/js/character-art.js`); clicking a chip's avatar — or **Examine**-ing a
-character — opens a big portrait (current full body if set, else the profile
+`static/js/character-art.js`); clicking a chip's avatar - or **Examine**-ing a
+character - opens a big portrait (current full body if set, else the profile
 enlarged).
 
 ### Way View (`InspectorWayView`)
@@ -182,8 +192,8 @@ Shows:
 - Pass message (text shown when passing through)
 - Auto-close toggle
 - Force open settings (skill + DC)
-- **Passage requires** dropdown: none / crawl (crawl-only — `go` auto-crawls) / climb (`climb <dir>` only) / jump (`jump <dir>` only) — task-187
-- **Max size through** dropdown: any / tiny / small / normal / huge / giant / titanic — the largest size that passes walking; one tier over auto-crawls, two+ tiers blocked — task-187
+- **Passage requires** dropdown: none / crawl (crawl-only - `go` auto-crawls) / climb (`climb <dir>` only) / jump (`jump <dir>` only) - task-187
+- **Max size through** dropdown: any / tiny / small / normal / huge / giant / titanic - the largest size that passes walking; one tier over auto-crawls, two+ tiers blocked - task-187
 
 The AI Improve flow (`InspectorWayView.improveWayWithAI`) generates `requires` and `max_size` alongside the other way properties, and they are preserved in the way library save.
 
@@ -274,7 +284,7 @@ Changes are saved immediately on edit via `ApiClient.updateNode()`, `ApiClient.u
 ## Where it lives
 
 - `static/js/inspector.js` (`Inspector` singleton, `showNode` dispatch)
-- `static/js/inspector/panel.js` (`InspectorPanel` — single render owner for `#inspector-panel`)
+- `static/js/inspector/panel.js` (`InspectorPanel` - single render owner for `#inspector-panel`)
 - `static/js/inspector/area-view.js` (`InspectorAreaView`)
 - `static/js/inspector/item-view.js` (`InspectorItemView`)
 - `static/js/inspector/way-view.js` (`InspectorWayView`)
@@ -301,24 +311,24 @@ Changes are saved immediately on edit via `ApiClient.updateNode()`, `ApiClient.u
 |---|---|---|
 | 2026-10-13 | [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab\|Mind panel: relocate the GIMP goal editor out of the Bio tab]] | `review` |
 | 2026-10-13 | [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point\|Mind panel: one tabbed mind surface and one entry point]] | `review` |
-| — | [[task-86-ux_ui_improvements\|task-86-ux_ui_improvements]] | `done` |
-| — | [[task-41-prevent_double_step_click\|task-41-prevent_double_step_click]] | `done` |
-| — | [[task-36-inspector_game_time\|task-36-inspector_game_time]] | `done` |
-| — | [[task-292-auto-add-inverse-actions\|task-292-auto-add-inverse-actions]] | `done` |
-| — | [[task-252-auto-create-base-trigger-on-action\|task-252-auto-create-base-trigger-on-action]] | `done` |
-| — | [[task-216-lit-html-inspector-conversion\|task-216-lit-html-inspector-conversion]] | `done` |
-| — | [[bug_2-choices-equip-slots-white-bg\|bug_2-choices-equip-slots-white-bg]] | `done` |
+| - | [[task-86-ux_ui_improvements\|task-86-ux_ui_improvements]] | `done` |
+| - | [[task-41-prevent_double_step_click\|task-41-prevent_double_step_click]] | `done` |
+| - | [[task-36-inspector_game_time\|task-36-inspector_game_time]] | `done` |
+| - | [[task-292-auto-add-inverse-actions\|task-292-auto-add-inverse-actions]] | `done` |
+| - | [[task-252-auto-create-base-trigger-on-action\|task-252-auto-create-base-trigger-on-action]] | `done` |
+| - | [[task-216-lit-html-inspector-conversion\|task-216-lit-html-inspector-conversion]] | `done` |
+| - | [[bug_2-choices-equip-slots-white-bg\|bug_2-choices-equip-slots-white-bg]] | `done` |
 <!-- changelog:end -->
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[node-inspectors|Node inspectors]] (#50), [[world-lore|World lore]] (#71)
+**Features**  -  [[node-inspectors|Node inspectors]] (#50), [[world-lore|World lore]] (#71)
 
-**Dev tasks** — [[dev_tasks/done/bugs/bug_2-choices-equip-slots-white-bg|bug_2]], [[dev_tasks/done/items/task-252-auto-create-base-trigger-on-action|task]], [[dev_tasks/done/items/task-292-auto-add-inverse-actions|task]], [[dev_tasks/done/refactor/task-216-lit-html-inspector-conversion|task]], [[dev_tasks/done/ui/task-36-inspector_game_time|task]], [[dev_tasks/done/ui/task-41-prevent_double_step_click|task]] … +4 more
+**Dev tasks**  -  [[dev_tasks/done/bugs/bug-2-choices-equip-slots-white-bg|bug]], [[dev_tasks/done/items/task-252-auto-create-base-trigger-on-action|task]], [[dev_tasks/done/items/task-292-auto-add-inverse-actions|task]], [[dev_tasks/done/refactor/task-216-lit-html-inspector-conversion|task]], [[dev_tasks/done/refactor/task-904-shared-component-library-extract-reusable-ui-primitives-and-state-primitives|task]], [[dev_tasks/done/ui/task-36-inspector_game_time|task]] … +6 more
 
-**Neighbouring notes** — [[Engine Config]], [[Event Log Export]], [[Event Stream]], [[NL Editor]], [[Recent Edits & Undo]], [[Rendering & UI Modules]]
+**Neighbouring notes**  -  [[Code Search & Graph]], [[Engine Config]], [[Event Log Export]], [[Event Stream]], [[NL Editor]], [[Recent Edits & Undo]]
 
 <!-- connected:end -->

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Complete VirtualWorld Mind &amp; Decision Map</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #18181b; }
+  </style>
+</head>
+<body>
+  <div class="mermaid">
+flowchart LR
+    classDef sensory fill:#0369a1,stroke:#7dd3fc,color:#ffffff,stroke-width:2px
+    classDef factual fill:#1d4ed8,stroke:#93c5fd,color:#ffffff,stroke-width:2px
+    classDef self fill:#475569,stroke:#f1f5f9,color:#ffffff,stroke-width:2px
+    classDef body fill:#9a3412,stroke:#fdba74,color:#ffffff,stroke-width:2px
+    classDef memory fill:#b45309,stroke:#fcd34d,color:#ffffff,stroke-width:2px
+    classDef mind fill:#4338ca,stroke:#a5b4fc,color:#ffffff,stroke-width:2px
+    classDef actor fill:#047857,stroke:#6ee7b7,color:#ffffff,stroke-width:2px
+    classDef mask fill:#0f766e,stroke:#5eead4,color:#ffffff,stroke-width:2px
+    classDef loop fill:#7e22ce,stroke:#e879f9,color:#ffffff,stroke-width:2px
+    classDef reject fill:#b91c1c,stroke:#fca5a5,color:#ffffff,stroke-width:2px
+
+    %% Col 1: Raw World, Body & Standing Self
+    OBS["1. Perception &amp; Recognition<br/>IN: room, sound, beyond_visibility, name_masking<br/>OUT: WITNESSED + [Addressed-To]<br/>EX: Cafeteria; Kayla asks 'pass me that note'"]:::sensory
+    FACT["Factual Lane (Unvarnished)<br/>IN: inventory, spatial_memory, AlreadyKnown, Lore<br/>OUT: hard world constraints<br/>EX: carrying=[cracked phone], NO note; searched pack"]:::factual
+    BODY["Embodied State &amp; Thresholds<br/>IN: vitals, emotion, fear, hostility, sanity<br/>OUT: interoceptive pressure<br/>EX: stomach drop, paranoia high, sanity steady"]:::body
+    ID["Identity, Persona &amp; Traits<br/>IN: interests, likes/dislikes, fears, kinks, traits<br/>OUT: disposition weights + value gates<br/>EX: interests=[skating, mysteries], fear=framed"]:::self
+    REL["6-Axis Relationships &amp; Comms<br/>IN: relationships, commons, long_distance_comms<br/>OUT: per-person trust/fear/residue<br/>EX: Kayla (trust low, fear med); Sammy (trust high)"]:::self
+    GIMP["GIMP, Schedule &amp; Pursuits<br/>IN: goals, obligations, schedule, pursuit_templates<br/>OUT: M (drive) + I (intention) + O/S<br/>EX: Goal 'find who planted note'; Lunch period"]:::self
+    SEED["Stored Memory &amp; History<br/>IN: Player.memories, vector_store, life_exp, lived_log<br/>OUT: candidate raw traces + refs<br/>EX: 'note in bag', 'pack empty', 'Cafeteria', 'Miki'"]:::self
+
+    %% Col 2: Appraisal, Novelty/Threat & Involuntary Reflex
+    APP["2. Present Appraisal &amp; Surprise<br/>IN: OBS + REL + BODY + Expectations<br/>OUT: subjective meaning + prediction error<br/>EX: Reads Kayla's question as public ambush"]:::memory
+    NOV["Novelty, Threat &amp; Interrupts<br/>IN: novelty.py, threat-detector, interrupts.py<br/>OUT: salience spike / plan interrupt<br/>EX: Note demand spikes threat; interrupts lunch"]:::reject
+    INVOL["Involuntary Reflex (involuntary.ts)<br/>IN: vitals + threat + fear<br/>OUT: knee-jerk flinch/yawn/blush (bypasses choice)<br/>EX: Stomach lurches, eyes dart to exits"]:::body
+    CUE["Cue Extract &amp; Change Gate<br/>IN: memory_retrieval.py cues + cue-change gate<br/>OUT: [note, Kayla, paranoia] -> SHIFT=Yes"]:::memory
+
+    %% Col 3: Recall, Intermediator & MOSIAC
+    RECALL["3. Multi-Hop Recall (or Cache)<br/>IN: cues + memories + lived_log<br/>OUT: [note in bag, pack empty] (drops noise)<br/>EX: Drops 'Observed Cafeteria' &amp; 'Miki'"]:::memory
+    INTER["Memory Intermediator (LFM)<br/>IN: recall + OBS + BODY + REL<br/>OUT: mood-biased palimpsest summary<br/>EX: 'Someone planted it, then took it back.'"]:::memory
+    MIND["Conscious Memory + Active Mind<br/>IN: synthesis + active questions/assumptions<br/>OUT: Q, Assumptions, Held-Back Secrets<br/>EX: Q='Who took it?' Secret='Pack is empty'"]:::mind
+    MOSIAC["MOSIAC + Disposition Ranker<br/>IN: GIMP(M+I) + O+S + A(interests/fear/vitals) + C<br/>OUT: ranked candidate verbs<br/>EX: Top=[speak, examine, search, leave]"]:::mind
+
+    %% Col 4: Plan Gate -> Private Mind -> Social Mask
+    PLAN{"4. Plan Executor Gate<br/>plan_executor + turn-queue<br/>Valid step or Replan?"}:::actor
+    PRIV["Private Inner Monologue<br/>IN: MIND + MOSIAC + BODY + APP<br/>OUT: unfiltered thought + intent<br/>EX: 'Play it cool, pack is empty, don't sweat.'"]:::actor
+    MASK["Social Mask, Subtext &amp; Emote<br/>IN: PRIV + ID(pride) + REL(Kayla) + emote-picker<br/>OUT: masked speech + emote + volume<br/>EX: Shrugs casually: 'What note? Check table.'"]:::mask
+
+    %% Col 5: Grounding & Execution
+    INTERP["5. Interpreter, Normalizer &amp; Grounding<br/>IN: action-interpreter + normalizer + FACT<br/>OUT: validated action or rejection<br/>EX: 'speak' OK; 'give(note)' -> BLOCKED"]:::actor
+    ACT["Execute &amp; World Mutation<br/>IN: validated action<br/>OUT: WITNESSED, lived_log, vitals &amp; rel delta<br/>EX: Kayla hears denial; tension rises"]:::actor
+    REJECT["Blocked / Failed Outcome<br/>IN: grounding rejection<br/>OUT: invalidates assumption -> Re-think<br/>EX: Cannot give missing note"]:::reject
+
+    %% Col 6: Consolidation & Dreams
+    PERSIST["6. Post-Turn Save &amp; Lineage<br/>IN: summary + monologue + outcome + source IDs<br/>OUT: routes/memories.py (gen depth + refs)<br/>EX: Links conscious note to mem_note_1, mem_pack_2"]:::loop
+    DYN["Memory Dynamics<br/>IN: memory_dynamics.py<br/>OUT: reinforce / fade / invalid_at<br/>EX: Supersedes 'note in bag' -> no false conflict"]:::loop
+    SLEEP["Sleep / Dreams &amp; Daily Reflection<br/>IN: consolidate_sleep() + daily_reflection.py<br/>OUT: semantic beliefs + GIMP updates<br/>EX: Prunes clutter; belief 'Kayla probes me'"]:::loop
+
+    %% Strict Left-to-Right Edges (zero backward arrows)
+    OBS --> APP
+    REL --> APP
+    BODY --> APP
+    OBS --> NOV
+    BODY --> INVOL
+    NOV --> INVOL
+
+    APP --> CUE
+    NOV --> CUE
+    ID --> CUE
+    CUE --> RECALL
+    SEED --> RECALL
+    RECALL --> INTER
+    APP --> INTER
+    BODY --> INTER
+    REL --> INTER
+    INTER --> MIND
+
+    GIMP --> MOSIAC
+    ID --> MOSIAC
+    BODY --> MOSIAC
+    REL --> MOSIAC
+    APP --> MOSIAC
+
+    FACT --> PLAN
+    NOV --> PLAN
+    MOSIAC --> PLAN
+    MIND --> PLAN
+
+    PLAN -- "Replan / React" --> PRIV
+    PLAN -- "Continue plan step" --> INTERP
+    PRIV --> MASK
+    ID --> MASK
+    REL --> MASK
+    MASK --> INTERP
+    FACT --> INTERP
+
+    INTERP -- "Valid" --> ACT
+    INTERP -- "Blocked" --> REJECT
+
+    INVOL --> PERSIST
+    ACT --> PERSIST
+    PRIV --> PERSIST
+    REJECT --> PERSIST
+    PERSIST --> DYN --> SLEEP
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</body>
+</html>

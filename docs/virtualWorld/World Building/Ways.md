@@ -428,15 +428,70 @@ least three-eighths as bright.
   (`NodeIDHelper.way_node_id("Kitchen", "west")` → `way_kitchen_west`). Older
   saves and some prose still say `door_…`; the `door_` prefix is legacy.
 
+## Graph architecture: four connection edges
+
+Every exit between two areas is mediated by exactly **one way node** and **four connection edges**:
+
+```
+       ┌─────────────────────────────┐
+       │       area_living_room      │
+       │  name: "Living Area"        │
+       └──────────┬──────────────────┘
+                  │ EDGE_CONNECTION (direction: "north")
+                  ▼
+       ┌─────────────────────────────┐
+       │     way_living_room_north   │
+       │  type: "way"                │
+       │  current_state: "closed"    │
+       │  description: "A heavy oak  │
+       │    door leading to study."  │
+       └──────────┬──────────────────┘
+                  │ EDGE_CONNECTION (direction: "enter")
+                  ▼
+       ┌─────────────────────────────┐
+       │         area_study          │
+       │  name: "Study"              │
+       └─────────────────────────────┘
+```
+
+And the reverse edges:
+```
+       area_study → way (direction: "south")
+       way → area_living_room (direction: "south")
+```
+
+The four edges are created by `MovementSystem.connect_rooms()` in `engine/movement.py`:
+```python
+# room1 → way (direction: dir1)
+Edge(source=room1_id, target=way_id, type=EDGE_CONNECTION, properties={"direction": dir1})
+# way → room2 (direction: dir2)
+Edge(source=way_id, target=room2_id, type=EDGE_CONNECTION, properties={"direction": dir2})
+# room2 → way (direction: dir2)
+Edge(source=room2_id, target=way_id, type=EDGE_CONNECTION, properties={"direction": dir2})
+# way → room1 (direction: dir1)
+Edge(source=way_id, target=room1_id, type=EDGE_CONNECTION, properties={"direction": dir1})
+```
+
+Because traversal is `area → way → area`, state (e.g. `locked`, `see_through`, `needs_open`) lives on the shared way node rather than duplicated across the connected rooms.
+
+## Graph visualization and state colors
+
+In the vis.js graph view (`static/js/graph/network-manager.ts`), way nodes render as small triangles (`#1a3a2a` default background, `#4ec9b0` default border). The node borders dynamically reflect `current_state` and traversal flags:
+
+| State / Flag | Background | Border | Appearance / Meaning |
+|---|---|---|---|
+| `open` | `#1a3a2a` | `#3fb950` | Green border; passable |
+| `closed` | `#2d3a1a` | `#e3b341` | Yellow border; shut but auto-opens on walk |
+| `locked` | `#3a1a1a` | `#f85149` | Red border; impassable until unlocked |
+| `blocked` | `#3a2a1a` | `#f0883e` | Orange border; impassable due to physical obstacle |
+| `broken` | `#3a1a1a` | `#f85149` | Red border; damaged beyond passage |
+| `hidden` | `#1a1a2a` | `#6e7681` | Muted dark gray border; concealed passage |
+| `one_way` | (state bg) | `#58a6ff` | Blue border override; reverse traverse refused |
+
 ## See also
 
 - [[Way Properties]]  -  every key a way can carry, its values, and which code
   reads it.
-- [[Connections]]  -  the graph architecture (`area → way → area`), node
-  ids, unlocking via triggers, the inspector, and graph colours. **Partly
-  stale:** it still calls the node type `door` and lists the older state set
-  (with `see_through` as a state and `broken` in a colour table). Read it for the
-  architecture, not for the state model.
 - [[Grid to Graph]]  -  how the WorldPainter compiles painted cells into ways, and
   why a painted door arrives with a `pass_message` and `see_through` set.
 - [[Rooms & Areas]]  -  what is on the far side of a way.
@@ -450,8 +505,8 @@ least three-eighths as bright.
 
 **Features**  -  [[way-authoring|Way authoring]] (#51)
 
-**Dev tasks**  -  [[task-446-id-first-node-identity|task]], [[dev_tasks/todo/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values|task]], [[dev_tasks/todo/ui/task-780-expose-requires-item-refusal-message-and-entry-phrase-in-the-way-inspector|task]], [[bug-547-broken-way-state-is-half-implemented|bug]]
+**Dev tasks**  -  [[dev_tasks/done/items/task-23-remove_locked_with|task]], [[dev_tasks/done/items/task-97-consolidate_locked_into_current_state|task]], [[dev_tasks/done/triggers/task-15-door_trigger_events|task]], [[dev_tasks/done/triggers/task-30-door_requires_open_trigger|task]], [[dev_tasks/review/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values|task]], [[bug-565-the-equipped-map-stopped-reaching-the-client-so-the-inspector-showed-an-empty-body-and-equipping-worn-gear-said-you-are-not-carrying-it|bug]] … +5 more
 
-**Neighbouring notes**  -  [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
+**Neighbouring notes**  -  [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Kraktooth Regional Scope & Mountain Elevation]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

@@ -1,0 +1,92 @@
+flowchart LR
+    classDef root fill:#1e293b,stroke:#94a3b8,color:#f8fafc,stroke-width:1.5px
+    classDef sensory fill:#0c4a6e,stroke:#38bdf8,color:#e0f2fe,stroke-width:1.5px
+    classDef factual fill:#1e3a8a,stroke:#60a5fa,color:#dbeafe,stroke-width:2px
+    classDef memory fill:#78350f,stroke:#f59e0b,color:#fef3c7,stroke-width:1.5px
+    classDef mind fill:#312e81,stroke:#818cf8,color:#e0e7ff,stroke-width:1.5px
+    classDef actor fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:2px
+    classDef loop fill:#581c87,stroke:#e879f9,color:#fae8ff,stroke-width:1.5px
+
+    subgraph S1["1. Turn N Inputs"]
+        direction TB
+        OBS["Current Observations<br/>Surroundings, Heard,<br/>Vitals, Mood"]:::sensory
+        FACT["Unvarnished Factual Lane<br/>carrying, spatial_memory,<br/>doors/locks, AlreadyKnown"]:::factual
+        SEED["Seed &amp; Stored Memories<br/>(Player.memories + Life Exp)"]:::root
+        LIVED["Lived Log<br/>(Objective History)"]:::root
+        GIMP["GIMP (Wants)<br/>Goals, Intention,<br/>Motivation, Pursuit"]:::root
+        SCHED["Obligations &amp; Schedule<br/>(obligations / schedule)"]:::root
+    end
+
+    subgraph S2["2. Cueing &amp; Involuntary Recall"]
+        direction TB
+        CUE["Extract Perceptual Cues<br/>actors, items, speech,<br/>needs, mood"]:::memory
+        GATE{"Cue-Change Gate<br/>(salient shift?)"}:::memory
+        RECALL["Involuntary Multi-Hop Recall<br/>(raw traces + lived_log refs)"]:::memory
+        CACHE["Reuse Prior<br/>Conscious Summary"]:::memory
+    end
+
+    subgraph S3["3. Intermediator &amp; Working Mind"]
+        direction TB
+        INTER["Memory Intermediator (LFM)<br/>Mood-Congruent<br/>Palimpsest Synthesis"]:::memory
+        CONSC["Conscious Memory Block<br/>(zero raw DB rows / logs)"]:::memory
+        MIND["Active Mind State<br/>Open Questions, Assumptions,<br/>Commitments"]:::mind
+        MOSIAC["MOSIAC Selector<br/>M+I (GIMP), O+S,<br/>A (vitals), C (verbs)"]:::mind
+    end
+
+    subgraph S4["4. Two-Stage Actor &amp; Execution"]
+        direction TB
+        ACTOR["Actor LLM (Strict Isolation)<br/>Inner Monologue + Thought<br/>+ Plan + Speech/Intent"]:::actor
+        INTERP["Action Interpreter &amp; PlanGrounding<br/>(validate against Factual Lane)"]:::actor
+        ACT["Execute Action &amp; Speech<br/>World Mutation + Event Stream"]:::actor
+    end
+
+    subgraph S5["5. Reconsolidation &amp; Dreams (Feeds Turn N+1)"]
+        direction TB
+        PERSIST["Post-Turn Persistence<br/>Conscious Summary + Inner Monologue<br/>+ Immutable Source Refs (lineage)"]:::loop
+        DYN["Memory Dynamics<br/>Reinforce / Fade / Invalidate"]:::loop
+        SLEEP["Sleep / Dreams &amp; Daily Reflection<br/>consolidate_sleep() + daily_reflection.py<br/>Prune noise, form beliefs, update GIMP"]:::loop
+        NEXT["Updated Store for Turn N+1<br/>Lived Log · Player.memories · GIMP"]:::root
+    end
+
+    style S1 fill:#0f172a,stroke:#475569,color:#cbd5e1
+    style S2 fill:#1c1917,stroke:#b45309,color:#fde68a
+    style S3 fill:#1e1b4b,stroke:#6366f1,color:#c7d2fe
+    style S4 fill:#022c22,stroke:#10b981,color:#a7f3d0
+    style S5 fill:#2e1065,stroke:#c026d3,color:#f5d0fe
+
+    %% 1 -> 2
+    OBS --> CUE
+    CUE --> GATE
+    GATE -- "Yes (new cue)" --> RECALL
+    GATE -- "No (unchanged)" --> CACHE
+    SEED -. "raw traces" .-> RECALL
+    LIVED -. "source refs" .-> RECALL
+
+    %% 2 -> 3
+    RECALL --> INTER
+    OBS --> INTER
+    INTER --> CONSC
+    CACHE --> CONSC
+    CONSC --> MIND
+    GIMP --> MOSIAC
+    SCHED --> MOSIAC
+    OBS --> MOSIAC
+
+    %% 3 -> 4
+    OBS --> ACTOR
+    FACT --> ACTOR
+    MIND --> ACTOR
+    MOSIAC --> ACTOR
+    ACTOR --> INTERP
+    FACT --> INTERP
+    INTERP --> ACT
+
+    %% 4 -> 5
+    ACTOR --> PERSIST
+    CONSC --> PERSIST
+    RECALL -. "immutable source IDs" .-> PERSIST
+    ACT --> NEXT
+    PERSIST --> DYN
+    DYN --> SLEEP
+    DYN --> NEXT
+    SLEEP --> NEXT

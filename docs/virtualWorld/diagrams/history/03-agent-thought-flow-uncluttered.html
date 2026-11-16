@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agent Thought Flow</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #18181b; }
+  </style>
+</head>
+<body>
+  <div class="mermaid">
+flowchart LR
+    classDef sensory fill:#0369a1,stroke:#7dd3fc,color:#ffffff,stroke-width:2px
+    classDef factual fill:#1d4ed8,stroke:#93c5fd,color:#ffffff,stroke-width:2px
+    classDef memory fill:#b45309,stroke:#fcd34d,color:#ffffff,stroke-width:2px
+    classDef mind fill:#4338ca,stroke:#a5b4fc,color:#ffffff,stroke-width:2px
+    classDef actor fill:#047857,stroke:#6ee7b7,color:#ffffff,stroke-width:2px
+    classDef loop fill:#7e22ce,stroke:#e879f9,color:#ffffff,stroke-width:2px
+    classDef reject fill:#b91c1c,stroke:#fca5a5,color:#ffffff,stroke-width:2px
+    classDef root fill:#334155,stroke:#cbd5e1,color:#ffffff,stroke-width:1.5px
+
+    %% Lane 1: Sensory & Factual Spine
+    OBS["1. Sensory Reality<br/>Surroundings, Heard,<br/>Vitals &amp; Mood"]:::sensory
+    FACT["Factual Lane (Unvarnished)<br/>carrying, spatial_memory,<br/>locks, AlreadyKnown"]:::factual
+
+    %% Lane 2: Recall & Intermediator
+    CUE["2. Cue Extract<br/>&amp; Cue-Change Gate"]:::memory
+    RECALL["Involuntary Recall<br/>(or Reuse Cache)"]:::memory
+    INTER["3. Memory Intermediator<br/>Mood-Biased Palimpsest<br/>(LFM Synthesis)"]:::memory
+    MIND["Conscious Memory<br/>+ Active Mind<br/>(Questions, Assumptions)"]:::mind
+
+    %% Lane 3: Standing Self & MOSIAC
+    SELF["Standing Self<br/>Seed Memories, Lived Log,<br/>GIMP, Schedule, Traits"]:::root
+    MOSIAC["MOSIAC + Disposition<br/>M+I, O+S, A (salience),<br/>C (gated verbs)"]:::mind
+
+    %% Stage 4: Decision & Grounding
+    PLAN{"4. Active Plan<br/>Still Valid?"}:::actor
+    ACTOR["Actor LLM / Soak<br/>Inner Monologue, Plan,<br/>Speech &amp; Intent"]:::actor
+    INTERP["5. Action Interpreter<br/>&amp; PlanGrounding"]:::actor
+    REJECT["Blocked / Failed<br/>(Invalidate Assumption)"]:::reject
+    ACT["Execute &amp; Mutate<br/>World, WITNESSED,<br/>Vitals &amp; Relations"]:::actor
+
+    %% Stage 5: Reconsolidation & Dreams
+    PERSIST["6. Post-Turn Save<br/>Conscious Summary +<br/>Monologue + Source Refs"]:::loop
+    DYN["Memory Dynamics<br/>Reinforce / Fade /<br/>Supersede"]:::loop
+    SLEEP["Sleep / Dreams<br/>&amp; Daily Reflection<br/>(Update Beliefs &amp; GIMP)"]:::loop
+
+    %% Clean left-to-right flow
+    OBS --> CUE --> RECALL --> INTER --> MIND
+    SELF -. "raw traces" .-> RECALL
+    SELF --> MOSIAC
+    OBS --> MOSIAC
+    FACT --> PLAN
+    MOSIAC --> PLAN
+    MIND --> PLAN
+
+    PLAN -- "Replan / React" --> ACTOR
+    PLAN -- "Continue step" --> INTERP
+    ACTOR --> INTERP
+    FACT --> INTERP
+
+    INTERP -- "Valid" --> ACT
+    INTERP -- "Blocked" --> REJECT
+    REJECT -. "Re-think" .-> ACTOR
+    ACTOR -. "Deliberate recall" .-> RECALL
+
+    ACT --> PERSIST
+    ACTOR --> PERSIST
+    REJECT --> PERSIST
+    PERSIST --> DYN --> SLEEP
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</body>
+</html>

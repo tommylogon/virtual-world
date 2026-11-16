@@ -7,23 +7,23 @@ tags: [system/world]
 
 ## What you can do
 
-Rooms (area nodes) are the spaces you exist in and move between. You can `look` to see the room's description, items, people, and exits; `go <direction>` to move through doors to adjacent rooms; and experience environmental conditions — light level (affects visibility and Sanity), temperature (cold/heat warnings), air quality (toxic/stale/humid warnings), smells, and noise (can prevent sleep). Light spills through open doors from brighter rooms. You can examine doors to see what's beyond them when open. Rooms are created, renamed, and connected via the UI or scenario files.
+Rooms (area nodes) are the spaces you exist in and move between. You can `look` to see the room's description, items, people, and exits; `go <direction>` to move through doors to adjacent rooms; and experience environmental conditions - light level (affects visibility and Sanity), temperature (cold/heat warnings), air quality (toxic/stale/humid warnings), smells, and noise (can prevent sleep). Light spills through open doors from brighter rooms. You can examine doors to see what's beyond them when open. Rooms are created, renamed, and connected via the UI or scenario files.
 
 ## Where it lives
 
-- `engine/movement.py` — `MovementSystem.add_area`, `connect_areas`, movement rules
-- `engine/area_description.py` — `RoomDescription.get_area_description`, light spill, environmental summaries, exit clues
-- `engine/lighting.py` — `light_to_level`, `get_ambient_light`, light spill through open ways
-- `engine/node_ids.py` — `area_node_id` convention
-- `graph.py` — `WorldGraph`, `Node`, `EDGE_IN`, `EDGE_CONNECTION`, uniqueness enforcement
-- `room.py` — legacy `Area` data object, default environment values
-- `routes/graph.py` — `/api/build/room`, `/api/graph/node/<id>/rename`, area deletion protection
-- `data/library/areas/*.json` — area library files (world_template.json, mansion.json)
-- `engine/serialization.py` — area serialization/deserialization
+- `engine/movement.py` - `MovementSystem.add_area`, `connect_areas`, movement rules
+- `engine/area_description.py` - `RoomDescription.get_area_description`, light spill, environmental summaries, exit clues
+- `engine/lighting.py` - `light_to_level`, `get_ambient_light`, light spill through open ways
+- `engine/node_ids.py` - `area_node_id` convention
+- `graph.py` - `WorldGraph`, `Node`, `EDGE_IN`, `EDGE_CONNECTION`, uniqueness enforcement
+- `room.py` - legacy `Area` data object, default environment values
+- `routes/graph.py` - `/api/build/room`, `/api/graph/node/<id>/rename`, area deletion protection
+- `data/library/areas/*.json` - area library files (world_template.json, mansion.json)
+- `engine/serialization.py` - area serialization/deserialization
 
 Rooms are the spatial atoms of VirtualWorld. Every room is an **`area`-type** node in the WorldGraph, and every player/character has exactly one `current_area` at any given time. Existence happens in a room.
 
-> **The node type is `"area"`, not `"room"`** (corrected 2026-10-01). Earlier versions of this note said `type="room"` in the prose while its own code samples said `area` — and the live world agrees with the code samples: `kraktooth_goblin_camp` holds **207 `area` nodes and 0 `room` nodes**. Every constructor agrees too — `movement.py:75`, `world_compile.py:1979`, `serialization_template.py:84`, `generation_recipes.py:120`, `effect_handlers/ways.py:151`. If you meet `type == "room"` in an old note or an old save, it is stale, not a variant.
+> **The node type is `"area"`, not `"room"`** (corrected 2026-10-01). Earlier versions of this note said `type="room"` in the prose while its own code samples said `area` - and the live world agrees with the code samples: `kraktooth_goblin_camp` holds **207 `area` nodes and 0 `room` nodes**. Every constructor agrees too - `movement.py:75`, `world_compile.py:1979`, `serialization_template.py:84`, `generation_recipes.py:120`, `effect_handlers/ways.py:151`. If you meet `type == "room"` in an old note or an old save, it is stale, not a variant.
 
 ## Area Nodes
 
@@ -40,23 +40,23 @@ class Node:
     updated: float   # timestamp
 ```
 
-Rooms are created from an `Area` object via `MovementSystem.add_area()` in `engine/movement.py:70-82`, which mints the id with `_area_node_id(area.name)` and stores the description + environment dict as properties. (There is no `engine/room.py`; earlier versions of this note cited one both for the `Area` object and for the environment defaults further down. Those defaults now live with the code that reads them — `engine/area_description.py`, `engine/lighting.py`.)
+Rooms are created from an `Area` object via `MovementSystem.add_area()` in `engine/movement.py:70-82`, which mints the id with `_area_node_id(area.name)` and stores the description + environment dict as properties. (There is no `engine/room.py`; earlier versions of this note cited one both for the `Area` object and for the environment defaults further down. Those defaults now live with the code that reads them - `engine/area_description.py`, `engine/lighting.py`.)
 
-The WorldPainter compiler creates them too, and that path is where most areas in a painted world come from — see the next section.
+The WorldPainter compiler creates them too, and that path is where most areas in a painted world come from - see the next section.
 
 ## A compiled cell IS an area (2026-10-01)
 
-This is the identity that makes the WorldPainter grid and the graph **one model** rather than two, and it was missing from this note — which is why the two read like parallel systems that have to be kept in step. They are not.
+This is the identity that makes the WorldPainter grid and the graph **one model** rather than two, and it was missing from this note - which is why the two read like parallel systems that have to be kept in step. They are not.
 
-The compiler mints the area id **from the cell** — `area_<scope_id>_<x>_<y>`, e.g. `area_west_woods_10_14` — derives the area's name from that cell (`Sparse Forest (West woods 10, 14)`: the biome or road label plus scope and coordinate, unless the author named the cell), and gives the node `properties.cell` and `properties.world_scope_id`, so **the cell is a stable frame** for the area across edits elsewhere on the grid. See `engine/world_grid.py` and `engine/world_compile.py` (`_area_id`, `_place_name`).
+The compiler mints the area id **from the cell** - `area_<scope_id>_<x>_<y>`, e.g. `area_west_woods_10_14` - derives the area's name from that cell (`Sparse Forest (West woods 10, 14)`: the biome or road label plus scope and coordinate, unless the author named the cell), and gives the node `properties.cell` and `properties.world_scope_id`, so **the cell is a stable frame** for the area across edits elsewhere on the grid. See `engine/world_grid.py` and `engine/world_compile.py` (`_area_id`, `_place_name`).
 
 So **a biome cell, a road cell, a feature placement and a hand-placed room are one kind of thing at runtime: an area node that knows which cell it is.** `Road (world 10, 4)` → `area_world_10_4` is a painted *road* cell that came out an area. There is no "cell node" in the graph, and nothing that walks areas has to know which of the four it is looking at.
 
-Measured on `kraktooth_goblin_camp`: **205 of 206 areas carry a `cell`**, and manifest coverage is exact for every compiled scope — `eldenford_interior` 70 painted cells → 70 areas, `world` 61 → 61, `goblin_camp` 21 → 21.
+Measured on `kraktooth_goblin_camp`: **205 of 206 areas carry a `cell`**, and manifest coverage is exact for every compiled scope - `eldenford_interior` 70 painted cells → 70 areas, `world` 61 → 61, `goblin_camp` 21 → 21.
 
 Three places the one-cell-one-area correspondence is deliberately not one-to-one:
 
-- a run of painted cells is **merged into one region**, and the area records only the region's **anchor** cell — so a merged area's `cell` is where it was minted, not its footprint (`west_woods`: 81 painted cells → 53 areas);
+- a run of painted cells is **merged into one region**, and the area records only the region's **anchor** cell - so a merged area's `cell` is where it was minted, not its footprint (`west_woods`: 81 painted cells → 53 areas);
 - a cell occupied by a hand-placed area is **skipped** by the compiler, so it holds the author's area instead of a compiled one (`world` 18,6 is `area_human_road`);
 - a scope can have a grid that was **never compiled** (`deep_woods`: 404 painted cells, 0 areas), so a cell in the manifest is not guaranteed to be an area anywhere.
 
@@ -73,7 +73,7 @@ def area_node_id(name: str) -> str:
     return f"area_{safe}"
 ```
 
-So `"Living Area"` → `"area_living_area"`. Kitchen → `area_kitchen`. This convention is used across every engine module that needs to look up a room by name — `movement.py`, `area_description.py`, `serialization.py`, `routes/graph.py`, etc. The `NodeIDHelper` class is imported as part of `VirtualWorld` (which has `_area_node_id()` wrappers).
+So `"Living Area"` → `"area_living_area"`. Kitchen → `area_kitchen`. This convention is used across every engine module that needs to look up a room by name - `movement.py`, `area_description.py`, `serialization.py`, `routes/graph.py`, etc. The `NodeIDHelper` class is imported as part of `VirtualWorld` (which has `_area_node_id()` wrappers).
 
 **Important**: Area node IDs must be unique. The `WorldGraph.add_node()` method (`graph.py:49-60`) raises `ValueError` if you try to add a room with a duplicate ID:
 
@@ -87,7 +87,7 @@ def add_node(self, node: Node):
             raise ValueError(f"Area node '{node.id}' already exists.")
 ```
 
-Only areas get the hard uniqueness check — items, ways, and logic triggers get auto-suffixed on collision.
+Only areas get the hard uniqueness check - items, ways, and logic triggers get auto-suffixed on collision.
 
 ### Area Name vs Node ID
 
@@ -138,8 +138,8 @@ Light is numeric 0-100. The `LightingSystem` in `engine/lighting.py` converts it
 | ≤20    | pitch_black | Cannot see, examine, take, or use. Sanity decays -1/tick. |
 | ≤40    | dim         | Barely see shapes, dim description shown. |
 | ≤70    | normal      | Normal visibility. |
-| ≤90    | bright      | — |
-| >90    | blinding    | — |
+| ≤90    | bright      | - |
+| >90    | blinding    | - |
 
 The conversion happens in `engine/lighting.py:13-30`:
 
@@ -176,7 +176,7 @@ for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
         spill = max(0, int(o_light * 0.5))
 ```
 
-This means a dark room connected to a brightly lit room via an open door gets half the adjacent room's light. Close the door and the spill disappears — the room goes dark again.
+This means a dark room connected to a brightly lit room via an open door gets half the adjacent room's light. Close the door and the spill disappears - the room goes dark again.
 
 The light spill notification is rendered in `RoomDescription.get_area_description()` (`engine/area_description.py:103-123`):
 
@@ -216,7 +216,7 @@ Free-text field with several recognized values that generate specific descriptio
 
 Free-text, displayed if not `"neutral"`, `"fresh"`, or empty: `"A {smell} smell hangs in the air."`
 
-Recognized foul smells (`engine/area_description.py:222-223`): `"mold"`, `"rot"`, `"rotting food"`, `"urine"` — these generate hygiene warnings.
+Recognized foul smells (`engine/area_description.py:222-223`): `"mold"`, `"rot"`, `"rotting food"`, `"urine"` - these generate hygiene warnings.
 
 #### Noise
 
@@ -240,19 +240,19 @@ Rooms can have arbitrary additional properties stored in the `properties` dict. 
 
 `RoomDescription` (`engine/area_description.py:6-312`) is the engine module responsible for building the full room text that a player sees when they `look`. The method `get_area_description()` (line 85-312) assembles:
 
-1. **Base description** — from `player_manager.current_area.description`
-2. **Light spill notification** — if the room is brighter due to spill from an adjacent room
-3. **Item descriptions** — all visible items in the room (with `EDGE_IN` edges targeting this room, not hidden)
-4. **Environmental summary** — temperature, air quality, smell, noise
-5. **Players in room** — other characters present, their states, descriptions, and held items
-6. **Warnings** — temperature extremes, toxic air, noise affecting sleep, foul smells
-7. **Exit descriptions** — each visible door with its state, target room name, and environmental clues
+1. **Base description** - from `player_manager.current_area.description`
+2. **Light spill notification** - if the room is brighter due to spill from an adjacent room
+3. **Item descriptions** - all visible items in the room (with `EDGE_IN` edges targeting this room, not hidden)
+4. **Environmental summary** - temperature, air quality, smell, noise
+5. **Players in room** - other characters present, their states, descriptions, and held items
+6. **Warnings** - temperature extremes, toxic air, noise affecting sleep, foul smells
+7. **Exit descriptions** - each visible door with its state, target room name, and environmental clues
 
 ### Light-Dependent Descriptions
 
 When the player can't see properly, the description changes:
 - **Pitch black** (`engine/area_description.py:98-99`): "It's pitch black. You can't see anything. You should find a way to illuminate this space."
-- **Dim** (`engine/area_description.py:100-101`): "The light is dim — you can barely make out shapes. You need more light to see properly."
+- **Dim** (`engine/area_description.py:100-101`): "The light is dim - you can barely make out shapes. You need more light to see properly."
 
 Ghosts and characters with the `dark_vision` trait skip this check entirely (`engine/lighting.py:67-80`).
 
@@ -291,10 +291,10 @@ Only non-hidden items with descriptions are listed. Hidden items (like secret ke
 Rooms are not directly connected to each other. The connection pattern is always:
 
 ```
-room —[connection]→ door —[connection]→ room
+room -[connection]→ door -[connection]→ room
 ```
 
-Two `EDGE_CONNECTION` edges from each room to the door, plus two from the door to the opposite areas — for a total of 4 edges per bidirectional connection. This is set up in `MovementSystem.connect_areas()` (`engine/movement.py:45-73`):
+Two `EDGE_CONNECTION` edges from each room to the door, plus two from the door to the opposite areas - for a total of 4 edges per bidirectional connection. This is set up in `MovementSystem.connect_areas()` (`engine/movement.py:45-73`):
 
 ```
 room1 → door (direction: dir1)
@@ -305,7 +305,7 @@ door → room1 (direction: dir1)
 
 The door node holds the state (open/closed/locked/blocked/broken/hidden), description, pass_message, cost, and trigger data.
 
-This indirection through door nodes is what makes the system flexible — ways can have independent state, triggers, skill checks, auto-close behavior, and hidden visibility separate from the areas they connect.
+This indirection through door nodes is what makes the system flexible - ways can have independent state, triggers, skill checks, auto-close behavior, and hidden visibility separate from the areas they connect.
 
 For full details, see [Connections](Connections.md).
 
@@ -313,16 +313,16 @@ For full details, see [Connections](Connections.md).
 
 VirtualWorld has a nascent "area" concept that isn't fully wired into the engine. Here's what exists:
 
-- **Area library files** live at `data/library/areas/*.json` — so far we have `world_template.json` and `mansion.json`. These are full room sets grouped by scenario.
-- **Area library** at `data/library/areas/*.json` — the directory exists but is currently empty (see `AGENTS.md:99`).
-- **Way library** at `data/library/ways/*.json` — also exists but empty (`AGENTS.md:100`).
+- **Area library files** live at `data/library/areas/*.json` - so far we have `world_template.json` and `mansion.json`. These are full room sets grouped by scenario.
+- **Area library** at `data/library/areas/*.json` - the directory exists but is currently empty (see `AGENTS.md:99`).
+- **Way library** at `data/library/ways/*.json` - also exists but empty (`AGENTS.md:100`).
 
 The intended design (based on the library directory structure) seems to be:
 - **Rooms** are individual spaces.
 - **Areas** would group areas together into regions (e.g. "The Mansion Grounds" containing Garden, Graveyard, Crypt).
 - **Ways** would be connections/paths between areas.
 
-But currently, area grouping is not enforced by the engine. Rooms exist independently in the graph, and any room can connect to any other room regardless of "area" boundaries. The only grouping is logical — room names and door IDs can follow naming conventions.
+But currently, area grouping is not enforced by the engine. Rooms exist independently in the graph, and any room can connect to any other room regardless of "area" boundaries. The only grouping is logical - room names and door IDs can follow naming conventions.
 
 For scenario files like `mansion.json`, areas are just organized under the `"areas"` key in the template file, and the legacy template loader (`engine/serialization.py:184-366`) processes them into graph nodes uniformly without area awareness.
 
@@ -330,10 +330,10 @@ For scenario files like `mansion.json`, areas are just organized under the `"are
 
 Area library files in `data/library/areas/` use the same format as `world_template.json`. They contain:
 
-1. **Players** — character definitions (personality, stats, vitals, skills, inventory, behaviors)
-2. **Rooms** — room definitions with descriptions, environments, exits
-3. **Active/starting state** — `current_area`, `active_player`, `game_time`, `time_ticks`
-4. **Graph** — serialized graph nodes and edges
+1. **Players** - character definitions (personality, stats, vitals, skills, inventory, behaviors)
+2. **Rooms** - room definitions with descriptions, environments, exits
+3. **Active/starting state** - `current_area`, `active_player`, `game_time`, `time_ticks`
+4. **Graph** - serialized graph nodes and edges
 
 The library format is self-contained. Each file includes everything needed to reconstitute a full world state. The serialization module handles loading via `_load_from_template_format()` (single-player template, `serialization.py:184-366`) or `_build_graph_from_legacy()` (multi-player dict format, `serialization.py:367-506`).
 
@@ -341,15 +341,15 @@ When loading a template, areas are created first as bare graph nodes, then exits
 
 ### Area Registration
 
-When importing from a template, areas get their description and environment set as node properties. The `Area` class in `room.py` is the legacy data object — it still wraps a `name`, `description`, `items`, `exits`, and `environment`, but modern code reads directly from the graph rather than reconstructing Area objects.
+When importing from a template, areas get their description and environment set as node properties. The `Area` class in `room.py` is the legacy data object - it still wraps a `name`, `description`, `items`, `exits`, and `environment`, but modern code reads directly from the graph rather than reconstructing Area objects.
 
-The `MovementSystem.add_area()` method (`engine/movement.py:23-35`) is rarely called directly now — areas are typically created when loading a save or template. The legacy `/api/build/room` endpoint (`routes/graph.py:163-187`) still exists for quick room creation via the UI.
+The `MovementSystem.add_area()` method (`engine/movement.py:23-35`) is rarely called directly now - areas are typically created when loading a save or template. The legacy `/api/build/room` endpoint (`routes/graph.py:163-187`) still exists for quick room creation via the UI.
 
 ## Edge Cases
 
 - **Area with no description**: Falls back to `"You are in an empty void."` if `current_area` is None (`engine/area_description.py:87`).
-- **Area deletion**: Protected — you can't delete a room with players inside it (`routes/graph.py:134-138`).
-- **Duplicate room names**: Detected at graph insertion level — raises `ValueError` via `graph.py:58-59`.
+- **Area deletion**: Protected - you can't delete a room with players inside it (`routes/graph.py:134-138`).
+- **Duplicate room names**: Detected at graph insertion level - raises `ValueError` via `graph.py:58-59`.
 - **Area name changes**: Renaming a room via `/api/graph/node/<id>/rename` updates all edge references (`routes/graph.py:96-124`).
 - **Player state blocking movement**: Sleeping, unconscious, bound, and dead (without ghost mode) players cannot move (`engine/movement.py:97-101`).
 
@@ -366,15 +366,15 @@ The `MovementSystem.add_area()` method (`engine/movement.py:23-35`) is rarely ca
 
 ## Where it lives
 
-- `engine/movement.py` — `MovementSystem.add_area`, `connect_areas`, movement rules
-- `engine/area_description.py` — `RoomDescription.get_area_description`, light spill, environmental summaries, exit clues
-- `engine/lighting.py` — `light_to_level`, `get_ambient_light`, light spill through open ways
-- `engine/node_ids.py` — `area_node_id` convention
-- `graph.py` — `WorldGraph`, `Node`, `EDGE_IN`, `EDGE_CONNECTION`, uniqueness enforcement
-- `room.py` — legacy `Area` data object, default environment values
-- `routes/graph.py` — `/api/build/room`, `/api/graph/node/<id>/rename`, area deletion protection
-- `data/library/areas/*.json` — area library files (world_template.json, mansion.json)
-- `engine/serialization.py` — area serialization/deserialization
+- `engine/movement.py` - `MovementSystem.add_area`, `connect_areas`, movement rules
+- `engine/area_description.py` - `RoomDescription.get_area_description`, light spill, environmental summaries, exit clues
+- `engine/lighting.py` - `light_to_level`, `get_ambient_light`, light spill through open ways
+- `engine/node_ids.py` - `area_node_id` convention
+- `graph.py` - `WorldGraph`, `Node`, `EDGE_IN`, `EDGE_CONNECTION`, uniqueness enforcement
+- `room.py` - legacy `Area` data object, default environment values
+- `routes/graph.py` - `/api/build/room`, `/api/graph/node/<id>/rename`, area deletion protection
+- `data/library/areas/*.json` - area library files (world_template.json, mansion.json)
+- `engine/serialization.py` - area serialization/deserialization
 
 <!-- changelog:start -->
 ## Changelog
@@ -383,21 +383,21 @@ The `MovementSystem.add_area()` method (`engine/movement.py:23-35`) is rarely ca
 
 | When | Task | Status |
 |---|---|---|
-| — | [[task-45-room_generator_room_context\|task-45-room_generator_room_context]] | `done` |
-| — | [[task-43-relieve_adds_smell\|task-43-relieve_adds_smell]] | `done` |
-| — | [[task-33-generate_item_room_context\|task-33-generate_item_room_context]] | `done` |
-| — | [[task-31-dynamic_room_descriptions\|task-31-dynamic_room_descriptions]] | `done` |
+| - | [[task-45-room_generator_room_context\|task-45-room_generator_room_context]] | `done` |
+| - | [[task-43-relieve_adds_smell\|task-43-relieve_adds_smell]] | `done` |
+| - | [[task-33-generate_item_room_context\|task-33-generate_item_room_context]] | `done` |
+| - | [[task-31-dynamic_room_descriptions\|task-31-dynamic_room_descriptions]] | `done` |
 <!-- changelog:end -->
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[look-around|Look around]] (#1)
+**Features**  -  [[look-around|Look around]] (#1)
 
-**Dev tasks** — [[dev_tasks/done/environment/task-31-dynamic_room_descriptions|task]], [[dev_tasks/done/environment/task-33-generate_item_room_context|task]], [[dev_tasks/done/environment/task-43-relieve_adds_smell|task]], [[dev_tasks/done/environment/task-45-room_generator_room_context|task]], [[dev_tasks/todo/docs/task-668-room-context-js-body-is-mojibaked-double-encoded-utf-8|task]], [[dev_tasks/todo/gameplay/task-99-room-grids-and-movement|task]] … +1 more
+**Dev tasks**  -  [[dev_tasks/cancelled/world/task-637-area-scope-picker-never-shows-the-area-s-actual-scope|task]], [[dev_tasks/done/environment/task-31-dynamic_room_descriptions|task]], [[dev_tasks/done/environment/task-33-generate_item_room_context|task]], [[dev_tasks/done/environment/task-43-relieve_adds_smell|task]], [[dev_tasks/done/environment/task-45-room_generator_room_context|task]], [[dev_tasks/review/docs/task-668-room-context-js-body-is-mojibaked-double-encoded-utf-8|task]] … +1 more
 
-**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
+**Neighbouring notes**  -  [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Kraktooth Regional Scope & Mountain Elevation]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

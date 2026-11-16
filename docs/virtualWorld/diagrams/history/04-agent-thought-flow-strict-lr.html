@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agent Thought Flow (Strict LR)</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #18181b; }
+  </style>
+</head>
+<body>
+  <div class="mermaid">
+flowchart LR
+    classDef sensory fill:#0369a1,stroke:#7dd3fc,color:#ffffff,stroke-width:2px
+    classDef factual fill:#1d4ed8,stroke:#93c5fd,color:#ffffff,stroke-width:2px
+    classDef memory fill:#b45309,stroke:#fcd34d,color:#ffffff,stroke-width:2px
+    classDef mind fill:#4338ca,stroke:#a5b4fc,color:#ffffff,stroke-width:2px
+    classDef actor fill:#047857,stroke:#6ee7b7,color:#ffffff,stroke-width:2px
+    classDef loop fill:#7e22ce,stroke:#e879f9,color:#ffffff,stroke-width:2px
+    classDef reject fill:#b91c1c,stroke:#fca5a5,color:#ffffff,stroke-width:2px
+    classDef root fill:#334155,stroke:#cbd5e1,color:#ffffff,stroke-width:1.5px
+
+    %% Column 1: Inputs & Standing Character
+    OBS["1. Sensory &amp; Social<br/>Surroundings, WITNESSED,<br/>Addressed-To, Vitals, Sanity"]:::sensory
+    FACT["Factual Lane (Unvarnished)<br/>carrying, spatial_memory,<br/>locks, AlreadyKnown, Lore"]:::factual
+    ATTN["Interests, Fears &amp; Bias<br/>interest_tags, likes/dislikes,<br/>trauma, mood, relations"]:::root
+    GIMP["GIMP &amp; Schedule<br/>Goals (M), Intention (I),<br/>Pursuits, Obligations, Duties"]:::root
+    SEED["Memory &amp; History<br/>Player.memories, Life Exp,<br/>Objective lived_log"]:::root
+
+    %% Column 2: Cueing & Recall
+    CUE["2. Cue &amp; Salience Gate<br/>Perceptual/Somatic Cues<br/>+ Cue-Change Gate"]:::memory
+    RECALL["Involuntary Recall<br/>(or Reuse Cache if<br/>cues unchanged)"]:::memory
+    MOSIAC["MOSIAC Ranker<br/>M+I (GIMP), O+S,<br/>A (interests/fears/vitals), C (verbs)"]:::mind
+
+    %% Column 3: Intermediator & Active Mind
+    INTER["3. Memory Intermediator<br/>Mood- &amp; Bias-Colored<br/>Palimpsest Synthesis (LFM)"]:::memory
+    MIND["Conscious Memory<br/>+ Active Mind<br/>(Questions, Assumptions, Promises)"]:::mind
+
+    %% Column 4: Plan & Actor
+    PLAN{"4. Active Plan<br/>Still Valid?"}:::actor
+    ACTOR["Actor LLM / Soak<br/>Inner Monologue, Thought,<br/>Plan, Speech / Deliberate Recall"]:::actor
+
+    %% Column 5: Grounding & Outcome
+    INTERP["5. Action Interpreter<br/>&amp; PlanGrounding"]:::actor
+    ACT["Execute &amp; Mutate<br/>World, WITNESSED,<br/>Vitals &amp; Relations"]:::actor
+    REJECT["Blocked / Failed<br/>(Invalidate Assumption,<br/>Trigger Re-think)"]:::reject
+
+    %% Column 6: Persistence & Dreams
+    PERSIST["6. Post-Turn Save<br/>Conscious Summary +<br/>Monologue + Source Refs"]:::loop
+    DYN["Memory Dynamics<br/>Reinforce / Fade /<br/>Supersede (invalid_at)"]:::loop
+    SLEEP["Sleep / Dreams<br/>&amp; Daily Reflection<br/>(Update Beliefs &amp; GIMP)"]:::loop
+
+    %% Strictly left-to-right edges (zero backward arrows)
+    OBS --> CUE
+    ATTN --> CUE
+    SEED --> RECALL
+    CUE --> RECALL
+    RECALL --> INTER
+    ATTN --> INTER
+    OBS --> INTER
+    INTER --> MIND
+
+    GIMP --> MOSIAC
+    ATTN --> MOSIAC
+    OBS --> MOSIAC
+
+    FACT --> PLAN
+    MOSIAC --> PLAN
+    MIND --> PLAN
+
+    PLAN -- "Replan / React" --> ACTOR
+    PLAN -- "Continue step" --> INTERP
+    ACTOR --> INTERP
+    FACT --> INTERP
+
+    INTERP -- "Valid" --> ACT
+    INTERP -- "Blocked" --> REJECT
+
+    ACT --> PERSIST
+    ACTOR --> PERSIST
+    REJECT --> PERSIST
+    PERSIST --> DYN --> SLEEP
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</body>
+</html>

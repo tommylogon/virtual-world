@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VirtualWorld - Complete Mind, Memory &amp; Decision Map (Sammy Lopez)</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111827;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #0f172a;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .title h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .title p {
+      margin: 2px 0 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill:hover { border-color: #60a5fa; color: #fff; }
+    .pill.active {
+      background: #2563eb;
+      border-color: #60a5fa;
+      color: #fff;
+      font-weight: 600;
+    }
+    .workspace {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+    .board-wrap {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      padding: 16px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: 150px repeat(6, minmax(168px, 1fr));
+      gap: 10px;
+      min-width: 1180px;
+      position: relative;
+    }
+    .col-head {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #93c5fd;
+      text-align: center;
+    }
+    .lane-label {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+    .lane-label span {
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .cell {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 86px;
+    }
+    .node {
+      border-radius: 8px;
+      padding: 9px 11px;
+      border: 1.5px solid #334155;
+      background: #1e293b;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s, opacity 0.15s;
+      position: relative;
+    }
+    .node:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    }
+    .node.selected {
+      outline: 2px solid #facc15;
+      box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.18);
+    }
+    .node.dim { opacity: 0.22; }
+    .node-title {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .node-sub {
+      font-size: 11px;
+      line-height: 1.35;
+      color: #cbd5e1;
+    }
+    .node-ex {
+      margin-top: 5px;
+      padding-top: 5px;
+      border-top: 1px dashed rgba(255,255,255,0.16);
+      font-size: 10.5px;
+      color: #fde68a;
+      line-height: 1.3;
+    }
+
+    /* Color themes by lane/role */
+    .c-world   { background: #0c4a6e; border-color: #38bdf8; }
+    .c-factual { background: #1e3a8a; border-color: #60a5fa; }
+    .c-body    { background: #7c2d12; border-color: #fb923c; }
+    .c-self    { background: #334155; border-color: #94a3b8; }
+    .c-mem     { background: #78350f; border-color: #fbbf24; }
+    .c-mind    { background: #312e81; border-color: #818cf8; }
+    .c-actor   { background: #064e3b; border-color: #34d399; }
+    .c-mask    { background: #134e4a; border-color: #2dd4bf; }
+    .c-reject  { background: #7f1d1d; border-color: #f87171; }
+    .c-loop    { background: #581c87; border-color: #e879f9; }
+    .c-ui      { background: #3f3f46; border-color: #a1a1aa; }
+
+    /* Inspector drawer */
+    aside {
+      width: clamp(290px, 23vw, 360px);
+      border-left: 1px solid var(--border);
+      background: var(--panel);
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    aside h2 {
+      margin: 0;
+      font-size: 15px;
+      color: #f8fafc;
+    }
+    .kv {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .kv h3 {
+      margin: 0 0 4px 0;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #93c5fd;
+    }
+    .kv p, .kv ul {
+      margin: 0;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #e2e8f0;
+    }
+    .kv ul { padding-left: 18px; }
+    .file-pill {
+      display: inline-block;
+      margin: 3px 4px 0 0;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>VirtualWorld: Complete Mind, Memory &amp; Decision Map (Sammy Lopez)</h1>
+      <p>Click any module to inspect Inputs, Outputs, Branches, Repo Files, and Sammy's Cafeteria example.</p>
+    </div>
+    <div class="filters" id="filters">
+      <button class="pill active" data-filter="all">All Systems</button>
+      <button class="pill" data-filter="subjective">Subjective Mind</button>
+      <button class="pill" data-filter="factual">Factual Guardrail</button>
+      <button class="pill" data-filter="exec">Plan / React / Recollect</button>
+      <button class="pill" data-filter="editor">Memory Editor &amp; Lineage</button>
+      <button class="pill" data-filter="social">Multi-Agent &amp; Commons</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <div class="board-wrap">
+      <div class="board" id="board">
+        <!-- Header Row -->
+        <div class="col-head">Subsystem Lane</div>
+        <div class="col-head">1. Inputs &amp; Standing</div>
+        <div class="col-head">2. Cue, Reflex &amp; Recall</div>
+        <div class="col-head">3. Synthesis &amp; Mind</div>
+        <div class="col-head">4. Plan, React &amp; Mask</div>
+        <div class="col-head">5. Grounding &amp; World</div>
+        <div class="col-head">6. Save, Tools &amp; Dreams</div>
+
+        <!-- Lane 1: Objective World & Factual Lane -->
+        <div class="lane-label">1. Objective World &amp; Factual Guard<span>Unvarnished simulation truth</span></div>
+        <div class="cell">
+          <div class="node c-world" data-id="obs"></div>
+          <div class="node c-factual" data-id="fact"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-reject" data-id="nov"></div>
+        </div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell">
+          <div class="node c-factual" data-id="interp"></div>
+          <div class="node c-world" data-id="exec"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-world" data-id="commons"></div>
+        </div>
+
+        <!-- Lane 2: Body, Identity & Relationships -->
+        <div class="lane-label">2. Body, Identity &amp; Social<span>Persona, vitals, mask &amp; subtext</span></div>
+        <div class="cell">
+          <div class="node c-body" data-id="body"></div>
+          <div class="node c-self" data-id="id"></div>
+          <div class="node c-self" data-id="rel"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-body" data-id="invol"></div>
+        </div>
+        <div class="cell"></div>
+        <div class="cell">
+          <div class="node c-actor" data-id="priv"></div>
+          <div class="node c-mask" data-id="mask"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-world" data-id="cross"></div>
+        </div>
+        <div class="cell"></div>
+
+        <!-- Lane 3: Memory, Recall & Intermediator -->
+        <div class="lane-label">3. Memory &amp; Intermediator<span>Palimpsest, recollect &amp; editor</span></div>
+        <div class="cell">
+          <div class="node c-self" data-id="seed"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-mem" data-id="cue"></div>
+          <div class="node c-mem" data-id="recall"></div>
+          <div class="node c-mem" data-id="recollect"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-mem" data-id="inter"></div>
+        </div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell">
+          <div class="node c-ui" data-id="editor"></div>
+        </div>
+
+        <!-- Lane 4: Executive Mind, GIMP & MOSIAC -->
+        <div class="lane-label">4. Executive, GIMP &amp; MOSIAC<span>Wants, appraisal, plans &amp; rank</span></div>
+        <div class="cell">
+          <div class="node c-self" data-id="gimp"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-mem" data-id="app"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-mind" data-id="mind"></div>
+          <div class="node c-mind" data-id="mosiac"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-actor" data-id="plan"></div>
+        </div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+
+        <!-- Lane 5: Actor, React & Failure -->
+        <div class="lane-label">5. Actor, React &amp; Soak<span>TurnQueue, react, soak &amp; retry</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell">
+          <div class="node c-actor" data-id="react"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-reject" data-id="reject"></div>
+        </div>
+        <div class="cell">
+          <div class="node c-ui" data-id="soak"></div>
+        </div>
+
+        <!-- Lane 6: Consolidation, Lineage & Dreams -->
+        <div class="lane-label">6. Consolidation &amp; Dreams<span>Persistence, dynamics &amp; sleep</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell">
+          <div class="node c-loop" data-id="persist"></div>
+          <div class="node c-loop" data-id="dyn"></div>
+          <div class="node c-loop" data-id="sleep"></div>
+        </div>
+      </div>
+    </div>
+
+    <aside id="inspector">
+      <h2>Select a node</h2>
+      <p style="font-size:12.5px; color:#9ca3af; margin:0;">Click any module on the board to inspect its inputs, outputs, failure branches, repo files, and Sammy Lopez example.</p>
+    </aside>
+  </div>
+
+  <script>
+    const NODES = {
+      obs: {
+        title: "Perception & Recognition",
+        badge: "Engine",
+        tags: ["all", "factual", "social"],
+        sub: "Room, sound, beyond_visibility, name_masking",
+        ex: "Jake holds crimson-ink note; smells of shop grease",
+        in: "Area graph, sightlines, sound sources, name_masking, TurnQueue slot",
+        out: "WITNESSED lines + [Heard -> addressed to you] + recognized vs stranger labels",
+        branches: "Strangers appear by appearance until named; distant sounds enter via sound.py.",
+        files: ["engine/observation.py", "engine/room_perception.py", "engine/beyond_visibility.py", "engine/name_masking.py", "engine/sound.py"]
+      },
+      fact: {
+        title: "Unvarnished Factual Lane",
+        badge: "task-950",
+        tags: ["all", "factual", "exec"],
+        sub: "carrying, spatial_memory, locks, AlreadyKnown, Lore",
+        ex: "carrying=[lip gloss]; NO note in hand",
+        in: "Authoritative inventory, graph exits/locks, spatial_memory, AlreadyKnown, World Lore",
+        out: "Hard deterministic constraints that never get subjectively varnished",
+        branches: "Even if memory confabulates, Factual Lane blocks impossible actions.",
+        files: ["engine/spatial_memory.py", "static/js/agent/prompt-builder/memory-context.ts", "routes/memories.py"]
+      },
+      nov: {
+        title: "Novelty, Threat & Interrupts",
+        badge: "Engine",
+        tags: ["all", "exec", "factual"],
+        sub: "novelty.py, threat-detector, interrupts.py",
+        ex: "Crimson note + Lulu presence interrupts lunch",
+        in: "Current OBS vs prior tick state, hostile actors, sudden arrivals",
+        out: "Salience spike + active plan invalidation flag",
+        branches: "If no threat/novelty, active plan continues without full Actor replan.",
+        files: ["engine/novelty.py", "engine/interrupts.py", "static/js/agent/threat-detector.ts"]
+      },
+      interp: {
+        title: "Action Interpreter & PlanGrounding",
+        badge: "task-943",
+        tags: ["all", "factual", "exec"],
+        sub: "action-interpreter, normalizer, plan-grounding",
+        ex: "'speak' + 'glare(Jake)' validated against room",
+        in: "Actor/Mask intent + Unvarnished Factual Lane",
+        out: "Normalized executable action or Grounding Rejection",
+        branches: "Valid -> Execute. Invalid target/missing item -> Blocked/Failed node.",
+        files: ["static/js/agent/action-interpreter.ts", "static/js/agent/action-normalizer.ts", "static/js/agent/plan-grounding.ts"]
+      },
+      exec: {
+        title: "Execute & World Mutation",
+        badge: "Engine",
+        tags: ["all", "factual", "social"],
+        sub: "Mutates world, emits WITNESSED, lived_log",
+        ex: "Sammy snaps at Jake; Kayla & Lulu hear it",
+        in: "Validated action, speech, volume, emote",
+        out: "World state update, WITNESSED broadcast, lived_log entry, vitals/relationship delta",
+        branches: "Triggers TurnQueue advance to next actor.",
+        files: ["engine/tick_manager.py", "engine/speech.py", "engine/lived_log.py"]
+      },
+      commons: {
+        title: "The Commons & Long-Dist Comms",
+        badge: "Social",
+        tags: ["all", "social"],
+        sub: "commons.py, long_distance_comms.py",
+        ex: "Group chat / phone messages outside room",
+        in: "Phone/channel messages, social posts, remote mentions",
+        out: "Async social cues & dialogue feeding next turn's OBS/WITNESSED",
+        branches: "Respects task-935 memory toggle during Commons testing.",
+        files: ["engine/commons.py", "engine/long_distance_comms.py", "routes/commons.py"]
+      },
+      body: {
+        title: "Embodied State & Thresholds",
+        badge: "Self",
+        tags: ["all", "subjective"],
+        sub: "vitals, emotion, fear, hostility, sanity",
+        ex: "Stomach drops, jealousy spikes, sanity steady",
+        in: "Vitals, vital-thresholds, emotion, fear, hostility, buildInsanityContext",
+        out: "Interoceptive pressure biasing appraisal, recall, and tone",
+        branches: "Critical needs (hunger, exhaustion, panic) override low-priority goals.",
+        files: ["engine/vitals.py", "engine/emotion.py", "engine/fear.py", "static/js/agent/vital-thresholds.ts"]
+      },
+      id: {
+        title: "Identity, Persona & Value Gates",
+        badge: "Self",
+        tags: ["all", "subjective"],
+        sub: "interests, likes, fears, kinks, traits, pride",
+        ex: "Fears being 'Astrid's reject'; lie='I don't care'",
+        in: "character_identity, character_appearance, traits, trait_library, disposition",
+        out: "Interest salience tags + trait weights + hard morality/pride gates",
+        branches: "Interests also drive dressing.py and timeskip explore targets.",
+        files: ["engine/character_identity.py", "engine/character_appearance.py", "engine/traits.py", "engine/disposition.py"]
+      },
+      rel: {
+        title: "6-Axis Relationships & Residue",
+        badge: "Social",
+        tags: ["all", "subjective", "social"],
+        sub: "trust, fear, attraction, disgust, respect, familiarity",
+        ex: "Jake (all-consuming love), Lulu (hate), Kyrie (blind spot)",
+        in: "relationships.py per-person vectors + emotional residue",
+        out: "Per-person lens on how speech is heard and motives are guessed",
+        branches: "Updates dynamically after social outcomes.",
+        files: ["engine/relationships.py", "engine/social_text.py"]
+      },
+      invol: {
+        title: "Involuntary Reflex",
+        badge: "Reflex",
+        tags: ["all", "subjective"],
+        sub: "involuntary.ts (bypasses deliberate choice)",
+        ex: "Chews strawberry lip gloss raw, kicks table leg",
+        in: "Vitals + threat + fear + nervous tics",
+        out: "Automatic physical reaction emitted without Actor choice",
+        branches: "Still logged to lived_log and post-turn persistence.",
+        files: ["static/js/agent/involuntary.ts"]
+      },
+      priv: {
+        title: "Private Inner Monologue",
+        badge: "task-948",
+        tags: ["all", "subjective", "exec"],
+        sub: "Unfiltered inner truth before social filter",
+        ex: "'My chest hurts. Don't cry in front of Lulu.'",
+        in: "Active Mind + MOSIAC + Embodied State + Present Appraisal",
+        out: "Private thought & raw emotional intent (persisted post-turn)",
+        branches: "Never leaked directly to other characters' WITNESSED.",
+        files: ["static/js/agent/prompt-builder/turn-prompts.ts", "docs/virtualWorld/Characters/Interiority & Subtext.md"]
+      },
+      mask: {
+        title: "Social Mask, Subtext & Emote",
+        badge: "Subtext",
+        tags: ["all", "subjective", "social"],
+        sub: "Pride/fear filter -> speech, volume, emote-picker",
+        ex: "Loud tomboy deflection + glare(Jake)",
+        in: "Private Monologue + Identity pride + Relationship to target + emote-picker",
+        out: "Public speech + volume + emote (or deliberate silence)",
+        branches: "Active Mind Held-Back Secrets keep Sammy from blurting her panic.",
+        files: ["static/js/agent/emote-picker.ts", "docs/virtualWorld/Characters/Interiority & Subtext.md"]
+      },
+      cross: {
+        title: "Multi-Actor Cross-Talk",
+        badge: "TurnQueue",
+        tags: ["all", "social"],
+        sub: "Sammy's output becomes Jake/Kayla/Lulu's OBS",
+        ex: "Jake hears deflection -> his TurnQueue slot fires",
+        in: "TurnQueue order + WITNESSED speech/actions",
+        out: "Next character's Perception & Present Appraisal",
+        branches: "Simultaneous mode batches; Turn-based steps one actor per slot.",
+        files: ["static/js/agent/turn-queue.ts", "static/js/agent/sim-round.ts", "engine/turn_order.py"]
+      },
+      seed: {
+        title: "Seed & Stored Memories",
+        badge: "Store",
+        tags: ["all", "subjective", "editor"],
+        sub: "Player.memories, vector_store, life_exp, lived_log",
+        ex: "Sector 9 wheel, shed roof shame, Kayla porch, lived_log",
+        in: "Authored backstory, life_experience milestones, vector embeddings, lived_log",
+        out: "Raw candidate traces (hidden from Actor under task-949)",
+        branches: "Strict Actor Isolation: Actor never sees raw DB rows.",
+        files: ["engine/agent_memory.py", "engine/vector_store.py", "engine/life_experience.py", "engine/lived_log.py"]
+      },
+      cue: {
+        title: "Cue Extract & Change Gate",
+        badge: "task-908/948",
+        tags: ["all", "subjective", "exec"],
+        sub: "Multi-facet cues + unchanged-tick cache gate",
+        ex: "Cues=[note, Jake, Lulu, shop grease] -> SHIFT=Yes",
+        in: "OBS actors/items/speech + bodily needs + mood + interests",
+        out: "Structured cues + Cue-Change Gate decision (Yes/No)",
+        branches: "If NO salient shift on continuation tick, reuses cached conscious summary.",
+        files: ["engine/memory_retrieval.py"]
+      },
+      recall: {
+        title: "Involuntary Multi-Hop Recall",
+        badge: "task-908",
+        tags: ["all", "subjective"],
+        sub: "Keyword + vector + associative intersection",
+        ex: "Pulls [shed roof, Lulu note, Kayla porch]; drops noise",
+        in: "Cues + Player.memories + lived_log refs (filters invalid_at)",
+        out: "Ranked traces + immutable source IDs for Intermediator",
+        branches: "Zero-padding: returns 0 traces if nothing scores above threshold.",
+        files: ["engine/memory_retrieval.py"]
+      },
+      recollect: {
+        title: "Deliberate 'Recollect' Action",
+        badge: "task-944",
+        tags: ["all", "subjective", "exec"],
+        sub: "Active memory search when Actor hits a gap",
+        ex: "Sammy actively tries to recall where Jake was at 5:45am",
+        in: "Actor 'recall' verb + specific target/topic",
+        out: "Targeted retrieval pass -> Intermediator synthesis",
+        branches: "Distinct from passive involuntary recall; costs mental effort/turn.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-944-subjective-cognitive-memory-and-active-mind.md"]
+      },
+      inter: {
+        title: "Memory Intermediator (LFM)",
+        badge: "task-947/948",
+        tags: ["all", "subjective"],
+        sub: "Mood- & bias-colored palimpsest synthesis",
+        ex: "'Jake looks relaxed with Lulu's note - slipping away.'",
+        in: "Recalled traces + current OBS + Embodied State + Relationships",
+        out: "Single varnished Conscious Memory Block (no raw DB rows)",
+        branches: "Skips re-synthesis on unchanged ticks via Cue-Change Gate.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-947-memory-intermediator-and-reconsolidation-palimpsest-pipeline.md", "docs/virtualWorld/dev_tasks/todo/gameplay/task-948-implement-memory-intermediator-synthesis-stage-inner-monologue-persistence-and-c.json"]
+      },
+      editor: {
+        title: "Memory Editor, Weaver & Mind Panel",
+        badge: "UI / Tools",
+        tags: ["all", "editor"],
+        sub: "Inspector Mind/Memory tabs, AgentLens, /memories",
+        ex: "Inspect Sammy's gen 0->1->2 drift & edit seed traces",
+        in: "GET/POST /memories (with lineage refs + generation depth)",
+        out: "Interactive editing, reflection triggers, and palimpsest audit view",
+        branches: "Exposes immutable source refs while Actor stays isolated.",
+        files: ["static/js/inspector/mind-view.ts", "static/js/inspector/memory-view.ts", "routes/memories.py"]
+      },
+      gimp: {
+        title: "GIMP, Schedule & Pursuits",
+        badge: "Wants",
+        tags: ["all", "subjective", "exec"],
+        sub: "Goals, Intention, Motivation, Pursuits, Duties",
+        ex: "Goal: Keep Jake close (M: belonging, I: stay ahead of Lulu)",
+        in: "goals.py, schedule.py, pursuit_templates.py, obligations",
+        out: "Standing M + I inputs and time-bound schedule pressures",
+        branches: "Updated by daily_reflection.py and goal achievement triggers.",
+        files: ["engine/goals.py", "engine/schedule.py", "engine/pursuit_templates.py"]
+      },
+      app: {
+        title: "Present Appraisal & Surprise",
+        badge: "Psych",
+        tags: ["all", "subjective"],
+        sub: "Reads OBS through Rel + Body + Expectations",
+        ex: "Reads Jake's relaxed smile + note as threat, not casual",
+        in: "OBS + 6-Axis Relationships + Body + Active Mind Assumptions",
+        out: "Subjective meaning + Prediction Error (Surprise) spike",
+        branches: "High surprise boosts memory importance and triggers replanning.",
+        files: ["engine/emotion.py", "engine/novelty.py"]
+      },
+      mind: {
+        title: "Active Working Mind",
+        badge: "task-944",
+        tags: ["all", "subjective", "exec"],
+        sub: "Open Questions, Assumptions, Held-Back Secrets",
+        ex: "Q: 'Why shop grease?' Secret: 'I'm terrified of losing him'",
+        in: "Intermediator Conscious Memory + prior turn working mind",
+        out: "Updated Questions, Assumptions, Commitments, Secrets",
+        branches: "Failed actions or surprises invalidate false assumptions.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-944-subjective-cognitive-memory-and-active-mind.md"]
+      },
+      mosiac: {
+        title: "MOSIAC + Disposition Ranker",
+        badge: "Decide",
+        tags: ["all", "exec", "subjective"],
+        sub: "M+I (GIMP), O+S, A (interests/fear/vitals), C (verbs)",
+        ex: "Top verbs: [speak, glare, examine, leave]",
+        in: "GIMP(M+I) + Obligations/Schedule + Appraisal/Body/Interests(A) + Gated Verbs(C)",
+        out: "Scored & ranked action/pursuit candidates",
+        branches: "Shared by both LLM Actor and deterministic Soak Policy.",
+        files: ["engine/mosiac.py", "engine/mosiac_selector.py", "engine/disposition.py"]
+      },
+      plan: {
+        title: "Plan Manager & Plan Executor",
+        badge: "task-702",
+        tags: ["all", "exec"],
+        sub: "Continue valid multi-step plan or Replan",
+        ex: "Lunch plan invalidated by note threat -> Replan",
+        in: "Active plan + Novelty/Interrupts + Factual Lane + MOSIAC",
+        out: "Either 'Continue next step' (to Interpreter) or 'Replan / React'",
+        branches: "Saves LLM calls on multi-step routines when nothing interrupts.",
+        files: ["engine/plan_executor.py", "static/js/agent/plan-manager.ts", "static/js/agent/plan-tracker.ts"]
+      },
+      react: {
+        title: "React Phase / Actor LLM / Soak",
+        badge: "task-943/949",
+        tags: ["all", "exec", "subjective"],
+        sub: "Single-pass React or Two-Stage Actor; zero raw logs",
+        ex: "Chooses sharp deflection instead of storming out",
+        in: "Conscious Memory + Active Mind + MOSIAC + OBS (no raw DB rows)",
+        out: "Thought, plan update, speech/action intent, or Deliberate Recollect",
+        branches: "Soak runner uses deterministic policy on the exact same handoff.",
+        files: ["static/js/agent-engine.ts", "static/js/agent/prompt-builder/turn-prompts.ts", "engine/soak.py"]
+      },
+      reject: {
+        title: "Blocked / Grounding Failure",
+        badge: "Guard",
+        tags: ["all", "factual", "exec"],
+        sub: "Rejects hallucinated items/targets; feeds Re-think",
+        ex: "If Sammy tried 'snatch(note)' while across room -> Blocked",
+        in: "Action Interpreter / PlanGrounding rejection",
+        out: "Failure outcome -> invalidates assumption + triggers re-evaluation",
+        branches: "Logged as outcome so actor does not loop blindly.",
+        files: ["static/js/agent/plan-grounding.ts", "static/js/agent/action-interpreter.ts"]
+      },
+      soak: {
+        title: "Headless Soak & Continuity",
+        badge: "task-949",
+        tags: ["all", "exec", "editor"],
+        sub: "Long-run simulation using Intermediator handoff",
+        ex: "Runs 1,440 ticks without raw lived_log leakage",
+        in: "lived_log + Intermediator conscious summary + MOSIAC",
+        out: "Multi-day emergent behavior & telemetry",
+        branches: "Uses same two-lane factual invariant so long runs don't drift.",
+        files: ["engine/soak.py", "engine/soak_runner.py", "engine/lived_log_memory.py"]
+      },
+      persist: {
+        title: "Post-Turn Save & Lineage",
+        badge: "task-948/950",
+        tags: ["all", "editor", "subjective"],
+        sub: "Saves Conscious Summary + Monologue + Source Refs",
+        ex: "Stores gen=1 summary linked to [mem_shed, mem_note]",
+        in: "Conscious Summary + Private Monologue + Action Outcome + Source IDs",
+        out: "New memory record with immutable source refs & generation depth",
+        branches: "Replaces legacy endOfTurnMemory prompt.",
+        files: ["routes/memories.py", "static/js/agent/memory-manager.ts", "engine/lived_log_memory.py"]
+      },
+      dyn: {
+        title: "Memory Dynamics",
+        badge: "task-685",
+        tags: ["all", "subjective", "editor"],
+        sub: "Reinforce, decay, supersede (invalid_at)",
+        ex: "Reinforces 'fear of losing Jake'; updates emotional residue",
+        in: "Recall/persistence feedback + new contradicting/state-change facts",
+        out: "Updated activation, confidence, decay resistance, invalid_at",
+        branches: "State changes supersede old memories instead of false contradictions.",
+        files: ["engine/memory_dynamics.py"]
+      },
+      sleep: {
+        title: "Sleep / Dreams & Daily Reflection",
+        badge: "Nightly",
+        tags: ["all", "subjective", "editor"],
+        sub: "consolidate_sleep() + daily_reflection.py",
+        ex: "Prunes Cafeteria clutter; belief 'Jake is drifting'; updates GIMP",
+        in: "Day's memories, emotional residue, GIMP goals",
+        out: "Pruned routine noise, semantic beliefs, updated GIMP priorities",
+        branches: "Capped at once per in-game day/night cycle.",
+        files: ["engine/memory_dynamics.py", "engine/daily_reflection.py", "engine/tick_manager.py"]
+      }
+    };
+
+    // Populate node cards
+    document.querySelectorAll('.node').forEach(el => {
+      const id = el.dataset.id;
+      const d = NODES[id];
+      if (!d) return;
+      el.innerHTML = `
+        <div class="node-title"><span>${d.title}</span><span class="badge">${d.badge}</span></div>
+        <div class="node-sub">${d.sub}</div>
+        <div class="node-ex">Ex: ${d.ex}</div>
+      `;
+      el.addEventListener('click', () => selectNode(id, el));
+    });
+
+    function selectNode(id, el) {
+      document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+      el.classList.add('selected');
+      const d = NODES[id];
+      const insp = document.getElementById('inspector');
+      insp.innerHTML = `
+        <h2>${d.title} <span class="badge" style="vertical-align:middle;">${d.badge}</span></h2>
+        <div class="kv"><h3>Sammy Lopez Example</h3><p>${d.ex}</p></div>
+        <div class="kv"><h3>Inputs</h3><p>${d.in}</p></div>
+        <div class="kv"><h3>Outputs</h3><p>${d.out}</p></div>
+        <div class="kv"><h3>Branches / Edge Cases</h3><p>${d.branches}</p></div>
+        <div class="kv"><h3>Repo Files</h3><div>${d.files.map(f => `<span class="file-pill">${f}</span>`).join('')}</div></div>
+      `;
+    }
+
+    // Filter pills
+    document.querySelectorAll('.pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const f = btn.dataset.filter;
+        document.querySelectorAll('.node').forEach(n => {
+          const d = NODES[n.dataset.id];
+          if (!d || f === 'all' || d.tags.includes(f)) n.classList.remove('dim');
+          else n.classList.add('dim');
+        });
+      });
+    });
+
+    // Select Intermediator by default so inspector is immediately informative
+    const first = document.querySelector('.node[data-id="inter"]');
+    if (first) selectNode('inter', first);
+  </script>
+</body>
+</html>

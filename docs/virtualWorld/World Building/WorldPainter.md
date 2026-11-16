@@ -240,8 +240,8 @@ single POST, so each is a single undo step.
 
 **Features**  -  [[worldpainter|WorldPainter]] (#47)
 
-**Dev tasks**  -  [[task-745-worldpainter-hazards-a-current-strength-paint-layer-plus-a-hazards-json-category-table|task]], [[dev_tasks/todo/world/task-747-worldpainter-compiler-emits-terrain-hazards-river-cliff-thorn-fall-from-the-painted-layers|task]]
+**Dev tasks**  -  [[dev_tasks/review/ui/bug-558-worldpainter-hover-outline-shows-an-nxn-brush-under-tools-that-ignore-brush-size|bug]], [[dev_tasks/review/ui/task-876-worldpainter-one-grid-control-instead-of-the-grid-dialog-button-plus-the-grid-adjust-toggle|task]], [[dev_tasks/review/ui/task-877-worldpainter-import-and-export-a-greyscale-heightmap-for-the-floor-layer|task]], [[dev_tasks/review/ui/task-879-worldpainter-alt-click-samples-the-layer-value-under-the-cursor-into-the-brush|task]], [[dev_tasks/review/ui/task-881-worldpainter-dock-the-palette-to-the-right-hand-side-so-opening-it-never-pushes-the-canvas-below-the-fold|task]], [[dev_tasks/review/world/task-745-worldpainter-hazards-a-current-strength-paint-layer-plus-a-hazards-json-category-table|task]] … +6 more
 
-**Neighbouring notes**  -  [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
+**Neighbouring notes**  -  [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Kraktooth Regional Scope & Mountain Elevation]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

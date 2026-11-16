@@ -7,9 +7,9 @@ tags: [system/characters]
 
 ## What you can do
 
-Each character can carry a library of live art keyed by emotion or action — a SillyTavern-style expression pack with a profile bust used as the avatar and a full-body render used as the portrait. The avatar resolver picks the right face based on the character's current emotional state, falling back to neutral and then to a generic icon, so a character's portrait shifts with their feelings. You author these packs in the inspector's Images tab, uploading individual expression slots or splitting a sprite sheet into labeled tiles that snap onto a draggable grid.
+Each character can carry a library of live art keyed by emotion or action - a SillyTavern-style expression pack with a profile bust used as the avatar and a full-body render used as the portrait. The avatar resolver picks the right face based on the character's current emotional state, falling back to neutral and then to a generic icon, so a character's portrait shifts with their feelings. You author these packs in the inspector's Images tab, uploading individual expression slots or splitting a sprite sheet into labeled tiles that snap onto a draggable grid.
 
-A character can carry live art keyed by **emotion** or **action** — a
+A character can carry live art keyed by **emotion** or **action** - a
 SillyTavern-style expression pack. Each key holds two renders: a **profile**
 (bust, used as the avatar) and a **full body** (portrait / graph art).
 
@@ -34,7 +34,7 @@ The pack lives on the character's graph node as `properties.expressions`:
   `happy, sad, angry, surprised, fearful, disgusted, confused, determined,
   exhausted, smug, worried, curious, embarrassed, proud, bored, suspicious,
   hopeful, frustrated, relieved, defiant, sleepy, shocked, amused, concerned,
-  confident, nervous, playful, serious, tearful, thoughtful` — 31 tiles, which is
+  confident, nervous, playful, serious, tearful, thoughtful` - 31 tiles, which is
   what an authored sheet carries. `InspectorHelpers.EXPRESSION_ORDER` is the
   single source of that order; the sprite-sheet defaults, the card grid, and the
   "Expressions to Generate" prompt all read it rather than keeping copies. Any
@@ -44,8 +44,8 @@ The pack lives on the character's graph node as `properties.expressions`:
   picks a face from the 11 affect axes and emits keys of its own (`afraid`,
   `ashamed`, ...). `EXPRESSION_ART_ALIASES` in `inspector/helpers.ts` joins the
   two (`afraid` -> `fearful`, `ashamed` -> `embarrassed`), applied only after a
-  direct slot lookup misses so packs already storing the engine's names — such
-  as `mansion.json` — render unchanged. Engine keys with no authored counterpart
+  direct slot lookup misses so packs already storing the engine's names - such
+  as `mansion.json` - render unchanged. Engine keys with no authored counterpart
   (`aroused`, `affectionate`, `envious`, `calm`) deliberately fall back to the
   neutral portrait rather than borrowing another expression's face.
 - Each key may define `profile`, `full`, or both. A missing slot falls back.
@@ -84,7 +84,7 @@ expressions[<current emotion>].profile  ->  expressions.neutral.profile
 
 - **Graph node** (`static/js/graph/network-manager.js`, Show Images mode) now
   draws this current-emotion **profile**, not the static full-body `neutral`.
-  Which key counts as "current" is `player.emotion.expression` — the server's
+  Which key counts as "current" is `player.emotion.expression` - the server's
   canonical key derived from the **affect map** (`Player.dominant_expression()` ->
   `engine.emotion.dominant_expression`, the strongest axis raised above its
   baseline, else `neutral`), so the face follows the state events and decisions
@@ -92,7 +92,7 @@ expressions[<current emotion>].profile  ->  expressions.neutral.profile
   (`CharacterArt.emotionKeyFor`) prefers `expression`, falls back to a canonical
   `current`, else `neutral`.
 - **People chips** (`static/js/agent/turn-scene-view.js`) show the profile
-  thumbnail; clicking it — or choosing **Examine** — opens
+  thumbnail; clicking it - or choosing **Examine** - opens
   `CharacterArt.open()`, the big view: current **full body** if the character has
   one, else the profile enlarged (with a Full body / Profile tab when both exist).
   The composer also auto-opens it in the **react phase** when the committed
@@ -135,7 +135,7 @@ The pack travels with the character between library and world:
 ## Editor UI
 
 The gallery renders in the character's **🖼️ Images** tab (`AV._renderImagesTab`,
-task-512), as a grid of cards — one per expression key, each with a thumbnail, its
+task-512), as a grid of cards - one per expression key, each with a thumbnail, its
 three actions, and its name. It has a **Profile / Full-body** tab switcher, an
 "add expression" field for custom keys, and a **"Split sheet"** button.
 
@@ -143,18 +143,18 @@ three actions, and its name. It has a **Profile / Full-body** tab switcher, an
 the image** (clicking the card or pressing Enter/Space), **🗑 remove the image but
 keep the expression**, and **✕ delete the expression key and its image file(s)**.
 Clicking the **name** re-files the expression under a new key, and the image
-moves with it — that is the fix for a sheet that was sliced into the wrong
+moves with it - that is the fix for a sheet that was sliced into the wrong
 labels, since it needs no re-upload. Enter commits, Esc cancels.
 
 The card is a `<div>` with an explicit click handler, deliberately **not** a
 `<label>`. A `<label>` takes its labelled control as the first *labelable*
-descendant, and a `<button>` is labelable — with the 🗑 ahead of the file input in
+descendant, and a `<button>` is labelable - with the 🗑 ahead of the file input in
 document order, Chrome activated the delete button, so clicking an image deleted
 it instead of opening the picker. This was live-verified, not inferred: one click
 produced two events, the `IMG` and a generated `BUTTON.btn-danger`.
 
-Re-filing is a **property write, not a file move** — the image stays exactly
-where it is and only the key it is filed under changes — so it reuses the generic
+Re-filing is a **property write, not a file move** - the image stays exactly
+where it is and only the key it is filed under changes - so it reuses the generic
 node `PATCH` rather than adding an endpoint, and it moves the whole slot so
 renaming a profile expression does not orphan the full-body art filed under the
 same key. The `neutral` slot is mirrored onto `profile_image` / `image` for the
@@ -170,8 +170,8 @@ a canvas and uploads each tile to its own slot through the same single-image
 endpoint, so nothing new is stored server-side.
 
 **The grid is a frame plus interior dividers, not a rows × cols count** (task-678).
-A count describes exactly one shape — `width/cols × height/rows` over the whole
-sheet — so it cannot fit a title banner, an outer margin, or panels of different
+A count describes exactly one shape - `width/cols × height/rows` over the whole
+sheet - so it cannot fit a title banner, an outer margin, or panels of different
 sizes side by side, which is what nearly every real reference sheet is. The
 geometry lives in `static/js/inspector/sprite-sheet-geometry.js` as pure
 functions (`cutsFromGrid`, `cellsFromCuts`, `clampCuts`, `recountCuts`,
@@ -188,7 +188,7 @@ preview pane scrolls, so a tall sheet is actually readable.
 **Dragging is the primary control** (the same shape as the WorldPainter grid
 adjust):
 
-- the **frame** — 4 corners and 2 grips per edge — fits the grid onto the art and
+- the **frame** - 4 corners and 2 grips per edge - fits the grid onto the art and
   off a banner or footer, with no wasted cell;
 - an **interior divider** makes rows or columns uneven, which is how a wide
   full-body panel sits beside a column of small detail panels in one grid;
@@ -199,7 +199,7 @@ adjust):
   midpoint handle would sit, which made the north and south frame edges
   unreachable.
 - Dragging is tracked on `document`, not the canvas, so a resize can travel past
-  the image — the same fix WorldPainter needed.
+  the image - the same fix WorldPainter needed.
 
 Moving or resizing the frame re-spaces the interior dividers over the new frame,
 and excluding a banner drops the dividers that fall outside it.
@@ -265,34 +265,36 @@ Helpers live in
 
 ## Related
 
-- [[Characters/Emotion & Affect System|Emotion & Affect System]] — supplies the
+- [[Characters/Emotion & Affect System|Emotion & Affect System]] - supplies the
   emotion keys the avatar follows
-- [[UI & Settings/Inspector Panels|Inspector Panels]] — where the editor lives
+- [[UI & Settings/Inspector Panels|Inspector Panels]] - where the editor lives
 - [[Characters/Characters Overview|Characters Overview]]
 
 ## Where it lives
 
-- **`static/js/character-art.js`** — avatar/full-body resolver (`CharacterArt.avatarFor`, `fullArtFor`, `artForNodeId`, `CharacterArt.open()`)
-- **`engine/emotion.py:AXIS_TO_EXPRESSION`** — engine affect-to-expression vocabulary
-- **`static/js/inspector/helpers.ts`** — `EXPRESSION_ORDER`, `EXPRESSION_ART_ALIASES`
-- **`static/js/agent-lens.js`** — character header portrait rendering
-- **`static/js/graph/network-manager.js`** — graph node image mode (Show Images)
-- **`static/js/agent/turn-scene-view.js`** — "People here" chip thumbnails
-- **`routes/graph_ops.py`** — `handle_upload_node_image`, `handle_remove_node_image`, `_expression_slug`, `_delete_managed_image`
-- **`engine/effect_handlers/spawn.py`** — copies `expressions`, `image`, `profile_image` on character spawn
-- **`routes/library_ops.py`** — library import / refresh copies the same keys
-- **`static/js/inspector/agent-view.js`** — `_buildCharacterCard` + `_saveCharacter` (character card diff)
-- **`static/js/inspector/sprite-sheet.js`** + **`static/js/inspector/sprite-sheet-geometry.js`** — sheet splitting and grid geometry
-- **`tools/unit/test_sprite_sheet_geometry.js`** + **`tools/unit/test_character_art.js`** — geometry and resolver tests
-- **`static/images/nodes/`** — on-disk image storage
+- **`static/js/character-art.js`** - avatar/full-body resolver (`CharacterArt.avatarFor`, `fullArtFor`, `artForNodeId`, `CharacterArt.open()`)
+- **`engine/emotion.py:AXIS_TO_EXPRESSION`** - engine affect-to-expression vocabulary
+- **`static/js/inspector/helpers.ts`** - `EXPRESSION_ORDER`, `EXPRESSION_ART_ALIASES`
+- **`static/js/agent-lens.js`** - character header portrait rendering
+- **`static/js/graph/network-manager.js`** - graph node image mode (Show Images)
+- **`static/js/agent/turn-scene-view.js`** - "People here" chip thumbnails
+- **`routes/graph_ops.py`** - `handle_upload_node_image`, `handle_remove_node_image`, `_expression_slug`, `_delete_managed_image`
+- **`engine/effect_handlers/spawn.py`** - copies `expressions`, `image`, `profile_image` on character spawn
+- **`routes/library_ops.py`** - library import / refresh copies the same keys
+- **`static/js/inspector/agent-view.js`** - `_buildCharacterCard` + `_saveCharacter` (character card diff)
+- **`static/js/inspector/sprite-sheet.js`** + **`static/js/inspector/sprite-sheet-geometry.js`** - sheet splitting and grid geometry
+- **`tools/unit/test_sprite_sheet_geometry.js`** + **`tools/unit/test_character_art.js`** - geometry and resolver tests
+- **`static/images/nodes/`** - on-disk image storage
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[character-art|Character art]] (#32), [[auto-description|Auto-description]] (#39), [[expression-pack-editor|Expression pack editor]] (#54)
+**Features**  -  [[character-art|Character art]] (#32), [[auto-description|Auto-description]] (#39), [[expression-pack-editor|Expression pack editor]] (#54)
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]], [[MOSIAC]]
+**Dev tasks**  -  [[dev_tasks/review/ui/task-678-sprite-sheet-slicer-cannot-fit-reference-sheets-uniform-grid-only-write-once-boxes-no-preview-of-the-cut|task]]
+
+**Neighbouring notes**  -  [[Activities & States]], [[Animal Fear]], [[Animals]], [[Background Simulation]], [[Characters Overview]], [[Creature Spawners]]
 
 <!-- connected:end -->

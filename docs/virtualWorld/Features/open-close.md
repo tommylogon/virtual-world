@@ -12,7 +12,7 @@ tags: [status/wired, surface/in-game, system/world]
 
 ## How it works
 
-- [[Connections]]
+- [[Ways]]
 
 ## Where it lives
 

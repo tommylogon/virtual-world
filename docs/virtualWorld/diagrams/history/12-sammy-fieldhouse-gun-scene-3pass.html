@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VirtualWorld - Complete Cognitive Flow Graph (Sammy Lopez: Fieldhouse Gun Scene)</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --panel: #0f172a;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #0b1120;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 10;
+    }
+    .title h1 { margin: 0; font-size: 15px; font-weight: 600; color: #f8fafc; }
+    .title p { margin: 2px 0 0 0; font-size: 11.5px; color: var(--muted); }
+    .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill {
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #cbd5e1;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+    .pill:hover { border-color: #60a5fa; color: #fff; }
+    .pill.active { background: #2563eb; border-color: #60a5fa; color: #fff; font-weight: 600; }
+    .legend {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: #94a3b8;
+      align-items: center;
+    }
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 14px;
+      height: 3px;
+      margin-right: 5px;
+      vertical-align: middle;
+      background: currentColor;
+    }
+
+    .workspace { display: flex; flex: 1; min-height: 0; }
+    .canvas-wrap {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background:
+        radial-gradient(circle at 1px 1px, #1e293b 1px, transparent 0) 0 0 / 24px 24px,
+        var(--bg);
+    }
+    .canvas {
+      position: relative;
+      width: 1960px;
+      height: 1160px;
+      margin: 12px;
+    }
+    svg.wires {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    path.edge {
+      fill: none;
+      stroke: #475569;
+      stroke-width: 1.6;
+      opacity: 0.42;
+      transition: opacity 0.15s, stroke 0.15s, stroke-width 0.15s;
+    }
+    path.edge.dashed { stroke-dasharray: 5 4; }
+    path.edge.factual { stroke: #3b82f6; }
+    path.edge.feedback { stroke: #c084fc; }
+    path.edge.reject { stroke: #f87171; }
+    path.edge.dim { opacity: 0.07; }
+    path.edge.hi-in { stroke: #38bdf8; stroke-width: 2.6; opacity: 1; }
+    path.edge.hi-out { stroke: #fbbf24; stroke-width: 2.6; opacity: 1; }
+
+    .stage-label {
+      position: absolute;
+      top: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 4px;
+      width: 250px;
+      z-index: 2;
+    }
+
+    .node {
+      position: absolute;
+      width: 250px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1.5px solid #334155;
+      background: #1e293b;
+      cursor: pointer;
+      z-index: 3;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      transition: transform 0.12s, opacity 0.15s, box-shadow 0.15s;
+    }
+    .node:hover { transform: translateY(-2px); z-index: 5; }
+    .node.selected {
+      outline: 2px solid #facc15;
+      box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.22);
+      z-index: 6;
+    }
+    .node.dim { opacity: 0.16; }
+    .node.neighbor { opacity: 1; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35); }
+
+    .node-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .badge {
+      font-size: 9.5px;
+      padding: 1px 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .node-sub { font-size: 10.5px; line-height: 1.3; color: #cbd5e1; }
+    .node-ex {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(255,255,255,0.18);
+      font-size: 10px;
+      color: #fde68a;
+      line-height: 1.28;
+    }
+
+    .c-world   { background: #0c4a6e; border-color: #38bdf8; }
+    .c-factual { background: #1e3a8a; border-color: #60a5fa; }
+    .c-body    { background: #7c2d12; border-color: #fb923c; }
+    .c-self    { background: #334155; border-color: #94a3b8; }
+    .c-mem     { background: #78350f; border-color: #fbbf24; }
+    .c-mind    { background: #312e81; border-color: #818cf8; }
+    .c-actor   { background: #064e3b; border-color: #34d399; }
+    .c-mask    { background: #134e4a; border-color: #2dd4bf; }
+    .c-reject  { background: #7f1d1d; border-color: #f87171; }
+    .c-loop    { background: #581c87; border-color: #e879f9; }
+    .c-ui      { background: #3f3f46; border-color: #a1a1aa; }
+
+    aside {
+      width: clamp(300px, 23vw, 370px);
+      border-left: 1px solid var(--border);
+      background: var(--panel);
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10;
+    }
+    aside h2 { margin: 0; font-size: 14.5px; color: #f8fafc; }
+    .kv {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 9px 11px;
+    }
+    .kv h3 {
+      margin: 0 0 4px 0;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #93c5fd;
+    }
+    .kv p { margin: 0; font-size: 12px; line-height: 1.4; color: #e2e8f0; }
+    .file-pill {
+      display: inline-block;
+      margin: 3px 4px 0 0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      font-family: ui-monospace, monospace;
+      font-size: 10.5px;
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>Sammy Lopez - Behind the Fieldhouse (Complete 3-Pass Mind &amp; Decision Map)</h1>
+      <p>Click or hover any node to trace incoming (cyan) &amp; outgoing (amber) connections, inputs, outputs, and repo files.</p>
+    </div>
+    <div class="legend">
+      <span style="color:#38bdf8;">Incoming</span>
+      <span style="color:#fbbf24;">Outgoing</span>
+      <span style="color:#3b82f6;">Factual Lane</span>
+      <span style="color:#f87171;">Threat / Blocked</span>
+      <span style="color:#c084fc;">Feedback Loop</span>
+    </div>
+    <div class="filters" id="filters">
+      <button class="pill active" data-filter="all">All (3/3)</button>
+      <button class="pill" data-filter="subjective">Subjective Mind</button>
+      <button class="pill" data-filter="factual">Factual Guard</button>
+      <button class="pill" data-filter="exec">Plan / React / Recollect</button>
+      <button class="pill" data-filter="editor">Editor &amp; Lineage</button>
+      <button class="pill" data-filter="social">Multi-Agent &amp; Commons</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <div class="canvas-wrap">
+      <div class="canvas" id="canvas">
+        <svg class="wires" id="wires">
+          <defs>
+            <marker id="arr-def" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+            </marker>
+            <marker id="arr-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
+            <marker id="arr-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" />
+            </marker>
+            <marker id="arr-fact" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+            </marker>
+            <marker id="arr-rej" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f87171" />
+            </marker>
+            <marker id="arr-loop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#c084fc" />
+            </marker>
+          </defs>
+        </svg>
+
+        <div class="stage-label" style="left:20px;">1. Inputs &amp; Standing Self</div>
+        <div class="stage-label" style="left:340px;">2. Appraisal, Reflex &amp; Cue</div>
+        <div class="stage-label" style="left:660px;">3. Recall, LFM &amp; Active Mind</div>
+        <div class="stage-label" style="left:980px;">4. GIMP, MOSIAC, Plan &amp; Mask</div>
+        <div class="stage-label" style="left:1300px;">5. Grounding, World &amp; Comms</div>
+        <div class="stage-label" style="left:1620px;">6. Save, Dreams, Editor &amp; Soak</div>
+      </div>
+    </div>
+
+    <aside id="inspector"></aside>
+  </div>
+
+  <script>
+    const NODES = {
+      // ===== PASS 1 (Columns 1-3, locked) =====
+      fact: {
+        x: 20, y: 40, cls: "c-factual", title: "Unvarnished Factual Lane", badge: "task-950", tags: ["all","factual","exec"],
+        sub: "carrying, spatial_memory, AlreadyKnown, physical truth",
+        ex: "Gun belongs to Tyler; Jake field-strips it in 5s; Sammy carrying no weapon",
+        in: "Authoritative world state, inventory, spatial_memory, AlreadyKnown",
+        out: "Objective constraints kept separate from Sammy's panic",
+        branches: "Even while Sammy assumes Jake brought the gun, the Factual Lane preserves who owns it and where the 3 pieces land.",
+        files: ["engine/spatial_memory.py", "routes/memories.py"]
+      },
+      obs: {
+        x: 20, y: 185, cls: "c-world", title: "Perception & Recognition", badge: "Engine", tags: ["all","factual","social"],
+        sub: "room, sound, beyond_visibility, name_masking",
+        ex: "Cold wind, sticky smoothie on neck; Jake holds black handgun over Tyler; Kyrie & Zoe beside her",
+        in: "Area sightlines, sound.py, name_masking, TurnQueue slot",
+        out: "WITNESSED lines + recognized actors (Jake, Tyler, Kyrie, Zoe)",
+        branches: "5 seconds later: CLICK-CLACK, slide racked, barrel thrown over roof, Jake drops shaking.",
+        files: ["engine/observation.py", "engine/room_perception.py", "engine/sound.py", "engine/name_masking.py"]
+      },
+      body: {
+        x: 20, y: 340, cls: "c-body", title: "Embodied State & Thresholds", badge: "Self", tags: ["all","subjective"],
+        sub: "vitals, emotion, fear, hostility, sanity",
+        ex: "Adrenaline spike, ears roaring with static, cold shock overrides sticky smoothie",
+        in: "vitals.py, vital-thresholds.ts, emotion.py, fear.py",
+        out: "Acute terror + physiological shock narrowing attention",
+        branches: "Overrides mundane lunch/embarrassment priorities.",
+        files: ["engine/vitals.py", "engine/emotion.py", "engine/fear.py", "static/js/agent/vital-thresholds.ts"]
+      },
+      id: {
+        x: 20, y: 490, cls: "c-self", title: "Identity, Persona & Value Gates", badge: "Self", tags: ["all","subjective"],
+        sub: "interests, fears, traits, pride, loyalty",
+        ex: "Fierce protector of her group; hates Tyler; terrified of losing who Jake really is",
+        in: "character_identity.py, character_appearance.py, traits.py, disposition.py",
+        out: "Value gates + protective/loyalty salience weights",
+        branches: "Hard morality gate against cold-blooded murder clashes with her loyalty to Jake.",
+        files: ["engine/character_identity.py", "engine/character_appearance.py", "engine/traits.py", "engine/disposition.py"]
+      },
+      rel: {
+        x: 20, y: 640, cls: "c-self", title: "6-Axis Relationships & Residue", badge: "Social", tags: ["all","subjective","social"],
+        sub: "trust, fear, attraction, disgust, respect, familiarity",
+        ex: "Jake (deep love + morning bomb unease), Tyler (hatred/disgust), Kyrie & Zoe (protective)",
+        in: "relationships.py per-person vectors + emotional residue",
+        out: "Severe relational conflict when loving Jake meets fearing what he might do",
+        branches: "Colors how Jake's flat, exhausted voice is heard.",
+        files: ["engine/relationships.py", "engine/social_text.py"]
+      },
+      gimp: {
+        x: 20, y: 790, cls: "c-self", title: "GIMP, Schedule & Pursuits", badge: "Wants", tags: ["all","subjective","exec"],
+        sub: "Goals, Intention, Motivation, Pursuits, Duties",
+        ex: "Goal: Protect Jake & girls (M: loyalty, I: stop Tyler); Schedule: Lunch break",
+        in: "goals.py, schedule.py, pursuit_templates.py, obligations",
+        out: "Standing M + I inputs and time-bound schedule pressures",
+        branches: "Updated by daily_reflection.py and goal achievement triggers.",
+        files: ["engine/goals.py", "engine/schedule.py", "engine/pursuit_templates.py"]
+      },
+      seed: {
+        x: 20, y: 940, cls: "c-self", title: "Stored Memory & Lived Log", badge: "Store", tags: ["all","subjective","editor"],
+        sub: "Player.memories, vector_store, life_exp, lived_log",
+        ex: "Morning bus bomb confession; 4-yr safe Jake (shed roof); Tyler 6th-grade mockery; Brianna smoothie",
+        in: "Seed memories, life_experience, lived_log ticks from earlier today",
+        out: "Raw conflicting candidate traces (hidden from Actor under task-949)",
+        branches: "Strict Actor Isolation keeps raw DB rows out of the Actor prompt.",
+        files: ["engine/agent_memory.py", "engine/vector_store.py", "engine/lived_log.py"]
+      },
+
+      // Column 2 (x = 340)
+      nov: {
+        x: 340, y: 120, cls: "c-reject", title: "Novelty, Threat & Interrupts", badge: "Engine", tags: ["all","exec","factual"],
+        sub: "novelty.py, threat-detector, interrupts.py",
+        ex: "Firearm spotted -> CRITICAL THREAT; interrupts fistfight expectation",
+        in: "OBS vs expected fistfight, weapon detected",
+        out: "Threat interrupt + maximum salience spike",
+        branches: "Forces immediate replanning in Plan Manager.",
+        files: ["engine/novelty.py", "engine/interrupts.py", "static/js/agent/threat-detector.ts"]
+      },
+      invol: {
+        x: 340, y: 290, cls: "c-body", title: "Involuntary Reflex", badge: "Reflex", tags: ["all","subjective"],
+        sub: "involuntary.ts (bypasses deliberate choice)",
+        ex: "Vocal cords paralyze; skids to dead halt; breathing stops",
+        in: "Embodied terror + firearm threat interrupt",
+        out: "Automatic physical freeze emitted before conscious speech",
+        branches: "Logged to lived_log and post-turn persistence.",
+        files: ["static/js/agent/involuntary.ts"]
+      },
+      app: {
+        x: 340, y: 465, cls: "c-mem", title: "Present Appraisal & Surprise", badge: "Psych", tags: ["all","subjective"],
+        sub: "Reads OBS through Rel + Body + Morning Bomb Memory",
+        ex: "Initial read: 'He brought a gun to shoot Tyler!' -> 5s Surprise: Jake field-strips it & shakes",
+        in: "OBS + Body + Relationships + Expectations",
+        out: "Extreme cognitive dissonance -> huge Prediction Error when Jake disarms & yells at Tyler",
+        branches: "Surprise flips the threat model from 'Jake is a killer' to 'Tyler tried to shoot Jake'.",
+        files: ["engine/emotion.py", "engine/novelty.py"]
+      },
+      cue: {
+        x: 340, y: 675, cls: "c-mem", title: "Cue Extract & Change Gate", badge: "task-908/948", tags: ["all","subjective","exec"],
+        sub: "Multi-facet cues + unchanged-tick cache gate",
+        ex: "Cues=[gun, Jake, Tyler, violence, fear] -> SALIENT SHIFT = YES",
+        in: "OBS + Body + Identity + Appraisal",
+        out: "Structured perceptual/somatic cues -> triggers full recall (or reuses cache if NO shift)",
+        branches: "If NO salient shift on continuation tick, skips recall + LFM and reuses prior summary.",
+        files: ["engine/memory_retrieval.py"]
+      },
+
+      // Column 3 (x = 660)
+      mind: {
+        x: 660, y: 185, cls: "c-mind", title: "Active Working Mind", badge: "task-944", tags: ["all","subjective","exec"],
+        sub: "Open Questions, Assumptions, Held-Back Secrets",
+        ex: "Q: 'Did Tyler try to kill him over me?' · Assumption (flipped): 'Jake saved us' · Secret: 'I feared him for 5s'",
+        in: "Intermediator Conscious Memory + Surprise from Appraisal",
+        out: "Updated Questions, flipped Assumptions, Held-Back guilt/terror",
+        branches: "Grounding failures or surprises invalidate false assumptions.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-944-subjective-cognitive-memory-and-active-mind.md"]
+      },
+      inter: {
+        x: 660, y: 420, cls: "c-mem", title: "Memory Intermediator (LFM)", badge: "task-947/948", tags: ["all","subjective"],
+        sub: "Mood- & bias-colored palimpsest synthesis",
+        ex: "'Hours ago he admitted the bomb, so I thought he'd shoot Tyler - but he's shaking and threw it away. Tyler tried to shoot him.'",
+        in: "Conflicting recalled traces + Appraisal/Surprise + Body + Relationships",
+        out: "Single coherent Conscious Memory Block (no raw DB rows)",
+        branches: "Resolves the collision between 'bomb-maker' and 'safe Jake' through what just happened.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-947-memory-intermediator-and-reconsolidation-palimpsest-pipeline.md", "docs/virtualWorld/dev_tasks/todo/gameplay/task-948-implement-memory-intermediator-synthesis-stage-inner-monologue-persistence-and-c.json"]
+      },
+      recall: {
+        x: 660, y: 675, cls: "c-mem", title: "Involuntary Multi-Hop Recall", badge: "task-908", tags: ["all","subjective"],
+        sub: "Keyword + vector + associative intersection",
+        ex: "Pulls [bus bomb confession, 4-yr safe Jake, Tyler hatred]; drops [Algebra II, lunch tray]",
+        in: "Cues + Stored Memories + lived_log refs (filters invalid_at)",
+        out: "Conflicting raw traces + immutable source IDs for Intermediator",
+        branches: "Zero-padding: returns 0 traces if nothing scores above threshold.",
+        files: ["engine/memory_retrieval.py"]
+      },
+      recollect: {
+        x: 660, y: 900, cls: "c-mem", title: "Deliberate 'Recollect' Action", badge: "task-944", tags: ["all","subjective","exec"],
+        sub: "Active memory search when Actor hits a gap",
+        ex: "Sammy actively tries to recall what Brianna said Tyler was carrying",
+        in: "Actor 'recall' verb + specific target/topic",
+        out: "Targeted retrieval pass -> Intermediator synthesis",
+        branches: "Distinct from passive involuntary recall; costs mental effort/turn.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-944-subjective-cognitive-memory-and-active-mind.md"]
+      },
+
+      // ===== PASS 2 (Columns 4-5) =====
+      mosiac: {
+        x: 980, y: 60, cls: "c-mind", title: "MOSIAC + Disposition Ranker", badge: "Decide", tags: ["all","exec","subjective"],
+        sub: "M+I (GIMP), O+S, A (threat/loyalty/vitals), C (verbs)",
+        ex: "Top verbs: [approach(Jake), speak, attack(Tyler), shield(Zoe)]",
+        in: "GIMP(M+I) + Body/Appraisal/Identity(A) + Gated Verbs(C)",
+        out: "Scored & ranked candidate actions/pursuits",
+        branches: "Shared by both LLM Actor and deterministic Soak Policy.",
+        files: ["engine/mosiac.py", "engine/mosiac_selector.py", "engine/disposition.py"]
+      },
+      plan: {
+        x: 980, y: 245, cls: "c-actor", title: "Plan Manager & Executor", badge: "task-702", tags: ["all","exec"],
+        sub: "Continue valid multi-step plan or Replan",
+        ex: "Fistfight-backup plan invalidated by gun threat -> Replan immediately",
+        in: "Active plan + Novelty/Threat + Factual Lane + MOSIAC",
+        out: "Either 'Continue next step' (to Interpreter) or 'Replan / React'",
+        branches: "Skips full Actor LLM call when a routine plan step is still valid.",
+        files: ["engine/plan_executor.py", "static/js/agent/plan-manager.ts", "static/js/agent/plan-tracker.ts"]
+      },
+      react: {
+        x: 980, y: 440, cls: "c-actor", title: "React Phase / Actor LLM / Soak", badge: "task-943/949", tags: ["all","exec","subjective"],
+        sub: "Single-pass React or Two-Stage Actor; zero raw logs",
+        ex: "Decides to rush to Jake's side and check if he's hurt rather than fleeing",
+        in: "Conscious Memory + Active Mind + MOSIAC + OBS (zero raw DB rows)",
+        out: "Thought, plan update, speech/action intent, or Deliberate Recollect",
+        branches: "Soak runner uses deterministic policy on the exact same handoff.",
+        files: ["static/js/agent-engine.ts", "static/js/agent/prompt-builder/turn-prompts.ts", "engine/soak.py"]
+      },
+      priv: {
+        x: 980, y: 640, cls: "c-actor", title: "Private Inner Monologue", badge: "task-948", tags: ["all","subjective","exec"],
+        sub: "Unfiltered inner truth before social filter",
+        ex: "'He's shaking. Tyler almost killed him because of me. Don't fall apart.'",
+        in: "React/Actor intent + Active Mind + Embodied State",
+        out: "Private thought persisted post-turn (never leaked to WITNESSED)",
+        branches: "Persisted with Conscious Memory to preserve emotional continuity.",
+        files: ["static/js/agent/prompt-builder/turn-prompts.ts", "docs/virtualWorld/Characters/Interiority & Subtext.md"]
+      },
+      mask: {
+        x: 980, y: 830, cls: "c-mask", title: "Social Mask, Subtext & Emote", badge: "Subtext", tags: ["all","subjective","social"],
+        sub: "Pride/loyalty filter -> speech, volume, emote-picker",
+        ex: "Hides her 5s terror of Jake; drops to knees beside him: 'Are you hit?!'",
+        in: "Private Monologue + Identity pride + Relationship to Jake/Tyler + emote-picker",
+        out: "Public speech + volume + emote + approach(Jake)",
+        branches: "Active Mind Held-Back Secret stops her from blurting 'I thought you'd shoot him'.",
+        files: ["static/js/agent/emote-picker.ts", "docs/virtualWorld/Characters/Interiority & Subtext.md"]
+      },
+
+      // Column 5 (x = 1300)
+      interp: {
+        x: 1300, y: 120, cls: "c-factual", title: "Action Interpreter & PlanGrounding", badge: "task-943", tags: ["all","factual","exec"],
+        sub: "action-interpreter, normalizer, plan-grounding",
+        ex: "approach(Jake) + speak validated against fieldhouse layout & carrying",
+        in: "Mask/Plan intent + Unvarnished Factual Lane",
+        out: "Normalized executable action or Grounding Rejection",
+        branches: "Valid -> Execute. Impossible target -> Blocked/Failed node.",
+        files: ["static/js/agent/action-interpreter.ts", "static/js/agent/action-normalizer.ts", "static/js/agent/plan-grounding.ts"]
+      },
+      reject: {
+        x: 1300, y: 315, cls: "c-reject", title: "Blocked / Grounding Failure", badge: "Guard", tags: ["all","factual","exec"],
+        sub: "Rejects hallucinated items/targets; feeds Re-think",
+        ex: "If Sammy tried 'grab(gun)' -> BLOCKED (gun already stripped into 3 places)",
+        in: "Action Interpreter / PlanGrounding rejection",
+        out: "Failure outcome -> invalidates false assumption + triggers React re-think",
+        branches: "Prevents blind retry loops by logging the real failure reason.",
+        files: ["static/js/agent/plan-grounding.ts", "static/js/agent/action-interpreter.ts"]
+      },
+      exec: {
+        x: 1300, y: 505, cls: "c-world", title: "Execute & World Mutation", badge: "Engine", tags: ["all","factual","social"],
+        sub: "Mutates world, emits WITNESSED, lived_log",
+        ex: "Sammy kneels beside Jake; Kyrie, Zoe & Tyler's friends hear her yell",
+        in: "Validated action, speech, volume, emote",
+        out: "World state update, WITNESSED broadcast, lived_log entry, rel delta",
+        branches: "Triggers TurnQueue advance to Kyrie / Zoe / Jake.",
+        files: ["engine/tick_manager.py", "engine/speech.py", "engine/lived_log.py"]
+      },
+
+      // ===== PASS 3 (Column 5 bottom + Column 6) =====
+      cross: {
+        x: 1300, y: 700, cls: "c-world", title: "Multi-Actor Cross-Talk", badge: "TurnQueue", tags: ["all","social"],
+        sub: "Sammy's action becomes Kyrie/Zoe/Jake's OBS",
+        ex: "Jake hears Sammy drop beside him; Zoe unfreezes; Kyrie assesses Tyler's friends",
+        in: "TurnQueue order + WITNESSED speech/actions",
+        out: "Next character's Perception & Present Appraisal",
+        branches: "Simultaneous mode batches; Turn-based steps one actor per slot.",
+        files: ["static/js/agent/turn-queue.ts", "static/js/agent/sim-round.ts", "engine/turn_order.py"]
+      },
+      commons: {
+        x: 1300, y: 890, cls: "c-world", title: "The Commons & Long-Dist Comms", badge: "Social", tags: ["all","social"],
+        sub: "commons.py, long_distance_comms.py",
+        ex: "Kayla & group texts later ('we need to get out of here after school')",
+        in: "Phone/channel messages, social posts, remote mentions",
+        out: "Async social cues feeding subsequent turns' OBS/WITNESSED",
+        branches: "Respects task-935 memory toggle during Commons testing.",
+        files: ["engine/commons.py", "engine/long_distance_comms.py", "routes/commons.py"]
+      },
+      persist: {
+        x: 1620, y: 120, cls: "c-loop", title: "Post-Turn Save & Lineage", badge: "task-948/950", tags: ["all","editor","subjective"],
+        sub: "Saves Conscious Summary + Monologue + Source Refs",
+        ex: "Stores gen=1 summary linked to [mem_bus_bomb, mem_shed, obs_gun]",
+        in: "Conscious Summary + Private Monologue + Action Outcome + Source IDs",
+        out: "New memory record with immutable source refs & generation depth",
+        branches: "Replaces legacy endOfTurnMemory prompt.",
+        files: ["routes/memories.py", "static/js/agent/memory-manager.ts", "engine/lived_log_memory.py"]
+      },
+      dyn: {
+        x: 1620, y: 315, cls: "c-loop", title: "Memory Dynamics", badge: "task-685", tags: ["all","subjective","editor"],
+        sub: "Reinforce, decay, supersede (invalid_at)",
+        ex: "Supersedes initial 'Jake brought a gun' panic (invalid_at); reinforces loyalty + Tyler threat",
+        in: "Recall/persistence feedback + new state-change facts",
+        out: "Updated activation, confidence, decay resistance, invalid_at",
+        branches: "State changes supersede old panic instead of flagging fake contradictions.",
+        files: ["engine/memory_dynamics.py"]
+      },
+      sleep: {
+        x: 1620, y: 510, cls: "c-loop", title: "Sleep / Dreams & Daily Reflection", badge: "Nightly", tags: ["all","subjective","editor"],
+        sub: "consolidate_sleep() + daily_reflection.py",
+        ex: "Prunes smoothie/lunch noise; forms belief 'Jake protects us even when terrified'; updates GIMP",
+        in: "Day's memories, emotional residue, GIMP goals",
+        out: "Pruned routine noise, semantic beliefs, updated GIMP priorities",
+        branches: "Capped at once per in-game day/night cycle.",
+        files: ["engine/memory_dynamics.py", "engine/daily_reflection.py", "engine/tick_manager.py"]
+      },
+      editor: {
+        x: 1620, y: 710, cls: "c-ui", title: "Memory Editor, Weaver & Mind Panel", badge: "UI / Tools", tags: ["all","editor"],
+        sub: "Inspector Mind/Memory tabs, AgentLens, /memories",
+        ex: "Inspect Sammy's gen 0->1->2 drift & verify gun panic was superseded",
+        in: "GET/POST /memories (with lineage refs + generation depth)",
+        out: "Interactive editing, reflection triggers, and palimpsest audit view",
+        branches: "Exposes immutable source refs while Actor stays isolated.",
+        files: ["static/js/inspector/mind-view.ts", "static/js/inspector/memory-view.ts", "routes/memories.py"]
+      },
+      soak: {
+        x: 1620, y: 905, cls: "c-ui", title: "Headless Soak & Continuity", badge: "task-949", tags: ["all","exec","editor"],
+        sub: "Long-run simulation using Intermediator handoff",
+        ex: "Multi-day Millwood soak without raw lived_log leakage or drift cascade",
+        in: "lived_log + Intermediator conscious summary + MOSIAC",
+        out: "Multi-day emergent behavior & telemetry",
+        branches: "Uses same two-lane factual invariant so long runs stay grounded.",
+        files: ["engine/soak.py", "engine/soak_runner.py", "engine/lived_log_memory.py"]
+      }
+    };
+
+    const EDGES = [
+      // Pass 1 (locked)
+      ["obs", "nov", ""],
+      ["obs", "app", ""],
+      ["obs", "cue", ""],
+      ["fact", "app", "factual"],
+      ["body", "invol", ""],
+      ["body", "app", ""],
+      ["body", "cue", ""],
+      ["id", "cue", ""],
+      ["rel", "app", ""],
+      ["nov", "invol", "reject"],
+      ["nov", "app", "reject"],
+      ["app", "cue", ""],
+      ["app", "inter", ""],
+      ["body", "inter", ""],
+      ["rel", "inter", ""],
+      ["cue", "recall", ""],
+      ["seed", "recall", ""],
+      ["recall", "inter", ""],
+      ["inter", "mind", ""],
+      ["app", "mind", ""],
+
+      // Pass 2 (Executive, Mask, Grounding)
+      ["gimp", "mosiac", ""],
+      ["id", "mosiac", ""],
+      ["body", "mosiac", ""],
+      ["app", "mosiac", ""],
+      ["mind", "mosiac", ""],
+      ["fact", "plan", "factual"],
+      ["nov", "plan", "reject"],
+      ["mosiac", "plan", ""],
+      ["mind", "plan", ""],
+      ["plan", "interp", ""],
+      ["plan", "react", ""],
+      ["mind", "react", ""],
+      ["mosiac", "react", ""],
+      ["react", "recollect", "dashed"],
+      ["recollect", "inter", "dashed"],
+      ["react", "priv", ""],
+      ["priv", "mask", ""],
+      ["id", "mask", ""],
+      ["rel", "mask", ""],
+      ["mask", "interp", ""],
+      ["fact", "interp", "factual"],
+      ["interp", "exec", ""],
+      ["interp", "reject", "reject"],
+      ["reject", "react", "reject"],
+      ["reject", "mind", "reject"],
+
+      // Pass 3 (Social Ripple, Lineage, Dynamics, Dreams, Tools)
+      ["exec", "cross", ""],
+      ["cross", "obs", "feedback"],
+      ["commons", "obs", "feedback"],
+      ["exec", "persist", ""],
+      ["priv", "persist", ""],
+      ["invol", "persist", ""],
+      ["reject", "persist", "reject"],
+      ["recall", "persist", "dashed"],
+      ["persist", "dyn", ""],
+      ["dyn", "sleep", ""],
+      ["persist", "editor", "dashed"],
+      ["dyn", "seed", "feedback"],
+      ["sleep", "seed", "feedback"],
+      ["sleep", "gimp", "feedback"],
+      ["inter", "soak", "dashed"],
+      ["mosiac", "soak", "dashed"]
+    ];
+
+    const canvas = document.getElementById("canvas");
+    const svg = document.getElementById("wires");
+    const nodeEls = {};
+
+    Object.entries(NODES).forEach(([id, d]) => {
+      const el = document.createElement("div");
+      el.className = `node ${d.cls}`;
+      el.dataset.id = id;
+      el.style.left = d.x + "px";
+      el.style.top = d.y + "px";
+      el.innerHTML = `
+        <div class="node-title"><span>${d.title}</span><span class="badge">${d.badge}</span></div>
+        <div class="node-sub">${d.sub}</div>
+        <div class="node-ex">Ex: ${d.ex}</div>
+      `;
+      canvas.appendChild(el);
+      nodeEls[id] = el;
+    });
+
+    const edgeEls = [];
+    function drawEdges() {
+      svg.querySelectorAll("path.edge").forEach(p => p.remove());
+      edgeEls.length = 0;
+      const cRect = canvas.getBoundingClientRect();
+
+      EDGES.forEach(([from, to, kind]) => {
+        const a = nodeEls[from].getBoundingClientRect();
+        const b = nodeEls[to].getBoundingClientRect();
+        const ax = a.left - cRect.left, ay = a.top - cRect.top, aw = a.width, ah = a.height;
+        const bx = b.left - cRect.left, by = b.top - cRect.top, bw = b.width, bh = b.height;
+
+        let d = "";
+        if (Math.abs(ax - bx) < 20) {
+          const x1 = ax + aw;
+          const y1 = ay + ah / 2;
+          const x2 = bx + bw;
+          const y2 = by + bh / 2;
+          d = `M ${x1} ${y1} C ${x1 + 36} ${y1}, ${x2 + 36} ${y2}, ${x2} ${y2}`;
+        } else if (ax < bx) {
+          const x1 = ax + aw;
+          const y1 = ay + ah / 2;
+          const x2 = bx;
+          const y2 = by + bh / 2;
+          const dx = Math.max(40, (x2 - x1) * 0.45);
+          d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+        } else {
+          const x1 = ax + aw / 2;
+          const y1 = ay + ah;
+          const x2 = bx + bw / 2;
+          const y2 = by + bh;
+          const drop = Math.max(y1, y2) + 75;
+          d = `M ${x1} ${y1} C ${x1} ${drop}, ${x2} ${drop}, ${x2} ${y2}`;
+        }
+
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", d);
+        let cls = "edge";
+        if (kind === "dashed") cls += " dashed";
+        if (kind === "factual") cls += " factual";
+        if (kind === "feedback") cls += " feedback dashed";
+        if (kind === "reject") cls += " reject";
+        p.setAttribute("class", cls);
+        p.dataset.from = from;
+        p.dataset.to = to;
+        p.dataset.kind = kind || "";
+        p.setAttribute("marker-end",
+          kind === "factual" ? "url(#arr-fact)" :
+          kind === "reject" ? "url(#arr-rej)" :
+          kind === "feedback" ? "url(#arr-loop)" : "url(#arr-def)");
+        svg.appendChild(p);
+        edgeEls.push(p);
+      });
+    }
+
+    let selectedId = "inter";
+    function focusNode(id, updateInspector = true) {
+      if (updateInspector) {
+        selectedId = id;
+        Object.values(nodeEls).forEach(el => el.classList.remove("selected"));
+        nodeEls[id].classList.add("selected");
+        const d = NODES[id];
+        const inc = EDGES.filter(([, t]) => t === id).map(([f]) => NODES[f].title);
+        const out = EDGES.filter(([f]) => f === id).map(([, t]) => NODES[t].title);
+        document.getElementById("inspector").innerHTML = `
+          <h2>${d.title} <span class="badge">${d.badge}</span></h2>
+          <div class="kv"><h3>Sammy Example (Fieldhouse)</h3><p>${d.ex}</p></div>
+          <div class="kv"><h3>Inputs</h3><p>${d.in}</p></div>
+          <div class="kv"><h3>Outputs</h3><p>${d.out}</p></div>
+          <div class="kv"><h3>Connected From (${inc.length})</h3><p>${inc.join(" · ") || "Root input"}</p></div>
+          <div class="kv"><h3>Flows To (${out.length})</h3><p>${out.join(" · ") || "Terminal"}</p></div>
+          <div class="kv"><h3>Branches / Notes</h3><p>${d.branches}</p></div>
+          <div class="kv"><h3>Repo Files</h3><div>${d.files.map(f => `<span class="file-pill">${f}</span>`).join("")}</div></div>
+        `;
+      }
+
+      const neighbors = new Set([id]);
+      edgeEls.forEach(p => {
+        p.classList.remove("hi-in", "hi-out", "dim");
+        if (p.dataset.to === id) {
+          p.classList.add("hi-in");
+          p.setAttribute("marker-end", "url(#arr-in)");
+          neighbors.add(p.dataset.from);
+        } else if (p.dataset.from === id) {
+          p.classList.add("hi-out");
+          p.setAttribute("marker-end", "url(#arr-out)");
+          neighbors.add(p.dataset.to);
+        } else {
+          p.classList.add("dim");
+        }
+      });
+
+      Object.entries(nodeEls).forEach(([nid, el]) => {
+        el.classList.remove("dim", "neighbor");
+        if (nid !== id) el.classList.add(neighbors.has(nid) ? "neighbor" : "dim");
+      });
+    }
+
+    Object.entries(nodeEls).forEach(([id, el]) => {
+      el.addEventListener("click", () => focusNode(id, true));
+      el.addEventListener("mouseenter", () => focusNode(id, false));
+      el.addEventListener("mouseleave", () => focusNode(selectedId, false));
+    });
+
+    document.querySelectorAll(".pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const f = btn.dataset.filter;
+        Object.entries(nodeEls).forEach(([id, el]) => {
+          el.classList.remove("dim", "neighbor");
+          if (f !== "all" && !NODES[id].tags.includes(f)) el.classList.add("dim");
+        });
+        edgeEls.forEach(p => {
+          p.classList.remove("hi-in", "hi-out", "dim");
+          if (f !== "all" && (!NODES[p.dataset.from].tags.includes(f) || !NODES[p.dataset.to].tags.includes(f))) {
+            p.classList.add("dim");
+          }
+        });
+      });
+    });
+
+    drawEdges();
+    focusNode("inter", true);
+    window.addEventListener("resize", drawEdges);
+  </script>
+</body>
+</html>

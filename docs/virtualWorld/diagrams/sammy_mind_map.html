@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VirtualWorld - Cognitive Data-Flow Architecture (Sammy Lopez: Behind the Fieldhouse)</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --surface: #0b1120;
+      --panel: #0f172a;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 20;
+    }
+    .header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .title h1 { margin: 0; font-size: 15px; font-weight: 700; color: #f8fafc; }
+    .title p { margin: 2px 0 0 0; font-size: 11.5px; color: var(--muted); }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .btn-group { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+    .pill {
+      border: 1px solid #334155;
+      background: #172033;
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .pill:hover { border-color: #60a5fa; color: #fff; }
+    .pill.active { background: #2563eb; border-color: #60a5fa; color: #fff; font-weight: 600; }
+    .pill.tour-btn { background: #1e293b; border-color: #475569; }
+    .pill.tour-active { background: #b45309; border-color: #fbbf24; color: #fff; font-weight: 600; }
+
+    .tour-status {
+      font-size: 11px;
+      color: #fde68a;
+      background: rgba(180, 83, 9, 0.2);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      padding: 4px 10px;
+      border-radius: 6px;
+      max-width: 580px;
+      line-height: 1.3;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 11px;
+      color: #cbd5e1;
+      align-items: center;
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+    .swatch-line {
+      display: inline-block;
+      width: 16px;
+      height: 3px;
+      border-radius: 2px;
+    }
+    .swatch-dash {
+      display: inline-block;
+      width: 16px;
+      height: 0;
+      border-top: 2px dashed;
+    }
+
+    .workspace { display: flex; flex: 1; min-height: 0; }
+    .canvas-wrap {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      cursor: grab;
+      background:
+        radial-gradient(circle at 1px 1px, #162033 1px, transparent 0) 0 0 / 24px 24px,
+        var(--bg);
+    }
+    .canvas-wrap:active { cursor: grabbing; }
+    .canvas-stage {
+      transform-origin: 0 0;
+      position: relative;
+      width: 2600px;
+      height: 1465px;
+    }
+    .canvas {
+      position: relative;
+      width: 2600px;
+      height: 1465px;
+    }
+
+    /* Top Stage Sequence Strip (dedicated row above all lanes) */
+    .stage-pill {
+      position: absolute;
+      top: 8px;
+      width: 270px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      text-align: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Swimlane Architectural Zones */
+    .lane {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      border-radius: 12px;
+      border: 1px solid;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .lane-head {
+      position: absolute;
+      top: 8px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .lane-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .lane-why {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .lane-truth {
+      top: 66px; height: 382px;
+      background: rgba(14, 116, 144, 0.08);
+      border-color: rgba(56, 189, 248, 0.30);
+    }
+    .lane-truth .lane-title { color: #38bdf8; }
+
+    .lane-mind {
+      top: 462px; height: 566px;
+      background: rgba(120, 53, 15, 0.07);
+      border-color: rgba(251, 191, 36, 0.25);
+    }
+    .lane-mind .lane-title { color: #fbbf24; }
+
+    .lane-offline {
+      top: 1044px; height: 404px;
+      background: rgba(88, 28, 135, 0.07);
+      border-color: rgba(192, 132, 252, 0.26);
+    }
+    .lane-offline .lane-title { color: #d8b4fe; }
+
+    .subzone-social {
+      position: absolute;
+      left: 2178px;
+      top: 660px;
+      width: 304px;
+      height: 356px;
+      border-radius: 10px;
+      border: 1px dashed rgba(45, 212, 191, 0.42);
+      background: rgba(19, 78, 74, 0.14);
+      pointer-events: none;
+      z-index: 0;
+      padding: 6px 10px;
+    }
+    .subzone-social span {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #5eead4;
+    }
+
+    svg.wires {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    path.edge {
+      fill: none;
+      stroke: #64748b;
+      stroke-width: 1.8;
+      opacity: 0.56;
+      transition: opacity 0.15s, stroke 0.15s, stroke-width 0.15s;
+    }
+    path.edge-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 14;
+      pointer-events: stroke;
+      cursor: pointer;
+    }
+    path.edge.dashed { stroke-dasharray: 6 4; }
+    path.edge.factual { stroke: #38bdf8; opacity: 0.78; stroke-width: 2; }
+    path.edge.subjective { stroke: #fbbf24; opacity: 0.72; }
+    path.edge.loop { stroke: #c084fc; stroke-dasharray: 6 4; opacity: 0.72; }
+    path.edge.reject { stroke: #f87171; opacity: 0.80; }
+    path.edge.social { stroke: #2dd4bf; stroke-dasharray: 5 4; opacity: 0.72; }
+
+    path.edge.dim { opacity: 0.07; }
+    path.edge.hi-in { stroke: #38bdf8; stroke-width: 3; opacity: 1; }
+    path.edge.hi-out { stroke: #fbbf24; stroke-width: 3; opacity: 1; }
+    path.edge.hi-active { stroke-width: 3.1; opacity: 1; }
+    path.edge.edge-selected { stroke: #facc15; stroke-width: 3.5; opacity: 1; }
+
+    g.edge-pill {
+      pointer-events: all;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    g.edge-pill.hidden { opacity: 0; pointer-events: none; }
+    g.edge-pill.dim { opacity: 0.07; }
+    g.edge-pill rect {
+      fill: #09101f;
+      stroke: #334155;
+      stroke-width: 1;
+      rx: 5;
+      ry: 5;
+    }
+    g.edge-pill.factual rect { stroke: #0284c7; fill: #071e30; }
+    g.edge-pill.subjective rect { stroke: #b45309; fill: #1c1205; }
+    g.edge-pill.reject rect { stroke: #b91c1c; fill: #260a0a; }
+    g.edge-pill.loop rect { stroke: #7e22ce; fill: #1a0b28; }
+    g.edge-pill.social rect { stroke: #0f766e; fill: #062120; }
+    g.edge-pill.hi rect { stroke: #facc15; stroke-width: 1.5; }
+    g.edge-pill text {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 9.5px;
+      font-weight: 600;
+      fill: #e2e8f0;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* Structured IN -> HOW -> OUT System Cards */
+    .node {
+      position: absolute;
+      width: 270px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1.5px solid #334155;
+      background: #131c2e;
+      cursor: pointer;
+      z-index: 4;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      transition: transform 0.12s, opacity 0.15s, box-shadow 0.15s;
+    }
+    .node:hover { transform: translateY(-2px); z-index: 8; }
+    .node.selected {
+      outline: 2.5px solid #facc15;
+      box-shadow: 0 0 0 5px rgba(250, 204, 21, 0.22);
+      z-index: 9;
+    }
+    .node.dim { opacity: 0.14; }
+    .node.neighbor { opacity: 1; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.45); z-index: 6; }
+
+    .node-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .node-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 18px;
+      padding: 0 4px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.14);
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #f8fafc;
+      flex-shrink: 0;
+    }
+    .node-title {
+      font-size: 11.2px;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.18;
+    }
+    .proc-badge {
+      font-size: 8.8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .pb-truth { background: #1e3a8a; color: #bae6fd; }
+    .pb-math  { background: #1e293b; color: #cbd5e1; }
+    .pb-lfm   { background: #92400e; color: #fef08a; border-color: #fbbf24; }
+    .pb-llm   { background: #065f46; color: #a7f3d0; border-color: #34d399; }
+    .pb-guard { background: #7f1d1d; color: #fecaca; border-color: #f87171; }
+    .pb-store { background: #4c1d95; color: #e9d5ff; }
+    .pb-ui    { background: #27272a; color: #e4e4e7; }
+
+    .node-row {
+      font-size: 10px;
+      line-height: 1.28;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+    .node-row strong {
+      font-size: 8.8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #93c5fd;
+      margin-right: 3px;
+    }
+    .node-out {
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 9.2px;
+      color: #7dd3fc;
+      line-height: 1.24;
+    }
+    .node-ex {
+      margin-top: 4px;
+      padding-top: 3px;
+      border-top: 1px dashed rgba(255,255,255,0.16);
+      font-size: 9.8px;
+      color: #fde68a;
+      line-height: 1.24;
+    }
+
+    .c-factual { background: #0f2554; border-color: #60a5fa; }
+    .c-world   { background: #0a3656; border-color: #38bdf8; }
+    .c-guard   { background: #3b131d; border-color: #f87171; }
+    .c-body    { background: #471d0e; border-color: #fb923c; }
+    .c-self    { background: #1e293b; border-color: #94a3b8; }
+    .c-mem     { background: #452108; border-color: #fbbf24; }
+    .c-hero    {
+      background: linear-gradient(155deg, #5c2b09 0%, #3b1c07 100%);
+      border-color: #facc15;
+      box-shadow: 0 0 22px rgba(251, 191, 36, 0.25);
+    }
+    .c-mind    { background: #262369; border-color: #818cf8; }
+    .c-actor   { background: #063d30; border-color: #34d399; }
+    .c-mask    { background: #113b39; border-color: #2dd4bf; }
+    .c-loop    { background: #381557; border-color: #d8b4fe; }
+    .c-ui      { background: #27272f; border-color: #a1a1aa; }
+
+    aside {
+      width: clamp(390px, 27vw, 510px);
+      border-left: 1px solid var(--border);
+      background: var(--panel);
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      z-index: 20;
+    }
+    aside h2 { margin: 0; font-size: 14.5px; color: #f8fafc; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .aside-sub { margin: -4px 0 2px 0; font-size: 11.5px; color: #94a3b8; }
+    .kv {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .kv h3 {
+      margin: 0 0 4px 0;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #93c5fd;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .kv p, .kv li { margin: 0; font-size: 11.4px; line-height: 1.42; color: #e2e8f0; }
+    .kv ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 4px; }
+    .kv.sammy { border-color: rgba(251, 191, 36, 0.35); background: rgba(120, 53, 15, 0.16); }
+    .kv.sammy h3 { color: #fde68a; }
+    .data-pre {
+      margin: 5px 0 0 0;
+      padding: 8px 10px;
+      background: #060a14;
+      border: 1px solid #1e293b;
+      border-left: 3px solid #64748b;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10.4px;
+      line-height: 1.42;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-x: auto;
+    }
+    .data-pre.json { border-left-color: #fbbf24; color: #fef3c7; }
+    .data-pre.prompt { border-left-color: #38bdf8; color: #dbeafe; }
+    .data-pre.prose { border-left-color: #34d399; color: #d1fae5; }
+    .data-pre.priv { border-left-color: #c084fc; color: #f3e8ff; }
+    .spec-tag {
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      background: #1e293b;
+      color: #93c5fd;
+    }
+    .spec-tag.plan { background: #3b1c07; color: #fde68a; border: 1px solid #b45309; }
+    .quick-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .quick-chip {
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 10.6px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .quick-chip:hover { border-color: #fbbf24; color: #fde68a; }
+    .wire-item {
+      font-size: 11px;
+      padding: 5px 7px;
+      border-radius: 5px;
+      background: rgba(30, 41, 59, 0.55);
+      margin-top: 4px;
+      cursor: pointer;
+    }
+    .wire-item:hover { background: rgba(51, 65, 85, 0.8); }
+    .wire-item code { color: #7dd3fc; font-size: 10.2px; }
+    .file-pill {
+      display: inline-block;
+      margin: 3px 4px 0 0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <div class="title">
+        <h1>VirtualWorld Cognitive Flow - Sammy Lopez Behind the Fieldhouse</h1>
+        <p>3 architectural layers across 6 chronological stages. Every card shows <strong>HOW -> OUT -> Sammy</strong>; wire pills show what data moves between systems.</p>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="swatch-line" style="background:#38bdf8;"></span>Factual Bypass</span>
+        <span class="legend-item"><span class="swatch-line" style="background:#fbbf24;"></span>Subjective Mind Signal</span>
+        <span class="legend-item"><span class="swatch-line" style="background:#f87171;"></span>Threat / Rejection / Inquiry</span>
+        <span class="legend-item"><span class="swatch-dash" style="border-color:#c084fc;"></span>Offline / Return Loop</span>
+        <span class="legend-item"><span class="swatch-dash" style="border-color:#2dd4bf;"></span>Next-Turn Social Ripple</span>
+      </div>
+    </div>
+
+    <div class="controls-row">
+      <div class="btn-group" id="tour-bar">
+        <button class="pill active" id="btn-overview">Overview (All Clear)</button>
+        <button class="pill tour-btn" id="btn-prev">Prev Step</button>
+        <button class="pill tour-btn" id="btn-next">Start Turn Trace (1/8) -></button>
+        <span class="tour-status" id="tour-status">Loading...</span>
+      </div>
+
+      <div class="btn-group" id="filters">
+        <button class="pill active" data-filter="all">All Layers</button>
+        <button class="pill" data-filter="factual">Two-Lane Truth Guard (950)</button>
+        <button class="pill" data-filter="intermediator">LFM Synthesis &amp; Isolation (947-949)</button>
+        <button class="pill" data-filter="executive">MOSIAC / Plan / React / Recollect</button>
+        <button class="pill" data-filter="offline">Dynamics / Sleep / Soak / Editor</button>
+      </div>
+
+      <div class="btn-group">
+        <button class="pill" id="zoom-fit">Fit</button>
+        <button class="pill" id="zoom-75">75%</button>
+        <button class="pill active" id="zoom-100">100%</button>
+        <button class="pill" id="zoom-in">+</button>
+        <button class="pill" id="zoom-out">-</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <div class="canvas-wrap" id="canvas-wrap">
+      <div class="canvas-stage" id="stage">
+        <div class="canvas" id="canvas">
+          <!-- Stage Sequence Pills (y=8, above all lanes) -->
+          <div class="stage-pill" style="left:34px;">1. Turn-Start Self &amp; Facts</div>
+          <div class="stage-pill" style="left:466px;">2. Observe, Cues &amp; Recall</div>
+          <div class="stage-pill" style="left:898px;">3. Threat, LFM &amp; Active Mind</div>
+          <div class="stage-pill" style="left:1330px;">4. Plan, Actor LLM &amp; Mask</div>
+          <div class="stage-pill" style="left:1762px;">5. Grounding, Private &amp; Math</div>
+          <div class="stage-pill" style="left:2194px;">6. Execute, React, Ripple &amp; Save</div>
+
+          <!-- Swimlane Zones -->
+          <div class="lane lane-truth">
+            <div class="lane-head">
+              <span class="lane-title">Lane 1: Objective World &amp; Factual Guardrail (Deterministic Truth - Bypasses LFM)</span>
+              <span class="lane-why">WHY: Physical reality (inventory, routes, witnessed events, already-examined checks, action grounding) stays unvarnished so panic cannot hallucinate a gun or unlock a door.</span>
+            </div>
+          </div>
+
+          <div class="lane lane-mind">
+            <div class="lane-head">
+              <span class="lane-title">Lane 2: Live Single-Turn Subjective Mind (Left -&gt; Right Flow During Sammy's Turn)</span>
+              <span class="lane-why">WHY: Strict Actor Isolation (task-949). Raw DB rows &amp; raw lived_log stop at Recall/LFM; Actor LLM reads ONLY unvarnished facts + ONE cohesive Conscious Memory.</span>
+            </div>
+          </div>
+
+          <div class="lane lane-offline">
+            <div class="lane-head">
+              <span class="lane-title">Lane 3: Persistence, Lifetime Archive, Offline Loops &amp; Human Tools (Return Flow Right -&gt; Left)</span>
+              <span class="lane-why">WHY: Save keeps immutable source_ids[] + generation depth (task-950). Math dynamics decay/invalidate without deleting history (player.py:1235). Bottom tools audit or run soak tests.</span>
+            </div>
+          </div>
+
+          <div class="subzone-social">
+            <span>Next-Turn Social Ripple</span>
+          </div>
+
+          <svg class="wires" id="wires">
+            <defs>
+              <marker id="arr-def" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" /></marker>
+              <marker id="arr-fact" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" /></marker>
+              <marker id="arr-subj" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" /></marker>
+              <marker id="arr-rej" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f87171" /></marker>
+              <marker id="arr-loop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#c084fc" /></marker>
+              <marker id="arr-soc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#2dd4bf" /></marker>
+              <marker id="arr-hi" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#facc15" /></marker>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <aside id="inspector"></aside>
+  </div>
+
+  <script>
+    // Columns: 34, 466, 898, 1330, 1762, 2194 (width=270, gap=162px between every column!)
+    const NODES = {
+      // ===== LANE 1: OBJECTIVE REALITY & GUARDRAILS (y: 126 / 286) =====
+      world_truth: {
+        x: 34, y: 126, cls: "c-factual", step: "1a", proc: "TRUTH", pCls: "pb-truth",
+        title: "Unvarnished Factual State",
+        status: "LIVE + TWO-LANE INVARIANT (task-950)", planned: false,
+        tags: ["all", "factual", "intermediator", "executive"],
+        how: "Graph state holds real carrying[], exits, spatial routes & item ownership.",
+        out: "carrying:[board], exits:[2], owner(Glock)=Tyler",
+        ex: "Sammy holds skateboard (0 weapons); Glock is Tyler's; exits south & east.",
+        outStyle: "prompt",
+        inData: `// GET /api/state -> Fieldhouse subgraph + Player
+{
+  "player": {
+    "name": "Sammy",
+    "current_area": "area_fieldhouse_back",
+    "carrying_nodes": [{"id": "item_skateboard", "name": "skateboard"}],
+    "current_carry_weight": "3.2",
+    "max_carry_capacity": "32.0",
+    "spatial_memory": {"known_route_areas": ["area_cafeteria", "area_fieldhouse_back", "area_bleachers"]}
+  },
+  "area_items": [
+    {"id": "item_glock19", "name": "Glock 19 (matte-black)", "owner": "Tyler Martinez"},
+    {"id": "item_trash_blue", "name": "blue trash can", "properties": {"actions": ["examine"]}}
+  ],
+  "exits": [{"dir": "south", "to": "cafeteria_walkway"}, {"dir": "east", "to": "visitor_bleachers"}]
+}`,
+        outData: `[LANE 1 DETERMINISTIC - BYPASSES LFM]
+Carrying:
+  skateboard [drop, examine] (known)
+Ways out: south to cafeteria_walkway, east to visitor_bleachers.
+PlanGrounding.collectFacts():
+  { carried: ["skateboard"], areaItems: ["Glock 19", "blue trash can"],
+    people: ["Jake", "Tyler Martinez", "Kyrie", "Zoe"],
+    exits: ["cafeteria_walkway", "visitor_bleachers"] }`,
+        why: "Two-Lane Invariant (task-950): fear or bias must never rewrite what items, weapons, or exits physically exist.",
+        files: ["engine/spatial_memory.py", "routes/memories.py", "static/js/agent/plan-grounding.ts", "docs/virtualWorld/dev_tasks/todo/gameplay/task-950-enforce-two-lane-factual-invariant-and-memory-lineage-tracking-in-routes-memorie.json"]
+      },
+      already_known: {
+        x: 34, y: 286, cls: "c-factual", step: "1b", proc: "GUARD", pCls: "pb-truth",
+        title: "AlreadyKnown & Repeat Guard",
+        status: "LIVE (memory-context.ts)", planned: false,
+        tags: ["all", "factual", "intermediator"],
+        how: "Reads item/absence memories + last 20 actionHistory verbs to block loops.",
+        out: "=== ALREADY KNOWN === (0 LFM)",
+        ex: "Keeps skateboard + confirmed-absent props literal; blocks loop searches.",
+        outStyle: "prompt",
+        inData: `{
+  "player_memories_filtered": [
+    {"kind": "item", "name": "skateboard"},
+    {"kind": "absence", "target": "baseball_bat", "location": "dugout"}
+  ],
+  "actionHistory_tail": [
+    {"action": "go area_fieldhouse_back", "result": "You round the brick corner behind the fieldhouse."}
+  ]
+}`,
+        outData: `=== ALREADY KNOWN ===
+You have already examined or taken: skateboard.
+You already confirmed absent or empty: baseball_bat in dugout.
+(If examine/take/open count >= 2 on same target: injects repeat-loop warning)`,
+        why: "Stops agents from burning turns examining the same empty pocket or already-checked prop.",
+        files: ["static/js/agent/prompt-builder/memory-context.ts", "player.py"]
+      },
+      perception: {
+        x: 466, y: 126, cls: "c-world", step: "1c", proc: "ENGINE", pCls: "pb-truth",
+        title: "Perception, Sound & Name Mask",
+        status: "LIVE (observation.py, room-context.ts)", planned: false,
+        tags: ["all", "factual", "intermediator", "executive"],
+        how: "Formats room sightlines, recent_hearing[] & name_masking with relative time.",
+        out: "SURROUNDINGS + WITNESSED ([just now])",
+        ex: "Cold mud; Jake strips Tyler's Glock in 5s ('Really, Tyler?') + crashes.",
+        outStyle: "prompt",
+        inData: `{
+  "players_in_area": [
+    {"name": "Jake", "state": "normal", "description": "Scuffed grey hoodie, crooked wire-frame glasses."},
+    {"name": "Tyler Martinez", "state": "prone", "description": "Scuffed varsity jacket, hands shaking in the dirt."},
+    {"name": "Kyrie", "state": "normal"}, {"name": "Zoe", "state": "normal"}
+  ],
+  "recent_hearing": [
+    {"tick": 4813, "speaker": "Jake", "speech_level": "say", "text": "Really, Tyler? A gun? Are you fucking stupid, like for real?"},
+    {"tick": 4813, "type": "sound_source", "sound_pattern": "metallic magazine drop click-clack"}
+  ],
+  "turn_events": [
+    {"tick": 4813, "actor": "Jake", "action": "use_on", "description": "kicks mag onto shed roof, racks a brass bullet into mud, and throws the slide and barrel over the fieldhouse roof"}
+  ]
+}`,
+        outData: `=== YOUR SURROUNDINGS ===
+Cold November mud and dead grass behind the brick fieldhouse.
+People here:
+  - Jake - a close friend - (normal) - crouching beside the blue trash can.
+  - Tyler Martinez - a rival - (prone) - curled in the dirt by the chain-link fence.
+  - Kyrie - a close friend - (normal) - steel breaker bar hidden in hoodie sleeve.
+  - Zoe - a friend - (normal) - clinging to Kyrie's sleeve.
+
+=== WITNESSED ===
+[just now] [Jake] said: "Really, Tyler? A gun? Are you fucking stupid, like for real?"
+[just now] Sound: metallic magazine drop click-clack.
+[just now] [Jake] kicks mag onto shed roof, racks a brass bullet into mud, and throws the barrel over the roof.`,
+        why: "Separates live room sensory truth from subjective stored opinions (Cognitive Memory Sec 1).",
+        files: ["engine/observation.py", "engine/room_perception.py", "engine/sound.py", "engine/name_masking.py", "static/js/agent/prompt-builder/room-context.ts"]
+      },
+      threat: {
+        x: 898, y: 126, cls: "c-guard", step: "2a", proc: "GUARD", pCls: "pb-guard",
+        title: "ThreatDetector & Interrupts",
+        status: "LIVE (threat-detector.ts, interrupts.py)", planned: false,
+        tags: ["all", "factual", "executive"],
+        how: "Checks traits.hostile, closeness < -20, turn_events attacks & HP/Bladder.",
+        out: "IMMEDIATE DANGER -> Replan=true",
+        ex: "Hostile Tyler + armed confrontation fires danger alert; cancels fistfight plan.",
+        outStyle: "prompt",
+        inData: `{
+  "players_in_area": ["Jake", "Tyler Martinez", "Kyrie", "Zoe"],
+  "relationships": {"Tyler Martinez": {"closeness": -35}},
+  "turn_events": [{"tick": 4812, "actor": "Tyler Martinez", "action": "attack", "description": "pulled a black Glock 19 on Jake"}],
+  "vitals": {"HP": 100}
+}`,
+        outData: `// ThreatDetector.getThreatAlert():
+"⚠️ IMMEDIATE DANGER: Tyler Martinez is in this room and hostile toward you. Your current plan is INVALID - react to this threat IMMEDIATELY (flee, fight, shield, or submit)!"
+
+// engine/interrupts.py:
+Interrupt(kind="THREAT", why="armed_hostility", detail="Tyler Martinez", salient=True)
+-> forces PlanTracker.shouldReplan() = true`,
+        why: "Forces agents to drop mundane routines the instant real danger enters the scene.",
+        files: ["static/js/agent/threat-detector.ts", "engine/interrupts.py"]
+      },
+      grounding: {
+        x: 1762, y: 126, cls: "c-factual", step: "6a", proc: "GUARD+LLM", pCls: "pb-guard",
+        title: "ActionInterpreter & PlanGround",
+        status: "LIVE PlanGround + ActionInterpreter (task-943)", planned: false,
+        tags: ["all", "factual", "executive"],
+        how: "Parses Stage-1 prose -> {action, item, target, speech}; validates against Facts.",
+        out: "drop(board) PASS | grab(gun) BLOCK",
+        ex: "drop(skateboard)+shout passes grounding; grabbing missing gun blocks.",
+        outStyle: "json",
+        inData: `// Input Stage-1 Actor Prose + Lane 1 Grounding Facts:
+prose: "Sammy lets her skateboard clatter into the weeds and drops beside Jake, grabbing his grey hoodie. 'You complete, suicidal idiot! Why didn't you just run away?!'"
+facts: { carried: ["skateboard"], areaItems: ["Glock 19", "blue trash can"],
+         people: ["Jake", "Tyler Martinez", "Kyrie", "Zoe"], turn_slots: {"minor": 1, "free": 2} }`,
+        outData: `// ActionInterpreter -> ResponseParser.parseReaction() + PlanGrounding:
+{
+  "inner_monologue": "He almost got shot because I bragged in the bathroom, and for 3s I saw a killer. Hold onto him and yell so I don't cry.",
+  "action": "drop",
+  "item": "skateboard",
+  "target": null,
+  "speech": "You complete, suicidal idiot! Why didn't you just run away?!",
+  "volume": "shout",
+  "emote": "clatters her skateboard into the weeds, kneels hard in the mud beside Jake, and clutches the back of his hoodie",
+  "memory": "Dropped my skateboard and clung to Jake after realizing the gun was Tyler's and Jake stripped it in five seconds.",
+  "emotion": "terrified_relief",
+  "grounding_verdict": "PASS ('skateboard' in carried[]; minor slot consumed)"
+}`,
+        why: "Decouples creative prose (task-943) from strict engine validation so hallucinations never touch world state.",
+        files: ["static/js/agent/action-interpreter.ts", "static/js/agent/response-parser.ts", "static/js/agent/action-normalizer.ts", "static/js/agent/plan-grounding.ts"]
+      },
+      blocked: {
+        x: 1762, y: 286, cls: "c-guard", step: "6b", proc: "GUARD", pCls: "pb-guard",
+        title: "Blocked / Grounding Failure",
+        status: "LIVE block + PLANNED inquiry spawn (task-944)", planned: true,
+        tags: ["all", "factual", "executive"],
+        how: "Rejects impossible item/target, returns error to Actor & spawns Inquiry Q.",
+        out: "error + invalid_at -> Active Q",
+        ex: "If Sammy tries take(loaded_pistol), rejection spawns 'Where did the slide go?'",
+        outStyle: "json",
+        inData: `{"attempted": {"action": "take", "item": "black pistol"}, "factual_truth": "barrel in woods, mag on shed roof, plastic frame in blue trash can"}`,
+        outData: `{
+  "error": "No intact 'black pistol' here to take (only stripped lower frame in blue trash can).",
+  "invalidates_assumption": "The Glock is still a working firearm on the ground",
+  "spawns_question": {
+    "id": "q_gun_parts_where",
+    "question": "Wait - where did the barrel and magazine even land?",
+    "urgency": 7
+  }
+}`,
+        why: "Turns physical impossibility into detective curiosity instead of blind retries.",
+        files: ["static/js/agent/plan-grounding.ts", "static/js/agent-engine.ts"]
+      },
+      execute: {
+        x: 2194, y: 126, cls: "c-world", step: "7a", proc: "ENGINE", pCls: "pb-truth",
+        title: "Execute + Involuntary Filter",
+        status: "LIVE (involuntary.ts, tick_manager.py)", planned: false,
+        tags: ["all", "factual", "executive"],
+        how: "Involuntary.ts injects stress tremble; tick_manager mutates graph & lived_log.",
+        out: "actionResult + WITNESSED + log",
+        ex: "Drops skateboard in weeds; adrenaline cracks her shout against the brick wall.",
+        outStyle: "json",
+        inData: `{"action": "drop", "item": "skateboard", "speech": "You complete, suicidal idiot! Why didn't you just run away?!", "volume": "shout", "emote": "clatters her skateboard into the weeds and clutches Jake's hoodie"}`,
+        outData: `{
+  "action_result": "You drop the skateboard into the dead grass with a sharp clatter.",
+  "involuntary_filter": "Voice shakes slightly from terror (Sanity: 34)",
+  "public_witness_event": {
+    "tick": 4814, "actor": "Sammy", "action": "speak",
+    "description": "dropped her skateboard and shouted to Jake: \"You complete, suicidal idiot! Why didn't you just run away?!\""
+  },
+  "lived_log_append": {"tick": 4814, "kind": "social", "area": "area_fieldhouse_back", "what": "Sammy dropped her board and grabbed Jake's hoodie by the wall"}
+}`,
+        why: "Single authoritative engine mutation step (no LLM mutates world state directly).",
+        files: ["static/js/agent-engine.ts", "static/js/agent/involuntary.ts", "engine/tick_manager.py", "engine/lived_log.py"]
+      },
+
+      // ===== LANE 2: LIVE SINGLE-TURN SUBJECTIVE MIND (y: 506 / 688 / 862) =====
+      body_emo: {
+        x: 34, y: 506, cls: "c-body", step: "1d", proc: "PURE CODE", pCls: "pb-math",
+        title: "Body Vitals, Fear & Emotion",
+        status: "LIVE (vitals.py, character-state.ts)", planned: false,
+        tags: ["all", "intermediator"],
+        how: "describeVitals() + emotions_description map HP/Hygiene/Sanity & terror to cues.",
+        out: "Mood + Hygiene<30 + Sanity<crit",
+        ex: "Freezing strawberry smoothie drying on neck + hammering terror cues.",
+        outStyle: "prompt",
+        inData: `{
+  "vitals": {"Energy": 72, "Hunger": 55, "Thirst": 62, "Hygiene": 28, "Sanity": 34, "Temperature": 34.8, "HP": 100},
+  "emotions_description": "Heart hammering in terror and hot guilt; adrenaline chill under sticky hoodie.",
+  "emotion": {"current": "terrified", "intensity": 0.92}
+}`,
+        outData: `=== YOUR STATE === (vital & affect lines)
+Mood: Heart hammering in terror and hot guilt; adrenaline chill under sticky hoodie.
+Nerves frayed raw. You flinch at small sounds and snap at small annoyances.
+You feel sticky and soiled. (Hygiene < 30 -> somatic tag need:hygiene)
+You are cold and shivering. A chill runs through you. (Temp 34.8)`,
+        why: "Bodily state shapes both which associative memories surface and urgent emotional tone.",
+        files: ["engine/vitals.py", "engine/emotion.py", "engine/fear.py", "static/js/agent/prompt-builder/character-state.ts"]
+      },
+      id_rel: {
+        x: 34, y: 688, cls: "c-self", step: "1e", proc: "PURE CODE", pCls: "pb-math",
+        title: "Identity & 7-Dim Rel Profile",
+        status: "LIVE (engine/derive.py, traits.py)", planned: false,
+        tags: ["all", "intermediator", "executive"],
+        how: "derive_person_profile() folds memories into 7 dims: trust..closeness.",
+        out: "trust:76, fear:22, attr:94, role",
+        ex: "Jake: lover/devotion + 22 fear spike; Tyler: -65 trust, 72 disgust.",
+        outStyle: "json",
+        inData: `{
+  "personality": "Awkward, sassy, tomboyish, deeply empathetic but bad liar when scared; fiercely possessive of Jake.",
+  "traits": ["tomboy", "impulsive", "protective", "jealous"],
+  "relationships_seed": {"Jake": {"closeness": 88, "label": "best friend"}, "Tyler Martinez": {"closeness": -35, "label": "rival"}},
+  "rel_memories": ["mem_friday_nov6 (trust:+3, attraction:+4)", "mem_bus_bomb_am (fear:+3)"]
+}`,
+        outData: `// engine/derive.py DIMS: (trust, fear, attraction, familiarity, disgust, respect, closeness)
+{
+  "Jake": {
+    "trust": 76.0, "fear": 22.0, "attraction": 94.0, "familiarity": 96.0,
+    "disgust": 0.0, "respect": 68.0, "closeness": 88.0,
+    "role": "lover", "consent": 0.675,
+    "summary": "Inseparable since childhood; Friday's intimacy collides with morning bomb dread."
+  },
+  "Tyler Martinez": {
+    "trust": -65.0, "fear": 58.0, "attraction": -10.0, "familiarity": 42.0,
+    "disgust": 72.0, "respect": -50.0, "closeness": -35.0, "role": "rival", "consent": -1.0
+  }
+}`,
+        why: "Explains why Sammy reads Jake shaking with grief instead of cold malice.",
+        files: ["engine/traits.py", "engine/character_identity.py", "engine/relationships.py", "engine/derive.py"]
+      },
+      gimp: {
+        x: 34, y: 862, cls: "c-self", step: "1f", proc: "PURE CODE", pCls: "pb-math",
+        title: "GIMP Goals, Quests & Schedule",
+        status: "LIVE goals/schedule + 944 obligations", planned: false,
+        tags: ["all", "executive"],
+        how: "Tracks Motivation, Intention, active schedule step & deterministic Obligations.",
+        out: "goals[2] + obligations[1] + lunch",
+        ex: "Goal: Keep Jake safe & out of handcuffs; Schedule: lunch period ending.",
+        outStyle: "json",
+        inData: `{
+  "goals": [
+    {"id": "g_protect_jake", "text": "Keep Jake from ruining his life or getting arrested today", "priority": 10},
+    {"id": "g_bus_guilt", "text": "Make up for pulling my hand away on the morning bus", "priority": 8}
+  ],
+  "schedule_step": {"start": 755, "activity": "lunch", "area": "area_cafeteria", "minutes_left": 11},
+  "obligations": [{"id": "ob_crew", "commitment": "Stay with Kyrie and Zoe", "status": "active"}]
+}`,
+        outData: `{
+  "M": "Keep Jake safe and prevent felony escalation",
+  "I": "Check if Jake is hurt and keep him from collapsing or fighting",
+  "O": [{"id": "ob_crew", "charge": "Stay with Kyrie and Zoe", "status": "active"}],
+  "S": {"day": "school_monday", "step": {"activity": "lunch", "area": "area_cafeteria"}}
+}`,
+        why: "Engine evaluates obligations deterministically on tick without LLM bookkeeping.",
+        files: ["engine/goals.py", "engine/schedule.py", "engine/pursuit_templates.py"]
+      },
+      cues_gate: {
+        x: 466, y: 506, cls: "c-mem", step: "2b", proc: "GATE", pCls: "pb-math",
+        title: "Cue Extractor & Change Gate",
+        status: "LIVE extract_cues() + PLANNED gate (task-948)", planned: true,
+        tags: ["all", "factual", "intermediator"],
+        how: "extract_cues() packs actors, items, audio & drives; hashes shift vs prev tick.",
+        out: "cue_shift:true -> Recall | false:Cache",
+        ex: "cues=[Glock 19, Jake, Tyler, click-clack, terrified] -> CACHE MISS.",
+        outStyle: "json",
+        inData: `{
+  "prev_tick_hash": "hash_4811_cafeteria_sprint",
+  "payload_from_perception_and_body": {
+    "actors": ["Jake", "Tyler Martinez", "Kyrie", "Zoe"],
+    "items": ["Glock 19", "skateboard", "blue trash can"],
+    "heard_sound": "metallic magazine drop click-clack",
+    "vitals_flags": ["Hygiene<30", "Sanity<critical"]
+  }
+}`,
+        outData: `// engine/memory_retrieval.py extract_cues() + task-948 cue-change gate:
+{
+  "cue_shift": true,
+  "cache_status": "MISS (armed confrontation + gunshot strip sound)",
+  "actor_names": ["jake", "tyler", "kyrie", "zoe"],
+  "item_names": ["glock 19", "skateboard", "blue trash can"],
+  "dialogue_tokens": ["gun", "tyler", "stupid", "shoot", "sammy"],
+  "needs": ["need:hygiene", "need:safety"],
+  "emotions": ["terrified", "guilt"]
+}`,
+        why: "Saves redundant 260tps LFM synthesis calls when quiet continuation ticks change nothing.",
+        files: ["engine/memory_retrieval.py", "docs/virtualWorld/dev_tasks/todo/gameplay/task-948-implement-memory-intermediator-synthesis-stage-inner-monologue-persistence-and-c.json"]
+      },
+      recall: {
+        x: 466, y: 688, cls: "c-mem", step: "3a", proc: "PURE CODE", pCls: "pb-math",
+        title: "Involuntary Multi-Hop Recall",
+        status: "LIVE Associative 3.0 -> isolated from Actor (task-949)", planned: false,
+        tags: ["all", "intermediator", "offline"],
+        how: "Scores keyword+entity+recency+emotion; drops invalid_at & room echo; respikes affect.",
+        out: "lanes:{associative[3], Q[1], beliefs[1]}",
+        ex: "Pulls bus-bomb + Algebra ASPD + bathroom brag; drops Algebra desks & lake.",
+        outStyle: "json",
+        inData: `// POST /api/players/Sammy/memories/retrieve (Associative 3.0)
+{
+  "cues": ["jake", "tyler", "gun", "shoot", "terrified", "need:safety"],
+  "exclude_invalid_at": true,
+  "suppress_current_area_obs": true,
+  "max_results": 6,
+  "min_score": 1.2
+}`,
+        outData: `// GOES ONLY TO LFM INTERMEDIATOR + _respikeFromMemories() (0 RAW ROWS TO ACTOR):
+{
+  "lanes": {
+    "associative": [
+      {"id": "mem_bus_bomb_am", "tick": 4540, "score": 9.4, "importance": 10,
+       "text": "At 8 AM on the bus Jake admitted building the firework bomb for Adeyemi; I uncurled my fingers and pulled away.",
+       "emotion": {"label": "dread", "intensity": 8}},
+      {"id": "mem_algebra_aspd", "tick": 4605, "score": 8.6, "importance": 8,
+       "text": "In Algebra I googled ASPD traits, remembered Jake signing $20M over for my dad's bad knees and printing a 106-page DBT manual, and hated myself.",
+       "emotion": {"label": "guilt", "intensity": 8}},
+      {"id": "mem_bath_brag", "tick": 4100, "score": 7.9, "importance": 9,
+       "text": "Wednesday I bragged to Brianna about five or six times and hickeys; at lunch she dumped smoothie on me and sent Tyler after Jake.",
+       "emotion": {"label": "guilt", "intensity": 9}}
+    ],
+    "open_questions": [{"id": "mem_q_tyler", "text": "Why did Brianna look so thrilled saying Tyler wanted details on six orgasms?"}],
+    "beliefs": [{"id": "mem_bel_no_brakes", "text": "Jake has zero brakes when someone hurts us - reckless protection, never cruelty."}]
+  }
+}`,
+        why: "Surfaces colliding emotional traces for LFM without exposing raw DB rows or scores to Actor.",
+        files: ["engine/memory_retrieval.py", "static/js/agent/prompt-builder/memory-context.ts", "routes/memories.py"]
+      },
+      delib_recall: {
+        x: 466, y: 862, cls: "c-mem", step: "3b", proc: "ACTIVE QUERY", pCls: "pb-math",
+        title: "Deliberate 'recall' Action",
+        status: "PLANNED SPEC (task-944)", planned: true,
+        tags: ["all", "executive", "intermediator"],
+        how: "Runs deep archive lookup only when Actor explicitly chooses action:'recall'.",
+        out: "targeted_traces[] -> LFM",
+        ex: "Sammy strains to remember what she actually said to Brianna on Wednesday.",
+        outStyle: "json",
+        inData: `{"action": "recall", "target": "Brianna bathroom bragging Wednesday", "actor": "Sammy"}`,
+        outData: `// Routes back through LFM before updating Actor working awareness:
+{
+  "deep_matches": [
+    {"id": "mem_bath_brag", "tick": 4100, "text": "I was just pissed at Brianna's cheerleader smugness so I bragged 'five or six times' - I NEVER said anything about a dumpster or Tyler."}
+  ]
+}`,
+        why: "Separates effortless involuntary flashbacks from deliberate mental search.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-944-subjective-cognitive-memory-and-active-mind-architecture.json"]
+      },
+      inter: {
+        x: 898, y: 506, cls: "c-hero", step: "4a", proc: "FAST LFM · 260tps", pCls: "pb-lfm",
+        title: "Memory Intermediator (LFM)",
+        status: "PLANNED SPEC (task-947 / task-948)", planned: true,
+        tags: ["all", "intermediator", "factual"],
+        how: "Fuses WITNESSED + raw_traces[] + Body + 7-Dim Rel into 1 varnished voice + lineage.",
+        out: "conscious_memory (0 raw DB)",
+        ex: "Fuses morning bus terror with 5s disarm: 'Tyler brought it; Jake saved him.'",
+        outStyle: "json",
+        inData: `// Sent to getMemoryLLMClient() (fast 260tps LFM) - raw rows NEVER leave this box:
+{
+  "witnessed_anchor": "Rounded brick wall to see Jake aiming pistol at Tyler -> 'Really, Tyler?' -> stripped Glock in 5s -> collapsed shaking against blue trash can: 'You were gonna shoot me? For Sammy?'",
+  "body_affect": "terrified (0.92), Sanity 34, drying pink smoothie on neck",
+  "rel_lens": {"Jake": "love(88)+attraction(94)+fear(22)", "Tyler": "disgust(72)+fear(58)"},
+  "raw_recalled_rows": ["mem_bus_bomb_am", "mem_algebra_aspd", "mem_bath_brag", "mem_bel_no_brakes"],
+  "source_ref_ids": ["obs_corner_4812", "obs_strip_4813", "mem_bus_bomb_am", "mem_algebra_aspd", "mem_bath_brag"]
+}`,
+        outData: `// ONE subjective palimpsest synthesis -> passed to Actor (zero raw rows!):
+{
+  "conscious_memory": "For three endless seconds behind the fieldhouse I genuinely believed Jake had brought a gun to execute Tyler - that same cold bus-bomb terror from this morning hit me like ice down my back. Then he rolled his eyes like a tired mechanic, ripped Tyler's Glock into four useless pieces in five seconds, and slumped against the trash can shaking so badly he couldn't even stand. It wasn't his weapon. Tyler brought it because I ran my mouth in the bathroom, and Jake threw the pieces away just to keep an idiot who tried to kill him out of prison. My chest hurts and I will take to my grave that for three seconds I pictured him pulling the trigger.",
+  "invalidate_ids": ["mem_panic_jake_shooter_4812"],
+  "spawn_questions": [
+    {"question": "Where did Jake learn to field-strip a Glock in five seconds?", "urgency": 7},
+    {"question": "What lie did Brianna tell Tyler to make him bring his dad's gun?", "urgency": 8}
+  ],
+  "held_secret": "For 3 seconds I genuinely thought Jake was about to execute him.",
+  "reinforce_ids": ["mem_bath_brag", "mem_bel_no_brakes"],
+  "source_ref_ids": ["obs_corner_4812", "obs_strip_4813", "mem_bus_bomb_am", "mem_algebra_aspd", "mem_bath_brag"]
+}`,
+        why: "Models how human memory reconstructs past and present into one biased voice instead of dumping sterile DB rows.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-947-memory-intermediator-and-reconsolidation-palimpsest-pipeline.json", "docs/virtualWorld/dev_tasks/todo/gameplay/task-948-implement-memory-intermediator-synthesis-stage-inner-monologue-persistence-and-c.json"]
+      },
+      active_mind: {
+        x: 898, y: 688, cls: "c-mind", step: "4b", proc: "WORKING STATE", pCls: "pb-math",
+        title: "Active Working Mind",
+        status: "PLANNED SPEC (task-944)", planned: true,
+        tags: ["all", "intermediator", "executive"],
+        how: "Stores Questions[], Assumptions[] (invalid_at provenance) & Held Secrets.",
+        out: "=== ACTIVE MIND === (Q / A / Secret)",
+        ex: "Flips assumption to 'Tyler brought gun'; hides 'feared Jake 3s' secret.",
+        outStyle: "prompt",
+        inData: `{"lfm_updates": {"invalidate": "mem_panic_jake_shooter_4812", "questions_added": 2, "secret": "feared_jake_3s"}}`,
+        outData: `=== ACTIVE MIND ===
+* Questions:
+  - Where did Jake learn to clear and field-strip a Glock in 5 seconds? (urgency: 7)
+  - What lie did Brianna tell Tyler to make him pull a real gun? (urgency: 8)
+* Assumptions:
+  - It was Tyler's gun; Jake is crashing from adrenaline, not hunting anyone. (conf: 0.95)
+  - [INVALIDATED @ 4814] "Jake brought a pistol to execute Tyler"
+* Held Secrets (for Social Mask only):
+  - Never let Jake know I pictured him as a cold shooter for three seconds.
+* Obligations:
+  - [ACTIVE] Protect Jake from cops / getting hurt behind the fieldhouse.`,
+        why: "Turns surprises and invalidated assumptions into persistent curiosity across turns.",
+        files: ["docs/virtualWorld/dev_tasks/todo/gameplay/task-944-subjective-cognitive-memory-and-active-mind-architecture.json"]
+      },
+      mosiac: {
+        x: 898, y: 862, cls: "c-mind", step: "4c", proc: "PURE CODE", pCls: "pb-math",
+        title: "MOSIAC Context Assembler",
+        status: "LIVE (engine/mosiac.py, character-state.ts)", planned: false,
+        tags: ["all", "executive"],
+        how: "Combines M+O+S+I (GIMP), A (salient threat) & C (turn_slots-filtered verbs).",
+        out: "=== YOUR MIND === (LLM == Soak)",
+        ex: "Ranks free:[speak,emote], minor:[drop,approach,recall], major:[examine,go].",
+        outStyle: "prompt",
+        inData: `{"gimp": "Protect Jake + Stay with crew", "vitals_attention": ["threat", "Sanity<critical"], "turn_slots": {"major": 1, "minor": 1, "free": 2}}`,
+        outData: `=== YOUR MIND ===
+Motivation: Keep Jake safe & prevent felony fallout
+Intention: Drop board, reach shaking Jake, keep Tyler quiet
+Obligations: Stay with Kyrie and Zoe
+Schedule: 12:35 lunch ending at cafeteria
+Attention: armed threat, shaking friend, raw nerves
+Choices (turn_slots):
+  free: [speak, emote]
+  minor: [drop(skateboard), approach(Jake), recall]
+  major: [examine(blue trash can), go(cafeteria_walkway)]`,
+        why: "Unifies LLM turns and headless soak on the exact same capability surface (task-812).",
+        files: ["engine/mosiac.py", "engine/mosiac_selector.py", "static/js/agent/prompt-builder/character-state.ts"]
+      },
+      plan_mgr: {
+        x: 1330, y: 506, cls: "c-actor", step: "5a", proc: "PLAN / LLM", pCls: "pb-llm",
+        title: "PlanTracker & PlanManager",
+        status: "LIVE (plan-manager.ts, plan-tracker.ts)", planned: false,
+        tags: ["all", "executive"],
+        how: "shouldReplan() aborts fistfight step on Threat; replans + runs PlanGrounding.",
+        out: "=== YOUR PLAN === (re-grounded)",
+        ex: "Cancels 'pull Tyler from punch'; plans 'drop board -> get beside Jake'.",
+        outStyle: "prompt",
+        inData: `{"threat_alert": "IMMEDIATE DANGER (replan=true)", "old_plan": ["1. Run behind fieldhouse", "2. Stop fistfight (CANCELLED)"], "facts": {"carried": ["skateboard"], "people": ["Jake", "Tyler Martinez"]}}`,
+        outData: `=== YOUR PLAN ===
+Undertaking: Keep Jake steady and keep a gun incident off school records
+1. Run behind fieldhouse (done)
+2. Drop skateboard and kneel beside Jake by the brick wall (CURRENT) [PlanGrounding: VALID]
+3. Shout so he snaps out of the shake without admitting my panic (PENDING)`,
+        why: "Maintains multi-turn coherence without allowing fake props or impossible routes.",
+        files: ["static/js/agent/plan-manager.ts", "static/js/agent/plan-tracker.ts"]
+      },
+      actor: {
+        x: 1330, y: 688, cls: "c-actor", step: "5b", proc: "ACTOR LLM", pCls: "pb-llm",
+        title: "Actor LLM (Strict Isolation)",
+        status: "PLANNED Stage-1 Prose (943) + Isolation (949)", planned: true,
+        tags: ["all", "intermediator", "executive"],
+        how: "Reads ONLY Truth + Conscious Memory + Active Mind (0 raw DB). Emits Thought+Prose.",
+        out: "RAW THOUGHT + UNCONSTRAINED PROSE",
+        ex: "Drops board, buries forehead into Jake's hoodie collar: 'You complete, suicidal idiot!'",
+        outStyle: "prose",
+        inData: `[STRICT ACTOR ISOLATION (task-949): 0 raw Player.memories[] rows, 0 raw lived_log]
+=== YOUR STATE ===
+Mood: Heart hammering in terror and hot guilt; freezing smoothie drying down your neck.
+Nerves frayed raw.
+=== ALREADY KNOWN ===
+Carrying: skateboard [drop, examine]. Ways out: south (cafeteria), east (bleachers).
+=== CONSCIOUS MEMORY ===  <-- Single LFM synthesis block ONLY!
+"For three endless seconds behind the fieldhouse I genuinely believed Jake had brought a gun to execute Tyler - that same cold bus-bomb terror from this morning hit me like ice down my back. Then he rolled his eyes like a tired mechanic, ripped Tyler's Glock into four useless pieces in five seconds, and slumped against the trash can shaking so badly he couldn't even stand. It wasn't his weapon. Tyler brought it because I ran my mouth in the bathroom, and Jake threw the pieces away just to keep an idiot who tried to kill him out of prison. My chest hurts and I will take to my grave that for three seconds I pictured him pulling the trigger."
+=== ACTIVE MIND ===
+Questions: Where did he learn to strip a Glock? / What lie did Brianna tell Tyler?
+Held Secret: Never admit I pictured him pulling that trigger for three seconds.
+=== YOUR SURROUNDINGS === / === WITNESSED ===
+[just now] [Jake] kicks mag onto shed roof, throws barrel over roof, slumps against trash can.`,
+        outData: `// ACTOR OUTPUT AS IT SHOULD BE (Stage 1: Thought + Natural Prose, no JSON tax):
+[THOUGHT / INNER MONOLOGUE]:
+Oh god, he's shaking so bad. He almost got shot in the face because I bragged to Brianna in the bathroom. And three seconds ago I stared at the boy I slept with ten days ago and pictured a cold murderer - just like on the bus this morning. If I let go right now I'm going to throw up. Drop the board, hold onto his hoodie so he stops shaking, yell at him for being reckless, and NEVER tell him how scared I was of him.
+
+[SCENE PROSE]:
+Sammy lets her skateboard hit the dead weeds with a sharp clatter and crosses the ten feet of muddy grass before her knees catch up to her brain. She drops straight into the dirt beside Jake and grabs the back of his grey hoodie tight, burying her forehead against his collarbone over Friday's fading mark before pulling back two inches with dark, furious, wet eyes.
+"You complete, suicidal idiot! Why didn't you just run away?!" she chokes out, knuckles white in his shirt.`,
+        why: "Stage-1 separation (task-943) + Isolation (task-949) lets Sammy live in her real 16-year-old voice without JSON formatting rot.",
+        files: ["static/js/agent-engine.ts", "static/js/agent/prompt-builder/turn-prompts.ts", "docs/virtualWorld/dev_tasks/todo/gameplay/task-943-two-stage-actor-to-interpreter-pipeline-via-canonical-responseparser.json", "docs/virtualWorld/dev_tasks/todo/gameplay/task-949-enforce-strict-actor-isolation-and-soak-lived-log-conscious-handoff.json"]
+      },
+      mask: {
+        x: 1330, y: 862, cls: "c-mask", step: "5c", proc: "SUBTEXT", pCls: "pb-llm",
+        title: "Social Mask & Subtext Filter",
+        status: "DESIGN / SUBTEXT (emote-picker.ts + doc)", planned: false,
+        tags: ["all", "executive", "intermediator"],
+        how: "Guards pride & Held Secrets; turns tearful dread into sharp scolding + hug.",
+        out: "public:{shout+hoodie grab} | hide:dread",
+        ex: "Masks her 3s terror behind furious nagging so Jake sees anger, not fear of him.",
+        outStyle: "json",
+        inData: `{"raw_impulse": "Cry, apologize for pulling away on the bus & thinking he'd shoot Tyler", "held_secret": "Thought Jake was a shooter for 3s", "traits": ["tomboy", "bad_liar_when_scared", "protective"]}`,
+        outData: `{
+  "public_surface": {
+    "speech": "You complete, suicidal idiot! Why didn't you just run away?!",
+    "volume": "shout",
+    "emote": "clatters her skateboard into the weeds, kneels beside Jake, and clutches his hoodie tight, glaring through wet eyes"
+  },
+  "suppressed_to_private": "Removes explicit admission that she panicked on the bus or feared he'd pull the trigger.",
+  "next_beat_crack": "When Tyler admits 'against a dumpster & laughing at me', pride cracks into whispered guilt: 'I didn't say dumpster... I'm so sorry.'"
+}`,
+        why: "Characters hold back vulnerable secrets in public while preserving emotional truth privately.",
+        files: ["static/js/agent/emote-picker.ts", "docs/virtualWorld/Characters/Interiority & Subtext.md"]
+      },
+      priv: {
+        x: 1762, y: 862, cls: "c-actor", step: "5d", proc: "PRIVATE", pCls: "pb-store",
+        title: "Private Inner Monologue",
+        status: "LIVE inner_monologue + PLANNED persist (948)", planned: true,
+        tags: ["all", "intermediator", "offline"],
+        how: "Captures raw unspoken thought separate from WITNESSED; routes to Post-Turn Save.",
+        out: "private_thought -> Save (0 room leak)",
+        ex: "'Hands shaking. My brag nearly got him shot. Take the 3s panic to my grave.'",
+        outStyle: "priv",
+        inData: `Unfiltered inner_monologue from Actor + suppressed dread from Social Mask (never touches TurnQueue witnesses)`,
+        outData: `{
+  "id": "mem_priv_4814",
+  "type": "thought",
+  "visibility": "private",
+  "tick": 4814,
+  "text": "My hands won't stop shaking and this freezing strawberry shit is soaking down my spine. He almost died because I flexed on Brianna in the bathroom, and for three seconds I stood there picturing him as a cold murderer just like on the bus. Yell at him so he breathes. Take my panic to the grave.",
+  "emotion": {"label": "guilt_terror", "intensity": 9}
+}`,
+        why: "Inner truth shapes future recall without bleeding telepathically into other characters' prompts.",
+        files: ["static/js/agent/prompt-builder/turn-prompts.ts", "docs/virtualWorld/dev_tasks/todo/gameplay/task-948-implement-memory-intermediator-synthesis-stage-inner-monologue-persistence-and-c.json"]
+      },
+      react: {
+        x: 2194, y: 506, cls: "c-actor", step: "7b", proc: "ACTOR LLM", pCls: "pb-llm",
+        title: "Post-Action React Phase",
+        status: "LIVE React (endOfTurnMemory retired per 949)", planned: false,
+        tags: ["all", "executive", "intermediator"],
+        how: "Reads WHAT HAPPENED (saidThisTurn + action + result) + Conscious Memory.",
+        out: "whisper:'I didn't say dumpster...' + hug",
+        ex: "Hears Tyler blame Brianna's 'dumpster' lie; whispers apology into Jake's ribs.",
+        outStyle: "json",
+        inData: `=== WHAT HAPPENED ===
+You said: "You complete, suicidal idiot! Why didn't you just run away?!"
+Your action: drop skateboard -> You drop the skateboard into the dead grass.
+New WITNESSED: [Tyler Martinez] "Brianna said he fucked you against a dumpster and you were laughing at me..."`,
+        outData: `{
+  "inner_monologue": "Wait - 'against a dumpster'?! Brianna twisted my stupid flex into garbage to make him snap. My chest feels hollowed out.",
+  "speech": "I didn't say dumpster... I didn't laugh at him, Jake. I was just mad at Brianna... I'm so sorry, this is all my fault.",
+  "volume": "whisper",
+  "emote": "buries her burning forehead straight against Jake's ribs, knuckles white in his hoodie",
+  "emotion_toward": {"who": "Tyler Martinez", "label": "disgust", "intensity": 8}
+}`,
+        why: "Processes immediate emotional fallout without hallucinating impossible extra actions.",
+        files: ["static/js/agent/prompt-builder/turn-prompts.ts", "static/js/agent-engine.ts"]
+      },
+      cross: {
+        x: 2194, y: 694, cls: "c-world", step: "7c", proc: "MULTI-ACTOR", pCls: "pb-truth",
+        title: "Multi-Actor Cross-Talk",
+        status: "LIVE (turn-queue.ts, sim-round.ts)", planned: false,
+        tags: ["all", "executive", "factual"],
+        how: "TurnQueue advances next actor; ONLY public action/speech/emote enters WITNESSED.",
+        out: "Jake/Kyrie/Zoe see act+speech (0 thought)",
+        ex: "Jake hears her angry yell & feels her shaking ribs, never knowing she feared him.",
+        outStyle: "json",
+        inData: `{"TurnQueue": ["Sammy", "Jake", "Kyrie", "Zoe", "Tyler Martinez"], "slot_finished": "Sammy"}`,
+        outData: `// Injected into NEXT actor's (Jake's) === WITNESSED === (Private Thought EXCLUDED!):
+{
+  "next_actor": "Jake",
+  "witnessed_for_room": [
+    "[just now] Sammy dropped her skateboard and shouted: \"You complete, suicidal idiot! Why didn't you just run away?!\"",
+    "[just now] Sammy buried her forehead into Jake's chest, shaking hard: \"I didn't say dumpster... I'm so sorry.\""
+  ]
+}`,
+        why: "Preserves dramatic irony: agents perceive external behavior only, never mind-reading.",
+        files: ["static/js/agent/turn-queue.ts", "static/js/agent/sim-round.ts"]
+      },
+      commons: {
+        x: 2194, y: 862, cls: "c-world", step: "7d", proc: "ASYNC SOCIAL", pCls: "pb-truth",
+        title: "The Commons & Long-Dist",
+        status: "LIVE (commons.py, long_distance_comms.py)", planned: false,
+        tags: ["all", "executive", "offline"],
+        how: "Queues remote phone texts & Commons threads into off-screen sensory cues.",
+        out: "subjective text memory -> Perception",
+        ex: "Kayla group-chat ping: 'Keep quiet till 5th bell - meet by North gate.'",
+        outStyle: "json",
+        inData: `{"channel": "crew_group_chat", "sender": "Kayla", "message": "Do not talk to Higgins. Do not touch your phones until after 5th."}`,
+        outData: `{"id": "mem_commons_4820", "tags": ["commons", "rel:kayla"], "text": "Kayla texted warnings not to answer questions if Higgins stops us before 5th period."}`,
+        why: "Connects phone messages and asynchronous threads back into live scene cues.",
+        files: ["engine/commons.py", "engine/long_distance_comms.py", "routes/commons.py"]
+      },
+
+      // ===== LANE 3: PERSISTENCE, DYNAMICS, SLEEP, ARCHIVE, SOAK & TOOLS (y: 1096 / 1274) =====
+      persist: {
+        x: 2194, y: 1096, cls: "c-loop", step: "8a", proc: "STORE WRITE", pCls: "pb-store",
+        title: "Post-Turn Save & Lineage",
+        status: "LIVE routes/memories.py + PLANNED lineage (950)", planned: true,
+        tags: ["all", "intermediator", "offline", "factual"],
+        how: "Writes Conscious Synthesis (gen=1) + Private Thought pinned to source_ref_ids[].",
+        out: "gen=1 memory + source_ref_ids[5]",
+        ex: "Saves fieldhouse synthesis + private guilt pinned to immutable raw observations.",
+        outStyle: "json",
+        inData: `{
+  "conscious_memory": "For three endless seconds behind the fieldhouse...",
+  "private_thought": "My hands won't stop shaking... Take my 3s panic to my grave.",
+  "source_ref_ids": ["obs_corner_4812", "obs_strip_4813", "mem_bus_bomb_am", "mem_algebra_aspd", "mem_bath_brag"],
+  "invalidate_ids": ["mem_panic_jake_shooter_4812"]
+}`,
+        outData: `// Stored in Player.memories[] (anti-drift lineage per task-950):
+{
+  "id": "mem_fieldhouse_gun_gen1",
+  "tick": 4814,
+  "generation": 1,
+  "source": "intermediator",
+  "source_ref_ids": ["obs_corner_4812", "obs_strip_4813", "mem_bus_bomb_am", "mem_algebra_aspd", "mem_bath_brag"],
+  "category": "episodic",
+  "type": "reflection",
+  "text": "Behind the fieldhouse I saw Jake with a pistol and froze for 3s thinking the bus-bomb side of him would shoot. Then he stripped Tyler's own Glock into pieces and slumped shaking to keep Tyler out of prison. My bathroom brag dragged him into this.",
+  "emotion": {"label": "terrified_relief", "intensity": 9},
+  "importance": 10,
+  "confidence": 0.94,
+  "tags": ["rel:jake", "rel:tyler", "guilt", "weapon:gun", "fieldhouse"]
+}`,
+        why: "Keeps raw immutable source observation refs alongside varnished syntheses so long runs don't hallucinate.",
+        files: ["routes/memories.py", "engine/lived_log_memory.py", "static/js/agent/memory-manager.ts"]
+      },
+      dyn: {
+        x: 1762, y: 1096, cls: "c-loop", step: "8b", proc: "PURE CODE", pCls: "pb-math",
+        title: "Memory Dynamics (Math)",
+        status: "LIVE (engine/memory_dynamics.py)", planned: false,
+        tags: ["all", "offline", "intermediator"],
+        how: "reinforce(), detect_contradiction() & tick decay (0 LLM calls, floor=0.01).",
+        out: "invalid_at=4814 | reinforced +1",
+        ex: "Marks 'Jake is about to shoot Tyler' invalid_at=4814; boosts guilt/loyalty.",
+        outStyle: "json",
+        inData: `{"new_entry": "mem_fieldhouse_gun_gen1", "reinforce_ids": ["mem_bath_brag", "mem_bel_no_brakes"], "invalidate": "mem_panic_jake_shooter_4812"}`,
+        outData: `// Pure math state mutations (engine/memory_dynamics.py):
+{
+  "contradicted": {
+    "id": "mem_panic_jake_shooter_4812",
+    "invalid_at": 4814,
+    "superseded_by": "mem_fieldhouse_gun_gen1"
+  },
+  "reinforced": [
+    {"id": "mem_bath_brag", "reinforcements": 2, "activation": 0.98, "confidence": 0.95},
+    {"id": "mem_bel_no_brakes", "reinforcements": 3, "activation": 1.0}
+  ],
+  "decayed_ambient": [{"id": "mem_lunch_trays", "activation": 0.42, "floor": 0.01}]
+}`,
+        why: "Updates memory strength and marks disproven panics obsolete without deleting history.",
+        files: ["engine/memory_dynamics.py"]
+      },
+      sleep: {
+        x: 1330, y: 1096, cls: "c-loop", step: "8c", proc: "NIGHTLY", pCls: "pb-store",
+        title: "Batch Reflect, Sleep & Dreams",
+        status: "LIVE reflect()/consolidate_sleep() + dream (944)", planned: false,
+        tags: ["all", "offline"],
+        how: "5-turn reflect() extracts insights; sleep boosts act+0.1 on trauma & fades noise.",
+        out: "beliefs + GIMP + dream(conf:0.3)",
+        ex: "Cafeteria chatter fades low; fieldhouse + Jake's trembling hands deepen.",
+        outStyle: "json",
+        inData: `{"eligible_for_reflect": "importance >= 6 || reinforcements >= 2 (depth == 0)", "sleep_input": "day_memories[48]"}`,
+        outData: `// AgentMemory.reflect() + engine/memory_dynamics.py consolidate_sleep():
+{
+  "consolidate_sleep": {
+    "faded": ["mem_cafeteria_tray (activation -> 0.08, kept in archive)"],
+    "reinforced": ["mem_fieldhouse_gun_gen1 (activation +0.1, confidence -> 0.99)"]
+  },
+  "reflection_insight": {
+    "belief": "Jake doesn't hesitate when one of us is cornered - which means I have to stop starting fires he ends up walking into.",
+    "about": "Jake", "confidence": 0.92,
+    "relationship": {"who": "Jake", "dim": "trust", "delta": 2}
+  },
+  "dream_trace": {"source": "dream", "confidence": 0.3, "text": "Dreamed of pink strawberry smoothie staining brass shells on the bus floor."}
+}`,
+        why: "Turns waking shock into lasting character growth while flagging sleep dreams at low confidence.",
+        files: ["engine/memory_dynamics.py", "engine/daily_reflection.py", "engine/tick_manager.py", "static/js/agent/memory-manager.ts"]
+      },
+      archive: {
+        x: 34, y: 1096, cls: "c-loop", step: "0 / 9", proc: "LIFETIME STORE", pCls: "pb-store",
+        title: "Lifetime Archive: memories & lived_log",
+        status: "LIVE (player.py, vector_store.py)", planned: false,
+        tags: ["all", "offline", "intermediator"],
+        how: "No cap, no eviction (player.py:1235); lived_log_memory bridges major shifts.",
+        out: "depth=0 raw + depth=1 syntheses",
+        ex: "Holds Nov 6 night, bus bomb, Algebra guilt, fieldhouse & smoothie history.",
+        outStyle: "json",
+        inData: `{"writes": ["mem_fieldhouse_gun_gen1", "mem_priv_4814", "lived_log[4814]"]}`,
+        outData: `// player.py: No cap, no eviction, no truncation (2026-10-06)
+{
+  "total_memories": 48,
+  "raw_depth_0": ["obs_corner_4812", "obs_strip_4813", "mem_bus_bomb_am", "mem_bath_brag", "mem_friday_nov6"],
+  "derived_depth_1": ["mem_fieldhouse_gun_gen1"],
+  "private_thoughts": ["mem_priv_4814"],
+  "invalidated_but_kept": ["mem_panic_jake_shooter_4812 (invalid_at: 4814)"],
+  "lived_log_memorized_through": 4814
+}`,
+        why: "Characters keep their full biography; activation decay & invalid_at filter what wakes up.",
+        files: ["player.py", "engine/vector_store.py", "engine/agent_memory.py", "engine/lived_log.py", "engine/lived_log_memory.py"]
+      },
+      soak: {
+        x: 898, y: 1274, cls: "c-ui", step: "SOAK", proc: "OFFLINE SIM", pCls: "pb-ui",
+        title: "Headless Soak Runner",
+        status: "LIVE engine/soak.py + PLANNED handoff (949)", planned: true,
+        tags: ["all", "offline", "intermediator", "executive"],
+        how: "Steps multi-day turns via identical LFM Conscious Summary + MOSIAC + Facts.",
+        out: "soak_turn + gen=1 lineage save",
+        ex: "Simulates Tuesday at the mall/dinner via conscious summary, 0 raw log leaks.",
+        outStyle: "json",
+        inData: `{"world_tick": 5200, "conscious_summary": "Yesterday behind the fieldhouse Jake disarmed Tyler's Glock...", "mosiac": "choices + obligations"}`,
+        outData: `{"soak_tick": 5201, "chosen": "stay_near(Jake)", "saved_with": {"generation": 1, "source_ref_ids": ["lived_log_5200"]}}`,
+        why: "Soak runner obeys the exact same isolation and factual invariants as live browser play.",
+        files: ["engine/soak.py", "engine/soak_runner.py", "engine/lived_log_memory.py"]
+      },
+      editor: {
+        x: 466, y: 1274, cls: "c-ui", step: "TOOLS", proc: "UI AUDIT", pCls: "pb-ui",
+        title: "Memory Editor, Weaver & AgentLens",
+        status: "LIVE UI/Routes + PLANNED lineage audit (950)", planned: true,
+        tags: ["all", "offline", "factual"],
+        how: "Audits gen 0->1->2 drift via GET /memories; AgentLens previews Actor prompt.",
+        out: "lineage tree + 0-leak verification",
+        ex: "Writer traces mem_fieldhouse_gun_gen1 -> [obs_strip, bus_bomb] & verifies AgentLens.",
+        outStyle: "json",
+        inData: `GET /api/players/Sammy/memories\nPOST /api/players/Sammy/memories/context (read-only dry run)`,
+        outData: `{
+  "agent_lens_isolation_check": {"raw_db_rows_exposed_to_actor": 0, "conscious_block_injected": true},
+  "lineage_audit": "mem_fieldhouse_gun_gen1 (gen=1) <- [obs_corner_4812, obs_strip_4813, mem_bus_bomb_am, mem_bath_brag]"
+}`,
+        why: "Lets writers inspect how conscious memories drifted without mutating live character dynamics.",
+        files: ["static/js/inspector/mind-view.ts", "static/js/inspector/memory-view.ts", "static/js/agent-lens.ts", "routes/memories.py"]
+      }
+    };
+
+    // Concise canvas labels + real wire samples for Inspector
+    const EDGES = [
+      // Lane 1 Factual & Threat Spine
+      { id: "e_wt_gr", from: "world_truth", to: "grounding", kind: "factual", pill: true,
+        label: "facts + exits (0 LFM)",
+        payload: "carried[] + areaItems[] + exits[] + turn_slots",
+        sample: `// PlanGrounding.collectFacts() (bypasses LFM):
+{ "carried": ["skateboard"], "areaItems": ["Glock 19", "blue trash can"],
+  "people": ["Jake", "Tyler Martinez", "Kyrie", "Zoe"],
+  "exits": ["south -> cafeteria_walkway", "east -> visitor_bleachers"],
+  "turn_slots": {"major": 1, "minor": 1, "free": 2} }`,
+        why: "PlanGrounding & ActionNormalizer verify real graph truth so Sammy cannot grab an impossible weapon.",
+        route: "lane1_top_rail" },
+      { id: "e_wt_act", from: "world_truth", to: "actor", kind: "factual", pill: true,
+        label: "carrying + exits (truth)",
+        payload: "Unvarnished Carrying & Exits block",
+        sample: `// Two-Lane Invariant (task-950) - untouched by fear:
+Carrying:
+  skateboard [drop, examine] (known)
+Ways out: south to cafeteria_walkway, east to visitor_bleachers.`,
+        why: "Actor always sees literal inventory/exits untouched by LFM emotional distortion.",
+        route: "lane1_bottom_rail" },
+      { id: "e_ak_act", from: "already_known", to: "actor", kind: "factual", pill: true,
+        label: "ALREADY KNOWN (truth)",
+        payload: "=== ALREADY KNOWN === + repeat guard",
+        sample: `=== ALREADY KNOWN ===
+You have already examined or taken: skateboard.
+You already confirmed absent or empty: baseball_bat in dugout.`,
+        why: "Prevents Sammy from wasting turns re-examining things she already checked.",
+        route: "lane1_bottom_rail_2" },
+      { id: "e_perc_th", from: "perception", to: "threat", kind: "factual", pill: true,
+        label: "actors + turn_events",
+        payload: "players_in_area[] + turn_events[] attacks",
+        sample: `{ "players_in_area": ["Jake", "Tyler Martinez"], "closeness": {"Tyler Martinez": -35},
+  "turn_events": [{"actor": "Tyler Martinez", "action": "attack", "description": "drew a Glock 19"}] }`,
+        why: "ThreatDetector scans co-present enemies and attack logs for immediate crisis.",
+        route: "normal" },
+      { id: "e_perc_act", from: "perception", to: "actor", kind: "factual", pill: true,
+        label: "live WITNESSED",
+        payload: "=== YOUR SURROUNDINGS === + === WITNESSED ===",
+        sample: `=== WITNESSED ===
+[just now] [Jake] said: "Really, Tyler? A gun? Are you fucking stupid, like for real?"
+[just now] Sound: metallic magazine drop click-clack.
+[just now] [Jake] kicks mag onto shed roof and chucks the barrel over the roof.`,
+        why: "Ground-truth sensory stream of what Sammy just saw and heard.",
+        route: "perc_to_actor" },
+      { id: "e_th_pl", from: "threat", to: "plan_mgr", kind: "reject", pill: true,
+        label: "DANGER -> replan",
+        payload: "IMMEDIATE DANGER -> PlanTracker.shouldReplan() = true",
+        sample: `"⚠️ IMMEDIATE DANGER: Tyler Martinez is in this room and hostile toward you. Your current plan is INVALID!"`,
+        why: "Cancels routine lunch/fistfight plan the instant a gun threat appears.",
+        route: "threat_to_plan" },
+      { id: "e_th_act", from: "threat", to: "actor", kind: "reject", pill: false,
+        label: "threat alert banner",
+        payload: "ThreatDetector.getThreatAlert() banner",
+        sample: `"⚠️ IMMEDIATE DANGER: Tyler Martinez is in this room and hostile toward you."`,
+        why: "Focuses Actor urgency on crisis choices instead of routine errands." },
+
+      // Perception + Standing State -> Cues, Recall, LFM Synthesis
+      { id: "e_perc_cue", from: "perception", to: "cues_gate", kind: "subjective", pill: true,
+        label: "WITNESSED + audio",
+        payload: "visible actors/items + sound_pattern + dialogue",
+        sample: `{ "actors": ["Jake", "Tyler Martinez"], "sound": "magazine drop click-clack", "speech": "A gun?" }`,
+        why: "Visual entities and sound_pattern feed structured multi-hop retrieval cues.",
+        route: "col_drop" },
+      { id: "e_perc_int", from: "perception", to: "inter", kind: "subjective", pill: false,
+        label: "WITNESSED anchor",
+        payload: "Live sensory proof against which LFM re-evaluates recalled traces",
+        sample: `"Jake rolled his eyes, stripped Tyler's gun in 5s, and sat shaking against the trash can."`,
+        why: "LFM reconciles past fears against live disconfirming reality.",
+        route: "perc_to_inter" },
+      { id: "e_bod_cue", from: "body_emo", to: "cues_gate", kind: "subjective", pill: true,
+        label: "NEED tags + terror",
+        payload: "NEED_TAG_MAP drives + high adrenaline fear",
+        sample: `{ "vitals_flags": ["Hygiene<30 -> need:hygiene", "Sanity<critical -> need:safety"], "emotion": "terrified" }`,
+        why: "Adrenaline and cold wet smoothie unlock matching somatic/safety memories." },
+      { id: "e_bod_int", from: "body_emo", to: "inter", kind: "subjective", pill: false,
+        label: "shock coloring",
+        payload: "Active affect & somatic discomfort sent to LFM",
+        sample: `{ "emotion": "terrified (0.92)", "mood": "Heart hammering; freezing smoothie on neck." }`,
+        why: "Shapes emotional cadence of LFM Conscious Memory without fabricating facts." },
+      { id: "e_id_int", from: "id_rel", to: "inter", kind: "subjective", pill: true,
+        label: "love/bias vs disgust",
+        payload: "7-dim derive_person_profile() vector + personality traits",
+        sample: `{ "Jake": {"trust":76,"attraction":94,"fear":22}, "Tyler": {"trust":-65,"disgust":72,"fear":58} }`,
+        why: "Emotional bond toward Jake vs disgust for Tyler bends how LFM reads ambiguity.",
+        route: "high_col_bridge" },
+      { id: "e_id_msk", from: "id_rel", to: "mask", kind: "subjective", pill: false,
+        label: "pride & loyalty mask",
+        payload: "Traits (tomboy, impulsive, defensive pride) -> Social Mask",
+        sample: `{ "traits": ["tomboy", "protective", "bad_liar_when_scared"], "rel_Jake": "childhood_protector" }`,
+        why: "Explains why Sammy masks terror behind sharp scolding ('You idiot!').",
+        route: "low_mind_channel" },
+      { id: "e_gimp_mos", from: "gimp", to: "mosiac", kind: "subjective", pill: true,
+        label: "M+O+S+I goals",
+        payload: "Motivation, Obligations, Schedule, Intention",
+        sample: `{ "M": "Keep Jake safe", "O": ["Stay with Kyrie & Zoe"], "S": "12:35 lunch ending" }`,
+        why: "Feeds standing pursuits into canonical MOSIAC ranking.",
+        route: "low_mind_channel_2" },
+      { id: "e_bod_mos", from: "body_emo", to: "mosiac", kind: "subjective", pill: false,
+        label: "A: salient needs",
+        payload: "MOSIAC Attention: critical threat/sanity/hygiene",
+        sample: `{ "A": [{"need": "threat", "value": 92}, {"need": "Sanity", "value": 34}] }`,
+        why: "Promotes protective action ahead of eating or cleaning." },
+
+      // Archive -> Recall <-> Body Respike -> LFM Intermediator
+      { id: "e_arch_rec", from: "archive", to: "recall", kind: "subjective", pill: true,
+        label: "candidate traces",
+        payload: "Candidate Player.memories[] excluding invalid_at",
+        sample: `// Filtered from 48 lifetime records:
+48 raw entries (skipping invalid_at != null and current-room static obs)`,
+        why: "Scans Sammy's full archive without wasting context on dead/invalidated beliefs.",
+        route: "arch_to_rec" },
+      { id: "e_arch_del", from: "archive", to: "delib_recall", kind: "dashed", pill: false,
+        label: "targeted search",
+        payload: "Deep keyword/semantic query from active recall action",
+        sample: `Query: "Brianna bathroom bragging Wednesday" -> matches mem_bath_brag`,
+        why: "Deliberate mental effort searches deeper when passive recall missed a detail." },
+      { id: "e_cue_rec", from: "cues_gate", to: "recall", kind: "subjective", pill: true,
+        label: "SHIFT=YES -> Query",
+        payload: "CUE_SHIFT=true -> Associative 3.0 retrieval query",
+        sample: `{ "cues": ["jake", "tyler", "gun", "need:safety", "terrified"] }`,
+        why: "Triggers recall only when scene cues actually shifted." },
+      { id: "e_cue_int", from: "cues_gate", to: "inter", kind: "dashed", pill: true,
+        label: "HIT -> Cache reuse",
+        payload: "CUE_SHIFT=false -> reuse previous Conscious Summary",
+        sample: `{ "cue_shift": false, "action": "reuse_cached_summary(tick=4813)" }`,
+        why: "Zero extra LFM cost on unchanged continuation ticks (task-948)." },
+      { id: "e_rec_bod", from: "recall", to: "body_emo", kind: "loop", pill: true,
+        label: "_respike affect",
+        payload: "_respikeFromMemories() re-fires stored emotional spike",
+        sample: `ApiClient.mapPlayerEmotions({ "source": "mem_bus_bomb_am", "dread_delta": 8 * 1.7 })`,
+        why: "Morning bus-bomb recall spikes dread straight into Sammy's live chest tightness." },
+      { id: "e_rec_int", from: "recall", to: "inter", kind: "subjective", pill: true,
+        label: "raw_traces (0 Actor)",
+        payload: "Associative raw DB rows + source_ids[] (stopped here!)",
+        sample: `// NEVER forwarded past LFM to Actor LLM:
+[
+  {"id": "mem_bus_bomb_am", "score": 9.4, "text": "Jake calmly admitted building the bomb on the bus; I pulled away."},
+  {"id": "mem_algebra_aspd", "score": 8.6, "text": "Googled ASPD in Algebra, remembered the $20M trust for dad, felt guilty."},
+  {"id": "mem_bath_brag", "score": 7.9, "text": "Bragged to Brianna about five or six times; now she told Tyler."}
+]`,
+        why: "Strict Actor Isolation boundary: raw scored DB traces terminate inside LFM." },
+      { id: "e_del_int", from: "delib_recall", to: "inter", kind: "dashed", pill: false,
+        label: "recalled clues",
+        payload: "Deliberate recall hits routed into LFM framing",
+        sample: `{"id": "mem_bath_brag", "text": "I never said dumpster - Brianna made that up."}`,
+        why: "Even deliberate recall enters consciousness in Sammy's subjective voice." },
+
+      // Intermediator -> Active Mind, Actor, Soak, Save
+      { id: "e_int_mind", from: "inter", to: "active_mind", kind: "subjective", pill: true,
+        label: "assumptions + Q",
+        payload: "Flipped assumptions, spawned Questions & Held Secret",
+        sample: `{
+  "invalidate": "mem_panic_jake_shooter_4812",
+  "new_assumption": "Tyler brought the Glock; Jake disarmed it.",
+  "questions": ["Where did he learn to strip a gun in 5s?", "What lie did Brianna tell?"],
+  "held_secret": "Thought Jake was about to execute him for 3s."
+}`,
+        why: "Live disproof flips her working belief and creates unresolved questions & secrets." },
+      { id: "e_int_act", from: "inter", to: "actor", kind: "subjective", pill: true,
+        label: "Conscious Block",
+        payload: "=== CONSCIOUS MEMORY === (ONE fused subjective voice, 0 raw rows)",
+        sample: `=== CONSCIOUS MEMORY ===
+"For three endless seconds behind the fieldhouse I genuinely believed Jake had brought a gun to execute Tyler - that same cold bus-bomb terror from this morning hit me like ice down my back. Then he rolled his eyes like a tired mechanic, ripped Tyler's Glock into four useless pieces in five seconds, and slumped against the trash can shaking so badly he couldn't even stand. It wasn't his weapon. Tyler brought it because I ran my mouth in the bathroom, and Jake threw the pieces away just to keep an idiot who tried to kill him out of prison. My chest hurts and I will take to my grave that for three seconds I pictured him pulling the trigger."`,
+        why: "Core task-947 handoff: Actor receives lived subjective memory instead of raw DB soup." },
+      { id: "e_mind_mos", from: "active_mind", to: "mosiac", kind: "subjective", pill: false,
+        label: "active obligations",
+        payload: "Questions & Obligations weighting MOSIAC choices",
+        sample: `{ "obligations": ["Protect Jake"], "high_urgency_q": 2 }`,
+        why: "Open obligations and questions bias action ranking." },
+      { id: "e_mind_pl", from: "active_mind", to: "plan_mgr", kind: "subjective", pill: false,
+        label: "working beliefs",
+        payload: "Flipped working assumption guides new plan steps",
+        sample: `{ "assumption": "Jake is shaking in shock, NOT attacking Tyler -> plan: approach & steady Jake" }`,
+        why: "Ensures PlanManager does not attack or flee Jake after he disarmed the gun." },
+      { id: "e_mind_act", from: "active_mind", to: "actor", kind: "subjective", pill: true,
+        label: "Q + held secrets",
+        payload: "=== ACTIVE MIND === Questions, Assumptions, Held Secrets",
+        sample: `=== ACTIVE MIND ===
+* Question: What lie did Brianna tell Tyler?
+* Assumption: Tyler pulled the gun; Jake is harmless to us and crashing.
+* Held Secret: Never admit I feared Jake would pull the trigger.`,
+        why: "Gives Actor explicit nagging mysteries and private secrets to keep unspoken." },
+      { id: "e_mos_pl", from: "mosiac", to: "plan_mgr", kind: "subjective", pill: false,
+        label: "M+O+S+I+A+C",
+        payload: "Canonical MOSIAC dict -> PlanManager",
+        sample: `{ "M": "Keep Jake safe", "A": ["threat", "Sanity"], "C": {"minor": ["drop","approach","recall"]} }`,
+        why: "Aligns planner steps with real remaining turn_slots.",
+        route: "mos_to_plan" },
+      { id: "e_mos_act", from: "mosiac", to: "actor", kind: "subjective", pill: true,
+        label: "afforded verbs",
+        payload: "turn_slots-filtered C choices + Attention",
+        sample: `Choices: free:[speak,emote] | minor:[drop(skateboard), approach(Jake), recall]`,
+        why: "Shows Actor only actions physically affordable right now." },
+
+      // Plan / Actor / Deliberate Recall / Mask / Private
+      { id: "e_pl_act", from: "plan_mgr", to: "actor", kind: "subjective", pill: true,
+        label: "active plan step",
+        payload: "=== YOUR PLAN === grounded step hint",
+        sample: `2. Drop skateboard and kneel beside Jake by the brick wall (CURRENT) [VALID]`,
+        why: "Steers immediate beat while keeping Actor free to react." },
+      { id: "e_pl_gr", from: "plan_mgr", to: "grounding", kind: "factual", pill: true,
+        label: "verify plan steps",
+        payload: "Proposed plan steps checked against PlanGrounding facts",
+        sample: `Check: step="drop skateboard" -> carried.includes("skateboard") == true -> VALID`,
+        why: "Rejects hallucinated items in plans before execution (task-700).",
+        route: "plan_to_ground" },
+      { id: "e_act_del", from: "actor", to: "delib_recall", kind: "loop", pill: true,
+        label: "action:'recall' loop",
+        payload: "Minor mental search when Actor hits a gap",
+        sample: `{ "action": "recall", "target": "Brianna bathroom bragging Wednesday" }`,
+        why: "Lets Actor spend a minor action searching memory on demand.",
+        route: "actor_to_delib" },
+      { id: "e_act_msk", from: "actor", to: "mask", kind: "subjective", pill: true,
+        label: "thought + raw prose",
+        payload: "Stage-1 inner thought + unconstrained scene prose",
+        sample: `// Thought: "Don't let him know I feared him; yell so I don't cry."\n// Prose: Drops skateboard, clings to hoodie: "You complete, suicidal idiot!"`,
+        why: "Passes raw character impulse through Social Mask before going public." },
+      { id: "e_act_prv", from: "actor", to: "priv", kind: "dashed", pill: false,
+        label: "raw monologue",
+        payload: "Raw inner thought stored straight to Private lane",
+        sample: `"My hands won't stop shaking... I pictured him pulling the trigger just like on the bus."`,
+        why: "Saves genuine interiority privately." },
+      { id: "e_mind_msk", from: "active_mind", to: "mask", kind: "dashed", pill: false,
+        label: "held-back secrets",
+        payload: "Held Secrets gate public dialogue",
+        sample: `SECRET GUARD: withhold "I thought you'd execute him" from speech.`,
+        why: "Stops Sammy from blurting her worst guilt/fear publicly until overwhelmed." },
+      { id: "e_msk_gr", from: "mask", to: "grounding", kind: "factual", pill: true,
+        label: "guarded intent",
+        payload: "Filtered public prose -> ActionInterpreter + PlanGrounding",
+        sample: `Prose -> ActionInterpreter -> {action:"drop", item:"skateboard", speech:"You complete, suicidal idiot!", volume:"shout"}`,
+        why: "Converts natural roleplay prose into strict verified engine verbs (task-943).",
+        route: "mask_to_ground" },
+      { id: "e_msk_prv", from: "mask", to: "priv", kind: "dashed", pill: true,
+        label: "unspoken truth",
+        payload: "Social-filtered fear preserved inside Private Monologue",
+        sample: `{ "visibility": "private", "kept_secret": "3 seconds of pure terror that Jake had snapped" }`,
+        why: "Hidden feelings remain real to Sammy's next turn even though she hid them." },
+
+      // Lane 1 Grounding <-> Blocked <-> Execute -> React -> Cross-Talk
+      { id: "e_gr_ex", from: "grounding", to: "execute", kind: "factual", pill: true,
+        label: "VALID -> Execute",
+        payload: "Grounded canonical action + speech + emote",
+        sample: `{ "action": "drop", "item": "skateboard", "speech": "You complete, suicidal idiot! Why didn't you just run away?!", "volume": "shout", "grounding": "PASS" }`,
+        why: "Only verified world actions mutate game state." },
+      { id: "e_gr_blk", from: "grounding", to: "blocked", kind: "reject", pill: true,
+        label: "INVALID -> Block",
+        payload: "Grounding rejection on impossible target",
+        sample: `{ "error": "No intact pistol to take", "rejected": "take(black pistol)" }`,
+        why: "Stops impossible actions cleanly." },
+      { id: "e_blk_act", from: "blocked", to: "actor", kind: "reject", pill: true,
+        label: "failure -> re-think",
+        payload: "Rejection notice triggers honest Actor fallback",
+        sample: `"Cannot take black pistol - only stripped plastic frame sits in blue trash can. Pick another action."`,
+        why: "Forces realistic adjustment instead of faking success.",
+        route: "blk_to_act" },
+      { id: "e_blk_mind", from: "blocked", to: "active_mind", kind: "reject", pill: false,
+        label: "invalid_at -> Question",
+        payload: "Disproven assumption opens Inquiry Question",
+        sample: `{ "invalid_at": 4814, "spawn_q": "Where did the barrel and mag go?" }`,
+        why: "Contradiction updates Active Mind instead of silently retrying." },
+      { id: "e_ex_rct", from: "execute", to: "react", kind: "factual", pill: true,
+        label: "WHAT HAPPENED",
+        payload: "saidThisTurn + action + actionResult -> React Phase",
+        sample: `=== WHAT HAPPENED ===\nYour action: drop skateboard -> "You drop the skateboard into the dead grass."\n[Tyler]: "Brianna said against a dumpster and you were laughing at me..."`,
+        why: "Lets Sammy absorb what just happened before ending her turn.",
+        route: "col_drop" },
+      { id: "e_ex_crs", from: "execute", to: "cross", kind: "social", pill: true,
+        label: "WITNESSED + TurnQueue",
+        payload: "Public output broadcasts to room actors only",
+        sample: `[just now] Sammy dropped her board, grabbed Jake's hoodie, and shouted: "You complete, suicidal idiot!"`,
+        why: "Room actors perceive speech and body language only (zero mind leak).",
+        route: "right_gutter" },
+
+      // Next-Turn Social Return
+      { id: "e_crs_per", from: "cross", to: "perception", kind: "social", pill: true,
+        label: "Next Turn -> WITNESSED",
+        payload: "Jake/Kyrie/Zoe public responses enter next WITNESSED",
+        sample: `[just now] Jake wheezes: "I panicked, okay?! I didn't bring a gun!"`,
+        why: "Maintains multi-character turn continuity.",
+        route: "top_outer_return" },
+      { id: "e_com_per", from: "commons", to: "perception", kind: "social", pill: false,
+        label: "remote texts -> cues",
+        payload: "Async phone texts queue for next scene perception",
+        sample: `Text from Kayla: "Keep your mouth shut till 5th bell."`,
+        why: "Integrates off-screen coordination into live turns.",
+        route: "top_outer_return_2" },
+
+      // Return Consolidation Loop (Lane 3 Right -> Left)
+      { id: "e_rct_per", from: "react", to: "persist", kind: "loop", pill: true,
+        label: "post-turn react",
+        payload: "Final inner_monologue + reactive emotion delta",
+        sample: `{ "inner_monologue": "Wait - 'against a dumpster'?!", "emotion_toward": {"who":"Tyler","label":"disgust","intensity":8} }`,
+        why: "Captures closing emotional reaction for memory save.",
+        route: "react_to_save" },
+      { id: "e_ex_per", from: "execute", to: "persist", kind: "dashed", pill: false,
+        label: "lived_log delta",
+        payload: "Authoritative tick event paired with derived synthesis",
+        sample: `{"lived_log_ref": "ll_4814_fieldhouse"}`,
+        route: "right_outer_save" },
+      { id: "e_prv_per", from: "priv", to: "persist", kind: "loop", pill: true,
+        label: "private monologue",
+        payload: "Private thought record persisted alongside Conscious Summary",
+        sample: `{ "type": "thought", "visibility": "private", "text": "Take my 3s panic to the grave." }`,
+        why: "Keeps emotional continuity across turns without leaking publicly." },
+      { id: "e_int_per", from: "inter", to: "persist", kind: "loop", pill: false,
+        label: "summary + source_ids[]",
+        payload: "Conscious Synthesis (gen=1) + immutable source_ref_ids[]",
+        sample: `{ "generation": 1, "source_ref_ids": ["obs_corner_4812","obs_strip_4813","mem_bus_bomb_am","mem_algebra_aspd","mem_bath_brag"] }`,
+        why: "Anti-drift lineage (task-950) pins every synthesis to raw sources.",
+        route: "inter_to_persist" },
+      { id: "e_per_dyn", from: "persist", to: "dyn", kind: "loop", pill: true,
+        label: "gen=1 + hints",
+        payload: "Saved record + reinforce/invalidate hints -> Math Dynamics",
+        sample: `{ "reinforce": ["mem_bath_brag"], "invalidate": ["mem_panic_jake_shooter_4812"] }`,
+        why: "Updates weights and contradictions without deleting raw history." },
+      { id: "e_dyn_slp", from: "dyn", to: "sleep", kind: "loop", pill: true,
+        label: "weights + invalid_at",
+        payload: "Updated activation, confidence & superseded links",
+        sample: `{ "mem_fieldhouse_gun_gen1": {"importance":10}, "mem_panic_jake_shooter_4812": {"invalid_at":4814} }`,
+        why: "Feeds overnight reflection & trauma consolidation." },
+      { id: "e_slp_arc", from: "sleep", to: "archive", kind: "loop", pill: true,
+        label: "beliefs + dreams (0 del)",
+        payload: "Consolidated beliefs, dream(0.3) & faded ambient noise",
+        sample: `{ "reflection": "We have to be Jake's brakes.", "dream": "pink smoothie & brass shells", "faded": ["tater_tots (0.08)"] }`,
+        why: "Persists long-term character evolution back into Archive." },
+      { id: "e_slp_gmp", from: "sleep", to: "gimp", kind: "loop", pill: false,
+        label: "daily goal updates",
+        payload: "daily_reflection updates tomorrow's GIMP goals",
+        sample: `{ "new_goal": "Keep eyes on Brianna & keep Jake away from cops" }`,
+        why: "Bridges overnight reflection back into standing motivation." },
+
+      // Soak + UI Tools
+      { id: "e_int_sok", from: "inter", to: "soak", kind: "dashed", pill: false,
+        label: "same LFM handoff",
+        payload: "Soak runner consumes same Conscious Summary (0 raw lived_log)",
+        sample: `{ "conscious_handoff": "Yesterday behind the fieldhouse Jake disarmed Tyler's gun..." }`,
+        why: "Identical cognition contract between browser turns and multi-day soak.",
+        route: "soak_drop" },
+      { id: "e_mos_sok", from: "mosiac", to: "soak", kind: "dashed", pill: false,
+        label: "soak policy reads MOSIAC",
+        payload: "Deterministic soak policy picks from canonical MOSIAC",
+        sample: `{ "choices": ["stay_near(Jake)", "speak"] }`,
+        why: "Guarantees offline soak shares capability boundaries." },
+      { id: "e_sok_per", from: "soak", to: "persist", kind: "loop", pill: true,
+        label: "soak summary + lineage",
+        payload: "Soak turns write identical source_ref_ids[] & generation depth",
+        sample: `{ "generation": 1, "source_ref_ids": ["lived_log_5200"] }`,
+        why: "Prevents multi-day soak hallucination spirals." ,
+        route: "soak_to_save" },
+      { id: "e_arc_edt", from: "archive", to: "editor", kind: "dashed", pill: true,
+        label: "GET /memories (audit)",
+        payload: "Audit gen 0->1->2 lineage & AgentLens isolation check",
+        sample: `GET /api/players/Sammy/memories -> { "memories": [ ...48 rows with generation & invalid_at... ] }`,
+        why: "Lets writers trace memory drift and prove zero DB leakage." },
+      { id: "e_edt_arc", from: "editor", to: "archive", kind: "dashed", pill: false,
+        label: "authored / backdated",
+        payload: "Memory Weaver backdated seed (source:'authored', conf:1.0)",
+        sample: `POST /memories/entry { "tick": 4100, "simulate_age_decay": true, "source": "authored", "confidence": 1.0 }`,
+        why: "Seeds realistic backstory in Sammy's real voice." }
+    ];
+
+    const STEPS = [
+      {
+        title: "Step 1/8: Objective World vs Standing Self (Turn Start)",
+        desc: "Two separate tracks wake up: Lane 1 holds unvarnished physical truth (Tyler owns pistol, Sammy empty-handed, what she witnessed behind the fieldhouse); Lane 2 holds her adrenaline, love/unease for Jake, hatred for Tyler & GIMP goals.",
+        nodes: ["world_truth", "already_known", "perception", "body_emo", "id_rel", "gimp", "archive"]
+      },
+      {
+        title: "Step 2/8: Threat Interrupt & Cue-Change Gate",
+        desc: "ThreatDetector spots armed hostility and cancels Sammy's fistfight backup plan. Meanwhile, Cue Extractor sees [gun, Jake, Tyler, click-clack, terror] - massive cue shift - so cache misses and Recall fires.",
+        nodes: ["perception", "threat", "plan_mgr", "body_emo", "cues_gate"]
+      },
+      {
+        title: "Step 3/8: Involuntary Multi-Hop Recall + Affect Respike",
+        desc: "memory_retrieval.py searches Lifetime Archive (filtering invalid_at & Algebra II noise), pulls morning bus-bomb dread + 4-yr safe Jake + Tyler cruelty, and re-fires emotion back into Body without exposing raw DB rows to Actor.",
+        nodes: ["cues_gate", "archive", "recall", "body_emo", "inter"]
+      },
+      {
+        title: "Step 4/8: LFM Memory Intermediator Synthesizes Palimpsest",
+        desc: "HERO STAGE (task-947/948): Fast LFM fuses Witnessed ('Jake field-strips & throws barrel') + conflicting Recalled traces + Love/Terror into ONE Conscious Memory Block, updates Active Working Mind (flips assumption; hides 'feared Jake' secret).",
+        nodes: ["perception", "recall", "body_emo", "id_rel", "inter", "active_mind"]
+      },
+      {
+        title: "Step 5/8: MOSIAC Assembles & PlanManager Re-Checks",
+        desc: "MOSIAC reads GIMP (protect Jake & girls) + Body urgency + remaining turn_slots verbs. PlanManager sees Threat Interrupt invalidated old plan and builds Grounding-verified next intent.",
+        nodes: ["gimp", "threat", "active_mind", "mosiac", "plan_mgr", "actor"]
+      },
+      {
+        title: "Step 6/8: Actor LLM (Strict Isolation) & Social Mask",
+        desc: "Actor sees ONLY Lane 1 Truth + Conscious Memory + Active Mind + MOSIAC (zero raw DB rows!). Emits Thought + Stage-1 Prose: drops skateboard, grabs Jake's hoodie, masks her 3s terror inside Private Monologue, and yells: 'You complete, suicidal idiot!'",
+        nodes: ["world_truth", "already_known", "perception", "inter", "active_mind", "mosiac", "plan_mgr", "actor", "mask", "priv"]
+      },
+      {
+        title: "Step 7/8: ActionInterpreter, PlanGrounding & Execution",
+        desc: "ActionInterpreter & PlanGrounding test intent against Factual State. Valid verbs execute with involuntary.ts shiver, mutating world & TurnQueue (or Blocked -> spawns Inquiry Question if hallucinated!).",
+        nodes: ["world_truth", "mask", "grounding", "blocked", "execute", "react", "cross"]
+      },
+      {
+        title: "Step 8/8: Save Lineage, Math Dynamics, Sleep, Soak & Audit",
+        desc: "Saves Conscious Summary + Private Monologue with immutable source_ids[] (gen=1). Math Dynamics marks old gun-murder panic invalid_at; Sleep fades noise activation (0 delete!); Soak & Memory Editor share exact contract.",
+        nodes: ["react", "priv", "execute", "persist", "dyn", "sleep", "archive", "soak", "editor"]
+      }
+    ];
+
+    const SYSTEM_COUNT = Object.keys(NODES).length;
+    const canvas = document.getElementById("canvas");
+    const svg = document.getElementById("wires");
+    const stage = document.getElementById("stage");
+    const wrap = document.getElementById("canvas-wrap");
+    const nodeEls = {};
+
+    // Build DOM cards
+    Object.entries(NODES).forEach(([id, d]) => {
+      const el = document.createElement("div");
+      el.className = `node ${d.cls}`;
+      el.dataset.id = id;
+      el.style.left = d.x + "px";
+      el.style.top = d.y + "px";
+      el.innerHTML = `
+        <div class="node-head">
+          <div class="node-title-wrap">
+            <span class="step-num">${d.step}</span>
+            <div class="node-title">${d.title}</div>
+          </div>
+          <span class="proc-badge ${d.pCls}">${d.proc}</span>
+        </div>
+        <div class="node-row"><strong>How:</strong>${d.how}</div>
+        <div class="node-out">-&gt; ${d.out}</div>
+        <div class="node-ex"><strong>Sammy:</strong> ${d.ex}</div>
+      `;
+      canvas.appendChild(el);
+      nodeEls[id] = el;
+    });
+
+    const edgeEls = [];
+    const pillEls = [];
+
+    function boxMetrics(id) {
+      const el = nodeEls[id];
+      return {
+        x: parseFloat(el.style.left),
+        y: parseFloat(el.style.top),
+        w: el.offsetWidth || 270,
+        h: el.offsetHeight || 126
+      };
+    }
+
+    function cubicPt(p0, p1, p2, p3, t) {
+      const mt = 1 - t;
+      return {
+        x: mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x,
+        y: mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y
+      };
+    }
+
+    function buildEdgeGeometry(e) {
+      const a = boxMetrics(e.from);
+      const b = boxMetrics(e.to);
+
+      let p0, p1, p2, p3, candidates = [];
+
+      if (e.route === "col_drop") {
+        p0 = { x: a.x + a.w * 0.45, y: a.y + a.h };
+        p3 = { x: b.x + b.w * 0.45, y: b.y };
+        p1 = { x: p0.x, y: (p0.y + p3.y) * 0.5 };
+        p2 = { x: p3.x, y: (p0.y + p3.y) * 0.5 };
+        return {
+          d: `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`,
+          candidates: [{ x: p0.x, y: 342 }, { x: p0.x, y: 315 }, { x: p0.x, y: 396 }]
+        };
+      }
+      if (e.route === "lane1_top_rail") {
+        const y = 104;
+        p0 = { x: a.x + a.w * 0.5, y: a.y };
+        p3 = { x: b.x + b.w * 0.5, y: b.y };
+        const d = `M ${p0.x} ${p0.y} L ${p0.x} ${y + 10} Q ${p0.x} ${y} ${p0.x + 12} ${y} L ${p3.x - 12} ${y} Q ${p3.x} ${y} ${p3.x} ${y + 10} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: 1120, y }, { x: 750, y }, { x: 1480, y }] };
+      }
+      if (e.route === "top_outer_return" || e.route === "top_outer_return_2") {
+        const outerX = e.route === "top_outer_return" ? 2504 : 2528;
+        const railY = e.route === "top_outer_return" ? 46 : 54;
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.5 };
+        p3 = { x: b.x + b.w * 0.55, y: b.y };
+        const d = `M ${p0.x} ${p0.y} L ${outerX - 14} ${p0.y} Q ${outerX} ${p0.y} ${outerX} ${p0.y - 14} L ${outerX} ${railY + 14} Q ${outerX} ${railY} ${outerX - 14} ${railY} L ${p3.x + 14} ${railY} Q ${p3.x} ${railY} ${p3.x} ${railY + 14} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: 1460, y: railY }, { x: 1960, y: railY }] };
+      }
+      if (e.route === "lane1_bottom_rail" || e.route === "lane1_bottom_rail_2") {
+        const y = e.route === "lane1_bottom_rail" ? 430 : 444;
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.72 };
+        p3 = { x: b.x + b.w * 0.25, y: b.y };
+        const turnX = a.x + a.w + 88;
+        const d = `M ${p0.x} ${p0.y} L ${turnX - 12} ${p0.y} Q ${turnX} ${p0.y} ${turnX} ${p0.y + 12} L ${turnX} ${y - 12} Q ${turnX} ${y} ${turnX + 12} ${y} L ${p3.x - 12} ${y} Q ${p3.x} ${y} ${p3.x} ${y + 12} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: e.route === "lane1_bottom_rail" ? 1160 : 820, y }, { x: 1245, y }] };
+      }
+      if (e.route === "perc_to_actor") {
+        p0 = { x: a.x + a.w * 0.65, y: a.y + a.h };
+        p3 = { x: b.x + b.w * 0.14, y: b.y };
+        const midX = 1235;
+        const d = `M ${p0.x} ${p0.y} Q ${p0.x} 410 ${midX} 410 Q ${p3.x} 410 ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: 1245, y: 410 }, { x: 820, y: 382 }] };
+      }
+      if (e.route === "threat_to_plan") {
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.55 };
+        p3 = { x: b.x + b.w * 0.5, y: b.y };
+        const d = `M ${p0.x} ${p0.y} L ${p3.x - 16} ${p0.y} Q ${p3.x} ${p0.y} ${p3.x} ${p0.y + 16} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: 1410, y: p0.y }, { x: 1255, y: p0.y }] };
+      }
+      if (e.route === "plan_to_ground") {
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.35 };
+        p3 = { x: b.x, y: b.y + b.h * 0.72 };
+        p1 = { x: p0.x + 120, y: p0.y - 20 };
+        p2 = { x: p3.x - 120, y: p3.y + 20 };
+        for (const t of [0.5, 0.38, 0.62, 0.3, 0.7]) candidates.push(cubicPt(p0, p1, p2, p3, t));
+        return { d: `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`, candidates };
+      }
+      if (e.route === "mask_to_ground") {
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.45 };
+        p3 = { x: b.x, y: b.y + b.h * 0.35 };
+        const chX = 1695;
+        const d = `M ${p0.x} ${p0.y} L ${chX - 16} ${p0.y} Q ${chX} ${p0.y} ${chX} ${p0.y - 16} L ${chX} ${p3.y + 16} Q ${chX} ${p3.y} ${chX + 16} ${p3.y} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: chX, y: 510 }, { x: chX, y: 390 }, { x: chX, y: 630 }] };
+      }
+      if (e.route === "blk_to_act") {
+        p0 = { x: a.x, y: a.y + a.h * 0.55 };
+        p3 = { x: b.x + b.w, y: b.y + b.h * 0.32 };
+        p1 = { x: p0.x - 85, y: p0.y + 60 };
+        p2 = { x: p3.x + 95, y: p3.y - 60 };
+        for (const t of [0.5, 0.38, 0.62]) candidates.push(cubicPt(p0, p1, p2, p3, t));
+        return { d: `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`, candidates };
+      }
+      if (e.route === "actor_to_delib") {
+        const y = 1006;
+        p0 = { x: a.x + a.w * 0.15, y: a.y + a.h };
+        p3 = { x: b.x + b.w, y: b.y + b.h * 0.68 };
+        const d = `M ${p0.x} ${p0.y} Q ${p0.x} ${y} ${p0.x - 16} ${y} L ${p3.x + 120} ${y} Q ${p3.x + 50} ${y} ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: 1120, y }, { x: 820, y }] };
+      }
+      if (e.route === "arch_to_rec") {
+        const gx = 378;
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.25 };
+        p3 = { x: b.x, y: b.y + b.h * 0.68 };
+        const d = `M ${p0.x} ${p0.y} L ${gx - 12} ${p0.y} Q ${gx} ${p0.y} ${gx} ${p0.y - 12} L ${gx} ${p3.y + 12} Q ${gx} ${p3.y} ${gx + 12} ${p3.y} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: gx, y: 950 }, { x: gx, y: 840 }] };
+      }
+      if (e.route === "right_gutter" || e.route === "right_outer_save") {
+        const gx = e.route === "right_gutter" ? 2480 : 2516;
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.55 };
+        p3 = { x: b.x + b.w, y: b.y + b.h * 0.48 };
+        const d = `M ${p0.x} ${p0.y} L ${gx - 12} ${p0.y} Q ${gx} ${p0.y} ${gx} ${p0.y + 12} L ${gx} ${p3.y - 12} Q ${gx} ${p3.y} ${gx - 12} ${p3.y} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: gx - 42, y: (p0.y + p3.y) / 2 }] };
+      }
+      if (e.route === "react_to_save") {
+        const gx = 2138;
+        p0 = { x: a.x, y: a.y + a.h * 0.72 };
+        p3 = { x: b.x, y: b.y + b.h * 0.35 };
+        const d = `M ${p0.x} ${p0.y} L ${gx + 12} ${p0.y} Q ${gx} ${p0.y} ${gx} ${p0.y + 12} L ${gx} ${p3.y - 12} Q ${gx} ${p3.y} ${gx + 12} ${p3.y} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: gx, y: 810 }, { x: gx, y: 1020 }] };
+      }
+      if (e.route === "high_col_bridge") {
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.32 };
+        p3 = { x: b.x, y: b.y + b.h * 0.75 };
+        const gx = 385;
+        const d = `M ${p0.x} ${p0.y} L ${gx - 12} ${p0.y} Q ${gx} ${p0.y} ${gx} ${p0.y - 12} L ${gx} 638 Q ${gx} 626 ${gx + 12} 626 L 800 626 Q 815 626 828 ${p3.y} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: 816, y: 618 }, { x: 816, y: 638 }, { x: 385, y: 660 }] };
+      }
+      if (e.route === "low_mind_channel" || e.route === "low_mind_channel_2") {
+        const y = e.route === "low_mind_channel" ? 1012 : 998;
+        p0 = { x: a.x + a.w * 0.5, y: a.y + a.h };
+        p3 = { x: b.x + b.w * 0.35, y: b.y + b.h };
+        const d = `M ${p0.x} ${p0.y} Q ${p0.x} ${y} ${p0.x + 20} ${y} L ${p3.x - 20} ${y} Q ${p3.x} ${y} ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: (p0.x + p3.x) / 2, y }] };
+      }
+      if (e.route === "soak_to_save") {
+        const y = 1320;
+        p0 = { x: a.x + a.w, y: a.y + a.h * 0.55 };
+        p3 = { x: b.x + b.w * 0.5, y: b.y + b.h };
+        const d = `M ${p0.x} ${p0.y} L ${p3.x - 16} ${p0.y} Q ${p3.x} ${p0.y} ${p3.x} ${p0.y - 16} L ${p3.x} ${p3.y}`;
+        return { d, candidates: [{ x: 1620, y: p0.y }, { x: 1980, y: p0.y }] };
+      }
+
+      if (Math.abs(a.x - b.x) < 30) {
+        if (Math.abs(a.y - b.y) < 210) {
+          if (a.y < b.y) {
+            p0 = { x: a.x + a.w / 2, y: a.y + a.h };
+            p3 = { x: b.x + b.w / 2, y: b.y };
+            p1 = { x: p0.x, y: (p0.y + p3.y) / 2 };
+            p2 = { x: p3.x, y: (p0.y + p3.y) / 2 };
+          } else {
+            p0 = { x: a.x, y: a.y + a.h / 2 };
+            p3 = { x: b.x, y: b.y + b.h / 2 };
+            p1 = { x: p0.x - 62, y: p0.y };
+            p2 = { x: p3.x - 62, y: p3.y };
+          }
+        } else {
+          p0 = { x: a.x + a.w, y: a.y + a.h / 2 };
+          p3 = { x: b.x + b.w, y: b.y + b.h / 2 };
+          p1 = { x: p0.x + 56, y: p0.y };
+          p2 = { x: p3.x + 56, y: p3.y };
+        }
+      } else if (a.x < b.x) {
+        p0 = { x: a.x + a.w, y: a.y + a.h / 2 };
+        p3 = { x: b.x, y: b.y + b.h / 2 };
+        const dx = Math.max(46, (p3.x - p0.x) * 0.48);
+        p1 = { x: p0.x + dx, y: p0.y };
+        p2 = { x: p3.x - dx, y: p3.y };
+      } else {
+        p0 = { x: a.x, y: a.y + a.h / 2 };
+        p3 = { x: b.x + b.w, y: b.y + b.h / 2 };
+        const dx = Math.max(46, (p0.x - p3.x) * 0.48);
+        p1 = { x: p0.x - dx, y: p0.y };
+        p2 = { x: p3.x + dx, y: p3.y };
+      }
+
+      for (const t of [0.5, 0.42, 0.58, 0.34, 0.66, 0.25, 0.75]) {
+        candidates.push(cubicPt(p0, p1, p2, p3, t));
+      }
+      return { d: `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`, candidates };
+    }
+
+    function markerFor(kind) {
+      if (kind === "factual") return "url(#arr-fact)";
+      if (kind === "subjective") return "url(#arr-subj)";
+      if (kind === "reject") return "url(#arr-rej)";
+      if (kind === "loop" || kind === "dashed") return "url(#arr-loop)";
+      if (kind === "social") return "url(#arr-soc)";
+      return "url(#arr-def)";
+    }
+
+    function rectsOverlap(r1, r2, pad = 2) {
+      return !(r1.right + pad <= r2.left || r1.left - pad >= r2.right || r1.bottom + pad <= r2.top || r1.top - pad >= r2.bottom);
+    }
+
+    function pickBestPillSpot(candidates, w, h, nodeBoxes, placedBoxes) {
+      // Try exact candidate points + small vertical offsets to guarantee 0 overlaps
+      const offsets = [0, -16, 16, -30, 30];
+      let best = { x: candidates[0].x, y: candidates[0].y, penalty: 1e9 };
+      for (const pt of candidates) {
+        for (const dy of offsets) {
+          const cx = pt.x;
+          const cy = pt.y + dy;
+          const r = { left: cx - w / 2, right: cx + w / 2, top: cy - h / 2, bottom: cy + h / 2 };
+          let pen = Math.abs(dy) * 0.4;
+          for (const nb of nodeBoxes) {
+            if (rectsOverlap(r, nb, 4)) pen += 10000;
+          }
+          for (const pb of placedBoxes) {
+            if (rectsOverlap(r, pb, 4)) pen += 2500;
+          }
+          if (pen < best.penalty) {
+            best = { x: cx, y: cy, penalty: pen };
+            if (pen === 0) return best;
+          }
+        }
+      }
+      return best;
+    }
+
+    function drawEdges() {
+      svg.querySelectorAll("path.edge, path.edge-hit, g.edge-pill").forEach(el => el.remove());
+      edgeEls.length = 0;
+      pillEls.length = 0;
+
+      const nodeBoxes = Object.keys(NODES).map(id => {
+        const m = boxMetrics(id);
+        return { left: m.x, right: m.x + m.w, top: m.y, bottom: m.y + m.h };
+      });
+      const placedBoxes = [];
+
+      const orderedEdges = [...EDGES].sort((a, b) => Number(Boolean(b.pill)) - Number(Boolean(a.pill)));
+      orderedEdges.forEach((e) => {
+        const { d, candidates } = buildEdgeGeometry(e);
+
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", d);
+        p.setAttribute("class", `edge ${e.kind}`);
+        p.dataset.id = e.id;
+        p.dataset.from = e.from;
+        p.dataset.to = e.to;
+        p.dataset.kind = e.kind;
+        p.setAttribute("marker-end", markerFor(e.kind));
+        svg.appendChild(p);
+        edgeEls.push({ el: p, edge: e });
+
+        const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        hit.setAttribute("d", d);
+        hit.setAttribute("class", "edge-hit");
+        hit.addEventListener("click", (ev) => { ev.stopPropagation(); selectEdge(e); });
+        hit.addEventListener("mouseenter", () => hoverEdge(e));
+        hit.addEventListener("mouseleave", restoreActiveView);
+        svg.appendChild(hit);
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", `edge-pill ${e.kind}${e.pill ? "" : " hidden"}`);
+        g.dataset.id = e.id;
+        g.dataset.from = e.from;
+        g.dataset.to = e.to;
+
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.textContent = e.label;
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        g.appendChild(rect);
+        g.appendChild(txt);
+        svg.appendChild(g);
+
+        const textLen = txt.getComputedTextLength ? txt.getComputedTextLength() : e.label.length * 5.8;
+        const w = Math.ceil(textLen + 14);
+        const h = 18;
+        const spot = pickBestPillSpot(candidates, w, h, nodeBoxes, placedBoxes);
+        placedBoxes.push({ left: spot.x - w / 2, right: spot.x + w / 2, top: spot.y - h / 2, bottom: spot.y + h / 2 });
+
+        txt.setAttribute("x", spot.x);
+        txt.setAttribute("y", spot.y);
+        rect.setAttribute("x", spot.x - w / 2);
+        rect.setAttribute("y", spot.y - h / 2);
+        rect.setAttribute("width", w);
+        rect.setAttribute("height", h);
+
+        g.addEventListener("click", (ev) => { ev.stopPropagation(); selectEdge(e); });
+        pillEls.push({ el: g, edge: e });
+      });
+    }
+
+    let mode = "overview";
+    let activeNodeId = null;
+    let activeEdgeObj = null;
+    let activeStepIdx = -1;
+    let activeFilter = "all";
+
+    function escHtml(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    window.focusNodeById = (id) => {
+      if (NODES[id]) focusNode(id, true);
+    };
+
+    function renderOverviewInspector() {
+      document.getElementById("inspector").innerHTML = `
+        <h2>How to Read This Map <span class="proc-badge pb-lfm">${SYSTEM_COUNT} SYSTEMS</span></h2>
+        <p class="aside-sub">Click any card or wire pill on the left to inspect exact <strong>Data IN</strong>, transform logic, and <strong>Data OUT</strong> JSON/prompt payloads.</p>
+        <div class="kv sammy">
+          <h3>Quick Jump: Memory vs Thought vs Prose</h3>
+          <p>Behind the fieldhouse (Mon 12:35 PM, smoothie soaked), Sammy sees Jake strip Tyler's Glock in 5s and collapse shaking. Jump directly to the exact data:</p>
+          <div class="quick-chips">
+            <button class="quick-chip" onclick="focusNodeById('inter')">4a. Memory (LFM)</button>
+            <button class="quick-chip" onclick="focusNodeById('priv')">5d. Thought (Private)</button>
+            <button class="quick-chip" onclick="focusNodeById('actor')">5b. Actor Prose</button>
+            <button class="quick-chip" onclick="focusNodeById('grounding')">6a. Interpreter JSON</button>
+            <button class="quick-chip" onclick="focusNodeById('world_truth')">1a. Unvarnished Truth</button>
+            <button class="quick-chip" onclick="focusNodeById('persist')">8a. Saved Lineage</button>
+          </div>
+          <pre class="data-pre prose" style="margin-top:8px;">MEMORY (4a LFM): "For three endless seconds behind the fieldhouse I genuinely believed Jake had brought a gun to execute Tyler - that same cold bus-bomb terror from this morning hit me like ice down my back. Then he rolled his eyes like a tired mechanic, ripped Tyler's Glock into four useless pieces in five seconds, and slumped against the trash can shaking so badly he couldn't even stand. My chest hurts and I will take to my grave that for three seconds I pictured him pulling the trigger."
+THOUGHT (5d Priv): "My hands won't stop shaking and this freezing strawberry shit is soaking down my spine. He almost died because I flexed on Brianna in the bathroom, and for three seconds I stood there picturing him as a cold murderer just like on the bus. Yell at him so he breathes. Take my panic to the grave."
+PROSE (5b -> 6a): Sammy drops her skateboard into the weeds and grabs Jake's grey hoodie tight into his collarbone: "You complete, suicidal idiot! Why didn't you just run away?!"</pre>
+        </div>
+        <div class="kv">
+          <h3>1. Two-Lane Factual Invariant (task-950)</h3>
+          <p><strong>Lane 1 (Top, Blue):</strong> Physical truth (carrying <code>skateboard</code>, exits, <code>=== ALREADY KNOWN ===</code>, <code>=== WITNESSED ===</code>, <code>PlanGrounding</code>). Bypasses LFM completely so fear never hallucinates weapons or exits.</p>
+        </div>
+        <div class="kv">
+          <h3>2. Strict Actor Isolation (task-947..949)</h3>
+          <p><strong>Lane 2 (Middle, Amber/Emerald):</strong> <code>3a. Recall</code> pulls raw DB rows ONLY into <code>4a. Memory Intermediator</code>. <code>5b. Actor LLM</code> receives zero raw DB rows - only Lane 1 Facts + ONE cohesive Conscious Memory + Active Mind.</p>
+        </div>
+        <div class="kv">
+          <h3>3. Anti-Drift Lineage &amp; Math (Lane 3, Violet)</h3>
+          <p><strong>Post-Turn (Right -&gt; Left):</strong> Saves Conscious Synthesis (<code>gen=1</code>) pinned to immutable <code>source_ref_ids[]</code> plus Private Thought, updates pure math decay/<code>invalid_at</code>, sleeps into beliefs/dreams, and shares the same contract with Soak &amp; AgentLens.</p>
+        </div>
+      `;
+    }
+
+    function renderNodeInspector(id) {
+      const d = NODES[id];
+      const inc = EDGES.filter(e => e.to === id);
+      const out = EDGES.filter(e => e.from === id);
+      const inCls = (d.inData && (d.inData.includes("===") || d.inData.includes("Prompt"))) ? "prompt" : "json";
+      const outCls = d.outStyle || "json";
+      const statusCls = d.planned ? "spec-tag plan" : "spec-tag";
+      const statusTxt = d.status || (d.planned ? "PLANNED SPEC" : "LIVE IN REPO");
+      const wiresHtml = (arr, dir) => arr.map(e => {
+        const peer = dir === "in" ? NODES[e.from].title : NODES[e.to].title;
+        const prefix = dir === "in" ? "From" : "To";
+        return `<div class="wire-item" onclick="selectEdgeById('${escHtml(e.id)}')"><strong>${prefix} ${escHtml(peer)}:</strong> <code>${escHtml(e.payload || e.label)}</code></div>`;
+      }).join("") || "<p>None</p>";
+
+      document.getElementById("inspector").innerHTML = `
+        <h2><span>${escHtml(d.step)}. ${escHtml(d.title)}</span><span class="proc-badge ${escHtml(d.pCls)}">${escHtml(d.proc)}</span></h2>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <span class="${statusCls}">${escHtml(statusTxt)}</span>
+        </div>
+        <div class="kv sammy"><h3>Sammy Moment (Fieldhouse)</h3><p>${escHtml(d.ex)}</p></div>
+        <div class="kv"><h3>Exact Data IN</h3><pre class="data-pre ${inCls}">${escHtml(d.inData || "")}</pre></div>
+        <div class="kv"><h3>Transform &amp; Why</h3><p>${escHtml(d.how)}</p><p style="margin-top:5px;color:#94a3b8;"><strong>Why:</strong> ${escHtml(d.why || "")}</p></div>
+        <div class="kv"><h3>Exact Data OUT <span class="spec-tag">${escHtml(outCls.toUpperCase())}</span></h3><pre class="data-pre ${escHtml(outCls)}">${escHtml(d.outData || d.out || "")}</pre></div>
+        <div class="kv"><h3>Incoming Wires (${inc.length})</h3>${wiresHtml(inc, "in")}</div>
+        <div class="kv"><h3>Outgoing Wires (${out.length})</h3>${wiresHtml(out, "out")}</div>
+        <div class="kv"><h3>Repo Files &amp; Specs</h3><div>${(d.files || []).map(f => `<span class="file-pill">${escHtml(f)}</span>`).join("")}</div></div>
+      `;
+    }
+
+    function renderEdgeInspector(e) {
+      const a = NODES[e.from];
+      const b = NODES[e.to];
+      const sampleText = e.sample || e.payload || e.label || "";
+      const sampleCls = (sampleText.includes("===") || !sampleText.trim().startsWith("{")) ? "prompt" : "json";
+      document.getElementById("inspector").innerHTML = `
+        <h2><span>Data Wire Connection</span><span class="proc-badge pb-lfm">${escHtml(e.kind.toUpperCase())}</span></h2>
+        <div class="kv">
+          <h3>Endpoints</h3>
+          <div class="quick-chips">
+            <button class="quick-chip" onclick="focusNodeById('${escHtml(e.from)}')">From ${escHtml(a.step)}. ${escHtml(a.title)}</button>
+            <button class="quick-chip" onclick="focusNodeById('${escHtml(e.to)}')">To ${escHtml(b.step)}. ${escHtml(b.title)}</button>
+          </div>
+        </div>
+        <div class="kv"><h3>Wire Contract</h3><p><code>${escHtml(e.payload || e.label)}</code></p></div>
+        <div class="kv sammy"><h3>Concrete Payload Flowing Through Wire</h3><pre class="data-pre ${sampleCls}">${escHtml(sampleText)}</pre></div>
+        <div class="kv"><h3>Why This Wire Exists</h3><p>${escHtml(e.why || "Connects upstream output into downstream consumer.")}</p></div>
+        <div class="kv"><h3>Fieldhouse Impact</h3><p><strong>${escHtml(a.title)}:</strong> ${escHtml(a.ex)}<br><br><strong>Feeds into ${escHtml(b.title)}:</strong> ${escHtml(b.how)}</p></div>
+      `;
+    }
+
+    function renderStepInspector(step) {
+      const boxes = step.nodes.map(id => {
+        const nd = NODES[id];
+        return `<li style="cursor:pointer;" onclick="focusNodeById('${escHtml(id)}')"><strong>${escHtml(nd.step)}. ${escHtml(nd.title)}:</strong> ${escHtml(nd.ex)}<br><code style="color:#7dd3fc;font-size:10px;">-&gt; ${escHtml(nd.out)}</code></li>`;
+      }).join("");
+      document.getElementById("inspector").innerHTML = `
+        <h2><span>${escHtml(step.title)}</span></h2>
+        <div class="kv sammy"><h3>What Happens in These Seconds</h3><p>${escHtml(step.desc)}</p></div>
+        <div class="kv"><h3>Active Systems in This Step (click any)</h3><ul>${boxes}</ul></div>
+        <div class="kv"><h3>Tip</h3><p>Click any system bullet above, or click a glowing box or wire pill on the canvas to inspect its raw JSON/prompt payload.</p></div>
+      `;
+    }
+
+    function resetVisuals() {
+      Object.values(nodeEls).forEach(el => el.classList.remove("dim", "neighbor", "selected"));
+      edgeEls.forEach(({ el, edge }) => {
+        el.classList.remove("dim", "hi-in", "hi-out", "hi-active", "edge-selected");
+        el.setAttribute("marker-end", markerFor(edge.kind));
+      });
+      pillEls.forEach(({ el, edge }) => {
+        el.classList.remove("dim", "hi", "hidden");
+        if (!edge.pill) el.classList.add("hidden");
+      });
+      const subSocial = document.querySelector(".subzone-social");
+      if (subSocial) subSocial.style.opacity = "1";
+    }
+
+    function syncSocialSubzoneDim() {
+      const subSocial = document.querySelector(".subzone-social");
+      if (!subSocial) return;
+      const anyActive = !nodeEls.cross.classList.contains("dim") || !nodeEls.commons.classList.contains("dim");
+      subSocial.style.opacity = anyActive ? "1" : "0.18";
+    }
+
+    function focusNode(id, pin = false) {
+      if (pin) {
+        mode = "node";
+        activeNodeId = id;
+        activeEdgeObj = null;
+        updateToolbarButtons();
+        renderNodeInspector(id);
+      }
+      resetVisuals();
+      const neighbors = new Set([id]);
+      edgeEls.forEach(({ el, edge }) => {
+        if (edge.to === id) {
+          el.classList.add("hi-in");
+          el.setAttribute("marker-end", "url(#arr-hi)");
+          neighbors.add(edge.from);
+        } else if (edge.from === id) {
+          el.classList.add("hi-out");
+          el.setAttribute("marker-end", "url(#arr-hi)");
+          neighbors.add(edge.to);
+        } else {
+          el.classList.add("dim");
+        }
+      });
+      pillEls.forEach(({ el, edge }) => {
+        el.classList.remove("hidden", "dim", "hi");
+        if (edge.to === id || edge.from === id) el.classList.add("hi");
+        else el.classList.add("hidden");
+      });
+      Object.entries(nodeEls).forEach(([nid, el]) => {
+        if (nid === id && pin) el.classList.add("selected");
+        if (nid !== id) el.classList.add(neighbors.has(nid) ? "neighbor" : "dim");
+      });
+      syncSocialSubzoneDim();
+    }
+
+    function selectEdge(e) {
+      mode = "edge";
+      activeEdgeObj = e;
+      activeNodeId = null;
+      updateToolbarButtons();
+      resetVisuals();
+      edgeEls.forEach(({ el, edge }) => {
+        if (edge.id === e.id) {
+          el.classList.add("edge-selected");
+          el.setAttribute("marker-end", "url(#arr-hi)");
+        } else {
+          el.classList.add("dim");
+        }
+      });
+      pillEls.forEach(({ el, edge }) => {
+        el.classList.remove("hidden", "dim", "hi");
+        if (edge.id === e.id) el.classList.add("hi");
+        else el.classList.add("hidden");
+      });
+      Object.entries(nodeEls).forEach(([nid, el]) => {
+        if (nid === e.from || nid === e.to) el.classList.add("neighbor");
+        else el.classList.add("dim");
+      });
+      renderEdgeInspector(e);
+    }
+    window.selectEdgeById = (id) => {
+      const e = EDGES.find(x => x.id === id);
+      if (e) selectEdge(e);
+    };
+
+    function hoverEdge(e) {
+      if (mode !== "overview") return;
+      resetVisuals();
+      edgeEls.forEach(({ el, edge }) => {
+        if (edge.id === e.id) el.classList.add("edge-selected");
+        else el.classList.add("dim");
+      });
+      pillEls.forEach(({ el, edge }) => {
+        el.classList.remove("hidden");
+        if (edge.id === e.id) el.classList.add("hi");
+        else el.classList.add("hidden");
+      });
+      Object.entries(nodeEls).forEach(([nid, el]) => {
+        if (nid !== e.from && nid !== e.to) el.classList.add("dim");
+        else el.classList.add("neighbor");
+      });
+    }
+
+    function applyStep(idx) {
+      activeStepIdx = idx;
+      mode = "step";
+      activeNodeId = null;
+      activeEdgeObj = null;
+      const step = STEPS[idx];
+      const activeSet = new Set(step.nodes);
+      updateToolbarButtons();
+      resetVisuals();
+      Object.entries(nodeEls).forEach(([nid, el]) => {
+        if (activeSet.has(nid)) el.classList.add("neighbor");
+        else el.classList.add("dim");
+      });
+      syncSocialSubzoneDim();
+      edgeEls.forEach(({ el, edge }) => {
+        if (activeSet.has(edge.from) && activeSet.has(edge.to)) el.classList.add("hi-active");
+        else el.classList.add("dim");
+      });
+      pillEls.forEach(({ el, edge }) => {
+        el.classList.remove("hidden");
+        if (activeSet.has(edge.from) && activeSet.has(edge.to)) el.classList.add("hi");
+        else el.classList.add("hidden");
+      });
+      renderStepInspector(step);
+    }
+
+    function applyFilter(f) {
+      activeFilter = f;
+      if (f === "all") { setOverview(); return; }
+      mode = "filter";
+      activeNodeId = null;
+      activeEdgeObj = null;
+      activeStepIdx = -1;
+      updateToolbarButtons();
+      resetVisuals();
+      Object.entries(nodeEls).forEach(([id, el]) => {
+        if (!NODES[id].tags.includes(f)) el.classList.add("dim");
+      });
+      syncSocialSubzoneDim();
+      edgeEls.forEach(({ el, edge }) => {
+        if (!NODES[edge.from].tags.includes(f) || !NODES[edge.to].tags.includes(f)) el.classList.add("dim");
+      });
+      pillEls.forEach(({ el, edge }) => {
+        if (NODES[edge.from].tags.includes(f) && NODES[edge.to].tags.includes(f)) el.classList.remove("hidden");
+        else el.classList.add("hidden");
+      });
+    }
+
+    function setOverview() {
+      mode = "overview";
+      activeNodeId = null;
+      activeEdgeObj = null;
+      activeStepIdx = -1;
+      activeFilter = "all";
+      updateToolbarButtons();
+      resetVisuals();
+      renderOverviewInspector();
+    }
+
+    function restoreActiveView() {
+      if (mode === "overview") resetVisuals();
+      else if (mode === "node" && activeNodeId) focusNode(activeNodeId, true);
+      else if (mode === "edge" && activeEdgeObj) selectEdge(activeEdgeObj);
+      else if (mode === "step" && activeStepIdx >= 0) applyStep(activeStepIdx);
+      else if (mode === "filter") applyFilter(activeFilter);
+    }
+
+    function updateToolbarButtons() {
+      document.getElementById("btn-overview").classList.toggle("active", mode === "overview");
+      const nextBtn = document.getElementById("btn-next");
+      const status = document.getElementById("tour-status");
+      if (mode === "step" && activeStepIdx >= 0) {
+        nextBtn.classList.add("tour-active");
+        nextBtn.textContent = activeStepIdx < STEPS.length - 1 ? `Next Step (${activeStepIdx + 2}/8) ->` : "Restart (1/8)";
+        status.textContent = `${STEPS[activeStepIdx].title} - ${STEPS[activeStepIdx].desc}`;
+      } else {
+        nextBtn.classList.remove("tour-active");
+        nextBtn.textContent = "Start Turn Trace (1/8) ->";
+        status.textContent = mode === "overview"
+          ? `Overview: all ${SYSTEM_COUNT} systems & wire payloads shown. Click "Start Turn Trace" or any box/wire.`
+          : 'Click "Overview (All Clear)" anytime to restore all systems.';
+      }
+      document.querySelectorAll("#filters .pill").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.filter === activeFilter && mode !== "step");
+      });
+    }
+
+    Object.entries(nodeEls).forEach(([id, el]) => {
+      el.addEventListener("click", (ev) => { ev.stopPropagation(); focusNode(id, true); });
+      el.addEventListener("mouseenter", () => { if (mode === "overview" || mode === "node") focusNode(id, false); });
+      el.addEventListener("mouseleave", restoreActiveView);
+    });
+    canvas.addEventListener("click", () => { if (mode === "node" || mode === "edge") setOverview(); });
+
+    document.getElementById("btn-overview").addEventListener("click", setOverview);
+    document.getElementById("btn-next").addEventListener("click", () => applyStep(activeStepIdx < 0 ? 0 : (activeStepIdx + 1) % STEPS.length));
+    document.getElementById("btn-prev").addEventListener("click", () => applyStep(activeStepIdx <= 0 ? STEPS.length - 1 : activeStepIdx - 1));
+    document.querySelectorAll("#filters .pill").forEach(btn => btn.addEventListener("click", () => applyFilter(btn.dataset.filter)));
+
+    let scale = 1;
+    function fitRatio() {
+      return Math.min((wrap.clientWidth - 16) / 2600, (wrap.clientHeight - 16) / 1465, 1);
+    }
+    function setScale(s) {
+      scale = Math.max(0.42, Math.min(1.35, s));
+      stage.style.transform = `scale(${scale})`;
+      stage.style.width = (2600 * scale) + "px";
+      stage.style.height = (1465 * scale) + "px";
+      document.getElementById("zoom-fit").classList.toggle("active", Math.abs(scale - fitRatio()) < 0.03);
+      document.getElementById("zoom-75").classList.toggle("active", Math.abs(scale - 0.75) < 0.02);
+      document.getElementById("zoom-100").classList.toggle("active", Math.abs(scale - 1) < 0.02);
+    }
+    document.getElementById("zoom-fit").addEventListener("click", () => setScale(fitRatio()));
+    document.getElementById("zoom-75").addEventListener("click", () => setScale(0.75));
+    document.getElementById("zoom-100").addEventListener("click", () => setScale(1));
+    document.getElementById("zoom-in").addEventListener("click", () => setScale(scale + 0.12));
+    document.getElementById("zoom-out").addEventListener("click", () => setScale(scale - 0.12));
+
+    let panning = false, sx = 0, sy = 0, sl = 0, st = 0;
+    wrap.addEventListener("mousedown", (e) => {
+      if (e.target.closest(".node, .edge-pill, .edge-hit")) return;
+      panning = true; sx = e.clientX; sy = e.clientY; sl = wrap.scrollLeft; st = wrap.scrollTop;
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!panning) return;
+      wrap.scrollLeft = sl - (e.clientX - sx);
+      wrap.scrollTop = st - (e.clientY - sy);
+    });
+    window.addEventListener("mouseup", () => { panning = false; });
+
+    drawEdges();
+    setOverview();
+    window.addEventListener("resize", () => { drawEdges(); restoreActiveView(); });
+  </script>
+</body>
+</html>

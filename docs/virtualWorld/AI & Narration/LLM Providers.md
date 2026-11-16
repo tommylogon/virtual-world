@@ -7,7 +7,7 @@ tags: [system/ai]
 
 ## What you can do
 
-VirtualWorld connects to LLM providers through a unified, OpenAI-compatible client configured in the Settings panel, so you can switch between local models (LM Studio) and cloud providers (OpenAI, DeepSeek, Groq) without changing anything else. All LLM calls happen directly from the browser — your API key never leaves the client — and the system handles rate limiting, retries with backoff, streaming responses, and tool calling for structured agent output. You pick your provider base URL and model once, and it powers every agent decision, narration, and memory reflection.
+VirtualWorld connects to LLM providers through a unified, OpenAI-compatible client configured in the Settings panel, so you can switch between local models (LM Studio) and cloud providers (OpenAI, DeepSeek, Groq) without changing anything else. All LLM calls happen directly from the browser - your API key never leaves the client - and the system handles rate limiting, retries with backoff, streaming responses, and tool calling for structured agent output. You pick your provider base URL and model once, and it powers every agent decision, narration, and memory reflection.
 
 VirtualWorld uses an OpenAI-compatible API client (`LLMClient`) to power agent behavior, narration, memory reflection, plan generation, and AI-assisted content creation. The system supports multiple providers through a unified interface.
 
@@ -59,7 +59,7 @@ flipped to `LM Studio (Local)`.
 
 ### API Key and Base URL
 
-API keys are configured in the Settings UI and stored in browser IndexedDB. They are **never sent to the backend** — all LLM calls are made **directly from the browser frontend** via `fetch()`. There are no server-side API keys or proxy routes.
+API keys and connection endpoints are configured in the Settings UI. To prevent credential loss from browser storage evictions and updates, configurations are synchronized to the backend server (`data/config/profiles.json` and `.env` via task-910 and task-945) as well as cached in browser IndexedDB. In the browser, runtime calls connect via `fetch()` directly using the configured client credentials.
 
 The `LLMClient` sets the auth header on every request:
 ```javascript
@@ -84,15 +84,15 @@ async chat(messages, options = {})
 ```
 
 Parameters:
-- `messages` — Array of `{role, content}` objects (OpenAI format)
-- `options.model` — Model override
-- `options.temperature` — Temperature override
-- `options.streaming` — Enable SSE streaming
-- `options.tools` — Array of OpenAI tool definitions (functions with JSON schemas)
-- `options.tool_choice` — Optional tool choice mode (e.g. `'auto'`, `'none'`, `'required'`)
-- `options.withTools` — If true, returns structured `{ content, tool_calls }`
-- `options.onChunk` — Per-call chunk callback `(chunk) => void`, invoked as streamed content arrives
-- `options.signal` — AbortController signal for cancellation
+- `messages` - Array of `{role, content}` objects (OpenAI format)
+- `options.model` - Model override
+- `options.temperature` - Temperature override
+- `options.streaming` - Enable SSE streaming
+- `options.tools` - Array of OpenAI tool definitions (functions with JSON schemas)
+- `options.tool_choice` - Optional tool choice mode (e.g. `'auto'`, `'none'`, `'required'`)
+- `options.withTools` - If true, returns structured `{ content, tool_calls }`
+- `options.onChunk` - Per-call chunk callback `(chunk) => void`, invoked as streamed content arrives
+- `options.signal` - AbortController signal for cancellation
 
 The method sends `POST {base}/chat/completions` with standard OpenAI-compatible JSON body.
 
@@ -135,7 +135,7 @@ Returns a hardcoded list of suggested models per provider:
 Generates text embeddings via `{base}/embeddings`. Only enabled for OpenAI and local endpoints. Uses the model name configured in **Settings → Embedding** (`config.embeddingModel`, defaults to `text-embedding-3-small`). Returns the embedding vector or `null` on failure.
 
 The embedding source is configurable in the Settings panel:
-- **Local (sentence-transformers)**: Uses a built-in `all-MiniLM-L6-v2` model loaded on demand — no API key needed. Configured as the default.
+- **Local (sentence-transformers)**: Uses a built-in `all-MiniLM-L6-v2` model loaded on demand - no API key needed. Configured as the default.
 - **API (LLM Provider)**: Sends to your LLM provider's `/embeddings` endpoint with the configured model name.
 
 ## Rate Limiting
@@ -144,7 +144,7 @@ Implemented in `static/js/agent/rate-limiter.js` as the `RateLimiter` class.
 
 ### `waitMs()` (line 24)
 
-Calculates how long to wait before the next API call based on `config.rpmLimit` (requests per minute). Maintains a sliding window of timestamps — if the window is full, returns the milliseconds until the oldest timestamp falls out of the 60-second window.
+Calculates how long to wait before the next API call based on `config.rpmLimit` (requests per minute). Maintains a sliding window of timestamps - if the window is full, returns the milliseconds until the oldest timestamp falls out of the 60-second window.
 
 ### `getCooldown()` (line 40)
 
@@ -199,26 +199,26 @@ The server exposes `/api/health` (`routes/health.py:41`) which reports `llm_enab
 
 | When | Task | Status |
 |---|---|---|
-| — | [[task-88-llm_logging\|task-88-llm_logging]] | `done` |
+| - | [[task-88-llm_logging\|task-88-llm_logging]] | `done` |
 <!-- changelog:end -->
 
 ## Where it lives
 
-- **`static/js/config.js`** (`ConfigManager`) — all config properties, `_getDefaultProfiles()`, `_loadFromStorage`, `getProfiles()`
-- **`static/js/llm-client.js`** (`LLMClient`, `window.llmClient`) — `chat()`, `chatWithTools()`, `fetchModels()`, `embeddings()`
-- **`static/js/agent/rate-limiter.js`** (`RateLimiter`) — `waitMs()`, `getCooldown()`
-- **`static/js/settings-view.js:133`** — local endpoint detection, API key bypass
-- **`routes/health.py:41`** — `/api/health` reports `llm_enabled`
+- **`static/js/config.js`** (`ConfigManager`) - all config properties, `_getDefaultProfiles()`, `_loadFromStorage`, `getProfiles()`
+- **`static/js/llm-client.js`** (`LLMClient`, `window.llmClient`) - `chat()`, `chatWithTools()`, `fetchModels()`, `embeddings()`
+- **`static/js/agent/rate-limiter.js`** (`RateLimiter`) - `waitMs()`, `getCooldown()`
+- **`static/js/settings-view.js:133`** - local endpoint detection, API key bypass
+- **`routes/health.py:41`** - `/api/health` reports `llm_enabled`
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[llm-calls|LLM calls]] (#35), [[prompt-lens|Prompt lens]] (#42)
+**Features**  -  [[llm-calls|LLM calls]] (#35), [[prompt-lens|Prompt lens]] (#42)
 
-**Dev tasks** — [[dev_tasks/done/testing/task-88-llm_logging|task]]
+**Dev tasks**  -  [[dev_tasks/done/testing/task-88-llm_logging|task]]
 
-**Neighbouring notes** — [[Agent Engine]], [[Memory Dynamics]], [[Memory System]], [[Narration System]], [[Turn-Based System]]
+**Neighbouring notes**  -  [[Agent Engine]], [[Memory Dynamics]], [[Memory System]], [[Memory Weaver]], [[Narration System]], [[Turn-Based System]]
 
 <!-- connected:end -->

@@ -1,0 +1,83 @@
+flowchart LR
+    classDef sensory fill:#0369a1,stroke:#7dd3fc,color:#ffffff,stroke-width:2px
+    classDef factual fill:#1d4ed8,stroke:#93c5fd,color:#ffffff,stroke-width:2px
+    classDef self fill:#475569,stroke:#f1f5f9,color:#ffffff,stroke-width:2px
+    classDef body fill:#9a3412,stroke:#fdba74,color:#ffffff,stroke-width:2px
+    classDef memory fill:#b45309,stroke:#fcd34d,color:#ffffff,stroke-width:2px
+    classDef mind fill:#4338ca,stroke:#a5b4fc,color:#ffffff,stroke-width:2px
+    classDef actor fill:#047857,stroke:#6ee7b7,color:#ffffff,stroke-width:2px
+    classDef mask fill:#0f766e,stroke:#5eead4,color:#ffffff,stroke-width:2px
+    classDef loop fill:#7e22ce,stroke:#e879f9,color:#ffffff,stroke-width:2px
+    classDef reject fill:#b91c1c,stroke:#fca5a5,color:#ffffff,stroke-width:2px
+
+    %% Column 1: External World + Standing Self + Embodied State
+    OBS["1. External Sensory Reality<br/>Loc: Millwood Cafeteria<br/>Heard [to you]: 'jake, pass me that note'<br/>Lore: town tension, Hellmouth table"]:::sensory
+    FACT["Factual Lane (Unvarnished)<br/>carrying: [cracked phone] (NO note)<br/>spatial_memory: exits, table<br/>AlreadyKnown: searched pack earlier"]:::factual
+    BODY["Embodied Self (Interoception)<br/>Vitals: stomach drop, adrenaline<br/>Sanity: steady · Needs: edgy<br/>Affect: paranoid, cornered"]:::body
+    ID["Core Identity &amp; Value Gates<br/>Persona: defensive, rambling<br/>Morality/Pride: won't look weak<br/>Interests: [skating, mysteries]<br/>Fears: being watched / framed"]:::self
+    REL["6-Axis Relationships &amp; Residue<br/>Kayla: trust low, fear med, respect med<br/>Sammy: trust high, protective<br/>(colors how each voice is heard)"]:::self
+    GIMP["GIMP &amp; Schedule<br/>Goal: Find who planted the note<br/>M: self-protection · I: stay ahead<br/>Obligation/Schedule: Lunch period"]:::self
+    SEED["Memory &amp; History<br/>- 'crimson note tucked in bag'<br/>- 'searched pack, couldn't find it'<br/>- 'Observed Cafeteria...' (noise)<br/>- 'Miki ASMR...' (unrelated)"]:::self
+
+    %% Column 2: Attention, Salience & Recall
+    CUE["2. Salience &amp; Cue Filter<br/>Interests + Fears + Body + Heard<br/>-> Cues: [note, Kayla, paranoia]<br/>Cue-Change Gate: SALIENT SHIFT"]:::memory
+    RECALL["Involuntary Recall<br/>Pulls: [note in bag, pack empty]<br/>Drops: [Cafeteria list, Miki]"]:::memory
+    MOSIAC["MOSIAC + Disposition Ranker<br/>M+I (GIMP), O+S (lunch),<br/>A (fear/paranoia/interests),<br/>Value Gates + C (gated verbs)"]:::mind
+
+    %% Column 3: Intermediator & Active Working Mind
+    INTER["3. Memory Intermediator (LFM)<br/>Mood- &amp; Relationship-Biased Palimpsest:<br/>'Someone planted that note in my bag,<br/>and when I checked it was already gone.<br/>Now Kayla is pressing me in public.'"]:::memory
+    MIND["Conscious Memory + Active Mind<br/>Q: 'Who took the note back?'<br/>Assumption: 'Kayla/they are setting me up.'<br/>Secret/Held Back: 'My pack is empty.'"]:::mind
+
+    %% Column 4: Plan Check -> Private Self -> Social Mask
+    PLAN{"4. Active Plan<br/>Still Valid?<br/>(interrupted)"}:::actor
+    PRIV["Private Inner Monologue<br/>(Unfiltered Truth):<br/>'Play it cool, stomach is in knots,<br/>don't let them see me sweat.'"]:::actor
+    MASK["Social Mask &amp; Subtext Filter<br/>Pride + Fear of Kayla:<br/>Hide panic, deflect calmly<br/>Intent: speak (or Deliberate Recall)"]:::mask
+
+    %% Column 5: Grounding & Execution
+    INTERP["5. Action Interpreter &amp; PlanGrounding<br/>Checks verb 'speak' + Factual Lane:<br/>No hallucinated note in hand"]:::actor
+    ACT["Public Action &amp; Speech<br/>Says casually: 'What note? Check table.'<br/>Emits WITNESSED + updates lived_log<br/>+ Kayla relationship delta"]:::actor
+    REJECT["Blocked / Failed Example<br/>If Actor tried 'give(note)':<br/>Blocked (not in carrying) -> Re-think"]:::reject
+
+    %% Column 6: Reconsolidation, Dynamics & Dreams
+    PERSIST["6. Post-Turn Save<br/>Saves Conscious Summary + Private Monologue<br/>+ Source Refs: [mem_note_1, mem_pack_2]"]:::loop
+    DYN["Memory Dynamics<br/>Reinforces: 'setup paranoia'<br/>Supersedes: 'note in bag' (invalid_at)<br/>Updates emotional residue"]:::loop
+    SLEEP["Sleep / Dreams &amp; Daily Reflection<br/>consolidate_sleep() prunes clutter<br/>Semantic belief: 'Kayla probes weaknesses'<br/>Updates GIMP &amp; self-narrative"]:::loop
+
+    %% Strict Left-to-Right Edges
+    OBS --> CUE
+    BODY --> CUE
+    ID --> CUE
+    REL --> CUE
+    SEED --> RECALL
+    CUE --> RECALL
+    RECALL --> INTER
+    BODY --> INTER
+    REL --> INTER
+    OBS --> INTER
+    INTER --> MIND
+
+    GIMP --> MOSIAC
+    ID --> MOSIAC
+    BODY --> MOSIAC
+    REL --> MOSIAC
+    OBS --> MOSIAC
+
+    FACT --> PLAN
+    MOSIAC --> PLAN
+    MIND --> PLAN
+
+    PLAN -- "Replan / React" --> PRIV
+    PLAN -- "Continue step" --> INTERP
+    PRIV --> MASK
+    ID --> MASK
+    REL --> MASK
+    MASK --> INTERP
+    FACT --> INTERP
+
+    INTERP -- "Valid" --> ACT
+    INTERP -- "Blocked" --> REJECT
+
+    ACT --> PERSIST
+    PRIV --> PERSIST
+    REJECT --> PERSIST
+    PERSIST --> DYN --> SLEEP
