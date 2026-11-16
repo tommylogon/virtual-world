@@ -1,3 +1,10 @@
+"""helpers module.
+
+@module helpers
+@contributes sanitize_filename, unique_filename, save_autosave, _write_autosave_slot, _load_saves_index, _store_saves_index
+@docs none - HTTP API route handler
+"""
+
 import os
 import json
 import time
@@ -15,7 +22,7 @@ AUTOSAVE_PATH = os.path.join(PROJECT_ROOT, 'data', 'autosave.json')
 SANDBOX_AUTOSAVE_PATH = os.path.join(PROJECT_ROOT, 'data', 'sandbox_autosave.json')
 
 # Autosave ALSO lands in the saves directory (marked ``autosave: True``) so it
-# appears in the save/load modal alongside manual slots — an always-current,
+# appears in the save/load modal alongside manual slots - an always-current,
 # always-restorable snapshot without manual saves piling up.
 SAVES_DIR = os.path.join(PROJECT_ROOT, 'saves')
 AUTOSAVE_SLOT = os.path.join(SAVES_DIR, 'autosave.json')
@@ -33,8 +40,8 @@ def sanitize_filename(name, *, allow='', fallback='unnamed', max_length=120):
 
     Keeps Unicode letters and digits (``str.isalnum`` is Unicode-aware), plus
     space/underscore/hyphen and any extra characters in ``allow``. Everything
-    else — including the Windows-forbidden ``<>:"/\\|?*`` and control characters
-    — folds to ``_``. NFKC composes accents (``a`` + combining acute -> ``á``)
+    else - including the Windows-forbidden ``<>:"/\\|?*`` and control characters
+    - folds to ``_``. NFKC composes accents (``a`` + combining acute -> ``á``)
     rather than peeling the mark off, so ``Draghál`` keeps its letter instead of
     becoming ``Dragha_l``. Only if nothing survives does ``fallback`` apply.
     """
@@ -55,7 +62,7 @@ def unique_filename(directory, filename):
 
     Named saves use a second-resolution timestamp, so two saves in the same
     second would otherwise silently overwrite each other. Slot and autosave
-    writes deliberately bypass this — those are the one intentional in-place
+    writes deliberately bypass this - those are the one intentional in-place
     overwrite.
     """
     if not os.path.exists(os.path.join(directory, filename)):
@@ -102,7 +109,7 @@ def _write_autosave_slot(data):
     while the modal slot gets ``_save_metadata`` (which the save list reads).
     """
     try:
-        slot_data = dict(data)  # shallow — same nested structures
+        slot_data = dict(data)  # shallow - same nested structures
         scenario = ''
         source = slot_data.get('_autosave_meta', {}).get('scenario_source') or ''
         if source:
@@ -269,6 +276,33 @@ def tokenize_command_detailed(cmd):
     return tokens, quoted_flags
 
 
+SURROGATE_ID_FIELDS = {
+    "characters": "character_id",
+    "items": "item_id",
+    "areas": "area_id",
+    "ways": "way_id",
+    "structures": "structure_id",
+    "recipes": "recipe_id",
+    "pursuit_templates": "template_id",
+}
+
+
+def get_surrogate_id(registry_type, data):
+    """Return the stable surrogate key for a library entry dict (task-667)."""
+    if not isinstance(data, dict):
+        return None
+    field = SURROGATE_ID_FIELDS.get(registry_type)
+    if field and data.get(field):
+        return str(data[field]).strip()
+    singular = registry_type[:-1] if registry_type.endswith('s') else registry_type
+    key = f"{singular}_id"
+    if data.get(key):
+        return str(data[key]).strip()
+    if data.get("id"):
+        return str(data["id"]).strip()
+    return None
+
+
 def _registry_subdir(data_dir, filename):
     """Map a registry filename like 'items.json' to its library subdirectory."""
     name = filename.replace('.json', '')
@@ -281,9 +315,11 @@ def load_registry(data_dir, filename):
     """Load a registry by reading individual JSON files from data/library/<name>/.
 
     Each file in the directory becomes one entry in the returned dict,
-    keyed by the filename (without .json extension).
+    keyed by the filename (without .json extension) and by its stable surrogate
+    id (task-667). Aliases recorded on the entry are also indexed.
     """
     subdir = _registry_subdir(data_dir, filename)
+    registry_type = filename.replace('.json', '')
     result = {}
     try:
         for entry in os.listdir(subdir):
@@ -293,7 +329,17 @@ def load_registry(data_dir, filename):
             path = os.path.join(subdir, entry)
             try:
                 with open(path, 'r', encoding='utf-8-sig') as f:
-                    result[key] = json.load(f)
+                    val = json.load(f)
+                    if isinstance(val, dict):
+                        result[key] = val
+                        surrogate = get_surrogate_id(registry_type, val)
+                        if surrogate:
+                            result[surrogate] = val
+                        for alias in (val.get("aliases") or []):
+                            if alias and alias not in result:
+                                result[str(alias)] = val
+                    else:
+                        result[key] = val
             except Exception as e:
                 logger.warning(f"Could not load library entry {entry}: {e}")
     except FileNotFoundError:
@@ -304,13 +350,28 @@ def load_registry(data_dir, filename):
 def save_registry(data_dir, filename, data):
     """Save a registry as individual JSON files under data/library/<name>/.
 
-    Writes one file per key. **Never deletes files** — a caller that passes a
+    Writes one file per canonical key. **Never deletes files** - a caller that passes a
     partial dict (e.g. a single test entry) must not silently wipe the rest of
     the registry. Use ``delete_registry_entry()`` to remove a specific entry.
     """
     subdir = _registry_subdir(data_dir, filename)
+    registry_type = filename.replace('.json', '')
+
+    written_objects = set()
 
     for key, value in data.items():
+        if isinstance(value, dict):
+            surrogate = get_surrogate_id(registry_type, value)
+            if surrogate and key == surrogate:
+                # Surrogate index entry; don't write a file named after the surrogate key
+                continue
+            if key in (value.get("aliases") or []):
+                # Alias index entry; don't write a file named after the alias
+                continue
+            if id(value) in written_objects:
+                continue
+            written_objects.add(id(value))
+
         path = os.path.join(subdir, f"{key}.json")
         try:
             serialized = json.dumps(value, indent=2, ensure_ascii=False) + '\n'
@@ -375,7 +436,7 @@ def closest_tag_match(tag, candidates):
 
 
 def validate_tags_on_save(tags, data_dir=None):
-    """Validate a tag list against the tag library. Never blocks — warns only.
+    """Validate a tag list against the tag library. Never blocks - warns only.
 
     Returns a list of warning strings for unknown/misspelled tags (with a
     closest-match suggestion when available). Callers log the warnings and/or
@@ -406,7 +467,7 @@ def validate_tags_on_save(tags, data_dir=None):
             continue
         if tag.lower() not in library:
             suggestion = closest_tag_match(tag, library.keys())
-            hint = f" — did you mean '{suggestion}'?" if suggestion else ""
+            hint = f" - did you mean '{suggestion}'?" if suggestion else ""
             warnings.append(f"Tag '{tag}' not in library{hint}")
             logger.warning(f"Tag validation: {warnings[-1]}")
     return warnings
@@ -427,7 +488,7 @@ def _save_scenario(world, name=None):
         else:
             source = getattr(world, '_scenario_source', None)
             if not source:
-                logger.warning("No scenario source — use Save Game or provide a name.")
+                logger.warning("No scenario source - use Save Game or provide a name.")
                 return
         data = world.to_scenario_dict()
         with open(source, 'w', encoding='utf-8') as f:

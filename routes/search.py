@@ -1,4 +1,9 @@
-"""Search routes — placement target picker and general entity search."""
+"""Search routes - placement target picker and general entity search.
+
+@module search
+@contributes register_search_routes
+@docs none - HTTP API route handler
+"""
 from flask import Blueprint, request, jsonify
 import logging
 

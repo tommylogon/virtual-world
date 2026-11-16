@@ -543,7 +543,7 @@ def handle_delete_node(app, node_id):
     if node.type == 'area':
         for edge in app.world.graph.get_edges_for_target(node_id, EDGE_IN):
             if edge.source.startswith('player_'):
-                return jsonify({"error": f"Cannot delete area '{node.name}' – player inside"}), 400
+                return jsonify({"error": f"Cannot delete area '{node.name}' - player inside"}), 400
     if node.type == 'character':
         characters = [n for n in app.world.graph.nodes.values() if n.type == 'character']
         if len(characters) <= 1:
@@ -686,6 +686,9 @@ def _merge_dict_props(existing, incoming):
     """
     merged = dict(existing)
     for key, value in incoming.items():
+        if value is None:
+            merged.pop(key, None)
+            continue
         current = merged.get(key)
         if isinstance(value, dict) and isinstance(current, dict):
             folded = dict(current)
@@ -698,7 +701,11 @@ def _merge_dict_props(existing, incoming):
 
 def _apply_node_patch(app, node, patch):
     """Apply one ``update_node``-shaped patch to *node* (shared by batch ops)."""
+    import copy
     patch = patch or {}
+    old_name = node.name
+    old_props = copy.deepcopy(node.properties or {})
+
     if patch.get('name'):
         node.name = patch['name']
     props = dict(patch.get('properties') or {})
@@ -716,7 +723,23 @@ def _apply_node_patch(app, node, patch):
     else:
         node.properties = _merge_dict_props(node.properties, props)
     node.updated = time.time()
-    return {"status": "success"}
+
+    inv_patch = {}
+    if 'name' in patch:
+        inv_patch['name'] = old_name
+    inv_props = {}
+    for k in props.keys():
+        inv_props[k] = old_props.get(k)
+    if inv_props:
+        inv_patch['properties'] = inv_props
+    inverse_op = {
+        "type": "update_node",
+        "payload": {
+            "node_id": node.id,
+            "patch": inv_patch,
+        }
+    }
+    return {"status": "success", "inverse_op": inverse_op}
 
 
 def _node_has_tags(node, tags, require_all=True):
@@ -829,7 +852,13 @@ def _apply_batch_op(app, optype, p):
             return {"error": f"Node with id '{new_id}' already exists"}
         graph.add_node(Node(id=new_id, type=node_type, name=name,
                             properties=node.get('properties') or {}))
-        return {"id": new_id}
+        return {
+            "id": new_id,
+            "inverse_op": {
+                "type": "delete_node",
+                "payload": {"node_id": new_id}
+            }
+        }
 
     if optype == 'create_character':
         # bug-527: a character is Player-backed. Register a Player (which mints
@@ -863,7 +892,14 @@ def _apply_batch_op(app, optype, p):
             for field in ('personality', 'description', 'base_description'):
                 if field in props:
                     node_obj.properties[field] = props[field]
-        return {"id": pid, "player": player.name}
+        return {
+            "id": pid,
+            "player": player.name,
+            "inverse_op": {
+                "type": "delete_node",
+                "payload": {"node_id": pid}
+            }
+        }
 
     if optype == 'create_trigger':
         # task-739: author a real trigger - the `logic_trigger` node AND the
@@ -956,7 +992,11 @@ def _apply_batch_op(app, optype, p):
                 rels[new_name] = record
                 moved += 1
         return {"player": new_name, "renamed": True, "old_name": old_name,
-                "node_id": node_id, "relationship_keys_moved": moved}
+                "node_id": node_id, "relationship_keys_moved": moved,
+                "inverse_op": {
+                    "type": "rename_character",
+                    "payload": {"character": new_name, "new_name": old_name}
+                }}
 
     if optype == 'spawn_library_item':
         from routes.library_ops import place_library_item
@@ -985,7 +1025,13 @@ def _apply_batch_op(app, optype, p):
             if placed:
                 placed.name = str(p['rename'])
                 placed.updated = time.time()
-        return {"node_id": node_id}
+        return {
+            "node_id": node_id,
+            "inverse_op": {
+                "type": "delete_node",
+                "payload": {"node_id": node_id}
+            }
+        }
 
     if optype == 'connect_areas':
         way_id = p.get('way_id')
@@ -1019,7 +1065,11 @@ def _apply_batch_op(app, optype, p):
         way_node = graph.get_node(way_id)
         way_node.properties = _infer_way_facts(app, way_id, way_node.properties)
         return {"way_id": str(way_id),
-                "world_scope_id": way_node.properties.get("world_scope_id")}
+                "world_scope_id": way_node.properties.get("world_scope_id"),
+                "inverse_op": {
+                    "type": "delete_node",
+                    "payload": {"node_id": str(way_id)}
+                }}
 
     if optype == 'update_node':
         node = graph.get_node(p.get('node_id'))
@@ -1109,15 +1159,30 @@ def _apply_batch_op(app, optype, p):
             return {"error": f"Target '{tgt}' not found"}
         graph.add_edge(Edge(source=src, target=tgt, type=etype,
                             properties=p.get('properties') or {}))
-        return {"status": "success"}
+        return {
+            "status": "success",
+            "inverse_op": {
+                "type": "detach",
+                "payload": {"from_id": src, "to_id": tgt, "relation": etype}
+            }
+        }
 
     if optype == 'detach':
         src, tgt, etype = p.get('from_id'), p.get('to_id'), p.get('relation') or 'in'
+        import copy
+        edge = next((e for e in graph.edges if e.source == src and e.target == tgt and e.type == etype), None)
+        edge_props = copy.deepcopy(edge.properties or {}) if edge else {}
         before = len(graph.edges)
         graph.remove_edge(src, tgt, etype)
         if len(graph.edges) == before:
             return {"error": f"No edge {src} -{etype}-> {tgt} to detach"}
-        return {"status": "success"}
+        return {
+            "status": "success",
+            "inverse_op": {
+                "type": "attach",
+                "payload": {"from_id": src, "to_id": tgt, "relation": etype, "properties": edge_props}
+            }
+        }
 
     if optype == 'delete_node':
         node = graph.get_node(p.get('node_id'))
@@ -1126,13 +1191,26 @@ def _apply_batch_op(app, optype, p):
         if node.type == 'area':
             for edge in graph.get_edges_for_target(node.id, EDGE_IN):
                 if edge.source.startswith('player_'):
-                    return {"error": f"Cannot delete area '{node.name}' – player inside"}
+                    return {"error": f"Cannot delete area '{node.name}' - player inside"}
         if node.type == 'character':
             characters = [n for n in graph.nodes.values() if n.type == 'character']
             if len(characters) <= 1:
                 return {"error": "Cannot delete the last character"}
+        import copy
+        old_node_dict = {
+            "id": node.id,
+            "type": node.type,
+            "name": node.name,
+            "properties": copy.deepcopy(node.properties or {}),
+        }
         graph.remove_node(node.id)
-        return {"status": "success"}
+        return {
+            "status": "success",
+            "inverse_op": {
+                "type": "create_node",
+                "payload": {"node": old_node_dict}
+            }
+        }
 
     if optype == 'library_upsert':
         from routes.library_ops import write_library_entry, REGISTRY_TYPES
@@ -1264,6 +1342,26 @@ def handle_graph_batch(app):
         "errors": errors,
         "validation": validation,
     }), (200 if ok else 207)
+
+
+def handle_graph_undo_op(app):
+    """Revert ONE applied op via its inverse op (task-743)."""
+    data = request.get_json() or {}
+    inv = data.get('inverse_op') or data.get('op')
+    if not isinstance(inv, dict):
+        return jsonify({"error": "Missing inverse_op"}), 400
+    optype = inv.get('type')
+    payload = inv.get('payload') or {}
+    try:
+        from routes.saveload import _push_undo_snapshot
+        _push_undo_snapshot(app, label=f"NL undo {optype}")
+        result = _apply_batch_op(app, optype, payload)
+    except Exception as exc:
+        logger.warning("Undo op %s failed: %s", optype, exc)
+        return jsonify({"error": str(exc)}), 500
+    if result.get('error'):
+        return jsonify({"error": result['error']}), 400
+    return jsonify({"status": "success", "result": result})
 
 
 def handle_build_area_legacy(app):

@@ -1,3 +1,10 @@
+"""saveload module.
+
+@module saveload
+@contributes _snapshot, _push_undo_snapshot, _push_undo_delta, _is_delta, _apply_paint_delta, _delta_label
+@docs none - HTTP API route handler
+"""
+
 import os
 import re
 import json
@@ -27,17 +34,23 @@ def _snapshot(world):
 def _push_undo_snapshot(app, label="world edit"):
     """Save the current world state onto the undo stack and clear redo."""
     state, source = _snapshot(app.world)
-    app._undo_stack.append((state, source, label or "world edit"))
+    lbl = label or "world edit"
+    app._undo_stack.append((state, source, lbl))
     if len(app._undo_stack) > _MAX_UNDO_DEPTH:
         app._undo_stack.pop(0)
     app._redo_stack.clear()
+    try:
+        from flask import g
+        g._undo_label = lbl
+    except Exception:
+        pass
 
 
 def _push_undo_delta(app, entry: dict) -> None:
     """Push a cheap reversible delta (a paint stroke) instead of a snapshot.
 
     ``entry`` is ``{"kind": "paint", "scope_id": ..., "cells":
-    [{layer, x, y, previous, value}], "label": ...}`` — bytes, not the
+    [{layer, x, y, previous, value}], "label": ...}`` - bytes, not the
     15 MB ``world.to_dict()`` a paint used to cost per cell (bug-545:
     0.20 s + 15 MB per cell on kraktooth). Undo applies ``previous``,
     redo re-applies ``value``; neither replaces the world, so undoing
@@ -47,6 +60,11 @@ def _push_undo_delta(app, entry: dict) -> None:
     if len(app._undo_stack) > _MAX_UNDO_DEPTH:
         app._undo_stack.pop(0)
     app._redo_stack.clear()
+    try:
+        from flask import g
+        g._undo_label = entry.get("label") or "paint"
+    except Exception:
+        pass
 
 
 def _is_delta(entry) -> bool:
@@ -57,7 +75,7 @@ def _apply_paint_delta(app, entry: dict, direction: str) -> int:
     """Apply a paint delta to the live world; returns cells applied.
 
     ``direction`` is ``"undo"`` (write ``previous``) or ``"redo"`` (write
-    ``value``). Operates on the live manifest — no world replace, so ticks
+    ``value``). Operates on the live manifest - no world replace, so ticks
     that ran since the paint stand. A cell that no longer fits (grid
     shrunk since) is skipped; the rest still apply.
     """
@@ -203,14 +221,14 @@ def register_saveload_routes(app):
             if "_save_metadata" in data:
                 _adopt_loaded_world(app, data)
             elif data.get('persist'):
-                # GUI scenario loads opt IN with persist:true — write the source
+                # GUI scenario loads opt IN with persist:true - write the source
                 # file to scenarios/ so Save Scenario works. Ephemeral loads
                 # (tests, MCP import, "New Scenario") never write to disk.
                 scenario_name = data.get('_scenario_name') or data.get('name', 'unnamed')
                 scenarios_dir = os.path.join(app.config['DATA_DIR'], 'scenarios')
                 os.makedirs(scenarios_dir, exist_ok=True)
                 scenario_path = os.path.join(scenarios_dir, f"{scenario_name}.json")
-                # task-222: persisted worlds are graph-only — drop the redundant
+                # task-222: persisted worlds are graph-only - drop the redundant
                 # per-room exits copies on the way to disk.
                 app.world.serializer.strip_redundant_exits(data)
                 with open(scenario_path, 'w', encoding='utf-8') as f:
@@ -271,7 +289,7 @@ def register_saveload_routes(app):
             # Clear any game_log/time state inherited from the template so only
             # fresh init messages remain. load_from_dict writes to legacy_compat
             # (which _serialize_world reads from for the frontend), while
-            # VirtualWorld.add_log_entry writes to game_logger — so set BOTH.
+            # VirtualWorld.add_log_entry writes to game_logger - so set BOTH.
             new_world.legacy_compat.game_log = []
             new_world.legacy_compat.turn_events = []
             new_world.legacy_compat.log_revision = 0
@@ -290,7 +308,7 @@ def register_saveload_routes(app):
             new_world.add_log_entry(" - Interaction: open/close [door], use [item] (on [target])")
             new_world.add_log_entry(" - Items: take [item], drop [item], examine [item], inventory")
             new_world.add_log_entry(" - Vitals: rest [minutes], eat/drink (use item), stats")
-            new_world.add_log_entry(" - CRITICAL: Keep Energy above 25% to survive and enable HP regeneration! Hunger and Thirst RISE over time — eat and drink before they max out!")
+            new_world.add_log_entry(" - CRITICAL: Keep Energy above 25% to survive and enable HP regeneration! Hunger and Thirst RISE over time - eat and drink before they max out!")
             new_world.add_log_entry(" - WARNING: Environmental conditions affect your needs. Pay attention to temperature, air, noise, and smell!")
             # Mirror fresh log into legacy_compat so frontend sees it via to_dict()
             new_world.legacy_compat.game_log = list(new_world.game_logger.game_log)
@@ -495,13 +513,13 @@ def register_saveload_routes(app):
             m = re.match(r'^(.*)_(\d{8}_\d{6})$', old_base)
             target = f"{safe_new}_{m.group(2)}.json" if m else None
             if meta.get('autosave') or not m or target == os.path.basename(path):
-                # Slot saves keep their identity — only the label changes.
+                # Slot saves keep their identity - only the label changes.
                 with open(path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
                 new_filename = os.path.basename(path)
             else:
                 # Another save may already own the target name (same-second save
-                # or a rename onto an existing run) — never clobber it.
+                # or a rename onto an existing run) - never clobber it.
                 new_filename = unique_filename(saves_dir, target)
                 new_path = os.path.join(saves_dir, new_filename)
                 with open(new_path, 'w', encoding='utf-8') as f:
@@ -597,7 +615,7 @@ def register_saveload_routes(app):
         Groups: added_areas / removed_areas / changed_areas (description,
         environment) / added_players / removed_players /
         added_items / removed_items / changed_items / added_ways /
-        removed_ways / changed_ways. Rides on a canonical fingerprint —
+        removed_ways / changed_ways. Rides on a canonical fingerprint -
         no storage format changes.
         """
         world = app.world
@@ -763,13 +781,13 @@ def register_saveload_routes(app):
         commit_groups = set(body.get('commit') or [])
         discard_groups = set(body.get('discard') or [])
         if not commit_groups and not discard_groups:
-            return jsonify({"error": "Nothing to apply — pass commit/discard groups."}), 400
+            return jsonify({"error": "Nothing to apply - pass commit/discard groups."}), 400
 
         source = getattr(world, '_scenario_source', None)
         if not source or not os.path.exists(source):
             return jsonify({"error": "No scenario source to apply against."}), 400
 
-        # snapshot Live world first (discard mutates the world — undoable)
+        # snapshot Live world first (discard mutates the world - undoable)
         if discard_groups:
             _push_undo_snapshot(app, label="scenario discard (restore from source)")
 
@@ -820,7 +838,7 @@ def register_saveload_routes(app):
                                                   properties=dict(node.get('properties') or {})))
             if 'areas' in discard_groups:
                 # Restore description/environment/tags from source onto the
-                # LIVE area nodes (keep the nodes — no remove/add churn, so
+                # LIVE area nodes (keep the nodes - no remove/add churn, so
                 # placement edges and current runtime state survive).
                 src_areas = src.get('areas') or {}
                 for node_id, node in list(world.graph.nodes.items()):
@@ -838,7 +856,7 @@ def register_saveload_routes(app):
                         node.properties['tags'] = list(a['tags'])
             if 'players' in discard_groups:
                 # players are live state; restoring from source would delete
-                # runtime memories — only re-add names that source has.
+                # runtime memories - only re-add names that source has.
                 for pname in (src.get('players') or {}):
                     if pname not in world.player_manager.players:
                         world.player_manager.add_player(Player(pname))
@@ -1016,7 +1034,7 @@ def register_saveload_routes(app):
 
         ``dirty`` = the live world was mutated since the source was last loaded
         or committed (edit_seq vs commit_seq, bumped in the after_request
-        autosave hook). Cheap and exact — no serialization on every poll.
+        autosave hook). Cheap and exact - no serialization on every poll.
         """
         world = app.world
         source = getattr(world, '_scenario_source', None)
@@ -1045,7 +1063,7 @@ def register_saveload_routes(app):
         """Name the live world.
 
         The name is not cosmetic: it drives the top-bar chip, the per-scenario
-        browser cache key, and — most importantly — WHERE a commit writes. A
+        browser cache key, and - most importantly - WHERE a commit writes. A
         world booted from a shared source (e.g. the boot template) would
         otherwise commit straight back into that file. When the current source
         has a different basename the save target is repointed to
@@ -1071,7 +1089,7 @@ def register_saveload_routes(app):
             target_is_source = bool(source) and os.path.abspath(target) == os.path.abspath(source)
             if os.path.exists(target) and not target_is_source:
                 result["warning"] = (
-                    f"'{safe}.json' already exists — commits keep writing to "
+                    f"'{safe}.json' already exists - commits keep writing to "
                     f"{os.path.basename(source) if source else 'the current target'}."
                 )
             else:
@@ -1087,7 +1105,7 @@ def register_saveload_routes(app):
 
     @app.route('/api/scenario/commit', methods=['POST'])
     def scenario_commit():
-        """Write the live world into the scenario source (undo not needed —
+        """Write the live world into the scenario source (undo not needed -
         the world itself is unchanged; only the source file is refreshed)."""
         if getattr(app, 'play_mode', False):
             return jsonify({"error": "Cannot commit scenario while in Play Mode. Stop Play Mode first to restore or inspect authored state."}), 400

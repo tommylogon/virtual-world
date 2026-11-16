@@ -6,6 +6,10 @@ Provides:
 - Model listing proxy: POST /api/bench/models (to avoid browser CORS issues)
 - LLM streaming/completion proxy: POST /api/bench/chat
 - Run persistence: GET/POST /api/bench/runs
+
+@module benchmark
+@contributes register_benchmark_routes
+@docs none - HTTP API route handler
 """
 import os
 import re
@@ -22,6 +26,39 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parent.parent
 BENCH_DIR = ROOT / "data" / "model_bench"
 RUNS_DIR = BENCH_DIR / "runs"
+REGISTRY_FILE = BENCH_DIR / "model_registry.json"
+
+
+def load_model_registry() -> dict:
+    """Load the persistent model metadata registry."""
+    if not REGISTRY_FILE.exists():
+        return {}
+    try:
+        with open(REGISTRY_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.warning(f"Failed to read model_registry.json: {e}")
+        return {}
+
+
+def save_model_registry(registry: dict) -> bool:
+    """Atomically save the persistent model metadata registry."""
+    BENCH_DIR.mkdir(parents=True, exist_ok=True)
+    tmp_file = BENCH_DIR / "model_registry.json.tmp"
+    try:
+        with open(tmp_file, 'w', encoding='utf-8') as f:
+            json.dump(registry, f, indent=2, ensure_ascii=False)
+        tmp_file.replace(REGISTRY_FILE)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to write model_registry.json: {e}")
+        if tmp_file.exists():
+            try:
+                tmp_file.unlink()
+            except Exception:
+                pass
+        return False
+
 
 def register_benchmark_routes(app):
     """Register all benchmark routes on the app."""
@@ -41,7 +78,7 @@ def register_benchmark_routes(app):
     @app.route('/api/models', methods=['POST'])
     @app.route('/api/bench/models', methods=['POST'])
     def fetch_provider_models():
-        """Fetch model list from an external provider (with rich LM Studio native detection)."""
+        """Fetch model list from an external provider (with rich native detection for LM Studio, OpenRouter, Groq, Mistral, Gemini)."""
         data = request.get_json(silent=True) or {}
         api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
         api_key = data.get('api_key') or ''
@@ -49,8 +86,91 @@ def register_benchmark_routes(app):
         headers = {'Content-Type': 'application/json'}
         if api_key and api_key not in ('not-needed', 'none'):
             headers['Authorization'] = f'Bearer {api_key}'
+            headers['x-goog-api-key'] = api_key
 
-        # Try LM Studio native endpoint first if host root provides /api/v1/models
+        registry = load_model_registry()
+        registry_dirty = False
+
+        def apply_registry_overlay(model_dict):
+            nonlocal registry_dirty
+            mid = model_dict['id']
+            if mid in registry:
+                entry = registry[mid]
+                if 'status' in entry:
+                    model_dict['status'] = entry['status']
+                if 'reason' in entry:
+                    model_dict['reason'] = entry['reason']
+                if 'notes' in entry:
+                    model_dict['notes'] = entry['notes']
+                if 'is_free' in entry:
+                    model_dict['is_free'] = bool(entry['is_free'])
+                if 'ratings' in entry:
+                    model_dict['ratings'] = entry['ratings']
+            else:
+                # Seed auto-detected flags into registry for cross-system awareness
+                cur_status = model_dict.get('status', 'active')
+                is_free = bool(model_dict.get('is_free', False))
+                if cur_status != 'active' or is_free:
+                    registry[mid] = {
+                        'display_name': model_dict.get('name') or mid,
+                        'status': cur_status,
+                        'reason': model_dict.get('reason'),
+                        'notes': model_dict.get('notes'),
+                        'is_free': is_free,
+                        'context_length': model_dict.get('context_length'),
+                        'updated_at': datetime.now(timezone.utc).isoformat()
+                    }
+                    registry_dirty = True
+            return model_dict
+
+        # 1. Google Gemini native models endpoint
+        if 'generativelanguage.googleapis.com' in api_base:
+            try:
+                gemini_url = f"{api_base}/models"
+                params = {}
+                if api_key and api_key not in ('not-needed', 'none'):
+                    params['key'] = api_key
+                resp = requests.get(gemini_url, headers=headers, params=params, timeout=10)
+                if not resp.ok:
+                    return jsonify({'error': f'Google Gemini returned status {resp.status_code}', 'models': []}), resp.status_code
+                payload = resp.json()
+                raw_models = payload.get('models', [])
+                models = []
+                for m in raw_models:
+                    if not isinstance(m, dict):
+                        continue
+                    full_name = m.get('name', '')
+                    mid = full_name.replace('models/', '') if full_name.startswith('models/') else full_name
+                    if not mid:
+                        continue
+                    methods = m.get('supportedGenerationMethods') or []
+                    is_chat = 'generateContent' in methods
+                    is_embed = 'embedContent' in methods and not is_chat
+                    models.append(apply_registry_overlay({
+                        'id': mid,
+                        'name': m.get('displayName') or mid,
+                        'description': m.get('description') or '',
+                        'context_length': m.get('inputTokenLimit'),
+                        'max_output_tokens': m.get('outputTokenLimit'),
+                        'vision': 'gemini' in mid.lower() and any(k in mid.lower() for k in ['flash', 'pro', 'ultra']),
+                        'tools': is_chat,
+                        'structured_outputs': is_chat,
+                        'supports_temperature': is_chat,
+                        'supports_top_p': is_chat,
+                        'reasoning': bool(m.get('thinking')),
+                        'loaded': False,
+                        'is_free': False,
+                        'status': 'do_not_use' if is_embed else 'active',
+                        'reason': 'embeddings' if is_embed else None,
+                    }))
+                models.sort(key=lambda x: str(x['name']).lower())
+                if registry_dirty:
+                    save_model_registry(registry)
+                return jsonify({'models': models, 'is_native_lmstudio': False})
+            except requests.exceptions.RequestException as e:
+                return jsonify({'error': f'Cannot reach Google Gemini at {api_base}: {str(e)}', 'models': []}), 502
+
+        # 2. Try LM Studio native endpoint first if host root provides /api/v1/models
         host_root = re.sub(r'/v1/?$', '', api_base)
         native_url = f'{host_root}/api/v1/models'
 
@@ -64,7 +184,7 @@ def register_benchmark_routes(app):
                     for m in raw_models:
                         if not isinstance(m, dict):
                             continue
-                        # Filter out embedding models
+                        # Filter out embedding models from standard chat list
                         if m.get('type') and m.get('type') != 'llm':
                             continue
                         key = m.get('key') or m.get('id')
@@ -73,51 +193,167 @@ def register_benchmark_routes(app):
                         caps = m.get('capabilities') or {}
                         quant = m.get('quantization')
                         quant_name = quant.get('name') if isinstance(quant, dict) else None
-                        models.append({
+                        models.append(apply_registry_overlay({
                             'id': key,
                             'name': m.get('display_name') or key,
+                            'description': m.get('description') or '',
                             'params': m.get('params_string'),
                             'quant': quant_name,
                             'context_length': m.get('max_context_length'),
                             'vision': bool(caps.get('vision')),
                             'tools': bool(caps.get('trained_for_tool_use')),
+                            'structured_outputs': True,
+                            'supports_temperature': True,
+                            'supports_top_p': True,
                             'reasoning': bool(caps.get('reasoning')),
                             'loaded': len(m.get('loaded_instances') or []) > 0,
                             'size_bytes': m.get('size_bytes'),
-                        })
+                            'is_free': True,  # Local models are zero-cost
+                            'status': 'active',
+                        }))
                     models.sort(key=lambda x: str(x['name']).lower())
+                    if registry_dirty:
+                        save_model_registry(registry)
                     return jsonify({'models': models, 'is_native_lmstudio': True})
         except Exception:
             pass
 
-        # Fallback to standard OpenAI /models
+        # 3. Fallback to standard OpenAI-compatible /models endpoint
         try:
-            resp = requests.get(f'{api_base}/models', headers=headers, timeout=5)
+            resp = requests.get(f'{api_base}/models', headers=headers, timeout=8)
             if not resp.ok:
                 return jsonify({'error': f'Provider returned status {resp.status_code}', 'models': []}), resp.status_code
             payload = resp.json()
-            models = []
+            raw_list = []
             if isinstance(payload, dict) and 'data' in payload and isinstance(payload['data'], list):
-                for m in payload['data']:
-                    if isinstance(m, dict):
-                        mid = m.get('id') or m.get('name')
-                        if mid:
-                            models.append({
-                                'id': mid,
-                                'name': mid,
-                                'loaded': False,
-                            })
+                raw_list = payload['data']
             elif isinstance(payload, list):
-                for m in payload:
-                    mid = m.get('id') if isinstance(m, dict) else str(m)
-                    if mid:
-                        models.append({
-                            'id': mid,
-                            'name': mid,
-                            'loaded': False,
-                        })
+                raw_list = payload
+
+            models = []
+            is_openrouter = 'openrouter.ai' in api_base
+            is_groq = 'groq.com' in api_base
+            is_mistral = 'mistral.ai' in api_base
+
+            for m in raw_list:
+                if not isinstance(m, dict):
+                    mid = str(m)
+                    m = {'id': mid, 'name': mid}
+                mid = m.get('id') or m.get('name')
+                if not mid:
+                    continue
+
+                m_obj = {
+                    'id': mid,
+                    'name': m.get('name') or mid,
+                    'loaded': False,
+                    'status': 'active',
+                    'reason': None,
+                    'is_free': False
+                }
+
+                if is_openrouter:
+                    m_obj['context_length'] = m.get('context_length')
+                    top_prov = m.get('top_provider')
+                    if isinstance(top_prov, dict):
+                        m_obj['max_output_tokens'] = top_prov.get('max_completion_tokens')
+                    pricing = m.get('pricing') or {}
+                    if isinstance(pricing, dict):
+                        m_obj['pricing'] = pricing
+                        if str(pricing.get('prompt')) == '0' and str(pricing.get('completion')) == '0':
+                            m_obj['is_free'] = True
+                    arch = m.get('architecture') or {}
+                    if isinstance(arch, dict):
+                        in_mod = arch.get('input_modalities') or []
+                        out_mod = arch.get('output_modalities') or []
+                        m_obj['vision'] = 'image' in in_mod
+                        if len(out_mod) > 0 and 'text' not in out_mod:
+                            m_obj['status'] = 'do_not_use'
+                            m_obj['reason'] = 'audio_video'
+
+                    # OpenRouter Extended Parameters & Capabilities
+                    params = m.get('supported_parameters') or []
+                    m_obj['supported_parameters'] = params
+                    m_obj['tools'] = 'tools' in params
+                    m_obj['structured_outputs'] = 'structured_outputs' in params or 'response_format' in params
+                    m_obj['supports_temperature'] = 'temperature' in params
+                    m_obj['supports_top_p'] = 'top_p' in params
+                    m_obj['description'] = m.get('description') or ''
+
+                    reasoning_obj = m.get('reasoning')
+                    if isinstance(reasoning_obj, dict):
+                        m_obj['reasoning'] = True
+                        m_obj['reasoning_details'] = {
+                            'mandatory': bool(reasoning_obj.get('mandatory')),
+                            'supported_efforts': reasoning_obj.get('supported_efforts') or ['high'],
+                            'default_effort': reasoning_obj.get('default_effort') or 'high'
+                        }
+                    elif m.get('reasoning'):
+                        m_obj['reasoning'] = True
+                        m_obj['reasoning_details'] = {
+                            'mandatory': False,
+                            'supported_efforts': ['none', 'low', 'medium', 'high'],
+                            'default_effort': 'medium'
+                        }
+
+                    bench = m.get('benchmarks') or {}
+                    aa = bench.get('artificial_analysis') if isinstance(bench, dict) else None
+                    if isinstance(aa, dict) and aa.get('intelligence_index') is not None:
+                        m_obj['score'] = aa.get('intelligence_index')
+
+                elif is_groq:
+                    m_obj['context_length'] = m.get('context_window') or m.get('context_length')
+                    m_obj['max_output_tokens'] = m.get('max_completion_tokens')
+                    m_obj['pricing'] = m.get('pricing')
+                    m_obj['tools'] = True
+                    m_obj['structured_outputs'] = True
+                    m_obj['supports_temperature'] = True
+                    m_obj['supports_top_p'] = True
+                    in_mod = m.get('input_modalities') or []
+                    out_mod = m.get('output_modalities') or []
+                    m_obj['vision'] = 'image' in in_mod
+                    if any(x in out_mod for x in ['transcription', 'speech']):
+                        m_obj['status'] = 'do_not_use'
+                        m_obj['reason'] = 'audio_video'
+                    elif (m.get('context_window') or 0) <= 512 and 'guard' in mid.lower():
+                        m_obj['status'] = 'do_not_use'
+                        m_obj['reason'] = 'broken'
+
+                elif is_mistral:
+                    m_obj['context_length'] = m.get('max_context_length')
+                    caps = m.get('capabilities') or {}
+                    m_obj['tools'] = bool(caps.get('function_calling'))
+                    m_obj['structured_outputs'] = True
+                    m_obj['supports_temperature'] = True
+                    m_obj['supports_top_p'] = True
+                    m_obj['vision'] = bool(caps.get('vision'))
+                    m_obj['reasoning'] = bool(caps.get('reasoning'))
+                    if caps.get('completion_chat') is False:
+                        m_obj['status'] = 'do_not_use'
+                        m_obj['reason'] = 'embeddings' if 'embed' in mid.lower() else 'broken'
+
+                # Generic non-chat heuristics
+                mid_lower = mid.lower()
+                if m_obj['status'] == 'active':
+                    if 'embed' in mid_lower or 'nomic-embed' in mid_lower:
+                        m_obj['status'] = 'do_not_use'
+                        m_obj['reason'] = 'embeddings'
+                    elif any(k in mid_lower for k in ['realtime', 'whisper', 'tts', 'flux', 'sdxl', 'dall-e']):
+                        m_obj['status'] = 'do_not_use'
+                        m_obj['reason'] = 'audio_video'
+
+                # Parameter size regex inference if not explicit
+                p_match = re.search(r'[\-_](\d+(?:\.\d+)?)b\b', mid, re.IGNORECASE) or re.search(r'\b(\d+(?:\.\d+)?)b\b', mid, re.IGNORECASE)
+                if p_match:
+                    m_obj['params'] = f"{p_match.group(1)}B"
+
+                models.append(apply_registry_overlay(m_obj))
+
             models.sort(key=lambda x: str(x['name']).lower())
+            if registry_dirty:
+                save_model_registry(registry)
             return jsonify({'models': models, 'is_native_lmstudio': False})
+
         except requests.exceptions.RequestException as e:
             return jsonify({'error': f'Cannot reach provider at {api_base}: {str(e)}', 'models': []}), 502
 
@@ -368,4 +604,119 @@ def register_benchmark_routes(app):
             return jsonify({'error': 'Empty run file'}), 400
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/bench/models/metadata', methods=['GET'])
+    def get_models_metadata():
+        """Get the full dictionary of stored model metadata and operational statuses."""
+        registry = load_model_registry()
+        return jsonify({'metadata': registry})
+
+    @app.route('/api/bench/models/metadata', methods=['POST'])
+    def update_model_metadata():
+        """Update operational status, reason, notes, or is_free flag for a model."""
+        payload = request.get_json(silent=True) or {}
+        model_id = payload.get('model_id')
+        if not model_id:
+            return jsonify({'error': 'Missing model_id'}), 400
+
+        registry = load_model_registry()
+        entry = registry.setdefault(model_id, {})
+        if 'display_name' in payload:
+            entry['display_name'] = payload['display_name']
+        if 'status' in payload:
+            entry['status'] = payload['status']
+        if 'reason' in payload:
+            entry['reason'] = payload['reason']
+        if 'notes' in payload:
+            entry['notes'] = payload['notes']
+        if 'is_free' in payload:
+            entry['is_free'] = bool(payload['is_free'])
+        if 'tags' in payload and isinstance(payload['tags'], list):
+            entry['tags'] = payload['tags']
+        entry['updated_at'] = datetime.now(timezone.utc).isoformat()
+
+        if save_model_registry(registry):
+            return jsonify({'status': 'saved', 'model_id': model_id, 'metadata': entry})
+        return jsonify({'error': 'Failed to save model registry'}), 500
+
+    @app.route('/api/bench/runs/<run_id>/rate', methods=['POST'])
+    def rate_bench_run_result(run_id):
+        """Attach a 1-5 star rating and feedback note to a model result in a run, and rollup to registry."""
+        safe_id = Path(run_id).name
+        run_file = RUNS_DIR / f"{safe_id}.jsonl"
+        if not run_file.exists():
+            return jsonify({'error': 'Run not found'}), 404
+
+        payload = request.get_json(silent=True) or {}
+        model_id = payload.get('model')
+        rating = payload.get('rating')
+        feedback = payload.get('feedback', '')
+        tags = payload.get('tags') or []
+
+        if not model_id or rating is None:
+            return jsonify({'error': 'Missing model or rating'}), 400
+
+        try:
+            rating_val = float(rating)
+            if not (1.0 <= rating_val <= 5.0):
+                return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid numeric rating'}), 400
+
+        # Update JSONL run record
+        updated_result = None
+        records = []
+        try:
+            with open(run_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    rec = json.loads(line)
+                    results = rec.get('results', [])
+                    for res in results:
+                        if res.get('model') == model_id:
+                            res['rating'] = rating_val
+                            res['feedback'] = feedback
+                            if tags:
+                                res['tags'] = tags
+                            updated_result = res
+                    records.append(rec)
+
+            if not updated_result:
+                return jsonify({'error': f'Model {model_id} not found in run'}), 404
+
+            with open(run_file, 'w', encoding='utf-8') as f:
+                for rec in records:
+                    f.write(json.dumps(rec, ensure_ascii=False) + '\n')
+
+        except Exception as e:
+            return jsonify({'error': f'Failed updating run record: {str(e)}'}), 500
+
+        # Rollup aggregate rating into model_registry.json
+        try:
+            registry = load_model_registry()
+            entry = registry.setdefault(model_id, {})
+            ratings_obj = entry.setdefault('ratings', {'total_reviews': 0, 'average_score': 0.0, 'common_tags': []})
+            old_total = ratings_obj.get('total_reviews', 0)
+            old_avg = ratings_obj.get('average_score', 0.0)
+            new_total = old_total + 1
+            new_avg = round(((old_avg * old_total) + rating_val) / new_total, 2)
+            ratings_obj['total_reviews'] = new_total
+            ratings_obj['average_score'] = new_avg
+            if tags:
+                existing_tags = set(ratings_obj.get('common_tags', []))
+                existing_tags.update(tags)
+                ratings_obj['common_tags'] = sorted(list(existing_tags))
+            entry['updated_at'] = datetime.now(timezone.utc).isoformat()
+            save_model_registry(registry)
+        except Exception as e:
+            logger.warning(f"Failed rolling up rating to registry: {e}")
+
+        return jsonify({
+            'status': 'rated',
+            'run_id': safe_id,
+            'model': model_id,
+            'rating': rating_val,
+            'feedback': feedback
+        })
 

@@ -6,7 +6,9 @@
 @relates engine/commons.py, routes/pages.py
 @docs docs/virtualWorld/Gameplay/The Commons.md
 """
-from flask import jsonify, request
+import os
+import uuid
+from flask import jsonify, request, send_file
 from player import Player
 
 from engine.commons import (
@@ -59,6 +61,14 @@ def register_commons_routes(app):
         graph = getattr(world, 'graph', None)
         node = graph.get_node(node_id) if graph is not None and node_id else None
         properties = node.properties if node is not None else {}
+        ticks = int(getattr(world, "time_ticks", 0) or 0)
+        mpt = float(getattr(world, "time_per_tick_minutes", 5) or 5)
+        start_min = int(getattr(world, "clock_start_hour", 8) or 8) * 60 + int(getattr(world, "clock_start_minute", 0) or 0)
+        total_min = int(round(start_min + ticks * mpt))
+        day_num = (total_min // 1440) + 1
+        hh = (total_min % 1440) // 60
+        mm = total_min % 60
+        world_time = f"Day {day_num}, {hh:02d}:{mm:02d} (tick {ticks})"
         return jsonify({
             "name": name,
             "traits": getattr(player, "traits", {}) or {},
@@ -67,6 +77,12 @@ def register_commons_routes(app):
             "description": getattr(player, "description", "") or properties.get("description", "") or properties.get("base_description", "") or "",
             "tags": getattr(player, "tags", []) or [],
             "state": getattr(player, "state", "awake"),
+            "emotion": getattr(player, "emotion", "neutral") or "neutral",
+            "emotion_intensity": getattr(player, "emotion_intensity", 0) or 0,
+            "conditions": getattr(player, "conditions", {}) or {},
+            "relationships": getattr(player, "relationships", {}) or {},
+            "time_ticks": ticks,
+            "world_time": world_time,
         })
 
     @app.route('/api/commons/state', methods=['GET'])
@@ -100,6 +116,7 @@ def register_commons_routes(app):
                 "blocked": bool(row.get("blocked", False)),
                 "control_mode": control_mode,
                 "state": getattr(character, "state", "awake") if character is not None else "unavailable",
+                "muted_channels": list(row.get("muted_channels") or []),
             }
         return jsonify({
             "perspective": perspective,
@@ -178,6 +195,26 @@ def register_commons_routes(app):
             return _failure(exc)
         return jsonify({"channel": channel})
 
+    @app.route('/api/commons/channels/<channel_id>/mute', methods=['POST'])
+    def commons_mute_channel(channel_id):
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        data = request.get_json() or {}
+        actor = str(data.get("actor") or "").strip()
+        if not _known_member(world, actor):
+            return jsonify({"error": "Actor not found"}), 404
+        if _theme(world) == "town_board":
+            channel = chat.channels.get(channel_id)
+            if channel and not _channel_allowed(_theme(world), channel):
+                return _unavailable_group()
+        muted = bool(data.get("muted", True))
+        try:
+            muted_state = chat.set_muted(actor, channel_id, muted)
+        except (ValueError, KeyError, ChatAuthorizationError) as exc:
+            return _failure(exc)
+        return jsonify({"channel_id": channel_id, "muted": muted_state})
+
     @app.route('/api/commons/messages', methods=['GET', 'POST'])
     def commons_messages():
         world, chat, error = _world_chat()
@@ -200,6 +237,7 @@ def register_commons_routes(app):
                 dict(message) for message in chat.messages
                 if message.get("channel_id", PUBLIC_CHANNEL_ID) == channel_id
                 and (since_id is None or message["id"] > since_id)
+                and not message.get("deleted")
             ]
             return jsonify({"messages": msgs})
 
@@ -207,23 +245,70 @@ def register_commons_routes(app):
         author = str(data.get("author", "User") or "User").strip()
         channel_id = str(data.get("channel_id") or PUBLIC_CHANNEL_ID)
         text = str(data.get("text") or "").strip()
+        attachments = data.get("attachments") or []
         if not _known_member(world, author):
             return jsonify({"error": "Author not found"}), 404
-        if not text:
-            return jsonify({"error": "Empty message text"}), 400
+        if not text and not attachments:
+            return jsonify({"error": "Empty message text and no attachments"}), 400
         channel = chat.channels.get(channel_id)
         if channel and not _channel_allowed(_theme(world), channel):
             return _unavailable_group()
+        clean_attachments = []
+        for att in attachments:
+            if isinstance(att, dict):
+                clean_attachments.append({
+                    "id": str(att.get("id") or uuid.uuid4().hex[:8]),
+                    "url": str(att.get("url") or "").strip(),
+                    "mime_type": str(att.get("mime_type") or "image/png").strip(),
+                    "size": int(att.get("size") or 0),
+                    "caption": str(att.get("caption") or "").strip(),
+                })
         try:
             message = chat.post_message(
                 author=author,
                 text=text,
                 tick=getattr(world, 'time_ticks', 0),
                 channel_id=channel_id,
+                attachments=clean_attachments if clean_attachments else None,
             )
         except (KeyError, ChatAuthorizationError) as exc:
             return _failure(exc)
         return jsonify({"message": message})
+
+    @app.route('/api/commons/messages/<int:message_id>', methods=['PATCH', 'DELETE'])
+    def commons_message_detail(message_id):
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        data = request.get_json(silent=True) or {}
+        actor = str(data.get("author") or request.args.get("author") or "User").strip()
+        if not _known_member(world, actor):
+            return jsonify({"error": "Actor not found"}), 404
+        if request.method == 'PATCH':
+            text = str(data.get("text") or "").strip()
+            if not text:
+                return jsonify({"error": "Empty message text"}), 400
+            try:
+                msg = chat.edit_message(
+                    message_id=message_id,
+                    author=actor,
+                    text=text,
+                    players=getattr(world, "players", None),
+                )
+            except (KeyError, ChatAuthorizationError, ValueError) as exc:
+                return _failure(exc)
+            return jsonify({"message": msg})
+
+        # DELETE
+        try:
+            msg = chat.delete_message(
+                message_id=message_id,
+                author=actor,
+                players=getattr(world, "players", None),
+            )
+        except (KeyError, ChatAuthorizationError, ValueError) as exc:
+            return _failure(exc)
+        return jsonify({"message": msg, "deleted": True})
 
     @app.route('/api/commons/read', methods=['POST'])
     def commons_read():
@@ -267,3 +352,57 @@ def register_commons_routes(app):
             blocked=data.get("blocked"),
         )
         return jsonify({"participant": participant})
+
+    UPLOAD_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp', '.gif'}
+    UPLOAD_MIMES = {'image/png', 'image/jpeg', 'image/webp', 'image/gif'}
+    MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024  # 5 MB
+
+    @app.route('/api/commons/attachments/upload', methods=['POST'])
+    def commons_upload_attachment():
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        if 'file' not in request.files:
+            return jsonify({"error": "No file uploaded"}), 400
+        file = request.files['file']
+        if not file or not file.filename:
+            return jsonify({"error": "No file selected"}), 400
+        caption = request.form.get('caption', '').strip()
+
+        _, ext = os.path.splitext(file.filename.lower())
+        if ext not in UPLOAD_EXTENSIONS:
+            return jsonify({"error": f"Unsupported file extension: {ext}"}), 400
+
+        data = file.read(MAX_ATTACHMENT_SIZE + 1)
+        if len(data) > MAX_ATTACHMENT_SIZE:
+            return jsonify({"error": "File exceeds 5MB size limit"}), 400
+
+        mime = file.mimetype or 'image/png'
+        if mime not in UPLOAD_MIMES:
+            mime = 'image/png' if ext == '.png' else 'image/jpeg' if ext in ('.jpg', '.jpeg') else 'image/webp' if ext == '.webp' else 'image/gif'
+
+        att_id = uuid.uuid4().hex[:12]
+        upload_dir = os.path.join(app.config.get('DATA_DIR', 'data'), 'uploads', 'commons')
+        os.makedirs(upload_dir, exist_ok=True)
+        filename = f"{att_id}{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, 'wb') as out_f:
+            out_f.write(data)
+
+        url = f"/api/commons/attachments/{filename}"
+        return jsonify({
+            "id": att_id,
+            "url": url,
+            "filename": file.filename,
+            "mime_type": mime,
+            "size": len(data),
+            "caption": caption,
+        })
+
+    @app.route('/api/commons/attachments/<filename>', methods=['GET'])
+    def commons_get_attachment(filename):
+        upload_dir = os.path.join(app.config.get('DATA_DIR', 'data'), 'uploads', 'commons')
+        filepath = os.path.join(upload_dir, filename)
+        if not os.path.exists(filepath):
+            return jsonify({"error": "Attachment not found"}), 404
+        return send_file(filepath)

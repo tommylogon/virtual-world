@@ -1,4 +1,9 @@
-"""Tag routes -- search, validate, and stats endpoints."""
+"""Tag routes -- search, validate, and stats endpoints.
+
+@module tags
+@contributes register_tag_routes
+@docs none - HTTP API route handler
+"""
 import os, json, logging
 from flask import Blueprint, request, jsonify
 from routes.helpers import closest_tag_match

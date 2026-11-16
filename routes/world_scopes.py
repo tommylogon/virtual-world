@@ -1,6 +1,10 @@
 """Route registration for world-scope projections (task-397).
 
-Thin registrar only — handlers live in ``routes/world_scopes_ops.py``.
+Thin registrar only - handlers live in ``routes/world_scopes_ops.py``.
+
+@module world_scopes
+@contributes register_world_scopes_routes
+@docs none - HTTP API route handler
 """
 
 from .world_scopes_ops import (

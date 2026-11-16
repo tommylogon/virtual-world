@@ -1,3 +1,10 @@
+"""graph module.
+
+@module graph
+@contributes register_graph_routes
+@docs none - HTTP API route handler
+"""
+
 import logging
 from flask import Flask, request, jsonify
 from .graph_ops import (
@@ -23,6 +30,7 @@ from .graph_ops import (
     handle_append_draft,
     handle_graph_batch,
     handle_graph_validate,
+    handle_graph_undo_op,
     handle_upload_background_image,
     handle_save_background,
 )
@@ -126,3 +134,7 @@ def register_graph_routes(app):
     @app.route('/api/graph/batch/validate', methods=['POST'])
     def graph_batch_validate():
         return handle_graph_validate(app)
+
+    @app.route('/api/graph/batch/undo-op', methods=['POST'])
+    def graph_batch_undo_op():
+        return handle_graph_undo_op(app)

@@ -1,3 +1,10 @@
+"""memories module.
+
+@module memories
+@contributes _normalize_tokens, _is_near_duplicate, _is_reencounter, _resolve_entity_ids, _resolve_person_name, _apply_relationship_deltas
+@docs none - HTTP API route handler
+"""
+
 import logging
 import math
 import re
@@ -336,6 +343,11 @@ def _build_persona_summary(app, player, name):
                 summary["personality"] = str(props["personality"]).strip()
             pers = ca.personality(node) or {}
             narr = ca.narrative(node) or {}
+            ident = ca.identity(node) or {}
+            if ident.get("mbti"):
+                summary["mbti"] = str(ident["mbti"]).strip()
+            if ident.get("alignment"):
+                summary["alignment"] = str(ident["alignment"]).strip()
             if isinstance(pers.get("values"), list) and pers["values"]:
                 summary["values"] = [str(x) for x in pers["values"] if x]
             if isinstance(pers.get("fears"), list) and pers["fears"]:
@@ -360,6 +372,14 @@ def register_memories_routes(app):
         if not player:
             return jsonify({"error": "Player not found"}), 404
         return jsonify({"memories": getattr(player, 'memories', [])})
+
+    @app.route('/api/players/<name>/knowledge', methods=['GET'])
+    def get_player_knowledge(name):
+        player = app.world.players.get(name)
+        if not player:
+            return jsonify({"error": "Player not found"}), 404
+        records = player.get_knowledge_records() if hasattr(player, 'get_knowledge_records') else []
+        return jsonify({"knowledge": records})
 
     @app.route('/api/players/<name>/memories', methods=['PUT'])
     def set_player_memories(name):
@@ -423,7 +443,8 @@ def register_memories_routes(app):
         # ensure_dynamics fills only what is missing (old clients unaffected).
         for key in ("category", "confidence", "activation", "reflection_depth",
                     "source_memory_ids", "contradicts", "last_recalled_tick",
-                    "valid_at", "invalid_at", "watch_refs", "hypotheses", "status", "about"):
+                    "valid_at", "invalid_at", "watch_refs", "hypotheses", "status", "about",
+                    "core", "superseded_by"):
             if data.get(key) is not None:
                 entry[key] = data[key]
         memory_dynamics.ensure_dynamics(entry)
@@ -523,15 +544,29 @@ def register_memories_routes(app):
         for entry in player.memories:
             if entry.get("id") == entry_id:
                 previous_contra = list(entry.get("contradicts") or [])
+                old_text = entry.get("text", "")
                 for key in ["text", "type", "importance", "location", "tags",
                             "tick", "source", "entity_ids", "emotion", "emotions",
                             "relationship_deltas", "memory_emotions",
                             "salience_override", "timestamp",
                             "category", "confidence", "activation",
                             "reflection_depth", "source_memory_ids", "contradicts",
-                            "valid_at", "invalid_at", "watch_refs", "hypotheses", "status", "about"]:
+                            "valid_at", "invalid_at", "watch_refs", "hypotheses", "status", "about",
+                            "core", "superseded_by"]:
                     if key in data:
                         entry[key] = data[key]
+                vector_invalidated = False
+                if "text" in data and data["text"] != old_text:
+                    entry["embedding"] = None
+                    vector_invalidated = True
+                    try:
+                        pid = getattr(player, "id", None)
+                        keys = [f"{name}::{entry_id}"]
+                        if pid and pid != name:
+                            keys.append(f"{pid}::{entry_id}")
+                        VectorStore(app.config['DATA_DIR']).remove_keys(keys)
+                    except Exception:
+                        pass
                 if "relationship_deltas" in data or "emotions" in data:
                     _apply_relationship_deltas(
                         app, player, name, entry,
@@ -553,7 +588,10 @@ def register_memories_routes(app):
                             other = by_id.get(other_id)
                             if other is not None and isinstance(other.get("contradicts"), list):
                                 other["contradicts"] = [i for i in other["contradicts"] if i != entry_id]
-                return jsonify({"status": "success", "entry": entry})
+                resp = {"status": "success", "entry": entry}
+                if vector_invalidated:
+                    resp["vector_invalidated"] = True
+                return jsonify(resp)
         return jsonify({"error": "Entry not found"}), 404
 
     @app.route('/api/players/<name>/memories/entry/<entry_id>', methods=['DELETE'])
@@ -565,6 +603,22 @@ def register_memories_routes(app):
         player.memories = [m for m in player.memories if m.get("id") != entry_id]
         if len(player.memories) == old_len:
             return jsonify({"error": "Entry not found"}), 404
+        for m in player.memories:
+            if isinstance(m.get("contradicts"), list) and entry_id in m["contradicts"]:
+                m["contradicts"] = [cid for cid in m["contradicts"] if cid != entry_id]
+        mem_index = getattr(player, "memory_index", None)
+        if isinstance(mem_index, dict):
+            stale_keys = [k for k, v in mem_index.items() if v == entry_id]
+            for k in stale_keys:
+                mem_index.pop(k, None)
+        try:
+            pid = getattr(player, "id", None)
+            keys = [f"{name}::{entry_id}"]
+            if pid and pid != name:
+                keys.append(f"{pid}::{entry_id}")
+            VectorStore(app.config['DATA_DIR']).remove_keys(keys)
+        except Exception:
+            pass
         return jsonify({"status": "success"})
 
     @app.route('/api/players/<name>/memories/clear', methods=['POST'])
@@ -838,16 +892,18 @@ def register_memories_routes(app):
         source_ids = [str(s) for s in (data.get("source_memory_ids") or []) if s]
 
         stored = 0
+        created_entries = []
 
         def _append(entry):
             memory_dynamics.ensure_dynamics(entry)
             player.memories.append(entry)
+            created_entries.append({"id": entry.get("id"), "text": entry.get("text")})
             return entry
 
         for insight in insights:
             if isinstance(insight, str):
                 if len(insight) > 10:
-                    player.memories.append({
+                    _append({
                         "id": f"mem_{int(time.time()*1000)}_{random.randint(0,999)}",
                         "text": insight,
                         "tick": tick,
@@ -857,8 +913,11 @@ def register_memories_routes(app):
                         "location": "",
                         "entity_ids": [],
                         "embedding": None,
-                        "tags": [],
-                        "source": "auto"
+                        "tags": ["reflection"],
+                        "source": "auto",
+                        "reflection_depth": 1,
+                        "source_memory_ids": list(source_ids),
+                        "contradicts": [],
                     })
                     stored += 1
                 continue
@@ -935,27 +994,30 @@ def register_memories_routes(app):
             # dropped, never guessed.
             relationship = insight.get("relationship")
             if isinstance(relationship, dict) and relationship.get("who"):
-                who = str(relationship.get("who")).strip()
+                who_raw = str(relationship.get("who")).strip()
+                resolved_who = _resolve_person_name(app, name, who_raw)
                 dim = str(relationship.get("dim", "")).strip().lower()
                 try:
                     delta = float(relationship.get("delta", 0) or 0)
                 except (TypeError, ValueError):
                     delta = 0.0
                 from engine.derive import DIMS, EMOTION_DELTA_MAX
-                if dim in DIMS and delta:
+                if resolved_who and dim in DIMS and delta:
                     delta = max(-EMOTION_DELTA_MAX, min(EMOTION_DELTA_MAX, delta))
-                    reltag = "rel:" + who
-                    dimtag = f"{dim}:{int(delta) if float(delta).is_integer() else round(delta, 2)}"
+                    reltag = "rel:" + resolved_who
+                    delta_str = f"{int(delta) if float(delta).is_integer() else round(delta, 2)}"
+                    dimtag = f"{dim}:{delta_str}"
+                    sign = "+" if delta > 0 else ""
                     _append({
                         "id": f"{base_id}_r",
-                        "text": belief,
+                        "text": f"{resolved_who} ({dim} {sign}{delta_str}): {belief}",
                         "tick": tick,
                         "timestamp": time.time(),
                         "importance": 7,
                         "type": "reflection",
                         "category": "social",
                         "location": "",
-                        "entity_ids": _resolve_entity_ids(app.world, [who]),
+                        "entity_ids": _resolve_entity_ids(app.world, [resolved_who]),
                         "embedding": None,
                         "tags": ["reflection", reltag, dimtag],
                         "source": "auto",
@@ -964,7 +1026,7 @@ def register_memories_routes(app):
                         "source_memory_ids": list(source_ids),
                         "contradicts": [],
                     })
-        return jsonify({"status": "success", "stored": stored})
+        return jsonify({"status": "success", "stored": stored, "entries": created_entries})
 
     @app.route('/api/players/<name>/memories/people', methods=['GET'])
     def get_memory_people(name):
@@ -1148,33 +1210,31 @@ def register_memories_routes(app):
             contradictions_preview = _preview_contradictions(player, cand_entry)
             relationship_preview = _preview_relationships(player, cand_entry)
 
-        # 5. Recalled memories (non-mutating, reinforce=False)
-        search_text = (query + " " + str(candidate_raw.get("text") or "")).strip().lower()
-        q_words = {w for w in re.findall(r"[a-z0-9']+", search_text) if len(w) > 2}
+        # 5. Recalled memories (non-mutating, reinforce=False via associative retrieval)
+        search_text = (query + " " + str(candidate_raw.get("text") or "")).strip()
+        q_words = {w for w in re.findall(r"[a-z0-9']+", search_text.lower()) if len(w) > 2}
         q_entities = set(cand_entities)
         if q_words:
             q_entities |= {e.lower() for e in _resolve_entity_ids(app.world, list(q_words))}
 
-        memories = getattr(player, "memories", []) or []
-        scored = []
-        for m in memories:
-            mtext = str(m.get("text") or "").strip()
-            if not mtext or m.get("superseded_by"):
-                continue
-            m_lower = mtext.lower()
-            overlap = sum(1 for w in q_words if w in m_lower)
-            kw_score = (overlap / len(q_words)) if q_words else 0.0
-            age = max(0, current_tick - int(m.get("tick", 0) or 0))
-            recency = 0.5 ** (age / 300.0)
-            weight = memory_dynamics.effective_importance(m) / 10.0
-            eboost = 2.5 if (q_entities and {str(e).lower() for e in (m.get("entity_ids") or [])} & q_entities) else 0.0
-            score = (kw_score * 3.0) + (recency * 1.5) + (weight * 2.0) + eboost
-            if score > 0.25 or not q_words:
-                copy_m = dict(m)
-                copy_m["score"] = round(score, 3)
-                scored.append((score, copy_m))
-        scored.sort(key=lambda x: x[0], reverse=True)
-        recalled_memories = [m for _, m in scored[:8]]
+        retrieval_payload = {
+            "query": search_text,
+            "cues": {
+                "entity_ids": sorted(q_entities),
+                "area_id": getattr(player, "current_area", "") or "",
+            },
+        }
+        ret = memory_retrieval.retrieve_associative_memories(
+            player,
+            retrieval_payload,
+            world=app.world,
+            tick=current_tick,
+            max_results=8,
+            min_score=0.25 if search_text else 0.0,
+            explain=True,
+            do_reinforce=False,
+        )
+        recalled_memories = ret.get("memories") or []
 
         return jsonify({
             "character": name,
@@ -1211,6 +1271,29 @@ def register_memories_routes(app):
         block = sm.build_known_routes(current_area, known)
         return jsonify({"spatial": block})
 
+    @app.route('/api/players/<name>/memories/cognitive_map', methods=['GET'])
+    def get_cognitive_map(name):
+        player = app.world.players.get(name)
+        if not player:
+            return jsonify({"error": "Player not found"}), 404
+        sm = SpatialMemory(app.world.graph)
+        return jsonify(sm.build_cognitive_map(player))
+
+    @app.route('/api/players/<name>/memories/recall_route', methods=['POST', 'GET'])
+    def recall_player_route(name):
+        player = app.world.players.get(name)
+        if not player:
+            return jsonify({"error": "Player not found"}), 404
+        data = request.get_json(silent=True) or {}
+        target = data.get("target") or request.args.get("target")
+        if not target:
+            return jsonify({"error": "target required"}), 400
+        sm = SpatialMemory(app.world.graph)
+        route = sm.recall_route(player, target)
+        if route is None:
+            return jsonify({"found": False, "route": None, "message": f"No known route to '{target}'."})
+        return jsonify({"found": True, "route": route})
+
     @app.route('/api/players/<name>/memories/suppress', methods=['POST'])
     def suppress_player_memories(name):
         player = app.world.players.get(name)
@@ -1221,7 +1304,22 @@ def register_memories_routes(app):
         keywords = data.get("keywords", "")
         duration = int(data.get("duration", 1))
         scope = data.get("scope", "self")
-        suppressed = player.suppress_memory(tags=tags, keywords=keywords, duration=duration, scope=scope)
+        memory_id = data.get("memory_id") or data.get("entry_id") or ""
+        memory_ids = data.get("memory_ids")
+        wildcard = bool(data.get("wildcard") or data.get("all"))
+        if not memory_id and not memory_ids and not tags and not str(keywords).strip() and not wildcard:
+            return jsonify({"error": "Specify memory_id, memory_ids, tags, keywords, or wildcard=true"}), 400
+        current_tick = int(data.get("current_tick", getattr(app.world, "time_ticks", 0)))
+        suppressed = player.suppress_memory(
+            tags=tags,
+            keywords=keywords,
+            duration=duration,
+            scope=scope,
+            memory_id=memory_id,
+            memory_ids=memory_ids,
+            current_tick=current_tick,
+            wildcard=wildcard,
+        )
         return jsonify({"status": "success", "suppressed": suppressed})
 
     @app.route('/api/players/<name>/memories/unblock', methods=['POST'])
@@ -1233,7 +1331,19 @@ def register_memories_routes(app):
         tags = data.get("tags", [])
         keywords = data.get("keywords", "")
         scope = data.get("scope", "self")
-        unblocked = player.unblock_memory(tags=tags, keywords=keywords, scope=scope)
+        memory_id = data.get("memory_id") or data.get("entry_id") or ""
+        memory_ids = data.get("memory_ids")
+        wildcard = bool(data.get("wildcard") or data.get("all"))
+        if not memory_id and not memory_ids and not tags and not str(keywords).strip() and not wildcard:
+            return jsonify({"error": "Specify memory_id, memory_ids, tags, keywords, or wildcard=true"}), 400
+        unblocked = player.unblock_memory(
+            tags=tags,
+            keywords=keywords,
+            scope=scope,
+            memory_id=memory_id,
+            memory_ids=memory_ids,
+            wildcard=wildcard,
+        )
         return jsonify({"status": "success", "unblocked": unblocked})
 
     @app.route('/api/players/<name>/memories/clear-expired', methods=['POST'])

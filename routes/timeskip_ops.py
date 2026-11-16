@@ -10,6 +10,10 @@ A request may also carry `world: true` to force the no-subject world advance
 (`timeskip.advance_world`) while an active character exists: every character
 soaks, nobody acts, and the clock runs. The Ctrl+K "Advance World" command uses
 this, because world mode is otherwise reachable only with no active character.
+
+@module timeskip_ops
+@contributes _merge_results, _requested_minutes, _publish_tick, handle_timeskip, _other_attended_humans, _declared_span
+@docs none - HTTP API route handler
 """
 
 import logging
@@ -302,3 +306,57 @@ def handle_soak_cancel(app):
     if player is None:
         return jsonify({"error": "No active character"}), 400
     return jsonify({"ok": soak.cancel(player)})
+
+def handle_world_advance(app):
+    data = request.get_json(silent=True) or {}
+    world = app.world
+    per_tick = float(getattr(world, 'time_per_tick_minutes', 1) or 1)
+    if hasattr(timeskip, 'frame_minutes'):
+        per_tick = timeskip.frame_minutes(world) or per_tick
+
+    ticks = data.get('ticks')
+    if ticks is not None:
+        try:
+            req_ticks = float(ticks)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'ticks must be a number'}), 400
+        if req_ticks < 1:
+            return jsonify({'error': 'That is too short'}), 400
+        requested = req_ticks * per_tick
+    elif data.get('minutes') is not None:
+        try:
+            requested = float(data['minutes'])
+        except (TypeError, ValueError):
+            return jsonify({'error': 'minutes must be a number'}), 400
+    else:
+        requested = _requested_minutes(world, data)
+
+    if requested is None:
+        return jsonify({'error': 'Missing ticks count'}), 400
+
+    if requested < timeskip.MIN_MINUTES:
+        return jsonify({'error': 'That is too short'}), 400
+    if requested > timeskip.MAX_MINUTES:
+        return jsonify({
+            'error': f'Too long for a request (max {timeskip.MAX_MINUTES} minutes)',
+            'max_minutes': timeskip.MAX_MINUTES
+        }), 400
+
+    total = int(round(requested))
+    results, remaining = [], total
+    try:
+        while remaining > 0:
+            chunk = min(MAX_REQUEST_MINUTES, remaining)
+            outcome = timeskip.advance_world(world, chunk, on_tick=_publish_tick)
+            results.append(outcome)
+            remaining -= chunk
+            if not outcome.ok:
+                break
+        result = _merge_results(results)
+    except Exception as e:
+        logger.exception('[world/advance] request failed')
+        return jsonify({'error': str(e)}), 400
+
+    payload = result.to_dict() if result else {'ok': False, 'error': 'No advance run'}
+    status_code = 200 if (result and result.ok) else 400
+    return jsonify(payload), status_code

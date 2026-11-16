@@ -1,3 +1,10 @@
+"""health module.
+
+@module health
+@contributes LogCaptureHandler, register_health_routes
+@docs none - HTTP API route handler
+"""
+
 import time
 import logging
 import os
@@ -57,7 +64,7 @@ def register_health_routes(app):
         if level_filter:
             entries = [e for e in entries if e['level'] == level_filter]
         if cutoff:
-            # Reconstruct timestamp to compare — approximate by filtering
+            # Reconstruct timestamp to compare - approximate by filtering
             pass  # ring buffer is in chronological order from oldest to newest
 
         # Count by level

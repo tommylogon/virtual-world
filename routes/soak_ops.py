@@ -3,6 +3,10 @@
 Thin sibling ``routes/soak.py`` only maps URLs to these functions. All the real
 work (the tick loop) lives in :mod:`engine.soak_runner`, so the web UI and
 ``tools/soak_sim.py`` cannot drift apart.
+
+@module soak_ops
+@contributes _error, meta, _build_config, start, list_runs, get_run
+@docs none - HTTP API route handler
 """
 from __future__ import annotations
 
@@ -17,7 +21,7 @@ from engine.soak_runner import SoakConfig
 
 logger = logging.getLogger(__name__)
 
-# Parameter guard rails — long enough to be a real soak, short enough that the
+# Parameter guard rails - long enough to be a real soak, short enough that the
 # UI stays responsive and the box does not melt.
 MAX_TICKS = 5_000_000
 MIN_TICKS = 1
@@ -218,7 +222,7 @@ def samples(run_id: str):
 def telemetry(run_id: str):
     """task-543: presence intervals, the ``why`` breakdown and the action stream.
 
-    This is the run's own measurement store, never a character state — the
+    This is the run's own measurement store, never a character state - the
     space-time view is drawn from it, and deliberately not from anyone's
     ``lived_log`` (which is capped at 200 entries and salience-filtered, so it
     cannot answer "where was everyone").

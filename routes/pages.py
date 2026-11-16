@@ -1,3 +1,10 @@
+"""pages module.
+
+@module pages
+@contributes _client_asset_version, register_pages_routes
+@docs none - HTTP API route handler
+"""
+
 import hashlib
 import os
 import logging

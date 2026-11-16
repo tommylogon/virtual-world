@@ -1,4 +1,9 @@
-"""Scene snapshot route for the human turn panel (task-333 Phase 1)."""
+"""Scene snapshot route for the human turn panel (task-333 Phase 1).
+
+@module scene
+@contributes register_scene_routes
+@docs none - HTTP API route handler
+"""
 
 import logging
 
@@ -10,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def register_scene_routes(app):
-    """Register /api/scene/<player> — the panel's one-call scene payload."""
+    """Register /api/scene/<player> - the panel's one-call scene payload."""
 
     @app.route('/api/scene/<player_name>', methods=['GET'])
     def get_scene(player_name):

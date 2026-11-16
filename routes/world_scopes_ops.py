@@ -1,6 +1,10 @@
 """Handlers for world-scope projections (task-397).
 
 Read-only. Thin registrar lives in ``routes/world_scopes.py``.
+
+@module world_scopes_ops
+@contributes _parts, handle_scopes_root, handle_scope_detail, handle_scope_graph, handle_scope_subgraph, handle_scope_observe
+@docs none - HTTP API route handler
 """
 
 from flask import jsonify, request
@@ -16,7 +20,7 @@ def _parts(app):
 
 
 def handle_scopes_root(app):
-    """GET /api/world/scopes — top-level scope cards.
+    """GET /api/world/scopes - top-level scope cards.
 
     ``?flat=1`` returns every scope depth-first with a ``depth`` field, which is
     what the graph view's scope picker needs (task-397 step 4).
@@ -28,17 +32,17 @@ def handle_scopes_root(app):
 
 
 def handle_scope_detail(app, scope_id):
-    """GET /api/world/scopes/<scope_id> — child cards, or leaf areas + boundary ways."""
+    """GET /api/world/scopes/<scope_id> - child cards, or leaf areas + boundary ways."""
     manifest, graph, players = _parts(app)
-    if scope_id not in manifest:
+    if scope_id not in ('all', 'whole_world') and scope_id not in manifest:
         return jsonify({"error": f"Scope '{scope_id}' not found"}), 404
     return jsonify(world_scopes.project(manifest, graph, players, scope_id))
 
 
 def handle_scope_graph(app, scope_id):
-    """GET /api/world/scopes/<scope_id>/graph?depth=&include_items= — projection."""
+    """GET /api/world/scopes/<scope_id>/graph?depth=&include_items= - projection."""
     manifest, graph, players = _parts(app)
-    if scope_id not in manifest:
+    if scope_id not in ('all', 'whole_world') and scope_id not in manifest:
         return jsonify({"error": f"Scope '{scope_id}' not found"}), 404
     try:
         depth = int(request.args.get("depth", 1))
@@ -61,7 +65,7 @@ def handle_scope_subgraph(app, scope_id):
     one feature cell). ``?descendants=1`` returns the recursive subtree.
     """
     manifest, graph, players = _parts(app)
-    if scope_id not in manifest:
+    if scope_id not in ('all', 'whole_world') and scope_id not in manifest:
         return jsonify({"error": f"Scope '{scope_id}' not found"}), 404
     include_items = str(request.args.get("include_items", "1")).lower() not in (
         "0", "false", "no")
@@ -76,7 +80,7 @@ def handle_scope_subgraph(app, scope_id):
 
 
 def handle_scope_observe(app, scope_id):
-    """POST /api/world/scopes/<scope_id>/observe — activation boundary (task-399).
+    """POST /api/world/scopes/<scope_id>/observe - activation boundary (task-399).
 
     Opening a scope requests that its background residents become attended. The
     transition is *queued*, not applied inline: the turn loop flushes the batch
@@ -85,7 +89,7 @@ def handle_scope_observe(app, scope_id):
     from engine import promotion
 
     manifest, _graph, _players = _parts(app)
-    if scope_id not in manifest:
+    if scope_id not in ('all', 'whole_world') and scope_id not in manifest:
         return jsonify({"error": f"Scope '{scope_id}' not found"}), 404
     queued = promotion.activate_scope(app.world, scope_id)
     return jsonify({

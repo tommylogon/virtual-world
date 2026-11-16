@@ -1,6 +1,10 @@
 """Route registration for structure templates (task-357).
 
-Thin registrar only — the handlers live in ``routes/structures_ops.py``.
+Thin registrar only - the handlers live in ``routes/structures_ops.py``.
+
+@module structures
+@contributes register_structures_routes
+@docs none - HTTP API route handler
 """
 
 from .structures_ops import (

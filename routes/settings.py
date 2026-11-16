@@ -1,3 +1,10 @@
+"""settings module.
+
+@module settings
+@contributes register_settings_routes
+@docs none - HTTP API route handler
+"""
+
 import logging
 from flask import Flask, request, jsonify
 from logger import setup_logger
@@ -29,7 +36,7 @@ def register_settings_routes(app):
         app.world.ghost_mode = enabled
         logger.info(f"Ghost mode set to: {enabled}")
         if enabled:
-            app.world.add_log_entry("[System] Ghost mode activated — the dead may walk.")
+            app.world.add_log_entry("[System] Ghost mode activated - the dead may walk.")
         else:
             app.world.add_log_entry("[System] Ghost mode deactivated.")
         return jsonify({"status": "success", "ghost_mode": enabled})
@@ -53,9 +60,9 @@ def register_settings_routes(app):
         app.world.mature_content = enabled
         logger.info(f"Mature content set to: {enabled}")
         if enabled:
-            app.world.add_log_entry("[System] Mature content enabled — intimacy systems active.")
+            app.world.add_log_entry("[System] Mature content enabled - intimacy systems active.")
         else:
-            app.world.add_log_entry("[System] Mature content disabled — intimacy systems hidden.")
+            app.world.add_log_entry("[System] Mature content disabled - intimacy systems hidden.")
         return jsonify({"status": "success", "mature_content": enabled})
 
     @app.route('/api/debug/save_log', methods=['POST'])
@@ -155,8 +162,10 @@ def register_settings_routes(app):
         """task-227: current forecast + active override + moon."""
         try:
             world = app.world
+            forecast_dict = dict(getattr(world, 'forecast', {}) or getattr(world, 'forecast_schedule', {}) or {})
             return jsonify({
-                "forecast_schedule": dict(getattr(world, 'forecast_schedule', {}) or {}),
+                "forecast": forecast_dict,
+                "forecast_schedule": forecast_dict,
                 "forecast_override": dict(getattr(world, 'forecast_override', {}) or {})
                     if getattr(world, 'forecast_override', None) else None,
                 # task-763: the generated per-area weather field for the current
@@ -193,11 +202,14 @@ def register_settings_routes(app):
         """task-227: replace the whole forecast."""
         try:
             data = request.get_json()
-            if not isinstance(data.get('schedule'), dict):
-                return jsonify({"error": "Expected {'schedule': {...}}"}), 400
-            schedule = data['schedule']
-            # Reset the cached schedule object + transition state.
-            app.world.forecast_schedule = {
+            forecast_input = data.get('forecast')
+            if forecast_input is None:
+                forecast_input = data.get('schedule')
+            if not isinstance(forecast_input, dict):
+                return jsonify({"error": "Expected {'forecast': {...}}"}), 400
+            schedule = forecast_input
+            # Reset the cached forecast object + transition state.
+            app.world.forecast = {
                 "mode": schedule.get("mode", "authored"),
                 "seed": schedule.get("seed"),
                 "granularity": schedule.get("granularity", "hourly"),
@@ -246,7 +258,7 @@ def register_settings_routes(app):
 
     @app.route('/api/settings/date', methods=['POST'])
     def set_date():
-        """task-228: set game calendar date (day, month, year — each optional)."""
+        """task-228: set game calendar date (day, month, year - each optional)."""
         try:
             data = request.get_json() or {}
             app.world.set_game_date(

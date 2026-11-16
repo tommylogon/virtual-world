@@ -1,4 +1,9 @@
-"""URL registration for the soak-run API (logic lives in routes/soak_ops.py)."""
+"""URL registration for the soak-run API (logic lives in routes/soak_ops.py).
+
+@module soak
+@contributes register_soak_routes
+@docs none - HTTP API route handler
+"""
 from routes import soak_ops
 
 
@@ -17,7 +22,7 @@ def register_soak_routes(app):
                      'soak_character_series', soak_ops.character_series, methods=['GET'])
     app.add_url_rule('/api/soak/runs/<run_id>/events', 'soak_events', soak_ops.events, methods=['GET'])
     app.add_url_rule('/api/soak/runs/<run_id>/samples', 'soak_samples', soak_ops.samples, methods=['GET'])
-    # task-543: the run's measurement store — presence intervals + the `why`
+    # task-543: the run's measurement store - presence intervals + the `why`
     # breakdown. Deliberately a separate endpoint from /characters: the
     # space-time view reads this, not anyone's lived_log.
     app.add_url_rule('/api/soak/runs/<run_id>/telemetry', 'soak_telemetry',

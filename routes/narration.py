@@ -1,3 +1,10 @@
+"""narration module.
+
+@module narration
+@contributes register_narration_routes
+@docs none - HTTP API route handler
+"""
+
 import logging
 from flask import Flask, request, jsonify
 from logger import setup_logger

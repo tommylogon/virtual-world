@@ -1,6 +1,10 @@
 """Route registration for tag-chain area population (task-9).
 
-Thin registrar only — the handlers live in ``routes/population_ops.py``.
+Thin registrar only - the handlers live in ``routes/population_ops.py``.
+
+@module population
+@contributes register_population_routes
+@docs none - HTTP API route handler
 """
 
 from .population_ops import handle_populate_area

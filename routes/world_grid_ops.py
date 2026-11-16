@@ -1098,14 +1098,15 @@ def handle_set_reference(app, scope_id):
     if scope_id not in manifest:
         return _error(f"Scope '{scope_id}' not found", 404)
     record = manifest[scope_id]
-    image = data.get("image")
+    existing_ref = world_grid.reference(record) or {}
+    image = data.get("image") if "image" in data else existing_ref.get("image")
     if image not in (None, "") and not str(image).startswith(("/static/", "http", "data:")):
         return _error("image must be a /static/ path, URL, or data URI")
     try:
         _snapshot(app, label=f"set reference on {record.get('name', scope_id)}")
         world_grid.set_reference(record, image,
-                                 opacity=data.get("opacity"),
-                                 visible=data.get("visible"),
+                                 opacity=data.get("opacity", existing_ref.get("opacity")),
+                                 visible=data.get("visible", existing_ref.get("visible")),
                                  rect=data.get("rect"),
                                  crop=data.get("crop"),
                                  reset=bool(data.get("reset")))

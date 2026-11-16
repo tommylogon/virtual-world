@@ -1,3 +1,10 @@
+"""player_ops module.
+
+@module player_ops
+@contributes _log_resolved_identity, handle_get_players, handle_get_emotions, handle_spike_emotion, handle_map_player_emotions, _resolve_other
+@docs none - HTTP API route handler
+"""
+
 import logging
 from flask import request, jsonify, g
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
@@ -684,19 +691,20 @@ def handle_update_player(app, name):
         player.npc_behavior = data["npc_behavior"]
     if "npc_action_interval" in data:
         player.npc_action_interval = int(data["npc_action_interval"])
-    if "controller" in data:
+    if "simple_npc" in data:
+        player.simple_npc = bool(data["simple_npc"])
+    if "autonomy" in data:
+        val = data["autonomy"]
+        if isinstance(val, str) and val.lower() == "directed":
+            player.autonomy = "directed"
+        else:
+            player.autonomy = bool(val)
+    if data.get("controller"):
         player.controller = data["controller"]
-    elif "control_mode" in data:
+    elif data.get("control_mode"):
         player.controller = data["control_mode"]
-    else:
-        if "simple_npc" in data:
-            player.simple_npc = bool(data["simple_npc"])
-        if "autonomy" in data:
-            val = data["autonomy"]
-            if isinstance(val, str) and val.lower() == "directed":
-                player.autonomy = "directed"
-            else:
-                player.autonomy = bool(val)
+    if str(data.get("controller") or data.get("control_mode") or "").strip().lower() in ("inert", "paused", "pause", "frozen", "none"):
+        player.controller = "inert"
     if "conditions" in data:
         player.load_conditions(data["conditions"])
     if "add_condition" in data:
@@ -791,14 +799,20 @@ def handle_import_player(app):
     player.tags = data.get('tags', player.tags) or player.tags
     player.interest_tags = data.get('interest_tags', player.interest_tags) or player.interest_tags
     player.decay_rates = data.get('decay_rates', player.decay_rates) or player.decay_rates
-    if 'controller' in data:
+    if 'simple_npc' in data:
+        player.simple_npc = bool(data['simple_npc'])
+    if 'autonomy' in data:
+        val = data['autonomy']
+        if isinstance(val, str) and val.lower() == 'directed':
+            player.autonomy = 'directed'
+        else:
+            player.autonomy = bool(val)
+    if data.get('controller'):
         player.controller = data['controller']
-    elif 'control_mode' in data:
+    elif data.get('control_mode'):
         player.controller = data['control_mode']
-    else:
-        player.simple_npc = data.get('simple_npc', player.simple_npc) or False
-        if 'autonomy' in data:
-            player.autonomy = data['autonomy']
+    if str(data.get('controller') or data.get('control_mode') or '').strip().lower() in ('inert', 'paused', 'pause', 'frozen', 'none'):
+        player.controller = 'inert'
     player.npc_behavior = data.get('npc_behavior', player.npc_behavior) or 'wander'
     player.npc_state = data.get('npc_state', player.npc_state) or 'idle'
     player.behaviors = data.get('behaviors', player.behaviors) or []
@@ -905,6 +919,7 @@ def handle_get_character_record(app, name):
         "identity": ca.identity(node),
         "appearance": ca.appearance(node),
         "personality": ca.personality(node),
+        "capabilities": ca.capabilities(node),
         "narrative": ca.narrative(node),
         "prose": ca.render_prose(node),
         "prose_stale": ca.prose_is_stale(node),
@@ -1053,6 +1068,8 @@ def _apply_compiled(player, compiled, node=None, sections=None) -> None:
         "personality": props.get("personality") or player.personality,
         "interest_tags": list(player.interest_tags or []),
         "fear_tags": list(player.fear_tags or []),
+        "traits": dict(props.get("traits") or getattr(player, "traits", None) or {}),
+        "skills": dict(props.get("skills") or getattr(player, "skills", None) or {}),
     }
     if node is not None and getattr(node, "properties", None) is not None:
         node.properties["_last_precompile_snapshot"] = snapshot
@@ -1061,6 +1078,8 @@ def _apply_compiled(player, compiled, node=None, sections=None) -> None:
     apply_base = apply_all or "base_description" in sections
     apply_pers = apply_all or "personality" in sections
     apply_tags = apply_all or "tags" in sections
+    apply_traits = apply_all or "traits" in sections
+    apply_skills = apply_all or "skills" in sections
 
     if apply_base and (compiled.get("base_description") or "").strip():
         player.base_description = compiled["base_description"]
@@ -1073,6 +1092,29 @@ def _apply_compiled(player, compiled, node=None, sections=None) -> None:
     if apply_tags:
         player.interest_tags = list(compiled.get("interest_tags") or [])
         player.fear_tags = list(compiled.get("fear_tags") or [])
+    if apply_traits and compiled.get("traits"):
+        current_traits = dict(getattr(player, "traits", None) or {})
+        for t in compiled["traits"]:
+            t_str = str(t).strip()
+            if t_str and t_str not in current_traits:
+                current_traits[t_str] = True
+        player.traits = current_traits
+        if node is not None and getattr(node, "properties", None) is not None:
+            node.properties["traits"] = dict(current_traits)
+    if apply_skills and compiled.get("skills"):
+        current_skills = dict(getattr(player, "skills", None) or {})
+        c_skills = compiled["skills"]
+        if isinstance(c_skills, dict):
+            for s_name, rank in c_skills.items():
+                current_skills[str(s_name)] = int(rank)
+        elif isinstance(c_skills, (list, tuple, set)):
+            for s_name in c_skills:
+                s_str = str(s_name).strip()
+                if s_str and s_str not in current_skills:
+                    current_skills[s_str] = 1
+        player.skills = current_skills
+        if node is not None and getattr(node, "properties", None) is not None:
+            node.properties["skills"] = dict(current_skills)
     if node is not None:
         (getattr(node, "properties", None) or {}).pop(
             ca.PROSE_STALE_KEY, None)
@@ -1125,6 +1167,11 @@ def handle_compile_character_record(app, name):
         body["needs_confirm"] = True
         return jsonify(body)
     sections = data.get("sections")
+    overrides = data.get("overrides")
+    if isinstance(overrides, dict):
+        for k in ("base_description", "description", "personality"):
+            if isinstance(overrides.get(k), str) and overrides[k].strip():
+                compiled[k] = overrides[k].strip()
     _apply_compiled(player, compiled, node, sections=sections)
     body["applied"] = True
     body["has_undo"] = True
@@ -1154,6 +1201,12 @@ def handle_revert_compile_character_record(app, name):
         player.interest_tags = list(snapshot["interest_tags"])
     if "fear_tags" in snapshot:
         player.fear_tags = list(snapshot["fear_tags"])
+    if "traits" in snapshot:
+        player.traits = dict(snapshot["traits"])
+        props["traits"] = dict(snapshot["traits"])
+    if "skills" in snapshot:
+        player.skills = dict(snapshot["skills"])
+        props["skills"] = dict(snapshot["skills"])
     return jsonify({
         "reverted": True,
         "snapshot": snapshot,

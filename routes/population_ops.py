@@ -3,6 +3,10 @@
 Thin registrar lives in ``routes/population.py``. These handlers read an area's
 domain tags, plan furniture/items with ``engine.population``, and materialize
 them through the public library materialization service.
+
+@module population_ops
+@contributes _library_items_dir, _tags_of, _area_items, handle_populate_area
+@docs none - HTTP API route handler
 """
 
 import logging
@@ -44,10 +48,10 @@ def _area_items(graph, area_id):
 
 
 def handle_populate_area(app, area_id):
-    """POST /api/populate/area/<area_id> — furnish an area from its tags.
+    """POST /api/populate/area/<area_id> - furnish an area from its tags.
 
     Body (all optional): ``seed`` (int), ``furniture_max`` (int),
-    ``items_per_area`` (int), ``preview`` (bool — plan without applying).
+    ``items_per_area`` (int), ``preview`` (bool - plan without applying).
     Idempotent-ish: existing furniture suppresses furniture seeding, and the
     item target is reduced by what the area already contains.
     """

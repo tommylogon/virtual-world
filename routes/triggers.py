@@ -1,4 +1,9 @@
-"""Trigger routes — dry-run / live-run a trigger definition + world-wide validation."""
+"""Trigger routes - dry-run / live-run a trigger definition + world-wide validation.
+
+@module triggers
+@contributes register_triggers_routes
+@docs none - HTTP API route handler
+"""
 import time
 
 from flask import jsonify, request
@@ -60,7 +65,7 @@ def register_triggers_routes(app):
         Request JSON:
         {
             "trigger": {...trigger properties...},  # trigger_type, conditions, effects, conditions_logic
-            "item_id": "item_xyz",                   # optional — context item
+            "item_id": "item_xyz",                   # optional - context item
             "dry_run": true,                         # default true; false = execute effects
             "context": {...}                         # optional extra template context (e.g. speech, speaker)
         }
@@ -149,7 +154,7 @@ def register_triggers_routes(app):
         """Run the full TriggerValidator against an UNLOADED world dict.
 
         Builds a throwaway VirtualWorld (no side effects on the live world,
-        no autosave, no scenario writes) and returns grouped issue counts —
+        no autosave, no scenario writes) and returns grouped issue counts -
         the backend half of import preview / scenario auditing.
         """
         data = request.get_json() or {}

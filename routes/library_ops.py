@@ -11,6 +11,7 @@ import json
 import logging
 import random
 import time
+import uuid
 from flask import request, jsonify
 from player import Player
 from graph import Node, Edge, EDGE_CARRYING, EDGE_TRIGGERS, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
@@ -121,8 +122,8 @@ def _spawn_library_item_node(app, item_id, lib_item, container_id=None, node_id=
         # re-derivable. Authored placement (tools/add_renewable_sources.py)
         # passes its own deterministic id instead.
         #
-        # task-398: a generation recipe needs the opposite — a stable, scoped id
-        # and no clock — so it uses engine/library_nodes.py instead. What is
+        # task-398: a generation recipe needs the opposite - a stable, scoped id
+        # and no clock - so it uses engine/library_nodes.py instead. What is
         # shared is the property mapping below, which is the part that defines
         # what a library item node *is*.
         node_id = f"item_{item_name}_{int(time.time()*1000)}_{random.randint(0, 999)}".lower()
@@ -389,7 +390,13 @@ def handle_library_list(app, registry_type):
         return jsonify({"error": f"Unknown registry type: {registry_type}"}), 400
     filename = f"{registry_type}.json"
     data = load_registry(app.config['DATA_DIR'], filename)
-    return jsonify(_filter_mature_entries(app, registry_type, data))
+    unique_data = {}
+    seen = set()
+    for k, v in data.items():
+        if id(v) not in seen:
+            seen.add(id(v))
+            unique_data[k] = v
+    return jsonify(_filter_mature_entries(app, registry_type, unique_data))
 
 
 def handle_library_all(app):
@@ -402,7 +409,13 @@ def handle_library_all(app):
     result = {}
     for t in wanted:
         data = load_registry(data_dir, f"{t}.json")
-        result[t] = _filter_mature_entries(app, t, data)
+        unique_data = {}
+        seen = set()
+        for k, v in data.items():
+            if id(v) not in seen:
+                seen.add(id(v))
+                unique_data[k] = v
+        result[t] = _filter_mature_entries(app, t, unique_data)
     return jsonify(result)
 
 
@@ -416,8 +429,8 @@ def handle_library_all(app):
 # is no second copy and no new read path (task-588's verdict).
 
 #: The vocabulary types this surface exposes.
-#: - ``backing: 'dir'`` — one file per entry under ``data/library/<dir>/``.
-#: - ``backing: 'file'`` — entries are a named collection inside one JSON file.
+#: - ``backing: 'dir'`` - one file per entry under ``data/library/<dir>/``.
+#: - ``backing: 'file'`` - entries are a named collection inside one JSON file.
 VOCABULARY_TYPES = {
     'biomes': {'backing': 'dir', 'dir': 'biomes'},
     'features': {'backing': 'dir', 'dir': 'features'},
@@ -535,7 +548,7 @@ def _coverage_problems(app, vocab_type, entry_id, rec):
 
 
 def handle_vocabulary_list(app, vocab_type):
-    """GET /api/vocabulary/<vocab_type> — list the compiler vocabulary."""
+    """GET /api/vocabulary/<vocab_type> - list the compiler vocabulary."""
     if vocab_type not in VOCABULARY_TYPES:
         return jsonify({"error": f"Unknown vocabulary type: {vocab_type}"}), 400
     entries = _load_vocabulary(app.config['DATA_DIR'], vocab_type)
@@ -555,7 +568,7 @@ def handle_vocabulary_list(app, vocab_type):
 
 
 def handle_vocabulary_save(app, vocab_type, entry_id):
-    """POST /api/vocabulary/<vocab_type>/<entry_id> — validate then save.
+    """POST /api/vocabulary/<vocab_type>/<entry_id> - validate then save.
 
     Refuses a record the engine would reject (the same per-record validator it
     uses) and drops the caches, so the next compile/palette read sees it without
@@ -680,12 +693,19 @@ def write_library_entry(app, registry_type, entry_id, entry_data):
         raise ValueError(
             "docs must be a repo-relative string path "
             "(e.g. 'docs/virtualWorld/World Building/Doors & Connections.md')")
+    # task-667: ensure entry carries a stable surrogate key
+    from routes.helpers import SURROGATE_ID_FIELDS
+    surrogate_field = SURROGATE_ID_FIELDS.get(registry_type)
+    if surrogate_field and not entry_data.get(surrogate_field):
+        prefix = "ch" if registry_type == "characters" else registry_type[:-1]
+        entry_data[surrogate_field] = f"{prefix}_{uuid.uuid4().hex[:8]}"
+
     filename = f"{registry_type}.json"
     registry = load_registry(app.config['DATA_DIR'], filename)
     registry[str(entry_id)] = _strip_presentation_properties(entry_data)
     if registry_type == "recipes":
         # Task-831/842: the schema gate runs on save, naming the exact
-        # bad field — a broken recipe never reaches the registry.
+        # bad field - a broken recipe never reaches the registry.
         import sys as _sys
         _tools = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tools")
         if _tools not in _sys.path:
@@ -757,11 +777,21 @@ def handle_library_rename(app, registry_type, entry_id):
     registry = load_registry(app.config['DATA_DIR'], filename)
     if entry_id not in registry:
         return jsonify({"error": "Entry not found"}), 404
+    entry = registry.get(entry_id)
     if new_id == entry_id:
         return jsonify({"status": "renamed", "old": entry_id, "new": new_id})
-    if new_id in registry:
+    if new_id in registry and registry[new_id] is not entry:
         return jsonify({"error": f"An entry named '{new_id}' already exists"}), 409
-    registry[new_id] = registry.pop(entry_id)
+    registry.pop(entry_id, None)
+    # task-667: record old filename in aliases so legacy links continue resolving
+    if isinstance(entry, dict):
+        aliases = list(entry.get("aliases") or [])
+        if new_id in aliases:
+            aliases.remove(new_id)
+        if entry_id not in aliases:
+            aliases.append(entry_id)
+        entry["aliases"] = aliases
+    registry[new_id] = entry
     save_registry(app.config['DATA_DIR'], filename, registry)
     delete_registry_entry(app.config['DATA_DIR'], filename, entry_id)
     _reload_condition_catalog(app, registry_type)
@@ -770,7 +800,7 @@ def handle_library_rename(app, registry_type, entry_id):
 
 def place_library_item(app, item_id, container_id=None, character_id=None,
                        area_name=None, edge_relation=None):
-    """Core of handle_library_place_item — no request dependency.
+    """Core of handle_library_place_item - no request dependency.
 
     Shared by POST /api/library/items/<id>/place and the NL-editor batch
     endpoint (POST /api/graph/batch). Returns (node_id, error, status_code).
@@ -970,6 +1000,8 @@ def handle_library_import_character(app, char_id):
         node = app.world.graph.get_node(
             app.world.player_manager.get_player_node_id(player_name))
         if node is not None:
+            surrogate_id = cdata.get("character_id") or cdata.get("id") or char_id
+            sync.link(node, surrogate_id)
             for key in ("image", "profile_image", "expressions", "appearance"):
                 value = cdata.get(key)
                 if value:
@@ -1077,7 +1109,7 @@ def handle_library_import_area(app, area_id):
 def handle_library_import_way(app, way_id):
     """Create a way node from the library def and connect it between two areas.
 
-    Body: {area_from, area_to, dir_from, dir_to?} — dirs default to "out".
+    Body: {area_from, area_to, dir_from, dir_to?} - dirs default to "out".
     Mirrors the area/character import pattern so a library way (e.g. the blind
     corner) can be dropped into the world and wired between two rooms.
     """
@@ -1143,14 +1175,14 @@ def handle_refresh_way_from_library(app, node_id):
 
 
 def handle_break_template_link(app):
-    """POST /api/library/break-template-link — unbind a node from its template.
+    """POST /api/library/break-template-link - unbind a node from its template.
 
     The missing half of ``refresh-to-world`` (task-289/317): any of the four
     linkable types could be re-synced and none could be unlinked, so "this copy
     is mine now" had no way to be expressed and an author's hand-fix was one
     stray refresh away from being overwritten.
 
-    Removes the link marker and nothing else — the node keeps every value the
+    Removes the link marker and nothing else - the node keeps every value the
     template last wrote, which is the entire point of breaking a link. See
     ``engine/sync.py`` for the contract and for why this deliberately does not
     auto-lock the node's fields.
@@ -1202,14 +1234,18 @@ def _refresh_item(app, node, sections, template_id=None):
     # never chose.
     library_id = sync.resolve_template_id(node, template_id)
     if not library_id:
-        return jsonify({"error": "Item has no library template — cannot refresh"}), 400
+        return jsonify({"error": "Item has no library template - cannot refresh"}), 400
 
     library = load_registry(app.config['DATA_DIR'], 'items.json')
-    lib_item = library.get(library_id)
+    ref = sync.template_ref(node)
+    variant = ref.get('variant') or None
+    lib_item = sync.resolve_template(library, library_id, variant=variant)
+    if not lib_item:
+        lib_item = library.get(library_id)
     if not lib_item:
         return jsonify({"error": f"Library item '{library_id}' not found"}), 404
 
-    locked = set(node.properties.get('locked_fields', []))
+    locked = set(sync.override_fields(node))
 
     if sections:
         prop_map = {
@@ -1290,11 +1326,15 @@ def _refresh_way(app, node, sections, template_id=None):
     way_id = sync.resolve_template_id(node, template_id)
 
     ways_reg = load_registry(app.config['DATA_DIR'], 'ways.json')
-    lib_way = ways_reg.get(way_id)
+    ref = sync.template_ref(node)
+    variant = ref.get('variant') or None
+    lib_way = sync.resolve_template(ways_reg, way_id, variant=variant)
+    if not lib_way:
+        lib_way = ways_reg.get(way_id)
     if not lib_way:
         return jsonify({"error": f"Way '{way_id}' not found in library"}), 404
 
-    locked = set(props.get('locked_fields', []))
+    locked = set(sync.override_fields(node))
 
     if sections is None:
         lib_props = {
@@ -1364,11 +1404,15 @@ def _refresh_area(app, node, sections, template_id=None):
     area_id = sync.resolve_template_id(node, template_id)
 
     areas_reg = load_registry(app.config['DATA_DIR'], 'areas.json')
-    lib_area = areas_reg.get(area_id)
+    ref = sync.template_ref(node)
+    variant = ref.get('variant') or None
+    lib_area = sync.resolve_template(areas_reg, area_id, variant=variant)
+    if not lib_area:
+        lib_area = areas_reg.get(area_id)
     if not lib_area:
         return jsonify({"error": f"Area '{area_id}' not found in library"}), 404
 
-    locked = set(props.get('locked_fields', []))
+    locked = set(sync.override_fields(node))
 
     if sections is None:
         if 'name' not in locked and lib_area.get('name'):
@@ -1439,11 +1483,20 @@ def _apply_entry_selection(current, source, sel_keys):
 
 def _refresh_character(app, node, sections, template_id=None, entries=None):
     props = node.properties or {}
-    char_id = sync.resolve_template_id(node, template_id)
     char_reg = load_registry(app.config['DATA_DIR'], 'characters.json')
-    lib_char = char_reg.get(char_id)
+    try:
+        char_id = sync.resolve_template_id(node, template_id, registry=char_reg)
+    except sync.AmbiguousTemplateError as exc:
+        return jsonify({"error": str(exc)}), 409
+    ref = sync.template_ref(node)
+    variant = ref.get('variant') or None
+    lib_char = sync.resolve_template(char_reg, char_id, variant=variant)
+    if not lib_char:
+        lib_char = char_reg.get(char_id)
     if not lib_char:
         return jsonify({"error": f"Character '{char_id}' not found in library"}), 404
+
+    locked = set(sync.override_fields(node))
 
     player = app.world.player_manager.get_player(node.name) if hasattr(app.world, 'player_manager') else None
     if player is None:
@@ -1469,7 +1522,7 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
         'skills': 'skills',
         'traits': 'traits',
         # task-549: species is free text, so it is passed through as a plain
-        # string rather than validated against an enum — an unknown species
+        # string rather than validated against an enum - an unknown species
         # permits everything, which is the safe direction to be wrong in.
         'species': 'species',
         'tags': ('tags', 'list'),
@@ -1498,7 +1551,7 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
         elif kind == 'area':
             # Standalone characters: only set current_area if that area actually
             # exists in THIS world. A library character may carry a current_area
-            # from another scenario — don't error or strand them, just leave them
+            # from another scenario - don't error or strand them, just leave them
             # where they are.
             try:
                 aid = app.world._area_node_id(value)
@@ -1600,16 +1653,9 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
                 "[library] refresh '%s': equipped references did not resolve to "
                 "an item node: %s", player.name, ", ".join(result["unresolved"]))
 
-    if template_id:
-        props['library_id'] = template_id
-        node.properties = props
-    elif char_id and not sync.linked_template_id(node):
-        # A character guesses its template from its own name (see
-        # engine/sync.py), so a refresh with no explicit id really did sync from
-        # `char_id`. Record that, or the node keeps reading as unlinked: the next
-        # refresh re-guesses, and "Break Link" has nothing to break even though
-        # the node plainly has a template.
-        sync.link(node, char_id)
+    target_link_id = lib_char.get("character_id") or char_id or template_id
+    if target_link_id:
+        sync.link(node, target_link_id)
         props = node.properties or {}
 
     return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied,

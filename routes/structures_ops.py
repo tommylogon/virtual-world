@@ -3,6 +3,10 @@
 Backend for task-357 (structure templates). The route registration lives in
 ``routes/structures.py``; the work lives here, matching the
 ``library_routes`` → ``library_ops`` split.
+
+@module structures_ops
+@contributes _slug, _body, handle_structures_list, handle_structures_preview, handle_structures_save, handle_structures_materialize
+@docs none - HTTP API route handler
 """
 
 from __future__ import annotations

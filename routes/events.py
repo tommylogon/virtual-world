@@ -1,4 +1,9 @@
-"""Live world-event SSE endpoint."""
+"""Live world-event SSE endpoint.
+
+@module events
+@contributes register_events_routes
+@docs none - HTTP API route handler
+"""
 import json
 import queue
 from flask import Response, jsonify, request, stream_with_context

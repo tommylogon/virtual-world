@@ -1,3 +1,10 @@
+"""world_lore module.
+
+@module world_lore
+@contributes register_world_lore_routes
+@docs none - HTTP API route handler
+"""
+
 import logging
 import time
 import random

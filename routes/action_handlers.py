@@ -1,3 +1,10 @@
+"""action_handlers module.
+
+@module action_handlers
+@contributes _roster, _reachable_items, _activity_cmd_allowed, _activity_gate, _action_block_gate, _parse_activity_args
+@docs none - HTTP API route handler
+"""
+
 import logging
 import re
 import json
@@ -129,7 +136,7 @@ def _parse_activity_args(tokens, cmd):
 # courtesy. A single word that is NOT one of these is still treated as an emote
 # ("smile", "shrug" are legitimate).
 _VERBS_NEEDING_TARGET = frozenset({
-    "go", "climb", "crawl", "enter", "exit",
+    "go", "climb", "crawl", "enter", "exit", "swim", "dive",
     "examine", "look", "search", "read",
     "take", "get", "grab", "pick", "drop", "release", "stow",
     "put", "place", "give", "steal", "lead", "hand",
@@ -217,7 +224,7 @@ def handle_get_state(app):
             moon = app.world.current_moon_phase()
             moon["game_day"] = int(app.world.game_day)
             state["moon_phase"] = moon
-            state["forecast_schedule"] = dict(getattr(app.world, "forecast_schedule", {}) or {})
+            state["forecast"] = dict(getattr(app.world, "forecast", {}) or getattr(app.world, "forecast_schedule", {}) or {})
             state["forecast_override"] = dict(getattr(app.world, "forecast_override", {}) or {}) \
                 if getattr(app.world, "forecast_override", None) else None
         except Exception:
@@ -394,7 +401,7 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": False, "category": "not_found", "detail": f"Target '{target_str}' not found in room context, inventory, or exits."}
 
     # 5. Movement resolution
-    if verb in ("go", "approach", "dash", "crawl", "climb", "jump"):
+    if verb in ("go", "approach", "dash", "crawl", "climb", "jump", "swim", "dive"):
         if target_lower in compass_dirs:
             return {"valid": True, "category": "exit", "resolved_target": target_lower, "detail": f"Direction '{target_lower}'"}
 
@@ -614,6 +621,24 @@ def handle_take_action(app):
             else:
                 _move_and_describe(lambda: world.move_to_area(direction))
 
+        elif cmd.startswith("move_to ") or cmd.startswith("moveto "):
+            was_movement = True
+            rest = cmd.split(" ", 1)[1].strip()
+            coord_m = re.match(r'^\(?\s*(\d+)\s*[, ]\s*(\d+)\s*\)?$', rest)
+            if coord_m:
+                x, y = int(coord_m.group(1)), int(coord_m.group(2))
+                try:
+                    res = world.move_to_coord(world.active_player, x, y)
+                    add_output(res.get("message", f"You moved to ({x}, {y})."))
+                except Exception as e:
+                    add_output(str(e))
+            else:
+                try:
+                    res = world.move_to_item(world.active_player, rest)
+                    add_output(res.get("message", f"You moved to {rest}."))
+                except Exception as e:
+                    add_output(str(e))
+
         elif cmd.startswith("approach "):
             was_movement = True
             target = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[9:].strip()
@@ -641,6 +666,14 @@ def handle_take_action(app):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             _move_and_describe(lambda: world.jump_to_area(direction))
+        elif cmd.startswith("swim "):
+            was_movement = True
+            direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
+            _move_and_describe(lambda: world.swim_to_area(direction))
+        elif cmd.startswith("dive "):
+            was_movement = True
+            direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
+            _move_and_describe(lambda: world.dive_to_area(direction))
 
         elif cmd in ("rest", "sleep", "wait", "meditate", "bathe", "bath",
                      "sit", "sit down", "lie", "lie down", "lay down"):
@@ -1667,6 +1700,29 @@ def handle_take_action(app):
                 else:
                     add_output("Usage: schedule [add HH:MM <activity> [at <area>] | remove HH:MM]")
 
+        elif cmd.startswith("offer "):
+            # task-896: an explicit, targeted offer. `offer <who>: <charge> [due <tick>]`.
+            # The record is written onto the recipient; nothing else creates one.
+            from engine import goals as _goals
+            rest = (data.get("command") or "").strip()[len("offer"):].strip()
+            who, sep, charge = rest.partition(":")
+            due = 0
+            m_due = re.search(r"\s+due\s+(\d+)\s*$", charge)
+            if m_due:
+                due = int(m_due.group(1))
+                charge = charge[:m_due.start()]
+            if not sep or not who.strip() or not charge.strip():
+                add_output("Offer what to who? Use: offer <character>: <what you ask> [due <tick>]")
+            else:
+                record, error = _goals.issue_offer(
+                    world, world.active_player, who.strip(), charge.strip(), due=due)
+                if error:
+                    add_output(error)
+                else:
+                    world.add_log_entry(
+                        f"[Offer] {world.active_player} asks {who.strip()}: {record['charge']}")
+                    add_output(f"You offer {who.strip()}: {record['charge']}.")
+
         elif cmd == "obligation" or cmd.startswith("obligation "):
             # task-813: an obligation is the O of MOSIAC - an input the character
             # answers. Accepting is what spawns a goal.
@@ -1803,7 +1859,37 @@ def handle_take_action(app):
                 else:
                     add_output("You try to speak, but nothing comes out.")
 
+        elif cmd.startswith("call "):
+            target_contact = cmd[5:].strip()
+            if not target_contact:
+                add_output("Use: call <contact>")
+                failed = True
+            else:
+                try:
+                    res = world.initiate_call(world.active_player, target_contact)
+                    add_output(res)
+                except Exception as e:
+                    add_output(str(e))
+                    failed = True
+
+        elif cmd in ("answer", "answer phone", "answer call"):
+            try:
+                res = world.answer_call(world.active_player)
+                add_output(res)
+            except Exception as e:
+                add_output(str(e))
+                failed = True
+
+        elif cmd in ("hangup", "hang up", "end call"):
+            try:
+                res = world.end_call(world.active_player)
+                add_output(res)
+            except Exception as e:
+                add_output(str(e))
+                failed = True
+
         elif cmd.startswith(("text ", "message ")):
+
             prefix = "text " if cmd.startswith("text ") else "message "
             raw_cmd_unlowered = data.get('command', '').strip()
             raw_body = raw_cmd_unlowered[len(prefix):].strip() if raw_cmd_unlowered.lower().startswith(prefix) else original_cmd[len(prefix):].strip()

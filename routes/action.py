@@ -1,3 +1,10 @@
+"""action module.
+
+@module action
+@contributes _timeskip_busy, register_action_routes
+@docs none - HTTP API route handler
+"""
+
 import logging
 from flask import Flask, request, jsonify
 from .action_handlers import (
@@ -18,7 +25,12 @@ from .action_handlers import (
     handle_apply_turn_decay,
     handle_clear_turn_events,
 )
-from .timeskip_ops import handle_timeskip, handle_soak_declare, handle_soak_cancel
+from .timeskip_ops import (
+    handle_timeskip,
+    handle_soak_declare,
+    handle_soak_cancel,
+    handle_world_advance,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -110,9 +122,31 @@ def register_action_routes(app):
     def clear_turn_events():
         return handle_clear_turn_events(app)
 
+    @app.route('/api/turn/order', methods=['GET'])
+    def get_turn_order():
+        return jsonify(app.world.get_turn_order_info())
+
+    @app.route('/api/turn/order', methods=['POST'])
+    def set_turn_order():
+        data = request.get_json(silent=True) or {}
+        mode = data.get("mode")
+        from engine.turn_order import MODES
+        if mode not in MODES:
+            return jsonify({"error": f"Unknown mode '{mode}'", "valid_modes": list(MODES)}), 400
+        app.world.turn_order_mode = mode
+        if hasattr(app.world, "turn_order_resolver"):
+            app.world.turn_order_resolver.set_mode(mode)
+        return jsonify(app.world.get_turn_order_info())
+
     @app.route('/api/world/timeskip', methods=['POST'])
     def world_timeskip():
         return handle_timeskip(app)
+
+    @app.route('/api/world/advance', methods=['POST'])
+    def world_advance():
+        if _timeskip_busy():
+            return jsonify({"error": "A timeskip is running."}), 409
+        return handle_world_advance(app)
 
     @app.route('/api/world/soak', methods=['POST'])
     def world_soak():

@@ -1,7 +1,11 @@
-"""Library routes — unified CRUD and import for all entity types.
+"""Library routes - unified CRUD and import for all entity types.
 
 Extends items_registry.py with generic routes for areas, conditions,
 behaviours, and multi-type build/refresh operations.
+
+@module library_routes
+@contributes register_library_routes
+@docs none - HTTP API route handler
 """
 
 import logging
