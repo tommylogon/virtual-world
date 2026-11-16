@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "defaultMode": "bypass_permissions",
+    "allow": [
+      "Bash",
+      "PowerShell",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "Agent",
+      "Skill",
+      "Monitor",
+      "Workflow",
+      "NotebookEdit",
+      "mcp__codesearch",
+      "Bash(python:*)",
+      "Bash(ls -la /f/ai/codesearch)",
+      "Read(//f/ai/**)",
+      "Bash(echo \"=== ~/.cursor/ ===\"; ls -la ~/.cursor/ 2>/dev/null || echo \"\\(missing\\)\"; echo \"=== cli-config.json ===\"; cat ~/.cursor/cli-config.json 2>/dev/null || echo \"\\(missing\\)\"; echo \"=== ~/.qwen/ ===\"; ls -la ~/.qwen/ 2>/dev/null || echo \"\\(missing\\)\"; echo \"=== qwen settings.json ===\"; cat ~/.qwen/settings.json 2>/dev/null || echo \"\\(missing\\)\"; echo \"=== repo .cursor / .qwen ===\"; ls -la .cursor .qwen 2>/dev/null || echo \"\\(none in repo\\)\")",
+      "Read(//c/Users/Tommy/.cursor/**)"
+    ]
+  }
+}
