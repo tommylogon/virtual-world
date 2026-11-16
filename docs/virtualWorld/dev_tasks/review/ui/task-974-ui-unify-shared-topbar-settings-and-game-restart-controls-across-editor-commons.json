@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 974,
   "title": "UI: Unify shared topbar, Settings, and Game/Restart controls across Editor, Commons, Benchmark, and SoakLab",
-  "status": "todo",
+  "status": "review",
   "priority": "medium",
   "area": "ui",
   "tags": [
