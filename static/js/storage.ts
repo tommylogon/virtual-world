@@ -274,9 +274,9 @@ class StorageProvider {
         return this.set('settings', id, value);
     }
 
-    // --- Event Log persistence ---
+    // --- Event Log persistence (task-779: structured records) ---
 
-    async saveEventLog(entries: string[]): Promise<void> {
+    async saveEventLog(entries: any[]): Promise<void> {
         return new Promise<void>((resolve) => {
             if (!this._db) { resolve(); return; }
             try {
@@ -285,7 +285,12 @@ class StorageProvider {
                 store.clear(); // remove old
                 // Store entries in batches with auto-increment ids
                 for (let i = 0; i < entries.length; i++) {
-                    store.add({ id: i, html: entries[i] });
+                    const entry = entries[i];
+                    if (typeof entry === 'object' && entry !== null) {
+                        store.add({ id: i, ...entry });
+                    } else {
+                        store.add({ id: i, text: String(entry) });
+                    }
                 }
                 tx.oncomplete = () => resolve();
                 tx.onerror = () => resolve();
@@ -293,17 +298,20 @@ class StorageProvider {
         });
     }
 
-    async loadEventLog(): Promise<string[]> {
-        return new Promise<string[]>((resolve) => {
+    async loadEventLog(): Promise<any[]> {
+        return new Promise<any[]>((resolve) => {
             if (!this._db) { resolve([]); return; }
             try {
                 const tx = this._db.transaction('event_log', 'readonly');
                 const store = tx.objectStore('event_log');
                 const req = store.getAll();
                 req.onsuccess = () => {
-                    const items = (req.result || []) as Array<{ id: number; html: string }>;
+                    const items = (req.result || []) as Array<{ id: number; [key: string]: any }>;
                     items.sort((a, b) => a.id - b.id);
-                    resolve(items.map(item => item.html));
+                    resolve(items.map(item => {
+                        const { id, ...record } = item;
+                        return record;
+                    }));
                 };
                 req.onerror = () => resolve([]);
             } catch (e) { resolve([]); }

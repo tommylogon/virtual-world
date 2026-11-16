@@ -38,6 +38,7 @@ const InspectorPersonaView = (() => {
         'likes', 'dislikes', 'fears', 'interests', 'kinks', 'turn_ons',
         'turn_offs', 'traumas', 'boundaries', 'traits', 'aspirations',
         'quirks', 'habits', 'hard_limits', 'soft_limits',
+        'skills', 'languages', 'weaknesses',
     ]);
     function _normalizeSlug(val) {
         return (val || '')
@@ -65,7 +66,7 @@ const InspectorPersonaView = (() => {
     }
     const _PERSONA_SECTIONS = [
         ['identity', 'Identity'], ['appearance', 'Appearance'],
-        ['personality', 'Personality'], ['narrative', 'Narrative'],
+        ['personality', 'Personality'], ['capabilities', 'Capabilities'], ['narrative', 'Narrative'],
     ];
     const _PERSONA_NUMBERS = new Set(['identity.age', 'appearance.height_cm', 'appearance.weight_kg']);
     const _PERSONA_TEXTAREAS = new Set([
@@ -92,6 +93,7 @@ const InspectorPersonaView = (() => {
         'personality.turn_offs', 'personality.boundaries', 'personality.experience']);
     const _PERSONA_TONES = {
         fears: 'danger', traumas: 'danger', turn_offs: 'danger', dislikes: 'danger',
+        weaknesses: 'danger',
         interests: 'info', likes: 'info',
     };
     function _personaCss() {
@@ -99,8 +101,8 @@ const InspectorPersonaView = (() => {
         #mind-persona .pf-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
         #mind-persona .pf-badge{font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:999px;padding:2px 10px;color:var(--text-dim);}
         #mind-persona .pf-span{grid-column:1/-1;}
-        #mind-persona .pf-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
-        #mind-persona .pf-hint{cursor:help;font-size:10px;}
+        #mind-persona .pf-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;margin-bottom:3px;}
+        #mind-persona .pf-hint{font-size:11px;font-weight:400;text-transform:none;letter-spacing:normal;color:var(--text-muted);opacity:.78;}
         #mind-persona .pf-in{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 9px;font-size:13px;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(0,0,0,.25);}
         #mind-persona .pf-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.18);}
         #mind-persona textarea.pf-in{resize:vertical;font-family:inherit;min-height:56px;line-height:1.4;}
@@ -118,8 +120,7 @@ const InspectorPersonaView = (() => {
         #mind-persona .pf-chip b:hover{color:var(--text);}
         #mind-persona .pf-chip-new{flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;}
         #mind-persona details.pf-intimacy{border-style:dashed;margin-top:8px;}
-        #mind-persona .pf-locked{filter:blur(4px);cursor:pointer;user-select:none;}
-        #mind-persona .pf-lock-note{font-size:11px;color:var(--text-muted);margin-bottom:4px;cursor:pointer;}
+        #mind-persona .pf-lock-note{font-size:11px;color:var(--text-muted);margin-bottom:6px;}
         #mind-persona .pf-codex{background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.5;}
         #mind-persona .pf-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:4px 2px 12px;margin-bottom:12px;border-bottom:1px solid var(--border);}
         #mind-persona .pf-head-main{min-width:240px;flex:1;}
@@ -180,10 +181,22 @@ const InspectorPersonaView = (() => {
             hidden.value = values.join('\n');
         _personaDirty();
     }
+    const _CANONICAL_SKILLS = [
+        'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
+        'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
+        'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
+        'Sleight of Hand', 'Stealth', 'Survival',
+    ];
     function _personaChipBox(path, values, tone) {
         const chips = values.map((v) => `<span class="pf-chip${tone ? ` ${tone}` : ''}">${esc(v)}<b data-chip-x="${esc(path)}" data-chip-v="${esc(v)}">×</b></span>`).join('');
         const joined = esc(values.join('\n')).replace(/\n/g, '&#10;');
-        return `<div class="pf-chips">${chips}<input class="pf-chip-new" data-chip-new="${esc(path)}" placeholder="add…" style="flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;"><input type="hidden" data-persona-path="${esc(path)}" value="${joined}"></div>`;
+        const isSkills = path === 'capabilities.skills';
+        const listAttr = isSkills ? ' list="pf-dl-capabilities-skills" autocomplete="off"' : '';
+        const placeholder = isSkills ? 'add skill…' : 'add…';
+        const datalist = isSkills
+            ? `<datalist id="pf-dl-capabilities-skills">${_CANONICAL_SKILLS.map((s) => `<option value="${esc(s)}"></option>`).join('')}</datalist>`
+            : '';
+        return `<div class="pf-chips">${chips}<input class="pf-chip-new" data-chip-new="${esc(path)}" placeholder="${placeholder}"${listAttr} style="flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;">${datalist}<input type="hidden" data-persona-path="${esc(path)}" value="${joined}"></div>`;
     }
     // task-843: the model's provenance. A field the converter invented (rather
     // than read from the source) is marked so the author can tell guess from
@@ -211,8 +224,8 @@ const InspectorPersonaView = (() => {
     function _personaFieldHtml(section, field, decl) {
         const path = `${section}.${field}`;
         const hint = _state?.persona?.hints[path] || (decl && decl.description) || '';
-        const hintIco = hint ? ` <span class="pf-hint" title="${esc(hint)}">ⓘ</span>` : '';
-        const label = `<div class="pf-label"><span>${esc(field)}${_sparkle(path)}</span>${hintIco}</div>`;
+        const hintInline = hint ? `<span class="pf-hint">- ${esc(hint)}</span>` : '';
+        const label = `<div class="pf-label"><span>${esc(field)}${_sparkle(path)}</span>${hintInline}</div>`;
         const val = _personaVal(path);
         const tone = _PERSONA_TONES[field] || '';
         if (path === 'personality.experience') {
@@ -241,7 +254,7 @@ const InspectorPersonaView = (() => {
                     </div>
                     <button type="button" class="btn btn-sm" id="mind-persona-toggle-exp" style="font-size:10px;margin-top:4px;">Switch to free-text experience</button>
                 `;
-                return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>experience${hintIco}</legend>${inner}</fieldset></div>`, wide: true };
+                return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>experience${hintInline ? ` ${hintInline}` : ''}</legend>${inner}</fieldset></div>`, wide: true };
             }
             else {
                 const str = val === undefined || val === null ? '' : String(val);
@@ -268,6 +281,32 @@ const InspectorPersonaView = (() => {
                 ? `<datalist id="${esc(listId)}">${opts.map((o) => `<option value="${esc(o)}"></option>`).join('')}</datalist>`
                 : '';
             return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"${numeric ? ' inputmode="decimal"' : ''}${listAttrs}>${datalist}</div>`, wide: false };
+        }
+        if (path === 'narrative.media') {
+            const items = Array.isArray(val) ? val : [];
+            const rowHtml = (entry) => {
+                const obj = (typeof entry === 'object' && entry !== null)
+                    ? entry
+                    : { title: String(entry ?? '') };
+                const t = String(obj.title ?? '');
+                const m = String(obj.medium ?? '');
+                const w = String(obj.when ?? '');
+                const f = String(obj.familiarity ?? '');
+                const o = String(obj.opinion ?? '');
+                return `<div class="pf-media-row" data-media-row style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:5px;align-items:center;margin-bottom:6px;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-inset);">
+                    <input class="pf-in" data-media-field="title" value="${esc(t)}" placeholder="Title (e.g. Evil Dead II)">
+                    <input class="pf-in" data-media-field="medium" value="${esc(m)}" placeholder="medium (movie/book/band)">
+                    <input class="pf-in" data-media-field="when" value="${esc(w)}" placeholder="when (e.g. age 14, last fall)">
+                    <input class="pf-in" data-media-field="familiarity" value="${esc(f)}" placeholder="familiarity (e.g. obsessed)">
+                    <button type="button" class="btn btn-sm" data-media-del title="Remove" style="padding:2px 7px;">×</button>
+                    <input class="pf-in" data-media-field="opinion" value="${esc(o)}" placeholder="what they think / feel about it..." style="grid-column:1/-1;">
+                </div>`;
+            };
+            const rows = items.map(rowHtml).join('');
+            return {
+                html: `<div class="pf-span">${label}<div data-media-list="narrative.media">${rows}</div><button type="button" class="btn btn-sm" id="mind-persona-add-media" style="font-size:11px;margin-top:2px;">+ add media</button></div>`,
+                wide: true,
+            };
         }
         if (decl.type === 'array') {
             const values = Array.isArray(val) ? val.map((v) => String(v)) : [];
@@ -301,9 +340,9 @@ const InspectorPersonaView = (() => {
                 })()
                 : '';
             const locked = path === 'narrative.secrets'
-                ? `<div class="pf-lock-note" data-lock="${esc(path)}">🔒 sealed - never compiled to prose. click to reveal.</div><div class="pf-locked" data-lockbody="${esc(path)}">${subs}</div>`
+                ? `<div class="pf-lock-note">🔒 sealed - never compiled to prose.</div>${subs}`
                 : subs;
-            return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>${esc(field)}${hintIco}</legend>${locked}${markHidden}</fieldset></div>`, wide: true };
+            return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>${esc(field)}${hintInline ? ` ${hintInline}` : ''}</legend>${locked}${markHidden}</fieldset></div>`, wide: true };
         }
         const str = val === undefined || val === null ? '' : String(val);
         if (_PERSONA_TEXTAREAS.has(path)) {
@@ -637,10 +676,22 @@ const InspectorPersonaView = (() => {
         ];
         const chips = picks
             .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '')
-            .map(([k, v]) => `<span class="pf-badge">${esc(k)} · ${esc(String(v))}</span>`).join('');
-        if (!chips)
+            .map(([k, v]) => `<span class="pf-badge">${esc(k)} · ${esc(String(v))}</span>`);
+        const lc = _state?.persona?.lifecycle;
+        const player = (worldState.players || {})[_state?.charName || ''];
+        const preg = lc?.pregnancy || player?.pregnancy;
+        const cyc = lc?.reproductive_cycle || player?.reproductive_cycle;
+        if (preg && typeof preg === 'object') {
+            chips.push(`<span class="pf-badge" style="border-color:#f778ba;color:#f778ba;">pregnant · ${esc(String(preg.stage || 'gestating').replace(/_/g, ' '))}</span>`);
+        }
+        else if (cyc && typeof cyc === 'object' && cyc.pattern && cyc.pattern !== 'none') {
+            const phase = String(cyc.phase || '').replace(/_/g, ' ');
+            const dayStr = cyc.day && cyc.length_days ? ` (d${cyc.day}/${cyc.length_days})` : '';
+            chips.push(`<span class="pf-badge">${esc(cyc.pattern)} · ${esc(phase)}${esc(dayStr)}</span>`);
+        }
+        if (!chips.length)
             return '';
-        return `<div class="pf-badges">${chips}</div>`;
+        return `<div class="pf-badges">${chips.join('')}</div>`;
     }
     // task-852 P1: character header - name, one-liner, badges, state chips
     // (✓ saved / ● unsaved / ⚠ uncompiled), actions on the right.
@@ -683,6 +734,7 @@ const InspectorPersonaView = (() => {
                 <div class="pf-states" id="mind-persona-states" role="status" aria-live="polite">${_personaStatesHtml()}</div>
                 <div class="pf-actions">
                     <button class="btn btn-sm" id="mind-persona-import" style="font-size:11px;" title="Import a card (.json) or prose (.md/.txt) and convert it to this sheet">📥 import</button>
+                    <button class="btn btn-sm" id="mind-persona-export" style="font-size:11px;" title="Export the persona form as JSON with field hints">📤 export</button>
                     <input type="file" id="mind-persona-file" accept=".json,.md,.txt" style="display:none;">
                     ${_state?.persona?.has_undo ? `<button class="btn btn-sm" id="mind-persona-revert" style="font-size:11px;" title="Revert compiled prose to pre-compile snapshot">↺ revert compile</button>` : ''}
                     <button class="btn btn-sm" id="mind-persona-save" style="font-size:11px;">💾 save block</button>
@@ -703,7 +755,13 @@ const InspectorPersonaView = (() => {
         const openSet = new Set(p.openSections || []);
         const sections = _PERSONA_SECTIONS.map(([section, label]) => {
             const fields = props[section]?.properties || {};
-            const names = Object.keys(fields);
+            const names = Object.keys(fields).filter((f) => {
+                if (section === 'narrative' && f === 'role_in_town') {
+                    const v = _personaVal('narrative.role_in_town');
+                    return v !== undefined && v !== null && String(v).trim() !== '';
+                }
+                return true;
+            });
             const filled = names.filter((f) => {
                 const v = _personaVal(`${section}.${f}`);
                 if (v === undefined || v === null || v === '')
@@ -741,23 +799,28 @@ const InspectorPersonaView = (() => {
             </details>`;
         }).join('');
         const preview = p.preview ? `<div style="border:1px solid #1f6feb;border-radius:6px;padding:8px 10px;margin:10px 0;font-size:11px;">
-                <div style="font-weight:600;margin-bottom:6px;">Compile preview - hand prose differs</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">
+                    <span style="font-weight:600;">Compile preview - hand prose differs</span>
+                    <button type="button" class="btn btn-sm" id="mind-persona-polish" style="font-size:11px;">✨ Polish with LLM</button>
+                </div>
                 <div style="margin-bottom:8px;">
                     <label style="display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer;">
                         <input type="checkbox" id="mind-persona-apply-base" checked> Apply Base Description
                     </label>
                     <div style="margin-left:20px;margin-top:4px;">
                         <div style="color:var(--text-muted);font-size:11px;">CURRENT</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
-                        <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">COMPILED</div><div>${esc(p.preview.base_description?.compiled || '(empty)')}</div>
+                        <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">COMPILED (editable)</div>
+                        <textarea class="pf-in" id="mind-persona-compiled-base" rows="3" style="margin-top:2px;font-size:11px;">${esc(p.preview.base_description?.compiled || '')}</textarea>
                     </div>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer;">
-                        <input type="checkbox" id="mind-persona-apply-pers" checked> Apply Personality Prose
+                        <input type="checkbox" id="mind-persona-apply-pers"${p.preview.personality?.current ? '' : ' checked'}> Apply Personality Prose
                     </label>
                     <div style="margin-left:20px;margin-top:4px;">
                         <div style="color:var(--text-muted);font-size:11px;">CURRENT</div><div>${esc(p.preview.personality?.current || '(empty)')}</div>
-                        <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">COMPILED</div><div>${esc(p.preview.personality?.compiled || '(empty)')}</div>
+                        <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">COMPILED (editable)</div>
+                        <textarea class="pf-in" id="mind-persona-compiled-pers" rows="4" style="margin-top:2px;font-size:11px;">${esc(p.preview.personality?.compiled || '')}</textarea>
                     </div>
                 </div>
                 <div style="display:flex;gap:6px;margin-top:10px;">
@@ -797,7 +860,7 @@ const InspectorPersonaView = (() => {
     function _personaRepaint(syncForm = true) {
         if (syncForm)
             _syncPersonaFromForm();
-        const el = _container?.querySelector('#mind-persona');
+        const el = _container?.id === 'mind-persona' ? _container : _container?.querySelector('#mind-persona');
         if (el) {
             el.replaceChildren(document.createRange().createContextualFragment(_personaHtml()));
             _wirePersona();
@@ -845,6 +908,10 @@ const InspectorPersonaView = (() => {
         });
     }
     function _collectPersona() {
+        _container?.querySelectorAll('.pf-chip-new').forEach((inputEl) => {
+            if (inputEl.value.trim())
+                _commitChipDraft(inputEl, false);
+        });
         const out = {};
         _container?.querySelectorAll('[data-persona-path]').forEach((el) => {
             const path = el.dataset.personaPath || '';
@@ -882,6 +949,27 @@ const InspectorPersonaView = (() => {
             }
             cursor[parts[parts.length - 1]] = value;
         });
+        const mediaList = _container?.querySelector('[data-media-list="narrative.media"]');
+        if (mediaList) {
+            const items = [];
+            mediaList.querySelectorAll('[data-media-row]').forEach((row) => {
+                const get = (f) => (row.querySelector(`[data-media-field="${f}"]`)?.value || '').trim();
+                const title = get('title');
+                if (!title)
+                    return;
+                const obj = { title };
+                for (const k of ['medium', 'when', 'familiarity', 'opinion']) {
+                    const v = get(k);
+                    if (v)
+                        obj[k] = v;
+                }
+                items.push(obj);
+            });
+            if (items.length) {
+                out.narrative = out.narrative || {};
+                out.narrative.media = items;
+            }
+        }
         return out;
     }
     function _personaMsg(text) {
@@ -913,7 +1001,79 @@ const InspectorPersonaView = (() => {
             return 'unknown error';
         }
     }
-    function _compilePersona(force, sections) {
+    function _readPreviewOverrides() {
+        const baseEl = _container?.querySelector('#mind-persona-compiled-base');
+        const persEl = _container?.querySelector('#mind-persona-compiled-pers');
+        const out = {};
+        if (baseEl && baseEl.value.trim())
+            out.base_description = baseEl.value.trim();
+        if (persEl && persEl.value.trim())
+            out.personality = persEl.value.trim();
+        return Object.keys(out).length ? out : undefined;
+    }
+    async function _polishCompilePreview(auto = false) {
+        if (!_state?.persona?.preview)
+            return;
+        const llm = window.llmClient;
+        if (!llm || typeof llm.chat !== 'function') {
+            if (!auto)
+                _personaMsg('no model connected - configure one in Settings to polish prose.');
+            return;
+        }
+        const btn = _container?.querySelector('#mind-persona-polish');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '✨ polishing...';
+        }
+        try {
+            const rec = _state.persona.record || _collectPersona();
+            const curBase = String(_state.persona.preview.base_description?.current || '').trim();
+            const curPers = String(_state.persona.preview.personality?.current || '').trim();
+            const prompt = `You are polishing two character sheet prose fields for "${_state.charName}" from structured JSON data.
+Return ONLY valid JSON with two string keys: "base_description" and "personality".
+
+Rules for "base_description":
+- Smooth, evocative third-person physical/sensory description ONLY (build, apparent age, face, hair, eyes, body details, voice, scent, general wardrobe aesthetic).
+- Eliminate snake_case slugs (e.g. "oversized_band_hoodies" -> "oversized band hoodies"), eliminate repeated adjectives, and NEVER include backstory or secrets.
+- Use third-person pronouns, never first-person ("my").
+
+Rules for "personality":
+- Smooth, natural second-person ("You are ...") if CURRENT personality uses "you", otherwise third-person.
+- Preserve all core identity, setting anchors, backstory/friendships, and emotional stakes from CURRENT personality if provided, and weave in the structured traits, habits, quirks, speech style/dialect/catchphrases, aspirations, MBTI, and Alignment cleanly.
+- Eliminate ALL snake_case slugs.
+
+CURRENT base_description: ${JSON.stringify(curBase)}
+CURRENT personality: ${JSON.stringify(curPers)}
+STRUCTURED RECORD: ${JSON.stringify(rec)}`;
+            const ans = await llm.chat(prompt, { label: 'persona/compile-polish', temperature: 0.3, max_tokens: 1400 });
+            const raw = typeof ans === 'string' ? ans : (ans?.content || ans?.message || '');
+            const m = raw.match(/\{[\s\S]*\}/);
+            if (!m)
+                throw new Error('LLM did not return JSON');
+            const parsed = JSON.parse(m[0]);
+            if (!_state?.persona?.preview)
+                return;
+            if (typeof parsed.base_description === 'string' && parsed.base_description.trim()) {
+                _state.persona.preview.base_description.compiled = parsed.base_description.trim();
+            }
+            if (typeof parsed.personality === 'string' && parsed.personality.trim()) {
+                _state.persona.preview.personality.compiled = parsed.personality.trim();
+            }
+            _personaRepaint(false);
+        }
+        catch (e) {
+            if (!auto)
+                _personaMsg(`LLM polish failed: ${e instanceof Error ? e.message : String(e)}`);
+        }
+        finally {
+            const b = _container?.querySelector('#mind-persona-polish');
+            if (b) {
+                b.disabled = false;
+                b.textContent = '✨ Polish with LLM';
+            }
+        }
+    }
+    function _compilePersona(force, sections, overrides) {
         if (!_state)
             return;
         if (!force && _state.persona?.dirty) {
@@ -925,6 +1085,8 @@ const InspectorPersonaView = (() => {
             opts.force = true;
         if (sections && sections.length)
             opts.sections = sections;
+        if (overrides)
+            opts.overrides = overrides;
         ApiClient.compilePlayerRecord(_state.charName, opts)
             .then(({ ok, data }) => {
             if (!ok || !_state?.persona) {
@@ -935,6 +1097,7 @@ const InspectorPersonaView = (() => {
                 _state.persona.preview = data.preview;
                 _state.persona.msg = '';
                 _personaRepaint();
+                void _polishCompilePreview(true);
                 return;
             }
             _state.persona.preview = null;
@@ -951,6 +1114,33 @@ const InspectorPersonaView = (() => {
         const box = _container?.querySelector('#mind-persona-states');
         if (box)
             box.replaceChildren(document.createRange().createContextualFragment(_personaStatesHtml()));
+    }
+    function _commitChipDraft(inputEl, keepFocus) {
+        const box = inputEl.closest('.pf-chips');
+        if (!box)
+            return false;
+        const raw = inputEl.value.trim();
+        inputEl.value = '';
+        if (!raw)
+            return false;
+        const path = inputEl.dataset.chipNew || '';
+        const lastPart = path.split('.').pop() || '';
+        const isSlug = _PERSONA_ID_LISTS.has(lastPart);
+        const cur = _chipValues(box);
+        let added = false;
+        for (const piece of raw.split(/[,\n]+/)) {
+            const trimmed = piece.trim();
+            if (!trimmed)
+                continue;
+            const v = isSlug ? _normalizeSlug(trimmed) : trimmed;
+            if (v && !cur.includes(v)) {
+                cur.push(v);
+                added = true;
+            }
+        }
+        if (added)
+            _chipPaint(box, cur, keepFocus);
+        return added;
     }
     function _chipValues(box) {
         const hidden = box.querySelector('input[type="hidden"]');
@@ -1014,6 +1204,57 @@ const InspectorPersonaView = (() => {
         })
             .catch(() => { });
     }
+    function _exportPersona() {
+        if (!_state?.persona)
+            return;
+        const current = _collectPersona();
+        const props = (_state.persona.schema?.properties || {});
+        const fullRecord = {};
+        for (const [section] of _PERSONA_SECTIONS) {
+            const sDecl = props[section]?.properties || {};
+            const sCur = (current[section] || {});
+            const outSec = {};
+            for (const field of Object.keys(sDecl)) {
+                const fDecl = sDecl[field];
+                if (sCur[field] !== undefined) {
+                    outSec[field] = sCur[field];
+                }
+                else if (fDecl?.type === 'array') {
+                    outSec[field] = [];
+                }
+                else if (fDecl?.type === 'object' && fDecl?.properties) {
+                    const subOut = {};
+                    for (const sub of Object.keys(fDecl.properties)) {
+                        subOut[sub] = fDecl.properties[sub]?.type === 'array' ? [] : '';
+                    }
+                    outSec[field] = subOut;
+                }
+                else if (fDecl?.type === 'number') {
+                    outSec[field] = null;
+                }
+                else {
+                    outSec[field] = '';
+                }
+            }
+            fullRecord[section] = outSec;
+        }
+        const payload = {
+            character: _state.charName,
+            record: fullRecord,
+            hints: _state.persona.hints || {},
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const safe = (_state.charName || 'character').toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '');
+        a.href = url;
+        a.download = `${safe || 'character'}_persona.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        _personaMsg(`exported ${a.download}.`);
+    }
     function _importPersonaFile(file) {
         if (!_state?.persona)
             return;
@@ -1031,7 +1272,26 @@ const InspectorPersonaView = (() => {
         reader.onload = () => {
             void (async () => {
                 try {
-                    const parsed = CI.parseInputFile(String(reader.result ?? ''), file.name);
+                    const rawText = String(reader.result ?? '');
+                    if (file.name.toLowerCase().endsWith('.json')) {
+                        try {
+                            const maybeExport = JSON.parse(rawText);
+                            if (maybeExport && typeof maybeExport === 'object'
+                                && maybeExport.record && typeof maybeExport.record === 'object'
+                                && !Array.isArray(maybeExport.record)) {
+                                if (!_state?.persona)
+                                    return;
+                                _state.persona.record = maybeExport.record;
+                                _state.persona.inferred = [];
+                                _state.persona.dirty = true;
+                                _state.persona.msg = `loaded exported persona JSON "${file.name}": review, then save.`;
+                                _personaRepaint(false);
+                                return;
+                            }
+                        }
+                        catch { /* fall through to CharacterImport */ }
+                    }
+                    const parsed = CI.parseInputFile(rawText, file.name);
                     const schema = _state?.persona?.schema;
                     if (!schema) {
                         _personaMsg('schema not loaded - retry the tab.');
@@ -1076,8 +1336,10 @@ const InspectorPersonaView = (() => {
             return;
         const on = (sel, fn) => {
             const el = _container?.querySelector(sel);
-            if (el)
+            if (el && !el._pfWired) {
+                el._pfWired = true;
                 el.addEventListener('click', fn);
+            }
         };
         on('#mind-persona-retry', () => _fetchPersona());
         on('#mind-persona-save', () => _savePersona());
@@ -1085,6 +1347,43 @@ const InspectorPersonaView = (() => {
             const picker = _container?.querySelector('#mind-persona-file');
             if (picker)
                 picker.click();
+        });
+        on('#mind-persona-export', () => _exportPersona());
+        on('#mind-persona-add-media', () => {
+            const list = _container?.querySelector('[data-media-list="narrative.media"]');
+            if (!list)
+                return;
+            const frag = document.createRange().createContextualFragment(`<div class="pf-media-row" data-media-row style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:5px;align-items:center;margin-bottom:6px;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-inset);">
+                <input class="pf-in" data-media-field="title" value="" placeholder="Title (e.g. Evil Dead II)">
+                <input class="pf-in" data-media-field="medium" value="" placeholder="medium (movie/book/band)">
+                <input class="pf-in" data-media-field="when" value="" placeholder="when (e.g. age 14, last fall)">
+                <input class="pf-in" data-media-field="familiarity" value="" placeholder="familiarity (e.g. obsessed)">
+                <button type="button" class="btn btn-sm" data-media-del title="Remove" style="padding:2px 7px;">×</button>
+                <input class="pf-in" data-media-field="opinion" value="" placeholder="what they think / feel about it..." style="grid-column:1/-1;">
+            </div>`);
+            const row = frag.firstElementChild;
+            list.appendChild(frag);
+            row?.querySelector('[data-media-del]')?.addEventListener('click', () => { row.remove(); _personaDirty(); });
+            row?.querySelectorAll('[data-media-field]').forEach((inp) => inp.addEventListener('input', () => _personaDirty()));
+            row?.querySelector('[data-media-field="title"]')?.focus();
+            _personaDirty();
+        });
+        _container.querySelectorAll('[data-media-del]').forEach((btn) => {
+            const b = btn;
+            if (b._pfWired)
+                return;
+            b._pfWired = true;
+            b.addEventListener('click', () => {
+                b.closest('[data-media-row]')?.remove();
+                _personaDirty();
+            });
+        });
+        _container.querySelectorAll('[data-media-field]').forEach((inp) => {
+            const i = inp;
+            if (i._pfWired)
+                return;
+            i._pfWired = true;
+            i.addEventListener('input', () => _personaDirty());
         });
         const picker = _container?.querySelector('#mind-persona-file');
         if (picker && !picker._wired) {
@@ -1097,16 +1396,17 @@ const InspectorPersonaView = (() => {
             });
         }
         on('#mind-persona-compile', () => _compilePersona(false));
-        on('#mind-persona-confirm', () => _compilePersona(true));
+        on('#mind-persona-polish', () => { void _polishCompilePreview(false); });
+        on('#mind-persona-confirm', () => _compilePersona(true, ['all'], _readPreviewOverrides()));
         on('#mind-persona-apply-selected', () => {
             const applyBase = _container?.querySelector('#mind-persona-apply-base')?.checked;
             const applyPers = _container?.querySelector('#mind-persona-apply-pers')?.checked;
-            const sections = ['tags'];
+            const sections = ['tags', 'traits', 'skills'];
             if (applyBase)
                 sections.push('base_description');
             if (applyPers)
                 sections.push('personality');
-            _compilePersona(true, sections);
+            _compilePersona(true, sections, _readPreviewOverrides());
         });
         on('#mind-persona-revert', () => {
             if (!_state)
@@ -1153,18 +1453,6 @@ const InspectorPersonaView = (() => {
             }
         });
         const pane = _container.querySelector('#mind-persona');
-        pane?.querySelectorAll('[data-lock]').forEach((el) => {
-            el.addEventListener('click', () => {
-                const path = el.dataset.lock || '';
-                const body = pane.querySelector(`[data-lockbody="${path}"]`);
-                if (body) {
-                    const locked = body.classList.toggle('pf-locked');
-                    el.textContent = locked
-                        ? '🔒 sealed - never compiled to prose. click to reveal.'
-                        : '🔓 revealed - still never compiled to prose.';
-                }
-            });
-        });
         pane?.querySelectorAll('[data-chip-x]').forEach((el) => {
             el.addEventListener('click', () => {
                 const box = el.closest('.pf-chips');
@@ -1175,26 +1463,20 @@ const InspectorPersonaView = (() => {
             });
         });
         pane?.querySelectorAll('.pf-chip-new').forEach((el) => {
-            el.addEventListener('keydown', (ev) => {
+            const inputEl = el;
+            inputEl.addEventListener('keydown', (ev) => {
                 if (ev.key !== 'Enter' && ev.key !== ',')
                     return;
                 ev.preventDefault();
-                const box = el.closest('.pf-chips');
-                if (!box)
-                    return;
-                const path = el.dataset.chipNew || '';
-                const lastPart = path.split('.').pop() || '';
-                const raw = el.value.trim().replace(/,+$/, '');
-                el.value = '';
-                if (!raw)
-                    return;
-                const v = _PERSONA_ID_LISTS.has(lastPart) ? _normalizeSlug(raw) : raw;
-                if (!v)
-                    return;
-                const cur = _chipValues(box);
-                if (!cur.includes(v))
-                    cur.push(v);
-                _chipPaint(box, cur, true);
+                _commitChipDraft(inputEl, true);
+            });
+            inputEl.addEventListener('blur', () => {
+                if (inputEl.value.trim())
+                    _commitChipDraft(inputEl, false);
+            });
+            inputEl.addEventListener('input', () => {
+                if (inputEl.value.trim())
+                    _personaDirty();
             });
         });
         // Only sheet fields mark the block dirty. The chip draft box, the mark

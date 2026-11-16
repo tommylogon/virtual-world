@@ -1,5 +1,5 @@
 /**
- * @module graph/relative-layout — derive where nodes sit from their relations
+ * @module graph/relative-layout - derive where nodes sit from their relations
  * @contributes window.GraphRelativeLayout.{parentOf, layoutPositions, apply, attach}
  * @powers items, characters and triggers following the area/container/holder they belong to
  * @relates reads worldState.graph edges + graphManager._graphNodesObj; moves nodes on graphManager.network
@@ -21,7 +21,7 @@
  * with `centralGravity: 0` (see graph/network-manager.js) there is no global
  * field dragging a child to the middle of the graph, so an item and its room are
  * held together by their own edge spring and separated by ordinary repulsion.
- * Nothing re-places a child afterwards — the earlier 120ms follow pass snapped
+ * Nothing re-places a child afterwards - the earlier 120ms follow pass snapped
  * them back onto a parent-relative offset and read as a visible stutter.
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
@@ -68,7 +68,7 @@ interface LayoutNetwork {
 /** One graph-op entry as `persistFrozenDrop` sends it. */
 interface LayoutOp {
     type: string;
-    payload: { node_id: string; patch: { properties: { x: number; y: number } } };
+    payload: { node_id: string; patch: { properties: Record<string, unknown> } };
 }
 
 /** The orbit's own numbers, before any per-parent override. */
@@ -182,7 +182,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
 
     // Contents ORBIT their parent: a ring around the room, radius grown to fit
     // however many things are in there (so labels do not collide), and smaller
-    // rings for contents nested inside a container. Nothing is stretched away —
+    // rings for contents nested inside a container. Nothing is stretched away -
     // the ring is bounded.
     //
     // The "Item Edge Length" setting (its ends are labelled Hug Parent <->
@@ -229,7 +229,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
             minRadius: this.ORBIT.minRadius * scale,
             maxRadius: this.ORBIT.maxRadius * scale,
             // Spacing scales too: a short "rest length" genuinely pulls a crowded
-            // room tight (labels may overlap — that is what hugging means), a long
+            // room tight (labels may overlap - that is what hugging means), a long
             // one spreads it out.
             spacing: this.ORBIT.spacing * scale,
         };
@@ -237,9 +237,9 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
 
     /**
      * Whether a node is *placed* rather than simulated: it keeps its own x/y and
-     * is never repositioned. Two ways to say it — the inspector's "Physics
+     * is never repositioned. Two ways to say it - the inspector's "Physics
      * enabled" off (`central_gravity_enabled: false`) or an explicit
-     * `layout_static: true` — because they are the same intent.
+     * `layout_static: true` - because they are the same intent.
      */
     isStatic(node: LayoutNode) {
         const props = (node && node.properties) || {};
@@ -514,7 +514,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         if (separation && separation.enabled()) {
             const spec = separation.spec();
             // Restore any displaced node to the spot the orbit gave it (its
-            // place on the ring), never to the parent's centre — otherwise a
+            // place on the ring), never to the parent's centre - otherwise a
             // crowded character/item is sucked onto the area it belongs to.
             spec.targets = {};
             for (const id of Object.keys(out)) spec.targets[id] = { x: out[id].x, y: out[id].y };
@@ -527,7 +527,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
     /**
      * Hierarchical mode positions nodes by edge *direction*, and the stored `in`
      * edges disagree with each other (`Backpack -> Ink` vs `fireplace ->
-     * living_room` — bug-44). So the level edges are oriented from the resolved
+     * living_room` - bug-44). So the level edges are oriented from the resolved
      * parent instead: the parent becomes `from`, the child `to`, and the arrow
      * keeps pointing the way the relation actually reads.
      */
@@ -613,7 +613,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
 
     /**
      * Seed the derived layout: put every child in its parent's block, then hand
-     * it to the solver. The child is left `physics: true` and unfixed — the ring
+     * it to the solver. The child is left `physics: true` and unfixed - the ring
      * is where it *starts*, and from there its own edge spring holds it to the
      * room or carrier that holds it while repulsion sorts out its neighbours.
      *
@@ -625,11 +625,11 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         if (!network || !network.body?.data?.nodes) return 0;
         // Hierarchical mode owns positions; a seed would fight it.
         if (this.levelsMode()) return 0;
-        // The ring is a SEED, not a leash (module note) — seed ONCE per layout
+        // The ring is a SEED, not a leash (module note) - seed ONCE per layout
         // and let the solver own each node from there. `stabilizationIterationsDone`
         // fires again on any mid-life re-stabilisation (e.g. a node gaining or
         // losing its physics flag), and an unguarded re-seed snapped every
-        // settled node back onto its ring — which read as the graph rebuilding.
+        // settled node back onto its ring - which read as the graph rebuilding.
         // `reseed()` is the only thing that re-arms this.
         if (this._seedApplied) return 0;
         const nodes = this._nodes();
@@ -644,15 +644,15 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
             const pos = rawPos as LayoutPos;
             const node = nodes[id];
             if (!node || node.type === 'area') continue;
-            // A painted way already sits on its cell (buildNodeConfig, task-766) —
+            // A painted way already sits on its cell (buildNodeConfig, task-766) -
             // don't move it. An UNCELled way has only its rooms, so place it at
             // their midpoint; otherwise it keeps a stale saved coordinate and its
             // connection edges stretch across the map when physics is off
-            // (task-769 — the running solver used to hide this).
+            // (task-769 - the running solver used to hide this).
             if (node.type === 'way'
                     && window.GraphLayoutEngine.hasPaintedCoords(node.properties || {})) continue;
             // A node the user froze keeps its own place and stays out of the
-            // solver — that is what "Physics enabled" off means.
+            // solver - that is what "Physics enabled" off means.
             if (this.isStatic(node)) continue;
             // In the solver, and not pinned: the player can still drag it, and the
             // sim keeps it beside whatever holds it.
@@ -667,13 +667,13 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
     },
 
     /**
-     * Re-run the overlap guard over the graph as it stands — no ring re-seed,
+     * Re-run the overlap guard over the graph as it stands - no ring re-seed,
      * no teleport. The guard's knobs (strength, range, pull) and Node size
      * (which scales the guard's radii) only take effect when this pass runs;
      * it used to be reachable solely through apply(), i.e. through a full
      * layout re-derivation on a stabilization event, so tuning them live did
      * nothing until the next rebuild. A displaced stray is reeled toward its
-     * holder's *current* position — what the knob's hint promises — rather
+     * holder's *current* position - what the knob's hint promises - rather
      * than onto a fresh ring slot.
      *
      * @returns {number} how many nodes moved
@@ -744,25 +744,45 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         const nodes = this._nodes();
         const ops: LayoutOp[] = [];
         for (const id of ids || []) {
-            const props = (nodes[id] || {}).properties || {};
-            if (!this.isStatic(nodes[id])) continue;
-            // A PAINTED node's `properties.x/y` are the compiler's engine units
-            // (`cell * 40`), which the map layout scales by the map pitch and
-            // translates by the scope's `map_offset`. Writing a canvas position
-            // over them double-converts: the next layout scales the pixels again
-            // and adds the offset again, so a node that is dragged once ends up
-            // further from everything on every later save. Areas were exempted
-            // (bug-52); ways and characters were not, and this runs on every
-            // dragEnd, which is why the creep was so easy to trigger.
-            const engine = _layoutEngine();
-            if (engine && typeof engine.hasPaintedCoords === 'function'
-                    && engine.hasPaintedCoords(props)) {
-                continue;
-            }
+            const node = nodes[id];
+            if (!node) continue;
+            // Persist only areas and ways (not characters or items).
+            if (node.type !== 'area' && node.type !== 'way') continue;
+            const props = node.properties || {};
+            if (!this.isStatic(node)) continue;
+
             const body = network.body?.nodes?.[id];
             if (!body || !Number.isFinite(body.x) || !Number.isFinite(body.y)) continue;
             const bx = body.x as number;
             const by = body.y as number;
+
+            // A PAINTED node's `properties.x/y` are the compiler's engine units
+            // (`cell * 40`). Writing canvas pixels over them double-converts (bug-52).
+            // Convert canvas pixels back to cell space and update `properties.cell`.
+            const engine = _layoutEngine();
+            if (engine && typeof engine.hasPaintedCoords === 'function'
+                    && engine.hasPaintedCoords(props)) {
+                const pitch = typeof engine.mapSpacing === 'function' ? engine.mapSpacing() : 800;
+                const off = typeof engine.offsetPxFor === 'function' ? engine.offsetPxFor(node, null, pitch) : { x: 0, y: 0 };
+                const cx = (bx - (off.x || 0)) / pitch;
+                const cy = (by - (off.y || 0)) / pitch;
+                ops.push({
+                    type: 'update_node',
+                    payload: {
+                        node_id: id,
+                        patch: {
+                            properties: {
+                                cell: {
+                                    x: Math.round(cx * 100) / 100,
+                                    y: Math.round(cy * 100) / 100,
+                                },
+                            },
+                        },
+                    },
+                });
+                continue;
+            }
+
             ops.push({
                 type: 'update_node',
                 payload: {
@@ -777,7 +797,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
     /**
      * A frozen node that was dragged keeps its new place across reloads: its
      * position is written to the node (the same `properties.x/y` the layout lock
-     * uses), because nothing else will restore it — the layout deliberately
+     * uses), because nothing else will restore it - the layout deliberately
      * leaves frozen nodes alone.
      */
     async persistFrozenDrop(ids: string[]): Promise<number> {
@@ -786,7 +806,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         if (typeof ApiClient === 'undefined' || !ApiClient.batchGraph) return 0;
         try {
             await ApiClient.batchGraph(ops);
-        } catch (err) { /* ignore — the position simply is not remembered */ }
+        } catch (err) { /* ignore - the position simply is not remembered */ }
         return ops.length;
     },
 
@@ -796,7 +816,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
      * `stabilizationIterationsDone` is the one re-seed: vis has finished its
      * startup iterations, so the derived ring is applied over the positions the
      * solver chose and the simulation takes it from there. A drag does **not**
-     * re-seed — re-deriving on every drop is what snapped a room's contents back
+     * re-seed - re-deriving on every drop is what snapped a room's contents back
      * onto their ring mid-gesture; the edge springs carry them now.
      */
     attach(network: LayoutNetwork) {

@@ -43,7 +43,7 @@
                 }
             }
         }
-        static async sync() {
+        static async sync(forceFull = false) {
             try {
                 const api = window.CommonsApi;
                 const agent = window.CommonsAgent;
@@ -58,7 +58,7 @@
                     this.messages = [];
                 }
                 if (this.selectedChannelId) {
-                    const sinceId = this.messages.length
+                    const sinceId = (!forceFull && this.messages.length)
                         ? Math.max(...this.messages.map((message) => Number(message.id) || 0))
                         : undefined;
                     const result = await api.getMessages(this.perspective, this.selectedChannelId, sinceId);
@@ -71,6 +71,22 @@
             }
             catch (err) {
                 console.error('[CommonsState] Sync failed:', err);
+            }
+        }
+        static updateMessage(updated) {
+            if (!updated)
+                return;
+            const index = this.messages.findIndex((m) => m.id === updated.id);
+            if (index >= 0) {
+                this.messages[index] = { ...this.messages[index], ...updated };
+                this.emit();
+            }
+        }
+        static removeMessage(messageId) {
+            const index = this.messages.findIndex((m) => m.id === messageId);
+            if (index >= 0) {
+                this.messages.splice(index, 1);
+                this.emit();
             }
         }
         static async selectPerspective(name) {

@@ -4,7 +4,7 @@
  * @contributes cooldown sliders and scheduled-turn estimate in the turn panel
  * @powers configuration of simultaneous async arrivals
  * @relates agent/simultaneous, config, agent-engine
- * @docs docs/virtualWorld/dev_tasks/todo/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness.md
+ * @docs docs/virtualWorld/dev_tasks/review/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness.md
  */
 (function () {
     'use strict';

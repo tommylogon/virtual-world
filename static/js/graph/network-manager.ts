@@ -773,16 +773,32 @@ function _firstSentence(text: unknown, maxLines: number): string {
                     const sub = await (ApiClient as unknown as { getScopeSubgraph(id: string, withAreas: boolean): Promise<any> }).getScopeSubgraph(scopeId, true);
                     nodesObj = sub.nodes || {};
                     edgesArr = sub.edges || [];
-                } catch (err) {
-                    // Stale selection (e.g. after a scenario load, or a persisted
-                    // id whose scope was renamed/deleted - task-749): drop it, clear
-                    // the saved key, and fall back to the whole world.
-                    graphManager._scopeFilter = null;
-                    (graphManager as unknown as { _persistScopeFilter?: () => void })._persistScopeFilter?.();
-                    const sel = document.getElementById('graph-scope-filter') as HTMLSelectElement | null;
-                    if (sel) sel.value = '';
-                    nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<any> }).getGraphNodes();
-                    edgesArr = await (ApiClient as unknown as { getGraphEdges(): Promise<any> }).getGraphEdges();
+                } catch (err: unknown) {
+                    const errorObj = err as { status?: number; message?: string };
+                    const is404 = errorObj?.status === 404 || (typeof errorObj?.message === 'string' && /\b(404|not found)\b/i.test(errorObj.message));
+                    if (is404) {
+                        // Stale selection (e.g. after a scenario load, or a persisted
+                        // id whose scope was renamed/deleted - task-749): drop it, clear
+                        // the saved key, and fall back to the whole world.
+                        graphManager._scopeFilter = null;
+                        (graphManager as unknown as { _persistScopeFilter?: () => void })._persistScopeFilter?.();
+                        const sel = document.getElementById('graph-scope-filter') as HTMLSelectElement | null;
+                        if (sel) sel.value = '';
+                        if (typeof toastError === 'function') {
+                            toastError(`Scope "${scopeId}" not found. Falling back to Whole world.`);
+                        }
+                        if (window.GraphToolbar) GraphToolbar.syncAll();
+                        nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<any> }).getGraphNodes();
+                        edgesArr = await (ApiClient as unknown as { getGraphEdges(): Promise<any> }).getGraphEdges();
+                    } else {
+                        // Transient failure (5xx, timeout, offline - task-712):
+                        // Do not clear the filter or reset the picker to Whole world.
+                        // Surface the error and leave existing selection and graph intact.
+                        if (typeof toastError === 'function') {
+                            toastError(`Failed to load scope "${scopeId}": ${errorObj?.message || String(err)}`);
+                        }
+                        return;
+                    }
                 }
             } else {
                 nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<any> }).getGraphNodes();

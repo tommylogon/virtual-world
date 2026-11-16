@@ -70,6 +70,10 @@ class ApiClientImpl {
         }
         return data;
     }
+    /** Active sound sources in an area (task-173). */
+    static async getAreaSounds(areaId) {
+        return this.get(`/api/areas/${encodeURIComponent(areaId)}/sounds`);
+    }
     /**
      * Declare a soak order for a character (task-481): they run on a policy for
      * the span instead of taking attended turns.
@@ -227,9 +231,17 @@ class ApiClientImpl {
     static async getScopeSubgraph(scopeId, includeItems = true, descendants = false) {
         const resp = await fetch(`/api/world/scopes/${encodeURIComponent(scopeId)}/subgraph`
             + `?include_items=${includeItems ? 1 : 0}&descendants=${descendants ? 1 : 0}`);
-        if (!resp.ok)
-            throw new Error(`scope subgraph failed: ${resp.status}`);
+        if (!resp.ok) {
+            const err = new Error(`scope subgraph failed: ${resp.status}`);
+            err.status = resp.status;
+            throw err;
+        }
         return resp.json();
+    }
+    /** Notify the engine of an observed scope to drive fidelity and promotion (task-710). */
+    static async observeScope(scopeId) {
+        const target = scopeId || 'whole_world';
+        return this.post(`/api/world/scopes/${encodeURIComponent(target)}/observe`);
     }
     /** One scope's painted grid payload ({scope, grid, layers, reference, …}).
      *  Used by the graph background's "fit to painted grid" action. */
@@ -566,15 +578,18 @@ class ApiClientImpl {
             throw new Error(String(resp.status));
         return resp.json();
     }
-    static async saveForecastSchedule(schedule) {
+    static async saveForecast(forecast) {
         const resp = await fetch('/api/settings/forecast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
-            body: JSON.stringify({ schedule })
+            body: JSON.stringify({ forecast })
         });
         if (!resp.ok)
             throw new Error('HTTP ' + resp.status);
         return resp.json();
+    }
+    static async saveForecastSchedule(schedule) {
+        return this.saveForecast(schedule);
     }
     // --- Ghost Mode ---
     static async getGhostMode() {
@@ -725,6 +740,14 @@ class ApiClientImpl {
     }
     static async getPlayerSpatialMemories(charName) {
         const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/spatial`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok)
+            throw new Error(String(resp.status));
+        return resp.json();
+    }
+    static async getPlayerCognitiveMap(charName) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/cognitive_map`, {
             headers: { 'Accept': 'application/json' }
         });
         if (!resp.ok)

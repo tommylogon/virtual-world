@@ -1,13 +1,13 @@
 "use strict";
 /**
- * GraphEventHandlers — click, context, and manipulation event handlers for the vis.js graph
+ * GraphEventHandlers - click, context, and manipulation event handlers for the vis.js graph
  * Handles node/edge clicks, right-click context menus, and the vis.js addNode/addEdge
  * manipulation callbacks. Extracted from graph-manager.js.
  * References the global graphManager singleton.
  *
- * @module graph/event-handlers — graph click/context/manipulation handlers
+ * @module graph/event-handlers - graph click/context/manipulation handlers
  * @contributes GraphEventHandlers: node/edge click, shift-click bulk selection, right-click context, addNode/addEdge callbacks
- * @powers Graph canvas — selecting and right-clicking nodes, and drawing new nodes/edges
+ * @powers Graph canvas - selecting and right-clicking nodes, and drawing new nodes/edges
  * @relates wired in GraphNetwork.init; delegates to GraphContextMenu + GraphNodeOps + GraphBackground
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
@@ -21,7 +21,7 @@ const GraphEventHandlersModule = {
      * `params.event` is **not** the DOM event. vis-network wraps the original
      * input in its own pointer object (Hammer), and that wrapper proxies the
      * geometry the context menu needs (`clientX`/`clientY`) but **not** the
-     * keyboard state — so `params.event.shiftKey` is always `undefined` and a
+     * keyboard state - so `params.event.shiftKey` is always `undefined` and a
      * shift-click silently behaved like a plain click: the inspector opened and
      * no bulk selection was made. The real event is `params.event.srcEvent`.
      *
@@ -65,7 +65,7 @@ const GraphEventHandlersModule = {
         }
         if (params.nodes.length > 0) {
             // task-378: shift-click toggles bulk selection (no inspector open).
-            // `modifiers` reads srcEvent — params.event itself has no shiftKey.
+            // `modifiers` reads srcEvent - params.event itself has no shiftKey.
             if (GraphEventHandlersModule.modifiers(params).shiftKey && !graphManager._pendingConnection) {
                 graphManager._toggleBulkSelect(params.nodes[0]);
                 return;
@@ -107,7 +107,7 @@ const GraphEventHandlersModule = {
     },
     /**
      * Double-click: if the node is a placed child zone (a feature cell carrying
-     * `child_scope_id`), load that scope into the graph — the level-scoped
+     * `child_scope_id`), load that scope into the graph - the level-scoped
      * drill-down (task-397). Otherwise fall through to the normal click.
      *
      * @param {Object} params - vis.js doubleClick event parameters
@@ -116,14 +116,23 @@ const GraphEventHandlersModule = {
         const nodeId = params?.nodes?.[0];
         if (!nodeId)
             return;
-        const nodeData = graphManager.nodes.get(nodeId);
+        const nodeData = graphManager.nodes?.get?.(nodeId) || window.worldState?.getNode?.(nodeId);
         const childScope = nodeData?.properties?.child_scope_id;
-        if (!childScope)
+        if (childScope) {
+            const sel = document.getElementById('graph-scope-filter');
+            graphManager.setScopeFilter(childScope);
+            if (sel)
+                sel.value = String(childScope);
             return;
-        const sel = document.getElementById('graph-scope-filter');
-        graphManager.setScopeFilter(childScope);
-        if (sel)
-            sel.value = String(childScope);
+        }
+        // task-673: Double-clicking a canvas node opens the matching full editor
+        if (nodeData?.type === 'character' || nodeData?.type === 'item' || nodeData?.type === 'area') {
+            const kind = nodeData.type;
+            const target = (kind === 'character' && nodeData.name) ? nodeData.name : nodeId;
+            const canvasEl = document.querySelector('#graph-canvas canvas, #graph-container canvas, #graph-network canvas')
+                || document.activeElement;
+            window.EntityEditor?.mount(kind, target, canvasEl);
+        }
     },
     /**
      * Handles right-click (context) events on the vis.js network.
@@ -246,7 +255,7 @@ const GraphEventHandlersModule = {
     },
     /**
      * Handles drag end events on the vis.js network (position saving).
-     * Reserved for future use — currently a no-op.
+     * Reserved for future use - currently a no-op.
      *
      * @param {Object} params - vis.js drag end event parameters
      */

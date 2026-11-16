@@ -179,36 +179,47 @@
     return sa === sb;
   }
 
-  // Two-pass per-entry diff: pair by id, then pair the leftovers by content.
+  // Two-pass per-entry diff: pair by id (or object key), then pair leftovers by content.
   function entryDiff(current: unknown, incoming: unknown): DiffModalDiffRow[] {
+    const isObjSection = (!Array.isArray(current) && current && typeof current === 'object')
+      || (!Array.isArray(incoming) && incoming && typeof incoming === 'object');
     const cList = toEntryList(current);
     const iList = toEntryList(incoming);
     const usedC = new Array(cList.length).fill(false);
     const usedI = new Array(iList.length).fill(false);
     const rows: DiffModalDiffRow[] = [];
 
-    const pairBy = (keyFn: (item: unknown) => string | null) => {
-      cList.forEach((cEle, ci) => {
+    const rowKeyOf = (entry: EntryListItem): string | null => {
+      if (isObjSection && typeof entry.key === 'string') return entry.key;
+      return selKeyOf(entry.data) ?? (entry.key != null ? String(entry.key) : null);
+    };
+
+    const pairBy = (keyFn: (entry: EntryListItem) => string | null) => {
+      cList.forEach((cEntry, ci) => {
         if (usedC[ci]) return;
-        const ck = keyFn(cEle.data);
+        const ck = keyFn(cEntry);
         if (ck === null) return;
-        const ii = iList.findIndex((iEle, i) => !usedI[i] && keyFn(iEle.data) === ck);
+        const ii = iList.findIndex((iEntry, i) => !usedI[i] && keyFn(iEntry) === ck);
         if (ii < 0) return;
         usedC[ci] = true;
         usedI[ii] = true;
         const inc = iList[ii].data;
-        rows.push({ key: selKeyOf(inc), current: cEle.data, incoming: inc, status: contentEquals(cEle.data, inc) ? 'same' : 'changed' });
+        rows.push({ key: rowKeyOf(iList[ii]), current: cEntry.data, incoming: inc, status: contentEquals(cEntry.data, inc) ? 'same' : 'changed' });
       });
     };
 
-    pairBy(idKeyOf);
-    pairBy(contentKeyOf);
+    if (isObjSection) {
+      pairBy((entry) => (typeof entry.key === 'string' ? entry.key : null));
+    } else {
+      pairBy((entry) => idKeyOf(entry.data));
+      pairBy((entry) => contentKeyOf(entry.data));
+    }
 
-    cList.forEach((cEle, ci) => {
-      if (!usedC[ci]) rows.push({ key: selKeyOf(cEle.data), current: cEle.data, incoming: undefined, status: 'removed' });
+    cList.forEach((cEntry, ci) => {
+      if (!usedC[ci]) rows.push({ key: rowKeyOf(cEntry), current: cEntry.data, incoming: undefined, status: 'removed' });
     });
-    iList.forEach((iEle, i) => {
-      if (!usedI[i]) rows.push({ key: selKeyOf(iEle.data), current: undefined, incoming: iEle.data, status: 'added' });
+    iList.forEach((iEntry, i) => {
+      if (!usedI[i]) rows.push({ key: rowKeyOf(iEntry), current: undefined, incoming: iEntry.data, status: 'added' });
     });
     return rows;
   }

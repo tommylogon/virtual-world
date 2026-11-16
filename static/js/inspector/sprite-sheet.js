@@ -1,27 +1,27 @@
 "use strict";
 /**
- * sprite-sheet — slice an uploaded character-art sheet into one image per slot.
+ * sprite-sheet - slice an uploaded character-art sheet into one image per slot.
  *
- * @module inspector/sprite-sheet — grid/box-slice a sprite sheet into expression slots
+ * @module inspector/sprite-sheet - grid/box-slice a sprite sheet into expression slots
  * @contributes SpriteSheet.computeCells/parseNames/defaultNames/clampBox (pure) + openDialog
- * @powers Character art — the "✂️ Split sheet" control in the character Expression Pack panel
+ * @powers Character art - the "✂️ Split sheet" control in the character Expression Pack panel
  * @relates reads/writes via ApiClient.uploadNodeImage and InspectorHelpers expression slots; geometry in inspector/sprite-sheet-geometry.js
  * @docs docs/virtualWorld/Characters/Character Images & Expression Packs.md
  *
  * Why a client-side slice: the sheet is one image the user already has on disk;
  * cropping happens in a canvas in the browser and each tile is uploaded to its
  * own expression slot through the existing single-image endpoint. No server
- * change and no base64 in the scenario — the server still owns the files.
+ * change and no base64 in the scenario - the server still owns the files.
  *
  * The grid is a FRAME plus interior dividers, not a rows/cols count (task-678).
- * Real sheets are a title banner, an outer margin, and panels of mixed sizes —
- * a wide full-body pose beside a column of small detail panels — and a count
+ * Real sheets are a title banner, an outer margin, and panels of mixed sizes -
+ * a wide full-body pose beside a column of small detail panels - and a count
  * describes none of that. So the user drags:
  *   - the frame edges, to fit the grid onto the art and off a banner/footer;
  *   - an interior divider, to make rows/columns uneven (mixed panel sizes);
  *   - and "Auto-fit" proposes the whole grid from the sheet's whitespace
  *     gutters, which is what removes the hand-drawn box per panel.
- * Every proposed value stays draggable — detection proposes, it never asserts.
+ * Every proposed value stays draggable - detection proposes, it never asserts.
  *
  * "Draw boxes" remains as the escape hatch for genuinely irregular layouts, but
  * an existing box can now be moved and resized instead of deleted and redrawn.
@@ -64,7 +64,7 @@ const _SpriteSheet = (() => {
     //: treated as a stray click, not a panel.
     const MIN_BOX_PX = 8;
     //: Screen-space grab radius for a divider or handle, in CSS px. Kept in
-    //: screen space so a divider stays grabbable at every zoom level — a fixed
+    //: screen space so a divider stays grabbable at every zoom level - a fixed
     //: source-px radius vanishes when the sheet is scaled down to fit.
     const GRAB_PX = 7;
     //: Length of a divider handle's drawn tail, in screen px.
@@ -80,7 +80,7 @@ const _SpriteSheet = (() => {
      * Kept as the public, count-based entry point (the unit tests and any caller
      * outside the dialog use it) and now a thin wrapper over the frame+dividers
      * model, so the two can never disagree. Rows/cols are fractions of the sheet,
-     * so the last row/column absorbs any rounding remainder — tiles always tile
+     * so the last row/column absorbs any rounding remainder - tiles always tile
      * the sheet exactly with no gaps or overlap. `labelTrim` (0-0.9) drops that
      * fraction off the BOTTOM of every cell, which is where sprite sheets put the
      * caption banner.
@@ -184,7 +184,7 @@ const _SpriteSheet = (() => {
      * A natural-size copy of the sheet, so every crop reads the same pixels.
      *
      * Bounded on purpose: a natural-size canvas is 4 bytes per pixel, so a
-     * 4000×6000 sheet is 96 MB and a 8000×12000 one is 384 MB — enough to fail
+     * 4000×6000 sheet is 96 MB and a 8000×12000 one is 384 MB - enough to fail
      * or to stall the tab. Past the budget this returns null and callers crop
      * straight from the `<img>`, which is the original behaviour and needs no copy.
      */
@@ -236,7 +236,7 @@ const _SpriteSheet = (() => {
     // ── names ────────────────────────────────────────────────────────
     // Names are aligned to the cell LIST by index, and the cell list changes
     // whenever a divider is added or removed. Growing the list appends the next
-    // canonical key; shrinking it drops the tail. What is kept, is kept — so
+    // canonical key; shrinking it drops the tail. What is kept, is kept - so
     // nudging a divider never renames the tile the author already named.
     /** Name for cell `index`, falling back to the canonical order. */
     function _nameAt(index) {
@@ -333,7 +333,7 @@ const _SpriteSheet = (() => {
      * The frame grips, in source pixels: four corners plus two per edge.
      *
      * Two per edge rather than one at the midpoint, because the midpoint is exactly
-     * where an even grid puts a divider — and a divider is hit-tested first, since a
+     * where an even grid puts a divider - and a divider is hit-tested first, since a
      * line running along the frame edge is more often meant to be dragged inward. With
      * a single midpoint grip, the north and south frame edges were unreachable on any
      * even-column or even-row grid, which is most of them.
@@ -452,7 +452,7 @@ const _SpriteSheet = (() => {
                 _tag(ctx, _nameAt(i), x + 2, y + 2);
             });
             // Grips: every frame grip, plus a nub at the MIDDLE of every divider. The nub is
-            // deliberately not at the frame edge — a press near the frame is a frame
+            // deliberately not at the frame edge - a press near the frame is a frame
             // grip now, so a nub there would advertise the wrong target.
             Object.values(_frameHandles(cuts)).forEach(h => _drawGrip(ctx, h.x * scale, h.y * scale, tol, scale));
             const midY = (cuts.y0 + cuts.y1) / 2;
@@ -570,7 +570,7 @@ const _SpriteSheet = (() => {
                 ctx.drawImage(src, it.x, it.y, it.w, it.h, 0, 0, tw, th);
             const cap = document.createElement('div');
             cap.textContent = it.name || 'skip';
-            cap.title = `${it.name || 'skip'} — ${it.w}×${it.h} at ${it.x},${it.y}`;
+            cap.title = `${it.name || 'skip'} - ${it.w}×${it.h} at ${it.x},${it.y}`;
             cap.style.cssText = 'font-size:10px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:' + (it.skip ? 'var(--text-muted)' : 'var(--text)');
             const n = document.createElement('div');
             n.textContent = `#${i + 1}`;
@@ -596,7 +596,7 @@ const _SpriteSheet = (() => {
             return null;
         const tol = GRAB_PX / s.scale;
         if (_mode() === 'boxes') {
-            // Grips of ANY box, topmost first — not just the selected one. Requiring a
+            // Grips of ANY box, topmost first - not just the selected one. Requiring a
             // prior selection (by clicking its list row) meant a corner grab silently
             // did nothing and, because the press then fell through to the
             // contains-the-point test, usually moved the box instead of resizing it.
@@ -624,7 +624,7 @@ const _SpriteSheet = (() => {
         if (!s.cuts || !G)
             return null;
         // A press NEAR the frame boundary is a frame grip; a press away from it is a
-        // divider. Fixed grip positions cannot solve this — an even grid puts a
+        // divider. Fixed grip positions cannot solve this - an even grid puts a
         // divider exactly where a handle would sensibly sit, and dividers were
         // being hit-tested first, which made the north/south frame edges
         // unreachable whenever a column divider crossed them.
@@ -865,7 +865,7 @@ const _SpriteSheet = (() => {
      *
      * The canvas alone is not enough: the commit has to happen wherever the
      * pointer is let go, and the drag has to keep updating once it leaves the
-     * image — the same reasoning as `_watchDrag`.
+     * image - the same reasoning as `_watchDrag`.
      */
     function _watchDraft() {
         const s = _state;
@@ -932,7 +932,7 @@ const _SpriteSheet = (() => {
         if (boxWrap)
             boxWrap.style.display = boxes ? 'block' : 'none';
         // The crop strip is the point of the second view, and it applies to both
-        // modes — boxes are crops too — so it is never hidden.
+        // modes - boxes are crops too - so it is never hidden.
         if (tilesWrap)
             tilesWrap.style.display = 'block';
         if (hint) {
@@ -981,7 +981,7 @@ const _SpriteSheet = (() => {
         _setStatus(usable
             ? `Auto-fit: ${cuts.colCuts.length + 1} columns × ${cuts.rowCuts.length + 1} rows `
                 + `from whitespace in ${Date.now() - started}ms. Drag anything to adjust.`
-            : 'No clean gutters found — kept the even grid. Drag the frame and lines to fit the art.');
+            : 'No clean gutters found - kept the even grid. Drag the frame and lines to fit the art.');
         s.cuts = cuts;
         _syncRowColInputs();
         _resizeNames((cuts.rowCuts.length + 1) * (cuts.colCuts.length + 1));
@@ -1309,7 +1309,7 @@ const _SpriteSheet = (() => {
         const src = (state.src || state.img);
         for (let i = 0; i < targets.length; i++) {
             const t = targets[i];
-            _setStatus(`Uploading ${i + 1}/${targets.length} — ${t.name}…`);
+            _setStatus(`Uploading ${i + 1}/${targets.length} - ${t.name}…`);
             try {
                 canvas.width = t.w;
                 canvas.height = t.h;
@@ -1362,7 +1362,7 @@ const _SpriteSheet = (() => {
                 runBtn.disabled = false;
         }
         else {
-            _setStatus(`Done — uploaded ${targets.length} tile(s).`);
+            _setStatus(`Done - uploaded ${targets.length} tile(s).`);
         }
         if (typeof events !== 'undefined' && events)
             events.log(`Sprite sheet: uploaded ${targets.length - failures.length}/${targets.length} expression tile(s).`, failures.length ? 'error-msg' : 'system-msg');

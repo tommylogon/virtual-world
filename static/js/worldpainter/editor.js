@@ -75,6 +75,7 @@
         softRender,
         load,
         open,
+        showChooser,
         renderShell: _renderShell,
         reloadPayload: _reloadPayload,
         commitGridSize: _commitGridSize,

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/css/benchmark.css">
 </head>
 <body class="bench-body" data-scenario-name="{{ scenario_name or '' }}" data-app-version="{{ app_version or '' }}">
+{% set active_page = 'benchmark' %}{% include 'partials/shared_topbar.html' %}
 
 <header class="bench-topbar">
     <div class="bench-brand">
@@ -75,6 +76,16 @@
                         <input type="checkbox" id="bench-unload-cycle" checked>
                         <span>Unload between models (prevent VRAM OOM)</span>
                     </label>
+                    <div style="display:flex;gap:10px;margin-top:2px;font-size:11px;flex-wrap:wrap;">
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;" title="Hide models flagged as blocked or unsuitable for chat">
+                            <input type="checkbox" id="bench-hide-blocked" checked>
+                            <span>Hide Blocked / Do Not Use</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;" title="Show only zero-cost free tier models">
+                            <input type="checkbox" id="bench-only-free">
+                            <span>Show Only Free</span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="bench-models-box" id="bench-model-list">
@@ -238,6 +249,7 @@
 <script src="/static/js/agent/prompt-builder/index.js"></script>
 
 <!-- Benchmark controller -->
+<script src="/static/js/ui/shared-topbar.js"></script>
 <script src="/static/js/benchmark/benchmark.js"></script>
 
 </body>

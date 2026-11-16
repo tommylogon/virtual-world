@@ -1,5 +1,5 @@
 /**
- * WorldSync — unified "Sync World → Library" list.
+ * WorldSync - unified "Sync World → Library" list.
  *
  * Lists every item, way, area, and character in the world with a per-entity
  * status badge (new / diff / synced). Clicking an entity routes to the existing
@@ -9,7 +9,7 @@
  * Matches entities by `library_id` first, then by name-derived slug, then by
  * display name.
  *
- * @module world-sync — the "Sync World → Library" list
+ * @module world-sync - the "Sync World → Library" list
  * @contributes WorldSync: per-entity status (new/diff/synced) + routing into the single-entity save flow + refresh() after a world edit
  * @powers promoting world edits back into the library as templates
  * @relates matches by library_id → name slug → display name; DiffModal via the save flow
@@ -51,18 +51,27 @@ class WorldSync {
     declare _nested: Array<SyncEntity | null>;
     /** Generated area names (nodes carrying a grid `cell`); skipped by Sync All. */
     declare _generatedAreaNames: Set<string>;
+    /** Whether to show generated entities in review list (default false). */
+    declare showGenerated: boolean;
+    /** Whether to show unchanged / synced entities in review list (default false). */
+    declare showUnchanged: boolean;
+    /** Snapshot of previous library entries overwritten or created by last sync batch. */
+    declare _lastBatchBackup: Array<{ type: string; id: string; oldEntry: Record<string, unknown> | null }> | null;
 
     constructor() {
         this.cache = {};
         this.entities = [];
         this.groups = [];
         this.filter = 'all';
+        this.showGenerated = false;
+        this.showUnchanged = false;
+        this._lastBatchBackup = null;
     }
 
     /**
      * Re-read the library and re-render WITHOUT opening the modal.
      * Four call sites (inspector/area-view, graph-manager, structures,
-     * worldpainter) call `worldSync.refresh()` after a world edit — one of them
+     * worldpainter) call `worldSync.refresh()` after a world edit - one of them
      * unguarded, which is how a live run produced "Scope change failed:
      * window.worldSync.refresh is not a function" after a scope change that had
      * already succeeded. The method never existed; the three guarded callers
@@ -97,6 +106,19 @@ class WorldSync {
         document.querySelectorAll<HTMLElement>('#world-sync-modal .lib-tab').forEach(el => {
             el.classList.toggle('selected', el.dataset.syncFilter === f);
         });
+        this._renderSummary();
+        this._renderList();
+    }
+
+    toggleShowGenerated() {
+        this.showGenerated = !this.showGenerated;
+        this._renderSummary();
+        this._renderList();
+    }
+
+    toggleShowUnchanged() {
+        this.showUnchanged = !this.showUnchanged;
+        this._renderSummary();
         this._renderList();
     }
 
@@ -243,7 +265,11 @@ class WorldSync {
         }
         const match = this._findLibraryMatch('items', payload);
         const status = match ? (jsonDeepEqual(match.entry, this._clean(payload)) ? 'synced' : 'diff') : 'new';
-        const generated = !!(props.generated || props.source === 'worldpainter');
+        const generated = !!(
+            props.generated ||
+            props.source === 'worldpainter' ||
+            (props.provenance && (props.provenance.generated || props.provenance.source === 'worldpainter' || props.provenance.recipe_id))
+        );
         return { type: 'item', nodeId, payload, match, status, generated };
     }
 
@@ -271,7 +297,12 @@ class WorldSync {
         };
         const match = this._findLibraryMatch('ways', payload);
         const status = match ? (jsonDeepEqual(match.entry, this._clean(payload)) ? 'synced' : 'diff') : 'new';
-        const generated = !!(props.generated || props.source === 'worldpainter');
+        const generated = !!(
+            props.generated ||
+            props.source === 'worldpainter' ||
+            props.cell != null ||
+            (props.provenance && (props.provenance.generated || props.provenance.source === 'worldpainter'))
+        );
         return { type: 'way', nodeId, payload, match, status, generated };
     }
 
@@ -350,6 +381,20 @@ class WorldSync {
                 : true;
             if (!confirmed) return;
         }
+
+        // Backup current library matches for undo before applying changes
+        const backup: Array<{ type: string; id: string; oldEntry: Record<string, unknown> | null }> = [];
+        for (const g of pending) {
+            const e = g.representative;
+            const id = e.type === 'item' ? (e.match?.id || (e.payload.name || '').toLowerCase().replace(/[^a-z0-9_]+/g, '_'))
+                : e.type === 'way' ? (e.match?.id || e.payload.id)
+                : e.type === 'area' ? (e.match?.id || (e.name || '').toLowerCase().replace(/[^a-z0-9_]+/g, '_'))
+                : (e.match?.id || e.name || '');
+            const oldEntry = e.match?.entry ? JSON.parse(JSON.stringify(e.match.entry)) : null;
+            backup.push({ type: e.type, id, oldEntry });
+        }
+        this._lastBatchBackup = backup;
+
         let updated = 0, failed = 0;
         for (const g of pending) {
             try {
@@ -376,7 +421,60 @@ class WorldSync {
         }
     }
 
-    // True for values that should be treated as "no data" — empty string,
+    /**
+     * Sync one template group individually to the library.
+     */
+    async syncGroup(g: SyncGroup): Promise<void> {
+        const e = g.representative;
+        const id = e.type === 'item' ? (e.match?.id || (e.payload.name || '').toLowerCase().replace(/[^a-z0-9_]+/g, '_'))
+            : e.type === 'way' ? (e.match?.id || e.payload.id)
+            : e.type === 'area' ? (e.match?.id || (e.name || '').toLowerCase().replace(/[^a-z0-9_]+/g, '_'))
+            : (e.match?.id || e.name || '');
+        const oldEntry = e.match?.entry ? JSON.parse(JSON.stringify(e.match.entry)) : null;
+        this._lastBatchBackup = [{ type: e.type, id, oldEntry }];
+
+        try {
+            const res = await this._silentSave(e);
+            if (res && res.error) throw new Error(res.error);
+            g.members.forEach((m: SyncEntity) => { m.status = 'synced'; m.syncFailed = false; });
+            g.status = 'synced';
+            toastInfo(`Synced ${g.label} to library.`);
+        } catch (err: any) {
+            g.syncFailed = true;
+            g.members.forEach((m: SyncEntity) => { m.syncFailed = true; });
+            toastError(`Sync failed for ${g.label}: ${err?.message || err}`);
+        }
+        this._renderSummary();
+        this._renderList();
+    }
+
+    /**
+     * Restore the library entries that were modified during the last batch or individual sync.
+     */
+    async undoLastSync(): Promise<void> {
+        if (!this._lastBatchBackup || this._lastBatchBackup.length === 0) {
+            toastInfo('No sync batch to undo.');
+            return;
+        }
+        const backup = this._lastBatchBackup;
+        this._lastBatchBackup = null;
+        let reverted = 0;
+        for (const item of backup) {
+            if (item.oldEntry) {
+                if (item.type === 'item') {
+                    await (ApiClient as unknown as LibraryApi).saveLibraryItem({ id: item.id, ...item.oldEntry });
+                } else {
+                    const plural = item.type === 'way' ? 'ways' : item.type === 'area' ? 'areas' : 'characters';
+                    await (ApiClient as unknown as LibraryApi).saveLibraryType(plural, { id: item.id, ...item.oldEntry });
+                }
+                reverted++;
+            }
+        }
+        await this.refresh();
+        toastInfo(`Undid sync batch: restored ${reverted} library entr${reverted === 1 ? 'y' : 'ies'}.`);
+    }
+
+    // True for values that should be treated as "no data" - empty string,
     // empty array, empty object, or null/undefined. A library field holding
     // real data must never be overwritten by one of these from the world copy.
     _isEmpty(value: unknown) {
@@ -401,7 +499,7 @@ class WorldSync {
 
     /**
      * Push one entity's world payload to the library, overwriting any existing
-     * entry. No DiffModal — this is the "just do it" bulk path.
+     * entry. No DiffModal - this is the "just do it" bulk path.
      */
     async _silentSave(e: SyncEntity) {
         if (e.type === 'item') {
@@ -483,7 +581,7 @@ class WorldSync {
             ]
         }[e.type] || [];
         DiffModal.show(e.match.entry, e.payload, sections, {
-            title: 'Diff — ' + (e.payload.name || e.name || e.nodeId),
+            title: 'Diff - ' + (e.payload.name || e.name || e.nodeId),
             name: e.match.id,
             readOnly: true
         });
@@ -501,26 +599,67 @@ class WorldSync {
     }
 
     _renderSummary() {
-        const counts: Record<string, number> = { all: 0, new: 0, diff: 0, synced: 0 };
-        for (const g of this.groups) {
-            counts.all++;
+        const inTab = (t: string) => {
+            if (this.filter === 'all') return true;
+            return t.replace(/s$/, '') === this.filter.replace(/s$/, '');
+        };
+        const tabGroups = this.groups.filter(g => inTab(g.type));
+        const counts: Record<string, number> = { all: tabGroups.length, new: 0, diff: 0, synced: 0, generated: 0 };
+        for (const g of tabGroups) {
             if (counts[g.status] !== undefined) counts[g.status]++;
+            if (g.generated) counts.generated++;
         }
+        const pending = tabGroups.filter(g => (g.status === 'new' || g.status === 'diff') && !g.generated);
+        const willNew = pending.filter(g => g.status === 'new').length;
+        const willDiff = pending.filter(g => g.status === 'diff').length;
+        const willSkipGen = tabGroups.filter(g => (g.status === 'new' || g.status === 'diff') && g.generated).length;
+
+        const undoBtn = document.getElementById('world-sync-undo-btn');
+        if (undoBtn) undoBtn.style.display = (this._lastBatchBackup && this._lastBatchBackup.length > 0) ? 'inline-block' : 'none';
+
         const el = document.getElementById('world-sync-summary');
         if (!el) return;
         window.Lit.render(worldSyncTag`
-            <span style="color:var(--text);">${counts.all} entities</span>
-            — <span style="color:#3fb950;">${counts.new} new</span>
-            · <span style="color:#e3b341;">${counts.diff} different</span>
-            · <span style="color:var(--text-muted);">${counts.synced} synced</span>`, el);
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <span style="color:var(--text);font-weight:600;">${counts.all} groups</span>
+                    - <span style="color:#3fb950;">${counts.new} new</span>
+                    · <span style="color:#e3b341;">${counts.diff} different</span>
+                    · <span style="color:var(--text-muted);">${counts.synced} synced</span>
+                    · <span style="color:#58a6ff;">${counts.generated} generated</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;font-size:11px;">
+                    <label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                        <input type="checkbox" .checked=${this.showGenerated} @change=${() => VW.worldSync.toggleShowGenerated()}>
+                        Show generated (${counts.generated})
+                    </label>
+                    <label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                        <input type="checkbox" .checked=${this.showUnchanged} @change=${() => VW.worldSync.toggleShowUnchanged()}>
+                        Show unchanged (${counts.synced})
+                    </label>
+                </div>
+            </div>
+            <div style="margin-top:4px;font-size:10px;color:var(--text-dim);">
+                Sync All in this view would create ${willNew} new, overwrite ${willDiff} different (skip ${willSkipGen} generated, ${counts.synced} in sync).
+            </div>`, el);
     }
 
     _renderList() {
         const el = document.getElementById('world-sync-list');
         if (!el) return;
-        const list = this.groups.filter(g => this.filter === 'all' || g.type === this.filter);
+        const inTab = (t: string) => {
+            if (this.filter === 'all') return true;
+            return t.replace(/s$/, '') === this.filter.replace(/s$/, '');
+        };
+        const list = this.groups
+            .filter(g => inTab(g.type))
+            .filter(g => {
+                if (!this.showGenerated && g.generated) return false;
+                if (!this.showUnchanged && g.status === 'synced') return false;
+                return true;
+            });
         if (list.length === 0) {
-            window.Lit.render(worldSyncTag`<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">No entities.</div>`, el);
+            window.Lit.render(worldSyncTag`<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">No entities to review in current filter.</div>`, el);
             return;
         }
         window.Lit.render(worldSyncTag`${list.map((g: SyncGroup, listIdx: number) => {
@@ -543,6 +682,9 @@ class WorldSync {
             const diffBtn = rep.match
                 ? worldSyncTag`<button class="btn btn-sm" style="flex-shrink:0;" @click=${(ev: Event) => { ev.stopPropagation(); VW.worldSync.viewDiffByIndex(listIdx); }}>diff</button>`
                 : '';
+            const syncBtn = (g.status === 'new' || g.status === 'diff')
+                ? worldSyncTag`<button class="btn btn-sm btn-green" style="flex-shrink:0;margin-left:4px;" @click=${(ev: Event) => { ev.stopPropagation(); VW.worldSync.syncGroup(g); }}>⬇ sync</button>`
+                : '';
             return worldSyncTag`<div class="agent-item" style="cursor:pointer;padding:5px 10px;border-left:3px solid var(--border);" @click=${() => VW.worldSync.openEntityByIndex(listIdx)}>
                 <span style="font-size:13px;margin-right:4px;">${m.icon}</span>
                 <div style="flex:1;min-width:0;">
@@ -552,7 +694,10 @@ class WorldSync {
                     </div>
                     <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sub}</div>
                 </div>
-                ${diffBtn}
+                <div style="display:flex;align-items:center;gap:4px;">
+                    ${diffBtn}
+                    ${syncBtn}
+                </div>
             </div>`;
         })}`, el);
     }

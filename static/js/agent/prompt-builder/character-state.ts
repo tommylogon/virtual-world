@@ -630,6 +630,11 @@ const foodish = areaItems.filter(it =>
         // task-185: read via PlanTracker - the old window.VW.agent._plans read
         // hit a store PlanTracker replaced, so the decide prompt never showed
         // the plan at all.
+        // task-856: seed PlanTracker from server active_pursuit if present
+        const player = (window as unknown as { worldState?: any }).worldState?.players?.[charName];
+        if (player && (window as unknown as { PlanTracker?: any }).PlanTracker?.seedFromPlayer) {
+            (window as unknown as { PlanTracker?: any }).PlanTracker.seedFromPlayer(charName, player);
+        }
         const plan = window.PlanTracker?.getPlan(charName);
         if (plan?.length) {
             const progress = window.PlanTracker?.getProgress(charName) || 0;
@@ -639,7 +644,12 @@ const foodish = areaItems.filter(it =>
                 if (stepIndex === progress) return `${stepIndex + 1}. ${step} (CURRENT)`;
                 return `${stepIndex + 1}. ${step}`;
             });
-            let out = '\n=== YOUR PLAN ===\n' + lines.join('\n');
+            let out = '\n=== YOUR PLAN ===\n';
+            const reason = player?.active_pursuit?.reason || player?.plan?.reason;
+            if (reason) {
+                out += `Undertaking: ${reason}\n`;
+            }
+            out += lines.join('\n');
             const blocked = Object.entries(failures)
                 .filter(([stepIndex]) => Number(stepIndex) < progress)
                 .map(([, count]) => count as number);
@@ -655,20 +665,115 @@ const foodish = areaItems.filter(it =>
     function buildMosiacContext(player: any) {
         // task-812 / task-905: Subjective state of mind without raw telemetry or candidate action counts.
         const m = player && player.mosiac;
-        if (!m) return '';
         const lines: string[] = [];
-        if (m.M) lines.push(`Motivation: ${m.M}`);
-        if (m.I) lines.push(`Intention: ${m.I}`);
-        const obligations = (m.O || []).map((o: any) => `${o.charge} (${o.status})`);
-        if (obligations.length) lines.push(`Obligations: ${obligations.join(', ')}`);
-        if (m.S && m.S.step) {
-            const where = m.S.step.area ? ` at ${m.S.step.area}` : '';
-            lines.push(`Schedule: ${m.S.step.activity}${where}`);
+        if (m) {
+            if (m.M) lines.push(`Motivation: ${m.M}`);
+            if (m.I) lines.push(`Intention: ${m.I}`);
+            const pendingOffers = (m.O || []).filter((o: any) => o.status === 'offered');
+            const activeObs = (m.O || []).filter((o: any) => o.status === 'accepted');
+            if (pendingOffers.length) {
+                lines.push('Pending Offers:');
+                for (const o of pendingOffers) {
+                    const fromStr = o.from ? ` from ${o.from}` : '';
+                    const dueStr = o.due ? ` (due tick ${o.due})` : '';
+                    lines.push(`  - "${o.charge}"${fromStr}${dueStr}. Available actions: "obligation accept ${o.id}", "obligation refuse ${o.id}", or speak to clarify/counteroffer.`);
+                }
+            }
+            if (activeObs.length) {
+                lines.push(`Active Obligations: ${activeObs.map((o: any) => o.charge).join(', ')}`);
+            }
+            if (m.S) {
+                const dayRoutine = (m.S.day && m.S.day !== 'no schedule') ? m.S.day : '';
+                if (m.S.step) {
+                    const where = m.S.step.area ? ` at ${m.S.step.area}` : '';
+                    const currentStr = `${m.S.step.activity}${where}`;
+                    if (dayRoutine) {
+                        lines.push(`Schedule: ${dayRoutine} (current: ${currentStr})`);
+                    } else {
+                        lines.push(`Schedule: ${currentStr}`);
+                    }
+                } else if (dayRoutine) {
+                    lines.push(`Schedule: ${dayRoutine}`);
+                } else {
+                    lines.push('Schedule: no schedule');
+                }
+                lines.push('Schedule actions: "schedule" to inspect, "schedule add HH:MM <activity> [at <area>]" to add or replace a step, "schedule remove HH:MM" to remove a step.');
+            }
+            const needs = (m.A || []).map((n: any) => n.need).filter(Boolean);
+            if (needs.length) lines.push(`Attention: ${needs.join(', ')}`);
+        } else if (player && Array.isArray(player.schedule)) {
+            // Fallback when mosiac summary is not precomputed (task-814)
+            if (player.schedule.length > 0) {
+                const formatted = player.schedule.map((s: any) => {
+                    const h = Math.floor((s.start || 0) / 60).toString().padStart(2, '0');
+                    const min = ((s.start || 0) % 60).toString().padStart(2, '0');
+                    const where = s.area ? ` at ${s.area}` : '';
+                    return `${h}:${min} ${s.activity || 'wait'}${where}`;
+                }).join('; ');
+                lines.push(`Schedule: ${formatted}`);
+            } else {
+                lines.push('Schedule: no schedule');
+            }
+            lines.push('Schedule actions: "schedule" to inspect, "schedule add HH:MM <activity> [at <area>]" to add or replace a step, "schedule remove HH:MM" to remove a step.');
         }
-        const needs = (m.A || []).map((n: any) => n.need).filter(Boolean);
-        if (needs.length) lines.push(`Attention: ${needs.join(', ')}`);
         if (!lines.length) return '';
         return '\n=== YOUR MIND ===\n' + lines.join('\n');
+    }
+
+    /**
+     * Build anti-omniscience Language & Lingo gating context (Phase 4).
+     * Reads structured `capabilities.languages` and `narrative.lingo` from
+     * `player.appearance` or the character graph node, plus direct `player.languages`
+     * / `player.lingo` fallbacks.
+     */
+    function buildLanguageAndLingoContext(player: any): string {
+        if (!player) return '';
+        let app: any = player.appearance;
+        if (!app && typeof worldState !== 'undefined' && worldState.graph?.nodes) {
+            const pname = String(player.name || '').toLowerCase();
+            for (const node of Object.values(worldState.graph.nodes) as any[]) {
+                if (node?.type === 'character' && String(node.name || '').toLowerCase() === pname) {
+                    app = node.properties?.appearance;
+                    break;
+                }
+            }
+        }
+
+        const rawLangs: any[] = Array.isArray(app?.capabilities?.languages)
+            ? app.capabilities.languages
+            : (Array.isArray(player.languages) ? player.languages : []);
+        const rawLingo: any = app?.narrative?.lingo ?? player.lingo ?? null;
+
+        const langParts: string[] = [];
+        for (const entry of rawLangs) {
+            if (!entry) continue;
+            if (typeof entry === 'string') {
+                langParts.push(entry.trim());
+            } else if (typeof entry === 'object' && entry.language) {
+                const fluency = entry.fluency ? ` (${entry.fluency})` : '';
+                const words = Array.isArray(entry.known_words) && entry.known_words.length
+                    ? ` [only knows: ${entry.known_words.join(', ')}]`
+                    : '';
+                const lit = entry.literate === false ? ' [illiterate]' : '';
+                langParts.push(`${entry.language}${fluency}${words}${lit}`);
+            }
+        }
+
+        const lingoList: string[] = Array.isArray(rawLingo)
+            ? rawLingo.map((x: any) => String(x || '').trim()).filter(Boolean)
+            : (typeof rawLingo === 'string' && rawLingo.trim() ? [rawLingo.trim()] : []);
+
+        if (!langParts.length && !lingoList.length) return '';
+
+        const lines: string[] = [];
+        if (langParts.length) {
+            lines.push(`Languages: ${langParts.join('; ')}.`);
+            lines.push('Language limit: You ONLY understand and speak the languages above at their stated fluency. Treat any other language or unknown foreign words as unfamiliar; do NOT silently translate them.');
+        }
+        if (lingoList.length) {
+            lines.push(`Lingo & slang you naturally use/understand: ${lingoList.join(', ')}.`);
+        }
+        return '\n' + lines.join('\n');
     }
 
     Object.assign(window.PromptBuilder, {
@@ -684,6 +789,7 @@ const foodish = areaItems.filter(it =>
         describeVital,
         describeVitals,
         buildPlanContext,
-        buildMosiacContext
+        buildMosiacContext,
+        buildLanguageAndLingoContext
     });
 })();

@@ -1,7 +1,7 @@
 /**
- * ItemLibrary — Item library CRUD, editor, AI generation, and area placement
+ * ItemLibrary - Item library CRUD, editor, AI generation, and area placement
  *
- * @module item-library — the item library browser and editor
+ * @module item-library - the item library browser and editor
  * @contributes ItemLibrary: CRUD, AI generation, trigger/effect editing, container contents, multi-spawn, area placement
  * @powers the 📦 Item Library modal and putting authored items into the world
  * @relates uses api + storage (item_library) + shared/trigger-editor + item-library/* collaborators
@@ -12,7 +12,7 @@
 const itemLibraryHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
 
 // `shared/trigger-types.js` is not in types/globals.d.ts.
-// NOTE: the local alias must not be called `TriggerTypes` — that name is a
+// NOTE: the local alias must not be called `TriggerTypes` - that name is a
 // top-level lexical binding in shared/trigger-types.ts, and a second file
 // declaring it is a parse-time SyntaxError that kills the whole file.
 const TriggerTypesNs = (window as unknown as {
@@ -103,6 +103,20 @@ interface DocPreview {
 const byId = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
 const qs = <T extends HTMLElement = HTMLInputElement>(sel: string) => document.querySelector(sel) as T;
 
+function _normalizeTags(raw: unknown): string[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.map(String);
+    if (typeof raw === 'object') {
+        const out: string[] = [];
+        for (const val of Object.values(raw as Record<string, unknown>)) {
+            out.push(..._normalizeTags(val));
+        }
+        return out;
+    }
+    if (typeof raw === 'string') return [raw];
+    return [];
+}
+
 class ItemLibrary {
     // Declared here rather than inferred from the constructor so `strict` sees
     // the instance shape; the constructor below still assigns all of them.
@@ -112,6 +126,10 @@ class ItemLibrary {
     _multiSelect!: boolean;
     _tagMs!: ItemLibraryTagMultiselectInstance | null;
     _checkedIds!: Set<string>;
+    _lastFilteredIds!: string[];
+    _activeTypeFilter: string = 'all';
+    _activePresetFilter: string = 'all';
+    _renderedCount: number = 80;
 
     constructor() {
         this.data = {};
@@ -119,6 +137,10 @@ class ItemLibrary {
         this._targetArea = null;
         this._multiSelect = false;
         this._checkedIds = new Set();
+        this._lastFilteredIds = [];
+        this._activeTypeFilter = 'all';
+        this._activePresetFilter = 'all';
+        this._renderedCount = 80;
     }
 
     static _slug(name: string): string {
@@ -138,6 +160,13 @@ class ItemLibrary {
 
     async refresh() {
         this.data = await ItemLibraryApi.getLibraryItems();
+        if (this.data && typeof this.data === 'object') {
+            for (const item of Object.values(this.data)) {
+                if (item) {
+                    item.tags = _normalizeTags(item.tags);
+                }
+            }
+        }
     }
 
     // --- Open/Close ---
@@ -147,6 +176,7 @@ class ItemLibrary {
         this.selectedId = null;
         this._multiSelect = false;
         this._checkedIds.clear();
+        this._lastFilteredIds = [];
         (byId('library-modal') as HTMLElement).style.display = 'flex';
         const emptyEditor = byId('item-lib-editor') as HTMLElement;
         window.Lit.render(itemLibraryHtmlTag`
@@ -155,6 +185,7 @@ class ItemLibrary {
                 <p>Select or create an item</p>
             </div>`, emptyEditor);
         this._updatePlaceButton();
+        this._updateBatchBar();
         this.renderList('');
     }
 
@@ -176,12 +207,14 @@ class ItemLibrary {
         this._targetArea = null;
         this._multiSelect = false;
         this._checkedIds.clear();
+        this._lastFilteredIds = [];
+        this._updateBatchBar();
     }
 
     // --- List rendering ---
 
     _getItemType(item: LibraryItem): string {
-        const tags = item.tags || [];
+        const tags = _normalizeTags(item.tags);
         const contents = item.contents || [];
         if (tags.includes('weapon')) return 'weapon';
         if (tags.includes('resistance')) return 'armor';
@@ -208,43 +241,98 @@ class ItemLibrary {
         return colors[type] || '#8b949e';
     }
 
+    setTypeFilter(type: string) {
+        this._activeTypeFilter = type;
+        const chips = document.querySelectorAll('.item-type-chip');
+        chips.forEach(c => {
+            if (c.getAttribute('data-type') === type) c.classList.add('active');
+            else c.classList.remove('active');
+        });
+        this._renderedCount = 80;
+        this.renderList(byId('item-lib-search')?.value || '');
+    }
+
+    setPresetFilter(preset: string) {
+        this._activePresetFilter = preset;
+        const chips = document.querySelectorAll('.item-preset-chip');
+        chips.forEach(c => {
+            if (c.getAttribute('data-preset') === preset) c.classList.add('active');
+            else c.classList.remove('active');
+        });
+        this._renderedCount = 80;
+        this.renderList(byId('item-lib-search')?.value || '');
+    }
+
+    loadMore() {
+        this._renderedCount += 80;
+        this.renderList(byId('item-lib-search')?.value || '');
+    }
+
     renderList(filter: string) {
         const listEl = byId('item-lib-list');
         if (!listEl) return;
         const entries = Object.entries(this.data) as Array<[string, LibraryItem]>;
         let filtered = entries;
+
+        // 1. Text filter
         if (filter) {
             const f = filter.toLowerCase();
-            filtered = entries.filter(([id, item]) =>
+            filtered = filtered.filter(([id, item]) =>
                 (item.name || id).toLowerCase().includes(f) ||
                 (item.description || '').toLowerCase().includes(f) ||
-                (item.tags || []).some((t: string) => t.toLowerCase().includes(f))
+                _normalizeTags(item.tags).some((t: string) => t.toLowerCase().includes(f))
             );
         }
+
+        // 2. Type filter (task-510)
+        if (this._activeTypeFilter && this._activeTypeFilter !== 'all') {
+            filtered = filtered.filter(([_, item]) => this._getItemType(item) === this._activeTypeFilter);
+        }
+
+        // 3. Preset filter (task-510)
+        if (this._activePresetFilter === 'no_triggers') {
+            filtered = filtered.filter(([_, item]) => (item.triggers || []).length === 0);
+        } else if (this._activePresetFilter === 'edible') {
+            const foodKeywords = ['food', 'drink', 'consumable', 'edible', 'meat', 'bread', 'soup', 'herb', 'berry'];
+            filtered = filtered.filter(([_, item]) => _normalizeTags(item.tags).some((t: string) => foodKeywords.includes(t.toLowerCase())));
+        } else if (this._activePresetFilter === 'has_contents') {
+            filtered = filtered.filter(([_, item]) => (item.contents || []).length > 0);
+        } else if (this._activePresetFilter === 'missing_desc') {
+            filtered = filtered.filter(([_, item]) => !(item.description && item.description.trim()));
+        }
+
         // Apply sort
-        const sortBy = (byId('lib-sort') as HTMLSelectElement).value || 'name';
+        const sortBy = (byId('lib-sort') as HTMLSelectElement)?.value || 'name';
         if (sortBy === 'name') {
             filtered.sort((a, b) => String(a[1].name || a[0]).localeCompare(String(b[1].name || b[0])));
         } else if (sortBy === 'type') {
             filtered.sort((a, b) => this._getItemType(a[1]).localeCompare(this._getItemType(b[1])));
         }
+
         // Update count
         const countEl = byId('lib-item-count');
         if (countEl) countEl.textContent = filtered.length === entries.length
-            ? `${entries.length} item${entries.length !== 1 ? 's' : ''}`
+            ? `${entries.length} items`
             : `${filtered.length} / ${entries.length} items`;
 
+        this._lastFilteredIds = filtered.map(([id]) => id);
         if (filtered.length === 0) {
             window.Lit.render(itemLibraryHtmlTag`
-                <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">No items found.</div>`, listEl);
+                <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">No items match your filter.</div>`, listEl);
+            this._updatePlaceButton();
+            this._updateBatchBar();
             return;
         }
+
+        // Window / paginate visible items for responsive scrolling across 2,200+ items (task-510)
+        const visible = filtered.slice(0, this._renderedCount);
         const rows = [];
-        for (const [id, item] of filtered) {
+        for (const [id, item] of visible) {
             const sel = id === this.selectedId;
             const name = item.name || id;
             const desc = (item.description || '');
-            const tags = item.tags || [];
+            // task-510: dedupe tags so repeated tags in JSON do not inflate badge counts
+            const tags = Array.from(new Set(_normalizeTags(item.tags)));
             const itemType = this._getItemType(item);
             const typeIcon = this._getTypeIcon(itemType);
             const typeColor = this._getTypeColor(itemType);
@@ -254,50 +342,72 @@ class ItemLibrary {
             const badges = [];
             if (tags.length > 0) {
                 tags.slice(0, 2).forEach((t: string) => {
-                    badges.push(itemLibraryHtmlTag`<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:var(--bg-hover);color:var(--text-muted);border:1px solid var(--border);white-space:nowrap;">${t}</span>`);
+                    badges.push(itemLibraryHtmlTag`<span class="item-lib-badge">${t}</span>`);
                 });
             }
-            if (triggerCount > 0) badges.push(itemLibraryHtmlTag`<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(227,179,65,0.15);color:var(--orange);border:1px solid rgba(227,179,65,0.3);white-space:nowrap;">⚡${triggerCount}</span>`);
-            if (contents.length > 0) badges.push(itemLibraryHtmlTag`<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(63,185,80,0.15);color:var(--green);border:1px solid rgba(63,185,80,0.3);white-space:nowrap;">📦${contents.length}</span>`);
+            if (triggerCount > 0) badges.push(itemLibraryHtmlTag`<span class="item-lib-badge item-lib-badge-trigger">⚡${triggerCount}</span>`);
+            if (contents.length > 0) badges.push(itemLibraryHtmlTag`<span class="item-lib-badge item-lib-badge-content">📦${contents.length}</span>`);
             const badgeHtml = badges.length > 0 ? itemLibraryHtmlTag`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;">${badges}</div>` : '';
 
             if (this._multiSelect) {
                 const checked = this._checkedIds.has(id);
-                rows.push(itemLibraryHtmlTag`<div class="agent-item" style="cursor:pointer;padding:5px 10px;border-left:3px solid ${typeColor};" @click=${() => VW.itemLib._toggleCheck(id)}>
+                rows.push(itemLibraryHtmlTag`<div class="item-lib-row ${sel ? 'selected' : ''}" style="border-left:3px solid ${typeColor};" @click=${() => VW.itemLib._toggleCheck(id)}>
                     <input type="checkbox" ?checked=${checked} style="margin-right:6px;cursor:pointer;" @click=${(e: Event) => { e.stopPropagation(); VW.itemLib._toggleCheck(id); }}>
                     <span style="font-size:14px;margin-right:4px;">${typeIcon}</span>
                     <div style="flex:1;min-width:0;">
                         <div style="display:flex;align-items:center;gap:4px;">
                             <span class="agent-name" style="font-size:12px;font-weight:600;">${name}</span>
                         </div>
-                        <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc}${desc ? '...' : ''}</div>
+                        <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc || '<no description>'}</div>
                         ${badgeHtml}
                     </div>
                 </div>`);
             } else {
-                rows.push(itemLibraryHtmlTag`<div class="agent-item ${sel ? 'selected' : ''}" @click=${() => VW.itemLib.select(id)} style="cursor:pointer;padding:5px 10px;border-left:3px solid ${typeColor};${sel ? 'background:var(--bg-inset);' : ''}">
+                rows.push(itemLibraryHtmlTag`<div class="item-lib-row ${sel ? 'selected' : ''}" @click=${() => VW.itemLib.select(id)} style="border-left:3px solid ${typeColor};">
                     <span style="font-size:14px;margin-right:4px;">${typeIcon}</span>
                     <div style="flex:1;min-width:0;">
                         <div style="display:flex;align-items:center;gap:4px;">
                             <span class="agent-name" style="font-size:12px;font-weight:600;">${name}</span>
                         </div>
-                        <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc}${desc ? '...' : ''}</div>
+                        <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc || '<no description>'}</div>
                         ${badgeHtml}
                     </div>
                 </div>`);
             }
         }
+
+        if (filtered.length > this._renderedCount) {
+            rows.push(itemLibraryHtmlTag`
+                <div style="text-align:center;padding:10px;">
+                    <button class="btn btn-sm btn-ghost" style="font-size:11px;" @click=${() => VW.itemLib.loadMore()}>
+                        Showing ${visible.length} of ${filtered.length} - Load more...
+                    </button>
+                </div>
+            `);
+        }
+
         window.Lit.render(itemLibraryHtmlTag`${rows}`, listEl);
         this._updatePlaceButton();
+        this._updateBatchBar();
     }
 
     _toggleCheck(id: string) {
         if (this._checkedIds.has(id)) this._checkedIds.delete(id);
         else this._checkedIds.add(id);
         this.renderList(byId('item-lib-search')?.value || '');
+        this._updateBatchBar();
     }
 
     _updatePlaceButton() { return ItemLibraryPlacement.updatePlaceButton.call(this); }
+    _updateBatchBar() { return ItemLibraryBatchTriggers.updateBatchBar.call(this); }
+    toggleMultiSelect() { return ItemLibraryBatchTriggers.toggleMultiSelect.call(this); }
+    selectAllFiltered() { return ItemLibraryBatchTriggers.selectAllFiltered.call(this); }
+    clearSelection() { return ItemLibraryBatchTriggers.clearSelection.call(this); }
+    batchSuggestTriggers(useAI = false) {
+        const replaceEl = document.getElementById('item-lib-batch-replace-check') as HTMLInputElement | null;
+        const replaceExisting = Boolean(replaceEl?.checked);
+        return ItemLibraryBatchTriggers.runBatch.call(this, { useAI, replaceExisting });
+    }
 
     filter() {
         this.renderList(byId('item-lib-search')?.value || '');
@@ -399,7 +509,7 @@ class ItemLibrary {
         byId('lib-item-name').value = newName;
         byId('lib-item-id').removeAttribute('readonly');
         byId('lib-item-id').style.color = '';
-        events.log(`Duplicated "${id}" — ready to save as "${newId}"`, 'system-msg');
+        events.log(`Duplicated "${id}" - ready to save as "${newId}"`, 'system-msg');
     }
 
     _onLibItemImageFileChange(input: HTMLInputElement | null | undefined) {
@@ -460,7 +570,7 @@ class ItemLibrary {
         const editor = byId('item-lib-editor');
         if (!editor) return;
         const isNew = this.selectedId === '__new__';
-        const tags: string[] = (item.tags || []) as string[];
+        const tags: string[] = _normalizeTags(item.tags);
         if (item.two_handed && !tags.includes('two_handed')) tags.unshift('two_handed');
         if (item.container && !tags.includes('container')) tags.unshift('container');
         const itemActions: string[] = ((typeof item.actions === 'string' ? item.actions.split(',') : item.actions || []) as string[]).map((a: string) => a.trim());
@@ -581,7 +691,7 @@ class ItemLibrary {
                     </div>
                     <div class="field"><label style="font-size:10px;">Damage Type</label>
                         <select id="lib-item-damage-type" style="width:100%;font-size:11px;">
-                            <option .value=${''}>— None —</option>
+                            <option .value=${''}>- None -</option>
                             ${['slashing','piercing','bludgeoning','fire','cold','toxic','magic','electric','radiant','necrotic','psychic','acid'].map(dt => itemLibraryHtmlTag`<option .value=${dt} ?selected=${(item.damage_type || '') === dt}>${dt}</option>`)}
                         </select>
                     </div>
@@ -751,7 +861,7 @@ class ItemLibrary {
     }
 
     /**
-     * Suggest — with the toggle `useAI`, either run the local heuristic suggester
+     * Suggest - with the toggle `useAI`, either run the local heuristic suggester
      * or the LLM-based AI trigger generator. Both are plan-driven (item actions
      * decide WHICH triggers) and merge into the existing field via a review
      * modal instead of a blind overwrite.
@@ -804,14 +914,14 @@ class ItemLibrary {
         }
         const rows = SuggestDiff.diff(existing, planTypes, triggers);
         if (!rows.length) {
-            if (existing.length && typeof toastInfo === 'function') toastInfo('All planned triggers are already covered — nothing to change.');
+            if (existing.length && typeof toastInfo === 'function') toastInfo('All planned triggers are already covered - nothing to change.');
             else field.value = JSON.stringify(triggers);
             this._refreshEditorWithTriggers();
             return;
         }
         SuggestDiff.show({
             title: '⚡ Review suggested triggers',
-            subtitle: `${label} — keep working triggers, swap conflicts per-row.`,
+            subtitle: `${label} - keep working triggers, swap conflicts per-row.`,
             rows,
             onApply: (result: SuggestDiffResult) => {
                 fields.actions = (byId('lib-item-actions').value || '').split(',').map((s: string) => s.trim()).filter(Boolean);
@@ -1065,7 +1175,7 @@ class ItemLibrary {
         if (!id && name) {
             // Auto-generate the id from the name: lowercase, spaces→underscores.
             id = name.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '') || 'item';
-            // Case-insensitive uniqueness — append a suffix if it already exists.
+            // Case-insensitive uniqueness - append a suffix if it already exists.
             const existingLower = Object.keys(this.data).map(k => k.toLowerCase());
             let candidate = id;
             let n = 2;
@@ -1236,7 +1346,7 @@ class ItemLibrary {
         const hasExisting = Object.keys(libEntry).length > 0;
 
         if (!hasExisting) {
-            // No conflict — save directly (still respect locked_fields)
+            // No conflict - save directly (still respect locked_fields)
             const payload: Record<string, any> = { id: itemId };
             for (const [key, val] of Object.entries(worldPayload)) {
                 payload[key] = locked.includes(key) && libEntry[key] !== undefined ? libEntry[key] : val;
@@ -1248,7 +1358,7 @@ class ItemLibrary {
             return;
         }
 
-        // Conflict — show DiffModal
+        // Conflict - show DiffModal
         const sections = [
             { key: 'name', label: 'Name' },
             { key: 'description', label: 'Description' },

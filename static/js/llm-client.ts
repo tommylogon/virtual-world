@@ -24,7 +24,7 @@ const MAX_TOKEN_CEILING = 32768;
 /** One chat message as sent to either API. Providers add fields we never read. */
 interface LLMMessage {
     role?: string;
-    content?: string;
+    content?: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
     tool_call_id?: string;
     tool_calls?: any[];
     [key: string]: unknown;
@@ -77,6 +77,7 @@ interface LLMConfigOptions {
     thinkingEffort?: string;
     suppressLocalThinking?: boolean;
     apiFormat?: string;
+    visionEnabled?: boolean;
 }
 
 /** Assigned by shared/json-utils.js as a classic-script global. */
@@ -99,6 +100,8 @@ class LLMClient {
     declare private thinkingEffort: string;
     declare private suppressLocalThinking: boolean;
     declare private apiFormat: string;
+    declare private visionEnabled: boolean;
+    declare private _imageCache: Map<string, string>;
     declare private _lastMessages: LLMMessage[] | null;
     declare private _manualResponse: unknown;
     declare private _manualMode: boolean;
@@ -107,6 +110,7 @@ class LLMClient {
     declare private _structuredLogged: Set<string>;
     declare private _schemaIgnoredWarned: Set<string>;
     declare private _structuredUnsupported: boolean;
+    declare private _lmStudioReasoningUnsupported: boolean;
 
     constructor() {
         this.apiKey = '';
@@ -122,6 +126,8 @@ class LLMClient {
         // API format: auto | chat-completions | responses.
         // auto currently routes to chat-completions (safest); manual opt-in to responses required.
         this.apiFormat = 'auto';
+        this.visionEnabled = Boolean(typeof config !== 'undefined' && config ? config.visionEnabled : false);
+        this._imageCache = new Map();
         this._lastMessages = null;
         this._manualResponse = null;
         this._manualMode = false;
@@ -151,6 +157,152 @@ class LLMClient {
         this.thinkingEffort = config.thinkingEffort || this.thinkingEffort;
         this.suppressLocalThinking = config.suppressLocalThinking !== undefined ? config.suppressLocalThinking : this.suppressLocalThinking;
         this.apiFormat = config.apiFormat || this.apiFormat;
+        if (config.visionEnabled !== undefined) this.visionEnabled = Boolean(config.visionEnabled);
+    }
+
+    clearImageCache(): void {
+        this._imageCache.clear();
+    }
+
+    async resolveImageDataUrl(pathOrUrl: string): Promise<string | null> {
+        if (!pathOrUrl) return null;
+        if (pathOrUrl.startsWith('data:')) return pathOrUrl;
+        if (this._imageCache.has(pathOrUrl)) {
+            return this._imageCache.get(pathOrUrl)!;
+        }
+        try {
+            if (typeof window !== 'undefined' && typeof (window as any).fetch === 'function') {
+                const resp = await fetch(pathOrUrl);
+                if (resp && resp.ok) {
+                    const blob = await resp.blob();
+                    const dataUrl = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result as string);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                    if (dataUrl) {
+                        this._imageCache.set(pathOrUrl, dataUrl);
+                        return dataUrl;
+                    }
+                }
+            }
+            const req = (globalThis as any).require;
+            if (typeof req === 'function') {
+                const fs = req('fs');
+                const path = req('path');
+                const clean = pathOrUrl.replace(/^\//, '');
+                if (fs.existsSync(clean)) {
+                    const buf = fs.readFileSync(clean);
+                    const ext = path.extname(clean).replace(/^\./, '') || 'webp';
+                    const dataUrl = `data:image/${ext};base64,${buf.toString('base64')}`;
+                    this._imageCache.set(pathOrUrl, dataUrl);
+                    return dataUrl;
+                }
+            }
+        } catch (e) {
+            return null;
+        }
+        return null;
+    }
+
+    _resolveCharacterProfileImage(actorNameOrId?: string): string | null {
+        if (!actorNameOrId) return null;
+        try {
+            if (typeof window === 'undefined') return null;
+            const ws = (window as any).worldState;
+            if (!ws) return null;
+            let node: any = null;
+            if (typeof ws.getNode === 'function') {
+                node = ws.getNode(actorNameOrId);
+            }
+            if (!node) {
+                const nodes = ws.graph?.nodes || ws.nodes || {};
+                if (nodes[actorNameOrId]) {
+                    node = nodes[actorNameOrId];
+                } else if (Array.isArray(nodes)) {
+                    node = nodes.find((n: any) => n && (n.id === actorNameOrId || n.name === actorNameOrId));
+                } else if (typeof nodes === 'object') {
+                    node = Object.values(nodes).find((n: any) => n && (n.id === actorNameOrId || n.name === actorNameOrId));
+                }
+            }
+            if (!node || !node.properties) return null;
+            const art = (window as any).VWCharacterArt;
+            if (art && typeof art.avatarFor === 'function') {
+                const emotion = (node.name && typeof art.emotionKeyForName === 'function')
+                    ? art.emotionKeyForName(node.name)
+                    : 'neutral';
+                const avatar = art.avatarFor(node.properties, emotion);
+                if (avatar) return avatar;
+            }
+            const props = node.properties;
+            return props.expressions?.neutral?.profile || props.profile_image || props.image || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async _prepareMessages(messages: LLMMessage[], options: LLMChatOptions): Promise<LLMMessage[]> {
+        const visionEnabled = Boolean(this.visionEnabled);
+        if (!visionEnabled) {
+            // Text-only: strip image parts and collapse content to pure string
+            return messages.map(m => {
+                if (Array.isArray(m.content)) {
+                    const text = m.content
+                        .map(p => p.type === 'text' ? (p.text || '') : '')
+                        .filter(Boolean)
+                        .join('\n');
+                    return { ...m, content: text };
+                }
+                return m;
+            });
+        }
+
+        // Vision enabled: resolve data URLs for any existing image parts
+        let hasImage = false;
+        const processed = await Promise.all(messages.map(async m => {
+            if (Array.isArray(m.content)) {
+                const parts = await Promise.all(m.content.map(async p => {
+                    if (p.type === 'image_url' && p.image_url?.url) {
+                        hasImage = true;
+                        const dataUrl = await this.resolveImageDataUrl(p.image_url.url);
+                        return { ...p, image_url: { url: dataUrl || p.image_url.url } };
+                    }
+                    return p;
+                }));
+                return { ...m, content: parts };
+            }
+            return { ...m };
+        }));
+
+        // Attach character portrait to the last user message if not already present
+        let actorImg = ((options as any).image as string) || null;
+        if (!actorImg && (options.actor || (options as any).character)) {
+            actorImg = this._resolveCharacterProfileImage(options.actor || (options as any).character);
+        }
+        if (actorImg && !hasImage) {
+            const dataUrl = await this.resolveImageDataUrl(actorImg);
+            if (dataUrl) {
+                for (let i = processed.length - 1; i >= 0; i--) {
+                    if (processed[i].role === 'user') {
+                        const existing = processed[i].content;
+                        if (typeof existing === 'string') {
+                            processed[i].content = [
+                                { type: 'text', text: existing },
+                                { type: 'image_url', image_url: { url: dataUrl } }
+                            ];
+                        } else if (Array.isArray(existing)) {
+                            processed[i].content = [
+                                ...existing,
+                                { type: 'image_url', image_url: { url: dataUrl } }
+                            ];
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return processed;
     }
 
     /** Chat completion with retry: 3 attempts, 1s/2s/4s backoff on 429/5xx/network errors.
@@ -158,6 +310,7 @@ class LLMClient {
      *  (e.g. 'think-decide', 'result-reaction', 'plan', 'reflect'); defaults
      *  to the model id. */
     async chat(messages: LLMMessage[], options: LLMChatOptions = {}): Promise<any> {
+        messages = await this._prepareMessages(messages, options);
         const model = options.model || this.model;
         const label = options.label || model;
         const temperature = options.temperature !== undefined ? options.temperature : this.temperature;
@@ -186,7 +339,7 @@ class LLMClient {
         if (VW?.events?.logRawLLMRequest && !this._manualMode) {
             // token estimate computed here so the chip can show a budget meter
             let est = 0;
-            try { est = Math.round(messages.reduce((n, m) => n + (m.content || '').length, 0) / 4); } catch (e) {}
+            try { est = Math.round(messages.reduce((n, m) => n + (typeof m.content === 'string' ? m.content.length : 100), 0) / 4); } catch (e) {}
             VW.events.logRawLLMRequest(label, messages, est, { actor: options.actor, requestId: options.requestId });
         }
 
@@ -296,7 +449,7 @@ class LLMClient {
                 if (!resp.ok) {
                     let errText = '';
                     let errBody = null;
-                    try { errBody = await resp.json(); errText = errBody.error?.message || JSON.stringify(errBody); }
+                    try { errBody = await resp.json(); errText = errBody.error?.metadata?.raw || errBody.error?.message || JSON.stringify(errBody); }
                     catch (e) { errText = await resp.text(); errBody = { text: errText }; }
                     // Capture provider error shapes (400/429/500) too (task-405).
                     this._captureRawExchange(label, requestBody, errBody || { error: errText }, resp, startedAt, headers);
@@ -311,10 +464,17 @@ class LLMClient {
                         attempt++;
                         continue;
                     }
+                    if (isLMStudio && resp.status === 400 && !this._lmStudioReasoningUnsupported
+                        && /does not expose reasoning|reasoning configuration/i.test(errText)) {
+                        this._lmStudioReasoningUnsupported = true;
+                        continue;
+                    }
                     attempt++;
                     if ((resp.status === 429 || resp.status >= 500) && attempt < maxRetries) {
                         const retryAfter = resp.headers?.get?.('Retry-After');
-                        let delay = Math.pow(2, attempt - 1) * 1000;
+                        let delay = resp.status === 429
+                            ? Math.min(Math.pow(2, attempt) * 1500, 30_000)
+                            : Math.pow(2, attempt - 1) * 1000;
                         if (retryAfter) {
                             const parsed = parseFloat(retryAfter);
                             if (!isNaN(parsed) && parsed > 0) {
@@ -323,12 +483,24 @@ class LLMClient {
                         }
                         const waitSec = (delay / 1000).toFixed(1);
                         if (VW?.events) VW.events.log(`LLM retry ${attempt}/${maxRetries} after ${resp.status} (waiting ${waitSec}s)...`, 'system-msg');
-                        await new Promise(r => setTimeout(r, delay)); continue;
+                        await new Promise<void>((resolve, reject) => {
+                            if (signal?.aborted) { reject(new DOMException('Aborted', 'AbortError')); return; }
+                            const timer = setTimeout(() => {
+                                signal?.removeEventListener('abort', onAbort);
+                                resolve();
+                            }, delay);
+                            const onAbort = () => {
+                                clearTimeout(timer);
+                                reject(new DOMException('Aborted', 'AbortError'));
+                            };
+                            signal?.addEventListener('abort', onAbort, { once: true });
+                        });
+                        continue;
                     }
                     throw new Error(`HTTP ${resp.status}: ${errText}`);
                 }
 
-                if (streaming) {
+                if (streaming && !isLMStudio) {
                     const streamInfo: { truncated: boolean } = { truncated: false };
                     // A retry must not paint a SECOND stream over the partial
                     // text already on screen, so onChunk is suppressed once the
@@ -488,7 +660,12 @@ class LLMClient {
         if (!this._lastMessages) return '';
         return this._lastMessages.map(m => {
             const role = m.role || 'user';
-            const content = m.content || '';
+            let content = '';
+            if (Array.isArray(m.content)) {
+                content = m.content.map(p => p.type === 'image_url' ? '[image]' : (p.text || '')).join(' ');
+            } else {
+                content = m.content || '';
+            }
             return `=== ${role.toUpperCase()} ===\n${content}`;
         }).join('\n\n');
     }
@@ -619,7 +796,19 @@ class LLMClient {
                 continue;
             }
             if (m.content) {
-                input.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content });
+                if (Array.isArray(m.content)) {
+                    input.push({
+                        role: m.role === 'assistant' ? 'assistant' : 'user',
+                        content: m.content.map(part => {
+                            if (part.type === 'image_url' && part.image_url?.url) {
+                                return { type: 'input_image', image_url: part.image_url.url };
+                            }
+                            return { type: 'input_text', text: part.text || '' };
+                        })
+                    });
+                } else {
+                    input.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content });
+                }
             }
         }
         const body: Record<string, any> = {
@@ -627,7 +816,11 @@ class LLMClient {
             input,
             temperature: parseFloat(opts.temperature as unknown as string) || 0.7
         };
-        if (systemMessage?.content) body.instructions = systemMessage.content;
+        if (systemMessage?.content) {
+            body.instructions = typeof systemMessage.content === 'string'
+                ? systemMessage.content
+                : systemMessage.content.map(p => p.text || '').filter(Boolean).join('\n');
+        }
         if (opts.streaming) body.stream = true;
         if (opts.maxTokens) body.max_output_tokens = opts.maxTokens;
         // Responses API uses a flat function tool shape:
@@ -663,14 +856,22 @@ class LLMClient {
     /** Build an LM Studio Native API (/api/v1/chat) request body. */
     _buildLMStudioBody(messages: LLMMessage[], opts: LLMChatOptions): Record<string, any> {
         const systemMessage = messages.find(m => m.role === 'system');
+        const extractText = (content: LLMMessage['content']) => {
+            if (typeof content === 'string') return content;
+            if (Array.isArray(content)) {
+                return content.map(p => p.text || (p.image_url ? `[Image: ${p.image_url.url}]` : '')).filter(Boolean).join(' ');
+            }
+            return '';
+        };
         const inputMsgs: string[] = [];
         for (const m of messages) {
             if (m === systemMessage) continue;
             if (m.content) {
+                const text = extractText(m.content);
                 if (m.role === 'user') {
-                    inputMsgs.push(m.content);
+                    inputMsgs.push(text);
                 } else {
-                    inputMsgs.push(`[${m.role}]: ${m.content}`);
+                    inputMsgs.push(`[${m.role}]: ${text}`);
                 }
             }
         }
@@ -679,10 +880,12 @@ class LLMClient {
             model: opts.model,
             input: inputMsgs.join('\n\n'),
             temperature: parseFloat(opts.temperature as unknown as string) || 0.7,
-            reasoning: thinkingOff ? 'off' : 'on'
         };
+        if (!this._lmStudioReasoningUnsupported) {
+            body.reasoning = thinkingOff ? 'off' : 'on';
+        }
         if (systemMessage?.content) {
-            body.system_prompt = systemMessage.content;
+            body.system_prompt = extractText(systemMessage.content);
         }
         if (opts.maxTokens) {
             body.max_output_tokens = opts.maxTokens;

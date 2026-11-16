@@ -43,9 +43,9 @@ const SettingsView = (() => {
         'api-base-input': 'apiBase',
         'api-key-input': 'apiKey',
         'agent-model': 'model',
-        'agent-temperature': 'temperature',
-        'max-tokens-input': 'maxTokens',
-        'soft-max-tokens-input': 'softMaxTokens',
+        'hub-temperature': 'temperature',
+        'hub-max-tokens': 'maxTokens',
+        'hub-soft-max-tokens': 'softMaxTokens',
         'agent-turn-based': 'turnBased',
         'agent-turn-order': 'turnOrder',
         'agent-reactive-mode': 'reactiveMode',
@@ -53,6 +53,7 @@ const SettingsView = (() => {
         'agent-mature-content': 'matureContent',
         'agent-show-raw-llm': 'showRawLLM',
         'agent-end-of-turn-memory': 'endOfTurnMemory',
+        'commons-auto-reply': 'commonsAutoReplyOnMessage',
         'agent-manual-mode': 'manualMode',
         'agent-auto-retry-invalid': 'autoRetryInvalid',
         'agent-vision-enabled': 'visionEnabled',
@@ -73,9 +74,10 @@ const SettingsView = (() => {
         'interpreter-api-key': 'interpreterApiKey',
         'interpreter-model': 'interpreterModel',
         'interpreter-api-format': 'interpreterApiFormat',
-        'agent-thinking': 'thinking',
-        'agent-thinking-effort': 'thinkingEffort',
-        'agent-suppress-local-thinking': 'suppressLocalThinking',
+        'hub-thinking': 'thinking',
+        'hub-thinking-effort': 'thinkingEffort',
+        'hub-suppress-thinking': 'suppressLocalThinking',
+        'hub-top-p': 'topP',
         'agent-api-format': 'apiFormat',
         'agent-rpm-limit': 'rpmLimit',
         'agent-tpm-limit': 'tpmLimit',
@@ -188,8 +190,16 @@ const SettingsView = (() => {
             });
         }
 
-        const thinkingRow = document.getElementById('thinking-effort-row');
-        if (thinkingRow) thinkingRow.style.display = config.thinking ? 'flex' : 'none';
+        const thinkingRow = document.getElementById('hub-thinking-options') || document.getElementById('thinking-effort-row');
+        if (thinkingRow) thinkingRow.style.display = config.thinking ? 'block' : 'none';
+
+        try {
+            const uiAny = (window as any).VW?.ui;
+            if (uiAny?.renderActiveModelInspector) {
+                const desc = uiAny._modelDescriptors?.find((m: any) => m.id === config.model) || (config.model ? { id: config.model, name: config.model } : undefined);
+                if (desc) uiAny.renderActiveModelInspector(desc);
+            }
+        } catch { /* silently ignore */ }
 
         const mmFields = document.getElementById('memory-model-fields');
         if (mmFields) mmFields.style.display = (config.memoryModelEnabled !== false) ? 'block' : 'none';
@@ -327,6 +337,16 @@ const SettingsView = (() => {
      */
     async function saveConfigToServer() {
         await (config.saveFromForm as () => Promise<void> | void)();
+
+        // Sync active profile to server backend on every Save
+        const activeProfile = (document.getElementById('profile-select') as HTMLSelectElement)?.value || (config as any).lastProfile;
+        if (activeProfile && typeof (config as any).saveProfile === 'function' && typeof (config as any).getCurrentSettingsObject === 'function') {
+            try {
+                await (config as any).saveProfile(activeProfile, (config as any).getCurrentSettingsObject());
+            } catch (err) {
+                console.warn('Failed to sync profile to server:', err);
+            }
+        }
 
         const syncPromises: Promise<unknown>[] = [];
 

@@ -1,13 +1,13 @@
 "use strict";
 /**
- * staging.js — Staging buffer for Natural-Language Editor (task-387).
+ * staging.js - Staging buffer for Natural-Language Editor (task-387).
  *
  * Buffers graph operations locally until the user approves and applies them.
  * No live graph changes happen until explicit Apply.
  *
- * @module nl-editor/staging — the staged-ops buffer
+ * @module nl-editor/staging - the staged-ops buffer
  * @contributes NLEditorStaging: buffer graph ops until explicit Apply; approve/reject per op
- * @powers NL editor — safe, reversible NL edits — nothing touches the graph until you apply
+ * @powers NL editor - safe, reversible NL edits - nothing touches the graph until you apply
  * @relates consumed by index.js + ghosts.js; applied through the graph API
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
@@ -27,6 +27,7 @@ window.NLEditorStaging = (() => {
     class StagingBuffer {
         constructor() {
             this.ops = [];
+            this.appliedOps = [];
             this.listeners = [];
         }
         onChange(callback) {
@@ -90,7 +91,33 @@ window.NLEditorStaging = (() => {
         /** Clear all staged operations */
         clear() {
             this.ops = [];
+            this.appliedOps = [];
             this._notify();
+        }
+        /** All applied ops from recent batch runs */
+        getAppliedOps() {
+            return this.appliedOps;
+        }
+        /** Revert ONE applied op via its inverse op (task-743) */
+        async undoOp(opId) {
+            const op = this.appliedOps.find((o) => o.id === opId);
+            if (!op || !op.inverse_op) {
+                return { success: false, error: 'No inverse operation available' };
+            }
+            let res;
+            try {
+                res = await api().post('/api/graph/batch/undo-op', { inverse_op: op.inverse_op });
+            }
+            catch (e) {
+                return { success: false, error: e?.message || 'Undo request failed' };
+            }
+            if (res && res.status === 'success') {
+                this.appliedOps = this.appliedOps.filter((o) => o.id !== opId);
+                await this._refreshWorld();
+                this._notify();
+                return { success: true };
+            }
+            return { success: false, error: res?.error || 'Undo failed' };
         }
         /** Get all currently staged operations */
         getOps() {
@@ -190,7 +217,7 @@ window.NLEditorStaging = (() => {
         /**
          * Apply all staged operations.
          *
-         * Primary path: one `POST /api/graph/batch` call — the server replays
+         * Primary path: one `POST /api/graph/batch` call - the server replays
          * the ops in topological order and records exactly ONE undo snapshot,
          * so a single Undo reverts the whole Apply (task-387).
          * Fallback: replay per-op against the live APIs (no atomic undo) for
@@ -212,7 +239,7 @@ window.NLEditorStaging = (() => {
                 batch = null;
             }
             if (batch && batch.status === 'invalid') {
-                // task-461: the validation gate refused the batch — nothing was
+                // task-461: the validation gate refused the batch - nothing was
                 // applied; keep every op staged and surface the findings.
                 const issues = batch.validation || [];
                 const messages = (batch.errors || issues)
@@ -235,8 +262,14 @@ window.NLEditorStaging = (() => {
                 const appliedIds = new Set();
                 for (const entry of (batch.applied || [])) {
                     const op = targets[entry.index];
-                    if (op)
+                    if (op) {
                         appliedIds.add(op.id);
+                        this.appliedOps.push({
+                            ...op,
+                            applied: true,
+                            inverse_op: entry.inverse_op,
+                        });
+                    }
                 }
                 const errs = (batch.errors || []).map((er) => {
                     if (typeof er === 'string')

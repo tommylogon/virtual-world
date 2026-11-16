@@ -1,8 +1,8 @@
 "use strict";
 /**
- * EventBus — Pub/sub event stream and terminal output
+ * EventBus - Pub/sub event stream and terminal output
  *
- * @module event-stream — the event stream panel
+ * @module event-stream - the event stream panel
  * @contributes EventBus service: log/emit, row kinds, turn cards, filters, persistence hooks, story mode
  * @powers the main event stream, stream search, the queue strip, and the log export
  * @relates publishes on event-bus; collaborators live in static/js/stream/*
@@ -10,7 +10,7 @@
  *
  * task-340 (event stream v2): slimmed core with extracted collaborators in
  * static/js/stream/ (filters, turn cards, raw-LLM chips, persistence,
- * timeline scrubber). The bus remains the single public surface — every
+ * timeline scrubber). The bus remains the single public surface - every
  * legacy symbol still works. New in v2: collapsed LLM payload chips with
  * token meters, outcome-tinted results, phase pills, narration/reflection/
  * whisper/crisis/prune row kinds, area-transition dividers, time-gap rows,
@@ -70,13 +70,13 @@ class EventBus {
     updateAgentFilterDropdown() { this._filters.updateAgentFilterDropdown(); }
     async _persistLog() { await this._persist.persist(); }
     async restoreLog() { await this._persist.restore(); }
-    /** Live stream search — filters cards/rows containing the query. */
+    /** Live stream search - filters cards/rows containing the query. */
     search(query) {
         this._filters.applyFilters();
     }
     /** Set the stream density: 'cards' | 'compact' | 'story' (persisted).
      *  Story mode also hides the gear-data brackets ([wearing: …]/[holding: …])
-     *  from character-presence rows — the raw text stays in cards/compact and
+     *  from character-presence rows - the raw text stays in cards/compact and
      *  in every export preference; story is prose-only. */
     setStreamMode(mode) {
         mode = ['cards', 'compact', 'story'].includes(mode) ? mode : 'cards';
@@ -115,7 +115,7 @@ class EventBus {
     }
     getStreamMode() { return this._streamMode; }
     /**
-     * Turn-queue strip — shows who acts next; the human slot glows pink.
+     * Turn-queue strip - shows who acts next; the human slot glows pink.
      * Reads VW.agent.turnQueue/currentTurnIndex unless names are passed.
      */
     renderQueueStrip(names) {
@@ -157,7 +157,7 @@ class EventBus {
      * Open (or reuse) the turn card for a human-controlled actor so rows they
      * emit directly through /api/action (speech, emotes, interjections) group
      * under their character instead of landing in the bare stream (bug-33).
-     * Safe to call repeatedly within one turn — a card for the same actor is
+     * Safe to call repeatedly within one turn - a card for the same actor is
      * reused, and the next phase marker starts a fresh one.
      */
     beginActorTurn(charName) {
@@ -166,7 +166,7 @@ class EventBus {
             return;
         this._cards.bodyFor(charName, streamEl);
     }
-    /** Log a message to the event stream — uses styled bubbles.
+    /** Log a message to the event stream - uses styled bubbles.
      *  meta (optional): {outcome:'success'|'failure'|'minor'} for results.
      *  actor (optional): explicit owner for rows that would otherwise inherit
      *  the open turn card (e.g. memory recalls logged on behalf of a character). */
@@ -185,7 +185,7 @@ class EventBus {
                 return;
             }
         }
-        // Memory reflections arrive as generic system messages — give them
+        // Memory reflections arrive as generic system messages - give them
         // their own colored row kind (task-340 §reflection styling). Recalls
         // (🧠 recalled N memories) and simple-NPC rows (👾) get their own
         // kinds too so each is filterable on its own.
@@ -222,7 +222,7 @@ class EventBus {
             btn.type = 'button';
             btn.className = 'btn btn-sm choice-btn';
             btn.style.cssText = 'margin:2px 4px 2px 0;font-size:10px;';
-            btn.textContent = option.detail ? `${option.label} — ${option.detail}` : option.label;
+            btn.textContent = option.detail ? `${option.label} - ${option.detail}` : option.label;
             btn.title = `Target ${option.key}`;
             btn.addEventListener('click', async () => {
                 btn.disabled = true;
@@ -269,7 +269,7 @@ class EventBus {
         const total = (VW?.state?.tick || 0) * tpm + (raw.clock_start_hour ?? 8) * 60 + (raw.clock_start_minute ?? 0);
         return { minutes: total % 1440, day: Math.floor(total / 1440) };
     }
-    // --- Action Icon Helpers (restored — EventBus.getActionIcon/getActionColor) ---
+    // --- Action Icon Helpers (restored - EventBus.getActionIcon/getActionColor) ---
     static getActionIcon(entry) {
         const r = (entry.result || '').toLowerCase();
         if (!entry.result || r.includes('pick up') || r.includes('moves into') || r.includes('opens') || r.includes('closes'))
@@ -288,7 +288,7 @@ class EventBus {
             return 'var(--orange)';
         return 'var(--green)';
     }
-    /** Turn-card header label — round number, calendar date, game time, moon. */
+    /** Turn-card header label - round number, calendar date, game time, moon. */
     _turnLabel() {
         const raw = VW?.state?.data || {};
         const turn = raw.turn_number ?? 0;
@@ -302,13 +302,13 @@ class EventBus {
         const moonPart = moon?.icon ? ` ${moon.icon}` : '';
         return `Turn ${turn}${datePart} | ${time}${moonPart}`;
     }
-    /** Per-bubble label — the world tick + game time.
+    /** Per-bubble label - the world tick + game time.
      *
      *  This used to stamp the global line sequence number (`_lineSeq`) into the
      *  visible label, which is why raw-LLM chips (bug-560) showed the world tick
      *  while every neighbouring row showed a line number that happened to be
-     *  called "Tick". The line number still lives on `data-seq` — the export and
-     *  the persistence restore read that attribute, never this string — so what
+     *  called "Tick". The line number still lives on `data-seq` - the export and
+     *  the persistence restore read that attribute, never this string - so what
      *  the user sees is now one meaning of "Tick" across every row.
      */
     _tickLabel(bubble) {
@@ -338,7 +338,7 @@ class EventBus {
         const days = Math.floor(hours / 24);
         return `${days} day${days === 1 ? '' : 's'} ago`;
     }
-    /** Log a thought bubble — separate styled block in the event stream */
+    /** Log a thought bubble - separate styled block in the event stream */
     logThought(charName, thought) {
         const streamEl = document.getElementById('event-stream');
         if (!streamEl)
@@ -372,8 +372,8 @@ class EventBus {
                 const gap = document.createElement('div');
                 gap.className = 'time-gap';
                 gap.textContent = dayChanged
-                    ? `— ${elapsed} minutes pass · day ${clock.day + 1} begins —`
-                    : `— ${elapsed} minutes pass —`;
+                    ? `- ${elapsed} minutes pass · day ${clock.day + 1} begins -`
+                    : `- ${elapsed} minutes pass -`;
                 target.appendChild(gap);
                 this._scrubber.scheduleRebuild();
             }
@@ -487,7 +487,7 @@ class EventBus {
             default:
                 break;
         }
-        // Turn boundaries are defined by phase markers, not by chatter — only
+        // Turn boundaries are defined by phase markers, not by chatter - only
         // the player and hard errors end a card. Engine system rows emitted
         // mid-turn (match info, skill text) stay INSIDE the acting turn's
         // card instead of fragmenting it into two cards.
@@ -668,7 +668,7 @@ class EventBus {
         const icon = icons[phase] || '➡️';
         const label = subtext ? `${phase} · ${subtext}` : phase;
         window.Lit.render(eventStreamHtmlTag `<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._tickLabel(bubble)}]</span><span class="bubble-phase-pill">${label}</span>`, bubble);
-        // observe/think always start a fresh card — same actor's NEXT turn
+        // observe/think always start a fresh card - same actor's NEXT turn
         // must not merge into the previous turn's card.
         const body = this._cards.bodyFor(charName, streamEl, phase === 'observe' || phase === 'think');
         this._insertTimeGap(body || streamEl);
@@ -817,7 +817,7 @@ class EventBus {
             state.currentArea = area;
         }
     }
-    /** Area-transition divider — movement becomes visible in the stream. */
+    /** Area-transition divider - movement becomes visible in the stream. */
     _emitTransition(charName, fromArea, toArea) {
         const streamEl = document.getElementById('event-stream');
         if (!streamEl)
@@ -839,11 +839,21 @@ class EventBus {
     // --- Character Control Mode (delegates to stream-control-mode.js) ---
     isAutonomous(charName) { return this._controlMode.isAutonomous(charName); }
     getControlMode(charName) { return this._controlMode.getControlMode(charName); }
-    /** The shared NPC/LLM/human glyph for a mode — see controlBadge(). */
+    /** The shared NPC/LLM/human glyph for a mode - see controlBadge(). */
     controlBadge(mode) {
         return this._controlMode.controlBadge(mode);
     }
-    cycleControlMode(charName) { this._controlMode.cycleControlMode(charName); }
+    setControlMode(charName, mode) {
+        return this._controlMode.setControlMode(charName, mode);
+    }
+    openControlModeMenu(charName, anchorEl) {
+        this._controlMode.openControlModeMenu(charName, anchorEl);
+    }
+    isAutoDraft(charName) { return this._controlMode.isAutoDraft(charName); }
+    setAutoDraft(charName, enabled) { this._controlMode.setAutoDraft(charName, enabled); }
+    cycleControlMode(charName, anchorEl) {
+        this._controlMode.cycleControlMode(charName, anchorEl);
+    }
     /** Render skill check badge HTML, or null if text doesn't match */
     _renderSkillBadge(text) {
         const match = text.match(/^\[Skill Check\]\s*(\w+)\s+vs\s+DC\s+(\d+)\s+\(([^)]+)\):\s*roll=(\d+)\s*\+\s*(\d+)\s*=\s*(\d+)\s*=>\s*(\w+)/);

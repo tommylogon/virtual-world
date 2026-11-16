@@ -1,6 +1,6 @@
 "use strict";
 /**
- * edit-feed.js — "World edited" feed with per-edit undo (task-384)
+ * edit-feed.js - "World edited" feed with per-edit undo (task-384)
  *
  * Listens to the SAME EventSource world_changed stream as world-state.js and
  * records a short toast-style feed (bottom-right). Each entry carries the
@@ -8,13 +8,13 @@
  * pops exactly one undo snapshot (the one that mutation pushed), reverting
  * just that edit. Feed is session-local, capped at 8.
  *
- * Caveat: undo pops the NEWEST snapshot, not this specific one — feeds are
+ * Caveat: undo pops the NEWEST snapshot, not this specific one - feeds are
  * per-edit *labels* for visibility; exact ordering discipline is the undo
  * stack's job. Practically the newest edit is the one in front of you.
  *
- * @module ui/edit-feed — "World edited" feed with per-edit undo
+ * @module ui/edit-feed - "World edited" feed with per-edit undo
  * @contributes EditFeed: session-local feed (cap 8) of world_changed events, each with ↩ Undo
- * @powers Recent edits / undo — seeing what just changed and reverting a single edit (task-384)
+ * @powers Recent edits / undo - seeing what just changed and reverting a single edit (task-384)
  * @relates listens to the same EventSource as world-state.js; pops one undo snapshot
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
@@ -57,7 +57,7 @@ const EditFeed = (() => {
         const row = document.createElement('div');
         const method = (ev.method || 'POST').toUpperCase();
         const icon = METHOD_ICON[method] || '●';
-        const label = PATH_LABEL(ev.path);
+        const label = (typeof ev.label === 'string' && ev.label) ? ev.label : PATH_LABEL(ev.path);
         row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(20,22,30,0.92);border:1px solid var(--border);border-radius:6px;font-size:10.5px;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,0.4);';
         const iconSpan = document.createElement('span');
         iconSpan.textContent = icon;
@@ -97,7 +97,7 @@ const EditFeed = (() => {
         setTimeout(() => { row.style.opacity = '0'; row.style.transition = 'opacity 0.5s'; setTimeout(() => row.remove(), 600); }, 12000);
     }
     // Subscribe to the same /api/events stream (world-state.js also reads it;
-    // EventSource allows multiple listeners per connection? NO — one per tab.
+    // EventSource allows multiple listeners per connection? NO - one per tab.
     // Use a shared bus: world-state.js emits appEvents 'world:changed' after
     // its own stream handler. Fall back to a second EventSource if the bus is
     // missing (duplicate events are harmless-ish; dedupe by seq).
@@ -142,6 +142,6 @@ const EditFeed = (() => {
     else {
         attach();
     }
-    return { push, attach };
+    return { push, attach, PATH_LABEL };
 })();
 window.EditFeed = EditFeed;

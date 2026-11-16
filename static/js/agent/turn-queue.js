@@ -1,10 +1,10 @@
 "use strict";
 /**
- * turn-queue.js — Turn queue management for turn-based agent simulation
+ * turn-queue.js - Turn queue management for turn-based agent simulation
  *
- * @module agent/turn-queue — turn ordering and advancement
+ * @module agent/turn-queue - turn ordering and advancement
  * @contributes TurnQueue: sequential/random/initiative order, current character, turn number
- * @powers Turn queue — who acts next — the order the agent loop walks and the queue strip displays
+ * @powers Turn queue - who acts next - the order the agent loop walks and the queue strip displays
  * @relates state lives on VW.agent (AgentEngine); used by agent-engine + human-turn-composer
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  *
@@ -28,6 +28,18 @@ window.TurnQueue = (() => {
     function _getAgent() {
         return VW?.agent || {};
     }
+    function isPaused(charName) {
+        const p = worldState.players?.[charName];
+        if (!p)
+            return false;
+        const ctrl = String(p.controller || '').toLowerCase();
+        if (ctrl === 'paused' || ctrl === 'inert')
+            return true;
+        if (p.simple_npc === true && p.autonomy === false)
+            return true;
+        const mode = window.events?.getControlMode?.(charName);
+        return mode === 'paused' || mode === 'inert';
+    }
     /**
      * Initialize (or re-initialize) the turn queue from the current world state.
      *
@@ -49,6 +61,7 @@ window.TurnQueue = (() => {
         let allPlayers = Object.keys(worldState.players);
         if (!config.ghostMode)
             allPlayers = allPlayers.filter(charName => worldState.players[charName]?.state !== 'dead');
+        allPlayers = allPlayers.filter(charName => !isPaused(charName));
         const agent = _getAgent();
         agent.initiativeRolls = {};
         if (allPlayers.length === 0) {
@@ -56,6 +69,27 @@ window.TurnQueue = (() => {
             agent.currentTurnIndex = 0;
             agent.turnNumber = 0;
             return;
+        }
+        // task-437: prefer server-authoritative turn order when available
+        const serverInfo = worldState?.turn_order_info;
+        if (serverInfo?.order && Array.isArray(serverInfo.order) && serverInfo.order.length > 0) {
+            const idToName = {};
+            for (const name of allPlayers) {
+                const pid = worldState.players[name]?.id || name;
+                idToName[pid] = name;
+            }
+            const mappedQueue = serverInfo.order
+                .map((id) => idToName[id] || (worldState.players[id] ? id : ''))
+                .filter((name) => Boolean(name) && !isPaused(name));
+            if (mappedQueue.length > 0) {
+                agent.turnQueue = mappedQueue;
+                agent.initiativeRolls = serverInfo.initiative_rolls || {};
+                if (serverInfo.mode)
+                    config.turnOrder = serverInfo.mode;
+                agent.currentTurnIndex = 0;
+                agent.turnNumber = 0;
+                return;
+            }
         }
         switch (config.turnOrder) {
             case 'initiative':
@@ -88,7 +122,7 @@ window.TurnQueue = (() => {
     /**
      * Reconcile the queue against the current world roster.
      *
-     * If the set of (non-dead) players differs from the queue, re-initialize —
+     * If the set of (non-dead) players differs from the queue, re-initialize -
      * this catches characters added (or killed) while the simulation is
      * running, which the empty-check in `initialize()` alone misses.
      * Preserves turnNumber so a roster change doesn't reset the clock.
@@ -96,7 +130,7 @@ window.TurnQueue = (() => {
      */
     function reconcile() {
         const agent = _getAgent();
-        if (!config.turnBased)
+        if (!config.turnBased && (!agent.turnQueue || agent.turnQueue.length === 0))
             return false;
         // Soak orders can end between roster changes (promotion/expiry); that is
         // also a re-queue event, by the normal order rule (task-481).
@@ -110,6 +144,7 @@ window.TurnQueue = (() => {
         let allPlayers = Object.keys(worldState.players);
         if (!config.ghostMode)
             allPlayers = allPlayers.filter(charName => worldState.players[charName]?.state !== 'dead');
+        allPlayers = allPlayers.filter(charName => !isPaused(charName));
         const current = new Set(agent.turnQueue || []);
         const expected = new Set(allPlayers);
         if (current.size === expected.size && [...current].every(p => expected.has(p))) {
@@ -125,7 +160,7 @@ window.TurnQueue = (() => {
      *
      * Increments turnNumber and applies turn decay / tick effects via
      * ApiClient.applyTurn(), then clears turn events. This is what happens
-     * when a full turn-based cycle wraps — and it is ALSO used directly in
+     * when a full turn-based cycle wraps - and it is ALSO used directly in
      * non-turn-based mode where each stepped character counts as one turn
      * (task-241), so time advances and new-turn effects play there too.
      * The state is refreshed between applyTurn() and clearTurnEvents() so
@@ -266,7 +301,7 @@ window.TurnQueue = (() => {
     /**
      * Re-roll every character's initiative (d20 + DEX bonus) and re-sort the
      * queue by the new rolls. Only meaningful when config.turnOrder is
-     * 'initiative' — otherwise it's a no-op.
+     * 'initiative' - otherwise it's a no-op.
      *
      * Unlike initialize(), this preserves turnNumber and keeps the same
      * character "current" (moves the turn index to their new position).

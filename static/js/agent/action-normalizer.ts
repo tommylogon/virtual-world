@@ -201,7 +201,7 @@ const ActionNormalizerModule = (() => {
             }
             case 'go': case 'dash': case 'crawl': case 'climb': case 'jump': return obj ? `${verb} ${obj}` : verb;
             case 'approach': return obj ? `approach ${obj}` : verb;
-            case 'open': case 'close': return obj ? `${verb} ${obj}` : verb;
+            case 'open': case 'close': return (item || target) ? `${verb} ${item || target}` : verb;
             case 'take': case 'drop': case 'pickup': return item ? `${verb} ${item}` : verb;
             case 'put': case 'place': {
                 const rel = ['on', 'under', 'beside', 'behind', 'at', 'in'].includes(relation) ? relation : 'on';
@@ -209,12 +209,12 @@ const ActionNormalizerModule = (() => {
             }
             case 'give': case 'hand': return item && target ? `give ${item} to ${target}` : verb;
             case 'teach': return item && target ? `teach ${item} to ${target}` : verb;
-            case 'eat': case 'consume': return obj ? `eat ${obj}` : 'eat';
-            case 'drink': case 'quaff': return obj ? `drink ${obj}` : 'drink';
+            case 'eat': case 'consume': return (item || target) ? `eat ${item || target}` : 'eat';
+            case 'drink': case 'quaff': return (item || target) ? `drink ${item || target}` : 'drink';
             case 'steal': return item && target ? `steal ${item} from ${target}` : (item ? `steal ${item}` : verb);
             case 'lead': return obj ? `lead ${obj}` : verb;
             case 'listen': case 'stand': return verb;
-            case 'examine': case 'read': case 'search': case 'inspect': case 'check': return obj ? `examine ${obj}` : verb;
+            case 'examine': case 'read': case 'search': case 'inspect': case 'check': return (item || target) ? `examine ${item || target}` : verb;
             case 'attack': {
                 const where = String(src.where || '').trim();
                 return where ? `attack ${obj} on ${where}` : (obj ? `attack ${obj}` : verb);

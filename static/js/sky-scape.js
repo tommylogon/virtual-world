@@ -128,7 +128,7 @@ const _SkyScape = (() => {
         const ov = state?.forecast_override;
         if (ov && ov.weather)
             return ov.weather;
-        const sched = state?.forecast_schedule;
+        const sched = (state?.forecast || state?.forecast_schedule);
         if (sched && Array.isArray(sched.entries) && sched.entries.length) {
             const period = GRANULARITY_MINUTES[sched.granularity || ''] || 1440;
             const day = (state?.game_day || 1) - 1;
@@ -151,7 +151,7 @@ const _SkyScape = (() => {
     }
     /** Next forecast change from "now" (minutes + label), for the widget. */
     function nextForecastChange(state) {
-        const sched = state?.forecast_schedule;
+        const sched = (state?.forecast || state?.forecast_schedule);
         if (!sched || !Array.isArray(sched.entries) || sched.entries.length < 2)
             return null;
         const period = GRANULARITY_MINUTES[sched.granularity || ''] || 1440;
@@ -429,35 +429,35 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 <div class="vwsky-card">
                     <span class="vwsky-lab">🌦 Forecast</span>
                     <div class="vwsky-row" style="margin-bottom:10px;">
-                        <label class="vwsky-lab-inline">mode <select id="sky-sched-mode" class="vwsky-sel" title="forecast mode">
+                        <label class="vwsky-lab-inline">mode <select id="sky-forecast-mode" class="vwsky-sel" title="forecast mode">
                             <option value="authored">authored</option>
                             <option value="deterministic">deterministic</option>
                             <option value="random">random</option>
                             <option value="hybrid">hybrid</option>
                             <option value="generated">generated</option>
                         </select></label>
-                        <label class="vwsky-lab-inline">period <select id="sky-sched-granularity" class="vwsky-sel" title="period entries repeat over">
+                        <label class="vwsky-lab-inline">period <select id="sky-forecast-granularity" class="vwsky-sel" title="period entries repeat over">
                             <option value="hourly">hourly · 1 day</option>
                             <option value="weekly">weekly · 7 days</option>
                             <option value="yearly">yearly · 365 days</option>
                         </select></label>
-                        <label class="vwsky-lab-inline">seed <input type="number" id="sky-sched-seed" class="vwsky-in" style="width:80px;" title="reproducibility seed"></label>
-                        <label class="vwsky-lab-inline">every <input type="number" id="sky-sched-interval" class="vwsky-in" style="width:56px;" min="1" value="1" title="ticks between state-machine transitions"> ticks</label>
-                        <button class="vwsky-btn sm" id="sky-sched-add">+ entry</button>
-                        <button class="vwsky-btn pri sm" id="sky-sched-save">Save</button>
-                        <span class="vwsky-status sky-sched-status"></span>
+                        <label class="vwsky-lab-inline">seed <input type="number" id="sky-forecast-seed" class="vwsky-in" style="width:80px;" title="reproducibility seed"></label>
+                        <label class="vwsky-lab-inline">every <input type="number" id="sky-forecast-interval" class="vwsky-in" style="width:56px;" min="1" value="1" title="ticks between state-machine transitions"> ticks</label>
+                        <button class="vwsky-btn sm" id="sky-forecast-add">+ entry</button>
+                        <button class="vwsky-btn pri sm" id="sky-forecast-save">Save</button>
+                        <span class="vwsky-status sky-forecast-status"></span>
                     </div>
-                    <div id="sky-sched-timeline" class="vwsky-tl"></div>
+                    <div id="sky-forecast-timeline" class="vwsky-tl"></div>
                     <div class="vwsky-fhead vwsky-grid">
                         <span>Offset</span><span>Weather</span><span>Wind</span><span>From</span><span>Humidity</span>
                         <span>Temp Δ</span><span>Light Δ</span><span>Air</span><span>Message</span><span></span>
                     </div>
-                    <div id="sky-sched-entries" class="vwsky-rows"></div>
-                    <div class="vwsky-presets" id="sky-sched-presets"></div>
+                    <div id="sky-forecast-entries" class="vwsky-rows"></div>
+                    <div class="vwsky-presets" id="sky-forecast-presets"></div>
                     <div class="vwsky-note">Offsets are minutes into the period; entries repeat each period. Temperature and light are shown <em>in-game</em> as engine-derived values; here you author only the <code>temperature_mod</code> / <code>light_mod</code> deltas. <code>wind</code> is magnitude; <code>wind_direction</code> is where it blows <em>from</em>. authored &amp; hybrid use the entries; deterministic / random / generated roll the table.</div>
                     <details class="vwsky-det">
-                        <summary>Transition table — deterministic / random / generated</summary>
-                        <textarea id="sky-sched-table" class="vwsky-table" spellcheck="false" placeholder='{ "clear": { "clear": 7, "cloudy": 2 } }'></textarea>
+                        <summary>Transition table - deterministic / random / generated</summary>
+                        <textarea id="sky-forecast-table" class="vwsky-table" spellcheck="false" placeholder='{ "clear": { "clear": 7, "cloudy": 2 } }'></textarea>
                     </details>
                 </div>
 
@@ -499,8 +499,8 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         box.querySelector('.sky-set-date')?.addEventListener('click', _setExactDate);
         box.querySelector('#sky-override-set')?.addEventListener('click', _setOverride);
         box.querySelector('#sky-override-clear')?.addEventListener('click', _clearOverride);
-        box.querySelector('#sky-sched-add')?.addEventListener('click', () => _addEntryRow());
-        box.querySelector('#sky-sched-save')?.addEventListener('click', _saveSchedule);
+        box.querySelector('#sky-forecast-add')?.addEventListener('click', () => _addEntryRow());
+        box.querySelector('#sky-forecast-save')?.addEventListener('click', _saveForecast);
         box.querySelector('#sky-play')?.addEventListener('click', _togglePlay);
         box.querySelector('#sky-now')?.addEventListener('click', () => { _stopPlay(); _endScrub(); });
         box.querySelectorAll('.sky-jump').forEach((b) => {
@@ -660,7 +660,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             moonReadout.textContent = `${icon} ${label} (+${bonus} night light) · ${next ? `next: ${next.weather || 'change'} ${next.label}` : 'no forecast change'}`;
         }
         if (forecastReadout) {
-            const sched = state.forecast_schedule || {};
+            const sched = ((state.forecast || state.forecast_schedule) || {});
             const entries = (sched.entries || []).length;
             forecastReadout.textContent = `${entries} entries · ${sched.granularity || 'hourly'}`;
         }
@@ -668,7 +668,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         _renderStats();
         _updateOverrideIndicator();
         _populateWeatherSelect();
-        _renderScheduleEditor();
+        _renderForecastEditor();
     }
     /** The header's one-line "what the sky is right now" summary. */
     function _updateHeadSummary() {
@@ -740,7 +740,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             _endScrub();
             return;
         }
-        const sched = (_state().forecast_schedule || {});
+        const sched = ((_state().forecast || _state().forecast_schedule) || {});
         const gran = sched.granularity || 'hourly';
         const period = GRANULARITY_MINUTES[gran] || 1440;
         const entries = _domEntries();
@@ -757,7 +757,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
     }
     function _jumpToHour(hour) {
         _stopPlay();
-        const sched = (_state().forecast_schedule || {});
+        const sched = ((_state().forecast || _state().forecast_schedule) || {});
         const gran = sched.granularity || 'hourly';
         const period = GRANULARITY_MINUTES[gran] || 1440;
         const minute = Math.max(0, Math.min(period, hour * 60));
@@ -907,16 +907,16 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             active.style.display = _state().forecast_override ? 'inline' : 'none';
     }
     // ── forecast editor (task-762) ─────────────────────────────
-    // Author and view `forecast_schedule` over the existing GET/POST
-    // /api/settings/forecast — no second engine. The timeline lays the entries
+    // Author and view `forecast` over the existing GET/POST
+    // /api/settings/forecast - no second engine. The timeline lays the entries
     // out over the period granularity and each row edits one entry; the columns
     // are honest (deltas, not a per-entry temperature; no precipitation, which
     // is not modelled).
-    const SCHED_WEATHER_ORDER = ['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'];
-    const SCHED_WINDS = ['none', 'breeze', 'wind', 'gale', 'storm', 'hurricane'];
-    const SCHED_DIRECTIONS = ['north', 'northeast', 'east', 'southeast',
+    const FORECAST_WEATHER_ORDER = ['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'];
+    const FORECAST_WINDS = ['none', 'breeze', 'wind', 'gale', 'storm', 'hurricane'];
+    const FORECAST_DIRECTIONS = ['north', 'northeast', 'east', 'southeast',
         'south', 'southwest', 'west', 'northwest'];
-    const SCHED_HUMIDITIES = ['dry', 'humid', 'wet', 'flooding'];
+    const FORECAST_HUMIDITIES = ['dry', 'humid', 'wet', 'flooding'];
     /** Minimal HTML-escape for values the author types into the modal. */
     function _esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -933,7 +933,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
     }
     /** Weather ids for the entry select: the canonical set plus any registry ids. */
     function _weatherIds() {
-        const ids = [...SCHED_WEATHER_ORDER];
+        const ids = [...FORECAST_WEATHER_ORDER];
         for (const id of _WEATHER_IDS)
             if (!ids.includes(id))
                 ids.push(id);
@@ -984,30 +984,30 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const num = (v) => (v === undefined || v === null || v === '' ? '' : String(v));
         return ''
             + `<input type="number" class="vwsky-fcell" data-f="offset" value="${num(e.offset ?? 0)}" title="minutes into the period">`
-            + `<select class="vwsky-fcell" data-f="weather" title="weather">${_options(_weatherIds(), e.weather || '', '— weather')}</select>`
-            + `<select class="vwsky-fcell" data-f="wind" title="wind magnitude">${_options(SCHED_WINDS, e.wind || '', '— wind')}</select>`
-            + `<select class="vwsky-fcell" data-f="wind_direction" title="wind blows from">${_options(SCHED_DIRECTIONS, e.wind_direction || '', '— dir')}</select>`
-            + `<select class="vwsky-fcell" data-f="humidity" title="humidity">${_options(SCHED_HUMIDITIES, e.humidity || '', '— humidity')}</select>`
+            + `<select class="vwsky-fcell" data-f="weather" title="weather">${_options(_weatherIds(), e.weather || '', '- weather')}</select>`
+            + `<select class="vwsky-fcell" data-f="wind" title="wind magnitude">${_options(FORECAST_WINDS, e.wind || '', '- wind')}</select>`
+            + `<select class="vwsky-fcell" data-f="wind_direction" title="wind blows from">${_options(FORECAST_DIRECTIONS, e.wind_direction || '', '- dir')}</select>`
+            + `<select class="vwsky-fcell" data-f="humidity" title="humidity">${_options(FORECAST_HUMIDITIES, e.humidity || '', '- humidity')}</select>`
             + `<input type="number" class="vwsky-fcell" step="0.5" data-f="temperature_mod" value="${num(e.temperature_mod)}" title="temperature delta (degrees C)">`
             + `<input type="number" class="vwsky-fcell" step="1" data-f="light_mod" value="${num(e.light_mod)}" title="light delta">`
             + `<input type="text" class="vwsky-fcell" data-f="air" value="${_esc(e.air)}" placeholder="air" title="air (free text)">`
             + `<input type="text" class="vwsky-fcell" data-f="message" value="${_esc(e.message)}" placeholder="message" title="log message on this entry">`
-            + `<button class="vwsky-del sky-sched-del" title="remove entry">✕</button>`;
+            + `<button class="vwsky-del sky-forecast-del" title="remove entry">✕</button>`;
     }
     function _wireRow(row) {
-        row.querySelector('.sky-sched-del')?.addEventListener('click', () => row.remove());
+        row.querySelector('.sky-forecast-del')?.addEventListener('click', () => row.remove());
     }
     function _addEntryRow(e) {
-        const box = document.getElementById('sky-sched-entries');
+        const box = document.getElementById('sky-forecast-entries');
         if (!box)
             return;
-        const granularity = document.getElementById('sky-sched-granularity')?.value || 'hourly';
+        const granularity = document.getElementById('sky-forecast-granularity')?.value || 'hourly';
         const row = document.createElement('div');
-        row.className = 'vwsky-grid sky-sched-row';
+        row.className = 'vwsky-grid sky-forecast-row';
         row.replaceChildren(document.createRange().createContextualFragment(_entryFieldsHtml(e || { offset: _nextOffset() })));
         _wireRow(row);
         // Drop the "no entries" placeholder if present.
-        box.querySelector('div:not(.sky-sched-row)')?.remove();
+        box.querySelector('div:not(.sky-forecast-row)')?.remove();
         box.appendChild(row);
         if (e?.offset !== undefined) {
             const off = row.querySelector('[data-f="offset"]');
@@ -1018,20 +1018,20 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
     /** One past the last entry's offset, so a new row lands after the others. */
     function _nextOffset() {
         let max = -1;
-        document.querySelectorAll('#sky-sched-entries [data-f="offset"]').forEach((el) => {
+        document.querySelectorAll('#sky-forecast-entries [data-f="offset"]').forEach((el) => {
             const v = parseFloat(el.value);
             if (Number.isFinite(v) && v > max)
                 max = v;
         });
         return max + 60;
     }
-    function _renderScheduleEditor() {
+    function _renderForecastEditor() {
         const state = _state();
-        const sched = (state.forecast_schedule || {});
-        const mode = document.getElementById('sky-sched-mode');
-        const gran = document.getElementById('sky-sched-granularity');
-        const seed = document.getElementById('sky-sched-seed');
-        const interval = document.getElementById('sky-sched-interval');
+        const sched = ((state.forecast || state.forecast_schedule) || {});
+        const mode = document.getElementById('sky-forecast-mode');
+        const gran = document.getElementById('sky-forecast-granularity');
+        const seed = document.getElementById('sky-forecast-seed');
+        const interval = document.getElementById('sky-forecast-interval');
         if (mode)
             mode.value = sched.mode || 'authored';
         if (gran)
@@ -1040,12 +1040,12 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             seed.value = (sched.seed === null || sched.seed === undefined) ? '' : String(sched.seed);
         if (interval)
             interval.value = String(sched.transition_interval || 1);
-        const table = document.getElementById('sky-sched-table');
+        const table = document.getElementById('sky-forecast-table');
         if (table) {
             const tt = sched.transition_table;
             table.value = (tt && Object.keys(tt).length) ? JSON.stringify(tt, null, 2) : '';
         }
-        const box = document.getElementById('sky-sched-entries');
+        const box = document.getElementById('sky-forecast-entries');
         if (box) {
             const entries = Array.isArray(sched.entries) ? sched.entries : [];
             box.replaceChildren();
@@ -1061,10 +1061,10 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             }
         }
         _renderTimeline(sched);
-        const presets = document.getElementById('sky-sched-presets');
+        const presets = document.getElementById('sky-forecast-presets');
         if (presets && !presets.childElementCount) {
             presets.replaceChildren();
-            SCHED_PRESETS.forEach((p, i) => {
+            FORECAST_PRESETS.forEach((p, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'vwsky-chip';
                 btn.dataset.preset = String(i);
@@ -1100,7 +1100,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
     /** The entries as they are on screen right now (unsaved edits included). */
     function _domEntries() {
         const out = [];
-        document.querySelectorAll('#sky-sched-entries .sky-sched-row').forEach((row) => {
+        document.querySelectorAll('#sky-forecast-entries .sky-forecast-row').forEach((row) => {
             const get = (f) => row.querySelector(`[data-f="${f}"]`)?.value ?? '';
             out.push({
                 offset: parseInt(get('offset') || '0', 10) || 0,
@@ -1110,7 +1110,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         });
         return out;
     }
-    /** The active entry's weather at a period offset (wrapping) — for the scrub. */
+    /** The active entry's weather at a period offset (wrapping) - for the scrub. */
     function _weatherAt(entries, period, minutes) {
         if (!entries.length)
             return effectiveWeather(_state());
@@ -1168,7 +1168,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
     }
     /** The period as an editable track: draggable blocks, a ruler, a "now" line. */
     function _renderTimeline(sched) {
-        const tl = document.getElementById('sky-sched-timeline');
+        const tl = document.getElementById('sky-forecast-timeline');
         if (!tl)
             return;
         const granularity = sched.granularity || 'hourly';
@@ -1230,7 +1230,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 const delta = ((ev.clientX - drag.startX) / rect.width) * period;
                 const off = Math.max(0, Math.min(period - 15, Math.round((drag.startOffset + delta) / 15) * 15));
                 drag.el.style.left = `${(off / period) * 100}%`;
-                const row = document.querySelectorAll('#sky-sched-entries .sky-sched-row')[drag.i];
+                const row = document.querySelectorAll('#sky-forecast-entries .sky-forecast-row')[drag.i];
                 const inp = row?.querySelector('[data-f="offset"]');
                 if (inp)
                     inp.value = String(off);
@@ -1245,14 +1245,14 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const finish = () => {
             if (drag) {
                 drag = null;
-                _renderTimeline(_state().forecast_schedule);
+                _renderTimeline(((_state().forecast || _state().forecast_schedule) || {}));
             }
         };
         track.addEventListener('pointerup', finish);
         window.addEventListener('pointerup', finish);
     }
     /** Preset day-shapes, seeded in hours, so an author gets a starting point. */
-    const SCHED_PRESETS = [
+    const FORECAST_PRESETS = [
         { name: '☀️ Clear', hours: [[0, 'clear']] },
         { name: '🌦 Showery', hours: [[0, 'cloudy'], [6, 'rainy'], [10, 'rainy'], [13, 'cloudy'], [19, 'clear']] },
         { name: '⛈️ Storm front', hours: [[0, 'cloudy'], [5, 'stormy'], [9, 'rainy'], [14, 'cloudy'], [18, 'clear']] },
@@ -1260,21 +1260,21 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         { name: '🌫️ Foggy dawn', hours: [[0, 'foggy'], [4, 'foggy'], [8, 'clear']] },
     ];
     function _applyPreset(hours) {
-        const box = document.getElementById('sky-sched-entries');
+        const box = document.getElementById('sky-forecast-entries');
         if (!box)
             return;
         box.replaceChildren();
         for (const [h, weather] of hours)
             _addEntryRow({ offset: Math.round(h * 60), weather });
-        _renderTimeline(_state().forecast_schedule);
+        _renderTimeline(((_state().forecast || _state().forecast_schedule) || {}));
     }
     /** Read the editor DOM back into a forecast, or report a validation error. */
-    function _collectSchedule() {
-        const mode = document.getElementById('sky-sched-mode')?.value || 'authored';
-        const granularity = document.getElementById('sky-sched-granularity')?.value || 'hourly';
-        const seedRaw = document.getElementById('sky-sched-seed')?.value ?? '';
-        const intervalRaw = document.getElementById('sky-sched-interval')?.value ?? '1';
-        const tableRaw = document.getElementById('sky-sched-table')?.value ?? '';
+    function _collectForecast() {
+        const mode = document.getElementById('sky-forecast-mode')?.value || 'authored';
+        const granularity = document.getElementById('sky-forecast-granularity')?.value || 'hourly';
+        const seedRaw = document.getElementById('sky-forecast-seed')?.value ?? '';
+        const intervalRaw = document.getElementById('sky-forecast-interval')?.value ?? '1';
+        const tableRaw = document.getElementById('sky-forecast-table')?.value ?? '';
         let transition_table = {};
         if (tableRaw.trim()) {
             try {
@@ -1288,7 +1288,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             }
         }
         const entries = [];
-        document.querySelectorAll('#sky-sched-entries .sky-sched-row').forEach((row) => {
+        document.querySelectorAll('#sky-forecast-entries .sky-forecast-row').forEach((row) => {
             const get = (f) => row.querySelector(`[data-f="${f}"]`)?.value ?? '';
             const entry = { offset: parseInt(get('offset') || '0', 10) || 0 };
             for (const f of ['weather', 'wind', 'wind_direction', 'humidity', 'air', 'message']) {
@@ -1305,18 +1305,18 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             entries.push(entry);
         });
         entries.sort((a, b) => (Number(a.offset) || 0) - (Number(b.offset) || 0));
-        const schedule = {
+        const forecast = {
             mode, granularity, entries,
-            current_state: (_state().forecast_schedule || {}).current_state || 'clear',
+            current_state: ((_state().forecast || _state().forecast_schedule) || {}).current_state || 'clear',
             transition_interval: Math.max(1, parseInt(intervalRaw, 10) || 1),
             transition_table,
             seed: seedRaw.trim() ? (parseInt(seedRaw, 10) || 0) : null,
         };
-        return { schedule };
+        return { forecast };
     }
-    function _saveSchedule() {
-        const status = document.querySelector('.sky-sched-status');
-        const collected = _collectSchedule();
+    function _saveForecast() {
+        const status = document.querySelector('.sky-forecast-status');
+        const collected = _collectForecast();
         if (collected.error) {
             if (status) {
                 status.textContent = '✗ ' + collected.error;
@@ -1324,7 +1324,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             }
             return;
         }
-        ApiClient.saveForecastSchedule(collected.schedule)
+        ApiClient.saveForecast(collected.forecast)
             .then(() => {
             if (status) {
                 status.textContent = '✓ saved';

@@ -27,6 +27,7 @@
     const planTick: Record<string, number> = {};
     const planProgress: Record<string, number> = {};
     const planFailures: Record<string, Record<string, number>> = {};
+    const activePursuitId: Record<string, string> = {};
     // task-92: last critical-needs signature + tick of the replan it triggered,
     // so a lingering critical need re-nudges every 5 turns instead of every turn.
     const lastCriticalSet: Record<string, string> = {};
@@ -122,7 +123,7 @@
         }
         lastCriticalSet[charName] = '';
         if (!plans[charName]) return 'no plan';
-        if ((turnNumber - (planTick[charName] || 0)) >= 10) return 'plan aged out';
+        if (!activePursuitId[charName] && (turnNumber - (planTick[charName] || 0)) >= 10) return 'plan aged out';
         const idx = planProgress[charName] || 0;
         const stepFails = (planFailures[charName] || {})[idx] || 0;
         if (stepFails >= 3) return 'current step failed repeatedly';
@@ -163,6 +164,7 @@
         delete planTick[charName];
         delete planProgress[charName];
         delete planFailures[charName];
+        delete activePursuitId[charName];
         delete lastCriticalSet[charName];
         delete lastCriticalReplanTick[charName];
     }
@@ -189,6 +191,59 @@
         return `\n=== PREVIOUS PLAN ===\nYour previous plan: ${parts.join('; ')}.\nDo not re-attempt steps marked FAILED.`;
     }
 
+    function _stepToString(step: any): string {
+        if (!step) return '';
+        if (typeof step === 'string') return step;
+        const kind = String(step.kind || step.act || '').toLowerCase().trim();
+        const area = step.to || step.area || '';
+        const spec = step.spec || step.item || step.target || '';
+        if (kind === 'travel' || kind === 'go') {
+            return area ? `go ${area}` : 'go';
+        }
+        if (kind === 'take') {
+            return spec ? `take ${spec}` : 'take';
+        }
+        if (kind === 'drop') {
+            return spec ? `drop ${spec}` : 'drop';
+        }
+        if (kind === 'use' || kind === 'use_on') {
+            return step.target ? `use ${spec} on ${step.target}` : (spec ? `use ${spec}` : 'use');
+        }
+        if (kind === 'wait') {
+            return 'wait';
+        }
+        const text = step.text || step.description || '';
+        if (text) return text;
+        return `${kind} ${spec || area}`.trim();
+    }
+
+    function seedFromPlayer(charName: string, player: any, turnNumber: number = 0): boolean {
+        if (!player) return false;
+        const pursuit = player.active_pursuit;
+        const plan = player.plan;
+        const rawSteps = plan?.steps || pursuit?.steps;
+        if (!rawSteps || !Array.isArray(rawSteps) || !rawSteps.length) return false;
+
+        const pId = String(pursuit?.assignment_id || plan?.assignment_id || pursuit?.label || plan?.label || 'active_pursuit');
+        const currentPId = activePursuitId[charName];
+
+        if (!plans[charName] || !plans[charName].length || currentPId !== pId) {
+            const steps = rawSteps.map(_stepToString).filter(Boolean);
+            if (!steps.length) return false;
+            setPlan(charName, steps, turnNumber);
+            activePursuitId[charName] = pId;
+            if (typeof plan?.index === 'number' && plan.index >= 0 && plan.index <= steps.length) {
+                planProgress[charName] = plan.index;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    function getActivePursuitId(charName: string): string | null {
+        return activePursuitId[charName] || null;
+    }
+
     return {
         getPlan,
         setPlan,
@@ -199,7 +254,9 @@
         criticalNeeds,
         reset,
         resetAll,
-        previousPlanIssues
+        previousPlanIssues,
+        seedFromPlayer,
+        getActivePursuitId
     };
 })();
 

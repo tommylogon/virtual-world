@@ -1,11 +1,11 @@
 "use strict";
 /**
- * event-log-export.js — projected event-log export: Markdown, Plain, JSON and
+ * event-log-export.js - projected event-log export: Markdown, Plain, JSON and
  * JSONL, behind one consolidated export modal (tick-sequence range, actor and
  * area scope, format, destination, filter honesty).
  *
- * Reads only what the stream DOM already carries — `data-seq`, `data-actor`,
- * `data-tick`, `data-type`, `data-stream-area` and `dataset.rawText` — so there
+ * Reads only what the stream DOM already carries - `data-seq`, `data-actor`,
+ * `data-tick`, `data-type`, `data-stream-area` and `dataset.rawText` - so there
  * is no second event model: the client stream stays the source of truth.
  *
  * Dependencies:
@@ -15,10 +15,10 @@
  *   - Global: toastInfo, toastError
  *   - DOM: #event-stream and the stream toolbar filter controls
  *
- * @module ui/event-log-export — projected event-log export
+ * @module ui/event-log-export - projected event-log export
  * @contributes EventLogExport: DOM→record projection, Markdown/Plain/JSON/JSONL renderers,
  *   the consolidated export modal, and filter-honest range/scope selection
- * @powers Export — the event-log half: the DOM→record projection, the four renderers
+ * @powers Export - the event-log half: the DOM→record projection, the four renderers
  *   and the export modal; queryable (jq-able) export without the app running
  * @relates reads the stream DOM; called by ui/world-export; uses WorldExport.saveFileWithDialog
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
@@ -61,7 +61,7 @@ window.EventLogExport = (() => {
             return false;
         return true;
     }
-    /** Active stream filters, read live off the toolbar — the honesty block. */
+    /** Active stream filters, read live off the toolbar - the honesty block. */
     function activeFilters(ignored) {
         const cfg = window.config || {};
         const actorEl = document.getElementById('stream-agent-filter');
@@ -224,6 +224,8 @@ window.EventLogExport = (() => {
                 const body = child.querySelector('.turn-card-body');
                 if (!body)
                     continue;
+                const cardActor = clean(child.getAttribute('data-actor')) || '';
+                const cardCollapsed = body.style.display === 'none';
                 for (let b = 0; b < body.children.length; b++) {
                     const node = body.children[b];
                     if (!node)
@@ -232,13 +234,19 @@ window.EventLogExport = (() => {
                         continue; // whole card hidden by a filter
                     if (node.classList.contains('msg-bubble')) {
                         const rec = record(node, turn, day);
-                        if (rec)
+                        if (rec) {
+                            rec.card_actor = cardActor;
+                            rec.card_collapsed = cardCollapsed;
                             out.push(rec);
+                        }
                     }
                     else if (node.classList.contains('time-gap') || node.classList.contains('area-transition')) {
                         const rec = chromeRow(node, turn, day);
-                        if (rec)
+                        if (rec) {
+                            rec.card_actor = cardActor;
+                            rec.card_collapsed = cardCollapsed;
                             out.push(rec);
+                        }
                     }
                 }
                 continue;
@@ -306,11 +314,11 @@ window.EventLogExport = (() => {
     function heading(e) {
         let h = 'Turn ' + (e.turn == null ? '?' : e.turn);
         if (e.actor)
-            h += ' — ' + e.actor;
+            h += ' - ' + e.actor;
         return h;
     }
     function renderMarkdown(rows, meta) {
-        let buf = '# ' + (meta.scenario || 'unnamed') + ' — event log\n\n';
+        let buf = '# ' + (meta.scenario || 'unnamed') + ' - event log\n\n';
         buf += '> ' + meta.line + '\n\n';
         let openTurn = -1;
         for (const e of rows) {
@@ -339,7 +347,7 @@ window.EventLogExport = (() => {
                 }
                 continue;
             }
-            const line = (e.icon ? e.icon + ' ' : '') + (e.actor ? '**' + e.actor + '** — ' : '') + e.text;
+            const line = (e.icon ? e.icon + ' ' : '') + (e.actor ? '**' + e.actor + '** - ' : '') + e.text;
             buf += '- ' + line + '\n';
         }
         return buf;
@@ -354,7 +362,7 @@ window.EventLogExport = (() => {
             }
             if (e.turn != null && e.turn !== openTurn) {
                 const h = heading(e);
-                buf += '\n' + h + '\n' + new Array(h.length + 1).join('—') + '\n';
+                buf += '\n' + h + '\n' + new Array(h.length + 1).join('-') + '\n';
                 openTurn = e.turn;
             }
             if (e.type === 'system') {
@@ -457,11 +465,11 @@ window.EventLogExport = (() => {
         };
         const scoped = applyScope(rows, opts);
         if (!scoped.some((r) => r.turn != null))
-            return { error: 'No turns in range ' + fromTurn + '–' + toTurn + '.' };
+            return { error: 'No turns in range ' + fromTurn + '-' + toTurn + '.' };
         const meta = {
             scenario: scenarioNameIn, exportedAt: ts, worldTick: window.worldState?.tick || 0,
             unit: 'turn', from: fromTurn, to: toTurn, filters: activeFilters(false),
-            line: 'turns ' + fromTurn + '–' + toTurn
+            line: 'turns ' + fromTurn + '-' + toTurn
         };
         return { text: render(scoped, meta, fmt), turns: scoped.filter((r) => r.turn != null).length };
     }
@@ -582,7 +590,7 @@ window.EventLogExport = (() => {
                 from: from,
                 to: to,
                 filters: activeFilters(opts.ignoreFilters),
-                line: unitLabel + ' ' + (from == null ? '?' : from) + '–' + (to == null ? '?' : to)
+                line: unitLabel + ' ' + (from == null ? '?' : from) + '-' + (to == null ? '?' : to)
                     + ' · ' + included.length + ' row' + (included.length === 1 ? '' : 's')
             };
         }
@@ -602,7 +610,7 @@ window.EventLogExport = (() => {
             const b = bounds(allRows, opts.unit);
             const from = opts.from != null ? opts.from : (b ? b.min : '?');
             const to = opts.to != null ? opts.to : (b ? b.max : '?');
-            summary.textContent = (opts.unit === 'tick' ? 'ticks ' : 'turns ') + from + '–' + to
+            summary.textContent = (opts.unit === 'tick' ? 'ticks ' : 'turns ') + from + '-' + to
                 + ' | ' + actorLabel + ' | ' + areaLabel
                 + ' | ' + count + ' event' + (count === 1 ? '' : 's')
                 + ' | ' + opts.format

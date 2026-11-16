@@ -1,6 +1,6 @@
 "use strict";
 /**
- * TriggerSuggestDiff — review/merge UI for suggested triggers.
+ * TriggerSuggestDiff - review/merge UI for suggested triggers.
  *
  * When "⚡ Suggest" (heuristic) or "✨ Suggest (AI)" proposes triggers for a
  * node that already has some, we don't want a blind "overwrite everything?"
@@ -8,16 +8,16 @@
  *   1. Compares each planned trigger against what already exists (by
  *      trigger_type + effect intent).
  *   2. Classifies rows:
- *        keep     — an existing trigger already covers the suggestion
+ *        keep     - an existing trigger already covers the suggestion
  *                   (e.g. a food item with an on_eat Hunger adjust) → no-op.
- *        add      — no existing trigger of that type → create it.
- *        conflict — same trigger type, materially different payload → you
+ *        add      - no existing trigger of that type → create it.
+ *        conflict - same trigger type, materially different payload → you
  *                   choose per row: keep existing / use suggested / skip both.
  *   3. Renders a card-based diff modal so you decide per-trigger, per-row.
  *
- * Pure UI/decision helper — no engine calls.
+ * Pure UI/decision helper - no engine calls.
  *
- * @module shared/trigger-suggest-diff — review/merge UI for suggested triggers
+ * @module shared/trigger-suggest-diff - review/merge UI for suggested triggers
  * @contributes TriggerSuggestDiff: classify keep / add / conflict, then decide per row
  * @powers merging suggested triggers without blindly overwriting existing ones
  * @relates fed by trigger-suggest-ai and the heuristic suggester
@@ -50,7 +50,7 @@ const TriggerSuggestDiffModule = (() => {
     /**
      * Does an existing trigger already cover a suggested one?
      * Same trigger_type AND the suggestion's effect intents are all present in
-     * the existing effects (amounts/messages may differ — that's an author's
+     * the existing effects (amounts/messages may differ - that's an author's
      * choice to keep). Message-only suggestions are covered by anything, since
      * the engine plays existing messages just fine.
      */
@@ -167,7 +167,8 @@ const TriggerSuggestDiffModule = (() => {
         card.style.cssText = `border:1px solid var(--border);border-left:3px solid ${accent};border-radius:8px;padding:10px 12px;background:var(--bg-inset);`;
         const head = document.createElement('div');
         head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;';
-        head.replaceChildren(document.createRange().createContextualFragment(`<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;">${escapeHtml(row.type)}</div>${badge(row.status)}`));
+        const label = row.item_name ? `${row.item_name} · ${row.type}` : row.type;
+        head.replaceChildren(document.createRange().createContextualFragment(`<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;">${escapeHtml(label)}</div>${badge(row.status)}`));
         card.appendChild(head);
         if (row.status === 'keep') {
             const line = document.createElement('div');
@@ -250,9 +251,9 @@ const TriggerSuggestDiffModule = (() => {
             if (choice === 'keep' || choice === 'replace')
                 keepTypes.add(row.type);
             if (choice === 'replace')
-                result.replace.push({ type: row.type, data: row.suggested });
+                result.replace.push({ type: row.type, data: row.suggested, item_id: row.item_id });
             if (choice === 'add')
-                result.add.push({ type: row.type, data: row.suggested });
+                result.add.push({ type: row.type, data: row.suggested, item_id: row.item_id });
         });
         result.keep = Array.from(keepTypes);
         return result;

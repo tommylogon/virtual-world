@@ -19,6 +19,66 @@
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
+    const _intermediatorCache = new Map();
+    function _computeCueSignature(areaId, actors, dialogue, emotion, needs, memories) {
+        const memIds = memories.map(m => String(m.id || m.text || '').slice(0, 48)).sort();
+        return JSON.stringify([
+            areaId || '',
+            [...actors].sort(),
+            dialogue.slice(-2),
+            emotion || '',
+            [...needs].sort(),
+            memIds,
+        ]);
+    }
+    async function _synthesizeConsciousThought(charName, areaName, actors, dialogue, emotion, topMemories, cueSig, report) {
+        if (!topMemories.length)
+            return null;
+        if (config?.memoryIntermediator === false)
+            return null;
+        const cached = _intermediatorCache.get(charName);
+        if (cached && cached.sig === cueSig && cached.thought) {
+            return cached.thought;
+        }
+        const memClient = (typeof config?.getMemoryLLMClient === 'function')
+            ? config.getMemoryLLMClient()
+            : (typeof llmClient !== 'undefined' ? llmClient : null);
+        if (!memClient || typeof memClient.chat !== 'function')
+            return null;
+        const traceLines = topMemories.map((m) => {
+            const flags = [];
+            if (Array.isArray(m.contradicts) && m.contradicts.length > 0)
+                flags.push('CONFLICTS');
+            if (typeof m.confidence === 'number' && m.confidence < 0.5)
+                flags.push('uncertain');
+            const suffix = flags.length ? ` [${flags.join(', ')}]` : '';
+            return `- ${String(m.text || '').trim()}${suffix}`;
+        });
+        const prompt = [
+            `You are the inner memory reconsolidator for "${charName}".`,
+            `Current location: ${areaName || 'unknown'}. Present: ${actors.join(', ') || 'alone'}. Current mood: ${emotion || 'neutral'}.`,
+            dialogue.length ? `Recent words heard: ${dialogue.join(' | ')}` : '',
+            'Recalled memory traces:',
+            ...traceLines,
+            '',
+            'Synthesize these recalled traces into ONE brief, mood-congruent first-person conscious thought (2-4 sentences) representing what naturally comes to mind right now.',
+            'Do not use bullet points, database IDs, or meta-labels. If traces conflict, express the uncertainty naturally.',
+        ].filter(Boolean).join('\n');
+        try {
+            const response = await memClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5, streaming: false, label: 'intermediator', reasoningEffort: 'low' });
+            const thought = String(response || '').trim();
+            if (!thought)
+                return null;
+            _intermediatorCache.set(charName, { sig: cueSig, thought });
+            if (report && typeof events?.log === 'function') {
+                events.log(`💭 [Intermediator] ${thought}`, 'system-msg', null, charName);
+            }
+            return thought;
+        }
+        catch (e) {
+            return null;
+        }
+    }
     /**
      * "What I've already done" block - the anti-repeat guard for agents that
      * get stuck re-examining the same object. Sources:
@@ -292,6 +352,27 @@ window.PromptBuilder = window.PromptBuilder || {};
         const strategy = opts.strategy || 'associative';
         let openQuestions = [];
         let retrievalExplanation = null;
+        // bug-602: Populate semantic_scores for Channel 7 under Associative 3.0 retrieval
+        if (strategy !== 'legacy' && !preview && window.EmbeddingClient?.configured() && query) {
+            try {
+                const queryVector = await EmbeddingClient.embed(query);
+                if (queryVector) {
+                    const searchRes = await ApiClient.searchMemoryEmbeddings({ character: charName, vector: queryVector, k: 10 });
+                    const semScores = {};
+                    for (const hit of (searchRes?.results || [])) {
+                        if (hit.memory_id && typeof hit.score === 'number' && hit.score >= 0.35) {
+                            semScores[String(hit.memory_id)] = hit.score;
+                        }
+                    }
+                    if (Object.keys(semScores).length > 0) {
+                        cues.semantic_scores = semScores;
+                    }
+                }
+            }
+            catch (e) {
+                // Semantic recall is best-effort
+            }
+        }
         // Score memories from the unified backend store. `reinforce: !preview`
         // (task-686): retrieval reinforces what it recalls, but a preview must
         // never mutate the character.
@@ -494,60 +575,75 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         catch (e) { /* feedback is best-effort */ }
         if (topMemories.length > 0) {
-            parts.push('');
-            parts.push('=== I REMEMBER ===');
-            const categoryOf = (m) => {
-                const cat = m.category ? String(m.category) : '';
-                if (cat)
-                    return cat;
-                if (String(m.type || '') === 'reflection')
-                    return 'belief';
-                const tags = (m.memTags || []).map((t) => String(t).toLowerCase());
-                if (tags.some((t) => t.startsWith('rel:')))
-                    return 'social';
-                return 'episodic';
-            };
-            const certaintySuffix = (m) => {
-                const flags = [];
-                if (Array.isArray(m.contradicts) && m.contradicts.length > 0) {
-                    flags.push('⚡ this conflicts with another memory');
-                }
-                if (typeof m.confidence === 'number' && m.confidence < 0.5) {
-                    flags.push('you are not sure of this');
-                }
-                return flags.length > 0 ? ` (${flags.join('; ')})` : '';
-            };
-            const sections = [
-                ['EVENTS - what happened', []],
-                ['WHAT I BELIEVE', []],
-                ['HOW I SEE PEOPLE', []],
-                ['WHAT I EXPECT', []]
-            ];
             for (const memoryEntry of topMemories) {
-                const cat = categoryOf(memoryEntry);
+                const cat = memoryEntry.category ? String(memoryEntry.category) : '';
                 if (cat === 'question') {
                     const text = String(memoryEntry.text || '').replace(/^\s*\[[^\]]*\]\s*/, '').replace(/^[^A-Za-z0-9]+\s*/, '');
                     if (!openQuestions.some(q => q.question === text)) {
                         openQuestions.push({ question: text });
                     }
                 }
-                else if (cat === 'belief' || cat === 'semantic')
-                    sections[1][1].push(memoryEntry);
-                else if (cat === 'social')
-                    sections[2][1].push(memoryEntry);
-                else if (cat === 'procedural')
-                    sections[3][1].push(memoryEntry);
-                else
-                    sections[0][1].push(memoryEntry);
             }
-            const hasModel = sections.slice(1).some(([, list]) => list.length > 0);
-            for (const [header, list] of sections) {
-                if (list.length === 0)
-                    continue;
-                if (hasModel)
-                    parts.push(header);
-                for (const memoryEntry of list) {
-                    parts.push(memoryEntry.text + certaintySuffix(memoryEntry));
+            const cueSig = _computeCueSignature(currentAreaId, sceneActors, dialogueLines, currentEmotion, needs, topMemories);
+            const synthesized = (!preview && !opts.skipIntermediator)
+                ? await _synthesizeConsciousThought(charName, currentArea || '', sceneActors, dialogueLines, currentEmotion, topMemories, cueSig, !!opts.report)
+                : null;
+            parts.push('');
+            if (synthesized) {
+                parts.push('=== I REMEMBER (CONSCIOUS THOUGHT) ===');
+                parts.push(synthesized);
+            }
+            else {
+                parts.push('=== I REMEMBER ===');
+                const categoryOf = (m) => {
+                    const cat = m.category ? String(m.category) : '';
+                    if (cat)
+                        return cat;
+                    if (String(m.type || '') === 'reflection')
+                        return 'belief';
+                    const tags = (m.memTags || []).map((t) => String(t).toLowerCase());
+                    if (tags.some((t) => t.startsWith('rel:')))
+                        return 'social';
+                    return 'episodic';
+                };
+                const certaintySuffix = (m) => {
+                    const flags = [];
+                    if (Array.isArray(m.contradicts) && m.contradicts.length > 0) {
+                        flags.push('⚡ this conflicts with another memory');
+                    }
+                    if (typeof m.confidence === 'number' && m.confidence < 0.5) {
+                        flags.push('you are not sure of this');
+                    }
+                    return flags.length > 0 ? ` (${flags.join('; ')})` : '';
+                };
+                const sections = [
+                    ['EVENTS - what happened', []],
+                    ['WHAT I BELIEVE', []],
+                    ['HOW I SEE PEOPLE', []],
+                    ['WHAT I EXPECT', []]
+                ];
+                for (const memoryEntry of topMemories) {
+                    const cat = categoryOf(memoryEntry);
+                    if (cat === 'question')
+                        continue;
+                    if (cat === 'belief' || cat === 'semantic')
+                        sections[1][1].push(memoryEntry);
+                    else if (cat === 'social')
+                        sections[2][1].push(memoryEntry);
+                    else if (cat === 'procedural')
+                        sections[3][1].push(memoryEntry);
+                    else
+                        sections[0][1].push(memoryEntry);
+                }
+                const hasModel = sections.slice(1).some(([, list]) => list.length > 0);
+                for (const [header, list] of sections) {
+                    if (list.length === 0)
+                        continue;
+                    if (hasModel)
+                        parts.push(header);
+                    for (const memoryEntry of list) {
+                        parts.push(memoryEntry.text + certaintySuffix(memoryEntry));
+                    }
                 }
             }
             if (!preview)
@@ -690,6 +786,7 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
     Object.assign(window.PromptBuilder, {
         buildMemoryContext,
-        buildAlreadyKnownContext
+        buildAlreadyKnownContext,
+        synthesizeConsciousThought: _synthesizeConsciousThought,
     });
 })();

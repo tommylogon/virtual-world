@@ -1,18 +1,18 @@
 /**
- * turn-you-strip.js — the "You" strip for the human turn panel
+ * turn-you-strip.js - the "You" strip for the human turn panel
  * (task-333 full redesign): vitals bars, visible condition chips,
  * carrying/wearing chips with context menus, activity chip with stop,
  * and the collapsible "what you know" (recent memories).
  *
  * Data comes from GET /api/scene/<char> → scene.you. Menu buttons only
- * FILL THE DRAFT via handlers.onDraft — nothing submits from here.
+ * FILL THE DRAFT via handlers.onDraft - nothing submits from here.
  *
  * Load AFTER turn-scene-view.js (shares its context-menu helper),
  * BEFORE human-turn-composer.js.
  *
- * @module agent/turn-you-strip — the "You" strip
+ * @module agent/turn-you-strip - the "You" strip
  * @contributes TurnYouStrip: vitals bars, condition chips, carrying/wearing menus, activity stop, known memories
- * @powers The human turn — the at-a-glance "what state am I in" row of the turn panel
+ * @powers The human turn - the at-a-glance "what state am I in" row of the turn panel
  * @relates reads scene.you from turn-scene-view's API; fills the draft via onDraft
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */
@@ -79,7 +79,7 @@ const TurnYouStrip = (() => {
         const wrap = el('span', 'tys-vital');
         wrap.style.cursor = 'pointer';
         const _val = Math.round(Number(raw) || 0);
-        // Human natural language on hover — the same describeVital() prose the
+        // Human natural language on hover - the same describeVital() prose the
         // agent prompts use ("You are hungry. Your stomach feels empty.") plus
         // a one-line "what this vital does" (task-129). Rendered as a styled
         // free-look card (same hover pattern as the scene's item/way chips)
@@ -112,12 +112,17 @@ const TurnYouStrip = (() => {
         return wrap;
     }
 
-    // Natural-language durability label from uses/max_uses (task-161) —
+    // Natural-language durability label from uses/max_uses (task-161) -
     // humans read "worn", never "3/10".
     function durabilityLabel(item: CarryItem): string {
+        const state = String(item.current_state || '').toLowerCase();
+        if (state === 'broken') return 'broken';
         const maxUses = parseInt(String(item.max_uses), 10) || 0;
         const uses = parseInt(String(item.uses ?? -1), 10);
-        if (maxUses <= 0 || uses < 0) return '';
+        if (maxUses <= 0 || uses < 0) {
+            if (state && state !== 'normal') return state;
+            return '';
+        }
         const ratio = uses / maxUses;
         if (uses <= 0) return 'broken';
         if (ratio <= 0.25) return 'about to break';
@@ -126,7 +131,7 @@ const TurnYouStrip = (() => {
         return 'pristine';
     }
 
-    // Natural-language carry-load chip for row 1 (task-156 presentation) —
+    // Natural-language carry-load chip for row 1 (task-156 presentation) -
     // same tier words the agent prompt uses.
     function loadChip(you: SceneYou): HTMLElement | null {
         const load = you.carry_load;
@@ -192,7 +197,7 @@ const TurnYouStrip = (() => {
         host.className = 'htc-you';
         if (!you) return;
 
-        // row 1 — vitals + conditions + activity
+        // row 1 - vitals + conditions + activity
         const row1 = el('div', 'htc-you-row');
         row1.appendChild(el('span', 'tys-label', 'You'));
         const vitals = you.vitals || {};
@@ -221,7 +226,7 @@ const TurnYouStrip = (() => {
                 ? `cooking ${String(activity.recipe_id).replace(/_/g, ' ')}` : activity.type;
             const chip = el('button', 'tys-inv tys-activity',
                             `⏸ ${what}${dur} ✕`);
-            chip.title = 'active activity — the turn queue skips you while it lasts';
+            chip.title = 'active activity - the turn queue skips you while it lasts';
             const stopAction = activity.type === 'cooking' ? 'stop' : 'wake';
             chip.addEventListener('click', () => handlers.onDraft({ action: stopAction, item: '', target: '' }));
             row1.appendChild(chip);
@@ -230,7 +235,7 @@ const TurnYouStrip = (() => {
         if (loadChipEl) row1.appendChild(loadChipEl);
         host.appendChild(row1);
 
-        // row 2 — carrying / wearing / known toggle
+        // row 2 - carrying / wearing / known toggle
         const row2 = el('div', 'htc-you-row');
         row2.appendChild(el('span', 'tys-label', 'Carrying'));
         // Free-look hover on inventory chips (same card as the scene's ways/
@@ -247,38 +252,40 @@ const TurnYouStrip = (() => {
         };
         const carried = you.carrying || [];
         for (const item of carried) {
-            const chip = el('button', 'tys-inv', item.name);
+            const label = String(item.display_name || item.name || '');
+            const chip = el('button', 'tys-inv', label);
             const dur = durabilityLabel(item);
             if (dur) {
-                const tag = el('span', 'tys-dur', dur);
+                const tag = el('span', 'tys-dur', ' - ' + dur);
                 chip.appendChild(tag);
             }
             attachLookHover(chip, item);
             chip.addEventListener('click', (e) =>
-                handlers.menu(e.clientX, e.clientY, item.name,
+                handlers.menu(e.clientX, e.clientY, label,
                               invButtons('carried', [item], handlers)));
             row2.appendChild(chip);
         }
-        if (!carried.length) row2.appendChild(el('span', 'tys-label', '—'));
+        if (!carried.length) row2.appendChild(el('span', 'tys-label', '-'));
         const wearLabel = el('span', 'tys-label');
         wearLabel.style.marginLeft = '10px';
         wearLabel.textContent = 'Wearing';
         row2.appendChild(wearLabel);
         const worn = you.wearing || [];
         for (const item of worn) {
-            const chip = el('button', 'tys-inv', item.name);
+            const label = String(item.display_name || item.name || '');
+            const chip = el('button', 'tys-inv', label);
             const dur = durabilityLabel(item);
             if (dur) {
-                const tag = el('span', 'tys-dur', dur);
+                const tag = el('span', 'tys-dur', ' - ' + dur);
                 chip.appendChild(tag);
             }
             attachLookHover(chip, item);
             chip.addEventListener('click', (e) =>
-                handlers.menu(e.clientX, e.clientY, item.name,
+                handlers.menu(e.clientX, e.clientY, label,
                               invButtons('worn', [item], handlers)));
             row2.appendChild(chip);
         }
-        if (!worn.length) row2.appendChild(el('span', 'tys-label', '—'));
+        if (!worn.length) row2.appendChild(el('span', 'tys-label', '-'));
         const knownBtn = el('button', 'tys-known-toggle', '▸ what you know');
         let knownOpen = false;
         let knownBox: HTMLElement | null = null;
@@ -292,7 +299,7 @@ const TurnYouStrip = (() => {
                 for (const memory of memories) knownBox.appendChild(el('div', null, memory));
                 const abilities = you.known_abilities || [];
                 if (abilities.length) {
-                    const sep = el('div', null, '— abilities —');
+                    const sep = el('div', null, '- abilities -');
                     sep.style.marginTop = '6px';
                     sep.style.fontWeight = 'bold';
                     knownBox.appendChild(sep);
@@ -308,7 +315,7 @@ const TurnYouStrip = (() => {
         host.appendChild(row2);
     }
 
-    return { render };
+    return { render, durabilityLabel };
 })();
 (window as unknown as { TurnYouStrip: typeof TurnYouStrip }).TurnYouStrip = TurnYouStrip;
 

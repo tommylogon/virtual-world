@@ -1,14 +1,14 @@
 /**
- * sprite-sheet-geometry — the pure half of the character-art sheet slicer.
+ * sprite-sheet-geometry - the pure half of the character-art sheet slicer.
  *
- * @module inspector/sprite-sheet-geometry — pure slice geometry: a grid is a frame plus interior dividers
+ * @module inspector/sprite-sheet-geometry - pure slice geometry: a grid is a frame plus interior dividers
  * @contributes SpriteSheetGeometry.cutsFromGrid/cellsFromCuts/clampCuts/moveDivider/addDivider/removeDivider/recountCuts/guttersFromProfile/cutsFromProfiles (pure)
- * @powers Character art — the "✂️ Split sheet" slicer's grid model and whitespace auto-detect
+ * @powers Character art - the "✂️ Split sheet" slicer's grid model and whitespace auto-detect
  * @relates consumed by inspector/sprite-sheet.js; DOM/canvas half lives there
  * @docs docs/virtualWorld/Characters/Character Images & Expression Packs.md
  *
  * Why this is a frame plus dividers rather than a row/column COUNT:
- * `computeCells` could only ever describe one shape — `width/cols × height/rows`
+ * `computeCells` could only ever describe one shape - `width/cols × height/rows`
  * spanning the whole sheet. Real character and expression sheets are not that
  * shape: they carry a title banner, an outer margin, and panels of different
  * sizes side by side (one wide full-body pose beside a column of small detail
@@ -22,7 +22,7 @@
  *     (`recountCuts` + `cellsFromCuts` round the same boundaries `computeCells`
  *     rounded), so the existing behaviour is preserved, not approximated.
  *
- * Everything here is pure so the geometry stays testable in the Node sandbox —
+ * Everything here is pure so the geometry stays testable in the Node sandbox -
  * the canvas half in sprite-sheet.js cannot run there.
  */
 
@@ -43,7 +43,7 @@ interface SpriteCell {
  *
  * The frame is the region the grid covers; `colCuts`/`rowCuts` are the interior
  * dividers. A grid of R rows and C columns therefore has `rowCuts.length + 1`
- * rows and `colCuts.length + 1` columns — the counts are derived, never stored,
+ * rows and `colCuts.length + 1` columns - the counts are derived, never stored,
  * so dragging a divider can never desynchronise the two.
  */
 interface SpriteCuts {
@@ -65,7 +65,7 @@ interface SpriteCutOpts {
 interface SpriteDetectOpts extends SpriteCutOpts {
     /** A row/column is 'blank' when fewer than this fraction of it has ink. */
     blankRatio?: number;
-    /** Ignore blank runs thinner than this (source px) — noise, not a gutter. */
+    /** Ignore blank runs thinner than this (source px) - noise, not a gutter. */
     minRun?: number;
     /** Trim a frame edge inward by this much when no margin is detected. */
     edgePad?: number;
@@ -209,7 +209,7 @@ const SpriteSheetGeometry: SpriteSheetGeometryApi = (() => {
     /**
      * Change rows/cols while keeping the frame. Dividers are re-spaced evenly
      * inside the frame, so the numeric inputs stay an "add or remove a line"
-     * control and the drag stays a "nudge a line" control — they cannot fight.
+     * control and the drag stays a "nudge a line" control - they cannot fight.
      */
     function recountCuts(cuts: SpriteCuts, rows: number, cols: number,
                          opts: SpriteCutOpts = {}): SpriteCuts {
@@ -305,8 +305,8 @@ const SpriteSheetGeometry: SpriteSheetGeometryApi = (() => {
     /**
      * Centres of the blank runs in an ink profile, as divider candidates.
      *
-     * A run touching the start or end of the profile is a margin, not a gutter —
-     * the caller turns those into the frame edges — so they are not returned
+     * A run touching the start or end of the profile is a margin, not a gutter -
+     * the caller turns those into the frame edges - so they are not returned
      * here. Runs thinner than `minRun` are noise (the white inside an eye, the
      * gap in a letter) and are ignored.
      *
@@ -328,7 +328,7 @@ const SpriteSheetGeometry: SpriteSheetGeometryApi = (() => {
         // downscaled from source pixels into samples by `cutsFromProfiles`, so a
         // default derived from it shrinks with the sampling rate and stops being
         // able to reach the art at all. Scaling off the profile length holds up
-        // whatever the sample size — measured 10% of the profile finds the
+        // whatever the sample size - measured 10% of the profile finds the
         // gutters on a 1200px sheet and still rejects the trailing margin run.
         const flank = Math.max(2, Math.round(clampNum(opts.flank, profile.length * 0.1)));
 
@@ -361,7 +361,7 @@ const SpriteSheetGeometry: SpriteSheetGeometryApi = (() => {
     /**
      * Propose a whole grid from per-row and per-column ink profiles.
      *
-     * The frame is the content bounding box — so a uniform outer margin is
+     * The frame is the content bounding box - so a uniform outer margin is
      * trimmed automatically and a sheet photographed with a border still fits.
      * Interior gutters become the dividers, which is what gives a title banner
      * its own band and separates a wide panel from the narrow ones beside it.

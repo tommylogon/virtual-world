@@ -45,7 +45,7 @@ window.InspectorAreaView = (() => {
      * @param {string} nodeId - Graph node ID
      * @param {object} graphNode - Graph node data
      */
-    RV.showArea = function (nodeId, graphNode) {
+    RV.showArea = function (nodeId, graphNode, targetEl) {
         const name = graphNode.name;
         const props = graphNode.properties || {};
         const description = props.description || '';
@@ -72,85 +72,152 @@ window.InspectorAreaView = (() => {
         const areaTags = (Array.isArray(props.tags) ? props.tags : []);
         // Items in area
         const items = worldState.getItemsInArea(name);
-        const template = htmlTag `
-            ${RV._renderRoomHeader(name, actualNodeId)}
-            ${RV._renderDescriptionSection(description, actualNodeId)}
-            ${RV._renderEnvironmentSection(env, actualNodeId)}
-            ${RV._renderFloorSection(props, actualNodeId)}
-            ${RV._renderScopeSection(props, actualNodeId)}
-            ${window.InspectorHelpers.graphGravityControl(actualNodeId, props)}
+        const isFullSurface = Boolean(targetEl);
+        const fullSurfaceTemplate = htmlTag `
+            <div class="entity-editor-area-split">
+                <div class="entity-editor-area-col-props">
+                    ${RV._renderDescriptionSection(description, actualNodeId)}
+                    ${RV._renderEnvironmentSection(env, actualNodeId)}
+                    ${RV._renderFloorSection(props, actualNodeId)}
+                    ${RV._renderScopeSection(props, actualNodeId)}
+                    ${RV._renderOwnershipSection(props, actualNodeId)}
+                    ${window.InspectorHelpers.graphGravityControl(actualNodeId, props)}
 
-            <div class="inspector-section"><h3>🚪 Exits <span class="section-hint">(${exitEntries.length} found)</span></h3>
-                <div style="display:flex;flex-direction:column;gap:4px;">
-                    ${exitEntries.length > 0
-            ? exitEntries.map(([exitName, exitData]) => RV._renderExitItem(exitName, exitData, actualNodeId))
-            : htmlTag `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No exits from this area.</div>`}
-                </div>
-            </div>
+                    <div class="inspector-section"><h3>🏷️ Tags</h3>
+                        <div id="tag-multiselect-area-${actualNodeId}"></div>
+                        <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Tag an area <code>exterior</code> to make it an infinite heat reservoir.</div>
+                    </div>
 
-            <div class="inspector-section"><h3>📦 Actions</h3>
-                <div style="font-size:11px;color:var(--text-muted);padding:4px 0;">Use 📚 Item Library in the toolbar to add items.</div>
-            </div>
+                    ${InspectorHelpers.renderAliasesSection(actualNodeId, props.aliases)}
 
-            ${window.InspectorTriggers ? window.InspectorTriggers.buildTriggersHtml(actualNodeId, props.locked_fields || []) : window.Lit.nothing}
-
-            <div class="inspector-section"><h3>🧍 Agents</h3>
-                ${agentsHere.length > 0
-            ? agentsHere.map(([agentName]) => htmlTag `
-                        <div class="relationship-item" @click=${() => VW.inspector.showAgent(agentName)}>
-                            <span class="rel-node">${agentName}</span>
-                        </div>`)
-            : htmlTag `<div style="font-size:11px;color:var(--text-muted);">No agents</div>`}
-            </div>
-
-            <div class="inspector-section"><h3>📜 Area Event Log <span class="section-hint">(who did what)</span></h3>
-                <div class="area-event-log" style="max-height:240px;overflow-y:auto;font-size:11px;">
-                    ${roomEvents.length > 0
-            ? roomEvents.map((evt) => {
-                const icon = eventBus().getActionIcon(evt);
-                const color = eventBus().getActionColor(evt);
-                const resultPreview = (evt.result || '');
-                return htmlTag `<div class="area-event-entry" style="padding:4px 8px;border-bottom:1px solid var(--border-light);display:flex;align-items:flex-start;gap:6px;">
-                                <span style="flex-shrink:0;color:var(--text-muted);font-size:9px;">[${events.tickToTime(evt.tick)}]</span>
-                                <span style="flex-shrink:0;">${icon}</span>
-                                <span style="flex-shrink:0;font-weight:600;color:${color};">${evt.actor}</span>
-                                <div style="flex:1;min-width:0;">
-                                    ${evt.action ? htmlTag `<div style="color:var(--accent);font-family:var(--font-mono);font-size:10px;">${evt.action}</div>` : window.Lit.nothing}
-                                    ${resultPreview ? htmlTag `<div style="color:var(--text-dim);font-size:10px;">→ ${resultPreview}${evt.result.length > 100 ? '...' : ''}</div>` : window.Lit.nothing}
-                                </div>
-                            </div>`;
-            })
-            : htmlTag `<div style="padding:8px;color:var(--text-muted);">No events recorded in this area yet. Events appear as characters take actions, speak, or affect the environment.</div>`}
-                </div>
-            </div>
-
-            <div class="inspector-section"><h3>🏷️ Tags</h3>
-                <div id="tag-multiselect-area-${actualNodeId}"></div>
-                <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Tag an area <code>exterior</code> to make it an infinite heat reservoir.</div>
-            </div>
-
-            ${InspectorHelpers.renderAliasesSection(actualNodeId, props.aliases)}
-
-            <div class="inspector-section"><h3>📦 Items</h3>
-                ${items.length > 0
-            ? items.map((item) => htmlTag `
-                        <div class="relationship-item" @click=${() => VW.inspector.showNode(item.id)}>
-                            <span class="rel-node">${item.properties?.current_state === 'locked' ? '🔒 ' : '📦 '}${item.name}</span>
-                        </div>`)
-            : htmlTag `<div style="font-size:11px;color:var(--text-muted);">No items</div>`}
-            </div>
-
-            ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('area', actualNodeId, props)) : ''}
-            ${InspectorComponents.InspectorDangerZone({
+                    ${window.InspectorTriggers ? window.InspectorTriggers.buildTriggersHtml(actualNodeId, props.locked_fields || []) : window.Lit.nothing}
+                    ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('area', actualNodeId, props)) : ''}
+                    ${InspectorComponents.InspectorDangerZone({
             nodeId: actualNodeId,
             nodeName: name,
             nodeType: 'area',
             onDelete: () => graphManager._deleteNode(actualNodeId),
         })}
+                </div>
+
+                <div class="entity-editor-area-col-place">
+                    ${RV._renderAreaMiniMap(name, actualNodeId, exitEntries, agentsHere, items)}
+                    ${props.grid ? RV._renderAreaGridSection(actualNodeId, props.grid) : ''}
+
+                    <div class="inspector-section"><h3>🚪 Exits <span class="section-hint">(${exitEntries.length} found)</span></h3>
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                            ${exitEntries.length > 0
+            ? exitEntries.map(([exitName, exitData]) => RV._renderExitItem(exitName, exitData, actualNodeId))
+            : htmlTag `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No exits from this area.</div>`}
+                        </div>
+                    </div>
+
+                    <div class="inspector-section"><h3>🧠 Agents <span class="section-hint">(${agentsHere.length})</span></h3>
+                        <div class="chips" style="display:flex;flex-wrap:wrap;gap:6px;">
+                            ${agentsHere.length > 0
+            ? agentsHere.map(([agentName]) => htmlTag `
+                                    <span class="chip on" style="cursor:pointer;" @click=${() => VW.inspector.showAgent(agentName)}>
+                                        <span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--pink, #ec4899);margin-right:4px;"></span>${agentName}
+                                    </span>`)
+            : htmlTag `<div style="font-size:11px;color:var(--text-muted);">No agents present</div>`}
+                        </div>
+                    </div>
+
+                    <div class="inspector-section"><h3>📦 Visible Items <span class="section-hint">(${items.length})</span></h3>
+                        <div class="chips" style="display:flex;flex-wrap:wrap;gap:6px;">
+                            ${items.length > 0
+            ? items.map((item) => htmlTag `
+                                    <span class="chip on" style="cursor:pointer;" @click=${() => VW.inspector.showNode(item.id)}>
+                                        <span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange, #f97316);margin-right:4px;"></span>${item.properties?.current_state === 'locked' ? '🔒 ' : ''}${item.name}
+                                    </span>`)
+            : htmlTag `<div style="font-size:11px;color:var(--text-muted);">No items in this area</div>`}
+                        </div>
+                    </div>
+
+                    <div class="inspector-section"><h3>📦 Actions</h3>
+                        <div style="font-size:11px;color:var(--text-muted);padding:4px 0;">Use 📚 Item Library in the toolbar to add items.</div>
+                    </div>
+
+                    <div class="inspector-section"><h3>📜 Area Event Log <span class="section-hint">(who did what · read-only)</span></h3>
+                        <div class="area-event-log entity-editor-area-log">
+                            ${RV._renderAreaEventLogEntries(roomEvents)}
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
-        window.InspectorPanel.render(template);
+        const peekTemplate = htmlTag `
+            ${RV._renderRoomHeader(name, actualNodeId)}
+            ${RV._renderDescriptionSection(description, actualNodeId)}
+            ${RV._renderEnvironmentSection(env, actualNodeId)}
+            ${RV._renderFloorSection(props, actualNodeId)}
+            ${RV._renderScopeSection(props, actualNodeId)}
+            ${RV._renderOwnershipSection(props, actualNodeId)}
+            ${window.InspectorHelpers.graphGravityControl(actualNodeId, props)}
+
+            <div class="inspector-section"><h3>🚪 Exits <span class="section-hint">(${exitEntries.length} found)</span></h3>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                ${exitEntries.length > 0
+            ? exitEntries.map(([exitName, exitData]) => RV._renderExitItem(exitName, exitData, actualNodeId))
+            : htmlTag `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No exits from this area.</div>`}
+            </div>
+        </div>
+
+        <div class="inspector-section"><h3>📦 Actions</h3>
+            <div style="font-size:11px;color:var(--text-muted);padding:4px 0;">Use 📚 Item Library in the toolbar to add items.</div>
+        </div>
+
+        ${window.InspectorTriggers ? window.InspectorTriggers.buildTriggersHtml(actualNodeId, props.locked_fields || []) : window.Lit.nothing}
+
+        <div class="inspector-section"><h3>🧠 Agents</h3>
+            ${agentsHere.length > 0
+            ? agentsHere.map(([agentName]) => htmlTag `
+                    <div class="relationship-item" @click=${() => VW.inspector.showAgent(agentName)}>
+                        <span class="rel-node">${agentName}</span>
+                    </div>`)
+            : htmlTag `<div style="font-size:11px;color:var(--text-muted);">No agents</div>`}
+        </div>
+
+        <div class="inspector-section"><h3>📜 Area Event Log <span class="section-hint">(who did what)</span></h3>
+            <div class="area-event-log" style="max-height:240px;overflow-y:auto;font-size:11px;">
+                ${RV._renderAreaEventLogEntries(roomEvents)}
+            </div>
+        </div>
+
+        <div class="inspector-section"><h3>🏷️ Tags</h3>
+            <div id="tag-multiselect-area-${actualNodeId}"></div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Tag an area <code>exterior</code> to make it an infinite heat reservoir.</div>
+        </div>
+
+        ${InspectorHelpers.renderAliasesSection(actualNodeId, props.aliases)}
+
+        <div class="inspector-section"><h3>📦 Items</h3>
+            ${items.length > 0
+            ? items.map((item) => htmlTag `
+                    <div class="relationship-item" @click=${() => VW.inspector.showNode(item.id)}>
+                        <span class="rel-node">${item.properties?.current_state === 'locked' ? '🔒 ' : '📦 '}${item.name}</span>
+                    </div>`)
+            : htmlTag `<div style="font-size:11px;color:var(--text-muted);">No items</div>`}
+        </div>
+
+        ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('area', actualNodeId, props)) : ''}
+        ${InspectorComponents.InspectorDangerZone({
+            nodeId: actualNodeId,
+            nodeName: name,
+            nodeType: 'area',
+            onDelete: () => graphManager._deleteNode(actualNodeId),
+        })}
+    `;
+        const template = isFullSurface ? fullSurfaceTemplate : peekTemplate;
+        if (targetEl) {
+            window.Lit.render(template, targetEl);
+        }
+        else {
+            window.InspectorPanel.render(template);
+        }
+        const root = targetEl || document;
         // task-173: live "sounds heard here" readout (engine-sourced).
-        const soundsEl = document.getElementById(`room-sounds-${actualNodeId}`);
+        const soundsEl = root.querySelector(`#room-sounds-${actualNodeId}`);
         if (soundsEl) {
             RV._fillAreaSounds(soundsEl, actualNodeId);
         }
@@ -158,11 +225,11 @@ window.InspectorAreaView = (() => {
             window.InspectorTemplateSync.populateSelector('area', actualNodeId);
         }
         RV._fillScopeSelect(actualNodeId, props.world_scope_id || '');
-        if (window.events)
+        if (window.events && !targetEl)
             events.setAreaFilter(name);
         // Initialize TagMultiselect for area tags (render is synchronous, so the
         // container exists by now).
-        const tagContainer = document.getElementById(`tag-multiselect-area-${actualNodeId}`);
+        const tagContainer = root.querySelector(`#tag-multiselect-area-${actualNodeId}`);
         if (tagContainer && typeof window.TagMultiselect !== 'undefined') {
             new window.TagMultiselect(tagContainer, {
                 tags: areaTags,
@@ -181,6 +248,210 @@ window.InspectorAreaView = (() => {
      * @param {string} actualNodeId - Graph node ID
      * @returns {TemplateResult}
      */
+    /**
+     * Render the read-only area event log entries.
+     */
+    RV._renderAreaEventLogEntries = function (roomEvents) {
+        if (!roomEvents || roomEvents.length === 0) {
+            return htmlTag `<div style="padding:8px;color:var(--text-muted);">No events recorded in this area yet. Events appear as characters take actions, speak, or affect the environment.</div>`;
+        }
+        return roomEvents.map((evt) => {
+            const icon = eventBus().getActionIcon(evt);
+            const color = eventBus().getActionColor(evt);
+            const resultPreview = (evt.result || '');
+            return htmlTag `<div class="area-event-entry" style="padding:4px 8px;border-bottom:1px solid var(--border-light);display:flex;align-items:flex-start;gap:6px;">
+                <span style="flex-shrink:0;color:var(--text-muted);font-size:9px;">[${events.tickToTime(evt.tick)}]</span>
+                <span style="flex-shrink:0;">${icon}</span>
+                <span style="flex-shrink:0;font-weight:600;color:${color};">${evt.actor}</span>
+                <div style="flex:1;min-width:0;">
+                    ${evt.action ? htmlTag `<div style="color:var(--accent);font-family:var(--font-mono);font-size:10px;">${evt.action}</div>` : window.Lit.nothing}
+                    ${resultPreview ? htmlTag `<div style="color:var(--text-dim);font-size:10px;">-> ${resultPreview}${evt.result.length > 100 ? '...' : ''}</div>` : window.Lit.nothing}
+                </div>
+            </div>`;
+        });
+    };
+    /**
+     * Render the spatial mini-map of this area, connected ways, occupant agents, and items.
+     */
+    RV._renderAreaGridSection = function (actualNodeId, grid) {
+        if (!grid || !grid.width || !grid.height)
+            return htmlTag ``;
+        const w = Number(grid.width) || 0;
+        const h = Number(grid.height) || 0;
+        const tiles = Array.isArray(grid.tiles) ? grid.tiles : [];
+        const chars = grid.characters || {};
+        const items = grid.items || {};
+        return htmlTag `
+            <div class="inspector-section">
+                <h3>Area Grid <span class="section-hint">(${w}x${h})</span></h3>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">Intra-area micro-positioning and terrain costs.</div>
+                <div style="display:inline-grid;grid-template-columns:repeat(${w}, 24px);gap:2px;background:var(--bg-card);padding:4px;border:1px solid var(--border-light);border-radius:4px;">
+                    ${Array.from({ length: h }).map((_, y) => Array.from({ length: w }).map((_, x) => {
+            const tile = (tiles[y] && tiles[y][x]) ? String(tiles[y][x]).toLowerCase() : 'floor';
+            const isWall = tile === 'wall';
+            const isWater = tile === 'water';
+            const isRubble = tile === 'rubble';
+            let bg = 'var(--bg-secondary, #222)';
+            if (isWall)
+                bg = 'var(--bg-muted, #444)';
+            else if (isWater)
+                bg = '#1e3a8a';
+            else if (isRubble)
+                bg = '#78350f';
+            const charEntry = Object.entries(chars).find(([, pos]) => pos && pos.x === x && pos.y === y);
+            const itemEntry = Object.entries(items).find(([, pos]) => pos && pos.x === x && pos.y === y);
+            let content = '';
+            if (charEntry)
+                content = charEntry[0].charAt(0).toUpperCase();
+            else if (itemEntry)
+                content = '*';
+            else if (isWall)
+                content = '#';
+            else if (isWater)
+                content = '~';
+            else if (isRubble)
+                content = '.';
+            return htmlTag `
+                                <div style="width:24px;height:24px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:2px;cursor:pointer;"
+                                     title="(${x}, ${y}): ${tile}${charEntry ? ' - ' + charEntry[0] : ''}${itemEntry ? ' - ' + itemEntry[0] : ''}">
+                                    ${content}
+                                </div>
+                            `;
+        }))}
+                </div>
+            </div>
+        `;
+    };
+    RV._renderAreaMiniMap = function (name, actualNodeId, exitEntries, agentsHere, items) {
+        const cardinalMap = {
+            N: [230, 32],
+            S: [230, 188],
+            E: [390, 110],
+            W: [70, 110],
+            NE: [380, 42],
+            NW: [80, 42],
+            SE: [380, 178],
+            SW: [80, 178],
+            UP: [230, 32],
+            DOWN: [230, 188],
+        };
+        const cx = 230;
+        const cy = 110;
+        const centerW = 130;
+        const centerH = 44;
+        const exitNodes = exitEntries.map(([exitName, exitData], idx) => {
+            const wayId = exitData.way_id || '';
+            const doorNode = wayId ? worldState.getNode(wayId) : null;
+            const state = doorNode?.properties?.current_state || exitData.state || 'closed';
+            const card = (exitData.cardinal || '').trim().toUpperCase();
+            let targetX = 0;
+            let targetY = 0;
+            if (card && cardinalMap[card]) {
+                [targetX, targetY] = cardinalMap[card];
+            }
+            else {
+                const angle = (idx * 2 * Math.PI / Math.max(exitEntries.length, 1)) - (Math.PI / 2);
+                targetX = Math.round(cx + Math.cos(angle) * 160);
+                targetY = Math.round(cy + Math.sin(angle) * 78);
+            }
+            let strokeColor = 'var(--accent, #58a6ff)';
+            let strokeDash = 'none';
+            if (state === 'open') {
+                strokeColor = 'var(--green, #3fb950)';
+            }
+            else if (state === 'closed') {
+                strokeColor = 'var(--yellow, #d29922)';
+            }
+            else if (state === 'locked') {
+                strokeColor = 'var(--red, #f85149)';
+                strokeDash = '4,3';
+            }
+            else if (state === 'hidden') {
+                strokeColor = 'var(--text-muted, #8b949e)';
+                strokeDash = '3,3';
+            }
+            else if (state === 'blocked' || state === 'broken') {
+                strokeColor = 'var(--orange, #db6d28)';
+            }
+            const targetLabel = exitData.target || exitName;
+            const shortLabel = targetLabel.length > 14 ? targetLabel.slice(0, 13) + '..' : targetLabel;
+            return {
+                exitName,
+                exitData,
+                targetX,
+                targetY,
+                strokeColor,
+                strokeDash,
+                state,
+                shortLabel,
+                targetLabel,
+                wayId,
+            };
+        });
+        return htmlTag `
+            <div class="inspector-section">
+                <h3>🗺️ Mini-Map <span class="section-hint">(${exitEntries.length} ways · ${agentsHere.length} agents · ${items.length} items)</span></h3>
+                <div class="entity-editor-minimap map">
+                    <svg viewBox="0 0 460 220" preserveAspectRatio="xMidYMid meet">
+                        ${exitNodes.map(n => htmlTag `
+                            <line x1="${cx}" y1="${cy}" x2="${n.targetX}" y2="${n.targetY}"
+                                stroke="${n.strokeColor}" stroke-width="2" stroke-dasharray="${n.strokeDash}" opacity="0.6">
+                                <title>${n.exitName} (${n.state})</title>
+                            </line>
+                        `)}
+                        ${exitNodes.map(n => htmlTag `
+                            <g class="minimap-node" style="cursor:pointer;"
+                                @click=${() => {
+            if (n.wayId)
+                window.VW?.inspector?.showNode?.(n.wayId);
+            else if (n.exitData.target)
+                window.VW?.inspector?.showNode?.(n.exitData.target);
+        }}>
+                                <rect x="${n.targetX - 45}" y="${n.targetY - 14}" width="90" height="28" rx="4"
+                                    fill="var(--bg-card, #161b22)" stroke="var(--border, #30363d)" stroke-width="1">
+                                    <title>${n.exitName} -> ${n.targetLabel} [${n.state}]</title>
+                                </rect>
+                                <text x="${n.targetX}" y="${n.targetY + 4}" text-anchor="middle"
+                                    font-size="9" font-family="var(--font)" fill="var(--text-dim, #8b949e)">
+                                    ${n.shortLabel}
+                                </text>
+                            </g>
+                        `)}
+                        <g class="minimap-node-center">
+                            <rect x="${cx - centerW / 2}" y="${cy - centerH / 2}" width="${centerW}" height="${centerH}" rx="6"
+                                fill="rgba(63, 185, 80, 0.22)" stroke="var(--green, #3fb950)" stroke-width="2">
+                                <title>${name} (Current Area)</title>
+                            </rect>
+                            <text x="${cx}" y="${cy - 3}" text-anchor="middle"
+                                font-size="11" font-weight="600" font-family="var(--font)" fill="var(--text, #e6edf3)">
+                                ${name.length > 18 ? name.slice(0, 17) + '..' : name}
+                            </text>
+                            <text x="${cx}" y="${cy + 13}" text-anchor="middle"
+                                font-size="8" font-family="var(--font-mono)" fill="var(--green, #3fb950)">
+                                HERE
+                            </text>
+                        </g>
+                        ${agentsHere.length > 0 ? htmlTag `
+                            <g transform="translate(${cx - centerW / 2 + 8}, ${cy - centerH / 2 - 6})">
+                                <circle r="8" fill="var(--pink, #ec4899)" stroke="var(--bg, #0d1117)" stroke-width="1.5">
+                                    <title>${agentsHere.length} agent(s) present</title>
+                                </circle>
+                                <text text-anchor="middle" dy="3" font-size="8" font-weight="700" fill="#fff">${agentsHere.length}</text>
+                            </g>
+                        ` : window.Lit.nothing}
+                        ${items.length > 0 ? htmlTag `
+                            <g transform="translate(${cx + centerW / 2 - 8}, ${cy - centerH / 2 - 6})">
+                                <circle r="8" fill="var(--orange, #f97316)" stroke="var(--bg, #0d1117)" stroke-width="1.5">
+                                    <title>${items.length} item(s) present</title>
+                                </circle>
+                                <text text-anchor="middle" dy="3" font-size="8" font-weight="700" fill="#fff">${items.length}</text>
+                            </g>
+                        ` : window.Lit.nothing}
+                    </svg>
+                </div>
+            </div>
+        `;
+    };
     RV._renderRoomHeader = function (name, actualNodeId) {
         const actions = htmlTag `
             <button class="btn btn-sm btn-ghost" data-populate-area=${actualNodeId} @click=${() => RV.populateArea(actualNodeId)} title="Populate this area with fitting furniture and items from the library by its domain tags" style="font-size:10px;">🪄 Populate</button>
@@ -257,7 +528,8 @@ window.InspectorAreaView = (() => {
             }
             else {
                 const override = data.forecast_override && data.forecast_override.weather;
-                const entries = (data.forecast_schedule && data.forecast_schedule.entries) || [];
+                const forecastObj = (data.forecast || data.forecast_schedule);
+                const entries = (forecastObj && forecastObj.entries) || [];
                 worldWeather = override || (entries.length ? entries[0].weather : '') || 'clear';
             }
         }
@@ -265,7 +537,7 @@ window.InspectorAreaView = (() => {
         return htmlTag `<div class="inspector-section"><h3>🌡️ Environment</h3>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">Light</label>
-                <input type="text" id="room-light" list="room-light-presets" .value=${lightValue} style="flex:1;font-size:11px;" title="A number 0–100 or a preset word  -  the engine reads either" @change=${(ev) => RV._updateEnvLight(actualNodeId, ev.target.value)}>
+                <input type="text" id="room-light" list="room-light-presets" .value=${lightValue} style="flex:1;font-size:11px;" title="A number 0-100 or a preset word  -  the engine reads either" @change=${(ev) => RV._updateEnvLight(actualNodeId, ev.target.value)}>
                 <datalist id="room-light-presets">${lightPresets.map(lightName => htmlTag `<option value=${lightName}></option>`)}</datalist>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
@@ -397,6 +669,10 @@ window.InspectorAreaView = (() => {
      */
     RV._fillAreaSounds = function (el, areaId) {
         el.textContent = '…';
+        if (typeof ApiClient.getAreaSounds !== 'function') {
+            el.textContent = 'quiet  -  no active sound sources.';
+            return;
+        }
         ApiClient.getAreaSounds(areaId)
             .then(data => {
             const sounds = data.sounds || [];
@@ -577,6 +853,41 @@ window.InspectorAreaView = (() => {
      * @param {string} actualNodeId - Graph node ID (unused but passed for context)
      * @returns {TemplateResult}
      */
+    const HELD_BY_PREFIX = 'held_by:';
+    /**
+     * Render the area ownership (held_by) section (task-872).
+     */
+    RV._renderOwnershipSection = function (props, actualNodeId) {
+        const tags = (Array.isArray(props.tags) ? props.tags : []);
+        const holders = tags
+            .filter((t) => typeof t === 'string' && t.toLowerCase().startsWith(HELD_BY_PREFIX))
+            .map((t) => t.slice(HELD_BY_PREFIX.length).trim());
+        const holderValue = holders.join(', ');
+        return htmlTag `<div class="inspector-section"><h3>👑 Ownership <span class="section-hint">(held by faction)</span></h3>
+            <div class="field" style="display:flex;align-items:center;gap:8px;">
+                <input id="area-holder-${actualNodeId}" type="text" class="input" style="flex:1;font-size:11px;"
+                       placeholder="e.g. Goblin, Human, or comma-separated"
+                       .value=${holderValue}
+                       @change=${(ev) => {
+            const val = ev.target.value.trim();
+            const currentTags = (props.tags || []).filter((t) => typeof t === 'string' && !t.toLowerCase().startsWith(HELD_BY_PREFIX));
+            if (val) {
+                const newHolders = val.split(',').map((s) => s.trim()).filter(Boolean);
+                for (const h of newHolders) {
+                    currentTags.push(`${HELD_BY_PREFIX}${h.toLowerCase()}`);
+                }
+            }
+            api.updateNode(actualNodeId, { properties: { tags: currentTags } }).then(() => worldState.fetch());
+        }}
+                       title="Faction or group that holds this area. Writes held_by:<name> tag." />
+            </div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">
+                ${holders.length > 0
+            ? `Held by: ${holders.join(', ')}. Characters not in this faction take contested actions here.`
+            : 'Unheld (commons) - belongs to everyone.'}
+            </div>
+        </div>`;
+    };
     RV._renderExitItem = function (exitName, exitData, actualNodeId) {
         const wayId = exitData.way_id || '';
         const doorNode = wayId ? worldState.getNode(wayId) : null;

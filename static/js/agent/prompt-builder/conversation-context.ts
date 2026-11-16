@@ -1,5 +1,5 @@
 /**
- * prompt-builder/conversation-context.js — Speech salience + conversation instinct.
+ * prompt-builder/conversation-context.js - Speech salience + conversation instinct.
  *
  * Split from room-context.js (2026-08-21). Holds the logic for how a character
  * reads spoken dialogue: which lines are aimed at THEM (salience) vs just
@@ -14,9 +14,9 @@
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
- * @module prompt-builder/conversation-context — speech salience + conversation instinct
+ * @module prompt-builder/conversation-context - speech salience + conversation instinct
  * @contributes classifySpeechType/salienceLabel/markSpeechLine, ownRecentSpeech, talkinessHint, buildConversationInstinct
- * @powers Talk / speak, Whisper / shout — the WITNESSED "[Heard → addressed to you / to you / to the group]" markers and soft anti-repeat
+ * @powers Talk / speak, Whisper / shout - the WITNESSED "[Heard → addressed to you / to you / to the group]" markers and soft anti-repeat
  * @relates used by room-context.js when assembling witnessed speech; reads player.recent_hearing + vitals.social
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
@@ -68,7 +68,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const lower = String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
         if (!lower) return 'overheard';
 
-        // Names/aliases the listener answers to — name call is the strongest mark.
+        // Names/aliases the listener answers to - name call is the strongest mark.
         const nameParts = [charName, player?.name]
             .filter(Boolean)
             .map(n => String(n).toLowerCase().trim());
@@ -79,7 +79,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (re.test(lower)) return 'addressed_to_you';
         }
 
-        // Group-open wording — spoken to a room, not one person.
+        // Group-open wording - spoken to a room, not one person.
         for (const word of GROUP_WORDS) {
             if (lower.includes(word)) return 'to_group';
         }
@@ -120,6 +120,16 @@ window.PromptBuilder = window.PromptBuilder || {};
         const label = salienceLabel(type);
         if (!label || !line) return line;
         // Insert the marker right after the leading [Heard]/[anon] bracket.
+        if (line.startsWith('[Heard')) {
+            const close = line.indexOf(']');
+            const inside = line.slice(1, close);
+            if (inside.startsWith('Heard from ')) {
+                const fromPart = inside.slice(6).trim();
+                const cleanFrom = fromPart.replace(/_/g, ' ').replace(/\s+back$/i, '').trim();
+                return `[Heard → ${label}] (${cleanFrom})${line.slice(close + 1)}`;
+            }
+            return line.slice(0, close) + ' → ' + label + line.slice(close);
+        }
         if (line.indexOf(']') !== -1) {
             const close = line.indexOf(']');
             return line.slice(0, close) + ' → ' + label + line.slice(close);
@@ -153,7 +163,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
     /**
      * A short per-turn "conversation disposition" hint derived from existing
-     * state (never a mandate — just how the character currently feels about
+     * state (never a mandate - just how the character currently feels about
      * speaking). Reuses `vitals.social` and conditions like exhaustion/fear to
      * nudge talkativeness up or down without a stored per-character value.
      * @param {Object} player - The character's player object.
@@ -165,9 +175,9 @@ window.PromptBuilder = window.PromptBuilder || {};
         const conditions = player.conditions || {};
         const hindered = ['exhausted', 'unconscious', 'frightened', 'anxious', 'stunned', 'pain', 'sick']
             .some(c => (conditions[c] || []).length > 0);
-        if (hindered && social < 40) return 'You feel worn down and quiet — you speak only if you must.';
-        if (social >= 75) return 'You feel sociable right now — inclined to speak up.';
-        if (social <= 25) return 'You feel withdrawn right now — you\'re not inclined to speak unless something needs saying.';
+        if (hindered && social < 40) return 'You feel worn down and quiet - you speak only if you must.';
+        if (social >= 75) return 'You feel sociable right now - inclined to speak up.';
+        if (social <= 25) return 'You feel withdrawn right now - you\'re not inclined to speak unless something needs saying.';
         return '';
     }
 

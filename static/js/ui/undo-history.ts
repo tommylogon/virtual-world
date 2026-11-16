@@ -1,13 +1,13 @@
 /**
- * undo-history.js — visible undo history dropdown (task-371).
+ * undo-history.js - visible undo history dropdown (task-371).
  *
  * 📜 button in the graph toolbar: lists every labeled undo snapshot
  * (newest first; index 0 = what a single Undo restores). Clicking a row
  * restores the world back to that point via multi-step undo.
  *
- * @module ui/undo-history — visible undo history dropdown
+ * @module ui/undo-history - visible undo history dropdown
  * @contributes UndoHistory: list labeled snapshots (newest first) and restore to any point
- * @powers Recent edits / undo — seeing and jumping through the edit history (task-371)
+ * @powers Recent edits / undo - seeing and jumping through the edit history (task-371)
  * @relates reads the undo stack; opened from the 📜 button in the graph toolbar
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
@@ -98,6 +98,12 @@ const UndoHistory = (() => {
         close();
     });
     document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') close(); });
+
+    if ((window as unknown as { appEvents?: typeof appEvents }).appEvents) {
+        appEvents.on('world:changed', () => {
+            if (_open) refresh();
+        });
+    }
 
     return { toggle, refresh, close };
 })();

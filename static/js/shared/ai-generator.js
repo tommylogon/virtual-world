@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Shared AI Generator — handles the common LLM call + response parsing pattern.
+ * Shared AI Generator - handles the common LLM call + response parsing pattern.
  *
  * Usage:
  *   const result = await AIGenerator.generate(
@@ -15,7 +15,7 @@
  *       // result.error = error message
  *   }
  *
- * @module shared/ai-generator — the shared LLM call + parse pattern
+ * @module shared/ai-generator - the shared LLM call + parse pattern
  * @contributes AIGenerator.generate(userPrompt, systemMessage, opts) → { success, data, raw, error }
  * @powers every AI authoring feature (scenario wizard, item/room improve, trigger suggest)
  * @relates wraps llm-client + shared/json-utils + shared/json-schemas; used across the UI
@@ -39,7 +39,7 @@ const AIGenerator = {
         const temp = options.temperature ?? 0.8;
         const fallback = options.fallback || null;
         // Every exchange is named (task-593). Without a label the inspector falls
-        // back to a derived placeholder, which is traceable but not a name — and a
+        // back to a derived placeholder, which is traceable but not a name - and a
         // caller that knows what it is asking for should say so.
         const label = options.label || 'ai-generator/generate';
         if (!userPrompt)
@@ -54,6 +54,8 @@ const AIGenerator = {
             ], {
                 temperature: temp,
                 label,
+                actor: options.actor || options.character,
+                image: options.image,
                 // json_object tier: dynamic/recursive shapes can't be a closed
                 // schema, but guaranteed-valid JSON already removes the parse
                 // failures. The client strips this when disabled/unsupported.
@@ -72,10 +74,10 @@ const AIGenerator = {
             if (parsed.json) {
                 return { success: true, data: parsed.json, raw: parsed.raw, error: null };
             }
-            // Heuristics (extract + repairJSON) gave up — hand the broken JSON
+            // Heuristics (extract + repairJSON) gave up - hand the broken JSON
             // and the parser's complaint back to the LLM and let it fix itself.
             if (typeof events !== 'undefined' && events.log) {
-                events.log('⚙️ Heuristic JSON repair failed — asking the LLM to fix the response.', 'system-msg');
+                events.log('⚙️ Heuristic JSON repair failed - asking the LLM to fix the response.', 'system-msg');
             }
             const aiRepaired = await this._repairJSONWithAI(parsed.raw, parsed.error);
             if (aiRepaired) {
@@ -101,7 +103,7 @@ const AIGenerator = {
             return null;
         const repairSystem = 'You fix malformed JSON objects produced by another language model. '
             + 'Given the invalid JSON and a parser error message, return ONLY the corrected, '
-            + 'valid single JSON object. Preserve every field and value — fix only the syntax '
+            + 'valid single JSON object. Preserve every field and value - fix only the syntax '
             + 'structure (brackets, braces, quotes, commas). No markdown, no code fences, no commentary.';
         const repairPrompt = 'Here is the JSON I received:\n\n'
             + brokenJSON
@@ -115,7 +117,7 @@ const AIGenerator = {
                 { role: 'user', content: repairPrompt }
             ], {
                 temperature: 0,
-                // json_object tier: keep whatever the primary call used — the
+                // json_object tier: keep whatever the primary call used - the
                 // client already strips this when the provider rejects it.
                 // Distinct from the generate label: this is the *second* call of
                 // a repair pair, and an inspector full of generate entries cannot

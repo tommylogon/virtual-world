@@ -1,5 +1,5 @@
 /**
- * @module commons-api — HTTP client for The Commons endpoints
+ * @module commons-api - HTTP client for The Commons endpoints
  * @contributes CommonsApi: fetch authorized channels, read, post, and manage membership
  * @powers The Commons communication with the backend
  * @relates routes/commons.py
@@ -52,6 +52,15 @@
             return await res.json();
         }
 
+        static async getRecentMemories(name: string, limit: number = 5, signal?: AbortSignal) {
+            const res = await fetch(`/api/players/${encodeURIComponent(name)}/memories`, { signal });
+            if (!res.ok) return { memories: [] };
+            const data = await res.json();
+            const list = Array.isArray(data?.memories) ? data.memories : (Array.isArray(data) ? data : []);
+            const sorted = [...list].sort((a: any, b: any) => (Number(b?.tick ?? 0) - Number(a?.tick ?? 0)) || (Number(b?.timestamp ?? 0) - Number(a?.timestamp ?? 0)));
+            return { memories: sorted.slice(0, limit) };
+        }
+
         static async createChannel(body: { creator: string; kind: 'group' | 'dm'; name?: string; members?: string[]; other?: string; }, signal?: AbortSignal) {
             const res = await fetch('/api/commons/channels', {
                 method: 'POST',
@@ -73,11 +82,64 @@
             return await res.json();
         }
 
-        static async postMessage(author: string, text: string, channelId: string = 'public', signal?: AbortSignal) {
+        static async setChannelMuted(channelId: string, actor: string, muted: boolean, signal?: AbortSignal) {
+            const res = await fetch(`/api/commons/channels/${encodeURIComponent(channelId)}/mute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actor, muted }),
+                signal,
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+
+        static async postMessage(author: string, text: string = '', channelId: string = 'public', attachments?: any[], signal?: AbortSignal) {
+            const payload: any = { author, text, channel_id: channelId };
+            if (attachments && attachments.length) {
+                payload.attachments = attachments;
+            }
             const res = await fetch('/api/commons/messages', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ author, text, channel_id: channelId }),
+                body: JSON.stringify(payload),
+                signal,
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+
+        static async uploadAttachment(file: File, caption: string = '', signal?: AbortSignal) {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (caption) formData.append('caption', caption);
+            const res = await fetch('/api/commons/attachments/upload', {
+                method: 'POST',
+                body: formData,
+                signal,
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || `HTTP ${res.status}`);
+            }
+            return await res.json();
+        }
+
+        static async editMessage(id: number | string, author: string, text: string, signal?: AbortSignal) {
+            const res = await fetch(`/api/commons/messages/${encodeURIComponent(id)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author, text }),
+                signal,
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+
+        static async deleteMessage(id: number | string, author: string, signal?: AbortSignal) {
+            const res = await fetch(`/api/commons/messages/${encodeURIComponent(id)}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author }),
                 signal,
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -105,17 +167,28 @@
             return await res.json();
         }
 
-        static async storeMemory(name: string, text: string, importance: number = 5, tags: string[] = ['conversation', 'chat'], signal?: AbortSignal) {
+        static async storeMemory(
+            name: string,
+            text: string,
+            importance: number = 5,
+            tags: string[] = ['conversation', 'chat'],
+            signal?: AbortSignal,
+            meta?: { entities?: string[]; memory_emotions?: Array<{ label: string; intensity: number }>; tick?: number; type?: string }
+        ) {
+            const payload: Record<string, any> = {
+                text,
+                importance,
+                type: meta?.type || 'observation',
+                tags,
+                category: 'social',
+            };
+            if (meta?.entities?.length) payload.entities = meta.entities;
+            if (meta?.memory_emotions?.length) payload.memory_emotions = meta.memory_emotions;
+            if (typeof meta?.tick === 'number') payload.tick = meta.tick;
             const res = await fetch(`/api/players/${encodeURIComponent(name)}/memories/entry`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text,
-                    importance,
-                    type: 'conversation',
-                    tags,
-                    category: 'social'
-                }),
+                body: JSON.stringify(payload),
                 signal,
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -274,7 +274,7 @@ class StorageProvider {
     async setSetting(id, value) {
         return this.set('settings', id, value);
     }
-    // --- Event Log persistence ---
+    // --- Event Log persistence (task-779: structured records) ---
     async saveEventLog(entries) {
         return new Promise((resolve) => {
             if (!this._db) {
@@ -287,7 +287,13 @@ class StorageProvider {
                 store.clear(); // remove old
                 // Store entries in batches with auto-increment ids
                 for (let i = 0; i < entries.length; i++) {
-                    store.add({ id: i, html: entries[i] });
+                    const entry = entries[i];
+                    if (typeof entry === 'object' && entry !== null) {
+                        store.add({ id: i, ...entry });
+                    }
+                    else {
+                        store.add({ id: i, text: String(entry) });
+                    }
                 }
                 tx.oncomplete = () => resolve();
                 tx.onerror = () => resolve();
@@ -310,7 +316,10 @@ class StorageProvider {
                 req.onsuccess = () => {
                     const items = (req.result || []);
                     items.sort((a, b) => a.id - b.id);
-                    resolve(items.map(item => item.html));
+                    resolve(items.map(item => {
+                        const { id, ...record } = item;
+                        return record;
+                    }));
                 };
                 req.onerror = () => resolve([]);
             }

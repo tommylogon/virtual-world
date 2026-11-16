@@ -73,6 +73,11 @@ class ApiClientImpl {
         return data;
     }
 
+    /** Active sound sources in an area (task-173). */
+    static async getAreaSounds(areaId: string): Promise<ApiResult> {
+        return this.get(`/api/areas/${encodeURIComponent(areaId)}/sounds`);
+    }
+
     /**
      * Declare a soak order for a character (task-481): they run on a policy for
      * the span instead of taking attended turns.
@@ -250,8 +255,18 @@ class ApiClientImpl {
         const resp = await fetch(
             `/api/world/scopes/${encodeURIComponent(scopeId)}/subgraph`
             + `?include_items=${includeItems ? 1 : 0}&descendants=${descendants ? 1 : 0}`);
-        if (!resp.ok) throw new Error(`scope subgraph failed: ${resp.status}`);
+        if (!resp.ok) {
+            const err = new Error(`scope subgraph failed: ${resp.status}`) as Error & { status?: number };
+            err.status = resp.status;
+            throw err;
+        }
         return resp.json();
+    }
+
+    /** Notify the engine of an observed scope to drive fidelity and promotion (task-710). */
+    static async observeScope(scopeId: string | null): Promise<ApiResult> {
+        const target = scopeId || 'whole_world';
+        return this.post(`/api/world/scopes/${encodeURIComponent(target)}/observe`);
     }
 
     /** One scope's painted grid payload ({scope, grid, layers, reference, …}).
@@ -640,14 +655,18 @@ class ApiClientImpl {
         return resp.json();
     }
 
-    static async saveForecastSchedule(schedule?: Record<string, unknown>): Promise<ApiResult> {
+    static async saveForecast(forecast?: Record<string, unknown>): Promise<ApiResult> {
         const resp = await fetch('/api/settings/forecast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
-            body: JSON.stringify({ schedule })
+            body: JSON.stringify({ forecast })
         });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         return resp.json();
+    }
+
+    static async saveForecastSchedule(schedule?: Record<string, unknown>): Promise<ApiResult> {
+        return this.saveForecast(schedule);
     }
 
     // --- Ghost Mode ---
@@ -747,7 +766,7 @@ class ApiClientImpl {
         return { ok: resp.ok, data };
     }
 
-    static async compilePlayerRecord(charName: string, options: { force?: boolean; sections?: string[]; record?: Record<string, unknown> } = {}): Promise<{ ok: boolean; data: any }> {
+    static async compilePlayerRecord(charName: string, options: { force?: boolean; sections?: string[]; record?: Record<string, unknown>; overrides?: { base_description?: string; personality?: string } } = {}): Promise<{ ok: boolean; data: any }> {
         const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record/compile`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -832,6 +851,14 @@ class ApiClientImpl {
 
     static async getPlayerSpatialMemories(charName: string): Promise<ApiResult> {
         const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/spatial`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok) throw new Error(String(resp.status));
+        return resp.json();
+    }
+
+    static async getPlayerCognitiveMap(charName: string): Promise<any> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/cognitive_map`, {
             headers: { 'Accept': 'application/json' }
         });
         if (!resp.ok) throw new Error(String(resp.status));

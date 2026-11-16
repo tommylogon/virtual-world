@@ -55,8 +55,41 @@ const HumanTurnComposerModule = (() => {
     let _advanced = false;
     let _scene = null;
     let _currentPrefill = null;
-    const q = (sel) => _modal.querySelector(sel);
-    const qa = (sel) => Array.from(_modal.querySelectorAll(sel));
+    let _lastReactionText = '';
+    let _lastCommittedAction = '';
+    let _dryRun = false;
+    const q = (sel) => {
+        if (!_built || !_modal) {
+            try {
+                build();
+            }
+            catch { /* headless unit stub */ }
+        }
+        const find = (s) => (_modal?.querySelector?.(s) ||
+            document.querySelector?.(s) ||
+            (s.startsWith('#') ? document.getElementById?.(s.slice(1)) : null));
+        if (sel === '#htc-commit')
+            return find('#htc-commit') || find('#htc-act');
+        if (sel === '#htc-reroll')
+            return find('#htc-reroll') || find('#htc-reroll-btn') || find('#htc-ask-director');
+        return find(sel);
+    };
+    const qa = (sel) => {
+        if (!_built || !_modal) {
+            try {
+                build();
+            }
+            catch { /* headless unit stub */ }
+        }
+        const fromModal = _modal && typeof _modal.querySelectorAll === 'function'
+            ? Array.from(_modal.querySelectorAll(sel))
+            : [];
+        if (fromModal.length)
+            return fromModal;
+        return typeof document.querySelectorAll === 'function'
+            ? Array.from(document.querySelectorAll(sel))
+            : [];
+    };
     const STYLE_ID = 'htc-styles';
     function actionTiers() {
         return window.ActionTiers || null;
@@ -68,9 +101,9 @@ const HumanTurnComposerModule = (() => {
         const style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = `
-            #htc-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1200; display:none; align-items:center; justify-content:center; }
-            #htc-modal { background:#1e2128; color:#e6e8ee; width:min(1080px,96vw); max-height:94vh; overflow:auto; border-radius:14px; border:1px solid #333a45; box-shadow:0 18px 60px rgba(0,0,0,.6); font-family:inherit; font-size:13px; }
-            .htc-header { padding:10px 16px; border-bottom:1px solid #333a45; display:flex; align-items:center; gap:10px; background:#1a1d24; border-radius:14px 14px 0 0; }
+            #htc-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:13000; display:none; align-items:center; justify-content:center; }
+            #htc-modal { background:#1e2128; color:#e6e8ee; width:min(1080px,96vw); max-height:94vh; display:flex; flex-direction:column; overflow:hidden; border-radius:14px; border:1px solid #333a45; box-shadow:0 18px 60px rgba(0,0,0,.6); font-family:inherit; font-size:13px; }
+            .htc-header { padding:8px 16px; border-bottom:1px solid #333a45; display:flex; align-items:center; gap:10px; background:#1a1d24; border-radius:14px 14px 0 0; flex-shrink:0; }
             .htc-title { font-size:14px; font-weight:600; }
             .htc-spacer { flex:1; }
             #htc-meta { color:#78828e; font-size:11.5px; }
@@ -80,18 +113,20 @@ const HumanTurnComposerModule = (() => {
             .htc-linkbtn { background:none; border:0; color:#ffb37a; font-size:11.5px; cursor:pointer; }
             .htc-linkbtn.muted { color:#6b7686; }
 
-            .htc-grid { display:grid; grid-template-columns: 1fr 300px; }
-            .htc-feed { border-left:1px solid #333a45; padding:10px 14px; max-height:340px; overflow-y:auto; }
+            .htc-grid { display:grid; grid-template-columns: 1fr 300px; flex:1 1 auto; min-height:0; overflow:hidden; }
+            #htc-scene { overflow-y:auto; min-height:0; max-height:100%; }
+            .htc-feed { border-left:1px solid #333a45; padding:8px 14px; min-height:0; max-height:100%; overflow-y:auto; }
             .htc-feed h4 { margin:0 0 7px; font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:#6b7686; }
             .tfd-line { color:#98a3ae; font-size:12px; padding:2px 0 2px 10px; line-height:1.45; border-left:2px solid #232932; margin-bottom:3px; }
             .tfd-line.tfd-act { color:#bcd3ec; }
             .tfd-line.tfd-err { color:#e08f8f; }
             .tfd-line.tfd-sys { color:#6b7686; }
             .tfd-line.tfd-empty { color:#5b6570; font-style:italic; border-left-color:transparent; }
-            @media (max-width: 940px) { .htc-grid { grid-template-columns: 1fr; } .htc-feed { border-left:0; border-top:1px solid #333a45; max-height:180px; } }
+            @media (max-width: 940px) { .htc-grid { grid-template-columns: 1fr; } .htc-feed { border-left:0; border-top:1px solid #333a45; max-height:150px; } }
 
-            .htc-composer { border-top:1px solid #333a45; background:#1a1d24; padding:11px 16px 13px; border-radius:0 0 14px 14px; }
-            .htc-budget { display:flex; align-items:center; gap:14px; margin-bottom:9px; }
+            #htc-you { flex-shrink:0; max-height:16vh; overflow-y:auto; }
+            .htc-composer { border-top:1px solid #333a45; background:#1a1d24; padding:8px 16px 10px; border-radius:0 0 14px 14px; flex-shrink:0; }
+            .htc-budget { display:flex; align-items:center; gap:14px; margin-bottom:6px; }
             .htc-pips { display:flex; align-items:center; gap:6px; }
             .htc-pip { width:15px; height:15px; display:inline-block; }
             .htc-pip.major { border:2px solid #d9baff; transform:rotate(45deg); border-radius:3px; }
@@ -101,24 +136,51 @@ const HumanTurnComposerModule = (() => {
             .htc-budgetlab { font-size:11.5px; color:#78828e; }
             .htc-budgetlab b { color:#e6e8ee; }
             #htc-phase-note { font-size:11.5px; color:#78828e; margin-left:auto; }
-            #htc-result { margin:0 0 8px 64px; font-size:12.5px; color:#98a3ae; border-left:3px solid #2c4a36; padding-left:10px; }
+            #htc-result { margin:0 0 6px 64px; font-size:12.5px; color:#98a3ae; border-left:3px solid #2c4a36; padding-left:10px; max-height:160px; overflow-y:auto; }
+            #htc-result.htc-expanded { max-height:none; }
             #htc-result b { color:#57c98f; }
+            .htc-res-card { margin-bottom:7px; }
+            .htc-res-card:last-child { margin-bottom:0; }
+            .htc-res-action { line-height:1.45; color:#cfd8dc; font-weight:500; }
+            .htc-res-prose { margin-top:4px; line-height:1.45; color:#a4b1be; font-style:italic; }
+            .htc-res-status { margin-top:4px; color:#f59e0b; font-size:12px; }
+            .htc-res-people { margin-top:4px; font-size:11.5px; color:#81a1c1; }
+            .htc-res-people .htc-res-hint { color:#5f7488; font-style:italic; font-size:11px; }
+            .htc-res-details { margin-top:6px; font-size:11px; }
+            .htc-res-details summary { cursor:pointer; color:#6e8498; user-select:none; }
+            .htc-res-details summary:hover { color:#8ba2b8; }
+            .htc-res-tail-body { margin-top:4px; padding-left:8px; border-left:1px solid #23372c; max-height:120px; overflow-y:auto; }
+            .htc-res-tail-line { margin:2px 0; color:#6e8498; font-family:monospace; font-size:10.5px; white-space:pre-wrap; }
+            .htc-res-toggle-expand { background:none; border:0; color:#4f9cf9; font-size:11px; cursor:pointer; padding:2px 0; margin-top:4px; display:inline-block; }
+            .htc-res-toggle-expand:hover { text-decoration:underline; }
 
-            .htc-crow { display:flex; gap:8px; align-items:center; margin-bottom:7px; }
-            .htc-crow .lbl { width:56px; text-align:right; font-size:11.5px; color:#7d8894; flex:none; }
-            .htc-crow input[type=text] { flex:1; background:#141820; border:1px solid #2a303b; color:#e6e8ee; border-radius:8px; padding:8px 11px; font-size:13px; outline:none; min-width:0; color-scheme:dark; }
-            .htc-crow input[type=text]:focus { border-color:#4f9cf9; box-shadow:0 0 0 2px rgba(79,156,249,.22); }
+            .htc-director-bar { display:flex; gap:8px; align-items:center; margin-bottom:6px; padding:5px 9px; background:#151821; border:1px solid #2b3240; border-radius:8px; }
+            .htc-director-btn { background:#6a4fb8; border:0; color:#fff; font-weight:600; border-radius:7px; padding:5px 11px; font-size:12px; cursor:pointer; flex:none; }
+            .htc-director-btn:hover { background:#7b5ec9; }
+            .htc-director-btn:disabled { opacity:.5; cursor:default; }
+            #htc-director-note { flex:1; background:#10131a; border:1px solid #2a303b; color:#e6e8ee; border-radius:7px; padding:5px 10px; font-size:12px; outline:none; min-width:0; color-scheme:dark; }
+            #htc-director-note:focus { border-color:#7c8cf8; }
+            .htc-autodraft-wrap { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:#9aa3b2; cursor:pointer; flex:none; user-select:none; }
+
+            .htc-row, .htc-crow { display:flex; gap:8px; align-items:center; margin-bottom:5px; }
+            .htc-row label, .htc-crow .lbl { width:56px; text-align:right; font-size:11.5px; color:#7d8894; flex:none; }
+            .htc-row input[type=text], .htc-crow input[type=text] { flex:1; background:#141820; border:1px solid #2a303b; color:#e6e8ee; border-radius:8px; padding:6px 10px; font-size:13px; outline:none; min-width:0; color-scheme:dark; }
+            .htc-row input[type=text]:focus, .htc-crow input[type=text]:focus { border-color:#4f9cf9; box-shadow:0 0 0 2px rgba(79,156,249,.22); }
+            #htc-emotion { background:#1d212a; color:#c8d1dc; border:1px solid #2a303b; border-radius:8px; padding:5px 8px; font-size:12px; flex:none; color-scheme:dark; }
+            #htc-thought-clear { background:none; border:0; color:#6b7686; cursor:pointer; font-size:14px; padding:2px 6px; }
+            .htc-say-target { display:none; align-items:center; gap:4px; background:#2b1f42; color:#d9baff; border:1px solid #4a3570; border-radius:6px; padding:3px 8px; font-size:11.5px; flex:none; }
+            .htc-say-target button { background:none; border:0; color:#d9baff; cursor:pointer; font-size:12px; padding:0 2px; line-height:1; }
             .htc-volseg { display:flex; border:1px solid #2a303b; border-radius:8px; overflow:hidden; flex:none; }
-            .htc-volseg button { background:#1d212a; color:#8b95a1; border:0; padding:7px 8px; font-size:11px; border-right:1px solid #2a303b; cursor:pointer; }
+            .htc-volseg button { background:#1d212a; color:#8b95a1; border:0; padding:5px 8px; font-size:11px; border-right:1px solid #2a303b; cursor:pointer; }
             .htc-volseg button:last-child { border-right:0; }
             .htc-volseg button.on { background:#2b1f42; color:#d9baff; }
-            .htc-btn-primary { background:#4f9cf9; border:0; color:#fff; font-weight:600; border-radius:8px; padding:8px 18px; flex:none; cursor:pointer; }
+            .htc-btn-primary { background:#4f9cf9; border:0; color:#fff; font-weight:600; border-radius:8px; padding:6px 16px; flex:none; cursor:pointer; }
             .htc-btn-primary:hover { background:#61a9fa; }
             .htc-btn-primary.gold { background:#b3812f; }
             .htc-btn-primary:disabled { opacity:.45; cursor:default; }
             #htc-clear-do { background:none; border:0; color:#6b7686; cursor:pointer; font-size:12px; }
 
-            .htc-footer-row { margin:8px 0 0 64px; display:flex; gap:14px; align-items:center; }
+            .htc-footer-row { margin:5px 0 0 64px; display:flex; gap:14px; align-items:center; }
             .htc-linkbtn.endturn { color:#e08f8f; margin-left:auto; }
             #htc-advanced { margin:6px 0 0 64px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
             #htc-advanced select { background:#1d212a; color:#9aa3b2; border:1px solid #2a303b; border-radius:7px; padding:5px 8px; font-size:11.5px; color-scheme:dark; }
@@ -224,12 +286,11 @@ const HumanTurnComposerModule = (() => {
     }
     /** Build the payload from the current rows. */
     function buildPayload() {
-        const m = _modal;
-        const doRaw = m.querySelector('#htc-do').value;
+        const doRaw = (q('#htc-do')?.value || '');
         const parsed = parseCmd(doRaw);
-        const speech = (m.querySelector('#htc-speech').value || '').trim() || parsed.speech || '';
-        const emote = (m.querySelector('#htc-emote').value || '').trim();
-        const memory = (m.querySelector('#htc-memory').value || '').trim();
+        const speech = (q('#htc-speech')?.value || '').trim() || parsed.speech || '';
+        const emote = (q('#htc-emote')?.value || '').trim();
+        const memory = (q('#htc-memory')?.value || '').trim();
         const p = {};
         if (parsed.action) {
             p.action = parsed.action;
@@ -237,14 +298,14 @@ const HumanTurnComposerModule = (() => {
                 p.item = parsed.item;
             if (parsed.target)
                 p.target = parsed.target;
-            const rel = m.querySelector('#htc-relation').value;
+            const rel = (q('#htc-relation')?.value || '');
             if ((parsed.action === 'put' || parsed.action === 'place') && rel)
                 p.relation = rel;
         }
         if (speech) {
             p.speech = speech;
             p.volume = parsed.volume || _volume;
-            if (p.volume === 'whisper' && _pendingSpeechTarget)
+            if (_pendingSpeechTarget && !p.target)
                 p.target = _pendingSpeechTarget;
         }
         if (emote)
@@ -262,7 +323,7 @@ const HumanTurnComposerModule = (() => {
             action: ActionNormalizer.normalizeStructuredAction(p),
             speech,
             speechVolume: volume,
-            target: (volume === 'whisper' && typeof p.target === 'string' && p.target.trim()) ? p.target.trim() : null,
+            target: (typeof p.target === 'string' && p.target.trim()) ? p.target.trim() : null,
             emote: typeof p.emote === 'string' ? p.emote : null,
             memory: ResponseParser.extractMemory(p.memory),
         };
@@ -280,8 +341,11 @@ const HumanTurnComposerModule = (() => {
         return Object.keys(slots).length ? { ...slots } : null;
     }
     function renderPips() {
-        const s = turnSlots() || { major: 0, minor: 0, free: 0 };
+        const defaultBudget = window.ActionTiers?.DEFAULT_BUDGET || { major: 1, minor: 1, free: 3 };
+        const s = turnSlots() || { ...defaultBudget };
         const pipsEl = q('#htc-pips');
+        if (!pipsEl || typeof pipsEl.replaceChildren !== 'function')
+            return;
         pipsEl.replaceChildren();
         const majorPip = document.createElement('span');
         majorPip.className = `htc-pip major ${s.major ? '' : 'spent'}`;
@@ -298,6 +362,8 @@ const HumanTurnComposerModule = (() => {
             pipsEl.appendChild(freePip);
         }
         const budgetEl = q('#htc-budgetlab');
+        if (!budgetEl || typeof budgetEl.replaceChildren !== 'function')
+            return;
         budgetEl.replaceChildren();
         const bMajor = document.createElement('b');
         bMajor.textContent = String(s.major || 0);
@@ -310,70 +376,277 @@ const HumanTurnComposerModule = (() => {
     function setPhase(phase) {
         _phase = phase;
         const react = phase === 'react';
-        q('#htc-do-row').style.display = react ? 'none' : 'flex';
-        q('#htc-act').style.display = react ? 'none' : '';
+        const doRow = q('#htc-do-row');
+        if (doRow?.style)
+            doRow.style.display = react ? 'none' : 'flex';
+        const actBtn = q('#htc-act');
+        if (actBtn?.style)
+            actBtn.style.display = react ? 'none' : '';
         const rerollBtn = q('#htc-reroll-btn');
-        if (rerollBtn && react)
+        if (rerollBtn?.style && react)
             rerollBtn.style.display = 'none';
-        q('#htc-react-btn').style.display = react ? '' : 'none';
-        q('#htc-end').style.display = react ? 'none' : '';
-        const isDirected = window.events?.getControlMode?.(_charName) === 'directed';
-        q('#htc-title').textContent = react
-            ? `${_charName}'s reaction`
-            : (isDirected ? `🎬 Directed: ${_charName}'s draft` : `${_charName}'s turn`);
-        q('#htc-phase-note').textContent = react
-            ? 'say / emote / memory - the turn already ran'
-            : (isDirected
-                ? 'Review and edit the drafted turn, then press Act to commit'
-                : 'act · say · emote · memory are all free - only actions spend pips');
-        q('#htc-do').placeholder = react
-            ? 'react to what happened…'
-            : 'action - click a thing above, or type "eat berries", "open door"…';
-        q('#htc-speech').placeholder = react
-            ? 'what they say back…'
-            : 'what they say - free, stacks with the action';
+        const reactBtn = q('#htc-react-btn');
+        if (reactBtn?.style)
+            reactBtn.style.display = react ? '' : 'none';
+        const endBtn = q('#htc-end');
+        if (endBtn?.style)
+            endBtn.style.display = react ? 'none' : '';
+        const isAuto = Boolean(typeof events !== 'undefined' && events?.isAutoDraft?.(_charName));
+        const titleEl = q('#htc-title');
+        if (titleEl) {
+            titleEl.textContent = react
+                ? `${_charName}'s reaction`
+                : (isAuto ? `🎬 Directed: ${_charName}'s turn` : `${_charName}'s turn`);
+        }
+        const phaseNoteEl = q('#htc-phase-note');
+        if (phaseNoteEl) {
+            phaseNoteEl.textContent = react
+                ? 'say / emote / memory - the turn already ran'
+                : (isAuto
+                    ? 'Review and edit the drafted turn, then press Act to commit'
+                    : 'act · say · emote · memory are all free - only actions spend pips');
+        }
+        const doInput = q('#htc-do');
+        if (doInput) {
+            doInput.placeholder = react
+                ? 'react to what happened…'
+                : 'action - click a thing above, or type "eat berries", "open door"…';
+        }
+        const speechInput = q('#htc-speech');
+        if (speechInput) {
+            speechInput.placeholder = react
+                ? 'what they say back…'
+                : 'what they say - free, stacks with the action';
+        }
     }
     function setBusy(on) {
-        q('#htc-act').disabled = on;
+        const actBtn = q('#htc-act');
+        if (actBtn)
+            actBtn.disabled = on;
+    }
+    function parseResultText(text) {
+        const rawText = text || '';
+        const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (!lines.length) {
+            return { actionLine: '', proseLines: [], statusLines: [], peopleSummary: [], rawTailLines: [], rawText };
+        }
+        let actionLine = '';
+        const proseLines = [];
+        const statusLines = [];
+        const rawTailLines = [];
+        const peopleNames = [];
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            // 1. First line is typically the action outcome (e.g. You head through... / You pick up...)
+            if (i === 0 && (line.startsWith('You ') || line.startsWith('you ') || !line.startsWith('['))) {
+                actionLine = line;
+                continue;
+            }
+            // 2. Status effect alerts: [!] ...
+            if (line.startsWith('[!]')) {
+                statusLines.push(line.replace(/^\s*\[!\]\s*/, ''));
+                continue;
+            }
+            // 3. Trailing way listings: [way_id] area is visible beyond... / [door_id] ...
+            if (/^\[[a-zA-Z0-9_-]+\]/.test(line)) {
+                rawTailLines.push(line);
+                continue;
+            }
+            // 4. Character look paragraphs: name - description... [wearing: ...] [holding: ...]
+            if (line.includes('[wearing:') || line.includes('[holding:')) {
+                rawTailLines.push(line);
+                const matchName = line.match(/^([a-zA-Z0-9_ -]+?)\s*[--]/);
+                if (matchName && matchName[1]) {
+                    peopleNames.push(matchName[1].trim());
+                }
+                continue;
+            }
+            // 5. Normal room prose / descriptions
+            proseLines.push(line);
+        }
+        return {
+            actionLine,
+            proseLines,
+            statusLines,
+            peopleSummary: peopleNames,
+            rawTailLines,
+            rawText
+        };
+    }
+    function renderStructuredResult(container, parsed, prefix) {
+        const card = document.createElement('div');
+        card.className = 'htc-res-card';
+        // 1. Action / Movement line
+        if (parsed.actionLine || prefix) {
+            const actDiv = document.createElement('div');
+            actDiv.className = 'htc-res-action';
+            const b = document.createElement('b');
+            b.textContent = prefix ? `${prefix}: ` : 'last: ';
+            actDiv.appendChild(b);
+            if (parsed.actionLine) {
+                actDiv.appendChild(document.createTextNode(parsed.actionLine));
+            }
+            card.appendChild(actDiv);
+        }
+        // 2. Room prose
+        if (parsed.proseLines.length > 0) {
+            const proseDiv = document.createElement('div');
+            proseDiv.className = 'htc-res-prose';
+            proseDiv.textContent = parsed.proseLines.join(' ');
+            card.appendChild(proseDiv);
+        }
+        // 3. Status effect lines ([!])
+        if (parsed.statusLines.length > 0) {
+            for (const st of parsed.statusLines) {
+                const stDiv = document.createElement('div');
+                stDiv.className = 'htc-res-status';
+                stDiv.textContent = `! ${st}`;
+                card.appendChild(stDiv);
+            }
+        }
+        // 4. People summary
+        if (parsed.peopleSummary.length > 0) {
+            const peopleDiv = document.createElement('div');
+            peopleDiv.className = 'htc-res-people';
+            peopleDiv.innerHTML = `Present: <b>${parsed.peopleSummary.join(', ')}</b> <span class="htc-res-hint">(details in People chips)</span>`;
+            card.appendChild(peopleDiv);
+        }
+        // 5. Collapsible raw tail (ways and character look lines)
+        if (parsed.rawTailLines.length > 0) {
+            const details = document.createElement('details');
+            details.className = 'htc-res-details';
+            const summary = document.createElement('summary');
+            summary.textContent = `Exits & details (${parsed.rawTailLines.length})`;
+            details.appendChild(summary);
+            const tailBody = document.createElement('div');
+            tailBody.className = 'htc-res-tail-body';
+            for (const line of parsed.rawTailLines) {
+                const p = document.createElement('div');
+                p.className = 'htc-res-tail-line';
+                p.textContent = line;
+                tailBody.appendChild(p);
+            }
+            details.appendChild(tailBody);
+            card.appendChild(details);
+        }
+        // Fallback for plain unparsed text
+        if (!parsed.actionLine && parsed.proseLines.length === 0 && parsed.statusLines.length === 0 && parsed.rawTailLines.length === 0) {
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.className = 'htc-res-action';
+            const b = document.createElement('b');
+            b.textContent = prefix ? `${prefix}: ` : 'result: ';
+            fallbackDiv.appendChild(b);
+            fallbackDiv.appendChild(document.createTextNode(parsed.rawText));
+            card.appendChild(fallbackDiv);
+        }
+        container.appendChild(card);
     }
     function showResult(text) {
+        _lastReactionText = text || '';
         const node = q('#htc-result');
+        if (!node)
+            return;
         if (!text) {
-            node.style.display = 'none';
+            if (node.style)
+                node.style.display = 'none';
             return;
         }
-        node.textContent = '';
-        const b = document.createElement('b');
-        b.textContent = 'last: ';
-        node.appendChild(b);
-        node.appendChild(document.createTextNode(text));
-        node.style.display = 'block';
+        if (typeof node.replaceChildren === 'function')
+            node.replaceChildren();
+        node.classList?.remove?.('htc-expanded');
+        const parsed = parseResultText(text);
+        renderStructuredResult(node, parsed, 'last');
+        if (parsed.rawTailLines.length > 0 || (parsed.proseLines.join(' ').length + parsed.actionLine.length) > 240) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'htc-res-toggle-expand';
+            toggleBtn.textContent = 'expand / clamp view';
+            toggleBtn.addEventListener('click', () => {
+                node.classList.toggle('htc-expanded');
+            });
+            node.appendChild(toggleBtn);
+        }
+        if (node.style)
+            node.style.display = 'block';
     }
     function showResults(results) {
+        const valid = (results || []).filter(r => r && r.trim());
+        _lastReactionText = valid.join('\n');
         const node = q('#htc-result');
-        if (!results.length) {
-            node.style.display = 'none';
+        if (!node)
+            return;
+        if (!valid.length) {
+            if (node.style)
+                node.style.display = 'none';
             return;
         }
-        node.textContent = '';
-        results.forEach((text, i) => {
-            const b = document.createElement('b');
-            b.textContent = results.length > 1 ? `${i + 1}. ` : 'result: ';
-            node.appendChild(b);
-            node.appendChild(document.createTextNode(text || ''));
-            node.appendChild(document.createElement('br'));
+        if (typeof node.replaceChildren === 'function')
+            node.replaceChildren();
+        node.classList?.remove?.('htc-expanded');
+        valid.forEach((text, i) => {
+            const prefix = valid.length > 1 ? `${i + 1}` : 'result';
+            const parsed = parseResultText(text);
+            renderStructuredResult(node, parsed, prefix);
         });
-        node.style.display = 'block';
+        const hasTail = valid.some(r => r.includes('[wearing:') || r.includes('visible beyond') || r.includes('door]'));
+        if (hasTail || valid.join(' ').length > 240) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'htc-res-toggle-expand';
+            toggleBtn.textContent = 'expand / clamp view';
+            toggleBtn.addEventListener('click', () => {
+                node.classList.toggle('htc-expanded');
+            });
+            node.appendChild(toggleBtn);
+        }
+        if (node.style)
+            node.style.display = 'block';
     }
     function syncVolumeButtons() {
-        if (!_modal)
-            return;
         for (const btn of qa('#htc-volseg button')) {
-            btn.classList.toggle('on', btn.dataset.vol === _volume);
+            btn.classList?.toggle?.('on', btn.dataset?.vol === _volume);
         }
+    }
+    function setSpeechTarget(target) {
+        const clean = typeof target === 'string' && target.trim() ? target.trim() : null;
+        _pendingSpeechTarget = clean;
+        const chip = q('#htc-say-target');
+        if (!chip)
+            return;
+        if (typeof chip.replaceChildren === 'function')
+            chip.replaceChildren();
+        else if (Array.isArray(chip.children))
+            chip.children.length = 0;
+        if (!clean) {
+            if (chip.style)
+                chip.style.display = 'none';
+            chip.textContent = '';
+            return;
+        }
+        if (chip.style)
+            chip.style.display = 'inline-flex';
+        const txt = document.createElement('span');
+        txt.textContent = `to ${clean} `;
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'htc-say-target-clear';
+        clearBtn.title = 'Clear speech target';
+        clearBtn.textContent = '×';
+        clearBtn.addEventListener('click', (e) => {
+            if (e && typeof e.stopPropagation === 'function')
+                e.stopPropagation();
+            setSpeechTarget(null);
+        });
+        if (typeof chip.replaceChildren !== 'function') {
+            chip.textContent = `to ${clean} ×`;
+        }
+        chip.appendChild(txt);
+        chip.appendChild(clearBtn);
     }
     function renderMeta() {
         const meta = q('#htc-meta');
+        if (!meta || typeof meta.replaceChildren !== 'function')
+            return;
         meta.replaceChildren();
         const nodes = [];
         if (typeof worldState !== 'undefined' && worldState.tick)
@@ -407,6 +680,8 @@ const HumanTurnComposerModule = (() => {
     }
     function renderDatalist() {
         const dl = q('#htc-names');
+        if (!dl)
+            return;
         dl.textContent = '';
         if (!_scene)
             return;
@@ -431,13 +706,14 @@ const HumanTurnComposerModule = (() => {
     /** (Re)build the scene view + You strip + minimap for *charName*. */
     function refreshScene(charName) {
         const sceneHost = q('#htc-scene');
-        sceneHost.textContent = 'reading the room…';
+        if (sceneHost)
+            sceneHost.textContent = 'reading the room…';
         const stripHandlers = {
             onDraft: applyDraft,
             menu: (x, y, title, buttons) => htcGlobals.TurnSceneView
                 .menu(x, y, title, buttons, applyDraft),
         };
-        if (!htcGlobals.TurnSceneView)
+        if (!htcGlobals.TurnSceneView || !sceneHost)
             return;
         const sceneView = htcGlobals.TurnSceneView;
         sceneView.fetch(charName).then((scene) => {
@@ -451,12 +727,12 @@ const HumanTurnComposerModule = (() => {
                         _volume = talkOpts.volume;
                         syncVolumeButtons();
                     }
-                    _pendingSpeechTarget = (talkOpts && talkOpts.volume === 'whisper' && talkOpts.target) ? talkOpts.target : null;
-                    q('#htc-speech').focus();
+                    setSpeechTarget((talkOpts && talkOpts.target) ? talkOpts.target : null);
+                    q('#htc-speech')?.focus?.();
                 },
             });
             htcGlobals.TurnYouStrip
-                .render(q('#htc-you'), scene.you, stripHandlers);
+                ?.render?.(q('#htc-you'), scene.you, stripHandlers);
             if (htcGlobals.TurnMinimap) {
                 const feed = document.querySelector('.htc-feed');
                 if (feed)
@@ -492,14 +768,39 @@ const HumanTurnComposerModule = (() => {
             </div>
           </div>
           <div id="htc-you"></div>
-          <div class="htc-composer">
+          <div class="htc-composer" id="htc-composer">
+            <div class="htc-director-bar" id="htc-director-bar">
+              <button type="button" id="htc-ask-director" class="htc-director-btn" title="Ask the AI Director to draft this turn (uses Director's Note if provided)">🎬 Ask Director</button>
+              <input id="htc-director-note" type="text" autocomplete="off" placeholder="Director's note (optional) - e.g. 'act nervous, blame Sammy'" />
+              <label class="htc-autodraft-wrap" title="Automatically draft with AI when this character's turn opens"><input type="checkbox" id="htc-autodraft" /> Auto-draft</label>
+            </div>
             <div class="htc-budget">
               <div class="htc-pips" id="htc-pips"></div>
               <div class="htc-budgetlab" id="htc-budgetlab"></div>
               <span id="htc-phase-note"></span>
             </div>
             <div id="htc-result" style="display:none"></div>
-            <div id="htc-thought-row" style="display:none;font-style:italic;color:#a0b8cc;background:#222630;border-left:3px solid #7c8cf8;padding:6px 12px;margin-bottom:8px;border-radius:4px;font-size:12px;"></div>
+            <div class="htc-row" id="htc-thought-row">
+                <label for="htc-thought">💭 thought</label>
+                <input id="htc-thought" type="text" autocomplete="off"
+                    placeholder="internal monologue - what they privately think..." />
+                <select id="htc-emotion" title="Character's felt emotion">
+                    <option value="">emotion (keep)</option>
+                    <option value="neutral">neutral</option>
+                    <option value="happy">happy</option>
+                    <option value="angry">angry</option>
+                    <option value="afraid">afraid</option>
+                    <option value="sad">sad</option>
+                    <option value="surprised">surprised</option>
+                    <option value="disgusted">disgusted</option>
+                    <option value="anxious">anxious</option>
+                    <option value="curious">curious</option>
+                    <option value="determined">determined</option>
+                    <option value="ashamed">ashamed</option>
+                    <option value="relieved">relieved</option>
+                </select>
+                <button type="button" id="htc-thought-clear" title="Clear thought & emotion">×</button>
+            </div>
             <div class="htc-crow" id="htc-do-row">
               <span class="lbl">⚙ do</span>
               <input id="htc-do" type="text" list="htc-names" placeholder='action - click a thing above, or type "eat berries", "open door"…' autocomplete="off">
@@ -508,6 +809,7 @@ const HumanTurnComposerModule = (() => {
             <div id="htc-do-hint" style="display:none;font-size:11px;color:#c96;margin:-4px 0 6px 54px;line-height:1.3;"></div>
             <div class="htc-crow">
               <span class="lbl">🗨 say</span>
+              <span id="htc-say-target" class="htc-say-target" style="display:none"></span>
               <input id="htc-speech" type="text" placeholder="what they say - free, stacks with the action" autocomplete="off">
               <div class="htc-volseg" id="htc-volseg"></div>
             </div>
@@ -521,7 +823,9 @@ const HumanTurnComposerModule = (() => {
               <span class="lbl">🧠 memory</span>
               <input id="htc-memory" type="text" placeholder="optional - what you'll personally remember from this" autocomplete="off">
               <button type="button" id="htc-reroll-btn" class="htc-btn-primary" style="display:none;background:#6a4fb8;margin-right:6px;" title="Reroll this character's draft turn with the AI">🎲 Reroll</button>
+              <button type="button" id="htc-reroll" style="display:none"></button>
               <button type="button" id="htc-act" class="htc-btn-primary">Act</button>
+              <button type="button" id="htc-commit" style="display:none"></button>
             </div>
             <div class="htc-footer-row">
               <button type="button" id="htc-react-btn" class="htc-btn-primary gold" style="display:none">close turn</button>
@@ -548,18 +852,49 @@ const HumanTurnComposerModule = (() => {
             btn.dataset.vol = vol;
             btn.addEventListener('click', () => {
                 _volume = vol;
-                if (vol !== 'whisper')
-                    _pendingSpeechTarget = null;
                 syncVolumeButtons();
             });
             volseg.appendChild(btn);
         }
         syncVolumeButtons();
         q('#htc-act').addEventListener('click', commitStep);
+        const commitAlias = _modal.querySelector('#htc-commit');
+        if (commitAlias)
+            commitAlias.addEventListener('click', commitStep);
+        q('#htc-ask-director').addEventListener('click', () => {
+            EmotePicker.close(q('#htc-emote-palette'));
+            askDirector();
+        });
+        q('#htc-director-note').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                askDirector();
+            }
+        });
+        q('#htc-autodraft').addEventListener('change', () => {
+            const cb = q('#htc-autodraft');
+            if (_charName && cb && typeof events !== 'undefined' && typeof events?.setAutoDraft === 'function') {
+                events.setAutoDraft(_charName, Boolean(cb.checked));
+            }
+        });
+        q('#htc-thought-clear').addEventListener('click', () => {
+            const thoughtEl = q('#htc-thought');
+            const emotionEl = q('#htc-emotion');
+            if (thoughtEl)
+                thoughtEl.value = '';
+            if (emotionEl)
+                emotionEl.value = '';
+        });
         q('#htc-reroll-btn').addEventListener('click', () => {
             EmotePicker.close(q('#htc-emote-palette'));
-            finishAct({ reroll: true });
+            askDirector();
         });
+        const rerollAlias = _modal.querySelector('#htc-reroll');
+        if (rerollAlias)
+            rerollAlias.addEventListener('click', () => {
+                EmotePicker.close(q('#htc-emote-palette'));
+                askDirector();
+            });
         q('#htc-react-btn').addEventListener('click', () => finishReact(false));
         q('#htc-end').addEventListener('click', () => finishAct({ endTurn: true }));
         q('#htc-close').addEventListener('click', () => onOverlayDismiss());
@@ -600,7 +935,7 @@ const HumanTurnComposerModule = (() => {
         q('#htc-act').addEventListener('click', () => {
             EmotePicker.close(q('#htc-emote-palette'));
         });
-        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory']) {
+        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory', 'htc-thought']) {
             q('#' + id).addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -627,13 +962,29 @@ const HumanTurnComposerModule = (() => {
         document.addEventListener('keydown', closeOnEsc);
     }
     // ── resolve plumbing ─────────────────────────────────────────────
+    function _commitFromInputs() {
+        const norm = normalizeReply(buildPayload());
+        const thoughtEl = q('#htc-thought');
+        const emotionEl = q('#htc-emotion');
+        const inner = thoughtEl
+            ? (thoughtEl.value.trim() || null)
+            : (_currentPrefill?.inner || null);
+        const emotion = emotionEl
+            ? (emotionEl.value.trim() || null)
+            : (_currentPrefill?.emotion || null);
+        return {
+            ...norm,
+            inner,
+            emotion,
+        };
+    }
     /** Stage one step and hand it to the engine. The panel stays OPEN. */
     function commitStep() {
-        const norm = normalizeReply(buildPayload());
-        if (!norm.action && !norm.speech && !norm.emote)
+        const stepResult = _commitFromInputs();
+        if (!stepResult.action && !stepResult.speech && !stepResult.emote && !stepResult.inner && !stepResult.emotion && !stepResult.memory)
             return;
-        if (norm.action) {
-            const verb = norm.action.split(/\s+/)[0].toLowerCase();
+        if (stepResult.action) {
+            const verb = stepResult.action.split(/\s+/)[0].toLowerCase();
             const at = actionTiers();
             const tier = at && at.tierOf ? at.tierOf(verb) : 'major';
             const s = turnSlots();
@@ -645,20 +996,20 @@ const HumanTurnComposerModule = (() => {
                 setFlash(`no ${tier} action left this turn - say / emote / memory are still free`);
                 return;
             }
+            _lastCommittedAction = stepResult.action;
         }
         const resolve = _activeResolve;
         _activeResolve = null;
-        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory']) {
-            q('#' + id).value = '';
+        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory', 'htc-thought', 'htc-emotion']) {
+            const input = q('#' + id);
+            if (input)
+                input.value = '';
         }
-        q('#htc-relation').value = '';
-        _pendingSpeechTarget = null;
+        const relEl = q('#htc-relation');
+        if (relEl)
+            relEl.value = '';
+        setSpeechTarget(null);
         setBusy(true);
-        const stepResult = {
-            ...norm,
-            inner: _currentPrefill?.inner || null,
-            emotion: _currentPrefill?.emotion || null,
-        };
         _currentPrefill = null;
         if (resolve)
             resolve({ step: stepResult });
@@ -673,18 +1024,34 @@ const HumanTurnComposerModule = (() => {
             resolve(reply);
     }
     function finishReact(endTurn) {
+        if (_dryRun) {
+            _reactResolve = null;
+            _currentPrefill = null;
+            _dryRun = false;
+            hidePanel();
+            return;
+        }
         if (typeof _reactResolve !== 'function')
             return;
         const resolve = _reactResolve;
         _reactResolve = null;
-        _currentPrefill = null;
         let reply;
         if (endTurn) {
+            _currentPrefill = null;
             reply = { endTurn: true };
         }
         else {
-            const norm = normalizeReply(buildPayload());
-            reply = { speech: norm.speech, volume: norm.speechVolume, emote: norm.emote, memory: norm.memory, target: norm.target };
+            const stepResult = _commitFromInputs();
+            _currentPrefill = null;
+            reply = {
+                speech: stepResult.speech,
+                volume: stepResult.speechVolume,
+                emote: stepResult.emote,
+                memory: stepResult.memory,
+                target: stepResult.target,
+                inner: stepResult.inner || null,
+                emotion: stepResult.emotion || null,
+            };
         }
         TurnFeed.markTurnEnd();
         hidePanel();
@@ -700,104 +1067,194 @@ const HumanTurnComposerModule = (() => {
     }
     function setFlash(msg) {
         const node = q('#htc-flash');
+        if (!node)
+            return;
         node.textContent = msg;
         window.setTimeout(() => { if (node.textContent === msg)
             node.textContent = ''; }, 2200);
     }
     // ── panel open/close ─────────────────────────────────────────────
     function hidePanel() {
-        if (_overlay)
-            _overlay.style.display = 'none';
-        if (_scene && typeof _scene.closeMenu === 'function')
-            _scene.closeMenu();
+        const ov = _overlay || q('#htc-overlay');
+        if (ov?.style)
+            ov.style.display = 'none';
+        if (htcGlobals.TurnSceneView && typeof htcGlobals.TurnSceneView.closeMenu === 'function') {
+            htcGlobals.TurnSceneView.closeMenu();
+        }
     }
     function resetRows() {
-        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory']) {
-            q('#' + id).value = '';
+        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory', 'htc-thought', 'htc-emotion']) {
+            const input = q('#' + id);
+            if (input)
+                input.value = '';
         }
-        q('#htc-relation').value = '';
-        _pendingSpeechTarget = null;
+        const relEl = q('#htc-relation');
+        if (relEl)
+            relEl.value = '';
+        setSpeechTarget(null);
         const hintEl = q('#htc-do-hint');
         if (hintEl) {
             hintEl.textContent = '';
-            hintEl.style.display = 'none';
-        }
-        const thoughtEl = q('#htc-thought-row');
-        if (thoughtEl) {
-            thoughtEl.textContent = '';
-            thoughtEl.style.display = 'none';
+            if (hintEl.style)
+                hintEl.style.display = 'none';
         }
     }
     function applyPrefill(prefill) {
-        if (prefill.action) {
-            q('#htc-do').value = prefill.action;
+        if (!prefill || typeof prefill !== 'object')
+            return;
+        _currentPrefill = prefill;
+        if (_phase !== 'react' && prefill.action !== undefined && prefill.action !== null) {
+            const doEl = q('#htc-do');
+            if (doEl)
+                doEl.value = prefill.action;
         }
-        if (prefill.speech) {
-            q('#htc-speech').value = prefill.speech;
+        if (prefill.speech !== undefined) {
+            const speechEl = q('#htc-speech');
+            if (speechEl)
+                speechEl.value = prefill.speech || '';
         }
         if (prefill.speechVolume) {
             _volume = prefill.speechVolume;
             syncVolumeButtons();
         }
-        if (prefill.target) {
-            _pendingSpeechTarget = prefill.target;
+        setSpeechTarget(prefill.target || null);
+        if (prefill.emote !== undefined) {
+            const emoteEl = q('#htc-emote');
+            if (emoteEl)
+                emoteEl.value = prefill.emote || '';
         }
-        if (prefill.emote) {
-            q('#htc-emote').value = prefill.emote;
-        }
-        if (prefill.memory) {
+        if (prefill.memory !== undefined) {
             const mem = prefill.memory;
-            q('#htc-memory').value = typeof mem === 'string'
-                ? mem
-                : (mem?.text || JSON.stringify(mem));
-        }
-        const thoughtEl = q('#htc-thought-row');
-        if (thoughtEl) {
-            if (prefill.inner) {
-                thoughtEl.textContent = `💭 Thought: "${prefill.inner}"`;
-                thoughtEl.style.display = 'block';
+            const memEl = q('#htc-memory');
+            if (memEl) {
+                memEl.value = !mem
+                    ? ''
+                    : (typeof mem === 'string' ? mem : (mem?.text || JSON.stringify(mem)));
             }
-            else {
-                thoughtEl.textContent = '';
-                thoughtEl.style.display = 'none';
+        }
+        const thoughtEl = q('#htc-thought');
+        if (thoughtEl) {
+            thoughtEl.value = prefill.inner || '';
+        }
+        const emotionEl = q('#htc-emotion');
+        if (emotionEl) {
+            const emoVal = typeof prefill.emotion === 'object' && prefill.emotion
+                ? (prefill.emotion.label || '')
+                : (prefill.emotion || '');
+            if (emoVal && emotionEl.options && !Array.from(emotionEl.options).some((o) => o.value === emoVal)) {
+                const opt = document.createElement('option');
+                opt.value = emoVal;
+                opt.textContent = emoVal;
+                emotionEl.appendChild(opt);
+            }
+            emotionEl.value = emoVal;
+        }
+    }
+    async function askDirector() {
+        const btn = q('#htc-ask-director');
+        const noteEl = q('#htc-director-note');
+        const directorNote = noteEl ? (noteEl.value || '').trim() : '';
+        const charName = _charName || (typeof config !== 'undefined' ? config.controllingPlayer : null) || '';
+        const doVal = (q('#htc-do')?.value || '').trim();
+        const speechVal = (q('#htc-speech')?.value || '').trim();
+        const emoteVal = (q('#htc-emote')?.value || '').trim();
+        const thoughtVal = (q('#htc-thought')?.value || '').trim();
+        const emotionVal = (q('#htc-emotion')?.value || '').trim();
+        const memoryVal = (q('#htc-memory')?.value || '').trim();
+        const hasCurrentDraft = Boolean(doVal || speechVal || emoteVal || thoughtVal || emotionVal || memoryVal || _pendingSpeechTarget);
+        const currentDraft = hasCurrentDraft ? {
+            action: doVal,
+            speech: speechVal,
+            speechVolume: _volume || 'say',
+            target: _pendingSpeechTarget || null,
+            emote: emoteVal,
+            inner: thoughtVal,
+            emotion: emotionVal,
+            memory: memoryVal,
+        } : null;
+        if (btn) {
+            btn.textContent = '🎬 Drafting...';
+            btn.disabled = true;
+        }
+        try {
+            const draft = await (typeof VW !== 'undefined' ? VW : null)?.agent?.draftTurnForCharacter?.(charName, {
+                phase: _phase,
+                directorNote,
+                actionResult: _lastReactionText,
+                lastAction: _lastCommittedAction,
+                currentDraft,
+                scene: _scene,
+            });
+            if (draft) {
+                applyPrefill(draft);
+                return draft;
+            }
+            return null;
+        }
+        finally {
+            if (btn) {
+                btn.textContent = '🎬 Ask Director';
+                btn.disabled = false;
             }
         }
     }
     function applyDraft(parts) {
         if (!parts || _phase === 'react')
             return;
-        q('#htc-do').value = [parts.action, parts.item, parts.target]
-            .filter(Boolean).join(' ');
+        const doEl = q('#htc-do');
+        if (doEl) {
+            doEl.value = [parts.action, parts.item, parts.target]
+                .filter(Boolean).join(' ');
+        }
         const hintEl = q('#htc-do-hint');
         if (hintEl) {
             hintEl.textContent = '';
-            hintEl.style.display = 'none';
+            if (hintEl.style)
+                hintEl.style.display = 'none';
         }
-        q('#htc-speech').focus();
+        q('#htc-speech')?.focus?.();
     }
     /** First open for a turn: full setup + show. */
     function openPanel(charName, opts = {}) {
-        build();
+        try {
+            build();
+        }
+        catch { /* headless unit stub */ }
         _charName = charName;
+        _lastCommittedAction = '';
         resetRows();
         setPhase('compose');
         showResult(opts.lastResult || '');
         refreshScene(charName);
-        TurnFeed.render(q('#htc-feed-lines'));
+        const feedLines = q('#htc-feed-lines');
+        if (feedLines && typeof TurnFeed !== 'undefined' && TurnFeed?.render) {
+            TurnFeed.render(feedLines);
+        }
         const rerollEl = q('#htc-reroll-btn');
-        if (rerollEl) {
+        if (rerollEl?.style) {
             rerollEl.style.display = (opts.canReroll || opts.prefill) ? 'inline-block' : 'none';
         }
+        const isAuto = Boolean(typeof events !== 'undefined' && events?.isAutoDraft?.(charName));
+        const autoDraftEl = q('#htc-autodraft');
+        if (autoDraftEl)
+            autoDraftEl.checked = isAuto;
         renderMeta();
         renderPips();
         setBusy(false);
-        q('#htc-flash').textContent = '';
-        _overlay.style.display = 'flex';
+        const flashEl = q('#htc-flash');
+        if (flashEl)
+            flashEl.textContent = '';
+        const ov = _overlay || q('#htc-overlay');
+        if (ov?.style)
+            ov.style.display = 'flex';
         _currentPrefill = opts.prefill || null;
         if (opts.prefill) {
             applyPrefill(opts.prefill);
         }
-        q('#htc-do').focus();
+        else if (isAuto && _phase === 'compose') {
+            askDirector();
+        }
+        q('#htc-do')?.focus?.();
     }
     /** Subsequent step: refresh the open panel with the last result + budget. */
     function refreshStep(charName, lastResult, prefill) {
@@ -806,6 +1263,10 @@ const HumanTurnComposerModule = (() => {
         setPhase('compose');
         showResult(lastResult || '');
         refreshScene(charName);
+        const isAuto = Boolean(typeof events !== 'undefined' && events?.isAutoDraft?.(charName));
+        const autoDraftEl = q('#htc-autodraft');
+        if (autoDraftEl)
+            autoDraftEl.checked = isAuto;
         renderMeta();
         renderPips();
         setBusy(false);
@@ -813,7 +1274,7 @@ const HumanTurnComposerModule = (() => {
         if (prefill) {
             applyPrefill(prefill);
         }
-        q('#htc-do').focus();
+        q('#htc-do')?.focus?.();
     }
     /**
      * The engine's per-step hook. First call opens the panel; later calls
@@ -824,7 +1285,8 @@ const HumanTurnComposerModule = (() => {
         if (_activeResolve) {
             return new Promise((resolve) => { _activeResolve = resolve; });
         }
-        if (!_overlay || _overlay.style.display === 'none')
+        const ov = _overlay || q('#htc-overlay');
+        if (!ov || ov.style?.display === 'none')
             openPanel(charName, opts);
         else
             refreshStep(charName, opts.lastResult || '', opts.prefill);
@@ -839,14 +1301,20 @@ const HumanTurnComposerModule = (() => {
         if (_reactResolve) {
             return new Promise((resolve) => { _reactResolve = resolve; });
         }
-        if (!_built || !_overlay || _overlay.style.display === 'none') {
-            build();
+        const ov = _overlay || q('#htc-overlay');
+        if (!_built || !ov || ov.style?.display === 'none') {
+            try {
+                build();
+            }
+            catch { /* headless unit stub */ }
             _charName = charName;
             resetRows();
             setPhase('react');
             showResults(results);
             renderMeta();
-            _overlay.style.display = 'flex';
+            const ovAfter = _overlay || q('#htc-overlay');
+            if (ovAfter?.style)
+                ovAfter.style.display = 'flex';
         }
         else {
             _charName = charName;
@@ -856,18 +1324,67 @@ const HumanTurnComposerModule = (() => {
             refreshScene(charName);
             renderMeta();
         }
-        q('#htc-speech').focus();
+        const isAuto = Boolean(typeof events !== 'undefined' && events?.isAutoDraft?.(charName));
+        const autoDraftEl = q('#htc-autodraft');
+        if (autoDraftEl)
+            autoDraftEl.checked = isAuto;
+        if (isAuto) {
+            askDirector();
+        }
+        q('#htc-speech')?.focus?.();
         return new Promise((resolve) => { _reactResolve = resolve; });
     }
     /** The engine calls this once the turn (and react) is done. */
     function closeTurn() {
+        _activeResolve = null;
+        _reactResolve = null;
         hidePanel();
         // Invalidate the scene cache so the next turn fetches fresh data.
         if (htcGlobals.TurnSceneView && typeof htcGlobals.TurnSceneView.invalidateCache === 'function') {
             htcGlobals.TurnSceneView.invalidateCache();
         }
     }
-    return { request, react, closeTurn, parseCmd, doHint, VERBS };
+    /**
+ * Dev / e2e preview affordance (task-698):
+ * Opens the HTC directly in the react phase with supplied result text.
+ * Closing resolves to nothing (no turn spent, no action sent, no memory saved).
+ */
+    function preview(charName, results) {
+        const resArr = Array.isArray(results) ? results : [results];
+        _dryRun = true;
+        if (!_built || !_overlay) {
+            try {
+                build();
+            }
+            catch { /* headless unit stub */ }
+        }
+        _charName = charName;
+        resetRows();
+        setPhase('react');
+        showResults(resArr);
+        refreshScene(charName);
+        renderMeta();
+        if (_overlay?.style)
+            _overlay.style.display = 'flex';
+        q('#htc-speech')?.focus?.();
+    }
+    return {
+        request,
+        react,
+        preview,
+        closeTurn,
+        open: openPanel,
+        openPanel,
+        applyPrefill,
+        setSpeechTarget,
+        askDirector,
+        _commitFromInputs,
+        commitStep,
+        parseCmd,
+        doHint,
+        VERBS,
+        parseResultText,
+    };
 })();
 window.HumanTurnComposer = HumanTurnComposerModule;
 const htcGlobals = window;

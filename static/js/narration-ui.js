@@ -192,6 +192,13 @@ class NarrationUI {
             }
             submitBtn.onclick = () => {
                 const text = textarea.value.trim();
+                if (text && worldState?.data) {
+                    const wsData = worldState.data;
+                    wsData.persisted_narration = wsData.persisted_narration || {};
+                    const key = context.targetItem || context.areaName || context.actor;
+                    if (key)
+                        wsData.persisted_narration[key] = text;
+                }
                 cleanup(text || null);
             };
             skipBtn.onclick = () => cleanup(null);
@@ -273,12 +280,15 @@ class NarrationUI {
         const indicator = document.getElementById('narration-indicator');
         if (!indicator)
             return;
-        const labels = {
-            'none': '🔇 No Narration',
-            'player': '🎭 Player Narration',
-            'ai': '🤖 AI Narration'
-        };
-        indicator.textContent = labels[this.mode] || labels['none'];
+        let label = '🔇 No Narration';
+        if (this.mode === 'player') {
+            label = '🎭 Player Narration (live)';
+        }
+        else if (this.mode === 'ai') {
+            const hasModel = Boolean(config?.apiKey && config?.model);
+            label = hasModel ? '🤖 AI Narration (live)' : '🤖 AI Narration (inactive - no model)';
+        }
+        indicator.textContent = label;
         indicator.className = `narration-badge narration-${this.mode}`;
     }
 }

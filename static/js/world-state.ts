@@ -105,7 +105,10 @@ class WorldState {
         // While a live character turn owns runtime focus, every state refresh
         // must use that character's current scope. Do not let secondary callers
         // (or an SSE-triggered refresh) fall back to the whole-world endpoint.
-        if (this._runtimeFocus.length) return this.fetchRuntime();
+        if (this._runtimeFocus.length) {
+            await this.fetchRuntime();
+            return this.data;
+        }
 
         // Coalesce concurrent fetches into one. app.py broadcasts `world_changed`
         // for EVERY mutating /api/ call, so the SSE (connectLiveEdits) refetches

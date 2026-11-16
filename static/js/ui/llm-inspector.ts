@@ -70,13 +70,20 @@
         _panel.style.cssText = 'position:fixed;right:14px;bottom:82px;z-index:12001;width:min(600px,94vw);max-height:72vh;overflow:auto;padding:10px;border-radius:8px;background:var(--bg-inset,#1c1c1c);color:var(--text,#eee);border:1px solid var(--border,#444);font-size:12px;display:none;font-family:var(--font-mono,monospace);';
 
         const topRow = document.createElement('div');
-        topRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        topRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;';
         const titleStrong = document.createElement('strong');
         titleStrong.textContent = 'LLM Inspector';
+        const captureLabel = document.createElement('label');
+        captureLabel.style.cssText = 'display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim,#ccc);cursor:pointer;';
+        const captureCb = document.createElement('input');
+        captureCb.type = 'checkbox';
+        captureCb.id = 'llm-inspector-capture';
+        captureCb.checked = Boolean((window as any).config?.showRawLLM);
+        captureLabel.append(captureCb, document.createTextNode('Show Raw LLM'));
         const countSpan = document.createElement('span');
         countSpan.id = 'llm-inspector-count';
         countSpan.style.cssText = 'color:var(--text-dim,#999);font-size:11px;';
-        topRow.append(titleStrong, countSpan);
+        topRow.append(titleStrong, captureLabel, countSpan);
 
         const filterRow = document.createElement('div');
         filterRow.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;';
@@ -114,6 +121,15 @@
         document.body.appendChild(_panel);
 
         const panel = _panel!;
+        panel.querySelector('#llm-inspector-capture')?.addEventListener('change', (ev) => {
+            const on = Boolean((ev.target as HTMLInputElement).checked);
+            const cfg = (window as any).config;
+            if (cfg) {
+                cfg.showRawLLM = on;
+                try { void cfg.save?.(); } catch (_) {}
+            }
+            render();
+        });
         panel.querySelector('#llm-inspector-refresh')!.addEventListener('click', render);
         panel.querySelector('#llm-inspector-clear')!.addEventListener('click', async () => {
             await _datasetCollector()?.clearRaw?.();

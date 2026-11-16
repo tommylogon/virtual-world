@@ -112,7 +112,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             ? `\n\n=== RECENTLY ===\n${_summaryLine(lastResult)}`
             : '\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?';
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'slots', 'mosiac', 'ghost', 'dead']);
+        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'language', 'size', 'activity', 'grappled', 'slots', 'mosiac', 'ghost', 'dead']);
         // End-of-turn memory is OPTIONAL (memories normally come at turn START).
         const wantMemory = includeMemory && config.endOfTurnMemory === true;
         const memoryInstruction = wantMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACT : '';
@@ -167,7 +167,7 @@ ${PromptBuilder.buildJsonExample(schemaFields)}`;
             happenedLines.push(PromptBuilder.frameSelfSpeech(charName, actionResult));
         const whatHappened = happenedLines.length ? happenedLines.join('\n') : 'Nothing happened.';
         const ctx = { phase: 'react', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'slots', 'ghost', 'dead']);
+        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'language', 'activity', 'slots', 'ghost', 'dead']);
         // task-XXX: the react call is a fresh 2-message conversation (no decide
         // replay), so the persona must ride in THIS message - the model has no
         // other source for voice and identity.
@@ -241,18 +241,19 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
         const persona = player?.personality
             ? `You are ${charName}. Personality: ${player.personality}`
             : `You are ${charName}.`;
-        const context = PromptBuilder.buildContextBlock(player, { phase: 'communication' }, ['emotion', 'insanity', 'trait', 'mosiac', 'dead']);
+        const context = PromptBuilder.buildContextBlock(player, { phase: 'communication' }, ['emotion', 'insanity', 'trait', 'language', 'mosiac', 'dead']);
         const availableChannels = (Array.isArray(channels) ? channels : [])
             .filter((channel) => !isTownBoard || channel?.kind !== 'group');
         const channelLines = availableChannels.map((channel) => {
             const unread = Number(channel?.unread_count || 0);
             const members = Array.isArray(channel?.members) ? channel.members.join(', ') : '';
+            const mutedSuffix = channel?.muted ? ' [muted]' : '';
             if (isTownBoard) {
                 const noun = channel?.kind === 'public' ? 'posts' : 'letters';
                 const medium = channel?.kind === 'public' ? 'town notice board' : 'private letter';
-                return `- ${channel.id} (${medium}; ${channel.name}; ${unread} new ${noun}${members ? `; members: ${members}` : ''})`;
+                return `- ${channel.id} (${medium}; ${channel.name}; ${unread} new ${noun}${members ? `; members: ${members}` : ''})${mutedSuffix}`;
             }
-            return `- ${channel.id} (${channel.kind}; ${channel.name}; ${unread} unread${members ? `; members: ${members}` : ''})`;
+            return `- ${channel.id} (${channel.kind}; ${channel.name}; ${unread} unread${members ? `; members: ${members}` : ''})${mutedSuffix}`;
         }).join('\n') || '- No conversations are available.';
         const names = (Array.isArray(knownCharacters) ? knownCharacters : [])
             .map(name => String(name || '').trim()).filter(Boolean).join(', ');
@@ -261,12 +262,26 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
             ? 'You use The Commons as a town notice board and private letters. The board is public; letters are direct conversations. Delivery is immediate inside The Commons; do not invent physical delivery, devices, or travel. Message text is hidden until you explicitly choose read_chat.'
             : 'You are using the same phone as this character. The list contains only conversations you can access. Message text is hidden until you explicitly choose read_chat.';
         const actions = isTownBoard
-            ? 'Available tools: read_chat to read posts or letters, send_chat to add a public post or reply to a private letter, start_dm to open a private letter exchange with one existing character and send its first letter, and remember to save something worth retaining. Group conversations are unavailable.'
-            : 'Available tools: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one character whose name you know and send its first message, start_group to create a private group with a name and invitees whose names you know, and remember to save something worth retaining.';
+            ? 'Available tools: read_chat to read posts or letters, send_chat to add a public post or reply to a private letter, start_dm to open a private letter exchange with one existing character and send its first letter, mute_chat to mute or unmute a conversation, and remember to save something worth retaining. Group conversations are unavailable.'
+            : 'Available tools: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one character whose name you know and send its first message, start_group to create a private group with a name and invitees whose names you know, mute_chat to mute or unmute a conversation, and remember to save something worth retaining.';
+        const worldTimeLine = player?.world_time ? `Current time: ${player.world_time}\n` : '';
+        const rels = player?.relationships && typeof player.relationships === 'object'
+            ? Object.entries(player.relationships)
+                .filter(([, r]) => r && typeof r === 'object')
+                .map(([k, r]) => {
+                const axes = ['trust', 'attraction', 'fear', 'resentment']
+                    .filter((ax) => typeof r[ax] === 'number' && r[ax] !== 0)
+                    .map((ax) => `${ax} ${r[ax]}`);
+                const extra = axes.length ? `, ${axes.join(', ')}` : '';
+                return `- ${r.name || k}: closeness ${r.closeness ?? 0}${extra}${r.label ? ` (${r.label})` : ''}`;
+            })
+                .join('\n')
+            : '';
+        const relBlock = rels ? `\nRelationships:\n${rels}\n` : '';
         return `${persona}
 === YOUR STATE ===
-${String(context || '').trim()}
-${String(memoryNL || '').trim()}
+${worldTimeLine}${String(context || '').trim()}
+${relBlock}${String(memoryNL || '').trim()}
 
 ${heading}
 ${contextLine} Use only the conversation ids shown below.
@@ -276,7 +291,7 @@ ${channelLines}
 ${actions} You may call zero or more tools. Make one call at a time. After a read_chat result, consider what you want to do next; replying is optional, not expected. Stop by returning no tool call when you are done or want to stay quiet. Do not take physical world actions on this turn. Never claim to have read messages unless read_chat returns them. Keep the character's established personality and memories.
 Characters whose names you know and may contact: ${names || 'none'}
 
-Use tool calls for all communication. Plain response text is private thought only and ends the turn; it never sends a message.`;
+Use tool calls for all communication. Plain response text is your private, in-character inner monologue (what you are genuinely thinking, feeling, and reacting to right now - never a dry status summary of tool calls) and ends the turn; it never sends a message.`;
     }
     /**
      * Invalid-action auto-retry prompt (task-361): feed back the failed action

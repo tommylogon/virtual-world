@@ -142,6 +142,7 @@ declare const PromptBuilder: any;
 
 /** ApiClient (api.js): the HTTP surface. Only the calls converted code makes. */
 declare const ApiClient: {
+    action(command: string, charName?: string, opts?: { enforceSlots?: boolean }): Promise<any>;
     getProfiles(): Promise<any>;
     saveProfile(name: string, data: unknown): Promise<any>;
     deleteProfile(name: string): Promise<any>;
@@ -176,12 +177,13 @@ declare const ApiClient: {
     setGameDate(date: { day?: number; month?: number; year?: number }): Promise<any>;
     setForecastOverride(data: Record<string, unknown>): Promise<any>;
     getForecastOutlook(days?: number): Promise<any>;
+    saveForecast(forecast?: Record<string, unknown>): Promise<any>;
     saveForecastSchedule(schedule?: Record<string, unknown>): Promise<any>;
     getPlayerRecipes(charName: string): Promise<any>;
     updatePlayerBody(charName: string, sensitivity: Record<string, number>): Promise<any>;
     getPlayerRecord(charName: string): Promise<any>;
     savePlayerRecord(charName: string, record: Record<string, unknown>, render?: boolean): Promise<any>;
-    compilePlayerRecord(charName: string, options?: { force?: boolean; sections?: string[]; record?: Record<string, unknown> }): Promise<any>;
+    compilePlayerRecord(charName: string, options?: { force?: boolean; sections?: string[]; record?: Record<string, unknown>; overrides?: { base_description?: string; personality?: string } }): Promise<any>;
     revertPlayerCompile(charName: string): Promise<any>;
     getPlayerMemoriesPeople(charName: string): Promise<any>;
     saveLibraryTag(tagData: unknown): Promise<any>;
@@ -199,6 +201,7 @@ declare const ApiClient: {
     searchMemoryEmbeddings(payload: { character: string; vector: number[]; k?: number }): Promise<any>;
     mapPlayerEmotions(charName: string, payload: { mapped: unknown; reason?: string }): Promise<any>;
     getPlayerSpatialMemories(charName: string): Promise<any>;
+    getPlayerCognitiveMap(charName: string): Promise<any>;
     retrievePlayerMemories(charName: string, payload: {
         query?: string;
         max_results?: number;
@@ -485,6 +488,7 @@ interface Window {
     GraphTreeView: any;
     HelpCenter: any;
     HumanTurnComposer: any;
+    EntityEditor: any;
     InspectorAgentView: any;
     InspectorBehaviors: any;
     InspectorHelpers: any;
@@ -504,6 +508,7 @@ interface Window {
     ItemLibraryAI: any;
     ItemLibraryContents: any;
     ItemLibraryPlacement: any;
+    ItemLibraryBatchTriggers: any;
     ItemLibraryTriggerSuggester: any;
     KnownBySection: any;
     NLEditor: any;
@@ -761,6 +766,16 @@ declare function selectAgent(name: string): void;
 declare const viewerExitMap: Record<string, ExitEntry>;
 
 // >>> ambient shapes for still-unconverted .js modules >>>
+// owner: static/js/item-library/batch-triggers.js
+declare const ItemLibraryBatchTriggers: {
+    prepareItemFields(...args: any[]): any;
+    toggleMultiSelect(...args: any[]): any;
+    selectAllFiltered(...args: any[]): any;
+    clearSelection(...args: any[]): any;
+    updateBatchBar(...args: any[]): any;
+    runBatch(...args: any[]): any;
+};
+
 // owner: static/js/item-library/placement.js
 declare const ItemLibraryPlacement: {
     pickTarget(...args: any[]): any;

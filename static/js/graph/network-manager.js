@@ -744,16 +744,34 @@ window.GraphNetwork = {
                     edgesArr = sub.edges || [];
                 }
                 catch (err) {
-                    // Stale selection (e.g. after a scenario load, or a persisted
-                    // id whose scope was renamed/deleted - task-749): drop it, clear
-                    // the saved key, and fall back to the whole world.
-                    graphManager._scopeFilter = null;
-                    graphManager._persistScopeFilter?.();
-                    const sel = document.getElementById('graph-scope-filter');
-                    if (sel)
-                        sel.value = '';
-                    nodesObj = await ApiClient.getGraphNodes();
-                    edgesArr = await ApiClient.getGraphEdges();
+                    const errorObj = err;
+                    const is404 = errorObj?.status === 404 || (typeof errorObj?.message === 'string' && /\b(404|not found)\b/i.test(errorObj.message));
+                    if (is404) {
+                        // Stale selection (e.g. after a scenario load, or a persisted
+                        // id whose scope was renamed/deleted - task-749): drop it, clear
+                        // the saved key, and fall back to the whole world.
+                        graphManager._scopeFilter = null;
+                        graphManager._persistScopeFilter?.();
+                        const sel = document.getElementById('graph-scope-filter');
+                        if (sel)
+                            sel.value = '';
+                        if (typeof toastError === 'function') {
+                            toastError(`Scope "${scopeId}" not found. Falling back to Whole world.`);
+                        }
+                        if (window.GraphToolbar)
+                            GraphToolbar.syncAll();
+                        nodesObj = await ApiClient.getGraphNodes();
+                        edgesArr = await ApiClient.getGraphEdges();
+                    }
+                    else {
+                        // Transient failure (5xx, timeout, offline - task-712):
+                        // Do not clear the filter or reset the picker to Whole world.
+                        // Surface the error and leave existing selection and graph intact.
+                        if (typeof toastError === 'function') {
+                            toastError(`Failed to load scope "${scopeId}": ${errorObj?.message || String(err)}`);
+                        }
+                        return;
+                    }
                 }
             }
             else {

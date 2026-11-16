@@ -15,6 +15,7 @@ const CONFIG_SCHEMA = {
     apiBase: { storageKey: 'api_base', type: 'string', default: 'http://localhost:1234/v1' },
     model: { storageKey: 'model', type: 'string', default: 'glm-4-9b-0414' },
     temperature: { storageKey: 'temperature', type: 'string', default: '0.7' },
+    topP: { storageKey: 'top_p', type: 'string', default: '0.95' },
     maxTokens: { storageKey: 'max_tokens', type: 'number', default: 2048 },
     softMaxTokens: { storageKey: 'soft_max_tokens', type: 'number', default: 0 },
     showLogs: { storageKey: 'show_logs', type: 'boolean', default: false },
@@ -26,6 +27,7 @@ const CONFIG_SCHEMA = {
     matureContent: { storageKey: 'mature_content', type: 'boolean', default: false },
     showRawLLM: { storageKey: 'show_raw_llm', type: 'boolean', default: false },
     endOfTurnMemory: { storageKey: 'end_of_turn_memory', type: 'boolean', default: false },
+    commonsAutoReplyOnMessage: { storageKey: 'commons_auto_reply_on_message', type: 'boolean', default: false },
     manualMode: { storageKey: 'manual_mode', type: 'boolean', default: false },
     autoRetryInvalid: { storageKey: 'auto_retry_invalid', type: 'boolean', default: false },
     structuredOutput: { storageKey: 'structured_output', type: 'boolean', default: true },
@@ -99,6 +101,7 @@ class ConfigManagerImpl {
         this.model = await storage.getConfig('model') || 'glm-4-9b-0414';
         this.provider = await storage.getConfig('provider') || 'openai';
         this.temperature = await storage.getConfig('temperature') || '0.7';
+        this.topP = await storage.getConfig('top_p') || '0.95';
         this.maxTokens = parseInt(await storage.getConfig('max_tokens')) || 2048;
         this.softMaxTokens = parseInt(await storage.getConfig('soft_max_tokens')) || 0;
         this.showLogs = (await storage.getConfig('show_logs')) === 'true';
@@ -210,6 +213,7 @@ class ConfigManagerImpl {
         // End-of-turn memory opt-in: memories are normally written at the START
         // of a character's turn, so asking for one at the END is optional.
         this.endOfTurnMemory = (await storage.getConfig('end_of_turn_memory')) === 'true';
+        this.commonsAutoReplyOnMessage = (await storage.getConfig('commons_auto_reply_on_message')) === 'true';
         this.manualMode = (await storage.getConfig('manual_mode')) === 'true';
         // Invalid-action auto-retry (task-361): when an agent action fails, give
         // it one same-turn retry with the error fed back (default off).
@@ -397,6 +401,7 @@ class ConfigManagerImpl {
         await storage.setConfig('api_base', this.apiBase);
         await storage.setConfig('model', this.model);
         await storage.setConfig('temperature', this.temperature);
+        await storage.setConfig('top_p', this.topP || '0.95');
         await storage.setConfig('max_tokens', String(this.maxTokens));
         await storage.setConfig('soft_max_tokens', String(this.softMaxTokens));
         await storage.setConfig('show_logs', this.showLogs ? 'true' : 'false');
@@ -410,6 +415,7 @@ class ConfigManagerImpl {
         await storage.setConfig('mature_content', this.matureContent ? 'true' : 'false');
         await storage.setConfig('show_raw_llm', this.showRawLLM ? 'true' : 'false');
         await storage.setConfig('end_of_turn_memory', this.endOfTurnMemory ? 'true' : 'false');
+        await storage.setConfig('commons_auto_reply_on_message', this.commonsAutoReplyOnMessage ? 'true' : 'false');
         await storage.setConfig('rpm_limit', String(this.rpmLimit));
         await storage.setConfig('tpm_limit', String(this.tpmLimit));
         await storage.setConfig('filter_thoughts', this.filterThoughts ? 'true' : 'false');
@@ -500,9 +506,9 @@ class ConfigManagerImpl {
             this.apiKey = document.getElementById('api-key-input')?.value.trim() || CONFIG_SCHEMA.apiKey.default;
             this.apiBase = (document.getElementById('api-base-input')?.value.trim() || document.getElementById('agent-api-base')?.value.trim() || 'http://localhost:1234/v1');
             this.model = document.getElementById('agent-model')?.value.trim() || 'glm-4-9b-0414';
-            this.temperature = document.getElementById('agent-temperature')?.value || this.temperature;
-            this.maxTokens = parseInt(document.getElementById('max-tokens-input')?.value) || this.maxTokens;
-            this.softMaxTokens = parseInt(document.getElementById('soft-max-tokens-input')?.value) || this.softMaxTokens;
+            this.temperature = document.getElementById('hub-temperature')?.value || this.temperature;
+            this.maxTokens = parseInt(document.getElementById('hub-max-tokens')?.value) || this.maxTokens;
+            this.softMaxTokens = parseInt(document.getElementById('hub-soft-max-tokens')?.value) || this.softMaxTokens;
             this.turnBased = document.getElementById('agent-turn-based')?.checked || false;
             const turnOrderEl = document.getElementById('agent-turn-order');
             if (turnOrderEl) {
@@ -518,6 +524,7 @@ class ConfigManagerImpl {
             this.matureContent = document.getElementById('agent-mature-content')?.checked ?? this.matureContent;
             this.showRawLLM = document.getElementById('agent-show-raw-llm')?.checked ?? this.showRawLLM;
             this.endOfTurnMemory = document.getElementById('agent-end-of-turn-memory')?.checked ?? this.endOfTurnMemory;
+            this.commonsAutoReplyOnMessage = document.getElementById('commons-auto-reply')?.checked ?? this.commonsAutoReplyOnMessage;
             this.manualMode = document.getElementById('agent-manual-mode')?.checked ?? this.manualMode;
             this.autoRetryInvalid = document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid;
             this.structuredOutput = document.getElementById('agent-structured-output')?.checked ?? this.structuredOutput;
@@ -537,9 +544,9 @@ class ConfigManagerImpl {
             this.interpreterApiKey = document.getElementById('interpreter-api-key')?.value.trim() || this.interpreterApiKey || 'not-needed';
             this.interpreterModel = document.getElementById('interpreter-model')?.value.trim() || this.interpreterModel || 'lfm3-1.7b@q4_0';
             this.interpreterApiFormat = document.getElementById('interpreter-api-format')?.value || this.interpreterApiFormat || 'auto';
-            this.thinking = document.getElementById('agent-thinking')?.checked ?? this.thinking;
-            this.thinkingEffort = document.getElementById('agent-thinking-effort')?.value || this.thinkingEffort;
-            this.suppressLocalThinking = document.getElementById('agent-suppress-local-thinking')?.checked ?? this.suppressLocalThinking;
+            this.thinking = document.getElementById('hub-thinking')?.checked ?? this.thinking;
+            this.thinkingEffort = document.getElementById('hub-thinking-effort')?.value || this.thinkingEffort;
+            this.suppressLocalThinking = document.getElementById('hub-suppress-thinking')?.checked ?? this.suppressLocalThinking;
             this.visionEnabled = document.getElementById('agent-vision-enabled')?.checked ?? this.visionEnabled;
             this.apiFormat = document.getElementById('agent-api-format')?.value || this.apiFormat;
             const rpmInput = document.getElementById('agent-rpm-limit');
@@ -564,6 +571,13 @@ class ConfigManagerImpl {
             profileData.apiKey = this.apiKey;
             profileData.apiBase = this.apiBase;
             profileData.model = this.model;
+            profileData.temperature = this.temperature;
+            profileData.topP = this.topP;
+            profileData.maxTokens = this.maxTokens;
+            profileData.softMaxTokens = this.softMaxTokens;
+            profileData.thinking = this.thinking;
+            profileData.thinkingEffort = this.thinkingEffort;
+            profileData.suppressLocalThinking = this.suppressLocalThinking;
             profileData.streaming = this.streaming;
             profileData.showLogs = this.showLogs;
             profileData.turnBased = this.turnBased;
@@ -580,6 +594,10 @@ class ConfigManagerImpl {
             apiBase: this.apiBase,
             model: this.model,
             provider: this.provider,
+            temperature: parseFloat(this.temperature) || 0.7,
+            topP: parseFloat(this.topP) || 0.95,
+            maxTokens: this.maxTokens,
+            softMaxTokens: this.softMaxTokens,
             streaming: this.streaming,
             showLogs: this.showLogs,
             thinking: this.thinking,
@@ -758,6 +776,38 @@ class ConfigManagerImpl {
         setVal('agent-model', profile.model);
         setVal('agent-turn-order', this.turnOrder);
         setVal('agent-api-format', profile.apiFormat || 'auto');
+        if (profile.temperature !== undefined) {
+            this.temperature = String(profile.temperature);
+            setVal('hub-temperature', profile.temperature);
+        }
+        if (profile.topP !== undefined) {
+            this.topP = String(profile.topP);
+            setVal('hub-top-p', profile.topP);
+        }
+        if (profile.maxTokens !== undefined) {
+            this.maxTokens = parseInt(profile.maxTokens) || this.maxTokens;
+            setVal('hub-max-tokens', profile.maxTokens);
+        }
+        if (profile.softMaxTokens !== undefined) {
+            this.softMaxTokens = parseInt(profile.softMaxTokens) || 0;
+            setVal('hub-soft-max-tokens', profile.softMaxTokens);
+        }
+        if (profile.thinking !== undefined) {
+            this.thinking = !!profile.thinking;
+            const el = document.getElementById('hub-thinking');
+            if (el)
+                el.checked = !!profile.thinking;
+        }
+        if (profile.thinkingEffort !== undefined) {
+            this.thinkingEffort = String(profile.thinkingEffort);
+            setVal('hub-thinking-effort', profile.thinkingEffort);
+        }
+        if (profile.suppressLocalThinking !== undefined) {
+            this.suppressLocalThinking = !!profile.suppressLocalThinking;
+            const el = document.getElementById('hub-suppress-thinking');
+            if (el)
+                el.checked = !!profile.suppressLocalThinking;
+        }
         document.getElementById('agent-turn-based') && (document.getElementById('agent-turn-based').checked = !!profile.turnBased);
         document.getElementById('agent-show-logs') && (document.getElementById('agent-show-logs').checked = !!profile.showLogs);
         document.getElementById('agent-streaming') && (document.getElementById('agent-streaming').checked = !!profile.streaming);
@@ -768,9 +818,16 @@ class ConfigManagerImpl {
     }
     getCurrentSettingsObject() {
         return {
-            apiKey: document.getElementById('agent-api-key')?.value.trim() || this.apiKey,
-            apiBase: document.getElementById('agent-api-base')?.value.trim() || this.apiBase,
+            apiKey: document.getElementById('api-key-input')?.value.trim() || document.getElementById('agent-api-key')?.value.trim() || this.apiKey,
+            apiBase: document.getElementById('api-base-input')?.value.trim() || document.getElementById('agent-api-base')?.value.trim() || this.apiBase,
             model: document.getElementById('agent-model')?.value.trim() || this.model,
+            temperature: document.getElementById('hub-temperature')?.value || this.temperature,
+            topP: document.getElementById('hub-top-p')?.value || this.topP,
+            maxTokens: parseInt(document.getElementById('hub-max-tokens')?.value) || this.maxTokens,
+            softMaxTokens: parseInt(document.getElementById('hub-soft-max-tokens')?.value) || this.softMaxTokens,
+            thinking: document.getElementById('hub-thinking')?.checked ?? this.thinking,
+            thinkingEffort: document.getElementById('hub-thinking-effort')?.value || this.thinkingEffort,
+            suppressLocalThinking: document.getElementById('hub-suppress-thinking')?.checked ?? this.suppressLocalThinking,
             streaming: document.getElementById('agent-streaming')?.checked || false,
             showLogs: document.getElementById('agent-show-logs')?.checked || false,
             turnBased: document.getElementById('agent-turn-based')?.checked || false,

@@ -1,15 +1,15 @@
 /**
- * diff.js — property-level diff for staged NL-editor ops (task-461).
+ * diff.js - property-level diff for staged NL-editor ops (task-461).
  *
  * A staged op shows a summary line; this turns it into the concrete property
- * changes it will make ("traits.dark_vision: — → true"), diffed against the
+ * changes it will make ("traits.dark_vision: - -> true"), diffed against the
  * live/staged pre-state, so a wrong or empty patch is visible before Apply.
  *
  * Pure: the caller supplies the node maps, so it is unit-testable without DOM.
  *
- * @module nl-editor/diff — property-level diff for staged ops
+ * @module nl-editor/diff - property-level diff for staged ops
  * @contributes NLEditorDiff: opDiff(), diffPairs(), formatChanges(), summaryLines()
- * @powers NL editor — the staged-ops tray's per-op diff preview
+ * @powers NL editor - the staged-ops tray's per-op diff preview
  * @relates read by ui.js when rendering staged rows
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
@@ -191,7 +191,7 @@ interface NlEditorDiffWindowSurface { NLEditorDiff: unknown }
     }
 
     function formatValue(value: unknown): string {
-        if (value === undefined) return '—';
+        if (value === undefined) return '-';
         if (value === null) return 'null';
         if (typeof value === 'string') return value.length > 40 ? `${value.slice(0, 37)}…` : value;
         if (typeof value === 'object') {
@@ -202,7 +202,7 @@ interface NlEditorDiffWindowSurface { NLEditorDiff: unknown }
     }
 
     function formatChanges(changes: PropertyChange[] | undefined | null): string[] {
-        return (changes || []).map(c => `${c.key}: ${formatValue(c.before)} → ${formatValue(c.after)}`);
+        return (changes || []).map(c => `${c.key}: ${formatValue(c.before)} -> ${formatValue(c.after)}`);
     }
 
     /** Flat preview lines for the staged tray, capped at *limit* leaf changes. */
@@ -218,6 +218,7 @@ interface NlEditorDiffWindowSurface { NLEditorDiff: unknown }
         if (diff.kind === 'connect') return [`+ connect ${diff.from || '?'} <-> ${diff.to || '?'} via ${diff.way || 'way'}`];
         if (diff.kind === 'trigger') return [`+ trigger (${diff.label || '?'}) on ${diff.id || 'node'}`];
         if (diff.kind === 'rename') return [`rename ${diff.id || 'character'} -> ${diff.label || '?'}`];
+        if (diff.kind === 'other') return [`+ ${isObj(op) && typeof (op as Record<string, unknown>).type === 'string' ? (op as Record<string, unknown>).type : 'operation'}`];
 
         let changes: string[];
         if (diff.kind === 'bulk') {
@@ -228,7 +229,7 @@ interface NlEditorDiffWindowSurface { NLEditorDiff: unknown }
         } else {
             changes = formatChanges(diff.changes);
         }
-        if (!changes.length) return ['(no property change — will no-op)'];
+        if (!changes.length) return ['(no property change - will no-op)'];
         if (changes.length <= limit) return changes;
         return [...changes.slice(0, limit), `+${changes.length - limit} more`];
     }

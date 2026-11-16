@@ -1,10 +1,10 @@
 /**
- * graph-background.ts — reference maps behind the vis.js graph.
+ * graph-background.ts - reference maps behind the vis.js graph.
  *
- * ⚠️ `graph-background.js` is GENERATED from this file — edit the .ts, then run
+ * ⚠️ `graph-background.js` is GENERATED from this file - edit the .ts, then run
  *    `npm run build:ts`. (Second converted module; see docs/design/typescript-migration.md.)
  *
- * @module graph/graph-background — the multi-layer reference map overlay
+ * @module graph/graph-background - the multi-layer reference map overlay
  * @contributes the map layers (path, transform, crop, opacity, order, visibility) and per-scenario layout persistence
  * @powers the right-click 🗺 map: add/select/move/scale/rotate/crop several reference images, and lock node positions
  * @relates uses storage (graph_assets) + the graphManager.network view transform; opened from GraphEventHandlers.onContext
@@ -17,12 +17,12 @@
  * overlapping layers, images snap to each other's edges and centres.
  *
  * Rendering: image frames live in a layer that is the container's FIRST child,
- * so they paint beneath the (transparent) vis canvas — nodes draw over the map,
+ * so they paint beneath the (transparent) vis canvas - nodes draw over the map,
  * and the map never covers the legend. That layer is kept in sync with the
  * network view transform on every `afterDrawing`, so maps pan/zoom with graph.
  *
  * Interaction: because the images paint BENEATH the canvas (which owns pointer
- * events), nothing inside the paint layer can be clicked — so every interactive
+ * events), nothing inside the paint layer can be clicked - so every interactive
  * part lives in an above-canvas interact layer that is `pointer-events: none`
  * except on its own hit boxes and handles. That is what makes a map draggable
  * at all, and it is what lets several maps be selected individually.
@@ -63,7 +63,7 @@ interface MapLayer {
     label: string;
     /** Server path when the image was uploaded, else null (a local data URL). */
     imagePath: string | null;
-    /** Path or data URL — the source the decoded `image` came from. */
+    /** Path or data URL - the source the decoded `image` came from. */
     imageSrc: string | null;
     /** Decoded lazily, so a layer can exist before its pixels load. */
     image: HTMLImageElement | null;
@@ -146,7 +146,7 @@ type VisNetworkLike = GraphNetwork & {
     };
 };
 
-/** One entry of `/api/world/scopes?flat=1` — only the id is read here. */
+/** One entry of `/api/world/scopes?flat=1` - only the id is read here. */
 interface ScopeSummaryLike {
     id?: string;
 }
@@ -283,7 +283,7 @@ interface BackgroundState {
      * The scenario's identity, or null when the world has no name.
      *
      * The IndexedDB cache is keyed on this. An unnamed scenario returns null so
-     * the cache is NOT consulted at all — otherwise every unnamed scenario would
+     * the cache is NOT consulted at all - otherwise every unnamed scenario would
      * share the 'default' slot and a map added in one would appear in the next.
      *
      * Must accept the same fallbacks as _scenarioKey(): the body dataset is how
@@ -300,7 +300,7 @@ interface BackgroundState {
         return trimmed;
     }
 
-    /** Cache key — derived from the identity so the two cannot disagree. */
+    /** Cache key - derived from the identity so the two cannot disagree. */
     function _scenarioKey(): string {
         return _scenarioIdentity() || 'default';
     }
@@ -392,7 +392,7 @@ interface BackgroundState {
      * Does a stored/world record actually carry a background?
      *
      * Every scenario serializes the key, so a world with no map arrives as `{}`
-     * — which is TRUTHY in JS. Treating that as a record used to short-circuit
+     * - which is TRUTHY in JS. Treating that as a record used to short-circuit
      * BOTH the per-scenario cache lookup and the clear: `rect` was nulled while
      * the previous scenario's image stayed on screen, so the new scenario's own
      * map never loaded (bug-39). A record only counts when it has something in it.
@@ -498,7 +498,7 @@ interface BackgroundState {
     async function _restore(): Promise<void> {
         state.key = _scenarioKey();
         const identity = _scenarioIdentity();
-        // The WORLD copy wins — it travels with the scenario and can be
+        // The WORLD copy wins - it travels with the scenario and can be
         // committed. IndexedDB is only a local fallback, and only for a NAMED
         // scenario: with no name there is no way to tell two worlds apart, so
         // showing a cached map would leak it into the next scenario.
@@ -512,7 +512,7 @@ interface BackgroundState {
             if (_hasBackground(cached)) block = _normalizeBlock(cached);
         }
         if (!block) {
-            // This world has no background of its own — show NOTHING rather than
+            // This world has no background of its own - show NOTHING rather than
             // leaving the previous scenario's maps on screen. (No-op when we are
             // already clear, so frequent state updates stay cheap.)
             if (state.layers.length) reset();
@@ -816,7 +816,7 @@ interface BackgroundState {
             _placeBox(frame, layer);
             frame.style.opacity = String(layer.opacity);
             // The hit box must cover the image exactly, or the map is neither
-            // selectable nor draggable — nothing beneath the canvas can be.
+            // selectable nor draggable - nothing beneath the canvas can be.
             _placeBox(box, layer);
 
             // Crop is modelled as a scaled image inside an overflow-hidden frame:
@@ -1080,8 +1080,8 @@ interface BackgroundState {
         try {
             events.log(
                 path
-                    ? `🗺 Map layer "${layer.label}" uploaded — saved to the world as a file path.`
-                    : `🗺 Map layer "${layer.label}" added (local only — upload failed).`,
+                    ? `🗺 Map layer "${layer.label}" uploaded - saved to the world as a file path.`
+                    : `🗺 Map layer "${layer.label}" added (local only - upload failed).`,
                 'system-msg',
             );
         } catch (error) { /* ignore */ }
@@ -1125,7 +1125,7 @@ interface BackgroundState {
      * than the cells bending to the picture's aspect.
      *
      * This used to contain-fit (aspect preserved, centred), which letterboxed the
-     * art inside any grid whose aspect differed from the image's — a 3:1 world map
+     * art inside any grid whose aspect differed from the image's - a 3:1 world map
      * in a 2:1 grid covered only ~2/3 of the grid height, leaving the top and
      * bottom rows of cells bare (measured on `world`, `goblin_camp`,
      * `abandoned_farms`, `west_woods`).
@@ -1137,7 +1137,7 @@ interface BackgroundState {
     }
 
     /**
-     * Painter cell pitch in engine units — mirrors ``CELL_CANVAS_UNITS`` in
+     * Painter cell pitch in engine units - mirrors ``CELL_CANVAS_UNITS`` in
      * ``engine/world_compile.py``. Only used for an explicit caller scale; the
      * default comes from the layout pitch, because compiled areas sit at
      * ``cell * pitch`` in map space (``GraphLayoutEngine.gridPosition``). The
@@ -1208,7 +1208,7 @@ interface BackgroundState {
         const manager = (typeof graphManager !== 'undefined' && graphManager)
             ? (graphManager as unknown as { _cardinalLayout?: boolean; _graphNodesObj?: Record<string, unknown> })
             : undefined;
-        if (!manager || manager._cardinalLayout !== true) return false;
+        if (!manager) return false;
         return !!(typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine
             && GraphLayoutEngine.hasPaintedGrid(manager._graphNodesObj || {}));
     }
@@ -1241,7 +1241,7 @@ interface BackgroundState {
     /**
      * The layer that IS a scope's art: the one whose image is that scope's
      * reference. `null` when the scope has no reference or its art is not
-     * mounted, and deliberately *not* "the active layer" — a layer list can hold
+     * mounted, and deliberately *not* "the active layer" - a layer list can hold
      * several scopes' maps at once, so the active one is a UI selection and says
      * nothing about which zone is being dragged.
      */
@@ -1294,7 +1294,7 @@ interface BackgroundState {
      * Drag the whole zone: record the new offset in cells, re-place the scope's
      * painted nodes live (no camera refit), and re-place **its own** map art from
      * the same offset so the picture tracks the rooms. On release the offset is
-     * persisted to the world — the painter's cell coords are never touched.
+     * persisted to the world - the painter's cell coords are never touched.
      */
     function _startZoneDrag(event: MouseEvent, scopeId: string): void {
         const network = _network();
@@ -1326,7 +1326,7 @@ interface BackgroundState {
                     (graphManager as unknown as { _graphNodesObj?: Record<string, unknown> })._graphNodesObj,
                     table);
             }
-            // The dragged zone's own art, derived from its own grid — not the
+            // The dragged zone's own art, derived from its own grid - not the
             // active layer's rect.
             if (_reapplyZoneArt(scopeId)) _render();
         };
@@ -1336,8 +1336,8 @@ interface BackgroundState {
             document.removeEventListener('mouseup', onUp);
             if (state.zoneOverlay) state.zoneOverlay.style.cursor = 'grab';
             const final = _scopeOffset(scopeId);
-            // Settle the art one last time — the drag may have started before the
-            // grid payload arrived — then persist it and the offset for the nodes.
+            // Settle the art one last time - the drag may have started before the
+            // grid payload arrived - then persist it and the offset for the nodes.
             _reapplyZoneArt(scopeId);
             _render();
             _persist();
@@ -1432,7 +1432,7 @@ interface BackgroundState {
     async function fitToPaintedGrid(): Promise<void> {
         const scopeId = _currentScopeId();
         if (!scopeId) {
-            events.log('🗺 Pick a scope in the graph toolbar first — "fit to painted grid" needs that scope\'s grid.', 'system-msg');
+            events.log('🗺 Pick a scope in the graph toolbar first - "fit to painted grid" needs that scope\'s grid.', 'system-msg');
             return;
         }
         let payload: GraphBackgroundGridPayload | null = null;
@@ -1460,7 +1460,7 @@ interface BackgroundState {
             'offset=' + offset.x.toFixed(2) + ',' + offset.y.toFixed(2) + ' gap=' + gap);
         const layer = await _layerForFit(payload, scopeId);
         if (!layer || !layer.image) {
-            events.log('🗺 No map to fit — add a background image, or set a reference on the scope.', 'system-msg');
+            events.log('🗺 No map to fit - add a background image, or set a reference on the scope.', 'system-msg');
             return;
         }
         _applyReferenceLayout(layer, payload, placedRect, scopeId);
@@ -1476,8 +1476,8 @@ interface BackgroundState {
      * A saved layer rect is in **px**, so it goes stale the moment the grid
      * changes: resize the grid, change the map pitch, or open a world whose maps
      * were fitted to an older, larger grid and the art stops sitting on the cells
-     * it was drawn over. `_applyReferenceLayout` is the *derived* answer — the
-     * reference's own cell rect, or a fit to the whole grid — so it is re-applied
+     * it was drawn over. `_applyReferenceLayout` is the *derived* answer - the
+     * reference's own cell rect, or a fit to the whole grid - so it is re-applied
      * on every load for the layer that is that reference, instead of waiting for
      * someone to press "fit to painted grid".
      *
@@ -1485,7 +1485,7 @@ interface BackgroundState {
      * and `_scopeOffset` is added on top of the derived rect, and a reference
      * with its own cell rect still wins over the whole-grid fit.
      *
-     * Only the *loaded* scope is touched — in the whole-world view there is no
+     * Only the *loaded* scope is touched - in the whole-world view there is no
      * single grid to fit to, and every painted zone shares one canvas. This runs
      * in both view modes: a filtered scope's areas sit on the painted lattice in
      * Graph view too, so the art has to be on it in both.
@@ -1494,8 +1494,8 @@ interface BackgroundState {
         const scopeId = _currentScopeId();
         if (!scopeId) return;                       // whole-world view: no one grid
         if (typeof graphManager === 'undefined' || !graphManager) return;
-        // `state:updated` fires on every world fetch — after every paint stroke,
-        // every node edit — and the reconcile is only needed when the *grid* moved.
+        // `state:updated` fires on every world fetch - after every paint stroke,
+        // every node edit - and the reconcile is only needed when the *grid* moved.
         // Cheap signature first, so the common case costs no request at all.
         const gap = _mapUnitsPerCell();
         const offset = _scopeOffset(scopeId);
@@ -1544,13 +1544,13 @@ interface BackgroundState {
 
     /**
      * Re-derive **every** mounted reference's art, for a change that applies to the
-     * whole canvas rather than one scope — the map pitch moving (task-526).
+     * whole canvas rather than one scope - the map pitch moving (task-526).
      *
      * The whole-world view has no single grid, which is why the ordinary reconcile
      * stops there. But the pitch is global: when it changes, every layer's derived
      * rect is stale, because a rect is in **px** and the cells it came from are in
      * cells. Skipping this is how the map ends up drawn at the old scale over areas
-     * laid out at the new one — the bug-52 shape, reached from the other side.
+     * laid out at the new one - the bug-52 shape, reached from the other side.
      *
      * Each layer is still derived from *its own* scope's grid and offset, never from
      * the active scope, so this cannot move one zone's picture onto another's.
@@ -1598,7 +1598,7 @@ interface BackgroundState {
             // Reframe, because the pitch is what the previous framing was computed
             // for: a map derived to "span about 1600px" and then left in the corner
             // of an unchanged viewport is not the thing the auto pitch promised.
-            // Safe to move the camera *here* specifically — this runs only when the
+            // Safe to move the camera *here* specifically - this runs only when the
             // pitch actually moved, and every ordinary load preserves the view.
             try { _network()?.fit({ animation: false }); } catch (error) { /* ignore */ }
         }
@@ -1756,7 +1756,7 @@ interface BackgroundState {
     function _applyPositions(): void {
         const network = _network();
         if (!network || !state.positions) return;
-        // Only move nodes still present in the rendered DataSet — saved layouts
+        // Only move nodes still present in the rendered DataSet - saved layouts
         // and IndexedDB records outlive world refetches, projections and
         // filtered views. vis-network LOGS (never throws) on an unknown id, so
         // the try/catch below can't silence it; skip those ids here (bug-36).
@@ -1767,7 +1767,7 @@ interface BackgroundState {
         // items/characters beside their room. Hierarchical derives positions
         // too. A saved canvas snapshot is a copy from some other frame (pitch,
         // un-offset seed), so re-applying it here undoes the layout. Applying it
-        // skips only nodes with a painted `cell` — areas — and so dragged every
+        // skips only nodes with a painted `cell` - areas - and so dragged every
         // CELL-LESS node (way, item, character) back to its stale canvas coords,
         // stranding it and stretching its edges across the map on every world
         // refetch (bug-543 for painted nodes; bug-556 for the cell-less ones it
@@ -1776,7 +1776,7 @@ interface BackgroundState {
         const gm = (typeof graphManager !== 'undefined' ? graphManager : null) as unknown as { _cardinalLayout?: boolean; _levelsMode?: () => boolean; _graphNodesObj?: Record<string, any> } | null;
         const gridOwns = !!gm && (gm._cardinalLayout === true || !!(gm._levelsMode && gm._levelsMode()));
         if (gridOwns) return;
-        // Graph mode: leave a painted node where the grid put it — its cell is
+        // Graph mode: leave a painted node where the grid put it - its cell is
         // its position; only free nodes take the saved canvas snapshot.
         let isPainted: ((id: string) => boolean) | null = null;
         const nodesObj = (gm && gm._graphNodesObj) || {};
@@ -1811,7 +1811,7 @@ interface BackgroundState {
         _applyLockState(network);
         _persist();
         saveToWorld();
-        // Locking is the moment a layout becomes intentional — persist it.
+        // Locking is the moment a layout becomes intentional - persist it.
         if (state.layoutLocked) persistPositionsToWorld();
     }
 
@@ -1824,7 +1824,7 @@ interface BackgroundState {
      * Write every node's canvas position into the world as `properties.x`/`y`.
      *
      * This is what makes a layout durable: it survives reloads, travels with the
-     * scenario file, and can be committed — unlike the browser-local copy in
+     * scenario file, and can be committed - unlike the browser-local copy in
      * IndexedDB. One atomic batch request, so it is one undo step.
      *
      * **A painted area is not a target.** Its `properties.x`/`y` are the
@@ -1836,10 +1836,10 @@ interface BackgroundState {
      * the two sit on different grids. Measured on `kraktooth_goblin_camp`: one
      * save at pitch 330 turned 463 painted areas from `cell*40` into
      * `cell*330 + offset*330`, and the Map layout then drew them 8.25x too far
-     * out — the art (derived from the cells) had **0 of 463** areas inside it.
+     * out - the art (derived from the cells) had **0 of 463** areas inside it.
      * `GraphRelativeLayout.frozenDropOps` guards the same case for dragged
      * frozen nodes; this is the other writer, and it had no guard. The predicate
-     * is `GraphLayoutEngine.hasPaintedCoords` — the same one the layout reads.
+     * is `GraphLayoutEngine.hasPaintedCoords` - the same one the layout reads.
      */
     async function persistPositionsToWorld(): Promise<{ saved: number; failures?: number; skipped?: number }> {
         const network = _network();
@@ -1898,7 +1898,7 @@ interface BackgroundState {
             } catch (error) { /* ignore */ }
             return { saved: ops.length, failures, skipped };
         } catch (error) {
-            try { events.log('💾 Layout save failed — see the console.', 'error-msg'); } catch (innerError) { /* ignore */ }
+            try { events.log('💾 Layout save failed - see the console.', 'error-msg'); } catch (innerError) { /* ignore */ }
             return { saved: 0, skipped };
         }
     }
@@ -2185,7 +2185,7 @@ interface BackgroundState {
         const container = document.getElementById('graph-container');
         if (container) {
             // Keep the maps glued to the graph view on every redraw (pan, zoom,
-            // drag) — afterDrawing fires with the view transform already applied.
+            // drag) - afterDrawing fires with the view transform already applied.
             const sync = (): void => _syncView();
             if (network) { try { network.on('afterDrawing', sync); } catch (error) { /* ignore */ } }
             window.addEventListener('resize', sync);
@@ -2195,8 +2195,8 @@ interface BackgroundState {
         _applyLockState(network);
         _render();
 
-        // The WORLD is authoritative: whenever it is (re)fetched — including
-        // after loading a different scenario — re-derive the maps from it
+        // The WORLD is authoritative: whenever it is (re)fetched - including
+        // after loading a different scenario - re-derive the maps from it
         // instead of leaving whatever was on screen. Loading the camp after a
         // map was added elsewhere must NOT show that other world's map.
         if (typeof appEvents !== 'undefined' && appEvents && appEvents.on) {
@@ -2210,7 +2210,7 @@ interface BackgroundState {
      * Lock is an INPUT to GraphPhysics, not a place that writes the solver or the
      * user's preference: locking holds positions, unlocking releases them, and the
      * user's own on/off survives either way. The old `physicsDisabledByLock`
-     * bookkeeping existed only because two writers had to remember each other —
+     * bookkeeping existed only because two writers had to remember each other -
      * the policy recomputes from the current lock state instead.
      */
     function _applyLockState(network: GraphNetwork | null): void {
@@ -2225,7 +2225,7 @@ interface BackgroundState {
 
     /** The world was refetched: restore (or clear) this world's maps. */
     async function _onWorldRefetched(): Promise<void> {
-        // Never stomp an edit in progress — a debounced save is still in flight.
+        // Never stomp an edit in progress - a debounced save is still in flight.
         if (state.editing) return;
         await _restore();
         _applyLockState(_network());
@@ -2265,7 +2265,7 @@ interface BackgroundState {
         // Re-derive the art when the *scope* changes (bug-51) or when the global
         // map pitch moves (task-526). Both are called by graph-manager /
         // network-manager behind a `typeof === 'function'` guard, so a missing
-        // export degrades silently — which is exactly how they went missing in the
+        // export degrades silently - which is exactly how they went missing in the
         // first place. Unit-tested in tools/unit/test_graph_background.js.
         refreshForScope,
         reconcileAllForGapChange,
@@ -2315,6 +2315,6 @@ interface BackgroundState {
         },
     };
 
-    // Classic script: publish on window (no import/export — see the migration doc).
+    // Classic script: publish on window (no import/export - see the migration doc).
     (window as unknown as { GraphBackground: typeof api }).GraphBackground = api;
 })();

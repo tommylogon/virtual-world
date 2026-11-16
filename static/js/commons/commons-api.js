@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @module commons-api — HTTP client for The Commons endpoints
+ * @module commons-api - HTTP client for The Commons endpoints
  * @contributes CommonsApi: fetch authorized channels, read, post, and manage membership
  * @powers The Commons communication with the backend
  * @relates routes/commons.py
@@ -52,6 +52,15 @@
                 throw new Error(`HTTP ${res.status}`);
             return await res.json();
         }
+        static async getRecentMemories(name, limit = 5, signal) {
+            const res = await fetch(`/api/players/${encodeURIComponent(name)}/memories`, { signal });
+            if (!res.ok)
+                return { memories: [] };
+            const data = await res.json();
+            const list = Array.isArray(data?.memories) ? data.memories : (Array.isArray(data) ? data : []);
+            const sorted = [...list].sort((a, b) => (Number(b?.tick ?? 0) - Number(a?.tick ?? 0)) || (Number(b?.timestamp ?? 0) - Number(a?.timestamp ?? 0)));
+            return { memories: sorted.slice(0, limit) };
+        }
         static async createChannel(body, signal) {
             const res = await fetch('/api/commons/channels', {
                 method: 'POST',
@@ -73,11 +82,64 @@
                 throw new Error(`HTTP ${res.status}`);
             return await res.json();
         }
-        static async postMessage(author, text, channelId = 'public', signal) {
+        static async setChannelMuted(channelId, actor, muted, signal) {
+            const res = await fetch(`/api/commons/channels/${encodeURIComponent(channelId)}/mute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actor, muted }),
+                signal,
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async postMessage(author, text = '', channelId = 'public', attachments, signal) {
+            const payload = { author, text, channel_id: channelId };
+            if (attachments && attachments.length) {
+                payload.attachments = attachments;
+            }
             const res = await fetch('/api/commons/messages', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ author, text, channel_id: channelId }),
+                body: JSON.stringify(payload),
+                signal,
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async uploadAttachment(file, caption = '', signal) {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (caption)
+                formData.append('caption', caption);
+            const res = await fetch('/api/commons/attachments/upload', {
+                method: 'POST',
+                body: formData,
+                signal,
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || `HTTP ${res.status}`);
+            }
+            return await res.json();
+        }
+        static async editMessage(id, author, text, signal) {
+            const res = await fetch(`/api/commons/messages/${encodeURIComponent(id)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author, text }),
+                signal,
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async deleteMessage(id, author, signal) {
+            const res = await fetch(`/api/commons/messages/${encodeURIComponent(id)}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author }),
                 signal,
             });
             if (!res.ok)
@@ -105,17 +167,24 @@
                 throw new Error(`HTTP ${res.status}`);
             return await res.json();
         }
-        static async storeMemory(name, text, importance = 5, tags = ['conversation', 'chat'], signal) {
+        static async storeMemory(name, text, importance = 5, tags = ['conversation', 'chat'], signal, meta) {
+            const payload = {
+                text,
+                importance,
+                type: meta?.type || 'observation',
+                tags,
+                category: 'social',
+            };
+            if (meta?.entities?.length)
+                payload.entities = meta.entities;
+            if (meta?.memory_emotions?.length)
+                payload.memory_emotions = meta.memory_emotions;
+            if (typeof meta?.tick === 'number')
+                payload.tick = meta.tick;
             const res = await fetch(`/api/players/${encodeURIComponent(name)}/memories/entry`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text,
-                    importance,
-                    type: 'conversation',
-                    tags,
-                    category: 'social'
-                }),
+                body: JSON.stringify(payload),
                 signal,
             });
             if (!res.ok)

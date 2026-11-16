@@ -1200,6 +1200,13 @@ class AgentEngine {
             agentConfig.lastActionResult[charName] = '';
         VW?.ui?.setStatus("Thinking...", "info");
         worldState.setRuntimeFocusForCharacter(charName);
+        let llmErrorStopped = false;
+        const abortOnLlmError = (phase) => {
+            llmErrorStopped = true;
+            const detail = phase ? ` (${phase})` : '';
+            this.stop(`❌ LLM call failed for ${charName}${detail} - stopping agent`);
+            VW?.ui?.setStatus("LLM Error - Stopped", "error");
+        };
         try {
             if (!config.apiKey && !config.apiBase?.includes('localhost') && !config.apiBase?.includes('127.0.0.1')) {
                 events.log("No API key.", "error-msg");
@@ -1413,9 +1420,7 @@ class AgentEngine {
                     // The react phase uses its own fresh messages; the next turn
                     // restarts with a clean [system, user] context.
                     if (combinedResponse === null) {
-                        events.log(`❌ LLM call failed for ${charName} (think/decide phase) - stopping agent`, 'error-msg');
-                        VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                        config.running = false;
+                        abortOnLlmError('think/decide phase');
                         return;
                     }
                     events.logPhase(charName, 'decide', 'deciding');
@@ -1618,9 +1623,7 @@ class AgentEngine {
                             ];
                             let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction', charName);
                             if (reactResponse === null) {
-                                events.log(`❌ LLM call failed for ${charName} (reaction phase) - stopping agent`, 'error-msg');
-                                VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                                config.running = false;
+                                abortOnLlmError('reaction phase');
                                 return;
                             }
                             let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, parseError: null };
@@ -1701,9 +1704,7 @@ class AgentEngine {
                 ];
                 let reactionResponse = await this._callLLMMessages(combinedHistory, 'combined', charName);
                 if (reactionResponse === null) {
-                    events.log(`❌ LLM call failed for ${charName} - stopping agent`, 'error-msg');
-                    VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                    config.running = false;
+                    abortOnLlmError();
                     return;
                 }
                 let parsedNonReactive = ResponseParser.parseReaction(reactionResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
@@ -1799,7 +1800,9 @@ class AgentEngine {
             config.busy = false;
             VW?.ui?.updateButtons();
             VW?.ui?.syncRateLimitDisplay();
-            VW?.ui?.setStatus(config.running ? "Waiting..." : "Idle.", "info");
+            if (!llmErrorStopped) {
+                VW?.ui?.setStatus(config.running ? "Waiting..." : "Idle.", "info");
+            }
         }
     }
     async stepOnce() {
@@ -1903,6 +1906,8 @@ class AgentEngine {
                 else {
                     await this.step();
                 }
+                if (!config.running)
+                    break;
                 if (this._paused)
                     continue;
                 // Async mode counts completed character turns, not idle scheduler

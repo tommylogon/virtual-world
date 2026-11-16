@@ -22,6 +22,7 @@ window.InspectorAgentView = (() => {
     const agentViewTag = htmlTag;
     // ─── Internal state ───
     let _activeTab = 'Bio';
+    let _currentAgentName = null;
     // Deferred renders: agent-view builds one big HTML string, so helpers that
     // return lit TemplateResults (graphGravityControl, renderAliasesSection)
     // get rendered into placeholder containers AFTER the panel render runs.
@@ -46,7 +47,7 @@ window.InspectorAgentView = (() => {
     const EMOTION_ICONS = { happy: '😊', sad: '😢', angry: '😠', afraid: '😨', surprised: '😲', disgusted: '🤢', neutral: '😐' };
     const STAT_LABELS = { STR: '\u{1F4AA} Strength', DEX: '\u{1F938} Dexterity', CON: '\u{1F6E1}\uFE0F Constitution', INT: '\u{1F9E0} Intelligence', WIS: '\u{1F441}\uFE0F Wisdom', CHA: '\u{1F4AC} Charisma' };
     const SKILL_LIST = ['Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Investigation', 'Survival', 'Persuasion', 'Performance', 'Medicine', 'Arcana', 'Intimidation', 'Lockpicking'];
-    const TABS = ['Inventory', 'Bio', 'Images', 'Advanced'];
+    const TABS = ['Inventory', 'Bio', 'Persona', 'Images', 'Advanced'];
     /**
      * HTML-escape double quotes for attribute safety
      * @param {string} text - Text to escape
@@ -57,16 +58,19 @@ window.InspectorAgentView = (() => {
      * Render the full agent inspector panel
      * @param {string} agentName - Character name
      */
-    AV.showAgent = function (agentName) {
-        const panel = document.getElementById('inspector-panel');
+    AV.showAgent = function (agentName, targetEl) {
+        _currentAgentName = agentName;
+        const panel = targetEl || document.getElementById('inspector-panel');
         if (!panel || !worldState.data)
             return;
         // Set current view on the Inspector singleton so _reRender() works
-        if (window.VW?.inspector) {
-            window.VW.inspector._currentView = { type: 'agent', name: agentName };
+        if (!targetEl) {
+            if (window.VW?.inspector) {
+                window.VW.inspector._currentView = { type: 'agent', name: agentName };
+            }
+            if (window.appEvents)
+                appEvents.emit('inspector:view', { type: 'agent', name: agentName });
         }
-        if (window.appEvents)
-            appEvents.emit('inspector:view', { type: 'agent', name: agentName });
         const player = worldState.players[agentName];
         if (!player)
             return;
@@ -92,15 +96,21 @@ window.InspectorAgentView = (() => {
             onClose: () => hideInspectorPanel(),
             actions: htmlTag `<span style="font-size:10px;color:var(--text-muted);margin-right:6px;">tick ${worldState.tick}</span>`
         });
-        const statusRowTmpl = AV._renderStatusRow(agentName, player, color, isAuto, escName);
-        const emotionSelectorTmpl = AV._renderEmotionSelector(agentName, player, escName);
-        let html = AV._renderVitals(player, agentName);
-        // Tab navigation
-        html += AV._renderTabNav(escName);
+        const isFullSurface = Boolean(targetEl);
+        const statusRowTmpl = isFullSurface ? window.Lit.nothing : AV._renderStatusRow(agentName, player, color, isAuto, escName);
+        const emotionSelectorTmpl = isFullSurface ? window.Lit.nothing : AV._renderEmotionSelector(agentName, player, escName);
+        let html = '';
+        if (!isFullSurface) {
+            html += AV._renderVitals(player, agentName);
+            // Tab navigation
+            html += AV._renderTabNav(escName);
+        }
         // Inventory tab (paperdoll on top, inventory below)
         html += AV._renderInventoryTab(agentName, player, escName);
         // Bio tab (personality, appearance, stats/skills/traits, relationships, memories)
-        html += AV._renderBioTab(agentName, player, charState, area, escName, isAuto, color);
+        html += AV._renderBioTab(agentName, player, charState, area, escName, isAuto, color, isFullSurface);
+        // Persona tab (task-733: Character Sheet - person schema editor & compiler)
+        html += AV._renderPersonaTab(agentName, player, escName, isFullSurface);
         // Images tab (Expression Pack + sheet splitter) - task-512: art lives on
         // its own tab so the overview stays about who the character is.
         html += AV._renderImagesTab(agentName, player, characterNode);
@@ -110,13 +120,20 @@ window.InspectorAgentView = (() => {
         // handlers. Render it through InspectorPanel (single panel owner) inside
         // an unsafeHTML marker so lit never tries to diff against string content
         // and its part tracking stays intact across re-renders.
-        window.InspectorPanel.render(htmlTag `${headerTmpl}${statusRowTmpl}${emotionSelectorTmpl}${window.Lit.unsafeHTML(html)}`);
+        const template = htmlTag `${isFullSurface ? window.Lit.nothing : headerTmpl}${statusRowTmpl}${emotionSelectorTmpl}${window.Lit.unsafeHTML(html)}`;
+        if (targetEl) {
+            window.Lit.render(template, targetEl);
+        }
+        else {
+            window.InspectorPanel.render(template);
+        }
+        const root = targetEl || document;
         // Known-by authoring: who knows THIS character (the Knowledge modal
         // for what they know lives in the Advanced tab). Render into a slot
         // inside the Advanced tab so it only shows when that tab is active.
         const avWin = window;
         if (avWin.KnownBySection) {
-            const slot = document.getElementById('known-by-slot');
+            const slot = root.querySelector('#known-by-slot');
             if (slot) {
                 slot.replaceChildren(avWin.KnownBySection.build('character', player.name, player.name));
             }
@@ -124,11 +141,27 @@ window.InspectorAgentView = (() => {
         // Render lit-helper TemplateResults (gravity control, aliases) that
         // couldn't be embedded in the string into their placeholder containers.
         _runDeferredRenders();
+        // task-733: mount persona editor when active tab is Persona
+        if (_activeTab === 'Persona') {
+            const personaEl = root.querySelector('#mind-persona');
+            const pv = window.InspectorPersonaView;
+            if (pv && personaEl && _currentAgentName) {
+                const state = {
+                    charName: _currentAgentName,
+                    escName: esc(_currentAgentName),
+                    persona: null,
+                    tab: 'Persona',
+                };
+                pv.bind(state, personaEl);
+                pv.fetch();
+            }
+        }
         if (avWin.InspectorTemplateSync && characterNode && characterNode[0]) {
             avWin.InspectorTemplateSync.populateSelector('character', characterNode[0]);
         }
         // Initialize TagMultiselect for character tags
-        const tagContainer = document.getElementById(`tag-multiselect-agent-${escName}`);
+        const tagMountId = 'tag-multiselect-agent-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const tagContainer = root.querySelector(`#${tagMountId}`);
         if (tagContainer && typeof TagMultiselect !== 'undefined') {
             new TagMultiselect(tagContainer, {
                 tags: Array.isArray(player.tags) ? player.tags : [],
@@ -288,7 +321,8 @@ window.InspectorAgentView = (() => {
             stunned: '#ab47bc', prone: '#8d6e63', busy: '#9e9d24',
             grappled: '#d50000', restrained: '#b71c1c', exhausted: '#ff6f00',
             sick: '#ff6f00', poisoned: '#00c853', blind: '#37474f', deaf: '#455a64',
-            mute: '#546e7a', frightened: '#7b1fa2', charmed: '#f06292', awake: 'var(--green)'
+            mute: '#546e7a', frightened: '#7b1fa2', charmed: '#f06292', awake: 'var(--green)',
+            menstruating: '#e57373', ovulating: '#ba68c8', in_heat: '#ff4081'
         };
         const conds = (player.conditions && typeof player.conditions === 'object' && !Array.isArray(player.conditions)) ? player.conditions : {};
         // The state badge duplicates the interactive condition chip when the
@@ -322,11 +356,18 @@ window.InspectorAgentView = (() => {
         const modeBadge = events.controlBadge
             ? events.controlBadge(mode)
             : { emoji: '🤖', label: 'LLM', title: 'LLM agent' };
-        const modeMeta = {
+        const modeMeta = ({
             human: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Human'), bg: 'var(--accent)', fg: '#000', bd: 'var(--accent-dim)' },
+            directed: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Directed'), bg: '#8b5cf622', fg: '#a78bfa', bd: '#8b5cf688' },
             llm: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'LLM'), bg: 'var(--bg-input)', fg: 'var(--text)', bd: 'var(--border)' },
-            npc: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'NPC'), bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' }
-        }[mode];
+            npc: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'NPC'), bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' },
+            paused: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Paused'), bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' },
+        }[mode]) || {
+            label: (modeBadge.emoji ? modeBadge.emoji + ' ' : '') + (modeBadge.label || mode || 'NPC'),
+            bg: 'var(--bg-input)',
+            fg: 'var(--text)',
+            bd: 'var(--border)'
+        };
         const inputId = 'player-room-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
         return htmlTag `<div style="display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
             <span>📍</span>
@@ -347,7 +388,7 @@ window.InspectorAgentView = (() => {
             <button class="btn btn-sm" onclick="InspectorAgentView._openConditionEditor('${escName}')" title="Add a specific condition (blind, poisoned, unconscious...) with a duration, source, or level" style="font-size:10px;">➕ Add Condition</button>
             <span style="flex:1;"></span>
             <button class="btn btn-sm" onclick="window.InspectorMindView&&window.InspectorMindView.open('${escName}')" title="Open the character's mind - attention, fears, thoughts, plan, mood, disposition, goals, schedule, memories and knowledge" style="font-size:10px;">🧠 Mind</button>
-            <span onclick="events.cycleControlMode('${escName}')" title="Click to cycle control mode: Human → LLM → NPC" style="cursor:pointer;padding:2px 8px;border-radius:4px;font-weight:600;font-size:10px;background:${modeMeta.bg};color:${modeMeta.fg};border:1px solid ${modeMeta.bd};">${modeMeta.label}</span>
+            <span onclick="events.openControlModeMenu ? events.openControlModeMenu('${escName}', this) : events.cycleControlMode('${escName}')" title="Click to select controller: Human, LLM, NPC, or Paused" style="cursor:pointer;padding:2px 8px;border-radius:4px;font-weight:600;font-size:10px;background:${modeMeta.bg};color:${modeMeta.fg};border:1px solid ${modeMeta.bd};">${modeMeta.label} ▾</span>
         </div>`;
     };
     /**
@@ -529,6 +570,9 @@ window.InspectorAgentView = (() => {
      * Switch active tab and re-render
      * @param {string} tabName - Tab name to switch to
      */
+    AV._getActiveTab = function () {
+        return _activeTab;
+    };
     AV._switchAgentTab = function (tabName) {
         _activeTab = tabName;
         document.querySelectorAll('.inspector-tab').forEach(el => {
@@ -537,9 +581,28 @@ window.InspectorAgentView = (() => {
             el.style.color = on ? 'var(--accent)' : 'var(--text-dim)';
             el.style.fontWeight = on ? '600' : '400';
         });
-        document.querySelectorAll('#inspector-panel [data-tab]').forEach(el => {
+        document.querySelectorAll('#inspector-panel [data-tab], #entity-editor [data-tab]').forEach(el => {
             el.style.display = el.dataset.tab === tabName ? '' : 'none';
         });
+        // task-675: Sync segmented tabs in EntityEditor header
+        document.querySelectorAll('#entity-editor-tabs .entity-editor-tab-btn').forEach(el => {
+            el.classList.toggle('active', el.getAttribute('data-tab') === tabName);
+        });
+        // task-733: bind persona view on switch
+        if (tabName === 'Persona') {
+            const container = document.querySelector('#inspector-panel #mind-persona, #entity-editor #mind-persona');
+            const pv = window.InspectorPersonaView;
+            if (pv && container && _currentAgentName) {
+                const state = {
+                    charName: _currentAgentName,
+                    escName: esc(_currentAgentName),
+                    persona: null,
+                    tab: 'Persona',
+                };
+                pv.bind(state, container);
+                pv.fetch();
+            }
+        }
     };
     // ═══════════════════════════════════════════════
     //  Tab content renderers
@@ -709,7 +772,7 @@ window.InspectorAgentView = (() => {
                         <div>
                             <label style="font-size:10px;color:var(--text-dim);display:block;margin-bottom:2px;">Level</label>
                             <input id="ce-level" type="number" min="1" style="width:100%;" placeholder="-">
-                            <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">e.g. exhausted 1–6.</div>
+                            <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">e.g. exhausted 1-6.</div>
                         </div>
                     </div>
                     <div style="margin-top:8px;">
@@ -916,53 +979,246 @@ window.InspectorAgentView = (() => {
             row.remove();
         AV._saveDials(charName);
     };
-    AV._renderBioTab = function (agentName, player, charState, area, escName, isAuto, color) {
+    AV._renderBioTab = function (agentName, player, charState, area, escName, isAuto, color, isFullSurface = false) {
         const showTab = (tabName) => _activeTab === tabName ? '' : 'display:none;';
         const firstImpression = AV._computeFirstImpression(player);
-        let html = `<div data-tab="Bio" style="${showTab('Bio')}">`;
-        // Stats / Skills / Traits
-        html += AV._renderStatsBlocks(player, escName);
-        // Personality
-        html += `<div class="inspector-section">
-            <h3>🧬 Personality</h3>
-            <div style="display:flex;gap:4px;margin-bottom:4px;">
-                <input type="text" id="inspector-ai-prompt" placeholder="AI: e.g. 'a cowardly thief'" style="flex:1;font-size:11px;">
-                <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._generatePersonality('${escName}')" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖</button>
-            </div>
-            <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality || ''}</textarea></div>
-        </div>`;
-        // Personality dials (task-806): the numeric decision weights beside the
-        // prose. A dial is authored here and read by the disposition (task-802).
-        html += AV._renderDialsSection(player, escName);
-        // Appearance
-        html += `<div class="inspector-section">
-            <h3>👤 Appearance</h3>
-            <div class="field"><label style="font-size:10px;color:var(--text-muted);">Base Description (naked/baseline look)</label>
-                <textarea id="inspector-base-description" rows="2" style="font-size:11px;margin-bottom:4px;" onblur="InspectorAgentView._saveDescription('${escName}')">${player.base_description || ''}</textarea></div>
-            <div class="field"><label style="font-size:10px;color:var(--text-muted);">Current Description (derived from base + equipment, or manual override)</label>
-                <textarea id="inspector-description" rows="3" style="font-size:11px;" oninput="InspectorAgentView._updateFirstImpression('${escName}')" onblur="InspectorAgentView._saveDescription('${escName}')">${player.description || ''}</textarea></div>
-            <div style="background:var(--bg-inset);border:1px dashed var(--border);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
-                <span style="font-weight:600;">First impression:</span> <span id="inspector-first-impression">${firstImpression}</span>
-            </div>
-            <button class="btn btn-sm" data-help="auto-description" onclick="InspectorAgentView._generateDescription('${escName}')" title="Regenerate the visible description from the base description plus worn gear. It also refreshes on its own after equip/unequip or a body-state change, so a manual edit here can be overwritten by the next equipment change.">🤖 Generate from Equipment</button>
-        </div>`;
-        // task-729: relationships (the authored store) moved to the Mind panel's
-        // People tab; the memory list/editor moved to its Memories tab.
-        // Tags
-        html += `<div class="inspector-section"><h3>🏷️ Tags</h3>
-            <div id="tag-multiselect-agent-${escName}"></div>
-        </div>`;
-        // Aliases - subjective names others use to target this character
+        if (!isFullSurface) {
+            let html = `<div data-tab="Bio" style="${showTab('Bio')}">`;
+            // Character Sheet banner (task-733)
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:6px 8px;background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;">
+                <div>
+                    <div style="font-weight:600;font-size:11px;">📄 Character Sheet</div>
+                    <div style="font-size:10px;color:var(--text-muted);">Person schema &amp; compile to primitives</div>
+                </div>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn btn-sm" onclick="InspectorAgentView._switchAgentTab('Persona')" style="font-size:10px;padding:2px 8px;">Persona Tab</button>
+                    <button class="btn btn-sm btn-purple" onclick="EntityEditor.mount('character', '${escName}')" style="font-size:10px;padding:2px 8px;">Full Page ⛶</button>
+                </div>
+            </div>`;
+            // Stats / Skills / Traits
+            html += AV._renderStatsBlocks(player, escName);
+            // Personality
+            html += `<div class="inspector-section">
+                <h3>🧬 Personality</h3>
+                <div style="display:flex;gap:4px;margin-bottom:4px;">
+                    <input type="text" id="inspector-ai-prompt" placeholder="AI: e.g. 'a cowardly thief'" style="flex:1;font-size:11px;">
+                    <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._generatePersonality('${escName}')" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖</button>
+                </div>
+                <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality || ''}</textarea></div>
+            </div>`;
+            // Personality dials
+            html += AV._renderDialsSection(player, escName);
+            // Appearance
+            html += `<div class="inspector-section">
+                <h3>👤 Appearance</h3>
+                <div class="field"><label style="font-size:10px;color:var(--text-muted);">Base Description (naked/baseline look)</label>
+                    <textarea id="inspector-base-description" rows="2" style="font-size:11px;margin-bottom:4px;" onblur="InspectorAgentView._saveDescription('${escName}')">${player.base_description || ''}</textarea></div>
+                <div class="field"><label style="font-size:10px;color:var(--text-muted);">Current Description (derived from base + equipment, or manual override)</label>
+                    <textarea id="inspector-description" rows="3" style="font-size:11px;" oninput="InspectorAgentView._updateFirstImpression('${escName}')" onblur="InspectorAgentView._saveDescription('${escName}')">${player.description || ''}</textarea></div>
+                <div style="background:var(--bg-inset);border:1px dashed var(--border);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
+                    <span style="font-weight:600;">First impression:</span> <span id="inspector-first-impression">${firstImpression}</span>
+                </div>
+                <button class="btn btn-sm" data-help="auto-description" onclick="InspectorAgentView._generateDescription('${escName}')" title="Regenerate the visible description from the base description plus worn gear.">🤖 Generate from Equipment</button>
+            </div>`;
+            // Tags
+            html += `<div class="inspector-section"><h3>🏷️ Tags</h3>
+                <div id="tag-multiselect-agent-${escName.replace(/[^a-zA-Z0-9_-]/g, '_')}"></div>
+            </div>`;
+            // Aliases
+            const agentNodeId = `player_${agentName.replace(/\s+/g, '_')}`;
+            const agentNode = worldState.getNode(agentNodeId);
+            html += AV._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || []);
+            html += `</div>`; // End Bio tab
+            return html;
+        }
+        // Full-surface 3-column layout with section nav rail (task-675 / Phase 3)
         const agentNodeId = `player_${agentName.replace(/\s+/g, '_')}`;
         const agentNode = worldState.getNode(agentNodeId);
-        html += AV._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || []);
-        // task-787: interest tags, fear tags, recipes, what-I-see, latest
-        // thoughts and the plan moved into the Mind panel - the runtime mind no
-        // longer sits beside the character's definition. Character `tags`
-        // (above) stay here: they are authored definition.
-        // task-729: the memory list/editor moved into the Mind panel too.
+        const stats = player.stats || {};
+        const skills = player.skills || {};
+        const traits = player.traits || {};
+        const tags = Array.isArray(player.tags) ? player.tags : [];
+        const relationships = player.relationships || {};
+        const memories = player.memories || [];
+        const thoughts = player.recent_thoughts || [];
+        const knownRecipes = (typeof AV._knownRecipeNames === 'function' ? AV._knownRecipeNames(agentName, player) : []) || [];
+        let html = `<div data-tab="Bio" class="entity-editor-bio-tab" style="${showTab('Bio')}">`;
+        html += `<div class="entity-editor-bio-wrap">`;
+        // Sticky left rail
+        html += `<nav class="entity-editor-rail" aria-label="Section navigation">
+            <div class="rail-grp">identity &amp; persona</div>
+            <a class="rail-link" style="color:var(--accent);font-weight:600;" onclick="InspectorAgentView._switchAgentTab('Persona')">📄 Character Sheet</a>
+            <a class="rail-link" onclick="document.getElementById('sec-personality')?.scrollIntoView({behavior:'smooth'})">Personality</a>
+            <a class="rail-link" onclick="document.getElementById('sec-appearance')?.scrollIntoView({behavior:'smooth'})">Appearance</a>
+            <a class="rail-link" onclick="document.getElementById('sec-emotion')?.scrollIntoView({behavior:'smooth'})">Emotion</a>
+            <a class="rail-link" onclick="document.getElementById('sec-tags')?.scrollIntoView({behavior:'smooth'})">Tags <span class="rail-cnt">${tags.length}</span></a>
+            <a class="rail-link" onclick="document.getElementById('sec-aliases')?.scrollIntoView({behavior:'smooth'})">Aliases</a>
+
+            <div class="rail-grp">mechanics</div>
+            <a class="rail-link" onclick="document.getElementById('sec-vitals')?.scrollIntoView({behavior:'smooth'})">Vitals</a>
+            <a class="rail-link" onclick="document.getElementById('sec-stats-skills-traits')?.scrollIntoView({behavior:'smooth'})">Stats <span class="rail-cnt">${Object.keys(stats).length || 6}</span></a>
+            <a class="rail-link" onclick="document.getElementById('sec-skills-list')?.scrollIntoView({behavior:'smooth'})">Skills <span class="rail-cnt">${Object.keys(skills).length}</span></a>
+            <a class="rail-link" onclick="document.getElementById('sec-traits-list')?.scrollIntoView({behavior:'smooth'})">Traits <span class="rail-cnt">${Object.keys(traits).length}</span></a>
+            <a class="rail-link" onclick="document.getElementById('sec-recipes')?.scrollIntoView({behavior:'smooth'})">Recipes <span class="rail-cnt">${knownRecipes.length}</span></a>
+
+            <div class="rail-grp">knowledge</div>
+            <a class="rail-link" onclick="document.getElementById('sec-what-i-see')?.scrollIntoView({behavior:'smooth'})">What I See</a>
+            <a class="rail-link" onclick="document.getElementById('sec-thoughts')?.scrollIntoView({behavior:'smooth'})">Latest Thoughts <span class="rail-cnt">${thoughts.length}</span></a>
+            <a class="rail-link" onclick="document.getElementById('sec-tags-knowledge')?.scrollIntoView({behavior:'smooth'})">Interest &amp; Fear</a>
+            <a class="rail-link" onclick="document.getElementById('sec-memories')?.scrollIntoView({behavior:'smooth'})">Memories <span class="rail-cnt">${memories.length}</span></a>
+            <a class="rail-link" onclick="document.getElementById('sec-relationships')?.scrollIntoView({behavior:'smooth'})">Relationships <span class="rail-cnt">${Object.keys(relationships).length}</span></a>
+        </nav>`;
+        // Three columns
+        html += `<div class="entity-editor-columns-3">`;
+        // Column 1: Identity & Persona
+        html += `<div class="entity-editor-col entity-editor-col-identity">
+            <div class="inspector-section" id="sec-personality">
+                <h3>🧬 Personality</h3>
+                <div style="display:flex;gap:4px;margin-bottom:4px;">
+                    <input type="text" id="inspector-ai-prompt" placeholder="AI: e.g. 'a cowardly thief'" style="flex:1;font-size:11px;">
+                    <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._generatePersonality('${escName}')" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖</button>
+                </div>
+                <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality || ''}</textarea></div>
+                ${AV._renderDialsSection(player, escName)}
+            </div>
+
+            <div class="inspector-section" id="sec-appearance">
+                <h3>👤 Appearance</h3>
+                <div class="field"><label style="font-size:10px;color:var(--text-muted);">Base Description (naked/baseline look)</label>
+                    <textarea id="inspector-base-description" rows="2" style="font-size:11px;margin-bottom:4px;" onblur="InspectorAgentView._saveDescription('${escName}')">${player.base_description || ''}</textarea></div>
+                <div class="field"><label style="font-size:10px;color:var(--text-muted);">Current Description (derived from base + equipment, or manual override)</label>
+                    <textarea id="inspector-description" rows="3" style="font-size:11px;" oninput="InspectorAgentView._updateFirstImpression('${escName}')" onblur="InspectorAgentView._saveDescription('${escName}')">${player.description || ''}</textarea></div>
+                <div style="background:var(--bg-inset);border:1px dashed var(--border);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
+                    <span style="font-weight:600;">First impression:</span> <span id="inspector-first-impression">${firstImpression}</span>
+                </div>
+                <button class="btn btn-sm" data-help="auto-description" onclick="InspectorAgentView._generateDescription('${escName}')" title="Regenerate the visible description from the base description plus worn gear.">🤖 Generate from Equipment</button>
+            </div>
+
+            <div class="inspector-section" id="sec-emotion">
+                <h3>🎭 Emotion</h3>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+                    ${Object.entries(EMOTION_ICONS).map(([emo, icon]) => `
+                        <button class="btn btn-sm ${player.emotion === emo ? 'btn-blue' : 'btn-ghost'}"
+                            onclick="ApiClient.updateCharacter('${escName}', { emotion: '${emo}' }).then(() => worldState.fetch())"
+                            style="font-size:11px;padding:2px 8px;">
+                            ${icon} ${emo}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="inspector-section" id="sec-tags">
+                <h3>🏷️ Tags</h3>
+                <div id="tag-multiselect-agent-${escName.replace(/[^a-zA-Z0-9_-]/g, '_')}"></div>
+            </div>
+
+            <div id="sec-aliases">
+                ${AV._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || [])}
+            </div>
+        </div>`;
+        // Column 2: Mechanics
+        html += `<div class="entity-editor-col entity-editor-col-mechanics">
+            <div class="inspector-section" id="sec-vitals">
+                <h3>❤️ Vitals</h3>
+                ${AV._renderVitals(player, agentName)}
+            </div>
+
+            <div id="sec-stats-skills-traits">
+                ${AV._renderStatsBlocks(player, escName)}
+            </div>
+
+            <div class="inspector-section" id="sec-recipes">
+                <h3>📜 Recipes <span class="rail-cnt">(${knownRecipes.length})</span></h3>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                    ${knownRecipes.length > 0
+            ? knownRecipes.map((r) => `<span class="chip on" style="font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(88,166,255,0.15);color:#58a6ff;border:1px solid rgba(88,166,255,0.3);">${r.name || r.id}</span>`).join('')
+            : '<div style="font-size:11px;color:var(--text-muted);">No recipes known yet.</div>'}
+                </div>
+            </div>
+        </div>`;
+        // Column 3: Knowledge
+        html += `<div class="entity-editor-col entity-editor-col-knowledge">
+            <div class="inspector-section" id="sec-what-i-see">
+                <h3>👁️ What I See</h3>
+                <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:11px;color:var(--text-dim);min-height:36px;">
+                    ${area ? (area.description || area.name || 'In an area') : 'Nowhere'}
+                </div>
+            </div>
+
+            <div class="inspector-section" id="sec-thoughts">
+                <h3>💭 Latest Thoughts <span class="rail-cnt">(${thoughts.length})</span></h3>
+                <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:11px;color:var(--text-dim);max-height:120px;overflow-y:auto;">
+                    ${thoughts.length > 0
+            ? thoughts.slice(-4).map((t) => `<div style="margin-bottom:3px;border-bottom:1px solid var(--border-light);padding-bottom:2px;">• ${t}</div>`).join('')
+            : '<div style="color:var(--text-muted);">No recent thoughts.</div>'}
+                </div>
+            </div>
+
+            <div class="inspector-section" id="sec-tags-knowledge">
+                <h3>🎯 Interest &amp; Fear Tags</h3>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div>
+                        <span style="font-size:10px;font-weight:600;color:var(--text-muted);">INTERESTS:</span>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">
+                            ${(player.interest_tags && player.interest_tags.length > 0)
+            ? player.interest_tags.map((t) => `<span class="chip on" style="font-size:10px;padding:1px 6px;background:rgba(88,166,255,0.15);border:1px solid var(--border);border-radius:3px;">${t}</span>`).join('')
+            : '<span style="font-size:10px;color:var(--text-muted);">none</span>'}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size:10px;font-weight:600;color:var(--text-muted);">FEARS:</span>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">
+                            ${(player.fear_tags && player.fear_tags.length > 0)
+            ? player.fear_tags.map((t) => `<span class="chip on" style="font-size:10px;padding:1px 6px;background:rgba(248,81,73,0.15);border:1px solid var(--border);border-radius:3px;color:#f85149;">${t}</span>`).join('')
+            : '<span style="font-size:10px;color:var(--text-muted);">none</span>'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inspector-section" id="sec-memories">
+                <h3>🧠 Memories <span class="rail-cnt">(${memories.length})</span></h3>
+                <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:11px;color:var(--text-dim);max-height:160px;overflow-y:auto;">
+                    ${memories.length > 0
+            ? memories.slice(-5).map((m) => {
+                const text = typeof m === 'string' ? m : (m.text || m.content || JSON.stringify(m));
+                const score = m.importance ? `⭐ ${m.importance} - ` : '';
+                return `<div style="margin-bottom:4px;border-bottom:1px solid var(--border-light);padding-bottom:3px;">${score}${text}</div>`;
+            }).join('')
+            : '<div style="color:var(--text-muted);">No memories recorded yet.</div>'}
+                </div>
+            </div>
+
+            <div class="inspector-section" id="sec-relationships">
+                <h3>👥 Relationships <span class="rail-cnt">(${Object.keys(relationships).length})</span></h3>
+                <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:11px;max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;">
+                    ${Object.keys(relationships).length > 0
+            ? Object.entries(relationships).map(([name, score]) => {
+                const s = typeof score === 'number' ? score : (score?.affinity ?? score?.score ?? 0);
+                const sign = s > 0 ? `+${s}` : `${s}`;
+                const color = s > 0 ? '#3fb950' : (s < 0 ? '#f85149' : 'var(--text-muted)');
+                return `<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-light);padding:2px 0;">
+                                <span>${name}</span>
+                                <span style="font-weight:600;font-family:var(--font-mono);color:${color};">${sign}</span>
+                            </div>`;
+            }).join('')
+            : '<div style="color:var(--text-muted);">No relationships recorded yet.</div>'}
+                </div>
+            </div>
+        </div>`;
+        html += `</div>`; // End entity-editor-columns-3
+        html += `</div>`; // End entity-editor-bio-wrap
         html += `</div>`; // End Bio tab
         return html;
+    };
+    /**
+     * Render the Persona tab: full-page WorldGraph-style person schema and compiler (task-733 / task-830).
+     */
+    AV._renderPersonaTab = function (agentName, player, escName, isFullSurface = false) {
+        const showTab = (tabName) => _activeTab === tabName ? '' : 'display:none;';
+        return `<div data-tab="Persona" id="agent-persona-pane" style="${showTab('Persona')}padding:${isFullSurface ? '12px 18px' : '8px 10px'};">
+            <div id="mind-persona"></div>
+        </div>`;
     };
     /**
      * Render the Images tab: the character Expression Pack and sheet splitter.
@@ -2878,14 +3134,6 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
                 { key: 'npc_behavior', label: 'NPC Config' },
                 { key: 'memories', label: 'Memories', perEntry: true },
                 { key: 'relationships', label: 'Relationships', perEntry: true },
-                { key: 'vitals', label: 'Vitals', perEntry: true },
-                { key: 'decay_rates', label: 'Decay Rates', perEntry: true },
-                { key: 'conditions', label: 'Conditions', perEntry: true },
-                { key: 'equipped', label: 'Equipped', perEntry: true },
-                { key: 'recent_hearing', label: 'Recent Hearing' },
-                { key: 'activity', label: 'Activity' },
-                { key: 'current_area', label: 'Current Area' },
-                { key: 'emotion', label: 'Emotion' },
             ],
         });
     }

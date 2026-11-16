@@ -40,6 +40,7 @@ const InspectorMindView = (() => {
     'use strict';
     let _state = null;
     let _container = null;
+    let _openerEl = null;
     const esc = (value) => {
         const s = String(value ?? '');
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -107,6 +108,73 @@ const InspectorMindView = (() => {
             chip(`${avgConf}%`, 'avg conf'),
         ].join('');
     }
+    /**
+     * Pure helper (task-973): format a simulation tick alongside a readable
+     * world-time / relative-offset label (and approximate character age if
+     * `playerAge` is known).
+     */
+    function formatTickWithWorldTime(tick, worldStateData, playerAge) {
+        const t = Number.isFinite(Number(tick)) ? Math.round(Number(tick)) : 0;
+        const raw = worldStateData && typeof worldStateData === 'object' ? worldStateData : {};
+        const tpmRaw = Number(raw.time_per_tick_minutes);
+        const tpm = Number.isFinite(tpmRaw) && tpmRaw > 0 ? tpmRaw : 5;
+        const startHRaw = Number(raw.clock_start_hour);
+        const startH = Number.isFinite(startHRaw) ? startHRaw : 8;
+        const startMRaw = Number(raw.clock_start_minute);
+        const startM = Number.isFinite(startMRaw) ? startMRaw : 0;
+        const curTickRaw = Number(raw.time_ticks);
+        const currentTick = Number.isFinite(curTickRaw) ? Math.round(curTickRaw) : 0;
+        let timeLabel;
+        if (t >= 0) {
+            const totalMinutes = t * tpm + startH * 60 + startM;
+            const day = Math.floor(totalMinutes / 1440) + 1;
+            const dayMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+            const hh = String(Math.floor(dayMinutes / 60)).padStart(2, '0');
+            const mm = String(Math.floor(dayMinutes % 60)).padStart(2, '0');
+            timeLabel = `Day ${day}, ${hh}:${mm}`;
+        }
+        else {
+            const refTick = Math.max(0, currentTick);
+            const elapsedMinutes = Math.max(1, (refTick - t) * tpm);
+            if (elapsedMinutes < 60) {
+                timeLabel = `~${Math.round(elapsedMinutes)}m ago`;
+            }
+            else if (elapsedMinutes < 1440) {
+                timeLabel = `~${Math.round(elapsedMinutes / 60)}h ago`;
+            }
+            else if (elapsedMinutes < 43200) {
+                timeLabel = `~${Math.round(elapsedMinutes / 1440)}d ago`;
+            }
+            else if (elapsedMinutes < 525600) {
+                timeLabel = `~${Math.round(elapsedMinutes / 43200)}mo ago`;
+            }
+            else {
+                const yrs = (elapsedMinutes / 525600).toFixed(1).replace(/\.0$/, '');
+                timeLabel = `~${yrs}y ago`;
+            }
+        }
+        let ageSuffix = '';
+        if (playerAge !== null && playerAge !== undefined && Number.isFinite(Number(playerAge)) && Number(playerAge) >= 0) {
+            const refTick = Math.max(0, currentTick);
+            const deltaYears = ((refTick - t) * tpm) / 525600;
+            const ageAtTick = Number(playerAge) - deltaYears;
+            if (ageAtTick >= 0) {
+                const roundedAge = ageAtTick >= 10
+                    ? String(Math.round(ageAtTick))
+                    : ageAtTick.toFixed(1).replace(/\.0$/, '');
+                ageSuffix = `, age ~${roundedAge}`;
+            }
+        }
+        return `tick ${t} (${timeLabel}${ageSuffix})`;
+    }
+    function _currentWorldTickLabel(tick) {
+        const wsData = typeof worldState !== 'undefined' && worldState ? worldState.data : undefined;
+        const cname = _state ? _state.charName : '';
+        const pAge = cname && typeof worldState !== 'undefined' && worldState?.players?.[cname]
+            ? worldState.players[cname].age
+            : undefined;
+        return formatTickWithWorldTime(tick, wsData, pAge);
+    }
     function _timelineHtml(memories) {
         const ticks = memories.map((m) => Number(m.tick) || 0);
         const min = Math.min(0, ...ticks);
@@ -114,7 +182,8 @@ const InspectorMindView = (() => {
         const W = 760, H = 64, PAD = 18;
         const span = Math.max(1, max - min);
         const dots = memories.map((m) => {
-            const x = PAD + ((Number(m.tick) || 0) - min) / span * (W - 2 * PAD);
+            const mTick = Number(m.tick) || 0;
+            const x = PAD + (mTick - min) / span * (W - 2 * PAD);
             const imp = Number(m.importance) || 5;
             const r = 2.5 + imp * 0.35;
             const color = CAT_COLORS[_catOf(m)] || '#8b949e';
@@ -122,7 +191,8 @@ const InspectorMindView = (() => {
                 ? `<circle cx="${x.toFixed(1)}" cy="${H / 2}" r="${(r + 2.5).toFixed(1)}" fill="none" stroke="#e05555" stroke-opacity="0.55" stroke-width="1.5"/>` : '';
             const sel = _state && _state.selectedId === m.id
                 ? `<circle cx="${x.toFixed(1)}" cy="${H / 2}" r="${(r + 4).toFixed(1)}" fill="none" stroke="#58a6ff" stroke-width="1.2"/>` : '';
-            return `${ring}${sel}<circle class="mind-dot" data-id="${esc(m.id)}" cx="${x.toFixed(1)}" cy="${H / 2}" r="${r.toFixed(1)}" fill="${color}" style="cursor:pointer;"><title>${esc(`tick ${m.tick} · imp ${imp} · ${_catOf(m)}`)}\n${esc(String(m.text || '').slice(0, 120))}</title></circle>`;
+            const tickLabel = _currentWorldTickLabel(mTick);
+            return `${ring}${sel}<circle class="mind-dot" data-id="${esc(m.id)}" cx="${x.toFixed(1)}" cy="${H / 2}" r="${r.toFixed(1)}" fill="${color}" style="cursor:pointer;"><title>${esc(`${tickLabel} · imp ${imp} · ${_catOf(m)}`)}\n${esc(String(m.text || '').slice(0, 120))}</title></circle>`;
         }).join('');
         const marks = [0, 0.25, 0.5, 0.75, 1].map(p => `<text x="${(PAD + p * (W - 2 * PAD)).toFixed(0)}" y="${H - 6}" fill="#6e7681" font-size="8" text-anchor="middle" font-family="monospace">${esc(Math.round(min + p * span))}</text>`).join('');
         return `<svg id="mind-timeline-svg" data-min="${min}" data-span="${span}" data-pad="${PAD}" data-w="${W}" width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;cursor:crosshair;">
@@ -174,7 +244,7 @@ const InspectorMindView = (() => {
         }
         return `<div class="mind-card" data-id="${esc(m.id)}" style="background:var(--bg-card);border:1px solid ${selected ? '#1f6feb' : 'var(--border)'};border-left:3px solid ${impColor};border-radius:6px;padding:7px 9px;margin-bottom:6px;font-size:11px;cursor:pointer;${faded ? 'opacity:0.55;' : ''}">
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-                <span style="color:var(--text-dim);font-size:10px;font-family:monospace;">[${esc(m.tick ?? 0)}]</span>
+                <span style="color:var(--text-dim);font-size:10px;font-family:monospace;" title="${esc(_currentWorldTickLabel(Number(m.tick) || 0))}">[${esc(m.tick ?? 0)}]</span>
                 ${badges.join('')}
                 <span style="margin-left:auto;font-size:10px;color:${impColor};font-weight:600;">⭐ ${imp}</span>
             </div>
@@ -222,9 +292,8 @@ const InspectorMindView = (() => {
             }
             return false;
         }).slice(-8);
-        const timeFormatted = (typeof events !== 'undefined' && events && typeof events.tickToTime === 'function')
-            ? String(events.tickToTime(mTick) || '')
-            : '';
+        const wsData = typeof worldState !== 'undefined' && worldState ? worldState.data : undefined;
+        const tickWithWorldTime = formatTickWithWorldTime(mTick, wsData, p?.age);
         const entityIds = (Array.isArray(m.entity_ids) ? m.entity_ids : []).map((e) => String(e));
         const tags = (Array.isArray(m.tags) ? m.tags : []).map((t) => String(t));
         const kvRow = (k, v) => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:1.5px 0;border-bottom:1px dotted var(--border-light);">
@@ -233,7 +302,7 @@ const InspectorMindView = (() => {
             </div>`;
         const recordRows = [
             kvRow('id', esc(m.id || '-')),
-            kvRow('tick', `${esc(mTick)}${timeFormatted ? ` (${esc(timeFormatted)})` : ''}`),
+            kvRow('tick', esc(tickWithWorldTime)),
             kvRow('source / type', `${esc(m.source || 'auto')} / ${esc(m.type || 'observation')}`),
             kvRow('category', esc(_catOf(m))),
         ];
@@ -312,9 +381,10 @@ const InspectorMindView = (() => {
             : `<button class="btn btn-sm" style="font-size:10px;color:#e0a33c;" onclick="window.InspectorMemory&&window.InspectorMemory.suppressMemory('${eName}','${mid}')" title="Suppress - hold out of recall">🚫 Suppress</button>`}
             <button class="btn btn-sm btn-red" style="font-size:10px;" onclick="window.InspectorMemory&&window.InspectorMemory.deleteMemory('${eName}','${mid}')" title="Delete this memory">🗑 Delete</button>
         </div>`;
+        const tickLabel = _currentWorldTickLabel(Number(m.tick ?? 0));
         return `<div style="background:var(--bg-card);border:1px solid #1f6feb;border-radius:6px;padding:10px;">
             <div style="font-size:13px;font-weight:600;line-height:1.4;">${esc(m.text || '')}</div>
-            <div style="font-size:10.5px;color:var(--text-dim);margin:4px 0 8px;">${esc(m.type || '')} · ${_badge(cat, CAT_COLORS[cat] || '#8b949e')} · tick ${esc(m.tick ?? 0)} · importance ${esc(m.importance ?? 5)} · source ${esc(m.source || 'auto')}</div>
+            <div style="font-size:10.5px;color:var(--text-dim);margin:4px 0 8px;">${esc(m.type || '')} · ${_badge(cat, CAT_COLORS[cat] || '#8b949e')} · ${esc(tickLabel)} · importance ${esc(m.importance ?? 5)} · source ${esc(m.source || 'auto')}</div>
             <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px;">
                 <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Dynamics</div>
                 ${_bar('activation', act(m), 1, '#4caf50')}
@@ -407,28 +477,56 @@ const InspectorMindView = (() => {
         switch (status) {
             case 'active': return '#58a6ff';
             case 'reached': return '#4caf50';
+            case 'dormant': return '#8b949e';
             case 'blocked': return '#e05555';
             case 'dropped': return '#6e7681';
             default: return '#d29922'; // proposed
         }
     }
+    function _formatGoalRef(item) {
+        if (!item)
+            return '';
+        if (typeof item === 'object') {
+            return item.note ? `${esc(item.ref)} (${esc(item.note)})` : esc(item.ref);
+        }
+        return esc(String(item));
+    }
+    function _formatGoalRefInput(list) {
+        if (!Array.isArray(list))
+            return '';
+        return list.map((item) => {
+            if (typeof item === 'object' && item.ref)
+                return item.ref;
+            return String(item);
+        }).join(', ');
+    }
     function _goalRowHtml(g) {
         const inputStyle = 'font-size:10.5px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
-        const statuses = ['proposed', 'active', 'reached', 'blocked', 'dropped'];
+        const statuses = ['proposed', 'active', 'dormant', 'reached', 'blocked', 'dropped'];
+        const visibilities = ['known', 'private', 'secret'];
         const color = _goalStatusColor(String(g.status || 'proposed'));
         const val = (s) => esc(String(s ?? ''));
         const blocked = Array.isArray(g.blocked_by) && g.blocked_by.length
-            ? `<div style="font-size:9.5px;color:#e05555;margin-top:3px;">⛔ blocked by ${esc(g.blocked_by.join(', '))}</div>` : '';
-        return `<div class="mind-goal" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
+            ? `<div style="font-size:9.5px;color:#e05555;margin-top:3px;">⛔ blocked by ${g.blocked_by.map(_formatGoalRef).join(', ')}</div>` : '';
+        const achieve = Array.isArray(g.achieve) && g.achieve.length
+            ? `<div style="font-size:9.5px;color:#58a6ff;margin-top:3px;">🎯 target: ${g.achieve.map(_formatGoalRef).join(', ')}${g.progress ? ` (${esc(g.progress.count)}/${esc(g.progress.total)} met)` : ''}</div>` : '';
+        const priorityVal = typeof g.priority === 'number' ? g.priority : 0;
+        const visVal = g.visibility || 'known';
+        return `<div class="mind-goal" data-id="${val(g.id)}" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
             <div style="display:flex;gap:6px;align-items:center;">
                 <input class="mind-goal-what" value="${val(g.what)}" placeholder="what they want" style="${inputStyle}flex:1;">
                 <select class="mind-goal-status" style="${inputStyle}font-size:10px;">${statuses.map(s => `<option value="${s}"${s === (g.status || 'proposed') ? ' selected' : ''}>${s}</option>`).join('')}</select>
+                <input class="mind-goal-priority" type="number" min="0" max="99" value="${priorityVal}" title="Priority (1 = highest)" style="${inputStyle}width:40px;font-size:10px;">
+                <select class="mind-goal-visibility" title="Visibility" style="${inputStyle}font-size:10px;">${visibilities.map(v => `<option value="${v}"${v === visVal ? ' selected' : ''}>${v}</option>`).join('')}</select>
                 <span class="mind-goal-del" title="remove goal" style="cursor:pointer;color:var(--red);font-size:12px;padding:2px;">✕</span>
             </div>
-            <input class="mind-goal-motivation" value="${val(g.motivation)}" placeholder="motivation (why at all)" style="${inputStyle}width:100%;margin-top:4px;">
+            <input class="mind-goal-motivation" value="${val(g.motivation || g.why)}" placeholder="motivation (why at all)" style="${inputStyle}width:100%;margin-top:4px;">
             <input class="mind-goal-intention" value="${val(g.intention)}" placeholder="intention (why this one)" style="${inputStyle}width:100%;margin-top:4px;">
-            <input class="mind-goal-blocks" value="${val((g.blocks || []).join(', '))}" placeholder="blocked by (goal id or item:node_id, comma-separated)" style="${inputStyle}width:100%;margin-top:4px;">
+            <input class="mind-goal-hoped-for" value="${val(g.hoped_for)}" placeholder="hoped for (expected outcome)" style="${inputStyle}width:100%;margin-top:4px;">
+            <input class="mind-goal-blocks" value="${val(_formatGoalRefInput(g.blocks || []))}" placeholder="blocked by (goal id or item:node_id, comma-separated)" style="${inputStyle}width:100%;margin-top:4px;">
+            <input class="mind-goal-achieve" value="${val(_formatGoalRefInput(g.achieve || []))}" placeholder="achieved when (e.g. item:chiefs_staff, tag:chief, comma-separated)" style="${inputStyle}width:100%;margin-top:4px;">
             ${blocked}
+            ${achieve}
         </div>`;
     }
     function _goalsHtml() {
@@ -442,13 +540,24 @@ const InspectorMindView = (() => {
         const box = _container?.querySelector('#mind-goals');
         if (!box)
             return [];
-        return Array.from(box.querySelectorAll('.mind-goal')).map((row) => ({
-            what: (row.querySelector('.mind-goal-what')?.value || '').trim(),
-            status: row.querySelector('.mind-goal-status')?.value || 'proposed',
-            motivation: (row.querySelector('.mind-goal-motivation')?.value || '').trim(),
-            intention: (row.querySelector('.mind-goal-intention')?.value || '').trim(),
-            blocks: (row.querySelector('.mind-goal-blocks')?.value || '').trim(),
-        })).filter((g) => g.what);
+        return Array.from(box.querySelectorAll('.mind-goal')).map((row) => {
+            const gid = row.getAttribute('data-id') || '';
+            const res = {
+                what: (row.querySelector('.mind-goal-what')?.value || '').trim(),
+                status: row.querySelector('.mind-goal-status')?.value || 'proposed',
+                motivation: (row.querySelector('.mind-goal-motivation')?.value || '').trim(),
+                why: (row.querySelector('.mind-goal-motivation')?.value || '').trim(),
+                intention: (row.querySelector('.mind-goal-intention')?.value || '').trim(),
+                hoped_for: (row.querySelector('.mind-goal-hoped-for')?.value || '').trim(),
+                priority: parseInt(row.querySelector('.mind-goal-priority')?.value || '0', 10) || 0,
+                visibility: row.querySelector('.mind-goal-visibility')?.value || 'known',
+                blocks: (row.querySelector('.mind-goal-blocks')?.value || '').trim(),
+                achieve: (row.querySelector('.mind-goal-achieve')?.value || '').trim(),
+            };
+            if (gid)
+                res.id = gid;
+            return res;
+        }).filter((g) => g.what);
     }
     async function _saveGoals() {
         if (!_state)
@@ -488,27 +597,56 @@ const InspectorMindView = (() => {
             case 'offered': return '#d29922';
             case 'accepted': return '#58a6ff';
             case 'done': return '#4caf50';
+            case 'failed': return '#e05555';
             default: return '#6e7681'; // refused / forgotten
         }
     }
     function _obligationsHtml() {
         const obligations = _obligations();
-        if (!obligations.length)
-            return '';
+        const inputStyle = 'font-size:10.5px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
         const rows = obligations.map((o) => {
             const color = _obligationColor(String(o.status || 'offered'));
-            const meta = [o.from ? `from ${o.from}` : '', o.due ? `due t${o.due}` : ''].filter(Boolean).join(' / ');
-            return `<div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
+            const meta = [o.from ? `from ${o.from}` : '', o.due ? `due t${o.due}` : ''].filter(Boolean).join(' · ');
+            const isOffered = o.status === 'offered';
+            const isAccepted = o.status === 'accepted';
+            let actions = '';
+            if (isOffered) {
+                actions = `
+                    <div style="display:flex;gap:4px;margin-top:6px;">
+                        <button class="btn btn-xs mind-obl-btn" data-action="accept" data-id="${esc(o.id)}" style="font-size:9.5px;color:#4caf50;">✓ Accept</button>
+                        <button class="btn btn-xs mind-obl-btn" data-action="refuse" data-id="${esc(o.id)}" style="font-size:9.5px;color:#e05555;">✕ Decline</button>
+                    </div>`;
+            }
+            else if (isAccepted) {
+                actions = `
+                    <div style="display:flex;gap:4px;margin-top:6px;">
+                        <button class="btn btn-xs mind-obl-btn" data-action="done" data-id="${esc(o.id)}" style="font-size:9.5px;color:#4caf50;">✓ Complete</button>
+                        <button class="btn btn-xs mind-obl-btn" data-action="forget" data-id="${esc(o.id)}" style="font-size:9.5px;color:var(--text-muted);">✕ Forget</button>
+                    </div>`;
+            }
+            return `<div class="mind-obligation-card" data-id="${esc(o.id)}" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
                 <div style="display:flex;align-items:center;gap:6px;">
-                    <b style="font-size:11.5px;line-height:1.35;">${esc(o.charge || '')}</b>
+                    <b style="font-size:11.5px;line-height:1.35;flex:1;">${esc(o.charge || '')}</b>
                     <span style="margin-left:auto;">${_badge(String(o.status || 'offered'), color)}</span>
                 </div>
                 ${meta ? `<div style="font-size:9.5px;color:var(--text-muted);margin-top:3px;">${esc(meta)}</div>` : ''}
+                ${actions}
             </div>`;
         }).join('');
-        return `<div style="margin-top:14px;">
-            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Obligations - what they owe</div>
-            ${rows}
+        return `<div style="margin-top:14px;" id="mind-obligations-section">
+            <div style="display:flex;align-items:center;margin-bottom:7px;">
+                <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">Obligations - what they owe</div>
+                <button class="btn btn-xs mind-new-offer-toggle" style="margin-left:auto;font-size:9.5px;">➕ New offer</button>
+            </div>
+            <div id="mind-new-offer-form" style="display:none;background:var(--bg-card);border:1px dashed var(--border);border-radius:6px;padding:7px 9px;margin-bottom:7px;">
+                <input class="mind-offer-charge" placeholder="request / mission charge" style="${inputStyle}width:100%;margin-bottom:4px;">
+                <div style="display:flex;gap:4px;margin-bottom:4px;">
+                    <input class="mind-offer-from" placeholder="from (issuer name)" style="${inputStyle}flex:1;">
+                    <input class="mind-offer-due" type="number" placeholder="due tick" style="${inputStyle}width:70px;">
+                </div>
+                <button class="btn btn-xs mind-create-offer-btn" style="font-size:9.5px;">Send offer</button>
+            </div>
+            <div id="mind-obligations-list">${rows || '<div class="mind-obligation-empty" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no obligations</div>'}</div>
         </div>`;
     }
     function _schedule() {
@@ -697,11 +835,27 @@ const InspectorMindView = (() => {
             return `<div style="font-size:10.5px;padding:2px 0;"><b style="color:${color};">${esc(n)} ${esc(vitals[n])}</b> <span style="color:var(--text-muted);">${esc(lvl)}</span></div>`;
         });
         const stateBad = state !== 'awake';
-        if (!stateBad && !condRows.length && !vitalRows.length)
+        const cyc = p.reproductive_cycle || null;
+        const preg = p.pregnancy || null;
+        const cycleRows = [];
+        if (preg && typeof preg === 'object') {
+            const stg = String(preg.stage || 'pregnant').replace(/_/g, ' ');
+            const due = preg.due_tick != null ? ` (due t${esc(preg.due_tick)})` : '';
+            const who = preg.partner ? ` with ${esc(preg.partner)}` : '';
+            cycleRows.push(`<div style="font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border-light);"><b style="color:#f778ba;">pregnant: ${esc(stg)}</b><span style="color:var(--text-muted);">${who}${due}</span></div>`);
+        }
+        else if (cyc && typeof cyc === 'object' && cyc.pattern && cyc.pattern !== 'none') {
+            const phase = String(cyc.phase || '').replace(/_/g, ' ');
+            const dayInfo = (cyc.day && cyc.length_days) ? `day ${esc(cyc.day)}/${esc(cyc.length_days)}` : '';
+            const fertileBadge = cyc.fertile_window ? ` <span style="color:#3fb950;font-weight:600;">(fertile window)</span>` : '';
+            cycleRows.push(`<div style="font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border-light);"><b>cycle (${esc(cyc.pattern)}): ${esc(phase)}</b> <span style="color:var(--text-muted);">${dayInfo}</span>${fertileBadge}</div>`);
+        }
+        if (!stateBad && !condRows.length && !vitalRows.length && !cycleRows.length)
             return '';
         return `<div style="margin-top:14px;">
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Body - what is driving them</div>
             ${stateBad ? `<div style="font-size:11px;margin-bottom:4px;">state: <b style="color:${state === 'dead' ? 'var(--red)' : 'var(--orange)'};">${esc(state)}</b></div>` : ''}
+            ${cycleRows.join('')}
             ${condRows.join('')}
             ${vitalRows.join('')}
         </div>`;
@@ -774,7 +928,7 @@ const InspectorMindView = (() => {
     function _latestThoughtsHtml() {
         if (!_state)
             return '';
-        const cs = events.getCharacterState(_state.charName) || {};
+        const cs = events?.getCharacterState?.(_state.charName) || {};
         return `<div style="margin-top:14px;">
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Latest thoughts - the last turn</div>
             <div class="decision-trace" style="font-size:11px;">
@@ -862,10 +1016,50 @@ const InspectorMindView = (() => {
         })
             .catch(() => { });
     }
+    function _cognitiveMapHtml() {
+        if (!_state)
+            return '';
+        return `<div style="margin-top:14px;" id="mind-cognitive-map">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Cognitive Map - known places &amp; routes</div>
+            <div id="mind-cognitive-map-content" style="font-size:10px;color:var(--text-dim);">loading cognitive map...</div>
+        </div>`;
+    }
+    function _fetchCognitiveMap() {
+        if (!_state)
+            return;
+        ApiClient.getPlayerCognitiveMap(_state.charName)
+            .then((data) => {
+            const live = _container?.querySelector('#mind-cognitive-map-content');
+            if (!live || !_state)
+                return;
+            const areas = data.areas || [];
+            const ways = data.ways || [];
+            if (areas.length === 0) {
+                live.innerHTML = '<div style="color:var(--text-dim);font-style:italic;">No remembered places yet.</div>';
+                return;
+            }
+            const areasHtml = areas.map((a) => {
+                const isCur = a.is_current;
+                const bg = isCur ? 'rgba(56,189,248,0.18)' : 'var(--bg-tag, #262c36)';
+                const color = isCur ? '#38bdf8' : 'var(--text)';
+                const border = isCur ? '1px solid #38bdf8' : '1px solid var(--border)';
+                return `<span style="display:inline-block;padding:2px 8px;margin:2px;border-radius:4px;background:${bg};color:${color};border:${border};font-size:10px;">${isCur ? '📍 ' : ''}${esc(a.name)}</span>`;
+            }).join('');
+            const waysHtml = ways.length > 0
+                ? `<div style="margin-top:6px;font-size:10px;color:var(--text-muted);">` +
+                    ways.map((w) => {
+                        const aspects = w.aspects && w.aspects.length ? ` [${w.aspects.join(', ')}]` : '';
+                        return `<div>${esc(w.from_name || w.from_id)} &rarr; ${esc(w.to_name || w.to_id)} (${esc(w.direction)})${aspects}</div>`;
+                    }).join('') + `</div>`
+                : '<div style="margin-top:4px;font-size:9.5px;color:var(--text-dim);">No known connections yet.</div>';
+            live.innerHTML = `<div>${areasHtml}</div>${waysHtml}`;
+        })
+            .catch(() => { });
+    }
     function _eventsTimelineHtml() {
         if (!_state)
             return '';
-        const cs = events.getCharacterState(_state.charName) || {};
+        const cs = events?.getCharacterState?.(_state.charName) || {};
         const timeline = cs.detailedTimeline || [];
         let body;
         if (timeline.length > 0) {
@@ -912,7 +1106,8 @@ const InspectorMindView = (() => {
     function _conversationHtml() {
         if (!_state)
             return '';
-        const hist = (agent && agent.getDisplayHistory) ? agent.getDisplayHistory(_state.charName) : [];
+        const ag = typeof agent !== 'undefined' ? agent : window.agent;
+        const hist = (ag && ag.getDisplayHistory) ? ag.getDisplayHistory(_state.charName) : [];
         let body;
         if (hist.length > 0) {
             body = hist.map((msg, i) => {
@@ -1132,7 +1327,11 @@ const InspectorMindView = (() => {
             const closeness = rel.closeness ?? 0;
             const relColor = closeness > 0 ? (closeness > 50 ? '#3fb950' : '#e3b341') : (closeness < 0 ? (closeness < -50 ? '#f85149' : '#d47766') : 'var(--text-muted)');
             const desc = closeness <= -75 ? 'mortal enemy' : closeness <= -50 ? 'enemy' : closeness <= -25 ? 'rival' : closeness < 0 ? 'unfriendly' : closeness === 0 ? 'neutral' : closeness <= 25 ? 'acquaintance' : closeness <= 50 ? 'friend' : closeness <= 75 ? 'close friend' : 'inseparable';
-            rows.push(`<div class="relationship-item-inspector" data-other="${esc(otherName)}" style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            const axesHtml = ['trust', 'attraction', 'fear', 'resentment']
+                .filter((ax) => typeof rel[ax] === 'number' && rel[ax] !== 0)
+                .map((ax) => `<span style="font-size:9px;padding:1px 5px;border-radius:999px;border:1px solid var(--border);color:var(--text-dim);">${ax}:${rel[ax]}</span>`)
+                .join('');
+            rows.push(`<div class="relationship-item-inspector" data-other="${esc(otherName)}" style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
                 <span style="min-width:70px;font-size:11px;font-weight:500;">${esc(otherName)}</span>
                 <input type="range" min="-100" max="100" value="${closeness}" class="rel-slider" data-agent="${esc(me)}" data-other="${esc(otherName)}" style="flex:1;height:4px;accent-color:${relColor};">
                 <span style="font-size:10px;color:var(--text-muted);min-width:28px;text-align:right;" class="rel-val">${closeness}</span>
@@ -1142,6 +1341,7 @@ const InspectorMindView = (() => {
                     <input type="checkbox" class="rel-known" data-agent="${esc(me)}" data-other="${esc(otherName)}" ${rel.first_sighting ? '' : 'checked'}> name
                 </label>
                 <span class="mind-rel-del" data-agent="${esc(me)}" data-other="${esc(otherName)}" style="cursor:pointer;color:var(--red);font-size:12px;padding:0 2px;" title="Remove relationship">✕</span>
+                ${axesHtml ? `<div style="flex-basis:100%;display:flex;gap:4px;padding-left:76px;margin-top:-2px;">${axesHtml}</div>` : ''}
             </div>`);
         }
         const hasUnrelated = othersExMe.some(([name]) => !p.relationships?.[name]);
@@ -1366,8 +1566,14 @@ const InspectorMindView = (() => {
         const perceptionPane = `<div style="flex:1;padding:12px;overflow-y:auto;">
             <div style="${gridStyle}">
                 <div>${_activityHtml()}${_feelingHtml()}${_emotionEditorHtml()}${_bodyHtml()}${_whatISeeHtml()}</div>
-                <div>${_knowledgeHtml()}${_recipesHtml()}</div>
+                <div>${_knowledgeHtml()}${_recipesHtml()}${_cognitiveMapHtml()}</div>
             </div></div>`;
+        const isFs = !!_state.fullscreen;
+        const fsTitle = isFs ? 'Exit fullscreen (Escape)' : 'Fullscreen';
+        const fsIcon = isFs ? '🗗' : '⛶';
+        const modalStyle = isFs
+            ? 'position:fixed;inset:0;width:100vw;height:100vh;max-width:none;border-radius:0;border:none;z-index:9991;display:flex;flex-direction:column;overflow:hidden;background:var(--bg-card);'
+            : 'position:fixed;top:4vh;left:50%;transform:translateX(-50%);width:min(1360px,96vw);height:90vh;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;z-index:9991;display:flex;flex-direction:column;overflow:hidden;';
         const memoriesPane = `<div style="flex:1;display:flex;overflow:hidden;">
             <div style="flex:1;padding:12px;overflow-y:auto;min-width:0;">
                 ${_timelineHtml(all)}
@@ -1379,13 +1585,13 @@ const InspectorMindView = (() => {
                 <div id="mind-list">${cards}</div>
                 ${_eventsTimelineHtml()}${_conversationHtml()}
             </div>
-            <div style="width:380px;border-left:1px solid var(--border);padding:12px;overflow-y:auto;background:var(--bg-inset);">
+            <div style="width:${isFs ? 'min(480px, 36vw)' : '380px'};border-left:1px solid var(--border);padding:12px;overflow-y:auto;background:var(--bg-inset);">
                 <div style="${hdr}">Memory detail</div>
                 <div id="mind-detail">${_detailHtml(selected, all)}</div>
                 <div style="margin-top:12px;" id="mind-access">${_accessibilityHtml(all)}</div>
             </div></div>`;
         const peoplePane = `<div style="flex:1;padding:12px;overflow-y:auto;">
-            <div style="max-width:640px;">${_relationshipsHtml()}<div style="${hdr}">People - derived from memories</div>
+            <div style="max-width:${isFs ? '1100px' : '640px'};">${_relationshipsHtml()}<div style="${hdr}">People - derived from memories</div>
                 <div id="mind-people">${_peopleHtml()}</div></div></div>`;
         const personaPane = `<div style="flex:1;padding:16px 20px;overflow-y:auto;">
             <div id="mind-persona">${InspectorPersonaView.html()}</div></div>`;
@@ -1398,12 +1604,13 @@ const InspectorMindView = (() => {
                         : tab === 'persona' ? personaPane : mindPane;
         const modalContent = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9990;" class="mind-close"></div>
-        <div style="position:fixed;top:4vh;left:50%;transform:translateX(-50%);width:min(1360px,96vw);height:90vh;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;z-index:9991;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="mind-modal-window${isFs ? ' mind-fullscreen-active' : ''}" style="${modalStyle}">
             <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-inset);flex-wrap:wrap;">
                 <h3 style="margin:0;font-size:14px;">🧠 Mind - ${esc(_state.charName)}</h3>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">${_statsHtml(all)}</div>
                 <button class="btn btn-sm mind-refresh" style="font-size:10px;" title="Re-read the character's memories">🔄</button>
-                <button class="btn btn-sm mind-close" style="font-size:10px;">✕</button>
+                <button class="btn btn-sm mind-fullscreen" style="font-size:10px;" title="${fsTitle}" aria-label="${fsTitle}">${fsIcon}</button>
+                <button class="btn btn-sm mind-close" style="font-size:10px;" title="Close (Escape)">✕</button>
             </div>
             <div style="display:flex;gap:2px;padding:6px 16px 0;border-bottom:1px solid var(--border);background:var(--bg-card);flex-wrap:wrap;">
                 ${tabBar}
@@ -1415,11 +1622,20 @@ const InspectorMindView = (() => {
         if (window.Lit?.render && window.Lit?.unsafeHTML) {
             window.Lit.render(window.Lit.unsafeHTML(modalContent), _container);
         }
-        else {
+        else if (typeof document.createRange === 'function' && typeof _container.replaceChildren === 'function') {
             _container.replaceChildren(document.createRange().createContextualFragment(modalContent));
+        }
+        else {
+            _container.innerHTML = modalContent;
         }
         // wiring
         _container.querySelectorAll('.mind-close').forEach(el => el.addEventListener('click', () => M.close()));
+        _container.querySelectorAll('.mind-fullscreen').forEach(el => el.addEventListener('click', () => {
+            if (_state) {
+                _state.fullscreen = !_state.fullscreen;
+                _render();
+            }
+        }));
         _container.querySelectorAll('.mind-tab').forEach(el => el.addEventListener('click', () => { if (_state) {
             _state.tab = el.dataset.tab || 'mind';
             _render();
@@ -1449,6 +1665,45 @@ const InspectorMindView = (() => {
         }
         // task-821: the GIMP goal editor lives in the Mind panel. Delegated, so a
         // row added after a render is still wired and nothing binds twice.
+        const oblBox = _container.querySelector('#mind-obligations-list');
+        if (oblBox) {
+            oblBox.addEventListener('click', async (ev) => {
+                const btn = ev.target.closest('.mind-obl-btn');
+                if (!btn || !_state)
+                    return;
+                const act = btn.dataset.action;
+                const id = btn.dataset.id;
+                if (act && id) {
+                    await ApiClient.action(`obligation ${act} ${id}`, _state.charName);
+                    await worldState.fetch();
+                    _render();
+                }
+            });
+        }
+        const newOfferToggle = _container.querySelector('.mind-new-offer-toggle');
+        const newOfferForm = _container.querySelector('#mind-new-offer-form');
+        if (newOfferToggle && newOfferForm) {
+            newOfferToggle.addEventListener('click', () => {
+                newOfferForm.style.display = newOfferForm.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+        const createOfferBtn = _container.querySelector('.mind-create-offer-btn');
+        if (createOfferBtn && newOfferForm) {
+            createOfferBtn.addEventListener('click', async () => {
+                if (!_state)
+                    return;
+                const charge = newOfferForm.querySelector('.mind-offer-charge')?.value.trim();
+                const fromName = newOfferForm.querySelector('.mind-offer-from')?.value.trim() || 'someone';
+                const due = parseInt(newOfferForm.querySelector('.mind-offer-due')?.value || '0', 10) || 0;
+                if (!charge)
+                    return;
+                const cur = _obligations();
+                const updated = [...cur, { charge, from: fromName, due, status: 'offered' }];
+                await ApiClient.updateCharacter(_state.charName, { obligations: updated });
+                await worldState.fetch();
+                _render();
+            });
+        }
         const goalsBox = _container.querySelector('#mind-goals');
         if (goalsBox) {
             goalsBox.addEventListener('focusout', () => _saveGoals());
@@ -1570,13 +1825,15 @@ const InspectorMindView = (() => {
         }));
         const refresh = _container.querySelector('.mind-refresh');
         if (refresh)
-            refresh.addEventListener('click', () => { _fetchPeople(); InspectorPersonaView.fetch(); _fetchRecipes(); _render(); });
+            refresh.addEventListener('click', () => { _fetchPeople(); InspectorPersonaView.fetch(); _fetchRecipes(); _fetchCognitiveMap(); _render(); });
         InspectorPersonaView.wire();
         // A rebuild drops focus; keep keyboard navigation alive on the doll.
         if (dollHadFocus)
             _container.querySelector('#mind-persona-doll')?.focus({ preventScroll: true });
         if (_container.querySelector('#mind-recipes'))
             _fetchRecipes();
+        if (_container.querySelector('#mind-cognitive-map'))
+            _fetchCognitiveMap();
         const search = _container.querySelector('#mind-search');
         if (search) {
             search.addEventListener('input', () => {
@@ -1648,17 +1905,43 @@ const InspectorMindView = (() => {
                 el.replaceChildren(document.createRange().createContextualFragment(_peopleHtml()));
         });
     }
+    function _onKeydown(ev) {
+        if (ev.defaultPrevented)
+            return;
+        if (ev.key === 'Escape') {
+            const activeTag = document.activeElement?.tagName;
+            if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
+                document.activeElement.blur();
+                ev.preventDefault();
+                ev.stopPropagation();
+                return;
+            }
+            if (_state?.fullscreen) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                _state.fullscreen = false;
+                _render();
+            }
+            else if (_container) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                M.close();
+            }
+        }
+    }
     const base = window.InspectorView ? new window.InspectorView() : {};
     const M = Object.assign(base, {
         /**
          * Open the Memory Mind for a character. A snapshot of the live
          * worldState memories; 🔄 re-reads.
          */
-        open(charName) {
+        open(charName, opener) {
             const player = worldState.players?.[charName];
             if (!player)
                 return;
+            const prevOpener = _openerEl;
             M.close();
+            _openerEl = opener || (document.activeElement && !document.activeElement.closest('#mind-view-modal') ? document.activeElement : prevOpener) || null;
             _container = document.createElement('div');
             _container.id = 'mind-view-modal';
             document.body.appendChild(_container);
@@ -1676,21 +1959,47 @@ const InspectorMindView = (() => {
                 historyFilter: 'all',
                 historyQuery: '',
                 historyLimit: 50,
+                fullscreen: false,
             };
+            document.addEventListener('keydown', _onKeydown);
             InspectorPersonaView.bind(_state, _container);
             _render();
             _fetchPeople();
             InspectorPersonaView.fetch();
         },
         close() {
+            document.removeEventListener('keydown', _onKeydown);
             if (_container) {
                 _container.remove();
                 _container = null;
             }
             InspectorPersonaView.unbind();
             _state = null;
+            if (_openerEl && typeof _openerEl.focus === 'function') {
+                try {
+                    _openerEl.focus();
+                }
+                catch (_) { }
+                _openerEl = null;
+            }
+        },
+        isFullscreen() {
+            return !!_state?.fullscreen;
+        },
+        setFullscreen(enable) {
+            if (!_state)
+                return;
+            const target = (enable !== undefined) ? !!enable : !_state.fullscreen;
+            if (_state.fullscreen !== target) {
+                _state.fullscreen = target;
+                _render();
+            }
+        },
+        toggleFullscreen() {
+            M.setFullscreen();
         },
         // Test helpers (delegated to InspectorPersonaView for backward compatibility)
+        formatTickWithWorldTime,
         _parseMark: (raw) => InspectorPersonaView._parseMark(raw),
         _formatMark: (area, text) => InspectorPersonaView._formatMark(area, text),
         _allMarks: () => InspectorPersonaView._allMarks(),
@@ -1701,6 +2010,9 @@ const InspectorMindView = (() => {
         _cardHtml,
         _rollupLivedLog,
         _historyHtml,
+        _onKeydown,
+        _getState: () => _state,
+        _getContainer: () => _container,
     });
     return M;
 })();

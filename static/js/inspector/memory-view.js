@@ -29,13 +29,13 @@ window.InspectorMemory = (() => {
      * Parse a natural-language relative time expression or tick string into a
      * simulation tick (task-730).
      */
-    M.parseRelativeTime = function (input, currentTick = 0, minutesPerTick = 1, birthTick = null) {
+    M.parseRelativeTime = function (input, currentTick = 0, minutesPerTick = 5, birthTick = null, currentAge = null) {
         const raw = String(input ?? '').trim();
         if (!raw)
             return null;
         const s = raw.toLowerCase();
         const cur = Number.isFinite(Number(currentTick)) ? Math.round(Number(currentTick)) : 0;
-        const mpt = Math.max(0.1, Number(minutesPerTick) || 1);
+        const mpt = Math.max(0.1, Number(minutesPerTick) || 5);
         const minBirth = (birthTick !== null && birthTick !== undefined && Number.isFinite(Number(birthTick)))
             ? Math.round(Number(birthTick))
             : null;
@@ -60,6 +60,22 @@ window.InspectorMemory = (() => {
             const delta = Math.max(1, Math.round(1440 / mpt));
             const tick = cur - delta;
             return finalize(tick, `yesterday (tick ${tick})`);
+        }
+        // "age N", "at age N", "age: N"
+        const ageMatch = s.match(/^(?:at\s+)?age\s*[:=]?\s*(\d+(?:\.\d+)?)$/i);
+        if (ageMatch) {
+            const targetAge = parseFloat(ageMatch[1]);
+            const hasCurAge = currentAge !== null && currentAge !== undefined && Number.isFinite(Number(currentAge));
+            if (hasCurAge) {
+                const deltaTicks = Math.round(((Number(currentAge) - targetAge) * 525600) / mpt);
+                const tick = cur - deltaTicks;
+                return finalize(tick, `age ${targetAge} (tick ${tick})`);
+            }
+            if (minBirth !== null) {
+                const tick = minBirth + Math.round((targetAge * 525600) / mpt);
+                return finalize(tick, `age ${targetAge} (tick ${tick})`);
+            }
+            return null;
         }
         // "<N> turns/ticks before start" or "before start <N>"
         const preMatch = s.match(/^(\d+(?:\.\d+)?)\s*(?:turns?|ticks?|t)?\s*before\s*start$/i)
@@ -280,14 +296,25 @@ window.InspectorMemory = (() => {
     M.openWeaverAtTick = function (charName, tick, mode = 'event') {
         M.showMemoryEditor(charName, null, { tick, mode, openWeaver: true });
     };
-    M.suppressMemory = function (charName, entryId) {
-        ApiClient.suppressPlayerMemory(charName, { tags: [], duration: 1 }).then(() => {
+    M.suppressMemory = function (charName, entryId, duration = 0) {
+        if (!entryId)
+            return;
+        const currentTick = VW?.state?.tick ?? 0;
+        ApiClient.suppressPlayerMemory(charName, {
+            memory_id: entryId,
+            duration,
+            current_tick: currentTick,
+        }).then(() => {
             worldState.fetch().then(() => { if (window.VW?.inspector)
                 window.VW.inspector._reRender(); });
         });
     };
     M.unblockMemory = function (charName, entryId) {
-        ApiClient.unblockPlayerMemory(charName, {}).then(() => {
+        if (!entryId)
+            return;
+        ApiClient.unblockPlayerMemory(charName, {
+            memory_id: entryId,
+        }).then(() => {
             worldState.fetch().then(() => { if (window.VW?.inspector)
                 window.VW.inspector._reRender(); });
         });
@@ -397,7 +424,14 @@ window.InspectorMemory = (() => {
                 </div>
 
                 <div class="memedit-section">
-                    <div class="memedit-section-title">📝 Memory Text (First-Person Record)</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                        <div class="memedit-section-title" style="margin:0;">📝 Memory Text (First-Person Record)</div>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;" id="mem-seed-taxonomy">
+                            <button type="button" class="btn btn-sm mem-seed-kind-btn" data-seed-type="observation" data-seed-cat="episodic" style="font-size:10px;padding:2px 8px;${defaultType === 'observation' ? 'border-color:#58a6ff;color:#58a6ff;' : ''}">👁️ Observation</button>
+                            <button type="button" class="btn btn-sm mem-seed-kind-btn" data-seed-type="event" data-seed-cat="episodic" style="font-size:10px;padding:2px 8px;${defaultType === 'event' ? 'border-color:#58a6ff;color:#58a6ff;' : ''}">📖 Event</button>
+                            <button type="button" class="btn btn-sm mem-seed-kind-btn" data-seed-type="thought" data-seed-cat="belief" style="font-size:10px;padding:2px 8px;${(defaultType === 'thought' || defaultType === 'memory' || defaultType === 'reflection') ? 'border-color:#58a6ff;color:#58a6ff;' : ''}">💭 Thought / Memory</button>
+                        </div>
+                    </div>
                     <textarea id="mem-editor-content" rows="3" class="memedit-textarea" style="min-height:74px;" placeholder="First-person memory text stored on ${charName}...">${existing ? existing.text : ''}</textarea>
                     <textarea id="mem-gen-result" style="display:none;">${existing ? existing.text : ''}</textarea>
                     <div id="mem-editor-contra-preview" style="display:none;margin-top:6px;padding:6px 8px;background:#3d1a1a;border:1px solid #e05555;border-radius:6px;font-size:10.5px;color:#ff9b9b;"></div>
@@ -406,7 +440,18 @@ window.InspectorMemory = (() => {
                 <div class="memedit-section">
                     <div class="memedit-section-title">🕰️ When & Dynamics (Backdating)</div>
                     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
-                        <input type="text" id="mem-editor-reltime" placeholder="Relative time (e.g. '3 days ago', '2 hours ago', '5 years ago', '100 turns before start')" style="flex:1;min-width:210px;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+                        <input type="text" id="mem-editor-reltime" placeholder="Relative time helper (e.g. '3 days ago', '2 hours ago', 'age 6')" style="flex:1;min-width:210px;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+                        <select id="mem-editor-reltime-select" title="Relative time helper presets" style="font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+                            <option value="">Relative time...</option>
+                            <option value="now">Now</option>
+                            <option value="2 hours ago">2 hours ago</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="3 days ago">3 days ago</option>
+                            <option value="1 week ago">1 week ago</option>
+                            <option value="1 year ago">1 year ago</option>
+                            <option value="age 6">age 6</option>
+                            <option value="100 turns before start">100 turns before start</option>
+                        </select>
                         <span id="mem-editor-reltime-preview" style="font-size:10px;color:#58a6ff;font-family:monospace;">tick ${tick}</span>
                     </div>
                     <div id="mem-editor-birth-gate" style="display:none;margin-bottom:8px;padding:5px 8px;border-radius:5px;font-size:10px;font-family:monospace;"></div>
@@ -452,6 +497,10 @@ window.InspectorMemory = (() => {
                         <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-dim);cursor:pointer;">
                             <input type="checkbox" id="mem-editor-age-decay" ?checked=${tick < currentTick}>
                             Simulate natural age decay for backdated memory (sets initial activation from elapsed ticks & resistance)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-dim);cursor:pointer;" title="Core / Seed memories never decay or get pruned during sleep">
+                            <input type="checkbox" id="mem-editor-core" ?checked=${!!(existing?.core || existing?.source === 'seed')}>
+                            Core / Seed (never decays)
                         </label>
                         ${dynamics ? htmlTag `<div style="font-size:10px;color:var(--text-muted);" title="Live memory dynamics (read-only here - recall and decay move them)">📊 ${dynamics}</div>` : nothing}
                     </div>
@@ -667,6 +716,7 @@ window.InspectorMemory = (() => {
         }
         // 6. Relative time & presets wiring + birthday gate
         const relInput = container.querySelector('#mem-editor-reltime');
+        const relSelect = container.querySelector('#mem-editor-reltime-select');
         const relPreview = container.querySelector('#mem-editor-reltime-preview');
         const birthGateEl = container.querySelector('#mem-editor-birth-gate');
         const tickInputEl = container.querySelector('#mem-editor-tick');
@@ -675,10 +725,11 @@ window.InspectorMemory = (() => {
         const getBirthBounds = () => {
             const b = M._gen?.contextBundle;
             const bTick = b?.birth_tick !== undefined ? b.birth_tick : player?.birth_tick;
+            const ageVal = b?.age !== undefined ? b.age : player?.age;
             return {
                 birthTick: (bTick !== null && bTick !== undefined && Number.isFinite(Number(bTick))) ? Math.round(Number(bTick)) : null,
                 birthday: b?.birthday || null,
-                age: b?.age !== undefined ? b.age : null,
+                age: (ageVal !== null && ageVal !== undefined && Number.isFinite(Number(ageVal))) ? Number(ageVal) : null,
             };
         };
         const renderBirthGate = (candTick, wasClampedFrom) => {
@@ -704,9 +755,10 @@ window.InspectorMemory = (() => {
             }
         };
         const applyRelativeExpr = (expr) => {
-            const mpt = M._gen?.contextBundle?.time_per_tick_minutes || window.config?.minutes_per_tick || 1;
-            const { birthTick } = getBirthBounds();
-            const parsed = M.parseRelativeTime(expr, currentTick, mpt, birthTick);
+            const wsTpm = Number(worldState?.data?.time_per_tick_minutes);
+            const mpt = (Number.isFinite(wsTpm) && wsTpm > 0 ? wsTpm : 0) || M._gen?.contextBundle?.time_per_tick_minutes || window.config?.minutes_per_tick || 5;
+            const { birthTick, age } = getBirthBounds();
+            const parsed = M.parseRelativeTime(expr, currentTick, mpt, birthTick, age);
             if (!parsed)
                 return;
             if (tickInputEl)
@@ -723,6 +775,16 @@ window.InspectorMemory = (() => {
         };
         if (relInput) {
             relInput.addEventListener('input', () => applyRelativeExpr(relInput.value));
+        }
+        if (relSelect) {
+            relSelect.addEventListener('change', () => {
+                const expr = relSelect.value;
+                if (!expr)
+                    return;
+                if (relInput)
+                    relInput.value = expr;
+                applyRelativeExpr(expr);
+            });
         }
         container.querySelectorAll('.mem-time-preset').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -774,6 +836,24 @@ window.InspectorMemory = (() => {
                 if (catSel && !existing) {
                     catSel.value = mode === 'opinion' ? 'belief' : (mode === 'social' ? 'social' : 'episodic');
                 }
+            });
+        });
+        // 7b. 3-way Seed Taxonomy quick-selector (Observation / Event / Thought)
+        container.querySelectorAll('.mem-seed-kind-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetType = btn.dataset.seedType || 'memory';
+                const targetCat = btn.dataset.seedCat || 'episodic';
+                const typeSel = container.querySelector('#mem-editor-type');
+                const catSel = container.querySelector('#mem-editor-category');
+                if (typeSel)
+                    typeSel.value = targetType;
+                if (catSel)
+                    catSel.value = targetCat;
+                container.querySelectorAll('.mem-seed-kind-btn').forEach(b => {
+                    const active = b === btn;
+                    b.style.borderColor = active ? '#58a6ff' : '';
+                    b.style.color = active ? '#58a6ff' : '';
+                });
             });
         });
         const runBtn = container.querySelector('#mem-gen-run');
@@ -1138,6 +1218,7 @@ window.InspectorMemory = (() => {
         const confidenceInput = parseInt(document.getElementById('mem-editor-confidence')?.value, 10);
         const hasConfidence = !isNaN(confidenceInput);
         const simulateAgeDecay = !!document.getElementById('mem-editor-age-decay')?.checked;
+        const isCoreSeed = !!document.getElementById('mem-editor-core')?.checked;
         const derivedExpectation = (document.getElementById('mem-editor-expectation')?.value || '').trim();
         const emotions = Array.isArray(M._emoSelected)
             ? M._emoSelected.filter(e => e && e.label && e.label !== 'neutral')
@@ -1170,6 +1251,10 @@ window.InspectorMemory = (() => {
         };
         if (categorySel)
             payload.category = categorySel;
+        if (isCoreSeed)
+            payload.core = true;
+        else if (entryId)
+            payload.core = false;
         if (hasConfidence)
             payload.confidence = Math.max(0, Math.min(1, confidenceInput / 100));
         if (contradicts.length || entryId)
@@ -1274,6 +1359,10 @@ window.InspectorMemory = (() => {
         const pers = ps.personality || player.personality;
         if (pers)
             lines.push(`Personality: ${String(pers).trim()}`);
+        if (ps.mbti)
+            lines.push(`MBTI personality type: ${ps.mbti}`);
+        if (ps.alignment)
+            lines.push(`Alignment: ${ps.alignment}`);
         const desc = ps.base_description || player.base_description || player.description;
         if (desc)
             lines.push(`Appearance & background: ${String(desc).trim()}`);
@@ -1476,7 +1565,7 @@ window.InspectorMemory = (() => {
                 const relPreview = container.querySelector('#mem-editor-reltime-preview');
                 if (parsed.tick_offset_minutes !== null && (!relInput || !relInput.value.trim())) {
                     const curTick = bundle?.current_tick ?? (VW?.state?.tick ?? 0);
-                    const mpt = Math.max(0.1, Number(bundle?.time_per_tick_minutes || 1));
+                    const mpt = Math.max(0.1, Number(worldState?.data?.time_per_tick_minutes || bundle?.time_per_tick_minutes || 5));
                     const deltaTicks = Math.round(parsed.tick_offset_minutes / mpt);
                     let newTick = curTick + deltaTicks;
                     const minBirth = bundle?.birth_tick !== undefined && bundle?.birth_tick !== null

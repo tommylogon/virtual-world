@@ -177,6 +177,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         softRender,
         load,
         open,
+        showChooser,
         renderShell: _renderShell,
         reloadPayload: _reloadPayload,
         commitGridSize: _commitGridSize,

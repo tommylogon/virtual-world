@@ -40,8 +40,18 @@ const AgentMemory = (() => {
         try {
             const allMemories = await ApiClient.getPlayerMemories(charName).catch(() => ({ memories: [] }));
             const memories = allMemories.memories || [];
+            const alreadyReflectedIds = new Set();
+            for (const m of memories) {
+                if ((Number(m.reflection_depth) || 0) >= 1 && Array.isArray(m.source_memory_ids)) {
+                    for (const sid of m.source_memory_ids) {
+                        if (sid)
+                            alreadyReflectedIds.add(String(sid));
+                    }
+                }
+            }
             const candidates = memories.filter((m) => ((Number(m.importance) || 0) >= 6 || (Number(m.reinforcements) || 0) >= 2)
-                && !(Number(m.reflection_depth) >= 1)).slice(0, 10);
+                && !(Number(m.reflection_depth) >= 1)
+                && !(m.id && alreadyReflectedIds.has(String(m.id)))).slice(-10);
             if (candidates.length < 3)
                 return;
             const memoryText = candidates.map((m) => `- [memory_id: ${m.id}] [${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
@@ -54,7 +64,7 @@ const AgentMemory = (() => {
                 '- confidence: 0-1, how sure the character is (lower it when the memories conflict)',
                 '- emotional: optional {label, intensity 1-10} - the feeling attached to this conclusion',
                 '- behavior: optional one-sentence change to future behaviour (e.g. "Verify Anna\'s claims independently.")',
-                '- relationship: optional {who, dim, delta} - dim is one of trust|fear|attraction|disgust|respect|familiarity, delta -5..+5',
+                '- relationship: optional {who, dim, delta} - dim is one of trust|fear|attraction|disgust|respect|closeness|familiarity, delta -5..+5',
                 'Use null for fields that do not apply. Respond ONLY with a JSON object: {"insights": [...]}',
                 '',
                 'MEMORIES:',
@@ -100,11 +110,18 @@ const AgentMemory = (() => {
                 const insights = parsedList.filter((i) => (typeof i === 'string' && i.length > 10)
                     || (typeof i === 'object' && i !== null && String(i.belief || '').length > 10));
                 if (insights.length > 0) {
-                    await ApiClient.reflectPlayerMemories(charName, {
+                    const reflectRes = await ApiClient.reflectPlayerMemories(charName, {
                         insights,
                         tick: currentTick,
                         source_memory_ids: candidates.map((m) => m.id)
-                    }).catch(() => { });
+                    }).catch(() => null);
+                    if (Array.isArray(reflectRes?.entries)) {
+                        for (const entry of reflectRes.entries) {
+                            if (entry?.id && entry?.text) {
+                                _embedAndStoreVector(charName, String(entry.id), String(entry.text));
+                            }
+                        }
+                    }
                 }
                 events.log(`🧠 ${charName} reflected on ${candidates.length} memories`, 'system-msg');
             }
@@ -141,14 +158,16 @@ const AgentMemory = (() => {
     function _sanitizeTags(tags) {
         if (!Array.isArray(tags))
             return [];
-        // Entity names we never want as memory tags (people, items, areas)
+        // Proper entity names we never want as memory tags (people, areas)
+        // Common item nouns (key, fire, book, knife) are intentionally NOT stripped.
         const entityNames = new Set();
         const g = worldState?.data || {};
         for (const name of Object.keys(g.players || {}))
             entityNames.add(name.toLowerCase());
         for (const node of Object.values(worldState?.graph?.nodes || {})) {
-            if (node?.name)
+            if (node?.name && (node.type === 'character' || node.type === 'area')) {
                 entityNames.add(String(node.name).toLowerCase());
+            }
         }
         const singleWord = /^[a-z0-9_]+$/;
         const seen = new Set();

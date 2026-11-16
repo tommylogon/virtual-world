@@ -4,10 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Commons - VirtualWorld</title>
+    <script type="importmap">
+    {
+        "imports": {
+            "lit-html": "/static/js/vendor/lit-html/lit-html.js",
+            "lit-html/directives/class-map.js": "/static/js/vendor/lit-html/directives/class-map.js",
+            "lit-html/directives/style-map.js": "/static/js/vendor/lit-html/directives/style-map.js",
+            "lit-html/directives/repeat.js": "/static/js/vendor/lit-html/directives/repeat.js",
+            "lit-html/directives/if-defined.js": "/static/js/vendor/lit-html/directives/if-defined.js",
+            "lit-html/directives/guard.js": "/static/js/vendor/lit-html/directives/guard.js",
+            "lit-html/directives/live.js": "/static/js/vendor/lit-html/directives/live.js",
+            "lit-html/directives/unsafe-html.js": "/static/js/vendor/lit-html/directives/unsafe-html.js"
+        }
+    }
+    </script>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/commons.css">
 </head>
 <body class="commons-body" data-app-version="{{ app_version or '' }}">
+{% set active_page = 'commons' %}{% include 'partials/shared_topbar.html' %}
 
 <header class="commons-topbar">
     <div class="commons-brand">
@@ -29,7 +44,7 @@
     </div>
     <div class="commons-top-actions">
         <button type="button" id="commons-pause-btn" class="commons-btn">⏸ Pause</button>
-        <button type="button" id="commons-step-btn" class="commons-btn">▶ Step Next</button>
+        <button type="button" id="commons-step-btn" class="commons-btn" title="Run the next active LLM character's turn (or open Characters & pacing -> Act for a specific character)">▶ Step Next</button>
         <a class="commons-btn" href="/" title="Back to the world editor">← Editor</a>
     </div>
 </header>
@@ -48,6 +63,9 @@
 
         <details class="commons-agent-controls">
             <summary>Characters & pacing</summary>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 4px 8px;color:#514d5a;cursor:pointer;" title="Automatically trigger Act for active LLM recipients when a message is sent">
+                <input type="checkbox" id="commons-auto-reply-toggle"> Auto-reply on message
+            </label>
             <div id="commons-participants-list"></div>
         </details>
     </aside>
@@ -71,6 +89,7 @@
                 <input type="text" id="commons-input" class="commons-input" placeholder="Write a message…" autocomplete="off">
                 <button type="submit" id="commons-send-btn" class="commons-btn commons-btn-primary">Send</button>
             </div>
+            <div id="commons-composer-hint" class="commons-composer-hint" style="font-size:11px;color:#777480;margin-top:4px;" aria-live="polite"></div>
         </form>
     </section>
 
@@ -97,6 +116,14 @@
             <section class="commons-drawer-section">
                 <div class="commons-drawer-section-title">Current Inner Stream</div>
                 <div id="commons-drawer-monologue" class="commons-drawer-monologue"></div>
+            </section>
+            <section class="commons-drawer-section">
+                <div class="commons-drawer-section-title">Intermediator Thought (Pre-Reply)</div>
+                <div id="commons-drawer-intermediator" class="commons-drawer-monologue"></div>
+            </section>
+            <section class="commons-drawer-section">
+                <div class="commons-drawer-section-title">Recalled Memories (Raw)</div>
+                <div id="commons-drawer-recalled" class="commons-drawer-recalled"></div>
             </section>
             <section class="commons-drawer-section">
                 <div class="commons-drawer-section-title">Latest Decision & Action</div>
@@ -164,6 +191,7 @@
 <script src="/static/js/agent/prompt-builder/helpers.js"></script>
 <script src="/static/js/agent/prompt-builder/character-state.js"></script>
 <script src="/static/js/agent/prompt-builder/context-sections.js"></script>
+<script src="/static/js/agent/prompt-builder/memory-context.js"></script>
 <script src="/static/js/agent/prompt-builder/turn-prompts.js"></script>
 
 <script type="module" src="/static/js/shared/lit-bootstrap.js"></script>
@@ -172,6 +200,8 @@
 <script src="/static/js/commons/commons-state.js"></script>
 <script src="/static/js/commons/commons-ui.js"></script>
 <script src="/static/js/commons/commons-agent.js"></script>
+<script src="/static/js/ui/llm-inspector.js"></script>
+<script src="/static/js/ui/shared-topbar.js"></script>
 <script src="/static/js/commons/commons-app.js"></script>
 
 </body>

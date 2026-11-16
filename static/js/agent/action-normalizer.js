@@ -187,7 +187,7 @@ const ActionNormalizerModule = (() => {
             case 'jump': return obj ? `${verb} ${obj}` : verb;
             case 'approach': return obj ? `approach ${obj}` : verb;
             case 'open':
-            case 'close': return obj ? `${verb} ${obj}` : verb;
+            case 'close': return (item || target) ? `${verb} ${item || target}` : verb;
             case 'take':
             case 'drop':
             case 'pickup': return item ? `${verb} ${item}` : verb;
@@ -200,9 +200,9 @@ const ActionNormalizerModule = (() => {
             case 'hand': return item && target ? `give ${item} to ${target}` : verb;
             case 'teach': return item && target ? `teach ${item} to ${target}` : verb;
             case 'eat':
-            case 'consume': return obj ? `eat ${obj}` : 'eat';
+            case 'consume': return (item || target) ? `eat ${item || target}` : 'eat';
             case 'drink':
-            case 'quaff': return obj ? `drink ${obj}` : 'drink';
+            case 'quaff': return (item || target) ? `drink ${item || target}` : 'drink';
             case 'steal': return item && target ? `steal ${item} from ${target}` : (item ? `steal ${item}` : verb);
             case 'lead': return obj ? `lead ${obj}` : verb;
             case 'listen':
@@ -211,7 +211,7 @@ const ActionNormalizerModule = (() => {
             case 'read':
             case 'search':
             case 'inspect':
-            case 'check': return obj ? `examine ${obj}` : verb;
+            case 'check': return (item || target) ? `examine ${item || target}` : verb;
             case 'attack': {
                 const where = String(src.where || '').trim();
                 return where ? `attack ${obj} on ${where}` : (obj ? `attack ${obj}` : verb);

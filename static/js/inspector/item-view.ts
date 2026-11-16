@@ -86,12 +86,12 @@ interface PlacementTarget {
 interface InspectorItemViewApi {
     _tagMs?: TagMultiselectHandle;
 
-    showItem(nodeId: string, graphNode: ItemViewItemNode): void;
+    showItem(nodeId: string, graphNode: ItemViewItemNode, targetEl?: HTMLElement): void;
     _renderItemHeader(name: string, nodeId: string): unknown;
     _renderLockToggle(field: string, lockedFields: string[], nodeId: string): unknown;
     _toggleFieldLock(nodeId: string, field: string, el?: unknown): unknown;
     _renderDescriptionSection(props: PropBag, nodeId: string): unknown;
-    _renderActionsGrid(actionList: string[], nodeId: string, locked: string[]): unknown;
+    _renderActionsGrid(actionList: string[], nodeId: string, locked: string[], actionCosts?: PropBag): unknown;
     _renderPropertiesSection(props: PropBag, nodeId: string, locked: string[]): unknown;
     _containerCurrentWeight(nodeId: string): number;
     _containerFillBar(nodeId: string, maxCap: number | string | null): string;
@@ -207,7 +207,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
         'open': '#4ec9b0', 'close': '#f85149', 'eat': '#f0883e',
         'drink': '#58a6ff', 'read': '#bc8cff', 'light': '#e3b341',
         'activate': '#3fb950', 'equip': '#4ec9b0', 'unequip': '#f85149',
-        'throw': '#f0883e', 'break': '#f85149'
+        'throw': '#f0883e', 'break': '#f85149', 'drop': '#d29922'
     };
 
     const ACTION_ICONS: Record<string, string> = {
@@ -215,7 +215,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
         'open': '🚪', 'close': '🚫', 'eat': '🍽️',
         'drink': '🥤', 'read': '📖', 'light': '🔥',
         'activate': '🔛', 'equip': '⚔️', 'unequip': '📦',
-        'throw': '💨', 'break': '💥'
+        'throw': '💨', 'break': '💥', 'drop': '🫳'
     };
 
     const ITEM_STATE_OPTIONS = ['normal', 'hidden', 'lit', 'unlit', 'open', 'closed', 'locked', 'broken', 'charged', 'depleted'];
@@ -244,7 +244,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
      * @param {string} nodeId - Graph node ID
      * @param {object} graphNode - Graph node data
      */
-    IV.showItem = function(nodeId: string, graphNode: ItemViewItemNode) {
+    IV.showItem = function(nodeId: string, graphNode: ItemViewItemNode, targetEl?: HTMLElement) {
         const name = graphNode.name as string;
         const props: PropBag = graphNode.properties || {};
         const locked: string[] = props.locked_fields || [];
@@ -258,7 +258,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
         const template = htmlTag`
             ${IV._renderItemHeader(name, nodeId)}
             ${IV._renderDescriptionSection(props, nodeId)}
-            ${IV._renderActionsGrid(actionList, nodeId, locked)}
+            ${IV._renderActionsGrid(actionList, nodeId, locked, props.action_costs || {})}
             ${IV._renderPropertiesSection(props, nodeId, locked)}
             ${IV._renderParametersSection(props, nodeId)}
             ${InspectorHelpers.graphGravityControl(nodeId, props)}
@@ -270,12 +270,17 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
             ${IV._renderFooter(nodeId)}
         `;
 
-        _external('InspectorPanel')?.render(template);
+        if (targetEl) {
+            window.Lit.render(template, targetEl);
+        } else {
+            _external('InspectorPanel')?.render(template);
+        }
         IV._populateLibraryTemplate(nodeId);
         IV._initMoveTargetSearch();
 
         // Initialize TagMultiselect (render is synchronous, so the container exists).
-        const tagContainer = document.getElementById(`tag-multiselect-container-${nodeId}`);
+        const root = targetEl || document;
+        const tagContainer = root.querySelector<HTMLElement>(`#tag-multiselect-container-${nodeId}`);
         const TagMultiselect = _external('TagMultiselect');
         if (tagContainer && TagMultiselect) {
             IV._tagMs = new TagMultiselect(tagContainer, {
@@ -368,21 +373,60 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
      * @param {string[]} locked - Currently locked fields
      * @returns {TemplateResult}
      */
-    IV._renderActionsGrid = function(actionList, nodeId, locked) {
+    IV._renderActionsGrid = function(actionList, nodeId, locked, actionCosts = {}) {
+        const stats = ['Energy', 'Hunger', 'Thirst', 'HP'];
         return htmlTag`<div class="inspector-section">
-            <h3 style="display:flex;align-items:center;gap:4px;">${IV._renderLockToggle('actions', locked, nodeId)} Actions <span class="section-hint">(toggle which actions this item supports)</span></h3>
-            <div class="checkbox-grid actions-grid" id="actions-grid-${nodeId}">
-                ${ALL_ACTIONS.map((action) => {
-                    const checked = actionList.includes(action);
-                    const bg = actionColor(action);
-                    return htmlTag`<label class="action-toggle ${checked ? 'active' : ''}"
-                        style="${checked ? `background:${bg}22;border-color:${bg};color:${bg};` : ''}"
-                        @change=${() => IV._toggleAction(nodeId, action)}>
-                        <input type="checkbox" ?checked=${checked} value=${action}>
-                        <span>${actionIcon(action)} ${action}</span>
-                    </label>`;
-                })}
-            </div></div>`;
+            <h3 style="display:flex;align-items:center;gap:4px;">${IV._renderLockToggle('actions', locked, nodeId)} Actions & Costs Matrix <span class="section-hint">(15 actions, enable & stat costs)</span></h3>
+            <div style="overflow-x:auto;">
+                <table class="item-actions-table" style="width:100%;border-collapse:collapse;font-size:11px;">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--border-light);text-align:left;">
+                            <th scope="col" style="padding:4px 6px;">Action</th>
+                            <th scope="col" style="padding:4px 6px;text-align:center;">On</th>
+                            ${stats.map(s => htmlTag`<th scope="col" style="padding:4px 4px;text-align:center;font-size:10px;">${s}</th>`)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ALL_ACTIONS.map((action) => {
+                            const checked = actionList.includes(action);
+                            const bg = actionColor(action);
+                            const inverse = INVERSE_ACTIONS[action];
+                            const inverseNote = inverse ? ` ↔ ${inverse}` : '';
+                            const costsForAction = (actionCosts && actionCosts[action]) || {};
+
+                            return htmlTag`<tr style="border-bottom:1px solid var(--border-subtle, rgba(255,255,255,0.05));${checked ? '' : 'opacity:0.6;'}">
+                                <th scope="row" style="padding:4px 6px;font-weight:500;white-space:nowrap;">
+                                    <span style="color:${bg};margin-right:4px;">${actionIcon(action)}</span>
+                                    <span>${action}</span>
+                                    ${inverse ? htmlTag`<span style="font-size:9px;color:var(--text-muted);font-weight:normal;" title="Coupled with ${inverse}">${inverseNote}</span>` : ''}
+                                </th>
+                                <td style="padding:4px 6px;text-align:center;">
+                                    <input type="checkbox" ?checked=${checked}
+                                           title="Enable/disable ${action}"
+                                           @change=${() => IV._toggleAction(nodeId, action)}>
+                                </td>
+                                ${stats.map(stat => {
+                                    const val = costsForAction[stat] ?? '';
+                                    return htmlTag`<td style="padding:2px 2px;text-align:center;">
+                                        <input type="number" class="costs-input"
+                                               data-action=${action} data-stat=${stat}
+                                               .value=${String(val)}
+                                               placeholder="0"
+                                               style="width:36px;font-size:10px;padding:1px 2px;text-align:center;background:var(--bg-input);border:1px solid var(--border);border-radius:2px;color:var(--text);"
+                                               @change=${(ev: Event) => {
+                                                   const num = parseInt((ev.target as HTMLInputElement).value) || 0;
+                                                   if (!actionCosts[action]) actionCosts[action] = {};
+                                                   actionCosts[action][stat] = num;
+                                                   api.updateNode(nodeId, { properties: { action_costs: actionCosts } }).then(() => worldState.fetch());
+                                               }}>
+                                    </td>`;
+                                })}
+                            </tr>`;
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
     };
 
     /**

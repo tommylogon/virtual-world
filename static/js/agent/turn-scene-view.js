@@ -72,7 +72,7 @@ window.TurnSceneView = (() => {
             #htc-scene.tsv-dark .tsv-desc { color:#5b6570; }
 
             /* free-look hover card */
-            .tsv-hovercard { position:fixed; z-index:1300; width:290px; background:#1a1f27;
+            .tsv-hovercard { position:fixed; z-index:13100; width:290px; background:#1a1f27;
                              border:1px solid #3a4350; border-radius:10px; padding:9px 11px;
                              box-shadow:0 14px 34px rgba(0,0,0,.75); pointer-events:none; }
             .tsv-hovercard .tsv-ht { font-size:12px; color:#e8edf2; font-weight:600; }
@@ -80,8 +80,8 @@ window.TurnSceneView = (() => {
             .tsv-hovercard .tsv-hf { font-size:10px; color:#57c98f; padding-top:5px; letter-spacing:.5px; }
 
             /* context menu */
-            .tsv-scrim { position:fixed; inset:0; z-index:1390; }
-            .tsv-ctx { position:fixed; z-index:1400; background:#1a1f27; border:1px solid #333b47;
+            .tsv-scrim { position:fixed; inset:0; z-index:13190; }
+            .tsv-ctx { position:fixed; z-index:13200; background:#1a1f27; border:1px solid #333b47;
                        border-radius:10px; padding:4px; min-width:200px; max-height:60vh; overflow-y:auto;
                        box-shadow:0 12px 30px rgba(0,0,0,.7); }
             .tsv-ctx-title { font-size:10.5px; color:#6b7686; padding:5px 9px 3px; text-transform:uppercase; letter-spacing:1px; }
@@ -350,6 +350,7 @@ window.TurnSceneView = (() => {
                 return draftParts({ action: 'examine', target: person.display_name });
             },
         }, 'examine', s));
+        menus.push(applyBudgetGate({ label: `Approach ${who}`, run: () => draftParts({ action: 'approach', target: who }) }, 'approach', s));
         menus.push(applyBudgetGate({ label: `Attack ${who}`, danger: true, run: () => draftParts({ action: 'attack', target: who }) }, 'attack', s));
         menus.push(applyBudgetGate({ label: `Grab ${who} (grapple)`, run: () => draftParts({ action: 'grab', target: who }) }, 'grab', s));
         menus.push(applyBudgetGate({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) }, 'lead', s));

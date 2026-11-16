@@ -57,6 +57,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         insanity: (p) => PromptBuilder.buildInsanityContext(p),
         relationship: (p, ctx) => ctx.relationshipNL || '',
         trait: (p) => PromptBuilder.buildTraitBehaviorContext(p),
+        language: (p) => (typeof PromptBuilder.buildLanguageAndLingoContext === 'function' ? PromptBuilder.buildLanguageAndLingoContext(p) : ''),
         size: (p) => PromptBuilder.buildSizeContext(p),
         memory: (p, ctx) => ctx.memoryNL || '',
         perceived: (p) => PromptBuilder.buildPerceivedState(p),

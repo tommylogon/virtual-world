@@ -1,12 +1,12 @@
 /**
- * ui.js — User Interface components for Natural-Language Editor (task-387).
+ * ui.js - User Interface components for Natural-Language Editor (task-387).
  *
  * Renders the side panel chat stream, staged ops tray, interactive clarification
  * buttons, and Cmd-L palette overlay.
  *
- * @module nl-editor/ui — the NL editor's UI components
+ * @module nl-editor/ui - the NL editor's UI components
  * @contributes NLEditorUI: chat stream, staged-ops tray, clarification buttons, Cmd-L palette
- * @powers NL editor — interacting with the natural-language editor
+ * @powers NL editor - interacting with the natural-language editor
  * @relates renders the nl-editor panel; driven by index.js
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
@@ -14,7 +14,7 @@
 
 interface NlEditorUiWindowSurface {
     NLEditorUI: unknown;
-    // nl-editor/diff.js — sibling module, published as a plain global. Read off
+    // nl-editor/diff.js - sibling module, published as a plain global. Read off
     // `window` because this is a classic script and a bare `declare` would
     // collide with diff.ts's own global declaration.
     NLEditorDiff: { summaryLines(op: unknown, context: unknown): string[] };
@@ -64,6 +64,7 @@ interface NlEditorUiWindowSurface {
                             <span>✨ NL Editor</span>
                             <span id="nl-activity" title="Agent activity" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--text-muted);"><span id="nl-activity-dot" style="font-size:11px;line-height:1;">●</span><span id="nl-activity-label">idle</span></span>
                             <span id="nl-status" class="badge" style="font-size:10px;padding:2px 6px;background:var(--bg-input);border:1px solid var(--border);">Ready</span>
+                            <span id="nl-model-badge" class="badge" style="font-size:10px;padding:2px 6px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-muted);" title="Pinned NL Model"></span>
                             <span id="nl-budget-readout" style="font-size:10px;color:var(--text-muted);"></span>
                         </div>
                         <div style="display:flex;gap:4px;align-items:center;">
@@ -81,6 +82,7 @@ interface NlEditorUiWindowSurface {
                             <label>Max context tokens<input id="nl-budget-tokens" type="number" min="256" style="width:100%;"></label>
                             <label>Max messages<input id="nl-budget-messages" type="number" min="1" style="width:100%;"></label>
                             <label>Recent turns kept<input id="nl-budget-recent" type="number" min="1" style="width:100%;"></label>
+                            <label style="grid-column: span 2;">NL Model (pinned for tool reliability)<input id="nl-budget-model" type="text" placeholder="deepseek/deepseek-chat" style="width:100%;"></label>
                         </div>
                         <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Defaults follow the active model&apos;s window; unknown models use a conservative cap.</div>
                     </div>
@@ -191,6 +193,17 @@ interface NlEditorUiWindowSurface {
             persist('nl-budget-tokens', 'nl_max_tokens');
             persist('nl-budget-messages', 'nl_max_messages');
             persist('nl-budget-recent', 'nl_recent_turns');
+
+            const modelBadge = document.getElementById('nl-model-badge');
+            const modelInput = document.getElementById('nl-budget-model') as HTMLInputElement | null;
+            const currentModel = (await s?.getConfig('nl_model')) || (window as any).config?.nl_model || (window as any).config?.model || 'deepseek/deepseek-chat';
+            if (modelBadge) modelBadge.textContent = String(currentModel);
+            if (modelInput) modelInput.value = String(currentModel);
+            modelInput?.addEventListener('change', () => {
+                const val = modelInput.value.trim() || 'deepseek/deepseek-chat';
+                if (modelBadge) modelBadge.textContent = val;
+                if (s) void s.setConfig?.('nl_model', val);
+            });
         }
 
         _setBudgetInputs(id: string, value?: number): void {
@@ -306,7 +319,7 @@ interface NlEditorUiWindowSurface {
             const chip = document.createElement('div');
             chip.style.cssText = 'align-self:center;font-size:calc(var(--nl-fs,11px) - 1px);color:var(--text-muted);padding:3px 8px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);';
             const pending = remaining > 0 ? ` · ${remaining} still staged` : '';
-            chip.textContent = `✔ Applied ${appliedCount} change${appliedCount === 1 ? '' : 's'}${pending} — chat kept`;
+            chip.textContent = `✔ Applied ${appliedCount} change${appliedCount === 1 ? '' : 's'}${pending} - chat kept`;
             this.chatList.appendChild(chip);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
@@ -338,7 +351,7 @@ interface NlEditorUiWindowSurface {
             const shown = issues.slice(0, 8);
             const lines = shown.map(i => `• op #${(i.index ?? 0) + 1}${i.type ? ` [${i.type}]` : ''}: ${i.message}`);
             if (issues.length > shown.length) lines.push(`+${issues.length - shown.length} more`);
-            bubble.textContent = `${blocked ? '⛔ Apply blocked — fix these first:' : '⚠ Validation:'}\n${lines.join('\n')}`;
+            bubble.textContent = `${blocked ? '⛔ Apply blocked - fix these first:' : '⚠ Validation:'}\n${lines.join('\n')}`;
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
@@ -420,8 +433,11 @@ interface NlEditorUiWindowSurface {
                 if (!opIds.has(id)) this._checked.delete(id);
             }
 
-            countEl.textContent = String(ops.length);
-            if (ops.length === 0) {
+            const appliedOps: UiStagedOp[] = ((this.controller?.staging as any)?.getAppliedOps?.() || []) as UiStagedOp[];
+            const totalCount = ops.length + appliedOps.length;
+            countEl.textContent = String(totalCount);
+
+            if (totalCount === 0) {
                 tray.style.display = 'none';
                 if (applyBtn) applyBtn.style.display = 'none';
                 if (rejectBtn) rejectBtn.style.display = 'none';
@@ -430,13 +446,52 @@ interface NlEditorUiWindowSurface {
             }
 
             tray.style.display = 'block';
-            if (applyBtn) applyBtn.style.display = 'inline-block';
-            if (rejectBtn) rejectBtn.style.display = 'inline-block';
-            if (applySelectedBtn) applySelectedBtn.style.display = 'inline-block';
+            if (applyBtn) applyBtn.style.display = ops.length > 0 ? 'inline-block' : 'none';
+            if (rejectBtn) rejectBtn.style.display = ops.length > 0 ? 'inline-block' : 'none';
+            if (applySelectedBtn) applySelectedBtn.style.display = ops.length > 0 ? 'inline-block' : 'none';
 
             listEl.replaceChildren();
             ops.forEach((op: UiStagedOp) => listEl.appendChild(this._renderStagedRow(op)));
+            appliedOps.forEach((op: UiStagedOp) => listEl.appendChild(this._renderAppliedRow(op)));
             this._updateApplySelectedCount(ops);
+        }
+
+        _renderAppliedRow(op: UiStagedOp): HTMLElement {
+            const row = document.createElement('div');
+            row.className = 'nl-applied-op-row';
+            row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 6px;background:var(--bg-input);border-radius:3px;border-left:2px solid var(--green,#2e7d32);';
+
+            const badge = document.createElement('span');
+            badge.textContent = '✔';
+            badge.title = 'Applied';
+            badge.style.cssText = 'color:var(--green,#2e7d32);font-size:10px;flex-shrink:0;';
+            row.appendChild(badge);
+
+            const summary = document.createElement('span');
+            summary.textContent = op.summary ?? '';
+            summary.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text-muted);';
+            row.appendChild(summary);
+
+            if (op.inverse_op) {
+                const undoBtn = document.createElement('button');
+                undoBtn.className = 'btn btn-sm btn-ghost nl-op-undo-btn';
+                undoBtn.textContent = '↩ Undo';
+                undoBtn.title = 'Revert this operation';
+                undoBtn.style.cssText = 'padding:1px 5px;font-size:10px;flex-shrink:0;color:var(--primary);';
+                undoBtn.onclick = async () => {
+                    undoBtn.disabled = true;
+                    undoBtn.textContent = 'Undoing...';
+                    const res = await (this.controller.staging as any).undoOp(op.id);
+                    if (!res.success) {
+                        undoBtn.disabled = false;
+                        undoBtn.textContent = '↩ Undo';
+                        this.appendErrorMessage(res.error || 'Undo failed');
+                    }
+                };
+                row.appendChild(undoBtn);
+            }
+
+            return row;
         }
 
         _renderStagedRow(op: UiStagedOp): HTMLElement {
@@ -576,7 +631,7 @@ interface NlEditorUiWindowSurface {
             };
             const labels: Record<string, string> = {
                 working: 'working', idle: 'idle', waiting: 'your turn',
-                stopped: 'stopped — no action', error: 'error'
+                stopped: 'stopped - no action', error: 'error'
             };
             dot.style.color = colors[state] || 'var(--text-muted)';
             dot.style.animation = state === 'working' ? 'nl-activity-pulse 1s ease-in-out infinite' : 'none';
@@ -607,7 +662,7 @@ interface NlEditorUiWindowSurface {
 /* ── types ──
  * Declared at the BOTTOM deliberately. tsc drops a file's leading JSDoc when
  * the first statement is type-only, and tools/js_module_index.py reads
- * `@module` out of the EMITTED .js — so an `interface` above the first value
+ * `@module` out of the EMITTED .js - so an `interface` above the first value
  * declaration would silently strip the module contract. */
 
 /** A tool call the model emitted, as OpenAI-shaped JSON. */
@@ -621,6 +676,9 @@ interface UiStagedOp {
     type?: string;
     summary?: string;
     payload?: unknown;
+    applied?: boolean;
+    inverse_op?: unknown;
+    error?: string;
 }
 
 /** One finding from the pre-Apply validation gate (task-461). */

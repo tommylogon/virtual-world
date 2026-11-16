@@ -158,7 +158,7 @@ function repairJSON(raw) {
         const first = s.indexOf('{');
         const last = s.lastIndexOf('}');
         if (first !== -1) {
-            s = last > first ? s.substring(first, last + 1) : s.substring(first);
+            s = (last > first && (s.substring(first, last + 1).match(/\{/g) || []).length === (s.substring(first, last + 1).match(/\}/g) || []).length) ? s.substring(first, last + 1) : s.substring(first);
         }
         else if (last !== -1) {
             s = '{' + s.substring(0, last).trim() + '}';
@@ -188,7 +188,7 @@ function repairJSON(raw) {
     // by backslash, followed by whitespace (including newlines), followed
     // by an opening-quote of the next key. Skips escaped quotes inside
     // string values (\").
-    s = s.replace(/(?<!")\s+"/g, ',"');
+    s = s.replace(/(?<!\\)"\s*"(?=[a-zA-Z_][a-zA-Z0-9_]*"\s*:)/g, '","');
     s = s.replace(/\r\n/g, '\n');
     s = s.replace(/\\n/g, '\\\\n');
     s = s.replace(/\\r/g, '\\\\r');

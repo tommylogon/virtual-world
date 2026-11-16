@@ -552,6 +552,9 @@ class GraphManagerImpl {
             sel.value = saved;
         if (window.GraphToolbar)
             GraphToolbar.syncAll();
+        if (typeof ApiClient !== 'undefined' && ApiClient.observeScope) {
+            ApiClient.observeScope(this._scopeFilter).catch(() => { });
+        }
     }
     setScopeFilter(scopeId) {
         this._scopeFilter = scopeId || null;
@@ -567,6 +570,9 @@ class GraphManagerImpl {
         this._lastSig = '';
         if (window.GraphToolbar)
             GraphToolbar.syncAll();
+        if (typeof ApiClient !== 'undefined' && ApiClient.observeScope) {
+            ApiClient.observeScope(this._scopeFilter).catch(() => { });
+        }
         const loaded = this.loadGraphData();
         // A painted scope's art is derived from that scope's grid, and switching
         // scope loads a subgraph without a world fetch, so the map has to be

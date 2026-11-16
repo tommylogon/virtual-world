@@ -20,20 +20,79 @@
             const groupDialog = document.getElementById('commons-group-dialog') as HTMLDialogElement | null;
             const dmDialog = document.getElementById('commons-dm-dialog') as HTMLDialogElement | null;
 
+            const autoReplyCb = document.getElementById('commons-auto-reply-toggle') as HTMLInputElement | null;
+            if (autoReplyCb) {
+                const cfg = (window as any).config;
+                if (cfg) {
+                    void cfg._initPromise?.then(() => {
+                        autoReplyCb.checked = Boolean(cfg.commonsAutoReplyOnMessage);
+                    });
+                    autoReplyCb.checked = Boolean(cfg.commonsAutoReplyOnMessage);
+                }
+                autoReplyCb.addEventListener('change', () => {
+                    const c = (window as any).config;
+                    if (c) {
+                        c.commonsAutoReplyOnMessage = autoReplyCb.checked;
+                        void c.save?.();
+                    }
+                });
+            }
+
             form?.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const text = input?.value.trim() || '';
                 const state = (window as any).CommonsState;
-                if (!text || !state.selectedChannelId) return;
+                const attachments = [...this.pendingAttachments];
+                if ((!text && !attachments.length) || !state.selectedChannelId) return;
                 if (input) input.value = '';
+                this.pendingAttachments = [];
+                this.renderAttachmentPreviews();
                 try {
                     const result = await (window as any).CommonsApi.postMessage(
-                        state.perspective, text, state.selectedChannelId
+                        state.perspective, text, state.selectedChannelId, attachments
                     );
                     state.receiveMessage(result.message);
+                    const cfg = (window as any).config;
+                    if (cfg?.commonsAutoReplyOnMessage) {
+                        const channel = (state.channels || []).find((item: any) => item.id === state.selectedChannelId);
+                        if (channel) void (window as any).CommonsAgent?.triggerAutoReplyForChannel?.(channel, state.perspective);
+                    }
                 } catch (error) {
                     console.error('Failed to post message:', error);
                     if (input) input.value = text;
+                    this.pendingAttachments = attachments;
+                    this.renderAttachmentPreviews();
+                }
+            });
+
+            document.getElementById('commons-attach-btn')?.addEventListener('click', () => {
+                (document.getElementById('commons-file-input') as HTMLInputElement | null)?.click();
+            });
+
+            document.getElementById('commons-file-input')?.addEventListener('change', async (event: Event) => {
+                const fileInput = event.target as HTMLInputElement;
+                const file = fileInput.files?.[0];
+                if (!file) return;
+                try {
+                    const caption = window.prompt('Attachment caption (optional):') || '';
+                    const uploaded = await (window as any).CommonsApi.uploadAttachment(file, caption);
+                    this.pendingAttachments.push(uploaded);
+                    this.renderAttachmentPreviews();
+                } catch (err) {
+                    console.error('Upload failed:', err);
+                    alert('Failed to upload attachment: ' + String(err));
+                } finally {
+                    fileInput.value = '';
+                }
+            });
+
+            document.getElementById('commons-composer-previews')?.addEventListener('click', (event: Event) => {
+                const btn = (event.target as HTMLElement)?.closest('.commons-composer-preview-remove') as HTMLElement | null;
+                if (!btn) return;
+                const idx = Number(btn.dataset.index);
+                if (!isNaN(idx)) {
+                    this.pendingAttachments.splice(idx, 1);
+                    this.renderAttachmentPreviews();
                 }
             });
 
@@ -153,6 +212,44 @@
                 }
             });
 
+            document.getElementById('commons-feed')?.addEventListener('click', (event: Event) => {
+                const target = event.target as HTMLElement;
+                const editBtn = target.closest<HTMLElement>('.commons-msg-edit');
+                if (editBtn) {
+                    const msgId = Number(editBtn.dataset.msgId);
+                    if (msgId) {
+                        this.editingMessageId = msgId;
+                        this.renderMessages();
+                    }
+                    return;
+                }
+                const saveBtn = target.closest<HTMLElement>('.commons-save-edit');
+                if (saveBtn) {
+                    const msgId = Number(saveBtn.dataset.msgId);
+                    const container = saveBtn.closest('.chat-msg-edit-inline');
+                    const input = container?.querySelector<HTMLInputElement>('.commons-edit-input');
+                    const newText = (input?.value || '').trim();
+                    if (msgId && newText) {
+                        void this.saveMessageEdit(msgId, newText);
+                    }
+                    return;
+                }
+                const cancelBtn = target.closest<HTMLElement>('.commons-cancel-edit');
+                if (cancelBtn) {
+                    this.editingMessageId = null;
+                    this.renderMessages();
+                    return;
+                }
+                const deleteBtn = target.closest<HTMLElement>('.commons-msg-delete');
+                if (deleteBtn) {
+                    const msgId = Number(deleteBtn.dataset.msgId);
+                    if (msgId) {
+                        void this.confirmDeleteMessage(msgId);
+                    }
+                    return;
+                }
+            });
+
             (window as any).CommonsState.subscribe(() => this.render());
         }
 
@@ -234,9 +331,9 @@
                     : channel.kind === 'dm' && townBoard ? 'new letters' : 'unread';
                 return `<button type="button" class="commons-channel-row ${channel.id === state.selectedChannelId ? 'selected' : ''}"
                     data-channel-id="${escapeHtml(channel.id)}" aria-current="${channel.id === state.selectedChannelId ? 'true' : 'false'}"
-                    aria-label="${escapeHtml(`${channelLabel}${unread ? `, ${unread} ${unreadLabel}` : ''}`)}">
+                    aria-label="${escapeHtml(`${channelLabel}${channel.muted ? ', muted' : ''}${unread ? `, ${unread} ${unreadLabel}` : ''}`)}">
                     <span class="commons-channel-icon ${escapeHtml(channel.kind)}">${icon}</span>
-                    <span class="commons-channel-copy"><span class="commons-channel-name">${escapeHtml(channelLabel)}</span>
+                    <span class="commons-channel-copy"><span class="commons-channel-name">${escapeHtml(channelLabel)}${channel.muted ? ' <span class="commons-muted-badge" style="font-size:10px;opacity:0.75;">[muted]</span>' : ''}</span>
                     <span class="commons-channel-preview">${escapeHtml(people || channel.kind)}</span></span>
                     ${unread ? `<span class="commons-unread-badge">${unread > 99 ? '99+' : unread}</span>` : ''}
                 </button>`;
@@ -256,11 +353,42 @@
             const input = document.getElementById('commons-input') as HTMLInputElement | null;
             const townBoard = state.theme === 'town_board';
             const feed = document.getElementById('commons-feed');
+            let muteBtn = document.getElementById('commons-mute-btn') as HTMLButtonElement | null;
+            if (!muteBtn && count?.parentElement) {
+                muteBtn = document.createElement('button');
+                muteBtn.id = 'commons-mute-btn';
+                muteBtn.type = 'button';
+                muteBtn.className = 'commons-small-btn';
+                muteBtn.style.marginLeft = '6px';
+                muteBtn.addEventListener('click', async () => {
+                    const st = (window as any).CommonsState;
+                    const activeChannel = (st.channels || []).find((item: any) => item.id === st.selectedChannelId);
+                    if (!activeChannel) return;
+                    try {
+                        await (window as any).CommonsApi.setChannelMuted(activeChannel.id, st.perspective, !activeChannel.muted);
+                        await st.sync(true);
+                    } catch (err) {
+                        console.error('Failed to toggle channel mute:', err);
+                    }
+                });
+                count.insertAdjacentElement('afterend', muteBtn);
+            }
+            let mutedBadge = document.getElementById('commons-header-muted-badge') as HTMLSpanElement | null;
+            if (!mutedBadge && title?.parentElement) {
+                mutedBadge = document.createElement('span');
+                mutedBadge.id = 'commons-header-muted-badge';
+                mutedBadge.className = 'commons-muted-badge';
+                mutedBadge.style.cssText = 'font-size:11px;opacity:0.75;margin-left:6px;font-weight:500;';
+                mutedBadge.textContent = '[muted]';
+                title.insertAdjacentElement('afterend', mutedBadge);
+            }
             if (!channel) {
                 if (title) title.textContent = 'No conversation selected';
                 if (subtitle) subtitle.textContent = 'Choose a conversation to open your inbox.';
                 if (avatar) avatar.textContent = '·';
                 if (count) count.textContent = '';
+                if (muteBtn) muteBtn.style.display = 'none';
+                if (mutedBadge) mutedBadge.style.display = 'none';
                 if (membersList) membersList.replaceChildren();
                 if (editor) editor.replaceChildren();
                 if (send) send.disabled = true;
@@ -281,6 +409,17 @@
                 ? (townBoard ? '▤' : '#')
                 : channel.kind === 'group' ? '◉' : (townBoard ? '✉' : '↗');
             if (count) count.textContent = `${members.length} ${members.length === 1 ? 'person' : 'people'}`;
+            if (muteBtn) {
+                const isMuted = Boolean(channel.muted);
+                muteBtn.style.display = '';
+                muteBtn.textContent = isMuted ? '🔕' : '🔔';
+                muteBtn.title = isMuted ? 'Unmute conversation' : 'Mute conversation';
+                muteBtn.setAttribute('aria-label', isMuted ? 'Unmute conversation' : 'Mute conversation');
+                muteBtn.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
+            }
+            if (mutedBadge) {
+                mutedBadge.style.display = channel.muted ? '' : 'none';
+            }
             if (feed) feed.setAttribute('aria-label', townBoard
                 ? (channel.kind === 'public' ? 'Town-board posts' : 'Private letters')
                 : 'Messages');
@@ -301,6 +440,22 @@
             // still use the composer while those turns are paused.
             if (send) send.disabled = !allowed;
             if (input) input.disabled = !allowed;
+            const hint = document.getElementById('commons-composer-hint');
+            if (hint) {
+                const otherDm = channel.kind === 'dm'
+                    ? members.find((m: string) => m !== state.perspective)
+                    : '';
+                const otherPart = otherDm ? state.participants?.[otherDm] : null;
+                if (otherDm && otherPart && otherPart.control_mode !== 'llm') {
+                    hint.textContent = `${otherDm} is Human-controlled (won't auto-reply with LLM). Switch Phone owner to ${otherDm} or set them to LLM under Characters & pacing.`;
+                } else if (state.isPaused) {
+                    hint.textContent = `Simulation paused - click Resume for auto-replies, or open "Characters & pacing" -> Act on ${otherDm || 'a character'}.`;
+                } else if (channel.kind === 'public' && (state.channels || []).length <= 1) {
+                    hint.textContent = 'Tip: click "✉ New direct message" in the sidebar to text a character privately.';
+                } else {
+                    hint.textContent = '';
+                }
+            }
         }
 
         static renderMemberEditor(channel: any) {
@@ -322,6 +477,34 @@
                 ).join('')}</div>`));
         }
 
+        static editingMessageId: number | null = null;
+        static pendingAttachments: any[] = [];
+
+        static async saveMessageEdit(msgId: number, text: string) {
+            try {
+                const state = (window as any).CommonsState;
+                await (window as any).CommonsApi.editMessage(msgId, state.perspective, text);
+                this.editingMessageId = null;
+                await state.sync(true);
+            } catch (err) {
+                console.error('Failed to edit message:', err);
+                alert('Could not save message edit: ' + String(err));
+            }
+        }
+
+        static async confirmDeleteMessage(msgId: number) {
+            if (!window.confirm('Delete this message?')) return;
+            try {
+                const state = (window as any).CommonsState;
+                await (window as any).CommonsApi.deleteMessage(msgId, state.perspective);
+                if (this.editingMessageId === msgId) this.editingMessageId = null;
+                await state.sync(true);
+            } catch (err) {
+                console.error('Failed to delete message:', err);
+                alert('Could not delete message: ' + String(err));
+            }
+        }
+
         static renderMessages() {
             const feed = document.getElementById('commons-feed');
             if (!feed) return;
@@ -330,7 +513,37 @@
             const feedHtml = messages.map((message: any) => {
                 const own = message.author === (window as any).CommonsState.perspective;
                 const time = new Date(message.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return `<article class="chat-msg ${own ? 'own' : ''}">\n                    <div class="chat-msg-avatar avatar-${hash(message.author) % 6} commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(initials(message.author))}</div>\n                    <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(message.author)}</span><time>${time}</time></div>\n                    <div class="chat-msg-text">${escapeHtml(message.text)}</div></div>\n                </article>`;
+                const isEditing = this.editingMessageId === message.id;
+                const editedBadge = message.edited ? '<span class="chat-msg-edited" title="Edited message">(edited)</span>' : '';
+                const actionsHtml = own ? `<span class="chat-msg-actions">
+                    <button type="button" class="commons-msg-btn commons-msg-edit" data-msg-id="${message.id}" title="Edit message" aria-label="Edit message">✏</button>
+                    <button type="button" class="commons-msg-btn commons-msg-delete" data-msg-id="${message.id}" title="Delete message" aria-label="Delete message">🗑</button>
+                </span>` : '';
+                const bodyHtml = isEditing
+                    ? `<div class="chat-msg-edit-inline" data-msg-id="${message.id}">
+                        <input type="text" class="commons-edit-input" value="${escapeHtml(message.text)}" />
+                        <div class="commons-edit-buttons">
+                            <button type="button" class="commons-small-btn commons-save-edit" data-msg-id="${message.id}">Save</button>
+                            <button type="button" class="commons-small-btn commons-cancel-edit" data-msg-id="${message.id}">Cancel</button>
+                        </div>
+                    </div>`
+                    : (message.text ? `<div class="chat-msg-text">${escapeHtml(message.text)}</div>` : '');
+                let attachmentsHtml = '';
+                if (Array.isArray(message.attachments) && message.attachments.length) {
+                    attachmentsHtml = `<div class="chat-msg-attachments">` + message.attachments.map((a: any) => `
+                        <div class="chat-attachment-item">
+                            <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer" class="chat-attachment-link" title="Click to enlarge">
+                                <img src="${escapeHtml(a.url)}" alt="${escapeHtml(a.caption || 'Attachment')}" class="chat-attachment-thumb" />
+                            </a>
+                            ${a.caption ? `<div class="chat-attachment-caption">${escapeHtml(a.caption)}</div>` : ''}
+                        </div>
+                    `).join('') + `</div>`;
+                }
+                return `<article class="chat-msg ${own ? 'own' : ''}">
+                    <div class="chat-msg-avatar avatar-${hash(message.author) % 6} commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(initials(message.author))}</div>
+                    <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(message.author)}</span><time>${time}</time>${editedBadge}${actionsHtml}</div>
+                    ${bodyHtml}${attachmentsHtml}</div>
+                </article>`;
             }).join('') || ((window as any).CommonsState.theme === 'town_board'
                 ? `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Leave a notice or write a private letter.</p></div>`
                 : `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Send a note, ask a question, or let the conversation find its way.</p></div>`);
@@ -353,8 +566,9 @@
                     const isActing = Boolean((window as any).CommonsAgent.controllers?.[name]);
                     const controlMode = participant.control_mode || 'unavailable';
                     const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
-                    const canUseLlm = controlMode === 'llm';
-                    const actTitle = controlMode === 'human' ? `${name} is human-controlled` : controlMode === 'npc' ? `${name} uses simple NPC behavior` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
+                    const canAutoLlm = controlMode === 'llm';
+                    const canManualAct = controlMode !== 'unavailable';
+                    const actTitle = controlMode === 'human' ? `Force one LLM turn for ${name} (Human-controlled: skipped on auto-run)` : controlMode === 'npc' ? `Force one LLM turn for ${name} (Simple NPC)` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
                     const presenceClass = isActing ? 'thinking' : participant.active && !participant.blocked ? 'online' : '';
                     const presenceLabel = isActing ? 'thinking...' : participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused';
 
@@ -363,12 +577,12 @@
                             ${name}${controlLabel ? lit.html` <span class="commons-control-badge">${controlLabel}</span>` : ''}
                         </span>
                         <span class="participant-presence ${presenceClass}">${presenceLabel}</span>
-                        <button type="button" class="commons-act-btn" data-character="${name}" data-role="act" title="${actTitle}" ?disabled=${!canUseLlm || isActing || participant.blocked}>▶ Act</button>
+                        <button type="button" class="commons-act-btn" data-character="${name}" data-role="act" title="${actTitle}" ?disabled=${!canManualAct || isActing || participant.blocked}>▶ Act</button>
                     </div><div class="participant-controls">
                         <label><input type="checkbox" data-character="${name}" data-role="active" .checked=${participant.active}> In chat</label>
                         <label><input type="checkbox" data-character="${name}" data-role="blocked" .checked=${participant.blocked}> Block</label>
-                    </div>${canUseLlm ? lit.html`<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${name}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${name}" data-role="pace-random" title="Choose a random turn pace for ${name}" aria-label="Randomize ${name} turn pace">🎲</button></span></div>
-                        <input type="range" class="talkativeness-slider" min="5" max="120" .value=${String(pace)} data-character="${name}" data-role="pace" aria-label="${name} automatic turn cooldown"></div>` : lit.html`<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: no LLM turn' : controlMode === 'npc' ? 'Simple NPC: no LLM turn' : 'Control mode unavailable'}</div>`}</div>`;
+                    </div>${canAutoLlm ? lit.html`<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${name}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${name}" data-role="pace-random" title="Choose a random turn pace for ${name}" aria-label="Randomize ${name} turn pace">🎲</button></span></div>
+                        <input type="range" class="talkativeness-slider" min="5" max="120" .value=${String(pace)} data-character="${name}" data-role="pace" aria-label="${name} automatic turn cooldown"></div>` : lit.html`<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: skipped on auto-run (▶ Act works)' : controlMode === 'npc' ? 'Simple NPC: skipped on auto-run (▶ Act works)' : 'Control mode unavailable'}</div>`}</div>`;
                 });
                 lit.render(lit.html`${itemsTmpl}`, list);
             } else {
@@ -378,17 +592,18 @@
                     const isActing = Boolean((window as any).CommonsAgent.controllers?.[name]);
                     const controlMode = participant.control_mode || 'unavailable';
                     const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
-                    const canUseLlm = controlMode === 'llm';
-                    const actTitle = controlMode === 'human' ? `${name} is human-controlled` : controlMode === 'npc' ? `${name} uses simple NPC behavior` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
+                    const canAutoLlm = controlMode === 'llm';
+                    const canManualAct = controlMode !== 'unavailable';
+                    const actTitle = controlMode === 'human' ? `Force one LLM turn for ${name} (Human-controlled: skipped on auto-run)` : controlMode === 'npc' ? `Force one LLM turn for ${name} (Simple NPC)` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
                     return `<div class="participant-item"><div class="participant-row">
                         <span class="participant-name commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world">${escapeHtml(name)}${controlLabel ? ` <span class="commons-control-badge">${controlLabel}</span>` : ''}</span>
                         <span class="participant-presence ${isActing ? 'thinking' : participant.active && !participant.blocked ? 'online' : ''}">${isActing ? 'thinking...' : participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused'}</span>
-                        <button type="button" class="commons-act-btn" data-character="${escapeHtml(name)}" data-role="act" title="${escapeHtml(actTitle)}" ${!canUseLlm || isActing || participant.blocked ? 'disabled' : ''}>▶ Act</button>
+                        <button type="button" class="commons-act-btn" data-character="${escapeHtml(name)}" data-role="act" title="${escapeHtml(actTitle)}" ${!canManualAct || isActing || participant.blocked ? 'disabled' : ''}>▶ Act</button>
                     </div><div class="participant-controls">
                         <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="active" ${participant.active ? 'checked' : ''}> In chat</label>
                         <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="blocked" ${participant.blocked ? 'checked' : ''}> Block</label>
-                    </div>${canUseLlm ? `<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${escapeHtml(name)}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${escapeHtml(name)}" data-role="pace-random" title="Choose a random turn pace for ${escapeHtml(name)}" aria-label="Randomize ${escapeHtml(name)} turn pace">🎲</button></span></div>
-                        <input type="range" class="talkativeness-slider" min="5" max="120" value="${pace}" data-character="${escapeHtml(name)}" data-role="pace" aria-label="${escapeHtml(name)} automatic turn cooldown"></div>` : `<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: no LLM turn' : controlMode === 'npc' ? 'Simple NPC: no LLM turn' : 'Control mode unavailable'}</div>`}</div>`;
+                    </div>${canAutoLlm ? `<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${escapeHtml(name)}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${escapeHtml(name)}" data-role="pace-random" title="Choose a random turn pace for ${escapeHtml(name)}" aria-label="Randomize ${escapeHtml(name)} turn pace">🎲</button></span></div>
+                        <input type="range" class="talkativeness-slider" min="5" max="120" value="${pace}" data-character="${escapeHtml(name)}" data-role="pace" aria-label="${escapeHtml(name)} automatic turn cooldown"></div>` : `<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: skipped on auto-run (▶ Act works)' : controlMode === 'npc' ? 'Simple NPC: skipped on auto-run (▶ Act works)' : 'Control mode unavailable'}</div>`}</div>`;
                 }).join('')));
             }
         }
@@ -528,12 +743,29 @@
                 chip.textContent = `Acting: ${acting}...`;
                 chip.className = 'commons-actor-chip acting';
             } else if (state.lastActed) {
+                const isErr = String(state.lastActed.summary || '').startsWith('LLM error:');
                 chip.textContent = `Last acted: ${state.lastActed.charName} (${state.lastActed.summary})`;
-                chip.className = 'commons-actor-chip idle';
+                chip.className = isErr ? 'commons-actor-chip error' : 'commons-actor-chip idle';
+                chip.style.color = isErr ? '#c93c37' : '';
             } else {
                 chip.textContent = 'Idle';
                 chip.className = 'commons-actor-chip idle';
+                chip.style.color = '';
             }
+        }
+
+        static renderAttachmentPreviews() {
+            const el = document.getElementById('commons-composer-previews');
+            if (!el) return;
+            el.replaceChildren(document.createRange().createContextualFragment(
+                this.pendingAttachments.map((a, idx) => `
+                    <div class="commons-composer-preview-item">
+                        <img src="${escapeHtml(a.url)}" class="commons-composer-preview-thumb" alt="" />
+                        <span>${escapeHtml(a.filename || 'image')}</span>
+                        <button type="button" class="commons-composer-preview-remove" data-index="${idx}" title="Remove attachment">&times;</button>
+                    </div>
+                `).join('')
+            ));
         }
 
         static async renderDrawer() {
@@ -556,6 +788,8 @@
             const personalityEl = document.getElementById('commons-drawer-personality');
             const traitsEl = document.getElementById('commons-drawer-traits');
             const monologueEl = document.getElementById('commons-drawer-monologue');
+            const intermediatorEl = document.getElementById('commons-drawer-intermediator');
+            const recalledEl = document.getElementById('commons-drawer-recalled');
             const decisionEl = document.getElementById('commons-drawer-decision');
             const historyEl = document.getElementById('commons-drawer-history');
 
@@ -616,6 +850,36 @@
                     <div class="commons-inner-time">${new Date(latest.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`));
                 } else {
                     monologueEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">No thoughts recorded yet for ${escapeHtml(charName)}. Trigger a turn with ▶ Act to observe their inner stream.</div>`));
+                }
+            }
+
+            if (intermediatorEl) {
+                const inter = latest?.detail?.intermediatorThought;
+                if (inter) {
+                    intermediatorEl.replaceChildren(document.createRange().createContextualFragment(`<blockquote class="commons-inner-quote">"${escapeHtml(inter)}"</blockquote>`));
+                } else {
+                    intermediatorEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">No intermediator synthesis yet (fires when memories are recalled on read_chat).</div>`));
+                }
+            }
+
+            if (recalledEl) {
+                const recalled = Array.isArray(latest?.detail?.recalledMemories) ? latest.detail.recalledMemories : [];
+                if (recalled.length) {
+                    recalledEl.replaceChildren(document.createRange().createContextualFragment(
+                        recalled.map((m: any) => {
+                            const text = typeof m === 'string' ? m : String(m?.text || '');
+                            const meta: string[] = [];
+                            if (m?.category) meta.push(String(m.category));
+                            if (typeof m?.tick === 'number') meta.push(`tick ${m.tick}`);
+                            if (typeof m?.score === 'number') meta.push(`score ${m.score.toFixed(2)}`);
+                            return `<div class="commons-history-row" style="padding:6px 8px;margin-bottom:5px;border:1px solid var(--border,#2d333b);border-radius:6px;font-size:11px;">
+                                ${meta.length ? `<div style="font-size:10px;color:var(--text-muted,#8b949e);margin-bottom:2px;">${escapeHtml(meta.join(' · '))}</div>` : ''}
+                                <div>${escapeHtml(text)}</div>
+                            </div>`;
+                        }).join('')
+                    ));
+                } else {
+                    recalledEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">No recalled memories recorded on the latest turn.</div>`));
                 }
             }
 

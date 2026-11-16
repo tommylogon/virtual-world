@@ -22,11 +22,13 @@ const NLEditorAgent = (() => {
         busy;
         maxIterations;
         budget;
+        model;
         listeners;
         constructor(stagingBuffer, toolRouter) {
             this.staging = stagingBuffer;
             this.router = toolRouter;
             this.messages = [];
+            this.model = null;
             const CWM = _contextWindowManager();
             this.contextManager = CWM ? new CWM({ maxTokens: 60000, maxMessages: 30, recentTurnCount: 8 }) : { prune: (m) => m, addMessage: () => { }, reset: () => { } };
             this.busy = false;
@@ -45,6 +47,10 @@ const NLEditorAgent = (() => {
             const model = _activeModel();
             const raw = {};
             if (s) {
+                const savedM = await s.getConfig('nl_model');
+                if (typeof savedM === 'string' && savedM.trim()) {
+                    this.model = savedM.trim();
+                }
                 raw.maxIterations = _toNum(await s.getConfig('nl_max_iterations'));
                 raw.maxTokens = _toNum(await s.getConfig('nl_max_tokens'));
                 raw.maxMessages = _toNum(await s.getConfig('nl_max_messages'));
@@ -261,6 +267,78 @@ const NLEditorAgent = (() => {
                 }
                 catch (e) { /* not JSON after all */ }
             }
+            // Shape F: pipe-delimited <|tool_calls|><|invoke|>tool_name<|parameter|>...<|/invoke|>
+            // (e.g. emitted by dots-studio/Qwen or models writing raw token markup)
+            const reF = /<\|invoke\|>\s*([a-zA-Z_][a-zA-Z0-9_]*)([\s\S]*?)(?:<\|\/invoke\|>|(?=<\|invoke\|>)|(?=<\|\/tool_calls\|>)|$)/g;
+            while ((m = reF.exec(text)) !== null) {
+                const name = m[1];
+                if (!known.has(name))
+                    continue;
+                const inner = m[2];
+                const args = {};
+                const rawParts = inner.split(/<\|parameter\|>/).map(s => s.replace(/<\|\/parameter\|>/g, '').trim()).filter(Boolean);
+                for (let i = 0; i < rawParts.length; i++) {
+                    const part = rawParts[i];
+                    if (part.includes('||')) {
+                        const [k, ...vParts] = part.split('||');
+                        const v = vParts.join('||').trim();
+                        try {
+                            args[k.trim()] = JSON.parse(v);
+                        }
+                        catch (e) {
+                            args[k.trim()] = v;
+                        }
+                    }
+                    else if (part.includes('=')) {
+                        const [k, ...vParts] = part.split('=');
+                        const v = vParts.join('=').trim();
+                        try {
+                            args[k.trim()] = JSON.parse(v);
+                        }
+                        catch (e) {
+                            args[k.trim()] = v;
+                        }
+                    }
+                    else if (part.includes(':')) {
+                        const [k, ...vParts] = part.split(':');
+                        const v = vParts.join(':').trim();
+                        try {
+                            args[k.trim()] = JSON.parse(v);
+                        }
+                        catch (e) {
+                            args[k.trim()] = v;
+                        }
+                    }
+                    else {
+                        // Positional or key followed by value in next part (e.g. "tags[]string" then "[]")
+                        const keyMatch = part.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(?:\[\][a-zA-Z0-9_]+|:\s*[a-zA-Z0-9_]+)?$/);
+                        if (keyMatch && i + 1 < rawParts.length) {
+                            const k = keyMatch[1];
+                            const nextVal = rawParts[++i];
+                            try {
+                                args[k] = JSON.parse(nextVal);
+                            }
+                            catch (e) {
+                                args[k] = nextVal;
+                            }
+                        }
+                        else {
+                            try {
+                                args[`arg${i}`] = JSON.parse(part);
+                            }
+                            catch (e) {
+                                args[`arg${i}`] = part;
+                            }
+                        }
+                    }
+                }
+                n++;
+                calls.push({
+                    id: `xml_${name}_${n}`,
+                    type: 'function',
+                    function: { name, arguments: JSON.stringify(args) }
+                });
+            }
             return calls;
         }
         _notify(event, data) {
@@ -432,10 +510,12 @@ ${worldSummary}
                         maxIterations: this.maxIterations,
                         context: this._measureStats(pruned)
                     });
+                    const chosenModel = this.model || _activeModel();
                     const response = await llmClient.chatWithTools(pruned, {
                         tools: _nlEditorTools()?.TOOL_DEFINITIONS,
                         tool_choice: 'auto',
-                        label: `nl-editor-${currentIteration}`
+                        label: `nl-editor-${currentIteration}`,
+                        model: chosenModel || undefined
                     });
                     if (!response) {
                         throw new Error('No response from LLM.');
@@ -467,6 +547,27 @@ ${worldSummary}
                     if (content)
                         finalAssistantResponse = content;
                     if (!effectiveToolCalls || effectiveToolCalls.length === 0) {
+                        // Guard against unparsed tool-call markup (bug-539). If model emitted markup
+                        // but no tools could be extracted, re-prompt or fail loudly instead of ending silently.
+                        const hasToolMarkup = /<\|(?:tool_calls|invoke|parameter)\|>/i.test(content || '') ||
+                            /<(?:tool_call|function_call|invoke)\b/i.test(content || '') ||
+                            /<function=[a-zA-Z_]/i.test(content || '');
+                        if (hasToolMarkup) {
+                            if (currentIteration < this.maxIterations) {
+                                console.warn('[NL-Editor] Model emitted unparsed tool-call markup; re-prompting.');
+                                const reprimandMsg = {
+                                    role: 'user',
+                                    content: 'Your previous response contained tool-call markup that could not be executed. You must invoke tools using standard function calling or valid XML tags (e.g. <tool_name><param>value</param></tool_name>). ACT, DO NOT NARRATE.'
+                                };
+                                this.messages.push(reprimandMsg);
+                                this.contextManager.addMessage(reprimandMsg, { importance: 2 });
+                                this._notify('message:added', reprimandMsg);
+                                continue;
+                            }
+                            else {
+                                throw new Error('Model produced tool-call markup without executable tools, leaving actions unfulfilled.');
+                            }
+                        }
                         // Model finished thinking and issued final text
                         break;
                     }
@@ -586,10 +687,15 @@ function _nlBudget() {
 function _storage() {
     return window.storage || null;
 }
-/** The active model name, for model-aware token defaults. */
+/** The active model name, for model-aware token defaults and pinned NL execution. */
 function _activeModel() {
     const cfg = window.config;
-    return (cfg && cfg.model) || null;
+    if (cfg && cfg.nl_model)
+        return cfg.nl_model;
+    if (cfg && cfg.model && !cfg.model.includes('preview') && !cfg.model.includes('free')) {
+        return cfg.model;
+    }
+    return 'deepseek/deepseek-chat';
 }
 /** Coerce a stored config string to a number (or undefined when absent). */
 function _toNum(value) {

@@ -1,5 +1,5 @@
 /**
- * InspectorHelpers — Shared utility methods used across inspector views
+ * InspectorHelpers - Shared utility methods used across inspector views
  * Extracted from inspector.js for modularity.
  * All functions access globals (worldState, api, events, VW.inspector) directly.
  *
@@ -7,9 +7,9 @@
  * (via window.Lit.html) instead of strings, so consumers can nest them
  * in their own templates without escaping issues.
  *
- * @module inspector/helpers — shared inspector field/section builders
+ * @module inspector/helpers - shared inspector field/section builders
  * @contributes InspectorHelpers: field/row builders, tag editor, common sections (lit-html templates)
- * @powers Node inspectors — consistent forms and validation across every inspector view
+ * @powers Node inspectors - consistent forms and validation across every inspector view
  * @relates used by all inspector/* views; reads worldState + api + events directly
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
@@ -104,7 +104,7 @@ const InspectorHelpersModule = (() => {
      * The stored flag is still `central_gravity_enabled`, but it no longer means
      * anything about gravity: the solver has none (`centralGravity: 0` in
      * graph/network-manager.js). It is a straight "simulate this node or pin it
-     * where it is" — off for any node type, and a frozen node's dragged position
+     * where it is" - off for any node type, and a frozen node's dragged position
      * is written back so it survives a reload.
      * @param {string} nodeId - Graph node ID
      * @param {boolean} enabled - Whether the node is simulated
@@ -223,7 +223,7 @@ const InspectorHelpersModule = (() => {
      * Is this node's id owned by the world compiler? WorldPainter's grid
      * compiler stamps `properties.generated` on every area/way cell it emits and
      * derives the id from the cell (`way_world_area_human_road_area_world_17_6`)
-     * — a filename, not a name. Renaming it is meaningless: the next compile
+     * - a filename, not a name. Renaming it is meaningless: the next compile
      * regenerates that id. The inspector shows such an id read-only instead of
      * inviting an edit that cannot stick (task-622).
      * @param {string} nodeId
@@ -328,7 +328,7 @@ const InspectorHelpersModule = (() => {
             <h3>🖼 Image</h3>
             <div id="img-preview-${escId}">${preview}</div>
             <div style="display:flex;gap:4px;align-items:center;margin-top:2px;">
-                <input type="file" accept="image/*" onchange="InspectorHelpers.setNodeImage('${escId}', this)" title="Upload an image (bundled under static/images) — works offline" style="flex:1;font-size:10px;">
+                <input type="file" accept="image/*" onchange="InspectorHelpers.setNodeImage('${escId}', this)" title="Upload an image (bundled under static/images) - works offline" style="flex:1;font-size:10px;">
             </div>
             <div class="field" style="display:flex;gap:4px;align-items:center;margin-top:4px;">
                 <input type="text" id="img-url-${escId}" placeholder="...or paste a URL / path" value="${H.esc(image)}" style="flex:1;font-size:11px;">
@@ -375,7 +375,7 @@ const InspectorHelpersModule = (() => {
         events.log('Image set.', 'system-msg');
         H._refreshImagePreview(nodeId, res.image || '');
         // The graph follows state: worldState.fetch() emits 'update', which
-        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // main.ts routes to graphManager.syncGraphData() - an in-place node
         // update, not a reload (task-764).
         worldState.fetch();
     };
@@ -392,7 +392,7 @@ const InspectorHelpersModule = (() => {
         events.log('Image URL set.', 'system-msg');
         H._refreshImagePreview(nodeId, url);
         // The graph follows state: worldState.fetch() emits 'update', which
-        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // main.ts routes to graphManager.syncGraphData() - an in-place node
         // update, not a reload (task-764).
         worldState.fetch();
     };
@@ -406,7 +406,7 @@ const InspectorHelpersModule = (() => {
         events.log('Image removed.', 'system-msg');
         H._refreshImagePreview(nodeId, '');
         // The graph follows state: worldState.fetch() emits 'update', which
-        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // main.ts routes to graphManager.syncGraphData() - an in-place node
         // update, not a reload (task-764).
         worldState.fetch();
     };
@@ -419,7 +419,7 @@ const InspectorHelpersModule = (() => {
      * keys append after.
      *
      * This is the single source of truth for every surface that offers the
-     * expression vocabulary — the sprite-sheet splitter's default tile names
+     * expression vocabulary - the sprite-sheet splitter's default tile names
      * (`SpriteSheet.defaultNames`), the card grid's ordering
      * (`H.expressionKeys`), and the "Expressions to Generate" prompt
      * (`AgentView._copyExpressionPrompt`, which drops `neutral` via slice(1)).
@@ -453,7 +453,7 @@ const InspectorHelpersModule = (() => {
      * Applied only after a direct slot lookup misses, so packs that already
      * store the engine's names (e.g. `mansion.json`) keep rendering unchanged.
      * Engine keys with no authored counterpart (`aroused`, `affectionate`,
-     * `envious`, `calm`) are deliberately absent — they fall back to neutral
+     * `envious`, `calm`) are deliberately absent - they fall back to neutral
      * rather than borrowing another expression's face.
      */
     const EXPRESSION_ART_ALIASES: Record<string, string> = {
@@ -510,7 +510,7 @@ const InspectorHelpersModule = (() => {
         style.textContent = `
             .expr-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:6px; }
             /* The whole card is the upload control (a <label> around the file
-               input), so it has to read as clickable — it is a 92px target, not a
+               input), so it has to read as clickable - it is a 92px target, not a
                14px arrow. */
             .expr-card { position:relative; display:flex; flex-direction:column; align-items:center; gap:4px;
                 padding:6px; border:1px solid var(--border); border-radius:8px; background:var(--bg-input);
@@ -573,7 +573,7 @@ const InspectorHelpersModule = (() => {
             const removeKey = `<button class="btn btn-sm" title="Delete the '${safeKey}' expression and its image file(s)"
                     onclick="event.stopPropagation();InspectorHelpers.removeExpressionKey('${escId}','${kind}','${safeKey}')">✕</button>`;
             // The card is a DIV, not a <label>. A <label> picks its labelled control as
-            // the first LABELABLE descendant, and a <button> is labelable — so with the
+            // the first LABELABLE descendant, and a <button> is labelable - so with the
             // 🗑 ahead of the file input in document order, Chrome activated the delete
             // button and clicking an image deleted it instead of opening the picker.
             // The card therefore owns the click, Enter/Space, and the drop target, and
@@ -587,7 +587,7 @@ const InspectorHelpersModule = (() => {
                         ondragleave="this.classList.remove('expr-drop');"
                         ondrop="InspectorHelpers.dropExpressionImage('${escId}','${kind}','${safeKey}',event)">
                 <div class="expr-thumb${url ? ' has-art' : ''}">${thumb}</div>
-                <div class="expr-name" title="Click to rename — the image moves with it"
+                <div class="expr-name" title="Click to rename - the image moves with it"
                      onclick="event.stopPropagation();InspectorHelpers.beginExpressionRename('${escId}','${kind}','${safeKey}',this)">${icon} ${label}</div>
                 <span class="expr-actions">
                     <span class="btn btn-sm expr-upload" aria-hidden="true">⬆</span>
@@ -653,7 +653,7 @@ const InspectorHelpersModule = (() => {
                 <input type="text" id="expr-new-${escId}" placeholder="add expression (happy, attack…)" style="flex:1;font-size:11px;">
                 <button class="btn btn-sm btn-green" onclick="InspectorHelpers.addExpressionKey('${escId}')">Add</button>
             </div>
-            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback. Click a card (or drop an image on it) to set it — the whole card is the target.</div>
+            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback. Click a card (or drop an image on it) to set it - the whole card is the target.</div>
         </div>`;
     };
 
@@ -674,7 +674,7 @@ const InspectorHelpersModule = (() => {
         events.log('Expression image set.', 'system-msg');
         H._refreshExpressionGrid(nodeId, kind);
         // The graph follows state: worldState.fetch() emits 'update', which
-        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // main.ts routes to graphManager.syncGraphData() - an in-place node
         // update, not a reload (task-764).
         worldState.fetch();
     };
@@ -708,7 +708,7 @@ const InspectorHelpersModule = (() => {
         events.log('Expression image removed.', 'system-msg');
         H._refreshExpressionGrid(nodeId, kind);
         // The graph follows state: worldState.fetch() emits 'update', which
-        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // main.ts routes to graphManager.syncGraphData() - an in-place node
         // update, not a reload (task-764).
         worldState.fetch();
     };
@@ -718,7 +718,7 @@ const InspectorHelpersModule = (() => {
      *
      * The card is a div, so the browser has no implicit label activation to lean on;
      * this asks the card's hidden file input directly. Doing it this way is what
-     * makes a click on an existing image REPLACE it — as a <label> card did not,
+     * makes a click on an existing image REPLACE it - as a <label> card did not,
      * because the label activated the 🗑 button ahead of the input.
      */
     H.pickExpressionImage = function(nodeId: string, kind: string, key: string): void {
@@ -761,7 +761,7 @@ const InspectorHelpersModule = (() => {
         else delete props.image;
         H._refreshExpressionGrid(nodeId, kind);
         // The graph follows state: worldState.fetch() emits 'update', which
-        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // main.ts routes to graphManager.syncGraphData() - an in-place node
         // update, not a reload (task-764).
         worldState.fetch();
         return true;
@@ -772,7 +772,7 @@ const InspectorHelpersModule = (() => {
         const input = document.createElement('input');
         input.className = 'expr-rename';
         input.value = key;
-        input.title = 'New expression name — Enter to apply, Esc to cancel';
+        input.title = 'New expression name - Enter to apply, Esc to cancel';
         nameEl.style.display = 'none';
         nameEl.parentElement!.insertBefore(input, nameEl.nextSibling);
         input.focus();
@@ -811,7 +811,7 @@ const InspectorHelpersModule = (() => {
         if (!source) { events.log(`No expression named '${fromKey}'.`, 'error-msg'); return; }
         const clash = current[toKey];
         if (clash && (clash.profile || clash.full)) {
-            events.log(`'${toKey}' already has an image — remove it first, then rename.`, 'error-msg');
+            events.log(`'${toKey}' already has an image - remove it first, then rename.`, 'error-msg');
             return;
         }
         const next: Record<string, unknown> = Object.assign({}, current);
@@ -826,7 +826,7 @@ const InspectorHelpersModule = (() => {
      * Delete an expression key and every image file behind it.
      *
      * Delegates to the existing per-kind remove, which pops the kind and drops the
-     * key once its last image goes — so the files on disk go with it. Calling it per
+     * key once its last image goes - so the files on disk go with it. Calling it per
      * kind matters: a key holding both a profile and a full-body image only disappears
      * after the second call.
      */
@@ -858,7 +858,7 @@ const InspectorHelpersModule = (() => {
         events.log(`Expression '${key}' deleted.`, 'system-msg');
         H._refreshExpressionGrid(nodeId, kind);
         // The graph follows state: worldState.fetch() emits 'update', which
-        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // main.ts routes to graphManager.syncGraphData() - an in-place node
         // update, not a reload (task-764).
         worldState.fetch();
     };
@@ -888,7 +888,7 @@ const InspectorHelpersModule = (() => {
         const color = isLocked ? 'var(--orange)' : 'var(--text-muted)';
         return htmlTag`<span style="cursor:pointer;font-size:12px;color:${color};"
             @click=${(ev: Event) => { ev.preventDefault(); H.toggleFieldLock(nodeId, field); }}
-            title="${isLocked ? 'Unlock' : 'Lock'} ${field} — locked fields are preserved during Improve">${icon}</span>`;
+            title="${isLocked ? 'Unlock' : 'Lock'} ${field} - locked fields are preserved during Improve">${icon}</span>`;
     };
 
     /**
@@ -961,13 +961,64 @@ const InspectorHelpersModule = (() => {
             const update: HelpersNodeProps = {};
             spec.apply(parsed, node, lockedFields, update);
 
-            await api.updateNode(nodeId, update);
-            events.log(`AI improved ${node.name || nodeId}`, 'system-msg');
-            worldState.fetch().then(() => {
-                if (window.VW?.inspector) (window.VW as unknown as {
-                    inspector: { showNode(id: string): void };
-                }).inspector.showNode(nodeId);
+            // Task-760: Route AI improvement through DiffModal preview before writing
+            const currentPayload: Record<string, unknown> = {};
+            const incomingPayload: Record<string, unknown> = {};
+            const sections: Array<{ key: string; label: string }> = [];
+
+            if (update.name !== undefined) {
+                currentPayload.name = node.name || '';
+                incomingPayload.name = update.name;
+                sections.push({ key: 'name', label: 'Name' });
+            }
+
+            const propUpdates = (update.properties || {}) as Record<string, unknown>;
+            for (const key of Object.keys(propUpdates)) {
+                currentPayload[key] = props[key];
+                incomingPayload[key] = propUpdates[key];
+                const label = key.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                sections.push({ key, label });
+            }
+
+            if (!sections.length) {
+                toastInfo('No changes proposed by AI.');
+                return;
+            }
+
+            const diffResult = await DiffModal.show(currentPayload, incomingPayload, sections, {
+                title: `Improve ${node.name || nodeId} with AI`,
+                name: node.name || nodeId,
+                direction: 'to-world',
             });
+
+            if (!diffResult || !diffResult.sections || !diffResult.sections.length) {
+                return;
+            }
+
+            const finalUpdate: HelpersNodeProps = {};
+            if (diffResult.sections.includes('name') && update.name !== undefined) {
+                finalUpdate.name = update.name;
+            }
+            const finalProps: Record<string, unknown> = {};
+            for (const sec of diffResult.sections) {
+                if (sec in propUpdates) {
+                    finalProps[sec] = propUpdates[sec];
+                }
+            }
+            if (Object.keys(finalProps).length > 0) {
+                finalUpdate.properties = finalProps;
+            }
+
+            if (finalUpdate.name !== undefined || finalUpdate.properties) {
+                await api.updateNode(nodeId, finalUpdate);
+                events.log(`AI improved ${node.name || nodeId}`, 'system-msg');
+                await worldState.fetch();
+                if (window.VW?.inspector) {
+                    (window.VW as unknown as {
+                        inspector: { showNode(id: string): void };
+                    }).inspector.showNode(nodeId);
+                }
+            }
         } catch (error) {
             console.error(error);
             toastError('AI improvement failed: ' + (error as Error).message);
@@ -978,7 +1029,7 @@ const InspectorHelpersModule = (() => {
 
     /**
      * Build a lit-html section for an editable Aliases area (subjective names
-     * that resolve to this node in commands — works for items, ways, areas,
+     * that resolve to this node in commands - works for items, ways, areas,
      * and characters). Comma-separated; saved on Enter or blur.
      * @param {string} nodeId - Graph node ID
      * @param {Array|string} aliases - Current aliases
@@ -993,7 +1044,7 @@ const InspectorHelpersModule = (() => {
             <div class="field">
                 <input type="text" id="aliases-input-${nodeId}" .value=${value}
                     placeholder="Other names this resolves to (comma-separated)"
-                    title="Subjective names characters use for this — e.g. 'the Butcher', 'trapdoor'. Saved on Enter or blur."
+                    title="Subjective names characters use for this - e.g. 'the Butcher', 'trapdoor'. Saved on Enter or blur."
                     style="width:100%;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;"
                     @keydown=${save}
                     @blur=${save}>

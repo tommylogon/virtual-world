@@ -283,30 +283,40 @@ const InspectorComponents = (() => {
             (window as unknown as { InspectorHelpers?: { renameNode?: (oldId: string, nextId: string) => void } }).InspectorHelpers?.renameNode?.(nodeId, newId);
         });
 
+        const isSupportedKind = ['character', 'agent', 'player', 'item', 'area'].includes(nodeType.toLowerCase());
+        const expandBtn = isSupportedKind
+            ? htmlTag`<button class="btn btn-sm btn-ghost inspector-expand-btn" title="Open in full editor (⛶)" @click=${(ev: MouseEvent) => {
+                const kind = (nodeType.toLowerCase() === 'agent' || nodeType.toLowerCase() === 'player') ? 'character' : nodeType.toLowerCase();
+                const target = kind === 'character' ? name : nodeId;
+                const ee = (window as unknown as { EntityEditor?: { mount: (k: string, id: string, opener?: HTMLElement) => void } }).EntityEditor;
+                if (ee) ee.mount(kind, target, ev.currentTarget as HTMLElement);
+            }}>⛶</button>`
+            : '';
+
         const closeBtn = htmlTag`<button class="btn btn-sm btn-ghost" @click=${closeHandler}>✕</button>`;
 
-        return htmlTag`<div class="inspector-header">
-            <span class="inspector-type-badge" style="background:${badgeColor}">${badgeLabel}</span>
-            <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
-                <h2 style="margin:0;font-size:16px;">
-                    <input type="text" .value=${name}
-                        @change=${(ev: Event) => onRename((ev.target as HTMLInputElement).value)}
-                        style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;">
-                </h2>
-                <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
-                    <div style="display:flex;gap:2px;align-items:center;">
-                        ${isGenerated
-                            ? htmlTag`<span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id - owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
-                            : htmlTag`<input type="text" .value=${nodeId}
-                                @change=${(ev: Event) => renameIdHandler((ev.target as HTMLInputElement).value)}
-                                style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);flex:1;min-width:0;cursor:text;"
-                                title="Change node ID (lowercase, no spaces)">
-                                <button class="btn btn-sm btn-ghost" @click=${onSyncId} title="Sync ID from name">🔄</button>`}
-                    </div>
-                </div>
+        return htmlTag`<div class="inspector-header" style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;gap:6px;align-items:center;width:100%;">
+                <span class="inspector-type-badge" style="background:${badgeColor}">${badgeLabel}</span>
+                <input type="text" .value=${name}
+                    @change=${(ev: Event) => onRename((ev.target as HTMLInputElement).value)}
+                    style="font-size:14px;font-weight:600;background:transparent;border:1px solid var(--border);color:inherit;flex:1;min-width:0;padding:2px 6px;border-radius:4px;">
+                ${expandBtn}
+                ${closeBtn}
             </div>
-            ${actions || ''}
-            ${closeBtn}
+            <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;width:100%;">
+                <div class="field" style="margin:0;display:flex;align-items:center;gap:4px;flex:1;min-width:120px;">
+                    <label style="font-size:9px;color:var(--text-muted);margin:0;text-transform:uppercase;">ID</label>
+                    ${isGenerated
+                        ? htmlTag`<span style="font-size:10px;color:var(--text-muted);word-break:break-all;" title="Generated node id - owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
+                        : htmlTag`<input type="text" .value=${nodeId}
+                            @change=${(ev: Event) => renameIdHandler((ev.target as HTMLInputElement).value)}
+                            style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--text-muted);flex:1;min-width:60px;cursor:text;"
+                            title="Change node ID (lowercase, no spaces)">
+                            <button class="btn btn-sm btn-ghost" @click=${onSyncId} title="Sync ID from name">🔄</button>`}
+                </div>
+                ${actions ? htmlTag`<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">${actions}</div>` : ''}
+            </div>
         </div>`;
     }
 

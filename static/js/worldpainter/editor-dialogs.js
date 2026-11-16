@@ -450,6 +450,12 @@
                 else
                     ctx.open(null);
             }
+            else if (!ctx.state.scopeId) {
+                if (ctx.showChooser)
+                    await ctx.showChooser(ctx);
+                else
+                    await showChooser(ctx);
+            }
             else {
                 await ctx.reloadPayload();
             }

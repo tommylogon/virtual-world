@@ -1,6 +1,6 @@
 "use strict";
 /**
- * structures.js — structure templates, frontend (task-357).
+ * structures.js - structure templates, frontend (task-357).
  *
  * Capture a connected area group as a reusable, self-contained structure and
  * materialize saved structures into the running world. Backend:
@@ -9,9 +9,9 @@
  * Kept dependency-free (plain DOM) so it can be loaded before/after the Lit
  * modules without ordering constraints.
  *
- * @module structures — capture and materialize reusable structure templates
+ * @module structures - capture and materialize reusable structure templates
  * @contributes Structures: capture a region, list templates, materialize one into the world
- * @powers Graph canvas — task-357; the world builder's reusable buildings and room groups
+ * @powers Graph canvas - task-357; the world builder's reusable buildings and room groups
  * @relates engine/structures.py and routes/structures_ops.py; opened from the Game menu
  * @docs docs/virtualWorld/World Building/Graph System.md
  */
@@ -101,7 +101,7 @@
                 return;
             }
             const overlay = _overlay();
-            const panel = _panel(`📦 Save structure — ${areaName || areaId}`);
+            const panel = _panel(`📦 Save structure - ${areaName || areaId}`);
             const nameRow = _el('div', 'margin-bottom:8px;');
             nameRow.appendChild(_el('div', 'font-size:11px;color:var(--text-muted);margin-bottom:3px;', 'Structure name'));
             const nameInput = document.createElement('input');
@@ -140,7 +140,11 @@
                         `${p.areas} area(s), ${p.ways} way(s), ${p.items} item(s), ${p.residents} resident(s)`,
                     ];
                     if (p.boundary_exits && p.boundary_exits.length) {
-                        lines.push(`Boundary exits (graft manually): ${p.boundary_exits.length}`);
+                        const exitDetails = p.boundary_exits.map((ex) => {
+                            const dir = ex.direction ? ` (${ex.direction})` : '';
+                            return `  - ${ex.name || ex.way}${dir}`;
+                        }).join('\n');
+                        lines.push(`Boundary exits (${p.boundary_exits.length}):\n${exitDetails}`);
                     }
                     previewBox.textContent = lines.join('\n');
                 }
@@ -192,7 +196,7 @@
                         try {
                             const report = await Structures.materialize(entry.id, {});
                             const m = report.materialized || {};
-                            _log(`📦 Materialized "${entry.name}" — ${m.areas || 0} areas, ` +
+                            _log(`📦 Materialized "${entry.name}" - ${m.areas || 0} areas, ` +
                                 `${m.residents || 0} residents.`, 'system-msg');
                             (report.minted_residents || []).forEach((r) => {
                                 _log(`⚠ Resident "${r.from}" imported as "${r.to}" (name already in world).`, 'system-msg');

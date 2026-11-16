@@ -315,6 +315,11 @@ window.InspectorWayView = (() => {
                     </select>
                 </div>
                 <div class="field">
+                    <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('requires_item', wayView._getLockedFields(props), escapedId)} Required item or tag</label>
+                    <input type="text" id="way-passage-requires-item-${escapedId}" value="${esc(props.requires_item || '')}" placeholder="e.g. iron_key, bike, tag:fly" style="width:100%;font-size:11px;">
+                    <div class="section-hint">Item name, ID, or tag requirement (e.g. 'tag:key') needed in inventory or equipped to traverse.</div>
+                </div>
+                <div class="field">
                     <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('description', wayView._getLockedFields(props), escapedId)} Appearance when closed/locked/blocked</label>
                     <textarea id="way-passage-desc-${escapedId}" rows="4"
                         @input=${() => wayView._refreshParamPreview(escapedId)}
@@ -323,8 +328,18 @@ window.InspectorWayView = (() => {
                     <div id="way-param-preview-${escapedId}">${window.Lit.unsafeHTML(InspectorHelpers.renderParamPreviewBlock(props.description || '', props.parameters || {}))}</div>
                 </div>
                 <div class="field">
+                    <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('refusal_message', wayView._getLockedFields(props), escapedId)} Refusal message (when not open)</label>
+                    <textarea id="way-passage-refusal-${escapedId}" rows="2" placeholder="Custom refusal message when way is closed/locked…">${esc(props.refusal_message || '')}</textarea>
+                    <div class="section-hint">Overrides generic 'The door is locked/closed' message on attempted traverse.</div>
+                </div>
+                <div class="field">
                     <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('pass_message', wayView._getLockedFields(props), escapedId)} On traverse narration</label>
                     <textarea id="way-passage-pass-msg-${escapedId}" rows="2">${esc(props.pass_message || '')}</textarea>
+                </div>
+                <div class="field">
+                    <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('entry_phrase', wayView._getLockedFields(props), escapedId)} Entry phrase</label>
+                    <input type="text" id="way-passage-entry-phrase-${escapedId}" value="${esc(props.entry_phrase || '')}" placeholder="e.g. step through the archway, go down the tunnel" style="width:100%;font-size:11px;">
+                    <div class="section-hint">Phrasing for exit listing in area descriptions (e.g. 'You could &lt;entry_phrase&gt;').</div>
                 </div>
                 <div class="field" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;">
                     <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;">
@@ -365,7 +380,10 @@ window.InspectorWayView = (() => {
             description: inputById(`way-passage-desc-${wayId}`)?.value ?? props.description ?? '',
             current_state: inputById(`way-passage-state-${wayId}`)?.value ?? props.current_state ?? 'closed',
             pass_message: inputById(`way-passage-pass-msg-${wayId}`)?.value ?? props.pass_message ?? '',
+            refusal_message: inputById(`way-passage-refusal-${wayId}`)?.value ?? props.refusal_message ?? '',
+            entry_phrase: inputById(`way-passage-entry-phrase-${wayId}`)?.value ?? props.entry_phrase ?? '',
             requires: inputById(`way-passage-requires-${wayId}`)?.value ?? props.requires ?? '',
+            requires_item: inputById(`way-passage-requires-item-${wayId}`)?.value ?? props.requires_item ?? '',
             one_way: !!inputById(`way-passage-one-way-${wayId}`)?.checked,
             see_through: !!inputById(`way-passage-see-through-${wayId}`)?.checked,
             auto_close: !!inputById(`way-passage-auto-close-${wayId}`)?.checked,
@@ -433,7 +451,7 @@ window.InspectorWayView = (() => {
             const skillEl = inputById(`way-needs-skill-${nodeId}`);
             const dcEl = inputById(`way-needs-dc-${nodeId}`);
             const skill = skillEl?.value || 'Athletics';
-            const dc = parseInt(dcEl?.value || '') || 15;
+            const dc = parseInt(dcEl?.value || '') || 10;
             const configEl = document.getElementById(`way-needs-config-${nodeId}`);
             if (configEl)
                 configEl.style.display = enabled ? 'flex' : 'none';
@@ -442,7 +460,7 @@ window.InspectorWayView = (() => {
         const saveNeedsOpenField = (field) => (ev) => {
             const existing = worldState.getNode(nodeId)?.properties?.needs_open || {};
             const patch = { ...existing };
-            patch[field] = field === 'dc' ? (parseInt(ev.target.value) || 15) : ev.target.value;
+            patch[field] = field === 'dc' ? (parseInt(ev.target.value) || 10) : ev.target.value;
             api.updateNode(nodeId, { properties: { needs_open: patch } }).then(() => worldState.fetch());
         };
         const headerTmpl = InspectorComponents.InspectorNodeHeader({
@@ -481,7 +499,7 @@ window.InspectorWayView = (() => {
                             </select>
                         </div>
                         <div class="field" style="flex:0 0 60px;"><label style="font-size:10px;">DC</label>
-                            <input type="number" id="way-needs-dc-${nodeId}" .value=${props.needs_open?.dc || 15} min="5" max="30" style="width:50px;font-size:10px;" @change=${saveNeedsOpenField('dc')}>
+                            <input type="number" id="way-needs-dc-${nodeId}" .value=${props.needs_open?.dc ?? 10} min="5" max="30" style="width:50px;font-size:10px;" @change=${saveNeedsOpenField('dc')}>
                         </div>
                     </div>
                     <div class="field" style="display:flex;align-items:center;gap:8px;">
@@ -744,6 +762,8 @@ window.InspectorWayView = (() => {
             description: props.description || '',
             current_state: props.current_state || 'closed',
             pass_message: props.pass_message || '',
+            refusal_message: props.refusal_message || '',
+            entry_phrase: props.entry_phrase || '',
             edge_length: props.edge_length || '',
             sound_barrier: props.sound_barrier ?? '',
             needs_open: props.needs_open || {},
@@ -751,6 +771,7 @@ window.InspectorWayView = (() => {
             see_through: !!props.see_through,
             one_way: !!props.one_way,
             requires: props.requires || '',
+            requires_item: props.requires_item || '',
             max_size: props.max_size || '',
             prevent_close: !!props.prevent_close,
             tags: props.tags || [],
@@ -781,6 +802,9 @@ window.InspectorWayView = (() => {
             { key: 'description', label: 'Description' },
             { key: 'current_state', label: 'State' },
             { key: 'pass_message', label: 'Pass Message' },
+            { key: 'refusal_message', label: 'Refusal Message' },
+            { key: 'entry_phrase', label: 'Entry Phrase' },
+            { key: 'requires_item', label: 'Requires Item' },
             { key: 'needs_open', label: 'Needs Open' },
             { key: 'auto_close', label: 'Auto Close' },
             { key: 'see_through', label: 'See Through' },
@@ -838,6 +862,8 @@ window.InspectorWayView = (() => {
             description: props.description || '',
             current_state: props.current_state || 'closed',
             pass_message: props.pass_message || '',
+            refusal_message: props.refusal_message || '',
+            entry_phrase: props.entry_phrase || '',
             edge_length: props.edge_length || '',
             sound_barrier: props.sound_barrier ?? '',
             needs_open: props.needs_open || {},
@@ -845,6 +871,7 @@ window.InspectorWayView = (() => {
             see_through: !!props.see_through,
             one_way: !!props.one_way,
             requires: props.requires || '',
+            requires_item: props.requires_item || '',
             max_size: props.max_size || '',
             prevent_close: !!props.prevent_close,
             tags: props.tags || [],
@@ -866,11 +893,14 @@ window.InspectorWayView = (() => {
             { key: 'description', label: 'Description' },
             { key: 'current_state', label: 'State' },
             { key: 'pass_message', label: 'Pass Message' },
+            { key: 'refusal_message', label: 'Refusal Message' },
+            { key: 'entry_phrase', label: 'Entry Phrase' },
             { key: 'needs_open', label: 'Needs Open' },
             { key: 'auto_close', label: 'Auto Close' },
             { key: 'see_through', label: 'See Through' },
             { key: 'one_way', label: 'One Way' },
             { key: 'requires', label: 'Requires' },
+            { key: 'requires_item', label: 'Requires Item' },
             { key: 'max_size', label: 'Max Size' },
             { key: 'edge_length', label: 'Edge Length' },
             { key: 'sound_barrier', label: 'Sound Barrier' },
@@ -898,7 +928,7 @@ window.InspectorWayView = (() => {
     wayView.improveWayWithAI = async function (nodeId) {
         const system = `You are a procedural way enhancer for a text adventure game. A "way" is a door, passage, or path between two areas. The way data schema supports:
 
-PROPERTIES: current_state (open/closed/locked/blocked/broken/hidden), pass_message (text shown when passing through), needs_open (object with enabled boolean, skill name, and dc number), auto_close (boolean), see_through (boolean), one_way (boolean), requires (passage mode: empty/crawl/climb/jump), max_size (largest size that fits through: empty/tiny/small/normal/huge/giant/titanic), sound_barrier (optional number: how much speech penetration this door blocks when closed/blocked/locked  -  1 = normal door, 2 = vault-thick, omit for default), edge_length (number 20-500 for graph layout)
+PROPERTIES: current_state (open/closed/locked/blocked/broken/hidden), pass_message (text shown when passing through), refusal_message (text shown when traversal is refused while closed/locked), entry_phrase (phrasing for exit listing in area descriptions), requires (passage mode: empty/crawl/climb/jump), requires_item (item name/tag needed to traverse), needs_open (object with enabled boolean, skill name, and dc number), auto_close (boolean), see_through (boolean), one_way (boolean), max_size (largest size that fits through: empty/tiny/small/normal/huge/giant/titanic), sound_barrier (optional number: how much speech penetration this door blocks when closed/blocked/locked  -  1 = normal door, 2 = vault-thick, omit for default), edge_length (number 20-500 for graph layout)
 
 OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSON.`;
         const buildPrompt = (node, lockedFields) => {
@@ -914,6 +944,10 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
                 promptLines.push(`- current_state: ${props.current_state || 'closed'}`);
             if (!lockedFields.includes('pass_message'))
                 promptLines.push(`- pass_message: ${props.pass_message || ''}`);
+            if (!lockedFields.includes('refusal_message'))
+                promptLines.push(`- refusal_message: ${props.refusal_message || ''}`);
+            if (!lockedFields.includes('entry_phrase'))
+                promptLines.push(`- entry_phrase: ${props.entry_phrase || ''}`);
             if (!lockedFields.includes('needs_open'))
                 promptLines.push(`- needs_open: ${JSON.stringify(props.needs_open || {})}`);
             if (!lockedFields.includes('auto_close'))
@@ -924,6 +958,8 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
                 promptLines.push(`- one_way: ${!!props.one_way}`);
             if (!lockedFields.includes('requires'))
                 promptLines.push(`- requires: ${props.requires || 'none'}`);
+            if (!lockedFields.includes('requires_item'))
+                promptLines.push(`- requires_item: ${props.requires_item || ''}`);
             if (!lockedFields.includes('max_size'))
                 promptLines.push(`- max_size: ${props.max_size || 'none'}`);
             if (!lockedFields.includes('edge_length'))
@@ -933,7 +969,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             if (!lockedFields.includes('parameters'))
                 promptLines.push(`- parameters: ${JSON.stringify(props.parameters || {})}`);
             promptLines.push('');
-            promptLines.push('Improve this way\'s description and properties. Make the description richer and more atmospheric  -  describe how the way looks, feels, sounds. Suggest appropriate state, pass messages, skill checks, passage requirements (requires: crawl/climb/jump if the passage physically demands it), size limits (max_size for tight gaps), and behavior flags that match the mood. Return the full way as JSON with name, description, current_state, pass_message, needs_open, auto_close, see_through, one_way, requires, max_size, edge_length, tags, and parameters fields.');
+            promptLines.push('Improve this way\'s description and properties. Make the description richer and more atmospheric  -  describe how the way looks, feels, sounds. Suggest appropriate state, pass messages, refusal messages, entry phrases, skill checks, passage requirements (requires: crawl/climb/jump if the passage physically demands it), required items/tags (requires_item), size limits (max_size for tight gaps), and behavior flags that match the mood. Return the full way as JSON with name, description, current_state, pass_message, refusal_message, entry_phrase, needs_open, auto_close, see_through, one_way, requires, requires_item, max_size, edge_length, tags, and parameters fields.');
             return promptLines.join('\n');
         };
         const apply = (parsed, node, lockedFields, update) => {
@@ -946,6 +982,10 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
                 propUpdate.current_state = parsed.current_state;
             if (parsed.pass_message !== undefined && !lockedFields.includes('pass_message'))
                 propUpdate.pass_message = parsed.pass_message;
+            if (parsed.refusal_message !== undefined && !lockedFields.includes('refusal_message'))
+                propUpdate.refusal_message = parsed.refusal_message;
+            if (parsed.entry_phrase !== undefined && !lockedFields.includes('entry_phrase'))
+                propUpdate.entry_phrase = parsed.entry_phrase;
             if (parsed.needs_open && !lockedFields.includes('needs_open'))
                 propUpdate.needs_open = parsed.needs_open;
             if (parsed.auto_close !== undefined && !lockedFields.includes('auto_close'))
@@ -956,6 +996,8 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
                 propUpdate.one_way = !!parsed.one_way;
             if (parsed.requires !== undefined && !lockedFields.includes('requires'))
                 propUpdate.requires = ['crawl', 'climb', 'jump'].includes(parsed.requires) ? parsed.requires : '';
+            if (parsed.requires_item !== undefined && !lockedFields.includes('requires_item'))
+                propUpdate.requires_item = parsed.requires_item;
             if (parsed.max_size !== undefined && !lockedFields.includes('max_size'))
                 propUpdate.max_size = ['tiny', 'small', 'normal', 'huge', 'giant', 'titanic'].includes(parsed.max_size) ? parsed.max_size : '';
             if (parsed.edge_length !== undefined && !lockedFields.includes('edge_length'))
@@ -985,6 +1027,8 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
                     description: props.description || '',
                     current_state: props.current_state || 'closed',
                     pass_message: props.pass_message || '',
+                    refusal_message: props.refusal_message || '',
+                    entry_phrase: props.entry_phrase || '',
                     edge_length: props.edge_length || '',
                     sound_barrier: props.sound_barrier ?? '',
                     needs_open: props.needs_open || {},
@@ -992,6 +1036,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
                     see_through: !!props.see_through,
                     one_way: !!props.one_way,
                     requires: props.requires || '',
+                    requires_item: props.requires_item || '',
                     max_size: props.max_size || '',
                     prevent_close: !!props.prevent_close,
                     tags: props.tags || [],
@@ -1004,12 +1049,15 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
                 { key: 'description', label: 'Description' },
                 { key: 'current_state', label: 'State' },
                 { key: 'pass_message', label: 'Pass Message' },
+                { key: 'refusal_message', label: 'Refusal Message' },
+                { key: 'entry_phrase', label: 'Entry Phrase' },
                 { key: 'needs_open', label: 'Needs Open' },
                 { key: 'auto_close', label: 'Auto Close' },
                 { key: 'see_through', label: 'See Through' },
                 { key: 'one_way', label: 'One Way' },
                 { key: 'prevent_close', label: 'Prevent Closing' },
                 { key: 'requires', label: 'Requires' },
+                { key: 'requires_item', label: 'Requires Item' },
                 { key: 'max_size', label: 'Max Size' },
                 { key: 'edge_length', label: 'Edge Length' },
                 { key: 'sound_barrier', label: 'Sound Barrier' },

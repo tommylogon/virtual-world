@@ -898,11 +898,12 @@ window.PromptBuilder = window.PromptBuilder || {};
             seenSpeechTexts.push(heardLower);
             // Voice-based label  -  the listener can't see the speaker's body
             const anon = PromptBuilder.voiceLabel(charName, h.speaker);
-            const direction = h.heard_from ? ` from the ${h.heard_from}` : '';
+            const rawDir = String(h.heard_from || '').replace(/_/g, ' ').replace(/\s+back$/i, '').trim();
+            const direction = rawDir ? ` from the ${rawDir}` : '';
             // Delivery comes off the entry rather than being assumed: a scream read
             // as "said" taught the model it was conversation.
             const verb = PromptBuilder.speechVerb(h.speech_level);
-            let line = `[Heard${direction}] ${anon} ${verb}: "${h.text}"`;
+            let line = `[Heard] ${anon}${direction} ${verb}: "${h.text}"`;
             line = PromptBuilder.markSpeechLine(line, h.text, charName, player);
             witnessedLines.push(line);
             socialSeeds.push({ speaker: h.speaker, text: h.text });
@@ -911,7 +912,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         heardSounds.forEach(h => {
             const pattern = h.sound_pattern || 'a sound';
             const sourceName = h.source_item ? ` from the ${h.source_item}` : '';
-            const direction = h.heard_from ? ` from the ${h.heard_from}` : '';
+            const rawDir = String(h.heard_from || '').replace(/_/g, ' ').replace(/\s+back$/i, '').trim();
+            const direction = rawDir ? ` from the ${rawDir}` : '';
             const line = `[Heard${direction}${sourceName}] ${pattern}.`;
             const wKey = witnessKey('sound', line);
             if (seenWitnessKeys.has(wKey))

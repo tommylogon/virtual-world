@@ -1,16 +1,16 @@
 "use strict";
 /**
- * diff.js — property-level diff for staged NL-editor ops (task-461).
+ * diff.js - property-level diff for staged NL-editor ops (task-461).
  *
  * A staged op shows a summary line; this turns it into the concrete property
- * changes it will make ("traits.dark_vision: — → true"), diffed against the
+ * changes it will make ("traits.dark_vision: - -> true"), diffed against the
  * live/staged pre-state, so a wrong or empty patch is visible before Apply.
  *
  * Pure: the caller supplies the node maps, so it is unit-testable without DOM.
  *
- * @module nl-editor/diff — property-level diff for staged ops
+ * @module nl-editor/diff - property-level diff for staged ops
  * @contributes NLEditorDiff: opDiff(), diffPairs(), formatChanges(), summaryLines()
- * @powers NL editor — the staged-ops tray's per-op diff preview
+ * @powers NL editor - the staged-ops tray's per-op diff preview
  * @relates read by ui.js when rendering staged rows
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
@@ -194,7 +194,7 @@ window.NLEditorDiff = (() => {
     }
     function formatValue(value) {
         if (value === undefined)
-            return '—';
+            return '-';
         if (value === null)
             return 'null';
         if (typeof value === 'string')
@@ -206,7 +206,7 @@ window.NLEditorDiff = (() => {
         return String(value);
     }
     function formatChanges(changes) {
-        return (changes || []).map(c => `${c.key}: ${formatValue(c.before)} → ${formatValue(c.after)}`);
+        return (changes || []).map(c => `${c.key}: ${formatValue(c.before)} -> ${formatValue(c.after)}`);
     }
     /** Flat preview lines for the staged tray, capped at *limit* leaf changes. */
     function summaryLines(op, context = {}, limit = 4) {
@@ -231,6 +231,8 @@ window.NLEditorDiff = (() => {
             return [`+ trigger (${diff.label || '?'}) on ${diff.id || 'node'}`];
         if (diff.kind === 'rename')
             return [`rename ${diff.id || 'character'} -> ${diff.label || '?'}`];
+        if (diff.kind === 'other')
+            return [`+ ${isObj(op) && typeof op.type === 'string' ? op.type : 'operation'}`];
         let changes;
         if (diff.kind === 'bulk') {
             changes = [];
@@ -242,7 +244,7 @@ window.NLEditorDiff = (() => {
             changes = formatChanges(diff.changes);
         }
         if (!changes.length)
-            return ['(no property change — will no-op)'];
+            return ['(no property change - will no-op)'];
         if (changes.length <= limit)
             return changes;
         return [...changes.slice(0, limit), `+${changes.length - limit} more`];

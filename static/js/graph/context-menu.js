@@ -55,6 +55,7 @@ window.GraphContextMenu = {
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('add_item')}>📦 Add Item to Area</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('move_character')}>🧍 Move Character Here</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_character')}>✨ Create Character Here</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_structure')}>📦 Save as Structure...</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('place_on_map')}>📍 Place on Map…</div>`);
@@ -130,6 +131,9 @@ window.GraphContextMenu = {
                 break;
             case 'save_to_lib':
                 VW?.itemLib?.saveWorldItem(target.nodeId);
+                break;
+            case 'save_structure':
+                VW?.structures?.openSaveDialog(target.nodeId, name);
                 break;
             case 'delete':
                 graphManager._deleteNode(target.nodeId);

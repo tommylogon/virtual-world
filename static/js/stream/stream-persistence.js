@@ -1,31 +1,29 @@
 "use strict";
 /**
- * stream-persistence.js — IndexedDB round-trip for the event stream
+ * stream-persistence.js - IndexedDB round-trip for the event stream
  *
- * task-340: persistence cap raised 500 → 2000 (the DOM keeps 5000, so a
- * reload used to silently drop 90% of scrollback). Area filter now survives
- * reloads too. Extracted from event-stream.js; loaded BEFORE it.
+ * task-779: Persist the event stream as structured records rather than HTML strings.
+ * Reuses the record projection from ui/event-log-export.js (task-777).
+ * Persistence cap is explicitly 2000 records (DOM keeps 5000).
+ * Pre-v2 logs (HTML rows) are dropped cleanly on restore.
  *
- * @module stream/stream-persistence — IndexedDB round-trip for the stream
+ * @module stream/stream-persistence - IndexedDB round-trip for the stream
  * @contributes save/restore of the event stream (cap 2000) + the persisted area filter
- * @powers Event stream — keeping your scrollback across reloads
- * @relates uses storage; loaded before event-stream.js
+ * @powers Event stream - keeping your scrollback across reloads
+ * @relates uses storage + ui/event-log-export; loaded before event-stream.js
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-// NOTE: PersistenceBus is declared *below* on purpose — a leading type-only
-// statement makes tsc drop this file's leading JSDoc, and js_module_index.py
-// reads @module out of the emitted .js. Keep a value declaration first.
+function _escStream(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 class StreamPersistence {
     _bus;
     CAP;
-    // Which world the persisted bubbles belong to (see _worldKey).
     _storedWorldKey;
     constructor(bus) {
         this._bus = bus;
         this.CAP = 2000;
-        // Which world the persisted bubbles belong to (see _worldKey).
         this._storedWorldKey = '';
     }
     /**
@@ -43,32 +41,33 @@ class StreamPersistence {
             return '';
         }
     }
-    /** Save current event log HTML to IndexedDB so it survives page refresh */
+    /** Save current event log as structured records to IndexedDB */
     async persist() {
         const streamEl = document.getElementById('event-stream');
         if (!streamEl)
             return;
-        const entries = [];
-        for (const child of streamEl.children)
-            entries.push(child.outerHTML);
-        if (entries.length > this.CAP)
-            entries.splice(0, entries.length - this.CAP);
-        // The stream is per world. These bubbles carry no world tag, so if the
-        // world changed since they were recorded they cannot be salvaged: drop
-        // them rather than export one world's log under another's name.
+        const exporter = window.EventLogExport;
+        if (!exporter || typeof exporter.projectStreamRows !== 'function')
+            return;
+        let records = exporter.projectStreamRows(streamEl, { ignoreFilters: true });
+        if (records.length > this.CAP) {
+            records = records.slice(records.length - this.CAP);
+        }
         const worldKey = this._worldKey();
         if (this._storedWorldKey && worldKey && this._storedWorldKey !== worldKey) {
             this._storedWorldKey = worldKey;
             await storage.saveEventLog([]);
+            await storage.setConfig('event_log_version', '2');
             await storage.setConfig('event_log_world', worldKey);
             return;
         }
         this._storedWorldKey = worldKey;
-        await storage.saveEventLog(entries);
+        await storage.saveEventLog(records);
+        await storage.setConfig('event_log_version', '2');
         if (worldKey)
             await storage.setConfig('event_log_world', worldKey);
     }
-    /** Restore event log from IndexedDB */
+    /** Restore event log from IndexedDB records */
     async restore() {
         if (!window.Lit)
             return;
@@ -85,42 +84,195 @@ class StreamPersistence {
             savedWorldKey = '';
         }
         if (savedWorldKey && worldKey && savedWorldKey !== worldKey) {
-            // Left over from another world: do not restore it into this one.
             await storage.saveEventLog([]);
+            await storage.setConfig('event_log_version', '2');
             await storage.setConfig('event_log_world', worldKey);
             return;
         }
         const entries = await storage.loadEventLog();
-        if (entries.length === 0)
+        if (!entries || entries.length === 0)
             return;
-        window.Lit.render(window.Lit.html `${entries.map(e => window.Lit.unsafeHTML(e))}`, streamEl);
-        streamEl.scrollTop = streamEl.scrollHeight;
+        let version = '';
+        try {
+            version = await storage.getConfig('event_log_version') || '';
+        }
+        catch (err) {
+            version = '';
+        }
+        // Clean drop for pre-v2 HTML format logs (task-779)
+        const hasLegacyHtml = entries.some(e => e && e.html !== undefined && e.type === undefined);
+        if (version !== '2' || hasLegacyHtml) {
+            console.info('Dropping pre-v2 HTML-format event log (migrated to structured records)');
+            await storage.saveEventLog([]);
+            await storage.setConfig('event_log_version', '2');
+            return;
+        }
+        // Reconstruct stream DOM from structured records
+        if (typeof streamEl.replaceChildren === 'function') {
+            streamEl.replaceChildren();
+        }
+        else {
+            while (streamEl.firstChild)
+                streamEl.removeChild(streamEl.firstChild);
+        }
+        let currentCard = null;
+        let currentCardKey = '';
         let maxSeq = -1;
-        for (const el of streamEl.querySelectorAll('[data-seq]')) {
-            const v = parseInt(el.getAttribute('data-seq') || '', 10);
-            if (Number.isFinite(v))
-                maxSeq = Math.max(maxSeq, v);
-        }
-        if (maxSeq < 0) {
-            // Legacy persisted rows (saved before task-777) carry no data-seq:
-            // fall back to the [Tick N | ...] label so the counter does not
-            // restart at 0 and re-issue seq ids.
-            for (const el of streamEl.querySelectorAll('.bubble-tick')) {
-                const m = (el.textContent || '').match(/\[Tick\s+(\d+)\|/);
-                if (m)
-                    maxSeq = Math.max(maxSeq, parseInt(m[1], 10));
+        for (const rec of entries) {
+            if (!rec)
+                continue;
+            if (rec.seq !== undefined && Number.isFinite(rec.seq)) {
+                maxSeq = Math.max(maxSeq, rec.seq);
             }
+            const inCard = rec.turn != null && Boolean(rec.card_actor || rec.actor);
+            const cardKey = inCard ? `${rec.turn}:${rec.card_actor || rec.actor}` : '';
+            if (inCard) {
+                if (!currentCard || currentCardKey !== cardKey) {
+                    const card = document.createElement('div');
+                    card.className = 'turn-card';
+                    const cardActor = rec.card_actor || rec.actor;
+                    card.setAttribute('data-actor', cardActor);
+                    const collapsed = Boolean(rec.card_collapsed);
+                    const header = document.createElement('div');
+                    header.className = 'turn-card-header';
+                    const collapseSpan = document.createElement('span');
+                    collapseSpan.className = 'turn-card-collapse';
+                    collapseSpan.textContent = collapsed ? '▸' : '▾';
+                    const actorSpan = document.createElement('span');
+                    actorSpan.className = 'turn-card-actor';
+                    actorSpan.textContent = cardActor;
+                    const tickSpan = document.createElement('span');
+                    tickSpan.className = 'turn-card-tick';
+                    tickSpan.textContent = `[Turn ${rec.turn}${rec.day ? ` | ${rec.day}` : ''}]`;
+                    header.appendChild(collapseSpan);
+                    header.appendChild(actorSpan);
+                    header.appendChild(tickSpan);
+                    const body = document.createElement('div');
+                    body.className = 'turn-card-body';
+                    if (collapsed)
+                        body.style.display = 'none';
+                    card.appendChild(header);
+                    card.appendChild(body);
+                    streamEl.appendChild(card);
+                    currentCard = card;
+                    currentCardKey = cardKey;
+                }
+            }
+            else {
+                currentCard = null;
+                currentCardKey = '';
+            }
+            const targetContainer = currentCard
+                ? (currentCard.querySelector('.turn-card-body') || streamEl)
+                : streamEl;
+            // Render element according to record type
+            if (rec.type === 'scope') {
+                const banner = document.createElement('div');
+                banner.className = 'stream-scope-banner';
+                if (rec.area)
+                    banner.setAttribute('data-stream-area', rec.area);
+                const sp = document.createElement('span');
+                sp.textContent = rec.text || '';
+                banner.appendChild(sp);
+                targetContainer.appendChild(banner);
+                continue;
+            }
+            if (rec.type === 'scope-empty') {
+                const empty = document.createElement('div');
+                empty.className = 'stream-scope-empty';
+                empty.textContent = rec.text || '';
+                targetContainer.appendChild(empty);
+                continue;
+            }
+            if (rec.type === 'time-gap' || (rec.type === 'system' && (rec.text || '').includes('minutes pass'))) {
+                const gap = document.createElement('div');
+                gap.className = 'time-gap';
+                gap.textContent = rec.text || '';
+                targetContainer.appendChild(gap);
+                continue;
+            }
+            if (rec.payload) {
+                // Raw-LLM chip
+                const chip = document.createElement('div');
+                chip.className = 'msg-bubble msg-bubble-rawllm';
+                chip.setAttribute('data-actor', rec.actor || 'LLM');
+                chip.setAttribute('data-tick', String(rec.tick ?? 0));
+                chip.setAttribute('data-type', 'rawllm');
+                if (rec.area)
+                    chip.setAttribute('data-stream-area', rec.area);
+                if (rec.seq !== undefined && rec.seq >= 0)
+                    chip.setAttribute('data-seq', String(rec.seq));
+                if (rec.actor_id)
+                    chip.setAttribute('data-actor-id', rec.actor_id);
+                if (rec.request_id)
+                    chip.setAttribute('data-request-id', rec.request_id);
+                if (rec.phase)
+                    chip.setAttribute('data-phase', rec.phase);
+                window.Lit.render(window.Lit.html `
+                    <span class="bubble-icon">🤖</span>
+                    <span class="bubble-tick">[Tick ${rec.tick}${rec.time ? ` | ${rec.time}` : ''}]</span>
+                    <span class="bubble-actor bubble-rawllm-actor">${rec.actor || 'LLM'}</span>
+                    <span class="rawllm-chip-header" style="cursor:pointer;font-size:11px;color:var(--text-muted);">${rec.payload.header || 'LLM payload'}</span>
+                    <div class="rawllm-chip-body" style="display:none;font-family:monospace;font-size:10px;white-space:pre-wrap;background:var(--bg-input);padding:6px;border-radius:4px;margin-top:4px;">${rec.payload.body || ''}</div>
+                `, chip);
+                chip.querySelector('.rawllm-chip-header')?.addEventListener('click', () => {
+                    const b = chip.querySelector('.rawllm-chip-body');
+                    if (b)
+                        b.style.display = b.style.display === 'none' ? 'block' : 'none';
+                });
+                targetContainer.appendChild(chip);
+                continue;
+            }
+            // Message bubble
+            const bubble = document.createElement('div');
+            let classes = `msg-bubble msg-bubble-${rec.type}`;
+            if (rec.outcome)
+                classes += ` outcome-${rec.outcome}`;
+            bubble.className = classes;
+            if (rec.actor)
+                bubble.setAttribute('data-actor', rec.actor);
+            if (rec.tick !== undefined)
+                bubble.setAttribute('data-tick', String(rec.tick));
+            bubble.setAttribute('data-type', rec.type || 'action');
+            if (rec.area)
+                bubble.setAttribute('data-stream-area', rec.area);
+            if (rec.seq !== undefined && rec.seq >= 0)
+                bubble.setAttribute('data-seq', String(rec.seq));
+            bubble.dataset.rawText = String(rec.text || '');
+            const icon = rec.icon || (rec.type === 'thought' ? '💭' : rec.type === 'speech' ? '💬' : rec.type === 'action' ? '▶️' : '⚙️');
+            const outcomeBadge = rec.outcome === 'success' ? '<span class="result-badge ok">✓</span>'
+                : rec.outcome === 'failure' ? '<span class="result-badge fail">✕</span>'
+                    : rec.outcome === 'minor' ? '<span class="result-badge minor">ℹ</span>' : '';
+            const shown = this._bus._gearVisibleText
+                ? this._bus._gearVisibleText(rec.type, rec.text)
+                : rec.text;
+            const textSpan = window.Lit.unsafeHTML(outcomeBadge + _escStream(shown));
+            window.Lit.render(window.Lit.html `
+                <span class="bubble-icon">${icon}</span>
+                <span class="bubble-tick">[Tick ${rec.tick}${rec.time ? ` | ${rec.time}` : ''}]</span>
+                <span class="bubble-actor bubble-${rec.type}-actor">${rec.actor || ''}</span>
+                <span class="bubble-text bubble-${rec.type}-text">${textSpan}</span>
+            `, bubble);
+            targetContainer.appendChild(bubble);
         }
-        this._bus._lineSeq = maxSeq + 1;
+        streamEl.scrollTop = streamEl.scrollHeight;
+        if (maxSeq >= 0) {
+            this._bus._lineSeq = maxSeq + 1;
+        }
         this._bus._cards.rebindAll(streamEl);
-        for (const actorEl of streamEl.querySelectorAll('.bubble-actor, .turn-card-actor, .thought-actor, .bubble-phase-actor, .bubble-rawllm-actor')) {
-            const name = actorEl.textContent.trim();
-            if (name && name !== '⚙️' && !name.startsWith('LLM')) {
+        for (const rec of entries) {
+            const name = rec?.actor;
+            if (name && name !== '⚙️' && name !== 'World' && !name.startsWith('LLM')) {
                 this._bus._knownActors.add(name);
             }
         }
         this._bus._filters.updateAgentFilterDropdown();
         this._bus._filters.restoreSaved();
         this._bus._scrubber?.scheduleRebuild();
+        const currentMode = this._bus._streamMode;
+        if (currentMode && typeof this._bus.setStreamMode === 'function') {
+            this._bus.setStreamMode(currentMode);
+        }
     }
 }
+window.StreamPersistence = StreamPersistence;

@@ -241,14 +241,35 @@
             if (this.isRunning && !state.isPaused) this.scheduleAll();
         }
 
+        static async triggerAutoReplyForChannel(channel: any, sender: string) {
+            const state = (window as any).CommonsState;
+            const participants = state?.participants || {};
+            const members: string[] = channel?.kind === 'public'
+                ? Object.keys(participants)
+                : (Array.isArray(channel?.members) ? channel.members : []);
+            const targets = members.filter((name) => {
+                if (!name || name === 'User' || name === sender) return false;
+                const p = participants[name];
+                if (!p || p.control_mode !== 'llm' || !p.active || p.blocked) return false;
+                if (Array.isArray(p.muted_channels) ? p.muted_channels.includes(channel?.id) : Boolean(channel?.muted)) {
+                    return false;
+                }
+                return true;
+            });
+            for (const name of targets) {
+                await this.stepOne(name);
+            }
+        }
+
         static async stepOne(charName?: string) {
             const state = (window as any).CommonsState;
             const participants = state.participants || {};
             const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].control_mode === 'llm' && participants[n].active && !participants[n].blocked);
-            const manuallySelected = charName && available.includes(charName);
-            if (!manuallySelected && available.length === 0) return;
-            const chosen = manuallySelected
-                ? charName
+            const target = charName && charName !== 'User' ? participants[charName] : null;
+            const canForceManual = Boolean(charName && target && !target.blocked && target.control_mode !== 'unavailable');
+            if (!canForceManual && available.length === 0) return;
+            const chosen = canForceManual
+                ? charName!
                 : available[Math.floor(Math.random() * available.length)];
             await this.actCharacter(chosen, true);
         }
@@ -258,7 +279,10 @@
                 { type: 'function', function: { name: 'read_chat', description: 'Read messages from a channel you belong to. Use this before responding to messages you have not seen.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, mode: { type: 'string', enum: ['all', 'latest', 'range'] }, n: { type: 'integer', minimum: 1, maximum: 20 }, from_id: { type: 'integer' }, to_id: { type: 'integer' } }, required: ['channel_id'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'send_chat', description: 'Send a message to a channel you belong to. Replying is optional.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, text: { type: 'string' } }, required: ['channel_id', 'text'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'start_dm', description: 'Start or find a direct conversation and send its first message.', parameters: { type: 'object', properties: { recipient: { type: 'string' }, text: { type: 'string' } }, required: ['recipient', 'text'], additionalProperties: false } } },
-                { type: 'function', function: { name: 'remember', description: 'Save a conversation fact or commitment worth remembering. Use only when useful.', parameters: { type: 'object', properties: { text: { type: 'string' }, importance: { type: 'integer', minimum: 1, maximum: 10 }, tags: { type: 'array', items: { type: 'string' } } }, required: ['text'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'remember', description: 'Save a schema-friendly observation or commitment worth remembering (who said what, when, and how it felt).', parameters: { type: 'object', properties: { text: { type: 'string' }, importance: { type: 'integer', minimum: 1, maximum: 10 }, tags: { type: 'array', items: { type: 'string' } }, entities: { type: 'array', items: { type: 'string' }, description: 'People or entities involved (e.g. ["Jake Halloway"])' }, emotion: { type: 'object', properties: { label: { type: 'string' }, intensity: { type: 'integer', minimum: 1, maximum: 10 } }, required: ['label', 'intensity'] } }, required: ['text'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'edit_message', description: 'Edit the text of a message you previously wrote in a channel. Use this to correct mistakes or clarify.', parameters: { type: 'object', properties: { message_id: { type: 'integer' }, text: { type: 'string' } }, required: ['message_id', 'text'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'delete_message', description: 'Retract and delete a message you previously wrote in a channel.', parameters: { type: 'object', properties: { message_id: { type: 'integer' } }, required: ['message_id'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'mute_chat', description: 'Mute or unmute notifications and auto-replies for a conversation you belong to.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, muted: { type: 'boolean' } }, required: ['channel_id', 'muted'], additionalProperties: false } } },
             ];
             if (theme !== 'town_board') tools.push(
                 { type: 'function', function: { name: 'start_group', description: 'Create a group conversation with known characters and send its first message.', parameters: { type: 'object', properties: { group_name: { type: 'string' }, recipients: { type: 'array', items: { type: 'string' } }, text: { type: 'string' } }, required: ['group_name', 'recipients', 'text'], additionalProperties: false } } },
@@ -267,8 +291,9 @@
         }
 
         static async executeCommunicationTool(
-            charName: string, call: any, channels: any[], knownCharacters: string[], theme: string, api: any, signal: AbortSignal
-        ): Promise<{ result: any; summary: string; readMessages: any[] }> {
+            charName: string, call: any, channels: any[], knownCharacters: string[], theme: string, api: any, signal: AbortSignal,
+            playerContext?: any
+        ): Promise<{ result: any; summary: string; readMessages: any[]; recalledMemories?: any[]; intermediatorThought?: string | null }> {
             const name = String(call?.function?.name || '');
             let args: any;
             try {
@@ -287,10 +312,63 @@
                     const n = Math.max(1, Math.min(20, Number(args.n) || 5));
                     const read = await api.readMessages(charName, channel.id, mode, n, args.from_id, args.to_id, signal);
                     const messages = Array.isArray(read?.messages) ? read.messages : [];
+                    const recentSlice = messages.slice(-20);
+                    const topicQuery = recentSlice.slice(-4)
+                        .map((m: any) => `${m.author || ''} ${String(m.text || '')}`.trim())
+                        .filter(Boolean)
+                        .join(' ')
+                        .slice(0, 400);
+                    let rawMemories: any[] = [];
+                    let intermediatorThought: string | null = null;
+                    if (topicQuery) {
+                        try {
+                            const memRes = await api.retrieveMemories(charName, topicQuery, signal);
+                            rawMemories = (Array.isArray(memRes?.memories) ? memRes.memories : []).slice(0, 6);
+                            const pb = (window as any).PromptBuilder;
+                            if (rawMemories.length && typeof pb?.synthesizeConsciousThought === 'function') {
+                                const senders = [...new Set(recentSlice.slice(-4).map((m: any) => String(m.author || '')).filter(Boolean))];
+                                const lines = recentSlice.slice(-4).map((m: any) => `${m.author}: ${String(m.text || '')}`);
+                                intermediatorThought = await pb.synthesizeConsciousThought(
+                                    charName,
+                                    'Phone / The Commons',
+                                    senders,
+                                    lines,
+                                    String(playerContext?.emotion || 'neutral'),
+                                    rawMemories,
+                                    `commons:${channel.id}:${topicQuery.slice(0, 120)}`,
+                                    false
+                                );
+                            }
+                        } catch (_) { /* recall/intermediator is best-effort */ }
+                    }
+                    const recalledTexts = rawMemories.map((mem: any) => String(mem?.text || '').trim()).filter(Boolean);
                     return {
-                        result: { ok: true, channel: channel.name, messages: messages.slice(-20).map((message: any) => ({ id: message.id, author: message.author, text: String(message.text || '').slice(0, 1000) })) },
+                        result: {
+                            ok: true,
+                            channel: channel.name,
+                            messages: recentSlice.map((message: any) => {
+                                let body = String(message.text || '');
+                                if (Array.isArray(message.attachments) && message.attachments.length) {
+                                    const captions = message.attachments
+                                        .map((a: any) => a.caption ? `[Image: ${a.caption}]` : '[Image attachment]')
+                                        .join(' ');
+                                    body = body ? `${body} ${captions}` : captions;
+                                }
+                                return {
+                                    id: message.id,
+                                    author: message.author,
+                                    tick: message.tick ?? null,
+                                    text: body.slice(0, 1000),
+                                    attachments: message.attachments || undefined,
+                                };
+                            }),
+                            recalled_memories: recalledTexts,
+                            intermediator_thought: intermediatorThought || undefined,
+                        },
                         summary: `read ${messages.length} message${messages.length === 1 ? '' : 's'} in #${channel.name || 'chat'}`,
                         readMessages: messages,
+                        recalledMemories: rawMemories,
+                        intermediatorThought,
                     };
                 }
                 if (name === 'send_chat') {
@@ -333,8 +411,40 @@
                     if (!text) throw new Error('Memory text is required.');
                     const importance = Math.max(1, Math.min(10, Number(args.importance) || 5));
                     const tags = Array.isArray(args.tags) ? args.tags.map(String).slice(0, 10) : ['conversation', 'chat'];
-                    await api.storeMemory(charName, text, importance, tags, signal);
+                    const entities = Array.isArray(args.entities) ? args.entities.map(String).filter(Boolean).slice(0, 10) : undefined;
+                    const memory_emotions = (args.emotion && typeof args.emotion === 'object' && args.emotion.label)
+                        ? [{ label: String(args.emotion.label), intensity: Math.max(1, Math.min(10, Number(args.emotion.intensity) || 5)) }]
+                        : undefined;
+                    await api.storeMemory(charName, text, importance, tags, signal, { entities, memory_emotions });
                     return { result: { ok: true }, summary: 'saved a conversation memory', readMessages: [] };
+                }
+                if (name === 'edit_message') {
+                    const messageId = Number(args.message_id);
+                    if (!messageId) throw new Error('A message id is required to edit.');
+                    if (!text) throw new Error('New message text is required.');
+                    const edited = await api.editMessage(messageId, charName, text, signal);
+                    await (window as any).CommonsState?.sync?.(true);
+                    return { result: { ok: true, message: edited?.message }, summary: `edited message #${messageId}`, readMessages: [] };
+                }
+                if (name === 'delete_message') {
+                    const messageId = Number(args.message_id);
+                    if (!messageId) throw new Error('A message id is required to delete.');
+                    await api.deleteMessage(messageId, charName, signal);
+                    await (window as any).CommonsState?.sync?.(true);
+                    return { result: { ok: true, message_id: messageId }, summary: `retracted message #${messageId}`, readMessages: [] };
+                }
+                if (name === 'mute_chat') {
+                    const channel = channelFor(args.channel_id);
+                    if (!channel) throw new Error('That channel is not available to this character.');
+                    if (typeof args.muted !== 'boolean') throw new Error('muted must be a boolean.');
+                    const res = await api.setChannelMuted(channel.id, charName, args.muted, signal);
+                    channel.muted = Boolean(res?.muted ?? args.muted);
+                    await (window as any).CommonsState?.sync?.(true);
+                    return {
+                        result: { ok: true, channel_id: channel.id, muted: channel.muted },
+                        summary: `${channel.muted ? 'muted' : 'unmuted'} #${channel.name || 'chat'}`,
+                        readMessages: [],
+                    };
                 }
                 throw new Error(`Unknown communication tool: ${name || '(empty)'}`);
             } catch (error: any) {
@@ -347,7 +457,8 @@
             const state = (window as any).CommonsState;
             if (!isManualStep && state.isPaused) return;
             const participant = state.participants?.[charName];
-            if (!participant || participant.control_mode !== 'llm' || !participant.active || participant.blocked) return;
+            if (!participant || participant.blocked || participant.control_mode === 'unavailable') return;
+            if (!isManualStep && (participant.control_mode !== 'llm' || !participant.active)) return;
             if (this.controllers[charName]) return;
 
             const controller = new AbortController();
@@ -359,17 +470,27 @@
             const llm = (window as any).llmClient;
 
             try {
-                const [player, memories, phone] = await Promise.all([
+                const [player, memories, recentMemories, phone] = await Promise.all([
                     api.getCharacterContext(charName, signal),
                     api.retrieveMemories(charName, 'conversation friends messages group chat', signal),
+                    api.getRecentMemories ? api.getRecentMemories(charName, 5, signal).catch(() => ({ memories: [] })) : Promise.resolve({ memories: [] }),
                     api.getState(charName),
                 ]);
                 if ((!isManualStep && state.isPaused) || signal.aborted) return;
 
-                const memoryText = (memories.memories || [])
+                const combinedPreMemories: any[] = [];
+                const seenMem = new Set<string>();
+                for (const m of [...(recentMemories?.memories || []), ...(memories?.memories || [])]) {
+                    const txt = String(m?.text || '').trim();
+                    if (txt && !seenMem.has(txt)) {
+                        seenMem.add(txt);
+                        combinedPreMemories.push(m);
+                    }
+                }
+                const memoryText = combinedPreMemories
                     .map((memory: any) => String(memory.text || '').trim())
                     .filter(Boolean)
-                    .slice(0, 5)
+                    .slice(0, 7)
                     .map((line: string) => `- ${line}`)
                     .join('\n') || '- No relevant memories recalled.';
                 const channels = phone.channels || [];
@@ -395,6 +516,8 @@
                 const tools = this.communicationTools(theme);
                 const summaries: string[] = [];
                 const readMessages: any[] = [];
+                let recalledMemories: any[] = combinedPreMemories.slice(0, 6);
+                let intermediatorThought: string | null = null;
                 let inner = '';
                 let didPost = false;
                 const maxToolRounds = 6;
@@ -404,7 +527,9 @@
                         signal, label: 'commons/communication',
                     });
                     if ((!isManualStep && state.isPaused) || signal.aborted || !reply) return false;
-                    if (typeof reply.content === 'string') inner = reply.content;
+                    if (typeof reply.content === 'string' && reply.content.trim() && (!didPost || !inner)) {
+                        inner = reply.content.trim();
+                    }
                     const calls = Array.isArray(reply.tool_calls) ? reply.tool_calls : [];
                     if (!calls.length) break;
                     messages.push({ role: 'assistant', content: reply.content || '', tool_calls: calls });
@@ -414,11 +539,17 @@
                             outcome = { result: { ok: false, error: 'Only the first tool call was run. Review its result before choosing another action.' }, summary: '', readMessages: [] };
                         } else {
                             const toolName = String(calls[index]?.function?.name || '');
-                            outcome = await this.executeCommunicationTool(charName, calls[index], channels, knownCharacters, theme, api, signal);
+                            outcome = await this.executeCommunicationTool(charName, calls[index], channels, knownCharacters, theme, api, signal, player);
                             if (['send_chat', 'start_dm', 'start_group'].includes(toolName) && outcome?.result?.ok) {
                                 didPost = true;
                             }
                             if (outcome.summary) summaries.push(outcome.summary);
+                            if (Array.isArray(outcome.recalledMemories) && outcome.recalledMemories.length) {
+                                recalledMemories = outcome.recalledMemories;
+                            }
+                            if (outcome.intermediatorThought) {
+                                intermediatorThought = outcome.intermediatorThought;
+                            }
                             readMessages.push(...outcome.readMessages);
                         }
                         messages.push({ role: 'tool', tool_call_id: calls[index].id, content: JSON.stringify(outcome.result) });
@@ -428,33 +559,28 @@
                 if (state.characterContextCache) {
                     state.characterContextCache[charName] = player;
                 }
-                const memoriesToStore: string[] = [];
-                if (readMessages.length) {
-                    const summary = readMessages.slice(-4).map((message: any) =>
-                        `${message.author}: ${String(message.text || '').replace(/[\r\n]+/g, ' ')}`
-                    ).join('; ');
-                    memoriesToStore.push(`I read the conversation: ${summary}.`);
-                }
-                if (memoriesToStore.length) {
-                    await api.storeMemory(
-                        charName,
-                        memoriesToStore.join(' '),
-                        5,
-                        ['conversation', 'chat'],
-                        signal
-                    );
-                }
                 if (typeof state.recordTurn === 'function') {
                     state.recordTurn(charName, {
                         inner,
                         action: summaries.length ? summaries.join(' -> ') : 'think',
                         summary: summaries.length ? summaries.join('; ') : 'chose to stay quiet',
-                        detail: { actions: summaries },
+                        detail: { actions: summaries, recalledMemories, intermediatorThought },
                     });
                 }
                 return { didPost, player };
             } catch (error) {
-                if (!signal.aborted) console.error(`[CommonsAgent] Communication turn failed for ${charName}:`, error);
+                if (!signal.aborted) {
+                    const errMsg = error instanceof Error ? error.message : String(error);
+                    console.error(`[CommonsAgent] Communication turn failed for ${charName}:`, error);
+                    if (typeof state.recordTurn === 'function') {
+                        state.recordTurn(charName, {
+                            inner: '',
+                            action: 'error',
+                            summary: `LLM error: ${errMsg.slice(0, 120)}`,
+                            detail: { error: errMsg },
+                        });
+                    }
+                }
             } finally {
                 if (this.controllers[charName] === controller) {
                     delete this.controllers[charName];

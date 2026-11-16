@@ -98,7 +98,7 @@ interface CommonsApiResponse {
             }
         }
 
-        static async sync() {
+        static async sync(forceFull = false) {
             try {
                 const api = (window as unknown as { CommonsApi: { getState: (as: string) => Promise<CommonsApiResponse>; getMessages: (as: string, channelId: string, sinceId?: number) => Promise<CommonsApiResponse> } }).CommonsApi;
                 const agent = (window as unknown as { CommonsAgent?: { reconcileParticipants?: () => void } }).CommonsAgent;
@@ -113,7 +113,7 @@ interface CommonsApiResponse {
                     this.messages = [];
                 }
                 if (this.selectedChannelId) {
-                    const sinceId = this.messages.length
+                    const sinceId = (!forceFull && this.messages.length)
                         ? Math.max(...this.messages.map((message) => Number(message.id) || 0))
                         : undefined;
                     const result = await api.getMessages(
@@ -125,6 +125,23 @@ interface CommonsApiResponse {
                 this.emit();
             } catch (err) {
                 console.error('[CommonsState] Sync failed:', err);
+            }
+        }
+
+        static updateMessage(updated: CommonsMessage) {
+            if (!updated) return;
+            const index = this.messages.findIndex((m) => m.id === updated.id);
+            if (index >= 0) {
+                this.messages[index] = { ...this.messages[index], ...updated };
+                this.emit();
+            }
+        }
+
+        static removeMessage(messageId: number | string) {
+            const index = this.messages.findIndex((m) => m.id === messageId);
+            if (index >= 0) {
+                this.messages.splice(index, 1);
+                this.emit();
             }
         }
 

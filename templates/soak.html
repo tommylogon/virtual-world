@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/static/css/soak.css">
 </head>
 <body class="soak-body" data-app-version="{{ app_version or '' }}">
+{% set active_page = 'soak' %}{% include 'partials/shared_topbar.html' %}
 
 <header class="soak-topbar">
     <div class="soak-brand">
@@ -425,6 +426,7 @@
 <script src="/static/js/soak/soak-spacetime.js"></script>
 <script src="/static/js/soak/soak-state.js"></script>
 <script src="/static/js/soak/soak-ui.js"></script>
+<script src="/static/js/ui/shared-topbar.js"></script>
 <script src="/static/js/soak/soak-app.js"></script>
 </body>
 </html>

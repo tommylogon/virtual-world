@@ -74,6 +74,52 @@ window.ResponseParser = (() => {
             return [];
         return raw.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 5);
     }
+    /** Extract an optional speech target (person addressed or whispered to, bug-581). */
+    function extractSpeechTarget(p) {
+        if (!p || typeof p !== 'object')
+            return null;
+        const cleanRef = (v) => {
+            if (typeof v !== 'string')
+                return '';
+            const t = v.trim();
+            return (t === '...' || /^<[^>]+>$/.test(t) || t.toLowerCase() === 'none' || t.toLowerCase() === 'null') ? '' : t;
+        };
+        const explicitTarget = cleanRef(p.speech_target);
+        if (explicitTarget)
+            return explicitTarget;
+        const speechStr = cleanRef(p.speech) || cleanRef(p.whisper);
+        if (!speechStr)
+            return null;
+        const rawTarget = cleanRef(p.target);
+        if (!rawTarget)
+            return null;
+        const rawItem = cleanRef(p.item);
+        if (rawItem) {
+            const tLow = rawTarget.toLowerCase();
+            const iLow = rawItem.toLowerCase();
+            if (tLow === iLow || iLow.includes(tLow) || tLow.includes(iLow))
+                return null;
+            const tToks = tLow.split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+            if (tToks.some(w => iLow.includes(w)))
+                return null;
+        }
+        const rawAction = typeof p.action === 'string' ? p.action.trim().toLowerCase() : '';
+        const isWhisper = String(p.volume || '').trim().toLowerCase() === 'whisper' ||
+            Boolean(cleanRef(p.whisper));
+        if (!rawAction || rawAction === 'wait' || rawAction === 'none' || Boolean(rawItem) || isWhisper) {
+            return rawTarget;
+        }
+        return null;
+    }
+    /** Clean speech or emote string, rejecting schema placeholders like "..." or "<tool>". */
+    function cleanProseField(val) {
+        if (typeof val !== 'string')
+            return null;
+        const t = val.trim();
+        if (!t || t === '...' || /^<[^>]+>$/.test(t))
+            return null;
+        return t;
+    }
     /**
      * Detect a malformed `action` field BEFORE it can become a command.
      *
@@ -107,7 +153,7 @@ window.ResponseParser = (() => {
     /** Parse a reaction/decision response  -  returns full structured object with parseError on failure. */
     function parseReaction(r) {
         if (!r)
-            return { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
+            return { inner: '', speech: null, speechVolume: 'say', target: null, action: '', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const repair = window.repairJSON;
             const c = repair(normalizeRawResponse(r));
@@ -120,13 +166,14 @@ window.ResponseParser = (() => {
             const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
             const schemaError = detectActionSchemaError(p);
             return {
-                inner: (p.inner_monologue || ''),
-                speech,
+                inner: cleanProseField(p.inner_monologue) || '',
+                speech: cleanProseField(speech),
                 speechVolume: volume,
+                target: extractSpeechTarget(p),
                 action: ActionNormalizer.normalizeStructuredAction(p),
-                emote: (p.emote || null),
+                emote: cleanProseField(p.emote),
                 memory: extractMemory(p.memory),
-                emotion: extractEmotion(p.emotion),
+                emotion: extractEmotion(p.emotion || (typeof p.emote === 'object' ? p.emote : null)),
                 learnedNames: extractLearnedNames(p.learned_names),
                 parseError: schemaError
                     || (repaired ? 'JSON repaired (truncated response)  -  fields after the break were lost' : null)
@@ -134,7 +181,7 @@ window.ResponseParser = (() => {
         }
         catch (e) {
             return {
-                inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, learnedNames: [],
+                inner: '', speech: null, speechVolume: 'say', target: null, action: '', emote: null, memory: null, emotion: null, learnedNames: [],
                 parseError: `Failed to parse LLM response as JSON: ${e instanceof Error ? e.message : String(e)}`
             };
         }
@@ -142,26 +189,27 @@ window.ResponseParser = (() => {
     /** Parse a result-reaction response  -  same shape as parseReaction, no action field. */
     function parseResultReaction(r) {
         if (!r)
-            return { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
+            return { inner: '', speech: null, speechVolume: 'say', target: null, emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const repair = window.repairJSON;
             const c = repair(normalizeRawResponse(r));
             const p = JSON.parse(c);
             const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
             return {
-                inner: (p.inner_monologue || ''),
-                speech,
+                inner: cleanProseField(p.inner_monologue) || '',
+                speech: cleanProseField(speech),
                 speechVolume: volume,
-                emote: (p.emote || null),
+                target: extractSpeechTarget(p),
+                emote: cleanProseField(p.emote),
                 memory: extractMemory(p.memory),
-                emotion: extractEmotion(p.emotion),
+                emotion: extractEmotion(p.emotion || (typeof p.emote === 'object' ? p.emote : null)),
                 learnedNames: extractLearnedNames(p.learned_names),
                 parseError: null
             };
         }
         catch (e) {
             return {
-                inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, learnedNames: [],
+                inner: '', speech: null, speechVolume: 'say', target: null, emote: null, memory: null, emotion: null, learnedNames: [],
                 parseError: `Failed to parse LLM response as JSON: ${e instanceof Error ? e.message : String(e)}`
             };
         }
@@ -171,7 +219,7 @@ window.ResponseParser = (() => {
         const empty = {
             inner: '', action: 'think', channelId: null, recipient: null, text: '',
             groupName: null, recipients: [],
-            readMode: 'all', n: 5, fromId: null, toId: null, memory: null, parseError: null,
+            readMode: 'all', n: 5, fromId: null, toId: null, messageId: null, memory: null, parseError: null,
         };
         if (!r)
             return empty;
@@ -181,7 +229,7 @@ window.ResponseParser = (() => {
             const raw = parsed.communication && typeof parsed.communication === 'object'
                 ? parsed.communication
                 : {};
-            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'start_group', 'think'];
+            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'start_group', 'think', 'edit_message', 'delete_message'];
             const allowedModes = ['latest', 'all', 'range'];
             const integerOrNull = (value) => {
                 const number = Number(value);
@@ -204,6 +252,7 @@ window.ResponseParser = (() => {
                 n: Number.isFinite(count) ? Math.max(1, Math.min(50, Math.trunc(count))) : 5,
                 fromId: integerOrNull(raw.from_id),
                 toId: integerOrNull(raw.to_id),
+                messageId: integerOrNull(raw.message_id || raw.id),
                 memory: extractMemory(parsed.memory),
                 parseError: null,
             };

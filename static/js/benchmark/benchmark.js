@@ -25,6 +25,7 @@ window.BenchmarkApp = (() => {
         pastRuns: [],
         profileMap: {},
         lastLoadedModel: null,
+        lastSavedRunId: null,
     };
 
     const els = {};
@@ -66,6 +67,8 @@ window.BenchmarkApp = (() => {
         els.sizeVal = document.getElementById('bench-size-val');
         els.modelsCount = document.getElementById('bench-models-count');
         els.selectAllModels = document.getElementById('bench-select-all');
+        els.hideBlockedCb = document.getElementById('bench-hide-blocked');
+        els.onlyFreeCb = document.getElementById('bench-only-free');
         els.unloadCycleCb = document.getElementById('bench-unload-cycle');
         els.characterSelect = document.getElementById('bench-character');
         els.areaSelect = document.getElementById('bench-area');
@@ -268,6 +271,8 @@ window.BenchmarkApp = (() => {
         els.runBtn.addEventListener('click', startBenchmark);
         els.cancelBtn.addEventListener('click', cancelBenchmark);
 
+        if (els.hideBlockedCb) els.hideBlockedCb.addEventListener('change', renderModelList);
+        if (els.onlyFreeCb) els.onlyFreeCb.addEventListener('change', renderModelList);
         if (els.refreshRunsBtn) els.refreshRunsBtn.addEventListener('click', loadPastRuns);
         if (els.openDiffBtn) els.openDiffBtn.addEventListener('click', openDiffModal);
         if (els.exportJsonBtn) els.exportJsonBtn.addEventListener('click', exportResultsAsJson);
@@ -488,6 +493,8 @@ window.BenchmarkApp = (() => {
         const maxLimit = els.sizeMaxSlider ? (parseInt(els.sizeMaxSlider.max, 10) || 72) : 40;
         const maxSize = els.sizeMaxSlider ? (parseInt(els.sizeMaxSlider.value, 10) || maxLimit) : (els.sizeSlider ? parseInt(els.sizeSlider.value, 10) : maxLimit);
 
+        const hideBlocked = els.hideBlockedCb ? els.hideBlockedCb.checked : true;
+        const onlyFree = els.onlyFreeCb ? els.onlyFreeCb.checked : false;
         let visibleCount = 0;
 
         state.models.forEach((mObj, idx) => {
@@ -495,6 +502,11 @@ window.BenchmarkApp = (() => {
             const modelId = m.id || m.name;
             const modelName = m.name || modelId;
 
+
+            // 0. Status & Free filters (task-934)
+            const isBlocked = m.status === 'blocked' || m.status === 'do_not_use';
+            if (hideBlocked && isBlocked) return;
+            if (onlyFree && !m.is_free) return;
 
             // 1. Min/Max size filter
             const sizeB = parseModelSizeB(m);
@@ -550,7 +562,35 @@ window.BenchmarkApp = (() => {
             nameSpan.textContent = modelName;
             wrap.appendChild(nameSpan);
 
-            // Capabilities and architecture badges
+            // Capabilities and operational badges (task-934)
+            if (m.is_free) {
+                const fSpan = document.createElement('span');
+                fSpan.className = 'bench-tag bench-tag-free';
+                fSpan.textContent = 'FREE';
+                fSpan.title = 'Zero token cost / free-tier model';
+                wrap.appendChild(fSpan);
+            }
+            if (m.status === 'blocked') {
+                const bSpan = document.createElement('span');
+                bSpan.className = 'bench-tag bench-tag-blocked';
+                bSpan.textContent = 'BLOCKED';
+                bSpan.title = 'Model is blocked or out of credit';
+                wrap.appendChild(bSpan);
+            } else if (m.status === 'do_not_use') {
+                const dSpan = document.createElement('span');
+                dSpan.className = 'bench-tag bench-tag-donotuse';
+                dSpan.textContent = m.reason ? `DO NOT USE: ${m.reason}` : 'DO NOT USE';
+                dSpan.title = m.notes || 'Unsuitable for standard chat turns';
+                wrap.appendChild(dSpan);
+            }
+            if (m.ratings && m.ratings.average_score) {
+                const rateSpan = document.createElement('span');
+                rateSpan.className = 'bench-tag';
+                rateSpan.style.color = '#e3b341';
+                rateSpan.textContent = `★ ${m.ratings.average_score}`;
+                rateSpan.title = `${m.ratings.total_reviews} ratings recorded`;
+                wrap.appendChild(rateSpan);
+            }
             if (m.params || m.quant) {
                 const qSpan = document.createElement('span');
                 qSpan.className = 'bench-tag bench-tag-quant';
@@ -799,6 +839,15 @@ window.BenchmarkApp = (() => {
                 <div class="bench-card-header-top">
                     <div class="bench-card-model" title="${escapeHtml(model)}">${escapeHtml(model)}</div>
                     <div class="bench-card-actions">
+                        <select class="bench-status-select" id="status-${id}" title="Set model status">
+                            <option value="active">Active</option>
+                            <option value="free">Free Tier</option>
+                            <option value="blocked">Blocked</option>
+                            <option value="do_not_use:embeddings">Do Not Use: Embeddings</option>
+                            <option value="do_not_use:broken">Do Not Use: Broken Format</option>
+                            <option value="do_not_use:audio_video">Do Not Use: Audio/Video</option>
+                            <option value="do_not_use:custom">Do Not Use: Custom</option>
+                        </select>
                         <div class="bench-card-rolls" id="rolls-${id}"></div>
                         <button class="bench-reroll-btn" id="btn-reroll-${id}" title="Reroll this model with current prompt" disabled>
                             <span>&#x1F504;</span> Reroll
@@ -846,11 +895,156 @@ window.BenchmarkApp = (() => {
                     <div class="bench-raw-output" id="raw-${id}"></div>
                 </details>
             </div>
+            <div class="bench-card-footer">
+                <div class="bench-rating-row">
+                    <span style="font-size:11px;font-weight:600;color:var(--b-dim);">Score Output:</span>
+                    <div class="bench-stars-wrap" id="stars-${id}">
+                        <button type="button" class="bench-star-btn" data-star="1" title="1 star: unusable">★</button>
+                        <button type="button" class="bench-star-btn" data-star="2" title="2 stars: poor">★</button>
+                        <button type="button" class="bench-star-btn" data-star="3" title="3 stars: acceptable">★</button>
+                        <button type="button" class="bench-star-btn" data-star="4" title="4 stars: good">★</button>
+                        <button type="button" class="bench-star-btn" data-star="5" title="5 stars: excellent">★</button>
+                    </div>
+                    <span id="rating-val-${id}" style="font-size:11px;color:var(--b-dim);min-width:32px;">-</span>
+                </div>
+                <div class="bench-feedback-tags" id="tags-${id}">
+                    <button type="button" class="bench-chip-btn" data-tag="Crisp dialogue">Crisp dialogue</button>
+                    <button type="button" class="bench-chip-btn" data-tag="Valid JSON">Valid JSON</button>
+                    <button type="button" class="bench-chip-btn" data-tag="Natural phrasing">Natural phrasing</button>
+                    <button type="button" class="bench-chip-btn" data-tag="Broken format">Broken format</button>
+                    <button type="button" class="bench-chip-btn" data-tag="Hallucinated item">Hallucinated item</button>
+                    <button type="button" class="bench-chip-btn" data-tag="Repetitive loop">Repetitive loop</button>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <input type="text" class="bench-feedback-input" id="feedback-${id}" placeholder="Review notes (e.g. clean action choices)...">
+                    <button type="button" class="bench-btn" id="btn-submit-rate-${id}" style="font-size:10px;padding:3px 8px;white-space:nowrap;">Save Rating</button>
+                </div>
+                <div id="rate-status-${id}" style="font-size:10px;color:var(--b-dim);text-align:right;"></div>
+            </div>
         `;
 
         const rerollBtn = card.querySelector(`#btn-reroll-${id}`);
         if (rerollBtn) {
             rerollBtn.addEventListener('click', () => rerollSingleModel(model));
+        }
+
+        // Initialize status dropdown
+        const statusSelect = card.querySelector(`#status-${id}`);
+        const mObj = state.models.find(m => (m.id || m.name) === model);
+        if (mObj && statusSelect) {
+            if (mObj.status === 'do_not_use') {
+                statusSelect.value = `do_not_use:${mObj.reason || 'custom'}`;
+            } else if (mObj.status === 'blocked') {
+                statusSelect.value = 'blocked';
+            } else if (mObj.is_free) {
+                statusSelect.value = 'free';
+            } else {
+                statusSelect.value = 'active';
+            }
+        }
+        if (statusSelect) {
+            statusSelect.addEventListener('change', async () => {
+                const raw = statusSelect.value;
+                let status = 'active';
+                let reason = null;
+                let is_free = false;
+                if (raw === 'free') {
+                    is_free = true;
+                } else if (raw === 'blocked') {
+                    status = 'blocked';
+                } else if (raw.startsWith('do_not_use:')) {
+                    status = 'do_not_use';
+                    reason = raw.split(':')[1];
+                }
+                try {
+                    await fetch('/api/bench/models/metadata', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model_id: model, status, reason, is_free })
+                    });
+                    if (mObj) {
+                        mObj.status = status;
+                        mObj.reason = reason;
+                        mObj.is_free = is_free;
+                    }
+                    renderModelList();
+                } catch (e) {
+                    console.error('Failed saving status:', e);
+                }
+            });
+        }
+
+        // Initialize interactive star rating & tag chips
+        let cardRating = 0;
+        const starsWrap = card.querySelector(`#stars-${id}`);
+        const ratingValSpan = card.querySelector(`#rating-val-${id}`);
+        if (starsWrap && ratingValSpan) {
+            starsWrap.querySelectorAll('.bench-star-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    cardRating = parseInt(btn.dataset.star, 10);
+                    ratingValSpan.textContent = `${cardRating} ★`;
+                    starsWrap.querySelectorAll('.bench-star-btn').forEach(b => {
+                        const s = parseInt(b.dataset.star, 10);
+                        b.classList.toggle('active', s <= cardRating);
+                    });
+                });
+            });
+        }
+
+        const tagContainer = card.querySelector(`#tags-${id}`);
+        if (tagContainer) {
+            tagContainer.querySelectorAll('.bench-chip-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('selected');
+                });
+            });
+        }
+
+        const rateBtn = card.querySelector(`#btn-submit-rate-${id}`);
+        const rateStatus = card.querySelector(`#rate-status-${id}`);
+        if (rateBtn && rateStatus) {
+            rateBtn.addEventListener('click', async () => {
+                if (!cardRating) {
+                    rateStatus.textContent = 'Please click a star rating first.';
+                    rateStatus.style.color = 'var(--b-dim)';
+                    return;
+                }
+                const targetRunId = state.lastSavedRunId || (state.pastRuns[0]?.run_id);
+                if (!targetRunId) {
+                    rateStatus.textContent = 'Run benchmark first before rating.';
+                    rateStatus.style.color = 'var(--b-dim)';
+                    return;
+                }
+                const feedbackInput = card.querySelector(`#feedback-${id}`);
+                const feedbackText = feedbackInput ? feedbackInput.value.trim() : '';
+                const selectedTags = Array.from(card.querySelectorAll(`#tags-${id} .bench-chip-btn.selected`)).map(c => c.dataset.tag);
+
+                try {
+                    rateStatus.textContent = 'Saving rating...';
+                    rateStatus.style.color = 'var(--b-dim)';
+                    const resp = await fetch(`/api/bench/runs/${targetRunId}/rate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: model,
+                            rating: cardRating,
+                            feedback: feedbackText,
+                            tags: selectedTags
+                        })
+                    });
+                    const res = await resp.json();
+                    if (resp.ok) {
+                        rateStatus.textContent = 'Rating saved to run & registry!';
+                        rateStatus.style.color = '#3fb950';
+                    } else {
+                        rateStatus.textContent = res.error || 'Failed to save';
+                        rateStatus.style.color = 'var(--b-red)';
+                    }
+                } catch (e) {
+                    rateStatus.textContent = e.message;
+                    rateStatus.style.color = 'var(--b-red)';
+                }
+            });
         }
 
         els.cardsGrid.appendChild(card);
@@ -1555,7 +1749,7 @@ window.BenchmarkApp = (() => {
 
     async function saveRunRecord(models) {
         try {
-            await fetch('/api/bench/runs', {
+            const resp = await fetch('/api/bench/runs', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1573,6 +1767,10 @@ window.BenchmarkApp = (() => {
                     }))
                 })
             });
+            if (resp && resp.ok) {
+                const rData = await resp.json();
+                state.lastSavedRunId = rData.run_id;
+            }
             loadPastRuns();
         } catch (e) {
             console.warn('[Benchmark] Could not persist run to server:', e);
