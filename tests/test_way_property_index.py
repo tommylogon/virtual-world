@@ -65,14 +65,38 @@ def test_every_property_is_on_a_declared_axis():
 
 
 def test_declared_values_cover_every_value_the_inspector_offers():
-    """`broken` is offered by the State dropdown and is in WAY_STATES.
+    """`broken` and `hidden` are offered by the State dropdown and are in WAY_STATES.
 
     Pinned here so adding it to one place without the other fails visibly.
     """
     from engine.barriers import WAY_STATES
     current_state = next(p for p in PROPERTIES if p.name == "current_state")
     assert "broken" in current_state.values
+    assert "hidden" in current_state.values
+    assert "see_through" not in current_state.values
     assert "broken" in WAY_STATES
+    assert "hidden" in WAY_STATES
+
+
+def test_way_properties_declares_entry_phrase_and_requires_item():
+    prop_map = {p.name: p for p in PROPERTIES}
+    assert "entry_phrase" in prop_map
+    assert prop_map["entry_phrase"].axis == "identity"
+    assert "requires_item" in prop_map
+    assert prop_map["requires_item"].axis == "passage"
+
+
+def test_max_size_declares_none_and_size_tiers():
+    from engine.size import SIZE_TIERS
+    max_size = next(p for p in PROPERTIES if p.name == "max_size")
+    assert "none" in max_size.values
+    for tier in SIZE_TIERS:
+        assert tier in max_size.values
+
+
+def test_validate_values_catches_drift():
+    problems = index.validate_values()
+    assert problems == [], f"Unexpected validation problems in clean tree: {problems}"
 
 
 def test_check_passes_on_the_current_tree():
@@ -87,14 +111,14 @@ def test_generated_page_is_current():
     """The page is generated; a stale one is the exact failure this tooling prevents.
 
     Compared against `merge_page(build_page(), on_disk)`, because the frontmatter
-    and the `Connected` block belong to `doc_tags` and `doc_connected` — the
+    and the `Connected` block belong to `doc_tags` and `doc_connected` - the
     writer carries them over, and this asserts regenerating changes nothing.
     """
     assert index.PAGE.exists(), f"{index.PAGE} was never generated"
     current = index.PAGE.read_text(encoding="utf-8")
     expected = index.merge_page(index.build_page(), current)
     assert current == expected, (
-        f"{index.PAGE} is stale — run python tools/way_property_index.py --write"
+        f"{index.PAGE} is stale - run python tools/way_property_index.py --write"
     )
 
 
@@ -102,7 +126,7 @@ def test_regeneration_preserves_the_blocks_other_tools_own():
     """A `--write` must not strip the page's tags or its inbound relations."""
     existing = ("---\ntype: doc\ntags: [system/world]\n---\n\n"
                 "# Way Properties\n\nbody\n\n"
-                "<!-- connected:start -->\n## Connected\n\n**Code** — `engine/x.py`\n\n"
+                "<!-- connected:start -->\n## Connected\n\n**Code** - `engine/x.py`\n\n"
                 "<!-- connected:end -->\n")
     merged = index.merge_page(index.build_page(), existing)
     assert merged.startswith("---\ntype: doc\ntags: [system/world]\n---\n")

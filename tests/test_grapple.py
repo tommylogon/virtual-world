@@ -71,7 +71,7 @@ class TestGrab:
         assert "grab hold" in result.lower()
 
     def test_friend_grab_can_fumble(self, grapple_world):
-        """Even a friend's grab can fail — the grabber slips, no grapple."""
+        """Even a friend's grab can fail - the grabber slips, no grapple."""
         world, grappler, target = grapple_world
         target.relationships = {grappler.name: {"closeness": 50}}
         with patch.object(world.grapple, "_grappler_grab_check", return_value=(False, 4, "[Grab] ...")):
@@ -124,7 +124,7 @@ class TestDrag:
         assert "drag" in result.lower()
 
     def test_drag_is_mechanical_and_keeps_grapple(self, grapple_world):
-        """Dragging has no mid-move resist — the target is pulled along and
+        """Dragging has no mid-move resist - the target is pulled along and
         stays grappled. The struggle is their own turn (escape action)."""
         world, grappler, target = grapple_world
         with patch.object(world.grapple, "_grappler_grab_check", return_value=(True, 12, "[Grab] ...")):
@@ -477,3 +477,65 @@ class TestGrappleIdentity:
 
         assert b.has_condition("grappled")
         assert not a.has_condition("grappled")
+
+
+class TestGrappleCentralChecks:
+    """task-477: grapple integration with central checks."""
+
+    def test_grab_log_breakdown_and_degree(self, grapple_world):
+        world, grappler, target = grapple_world
+        grappler.stats["STR"] = 14
+        grappler.skills["Athletics"] = 3
+        world.skills.roll_dice = lambda n, sides, bonus=0: (12 + bonus) if sides == 20 else 0
+
+        world._grapple_grab(grappler.name, "Target")
+        entries = [e for e in world.game_logger.game_log if "[Grab]" in e]
+        assert entries, "Expected [Grab] log entry"
+        entry = entries[-1]
+        assert "Athletics vs DC" in entry
+        assert "roll 12" in entry
+        assert "(degree:" in entry
+
+    def test_grab_condition_advantage_names_condition(self, grapple_world, monkeypatch):
+        world, grappler, target = grapple_world
+        grappler.add_condition("amped")
+        from engine import checks
+        monkeypatch.setattr(checks, "_condition_definitions",
+                            lambda: {"amped": {"check_advantage": ["Athletics"]}})
+
+        world._grapple_grab(grappler.name, "Target")
+        entry = next(e for e in reversed(world.game_logger.game_log) if "[Grab]" in e)
+        assert "[advantage: amped]" in entry
+
+    def test_escape_central_check_and_log(self, grapple_world):
+        world, grappler, target = grapple_world
+        target.stats["DEX"] = 16  # +3 mod
+        target.skills["Acrobatics"] = 5
+        # Set grappled edge + condition
+        world.grapple._add_edge(grappler.name, "Target")
+        target.add_condition("grappled")
+
+        world.set_active_player("Target")
+        world.skills.roll_dice = lambda n, sides, bonus=0: (18 + bonus) if sides == 20 else 0
+        result = world._grapple_escape("Target")
+
+        assert "break free" in result.lower()
+        entries = [e for e in world.game_logger.game_log if "[Escape]" in e]
+        assert entries, "Expected [Escape] log entry"
+        entry = entries[-1]
+        assert "Acrobatics vs DC" in entry
+        assert "(degree:" in entry
+
+    def test_opposed_contest_returns_degrees(self, grapple_world):
+        world, grappler, target = grapple_world
+        grappler.stats["STR"] = 14  # +2
+        grappler.skills["Athletics"] = 4
+        target.stats["DEX"] = 14  # +2
+        target.skills["Acrobatics"] = 2
+        world.skills.roll_dice = lambda n, sides, bonus=0: (10 + bonus) if sides == 20 else 0
+
+        won, res_g, res_t, msg = world.grapple.opposed_contest(grappler.name, "Target")
+        assert won is True  # 16 vs 14
+        assert res_g.tier in ("success", "strong_success", "crit_success")
+        assert res_t.tier in ("fail", "crit_fail", "success")
+        assert "[Grapple Contest]" in msg

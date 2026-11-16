@@ -194,3 +194,40 @@ def test_spawn_resources_reads_from_library_when_bundled_key_is_gone():
                 bio._cache = old_cache
         finally:
             bio._resource_dir = old_resource_dir
+
+
+
+def test_spawn_hostiles_for_area_registers_live_player():
+    from app import create_app
+    from area import Area
+    w = create_app({"TESTING": True}).world
+    w.movement.add_area(Area("Swamp_Deep", "A murky swamp.", []))
+    node = w.graph.get_node(w.area_node_id("Swamp_Deep"))
+    node.properties["biome"] = "swamp"
+    node.properties["distance_from_settlement"] = 5.0
+
+    entries = [{"kind": "monster", "base_chance": 1.0, "per_area_from_settlement": 0, "max_chance": 1.0}]
+    spawned = spawner.spawn_hostiles_for_area(w, "Swamp_Deep", entries=entries, seed="fixed_seed")
+
+    assert len(spawned) == 1
+    p = spawned[0]
+    assert p.simple_npc is True
+    assert p.current_area == "Swamp_Deep"
+    assert "monster" in p.tags
+    assert p.name in w.players
+    # Encounter logged
+    assert any("emerges in Swamp_Deep" in entry for entry in w.game_logger.game_log)
+
+
+def test_spawn_hostiles_for_area_zero_chance_spawns_nothing():
+    from app import create_app
+    from area import Area
+    w = create_app({"TESTING": True}).world
+    w.movement.add_area(Area("Safe_Town", "A quiet town.", []))
+    node = w.graph.get_node(w.area_node_id("Safe_Town"))
+    node.properties["biome"] = "swamp"
+
+    entries = [{"kind": "monster", "base_chance": 0.0, "per_area_from_settlement": 0, "max_chance": 0.0}]
+    spawned = spawner.spawn_hostiles_for_area(w, "Safe_Town", entries=entries, seed="fixed_seed")
+
+    assert spawned == []

@@ -199,7 +199,7 @@ class _ClockWorld:
     current_game_hour = 8
     current_season = "summer"
     current_moon_phase = {"name": "full moon"}
-    forecast_schedule = {"current_state": "sunny"}
+    forecast = {"current_state": "sunny"}
     game_day = 32
     game_month = 2
     game_year = 1

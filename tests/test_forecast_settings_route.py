@@ -30,10 +30,12 @@ def test_forecast_schedule_round_trips_through_the_route():
         "area_overrides": {"area_x": "stormy"},
         "date_overrides": {"5": "foggy"},
     }
-    resp = client.post("/api/settings/forecast", json={"schedule": schedule})
+    # Test POST with new "forecast" key
+    resp = client.post("/api/settings/forecast", json={"forecast": schedule})
     assert resp.status_code == 200, resp.get_data(as_text=True)
 
-    got = client.get("/api/settings/forecast").get_json()["forecast_schedule"]
+    body = client.get("/api/settings/forecast").get_json()
+    got = body["forecast"]
     assert got["mode"] == "generated"
     assert got["seed"] == 42
     assert got["granularity"] == "weekly"
@@ -45,6 +47,41 @@ def test_forecast_schedule_round_trips_through_the_route():
     # task-763 overrides must survive the POST (the whitelist used to drop them).
     assert got["area_overrides"] == {"area_x": "stormy"}
     assert got["date_overrides"] == {"5": "foggy"}
+    # Legacy forecast_schedule key is also returned for back-compat
+    assert body["forecast_schedule"] == got
+
+    # Test POST with legacy "schedule" key still works
+    schedule["seed"] = 99
+    resp_legacy = client.post("/api/settings/forecast", json={"schedule": schedule})
+    assert resp_legacy.status_code == 200, resp_legacy.get_data(as_text=True)
+    assert client.get("/api/settings/forecast").get_json()["forecast"]["seed"] == 99
+
+
+def test_forecast_legacy_load_and_state():
+    # task-798: a legacy save with "forecast_schedule" restores cleanly into
+    # world.forecast and /api/state exposes it as "forecast".
+    app, client = _client()
+    legacy_payload = {
+        "forecast_schedule": {
+            "mode": "authored",
+            "current_state": "rainy",
+            "entries": [{"offset": 0, "weather": "rainy"}],
+        }
+    }
+    serializer = app.world.serializer
+    serializer.load_from_dict(legacy_payload)
+    assert app.world.forecast["current_state"] == "rainy"
+    assert app.world.forecast_schedule["current_state"] == "rainy"
+
+    # GET /api/state exposes "forecast"
+    state = client.get("/api/state").get_json()
+    assert "forecast" in state
+    assert state["forecast"]["current_state"] == "rainy"
+    # Serialized world to_dict writes "forecast"
+    saved = serializer.to_dict()
+    assert "forecast" in saved
+    assert saved["forecast"]["current_state"] == "rainy"
+    assert "forecast_schedule" not in saved
 
 
 def test_the_get_exposes_the_generated_field_key():

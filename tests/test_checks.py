@@ -209,3 +209,49 @@ class TestOpposed:
             a, d, kind="Athletics", roll_fn=lambda: 10,
             defender_roll_fn=lambda: 10)
         assert not attacker_wins
+
+
+class TestCentralCheckParity:
+    """task-477: verify identical inputs resolve to CheckResult across all subsystems."""
+
+    def test_attack_and_defense_resolve_with_ability_modifier(self):
+        p = _player(STR=16, DEX=14)
+        atk = checks.resolve(p, kind="attack", ability="STR", roll_fn=lambda: 12)
+        assert isinstance(atk, checks.CheckResult)
+        assert atk.kept == 12
+        assert atk.total == 15  # 12 + 3 (STR 16 mod)
+        assert atk.tier == "success"
+
+        dfn = checks.resolve(p, kind="defense", ability="DEX", roll_fn=lambda: 10)
+        assert isinstance(dfn, checks.CheckResult)
+        assert dfn.kept == 10
+        assert dfn.total == 12  # 10 + 2 (DEX 14 mod)
+
+    def test_condition_advantage_on_attack_kind(self, monkeypatch):
+        p = _player(STR=10)
+        p.conditions["guided"] = [{}]
+        monkeypatch.setattr(checks, "_condition_definitions",
+                            lambda: {"guided": {"check_advantage": ["attack"]}})
+        res = checks.resolve(p, kind="attack", ability="STR", roll_fn=lambda: 14)
+        assert res.mode == "advantage"
+        assert "[advantage: guided]" in res.message
+
+    def test_opposed_contest_with_different_abilities(self):
+        a = _player(STR=18)  # STR mod +4
+        d = _player(DEX=14)  # DEX mod +2
+        a.skills["Athletics"] = 3
+        d.skills["Acrobatics"] = 4
+        res_a, res_d, a_wins = checks.opposed(
+            a, d,
+            kind="Athletics",
+            defender_kind="Acrobatics",
+            defender_ability="DEX",
+            roll_fn=lambda: 10,
+            defender_roll_fn=lambda: 10,
+        )
+        assert isinstance(res_a, checks.CheckResult)
+        assert isinstance(res_d, checks.CheckResult)
+        # a: 10 + 4(STR) + 3 = 17; d: 10 + 2(DEX) + 4 = 16
+        assert res_a.total == 17
+        assert res_d.total == 16
+        assert a_wins is True

@@ -1,7 +1,7 @@
 """NL-editor batch apply (task-387): POST /api/graph/batch is ONE undo snapshot.
 
 Regression: the NL Editor staged Apply used per-op API calls, each of which
-pushed its own undo snapshot — a single Undo could never revert a whole
+pushed its own undo snapshot - a single Undo could never revert a whole
 Apply, and several op types hit wrong routes/methods (405) or resolved to
 silent no-ops. The batch endpoint replays ops topologically and records one
 PRE-state snapshot so one Undo restores the pre-Apply world.
@@ -281,3 +281,67 @@ def test_batch_update_matching_nodes_reviewed_ids_are_authoritative():
     graph = app.world.graph
     assert graph.get_node('character_grub').properties.get('description') == 'reviewed only'
     assert graph.get_node('character_nub').properties.get('description') is None
+
+def test_batch_per_op_undo_reverses_single_op():
+    """task-743: per-op undo reverses one operation without reverting the whole batch."""
+    client, app = _fresh_client()
+    area = next(n for n in app.world.graph.nodes.values() if n.type == 'area')
+    original_desc = area.properties.get('description', '')
+
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'update_node', 'payload': {'node_id': area.id, 'patch': {'description': 'modified description'}}},
+        {'type': 'create_node', 'payload': {'node': {'id': 'item_nl_gem', 'type': 'item', 'name': 'Ruby Gem'}}},
+    ]})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data['status'] == 'success'
+    assert len(data['applied']) == 2
+
+    applied_by_type = {a['type']: a for a in data['applied']}
+    assert 'create_node' in applied_by_type
+    assert 'update_node' in applied_by_type
+
+    # Both ops took effect
+    assert app.world.graph.get_node(area.id).properties.get('description') == 'modified description'
+    assert app.world.graph.get_node('item_nl_gem') is not None
+
+    # Undo create_node only
+    inv_create = applied_by_type['create_node']['inverse_op']
+    resp_undo_create = client.post('/api/graph/batch/undo-op', json={'inverse_op': inv_create})
+    assert resp_undo_create.status_code == 200
+    assert resp_undo_create.get_json()['status'] == 'success'
+
+    # create_node is undone, but update_node is still applied
+    assert app.world.graph.get_node('item_nl_gem') is None
+    assert app.world.graph.get_node(area.id).properties.get('description') == 'modified description'
+
+    # Undo update_node
+    inv_update = applied_by_type['update_node']['inverse_op']
+    resp_undo_update = client.post('/api/graph/batch/undo-op', json={'inverse_op': inv_update})
+    assert resp_undo_update.status_code == 200
+    assert resp_undo_update.get_json()['status'] == 'success'
+
+    # update_node is undone, graph returned to pre-batch value
+    assert app.world.graph.get_node(area.id).properties.get('description') == original_desc
+
+
+def test_batch_per_op_undo_attach_detach():
+    """task-743: attach and detach inverse operations."""
+    client, app = _fresh_client()
+    area = next(n for n in app.world.graph.nodes.values() if n.type == 'area')
+    char = next(n for n in app.world.graph.nodes.values() if n.type == 'character')
+
+    # Attach char to area
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'attach', 'payload': {'from_id': char.id, 'to_id': area.id, 'relation': 'in'}},
+    ]})
+    assert resp.status_code == 200
+    inv = resp.get_json()['applied'][0]['inverse_op']
+    assert inv['type'] == 'detach'
+
+    # Revert attach via inverse op
+    undo_resp = client.post('/api/graph/batch/undo-op', json={'inverse_op': inv})
+    assert undo_resp.status_code == 200
+    assert undo_resp.get_json()['status'] == 'success'
+    assert not any(e.source == char.id and e.target == area.id for e in app.world.graph.edges)
+

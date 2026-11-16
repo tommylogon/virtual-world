@@ -179,3 +179,132 @@ def test_api_action_validate_not_found(client):
     assert data['valid'] is False
     assert data['category'] == 'not_found'
 
+
+def test_models_metadata_endpoints(client):
+    # 1. GET metadata starts cleanly
+    get_resp = client.get('/api/bench/models/metadata')
+    assert get_resp.status_code == 200
+    data = json.loads(get_resp.data)
+    assert 'metadata' in data
+    assert isinstance(data['metadata'], dict)
+
+    # 2. POST update metadata
+    post_resp = client.post('/api/bench/models/metadata', json={
+        'model_id': 'meta-llama/test-model-8b',
+        'display_name': 'Llama Test 8B',
+        'status': 'do_not_use',
+        'reason': 'broken',
+        'notes': 'Chronic repetition loops in testing',
+        'is_free': True
+    })
+    assert post_resp.status_code == 200
+    res_data = json.loads(post_resp.data)
+    assert res_data['status'] == 'saved'
+    assert res_data['model_id'] == 'meta-llama/test-model-8b'
+
+    # 3. Verify persistence in GET
+    verify_resp = client.get('/api/bench/models/metadata')
+    meta = json.loads(verify_resp.data)['metadata']
+    assert 'meta-llama/test-model-8b' in meta
+    entry = meta['meta-llama/test-model-8b']
+    assert entry['status'] == 'do_not_use'
+    assert entry['reason'] == 'broken'
+    assert entry['is_free'] is True
+
+
+def test_rate_bench_run_and_registry_rollup(client):
+    # 1. Save a run
+    run_id = 'test_rate_run_999'
+    client.post('/api/bench/runs', json={
+        'run_id': run_id,
+        'character': 'Tester',
+        'results': [
+            {'model': 'model-star-rate', 'output': 'hello', 'metrics': {'tps': 30.0}}
+        ]
+    })
+
+    # 2. Rate the model result
+    rate_resp = client.post(f'/api/bench/runs/{run_id}/rate', json={
+        'model': 'model-star-rate',
+        'rating': 4.5,
+        'feedback': 'Crisp dialogue and valid actions',
+        'tags': ['Crisp dialogue', 'Valid JSON']
+    })
+    assert rate_resp.status_code == 200
+    res = json.loads(rate_resp.data)
+    assert res['status'] == 'rated'
+    assert res['rating'] == 4.5
+
+    # 3. Verify run record updated
+    run_resp = client.get(f'/api/bench/runs/{run_id}')
+    assert run_resp.status_code == 200
+    run_data = json.loads(run_resp.data)
+    matched = next((r for r in run_data['results'] if r.get('model') == 'model-star-rate'), None)
+    assert matched is not None
+    assert matched.get('rating') == 4.5
+    assert matched.get('feedback') == 'Crisp dialogue and valid actions'
+
+    # 4. Verify rollup into model registry
+    meta_resp = client.get('/api/bench/models/metadata')
+    registry = json.loads(meta_resp.data)['metadata']
+    entry = registry.get('model-star-rate')
+    assert entry is not None
+    assert 'ratings' in entry
+    assert entry['ratings']['total_reviews'] >= 1
+    assert entry['ratings']['average_score'] == 4.5
+
+
+def test_fetch_provider_models_openrouter_capabilities(client, monkeypatch):
+    import requests
+    class MockResp:
+        ok = True
+        status_code = 200
+        def json(self):
+            return {
+                "data": [
+                    {
+                        "id": "openrouter/free-vision-model:free",
+                        "name": "Free Vision Model",
+                        "context_length": 131072,
+                        "pricing": {"prompt": "0", "completion": "0"},
+                        "architecture": {
+                            "modality": "text+image->text",
+                            "input_modalities": ["text", "image"],
+                            "output_modalities": ["text"]
+                        },
+                        "top_provider": {"max_completion_tokens": 4096},
+                        "reasoning": True
+                    },
+                    {
+                        "id": "openrouter/audio-model",
+                        "name": "Audio Model",
+                        "architecture": {
+                            "modality": "text->audio",
+                            "input_modalities": ["text"],
+                            "output_modalities": ["audio"]
+                        }
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(requests, 'get', lambda *args, **kwargs: MockResp())
+    resp = client.post('/api/bench/models', json={'api_base': 'https://openrouter.ai/api/v1', 'api_key': 'mock'})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    models = {m['id']: m for m in data['models']}
+
+    # Check free + vision + reasoning parsed
+    m1 = models['openrouter/free-vision-model:free']
+    assert m1['is_free'] is True
+    assert m1['vision'] is True
+    assert m1['reasoning'] is True
+    assert m1['context_length'] == 131072
+    assert m1['max_output_tokens'] == 4096
+    assert m1['status'] == 'active'
+
+    # Check non-chat audio model auto-flagged
+    m2 = models['openrouter/audio-model']
+    assert m2['status'] == 'do_not_use'
+    assert m2['reason'] == 'audio_video'
+
+

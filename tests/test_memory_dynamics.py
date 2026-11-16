@@ -489,4 +489,106 @@ def test_old_save_memory_round_trips_without_new_fields():
     assert resp.status_code == 200
     stored = client.get(f'/api/players/{name}/memories').get_json()['memories'][0]
     assert stored['category'] == 'episodic'
-    assert stored['confidence'] == 1.0  # manual source → fully trusted
+    assert stored['confidence'] == 1.0  # manual source -> fully trusted
+
+
+def test_core_seed_memories_survive_sleep_pruning():
+    from player import Player
+    from engine import memory_dynamics as md
+
+    p = Player('Sammy')
+    p.memories = [
+        {
+            'id': 'seed_core',
+            'text': 'My dad used to fix skateboards in the garage.',
+            'tick': 0,
+            'importance': 3,
+            'type': 'event',
+            'category': 'episodic',
+            'source': 'seed',
+            'core': True,
+            'activation': 1.0,
+        },
+        {
+            'id': 'noise_1',
+            'text': 'Saw a pigeon near the bench.',
+            'tick': 1,
+            'importance': 2,
+            'type': 'observation',
+            'category': 'episodic',
+            'source': 'live',
+            'activation': 1.0,
+        },
+    ]
+
+    md.apply_decay(p, rate=0.1, tick=10)
+    assert p.memories[0]['activation'] == 1.0
+    assert p.memories[1]['activation'] < 1.0
+
+    md.consolidate_sleep(p, current_tick=20)
+    assert p.memories[0]['activation'] == 1.0
+    assert p.memories[1]['activation'] < 0.8
+
+
+def test_millwood_gun_misunderstanding_observation_belief_contradiction():
+    from player import Player
+    from engine import memory_dynamics as md
+    from engine.memory_retrieval import is_active_memory, retrieve_associative_memories
+
+    p = Player('Kayla')
+    obs_gun = {
+        'id': 'obs_gun',
+        'text': 'Jake was holding the gun near Tyler.',
+        'tick': 10,
+        'importance': 8,
+        'type': 'observation',
+        'category': 'episodic',
+        'entity_ids': ['jake', 'tyler'],
+        'location': 'area_cabin',
+        'activation': 1.0,
+    }
+    old_belief = {
+        'id': 'belief_shoot',
+        'text': 'Jake was about to shoot Tyler.',
+        'tick': 11,
+        'importance': 9,
+        'type': 'thought',
+        'category': 'belief',
+        'entity_ids': ['jake', 'tyler'],
+        'location': 'area_cabin',
+        'activation': 1.0,
+        'confidence': 0.85,
+    }
+    new_evidence = {
+        'id': 'obs_disarm',
+        'text': 'Jake actually disarmed Tyler and took the gun away.',
+        'tick': 25,
+        'importance': 9,
+        'type': 'observation',
+        'category': 'episodic',
+        'entity_ids': ['jake', 'tyler'],
+        'location': 'area_cabin',
+        'activation': 1.0,
+    }
+    p.memories = [obs_gun, old_belief, new_evidence]
+
+    md.revise_contradicted_belief(old_belief, new_evidence, tick=25)
+
+    assert old_belief['superseded_by'] == 'obs_disarm'
+    assert old_belief['invalid_at'] == 25
+    assert 'obs_disarm' in old_belief['contradicts']
+    assert 'belief_shoot' in new_evidence['contradicts']
+    assert is_active_memory(old_belief, tick=26)[0] is False
+    assert is_active_memory(new_evidence, tick=26)[0] is True
+
+    recalled = retrieve_associative_memories(
+        p,
+        {'actors': ['jake', 'tyler'], 'area_id': 'area_cabin'},
+        tick=26,
+        do_reinforce=False,
+    )
+    recalled_ids = {m['id'] for m in recalled['memories']}
+    assert 'belief_shoot' not in recalled_ids
+    assert 'obs_disarm' in recalled_ids
+    # Historical trace stays on Player.memories
+    assert len(p.memories) == 3

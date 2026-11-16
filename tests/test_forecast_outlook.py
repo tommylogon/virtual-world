@@ -28,7 +28,7 @@ def _world():
         node.properties["tags"] = tags
     world.movement.connect_areas("Glade", "Peak", "north", "south", state="open")
     world.movement.connect_areas("Peak", "Dune", "east", "west", state="open")
-    world.forecast_schedule = {
+    world.forecast = {
         "mode": "generated", "seed": 3, "granularity": "hourly",
         "current_state": "clear", "transition_interval": 1,
         "transition_table": {}, "entries": [],
@@ -75,8 +75,8 @@ def test_outlook_never_writes_the_live_field_or_the_clock():
 
 def test_outlook_honours_the_ordered_overrides():
     world = _world()
-    world.forecast_schedule["date_overrides"] = {"2": "snowy"}
-    world.forecast_schedule["area_overrides"] = {world.area_node_id("Glade"): "clear"}
+    world.forecast["date_overrides"] = {"2": "snowy"}
+    world.forecast["area_overrides"] = {world.area_node_id("Glade"): "clear"}
     out = world.weather_outlook(3)
     day2 = out["days"][1]
     # Date override sweeps every area for day 2, then the area override pins Glade.
@@ -87,7 +87,7 @@ def test_outlook_honours_the_ordered_overrides():
 
 def test_outlook_temperature_follows_the_state_tuning():
     world = _world()
-    world.forecast_schedule["date_overrides"] = {"1": "clear", "2": "snowy"}
+    world.forecast["date_overrides"] = {"1": "clear", "2": "snowy"}
     out = world.weather_outlook(2)
     glade = world.area_node_id("Glade")
     # Same area, same base: a snowy day is colder than a clear one by the
@@ -116,7 +116,7 @@ def test_outlook_areas_are_named_and_limited_to_open_sky():
 
 def test_outlook_reports_a_non_generated_mode_as_a_preview():
     world = _world()
-    world.forecast_schedule["mode"] = "authored"
+    world.forecast["mode"] = "authored"
     out = world.weather_outlook(2)
     assert out["generated"] is False
     assert out["mode"] == "authored"

@@ -10,7 +10,7 @@ existed and nothing asked it, so zero was structural, not a low rate.
 
 *Wrong*: the reason nobody would ever have been afraid even if something did
 ask is that ``fear_sources`` matched only on the character's *graph node* tags
-— and a character node is created bare (``Node(id=..., type="character",
+- and a character node is created bare (``Node(id=..., type="character",
 name=...)``) on both the add and the load path, so it never carries ``tags``.
 Every shipped character puts ``"goblin"`` in ``player.tags`` instead, which
 nothing was reading. Authoring ``fear_tags: ["goblin"]`` would have done
@@ -79,13 +79,18 @@ class TestFearSourceDetection:
         assert source["tags"] == ["goblin"]
 
     def test_the_graph_node_alone_would_never_have_matched(self):
-        """The bug this task found: the character node is created bare."""
+        """Even if the character node is bare, fear_sources matches on player tags."""
         world = _world()
         _character(world, "Grit", tags=["goblin"])
         node = world.graph.get_node(world._player_node_id("Grit"))
         assert node is not None
-        assert not (node.properties or {}).get("tags"), \
-            "if the node ever does carry tags, this guard needs revisiting"
+        # Explicitly strip node tags to simulate a bare node
+        node.properties["tags"] = []
+        human = _character(world, "Fen", fears=["goblin"])
+        source = fear_mod.fear_sources_for_character(
+            world, human, world.player_manager.get_player("Grit"))
+        assert source is not None
+        assert source["name"] == "Grit"
 
     def test_trait_keys_still_count(self):
         world = _world()
@@ -123,7 +128,7 @@ class TestFearSourceDetection:
 
         ``engine.fear.fear_sources`` looks for area ``tags``, but ``Area`` has no
         tags field and ``add_area`` writes only ``description`` and
-        ``environment`` — so the branch can never fire. Wiring it needs an area
+        ``environment`` - so the branch can never fire. Wiring it needs an area
         ``tags`` property, which is a data-model change (task-550 territory), not
         something task-552 should smuggle in. Asserted so the day someone adds
         area tags, this test is the one that has to change.

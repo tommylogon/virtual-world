@@ -19,16 +19,30 @@ import pytest
 
 from player import Player
 from engine.relationships import (
+    ATTRACTION_MAX,
+    ATTRACTION_MIN,
     BAND_ORDER,
     CLOSENESS_MAX,
     CLOSENESS_MIN,
+    FEAR_MAX,
+    FEAR_MIN,
+    RELATIONSHIP_AXES,
+    RESENTMENT_MAX,
+    RESENTMENT_MIN,
+    TRUST_MAX,
+    TRUST_MIN,
+    apply_relationship_axes_delta,
     apply_relationship_delta,
     apply_symmetric_delta,
     band_at_least,
+    clamp_axis,
     clamp_closeness,
     closeness_band,
     describe,
     ensure_relationship,
+    get_relationship_axes,
+    get_relationship_axis,
+    normalize_relationship,
 )
 
 ROOT = Path(__file__).parent.parent
@@ -257,4 +271,192 @@ def test_rename_player_rekeys_relationships_across_all_players():
     assert "Alicia" in bob.relationships
     assert bob.relationships["Alicia"]["closeness"] == 25
     assert bob.relationships["Alicia"]["name"] == "Alicia"
+
+
+# -- multi-axis relationships (task-972) -----------------------------------
+
+
+def test_ensure_relationship_initializes_all_axes_to_zero():
+    a = Player("Rikka")
+    rel, created = ensure_relationship(a, "Vekka", tick=3)
+    assert created is True
+    for axis in RELATIONSHIP_AXES:
+        assert rel[axis] == 0
+
+
+def test_apply_relationship_axes_delta_updates_and_clamps_all_axes():
+    a = Player("Rikka")
+    rel = apply_relationship_axes_delta(
+        a,
+        "Vekka",
+        {
+            "closeness": 30,
+            "trust": -150,
+            "attraction": 120,
+            "fear": -20,
+            "resentment": 45,
+            "unknown_axis": 99,
+        },
+        cause="dialogue",
+        tick=12,
+        area_id="Plaza",
+    )
+    assert rel["closeness"] == 30
+    assert rel["trust"] == TRUST_MIN
+    assert rel["attraction"] == ATTRACTION_MAX
+    assert rel["fear"] == FEAR_MIN
+    assert rel["resentment"] == 45
+    assert "unknown_axis" not in rel
+    assert rel["last_interaction_tick"] == 12
+    assert rel["interaction_count"] == 1
+
+    entry = a.lived_log[-1]
+    assert entry["kind"] == "relationship"
+    assert entry["why"] == "social:dialogue"
+    assert entry["delta"]["trust"] == -150
+    assert entry["delta"]["attraction"] == 120
+
+
+def test_axis_upper_and_lower_bounds():
+    a = Player("Rikka")
+    apply_relationship_axes_delta(
+        a,
+        "Vekka",
+        {"closeness": 500, "trust": 500, "attraction": 500, "fear": 500, "resentment": 500},
+        cause="test",
+        tick=1,
+    )
+    axes = get_relationship_axes(a, "Vekka")
+    assert axes == {
+        "closeness": CLOSENESS_MAX,
+        "trust": TRUST_MAX,
+        "attraction": ATTRACTION_MAX,
+        "fear": FEAR_MAX,
+        "resentment": RESENTMENT_MAX,
+    }
+
+    apply_relationship_axes_delta(
+        a,
+        "Vekka",
+        {"closeness": -999, "trust": -999, "attraction": -999, "fear": -999, "resentment": -999},
+        cause="test",
+        tick=2,
+    )
+    axes = get_relationship_axes(a, "Vekka")
+    assert axes == {
+        "closeness": CLOSENESS_MIN,
+        "trust": TRUST_MIN,
+        "attraction": ATTRACTION_MIN,
+        "fear": FEAR_MIN,
+        "resentment": RESENTMENT_MIN,
+    }
+
+
+def test_clamp_axis_handles_invalid_inputs_and_unknown_axis():
+    assert clamp_axis("trust", "bad") == 0
+    assert clamp_axis("fear", float("nan")) == 0
+    assert clamp_axis("attraction", None) == 0
+    with pytest.raises(ValueError):
+        clamp_axis("nonexistent", 10)
+
+
+def test_legacy_relationship_dict_backward_compatibility():
+    a = Player("Rikka")
+    a.relationships["Vekka"] = {
+        "closeness": 40,
+        "last_interaction_tick": 5,
+        "interaction_count": 2,
+        "label": "ally",
+        "name": "Vekka",
+    }
+    assert get_relationship_axis(a, "Vekka", "closeness") == 40
+    assert get_relationship_axis(a, "Vekka", "trust") == 0
+    assert get_relationship_axes(a, "Vekka") == {
+        "closeness": 40,
+        "trust": 0,
+        "attraction": 0,
+        "fear": 0,
+        "resentment": 0,
+    }
+    apply_relationship_axes_delta(a, "Vekka", {"trust": 25, "fear": 10}, cause="dialogue", tick=6)
+    rel = a.relationships["Vekka"]
+    assert rel["closeness"] == 40
+    assert rel["trust"] == 25
+    assert rel["fear"] == 10
+    assert rel["label"] == "ally"
+
+
+def test_normalize_relationship_preserves_metadata_and_clamps_axes():
+    norm = normalize_relationship({
+        "closeness": 200,
+        "trust": -200,
+        "attraction": -5,
+        "fear": 30,
+        "label": "rival",
+        "name": "Vekka",
+        "last_interaction_tick": 9,
+        "interaction_count": 4,
+    })
+    assert norm["closeness"] == 100
+    assert norm["trust"] == -100
+    assert norm["attraction"] == 0
+    assert norm["fear"] == 30
+    assert norm["resentment"] == 0
+    assert norm["label"] == "rival"
+    assert norm["last_interaction_tick"] == 9
+    assert norm["interaction_count"] == 4
+
+
+def test_serialization_round_trips_multi_axis_and_legacy_relationships():
+    import json
+    from engine.player_manager import PlayerManager
+    from engine.serialization import WorldSerializer
+    from graph import WorldGraph
+
+    g = WorldGraph()
+    pm = PlayerManager(g)
+    alice = Player("Alice")
+    bob = Player("Bob")
+    pm.add_player(alice)
+    pm.add_player(bob)
+
+    apply_relationship_axes_delta(
+        alice,
+        "Bob",
+        {"closeness": 35, "trust": 50, "attraction": 20, "fear": 5, "resentment": 10},
+        cause="dialogue",
+        tick=8,
+    )
+    # Legacy record on Bob -> Alice (missing new axes)
+    bob.relationships["Alice"] = {
+        "closeness": 15,
+        "last_interaction_tick": 3,
+        "interaction_count": 1,
+        "label": "neighbor",
+        "name": "Alice",
+    }
+
+    serializer = WorldSerializer(g, pm, None)
+    alice_payload = json.loads(json.dumps(serializer._serialize_player("Alice", alice)))
+    bob_payload = json.loads(json.dumps(serializer._serialize_player("Bob", bob)))
+
+    g2 = WorldGraph()
+    pm2 = PlayerManager(g2)
+    serializer2 = WorldSerializer(g2, pm2, None)
+    alice2 = serializer2._deserialize_player("Alice", alice_payload)
+    bob2 = serializer2._deserialize_player("Bob", bob_payload)
+
+    assert alice2.relationships["Bob"]["closeness"] == 35
+    assert alice2.relationships["Bob"]["trust"] == 50
+    assert alice2.relationships["Bob"]["attraction"] == 20
+    assert alice2.relationships["Bob"]["fear"] == 5
+    assert alice2.relationships["Bob"]["resentment"] == 10
+
+    assert bob2.relationships["Alice"]["closeness"] == 15
+    assert bob2.relationships["Alice"]["trust"] == 0
+    assert bob2.relationships["Alice"]["attraction"] == 0
+    assert bob2.relationships["Alice"]["fear"] == 0
+    assert bob2.relationships["Alice"]["resentment"] == 0
+    assert bob2.relationships["Alice"]["label"] == "neighbor"
+
 

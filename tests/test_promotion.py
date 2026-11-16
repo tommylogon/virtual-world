@@ -36,6 +36,8 @@ class _ScopeGS:
         self.players = {}
         self.time_ticks = tick
         self.time_per_tick_minutes = 1
+        self.graph.add_node(Node(id="area_lobby", type="area", name="Lobby",
+                                 properties={"world_scope_id": "the_pines"}))
         self.graph.add_node(Node(id="area_hall3", type="area", name="Hallway 3",
                                  properties={"world_scope_id": "pines_floor_3"}))
         self.graph.add_node(Node(id="area_3b_living", type="area", name="3B Living",
@@ -231,33 +233,45 @@ def test_a_reloaded_player_does_not_double_consolidate():
 # ──────────────────── atomic transitions + scope boundary ─────────────────
 
 def test_activate_scope_queues_only_background_residents_inside():
+    # Level-scoped: child scopes are NOT recursively activated (task-710)
     gs = _ScopeGS()
-    alice = _resident(gs, "Alice", "3B Living")   # apartment_3b, in The Pines
-    bob = _resident(gs, "Bob", "Hallway 3")       # pines_floor_3, in The Pines
+    dave = _resident(gs, "Dave", "Lobby")         # the_pines own area
+    bob = _resident(gs, "Bob", "Hallway 3")       # child pines_floor_3
+    alice = _resident(gs, "Alice", "3B Living")   # grandchild apartment_3b
     carol = _resident(gs, "Carol", "Somewhere Else")  # outside every scope
 
     queued = promotion.activate_scope(gs, "the_pines")
 
-    assert set(queued) == {"Alice", "Bob"}
-    assert set(promotion.pending(gs)) == {"Alice", "Bob"}
-    # Nothing has changed tier yet — the request is queued, not applied.
+    # Dave is in the_pines; Bob and Alice are in child scopes and must NOT be promoted
+    assert queued == ["Dave"]
+    assert promotion.pending(gs)["Dave"]["mode"] == "active"
+    # Nothing has changed tier yet - the request is queued, not applied.
+    assert dave.simulation_mode == "background"
     assert alice.simulation_mode == "background"
     assert bob.simulation_mode == "background"
     assert carol.simulation_mode == "background"
 
+    # Activating apartment_3b specifically activates Alice
+    queued_3b = promotion.activate_scope(gs, "apartment_3b")
+    assert queued_3b == ["Alice"]
+
+    # Whole world mode activates everyone
+    queued_all = promotion.activate_scope(gs, "whole_world")
+    assert set(queued_all) == {"Alice", "Bob", "Carol", "Dave"}
+
 
 def test_flush_applies_the_batch_at_one_boundary():
     gs = _ScopeGS()
-    alice = _resident(gs, "Alice", "3B Living")
+    dave = _resident(gs, "Dave", "Lobby")
     bob = _resident(gs, "Bob", "Hallway 3")
     carol = _resident(gs, "Carol", "Somewhere Else")
     promotion.activate_scope(gs, "the_pines")
 
     changed = promotion.flush(gs)
 
-    assert set(changed) == {"Alice", "Bob"}
-    assert alice.simulation_mode == "active"
-    assert bob.simulation_mode == "active"
+    assert set(changed) == {"Dave"}
+    assert dave.simulation_mode == "active"
+    assert bob.simulation_mode == "background"
     assert carol.simulation_mode == "background"
     assert promotion.pending(gs) == {}
 
@@ -291,10 +305,10 @@ def test_flush_drops_a_request_for_a_missing_character():
 
 def test_a_soak_ordered_character_is_not_activated_by_a_scope():
     gs = _ScopeGS()
-    _resident(gs, "Alice", "3B Living")
-    _resident(gs, "Bob", "Hallway 3", soak=True)
+    _resident(gs, "Dave", "Lobby")
+    _resident(gs, "Bob", "Lobby", soak=True)
     queued = promotion.activate_scope(gs, "the_pines")
-    assert queued == ["Alice"]
+    assert queued == ["Dave"]
 
 
 def test_activation_writes_the_span_memory_at_flush():
@@ -303,7 +317,7 @@ def test_activation_writes_the_span_memory_at_flush():
     gs.time_ticks = 120
     _bg(alice, gs, what="worked", why="schedule:work")
 
-    promotion.activate_scope(gs, "the_pines")
+    promotion.activate_scope(gs, "apartment_3b")
     promotion.flush(gs)
 
     assert alice.simulation_mode == "active"
@@ -333,3 +347,125 @@ def test_observe_route_queues_residents_and_404s_unknown_scope():
     assert resident.name in body["queued"]
     assert resident.name in body["pending"]
 
+
+
+# ─────────────────── tick re-evaluation (task-711) ────────────────────────
+
+def test_evaluate_scope_tick_promotes_on_entry_and_demotes_on_exit():
+    gs = _ScopeGS(tick=100)
+    alice = _resident(gs, "Alice", "3B Living", background=False)
+    bob = _resident(gs, "Bob", "Lobby", background=True)
+    gs._active_scope = "apartment_3b"
+
+    # Alice walks out of apartment_3b into Lobby; Bob walks into apartment_3b
+    alice.current_area = "Lobby"
+    bob.current_area = "3B Living"
+
+    queued = promotion.evaluate_scope_tick(gs)
+    assert set(queued) == {"Alice", "Bob"}
+    assert promotion.pending(gs)["Alice"]["mode"] == "background"
+    assert promotion.pending(gs)["Bob"]["mode"] == "active"
+
+    # Flush lands transitions atomically
+    changed = promotion.flush(gs)
+    assert set(changed) == {"Alice", "Bob"}
+    assert alice.simulation_mode == "background"
+    assert alice.last_offload_tick == 100
+    assert bob.simulation_mode == "active"
+
+
+def test_evaluate_scope_tick_negative_exit_demotes_with_span_stamped():
+    gs = _ScopeGS(tick=100)
+    alice = _resident(gs, "Alice", "3B Living", background=False)
+    gs._active_scope = "apartment_3b"
+
+    # Alice leaves the selected scope
+    alice.current_area = "Lobby"
+    queued = promotion.evaluate_scope_tick(gs)
+    assert queued == ["Alice"]
+
+    promotion.flush(gs)
+    assert alice.simulation_mode == "background"
+    assert alice.last_offload_tick == 100
+
+    # Background work happens while outside
+    gs.time_ticks = 150
+    _bg(alice, gs, what="prowled", why="schedule:patrol")
+
+    # Alice returns to apartment_3b
+    alice.current_area = "3B Living"
+    queued = promotion.evaluate_scope_tick(gs)
+    assert queued == ["Alice"]
+    promotion.flush(gs)
+
+    assert alice.simulation_mode == "active"
+    memories = _bg_memories(alice)
+    assert len(memories) == 1
+    assert "patrol" in memories[0]["text"]
+
+
+def test_evaluate_scope_tick_soak_order_is_never_touched():
+    gs = _ScopeGS(tick=100)
+    charlie = _resident(gs, "Charlie", "3B Living", background=True, soak=True)
+    gs._active_scope = "apartment_3b"
+
+    queued = promotion.evaluate_scope_tick(gs)
+    assert "Charlie" not in queued
+    assert "Charlie" not in promotion.pending(gs)
+    assert charlie.simulation_mode == "background"
+
+    # Even if outside or inside, soak_order protects it
+    charlie.current_area = "Lobby"
+    queued = promotion.evaluate_scope_tick(gs)
+    assert "Charlie" not in queued
+
+
+def test_evaluate_scope_tick_whole_world_short_circuits():
+    gs = _ScopeGS(tick=100)
+    alice = _resident(gs, "Alice", "Lobby", background=False)
+    bob = _resident(gs, "Bob", "3B Living", background=True)
+    gs._active_scope = "whole_world"
+
+    queued = promotion.evaluate_scope_tick(gs)
+    assert queued == []
+    assert promotion.pending(gs) == {}
+
+
+def test_evaluate_scope_tick_measured_from_inside_tick_turn():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    vw = app.world
+    resident = next(iter(vw.players.values()))
+    area_id = vw.area_node_id(resident.current_area)
+    vw.world_scopes = {
+        "isolated": {"id": "isolated", "name": "Isolated", "area_ids": [area_id]},
+    }
+    vw._active_scope = "isolated"
+    resident.simulation_mode = "active"
+
+    # Find another area that is outside the scope
+    outside_area = None
+    for aid, node in vw.graph.nodes.items():
+        if node.type == "area" and aid != area_id:
+            outside_area = node.name
+            break
+    assert outside_area is not None
+
+    # Move resident outside the scope
+    resident.current_area = outside_area
+
+    # Measure simulation_mode from INSIDE tick_turn
+    observed_modes = []
+    real_tick_turn = vw.tick_manager.tick_turn
+
+    def spy_tick_turn(*args, **kwargs):
+        res = real_tick_turn(*args, **kwargs)
+        observed_modes.append(resident.simulation_mode)
+        return res
+
+    vw.tick_manager.tick_turn = spy_tick_turn
+    vw.tick_turn()
+
+    assert len(observed_modes) == 1
+    assert observed_modes[0] == "background"
+    assert resident.simulation_mode == "background"

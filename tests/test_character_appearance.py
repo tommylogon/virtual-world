@@ -27,12 +27,14 @@ from engine import character_appearance as ca
 from engine.character_appearance import (
     AFFECT_AXES,
     APPEARANCE_FIELDS,
+    CAPABILITIES_FIELDS,
     IDENTITY_FIELDS,
     NARRATIVE_FIELDS,
     PERSONALITY_FIELDS,
     StructuredError,
     affect_for_stimulus,
     appearance,
+    capabilities,
     clear_record,
     compile_persona,
     get_record,
@@ -468,13 +470,15 @@ class TestCuratedSet:
     def test_the_schema_covers_every_field(self):
         schema = schema_for_llm()
         assert set(schema["properties"]) == {
-            "identity", "appearance", "personality", "narrative"}
+            "identity", "appearance", "personality", "capabilities", "narrative"}
         assert set(schema["properties"]["appearance"]["properties"]) == \
             set(APPEARANCE_FIELDS)
         assert set(schema["properties"]["personality"]["properties"]) == \
             set(PERSONALITY_FIELDS)
         assert set(schema["properties"]["identity"]["properties"]) == \
             set(IDENTITY_FIELDS)
+        assert set(schema["properties"]["capabilities"]["properties"]) == \
+            set(CAPABILITIES_FIELDS)
         assert set(schema["properties"]["narrative"]["properties"]) == \
             set(NARRATIVE_FIELDS)
 
@@ -649,7 +653,8 @@ class TestExpandedSchema:
         world = _world()
         node = self._rich_node(world)
         compiled = compile_persona(node)
-        assert "34-year-old" in compiled["base_description"]
+        assert "mid-thirties" in compiled["base_description"]
+        assert "34-year-old" not in compiled["base_description"]
         assert "blacksmith" in compiled["base_description"]
         assert "anchor tattoo" in compiled["base_description"]
         assert "smithing" in compiled["interest_tags"]
@@ -659,6 +664,9 @@ class TestExpandedSchema:
         assert "brave" in compiled["traits"]
         assert "mind the sparks" in compiled["personality"]
         assert "holds the forge alone" in compiled["description"]
+        assert "Role in town:" not in compiled["description"]
+        assert "sold a cursed blade" not in compiled["base_description"]
+        assert "sold a cursed blade" not in compiled["description"]
         assert "bisexual" in compiled["personality"]
         assert "Steel remembers." in compiled["personality"]
 
@@ -734,13 +742,13 @@ class TestCompileRoutes:
         response = client.post("/api/players/Lyrie/record/compile", json={})
         assert response.status_code == 200
         body = response.get_json()
-        assert "34-year-old" in body["compiled"]["base_description"]
+        assert "mid-thirties" in body["compiled"]["base_description"]
         assert "smithing" in body["compiled"]["interest_tags"]
         # Lyrie ships library hand prose, so the default path previews.
         assert body.get("needs_confirm") is True
         assert "compiled" in body["preview"]["base_description"]
         before = client.get("/api/state").get_json()["players"]["Lyrie"]
-        assert "34-year-old" not in (before.get("base_description") or "")
+        assert "mid-thirties" not in (before.get("base_description") or "")
 
     def test_compile_applies_to_empty_prose(self):
         client = self._client()
@@ -750,7 +758,7 @@ class TestCompileRoutes:
         assert body.get("applied") is True
         state = client.get("/api/state").get_json()
         lyrie = state["players"]["Lyrie"]
-        assert "34-year-old" in lyrie["base_description"]
+        assert "mid-thirties" in lyrie["base_description"]
         assert "smithing" in lyrie["interest_tags"]
         assert "mine-collapse" in lyrie["fear_tags"]
 
@@ -772,7 +780,7 @@ class TestCompileRoutes:
         forced = client.post("/api/players/Lyrie/record/compile",
                              json={"force": True}).get_json()
         assert forced.get("applied") is True
-        assert "34-year-old" in forced["compiled"]["base_description"]
+        assert "mid-thirties" in forced["compiled"]["base_description"]
 
     def test_put_compile_true_projects_tags(self):
         client = self._client()
@@ -791,7 +799,7 @@ class TestCompileRoutes:
         client = self._client()
         body = client.post("/api/players/Lyrie/record/compile",
                            json={"record": RICH}).get_json()
-        assert "34-year-old" in body["compiled"]["base_description"]
+        assert "mid-thirties" in body["compiled"]["base_description"]
         assert "smithing" in body["compiled"]["interest_tags"]
         assert body.get("applied") is not True
         assert client.get("/api/players/Lyrie/record").get_json() \
@@ -827,7 +835,7 @@ class TestCompileRoutes:
                              json={"force": True}).get_json()
         assert forced.get("applied") is True
         state = client.get("/api/state").get_json()
-        assert "34-year-old" in state["players"]["Lyrie"]["base_description"]
+        assert "mid-thirties" in state["players"]["Lyrie"]["base_description"]
 
 
 # -- identity pick-lists (task-852) --
@@ -1161,3 +1169,209 @@ class TestMigrateProseToPersona:
         assert rec["narrative"]["biography"]["current_situation"] == sample
 
 
+
+
+class TestIdentityAdditions:
+    """task-850: MBTI, alignment, birthday, and media with wired consumers."""
+
+    def test_mbti_and_alignment_compile_into_personality_prose(self):
+        rec = {
+            "identity": {
+                "mbti": "INTJ",
+                "alignment": "Lawful Neutral",
+            }
+        }
+        compiled = ca.compile_record(rec)
+        assert "MBTI: INTJ." in compiled["personality"]
+        assert "Alignment: Lawful Neutral." in compiled["personality"]
+
+    def test_identity_suggestions_include_mbti_and_alignment(self):
+        suggs = ca.identity_suggestions()
+        assert "mbti" in suggs
+        assert "INTJ" in suggs["mbti"]
+        assert "alignment" in suggs
+        assert "Lawful Good" in suggs["alignment"]
+
+    def test_media_projects_into_interest_tags(self):
+        rec = {
+            "personality": {
+                "interests": ["astronomy"],
+            },
+            "narrative": {
+                "media": [
+                    {"title": "Dune", "medium": "book"},
+                    "Star Wars",
+                ]
+            }
+        }
+        compiled = ca.compile_record(rec)
+        assert "astronomy" in compiled["interest_tags"]
+        assert "dune" in compiled["interest_tags"]
+        assert "star_wars" in compiled["interest_tags"]
+
+
+class TestCapabilitiesProjection:
+    """task-733: Full-page character sheet capabilities projection to skills and traits."""
+
+    def test_capabilities_compile_projects_skills_and_traits(self):
+        rec = {
+            "identity": {
+                "pronouns": "they/them",
+                "age": 31,
+            },
+            "personality": {
+                "traits": ["observant"],
+            },
+            "capabilities": {
+                "skills": {"Stealth": 2, "Perception": 3},
+                "weaknesses": ["allergic", "clumsy"],
+                "languages": ["Common", "Elvish"],
+            },
+        }
+        compiled = ca.compile_record(rec)
+        assert "early thirties" in compiled["base_description"]
+        assert "31-year-old" not in compiled["base_description"]
+        assert "observant" in compiled["traits"]
+        assert "allergic" in compiled["traits"]
+        assert "clumsy" in compiled["traits"]
+        assert compiled["skills"]["Stealth"] == 2
+        assert compiled["skills"]["Perception"] == 3
+
+    def test_capabilities_compile_applies_and_reverts(self):
+        app = create_app({"TESTING": True})
+        client = app.test_client()
+        with app.app_context():
+            put_res = client.put("/api/players/Lyrie/record", json={
+                "record": {
+                    "identity": {"pronouns": "he/him", "age": 28},
+                    "personality": {"traits": ["stoic"]},
+                    "capabilities": {
+                        "skills": ["Survival", "Athletics"],
+                        "weaknesses": ["scarred"],
+                    },
+                },
+                "compile": True,
+                "force": True,
+            })
+            assert put_res.status_code == 200
+            player = app.world.players["Lyrie"]
+            node = app.world.graph.nodes["player_Lyrie"]
+            assert player.traits.get("stoic") is True
+            assert player.traits.get("scarred") is True
+            assert player.skills.get("Survival") == 1
+            assert player.skills.get("Athletics") == 1
+            assert node.properties.get("traits", {}).get("scarred") is True
+            assert node.properties.get("skills", {}).get("Survival") == 1
+
+            rev_res = client.post("/api/players/Lyrie/record/revert_compile")
+            assert rev_res.status_code == 200
+            data = rev_res.get_json()
+            assert data["reverted"] is True
+
+
+class TestPersonaSchemaCleanup:
+    """task-971: canonical skills, apparent age, weaknesses, role_in_town deprecation, secret ownership."""
+
+    def test_canonical_skills_has_18_entries_and_normalizes(self):
+        assert len(ca.CANONICAL_SKILLS) == 18
+        assert "Animal Handling" in ca.CANONICAL_SKILLS
+        assert "Sleight of Hand" in ca.CANONICAL_SKILLS
+
+        compiled_list = ca.compile_record({
+            "capabilities": {"skills": ["animal_handling", "sleight-of-hand", "stealth", "custom_craft"]},
+        })
+        assert compiled_list["skills"] == {
+            "Animal Handling": 1,
+            "Sleight of Hand": 1,
+            "Stealth": 1,
+            "custom_craft": 1,
+        }
+
+        compiled_dict = ca.compile_record({
+            "capabilities": {"skills": {"perception": 3, "Animal Handling": 2}},
+        })
+        assert compiled_dict["skills"] == {
+            "Perception": 3,
+            "Animal Handling": 2,
+        }
+
+        schema_skills = ca.schema_for_llm()["properties"]["capabilities"]["properties"]["skills"]
+        assert schema_skills["items"]["enum"] == list(ca.CANONICAL_SKILLS)
+
+    def test_apparent_age_bracket_used_instead_of_exact_age(self):
+        cases = [
+            (10, "child"),
+            (14, "young teenager"),
+            (16, "mid-teens"),
+            (19, "late teens"),
+            (22, "early twenties"),
+            (28, "late twenties"),
+            (31, "early thirties"),
+            (35, "mid-thirties"),
+            (45, "mid-forties"),
+            (65, "sixties"),
+            (85, "elderly"),
+        ]
+        for age, expected_bracket in cases:
+            assert ca._apparent_age_bracket(age) == expected_bracket
+            compiled = ca.compile_record({"identity": {"age": age, "species": "human"}})
+            assert expected_bracket in compiled["base_description"]
+            assert f"{age}-year-old" not in compiled["base_description"]
+
+    def test_role_in_town_deprecated_from_description_but_validates(self):
+        rec = {
+            "identity": {"occupation": "blacksmith"},
+            "narrative": {
+                "role_in_town": "Runs the old smithy",
+                "biography": {"current_situation": "Works late every night"},
+            },
+        }
+        cleaned = ca.validate(rec)
+        assert cleaned["narrative"]["role_in_town"] == "Runs the old smithy"
+        compiled = ca.compile_record(cleaned)
+        assert "Role in town:" not in compiled["description"]
+        assert "Runs the old smithy" not in compiled["description"]
+        assert "Works late every night" in compiled["description"]
+
+    def test_mechanical_weaknesses_project_to_traits(self):
+        assert "nearsighted" in ca.CONSUMER_HINTS["capabilities.weaknesses"]
+        compiled = ca.compile_record({
+            "personality": {"traits": ["observant"]},
+            "capabilities": {"weaknesses": ["nearsighted", "Peanut Allergy"]},
+        })
+        assert "nearsighted" in compiled["traits"]
+        assert "peanut_allergy" in compiled["traits"]
+        assert "observant" in compiled["traits"]
+
+    def test_deepest_secret_never_compiled_and_hydrates_with_internal_pressure(self):
+        from engine.character_store import apply_node_properties
+        rec = {
+            "narrative": {
+                "secrets": {
+                    "deepest_secret": "stole the mayor's signet ring",
+                    "known_by": ["Maren"],
+                }
+            }
+        }
+        compiled = ca.compile_record(rec)
+        assert "signet ring" not in compiled["base_description"]
+        assert "signet ring" not in compiled["description"]
+        assert "signet ring" not in compiled["personality"]
+        assert "DEPRECATED" in ca.CONSUMER_HINTS["narrative.secrets.known_by"]
+
+        world = _world()
+        aria = _character(world, "Aria")
+        maren = _character(world, "Maren")
+        node = _node(world, "Aria")
+        node.properties["persona"] = rec
+        apply_node_properties(aria, node.properties, world=world)
+
+        aria_secrets = [m for m in aria.memories if "signet ring" in m.get("text", "")]
+        assert len(aria_secrets) == 1
+        assert aria_secrets[0]["importance"] == 5
+        assert "secret" in aria_secrets[0]["tags"]
+        assert "internal_pressure" in aria_secrets[0]["tags"]
+
+        maren_secrets = [m for m in maren.memories if "signet ring" in m.get("text", "")]
+        assert len(maren_secrets) == 1
+        assert "shared_secret" in maren_secrets[0]["tags"]

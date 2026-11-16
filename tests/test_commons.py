@@ -397,3 +397,244 @@ def test_commons_inner_drawer_css_dark_theme():
     assert not re.search(r"\.commons-inner-drawer\s*\{[^}]*background:\s*#ffffff", css)
     # Ensure dark block includes .commons-inner-drawer
     assert re.search(r"\.commons-topbar,[^}]*\.commons-inner-drawer\s*\{", css)
+
+
+def test_commons_edit_message_engine_and_memory():
+    chat = Commons()
+    chat.set_participant("Mira")
+    msg = chat.post_message("Mira", "I will head to the river.", tick=5)
+    msg_id = msg["id"]
+
+    mira = SimpleNamespace(name="Mira", memories=[{"text": "I will head to the river.", "tick": 5}])
+    players = {"Mira": mira}
+
+    edited = chat.edit_message(msg_id, "Mira", "I will head to the forest.", players=players)
+    assert edited["text"] == "I will head to the forest."
+    assert edited["edited"] is True
+    assert edited["original_text"] == "I will head to the river."
+    assert "edited_at" in edited
+    assert mira.memories[0]["text"] == "I will head to the forest."
+    assert mira.memories[0]["edited"] is True
+
+    # Authorization failure on editing another author's message
+    try:
+        chat.edit_message(msg_id, "Lysa", "Trying to change your words.")
+    except ChatAuthorizationError:
+        pass
+    else:
+        raise AssertionError("Expected ChatAuthorizationError when non-author edits message")
+
+
+def test_commons_delete_message_keeps_tombstone_and_updates_memory():
+    chat = Commons()
+    chat.set_participant("Mira")
+    chat.set_participant("Lysa")
+    first = chat.post_message("Mira", "First message")
+    second = chat.post_message("Mira", "Mistake to be retracted")
+    third = chat.post_message("Lysa", "Third message")
+
+    mira = SimpleNamespace(name="Mira", memories=[{"text": "Said: Mistake to be retracted"}])
+    players = {"Mira": mira}
+
+    # Non-author cannot delete
+    try:
+        chat.delete_message(second["id"], "Lysa", players=players)
+    except ChatAuthorizationError:
+        pass
+    else:
+        raise AssertionError("Expected ChatAuthorizationError when non-author deletes message")
+
+    # Author deletes message
+    deleted = chat.delete_message(second["id"], "Mira", players=players)
+    assert deleted["deleted"] is True
+    assert deleted["text"] == ""
+    assert deleted["original_text"] == "Mistake to be retracted"
+    assert "deleted_at" in deleted
+    assert mira.memories[0]["retracted"] is True
+    assert "[Retracted by Mira]" in mira.memories[0]["text"]
+
+    # Verify ID sequence in chat.messages is preserved (tombstone)
+    msg_ids = [m["id"] for m in chat.messages]
+    assert msg_ids == [first["id"], second["id"], third["id"]]
+
+    # Read messages ignores deleted messages by default
+    read = chat.read_messages("Lysa", mode="all")
+    assert [m["id"] for m in read] == [first["id"], third["id"]]
+    assert chat.participants["Lysa"]["last_read_message_ids"]["public"] == third["id"]
+
+    # Unread count ignores deleted messages
+    assert chat.get_unread_count("Lysa", "public") == 0
+
+
+def test_commons_routes_edit_and_delete_message():
+    app = _commons_app()
+    client = app.test_client()
+
+    posted = client.post("/api/commons/messages", json={
+        "author": "Mira", "channel_id": "public", "text": "Heading south",
+    })
+    assert posted.status_code == 200
+    msg_id = posted.get_json()["message"]["id"]
+
+    # 403 on non-author edit
+    bad_edit = client.patch(f"/api/commons/messages/{msg_id}", json={
+        "author": "Lysa", "text": "Heading north",
+    })
+    assert bad_edit.status_code == 403
+
+    # 200 on author edit
+    good_edit = client.patch(f"/api/commons/messages/{msg_id}", json={
+        "author": "Mira", "text": "Heading north actually",
+    })
+    assert good_edit.status_code == 200
+    assert good_edit.get_json()["message"]["text"] == "Heading north actually"
+    assert good_edit.get_json()["message"]["edited"] is True
+
+    # 403 on non-author delete
+    bad_del = client.delete(f"/api/commons/messages/{msg_id}", json={
+        "author": "Lysa",
+    })
+    assert bad_del.status_code == 403
+
+    # 200 on author delete
+    good_del = client.delete(f"/api/commons/messages/{msg_id}", json={
+        "author": "Mira",
+    })
+    assert good_del.status_code == 200
+    assert good_del.get_json()["deleted"] is True
+
+    # GET messages does not return the deleted message
+    feed = client.get("/api/commons/messages?as=Mira&channel_id=public")
+    assert feed.status_code == 200
+    msg_ids = [m["id"] for m in feed.get_json()["messages"]]
+    assert msg_id not in msg_ids
+
+
+def test_message_with_attachment_and_no_text_succeeds():
+    app = _commons_app()
+    client = app.test_client()
+    posted = client.post("/api/commons/messages", json={
+        "author": "Mira",
+        "channel_id": "public",
+        "text": "",
+        "attachments": [
+            {
+                "id": "att1",
+                "url": "/api/commons/attachments/att1.png",
+                "caption": "Map of the ruins",
+                "mime_type": "image/png",
+                "size": 1024,
+            }
+        ]
+    })
+    assert posted.status_code == 200
+    msg = posted.get_json()["message"]
+    assert msg["text"] == ""
+    assert len(msg["attachments"]) == 1
+    assert msg["attachments"][0]["caption"] == "Map of the ruins"
+
+
+def test_attachment_upload_size_limit_and_mime_validation():
+    app = _commons_app()
+    client = app.test_client()
+    import io
+    # Valid image upload
+    data = {
+        "file": (io.BytesIO(b"fake png data"), "map.png"),
+        "caption": "Survey map",
+    }
+    upload_res = client.post("/api/commons/attachments/upload", data=data, content_type="multipart/form-data")
+    assert upload_res.status_code == 200
+    res_json = upload_res.get_json()
+    assert res_json["caption"] == "Survey map"
+    assert res_json["mime_type"] == "image/png"
+    assert "url" in res_json
+
+    # Invalid extension rejected
+    bad_data = {
+        "file": (io.BytesIO(b"malicious script"), "script.exe"),
+    }
+    bad_res = client.post("/api/commons/attachments/upload", data=bad_data, content_type="multipart/form-data")
+    assert bad_res.status_code == 400
+    assert "Unsupported file extension" in bad_res.get_json()["error"]
+
+
+def test_commons_mute_unmute_and_serialization():
+    chat = Commons()
+    group = chat.create_group("Mira", "Night watch", ["Mira", "Lysa"])
+
+    assert chat.set_muted("Mira", group["id"], True) is True
+    assert chat.is_muted("Mira", group["id"]) is True
+    assert chat.is_muted("Lysa", group["id"]) is False
+
+    mira_channels = {ch["id"]: ch for ch in chat.list_channels("Mira")}
+    lysa_channels = {ch["id"]: ch for ch in chat.list_channels("Lysa")}
+    assert mira_channels[group["id"]]["muted"] is True
+    assert mira_channels["public"]["muted"] is False
+    assert lysa_channels[group["id"]]["muted"] is False
+
+    saved = chat.to_dict()
+    restored = Commons()
+    restored.from_dict(saved)
+    assert restored.is_muted("Mira", group["id"]) is True
+    assert restored.is_muted("Lysa", group["id"]) is False
+    restored_mira = {ch["id"]: ch for ch in restored.list_channels("Mira")}
+    assert restored_mira[group["id"]]["muted"] is True
+
+    assert restored.set_muted("Mira", group["id"], False) is False
+    assert restored.is_muted("Mira", group["id"]) is False
+    restored_mira_after = {ch["id"]: ch for ch in restored.list_channels("Mira")}
+    assert restored_mira_after[group["id"]]["muted"] is False
+
+    try:
+        restored.set_muted("Outsider", group["id"], True)
+        assert False, "Expected ChatAuthorizationError"
+    except ChatAuthorizationError:
+        pass
+
+
+def test_commons_mute_route_and_state_perspective():
+    app = _commons_app()
+    client = app.test_client()
+    group = app.world.commons.create_group("Mira", "Night watch", ["Mira", "Lysa"])
+
+    mute_res = client.post(
+        f"/api/commons/channels/{group['id']}/mute",
+        json={"actor": "Mira", "muted": True},
+    )
+    assert mute_res.status_code == 200
+    assert mute_res.get_json() == {"channel_id": group["id"], "muted": True}
+
+    mira_state = client.get("/api/commons/state?as=Mira").get_json()
+    mira_channels = {ch["id"]: ch for ch in mira_state["channels"]}
+    assert mira_channels[group["id"]]["muted"] is True
+    assert mira_channels["public"]["muted"] is False
+    assert group["id"] in mira_state["participants"]["Mira"]["muted_channels"]
+
+    lysa_state = client.get("/api/commons/state?as=Lysa").get_json()
+    lysa_channels = {ch["id"]: ch for ch in lysa_state["channels"]}
+    assert lysa_channels[group["id"]]["muted"] is False
+
+    unmute_res = client.post(
+        f"/api/commons/channels/{group['id']}/mute",
+        json={"actor": "Mira", "muted": False},
+    )
+    assert unmute_res.status_code == 200
+    assert unmute_res.get_json() == {"channel_id": group["id"], "muted": False}
+
+    mira_state_after = client.get("/api/commons/state?as=Mira").get_json()
+    mira_channels_after = {ch["id"]: ch for ch in mira_state_after["channels"]}
+    assert mira_channels_after[group["id"]]["muted"] is False
+    assert group["id"] not in mira_state_after["participants"]["Mira"]["muted_channels"]
+
+    bad_actor = client.post(
+        f"/api/commons/channels/{group['id']}/mute",
+        json={"actor": "Nobody", "muted": True},
+    )
+    assert bad_actor.status_code == 404
+
+    bad_channel = client.post(
+        "/api/commons/channels/missing_channel/mute",
+        json={"actor": "Mira", "muted": True},
+    )
+    assert bad_channel.status_code == 404

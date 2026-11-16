@@ -31,7 +31,7 @@ class CombatTestHarness:
             None,  # trigger_system not needed for basic combat
             None,  # game_state not needed for basic combat
         )
-        # CombatSystem calls process_npcs_on_combat — add it if the
+        # CombatSystem calls process_npcs_on_combat - add it if the
         # NPCBehaviorSystem doesn't have it yet (engine version mismatch).
         if not hasattr(self.npc_behaviors, 'process_npcs_on_combat'):
             self.npc_behaviors.process_npcs_on_combat = lambda ctx: None
@@ -386,7 +386,7 @@ class TestGrappleModifiers:
 
 
 class TestWorldFacadeWiring:
-    """CombatSystem must work through the real VirtualWorld facade —
+    """CombatSystem must work through the real VirtualWorld facade -
     regression for `AttributeError: 'VirtualWorld' object has no attribute
     'get_player'` and the missing npc_behaviors hookup (attack -> 500)."""
 
@@ -435,3 +435,51 @@ class TestWorldFacadeWiring:
 
         assert world.get_player("Lyrie") is p
         assert world.get_player("nobody") is None
+
+
+class TestCombatCentralChecks:
+    """task-477: combat integration with central checks."""
+
+    def test_combat_log_contains_breakdown_and_degree(self, harness):
+        attacker = harness.player_manager.players["Attacker"]
+        attacker.stats["STR"] = 14  # +2 mod
+        target = harness.player_manager.players["TargetDummy"]
+        target.stats["DEX"] = 10  # +0 mod
+
+        harness.skills.roll_dice = lambda n, sides, bonus=0: (15 + bonus) if sides == 20 else 2
+        weapon = harness.add_weapon_to_inventory("Attacker", "Test Sword", damage=4)
+        harness.combat.player_attack("Attacker", "TargetDummy", weapon_node=weapon)
+
+        log_entries = harness.game_logger.game_log
+        combat_entries = [entry for entry in log_entries if "[COMBAT]" in entry]
+        assert combat_entries, "Expected [COMBAT] log entry"
+        entry = combat_entries[-1]
+        assert "d20(15)" in entry
+        assert "+ 2 STR" in entry
+        assert "(degree:" in entry
+        assert "HIT" in entry
+
+    def test_combat_condition_advantage_names_condition(self, harness, monkeypatch):
+        attacker = harness.player_manager.players["Attacker"]
+        attacker.stats["STR"] = 12
+        attacker.add_condition("blessed")
+        from engine import checks
+        monkeypatch.setattr(checks, "_condition_definitions",
+                            lambda: {"blessed": {"check_advantage": ["attack"]}})
+
+        weapon = harness.add_weapon_to_inventory("Attacker", "Blessed Blade", damage=4)
+        harness.combat.player_attack("Attacker", "TargetDummy", weapon_node=weapon)
+
+        log_entries = harness.game_logger.game_log
+        entry = next(e for e in reversed(log_entries) if "[COMBAT]" in e)
+        assert "[advantage: blessed]" in entry
+
+    def test_combat_critical_hit_branch_in_breakdown(self, harness):
+        attacker = harness.player_manager.players["Attacker"]
+        attacker.stats["STR"] = 10
+        harness.skills.roll_dice = lambda n, sides, bonus=0: (20 + bonus) if sides == 20 else 1
+        weapon = harness.add_weapon_to_inventory("Attacker", "Crit Blade", damage=5)
+        harness.combat.player_attack("Attacker", "TargetDummy", weapon_node=weapon)
+
+        entry = next(e for e in reversed(harness.game_logger.game_log) if "[COMBAT]" in e)
+        assert "(degree: crit_success) (CRIT)" in entry

@@ -211,3 +211,46 @@ def test_open_question_tripwire_matches_perception():
     assert len(questions_lane) == 1
     assert questions_lane[0]["id"] == "q_gum"
     assert "matched_refs" in questions_lane[0]
+
+
+def test_dislike_tags_accelerate_decay_and_suppress_passive_recall():
+    from engine import memory_dynamics as md
+    from engine.memory_retrieval import score_memory
+
+    politics_mem = {
+        "id": "mem_pol",
+        "text": "Heard someone talking about city council politics.",
+        "tags": ["politics"],
+        "importance": 3,
+        "tick": 10,
+        "location": "area_cafeteria",
+        "activation": 1.0,
+    }
+    neutral_mem = {
+        "id": "mem_neu",
+        "text": "Saw a blue backpack by the cafeteria door.",
+        "tags": ["backpack"],
+        "importance": 3,
+        "tick": 10,
+        "location": "area_cafeteria",
+        "activation": 1.0,
+    }
+    player = MockPlayer(memories=[politics_mem, neutral_mem])
+    player.dislike_tags = ["politics"]
+    player.interest_tags = ["skateboarding"]
+    player.fear_tags = []
+
+    md.apply_decay(player, rate=0.1, tick=15)
+    # Politics memory decays 2x faster than neutral low-importance memory
+    assert politics_mem["activation"] < neutral_mem["activation"]
+
+    cues = extract_cues({
+        "area_id": "area_cafeteria",
+        "dislike_tags": ["politics"],
+        "interest_tags": ["skateboarding"],
+    })
+    pol_score, pol_bd = score_memory(politics_mem, cues, current_tick=15)
+    neu_score, neu_bd = score_memory(neutral_mem, cues, current_tick=15)
+    assert pol_bd["dislike_dampened"] is True
+    assert neu_bd["dislike_dampened"] is False
+    assert pol_score < neu_score

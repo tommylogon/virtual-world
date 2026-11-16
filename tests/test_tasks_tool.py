@@ -999,3 +999,163 @@ def test_longest_path_excludes_terminal_cards_when_cards_provided():
     path = tasks._longest_path(list(cards.keys()), succ, pred, cards=cards)
     assert path == ['task-2', 'task-3']
 
+
+def test_has_checked_acceptance():
+    text_with_checked = (
+        "# task-1\n\n## Acceptance\n\n- [x] Feature works.\n- [ ] Edge cases.\n"
+    )
+    assert tasks.has_checked_acceptance(text_with_checked) is True
+
+    text_with_todo = (
+        "# task-1\n\n## Acceptance\n\n- [ ] TODO\n"
+    )
+    assert tasks.has_checked_acceptance(text_with_todo) is False
+
+    text_no_acceptance = "# task-1\n\n## What\n\nSome text.\n"
+    assert tasks.has_checked_acceptance(text_no_acceptance) is False
+
+
+def test_has_evidence_marker():
+    assert tasks.has_evidence_marker("Observed: verified in test run.") is True
+    assert tasks.has_evidence_marker("Repro: open modal and click.") is True
+    assert tasks.has_evidence_marker("Screenshot attached.") is True
+    assert tasks.has_evidence_marker("Ran unit test.") is True
+    assert tasks.has_evidence_marker("No confirmation provided.") is False
+
+
+def test_validate_gate_done_and_review(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    # Done card without checked acceptance
+    _write(root / "done" / "ui" / "task-10-done-no-acc.md",
+           "---\ntype: task\nstatus: done\n---\n\n# task-10\n\n"
+           "## Acceptance\n\n- [ ] TODO\n\n## Steps to verify\n\nTest verified.\n")
+    # Done card with checked acceptance and evidence
+    _write(root / "done" / "ui" / "task-11-done-ok.md",
+           "---\ntype: task\nstatus: done\n---\n\n# task-11\n\n"
+           "## Acceptance\n\n- [x] Shipped.\n\n## Steps to verify\n\nTest verified.\n")
+    # Review card with zero checked acceptance
+    _write(root / "review" / "ui" / "task-12-review-partial.md",
+           "---\ntype: task\nstatus: review\n---\n\n# task-12\n\n"
+           "## Acceptance\n\n- [ ] In review.\n\n## Steps to verify\n\nTest repro.\n")
+
+    # Should fail because task-10 is in done without checked acceptance
+    res = tasks.cmd_validate(tasks.argparse.Namespace(root=root, quiet=False, schema=False, update_baseline=False))
+    assert res == 1
+    err = capsys.readouterr().err
+    assert "done card has zero checked '- [x]' boxes in Acceptance" in err
+
+    # Now update baseline to grandfather task-10
+    res_base = tasks.cmd_validate(tasks.argparse.Namespace(root=root, quiet=False, schema=False, update_baseline=True))
+    assert res_base == 0
+
+    # With baseline written, validate passes without errors
+    res_after = tasks.cmd_validate(tasks.argparse.Namespace(root=root, quiet=False, schema=False, update_baseline=False))
+    assert res_after == 0
+    out = capsys.readouterr().out
+    assert "grandfathered done card(s) lack checked acceptance/evidence" in out
+    assert "review card(s) have zero checked acceptance boxes" in out
+
+
+def test_tags_filter_and_json_roundtrip_preview(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    payload_one = {
+        "tags": ["Memory", "Soak Lab"],
+        "horizon": "next",
+        "effort": "M",
+        "what": "Synthesize intermediate conscious memory between recall and planning.",
+        "why": "Avoid leaking raw observations directly into the actor prompt.",
+        "how": "Add a dedicated synthesis pass before inner monologue.",
+        "browser_ui": {
+            "home": "Not applicable",
+            "availability": "Core turn pipeline",
+            "reason": "Pure engine orchestration tested via prompt and turn harnesses.",
+            "alt_steps": ["Run memory intermediator unit test and inspect JSON trace."],
+        },
+        "steps": [
+            {"action": "Run turn synthesis test.", "expected": "Synthesized block emitted.", "observed": "Pending"},
+        ],
+        "acceptance": ["Actor prompt receives synthesized memory only."],
+        "files": ["static/js/agent-engine.ts"],
+    }
+    payload_file = tmp_path / "payload.json"
+    payload_file.write_text(json.dumps(payload_one), encoding="utf-8")
+
+    assert tasks.main([
+        "--root", str(root), "new",
+        "--area", "gameplay",
+        "--title", "Memory intermediator",
+        "--wiki", "[[Cognitive Memory]]",
+        "--json", f"@{payload_file}",
+    ]) == 0
+    assert tasks.main([
+        "--root", str(root), "new",
+        "--area", "ui",
+        "--title", "Panel cleanup",
+        "--wiki", "[[Feature Map]]",
+        "--tags", "ui-polish",
+        "--allow-stubs",
+    ]) == 0
+    capsys.readouterr()
+
+    # Filter list by normalized tag slug.
+    assert tasks.main(["--root", str(root), "list", "--tag", "soak-lab"]) == 0
+    list_out = capsys.readouterr().out
+    assert "task-1" in list_out
+    assert "task-2" not in list_out
+
+    # Update tags with set and verify MCP frontmatter helper formatting.
+    assert tasks.main([
+        "--root", str(root), "set",
+        "--id", "2", "--tags", "soak-lab, mcp",
+    ]) == 0
+    capsys.readouterr()
+    assert tasks.main(["--root", str(root), "list", "--tag", "mcp"]) == 0
+    assert "task-2" in capsys.readouterr().out
+
+    # Append a non-canonical section to task-1, then export to JSON and preview MD.
+    card_one = root / "todo" / "gameplay" / "task-1-memory-intermediator.md"
+    card_one.write_text(
+        card_one.read_text(encoding="utf-8") + "\n## Design Notes\n\nPreserved extra note.\n",
+        encoding="utf-8",
+    )
+
+    json_out = tmp_path / "task-1.json"
+    assert tasks.main([
+        "--root", str(root), "export-json",
+        "--id", "1", "--out", str(json_out),
+    ]) == 0
+    capsys.readouterr()
+
+    doc = json.loads(json_out.read_text(encoding="utf-8"))
+    assert doc["id"] == "task-1"
+    assert doc["tags"] == ["memory", "soak-lab"]
+    assert doc["sections"]["what"].startswith("Synthesize intermediate")
+    assert doc["extra_sections"] == {"Design Notes": "Preserved extra note."}
+
+    preview_out = tmp_path / "task-1-preview.md"
+    assert tasks.main([
+        "--root", str(root), "preview-md",
+        "--file", str(json_out), "--out", str(preview_out),
+    ]) == 0
+    capsys.readouterr()
+
+    preview_text = preview_out.read_text(encoding="utf-8")
+    assert "tags: [memory, soak-lab]" in preview_text
+    assert "## Design Notes" in preview_text
+    assert "Preserved extra note." in preview_text
+
+    # Export directory tree of individual JSON files.
+    json_dir = tmp_path / "json_tasks"
+    assert tasks.main([
+        "--root", str(root), "export-json", "--dir", str(json_dir),
+    ]) == 0
+    capsys.readouterr()
+    assert (json_dir / "todo" / "gameplay" / "task-1-memory-intermediator.json").exists()
+    assert (json_dir / "todo" / "ui" / "task-2-panel-cleanup.json").exists()
+
+    from tools import tasks_mcp
+    assert tasks_mcp._fm_updates_from_fields({"tags": "Alpha, Beta Tag"}) == {
+        "tags": "[alpha, beta-tag]"
+    }
+
+

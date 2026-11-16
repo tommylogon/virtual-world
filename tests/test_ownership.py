@@ -44,7 +44,7 @@ NEED_TAGS = {
 #:
 #: This list is the point of the test. An unheld need-resource is not illegal
 #: (decision 2: an unclaimed area is a commons), so the invariant cannot be
-#: "everything is claimed" — it is "everything is accounted for". The Murk Lake
+#: "everything is claimed" - it is "everything is accounted for". The Murk Lake
 #: and the Raven River are wild water that nobody would ever fence, so they stay
 #: a commons. A NEW unclaimed water area fails this test, which is exactly the
 #: "visible in a test failure rather than only in a dashboard" acceptance.
@@ -112,7 +112,7 @@ def test_a_prefixed_name_is_accepted_where_a_bare_one_is():
     """A caller holding a tag list must not read a prefixed tag as unknown.
 
     Otherwise `is_owned_by(props, "held_by:goblin")` is False and the area looks
-    unheld — the one failure this vocabulary cannot afford, because it makes a
+    unheld - the one failure this vocabulary cannot afford, because it makes a
     claimed commons look like a hole.
     """
     node = _node_like("area_x", "area", "X", ["held_by:goblin"])
@@ -339,7 +339,7 @@ def test_the_camp_ownership_map_is_what_the_task_describes():
 
 
 #: The camp roster's factions, asserted whole. A character in neither list
-#: belongs to neither faction — the wild animals, and the frog in Murk Lake.
+#: belongs to neither faction - the wild animals, and the frog in Murk Lake.
 #: That is a real state (they are the commons), and it is safe precisely because
 #: ``note_contested_use`` never accuses a character that declares no faction.
 FACTION_ROSTER = {
@@ -359,7 +359,7 @@ def test_the_whole_cast_is_accounted_for():
     """Every character is in a faction or explicitly in neither.
 
     The task's acceptance: an unowned shared resource should be visible in a
-    test failure rather than only in a dashboard. Same discipline for the cast —
+    test failure rather than only in a dashboard. Same discipline for the cast -
     a character that quietly gains or loses a faction shows up here.
     """
     payload = _payload()
@@ -530,3 +530,38 @@ def test_the_prefixes_are_the_ones_the_tools_stamp():
 
     assert claim_areas._area_tag("goblin") == f"{ownership.HELD_BY_PREFIX}goblin"
     assert claim_areas._faction_tag("goblin") == f"{ownership.FACTION_PREFIX}goblin"
+
+
+def test_area_ownership_node_update_and_serialization_roundtrip():
+    from app import create_app
+    from engine import ownership
+
+    app = create_app({"TESTING": True})
+    client = app.test_client()
+
+    res = client.get("/api/state")
+    state = res.get_json()
+    area_id = None
+    for nid, node in state.get("graph", {}).get("nodes", {}).items():
+        if node.get("type") == "area":
+            area_id = nid
+            break
+    assert area_id is not None
+
+    # Write held_by:goblin tag via PATCH node
+    patch_res = client.patch(f"/api/graph/node/{area_id}", json={
+        "properties": {"tags": [f"{ownership.HELD_BY_PREFIX}goblin"]}
+    })
+    assert patch_res.status_code == 200
+
+    # Read back through engine/ownership
+    world_node = app.world.graph.nodes[area_id]
+    assert ownership.is_owned_by(world_node, "goblin") is True
+    assert "goblin" in ownership.holders_of(world_node)
+
+    # Roundtrip save dict
+    data = app.world.to_dict()
+    nodes = data.get("graph", {}).get("nodes", {})
+    saved_area = nodes.get(area_id)
+    assert saved_area is not None
+    assert f"{ownership.HELD_BY_PREFIX}goblin" in saved_area.get("properties", {}).get("tags", [])

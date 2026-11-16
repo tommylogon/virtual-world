@@ -132,7 +132,7 @@ def _world():
         node.properties["tags"] = tags
     world.movement.connect_areas("Glade", "Peak", "north", "south", state="open")
     world.movement.connect_areas("Peak", "Dune", "east", "west", state="open")
-    world.forecast_schedule = {
+    world.forecast = {
         "mode": "generated", "seed": 3, "granularity": "hourly",
         "current_state": "clear", "transition_interval": 1,
         "transition_table": {}, "entries": [],

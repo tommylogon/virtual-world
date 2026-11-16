@@ -61,3 +61,18 @@ def test_charset_check_ignores_non_registry_context():
     lint_library.CHECKS["tag_id_charset"](ctx, report)
     assert len(report.warnings) == 1
     assert "spaced id" in report.warnings[0][1]
+
+
+def test_rooms_dir_retired_and_fighting_pit_in_areas():
+    """task-761: data/library/rooms is retired, fighting_pit lives in areas."""
+    rooms_dir = ROOT / "data" / "library" / "rooms"
+    assert not rooms_dir.exists(), "data/library/rooms should no longer exist"
+
+    fighting_pit = ROOT / "data" / "library" / "areas" / "fighting_pit.json"
+    assert fighting_pit.exists(), "fighting_pit.json must exist in data/library/areas"
+    import json
+    data = json.loads(fighting_pit.read_text(encoding="utf-8"))
+    assert data["name"] == "Fighting Pit"
+    assert "environment" in data
+    assert "tags" in data
+

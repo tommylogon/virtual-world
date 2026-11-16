@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from engine.weather_forecast import (  # noqa: E402
-    WIND_DIRECTIONS, ForecastSchedule, normalize_wind_direction,
+    WIND_DIRECTIONS, Forecast, ForecastSchedule, normalize_wind_direction,
 )
 
 
@@ -35,7 +35,7 @@ def test_normalize_wind_direction():
 
 
 def test_resolve_merges_wind_direction_over_the_schedule():
-    sched = ForecastSchedule({"mode": "authored"})
+    sched = Forecast({"mode": "authored"})
     merged = sched.resolve(
         {"wind": "gale", "wind_direction": "north"},
         {"wind_direction": "southwest"})
