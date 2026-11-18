@@ -30,6 +30,7 @@ from engine import lifecycle
 #: Phase conditions managed by the reproductive cycle. Cleared or swapped on
 #: phase transitions and when pregnancy suspends the cycle.
 CYCLE_CONDITIONS = ("menstruating", "ovulating", "in_heat")
+FERTILE_CONDITIONS = frozenset({"ovulating", "in_heat"})
 
 #: Typical age of menarche for monthly physiological cycles (`pattern: "cycle"`).
 #: Pregnancy and fertile/flirt-drive conditions remain gated on `ADULT_AGE` (18).
@@ -307,6 +308,54 @@ def _is_day_fertile(spec: Dict[str, Any], day_in_cycle: int) -> bool:
     return start_day <= day_in_cycle <= end_day
 
 
+def _resolve_node(player, world, node=None):
+    """Return *node* or look up the player's graph node if *world* is available."""
+    if node is not None or world is None:
+        return node
+    try:
+        return world.graph.get_node(world._player_node_id(getattr(player, "name", "")))
+    except Exception:
+        return None
+
+
+def _character_age_years(player, world, node=None) -> Optional[float]:
+    """Return authored identity age or clock age in years, or None if ageless."""
+    try:
+        raw_age = _identity_of(node).get("age")
+        if raw_age is not None:
+            return float(raw_age)
+    except (TypeError, ValueError):
+        pass
+    return lifecycle.age_years(player, world, node)
+
+
+def _check_pattern_life_stage(pattern: str, player, world, node, tags: set) -> Tuple[bool, str]:
+    """Check age and life-stage eligibility for *pattern* ('cycle' or 'heat')."""
+    from engine import pregnancy as _preg
+
+    stage = _preg.effective_life_stage(player, world, node)
+    if pattern == "heat":
+        minor = _preg.minor_reason(player, node)
+        if minor:
+            return False, f"minor ({minor})"
+        if stage != "adult":
+            return False, f"life stage {stage or 'unknown'}"
+        return True, pattern
+
+    # Monthly physiological cycles start at menarche (adolescent or adult, never child or elder).
+    if tags & PREPUBESCENT_TAGS:
+        return False, "pre-pubescent"
+    if stage == "elder":
+        return False, "life stage elder"
+
+    age = _character_age_years(player, world, node)
+    if age is not None and age < MENARCHE_AGE:
+        return False, f"pre-pubescent (age {age:g} < {MENARCHE_AGE})"
+    if stage in ("adult", "adolescent") or (age is not None and age >= MENARCHE_AGE):
+        return True, pattern
+    return False, f"life stage {stage or 'unknown'}"
+
+
 def is_eligible_for_cycle(player, world, node=None) -> Tuple[bool, str]:
     """Check whether *player* should run a recurring cycle.
 
@@ -319,11 +368,7 @@ def is_eligible_for_cycle(player, world, node=None) -> Tuple[bool, str]:
     if getattr(player, "state", "") == "dead":
         return False, "deceased"
 
-    if node is None and world is not None:
-        try:
-            node = world.graph.get_node(world._player_node_id(getattr(player, "name", "")))
-        except Exception:
-            node = None
+    node = _resolve_node(player, world, node)
 
     traits = dict(getattr(player, "traits", {}) or {})
     node_traits = _node_properties(node).get("traits") or {}
@@ -335,48 +380,15 @@ def is_eligible_for_cycle(player, world, node=None) -> Tuple[bool, str]:
     if "undead" in tags or "ghost" in tags or "construct" in tags:
         return False, "non-living"
 
-    sex = resolve_sex(player, node)
-    if sex != "female":
+    if resolve_sex(player, node) != "female":
         return False, "not a cycling carrier"
 
     species = resolve_species(player, node)
-    spec = cycle_spec_for_species(species)
-    pattern = spec.get("pattern")
+    pattern = cycle_spec_for_species(species).get("pattern")
     if pattern in (None, "none"):
         return False, f"species {species} has no cycle"
 
-    from engine import pregnancy as _preg
-    minor = _preg.minor_reason(player, node)
-    stage = _preg.effective_life_stage(player, world, node)
-
-    if pattern == "heat":
-        if minor:
-            return False, f"minor ({minor})"
-        if stage != "adult":
-            return False, f"life stage {stage or 'unknown'}"
-        return True, pattern
-
-    # pattern == "cycle": allow post-pubescent adolescents & adults, exclude children & elders
-    if tags & PREPUBESCENT_TAGS:
-        return False, "pre-pubescent"
-    if stage == "elder":
-        return False, "life stage elder"
-
-    ident_age = None
-    try:
-        raw_age = _identity_of(node).get("age")
-        if raw_age is not None:
-            ident_age = float(raw_age)
-    except (TypeError, ValueError):
-        ident_age = None
-    if ident_age is None:
-        ident_age = lifecycle.age_years(player, world, node)
-    if ident_age is not None and ident_age < MENARCHE_AGE:
-        return False, f"pre-pubescent (age {ident_age:g} < {MENARCHE_AGE})"
-    if stage not in ("adult", "adolescent") and not (ident_age is not None and ident_age >= MENARCHE_AGE):
-        return False, f"life stage {stage or 'unknown'}"
-
-    return True, pattern
+    return _check_pattern_life_stage(pattern, player, world, node, tags)
 
 
 def _sync_cycle_conditions(
@@ -388,7 +400,7 @@ def _sync_cycle_conditions(
 ) -> None:
     """Apply the condition for *phase* and clear any other cycle phase conditions."""
     wanted = PHASE_CONDITION.get(phase or "") if phase else None
-    if not allow_fertile_conditions and wanted in ("ovulating", "in_heat"):
+    if not allow_fertile_conditions and wanted in FERTILE_CONDITIONS:
         wanted = None
     conds = getattr(player, "conditions", None)
     if not isinstance(conds, dict):
@@ -442,11 +454,7 @@ def update_cycle(player, world, node=None, *, reset_day_one: bool = False) -> Op
         suspend_for_pregnancy(player)
         return getattr(player, "reproductive_cycle", None)
 
-    if node is None and world is not None:
-        try:
-            node = world.graph.get_node(world._player_node_id(getattr(player, "name", "")))
-        except Exception:
-            node = None
+    node = _resolve_node(player, world, node)
 
     eligible, _reason = is_eligible_for_cycle(player, world, node)
     if not eligible:
@@ -479,8 +487,8 @@ def update_cycle(player, world, node=None, *, reset_day_one: bool = False) -> Op
     is_minor = bool(_preg.minor_reason(player, node))
     fertile = False if is_minor else _is_day_fertile(spec, day_in_cycle)
 
-    cycle_Start_tick = anchor_tick + (elapsed_days - (day_in_cycle - 1)) * tpd
-    next_phase_tick = cycle_Start_tick + (phase_end_day * tpd)
+    cycle_start_tick = anchor_tick + (elapsed_days - (day_in_cycle - 1)) * tpd
+    next_phase_tick = cycle_start_tick + (phase_end_day * tpd)
     per_tick = float(getattr(world, "time_per_tick_minutes", 5) or 5)
     remaining_minutes = max(1, int(round(max(1, next_phase_tick - now) * per_tick)))
 
@@ -529,11 +537,7 @@ def in_fertile_window(player, world, node=None) -> Tuple[bool, str]:
       here we evaluate or read the cycle when the character has a cycle state or
       when their species declares a pattern.
     """
-    if node is None and world is not None:
-        try:
-            node = world.graph.get_node(world._player_node_id(getattr(player, "name", "")))
-        except Exception:
-            node = None
+    node = _resolve_node(player, world, node)
 
     sex = resolve_sex(player, node)
     if sex != "female":
