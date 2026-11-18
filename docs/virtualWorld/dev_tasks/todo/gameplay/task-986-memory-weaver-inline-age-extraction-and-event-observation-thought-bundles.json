@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-986",
+  "kind": "task",
+  "number": 986,
+  "title": "Memory Weaver: inline age/time extraction and multi-record Event, Observation, and Thought bundle authoring",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "memory-weaver",
+    "nlp",
+    "backstory",
+    "taxonomy"
+  ],
+  "created": "2026-11-18",
+  "updated": "2026-11-18",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-987"
+    ],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-730",
+      "task-976"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extend Memory Weaver (`InspectorMemory.openWeaver` in `static/js/inspector/memory-view.ts`) so a single natural-language prompt (e.g. \"remember that time you almost skated right into traffic when you were 12 and Kyrie tackled you, the skateboard broke, and you blamed Kyrie\") automatically extracts the embedded age/time anchor and decomposes the moment into linked `Event`, `Observation`, and `Thought` (belief) memories at that historical `world_datetime` instead of flattening everything into one memory card.",
+    "why": "Rich backstory prompts mix what happened (Event), what was perceived (Observation), and the subjective conclusion formed at the time (Thought/belief + relationship delta). Currently `parseRelativeTime` only matches explicit `age N` strings typed separately into `#weaver-when`, and the Weaver only drafts a single memory card plus one optional expectation/counterpart.",
+    "how": "1. Extend `InspectorMemory.parseRelativeTime` (or add an inline prompt-time extractor) to detect embedded age/time phrases like `when you were 12`, `when I was 12`, or `at 12 years old` and resolve them against `birth_tick` / `identity.age` into `#weaver-when` and `tick`.\n2. Update the Memory Weaver LLM prompt and preview UI in `static/js/inspector/memory-view.ts` to support a structured multi-record bundle preview: `Event` (`episodic`), `Observation` (`episodic`), and `Thought` (`belief` formed at that past tick), each toggleable/editable before save.\n3. Stamp all bundle records with the resolved historical `world_datetime` / `tick`, apply `simulate_age_decay` when backdated, link `source_memory_ids` cleanly, and preserve optional `relationship_deltas` and `counterpart_memory` (e.g. Kyrie's perspective at age 12).\n4. Verify `birth_tick` gating still blocks/clamps pre-birth timestamps across the whole bundle.",
+    "verify": "Run `npm run build:ts`, add unit tests for inline age extraction and multi-record bundle serialization, and verify live in the Mind -> Memory Weaver modal on a character with an authored age/birthday.",
+    "acceptance": [
+      {
+        "text": "Typing a prompt containing an inline age phrase (e.g. `when you were 12`) automatically populates the resolved past tick and `world_datetime` while respecting `birth_tick` clamping.",
+        "done": false
+      },
+      {
+        "text": "Memory Weaver can generate and preview a linked `Event` + `Observation` + `Thought` bundle from one natural-language prompt, allowing individual cards to be edited or toggled before saving.",
+        "done": false
+      },
+      {
+        "text": "Saving writes the selected records to `Player.memories[]` (plus optional counterpart memory and `relationship_deltas`) with consistent historical timestamps and age decay.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/memory-view.ts",
+      "static/js/inspector/mind-view.ts",
+      "routes/memories.py",
+      "docs/virtualWorld/AI & Narration/Memory Weaver.md"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Mind Dashboard -> Memories -> Memory Weaver modal (`InspectorMemory.openWeaver`) on http://localhost:4444/.\n\nManual verification steps:\n1. Open a character with an authored `age` / `birthday`, open Mind -> Backdate Event.\n2. Enter \"remember that time you almost skated right into traffic when you were 12 and Kyrie tackled you but the skateboard got broken and you blamed Kyrie\" without manually filling `#weaver-when`.\n   - expected: Time anchor resolves to age 12, and preview shows editable `Event`, `Observation`, and `Thought` cards plus optional Kyrie counterpart."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Memory Weaver]]",
+      "[[AI & Narration/Memory System]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

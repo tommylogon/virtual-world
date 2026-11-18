@@ -327,6 +327,7 @@
     const style = document.createElement('style');
     style.id = 'diff-modal-v3-styles';
     style.textContent = `
+      .modal-overlay.dm-overlay { z-index: 12500; }
       .modal-window.diff-modal-v3 {
         width: clamp(680px, 92vw, 1380px);
         max-width: 96vw;
@@ -406,6 +407,7 @@
       }
       .dm-hidden-filter { display: none !important; }
       .dm-section-card {
+        flex-shrink: 0;
         border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.02);
         overflow: hidden;
       }
@@ -429,11 +431,13 @@
         padding: 0 2px; border-radius: 3px;
       }
       .dm-pe-row {
-        display: grid; grid-template-columns: auto 22px 1fr; gap: 10px; align-items: start;
+        display: grid; grid-template-columns: auto 22px minmax(0, 1fr); gap: 10px; align-items: start;
         padding: 8px 6px; border-bottom: 1px solid var(--border);
       }
+      .dm-pe-row > div { min-width: 0; }
       .dm-pe-row:last-child { border-bottom: none; }
       .dm-pe-row.dm-row-safe { background: rgba(227, 179, 65, 0.05); }
+      .dm-safe-toggle { position: relative; z-index: 1; white-space: nowrap; }
       .dm-mem-text {
         font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
         color: var(--text); margin-bottom: 4px;
@@ -803,7 +807,7 @@
     return new Promise((resolve) => {
       ensureStyles();
       const overlay = document.createElement('div');
-      overlay.className = 'modal-overlay';
+      overlay.className = 'modal-overlay dm-overlay';
 
       const toWorld = options.direction === 'to-world';
       const modal = document.createElement('div');

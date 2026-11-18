@@ -1830,7 +1830,7 @@
         fitReferenceRect, gridForImageAspect, gridForCellSize, cellSizeForGrid,
         cellSizeRange, strandedCount, strandedCells,
         referenceHandlePoints, referenceHandleDrag,
-        tileKind, tileDetail, detailRows,
+        tileFloor, tileKind, tileDetail, detailRows,
         paletteSections, paletteForMode, filterPalette, flattenPalette, paletteTile,
     };
     // main.js (loaded last) does `window.VW = {}` and re-registers singletons, so

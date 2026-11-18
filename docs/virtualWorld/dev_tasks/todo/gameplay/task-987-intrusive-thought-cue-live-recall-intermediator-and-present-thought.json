@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-987",
+  "kind": "task",
+  "number": 987,
+  "title": "Intrusive Thought cue: trigger live Recall, Intermediator reconsolidation, and Character Thought to mint present-day realizations",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "intermediator",
+    "recall",
+    "active-mind",
+    "memory-weaver"
+  ],
+  "created": "2026-11-18",
+  "updated": "2026-11-18",
+  "horizon": "next",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-986"
+    ],
+    "depends_on": [
+      "task-944",
+      "task-986"
+    ],
+    "related": [
+      "task-944",
+      "task-976"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add an **Intrusive Thought** trigger in the Mind panel and Memory Weaver so the author can inject an internal mental cue (either standalone or immediately after planting a new backstory memory via `task-986`) and run the character's live cognitive loop: time-locked **Recall** (`engine/memory_retrieval.py`) -> **Intermediator reconsolidation** (`_synthesizeConsciousThought` in `static/js/agent/prompt-builder/memory-context.ts`) -> **Character Thought** reaction, with an option to commit the resulting present-day `Thought` (`belief` / realization) at `current_tick`.",
+    "why": "Planting a backstory memory quietly into `Player.memories[]` leaves it dormant until a future turn happens to hit matching cues, and Memory Weaver's drafting call (`g.no_broadcast = True`) bypasses Recall and Intermediator entirely. Authors need a way to drop an internal spark into a character's mind and watch them actually remember, reconsolidate, and react to it right now without corrupting historical timestamps.",
+    "how": "1. Add an `Intrusive Thought` action in the Mind panel (and an optional post-save toggle `Trigger intrusive thought now` in Memory Weaver).\n2. Feed the cue (and any newly minted memory IDs from `task-986`) into `engine/memory_retrieval.py` (strictly time-locked to `world_datetime <= current_world_datetime`) to gather matching `observation`, `event`, and `thought` traces.\n3. Run `_synthesizeConsciousThought` (Intermediator) with the character's current mood, `interests`, `fears`, and `disinterests`, followed by a concise in-character inner-monologue `Thought` generation.\n4. Render the 3-step trace in the UI (Recalled memories -> Intermediator synthesis -> Present-day Thought) and provide a one-click commit that saves the present-day `Thought` at `current_tick` linked via `source_memory_ids` (and `contradicts[]` / `relationship_deltas` if an older belief shifted).",
+    "verify": "Run `npm run build:ts` and `pytest` on time-locked retrieval + lineage tests, and verify live in the browser Mind panel that injecting an intrusive thought after planting an age-12 memory produces a present-day Thought stamped at `current_tick` while keeping the original event stamped at age 12.",
+    "acceptance": [
+      {
+        "text": "Author can inject an intrusive thought cue from the Mind panel or right after saving a Memory Weaver bundle.",
+        "done": false
+      },
+      {
+        "text": "The cue runs real time-locked Recall (`world_datetime <= T`) -> Intermediator reconsolidation -> in-character Thought and displays all three stages in the UI.",
+        "done": false
+      },
+      {
+        "text": "Committing the resulting realization saves a `type: thought` memory stamped at `current_tick` with `source_memory_ids` (and `contradicts[]` when applicable), never overwriting the historical `world_datetime` of past events.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/inspector/mind-view.ts",
+      "static/js/inspector/memory-view.ts",
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "engine/memory_retrieval.py",
+      "routes/memories.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind Dashboard (`static/js/inspector/mind-view.ts`) and Memory Weaver post-save flow (`static/js/inspector/memory-view.ts`) on http://localhost:4444/.\n\nManual verification steps:\n1. Plant a past memory (e.g. age-12 skateboard/Kyrie event) with \"Trigger intrusive thought now\" checked, or enter an intrusive thought directly in Mind.\n2. Inspect the staged output.\n   - expected: Shows Recalled traces, Intermediator synthesis, and present-day Thought; committing saves the Thought at `current_tick` linked to the age-12 memories."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]",
+      "[[AI & Narration/Memory Weaver]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}
