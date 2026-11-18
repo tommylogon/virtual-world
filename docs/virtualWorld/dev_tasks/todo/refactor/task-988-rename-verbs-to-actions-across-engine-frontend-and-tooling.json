@@ -3,7 +3,7 @@
   "id": "task-988",
   "kind": "task",
   "number": 988,
-  "title": "Rename verbs / action_verbs / VerbSpec to actions across engine, frontend, tests, and tooling",
+  "title": "Unify verb, command, and act into action / actions across engine, routes, frontend, and tests",
   "status": "todo",
   "priority": "medium",
   "area": "refactor",
@@ -36,21 +36,21 @@
     "invalidated_by": []
   },
   "sections": {
-    "what": "Rename `verb` / `verbs` / `action_verbs` / `VerbSpec` / `ActionVerbs` terminology and modules to `action` / `actions` / `ActionSpec` / `Actions` across Python (`engine/`, `routes/`, `tools/`, `tests/`), TypeScript/JavaScript (`static/js/`), templates (`templates/index.html`), and docs.",
-    "why": "Every other subsystem in VirtualWorld refers to what a character does as an `action` (`action_handlers.py`, `apply_action`, `AVAILABLE ACTIONS`, `ActionInterpreter`, `TurnQueue` action slots), while the registry alone calls them `verbs` (`engine/action_verbs.py`, `VerbSpec`, `action-verbs.generated.js`, `window.ActionVerbs`, `tools/action_verbs_index.py`). Standardizing on `actions` removes the split vocabulary.",
-    "how": "1. Rename `engine/action_verbs.py` -> `engine/actions.py` (with `ActionSpec`, `ACTION_SPECS`, `all_actions`, etc., plus thin re-export shim in `engine/action_verbs.py` only if needed during transition).\n2. Update `tools/action_verbs_index.py` (or rename to `tools/actions_index.py`) and generated bundle `static/js/agent/actions.generated.js` (`window.Actions`, keeping `window.ActionVerbs = window.Actions` alias if any external script references it) + update `<script>` tag in `templates/index.html`.\n3. Update all callers in `routes/action_handlers.py`, `engine/`, `static/js/agent/`, `tests/test_action_verbs.py` -> `tests/test_actions.py`, and `tools/unit/`.\n4. Run `npm run build:ts`, JS unit tests, and `pytest` to verify zero broken imports or globals.",
-    "verify": "Run `npm run build:ts`, `pytest tests/test_actions.py`, and `node tools/unit/run.cjs` across action/plan/prompt suites.",
+    "what": "Rip out `verb` / `action_verbs` / `VerbSpec` / `ActionVerbs`, `/api/action` payload key `command`, and plan step key `act` across Python, TypeScript, templates, tooling, and tests so the entire codebase uses one canonical name: `action` (`actions` for collections).",
+    "why": "Measured blast radius across the repo is bounded (14 files for `action_verbs`/`ActionVerbs`/`VerbSpec`, 18 files for `command` payload keys, 10 files for plan step `act`), yet four different labels (`action`, `verb`, `command`, `act`) currently describe the exact same thing.",
+    "how": "1. Rename `engine/action_verbs.py` -> `engine/actions.py` (`ActionSpec`, `ACTION_SPECS`, `all_actions`), `tools/action_verbs_index.py` -> `tools/actions_index.py`, and `static/js/agent/action-verbs.generated.js` -> `static/js/agent/actions.generated.js` (`window.Actions`), updating `templates/index.html` and all 12 caller files.\n2. Replace `data.get('command')` / `{'command': ...}` in `routes/action_handlers.py`, `mcp_server.py`, `tools/autoswarm/actor.py`, frontend API callers, and the 14 test files with `action`.\n3. Replace plan step `act` / `PLAN_INTENT_ACTS` in `static/js/agent/plan-grounding.ts`, `plan-manager.ts`, `plan-tracker.ts`, `structured-formats.ts`, and unit tests with `action` / `PLAN_INTENT_ACTIONS`.\n4. Fold in `bug-598` and `bug-600` so every dispatched action is registered and `tests/test_actions.py` passes with 0 failures.",
+    "verify": "Run `python tools/actions_index.py --check`, `npm run build:ts`, `pytest`, and `node tools/unit/run.cjs` across action, plan, and prompt suites.",
     "acceptance": [
       {
-        "text": "Canonical registry and spec types use Action / Actions (`ActionSpec`, `ACTION_SPECS`, `window.Actions`) across Python and TypeScript.",
+        "text": "Registry, spec types, generator script, and browser global use `engine/actions.py`, `ActionSpec`, `tools/actions_index.py`, `static/js/agent/actions.generated.js`, and `window.Actions` with zero remaining `action_verbs` / `VerbSpec` / `ActionVerbs` references.",
         "done": false
       },
       {
-        "text": "Generator script, index check, `templates/index.html`, and all engine/frontend callers are updated and compile cleanly (`npm run build:ts` exit 0).",
+        "text": "`/api/action` callers and handlers use `action` instead of `command`, and typed plan steps use `action` / `PLAN_INTENT_ACTIONS` instead of `act` / `PLAN_INTENT_ACTS`.",
         "done": false
       },
       {
-        "text": "All Python and JS unit tests for action registration, cost tiers, and prompt/plan grounding pass.",
+        "text": "`npm run build:ts`, `pytest tests/test_actions.py`, and JS unit tests pass.",
         "done": false
       }
     ],
@@ -60,7 +60,10 @@
       "static/js/agent/action-verbs.generated.js",
       "templates/index.html",
       "routes/action_handlers.py",
+      "mcp_server.py",
       "static/js/agent/plan-grounding.ts",
+      "static/js/agent/plan-manager.ts",
+      "static/js/agent/plan-tracker.ts",
       "static/js/agent/prompt-builder/contextual-actions.ts",
       "tests/test_action_verbs.py"
     ],
