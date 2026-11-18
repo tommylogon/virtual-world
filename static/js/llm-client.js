@@ -49,11 +49,24 @@ class LLMClient {
         this._schemaIgnoredWarned = new Set();
     }
     static normalizeBase(url) {
-        return (url || '').replace(/\/+$/, '');
+        let cleaned = (url || '').trim().replace(/\/+$/, '');
+        if (cleaned.includes('generativelanguage.googleapis.com') && !cleaned.endsWith('/openai')) {
+            const root = cleaned.replace(/\/v1(?:beta)?$/, '');
+            cleaned = `${root}/v1beta/openai`;
+        }
+        else if (cleaned === 'https://api.z.ai/v1') {
+            cleaned = 'https://api.z.ai/api/paas/v4';
+        }
+        return cleaned;
     }
     configure(config) {
+        const nextBase = config.apiBase ? LLMClient.normalizeBase(config.apiBase) : this.apiBase;
+        if (nextBase !== this.apiBase || (config.model && config.model !== this.model)) {
+            this._structuredUnsupported = false;
+            this._reasoningUnsupported = false;
+        }
         this.apiKey = config.apiKey || this.apiKey;
-        this.apiBase = config.apiBase || this.apiBase;
+        this.apiBase = nextBase;
         this.model = config.model || this.model;
         this.provider = config.provider || this.provider;
         this.temperature = config.temperature !== undefined ? config.temperature : this.temperature;
@@ -311,36 +324,47 @@ class LLMClient {
                                 if (options.tool_choice)
                                     body.tool_choice = options.tool_choice;
                             }
-                            // Thinking mode (DeepSeek reasoning models): extra_body + reasoning_effort.
-                            // DeepSeek defaults thinking ON at effort `high`, so we must send an
-                            // explicit disable when it is off - omitting the parameter silently
-                            // re-enables high-effort reasoning on every call.
-                            // `effort: "none"` is the disable spelling for providers that key
-                            // thinking off the effort value, so treat it as OFF here too rather
-                            // than sending an invalid `reasoning_effort: "none"`.
-                            // OpenRouter/OpenAI's unified `reasoning.exclude` is supported on all
-                            // models, so it can't be rejected by a non-reasoning backend.
-                            // Qwen 3.5 in LM Studio ignores all disable flags; the only reliable
-                            // workaround is a trailing empty assistant message, which forces the
-                            // model to skip its reasoning block and emit content directly.
-                            // Gated by `suppressLocalThinking` so it only fires when opted in.
+                            // Thinking / reasoning extensions are provider-specific:
+                            // - OpenRouter accepts `reasoning: { effort | exclude, max_tokens }`.
+                            // - Local LM Studio / vLLM / DeepSeek accept `extra_body.thinking` and `enable_thinking`.
+                            // - Strict OpenAI / Google Gemini (/v1beta/openai) / Groq / Mistral reject
+                            //   unknown top-level keys (`extra_body`, `reasoning`, `enable_thinking`)
+                            //   with HTTP 400 / 422.
                             const thinkingOff = (!this.thinking || this.thinkingEffort === 'none') && (!options.reasoningEffort || options.reasoningEffort === 'none');
-                            if (!thinkingOff) {
-                                // For mechanical or structured phases like 'plan', scale effort to 'low' unless caller explicitly asks for more.
-                                const phaseEffort = options.reasoningEffort || (options.label === 'plan' ? 'low' : (this.thinkingEffort || 'medium'));
-                                body.reasoning_effort = phaseEffort;
-                                body.extra_body = { thinking: { type: 'enabled' } };
-                                body.reasoning = {
-                                    effort: phaseEffort,
-                                    max_tokens: options.reasoningMaxTokens || (options.label === 'plan' ? 1024 : 2048)
-                                };
-                            }
-                            else {
-                                body.extra_body = { thinking: { type: 'disabled' } };
-                                body.reasoning = { exclude: true };
-                                body.enable_thinking = false;
-                                if (this.suppressLocalThinking)
-                                    body.messages.push({ role: 'assistant', content: ' ' });
+                            const isOpenRouter = base.includes('openrouter.ai');
+                            const isLocal = base.includes('localhost') || base.includes('127.0.0.1');
+                            const isDeepSeek = base.includes('deepseek.com');
+                            const supportsReasoningEffort = isOpenRouter || isLocal || isDeepSeek
+                                || base.includes('generativelanguage.googleapis.com')
+                                || base.includes('api.openai.com');
+                            if (!this._reasoningUnsupported) {
+                                if (!thinkingOff) {
+                                    const phaseEffort = options.reasoningEffort || (options.label === 'plan' ? 'low' : (this.thinkingEffort || 'medium'));
+                                    if (supportsReasoningEffort) {
+                                        body.reasoning_effort = phaseEffort;
+                                    }
+                                    if (isLocal || isDeepSeek) {
+                                        body.extra_body = { thinking: { type: 'enabled' } };
+                                    }
+                                    if (isOpenRouter || isLocal) {
+                                        body.reasoning = {
+                                            effort: phaseEffort,
+                                            max_tokens: options.reasoningMaxTokens || (options.label === 'plan' ? 1024 : 2048)
+                                        };
+                                    }
+                                }
+                                else {
+                                    if (isLocal || isDeepSeek) {
+                                        body.extra_body = { thinking: { type: 'disabled' } };
+                                        body.enable_thinking = false;
+                                    }
+                                    if (isOpenRouter || isLocal) {
+                                        body.reasoning = { exclude: true };
+                                    }
+                                    if (isLocal && this.suppressLocalThinking) {
+                                        body.messages.push({ role: 'assistant', content: ' ' });
+                                    }
+                                }
                             }
                             return body;
                         })());
@@ -353,11 +377,43 @@ class LLMClient {
                     const hostBase = base.replace(/\/v1\/?$/, '');
                     endpointUrl = hostBase + '/api/v1/chat';
                 }
-                const resp = await fetch(endpointUrl, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(requestBody), signal
-                });
+                const needsCorsProxy = typeof window !== 'undefined' && (endpointUrl.includes('integrate.api.nvidia.com')
+                    || endpointUrl.includes('api.z.ai')
+                    || endpointUrl.includes('aliyuncs.com')
+                    || endpointUrl.includes('gonkarouter.io')
+                    || endpointUrl.includes('modelscope.ai'));
+                let resp;
+                if (needsCorsProxy) {
+                    resp = await fetch('/api/llm/proxy', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endpoint_url: endpointUrl, headers, body: requestBody }),
+                        signal
+                    });
+                }
+                else {
+                    try {
+                        resp = await fetch(endpointUrl, {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(requestBody), signal
+                        });
+                    }
+                    catch (fetchErr) {
+                        const isRemote = endpointUrl.startsWith('https://') && !endpointUrl.includes('localhost') && !endpointUrl.includes('127.0.0.1');
+                        if (typeof window !== 'undefined' && isRemote && !signal?.aborted) {
+                            resp = await fetch('/api/llm/proxy', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ endpoint_url: endpointUrl, headers, body: requestBody }),
+                                signal
+                            });
+                        }
+                        else {
+                            throw fetchErr;
+                        }
+                    }
+                }
                 if (!resp.ok) {
                     let errText = '';
                     let errBody = null;
@@ -381,6 +437,11 @@ class LLMClient {
                         if (VW?.events)
                             VW.events.log('⚠️ Provider rejected structured output - falling back to plain prompts for this session.', 'system-msg');
                         attempt++;
+                        continue;
+                    }
+                    if (!this._reasoningUnsupported && (resp.status === 400 || resp.status === 422)
+                        && /reasoning_effort|reasoning|extra_body|enable_thinking|thinking/i.test(errText)) {
+                        this._reasoningUnsupported = true;
                         continue;
                     }
                     if (isLMStudio && resp.status === 400 && !this._lmStudioReasoningUnsupported

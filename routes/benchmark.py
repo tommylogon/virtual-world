@@ -81,6 +81,9 @@ def register_benchmark_routes(app):
         """Fetch model list from an external provider (with rich native detection for LM Studio, OpenRouter, Groq, Mistral, Gemini)."""
         data = request.get_json(silent=True) or {}
         api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        if 'generativelanguage.googleapis.com' in api_base and not api_base.endswith('/openai'):
+            gemini_root = re.sub(r'/v1(?:beta)?/?$', '', api_base)
+            api_base = f'{gemini_root}/v1beta/openai'
         api_key = data.get('api_key') or ''
 
         headers = {'Content-Type': 'application/json'}
@@ -124,13 +127,21 @@ def register_benchmark_routes(app):
             return model_dict
 
         # 1. Google Gemini native models endpoint
+        # Note: Google's native REST API (/v1beta/models) rejects requests that
+        # carry `Authorization: Bearer <API_KEY>` with 401 UNAUTHORIZED because
+        # it treats Bearer tokens strictly as OAuth2 tokens. Use only `?key=`
+        # and `x-goog-api-key`, and normalize `/v1` or `/v1beta/openai` to
+        # `/v1beta/models`.
         if 'generativelanguage.googleapis.com' in api_base:
             try:
-                gemini_url = f"{api_base}/models"
+                gemini_root = re.sub(r'/v1(?:beta)?(?:/openai)?/?$', '', api_base)
+                gemini_url = f"{gemini_root}/v1beta/models"
+                gemini_headers = {'Content-Type': 'application/json'}
                 params = {}
                 if api_key and api_key not in ('not-needed', 'none'):
                     params['key'] = api_key
-                resp = requests.get(gemini_url, headers=headers, params=params, timeout=10)
+                    gemini_headers['x-goog-api-key'] = api_key
+                resp = requests.get(gemini_url, headers=gemini_headers, params=params, timeout=10)
                 if not resp.ok:
                     return jsonify({'error': f'Google Gemini returned status {resp.status_code}', 'models': []}), resp.status_code
                 payload = resp.json()
@@ -362,6 +373,9 @@ def register_benchmark_routes(app):
         """Unload all currently loaded model instances in LM Studio."""
         data = request.get_json(silent=True) or {}
         api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        if 'generativelanguage.googleapis.com' in api_base and not api_base.endswith('/openai'):
+            gemini_root = re.sub(r'/v1(?:beta)?/?$', '', api_base)
+            api_base = f'{gemini_root}/v1beta/openai'
         api_key = data.get('api_key') or ''
         host_base = re.sub(r'/v1/?$', '', api_base)
         headers = {'Content-Type': 'application/json'}
@@ -396,6 +410,9 @@ def register_benchmark_routes(app):
         """Unload a model instance from LM Studio native API."""
         data = request.get_json(silent=True) or {}
         api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        if 'generativelanguage.googleapis.com' in api_base and not api_base.endswith('/openai'):
+            gemini_root = re.sub(r'/v1(?:beta)?/?$', '', api_base)
+            api_base = f'{gemini_root}/v1beta/openai'
         api_key = data.get('api_key') or ''
         instance_id = data.get('instance_id')
         if not instance_id:
@@ -422,6 +439,9 @@ def register_benchmark_routes(app):
         """Load a model with custom config into LM Studio native API."""
         data = request.get_json(silent=True) or {}
         api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        if 'generativelanguage.googleapis.com' in api_base and not api_base.endswith('/openai'):
+            gemini_root = re.sub(r'/v1(?:beta)?/?$', '', api_base)
+            api_base = f'{gemini_root}/v1beta/openai'
         api_key = data.get('api_key') or ''
         model = data.get('model')
         if not model:
@@ -459,6 +479,9 @@ def register_benchmark_routes(app):
         """
         data = request.get_json(silent=True) or {}
         api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        if 'generativelanguage.googleapis.com' in api_base and not api_base.endswith('/openai'):
+            gemini_root = re.sub(r'/v1(?:beta)?/?$', '', api_base)
+            api_base = f'{gemini_root}/v1beta/openai'
         api_key = data.get('api_key') or ''
         model = data.get('model')
         messages = data.get('messages') or []
@@ -481,15 +504,24 @@ def register_benchmark_routes(app):
             'stream': stream,
         }
         reasoning_effort = data.get('reasoning_effort')
+        is_openrouter = 'openrouter.ai' in api_base
+        is_local = 'localhost' in api_base or '127.0.0.1' in api_base
+        is_deepseek = 'deepseek.com' in api_base
+        supports_reasoning_effort = is_openrouter or is_local or is_deepseek or 'generativelanguage.googleapis.com' in api_base or 'api.openai.com' in api_base
         if reasoning_effort and reasoning_effort != 'default':
             if reasoning_effort == 'none':
-                req_payload['extra_body'] = {'thinking': {'type': 'disabled'}}
-                req_payload['reasoning'] = {'exclude': True}
-                req_payload['enable_thinking'] = False
+                if is_local or is_deepseek:
+                    req_payload['extra_body'] = {'thinking': {'type': 'disabled'}}
+                    req_payload['enable_thinking'] = False
+                if is_openrouter or is_local:
+                    req_payload['reasoning'] = {'exclude': True}
             else:
-                req_payload['reasoning_effort'] = reasoning_effort
-                req_payload['extra_body'] = {'thinking': {'type': 'enabled'}}
-                req_payload['reasoning'] = {'effort': reasoning_effort}
+                if supports_reasoning_effort:
+                    req_payload['reasoning_effort'] = reasoning_effort
+                if is_local or is_deepseek:
+                    req_payload['extra_body'] = {'thinking': {'type': 'enabled'}}
+                if is_openrouter or is_local:
+                    req_payload['reasoning'] = {'effort': reasoning_effort}
 
         if stream:
             req_payload['stream_options'] = {'include_usage': True}
@@ -541,6 +573,53 @@ def register_benchmark_routes(app):
                     time.sleep(2.0 ** attempt)
                     continue
                 return jsonify({'error': f'Failed calling {api_base}: {str(e)}'}), 502
+
+    @app.route('/api/llm/proxy', methods=['POST'])
+    def proxy_llm_request():
+        """Transparent passthrough proxy for browser LLMClient calls to providers without CORS headers."""
+        data = request.get_json(silent=True) or {}
+        endpoint_url = (data.get('endpoint_url') or '').strip()
+        req_headers = data.get('headers') or {}
+        req_body = data.get('body') or {}
+        if not endpoint_url or not (endpoint_url.startswith('https://') or endpoint_url.startswith('http://')):
+            return jsonify({'error': 'Invalid endpoint_url'}), 400
+        stream = bool(isinstance(req_body, dict) and req_body.get('stream'))
+        try:
+            upstream = requests.post(
+                endpoint_url,
+                headers=req_headers,
+                json=req_body,
+                stream=stream,
+                timeout=300
+            )
+            if not upstream.ok:
+                try:
+                    return jsonify(upstream.json()), upstream.status_code
+                except Exception:
+                    return Response(
+                        upstream.text,
+                        status=upstream.status_code,
+                        content_type=upstream.headers.get('Content-Type', 'text/plain')
+                    )
+            if not stream:
+                return Response(
+                    upstream.content,
+                    status=upstream.status_code,
+                    content_type=upstream.headers.get('Content-Type', 'application/json')
+                )
+
+            def generate():
+                for chunk in upstream.iter_content(chunk_size=None):
+                    if chunk:
+                        yield chunk
+
+            return Response(
+                stream_with_context(generate()),
+                status=upstream.status_code,
+                content_type=upstream.headers.get('Content-Type', 'text/event-stream')
+            )
+        except requests.exceptions.RequestException as e:
+            return jsonify({'error': {'message': f'Upstream LLM request failed: {str(e)}'}}), 502
 
     @app.route('/api/bench/runs', methods=['GET'])
     def list_bench_runs():

@@ -1038,22 +1038,22 @@ class ConfigManagerImpl {
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'Groq': {
-                apiKey: liveKey, apiBase: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile',
+                apiKey: liveKey, apiBase: 'https://api.groq.com/openai/v1', model: 'qwen/qwen3.8-27b',
                 provider: 'groq', apiFormat: 'openai',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'Mistral': {
-                apiKey: liveKey, apiBase: 'https://api.mistral.ai/v1', model: 'mistral-large-latest',
+                apiKey: liveKey, apiBase: 'https://api.mistral.ai/v1', model: 'ministral-14b-latest',
                 provider: 'mistral', apiFormat: 'openai',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'NVIDIA NIM': {
-                apiKey: liveKey, apiBase: 'https://integrate.api.nvidia.com/v1', model: 'llama-3.3-70b-instruct',
+                apiKey: liveKey, apiBase: 'https://integrate.api.nvidia.com/v1', model: 'google/gemma-3-12b-it',
                 provider: 'nvidia', apiFormat: 'openai',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'Google Gemini': {
-                apiKey: liveKey, apiBase: 'https://generativelanguage.googleapis.com/v1', model: 'gemini-1.5-flash',
+                apiKey: liveKey, apiBase: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.5-flash',
                 provider: 'google', apiFormat: 'openai',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
@@ -1070,6 +1070,36 @@ class ConfigManagerImpl {
             'DeepSeek': {
                 apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-chat',
                 provider: 'openai', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'Z.ai': {
+                apiKey: liveKey, apiBase: 'https://api.z.ai/api/paas/v4', model: 'glm-4.7-flash',
+                provider: 'z_ai', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'NovAI': {
+                apiKey: liveKey, apiBase: 'https://aiapi-pro.com/v1', model: 'glm-5.3-flash',
+                provider: 'novai', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'Regolo.ai': {
+                apiKey: liveKey, apiBase: 'https://api.regolo.ai/v1', model: 'glm5.2',
+                provider: 'regolo', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'GonkaRouter': {
+                apiKey: liveKey, apiBase: 'https://api.gonkarouter.io/v1', model: 'zai-org/GLM-5.3-Flash',
+                provider: 'gonkarouter', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'Experiential Labs': {
+                apiKey: liveKey, apiBase: 'https://api.experientiallabs.ai/v1', model: 'glm-5.3-flash',
+                provider: 'experientiallabs', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'VoidAI': {
+                apiKey: liveKey, apiBase: 'https://api.voidai.app/v1', model: 'glm-5.3-flash',
+                provider: 'voidai', apiFormat: 'openai',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             }
         };

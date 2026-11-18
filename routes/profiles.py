@@ -79,7 +79,7 @@ def _get_env_profiles():
         "Groq": {
             "apiKey": env.get("GROQ_API_KEY") or "",
             "apiBase": env.get("GROQ_BASE") or "https://api.groq.com/openai/v1",
-            "model": env.get("GROQ_MODEL") or "llama-3.3-70b-versatile",
+            "model": env.get("GROQ_MODEL") or "qwen/qwen3.8-27b",
             "provider": "groq",
             "apiFormat": "openai",
             "streaming": True,
@@ -90,7 +90,7 @@ def _get_env_profiles():
         "Mistral": {
             "apiKey": env.get("MISTRAL_API_KEY") or "",
             "apiBase": env.get("MISTRAL_BASE") or "https://api.mistral.ai/v1",
-            "model": env.get("MISTRAL_MODEL") or "mistral-large-latest",
+            "model": env.get("MISTRAL_MODEL") or "ministral-14b-latest",
             "provider": "mistral",
             "apiFormat": "openai",
             "streaming": True,
@@ -101,7 +101,7 @@ def _get_env_profiles():
         "NVIDIA NIM": {
             "apiKey": env.get("NVIDIA_NIM_API_KEY") or "",
             "apiBase": env.get("NVIDIA_NIM_BASE") or "https://integrate.api.nvidia.com/v1",
-            "model": env.get("NVIDIA_NIM_MODEL") or "llama-3.3-70b-instruct",
+            "model": env.get("NVIDIA_NIM_MODEL") or "google/gemma-3-12b-it",
             "provider": "nvidia",
             "apiFormat": "openai",
             "streaming": True,
@@ -111,8 +111,16 @@ def _get_env_profiles():
         },
         "Google Gemini": {
             "apiKey": env.get("GOOGLE_GEMINI_API_KEY") or "",
-            "apiBase": env.get("GOOGLE_GEMINI_BASE") or "https://generativelanguage.googleapis.com/v1",
-            "model": env.get("GOOGLE_GEMINI_MODEL") or "gemini-1.5-flash",
+            "apiBase": (
+                "https://generativelanguage.googleapis.com/v1beta/openai"
+                if (env.get("GOOGLE_GEMINI_BASE") or "").rstrip("/") in ("", "https://generativelanguage.googleapis.com/v1", "https://generativelanguage.googleapis.com/v1beta")
+                else env.get("GOOGLE_GEMINI_BASE")
+            ),
+            "model": (
+                "gemini-2.5-flash"
+                if (env.get("GOOGLE_GEMINI_MODEL") or "") in ("", "gemini-1.5-flash")
+                else env.get("GOOGLE_GEMINI_MODEL")
+            ),
             "provider": "google",
             "apiFormat": "openai",
             "streaming": True,
@@ -134,7 +142,7 @@ def _get_env_profiles():
         "Alibaba": {
             "apiKey": env.get("ALIBABA_API_KEY") or "",
             "apiBase": env.get("ALIBABA_BASE") or "https://ws-xrqsm1akc5u5zhsu.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
-            "model": env.get("ALIBABA_MODEL") or "deepseek-v4.1-flash-1017",
+            "model": (env.get("ALIBABA_MODEL") or "deepseek-v4.1-flash-1017").strip(),
             "provider": "alibaba",
             "apiFormat": "openai",
             "streaming": True,
@@ -143,10 +151,87 @@ def _get_env_profiles():
             "turnOrder": "sequential"
         },
         "Z.ai": {
-            "apiKey": env.get("Z_AI_GLM_KEY") or "",
-            "apiBase": env.get("Z_AI_GLM_BASE") or "https://api.z.ai/v1",
-            "model": env.get("Z_AI_GLM_MODEL") or "glm-4-9b-0414",
+            "apiKey": env.get("Z_AI_GLM_KEY") or env.get("ZAI_API_KEY") or "",
+            "apiBase": env.get("Z_AI_GLM_BASE") or env.get("ZAI_BASE_URL") or "https://api.z.ai/api/paas/v4",
+            "model": env.get("Z_AI_GLM_MODEL") or "glm-4.7-flash",
             "provider": "z_ai",
+            "apiFormat": "openai",
+            "streaming": True,
+            "showLogs": False,
+            "turnBased": False,
+            "turnOrder": "sequential"
+        },
+        "NovAI": {
+            "apiKey": env.get("NOVAI_API_KEY") or "",
+            "apiBase": env.get("NOVAI_BASE") or env.get("NOVAI_BASE_URL") or "https://aiapi-pro.com/v1",
+            "model": env.get("NOVAI_MODEL") or "glm-5.3-flash",
+            "provider": "novai",
+            "apiFormat": "openai",
+            "streaming": True,
+            "showLogs": False,
+            "turnBased": False,
+            "turnOrder": "sequential"
+        },
+        "Regolo.ai": {
+            "apiKey": env.get("REGOLO_API_KEY") or "",
+            "apiBase": env.get("REGOLO_BASE") or env.get("REGOLO_BASE_URL") or "https://api.regolo.ai/v1",
+            "model": env.get("REGOLO_MODEL") or "glm5.2",
+            "provider": "regolo",
+            "apiFormat": "openai",
+            "streaming": True,
+            "showLogs": False,
+            "turnBased": False,
+            "turnOrder": "sequential"
+        },
+        "GonkaRouter": {
+            "apiKey": env.get("GONKAROUTER_API_KEY") or "",
+            "apiBase": env.get("GONKAROUTER_BASE") or env.get("GONKAROUTER_BASE_URL") or "https://api.gonkarouter.io/v1",
+            "model": env.get("GONKAROUTER_MODEL") or "zai-org/GLM-5.3-Flash",
+            "provider": "gonkarouter",
+            "apiFormat": "openai",
+            "streaming": True,
+            "showLogs": False,
+            "turnBased": False,
+            "turnOrder": "sequential"
+        },
+        "Experiential Labs": {
+            "apiKey": (env.get("EXPERIENTIALLABS_API_KEY") or "").strip(),
+            "apiBase": env.get("EXPERIENTIALLABS_BASE") or env.get("EXPERIENTIALLABS_BASE_URL") or "https://api.experientiallabs.ai/v1",
+            "model": env.get("EXPERIENTIALLABS_MODEL") or "glm-5.3-flash",
+            "provider": "experientiallabs",
+            "apiFormat": "openai",
+            "streaming": True,
+            "showLogs": False,
+            "turnBased": False,
+            "turnOrder": "sequential"
+        },
+        "VoidAI": {
+            "apiKey": env.get("VOIDAI_API_KEY") or "",
+            "apiBase": env.get("VOIDAI_BASE") or env.get("VOIDAI_BASE_URL") or "https://api.voidai.app/v1",
+            "model": env.get("VOIDAI_MODEL") or "glm-5.3-flash",
+            "provider": "voidai",
+            "apiFormat": "openai",
+            "streaming": True,
+            "showLogs": False,
+            "turnBased": False,
+            "turnOrder": "sequential"
+        },
+        "OrcaRouter": {
+            "apiKey": env.get("ORCAROUTER_API_KEY") or "",
+            "apiBase": env.get("ORCAROUTER_BASE") or env.get("ORCAROUTER_BASE_URL") or "https://api.orcarouter.ai/v1",
+            "model": env.get("ORCAROUTER_MODEL") or "z-ai/glm-5.3-flash-free",
+            "provider": "orcarouter",
+            "apiFormat": "openai",
+            "streaming": True,
+            "showLogs": False,
+            "turnBased": False,
+            "turnOrder": "sequential"
+        },
+        "ModelScope": {
+            "apiKey": env.get("MODELSCOPE_API_KEY") or "",
+            "apiBase": env.get("MODELSCOPE_BASE") or env.get("MODELSCOPE_BASE_URL") or "https://api-inference.modelscope.ai/v1",
+            "model": env.get("MODELSCOPE_MODEL") or "zai-org/GLM-5.2",
+            "provider": "modelscope",
             "apiFormat": "openai",
             "streaming": True,
             "showLogs": False,
