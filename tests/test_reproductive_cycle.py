@@ -78,10 +78,25 @@ def test_eligibility_and_minor_exclusion():
     eligible, _ = reproductive_cycle.is_eligible_for_cycle(sire, world, s_node)
     assert eligible is False
 
-    # Minor is excluded
-    c_node.properties["tags"] = ["female", "teen", "student"]
-    eligible, _ = reproductive_cycle.is_eligible_for_cycle(carrier, world, c_node)
+    # Pre-pubescent child is excluded
+    child, child_node = _character(world, "Kid", age=9, species="human", sex="female")
+    eligible, _ = reproductive_cycle.is_eligible_for_cycle(child, world, child_node)
     assert eligible is False
+
+    # Post-pubescent teen (human cycle) tracks physiological menstruation, but suppresses fertile/ovulating conditions
+    teen, teen_node = _character(world, "Teen", age=15, species="human", sex="female")
+    teen_node.properties["tags"] = ["female", "teen", "student"]
+    eligible, pattern = reproductive_cycle.is_eligible_for_cycle(teen, world, teen_node)
+    assert eligible is True
+    assert pattern == "cycle"
+    reproductive_cycle.update_cycle(teen, world, teen_node, reset_day_one=True)
+    assert "menstruating" in (teen.conditions or {})
+    assert teen.reproductive_cycle["fertile_window"] is False
+    tpd = reproductive_cycle.ticks_per_day(world)
+    world.time_ticks = 13 * tpd
+    reproductive_cycle.update_cycle(teen, world, teen_node)
+    assert "ovulating" not in (teen.conditions or {})
+    assert teen.reproductive_cycle["fertile_window"] is False
 
     # Infertile tag is excluded
     c_node.properties["tags"] = ["female", "adult", "infertile"]
