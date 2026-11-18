@@ -559,9 +559,76 @@ const ThreatDetector = (() => {
     function getThreats(charName, turnEvents, stateData) {
         return evaluateRoom(charName, turnEvents, stateData).threats;
     }
+    function _observerHasWeapon(observer, stateData) {
+        if (!observer)
+            return false;
+        const holding = Array.isArray(observer.holding) ? observer.holding : [];
+        const eq = Array.isArray(observer.equipped)
+            ? observer.equipped
+            : (observer.equipped && typeof observer.equipped === 'object' ? Object.values(observer.equipped) : []);
+        const itemsMap = (stateData?.items && typeof stateData.items === 'object') ? stateData.items : {};
+        return [...holding, ...eq].some(entry => {
+            const label = typeof entry === 'string' ? entry : String(entry?.name || entry?.id || '');
+            if (WEAPON_KEYWORD_PATTERN.test(label))
+                return true;
+            const node = itemsMap[label];
+            const tags = Array.isArray(node?.properties?.tags) ? node.properties.tags : [];
+            return tags.some((t) => WEAPON_NODE_TAGS.has(String(t).toLowerCase()));
+        });
+    }
+    function buildGradedThreatDirective(observer, threatDetails, stateData, category = 'direct') {
+        const traits = (observer?.traits && typeof observer.traits === 'object') ? observer.traits : {};
+        const conds = (observer?.conditions && typeof observer.conditions === 'object')
+            ? observer.conditions
+            : {};
+        const flags = (observer?.flags && typeof observer.flags === 'object')
+            ? observer.flags
+            : {};
+        const rels = observer?.relationships || {};
+        const isFrozen = Boolean(flags.frozen_by_fear || conds.stunned);
+        const isFrightened = Boolean(conds.frightened);
+        const isCowardly = Boolean(traits.cowardly || traits.timid || traits.jittery || traits.nervous);
+        const isBrave = Boolean(traits.brave || traits.fearless || traits.stoic);
+        const isProtective = Boolean(traits.protective);
+        const isCalm = Boolean(traits.calm);
+        const isHostile = Boolean(traits.hostile);
+        const isArmedObserver = _observerHasWeapon(observer, stateData);
+        const caresForTarget = threatDetails.some(t => {
+            if (!t.target)
+                return false;
+            const rel = rels[t.target];
+            const closeness = typeof rel?.closeness === 'number' ? rel.closeness : 0;
+            return closeness >= 40;
+        });
+        if (isFrozen) {
+            return 'SHOCK / HESITATION: Sudden danger locks your muscles for a beat. React honestly to the jolt - hesitate, catch your breath, or drop into cover rather than executing a calm multi-step plan.';
+        }
+        if (isFrightened || isCowardly) {
+            return 'POSTURE [EVADE]: Fear spikes hard. Prioritize cover, fleeing, hiding, or keeping distance unless cornered into self-defense.';
+        }
+        if (isHostile) {
+            return 'POSTURE [CONFRONT]: Hostile tension in the room. Decide on your own terms whether to strike, disarm, intimidate, or reposition.';
+        }
+        if (isProtective || caresForTarget || (isBrave && isArmedObserver)) {
+            const allyHint = caresForTarget ? ' Someone you care about is at risk.' : '';
+            return `POSTURE [STAND / INTERVENE]:${allyHint} Stay sharp - weigh stepping in, disarming, shielding them, or calling for help rather than panicking blindly.`;
+        }
+        if (isCalm || isBrave) {
+            const capNote = isArmedObserver ? 'You are armed' : 'You are unarmed';
+            return `POSTURE [ASSESS]: ${capNote}. Keep your head clear - weigh de-escalation, keeping watch, taking cover, or stepping back.`;
+        }
+        if (category === 'armed_posture') {
+            return 'POSTURE [WARINESS]: Weapons are out. Stay alert - avoid reckless errands while gauging intent, keeping distance, disarming, or preparing to flee.';
+        }
+        const capNote = isArmedObserver ? 'You are armed' : 'You are unarmed';
+        return `POSTURE [CAUTIOUS]: ${capNote}. Respond naturally to the danger - weigh fleeing, hiding, taking cover, warning others, or intervening if you have leverage.`;
+    }
     function getThreatAlert(charName, player, currentArea, turnEvents, stateData) {
         void currentArea;
-        const evalResult = evaluateRoom(charName, turnEvents, stateData, (player && typeof player === 'object') ? player : null);
+        const observerPlayer = (player && typeof player === 'object')
+            ? player
+            : (stateData?.players?.[charName] || null);
+        const evalResult = evaluateRoom(charName, turnEvents, stateData, observerPlayer);
         const { threatDetails, allyContext } = evalResult;
         if (threatDetails.length === 0) {
             if (allyContext.length > 0) {
@@ -580,17 +647,15 @@ const ThreatDetector = (() => {
                 return `${t.name}${wep} is attacking ${t.target}`;
             });
             const targets = Array.from(new Set(thirdPartyThreats.map(t => t.target).filter(Boolean))).join(', ');
-            return `⚠️ IMMEDIATE DANGER: ${clauses.join('; ')} in this room (targeting ${targets}, not directly attacking you).${allyInline} ` +
-                `Your current plan is INVALID. You MUST flee, hide, fight, disarm, or warn others NOW. ` +
-                `Do NOT examine items, explore doors, or follow your previous plan while a threat is present.`;
+            const directive = buildGradedThreatDirective(observerPlayer, threatDetails, stateData, 'third_party');
+            return `⚠️ IMMEDIATE DANGER: ${clauses.join('; ')} in this room (targeting ${targets}, not directly attacking you).${allyInline} ${directive}`;
         }
         // Only visibly armed posture (no direct attack yet and not trait_hostile/hostile affinity)
         if (directThreats.length === 0 && thirdPartyThreats.length === 0 && armedPostureThreats.length > 0) {
             const labels = armedPostureThreats.map(t => `${t.name} (holding ${t.weapons.join(', ')})`);
             const verb = labels.length > 1 ? 'are' : 'is';
-            return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${verb} visibly armed in this room.${allyInline} ` +
-                `Your current plan is INVALID. You MUST flee, hide, fight, disarm, or warn others NOW. ` +
-                `Do NOT examine items, explore doors, or follow your previous plan while a threat is present.`;
+            const directive = buildGradedThreatDirective(observerPlayer, threatDetails, stateData, 'armed_posture');
+            return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${verb} visibly armed in this room.${allyInline} ${directive}`;
         }
         // Direct hostility (or mixed direct + armed/third-party)
         const labels = threatDetails.map(t => {
@@ -601,14 +666,14 @@ const ThreatDetector = (() => {
             return `${t.name}${wep}`;
         });
         const verb = labels.length > 1 ? 'are' : 'is';
-        return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${verb} in this room and hostile toward you.${allyInline} ` +
-            `Your current plan is INVALID. You MUST flee, hide, fight, or warn others NOW. ` +
-            `Do NOT examine items, explore doors, or follow your previous plan while a threat is present.`;
+        const directive = buildGradedThreatDirective(observerPlayer, threatDetails, stateData, 'direct');
+        return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${verb} in this room and hostile toward you.${allyInline} ${directive}`;
     }
     return {
         getThreatAlert,
         getThreats,
         evaluateRoom,
+        buildGradedThreatDirective,
         isHostileTurnAction,
         isDeescalationAction,
         isWeaponOrHazard,

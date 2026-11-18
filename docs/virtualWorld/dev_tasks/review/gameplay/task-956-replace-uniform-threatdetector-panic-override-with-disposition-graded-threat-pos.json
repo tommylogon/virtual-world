@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 956,
   "title": "Replace uniform ThreatDetector panic override with disposition-graded threat posture and acute shock freeze save",
-  "status": "todo",
+  "status": "review",
   "priority": "high",
   "area": "gameplay",
   "tags": [
@@ -15,7 +15,7 @@
     "conditions"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-18",
   "horizon": "next",
   "effort": "l",
   "goal": "",
@@ -46,15 +46,15 @@
     "acceptance": [
       {
         "text": "ThreatDetector grades danger advisories by observer traits (brave, cowardly, calm, protective), relationship closeness to attacker vs target, and threat asymmetry instead of emitting a single forced 'MUST flee, hide, fight' prompt for all characters.",
-        "done": false
+        "done": true
       },
       {
         "text": "Sudden lethal escalation (armed threat, attack/combat, explosive sound) triggers a deterministic acute-shock/freeze saving throw that can impose a brief 1-turn hesitation/freeze condition modulated by character traits and combat familiarity.",
-        "done": false
+        "done": true
       },
       {
         "text": "Existing conditions in engine/player_conditions.py (frightened, stunned, BLOCKING_CONDITIONS) and ThreatDetector integrate cleanly without bypassing TurnQueue turn flow.",
-        "done": false
+        "done": true
       }
     ],
     "files": [

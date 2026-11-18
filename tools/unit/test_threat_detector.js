@@ -346,3 +346,47 @@ test('ThreatDetector post-disarm, drop, throw, and release de-escalation clears 
         window.worldState = prevWorldState;
     }
 });
+
+test('ThreatDetector grades danger posture by traits, affinity, weapon state, and shock freeze', () => {
+    const prevWorldState = window.worldState;
+    try {
+        const players = {
+            Raider: { name: 'Raider', state: 'idle', traits: { hostile: true }, holding: ['pistol'], relationships: {} },
+            Ally: { name: 'Ally', state: 'idle', traits: {}, holding: [], relationships: {} },
+            Protector: {
+                name: 'Protector', traits: { protective: true, brave: true }, holding: ['knife'],
+                relationships: { Ally: { closeness: 75 } },
+            },
+            CalmWatch: { name: 'CalmWatch', traits: { calm: true }, holding: [], relationships: {} },
+            Coward: { name: 'Coward', traits: { cowardly: true }, holding: [], relationships: {} },
+            FrozenObserver: { name: 'FrozenObserver', traits: {}, flags: { frozen_by_fear: true }, holding: [], relationships: {} },
+        };
+        const state = {
+            current_area: 'Bar',
+            players_in_area: [
+                { name: 'Raider', state: 'idle', holding: ['pistol'] },
+                { name: 'Ally', state: 'idle', holding: [] },
+                { name: 'Protector', state: 'idle', holding: ['knife'] },
+                { name: 'CalmWatch', state: 'idle', holding: [] },
+                { name: 'Coward', state: 'idle', holding: [] },
+                { name: 'FrozenObserver', state: 'idle', holding: [] },
+            ],
+            players,
+            turn_events: [{ actor: 'Raider', action: 'attack', target: 'Ally', description: 'aims pistol at Ally' }],
+        };
+        window.worldState = { data: state, hasMet: () => true, getItemsInArea: () => [] };
+
+        const protAlert = window.ThreatDetector.getThreatAlert('Protector', players.Protector, 'Bar', state.turn_events, state);
+        const calmAlert = window.ThreatDetector.getThreatAlert('CalmWatch', players.CalmWatch, 'Bar', state.turn_events, state);
+        const cowardAlert = window.ThreatDetector.getThreatAlert('Coward', players.Coward, 'Bar', state.turn_events, state);
+        const frozenAlert = window.ThreatDetector.getThreatAlert('FrozenObserver', players.FrozenObserver, 'Bar', state.turn_events, state);
+
+        assertEq(!protAlert.includes('Your current plan is INVALID'), true, 'no uniform forced plan-invalid override');
+        assertEq(protAlert.includes('POSTURE [STAND / INTERVENE]'), true, 'protective/allied observer gets STAND / INTERVENE');
+        assertEq(calmAlert.includes('POSTURE [ASSESS]'), true, 'calm observer gets ASSESS');
+        assertEq(cowardAlert.includes('POSTURE [EVADE]'), true, 'cowardly observer gets EVADE');
+        assertEq(frozenAlert.includes('SHOCK / HESITATION'), true, 'shock-frozen observer gets SHOCK / HESITATION');
+    } finally {
+        window.worldState = prevWorldState;
+    }
+});

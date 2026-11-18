@@ -260,6 +260,134 @@ def react(gs, player):
     return apply_frightening(gs, player, sources)
 
 
+def release_acute_shock_on_damage(player) -> bool:
+    """Clear acute-shock freeze flags/conditions when *player* takes damage."""
+    if player is None:
+        return False
+    cleared = False
+    flags = getattr(player, "flags", None)
+    if isinstance(flags, dict) and flags.pop("frozen_by_fear", None):
+        cleared = True
+    if getattr(player, "_fear_freeze_until_tick", None) is not None:
+        player._fear_freeze_until_tick = None
+        cleared = True
+    conds = getattr(player, "conditions", None)
+    if isinstance(conds, dict) and "stunned" in conds:
+        kept = [
+            inst for inst in (conds.get("stunned") or [])
+            if not (isinstance(inst, dict) and inst.get("source") == "acute_shock")
+        ]
+        if len(kept) != len(conds.get("stunned") or []):
+            if kept:
+                conds["stunned"] = kept
+            else:
+                conds.pop("stunned", None)
+            cleared = True
+    return cleared
+
+
+def _shock_save_bonus(player) -> Tuple[int, bool]:
+    """Return ``(bonus, immune)`` for an acute-shock freeze saving throw."""
+    traits = {str(k).lower(): v for k, v in (getattr(player, "traits", None) or {}).items() if v}
+    if traits.get("fearless") or traits.get("immune_to_fear"):
+        return 0, True
+
+    stats = getattr(player, "stats", None) or {}
+    wis = int(stats.get("WIS", stats.get("wis", 10)) or 10)
+    con = int(stats.get("CON", stats.get("con", 10)) or 10)
+    stat_mod = max((wis - 10) // 2, (con - 10) // 2)
+
+    bonus = stat_mod
+    if any(traits.get(t) for t in ("brave", "calm", "stoic", "veteran", "combat_trained", "protective")):
+        bonus += 4
+    if any(traits.get(t) for t in ("cowardly", "jittery", "nervous", "timid", "panicky")):
+        bonus -= 4
+
+    skills = getattr(player, "skills", None) or {}
+    if isinstance(skills, dict) and (skills.get("combat") or skills.get("melee") or skills.get("firearms")):
+        bonus += 2
+    elif traits.get("hostile"):
+        bonus += 2
+    return bonus, False
+
+
+def trigger_acute_shock_freeze(
+    gs,
+    player,
+    source_name: str,
+    *,
+    trigger_kind: str = "combat_threat",
+    roll_fn=None,
+) -> Optional[Dict[str, Any]]:
+    """Roll a WIS/CON acute-shock freeze save on sudden lethal escalation (task-956).
+
+    On failure, stamps a brief 1-turn ``stunned`` (``source='acute_shock'``)
+    and ``frozen_by_fear`` hesitation window without bypassing TurnQueue.
+    """
+    if player is None or getattr(player, "state", None) == "dead":
+        return None
+
+    flags = getattr(player, "flags", None)
+    if isinstance(flags, dict) and flags.get("frozen_by_fear"):
+        return None
+    if hasattr(player, "has_condition") and player.has_condition("stunned"):
+        return None
+
+    bonus, immune = _shock_save_bonus(player)
+    if immune:
+        return None
+
+    dc_map = {
+        "combat_threat": 12,
+        "lethal_weapon": 12,
+        "loud_blast": 11,
+        "witness_combat": 10,
+    }
+    dc = dc_map.get(trigger_kind, 11)
+
+    import random
+    raw_roll = int(roll_fn()) if callable(roll_fn) else random.randint(1, 20)
+    total = raw_roll + bonus
+    if total >= dc:
+        return {"saved": True, "roll": raw_roll, "bonus": bonus, "total": total, "dc": dc}
+
+    now_tick = int(getattr(gs, "time_ticks", 0) or 0) if gs is not None else 0
+    per_tick = float(getattr(gs, "time_per_tick_minutes", 5) or 5) if gs is not None else 5.0
+    one_turn_minutes = max(1, int(round(per_tick)))
+
+    try:
+        player._fear_freeze_until_tick = now_tick + 1
+    except Exception:
+        pass
+    try:
+        if not isinstance(getattr(player, "flags", None), dict):
+            player.flags = {}
+        player.flags["frozen_by_fear"] = True
+    except Exception:
+        pass
+    try:
+        if hasattr(player, "add_condition"):
+            player.add_condition("stunned", duration=one_turn_minutes, source="acute_shock")
+        elif isinstance(getattr(player, "conditions", None), dict):
+            player.conditions["stunned"] = [{
+                "duration": one_turn_minutes,
+                "source": "acute_shock",
+                "level": 0,
+            }]
+    except Exception as e:
+        logger.warning("[fear] could not apply acute_shock stunned to %s: %s", getattr(player, "name", "?"), e)
+
+    return {
+        "saved": False,
+        "roll": raw_roll,
+        "bonus": bonus,
+        "total": total,
+        "dc": dc,
+        "source": source_name,
+        "trigger_kind": trigger_kind,
+    }
+
+
 def react_in_area(gs, area_name: str) -> list:
     """Run :func:`react` for every living character in *area_name*.
 

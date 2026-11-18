@@ -134,6 +134,15 @@ class CombatSystem:
                     self.skills.add_log_entry(line)
         except Exception as e:
             logger.warning("[combat] combat_threat %s: %s", target_name, e)
+        try:
+            from engine.fear import trigger_acute_shock_freeze
+            shock = trigger_acute_shock_freeze(gs, target, attacker_name, trigger_kind="combat_threat")
+            if shock and not shock.get("saved"):
+                self.skills.add_log_entry(
+                    f"[SHOCK] {target_name} freezes in acute shock (roll {shock['total']} vs DC {shock['dc']})."
+                )
+        except Exception as e:
+            logger.warning("[combat] acute_shock %s: %s", target_name, e)
         if not area_name:
             return
         players = getattr(self.skills, "players", None) or {}
@@ -151,9 +160,24 @@ class CombatSystem:
                     self.skills.add_log_entry(line)
             except Exception as e:
                 logger.warning("[combat] witness_combat %s: %s", bname, e)
+            try:
+                from engine.fear import trigger_acute_shock_freeze
+                bshock = trigger_acute_shock_freeze(gs, bplayer, attacker_name, trigger_kind="witness_combat")
+                if bshock and not bshock.get("saved"):
+                    self.skills.add_log_entry(
+                        f"[SHOCK] {bname} freezes in shock watching {attacker_name} attack {target_name}."
+                    )
+            except Exception as e:
+                logger.warning("[combat] witness acute_shock %s: %s", bname, e)
 
     def _wake_on_damage(self, target_name, source=None, source_type=None):
-        """Damage interrupts activities (wakes sleepers). Returns wake message."""
+        """Damage interrupts activities (wakes sleepers) and breaks acute-shock freeze."""
+        try:
+            from engine.fear import release_acute_shock_on_damage
+            tplayer = (getattr(self.skills, "players", None) or {}).get(target_name)
+            release_acute_shock_on_damage(tplayer)
+        except Exception:
+            pass
         try:
             return self.skills.activities.wake_on_damage(
                 target_name, source=source, source_type=source_type

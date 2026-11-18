@@ -231,6 +231,15 @@ const Involuntary = (() => {
         if (!emoteText || typeof emoteText !== 'string')
             return null;
         const boost = _traitBoost(player);
+        const isShockFrozen = Boolean(player?.flags?.frozen_by_fear || _hasCondition(player, 'stunned'));
+        if (isShockFrozen) {
+            const freezePool = [
+                '*{they} freeze mid-step, breath caught in {their} throat*',
+                '*{they} go rigid for a beat, eyes wide*',
+            ];
+            const pick = freezePool[Math.floor(Math.random() * freezePool.length)];
+            return `${emoteText} ${_render(pick, player)}`.trim();
+        }
         if (_startled(context) && Math.random() < STARTLE_EMOTE_CHANCE) {
             const pick = STARTLE_EMOTES[Math.floor(Math.random() * STARTLE_EMOTES.length)];
             return `${emoteText} ${_render(pick, player)}`.trim();
