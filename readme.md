@@ -1,8 +1,10 @@
 # VirtualWorld Engine
 
-VirtualWorld is a local, single-player world simulation driven by AI agents. It uses Flask and a browser front end, has no cloud dependency, and can connect to a local model (such as Ollama or LM Studio) or another OpenAI-compatible provider. The app also runs without an LLM provider; agent thinking then remains unavailable.
+VirtualWorld is a local, single-player world simulation driven by AI agents - a simulacrum for artificial life attempting to give AI **feelings, lived experience, and a continuous mind** inside a persistent world it can interact with as if it were real. It uses Flask and a browser front end, has no cloud dependency, and can connect to a local model (such as Ollama or LM Studio) or another OpenAI-compatible provider. The app also runs without an LLM provider; agent thinking then remains unavailable.
 
-**Project snapshot: 2026-10-15.** The project is active and under development. The counts and statuses below describe the current repository and task tracker on this date.
+See [Simulation Philosophy](docs/virtualWorld/Simulation%20Philosophy.md) and [Interiority & Subtext](docs/virtualWorld/Characters/Interiority%20%26%20Subtext.md) for the core design manifesto.
+
+**Project snapshot: 2026-11-17.** The project is active and under development. The task tracker counts below reflect the current repository on this date; the `scc` line counts in **Repository size** remain from the 2026-10-15 measurement.
 
 ## What the project models
 
@@ -76,16 +78,16 @@ The catalogue also marks **Crafting** as wired, but it does not yet have a dedic
 
 The task tree is under `docs/virtualWorld/dev_tasks/`. The status folder is authoritative; `review` means pending review, not completed. Counts below come from `python tools/tasks.py status --json` and `python tools/tasks.py list`.
 
-There are **905 cards**: **827 tasks** and **78 bugs**. **537 are marked done** (59.3% of all cards). The rest are in review, in progress, todo, or cancelled.
+There are **1,078 cards** tracked in `docs/virtualWorld/dev_tasks/` (`python tools/tasks.py status --json` on 2026-11-17). **624 are marked done** (57.9% of all cards), **388 are in review** (36.0%), and **23 are todo** (2.1%).
 
 | Status | Cards | Share |
 |---|---:|---:|
-| Done | 537 | 59.3% |
-| Review | 176 | 19.4% |
-| In progress | 46 | 5.1% |
-| Todo | 114 | 12.6% |
-| Cancelled | 32 | 3.5% |
-| **Total** | **905** | **100%** |
+| Done | 624 | 57.9% |
+| Review | 388 | 36.0% |
+| In progress | 3 | 0.3% |
+| Todo | 23 | 2.1% |
+| Cancelled | 40 | 3.7% |
+| **Total** | **1,078** | **100%** |
 
 Shares are rounded to one decimal place.
 
@@ -149,6 +151,8 @@ The last measured Python suite baseline is **6,446 passed / 12 failed** on a cle
 
 ## Further reading
 
+- [Simulation Philosophy](docs/virtualWorld/Simulation%20Philosophy.md) - why physical friction, bodily sovereignty, and tactile labor matter.
+- [Interiority & Subtext](docs/virtualWorld/Characters/Interiority%20%26%20Subtext.md) - lived consciousness, somatic urgency, and GIMP as spine.
 - [Feature overview](docs/virtualWorld/Features/Features%20Overview.md) - player and editor features with current status.
 - [Feature index](docs/design/feature-index.md) - generated mapping from features to front-end modules.
 - [AGENTS.md](AGENTS.md) - architecture, conventions, testing guidance, and known gotchas.

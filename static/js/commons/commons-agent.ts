@@ -241,6 +241,61 @@
             if (this.isRunning && !state.isPaused) this.scheduleAll();
         }
 
+        static lastActedTickByChar: Record<string, number> = {};
+
+        static _formatWorldTimeAndAgo(msgTick: unknown, playerContext: any, msgWorldDatetime?: unknown): { sent_time?: string; sent_ago: string } {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            if (typeof msgWorldDatetime === 'string' && msgWorldDatetime) {
+                const m = msgWorldDatetime.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+                if (m) {
+                    const sent_time = `${months[(Math.max(1, Number(m[2])) - 1) % 12]} ${Number(m[3])}, ${Number(m[1])} ${m[4]}:${m[5]}`;
+                    let sent_ago = 'just now';
+                    if (typeof playerContext?.world_datetime === 'string' && playerContext.world_datetime) {
+                        const msgMs = Date.parse(msgWorldDatetime);
+                        const curMs = Date.parse(playerContext.world_datetime);
+                        if (Number.isFinite(msgMs) && Number.isFinite(curMs)) {
+                            const deltaSecs = Math.max(0, Math.round((curMs - msgMs) / 1000));
+                            const deltaMins = Math.round(deltaSecs / 60);
+                            if (deltaSecs >= 60 && deltaMins < 60) sent_ago = `${deltaMins}m ago`;
+                            else if (deltaMins >= 60 && deltaMins < 1440) sent_ago = `~${Math.round(deltaMins / 60)}h ago`;
+                            else if (deltaMins >= 1440) sent_ago = `~${Math.round(deltaMins / 1440)}d ago`;
+                        }
+                    }
+                    return { sent_time, sent_ago };
+                }
+            }
+            if (typeof msgTick !== 'number' || !Number.isFinite(msgTick)) return { sent_ago: 'just now' };
+            const curTick = Number(playerContext?.time_ticks ?? 0) || 0;
+            const mpt = Number(playerContext?.time_per_tick_minutes ?? 5) || 5;
+            const startMin = (Number(playerContext?.clock_start_hour ?? 8) * 60) + Number(playerContext?.clock_start_minute ?? 0);
+            const total = Math.round(startMin + msgTick * mpt);
+            const dayMinutes = ((total % 1440) + 1440) % 1440;
+            const hh = String(Math.floor(dayMinutes / 60)).padStart(2, '0');
+            const mm = String(dayMinutes % 60).padStart(2, '0');
+            const deltaMins = Math.max(0, Math.round((curTick - msgTick) * mpt));
+            let sent_ago = 'just now';
+            if (deltaMins > 5 && deltaMins < 60) sent_ago = `${deltaMins}m ago`;
+            else if (deltaMins >= 60 && deltaMins < 1440) sent_ago = `~${Math.round(deltaMins / 60)}h ago`;
+            else if (deltaMins >= 1440) sent_ago = `~${Math.round(deltaMins / 1440)}d ago`;
+
+            const cfg = playerContext?.calendar_config && typeof playerContext.calendar_config === 'object' ? playerContext.calendar_config : {};
+            const dpm = Math.max(1, Math.floor(Number(cfg.days_per_month) || 30));
+            const mpy = Math.max(1, Math.floor(Number(cfg.months_per_year) || 12));
+            const curElapsedDays = Math.floor((startMin + curTick * mpt) / 1440);
+            const curGameDay = Number(playerContext?.game_day) || 1;
+            const baseDay = cfg.start_year
+                ? ((Number(cfg.start_year) - 1) * dpm * mpy + ((Number(cfg.start_month) || 1) - 1) * dpm + ((Number(cfg.start_day) || 1) - 1))
+                : (curGameDay - curElapsedDays - 1);
+            const targetElapsedDays = Math.floor(total / 1440);
+            const absDay = baseDay + targetElapsedDays + 1;
+            const yearIdx = Math.floor((absDay - 1) / (dpm * mpy)) + 1;
+            const monthIdx = (Math.floor((absDay - 1) / dpm) % mpy) + 1;
+            const dayIdx = ((absDay - 1) % dpm) + 1;
+            const mname = months[((monthIdx - 1) % 12 + 12) % 12];
+            const datePart = (yearIdx > 1 || cfg.start_year) ? `${mname} ${dayIdx}, ${yearIdx}` : `${mname} ${dayIdx}`;
+            return { sent_time: `${datePart} ${hh}:${mm}`, sent_ago };
+        }
+
         static async triggerAutoReplyForChannel(channel: any, sender: string) {
             const state = (window as any).CommonsState;
             const participants = state?.participants || {};
@@ -261,17 +316,17 @@
             }
         }
 
-        static async stepOne(charName?: string) {
+        static async stepOne(charName?: string, forceNonLlm: boolean = false) {
             const state = (window as any).CommonsState;
             const participants = state.participants || {};
             const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].control_mode === 'llm' && participants[n].active && !participants[n].blocked);
             const target = charName && charName !== 'User' ? participants[charName] : null;
-            const canForceManual = Boolean(charName && target && !target.blocked && target.control_mode !== 'unavailable');
+            const canForceManual = Boolean(charName && target && !target.blocked && target.control_mode !== 'unavailable' && (forceNonLlm || (target.control_mode === 'llm' && target.active)));
             if (!canForceManual && available.length === 0) return;
             const chosen = canForceManual
                 ? charName!
                 : available[Math.floor(Math.random() * available.length)];
-            await this.actCharacter(chosen, true);
+            await this.actCharacter(chosen, true, forceNonLlm);
         }
 
         static communicationTools(theme: string): any[] {
@@ -279,7 +334,7 @@
                 { type: 'function', function: { name: 'read_chat', description: 'Read messages from a channel you belong to. Use this before responding to messages you have not seen.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, mode: { type: 'string', enum: ['all', 'latest', 'range'] }, n: { type: 'integer', minimum: 1, maximum: 20 }, from_id: { type: 'integer' }, to_id: { type: 'integer' } }, required: ['channel_id'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'send_chat', description: 'Send a message to a channel you belong to. Replying is optional.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, text: { type: 'string' } }, required: ['channel_id', 'text'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'start_dm', description: 'Start or find a direct conversation and send its first message.', parameters: { type: 'object', properties: { recipient: { type: 'string' }, text: { type: 'string' } }, required: ['recipient', 'text'], additionalProperties: false } } },
-                { type: 'function', function: { name: 'remember', description: 'Save a schema-friendly observation or commitment worth remembering (who said what, when, and how it felt).', parameters: { type: 'object', properties: { text: { type: 'string' }, importance: { type: 'integer', minimum: 1, maximum: 10 }, tags: { type: 'array', items: { type: 'string' } }, entities: { type: 'array', items: { type: 'string' }, description: 'People or entities involved (e.g. ["Jake Halloway"])' }, emotion: { type: 'object', properties: { label: { type: 'string' }, intensity: { type: 'integer', minimum: 1, maximum: 10 } }, required: ['label', 'intensity'] } }, required: ['text'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'recall', description: 'Actively search your memories for a specific person, event, or topic when trying to remember something.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'What you are trying to remember (e.g. "7th grade sketchbook", "Evil Dead II")' } }, required: ['query'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'edit_message', description: 'Edit the text of a message you previously wrote in a channel. Use this to correct mistakes or clarify.', parameters: { type: 'object', properties: { message_id: { type: 'integer' }, text: { type: 'string' } }, required: ['message_id', 'text'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'delete_message', description: 'Retract and delete a message you previously wrote in a channel.', parameters: { type: 'object', properties: { message_id: { type: 'integer' } }, required: ['message_id'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'mute_chat', description: 'Mute or unmute notifications and auto-replies for a conversation you belong to.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, muted: { type: 'boolean' } }, required: ['channel_id', 'muted'], additionalProperties: false } } },
@@ -288,6 +343,10 @@
                 { type: 'function', function: { name: 'start_group', description: 'Create a group conversation with known characters and send its first message.', parameters: { type: 'object', properties: { group_name: { type: 'string' }, recipients: { type: 'array', items: { type: 'string' } }, text: { type: 'string' } }, required: ['group_name', 'recipients', 'text'], additionalProperties: false } } },
             );
             return tools;
+        }
+
+        static _isMemoryRecordingEnabled(): boolean {
+            return (window as any).config?.commonsRecordMemories !== false;
         }
 
         static async executeCommunicationTool(
@@ -320,6 +379,8 @@
                         .slice(0, 400);
                     let rawMemories: any[] = [];
                     let intermediatorThought: string | null = null;
+                    const unreadCount = Math.max(0, Number(channel.unread_count || 0));
+                    const newStartIdx = Math.max(0, recentSlice.length - unreadCount);
                     if (topicQuery) {
                         try {
                             const memRes = await api.retrieveMemories(charName, topicQuery, signal);
@@ -328,15 +389,21 @@
                             if (rawMemories.length && typeof pb?.synthesizeConsciousThought === 'function') {
                                 const senders = [...new Set(recentSlice.slice(-4).map((m: any) => String(m.author || '')).filter(Boolean))];
                                 const lines = recentSlice.slice(-4).map((m: any) => `${m.author}: ${String(m.text || '')}`);
+                                const skipPersist = !this._isMemoryRecordingEnabled();
                                 intermediatorThought = await pb.synthesizeConsciousThought(
                                     charName,
-                                    'Phone / The Commons',
+                                    String(playerContext?.current_area || 'unknown'),
                                     senders,
                                     lines,
                                     String(playerContext?.emotion || 'neutral'),
                                     rawMemories,
                                     `commons:${channel.id}:${topicQuery.slice(0, 120)}`,
-                                    false
+                                    false,
+                                    {
+                                        currentTick: playerContext?.time_ticks,
+                                        worldTime: playerContext?.world_time,
+                                        ...(skipPersist ? { skipPersist: true } : {}),
+                                    }
                                 );
                             }
                         } catch (_) { /* recall/intermediator is best-effort */ }
@@ -346,7 +413,7 @@
                         result: {
                             ok: true,
                             channel: channel.name,
-                            messages: recentSlice.map((message: any) => {
+                            messages: recentSlice.map((message: any, idx: number) => {
                                 let body = String(message.text || '');
                                 if (Array.isArray(message.attachments) && message.attachments.length) {
                                     const captions = message.attachments
@@ -354,10 +421,14 @@
                                         .join(' ');
                                     body = body ? `${body} ${captions}` : captions;
                                 }
+                                const timing = this._formatWorldTimeAndAgo(message.tick, playerContext, message.world_datetime);
                                 return {
                                     id: message.id,
                                     author: message.author,
+                                    status: idx >= newStartIdx && unreadCount > 0 ? 'NEW' : 'earlier',
                                     tick: message.tick ?? null,
+                                    sent_time: timing.sent_time,
+                                    sent_ago: timing.sent_ago,
                                     text: body.slice(0, 1000),
                                     attachments: message.attachments || undefined,
                                 };
@@ -407,16 +478,42 @@
                     if (postRecord) (window as any).CommonsState?.receiveMessage?.(postRecord);
                     return { result: { ok: true, channel_id: channel.id, message_id: postRecord?.id || posted?.message?.id || posted?.id || null }, summary: `started group #${groupName}`, readMessages: [] };
                 }
-                if (name === 'remember') {
-                    if (!text) throw new Error('Memory text is required.');
-                    const importance = Math.max(1, Math.min(10, Number(args.importance) || 5));
-                    const tags = Array.isArray(args.tags) ? args.tags.map(String).slice(0, 10) : ['conversation', 'chat'];
-                    const entities = Array.isArray(args.entities) ? args.entities.map(String).filter(Boolean).slice(0, 10) : undefined;
-                    const memory_emotions = (args.emotion && typeof args.emotion === 'object' && args.emotion.label)
-                        ? [{ label: String(args.emotion.label), intensity: Math.max(1, Math.min(10, Number(args.emotion.intensity) || 5)) }]
-                        : undefined;
-                    await api.storeMemory(charName, text, importance, tags, signal, { entities, memory_emotions });
-                    return { result: { ok: true }, summary: 'saved a conversation memory', readMessages: [] };
+                if (name === 'recall') {
+                    const query = typeof args.query === 'string' ? args.query.trim() : '';
+                    if (!query) throw new Error('Recall query is required.');
+                    const memRes = await api.retrieveMemories(charName, query, signal);
+                    const rawMems = (Array.isArray(memRes?.memories) ? memRes.memories : []).slice(0, 6);
+                    let synth: string | null = null;
+                    const pb = (window as any).PromptBuilder;
+                    if (rawMems.length && typeof pb?.synthesizeConsciousThought === 'function') {
+                        const skipPersist = !this._isMemoryRecordingEnabled();
+                        synth = await pb.synthesizeConsciousThought(
+                            charName,
+                            String(playerContext?.current_area || 'unknown'),
+                            [],
+                            [query],
+                            String(playerContext?.emotion || 'neutral'),
+                            rawMems,
+                            `commons:recall:${query.slice(0, 120)}`,
+                            false,
+                            {
+                                currentTick: playerContext?.time_ticks,
+                                worldTime: playerContext?.world_time,
+                                ...(skipPersist ? { skipPersist: true } : {}),
+                            }
+                        );
+                    }
+                    return {
+                        result: {
+                            ok: true,
+                            recalled_memories: rawMems.map((m: any) => String(m?.text || '').trim()).filter(Boolean),
+                            intermediator_thought: synth || undefined,
+                        },
+                        summary: `recalled memories about "${query.slice(0, 40)}"`,
+                        readMessages: [],
+                        recalledMemories: rawMems,
+                        intermediatorThought: synth,
+                    };
                 }
                 if (name === 'edit_message') {
                     const messageId = Number(args.message_id);
@@ -453,12 +550,12 @@
             }
         }
 
-        static async actCharacter(charName: string, isManualStep: boolean = false) {
+        static async actCharacter(charName: string, isManualStep: boolean = false, forceNonLlm: boolean = false) {
             const state = (window as any).CommonsState;
             if (!isManualStep && state.isPaused) return;
             const participant = state.participants?.[charName];
             if (!participant || participant.blocked || participant.control_mode === 'unavailable') return;
-            if (!isManualStep && (participant.control_mode !== 'llm' || !participant.active)) return;
+            if (!forceNonLlm && (participant.control_mode !== 'llm' || !participant.active)) return;
             if (this.controllers[charName]) return;
 
             const controller = new AbortController();
@@ -494,6 +591,12 @@
                     .map((line: string) => `- ${line}`)
                     .join('\n') || '- No relevant memories recalled.';
                 const channels = phone.channels || [];
+                const totalUnread = channels.filter((c: any) => !c.muted).reduce((sum: number, c: any) => sum + Number(c.unread_count || 0), 0);
+                const curWorldTick = Number(player?.time_ticks ?? 0) || 0;
+                if (!isManualStep && totalUnread === 0 && this.lastActedTickByChar[charName] === curWorldTick) {
+                    return false;
+                }
+                this.lastActedTickByChar[charName] = curWorldTick;
                 const theme = phone.theme === 'town_board' ? 'town_board' : 'live_social';
                 const knownCharacters = Array.isArray(phone.known_characters)
                     ? phone.known_characters.filter((name: string) => typeof name === 'string' && name !== charName && name !== 'User')
@@ -520,6 +623,34 @@
                 let intermediatorThought: string | null = null;
                 let inner = '';
                 let didPost = false;
+                const turnId = `${charName}:${Date.now()}:${Math.random().toString(36).slice(2, 6)}`;
+                const unreadLabels = channels
+                    .filter((c: any) => !c.muted && Number(c.unread_count || 0) > 0)
+                    .map((c: any) => `${Number(c.unread_count || 0)} unread in #${c.name || c.id}`);
+                const triggerSummary = unreadLabels.length
+                    ? unreadLabels.join(', ')
+                    : (isManualStep ? 'Manual ▶ Act trigger' : 'Ambient check');
+                const traceSteps: Array<{ kind: string; label: string; detail?: string }> = [
+                    { kind: 'notification', label: 'Notification', detail: triggerSummary },
+                ];
+                const messageIds: Array<string | number> = [];
+                const pushLiveTrace = (actionLabel: string, summaryLabel: string) => {
+                    state.upsertLiveTurn?.(charName, turnId, {
+                        turnId,
+                        inner,
+                        action: actionLabel,
+                        summary: summaryLabel,
+                        detail: {
+                            trigger: triggerSummary,
+                            steps: traceSteps.map(s => ({ ...s })),
+                            messageIds: [...messageIds],
+                            actions: [...summaries],
+                            recalledMemories,
+                            intermediatorThought,
+                        },
+                    });
+                };
+                pushLiveTrace('thinking', 'Woke up on notification');
                 const maxToolRounds = 6;
                 for (let round = 0; round < maxToolRounds; round++) {
                     const reply = await llm.chatWithTools(messages, {
@@ -529,6 +660,8 @@
                     if ((!isManualStep && state.isPaused) || signal.aborted || !reply) return false;
                     if (typeof reply.content === 'string' && reply.content.trim() && (!didPost || !inner)) {
                         inner = reply.content.trim();
+                        traceSteps.push({ kind: 'thought', label: 'Inner Monologue', detail: inner });
+                        pushLiveTrace(summaries.length ? summaries.join(' -> ') : 'thinking', inner.slice(0, 80));
                     }
                     const calls = Array.isArray(reply.tool_calls) ? reply.tool_calls : [];
                     if (!calls.length) break;
@@ -550,6 +683,28 @@
                             if (outcome.intermediatorThought) {
                                 intermediatorThought = outcome.intermediatorThought;
                             }
+                            const postedId = outcome?.result?.message_id ?? outcome?.result?.message?.id;
+                            if (postedId !== undefined && postedId !== null && !messageIds.includes(postedId)) {
+                                messageIds.push(postedId);
+                            }
+                            if (outcome.summary || outcome?.result?.ok) {
+                                traceSteps.push({
+                                    kind: ['read_chat', 'recall'].includes(toolName) ? 'recall' : 'decision',
+                                    label: toolName,
+                                    detail: outcome.summary || (outcome?.result?.ok ? 'ok' : String(outcome?.result?.error || '')),
+                                });
+                            }
+                            if (outcome.intermediatorThought) {
+                                traceSteps.push({
+                                    kind: 'intermediator',
+                                    label: 'Memory Summary (Intermediator)',
+                                    detail: outcome.intermediatorThought,
+                                });
+                            }
+                            pushLiveTrace(
+                                summaries.length ? summaries.join(' -> ') : 'thinking',
+                                summaries.length ? summaries.join('; ') : 'evaluating'
+                            );
                             readMessages.push(...outcome.readMessages);
                         }
                         messages.push({ role: 'tool', tool_call_id: calls[index].id, content: JSON.stringify(outcome.result) });
@@ -561,11 +716,31 @@
                 }
                 if (typeof state.recordTurn === 'function') {
                     state.recordTurn(charName, {
+                        turnId,
                         inner,
                         action: summaries.length ? summaries.join(' -> ') : 'think',
                         summary: summaries.length ? summaries.join('; ') : 'chose to stay quiet',
-                        detail: { actions: summaries, recalledMemories, intermediatorThought },
+                        detail: {
+                            trigger: triggerSummary,
+                            steps: traceSteps,
+                            messageIds,
+                            actions: summaries,
+                            recalledMemories,
+                            intermediatorThought,
+                        },
                     });
+                }
+                if (this._isMemoryRecordingEnabled() && inner && typeof api.storeMemory === 'function') {
+                    const emoLabel = String(player?.emotion || 'neutral').trim();
+                    const emoInt = Math.max(1, Math.min(10, Number(player?.emotion_intensity || 5)));
+                    const memory_emotions = emoLabel && emoLabel !== 'neutral' ? [{ label: emoLabel, intensity: emoInt }] : undefined;
+                    try {
+                        await api.storeMemory(charName, inner, Math.max(5, Math.min(8, emoInt)), ['inner_monologue', 'thought'], signal, {
+                            type: 'reflection',
+                            tick: typeof player?.time_ticks === 'number' ? player.time_ticks : undefined,
+                            memory_emotions,
+                        });
+                    } catch (_) { /* best-effort */ }
                 }
                 return { didPost, player };
             } catch (error) {

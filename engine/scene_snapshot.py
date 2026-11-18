@@ -136,9 +136,19 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
     # seeing someone registers the relationship (stable masked label) but
     # NEVER reveals the name - names are learned only by hearing them
     # spoken or by reading a name tag. `first_sighting` means "name unknown".
+    from engine.triggers.behaviors import is_character_hidden
     for node in characters_in_area(graph, area_id, exclude_name=player_name):
         name = node.name
         p_obj = player_manager.players.get(name)
+        if p_obj is not None:
+            if getattr(p_obj, "hidden", False) or getattr(p_obj, "state", "") in ("hidden", "stealthed"):
+                continue
+            if hasattr(player_manager, "is_visible") and not player_manager.is_visible(name):
+                continue
+        if is_character_hidden(player_manager, name, graph, player=p_obj):
+            continue
+        if str(node.properties.get("current_state", "")).lower() in ("hidden", "stealthed") or node.properties.get("hidden"):
+            continue
         met = player.has_met(name)
         name_known = player.knows_name(name) if hasattr(player, "knows_name") else met
         desc = str(node.properties.get("description", "") or "")
@@ -384,6 +394,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
 
     scene["you"] = {
         "name": player_name,
+        "hidden": is_character_hidden(player_manager, player_name, graph, player=player),
         "at_way_id": at_way_id,
         "vitals": dict(getattr(player, "vitals", {}) or {}),
         "conditions": conditions,

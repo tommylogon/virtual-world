@@ -294,6 +294,12 @@ class Player:
         # Boolean traits use True. Parameterized traits use a string (e.g. {"allergic": "pollen"}).
         # Example: {"dark_vision": True, "hardy": True, "glutton": True}
         self.traits = {}
+        # Structured language competence and word-level lexicon (task-966):
+        # list of {language, fluency, known_words, literate}.
+        self.languages = []
+        # Structured domain competence and explicit blind spots (task-968):
+        # list of {domain, level: ignorant|novice|familiar|expert, notes, jargon_terms}.
+        self.domains = []
         # Size: which of engine/size.SIZE_TIERS this character is. A property
         # rather than a `size_*` trait (task-605) so it is visible, filterable and
         # settable from the graph editor character form; the trait is still read
@@ -524,6 +530,7 @@ class Player:
         # phrased into a first-person memory by engine/lived_log_memory.py, so a
         # re-run of a turn cannot duplicate a memory (task-727).
         self.lived_log_memorized_through = 0
+        self.lived_log_memorized_at_mark = 0
 
         self.sync_vitals_with_tags()
 
@@ -968,11 +975,58 @@ class Player:
             (str(area_name), str(direction)), ()
         )
 
+    def get_domain_level(self, domain: str):
+        """Return authored competence level for `domain` (ignorant|novice|familiar|expert), or None if unauthored."""
+        target = str(domain or "").strip().lower()
+        if not target:
+            return None
+        for entry in getattr(self, "domains", None) or []:
+            if isinstance(entry, dict) and str(entry.get("domain") or "").strip().lower() == target:
+                return str(entry.get("level") or "familiar").strip().lower()
+        return None
+
+    def has_domain_level(self, domain: str, min_level: str = "familiar") -> bool:
+        """True when character meets or exceeds `min_level` in `domain`."""
+        ranks = {"ignorant": 0, "novice": 1, "familiar": 2, "expert": 3}
+        actual = self.get_domain_level(domain)
+        if actual is None:
+            return False
+        return ranks.get(actual, 0) >= ranks.get(str(min_level or "familiar").strip().lower(), 2)
+
     def get_knowledge_records(self) -> list:
-        """Return unified prose+data knowledge records for recipes, known facts, places, and way aspects (task-734).
+        """Return unified prose+data knowledge records for recipes, known facts, places, way aspects, and domains (task-734, task-968).
         Each record has kind='semantic' (or 'procedural' for recipes) and category='semantic'/'procedural'.
         """
         records = []
+        # 0. Structured domain competence and blind spots -> semantic kind
+        for dom in getattr(self, "domains", None) or []:
+            if not isinstance(dom, dict) or not dom.get("domain"):
+                continue
+            dname = str(dom["domain"]).strip()
+            level = str(dom.get("level") or "familiar").strip().lower()
+            notes = str(dom.get("notes") or "").strip()
+            terms = [str(t).strip() for t in (dom.get("jargon_terms") or []) if str(t).strip()]
+            is_blind_spot = level == "ignorant"
+            note_suffix = f": {notes}" if notes else ""
+            records.append({
+                "id": f"domain_{dname}",
+                "text": (
+                    f"Blind spot in {dname} (ignorant){note_suffix}"
+                    if is_blind_spot
+                    else f"Domain {dname} ({level}){note_suffix}"
+                ),
+                "type": "blind_spot" if is_blind_spot else "domain",
+                "category": "semantic",
+                "kind": "semantic",
+                "source": "knowledge",
+                "data": {
+                    "domain": dname,
+                    "level": level,
+                    "notes": notes,
+                    "jargon_terms": terms,
+                },
+                "importance": 6 if level == "expert" else 5,
+            })
         # 1. Recipes (crafting_known) -> procedural kind
         for r in getattr(self, "crafting_known", []) or []:
             records.append({
@@ -1183,7 +1237,7 @@ class Player:
         from engine.relationships import describe
         return describe(self, other_name)
 
-    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None, data=None, kind=None):
+    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None, data=None, kind=None, world_datetime=None):
         """Add a memory entry. Importance 1-10, higher = more significant.
 
         tags: list[str] - optional keyword labels for targeting via trigger effects.
@@ -1214,6 +1268,8 @@ class Player:
         }
         if kind:
             entry["kind"] = str(kind)
+        if world_datetime:
+            entry["world_datetime"] = str(world_datetime)
         if category:
             entry["category"] = str(category)
         if data is not None:
@@ -1685,6 +1741,8 @@ class Player:
             "activity": self.activity,
             "relationships": self._relationships_to_dict(),
             "traits": dict(self.traits),
+            "languages": [dict(x, known_words=list(x.get("known_words") or [])) for x in (getattr(self, "languages", []) or []) if isinstance(x, dict)],
+            "domains": [dict(x, jargon_terms=list(x.get("jargon_terms") or [])) for x in (getattr(self, "domains", []) or []) if isinstance(x, dict)],
             "size": getattr(self, "size", None) or "normal",
             "species": getattr(self, "species", None),
             "tags": list(self.tags),
@@ -1711,6 +1769,11 @@ class Player:
                 getattr(self, "background_consolidated_through", 0)),
             "lived_log_memorized_through": int(
                 getattr(self, "lived_log_memorized_through", 0)),
+            "lived_log_memorized_at_mark": (
+                int(self.lived_log_memorized_at_mark)
+                if getattr(self, "lived_log_memorized_at_mark", None) is not None
+                else None
+            ),
             "active_pursuit": getattr(self, "active_pursuit", None),
             "plan": getattr(self, "plan", None),
             "completed_pursuits": list(getattr(self, "completed_pursuits", []) or []),

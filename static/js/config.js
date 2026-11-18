@@ -26,8 +26,9 @@ const CONFIG_SCHEMA = {
     ghostMode: { storageKey: 'ghost_mode', type: 'boolean', default: false },
     matureContent: { storageKey: 'mature_content', type: 'boolean', default: false },
     showRawLLM: { storageKey: 'show_raw_llm', type: 'boolean', default: false },
-    endOfTurnMemory: { storageKey: 'end_of_turn_memory', type: 'boolean', default: false },
     commonsAutoReplyOnMessage: { storageKey: 'commons_auto_reply_on_message', type: 'boolean', default: false },
+    commonsAdvanceClockOnReply: { storageKey: 'commons_advance_clock_on_reply', type: 'boolean', default: false },
+    commonsRecordMemories: { storageKey: 'commons_record_memories', type: 'boolean', default: true },
     manualMode: { storageKey: 'manual_mode', type: 'boolean', default: false },
     autoRetryInvalid: { storageKey: 'auto_retry_invalid', type: 'boolean', default: false },
     structuredOutput: { storageKey: 'structured_output', type: 'boolean', default: true },
@@ -210,10 +211,9 @@ class ConfigManagerImpl {
         this.matureContent = (await storage.getConfig('mature_content')) === 'true';
         // Raw LLM exchange capture opt-in (task-405): feeds the LLM inspector
         this.showRawLLM = (await storage.getConfig('show_raw_llm')) === 'true';
-        // End-of-turn memory opt-in: memories are normally written at the START
-        // of a character's turn, so asking for one at the END is optional.
-        this.endOfTurnMemory = (await storage.getConfig('end_of_turn_memory')) === 'true';
         this.commonsAutoReplyOnMessage = (await storage.getConfig('commons_auto_reply_on_message')) === 'true';
+        this.commonsAdvanceClockOnReply = (await storage.getConfig('commons_advance_clock_on_reply')) === 'true';
+        this.commonsRecordMemories = (await storage.getConfig('commons_record_memories')) !== 'false';
         this.manualMode = (await storage.getConfig('manual_mode')) === 'true';
         // Invalid-action auto-retry (task-361): when an agent action fails, give
         // it one same-turn retry with the error fed back (default off).
@@ -414,8 +414,9 @@ class ConfigManagerImpl {
         await storage.setConfig('ghost_mode', this.ghostMode ? 'true' : 'false');
         await storage.setConfig('mature_content', this.matureContent ? 'true' : 'false');
         await storage.setConfig('show_raw_llm', this.showRawLLM ? 'true' : 'false');
-        await storage.setConfig('end_of_turn_memory', this.endOfTurnMemory ? 'true' : 'false');
         await storage.setConfig('commons_auto_reply_on_message', this.commonsAutoReplyOnMessage ? 'true' : 'false');
+        await storage.setConfig('commons_advance_clock_on_reply', this.commonsAdvanceClockOnReply ? 'true' : 'false');
+        await storage.setConfig('commons_record_memories', this.commonsRecordMemories !== false ? 'true' : 'false');
         await storage.setConfig('rpm_limit', String(this.rpmLimit));
         await storage.setConfig('tpm_limit', String(this.tpmLimit));
         await storage.setConfig('filter_thoughts', this.filterThoughts ? 'true' : 'false');
@@ -523,7 +524,6 @@ class ConfigManagerImpl {
             this.ghostMode = document.getElementById('agent-ghost-mode')?.checked ?? this.ghostMode;
             this.matureContent = document.getElementById('agent-mature-content')?.checked ?? this.matureContent;
             this.showRawLLM = document.getElementById('agent-show-raw-llm')?.checked ?? this.showRawLLM;
-            this.endOfTurnMemory = document.getElementById('agent-end-of-turn-memory')?.checked ?? this.endOfTurnMemory;
             this.commonsAutoReplyOnMessage = document.getElementById('commons-auto-reply')?.checked ?? this.commonsAutoReplyOnMessage;
             this.manualMode = document.getElementById('agent-manual-mode')?.checked ?? this.manualMode;
             this.autoRetryInvalid = document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid;

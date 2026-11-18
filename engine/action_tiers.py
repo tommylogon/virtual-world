@@ -175,6 +175,8 @@ VERB_TIERS: dict[str, str] = {
     "combine": MAJOR,
     "split": MAJOR,
     "give": MAJOR,
+    "throw": MAJOR,
+    "toss": MAJOR,
     "steal": MAJOR,
     "fix": MAJOR,
     "treat": MAJOR,

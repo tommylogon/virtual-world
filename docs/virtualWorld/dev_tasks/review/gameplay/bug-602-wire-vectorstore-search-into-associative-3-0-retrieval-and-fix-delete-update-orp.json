@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "bug-602",
+  "kind": "bug",
+  "number": 602,
+  "title": "Wire VectorStore search into Associative 3.0 retrieval and fix delete/update orphan vectors, contradicts links, and memory_index",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "retrieval",
+    "semantic-search",
+    "vector-store",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-585",
+      "task-948",
+      "task-950",
+      "bug-604"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Run semantic VectorStore similarity queries under default Associative 3.0 retrieval instead of only legacy mode, and clean up VectorStore entries, contradicts[] links, and player.memory_index on memory deletion and text edits.",
+    "why": "engine/memory_retrieval.py Channel 7 (lines 420-432) weights cues.semantic_scores (* 3.0), yet static/js/agent/prompt-builder/memory-context.ts (lines 292, 345-392) puts EmbeddingClient.embed and searchMemoryEmbeddings strictly inside `if (strategy === 'legacy')`, leaving vector recall completely dead under default strategy='associative'. Meanwhile routes/memories.py delete_player_memory (lines 579-588) removes only from player.memories - leaving orphaned entries in VectorStore (which only has remove_character()), dangling IDs in surviving memories' contradicts[] lists, and stale pointers in player.memory_index - while update_player_memory leaves stale vectors when text changes.",
+    "how": "1. Move semantic query embedding + searchMemoryEmbeddings out of the `if (strategy === 'legacy')` block in static/js/agent/prompt-builder/memory-context.ts so when !preview and EmbeddingClient.configured(), top semantic hits are passed as cues.semantic_scores (keyed by memory_id) to /api/players/<id>/memories/retrieve for Channel 7 scoring.\n2. Add VectorStore.remove_key(key) (and prefix/ID cleanup helpers) in engine/vector_store.py. Call it inside delete_player_memory (routes/memories.py lines 579-588), plus scrub deleted entry_id from all surviving memories' contradicts[] lists and player.memory_index entries.\n3. On update_player_memory (routes/memories.py lines 528-576) when text changes, remove the outdated vector from VectorStore and return an invalidated/re-embed flag so client editors re-embed cleanly.\n4. Standardize VectorStore keys or search prefix matching on opaque player ID (with legacy display-name fallback during migration) so multi-word/renamed characters stay indexed cleanly.",
+    "verify": "1. Run pytest tests covering VectorStore.remove_key, delete_player_memory unlinking contradicts and memory_index, update_player_memory dropping stale vectors on text change, and Channel 7 scoring cues.semantic_scores.\n2. Run npm run build:ts and JS unit tests verifying buildMemoryContext populates cues.semantic_scores under default strategy='associative' (and skips embedding calls when preview=true).",
+    "acceptance": [
+      {
+        "text": "Default Associative 3.0 retrieval (strategy='associative') invokes EmbeddingClient + /api/memory/embeddings when configured and passes semantic_scores into /memories/retrieve so Channel 7 contributes in memory_retrieval.py (while respecting preview=true no-side-effects).",
+        "done": false
+      },
+      {
+        "text": "VectorStore supports single-key removal (remove_entry / remove_keys), and delete_player_memory deletes the memory's vector, unlinks its ID from surviving memories' contradicts[] arrays, and clears stale player.memory_index pointers.",
+        "done": false
+      },
+      {
+        "text": "update_player_memory invalidates or refreshes stale VectorStore vectors when text is modified, and VectorStore character keys / searches resolve opaque player IDs consistently alongside legacy display-name keys.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "static/js/agent/memory-manager.ts",
+      "routes/memories.py",
+      "engine/memory_retrieval.py",
+      "engine/vector_store.py",
+      "player.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Lens retrieval breakdown (static/js/agent-lens.ts) and Character Inspector -> Mind -> Memories (static/js/inspector/memory-view.ts).\n\nCurrent availability: Vector embeddings are indexed on storeMemory, but buildMemoryContext gates vector search behind if (strategy === 'legacy'), delete_player_memory leaves orphaned vectors/contradicts/memory_index entries, and text edits leave stale vectors.\n\nManual verification steps:\n1. Configure an embedding model in Settings, store two memories with paraphrases (no shared exact keywords), and trigger Associative 3.0 retrieval on a turn.\n   - expected: Agent Lens shows Channel 7 semantic similarity scoring non-zero matches under default associative strategy.\n2. Edit a memory's text and delete another contradicted memory via the Inspector Mind panel.\n   - expected: The edited memory no longer matches stale pre-edit semantics, and deleted IDs disappear from VectorStore, contradicts[] links on surviving memories, and player.memory_index."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

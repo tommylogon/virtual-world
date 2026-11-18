@@ -1454,29 +1454,66 @@ def _apply_entry_selection(current, source, sel_keys):
 
     `source` is the incoming list/dict (usually the library character), `current`
     the existing value (usually the live player's). Array entries match by
-    `id` else `name`; dict entries match by key. Returns the merged value.
+    `id` else `name`; dict entries match by key.
+
+    `sel_keys` may be:
+    - a list/tuple/set of entry keys to adopt from `source` (backward compatible), OR
+    - a dict `{ "keys": [...], "axes": { entryKey: [axisKey, ...] }, "remove": [...] }`
+      supporting per-axis Smart Merge and explicit removals.
     """
-    sel_set = set(str(k) for k in (sel_keys or []))
+    if isinstance(sel_keys, dict):
+        keys_list = sel_keys.get('keys') or []
+        axes_map = sel_keys.get('axes') or {}
+        remove_set = set(str(k) for k in (sel_keys.get('remove') or []))
+    else:
+        keys_list = sel_keys or []
+        axes_map = {}
+        remove_set = set()
+
+    sel_set = set(str(k) for k in keys_list)
     if isinstance(source, list):
         def _key(x):
             if isinstance(x, dict):
                 return str(x.get('id') or x.get('name') or '')
             return ''
-        out = list(current) if isinstance(current, list) else []
+        out = [x for x in (current if isinstance(current, list) else []) if _key(x) not in remove_set]
         for entry in source:
             k = _key(entry)
-            if k and k in sel_set:
+            if not k:
+                continue
+            if k in sel_set:
                 idx = next((i for i, x in enumerate(out) if _key(x) == k), -1)
                 if idx >= 0:
                     out[idx] = entry
                 else:
                     out.append(entry)
+            elif k in axes_map and isinstance(entry, dict):
+                axis_keys = set(str(ak) for ak in (axes_map.get(k) or []))
+                idx = next((i for i, x in enumerate(out) if _key(x) == k), -1)
+                if idx >= 0 and isinstance(out[idx], dict):
+                    merged_entry = dict(out[idx])
+                    for ak in axis_keys:
+                        if ak in entry:
+                            merged_entry[ak] = entry[ak]
+                    out[idx] = merged_entry
+                elif axis_keys:
+                    merged_entry = {ak: entry[ak] for ak in axis_keys if ak in entry}
+                    if 'id' in entry and 'id' not in merged_entry:
+                        merged_entry['id'] = entry['id']
+                    out.append(merged_entry)
         return out
     if isinstance(source, dict):
-        out = dict(current) if isinstance(current, dict) else {}
+        out = {k: v for k, v in (current.items() if isinstance(current, dict) else []) if str(k) not in remove_set}
         for k in sel_set:
             if k in source:
                 out[k] = source[k]
+        for k, axis_list in axes_map.items():
+            if k in source and isinstance(source[k], dict):
+                base_entry = dict(out.get(k)) if isinstance(out.get(k), dict) else {}
+                for ak in (axis_list or []):
+                    if ak in source[k]:
+                        base_entry[ak] = source[k][ak]
+                out[k] = base_entry
         return out
     return source
 
@@ -1600,7 +1637,12 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
                 assign(player_field, lib_char[section_key], kind)
         applied = ['all']
     else:
-        for section_key in sections:
+        ordered_sections = list(sections)
+        if isinstance(entries, dict):
+            for ek in entries.keys():
+                if ek not in ordered_sections:
+                    ordered_sections.append(ek)
+        for section_key in ordered_sections:
             if section_key not in editable_map:
                 continue
             if lib_char.get(section_key) is None:
@@ -1610,9 +1652,9 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
                 player_field, kind = target
             else:
                 player_field, kind = target, None
-            if entries and section_key in entries and (entries[section_key] or []):
-                # Per-entry apply: merge only the named library entries onto the
-                # player, leaving all other runtime values untouched.
+            if entries and section_key in entries and entries[section_key]:
+                # Per-entry / per-axis apply: merge only the named library
+                # entries (or axes) onto the player, leaving other runtime values untouched.
                 sel_keys = entries[section_key]
                 current_val = getattr(player, player_field, None)
                 if current_val is None:
@@ -1622,7 +1664,7 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
                     assign(player_field, merged, kind)
                 continue
             assign(player_field, lib_char[section_key], kind)
-        applied = sections
+        applied = ordered_sections
 
 # task-590: resolve reusable behaviour refs into the inline list the
     # evaluator reads. `merge_into` is idempotent, so refreshing twice does not

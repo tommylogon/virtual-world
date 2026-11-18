@@ -204,6 +204,31 @@ the project's actual state and say what is wrong with it.
 
 ---
 
+## Why VirtualWorld exists
+
+VirtualWorld is attempting to give AI what it normally lacks and claims not to
+have: **feelings, lived experience, and a continuous mind**, inside a world it
+can interact with as if it were real.
+
+Every simulation constraint in this repository serves that goal:
+
+- **A world that pushes back:** Darkness, cold, locked ways, physical items,
+  fatigue, fear, and language barriers exist so actions have real friction and
+  consequences rather than narration-only shortcuts.
+- **A subjective mind, not an omniscient reader:** Strict actor isolation,
+  perception/fog-of-war masking, and conscious memory synthesis exist so an
+  agent experiences a moment from the inside instead of reading raw database
+  dumps.
+- **Feelings and continuity that persist:** Multi-target affect, reconsolidating
+  memories, GIMP goals, and MOSIAC triage exist so emotions, attachments, and
+  wants linger across scenes and shape what a character chooses next.
+
+Read [docs/virtualWorld/Simulation Philosophy.md](docs/virtualWorld/Simulation%20Philosophy.md)
+and [docs/virtualWorld/Characters/Interiority & Subtext.md](docs/virtualWorld/Characters/Interiority%20%26%20Subtext.md)
+before changing simulation rules or prompt pipelines.
+
+---
+
 ## Prime directive
 
 VirtualWorld is a simulation, not a collection of isolated features.

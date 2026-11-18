@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "bug-599",
+  "kind": "bug",
+  "number": 599,
+  "title": "Register phone verbs (call, answer, hangup, text) and enforce is_device_active checks on text/message",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "phones",
+    "comms",
+    "action-verbs",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-299",
+      "task-53",
+      "task-965"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Register existing phone verbs (call, answer, hangup, text/message) in action_verbs.py, PlanGrounding, and contextual prompts, and make text/message verify is_device_active for both sender and recipient phones.",
+    "why": "routes/action_handlers.py (lines 1862-2009) and engine/long_distance_comms.py (lines 379-531) already implement call, answer, hangup, text, and message, yet none of those verbs are registered in engine/action_verbs.py (lines 64-160), PlanGrounding (lines 55-67), or contextual-actions.ts (lines 320-395). Furthermore, the text/message handler (lines 1902-2008) checks only 'phone' in name/tags without calling is_device_active, and writes an instant 'Received text' memory to the recipient even if the recipient owns no phone or has a dead battery.",
+    "how": "1. Register 'call', 'answer', 'hangup', and 'text' (alias 'message') in engine/action_verbs.py and add them to PlanGrounding.PLAN_INTENT_ACTS.\\n2. Surface phone verbs in contextual-actions.ts when carrying/near an active phone (including 'answer' / 'hangup' context when incoming_call_from or on_a_call).\\n3. Update routes/action_handlers.py (lines 1900-2009) to reuse engine.long_distance_comms.is_device_active on the sender's device and verify recipient device activity for instant DM delivery/buzz notification (queuing unread messages until recipient phone is active rather than forcing immediate 'Saw/Received' awareness on an unpowered or uncarried device).",
+    "verify": "1. Run pytest covering action_verbs registration and routes/action_handlers.py text/call/answer/hangup paths with powered vs dead/absent sender and recipient phones.\\n2. Run npm run build:ts and node tools/unit/run.cjs verifying PlanGrounding and contextual-actions expose phone verbs when holding a phone or receiving a call.",
+    "acceptance": [
+      {
+        "text": "call, answer, hangup, and text (with message alias) are registered in engine/action_verbs.py, PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions.ts when carrying or co-located with an active phone/comms device.",
+        "done": false
+      },
+      {
+        "text": "routes/action_handlers.py text/message handler validates is_device_active(world.graph, node) on sender's phone (refusing dead/powered-off devices) instead of matching only 'phone' in tags/name.",
+        "done": false
+      },
+      {
+        "text": "DM text/message checks whether the recipient has an active reachable phone before immediate delivery and records a subtle phone notification turn/sound event (unless silenced/off) rather than unconditionally writing a receipt memory into any powerless character.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "engine/long_distance_comms.py",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Available Actions & item brackets, plus Event Stream `[Call]` / text logs.\\n\\nCurrent availability: routes/action_handlers.py (lines 1862-2009) and engine/long_distance_comms.py implement call/answer/hangup/text/message, but none are registered in action_verbs.py, plan-grounding.ts, or contextual-actions.ts, and text/message skips is_device_active checks on both sender and recipient.\\n\\nManual verification steps:\\n1. Give Character A an active phone and Character B either an active phone or a dead/powered-off phone.\\n2. Inspect A's Available Actions and send `text B hello` and `call B`.\\n   - expected: Phone verbs appear in contextual actions, dead phones cannot send or instantly receive messages, and active phones notify/deliver via Commons cleanly."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]",
+      "[[Commands]]",
+      "[[Items & Inventory/Item & Action Model]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

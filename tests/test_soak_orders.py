@@ -282,3 +282,41 @@ def test_soak_can_be_cancelled_by_character_name():
 def test_soak_cancel_rejects_an_unknown_character():
     _app, _hero2, client = _client()
     assert client.delete("/api/world/soak?character=Nobody").status_code == 404
+
+
+def test_soak_routes_lived_log_continuity_through_intermediator_handoff():
+    from engine import lived_log
+
+    w = _world()
+    hero = _hero(w)
+    synth_calls = []
+
+    def fake_intermediator(player, entries):
+        synth_calls.append([e.get("what") for e in entries])
+        return {
+            "thought": "I kept watch along the hall and stayed alert for movement.",
+            "importance": 6,
+        }
+
+    w.intermediator_fn = fake_intermediator
+    soak.declare(hero, intent="idle", minutes=2)
+    lived_log.record(
+        hero,
+        int(getattr(w, "time_ticks", 0) or 0),
+        "observe",
+        "noticed shadows shifting near the stairwell",
+        why="sense:sight",
+        area=hero.current_area,
+    )
+
+    soak.apply_orders(w)
+
+    assert len(synth_calls) == 1
+    assert getattr(hero, "_last_inner_monologue", "") == "I kept watch along the hall and stayed alert for movement."
+    assert "t=" not in hero._last_inner_monologue
+    assert "sense:sight" not in hero._last_inner_monologue
+    assert any(
+        m.get("source") == "intermediator" and m.get("lane") == "palimpsest"
+        and "kept watch" in m.get("text", "")
+        for m in hero.memories
+    )

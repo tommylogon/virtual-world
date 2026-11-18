@@ -96,6 +96,7 @@
         setCellName,
         setSeam,
         clearCell,
+        patchPaintCache: _patchPaintCache,
         unplaceArea,
         removeFeature,
         promoteArea,
@@ -147,6 +148,7 @@
         gridExtent: _gridExtent,
         refRectCells: _refRectCells,
         ensurePaintCache: _ensurePaintCache,
+        patchPaintCache: _patchPaintCache,
         brushCells: _brushCells,
         redrawDecor: _redrawDecor,
         status: _status,
@@ -519,7 +521,8 @@
         state.paintCacheValid = true;
     }
     function _patchPaintCache(p, cells) {
-        if (!p.grid || !state.paintCache || !state.paintCacheValid) {
+        if (!p.grid || !state.paintCache || !state.paintCacheValid
+            || state.paintCache.width !== p.grid.w || state.paintCache.height !== p.grid.h) {
             _ensurePaintCache(p);
             return;
         }
@@ -821,6 +824,7 @@
         if (!state.scopeId)
             return;
         state.payload = await _req(`${BASE}/${encodeURIComponent(state.scopeId)}/grid`, { cache: 'no-store' });
+        state.paintCacheValid = false;
         render();
     }
     /** Shared header (title + close) and a fresh body container. */

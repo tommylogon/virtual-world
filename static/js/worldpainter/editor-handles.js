@@ -169,43 +169,150 @@
         if (!ctx.state.refImage || !ctx.state.refImage.naturalWidth || !(p.reference && p.reference.image)) {
             return null;
         }
-        if (p.scope.state === 'materialized')
-            return null;
         const rect = ctx.refRectCells(p, ctx.state.refImage);
         return { x: rect.x + 1, y: rect.y + 1 };
     }
+    function _drawAnchorBadge(c2d, CELL, scale, anchor) {
+        if (!anchor || typeof anchor.x !== 'number' || typeof anchor.y !== 'number')
+            return;
+        const cx = (anchor.x + 0.5) * CELL;
+        const cy = (anchor.y + 0.5) * CELL;
+        const r = Math.max(CELL * 0.42, 7 / scale);
+        c2d.save();
+        c2d.strokeStyle = '#ff9f43';
+        c2d.fillStyle = 'rgba(255, 159, 67, 0.22)';
+        c2d.lineWidth = 2 / scale;
+        c2d.beginPath();
+        c2d.arc(cx, cy, r, 0, Math.PI * 2);
+        c2d.fill();
+        c2d.stroke();
+        c2d.beginPath();
+        c2d.moveTo(cx - r * 1.35, cy);
+        c2d.lineTo(cx + r * 1.35, cy);
+        c2d.moveTo(cx, cy - r * 1.35);
+        c2d.lineTo(cx, cy + r * 1.35);
+        c2d.stroke();
+        c2d.fillStyle = '#ff9f43';
+        c2d.font = `bold ${10 / scale}px sans-serif`;
+        c2d.fillText(`ANCHOR (${anchor.x},${anchor.y})`, cx + r + 3 / scale, cy - 3 / scale);
+        c2d.restore();
+    }
+    function _drawGhostGrid(c2d, CELL, scale, rx, ry, w, h, ghostPayload) {
+        const gw = Math.max(1, w) * CELL;
+        const gh = Math.max(1, h) * CELL;
+        c2d.save();
+        c2d.fillStyle = 'rgba(88, 166, 255, 0.08)';
+        c2d.fillRect(rx, ry, gw, gh);
+        c2d.strokeStyle = 'rgba(88, 166, 255, 0.55)';
+        c2d.lineWidth = 1.5 / scale;
+        c2d.setLineDash([5 / scale, 4 / scale]);
+        c2d.strokeRect(rx, ry, gw, gh);
+        c2d.setLineDash([]);
+        // Draw subtle internal ghost grid lines (cap density for huge grids).
+        const step = Math.max(1, Math.ceil(Math.max(w, h) / 60));
+        c2d.strokeStyle = 'rgba(88, 166, 255, 0.20)';
+        c2d.lineWidth = 0.75 / scale;
+        c2d.beginPath();
+        for (let x = step; x < w; x += step) {
+            c2d.moveTo(rx + x * CELL, ry);
+            c2d.lineTo(rx + x * CELL, ry + gh);
+        }
+        for (let y = step; y < h; y += step) {
+            c2d.moveTo(rx, ry + y * CELL);
+            c2d.lineTo(rx + gw, ry + y * CELL);
+        }
+        c2d.stroke();
+        // Draw projected placed areas and features in the ghost preview.
+        if (ghostPayload) {
+            c2d.fillStyle = 'rgba(63, 185, 80, 0.35)';
+            c2d.strokeStyle = 'rgba(63, 185, 80, 0.85)';
+            c2d.lineWidth = 1.25 / scale;
+            const drawMark = (item) => {
+                if (!item || typeof item.x !== 'number' || typeof item.y !== 'number')
+                    return;
+                const px = rx + item.x * CELL;
+                const py = ry + item.y * CELL;
+                c2d.fillRect(px + 1, py + 1, CELL - 2, CELL - 2);
+                c2d.strokeRect(px + 1, py + 1, CELL - 2, CELL - 2);
+            };
+            (ghostPayload.area_placements || []).forEach(drawMark);
+            (ghostPayload.placements || []).forEach(drawMark);
+        }
+        c2d.restore();
+    }
     function _drawGridHandles(ctx, c2d, p) {
-        if (!ctx.state.gridEdit)
+        const preview = ctx.state.gridPreview;
+        if (!ctx.state.gridEdit && !preview)
             return;
         const CELL = ctx.CELL || 22;
         const scale = (ctx.state.stage && ctx.state.stage.scaleX()) || 1;
-        const ext = _gridExtent(ctx, p);
-        const pts = ctx.GM().gridHandlePoints(ext.w, ext.h);
-        c2d.save();
-        Object.keys(pts).forEach((key) => {
-            c2d.beginPath();
-            c2d.arc(pts[key].x * CELL, pts[key].y * CELL, 6 / scale, 0, Math.PI * 2);
-            c2d.fillStyle = key.length === 2 ? '#e3b341' : '#58a6ff';
-            c2d.fill();
-        });
-        const cellCorner = _cellCornerHandlePoint(ctx, p);
-        if (cellCorner) {
-            const rx = (cellCorner.x - 1) * CELL;
-            const ry = (cellCorner.y - 1) * CELL;
-            c2d.strokeStyle = '#3fb950';
-            c2d.lineWidth = 1.75 / scale;
-            c2d.setLineDash([4 / scale, 3 / scale]);
-            c2d.strokeRect(rx, ry, CELL, CELL);
-            c2d.setLineDash([]);
-            c2d.beginPath();
-            c2d.arc(cellCorner.x * CELL, cellCorner.y * CELL, 6.5 / scale, 0, Math.PI * 2);
-            c2d.fillStyle = '#3fb950';
-            c2d.fill();
-            c2d.strokeStyle = '#0d1117';
-            c2d.lineWidth = 1.5 / scale;
-            c2d.stroke();
-        }
         const drag = ctx.state.gridDrag;
+        const ext = _gridExtent(ctx, p);
+        const offX = (drag && drag.kind === 'resize' && drag.offsetX) ? drag.offsetX : 0;
+        const offY = (drag && drag.kind === 'resize' && drag.offsetY) ? drag.offsetY : 0;
+        const frameX = -offX * CELL;
+        const frameY = -offY * CELL;
+        c2d.save();
+        if (drag && drag.kind === 'resize') {
+            const ghost = ctx.GM().expandGridMargins(p, {
+                west: offX,
+                north: offY,
+                east: drag.w - p.grid.w - offX,
+                south: drag.h - p.grid.h - offY,
+            });
+            _drawGhostGrid(c2d, CELL, scale, frameX, frameY, drag.w, drag.h, ghost);
+        }
+        else if (drag && drag.kind === 'cell-size' && ctx.state.cellSizePreview) {
+            const anchor = ctx.state.gridAnchor || { x: 0, y: 0 };
+            const s = ctx.state.cellSizePreview.w / Math.max(1, p.grid.w);
+            const ghost = ctx.GM().scaleGridWithAnchor(p, anchor, s, ctx.state.cellSizePreview);
+            _drawGhostGrid(c2d, CELL, scale, 0, 0, ctx.state.cellSizePreview.w, ctx.state.cellSizePreview.h, ghost);
+        }
+        else if (preview) {
+            const pOffX = preview.offsetX || 0;
+            const pOffY = preview.offsetY || 0;
+            let ghost = null;
+            if (preview.anchor && preview.scaleFactor) {
+                ghost = ctx.GM().scaleGridWithAnchor(p, preview.anchor, preview.scaleFactor, { w: preview.w, h: preview.h });
+            }
+            else {
+                ghost = ctx.GM().expandGridMargins(p, {
+                    west: pOffX,
+                    north: pOffY,
+                    east: preview.w - p.grid.w - pOffX,
+                    south: preview.h - p.grid.h - pOffY,
+                });
+            }
+            _drawGhostGrid(c2d, CELL, scale, -pOffX * CELL, -pOffY * CELL, preview.w, preview.h, ghost);
+        }
+        const activeAnchor = (preview && preview.anchor) || ctx.state.gridAnchor;
+        _drawAnchorBadge(c2d, CELL, scale, activeAnchor);
+        if (ctx.state.gridEdit) {
+            const pts = ctx.GM().gridHandlePoints(ext.w, ext.h);
+            Object.keys(pts).forEach((key) => {
+                c2d.beginPath();
+                c2d.arc(frameX + pts[key].x * CELL, frameY + pts[key].y * CELL, 6 / scale, 0, Math.PI * 2);
+                c2d.fillStyle = key.length === 2 ? '#e3b341' : '#58a6ff';
+                c2d.fill();
+            });
+            const cellCorner = _cellCornerHandlePoint(ctx, p);
+            if (cellCorner) {
+                const rx = (cellCorner.x - 1) * CELL;
+                const ry = (cellCorner.y - 1) * CELL;
+                c2d.strokeStyle = '#3fb950';
+                c2d.lineWidth = 1.75 / scale;
+                c2d.setLineDash([4 / scale, 3 / scale]);
+                c2d.strokeRect(rx, ry, CELL, CELL);
+                c2d.setLineDash([]);
+                c2d.beginPath();
+                c2d.arc(cellCorner.x * CELL, cellCorner.y * CELL, 6.5 / scale, 0, Math.PI * 2);
+                c2d.fillStyle = '#3fb950';
+                c2d.fill();
+                c2d.strokeStyle = '#0d1117';
+                c2d.lineWidth = 1.5 / scale;
+                c2d.stroke();
+            }
+        }
         if (drag && drag.kind === 'move') {
             const off = drag.offset;
             c2d.fillStyle = '#e3b341';
@@ -221,7 +328,8 @@
         else if (drag && drag.w && drag.h) {
             c2d.fillStyle = '#e3b341';
             c2d.font = `${12 / scale}px sans-serif`;
-            c2d.fillText(`${drag.w}×${drag.h}`, 8 / scale, (ext.h * CELL) + 14 / scale);
+            const shiftNote = (offX || offY) ? ` (shift x${offX >= 0 ? '+' : ''}${offX}, y${offY >= 0 ? '+' : ''}${offY})` : '';
+            c2d.fillText(`${drag.w}×${drag.h}${shiftNote}`, frameX + 8 / scale, frameY + (ext.h * CELL) + 14 / scale);
         }
         c2d.restore();
     }
@@ -270,6 +378,9 @@
             clientY: typeof raw.clientY === 'number' ? raw.clientY : 0,
             w: p.grid.w,
             h: p.grid.h,
+            offsetX: 0,
+            offsetY: 0,
+            moved: false,
             offset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
             startOffset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
             anchorScreen,
@@ -359,15 +470,21 @@
         if (!drag)
             return;
         if (drag.kind === 'move') {
+            const dx = cx - drag.start.x;
+            const dy = cy - drag.start.y;
+            if ((dx * dx + dy * dy) > 0.04)
+                drag.moved = true;
             ctx.state.gridDrag.offset = {
-                x: drag.startOffset.x + (cx - drag.start.x),
-                y: drag.startOffset.y + (cy - drag.start.y),
+                x: drag.startOffset.x + dx,
+                y: drag.startOffset.y + dy,
             };
         }
         else {
-            const next = ctx.GM().gridHandleDrag(drag.w, drag.h, drag.key, { x: cx, y: cy });
+            const next = ctx.GM().gridHandleDragMargins(p.grid.w, p.grid.h, drag.key, { x: cx, y: cy });
             ctx.state.gridDrag.w = next.w;
             ctx.state.gridDrag.h = next.h;
+            ctx.state.gridDrag.offsetX = next.offsetX;
+            ctx.state.gridDrag.offsetY = next.offsetY;
         }
         const bg = ctx.state.layers && ctx.state.layers.bg;
         if (bg)
@@ -384,6 +501,14 @@
         ctx.state.cellSizePreview = null;
         try {
             if (drag.kind === 'move') {
+                if (!drag.moved) {
+                    const ax = Math.max(0, Math.min(p.grid.w - 1, Math.floor(drag.start.x)));
+                    const ay = Math.max(0, Math.min(p.grid.h - 1, Math.floor(drag.start.y)));
+                    ctx.state.gridAnchor = { x: ax, y: ay };
+                    ctx.status(`Origin anchor set to (${ax}, ${ay}).`, false);
+                    ctx.redrawDecor();
+                    return;
+                }
                 const offset = {
                     x: Math.round(drag.offset.x * 10) / 10,
                     y: Math.round(drag.offset.y * 10) / 10,
@@ -394,7 +519,12 @@
             }
             else if (drag.kind === 'cell-size' && (drag.w !== p.grid.w || drag.h !== p.grid.h)) {
                 const why = drag.pxPerCell ? `1 cell ≈ ${Math.round(drag.pxPerCell)}px` : 'cell resize';
-                const committed = await _commitGridSize(ctx, p, drag.w, drag.h, why, oldGrid);
+                const anchor = ctx.state.gridAnchor || { x: 0, y: 0 };
+                const scaleFactor = drag.w / Math.max(1, oldGrid.w);
+                const committed = await _commitGridSize(ctx, p, drag.w, drag.h, why, oldGrid, {
+                    anchor,
+                    scaleFactor,
+                });
                 if (!committed) {
                     ctx.applyRefTransform(p);
                     if (savedAnchor) {
@@ -405,8 +535,11 @@
                     return;
                 }
             }
-            else if (drag.w !== p.grid.w || drag.h !== p.grid.h) {
-                await _commitGridSize(ctx, p, drag.w, drag.h, 'frame resize');
+            else if (drag.w !== p.grid.w || drag.h !== p.grid.h || drag.offsetX || drag.offsetY) {
+                await _commitGridSize(ctx, p, drag.w, drag.h, 'frame resize', undefined, {
+                    offsetX: drag.offsetX || 0,
+                    offsetY: drag.offsetY || 0,
+                });
             }
             ctx.notify(true);
         }
@@ -420,8 +553,14 @@
             ctx.redrawGrid();
         }
     }
-    async function _commitGridSize(ctx, p, w, h, why, rescaleRefFrom) {
-        const stranded = ctx.GM().strandedCount(p, w, h);
+    async function _commitGridSize(ctx, p, w, h, why, rescaleRefFrom, opts) {
+        const offsetX = (opts && opts.offsetX) || 0;
+        const offsetY = (opts && opts.offsetY) || 0;
+        const anchor = opts && opts.anchor;
+        const scaleFactor = opts && opts.scaleFactor;
+        const stranded = (offsetX || offsetY || (anchor && scaleFactor))
+            ? 0
+            : ctx.GM().strandedCount(p, w, h);
         if (stranded > 0) {
             const ok = await window.Dialog?.confirm?.({
                 title: 'Resize Grid',
@@ -432,8 +571,32 @@
                 return false;
         }
         const storedRect = (p.reference || {}).rect;
-        ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid`, { w, h, mode: p.mode });
-        if (rescaleRefFrom && storedRect && typeof storedRect.w === 'number' && storedRect.w > 0
+        const body = { w, h, mode: p.mode };
+        if (offsetX)
+            body.offset_x = offsetX;
+        if (offsetY)
+            body.offset_y = offsetY;
+        if (anchor && scaleFactor && Number.isFinite(scaleFactor) && scaleFactor > 0) {
+            body.anchor_x = anchor.x;
+            body.anchor_y = anchor.y;
+            body.scale_factor = scaleFactor;
+        }
+        ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid`, body);
+        if ((offsetX || offsetY) && storedRect && typeof storedRect.x === 'number' && typeof storedRect.y === 'number'
+            && ctx.state.payload) {
+            const ref = ctx.state.payload.reference || {};
+            ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/reference`, {
+                image: ref.image || null,
+                opacity: ref.opacity,
+                visible: ref.visible,
+                crop: ref.crop,
+                rect: Object.assign({}, storedRect, {
+                    x: storedRect.x + offsetX,
+                    y: storedRect.y + offsetY,
+                }),
+            });
+        }
+        else if (rescaleRefFrom && storedRect && typeof storedRect.w === 'number' && storedRect.w > 0
             && (rescaleRefFrom.w !== w || rescaleRefFrom.h !== h) && ctx.state.payload) {
             const scaledRect = _scaleRefRect(storedRect, rescaleRefFrom, { w, h });
             const ref = ctx.state.payload.reference || {};

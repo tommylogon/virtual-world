@@ -141,9 +141,18 @@ test('every engine verb is a legal act', () => {
         'examine', 'open', 'close', 'attack', 'grab', 'lead', 'escape', 'struggle', 'read', 'search',
         'look', 'listen', 'fumble', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'wait', 'relieve',
         'stow', 'put', 'combine', 'split', 'craft', 'make', 'give', 'steal', 'speak', 'perform',
-        'wear', 'remove', 'approach', 'eat', 'drink'];
+        'wear', 'remove', 'approach', 'eat', 'drink',
+        'call', 'answer', 'hangup', 'text', 'message'];
     const missing = engineVerbs.filter((v) => !PlanGrounding.ACTS.has(v));
     assertEq(missing.length, 0, 'plan contract missing verbs: ' + missing.join(', '));
+});
+
+test('phone verbs (call, answer, hangup, text, message) ground as legal plan steps', () => {
+    assertEq(PlanGrounding.groundStep({ act: 'call', target: 'Bob' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'call grounds');
+    assertEq(PlanGrounding.groundStep({ act: 'answer' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'answer grounds');
+    assertEq(PlanGrounding.groundStep({ act: 'hangup' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'hangup grounds');
+    assertEq(PlanGrounding.groundStep({ act: 'text', target: 'Bob', text: 'hi' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'text grounds');
+    assertEq(PlanGrounding.groundStep({ act: 'message', target: 'Bob', text: 'hi' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'message grounds');
 });
 
 test('eat and drink ground against carried or area items', () => {
@@ -257,4 +266,30 @@ test('collectFacts stranger masking resolves masked handles (bug-523)', () => {
         window.ItemContainment = oldItemContainment;
     }
 });
+
+test('disarm plan step is recognized and grounded against present people', () => {
+    assertTrue(PlanGrounding.ACTS.has('disarm'), 'disarm is in PlanGrounding.ACTS');
+    assertEq(
+        PlanGrounding.groundStep({ act: 'disarm', target: 'Krikka' }, FACTS_CHIEFS_PIT, "Chief's Pit"),
+        null,
+        'disarm present character grounds'
+    );
+    const missing = PlanGrounding.groundStep({ act: 'disarm', target: 'Ghost' }, FACTS_CHIEFS_PIT, "Chief's Pit");
+    assertTrue(/no interactable/.test(missing), 'disarm absent character is rejected');
+});
+
+test('hide, sneak, and unhide plan steps ground against cover or shadows (task-958)', () => {
+    assertTrue(PlanGrounding.ACTS.has('hide'), 'hide is in PlanGrounding.ACTS');
+    assertTrue(PlanGrounding.ACTS.has('sneak'), 'sneak is in PlanGrounding.ACTS');
+    assertTrue(PlanGrounding.ACTS.has('unhide'), 'unhide is in PlanGrounding.ACTS');
+
+    assertEq(PlanGrounding.groundStep({ act: 'hide' }, FACTS_CHIEFS_PIT, "Chief's Pit"), null, 'bare hide grounds');
+    assertEq(PlanGrounding.groundStep({ act: 'hide', target: 'in shadows' }, FACTS_CHIEFS_PIT, "Chief's Pit"), null, 'hide in shadows grounds');
+    assertEq(PlanGrounding.groundStep({ act: 'hide', target: 'behind War Drum' }, FACTS_CHIEFS_PIT, "Chief's Pit"), null, 'hide behind area item grounds');
+    assertEq(PlanGrounding.groundStep({ act: 'unhide' }, FACTS_CHIEFS_PIT, "Chief's Pit"), null, 'unhide grounds');
+
+    const badCover = PlanGrounding.groundStep({ act: 'hide', target: 'behind marble pillar' }, FACTS_CHIEFS_PIT, "Chief's Pit");
+    assertTrue(/no interactable cover/.test(badCover), 'non-existent cover is rejected');
+});
+
 

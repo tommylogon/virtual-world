@@ -86,6 +86,10 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
         DefinitionField("crafting_known", "capability", ON_PLAYER, False),
         DefinitionField("traits", "capability", ON_NODE, True,
                         "authored traits live on character node"),
+        DefinitionField("languages", "capability", ON_NODE, True,
+                        "authored language competence and known_words live on character node"),
+        DefinitionField("domains", "capability", ON_NODE, True,
+                        "authored domain competence and blind spots live on character node"),
     ],
     "state": [
         DefinitionField("vitals", "state", ON_PLAYER, False,

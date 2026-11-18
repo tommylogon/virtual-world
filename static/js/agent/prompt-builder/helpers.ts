@@ -264,8 +264,13 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     function hasPlan(charName: string): boolean {
         // task-185: read via PlanTracker (the old read hit a replaced store).
-        const plan = (window as unknown as { PlanTracker?: { getPlan(name: string): unknown } }).PlanTracker?.getPlan(charName);
-        return !!plan && (plan as unknown[]).length > 0;
+        const tracker = (window as unknown as {
+            PlanTracker?: { getPlan(name: string): unknown; getProgress?(name: string): number };
+        }).PlanTracker;
+        const plan = tracker?.getPlan(charName);
+        if (!Array.isArray(plan) || plan.length === 0) return false;
+        const progress = typeof tracker?.getProgress === 'function' ? (tracker.getProgress(charName) || 0) : 0;
+        return progress < plan.length;
     }
 
     /**

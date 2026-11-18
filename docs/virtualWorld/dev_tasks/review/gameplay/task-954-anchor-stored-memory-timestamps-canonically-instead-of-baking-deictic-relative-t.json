@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-954",
+  "kind": "task",
+  "number": 954,
+  "title": "Anchor stored memory timestamps canonically instead of baking deictic relative times into prose",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "temporal-anchoring",
+    "prompting",
+    "intermediator"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-948",
+      "task-950",
+      "bug-586",
+      "bug-591",
+      "bug-604"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Stop baking deictic relative phrases (such as earlier today, six hours ago, or just now) into persisted memory prose and reflection summaries; store canonical world-time anchors (tick and day/clock metadata) and let tickToRelative() render the single live relative prefix at prompt-assembly time.",
+    "why": "Observed during Millwood/fieldhouse memory analysis: a memory stored at tick T with baked-in prose ('[6 days ago] Earlier today (8:00 AM, bus): On the school bus six hours ago...') collides with memory-context.ts prepending tickToRelative(mem.tick). Days or weeks later, Actor and Intermediator see four contradictory timeframes in one line, corrupting causal ordering and temporal reasoning.",
+    "how": "1. Audit static/js/agent/memory-manager.ts, reflection/summarization prompts, and engine/agent_memory.py write paths so generated or stored memory text uses absolute in-world clock/day anchors (for example Day 12, 08:00, school bus) and excludes fleeting deictic adverbs from persisted mem.text.\n2. Update static/js/agent/prompt-builder/memory-context.ts (lines 323, 364, 382 where tickToRelative(mem.tick) is prepended) so relative offset labels are rendered once from (currentTick - mem.tick) alongside optional compact wall-clock metadata without colliding with body text.\n3. Add a prompt/normalization guard for Memory Intermediator (task-948) and reflection summaries so consolidated memories preserve source tick spans rather than freezing transient relative words into persistent palimpsest prose.",
+    "verify": "1. Create or reflect a memory at morning tick T and format I REMEMBER at T+6h, T+6d, and T+35d.\n2. Verify the rendered line contains one consistent dynamic age prefix ([6 hours ago], [6 days ago], [5 weeks ago]) plus canonical event time/location, with zero conflicting Earlier today / six hours ago leftovers inside mem.text.",
+    "acceptance": [
+      {
+        "text": "Memory creation, reflection, and Intermediator summarization prompts forbid baking deictic relative phrases ('today', 'earlier today', 'just now', 'N hours ago') into stored memory prose and anchor events by world tick/clock time instead.",
+        "done": false
+      },
+      {
+        "text": "memory-context.ts renders [relative] dynamically from currentTick - mem.tick (plus optional absolute day/clock tag) without producing conflicting dual-timeframe strings even weeks after encoding.",
+        "done": false
+      },
+      {
+        "text": "Unit tests cover multi-day and multi-week recall rendering (same-day, +6d, +35d) asserting no contradictory relative time phrases remain in assembled memory lines.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/memory-manager.ts",
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "static/js/event-stream.ts",
+      "engine/agent_memory.py",
+      "engine/memory_retrieval.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Mind Panel Memory tab (static/js/inspector/) and Prompt Preview debug view.\n\nCurrent availability: Existing Memory Inspector displays stored mem.text and tick metadata; memory-context.ts dynamically prepends tickToRelative(mem.tick) at prompt build time.\n\nManual verification steps:\n1. Author or trigger a morning conversation memory at tick T, then advance world time by 6 hours and by 6 days.\n2. Inspect the character's Mind Panel Memory list and Prompt Preview I REMEMBER section.\n   - expected: Stored prose uses stable clock/location anchors (for example 08:00, school bus), while only the dynamic prefix updates from [6 hours ago] to [6 days ago]."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]",
+      "[[Features/memory-pipeline]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

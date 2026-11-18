@@ -199,6 +199,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         setCellName,
         setSeam,
         clearCell,
+        patchPaintCache: _patchPaintCache,
         unplaceArea,
         removeFeature,
         promoteArea,
@@ -252,6 +253,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         gridExtent: _gridExtent,
         refRectCells: _refRectCells,
         ensurePaintCache: _ensurePaintCache,
+        patchPaintCache: _patchPaintCache,
         brushCells: _brushCells,
         redrawDecor: _redrawDecor,
         status: _status,
@@ -626,7 +628,8 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     }
 
     function _patchPaintCache(p: WpPayload, cells: Array<{ x: number; y: number }>): void {
-        if (!p.grid || !state.paintCache || !state.paintCacheValid) {
+        if (!p.grid || !state.paintCache || !state.paintCacheValid
+                || state.paintCache.width !== p.grid.w || state.paintCache.height !== p.grid.h) {
             _ensurePaintCache(p);
             return;
         }
@@ -941,6 +944,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         if (!state.scopeId) return;
         state.payload = await _req(`${BASE}/${encodeURIComponent(state.scopeId)}/grid`,
             { cache: 'no-store' });
+        state.paintCacheValid = false;
         render();
     }
 

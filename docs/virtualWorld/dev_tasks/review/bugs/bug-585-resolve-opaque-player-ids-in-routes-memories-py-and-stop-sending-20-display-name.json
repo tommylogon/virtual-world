@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "bug-585",
+  "kind": "bug",
+  "number": 585,
+  "title": "Resolve opaque player IDs in routes/memories.py and stop sending %20 display-name URLs",
+  "status": "review",
+  "priority": "high",
+  "area": "bugs",
+  "tags": [
+    "bugs",
+    "memories",
+    "api",
+    "opaque-id"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-596",
+      "bug-602",
+      "bug-603",
+      "bug-604"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Update all player-scoped endpoints in `routes/memories.py` to resolve by opaque player ID, node ID, registry key, or display name, and update frontend memory API callers to send opaque `player.id` instead of `%20`-encoded display names.",
+    "why": "`AGENTS.md` states \"Node identity is an opaque ID. Display names are a resolution layer,\" and `engine/serialization.py` already publishes `player.id` (e.g. `0610fd64` for `sammy lopez`). Because `routes/memories.py` uses raw `app.world.players.get(name)` instead of `player_manager.get_player()`, `static/js/api.ts` and `commons-api.ts` are forced to send `/api/players/sammy%20lopez/memories/retrieve`, and any opaque-ID request returns 404.",
+    "how": "1. Replace all 18 raw `app.world.players.get(name)` lookups in `routes/memories.py` with a shared helper calling `app.world.player_manager.get_player(name)` (matching `routes/graph_ops.py`'s `_resolve_player`, resolving registry key, `_players_by_id`, node ID, and display name).\\n2. Update `static/js/api.ts` (`retrievePlayerMemories`, `reinforcePlayerMemories`, `getPlayerCognitiveMap`, etc.) and `static/js/commons/commons-api.ts` + `memory-context.ts` to resolve and pass the player's opaque `id` when present on loaded `worldState.data.players`, keeping `encodeURIComponent` fallback only when no opaque ID exists.",
+    "verify": "1. Run pytest memory endpoint tests verifying `/api/players/<player_id>/memories/retrieve`, `/api/players/player_sammy_lopez/memories/retrieve`, and `/api/players/sammy%20lopez/memories/retrieve` all resolve to Sammy Lopez and return 200.\\n2. Run JS unit tests for `ApiClient` / `memory-context` confirming requests use `player.id` when `worldState.data.players[charName].id` is populated, then rebuild TS (`npm run build:ts`).",
+    "acceptance": [
+      {
+        "text": "All 18 player-scoped endpoints in `routes/memories.py` resolve characters via `player_manager.get_player(name)` or shared `_resolve_player()` (supporting opaque `player.id`, `player_...` node ID, registry key, and display name).",
+        "done": false
+      },
+      {
+        "text": "Client callers in `static/js/api.ts` and `static/js/commons/commons-api.ts` prefer the character's opaque `player.id` when available instead of emitting URL-encoded spaces (`/api/players/sammy%20lopez/memories/...`).",
+        "done": false
+      },
+      {
+        "text": "Existing callers and tests that pass raw character names continue to resolve identically with zero regressions.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/memories.py",
+      "routes/graph_ops.py",
+      "engine/player_manager.py",
+      "static/js/api.ts",
+      "static/js/commons/commons-api.ts",
+      "static/js/agent/prompt-builder/memory-context.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Mind / Memory Inspector views (`static/js/inspector/mind-view.ts`, `static/js/inspector/memory-view.ts`) and turn retrieval network calls triggered by `AgentEngine` / `MemoryContext`.\\n\\nCurrent availability: Memory retrieve/reinforce/cognitive_map calls currently fire `/api/players/<encoded-name>/memories/...` from `static/js/api.ts` and `static/js/commons/commons-api.ts`.\\n\\nWhy no standalone new UI view: This fixes backend player lookup parity in `routes/memories.py` and client URL addressing.\\n\\nManual verification steps:\\n1. Load a multi-word character scenario (`Millwood.json`, character `sammy lopez` with `id: 0610fd64`) and trigger a turn or inspect Mind/Memory view.\\n   - expected: Network requests hit `/api/players/0610fd64/memories/retrieve` (no `%20`) and return HTTP 200 with scored memories; legacy `/api/players/sammy%20lopez/...` calls still return 200 for backwards compatibility."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

@@ -118,8 +118,7 @@ test('the commons: explicit group read uses the shared Player memory endpoint an
             'read', 'Mira', 'group-night', 'range', 2, 5, 6,
         ]);
         assertFalse(h.calls.some(call => call[0] === 'post'));
-        assertTrue(h.memory.includes('I read the conversation: Lysa: The door is open.'));
-        assertTrue(h.memory.includes('I felt relieved by the update.'));
+        assertTrue(h.memory.includes('I should check the group.'));
         assertTrue(h.calls.some(call => call[0] === 'recall' && call[1] === 'Mira'));
         assertTrue(h.calls.some(call => call[0] === 'memory' && call[1] === 'Mira'));
     } finally {
@@ -295,7 +294,7 @@ test('the commons: think action does not read, send, or create a conversation', 
     });
     try {
         await CommonsAgent.actCharacter('Mira');
-        assertFalse(h.calls.some(call => ['read', 'post', 'create-channel', 'memory'].includes(call[0])));
+        assertFalse(h.calls.some(call => ['read', 'post', 'create-channel'].includes(call[0])));
     } finally {
         h.restore();
     }
@@ -720,4 +719,129 @@ test('the commons: burst governor allows double-texting and caps consecutive bur
         setTimeout = origSetTimeout;
         Math.random = origRandom;
     }
+});
+
+test('the commons: _formatWorldTimeAndAgo uses calendar date without Day N (task-977)', () => {
+    const out = CommonsAgent._formatWorldTimeAndAgo(0, {
+        time_ticks: 3,
+        time_per_tick_minutes: 5,
+        clock_start_hour: 8,
+        clock_start_minute: 0,
+        calendar_config: { start_year: 2016, start_month: 10, start_day: 14, days_per_month: 30, months_per_year: 12 },
+    });
+    assertEq(out.sent_time, 'Oct 14, 2016 08:00');
+    assertEq(out.sent_ago, '15m ago');
+    assertTrue(!String(out.sent_time).includes('Day '));
+});
+
+test('the commons: buildCommunicationPrompt includes player.description (e.g. height)', () => {
+    const prompt = PromptBuilder.buildCommunicationPrompt(
+        {
+            name: 'lulu ashford',
+            description: 'a petite high school girl, 4\'8", fiery red hair',
+            personality: 'insecure about your height',
+        },
+        '- No memories',
+        [],
+        [],
+        'live_social'
+    );
+    assertTrue(prompt.includes('4\'8"'), 'description height should appear in communication prompt');
+    assertTrue(prompt.includes('insecure about your height'), 'personality should appear in communication prompt');
+});
+
+test('the commons: actCharacter emits ordered live trace steps and binds messageTraces before storeMemory (task-981)', async () => {
+    const prevState = window.CommonsState;
+    const prevApi = window.CommonsApi;
+    const prevLlm = window.llmClient;
+    const liveUpdates = [];
+    const callOrder = [];
+    const messageTraces = {};
+    try {
+        window.CommonsState = {
+            isPaused: false,
+            participants: { Lulu: { active: true, blocked: false, control_mode: 'llm' } },
+            characterContextCache: {},
+            messageTraces,
+            worldClock: { time_ticks: 2 },
+            emit() {},
+            receiveMessage() {},
+            upsertLiveTurn(name, turnId, turn) {
+                liveUpdates.push({ name, turnId, action: turn.action, steps: turn.detail?.steps || [] });
+                for (const mid of (turn.detail?.messageIds || [])) {
+                    messageTraces[String(mid)] = turn;
+                }
+            },
+            recordTurn(name, turn) {
+                callOrder.push('recordTurn');
+                this.upsertLiveTurn(name, turn.turnId, turn);
+            },
+        };
+        window.CommonsApi = {
+            async getCharacterContext() {
+                return { name: 'Lulu', personality: 'fiery', description: '4\'8"', time_ticks: 2 };
+            },
+            async retrieveMemories() { return { memories: [] }; },
+            async getRecentMemories() { return { memories: [] }; },
+            async getState() {
+                return {
+                    channels: [{ id: 'public', name: 'public', kind: 'public', unread_count: 1 }],
+                    known_characters: ['Jake'],
+                    theme: 'live_social',
+                };
+            },
+            async readMessages() {
+                return { messages: [{ id: 10, author: 'Jake', text: 'thought you were 4.8?', tick: 1 }] };
+            },
+            async postMessage() {
+                return { message: { id: 777, author: 'Lulu', text: 'I AM 4\'8"!', channel_id: 'public', tick: 2 } };
+            },
+            async storeMemory() {
+                callOrder.push('storeMemory');
+                return { ok: true };
+            },
+        };
+        let round = 0;
+        window.llmClient = {
+            async chatWithTools() {
+                round += 1;
+                if (round === 1) {
+                    return {
+                        content: 'Let me check what Jake wrote.',
+                        tool_calls: [{ id: 'c1', function: { name: 'read_chat', arguments: JSON.stringify({ channel_id: 'public' }) } }],
+                    };
+                }
+                if (round === 2) {
+                    return {
+                        content: 'He is teasing me again.',
+                        tool_calls: [{ id: 'c2', function: { name: 'send_chat', arguments: JSON.stringify({ channel_id: 'public', text: 'I AM 4\'8"!' }) } }],
+                    };
+                }
+                return { content: 'That shut him up.', tool_calls: [] };
+            },
+        };
+        await CommonsAgent.actCharacter('Lulu', true, true);
+        assertTrue(liveUpdates.length >= 4, 'expected incremental live trace updates');
+        assertEq(callOrder[0], 'recordTurn', 'recordTurn must run before storeMemory');
+        assertTrue(Boolean(messageTraces['777']), 'posted message id 777 should link to its causal trace');
+        const stepLabels = messageTraces['777'].detail.steps.map(s => s.label);
+        assertEq(stepLabels[0], 'Notification');
+        assertTrue(stepLabels.includes('read_chat'));
+        assertTrue(stepLabels.includes('send_chat'));
+        assertTrue(stepLabels.includes('Inner Monologue'));
+    } finally {
+        window.CommonsState = prevState;
+        window.CommonsApi = prevApi;
+        window.llmClient = prevLlm;
+    }
+});
+
+test('the commons: _formatWorldTimeAndAgo computes real-time elapsed sent_ago from world_datetime (task-979)', () => {
+    const out = CommonsAgent._formatWorldTimeAndAgo(
+        0,
+        { world_datetime: '2016-10-14T23:17:00', time_ticks: 0 },
+        '2016-10-14T23:02:00'
+    );
+    assertEq(out.sent_time, 'Oct 14, 2016 23:02');
+    assertEq(out.sent_ago, '15m ago');
 });

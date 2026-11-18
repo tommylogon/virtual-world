@@ -538,10 +538,10 @@ const _InspectorItemView = (() => {
     IV._renderFooter = function (nodeId) {
         const node = worldState.getNode(nodeId);
         const nodeName = node?.name || nodeId;
-        return htmlTag `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-            <div id="item-lib-template-wrap-${nodeId}" title="Library template this node syncs against (task-295)" style="flex:1;min-width:160px;"></div>
-            <button class="btn btn-sm btn-green" @click=${() => IV._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
-            <button class="btn btn-sm btn-yellow" @click=${() => _external('itemLib')?.saveWorldItem(nodeId)}>📚 Save to Library</button>
+        const props = node?.properties || {};
+        const templateSync = window.InspectorTemplateSync;
+        return htmlTag `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+            ${templateSync ? window.Lit?.unsafeHTML?.(templateSync.renderTemplateRow('item', nodeId, props)) : ''}
             <button class="btn btn-sm btn-blue" @click=${() => graphManager._duplicateNode(nodeId)} title="Duplicate this item (with contents + triggers)" style="font-size:10px;">📋 Duplicate</button>
         </div>
         ${InspectorComponents.InspectorDangerZone({
@@ -551,38 +551,10 @@ const _InspectorItemView = (() => {
             onDelete: () => graphManager._deleteNode(nodeId),
         })}`;
     };
-    /**
-     * Populate the Library Template search select from the item library registry.
-     * The SearchSelect's hidden input keeps the `item-lib-template-<nodeId>` id,
-     * so the existing `.value` readers (refresh-from-library, save-to-library)
-     * keep working unchanged. Empty value = (no template).
-     */
     IV._populateLibraryTemplate = async function (nodeId) {
-        const container = document.getElementById(`item-lib-template-wrap-${nodeId}`);
-        const SearchSelect = _external('SearchSelect');
-        if (!container || !SearchSelect)
-            return;
-        if (container.dataset.searchSelectInit)
-            return;
-        container.dataset.searchSelectInit = '1';
-        const current = worldState.getNode(nodeId)?.properties?.library_id || '';
-        let libData = {};
-        try {
-            libData = await _api().getLibraryType('items');
-        }
-        catch (e) { /* ignore */ }
-        const options = [];
-        for (const [id, entry] of Object.entries(libData)) {
-            const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
-            options.push({ value: id, label, icon: '📚' });
-        }
-        new SearchSelect(container, {
-            options,
-            value: current,
-            placeholder: 'Search library templates...',
-            inputId: `item-lib-template-${nodeId}`,
-            allowFreeText: true,
-        });
+        const templateSync = window.InspectorTemplateSync;
+        if (templateSync)
+            await templateSync.populateSelector('item', nodeId);
     };
     // ═══════════════════════════════════════════════
     //  Action / Property mutation methods
@@ -998,6 +970,73 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
         };
         await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-item-btn', id: 'item', system, buildPrompt, apply });
     };
+    // Register the shared template-sync pattern for items (task-983).
+    const _itemTemplateSync = window.InspectorTemplateSync;
+    if (_itemTemplateSync) {
+        _itemTemplateSync.register('item', {
+            title: 'Refresh Item from Library',
+            save(nodeId) {
+                return _external('itemLib')?.saveWorldItem(nodeId);
+            },
+            buildWorldPayload(nodeId, node) {
+                if (!node)
+                    return null;
+                const props = node.properties || {};
+                return {
+                    name: node.name || '',
+                    description: props.description || '',
+                    actions: (props.actions || []).join(',') || 'examine,take,use',
+                    uses: props.uses ?? -1,
+                    weight: props.weight ?? 0.1,
+                    equip_slots: props.equip_slots || [],
+                    current_state: props.current_state || 'normal',
+                    light_level: props.light_level,
+                    target_temperature: props.target_temperature,
+                    heating_rate: props.heating_rate,
+                    sound_level: props.sound_level,
+                    sound_pattern: props.sound_pattern,
+                    stun_chance: props.stun_chance,
+                    stun_duration: props.stun_duration,
+                    defense: props.defense || 0,
+                    damage: props.damage || 0,
+                    insulation: props.insulation || 0,
+                    resistances: props.resistances || {},
+                    action_costs: props.action_costs || {},
+                    skill_check: props.skill_check || {},
+                    contents: props.contents || [],
+                    aliases: props.aliases || [],
+                    tags: props.tags || [],
+                    triggers: _external('itemLib')?._extractTriggersFromNode(nodeId),
+                };
+            },
+            sections: [
+                { key: 'name', label: 'Name' },
+                { key: 'description', label: 'Description' },
+                { key: 'actions', label: 'Actions' },
+                { key: 'uses', label: 'Uses' },
+                { key: 'weight', label: 'Weight' },
+                { key: 'equip_slots', label: 'Equip Slots' },
+                { key: 'current_state', label: 'State' },
+                { key: 'light_level', label: 'Light Level' },
+                { key: 'target_temperature', label: 'Target Temp' },
+                { key: 'heating_rate', label: 'Heating Rate' },
+                { key: 'sound_level', label: 'Sound Level' },
+                { key: 'sound_pattern', label: 'Sound Pattern' },
+                { key: 'stun_chance', label: 'Stun Chance' },
+                { key: 'stun_duration', label: 'Stun Duration' },
+                { key: 'defense', label: 'Defense' },
+                { key: 'damage', label: 'Damage' },
+                { key: 'insulation', label: 'Insulation' },
+                { key: 'resistances', label: 'Resistances' },
+                { key: 'action_costs', label: 'Action Costs' },
+                { key: 'skill_check', label: 'Skill Check' },
+                { key: 'contents', label: 'Contents' },
+                { key: 'aliases', label: 'Aliases' },
+                { key: 'tags', label: 'Tags' },
+                { key: 'triggers', label: 'Triggers' },
+            ],
+        });
+    }
     return IV;
 })();
 window.InspectorItemView = _InspectorItemView;

@@ -411,6 +411,14 @@
         ctx.state._keyDown = null;
         ctx.state._keyUp = null;
     }
+    function _invalidatePaintCache(ctx, cells) {
+        if (cells && ctx.patchPaintCache) {
+            ctx.patchPaintCache(ctx.state.payload, cells);
+        }
+        else {
+            ctx.state.paintCacheValid = false;
+        }
+    }
     async function _commitStroke(ctx, p) {
         const edits = (ctx.state.stroke || []).map((c) => ({
             layer: ctx.state.strokeLayer,
@@ -425,6 +433,7 @@
             return;
         try {
             ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
+            _invalidatePaintCache(ctx, edits);
             ctx.notify(true);
             ctx.softRender();
         }
@@ -456,6 +465,7 @@
         });
         try {
             ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
+            _invalidatePaintCache(ctx, edits);
             _setSelection(ctx, ctx.state.payload, nextSel);
             ctx.notify(true);
             ctx.softRender();
@@ -472,6 +482,7 @@
         const edits = sel.map((c) => ({ layer: ctx.state.layer, x: c.x, y: c.y, value: val }));
         try {
             ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
+            _invalidatePaintCache(ctx, edits);
             ctx.notify(true);
             ctx.softRender();
             ctx.status(`Applied to ${sel.length} cell(s).`);
@@ -599,6 +610,7 @@
             else {
                 ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits: cells.map((c) => ({ layer: ctx.state.layer, x: c.x, y: c.y, value })) });
             }
+            _invalidatePaintCache(ctx, cells);
             ctx.notify(true);
             ctx.render();
         }
@@ -650,6 +662,7 @@
         const edits = cells.map((c) => ({ layer: 'road', x: c.x, y: c.y, value: ctx.state.value || 'road' }));
         try {
             ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
+            _invalidatePaintCache(ctx, cells);
             ctx.state.route = [];
             ctx.notify(true);
             ctx.render();

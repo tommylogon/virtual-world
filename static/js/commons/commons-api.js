@@ -93,10 +93,16 @@
                 throw new Error(`HTTP ${res.status}`);
             return await res.json();
         }
-        static async postMessage(author, text = '', channelId = 'public', attachments, signal) {
+        static async postMessage(author, text = '', channelId = 'public', attachments, signal, advanceTick) {
             const payload = { author, text, channel_id: channelId };
             if (attachments && attachments.length) {
                 payload.attachments = attachments;
+            }
+            const shouldAdvance = typeof advanceTick === 'boolean'
+                ? advanceTick
+                : Boolean(window.config?.commonsAdvanceClockOnReply);
+            if (shouldAdvance) {
+                payload.advance_tick = true;
             }
             const res = await fetch('/api/commons/messages', {
                 method: 'POST',
@@ -181,11 +187,65 @@
                 payload.memory_emotions = meta.memory_emotions;
             if (typeof meta?.tick === 'number')
                 payload.tick = meta.tick;
-            const res = await fetch(`/api/players/${encodeURIComponent(name)}/memories/entry`, {
+            const standalone = window.CommonsState?.useViwoState === false;
+            const url = standalone
+                ? `/api/commons/memories/${encodeURIComponent(name)}`
+                : `/api/players/${encodeURIComponent(name)}/memories/entry`;
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
                 signal,
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async setMode(useViwoState) {
+            const res = await fetch('/api/commons/mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ use_viwo_state: Boolean(useViwoState) }),
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async setClock(date, time, anchorDatetime) {
+            const res = await fetch('/api/commons/clock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, time, anchor_datetime: anchorDatetime }),
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async forkBranch(name, fromMessageId) {
+            const res = await fetch('/api/commons/branches', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, from_message_id: fromMessageId }),
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async switchBranch(branchId) {
+            const res = await fetch('/api/commons/branches/switch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ branch_id: branchId }),
+            });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+        static async resetSession(force = false) {
+            const res = await fetch('/api/commons/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ force }),
             });
             if (!res.ok)
                 throw new Error(`HTTP ${res.status}`);

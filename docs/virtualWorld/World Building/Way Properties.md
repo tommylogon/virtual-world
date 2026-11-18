@@ -60,11 +60,11 @@ _Whether you can get through, and what stops you._
 |---|---|---|
 | `refusal_message` | - | Holds until the way is actually `open`. |
 | `blocked_description` | - | Falls back to `refusal_message`. |
-| `current_state` | `open`, `closed`, `locked`, `blocked`, `broken`, `hidden` | The passage ladder. Movement gates on THIS, never on see_through. |
+| `current_state` | `open`, `closed`, `locked`, `blocked`, `broken`, `hidden` | The passage ladder. Movement gates on THIS, never on see_through. Item throwing allows 'open' ways, refuses 'hidden' and 'blocked', and allows 'closed'/'locked'/'broken' only when see_through, prevent_close, or requires='climb'/'jump' permits tossing through or over. |
 | `requires_item` | - | Gates passage on carrying or wearing a required item (e.g. key or token). |
 | `one_way` | - | Incorporeal characters phase through it (task-309). |
 | `auto_close` | - | Closes behind a character who has gone through. |
-| `prevent_close` | - | Author's call, not the compiler's default. The state can then only be changed by triggers. An outdoor way carries it because you cannot close a road into a forest by hand. `requires: crawl/climb/jump` is always uncloseable independently of this. |
+| `prevent_close` | - | Author's call, not the compiler's default. The state can then only be changed by triggers. An outdoor way carries it because you cannot close a road into a forest by hand. `requires: crawl/climb/jump` is always uncloseable independently of this. For item throwing, prevent_close marks an open-sky or outdoor boundary items can be thrown across (unless blocked/hidden). |
 | `needs_open` | - | {enabled, skill, dc}. On a successful roll the way auto-sets current_state to 'open' and fires on_open triggers (engine/movement.py:582-600). This is how a closed, see-through wall becomes walkable - the 'break the glass' case. |
 | `cost` | - | {time, energy}. 'time' is a DURATION HINT for a future stateful-action system, not per-action clock advancement - crawl/climb/jump do NOT scale costs today (task-187). |
 
@@ -75,10 +75,12 @@ _Whether you can get through, and what stops you._
 - `current_state` - `engine/barriers.py:135` - declared_state, normalised
 - `current_state` - `engine/movement.py:564` - whether a traverse is refused
 - `current_state` - `engine/barriers.py:148` - outranked by see_through for light and sound
+- `current_state` - `engine/items/take_drop_actions.py:0` - throw passability: open passes; blocked/hidden refuse; closed/locked/broken require see_through, prevent_close, or climb/jump
 - `requires_item` - `engine/movement.py:507` - item tag or name required in inventory/equipped to traverse
 - `one_way` - `engine/movement.py:558` - refuses the reverse traverse
 - `prevent_close` - `engine/movement.py:1026` - character close is refused
 - `prevent_close` - `engine/world_compile.py:411` - set on compiled outdoor ways
+- `prevent_close` - `engine/items/take_drop_actions.py:0` - allows throwing items over/across uncloseable outdoor boundaries
 
 ## Transparency
 
@@ -100,6 +102,7 @@ _Whether you can see or hear through._
 - `see_through` - `engine/area_description.py:647` - peek-through text on examine
 - `see_through` - `engine/awareness.py:159` - a quieter channel than open, louder than solid
 - `see_through` - `static/js/agent/turn-feed.js:88` - a distinct sound cue
+- `see_through` - `engine/items/take_drop_actions.py:0` - allows throwing items through see-through openings unless blocked/hidden
 - `visible_in_direction` - `engine/area_description.py:723` - the 'what you see beyond' text
 - `insulation` - `engine/environment_propagation.py:78` - multiplies the heat rate through this way
 
@@ -109,7 +112,7 @@ _Which movement verb the passage demands._
 
 | property | values | notes |
 |---|---|---|
-| `requires` | ``, `crawl`, `climb`, `jump` | crawl/climb/jump ways are always uncloseable. Failed climb and jump rolls fire on_fail_climb / on_fail_jump triggers. |
+| `requires` | ``, `crawl`, `climb`, `jump`, `swim`, `dive` | crawl/climb/jump ways are always uncloseable. Failed climb and jump rolls fire on_fail_climb / on_fail_jump triggers. Items can be thrown over climb/jump barriers (e.g. fences, low walls) without a climb roll. |
 | `climb_dc` | - | Athletics DC when requires='climb'. Read as f'{requires}_dc', default 12. |
 | `jump_dc` | - | Athletics DC when requires='jump'. Read as f'{requires}_dc', default 12. |
 
@@ -118,6 +121,7 @@ _Which movement verb the passage demands._
 - `requires` - `engine/movement.py:462` - verb gate; 'go' auto-converts to crawl
 - `requires` - `engine/movement.py:542` - Athletics roll against <requires>_dc
 - `requires` - `engine/movement.py:1021` - open/close refused - an open passage
+- `requires` - `engine/items/take_drop_actions.py:0` - climb/jump barriers allow throwing items over unless blocked/hidden
 
 ## Size
 
@@ -125,12 +129,13 @@ _Who physically fits._
 
 | property | values | notes |
 |---|---|---|
-| `max_size` | ``, `none`, `tiny`, `small`, `normal`, `huge`, `giant`, `titanic` | SIZE_TIERS is the whole model - engine/size.py:10 states there is no height or girth property. Carrying at >= 50% capacity adds one tier before the comparison (task-202), so a loaded character can be locked out of a gap they walked through unloaded. |
+| `max_size` | ``, `none`, `tiny`, `small`, `normal`, `huge`, `giant`, `titanic` | SIZE_TIERS is the whole model - engine/size.py:10 states there is no height or girth property. Carrying at >= 50% capacity adds one tier before the comparison (task-202), so a loaded character can be locked out of a gap they walked through unloaded. Thrown items whose size tier (from item size or weight) exceeds max_size are refused. |
 | `size` | - | On the CHARACTER, not the way (task-605). Read by way max_size gating and by per-area occupancy (task-653). Falls back to a `size_*` trait for hand-authored characters; the property must not default to 'normal' or it would silently outrank every trait and break the gate. |
 
 ### Read by
 
 - `max_size` - `engine/movement.py:469` - two tiers over is blocked; one over crawls
+- `max_size` - `engine/items/take_drop_actions.py:0` - refuses thrown items whose size tier exceeds max_size
 
 ## Identity
 

@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "bug-576",
+  "kind": "bug",
+  "number": 576,
+  "title": "Scenario Manager reports zero areas for scenarios storing areas in graph nodes",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-385",
+      "bug-572"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "In the Scenario Manager list modal (`ScenarioManager.render()`), modern scenarios that store areas as physical graph nodes or painted world scopes display `⛺ 0` for their room/area count (e.g. `kraktooth_goblin_camp ⛺ 0`, `Millwood ⛺ 0`). However, opening the exact same file in the Import Preview modal (`inspectImport()`) correctly counts and reports hundreds of rooms (`⛺ 331 rooms` or `⛺ 592 rooms`).\n\nThe defect is in the backend scenario summary endpoint `GET /api/scenarios` in `routes/saveload.py`:\n\n```python\nentry[\"areas\"] = len(data.get('areas') or {})\n```\n\nIn legacy authoring templates, areas were stored in a top-level dictionary `data[\"areas\"]`. In all modern graph-based scenarios and saved world states, the authoritative world model stores area nodes in `data[\"graph\"][\"nodes\"]` where `type == \"area\"` (or within the scope manifest `area_placements` / `unplaced_areas`).\n\nBecause `list_scenarios()` in `routes/saveload.py` only inspects `data.get('areas')`, it returns `areas: 0` for any modern graph scenario. In contrast, the frontend's `inspectImport()` in `static/js/ui/saveload-view.ts` correctly scans both:\n\n```javascript\n// Authoring templates store areas in `areas`; saved world states use\n// graph area nodes as the single source of truth.\nif (isTemplate) { ... }\nObject.keys(nodes).forEach(function(id) {\n    if (nodes[id]?.type === 'area') addArea(...);\n});\n```",
+    "why": "Authors and players scanning the Scenario Manager list rely on the `⛺` count badge to know the size, scale, and density of a scenario before opening it. Reporting `⛺ 0` makes full, dense scenarios look completely empty or corrupted.",
+    "how": "1. In `routes/saveload.py: list_scenarios()`:\n   - Count areas by checking both legacy top-level `data.get('areas')` and graph nodes:\n     ```python\n     graph_nodes = (data.get('graph') or {}).get('nodes') or {}\n     if isinstance(graph_nodes, dict):\n         graph_areas = sum(1 for n in graph_nodes.values() if isinstance(n, dict) and n.get('type') == 'area')\n     elif isinstance(graph_nodes, list):\n         graph_areas = sum(1 for n in graph_nodes if isinstance(n, dict) and n.get('type') == 'area')\n     else:\n         graph_areas = 0\n\n     # Also count scopes/manifest area placements if graph is uncompiled\n     manifest = data.get('world_manifest') or data.get('scopes') or {}\n     manifest_areas = sum(len(s.get('area_placements') or []) for s in manifest.values() if isinstance(s, dict))\n\n     entry[\"areas\"] = max(len(data.get('areas') or {}), graph_areas, manifest_areas)\n     ```\n   - Similarly verify character count (`entry[\"players\"]`) falls back to `type == 'character'` in `graph_nodes`.",
+    "verify": "1. Call `GET /api/scenarios` and check the `areas` field for `kraktooth_goblin_camp` and `Millwood`.\n   - expected: `areas` reflects the number of graph area nodes (> 0).\n   - observed: `areas` is 0 because `list_scenarios()` only reads `data.get('areas')`.\n2. Open Scenario Manager modal in the browser.\n   - expected: `⛺` count matches real scenario size.\n   - observed: Displays `⛺ 0`.\n3. Run scenario management unit tests: `pytest tests/test_saveload.py`.\n   - expected: All tests pass.",
+    "acceptance": [
+      {
+        "text": "`GET /api/scenarios` calculates `areas` from `graph.nodes` (where `type == 'area'`) and scope manifests when legacy `data['areas']` is empty.",
+        "done": false
+      },
+      {
+        "text": "Scenario Manager modal displays accurate `⛺` area counts for all graph-based and painted scenarios.",
+        "done": false
+      },
+      {
+        "text": "Import Preview and Scenario Manager list show consistent room/area numbers.",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/saveload.py",
+      "static/js/ui/scenario-manager.ts",
+      "tests/test_saveload.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Scenario Manager modal (`📁 Scenarios` in top bar).\n\nCurrent availability: Reproducible on `localhost:4444`. Opening Scenario Manager shows `kraktooth_goblin_camp` with `⛺ 0` despite containing 592 area nodes.\n\nLive steps when available:\n1. Open `localhost:4444` and click **📁 Scenarios** in the top navigation bar.\n   - expected: Scenario Manager modal opens displaying the list of saved scenarios.\n2. Locate `kraktooth_goblin_camp` and `Millwood` in the scenario list.\n   - expected: The area icon badge (`⛺`) displays the true area count (e.g. `⛺ 592` or `⛺ 331`) rather than `⛺ 0`.\n3. Click the **Upload / Import** button and preview `Millwood.json`.\n   - expected: The Import Preview room count and the Scenario Manager row area count agree.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Painter & Scope Editor]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/bug-576-scenario-manager-reports-zero-areas-for-graph-scenarios.md"
+  },
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-17T21:54:26Z"
+    }
+  ]
+}

@@ -35,6 +35,32 @@
                     }
                 });
             }
+            const advClockCb = document.getElementById('commons-advance-clock-toggle');
+            if (advClockCb) {
+                const cfg = window.config;
+                if (cfg) {
+                    void cfg._initPromise?.then(() => {
+                        advClockCb.checked = Boolean(cfg.commonsAdvanceClockOnReply);
+                    });
+                    advClockCb.checked = Boolean(cfg.commonsAdvanceClockOnReply);
+                }
+                advClockCb.addEventListener('change', () => {
+                    const c = window.config;
+                    if (c) {
+                        c.commonsAdvanceClockOnReply = advClockCb.checked;
+                        void c.save?.();
+                    }
+                });
+            }
+            const memCfg = window.config;
+            if (memCfg) {
+                void memCfg._initPromise?.then(() => {
+                    this.renderMemoryToggle();
+                    if (window.CommonsState)
+                        this.renderConversation();
+                });
+            }
+            this.renderMemoryToggle();
             form?.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const text = input?.value.trim() || '';
@@ -140,7 +166,7 @@
                     const button = target.closest('[data-role="act"]');
                     const actName = button?.dataset.character;
                     if (actName) {
-                        void window.CommonsAgent.stepOne(actName);
+                        void window.CommonsAgent.stepOne(actName, true);
                     }
                 });
                 participantList.addEventListener('change', (event) => {
@@ -200,6 +226,39 @@
                 if (button.dataset.memberAction === 'remove')
                     void this.changeMember(button.dataset.name || '', false);
             });
+            document.getElementById('commons-viwo-state-toggle')?.addEventListener('change', async (e) => {
+                const checked = Boolean(e.target.checked);
+                await window.CommonsApi?.setMode?.(checked);
+                await window.CommonsState?.sync?.(true);
+            });
+            document.getElementById('commons-clock-set-btn')?.addEventListener('click', async () => {
+                const dateEl = document.getElementById('commons-clock-date');
+                const timeEl = document.getElementById('commons-clock-time');
+                if (!dateEl?.value && !timeEl?.value)
+                    return;
+                await window.CommonsApi?.setClock?.(dateEl?.value, timeEl?.value);
+                await window.CommonsState?.sync?.(true);
+            });
+            document.getElementById('commons-branch-select')?.addEventListener('change', async (e) => {
+                const bid = e.target.value;
+                if (!bid)
+                    return;
+                await window.CommonsApi?.switchBranch?.(bid);
+                await window.CommonsState?.sync?.(true);
+            });
+            document.getElementById('commons-branch-fork-btn')?.addEventListener('click', async () => {
+                const name = window.prompt('New branch name (optional):', '') ?? undefined;
+                if (name === null)
+                    return;
+                await window.CommonsApi?.forkBranch?.(name || undefined);
+                await window.CommonsState?.sync?.(true);
+            });
+            document.getElementById('commons-reset-btn')?.addEventListener('click', async () => {
+                if (!window.confirm('Reset this standalone Commons session (clears messages and custom groups)?'))
+                    return;
+                await window.CommonsApi?.resetSession?.(false);
+                await window.CommonsState?.sync?.(true);
+            });
             document.getElementById('commons-drawer-close')?.addEventListener('click', () => {
                 window.CommonsState.closeDrawer();
             });
@@ -253,6 +312,17 @@
                         void this.confirmDeleteMessage(msgId);
                     }
                     return;
+                }
+                if (target.closest('button, a, input, textarea, .commons-msg-actions, .chat-msg-edit-inline'))
+                    return;
+                const selectedText = window.getSelection?.()?.toString?.() || '';
+                if (selectedText.length > 0)
+                    return;
+                const msgEl = target.closest('article.chat-msg[data-msg-id]');
+                const author = msgEl?.dataset.author;
+                const msgId = msgEl?.dataset.msgId;
+                if (msgEl && author && author !== 'User' && msgId) {
+                    window.CommonsState.openDrawerForMessage(author, msgId);
                 }
             });
             window.CommonsState.subscribe(() => this.render());
@@ -348,8 +418,110 @@
                 </button>`;
             }).join('') || '<div class="commons-empty-note">No conversations yet.</div>'));
         }
+        static isMemoryRecordingEnabled() {
+            const cfg = window.config;
+            return cfg ? cfg.commonsRecordMemories !== false : true;
+        }
+        static renderMemoryToggle() {
+            const count = document.getElementById('commons-channel-member-count');
+            const muteBtn = document.getElementById('commons-mute-btn');
+            const anchor = muteBtn || count;
+            const header = anchor?.parentElement
+                || document.querySelector('.commons-conversation-header')
+                || document.querySelector('.commons-top-actions');
+            let memBtn = document.getElementById('commons-memory-toggle');
+            if (!memBtn && header) {
+                memBtn = document.createElement('button');
+                memBtn.id = 'commons-memory-toggle';
+                memBtn.type = 'button';
+                if (anchor && anchor.parentElement === header) {
+                    anchor.insertAdjacentElement('afterend', memBtn);
+                }
+                else {
+                    header.appendChild(memBtn);
+                }
+            }
+            if (memBtn && !memBtn.dataset.bound) {
+                memBtn.dataset.bound = '1';
+                memBtn.addEventListener('click', () => {
+                    const cfg = window.config;
+                    const next = !this.isMemoryRecordingEnabled();
+                    if (cfg) {
+                        cfg.commonsRecordMemories = next;
+                        void cfg.save?.(true);
+                    }
+                    this.renderMemoryToggle();
+                    if (window.CommonsState)
+                        this.renderConversation();
+                });
+            }
+            const enabled = this.isMemoryRecordingEnabled();
+            if (memBtn) {
+                memBtn.className = `commons-small-btn commons-memory-toggle ${enabled ? 'is-on' : 'is-off'}`;
+                memBtn.textContent = enabled ? '🧠 Memories: ON' : '🧠 Memories: OFF';
+                memBtn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+                memBtn.setAttribute('aria-label', enabled ? 'Character memory generation: ON' : 'Character memory generation: OFF');
+                memBtn.title = enabled
+                    ? 'Character memories are recorded from Commons activity (click to pause for dialogue testing)'
+                    : 'Testing mode: messages will not generate character memories (click to re-enable)';
+                memBtn.style.marginLeft = '6px';
+                memBtn.style.borderRadius = '999px';
+                memBtn.style.padding = '4px 10px';
+                memBtn.style.fontSize = '11px';
+                memBtn.style.fontWeight = '600';
+                memBtn.style.whiteSpace = 'nowrap';
+                if (enabled) {
+                    memBtn.style.background = '#6c59dc';
+                    memBtn.style.color = '#ffffff';
+                    memBtn.style.border = '1px solid #8270eb';
+                }
+                else {
+                    memBtn.style.background = '#21262d';
+                    memBtn.style.color = '#8b949e';
+                    memBtn.style.border = '1px solid #30363d';
+                }
+            }
+            const input = document.getElementById('commons-input');
+            if (input) {
+                if (!enabled) {
+                    input.placeholder = 'Testing mode: messages will not generate character memories';
+                }
+                else if (input.placeholder === 'Testing mode: messages will not generate character memories') {
+                    input.placeholder = 'Write a message…';
+                }
+            }
+        }
         static renderConversation() {
             const state = window.CommonsState;
+            const viwoToggle = document.getElementById('commons-viwo-state-toggle');
+            if (viwoToggle)
+                viwoToggle.checked = state.useViwoState !== false;
+            const clockControls = document.getElementById('commons-standalone-clock-controls');
+            const resetBtn = document.getElementById('commons-reset-btn');
+            const isStandalone = state.useViwoState === false;
+            if (clockControls)
+                clockControls.style.display = isStandalone ? 'inline-flex' : 'none';
+            if (resetBtn)
+                resetBtn.style.display = isStandalone ? 'inline-flex' : 'none';
+            if (isStandalone && state.currentDatetime) {
+                const dateEl = document.getElementById('commons-clock-date');
+                const timeEl = document.getElementById('commons-clock-time');
+                if (dateEl && document.activeElement !== dateEl)
+                    dateEl.value = String(state.currentDatetime).slice(0, 10);
+                if (timeEl && document.activeElement !== timeEl)
+                    timeEl.value = String(state.currentDatetime).slice(11, 16);
+            }
+            const branchSel = document.getElementById('commons-branch-select');
+            if (branchSel && Array.isArray(state.branches)) {
+                branchSel.innerHTML = '';
+                for (const b of state.branches) {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.name || b.id;
+                    opt.selected = Boolean(b.id === state.activeBranchId);
+                    branchSel.appendChild(opt);
+                }
+            }
             const channel = (state.channels || []).find((item) => item.id === state.selectedChannelId);
             const title = document.getElementById('commons-channel-name');
             const subtitle = document.getElementById('commons-channel-subtitle');
@@ -383,6 +555,7 @@
                 });
                 count.insertAdjacentElement('afterend', muteBtn);
             }
+            this.renderMemoryToggle();
             let mutedBadge = document.getElementById('commons-header-muted-badge');
             if (!mutedBadge && title?.parentElement) {
                 mutedBadge = document.createElement('span');
@@ -453,10 +626,13 @@
                 send.textContent = townBoard
                     ? (channel.kind === 'public' ? 'Post notice' : 'Send letter')
                     : 'Send';
-            if (input)
-                input.placeholder = townBoard
-                    ? (channel.kind === 'public' ? 'Write a public notice…' : 'Write a private letter…')
-                    : 'Write a message…';
+            if (input) {
+                input.placeholder = !this.isMemoryRecordingEnabled()
+                    ? 'Testing mode: messages will not generate character memories'
+                    : (townBoard
+                        ? (channel.kind === 'public' ? 'Write a public notice…' : 'Write a private letter…')
+                        : 'Write a message…');
+            }
             if (membersList) {
                 membersList.replaceChildren(document.createRange().createContextualFragment(members.map((name, index) => `<span class="commons-member-chip commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world"><span class="commons-member-avatar avatar-${index % 6}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}</span>`).join('') || '<div class="commons-empty-note">No members listed.</div>'));
             }
@@ -542,7 +718,8 @@
             const messages = window.CommonsState.messages || [];
             const feedHtml = messages.map((message) => {
                 const own = message.author === window.CommonsState.perspective;
-                const time = new Date(message.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const wallTime = new Date(message.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const time = formatIsoLabel(message.world_datetime) || formatWorldTick(message.tick) || wallTime;
                 const isEditing = this.editingMessageId === message.id;
                 const editedBadge = message.edited ? '<span class="chat-msg-edited" title="Edited message">(edited)</span>' : '';
                 const actionsHtml = own ? `<span class="chat-msg-actions">
@@ -569,7 +746,7 @@
                         </div>
                     `).join('') + `</div>`;
                 }
-                return `<article class="chat-msg ${own ? 'own' : ''}">
+                return `<article class="chat-msg ${own ? 'own' : ''}" data-msg-id="${escapeHtml(message.id)}" data-author="${escapeHtml(message.author)}"${message.author !== 'User' ? ' style="cursor:pointer;" title="Click to inspect the thinking and tool flow behind this message"' : ''}>
                     <div class="chat-msg-avatar avatar-${hash(message.author) % 6} commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(initials(message.author))}</div>
                     <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(message.author)}</span><time>${time}</time>${editedBadge}${actionsHtml}</div>
                     ${bodyHtml}${attachmentsHtml}</div>
@@ -840,6 +1017,9 @@
             if (presenceEl) {
                 const statusText = isActing ? 'Thinking right now...' : 'In conversation';
                 if (window.Lit?.html && window.UiPrimitives?.StatusBadge) {
+                    if (!presenceEl._$litPart$) {
+                        presenceEl.textContent = '';
+                    }
                     const badge = window.UiPrimitives.StatusBadge({
                         label: statusText,
                         color: isActing ? '#3b82f6' : '#22c55e',
@@ -878,13 +1058,44 @@
                     traitsEl.replaceChildren(document.createRange().createContextualFragment(traitKeys.map((t) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('')));
                 }
             }
-            // Render turn history and monologue
+            // Render turn history and monologue (or message-specific trace when clicked)
             const turns = state.characterTurns?.[charName] || [];
-            const latest = turns[0];
+            const selectedMsgId = state.selectedDrawerMessageId;
+            const msgTrace = selectedMsgId !== null && selectedMsgId !== undefined
+                ? state.messageTraces?.[String(selectedMsgId)]
+                : null;
+            const latest = msgTrace || turns[0];
+            const flowEl = document.getElementById('commons-drawer-flow');
+            const flowScopeEl = document.getElementById('commons-drawer-flow-scope');
+            if (flowScopeEl) {
+                flowScopeEl.replaceChildren(document.createRange().createContextualFragment(msgTrace
+                    ? `· message #${escapeHtml(selectedMsgId)} <button type="button" id="commons-drawer-latest-btn" class="commons-small-btn" style="margin-left:6px;font-size:10px;">Show latest</button>`
+                    : ''));
+                document.getElementById('commons-drawer-latest-btn')?.addEventListener('click', () => {
+                    state.openDrawer(charName);
+                });
+            }
+            if (flowEl) {
+                const steps = Array.isArray(latest?.detail?.steps) ? latest.detail.steps : [];
+                if (steps.length) {
+                    flowEl.replaceChildren(document.createRange().createContextualFragment(steps.map((s, idx) => `<div class="commons-history-row" style="padding:5px 8px;margin-bottom:4px;border-left:2px solid var(--accent,#60a5fa);font-size:11px;">
+                            <div style="font-size:10px;font-weight:600;color:var(--text-muted,#8b949e);">${idx + 1}. ${escapeHtml(s.label || s.kind || 'Step')}</div>
+                            ${s.detail ? `<div style="margin-top:2px;">${escapeHtml(s.detail)}</div>` : ''}
+                        </div>`).join('')));
+                }
+                else if (selectedMsgId !== null && selectedMsgId !== undefined) {
+                    flowEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">No causal trace recorded for message #${escapeHtml(selectedMsgId)} (it may have been loaded from an earlier session).</div>`));
+                }
+                else {
+                    flowEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">Trigger a turn with ▶ Act to observe the causal flow.</div>`));
+                }
+            }
             if (monologueEl) {
                 if (latest?.inner) {
+                    const latestTime = formatWorldTick(latest.worldTick)
+                        || new Date(latest.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     monologueEl.replaceChildren(document.createRange().createContextualFragment(`<blockquote class="commons-inner-quote">"${escapeHtml(latest.inner)}"</blockquote>
-                    <div class="commons-inner-time">${new Date(latest.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`));
+                    <div class="commons-inner-time">${escapeHtml(latestTime)}</div>`));
                 }
                 else {
                     monologueEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">No thoughts recorded yet for ${escapeHtml(charName)}. Trigger a turn with ▶ Act to observe their inner stream.</div>`));
@@ -937,21 +1148,68 @@
             }
             if (historyEl) {
                 if (turns.length > 1) {
-                    historyEl.replaceChildren(document.createRange().createContextualFragment(turns.slice(1, 8).map((t) => `
+                    historyEl.replaceChildren(document.createRange().createContextualFragment(turns.slice(1, 8).map((t) => {
+                        const turnTime = formatWorldTick(t.worldTick)
+                            || new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return `
                         <div class="commons-history-row">
                             <div class="commons-history-header">
                                 <span class="commons-decision-action small ${escapeHtml(t.action)}">${escapeHtml(t.action.replace('_', ' '))}</span>
-                                <time>${new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
+                                <time>${escapeHtml(turnTime)}</time>
                             </div>
                             ${t.inner ? `<div class="commons-history-thought">"${escapeHtml(t.inner)}"</div>` : ''}
                         </div>
-                    `).join('')));
+                    `;
+                    }).join('')));
                 }
                 else {
                     historyEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">Earlier turns will appear here as the conversation continues.</div>`));
                 }
             }
         }
+    }
+    function formatIsoLabel(iso) {
+        if (typeof iso !== 'string' || !iso)
+            return '';
+        const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+        if (!m)
+            return '';
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const mo = Math.max(1, Number(m[2]));
+        return `${months[(mo - 1) % 12]} ${Number(m[3])}, ${Number(m[1])} · ${m[4]}:${m[5]}`;
+    }
+    function formatWorldTick(t) {
+        if (typeof t !== 'number' || !Number.isFinite(t))
+            return '';
+        const wc = window.CommonsState?.worldClock || {};
+        const mpt = Number(wc.time_per_tick_minutes ?? 5) || 5;
+        const startH = Number(wc.clock_start_hour ?? 8);
+        const startM = Number(wc.clock_start_minute ?? 0);
+        const startMin = startH * 60 + startM;
+        const total = Math.round(startMin + t * mpt);
+        const dayMinutes = ((total % 1440) + 1440) % 1440;
+        const hh = String(Math.floor(dayMinutes / 60)).padStart(2, '0');
+        const mm = String(dayMinutes % 60).padStart(2, '0');
+        const cfg = wc.calendar_config && typeof wc.calendar_config === 'object' ? wc.calendar_config : {};
+        const dpm = Math.max(1, Math.floor(Number(cfg.days_per_month) || 30));
+        const mpy = Math.max(1, Math.floor(Number(cfg.months_per_year) || 12));
+        const curTick = Number(wc.time_ticks ?? 0) || 0;
+        const curElapsedDays = Math.floor((startMin + curTick * mpt) / 1440);
+        const curGameDay = Number(wc.game_day) || 1;
+        const baseDay = cfg.start_year
+            ? ((Number(cfg.start_year) - 1) * dpm * mpy + ((Number(cfg.start_month) || 1) - 1) * dpm + ((Number(cfg.start_day) || 1) - 1))
+            : (curGameDay - curElapsedDays - 1);
+        const targetElapsedDays = Math.floor(total / 1440);
+        const absDay = baseDay + targetElapsedDays + 1;
+        const yearIdx = Math.floor((absDay - 1) / (dpm * mpy)) + 1;
+        const monthIdx = (Math.floor((absDay - 1) / dpm) % mpy) + 1;
+        const dayIdx = ((absDay - 1) % dpm) + 1;
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const mname = months[((monthIdx - 1) % 12 + 12) % 12];
+        if (yearIdx > 1 || cfg.start_year) {
+            return `${mname} ${dayIdx}, ${yearIdx} · ${hh}:${mm}`;
+        }
+        return `${mname} ${dayIdx} · ${hh}:${mm}`;
     }
     function escapeHtml(value) {
         return String(value || '').replace(/[&<>'"]/g, (tag) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));

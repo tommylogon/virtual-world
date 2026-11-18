@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "bug-578",
+  "kind": "bug",
+  "number": 578,
+  "title": "Agent list in left panel collapses to single active character after toggling control mode",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-340",
+      "task-933",
+      "bug-577"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When cycling a character's control mode in the left-panel Agent List (e.g. clicking the control mode icon to switch from NPC to Human), all other characters in the scenario disappear from the list. Only the single selected/active character remains visible.",
+    "why": "1. In `static/js/stream/stream-control-mode.ts` (lines 89-100), switching a character to `human` sets `makeActive = true`, which calls:\n   ```ts\n   config.controllingPlayer = charName;\n   worldState.setRuntimeFocusForCharacter(charName);\n   ```\n2. `worldState.setRuntimeFocusForCharacter(charName)` sets `_runtimeFocus = [charId]`.\n3. In `static/js/stream/stream-control-mode.ts` (lines 113-114):\n   ```ts\n   const freshState = await worldState.fetch();\n   if (freshState && worldState.data) VW?.ui?.renderAll?.(freshState);\n   ```\n4. In `static/js/world-state.ts` (line 108):\n   ```ts\n   if (this._runtimeFocus.length) return this.fetchRuntime();\n   ```\n   Because runtime focus is non-empty, `worldState.fetch()` delegates to `this.fetchRuntime()`.\n5. `fetchRuntime()` requests `/api/runtime/state?character_id=...`, which returns a character-scoped runtime snapshot (`snapshot_type: 'character_runtime'`). In this payload, `snapshot.players` contains ONLY the single focused character.\n6. `fetchRuntime()` returns that isolated snapshot object as `freshState`.\n7. Line 114 passes `freshState` directly into `VW.ui.renderAll(freshState)`.\n8. `UIController.renderAll()` calls `renderAgentList(state)`. In `renderAgentList`:\n   ```ts\n   const players = state.players || {};\n   let names = Object.keys(players);\n   ```\n   Because `state.players` holds only the single focused character, all other scenario characters are excluded and the list collapses.\n9. Furthermore, `worldState.fetch()` violates its contract by returning the character runtime snapshot rather than `this.data` (the merged authoritative world state) when runtime focus is active.",
+    "how": "1. In `static/js/world-state.ts`:\n   - When `this._runtimeFocus.length` is active in `fetch()`, await `this.fetchRuntime()` and then return `this.data`:\n     ```ts\n     if (this._runtimeFocus.length) {\n         await this.fetchRuntime();\n         return this.data;\n     }\n     ```\n2. In `static/js/stream/stream-control-mode.ts`:\n   - Pass `worldState.data` (or the returned `freshState` once guaranteed to be `worldState.data`) into `VW.ui.renderAll()`:\n     ```ts\n     const freshState = await worldState.fetch();\n     if (worldState.data) VW?.ui?.renderAll?.(worldState.data);\n     ```\n3. Verify that `renderAgentList` retains all scenario characters when toggling control mode on any character.",
+    "verify": "Verified in static/js/world-state.ts (fetch returns this.data after fetchRuntime) and live on http://localhost:4444/: cycling control modes keeps all 6 scenario characters visible in #agent-list with 0 console errors.",
+    "acceptance": [
+      {
+        "text": "Toggling control mode on any character in the left panel does not wipe out or hide the other scenario characters.",
+        "done": false
+      },
+      {
+        "text": "All characters continue to appear in `#agent-list` with their respective control mode badges, vitals, and areas.",
+        "done": false
+      },
+      {
+        "text": "`worldState.fetch()` always resolves to `worldState.data`, preserving complete world state access for callers.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/world-state.ts",
+      "static/js/stream/stream-control-mode.ts",
+      "tools/unit/test_control_mode_agent_list.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Left-panel Agent List (#agent-list) and control mode toggle.\n\nCurrent availability: Fixed in static/js/world-state.ts (fetch() returns this.data after fetchRuntime()) and static/js/stream/stream-control-mode.ts (passes worldState.data to VW.ui.renderAll()), with unit test coverage in tools/unit/test_control_mode_agent_list.js and tools/unit/test_world_state_fetch.js.\n\nManual verification steps:\n1. Open a multi-character scenario and cycle control mode in #agent-list.\n   - expected: All scenario characters remain visible in #agent-list without collapsing to one character."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Turn Queue & Human Turns]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/bug-578-agent-list-collapses-to-single-active-character-after-toggling-control-mode.md",
+    "files": [
+      "static/js/world-state.ts",
+      "static/js/stream/stream-control-mode.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Left-panel Agent List (#agent-list) and control mode toggle.\n\nVerified live in browser on http://localhost:4444/: cycling control modes across characters keeps all 6 scenario characters visible without collapsing."
+    }
+  }
+}

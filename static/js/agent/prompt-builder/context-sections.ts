@@ -61,6 +61,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         relationship: (p, ctx) => ctx.relationshipNL || '',
         trait: (p) => PromptBuilder.buildTraitBehaviorContext(p),
         language: (p) => (typeof PromptBuilder.buildLanguageAndLingoContext === 'function' ? PromptBuilder.buildLanguageAndLingoContext(p) : ''),
+        knowledge: (p) => (typeof PromptBuilder.buildKnowledgeAndBlindSpotsContext === 'function' ? PromptBuilder.buildKnowledgeAndBlindSpotsContext(p) : ''),
         size: (p) => PromptBuilder.buildSizeContext(p),
         memory: (p, ctx) => ctx.memoryNL || '',
         perceived: (p) => PromptBuilder.buildPerceivedState(p),

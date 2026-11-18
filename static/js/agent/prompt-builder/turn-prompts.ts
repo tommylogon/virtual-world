@@ -23,17 +23,14 @@
  *
  *   Phase      | Output fields                              | Consumed by
  *   -----------|----------------------------------------------|--------------------------------------
- *   reaction   | action,item,target,speech,volume,emote,       action-executor.js, memory-store.js
- *              | (memory if config.endOfTurnMemory)
- *   react      | inner_monologue,speech,volume,emote,memory     action-executor.js, memory-store.js
- *   dash       | action,target OR action:"wait"                 action-executor.js (mid-sprint chain)
+ *   reaction   | action,item,target,speech,volume,emote       action-executor.js
+ *   react      | inner_monologue,speech,volume,emote          action-executor.js
+ *   dash       | action,target OR action:"wait"               action-executor.js (mid-sprint chain)
  * ---------------------------------------------------------------------------
  *
- * RESOLVED (2026-09-20) - "reaction" phase memory: `includeMemory` used to add
- * the "memory" field to the JSON schema while never explaining how to fill it.
- * It is now wired, and OPT-IN: memory is normally written at the START of a
- * character's turn, so end-of-turn memory requires Settings → "End-of-turn
- * memory" (`config.endOfTurnMemory`). Off by default.
+ * RETIRED (task-949): `config.endOfTurnMemory` and Reactor `memory` creation
+ * have been retired under Strict Actor Isolation. Memory synthesis is handled
+ * exclusively by the Memory Intermediator and inner_monologue persistence.
  *
  * REMOVED (2026-09-20): `buildObservationPrompt` and `buildDecisionPrompt` were
  * dead exports - defined, exported, and never called. The live turn-start call is
@@ -147,16 +144,12 @@ window.PromptBuilder = window.PromptBuilder || {};
         const context = PromptBuilder.buildContextBlock(player, ctx,
             ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'language', 'size', 'activity', 'grappled', 'slots', 'mosiac', 'ghost', 'dead']);
 
-        // End-of-turn memory is OPTIONAL (memories normally come at turn START).
-        const wantMemory = includeMemory && config.endOfTurnMemory === true;
-        const memoryInstruction = wantMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACT : '';
-
+        // End-of-turn memory and Reactor memory creation are retired (task-949).
         const schemaFields = ['inner_monologue', 'action_use_on', 'speech', 'volume', 'emote'];
-        if (includeFeelings) schemaFields.push('emotion_toward', 'learned_names');
-        if (wantMemory) schemaFields.push('memory', 'emotion_toward', 'learned_names');
+        if (includeFeelings || includeMemory) schemaFields.push('emotion_toward', 'learned_names');
 
-        // Fix #7: explicit budget guard in decide phase (includeMemory=false, includeFeelings=true)
-        const isDecidePhase = !wantMemory && includeFeelings;
+        // Fix #7: explicit budget guard in decide phase (includeFeelings=true)
+        const isDecidePhase = includeFeelings;
         const budgetGuard = isDecidePhase
             ? '\n\n=== BUDGET CHECK ===\nBefore choosing an action, verify the === ACTIONS LEFT THIS TURN === line in your context. If it says "major 0", you CANNOT use major actions (go, dash, examine, take, use, eat, drink, attack, etc.). You MUST choose a minor/free action, speak, or "wait". Violating this wastes your turn.'
             : '';
@@ -165,7 +158,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         return `${head}${last}${budgetGuard}
 
-First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) - all in ONE response. The action will be executed by the system and its result comes back in the next message - do not assume the outcome of your action in your inner monologue or speech.${memoryInstruction}
+First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) - all in ONE response. The action will be executed by the system and its result comes back in the next message - do not assume the outcome of your action in your inner monologue or speech.
 
 Follow the standing ACTION, SPEECH & VOLUME, and JSON rules in your system prompt.
 Your context's === AVAILABLE ACTIONS === lists verbs currently available beyond your surroundings.
@@ -226,19 +219,17 @@ How do you process this? What goes through your mind now?
 This is the REACT phase: by default you react SILENTLY - keep it to inner_monologue and emote. Speak out loud ONLY if the situation genuinely calls for it (someone addressed you directly, something alarming or unexpected happened). Do not advance to your next planned action here - that happens next turn.
 A moment has just passed - your own action barely completed. The people around you have NOT had time to react or reply yet; their silence or stillness right now means they simply haven't responded, not that they ignored you. Do not infer long stretches of time from one instant. React to what actually happened to you in this single moment.
 CRITICAL: If your action was rejected or failed, your reaction must acknowledge the failure - never describe the action as if it succeeded. A blocked kitchen attempt is not a visit; a refused door is not open.
-CRITICAL: In the REACT phase you MUST NOT include "action" or "item" fields. React ONLY via inner_monologue, emote, speech, and memory. Do not attempt to take new actions.
+CRITICAL: In the REACT phase you MUST NOT include "action" or "item" fields. React ONLY via inner_monologue, emote, and speech. Do not attempt to take new actions.
 If you do speak, put your line in the "speech" field and its volume in "volume" (see SPEECH & VOLUME rules in the system prompt).
 ${PromptBuilder.EMOTE_RULES_REACT}
 
-${PromptBuilder.MEMORY_INSTRUCTION_REACT}
-
 Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same key twice.
 If you speak:
-${PromptBuilder.buildJsonExample(['inner_monologue', 'speech', 'volume', 'emote', 'memory', 'emotion_toward', 'learned_names'])}
+${PromptBuilder.buildJsonExample(['inner_monologue', 'speech', 'volume', 'emote', 'emotion_toward', 'learned_names'])}
 If you stay silent but emote:
-{"inner_monologue":"...","speech":null,"volume":null,"emote":"...","memory":null,"emotion":null,"learned_names":[]}
+{"inner_monologue":"...","speech":null,"volume":null,"emote":"...","emotion":[{"label":"...","intensity":5,"toward":null}],"learned_names":[]}
 If you have nothing to react with:
-{"inner_monologue":"...","speech":null,"volume":null,"emote":null,"memory":null,"emotion":null,"learned_names":[]}`;
+{"inner_monologue":"...","speech":null,"volume":null,"emote":null,"emotion":[],"learned_names":[]}`;
     }
 
     /**
@@ -279,9 +270,11 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
     function buildCommunicationPrompt(player: PlayerData, memoryNL: string, channels: unknown[], knownCharacters: string[], theme = 'live_social') {
         const charName = String(player?.name || '');
         const isTownBoard = theme === 'town_board';
-        const persona = player?.personality
-            ? `You are ${charName}. Personality: ${player.personality}`
-            : `You are ${charName}.`;
+        const personaParts = [`You are ${charName}.`];
+        const desc = (player as any)?.description;
+        if (desc) personaParts.push(`Appearance: ${desc}`);
+        if (player?.personality) personaParts.push(`Personality: ${player.personality}`);
+        const persona = personaParts.join(' ');
         const context = PromptBuilder.buildContextBlock(player, { phase: 'communication' },
             ['emotion', 'insanity', 'trait', 'language', 'mosiac', 'dead']);
         const availableChannels = (Array.isArray(channels) ? channels : [])
@@ -304,9 +297,12 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
             ? 'You use The Commons as a town notice board and private letters. The board is public; letters are direct conversations. Delivery is immediate inside The Commons; do not invent physical delivery, devices, or travel. Message text is hidden until you explicitly choose read_chat.'
             : 'You are using the same phone as this character. The list contains only conversations you can access. Message text is hidden until you explicitly choose read_chat.';
         const actions = isTownBoard
-            ? 'Available tools: read_chat to read posts or letters, send_chat to add a public post or reply to a private letter, start_dm to open a private letter exchange with one existing character and send its first letter, mute_chat to mute or unmute a conversation, and remember to save something worth retaining. Group conversations are unavailable.'
-            : 'Available tools: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one character whose name you know and send its first message, start_group to create a private group with a name and invitees whose names you know, mute_chat to mute or unmute a conversation, and remember to save something worth retaining.';
+            ? 'Available tools: read_chat to read posts or letters, send_chat to add a public post or reply to a private letter, start_dm to open a private letter exchange with one existing character and send its first letter, mute_chat to mute or unmute a conversation, and recall to actively search your memories for a topic. Group conversations are unavailable.'
+            : 'Available tools: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one character whose name you know and send its first message, start_group to create a private group with a name and invitees whose names you know, mute_chat to mute or unmute a conversation, and recall to actively search your memories for a topic.';
         const worldTimeLine = (player as any)?.world_time ? `Current time: ${(player as any).world_time}\n` : '';
+        const areaLine = (player as any)?.current_area
+            ? `Current location: ${(player as any).current_area}${Array.isArray((player as any)?.people_here) && (player as any).people_here.length ? ` (nearby: ${(player as any).people_here.join(', ')})` : ' (alone)'}\n`
+            : '';
         const rels = (player as any)?.relationships && typeof (player as any).relationships === 'object'
             ? Object.entries((player as any).relationships as Record<string, any>)
                 .filter(([, r]) => r && typeof r === 'object')
@@ -322,7 +318,7 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
         const relBlock = rels ? `\nRelationships:\n${rels}\n` : '';
         return `${persona}
 === YOUR STATE ===
-${worldTimeLine}${String(context || '').trim()}
+${worldTimeLine}${areaLine}${String(context || '').trim()}
 ${relBlock}${String(memoryNL || '').trim()}
 
 ${heading}
@@ -333,7 +329,7 @@ ${channelLines}
 ${actions} You may call zero or more tools. Make one call at a time. After a read_chat result, consider what you want to do next; replying is optional, not expected. Stop by returning no tool call when you are done or want to stay quiet. Do not take physical world actions on this turn. Never claim to have read messages unless read_chat returns them. Keep the character's established personality and memories.
 Characters whose names you know and may contact: ${names || 'none'}
 
-Use tool calls for all communication. Plain response text is your private, in-character inner monologue (what you are genuinely thinking, feeling, and reacting to right now - never a dry status summary of tool calls) and ends the turn; it never sends a message.`;
+Use tool calls for all communication. Plain response text is your private, in-character inner monologue (genuine internal thoughts and feelings only - never narrate typing/sending messages, never use emojis or AI formatting meta-words, never invent a different physical location) and ends the turn; it never sends a message.`;
     }
 
     /**

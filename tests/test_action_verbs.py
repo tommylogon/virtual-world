@@ -166,3 +166,14 @@ def test_drift_guard_catches_unregistered_verb():
     unregistered = "fake_verb_qwerty"
     assert not av.is_valid_verb(unregistered)
     assert av.get_verb(unregistered) is None
+
+
+def test_phone_verbs_registered():
+    """Phone verbs call, answer, hangup, and text (alias message) are registered."""
+    for verb in ("call", "answer", "hangup", "text", "message"):
+        assert av.is_valid_verb(verb), f"Phone verb '{verb}' should be valid"
+    assert av.get_verb("message").id == "text"
+    assert av.get_verb("call").cost_key == "free"
+    assert av.get_verb("answer").cost_key == "free"
+    assert av.get_verb("hangup").cost_key == "free"
+    assert av.get_verb("text").cost_key == "free"

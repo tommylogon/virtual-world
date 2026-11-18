@@ -183,5 +183,45 @@ def test_to_scenario_dict_preserves_character_node_definition_and_strips_players
 
     # Players block is stripped of duplicate authored definition
     pdata = scenario["players"]["Dara"]
-    for stripped_key in ("personality", "base_description", "description", "tags", "traits"):
+    for stripped_key in ("personality", "base_description", "description", "tags", "traits", "languages"):
         assert stripped_key not in pdata, f"{stripped_key} must be stripped from players block in scenario"
+
+
+def test_languages_store_and_scenario_roundtrip():
+    world = VirtualWorld()
+    world.load_from_dict({
+        "graph": {
+            "nodes": {
+                "area_hall": {"id": "area_hall", "type": "area", "name": "Hall", "properties": {}},
+                "player_Aoi": {"id": "player_Aoi", "type": "character", "name": "Aoi", "properties": {}},
+            },
+            "edges": [{"source": "player_Aoi", "target": "area_hall", "type": "in"}],
+        },
+        "players": {"Aoi": {"name": "Aoi"}},
+        "active_player": "Aoi",
+    })
+
+    aoi = world.player_manager.get_player("Aoi")
+    aoi.languages = [
+        {"language": "japanese", "fluency": "native", "known_words": [], "literate": True},
+        {
+            "language": "english",
+            "fluency": "broken",
+            "known_words": ["bathroom", "wait", "hungry"],
+            "literate": False,
+        },
+    ]
+
+    props = to_node_properties(aoi)
+    assert props["languages"] == aoi.languages
+    assert "languages" in AUTHORED_DEFINITION_KEYS
+
+    scenario = world.to_scenario_dict()
+    aoi_node = scenario["graph"]["nodes"]["player_Aoi"]
+    assert aoi_node["properties"]["languages"] == aoi.languages
+    assert "languages" not in scenario["players"]["Aoi"]
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(scenario)
+    aoi2 = reloaded.player_manager.get_player("Aoi")
+    assert aoi2.languages == aoi.languages

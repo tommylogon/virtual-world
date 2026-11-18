@@ -23,9 +23,32 @@ const AgentMemory = (() => {
     'use strict';
 
     /**
+     * Strip baked-in deictic prefixes (`[just now]`, `Earlier today (8:00 AM):`,
+     * `Today:`, `Just now:`) so persisted and formatted memories carry canonical
+     * content while dynamic relative labels render once from `currentTick - mem.tick`.
+     */
+    function normalizeMemoryText(raw: unknown): string {
+        const pb = (window as unknown as { PromptBuilder?: { normalizeMemoryText?: (v: unknown) => string } })?.PromptBuilder;
+        if (typeof pb?.normalizeMemoryText === 'function') {
+            return pb.normalizeMemoryText(raw);
+        }
+        let text = String(raw ?? '').trim();
+        if (!text) return '';
+        let prev = '';
+        while (text !== prev) {
+            prev = text;
+            text = text
+                .replace(/^\[[^\]]+\]\s*/, '')
+                .replace(/^(Earlier today|Just now|Today)\s*(\([^)]*\))?:\s*/i, '')
+                .trim();
+        }
+        return text;
+    }
+
+    /**
      * Perform memory reflection for a character (task-688).
      *
-     * Queries raw-experience memories (importance ≥ 6 or reinforced ≥ 2,
+     * Queries raw-experience memories (importance >= 6 or reinforced >= 2,
      * reflection_depth 0 only - the client half of the recursion guard),
      * asks the LLM for structured conclusions that change the character
      * (belief + confidence + optional emotional association, behaviour
@@ -54,8 +77,15 @@ const AgentMemory = (() => {
                 && !(m.id && alreadyReflectedIds.has(String(m.id)))
             ).slice(-10);
             if (candidates.length < 3) return;
-            const memoryText = candidates.map((m: MemoryRecord) =>
-                `- [memory_id: ${m.id}] [${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
+            const currentTick = worldState?.data?.time_ticks || 0;
+            const minutesPerTick = Number(worldState?.data?.time_per_tick_minutes ?? 5) || 5;
+            const memoryText = candidates.map((m: MemoryRecord) => {
+                const cleanBody = normalizeMemoryText(m.text);
+                const rel = typeof events?.tickToRelative === 'function'
+                    ? events.tickToRelative(m.tick)
+                    : `${Math.max(0, Math.round((currentTick - (Number(m.tick) || 0)) * minutesPerTick))}m ago`;
+                return `- [memory_id: ${m.id}] [${rel}] ${cleanBody}`;
+            }).join('\n');
             const prompt = [
                 `You are the memory of the character "${charName}". Below are things they experienced.`,
                 'Form 1-3 conclusions that CHANGE how the character sees the world or acts - not a summary of the events.',
@@ -66,6 +96,7 @@ const AgentMemory = (() => {
                 '- emotional: optional {label, intensity 1-10} - the feeling attached to this conclusion',
                 '- behavior: optional one-sentence change to future behaviour (e.g. "Verify Anna\'s claims independently.")',
                 '- relationship: optional {who, dim, delta} - dim is one of trust|fear|attraction|disgust|respect|closeness|familiarity, delta -5..+5',
+                'Anchor events in timeless or absolute world-clock terms; do NOT bake transient deictic phrases ("today", "earlier today", "just now", "last week", "hours ago") into belief or behavior text.',
                 'Use null for fields that do not apply. Respond ONLY with a JSON object: {"insights": [...]}',
                 '',
                 'MEMORIES:',
@@ -100,12 +131,28 @@ const AgentMemory = (() => {
                 : (parsed && typeof parsed === 'object' && Array.isArray(parsed.insights) ? parsed.insights : null);
 
             if (Array.isArray(parsedList)) {
-                const currentTick = worldState?.data?.time_ticks || 0;
                 // Keep the usable shapes: strings (legacy) and objects with a
                 // real belief. Nulls from the strict schema are dropped here.
-                const insights = parsedList.filter((i: unknown) =>
-                    (typeof i === 'string' && i.length > 10)
-                    || (typeof i === 'object' && i !== null && String((i as { belief?: unknown }).belief || '').length > 10));
+                const insights = parsedList
+                    .map((i: unknown) => {
+                        if (typeof i === 'string') {
+                            const clean = normalizeMemoryText(i);
+                            return clean.length > 10 ? clean : null;
+                        }
+                        if (typeof i === 'object' && i !== null) {
+                            const obj = i as { belief?: unknown; behavior?: unknown; [key: string]: unknown };
+                            const cleanBelief = normalizeMemoryText(obj.belief);
+                            if (cleanBelief.length <= 10) return null;
+                            const cleanBehavior = obj.behavior ? normalizeMemoryText(obj.behavior) : '';
+                            return {
+                                ...obj,
+                                belief: cleanBelief,
+                                behavior: cleanBehavior.length > 10 ? cleanBehavior : null,
+                            };
+                        }
+                        return null;
+                    })
+                    .filter((i: unknown) => i !== null);
                 if (insights.length > 0) {
                     const reflectRes: any = await ApiClient.reflectPlayerMemories(charName, {
                         insights,
@@ -185,7 +232,8 @@ const AgentMemory = (() => {
                       emotions: Record<string, unknown> | null = null,
                       location: string = '', extraProps: Record<string, unknown> = {}): void {
         try {
-            if (!text) return;
+            const cleanText = normalizeMemoryText(text);
+            if (!cleanText) return;
             const memoryTick = (tick !== null && tick !== undefined) ? tick : (worldState.data?.time_ticks || 0);
             const cleanTags = _sanitizeTags(tags);
             const playerArea = (worldState.players as Record<string, any>)?.[charName]?.current_area
@@ -193,7 +241,7 @@ const AgentMemory = (() => {
                 || '';
             const resolvedLocation = location || playerArea;
             const payload = {
-                text,
+                text: cleanText,
                 tick: memoryTick,
                 importance: Math.max(1, Math.min(10, importance || 5)),
                 type: type || 'observation',
@@ -208,7 +256,7 @@ const AgentMemory = (() => {
                 ...extraProps
             };
             ApiClient.addPlayerMemory(charName, payload).then((data: any) => {
-                _embedAndStoreVector(charName, data?.entry?.id, text);
+                _embedAndStoreVector(charName, data?.entry?.id, cleanText);
             }).catch(() => {});
             // Register any new single-word tags into the tag library (id-keyed → dedupes)
             if (cleanTags.length > 0) {
@@ -271,7 +319,8 @@ const AgentMemory = (() => {
 
     return {
         reflect,
-        storeMemory
+        storeMemory,
+        normalizeMemoryText
     };
 })();
 

@@ -118,7 +118,13 @@ def symptom_for(condition: str, instance: dict) -> Optional[str]:
 # derived from the catalog (`perception_skip` per condition), not hand-listed
 
 
-def frightened_block(player, source_type: str, source_id=None, source_name=None) -> Optional[str]:
+def frightened_block(
+    player,
+    source_type: str,
+    source_id=None,
+    source_name=None,
+    self_defense: bool = False,
+) -> Optional[str]:
     """Return an in-world explanation if *player* fears something of
     *source_type* matching *source_id* or *source_name*; ``None`` otherwise.
 
@@ -127,8 +133,11 @@ def frightened_block(player, source_type: str, source_id=None, source_name=None)
       way        - won't use that passage again
       area       - won't re-enter the area
       item       - won't touch the item
-      character  - won't approach or attack the character
+      character  - won't approach or attack the character, unless *self_defense*
+                   is True (cornered, grappling, or recently attacked by them)
     """
+    if source_type == "character" and self_defense:
+        return None
     for inst in (player.conditions.get("frightened") or []):
         src = inst.get("source")
         if not src or inst.get("source_type") != source_type:

@@ -330,3 +330,90 @@ class TestSaveTriggerOnWay:
 
         assert not p.has_condition("frightened")
         assert world.player_manager.get_player(world.active_player).current_area == "Room B"
+
+
+class TestFrightenedSelfDefenseAndCowardlyTiming:
+    """bug-593: cornered/attacked/grappled self-defense + cowardly pre-damage hooks."""
+
+    def test_frightened_character_can_retaliate_after_being_attacked(self, lined_world):
+        from player import Player
+        world = lined_world
+        hero_name = world.active_player
+        p = _player(world)
+        brutus = Player("Brutus")
+        world.add_player(brutus)
+        world.set_active_player(hero_name)
+        brutus.current_area = "Room A"
+        p.add_condition("frightened", duration=3, source="Brutus", source_type="character")
+
+        # Brutus attacks hero -> hero is now provoked in self-defense
+        world.combat.player_attack("Brutus", hero_name)
+        result = world.combat.player_attack(hero_name, "Brutus")
+        assert "too afraid" not in result
+
+    def test_frightened_character_can_fight_when_grappled_by_source(self, lined_world):
+        from player import Player
+        world = lined_world
+        hero_name = world.active_player
+        p = _player(world)
+        brutus = Player("Brutus")
+        world.add_player(brutus)
+        world.set_active_player(hero_name)
+        brutus.current_area = "Room A"
+        p.add_condition("frightened", duration=3, source="Brutus", source_type="character")
+        p.add_condition("grappled", duration=3)
+
+        result = world.combat.player_attack(hero_name, "Brutus")
+        assert "too afraid" not in result
+
+    def test_frightened_character_can_fight_when_cornered_no_exits(self, lined_world):
+        from player import Player
+        from graph import EDGE_CONNECTION
+        world = lined_world
+        hero_name = world.active_player
+        p = _player(world)
+        brutus = Player("Brutus")
+        world.add_player(brutus)
+        world.set_active_player(hero_name)
+        brutus.current_area = "Room A"
+        p.add_condition("frightened", duration=3, source="Brutus", source_type="character")
+
+        # Lock the only exit out of Room A so hero is cornered
+        area_id = world._area_node_id("Room A")
+        for edge in world.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
+            way_node = world.graph.get_node(edge.target)
+            if way_node is not None:
+                way_node.properties["locked"] = True
+
+        result = world.combat.player_attack(hero_name, "Brutus")
+        assert "too afraid" not in result
+
+    def test_cowardly_has_behavior_prompt_and_pre_damage_hooks(self, lined_world):
+        from engine.traits import TRAIT_DEFINITIONS
+        from player import Player
+        defn = TRAIT_DEFINITIONS["cowardly"]
+        assert defn.get("behavior_prompt")
+        events = {e["event"] for e in defn.get("save_on", [])}
+        assert {"takes_damage", "combat_threat", "witness_combat"} <= events
+
+        world = lined_world
+        hero_name = world.active_player
+        p = _player(world)
+        p.traits["cowardly"] = True
+        brutus = Player("Brutus")
+        bystander = Player("Pip")
+        bystander.traits["cowardly"] = True
+        world.add_player(brutus)
+        world.add_player(bystander)
+        world.set_active_player(hero_name)
+        brutus.current_area = "Room A"
+        bystander.current_area = "Room A"
+
+        # Force low roll so Brutus misses (0 damage) AND saves fail
+        world.skills.roll_dice = lambda *args: 1
+        world.combat.player_attack("Brutus", hero_name)
+
+        assert p.has_condition("frightened")
+        assert p.conditions["frightened"][0]["source"] == "Brutus"
+        assert bystander.has_condition("frightened")
+        assert bystander.conditions["frightened"][0]["source"] == "Brutus"

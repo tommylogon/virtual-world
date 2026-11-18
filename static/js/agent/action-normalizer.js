@@ -22,7 +22,7 @@ const ActionNormalizerModule = (() => {
     const _registry = window.ActionVerbs;
     const VALID_VERBS = _registry?.VALID_SET || new Set(_registry?.VALID_VERBS || [
         'do', 'go', 'dash', 'crawl', 'climb', 'jump', 'grab', 'escape', 'struggle',
-        'open', 'close', 'take', 'get', 'pickup', 'drop', 'put', 'place', 'give', 'hand',
+        'open', 'close', 'take', 'get', 'pickup', 'drop', 'throw', 'toss', 'put', 'place', 'give', 'hand',
         'steal', 'use', 'eat', 'drink', 'examine', 'speak', 'say', 'look', 'inventory',
         'i', 'inv', 'stats', 'status', 'rest', 'sleep', 'fumble', 'toggle', 'attack',
         'manifest', 'vanish', 'relieve', 'read', 'search', 'inspect', 'check', 'light',
@@ -191,6 +191,11 @@ const ActionNormalizerModule = (() => {
             case 'take':
             case 'drop':
             case 'pickup': return item ? `${verb} ${item}` : verb;
+            case 'throw':
+            case 'toss': {
+                const rel = ['to', 'over', 'through', 'at', 'into'].includes(relation) ? relation : 'to';
+                return item && target ? `throw ${item} ${rel} ${target}` : (item ? `throw ${item}` : verb);
+            }
             case 'put':
             case 'place': {
                 const rel = ['on', 'under', 'beside', 'behind', 'at', 'in'].includes(relation) ? relation : 'on';

@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "task-983",
+  "kind": "task",
+  "number": 983,
+  "title": "Unify Save to Library and Refresh from Library into one shared InspectorTemplateSync component across all editors",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [
+    "ui",
+    "library",
+    "inspector",
+    "refactor"
+  ],
+  "created": "2026-11-17",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-982"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Consolidate separate 'LIBRARY' (Save to Library) and 'LIBRARY TEMPLATE' (Refresh from Library) blocks into one shared InspectorTemplateSync UI component across Character, Area, Item, and Way inspectors, and deduplicate duplicate template dropdown entries.",
+    "why": "Character Inspector currently splits Save to Library and Library Template / Refresh from Library into two separate sections and shows duplicate entries (e.g. 'kyrie johansen (kyrie)' and 'kyrie johansen (kyrie johansen)'), defeating the shared-component goal.",
+    "how": "1. Audit InspectorTemplateSync in static/js/shared/template-sync.ts alongside agent-view.ts, area-view.ts, item-view.ts, and way-view.ts to consolidate separate 'LIBRARY' (Save to Library) and 'LIBRARY TEMPLATE' (Refresh from Library) sections into one shared Library Sync component.\n2. Deduplicate template selector options when multiple library entries/aliases resolve to the same character/entity.\n3. Ensure both Save to Library (World -> Library) and Refresh from Library (Library -> World) share the unified component and DiffModal flow across all 4 inspector views.",
+    "verify": "Run npm run build:ts and JS unit tests; verify in browser across Character, Area, Item, and Way inspectors that one unified Library Sync card handles both Save and Refresh with deduplicated template options.",
+    "acceptance": [
+      {
+        "text": "All entity inspectors (character, area, item, way) render one unified Library Sync card via InspectorTemplateSync combining Save to Library, Refresh from Library, and template selection.",
+        "done": false
+      },
+      {
+        "text": "Duplicate template selector entries (e.g. matching canonical name/id aliases) are deduplicated cleanly in the dropdown.",
+        "done": false
+      },
+      {
+        "text": "Both Save and Refresh paths route through the shared DiffModal and InspectorTemplateSync contract with zero per-inspector duplicate wiring.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/shared/template-sync.ts",
+      "static/js/inspector/agent-view.ts",
+      "static/js/inspector/area-view.ts",
+      "static/js/inspector/item-view.ts",
+      "static/js/inspector/way-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Shared InspectorTemplateSync card across Character, Area, Item, and Way inspectors.\\n\\nManual verification steps:\\n1. Open Character Inspector for kyrie johansen and inspect the Library Sync section.\\n   - expected: Single unified Library Sync card (not split LIBRARY + LIBRARY TEMPLATE) with deduplicated template dropdown options and Save/Refresh controls."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/Library System Overview]]"
+    ],
+    "docs": [
+      "docs/virtualWorld/Library System/diff-modal.md",
+      "docs/virtualWorld/Library System/Library System Overview.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

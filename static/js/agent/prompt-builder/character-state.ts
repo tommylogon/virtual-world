@@ -380,31 +380,23 @@ const foodish = areaItems.filter(it =>
             tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
         const carriedDrink = carried.filter(it =>
             tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
-        // Is someone hostile in this room right now? Generic - mirrors the
-        // existing ThreatDetector.getThreatAlert (hostile trait, negative
-        // closeness, or this turn's attack events), but computed here from
-        // the same state so the moodlet can qualify its advice. Survival
-        // needs yield to danger: you don't stop to eat while a threat is
-        // present.
-        const allPlayers = state.players || {};
-        const turnEvents = state.turn_events || [];
-        let hasThreat = false;
-        let threatNames: (string | undefined)[] = [];
-        for (const person of others) {
-            const other = allPlayers[person.name];
-            if (!other) continue;
-            if (other.state === 'hidden' || other.state === 'stealthed') continue;
-            const met = typeof worldState?.hasMet === 'function'
-                ? worldState.hasMet(charName, person.name) : true;
-            const threatName = met ? person.name
-                : (other.description?.split(/[.,;]/)[0]?.trim() || 'A hostile figure');
-            if (other.traits?.hostile) { hasThreat = true; threatNames.push(threatName); continue; }
-            const closeness = other.relationships?.[charName as string]?.closeness;
-            if (closeness !== undefined && closeness < -20) { hasThreat = true; threatNames.push(threatName); continue; }
-            if (turnEvents.some(te => te.actor === person.name && te.action === 'attack')) {
-                hasThreat = true; threatNames.push(threatName); continue;
-            }
-        }
+        // Is someone hostile in this room right now? Delegates to
+        // ThreatDetector so prompt status and replan/react danger cues
+        // never disagree. Survival needs yield to danger: you don't stop
+        // to eat while a threat is present.
+        const threatDetector = (window as unknown as {
+            ThreatDetector?: {
+                getThreats?: (
+                    charName: string | undefined,
+                    turnEvents?: { actor?: string; action?: string }[] | null,
+                    stateData?: CharacterStateState | null,
+                ) => string[];
+            };
+        }).ThreatDetector;
+        const threatNames: (string | undefined)[] = typeof threatDetector?.getThreats === 'function'
+            ? threatDetector.getThreats(charName, state.turn_events || [], state)
+            : [];
+        const hasThreat = threatNames.length > 0;
         return {
             company: others.length,
             others: others.map(o => o.name),
@@ -651,7 +643,7 @@ const foodish = areaItems.filter(it =>
             }
             out += lines.join('\n');
             const blocked = Object.entries(failures)
-                .filter(([stepIndex]) => Number(stepIndex) < progress)
+                .filter(([stepIndex]) => Number(stepIndex) === progress)
                 .map(([, count]) => count as number);
             const hasBlocked = blocked.length > 0 && blocked.some(c => c >= 3);
             if (hasBlocked && plan[progress]) {
@@ -776,6 +768,122 @@ const foodish = areaItems.filter(it =>
         return '\n' + lines.join('\n');
     }
 
+    /**
+     * Build concise Knowledge & Blind-Spots context (task-968).
+     * Reads `player.domains`, `player.knowledge_records` (with `crafting_known`/`known`
+     * fallbacks), and active `player.skills` so agents see what they know and what
+     * they are explicitly ignorant of.
+     */
+    function buildKnowledgeAndBlindSpotsContext(player: any): string {
+        if (!player) return '';
+        let app: any = player.appearance;
+        if (!app && typeof worldState !== 'undefined' && worldState.graph?.nodes) {
+            const pname = String(player.name || '').toLowerCase();
+            for (const node of Object.values(worldState.graph.nodes) as any[]) {
+                if (node?.type === 'character' && String(node.name || '').toLowerCase() === pname) {
+                    app = node.properties?.appearance;
+                    break;
+                }
+            }
+        }
+
+        const rawDomains: any[] = Array.isArray(player.domains) && player.domains.length
+            ? player.domains
+            : (Array.isArray(app?.capabilities?.domains) ? app.capabilities.domains : []);
+
+        const knownDomains: string[] = [];
+        const blindSpots: string[] = [];
+        for (const entry of rawDomains) {
+            if (!entry) continue;
+            if (typeof entry === 'string') {
+                const slug = entry.trim();
+                if (slug) knownDomains.push(slug);
+                continue;
+            }
+            if (typeof entry !== 'object' || !entry.domain) continue;
+            const dom = String(entry.domain).trim();
+            if (!dom) continue;
+            const level = String(entry.level || 'familiar').trim().toLowerCase();
+            const notes = String(entry.notes || '').trim();
+            const jargon = Array.isArray(entry.jargon_terms)
+                ? entry.jargon_terms.map((t: any) => String(t || '').trim()).filter(Boolean)
+                : [];
+            const noteBit = notes ? `: ${notes}` : '';
+            if (level === 'ignorant') {
+                blindSpots.push(`${dom}${noteBit}`);
+            } else {
+                const jargonBit = jargon.length ? ` [jargon: ${jargon.slice(0, 6).join(', ')}]` : '';
+                knownDomains.push(`${dom} (${level}${noteBit})${jargonBit}`);
+            }
+        }
+
+        const activeSkills: string[] = [];
+        if (player.skills && typeof player.skills === 'object') {
+            for (const [skill, rawVal] of Object.entries(player.skills)) {
+                const num = Number(rawVal);
+                if (!Number.isNaN(num) && num > 0) {
+                    activeSkills.push(`${skill} (+${num})`);
+                }
+            }
+        }
+
+        const recipes: string[] = [];
+        const facts: string[] = [];
+        const seenRecords = new Set<string>();
+        const records: any[] = Array.isArray(player.knowledge_records) ? player.knowledge_records : [];
+        for (const rec of records) {
+            if (!rec || typeof rec !== 'object') continue;
+            const rtype = String(rec.type || '').toLowerCase();
+            if (rtype === 'recipe') {
+                const name = String(rec.data?.recipe || rec.text || '').trim();
+                if (name && !seenRecords.has(`recipe:${name}`)) {
+                    seenRecords.add(`recipe:${name}`);
+                    recipes.push(name);
+                }
+            } else if (rtype === 'fact') {
+                const txt = String(rec.text || rec.data?.fact || '').trim();
+                if (txt && !seenRecords.has(`fact:${txt}`)) {
+                    seenRecords.add(`fact:${txt}`);
+                    facts.push(txt);
+                }
+            }
+        }
+        if (!recipes.length && Array.isArray(player.crafting_known)) {
+            for (const r of player.crafting_known) {
+                const name = String(r || '').trim();
+                if (name) recipes.push(name);
+            }
+        }
+        if (!facts.length && Array.isArray(player.known)) {
+            for (const f of player.known) {
+                const txt = String(f || '').trim();
+                if (txt) facts.push(txt);
+            }
+        }
+
+        if (!knownDomains.length && !blindSpots.length && !activeSkills.length && !recipes.length && !facts.length) {
+            return '';
+        }
+
+        const lines: string[] = [];
+        if (knownDomains.length) {
+            lines.push(`Domains: ${knownDomains.join('; ')}.`);
+        }
+        if (activeSkills.length) {
+            lines.push(`Skills: ${activeSkills.slice(0, 8).join(', ')}.`);
+        }
+        if (recipes.length) {
+            lines.push(`Known recipes: ${recipes.slice(0, 8).join(', ')}.`);
+        }
+        if (facts.length) {
+            lines.push(`Known facts: ${facts.slice(0, 6).join(' | ')}.`);
+        }
+        if (blindSpots.length) {
+            lines.push(`Blind spots (ignorant): ${blindSpots.join('; ')}. You lack specialist knowledge in these areas; do not fake technical fluency in them.`);
+        }
+        return '\n' + lines.join('\n');
+    }
+
     Object.assign(window.PromptBuilder, {
         buildEmotionContext,
         buildRelationshipContext,
@@ -790,6 +898,7 @@ const foodish = areaItems.filter(it =>
         describeVitals,
         buildPlanContext,
         buildMosiacContext,
-        buildLanguageAndLingoContext
+        buildLanguageAndLingoContext,
+        buildKnowledgeAndBlindSpotsContext
     });
 })();

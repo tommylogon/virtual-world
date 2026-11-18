@@ -392,6 +392,12 @@ def initiate_call(world, caller_name: str, target_name: str, phone_node: Optiona
             target_name = matched
             target_player = world.player_manager.get_player(target_name)
     if not target_player:
+        for p_name in getattr(world.player_manager, "players", {}):
+            if p_name.lower() != caller_name.lower() and target_name.lower() in p_name.lower():
+                target_name = p_name
+                target_player = world.player_manager.get_player(target_name)
+                break
+    if not target_player:
         raise ValueError(f"Could not reach '{target_name}'.")
 
     # Find caller phone
@@ -554,3 +560,195 @@ def tune_channel(world, player_name: str, device_node: Node, channel: str) -> st
 
     device_node.properties["comms_channel"] = channel
     return f"You tune the {device_node.name} to channel '{channel}'."
+
+
+def _is_comms_device(node: Optional[Node], *, allow_generic_device: bool = False) -> bool:
+    """Return True if *node* is a phone or communication device item."""
+    if node is None or getattr(node, "type", None) != "item":
+        return False
+    props = node.properties or {}
+    tags = [str(t).lower() for t in (props.get("tags", []) or [])]
+    name = (node.name or "").lower()
+    if "phone" in tags or "communication" in tags or "comms" in tags or "phone" in name:
+        return True
+    if allow_generic_device and "device" in tags:
+        return True
+    return False
+
+
+def find_comms_devices(world, player_name: str, *, include_area_owned: bool = True) -> List[Node]:
+    """Find phone/comms devices carried by *player_name* or owned in their current area."""
+    if not world or not getattr(world, "graph", None) or not getattr(world, "player_manager", None):
+        return []
+    graph = world.graph
+    pm = world.player_manager
+    p_id = pm._player_node_id(player_name)
+    found: List[Node] = []
+    seen: Set[str] = set()
+
+    if p_id:
+        edges = (
+            graph.get_edges_for_target(p_id, EDGE_CARRYING)
+            + graph.get_edges_for_target(p_id, EDGE_EQUIPPED)
+            + graph.get_edges_for_target(p_id, EDGE_IN)
+        )
+        for edge in edges:
+            node = graph.get_node(edge.source)
+            if node and node.id not in seen and _is_comms_device(node, allow_generic_device=True):
+                seen.add(node.id)
+                found.append(node)
+
+    if include_area_owned:
+        player_obj = pm.get_player(player_name)
+        area_name = getattr(player_obj, "current_area", None) if player_obj else None
+        if area_name and hasattr(world, "_area_node_id"):
+            area_node_id = world._area_node_id(area_name)
+            if area_node_id:
+                for edge in graph.get_edges_for_target(area_node_id, EDGE_IN):
+                    node = graph.get_node(edge.source)
+                    if not node or node.id in seen or node.type != "item":
+                        continue
+                    name = (node.name or "").lower()
+                    props = node.properties or {}
+                    tags = [str(t).lower() for t in (props.get("tags", []) or [])]
+                    if ("phone" in tags or "phone" in name) and (
+                        player_name.lower() in name or props.get("owner") == player_name
+                    ):
+                        seen.add(node.id)
+                        found.append(node)
+    return found
+
+
+def find_active_comms_device(world, player_name: str) -> Tuple[Optional[Node], Optional[Node]]:
+    """Return ``(active_device, first_device)`` for *player_name*."""
+    devices = find_comms_devices(world, player_name)
+    if not devices:
+        return None, None
+    for dev in devices:
+        if is_device_active(world.graph, dev):
+            return dev, devices[0]
+    return None, devices[0]
+
+
+def is_device_silenced(device_node: Optional[Node]) -> bool:
+    """Return True if *device_node* has ringer/notifications silenced or muted."""
+    if device_node is None:
+        return False
+    props = device_node.properties or {}
+    if props.get("silenced") or props.get("silent") or props.get("muted"):
+        return True
+    if str(props.get("ringer_mode", "")).lower() in ("silent", "silenced", "off"):
+        return True
+    tags = [str(t).lower() for t in (props.get("tags", []) or [])]
+    return any(t in ("silenced", "silent", "muted") for t in tags)
+
+
+def record_phone_notification(
+    world,
+    recipient_name: str,
+    sender_name: str,
+    device_node: Optional[Node],
+    *,
+    tick: Optional[int] = None,
+) -> bool:
+    """Record a subtle phone notification turn event unless the device is dead or silenced."""
+    if device_node is None or not is_device_active(world.graph, device_node):
+        return False
+    if is_device_silenced(device_node):
+        return False
+    if not hasattr(world, "record_turn_event"):
+        return False
+    recipient_player = world.player_manager.get_player(recipient_name) if getattr(world, "player_manager", None) else None
+    recipient_area = getattr(recipient_player, "current_area", None) if recipient_player else None
+    event_tick = tick if tick is not None else getattr(world, "time_ticks", 0)
+    world.record_turn_event(
+        recipient_name,
+        "phone_notification",
+        f"phone chimes softly with a new text from {sender_name}",
+        area_name=recipient_area,
+        tick=event_tick,
+    )
+    return True
+
+
+def deliver_dm_text(
+    world,
+    sender_name: str,
+    recipient_name: str,
+    msg_text: str,
+    *,
+    tick: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Post a DM to Commons and either notify immediately or queue until recipient's phone is active."""
+    commons = getattr(world, "commons", None)
+    if not commons:
+        from engine.commons import Commons
+        world.commons = Commons()
+        commons = world.commons
+
+    event_tick = tick if tick is not None else getattr(world, "time_ticks", 0)
+    dm_ch = commons.create_dm(sender_name, recipient_name)
+    msg = commons.post_message(
+        author=sender_name,
+        text=msg_text,
+        tick=event_tick,
+        channel_id=dm_ch["id"],
+    )
+
+    recipient_phone, _ = find_active_comms_device(world, recipient_name)
+    if recipient_phone is not None:
+        msg["delivered"] = True
+        msg["queued"] = False
+        notified = record_phone_notification(
+            world, recipient_name, sender_name, recipient_phone, tick=event_tick
+        )
+        return {
+            "delivered": True,
+            "queued": False,
+            "notified": notified,
+            "message": msg,
+            "channel": dm_ch,
+        }
+
+    msg["delivered"] = False
+    msg["queued"] = True
+    if not hasattr(world, "queued_dms") or world.queued_dms is None:
+        world.queued_dms = {}
+    world.queued_dms.setdefault(recipient_name, []).append({
+        "channel_id": dm_ch["id"],
+        "message_id": msg["id"],
+        "sender": sender_name,
+        "tick": event_tick,
+    })
+    return {
+        "delivered": False,
+        "queued": True,
+        "notified": False,
+        "message": msg,
+        "channel": dm_ch,
+    }
+
+
+def deliver_queued_dms(world, player_name: str) -> int:
+    """Deliver any queued DMs for *player_name* once they have an active phone."""
+    active_phone, _ = find_active_comms_device(world, player_name)
+    if active_phone is None:
+        return 0
+    queued_map = getattr(world, "queued_dms", None)
+    if not queued_map or player_name not in queued_map:
+        return 0
+    queued = queued_map.pop(player_name, [])
+    if not queued:
+        return 0
+
+    commons = getattr(world, "commons", None)
+    queued_ids = {entry.get("message_id") for entry in queued}
+    if commons is not None:
+        for msg in getattr(commons, "messages", []):
+            if msg.get("id") in queued_ids:
+                msg["delivered"] = True
+                msg["queued"] = False
+
+    last_sender = queued[-1].get("sender", "someone")
+    record_phone_notification(world, player_name, last_sender, active_phone)
+    return len(queued)

@@ -577,7 +577,6 @@ window.InspectorWayView = (() => {
                 ${window.InspectorTriggers.buildTriggersHtml(nodeId, props.locked_fields || [])}
             </div>
             <div style="display:flex;gap:6px;padding:8px 16px;flex-wrap:wrap;">
-                <button class="btn btn-sm btn-green" @click=${() => wayView._saveToLibrary(nodeId)}>💾 Save to Library</button>
                 ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('way', nodeId, props)) : ''}
             </div>
             ${InspectorComponents.InspectorDangerZone({
@@ -1046,6 +1045,9 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
     if (window.InspectorTemplateSync) {
         window.InspectorTemplateSync.register('way', {
             title: 'Refresh Way from Library',
+            save(nodeId: any) {
+                return wayView._saveToLibrary(nodeId);
+            },
             buildWorldPayload(nodeId: any) {
                 const node = worldState.getNode(nodeId);
                 if (!node) return null;

@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "id": "task-947",
+  "kind": "task",
+  "number": 947,
+  "title": "Memory intermediator and reconsolidation palimpsest pipeline",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "cognitive-architecture",
+    "intermediator",
+    "soak",
+    "lived-log",
+    "prompt-pipeline"
+  ],
+  "created": "2026-11-12",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-944",
+      "task-943",
+      "task-908",
+      "task-909",
+      "task-727",
+      "task-685"
+    ],
+    "parent": null,
+    "children": [
+      "task-948",
+      "task-949",
+      "task-950"
+    ],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace start-of-turn/end-of-turn Actor memory creation and raw memory or observation dumps with a dedicated Memory Intermediator stage: observations -> involuntary recall -> synthesized conscious memory (varnished palimpsest) -> inner monologue, thought, and plan -> decision, questions, assumptions, and reactions. Never expose raw past observations (including soak lived_log entries) or raw stored memory records directly to the acting/planning LLM.",
+    "why": "Prompting the Actor at turn start or end with 'what do you want to remember going forward' forces future-oriented memory creation at the moment events occur instead of through natural recollection. Meanwhile, task-944 and Cognitive Memory & Active Mind.md currently inject raw === I REMEMBER === memory traces directly into the Actor prompt, and soak runs lose coherence when raw past lived_log observations are fed as context. Modeling recollection via an Intermediator reconstructs recalled traces alongside present observations into a varnished conscious memory summary paired with inner monologue persistence, unifying interactive turns and soak lived_log continuity.",
+    "how": "1. Pipeline reorder (aligning with task-943 and task-944): split turn cognition into (a) sensory observations + involuntary multi-hop recall (engine/memory_retrieval.py), (b) Intermediator synthesis on getMemoryLLMClient() (task-909), (c) Actor inner monologue, thought, plan, assumptions, and reactions consuming ONLY current observations plus the Intermediator's conscious memory summary, and (d) persistence saving the newly synthesized conscious memory and inner monologue back to memory with reinforcement/invalidation feedback to engine/memory_dynamics.py.\n2. Strict Actor Isolation Contract: remove raw stored memory lists and raw historical lived_log/observation history from Actor/planning prompt builders (static/js/agent/prompt-builder/memory-context.ts, turn-prompts.ts, engine/soak.py). Retire vestigial endOfTurnMemory / Reactor memory-creation paths once Intermediator output is wired.\n3. Reconsolidation palimpsest semantics with Two-Lane Factual Invariant: apply subjective varnishing/reinterpretation strictly to episodic, social, emotional, and narrative beliefs. Keep deterministic state (inventory, spatial_memory topology, door/lock states, and AlreadyKnown absence/examination guards) on an unvarnished factual lane so biased recollection cannot hallucinate keys or break PlanGrounding.\n4. Auditability & anti-drift lineage: keep raw immutable source observation refs (and generation depth metadata) alongside derived conscious memory syntheses in backend storage/routes (routes/memories.py, engine/lived_log_memory.py) so multi-turn soak runs do not compound hallucination cascades and Inspector views can trace how a memory drifted.\n5. Latency & cue-change gating: execute Intermediator synthesis with lightweight getMemoryLLMClient(), skip re-synthesis when no new significant observation/recall cue shifted on continuation ticks, and benchmark p95 turn time alongside task-943 Actor/Interpreter stages.",
+    "verify": "1. Run Actor prompt assembly tests with populated memory DB and soak lived_log entries.\n   - expected: Actor prompt receives current observations and the Intermediator conscious synthesis block only, with zero raw memory rows or raw historical observations.\n   - observed: Pending Intermediator implementation after alignment with task-944.\n2. Execute a multi-turn scenario recalling a key/locked-door memory alongside new sensory observations.\n   - expected: Intermediator synthesizes a varnished conscious episodic memory while keeping spatial topology, inventory, and AlreadyKnown checks on the unvarnished deterministic lane.\n   - observed: Pending Intermediator implementation.\n3. Benchmark turn latency across continuation ticks with getMemoryLLMClient() cue-change gating enabled.\n   - expected: Unchanged ticks reuse the prior conscious synthesis without an extra LLM call.\n   - observed: Pending profiling.",
+    "acceptance": [
+      {
+        "text": "Actor and planning prompts receive zero raw stored memory records and zero raw historical lived_log/observation transcripts.",
+        "done": false
+      },
+      {
+        "text": "Dedicated Intermediator stage consumes current observations, involuntary recall, and lived_log summaries to produce a synthesized conscious memory plus dynamics reinforcement/invalidation updates.",
+        "done": false
+      },
+      {
+        "text": "Synthesized conscious memory and Actor inner monologue are both persisted back into memory storage after cognition.",
+        "done": false
+      },
+      {
+        "text": "Two-lane factual invariant prevents subjective palimpsest varnishing from corrupting inventory, spatial routes, or AlreadyKnown grounding checks.",
+        "done": false
+      },
+      {
+        "text": "Raw source observation lineage remains traceable alongside derived conscious memories in routes/memories.py payloads.",
+        "done": false
+      },
+      {
+        "text": "Soak simulation uses the same Intermediator conscious-summary handoff across long runs without raw observation leakage.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.ts",
+      "static/js/agent/memory-manager.ts",
+      "static/js/agent/action-interpreter.ts",
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "static/js/agent/prompt-builder/turn-prompts.ts",
+      "engine/memory_retrieval.py",
+      "engine/memory_dynamics.py",
+      "engine/lived_log.py",
+      "engine/lived_log_memory.py",
+      "engine/soak.py",
+      "routes/memories.py",
+      "docs/virtualWorld/AI & Narration/Cognitive Memory & Active Mind.md"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable\n\nCurrent availability: Turn pipeline in static/js/agent-engine.ts and backend memory services in engine/ is active; Intermediator synthesis stage is planned.\n\nWhy no browser UI: This task restructures prompt orchestration, Actor context isolation, and memory reconsolidation backend flow; interactive Mind/Inspector display adjustments remain tracked cleanly via routes/memories.py payloads and companion UI tasks.\n\nAlternative verification steps:\n1. Run Actor prompt assembly tests verifying raw historical observations and raw memory DB rows are absent from Actor/planning prompts.\n   - expected: Actor prompt includes current observations and Intermediator conscious synthesis only, with zero raw memory traces or raw lived_log history.\n2. Run soak lived_log-to-memory continuity test confirming synthesized conscious memory and inner monologue feed the next turn without raw observation leakage.\n   - expected: Each turn synthesizes a varnished subjective memory paired with inner monologue while deterministic spatial/inventory/AlreadyKnown state stays uncorrupted.\n3. Inspect /memories debug payloads to verify both raw source lineage and varnished conscious synthesis metadata are recorded.\n   - expected: Stored conscious memories retain links to immutable source observation refs and generation depth for auditability.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/gameplay/task-947-memory-intermediator-and-reconsolidation-palimpsest-pipeline.md"
+  }
+}

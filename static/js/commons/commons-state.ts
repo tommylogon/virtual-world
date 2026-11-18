@@ -33,12 +33,28 @@ interface CommonsParticipant {
     [key: string]: unknown;
 }
 
+interface CommonsTraceStep {
+    kind: string;
+    label: string;
+    detail?: string;
+}
+
 interface CommonsTurnRecord {
+    turnId?: string;
     inner: string;
     action: string;
     summary: string;
-    detail?: unknown;
+    detail?: {
+        trigger?: string;
+        steps?: CommonsTraceStep[];
+        messageIds?: Array<string | number>;
+        actions?: string[];
+        recalledMemories?: unknown[];
+        intermediatorThought?: string | null;
+        [key: string]: unknown;
+    } | unknown;
     timestamp: number;
+    worldTick?: number;
 }
 
 interface CommonsCharacterContext {
@@ -77,12 +93,33 @@ interface CommonsApiResponse {
         static perspective = 'User';
         static selectedChannelId = 'public';
         static theme = 'live_social';
+        static useViwoState = true;
+        static clockMode: 'scenario' | 'standalone' = 'scenario';
+        static activeBranchId = 'main';
+        static branches: Array<{ id: string; name: string; parent_id?: string | null; fork_message_id?: number | null; active?: boolean }> = [];
+        static anchoredClock: { anchor_datetime?: string; anchor_real_epoch?: number } | null = null;
+        static currentDatetime: string | null = null;
+        static currentTimeLabel: string | null = null;
         static knownCharacters: string[] = [];
         static actingCharacter: string | null = null;
         static lastActed: { charName: string; action: string; summary: string; timestamp: number } | null = null;
         static characterTurns: Record<string, CommonsTurnRecord[]> = {};
+        static messageTraces: Record<string, CommonsTurnRecord> = {};
         static selectedDrawerCharacter: string | null = null;
+        static selectedDrawerMessageId: string | number | null = null;
         static characterContextCache: Record<string, CommonsCharacterContext> = {};
+        static worldClock: {
+            time_ticks: number;
+            time_per_tick_minutes: number;
+            clock_start_hour: number;
+            clock_start_minute: number;
+            game_day?: number;
+            game_month?: number;
+            game_year?: number;
+            calendar_config?: Record<string, unknown>;
+        } = {
+            time_ticks: 0, time_per_tick_minutes: 5, clock_start_hour: 8, clock_start_minute: 0,
+        };
 
         static get isPaused(): boolean {
             return this.manualPaused || this.visibilityPaused;
@@ -105,6 +142,24 @@ interface CommonsApiResponse {
                 const data = await api.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
+                if ((data as any).world_clock) {
+                    this.worldClock = (data as any).world_clock;
+                }
+                if (typeof (data as any).use_viwo_state === 'boolean') {
+                    this.useViwoState = (data as any).use_viwo_state;
+                }
+                if ((data as any).clock_mode === 'standalone' || (data as any).clock_mode === 'scenario') {
+                    this.clockMode = (data as any).clock_mode;
+                }
+                if (typeof (data as any).active_branch_id === 'string') {
+                    this.activeBranchId = (data as any).active_branch_id;
+                }
+                if (Array.isArray((data as any).branches)) {
+                    this.branches = (data as any).branches;
+                }
+                this.anchoredClock = (data as any).anchored_clock || null;
+                this.currentDatetime = (data as any).current_datetime || null;
+                this.currentTimeLabel = (data as any).current_time_label || null;
                 agent?.reconcileParticipants?.();
                 this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
                 this.knownCharacters = Array.isArray(data.known_characters) ? data.known_characters : [];
@@ -226,11 +281,54 @@ interface CommonsApiResponse {
             this.emit();
         }
 
-        static recordTurn(charName: string, turn: { inner: string; action: string; summary: string; detail?: unknown }) {
+        static _linkMessageTraces(record: CommonsTurnRecord) {
+            const detail = record.detail as { messageIds?: Array<string | number> } | undefined;
+            const ids = Array.isArray(detail?.messageIds) ? detail.messageIds : [];
+            for (const id of ids) {
+                if (id !== undefined && id !== null && id !== '') {
+                    this.messageTraces[String(id)] = record;
+                }
+            }
+        }
+
+        static upsertLiveTurn(charName: string, turnId: string, turn: { turnId?: string; inner: string; action: string; summary: string; detail?: unknown }) {
             if (!this.characterTurns[charName]) this.characterTurns[charName] = [];
-            const record: CommonsTurnRecord = { ...turn, timestamp: Date.now() };
+            const tickVal = this.worldClock?.time_ticks;
+            const list = this.characterTurns[charName];
+            const existingIdx = list.findIndex((r) => r.turnId === turnId);
+            const record: CommonsTurnRecord = {
+                ...(existingIdx >= 0 ? list[existingIdx] : {}),
+                ...turn,
+                turnId,
+                timestamp: existingIdx >= 0 ? list[existingIdx].timestamp : Date.now(),
+                worldTick: typeof tickVal === 'number' && Number.isFinite(tickVal) ? tickVal : (existingIdx >= 0 ? list[existingIdx].worldTick : undefined),
+            };
+            if (existingIdx >= 0) {
+                list[existingIdx] = record;
+            } else {
+                list.unshift(record);
+                if (list.length > 25) list.pop();
+            }
+            this._linkMessageTraces(record);
+            this.lastActed = { charName, action: record.action, summary: record.summary, timestamp: Date.now() };
+            this.emit();
+        }
+
+        static recordTurn(charName: string, turn: { turnId?: string; inner: string; action: string; summary: string; detail?: unknown }) {
+            if (turn.turnId) {
+                this.upsertLiveTurn(charName, turn.turnId, turn);
+                return;
+            }
+            if (!this.characterTurns[charName]) this.characterTurns[charName] = [];
+            const tickVal = this.worldClock?.time_ticks;
+            const record: CommonsTurnRecord = {
+                ...turn,
+                timestamp: Date.now(),
+                worldTick: typeof tickVal === 'number' && Number.isFinite(tickVal) ? tickVal : undefined,
+            };
             this.characterTurns[charName].unshift(record);
             if (this.characterTurns[charName].length > 25) this.characterTurns[charName].pop();
+            this._linkMessageTraces(record);
             this.lastActed = { charName, action: turn.action, summary: turn.summary, timestamp: Date.now() };
             this.emit();
         }
@@ -238,11 +336,20 @@ interface CommonsApiResponse {
         static openDrawer(charName: string) {
             if (!charName || charName === 'User') return;
             this.selectedDrawerCharacter = charName;
+            this.selectedDrawerMessageId = null;
+            this.emit();
+        }
+
+        static openDrawerForMessage(charName: string, messageId: string | number) {
+            if (!charName || charName === 'User') return;
+            this.selectedDrawerCharacter = charName;
+            this.selectedDrawerMessageId = messageId;
             this.emit();
         }
 
         static closeDrawer() {
             this.selectedDrawerCharacter = null;
+            this.selectedDrawerMessageId = null;
             this.emit();
         }
     }

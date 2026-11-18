@@ -47,6 +47,12 @@ interface ActionInterpreterWindowSurface {
     events: any;
 }
 
+interface InterpretedEmotion {
+    label: string;
+    intensity: number;
+    toward: string | null;
+}
+
 interface InterpretedActionDraft {
     action: string | null;
     item: string | null;
@@ -55,7 +61,7 @@ interface InterpretedActionDraft {
     speechVolume: 'say' | 'whisper' | 'shout' | 'scream';
     emote: string | null;
     inner_monologue: string | null;
-    emotion: string | null;
+    emotion: string | InterpretedEmotion | InterpretedEmotion[] | null;
     memory: string | null;
     rawProse: string;
 }
@@ -90,8 +96,7 @@ RULES:
    - "target": target entity, exit, or person acted on, or null.
    - If they only speak, think, or make gestures without moving or interacting with an object, set "action": null, "item": null, "target": null.
    - Do NOT invent actions that are not described in the prose.
-5. Extract what ${charName} will personally remember from this moment into "memory", or null.
-6. If an emotion is expressed, specify "emotion" (e.g. "uneasy", "furious", "terrified", "neutral").
+5. If emotions are expressed, specify "emotion" as an array of { "label": "...", "intensity": 1-10, "toward": "person or null" } (or a single label/object, or null).
 
 Output ONLY a valid JSON object matching the engine's canonical turn schema:
 {
@@ -102,8 +107,7 @@ Output ONLY a valid JSON object matching the engine's canonical turn schema:
   "speech": "spoken words without quotes or null",
   "volume": "say" | "whisper" | "shout" | "scream",
   "emote": "physical body language or null",
-  "memory": "personal memory or null",
-  "emotion": "emotion label or null"
+  "emotion": [{"label": "uneasy", "intensity": 6, "toward": "person or null"}]
 }`;
 
         let contextBlock = '';
@@ -135,6 +139,37 @@ ${prose.trim()}
 Extract the structured turn JSON for ${charName}:`;
 
         return { systemPrompt, userPrompt };
+    }
+
+    function normalizeSingleEmotion(raw: unknown): InterpretedEmotion | null {
+        if (typeof raw === 'string') {
+            const label = raw.trim().toLowerCase();
+            return label ? { label, intensity: 5, toward: null } : null;
+        }
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+        const rec = raw as Record<string, unknown>;
+        const label = String(rec.label || '').trim().toLowerCase();
+        if (!label) return null;
+        const rawInt = rec.intensity;
+        const intensity = (rawInt === null || rawInt === undefined || rawInt === '')
+            ? 5
+            : parseFloat(String(rawInt));
+        if (!Number.isFinite(intensity)) return null;
+        const toward = typeof rec.toward === 'string' ? rec.toward.trim() : '';
+        return { label, intensity: Math.max(1, Math.min(10, intensity)), toward: toward || null };
+    }
+
+    function normalizeEmotionPayload(raw: unknown): string | InterpretedEmotion | InterpretedEmotion[] | null {
+        if (!raw) return null;
+        if (typeof raw === 'string') {
+            const trimmed = raw.trim();
+            return trimmed || null;
+        }
+        if (Array.isArray(raw)) {
+            const list = raw.map(normalizeSingleEmotion).filter((e): e is InterpretedEmotion => e !== null);
+            return list.length ? list : null;
+        }
+        return normalizeSingleEmotion(raw);
     }
 
     async function interpretProseToAction(params: {
@@ -184,19 +219,21 @@ Extract the structured turn JSON for ${charName}:`;
                     const memVal = typeof parsedReaction.memory === 'object' && parsedReaction.memory
                         ? (parsedReaction.memory as any).text || null
                         : (parsedReaction.memory || null);
-                    const emoVal = typeof parsedReaction.emotion === 'object' && parsedReaction.emotion
-                        ? (parsedReaction.emotion as any).label || null
-                        : (parsedReaction.emotion || null);
+                    const emoVal = parsedReaction.emotion
+                        ? normalizeEmotionPayload(parsedReaction.emotion)
+                        : null;
 
                     // Extract raw json to preserve action target/item and string emotion labels
                     let rawItem: string | null = null;
                     let rawTarget: string | null = parsedReaction.target || null;
-                    let rawEmotion: string | null = emoVal;
+                    let rawEmotion: string | InterpretedEmotion | InterpretedEmotion[] | null = emoVal;
                     try {
                         const parsedObj = JSON.parse(typeof raw === 'string' ? raw : JSON.stringify(raw));
                         if (parsedObj.item) rawItem = String(parsedObj.item).trim();
                         if (parsedObj.target) rawTarget = String(parsedObj.target).trim();
-                        if (typeof parsedObj.emotion === 'string') rawEmotion = parsedObj.emotion.trim();
+                        if (!rawEmotion && parsedObj.emotion) {
+                            rawEmotion = normalizeEmotionPayload(parsedObj.emotion);
+                        }
                     } catch (_) { /* fallback to parsedReaction */ }
 
                     return {
@@ -245,7 +282,7 @@ Extract the structured turn JSON for ${charName}:`;
                 speechVolume,
                 emote: parsed.emote ? String(parsed.emote).trim() : null,
                 inner_monologue: innerVal ? String(innerVal).trim() : null,
-                emotion: parsed.emotion ? String(parsed.emotion).trim() : null,
+                emotion: normalizeEmotionPayload(parsed.emotion),
                 memory: memVal ? String(memVal).trim() : null,
                 rawProse: prose
             };

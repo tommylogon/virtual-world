@@ -620,14 +620,24 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "cowardly": {
         "name": "Cowardly",
-        "description": "Getting hurt shakes your nerve.",
+        "description": "Getting hurt or facing sudden violence shakes your nerve.",
         "category": "mental",
         "params": None,
         "effects": {},
+        "behavior_prompt": (
+            "You flinch at raised voices and drawn steel. Danger makes you "
+            "look for the nearest exit before blows even land."
+        ),
         "save_on": [
             {"event": "takes_damage", "source_type": "character", "stat": "WIS", "dc": 12,
              "on_fail": [{"condition": "frightened", "duration": 2}],
              "fail_message": "Pain flashes through you and your courage drains."},
+            {"event": "combat_threat", "source_type": "character", "stat": "WIS", "dc": 12,
+             "on_fail": [{"condition": "frightened", "duration": 2}],
+             "fail_message": "Steel flashes toward you and your nerve breaks."},
+            {"event": "witness_combat", "source_type": "character", "stat": "WIS", "dc": 12,
+             "on_fail": [{"condition": "frightened", "duration": 2}],
+             "fail_message": "Violence erupts nearby and you shrink back in terror."},
         ],
     },
     # ── Phase 4 - acquired (dynamic) traits ──

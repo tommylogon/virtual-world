@@ -94,14 +94,17 @@ test('trackStep advances progress on word overlap', () => {
     assertEq(PT.getProgress('Track1'), 1, 'advanced past eat step');
 });
 
-test('trackStep blocks a step after 3 failures', () => {
+test('trackStep preserves failure count after 3 failures so shouldReplan and prompt warning can detect it', () => {
     freshTracker('Track2');
-    PT.setPlan('Track2', ['open the vault']);
+    PT.setPlan('Track2', ['open the vault', 'take gold']);
     PT.trackStep('Track2', 'open vault', 'It is locked.', false);
     PT.trackStep('Track2', 'open vault', 'It is locked.', false);
     assertEq(PT.getProgress('Track2'), 0, 'still on step after 2 fails');
+    assertEq(PT.getFailures('Track2')[0], 2, '2 failures recorded');
     PT.trackStep('Track2', 'open vault', 'It is locked.', false);
-    assertEq(PT.getProgress('Track2'), 1, 'skipped after 3 fails');
+    assertEq(PT.getProgress('Track2'), 0, 'does not skip past failed step before replan');
+    assertEq(PT.getFailures('Track2')[0], 3, '3rd failure preserved on current step');
+    assertEq(PT.shouldReplan('Track2', 1, false, {}), 'current step failed repeatedly', 'shouldReplan triggers on 3rd failure');
 });
 
 test('trackStep ignores stop words — "the" alone never completes a step', () => {
@@ -135,14 +138,42 @@ test('shouldReplan returns a reason string for each trigger', () => {
     PT.setPlan('Reason1', ['step one'], 1);
     assertEq(PT.shouldReplan('Reason1', 2, false, {}), null, 'fresh plan holds');
     assertEq(PT.shouldReplan('Reason1', 12, false, {}), 'plan aged out', 'age reason');
-    PT.setPlan('Reason1', ['step one'], 1);
+    PT.setPlan('Reason1', ['step one', 'step two'], 1);
     PT.trackStep('Reason1', 'do x', 'fail', false);
     PT.trackStep('Reason1', 'do x', 'fail', false);
     assertEq(PT.shouldReplan('Reason1', 2, false, {}), null, '2 fails holds');
-    // 3rd failure BLOCKS the step (trackStep advances + resets the counter),
-    // so shouldReplan sees a fresh next step — no replan needed for that.
     PT.trackStep('Reason1', 'do x', 'fail', false);
-    assertEq(PT.getProgress('Reason1'), 1, 'step auto-blocked after 3 fails');
-    assertEq(PT.shouldReplan('Reason1', 2, false, {}), null, 'blocked step advanced past');
+    assertEq(PT.getProgress('Reason1'), 0, 'stays on failed step');
+    assertEq(PT.shouldReplan('Reason1', 2, false, {}), 'current step failed repeatedly', '3 fails triggers replan');
+    PT.setPlan('Reason1', ['step one'], 1);
+    PT.trackStep('Reason1', 'step one', 'done', true);
+    assertEq(PT.getProgress('Reason1'), 1, 'completed single-step plan');
+    assertEq(PT.shouldReplan('Reason1', 2, false, {}), 'plan completed', 'completed plan triggers replan');
     assertEq(PT.shouldReplan('Reason1', 2, true, {}), 'threat detected', 'threat reason');
+});
+
+test('hasPlan returns false once all plan steps are completed', () => {
+    freshTracker('HasPlan1');
+    assertFalse(PromptBuilder.hasPlan('HasPlan1'), 'no plan -> false');
+    assertFalse(PlanManager.hasPlan('HasPlan1'), 'PlanManager no plan -> false');
+    PT.setPlan('HasPlan1', ['eat bread', 'go north'], 1);
+    assertTrue(PromptBuilder.hasPlan('HasPlan1'), 'active plan -> true');
+    assertTrue(PlanManager.hasPlan('HasPlan1'), 'PlanManager active plan -> true');
+    PT.trackStep('HasPlan1', 'eat bread', 'yum', true);
+    assertTrue(PromptBuilder.hasPlan('HasPlan1'), '1 of 2 done -> still true');
+    PT.trackStep('HasPlan1', 'go north', 'arrived', true);
+    assertFalse(PromptBuilder.hasPlan('HasPlan1'), '2 of 2 done -> PromptBuilder.hasPlan false');
+    assertFalse(PlanManager.hasPlan('HasPlan1'), '2 of 2 done -> PlanManager.hasPlan false');
+});
+
+test('buildPlanContext emits stuck-step warning for active failed step', () => {
+    freshTracker('Warn1');
+    PT.setPlan('Warn1', ['open the vault', 'take gold'], 1);
+    PT.trackStep('Warn1', 'open vault', 'locked', false);
+    PT.trackStep('Warn1', 'open vault', 'locked', false);
+    const beforeWarn = PromptBuilder.buildPlanContext('Warn1');
+    assertFalse(beforeWarn.includes('has failed repeatedly'), 'no warning after 2 failures');
+    PT.trackStep('Warn1', 'open vault', 'locked', false);
+    const afterWarn = PromptBuilder.buildPlanContext('Warn1');
+    assertTrue(afterWarn.includes('Your current step "open the vault" has failed repeatedly'), 'warning shown for active step after 3 failures');
 });

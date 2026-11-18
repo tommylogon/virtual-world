@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "bug-589",
+  "kind": "bug",
+  "number": 589,
+  "title": "Fix StructuredFormats.plan strict schema (steps: string[]) contradicting PlanManager typed object step contract",
+  "status": "review",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [
+    "prompting",
+    "json-schema",
+    "planning",
+    "structured-output"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-700",
+      "bug-605"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Update StructuredFormats.plan in static/js/shared/json-schemas.ts (left on strict string[] when task-700 migrated plan-manager.ts to typed step objects) so strict JSON-schema providers expect the exact {act, item, target, text, note, area, until, duration} step objects requested by the prompt.",
+    "why": "StructuredFormats.plan (static/js/shared/json-schemas.ts lines 137-148) sets strict: true with steps: { type: 'array', items: { type: 'string' } }, while task-700 changed static/js/agent/plan-manager.ts (lines 279, 292) to require {\"steps\": [{\"act\": ...}]} and line 310 still sends _structuredFormats()?.plan (with line 203 JSDoc still saying Promise<string[]>). On strict-schema providers this forces string[] output that directly violates the planning prompt.",
+    "how": "1. Update StructuredFormats.plan in static/js/shared/json-schemas.ts (lines 137-148) so steps.items defines the strict JSON object schema for typed plan steps ({act, item, target, text, note, area, until, duration} compatible with strict mode nullable/required constraints).\n2. Update PlanManager return annotation (line 203 JSDoc currently reads Promise<string[]>) and strict-response handling in static/js/agent/plan-manager.ts while keeping graceful fallback for legacy string plans.\n3. Rebuild TypeScript bundles (npm run build:ts) and run JS unit tests covering StructuredFormats.plan and PlanManager/PlanGrounding.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs covering StructuredFormats.plan schema definition and PlanManager plus PlanGrounding parsing.\n2. Verify providers enforcing response_format receive typed step object schemas matching plan-manager.ts lines 279 and 292.",
+    "acceptance": [
+      {
+        "text": "StructuredFormats.plan strict schema requires steps elements matching the typed step object contract ({act, item, target, text, note, area, until, duration}) consumed by PlanManager and PlanGrounding, removing the string[] vs object conflict left behind by task-700.",
+        "done": false
+      },
+      {
+        "text": "PlanManager JSDoc and parsing helpers in static/js/agent/plan-manager.ts stay consistent with the typed object contract while keeping documented fallback support for non-strict providers.",
+        "done": false
+      },
+      {
+        "text": "Unit tests verify both strict StructuredFormats.plan schema validation and PlanManager/PlanGrounding step parsing end-to-end.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/shared/json-schemas.ts",
+      "static/js/agent/plan-manager.ts",
+      "static/js/agent/plan-grounding.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Planner Prompt Preview and Raw LLM Capture inspector when structured JSON outputs are enabled.\n\nCurrent availability: task-700 migrated PlanManager prompts to typed step objects, while StructuredFormats.plan in static/js/shared/json-schemas.ts still defines steps as strict string[].\n\nManual verification steps:\n1. Enable strict structured outputs on an LLM provider that enforces response_format JSON schema, then run an NPC planning turn.\n2. Inspect Raw LLM Capture payload and parsed PlanManager steps.\n   - expected: response_format.schema specifies typed step objects matching the prompt template, and returned steps parse cleanly into PlanGrounding."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

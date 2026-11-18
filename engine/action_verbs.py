@@ -72,6 +72,8 @@ VERBS: Tuple[VerbSpec, ...] = (
     VerbSpec("escape", aliases=(), scope="movement", target_schema="none", cost_key="major"),
     VerbSpec("struggle", aliases=(), scope="movement", target_schema="none", cost_key="major"),
     VerbSpec("flee", aliases=("disengage", "withdraw"), scope="movement", target_schema="none", cost_key="minor"),
+    VerbSpec("hide", aliases=("sneak", "conceal"), scope="movement,self", target_schema="target", cost_key="minor"),
+    VerbSpec("unhide", aliases=("reveal",), scope="movement,self", target_schema="none", cost_key="free"),
     VerbSpec("stop", aliases=(), scope="movement", target_schema="none", cost_key="free"),
 
     # === ITEMS & CONTAINMENT ===
@@ -86,6 +88,7 @@ VERBS: Tuple[VerbSpec, ...] = (
     VerbSpec("remove", aliases=("unequip", "undress", "strip"), scope="item", target_schema="item", cost_key="minor", bracket_order=9),
     VerbSpec("toggle", aliases=("light", "ignite"), scope="item", target_schema="item", cost_key="minor", bracket_order=10),
     VerbSpec("drop", aliases=(), scope="item", target_schema="item", cost_key="free", bracket_order=11),
+    VerbSpec("throw", aliases=("toss",), scope="item", target_schema="item_target", cost_key="major"),
     VerbSpec("put", aliases=("place", "stow"), scope="item", target_schema="item_target", cost_key="minor"),
     VerbSpec("combine", aliases=(), scope="item", target_schema="item", cost_key="major"),
     VerbSpec("split", aliases=(), scope="item", target_schema="item", cost_key="major"),
@@ -104,6 +107,10 @@ VERBS: Tuple[VerbSpec, ...] = (
     VerbSpec("whisper", aliases=(), scope="social", target_schema="target", cost_key="free"),
     VerbSpec("shout", aliases=("yell", "scream"), scope="social", target_schema="none", cost_key="free"),
     VerbSpec("sing", aliases=(), scope="social", target_schema="none", cost_key="free"),
+    VerbSpec("call", aliases=(), scope="social", target_schema="target", cost_key="free"),
+    VerbSpec("answer", aliases=(), scope="social", target_schema="none", cost_key="free"),
+    VerbSpec("hangup", aliases=(), scope="social", target_schema="none", cost_key="free"),
+    VerbSpec("text", aliases=("message",), scope="social", target_schema="target", cost_key="free"),
     VerbSpec("give", aliases=("hand",), scope="social", target_schema="item_target", cost_key="major"),
     VerbSpec("steal", aliases=(), scope="social", target_schema="item_target", cost_key="major"),
     VerbSpec("lead", aliases=(), scope="social", target_schema="target", cost_key="minor"),
@@ -113,6 +120,7 @@ VERBS: Tuple[VerbSpec, ...] = (
 
     # === COMBAT ===
     VerbSpec("attack", aliases=("kill", "hit", "strike", "punch"), scope="combat", target_schema="target", cost_key="major"),
+    VerbSpec("disarm", aliases=(), scope="combat", target_schema="target", cost_key="major"),
     VerbSpec("grab", aliases=(), scope="combat", target_schema="target", cost_key="minor"),
     VerbSpec("release", aliases=(), scope="combat", target_schema="target", cost_key="minor"),
 
@@ -241,6 +249,7 @@ AUTOCOMPLETE_GROUPS: Dict[str, Tuple[str, ...]] = {
     "use": _BY_ID["use"].all_names,
     "door": _BY_ID["open"].all_names + _BY_ID["close"].all_names,
     "drop": _BY_ID["drop"].all_names + ("stow", "put"),
+    "throw": _BY_ID["throw"].all_names,
     "combine": _BY_ID["combine"].all_names,
     "split": _BY_ID["split"].all_names,
     "craft": _BY_ID["craft"].all_names,

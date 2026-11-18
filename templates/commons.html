@@ -43,6 +43,17 @@
         <span id="commons-rate-estimate" class="commons-rate-estimate" aria-live="polite"></span>
     </div>
     <div class="commons-top-actions">
+        <label class="commons-btn" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="ON: use live Viwo world state & scenario clock. OFF: standalone SillyTavern-style chat with real-time/manual clock.">
+            <input type="checkbox" id="commons-viwo-state-toggle" checked> Use Viwo State
+        </label>
+        <div id="commons-standalone-clock-controls" style="display:none;align-items:center;gap:4px;">
+            <input type="date" id="commons-clock-date" class="commons-select" aria-label="Standalone clock date">
+            <input type="time" id="commons-clock-time" class="commons-select" aria-label="Standalone clock time">
+            <button type="button" id="commons-clock-set-btn" class="commons-btn" title="Set standalone anchor date & time">Set</button>
+        </div>
+        <select id="commons-branch-select" class="commons-select" aria-label="Conversation branch" title="Switch conversation branch"></select>
+        <button type="button" id="commons-branch-fork-btn" class="commons-btn" title="Fork a new conversation branch from current messages">🌿 Fork</button>
+        <button type="button" id="commons-reset-btn" class="commons-btn" title="Reset current standalone session" style="display:none;">↺ Reset</button>
         <button type="button" id="commons-pause-btn" class="commons-btn">⏸ Pause</button>
         <button type="button" id="commons-step-btn" class="commons-btn" title="Run the next active LLM character's turn (or open Characters & pacing -> Act for a specific character)">▶ Step Next</button>
         <a class="commons-btn" href="/" title="Back to the world editor">← Editor</a>
@@ -63,8 +74,11 @@
 
         <details class="commons-agent-controls">
             <summary>Characters & pacing</summary>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 4px 8px;color:#514d5a;cursor:pointer;" title="Automatically trigger Act for active LLM recipients when a message is sent">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 4px 4px;color:#514d5a;cursor:pointer;" title="Automatically trigger Act for active LLM recipients when a message is sent">
                 <input type="checkbox" id="commons-auto-reply-toggle"> Auto-reply on message
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2px 4px 8px;color:#514d5a;cursor:pointer;" title="Advance world.time_ticks by 1 per Commons message for standalone texting sessions (leave off during simultaneous World play)">
+                <input type="checkbox" id="commons-advance-clock-toggle"> Advance world clock on reply
             </label>
             <div id="commons-participants-list"></div>
         </details>
@@ -105,7 +119,7 @@
                 <div class="commons-drawer-avatar" id="commons-drawer-avatar">?</div>
                 <div class="commons-drawer-identity">
                     <h3 id="commons-drawer-name" class="commons-drawer-name">Character</h3>
-                    <div id="commons-drawer-presence" class="commons-drawer-presence">In conversation</div>
+                    <div id="commons-drawer-presence" class="commons-drawer-presence"></div>
                 </div>
                 <button type="button" id="commons-drawer-close" class="commons-icon-btn commons-drawer-close" aria-label="Close drawer">×</button>
             </div>
@@ -113,6 +127,10 @@
             <div id="commons-drawer-traits" class="commons-drawer-traits"></div>
         </div>
         <div class="commons-drawer-body">
+            <section class="commons-drawer-section">
+                <div class="commons-drawer-section-title">Causal Flow <span id="commons-drawer-flow-scope" style="font-weight:400;opacity:0.75;"></span></div>
+                <div id="commons-drawer-flow" class="commons-drawer-history"></div>
+            </section>
             <section class="commons-drawer-section">
                 <div class="commons-drawer-section-title">Current Inner Stream</div>
                 <div id="commons-drawer-monologue" class="commons-drawer-monologue"></div>

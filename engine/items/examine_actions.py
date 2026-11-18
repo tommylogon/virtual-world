@@ -9,7 +9,8 @@ matching, trigger_system, equipment, world) via the mixin.
 @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
-from typing import List, Optional
+import re
+from typing import Any, Dict, List, Optional
 
 from graph import (
     EDGE_AT,
@@ -25,6 +26,111 @@ from graph import (
     Node,
 )
 from engine.beyond_visibility import build_beyond_suffix
+
+DOMAIN_LEVEL_RANKS: Dict[str, int] = {
+    "ignorant": 0,
+    "novice": 1,
+    "familiar": 2,
+    "expert": 3,
+}
+_ORDERED_DOMAIN_LEVELS = ("expert", "familiar", "novice", "ignorant")
+
+
+def _viewer_domain_level(viewer: Any, domain: str) -> Optional[str]:
+    target = str(domain or "").strip().lower()
+    if not target or viewer is None:
+        return None
+    if hasattr(viewer, "get_domain_level"):
+        return viewer.get_domain_level(target)
+    for entry in getattr(viewer, "domains", None) or []:
+        if isinstance(entry, dict) and str(entry.get("domain") or "").strip().lower() == target:
+            return str(entry.get("level") or "familiar").strip().lower()
+    return None
+
+
+def mask_jargon_for_listener(
+    text: str,
+    jargon_terms: Optional[List[str]],
+    listener: Any = None,
+    domain: str = "",
+    min_level: str = "familiar",
+) -> str:
+    """Mask specialist `jargon_terms` when `listener` lacks competence in `domain` (task-968)."""
+    if not text or not jargon_terms:
+        return text
+    min_rank = DOMAIN_LEVEL_RANKS.get(str(min_level or "familiar").strip().lower(), 2)
+    if domain:
+        lvl = _viewer_domain_level(listener, domain)
+        rank = DOMAIN_LEVEL_RANKS.get(lvl or "ignorant", 0)
+        if rank >= min_rank:
+            return text
+    else:
+        domains_list = getattr(listener, "domains", None) or []
+        for entry in domains_list:
+            if not isinstance(entry, dict):
+                continue
+            rank = DOMAIN_LEVEL_RANKS.get(str(entry.get("level") or "").strip().lower(), 0)
+            entry_terms = {str(t).strip().lower() for t in (entry.get("jargon_terms") or []) if str(t).strip()}
+            if rank >= min_rank and any(str(t).strip().lower() in entry_terms for t in jargon_terms):
+                return text
+    masked = text
+    for term in sorted({str(t).strip() for t in jargon_terms if str(t).strip()}, key=len, reverse=True):
+        pattern = re.compile(r"\b" + re.escape(term) + r"\b", re.IGNORECASE)
+        masked = pattern.sub("[unfamiliar jargon]", masked)
+    return masked
+
+
+def resolve_domain_examine_note(item_props: Optional[Dict[str, Any]], viewer: Any) -> str:
+    """Resolve domain-gated inspection note for `viewer` from item `domain_notes` (task-968)."""
+    if not isinstance(item_props, dict):
+        return ""
+    domain_notes = item_props.get("domain_notes")
+    if not domain_notes:
+        return ""
+    default_min_level = str(item_props.get("domain_min_level") or "familiar").strip().lower()
+    fallback_note = str(item_props.get("domain_fallback_note") or "").strip()
+
+    if isinstance(domain_notes, str):
+        dom = str(item_props.get("domain") or "").strip().lower()
+        lvl = _viewer_domain_level(viewer, dom) if dom else None
+        rank = DOMAIN_LEVEL_RANKS.get(lvl or "ignorant", 0)
+        min_rank = DOMAIN_LEVEL_RANKS.get(default_min_level, 2)
+        return domain_notes.strip() if rank >= min_rank else fallback_note
+
+    if not isinstance(domain_notes, dict):
+        return ""
+
+    notes_out: List[str] = []
+    for dom_key, spec in domain_notes.items():
+        dom = str(dom_key or "").strip().lower()
+        if not dom:
+            continue
+        lvl = _viewer_domain_level(viewer, dom)
+        rank = DOMAIN_LEVEL_RANKS.get(lvl or "ignorant", 0)
+        if isinstance(spec, str):
+            min_rank = DOMAIN_LEVEL_RANKS.get(default_min_level, 2)
+            if rank >= min_rank and spec.strip():
+                notes_out.append(spec.strip())
+            elif fallback_note:
+                notes_out.append(fallback_note)
+        elif isinstance(spec, dict):
+            min_lvl = str(spec.get("min_level") or spec.get("domain_min_level") or default_min_level).strip().lower()
+            min_rank = DOMAIN_LEVEL_RANKS.get(min_lvl, 2)
+            if rank < min_rank:
+                fb = str(spec.get("ignorant") or spec.get("fallback") or fallback_note).strip()
+                if fb:
+                    notes_out.append(fb)
+                continue
+            chosen = ""
+            for tier in _ORDERED_DOMAIN_LEVELS:
+                if DOMAIN_LEVEL_RANKS[tier] <= rank and spec.get(tier):
+                    chosen = str(spec[tier]).strip()
+                    break
+            if not chosen and spec.get("note"):
+                chosen = str(spec["note"]).strip()
+            if chosen:
+                notes_out.append(chosen)
+    return "\n".join(notes_out)
 
 
 class ExamineActionsMixin:
@@ -165,7 +271,17 @@ class ExamineActionsMixin:
                         target_pname = pn
                         break
 
+        from engine.triggers.behaviors import is_character_hidden
         target_p = player_manager.players.get(target_pname)
+        if target_p and not (examine_self or target_pname == player_manager.active_player):
+            if (
+                getattr(target_p, "hidden", False)
+                or getattr(target_p, "state", "") in ("hidden", "stealthed")
+                or is_character_hidden(player_manager, target_pname, self.graph, player=target_p)
+                or (hasattr(player_manager, "is_visible") and not player_manager.is_visible(target_pname))
+            ):
+                target_p = None
+                target_pname = None
         if target_p:
             is_self = examine_self or target_pname == player_manager.active_player
             desc_parts = []
@@ -205,6 +321,14 @@ class ExamineActionsMixin:
             if resolved:
                 target_pname = resolved
                 target_p = player_manager.players.get(resolved)
+                if target_p and (
+                    getattr(target_p, "hidden", False)
+                    or getattr(target_p, "state", "") in ("hidden", "stealthed")
+                    or is_character_hidden(player_manager, resolved, self.graph, player=target_p)
+                    or (hasattr(player_manager, "is_visible") and not player_manager.is_visible(resolved))
+                ):
+                    target_p = None
+                    target_pname = None
                 if target_p:
                     base_desc = getattr(target_p, 'base_description', '') or getattr(target_p, 'description', '')
                     base_desc = self._mask_character_name_for_viewer(player_manager, resolved, base_desc)
@@ -284,7 +408,7 @@ class ExamineActionsMixin:
             player_id = player_manager._player_node_id(player_manager.active_player)
             for edge in list(self.graph.get_edges_for_target(area_id, EDGE_IN)) + list(self.graph.get_edges_for_target(player_id, EDGE_CARRYING)) + list(self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)) + list(self.graph.get_edges_for_target(player_id, EDGE_KNOWN)):
                 node = self.graph.get_node(edge.source)
-                if node and node.name == matched_item:
+                if node and node.type == "item" and node.name == matched_item:
                     item_node = node
                     break
             if item_node:
@@ -356,6 +480,10 @@ class ExamineActionsMixin:
                     knowledge = skill_check_config.get("grants_knowledge", "")
                     if knowledge:
                         desc += f"\n{message} You notice something: [{knowledge}]"
+
+                domain_note = resolve_domain_examine_note(item_node.properties, viewer_obj)
+                if domain_note:
+                    desc += f"\n{domain_note}"
 
                 trigger_outputs = self._exec_triggers(item_node, "on_examine")
                 if trigger_outputs:
@@ -528,7 +656,12 @@ class ExamineActionsMixin:
                     p = player_manager.players.get(pname)
                     if p is None:
                         continue
-                    if getattr(p, "state", "") in ("hidden", "stealthed"):
+                    if (
+                        getattr(p, "hidden", False)
+                        or getattr(p, "state", "") in ("hidden", "stealthed")
+                        or is_character_hidden(player_manager, pname, self.graph, player=p)
+                        or (hasattr(player_manager, "is_visible") and not player_manager.is_visible(pname))
+                    ):
                         continue
                     seen.add(node.id)
                     if active_p is not None and active_p.has_met(pname):
@@ -701,11 +834,11 @@ class ExamineActionsMixin:
             descriptive_sentences.append(area_desc)
         for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
             node = self.graph.get_node(edge.source)
-            if node and node.properties.get("description"):
+            if node and node.type == "item" and node.properties.get("current_state") != "hidden" and node.properties.get("description"):
                 descriptive_sentences.append(str(node.properties["description"]))
         for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
             way_node = self.graph.get_node(edge.target)
-            if way_node and way_node.properties.get("description"):
+            if way_node and way_node.properties.get("current_state") != "hidden" and way_node.properties.get("description"):
                 descriptive_sentences.append(str(way_node.properties["description"]))
 
         import re as _re

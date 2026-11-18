@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-950",
+  "kind": "task",
+  "number": 950,
+  "title": "Enforce two-lane factual invariant and memory lineage tracking in routes/memories.py",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "two-lane-invariant",
+    "palimpsest",
+    "auditability"
+  ],
+  "created": "2026-11-13",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-727",
+      "task-685",
+      "task-948",
+      "task-954",
+      "bug-588",
+      "bug-602",
+      "bug-608"
+    ],
+    "parent": "task-947",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Enforce a Two-Lane Factual Invariant so subjective palimpsest reconsolidation only touches episodic, social, emotional, and narrative beliefs while inventory, spatial_memory topology, door/lock states, and AlreadyKnown grounding stay on an unvarnished deterministic lane, and record raw source observation refs plus generation depth metadata in routes/memories.py.",
+    "why": "Sub-slice 3 of task-947: prevents subjective memory distortion from hallucinating keys or breaking PlanGrounding, and prevents multi-turn soak cascades by keeping immutable source lineage traceable.",
+    "how": "Separate deterministic grounding state from Intermediator palimpsest summaries in engine/lived_log_memory.py, action-interpreter.ts, and memory-manager.ts, and store immutable source observation IDs plus generation depth on derived memories exposed via routes/memories.py.",
+    "verify": "Run multi-turn key/door grounding tests alongside /memories API inspection to confirm spatial/inventory state stays unvarnished and source observation refs + generation depth appear in payloads.",
+    "acceptance": [
+      {
+        "text": "Deterministic inventory, spatial_memory topology, door/lock states, and AlreadyKnown grounding stay on the unvarnished factual lane",
+        "done": false
+      },
+      {
+        "text": "Derived conscious episodic syntheses store immutable raw source observation references and generation depth metadata",
+        "done": false
+      },
+      {
+        "text": "GET /memories debug payloads expose raw source lineage alongside varnished conscious syntheses without compounding soak drift",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/lived_log_memory.py",
+      "routes/memories.py",
+      "static/js/agent/action-interpreter.ts",
+      "static/js/agent/memory-manager.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Mind / Inspector debug panel (backend payload via routes/memories.py)\n\nCurrent availability: GET /memories route and Inspector memory tab exist; raw source lineage and generation depth fields are planned under task-947.\n\nWhy no browser UI: This task adds backend factual-lane separation and lineage fields on routes/memories.py payloads rather than a standalone new UI view.\n\nAlternative verification steps:\n1. Call GET /memories in an active scenario with recalled episodic memories and inspect JSON payloads.\n   - expected: Payloads include immutable source observation refs and generation depth alongside synthesized conscious summaries, while inventory/spatial facts stay unvarnished."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

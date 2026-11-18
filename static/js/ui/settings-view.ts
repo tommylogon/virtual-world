@@ -52,7 +52,6 @@ const SettingsView = (() => {
         'agent-ghost-mode': 'ghostMode',
         'agent-mature-content': 'matureContent',
         'agent-show-raw-llm': 'showRawLLM',
-        'agent-end-of-turn-memory': 'endOfTurnMemory',
         'commons-auto-reply': 'commonsAutoReplyOnMessage',
         'agent-manual-mode': 'manualMode',
         'agent-auto-retry-invalid': 'autoRetryInvalid',

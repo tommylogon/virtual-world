@@ -80,5 +80,20 @@
             'tick 12 (Day 1, 08:30, age ~30)',
             'respects custom time_per_tick_minutes and clock_start'
         );
+        assertEq(
+            MV.formatTickWithWorldTime(12, {
+                time_per_tick_minutes: 5,
+                clock_start_hour: 8,
+                clock_start_minute: 0,
+                calendar_config: { start_year: 2016, start_month: 10, start_day: 14, days_per_month: 30, months_per_year: 12 },
+            }),
+            'tick 12 (Oct 14, 2016 09:00)',
+            'formats calendar date when calendar_config.start_year is set (task-976)'
+        );
+        assertEq(
+            MV.formatTickWithWorldTime(-5000, ws, null, '2016-05-03T14:25:00'),
+            'tick -5000 (May 3, 2016 14:25)',
+            'formats explicit world_datetime ISO string directly (task-976)'
+        );
     });
 })();

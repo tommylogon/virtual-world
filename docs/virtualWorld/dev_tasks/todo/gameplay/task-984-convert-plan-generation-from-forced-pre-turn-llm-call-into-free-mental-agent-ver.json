@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "task-984",
+  "kind": "task",
+  "number": 984,
+  "title": "Convert plan generation from forced pre-turn LLM call into free mental agent verb (plan)",
+  "status": "todo",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "planning",
+    "action-verbs",
+    "agent-engine",
+    "mental-actions"
+  ],
+  "created": "2026-11-17",
+  "updated": "2026-11-17",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-589",
+      "bug-590",
+      "bug-605"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Convert PlanManager.generate from an automatic pre-turn system LLM call into an explicit free mental agent action (`plan [intent]`), matching internal mental verbs (`recall`, `goal`, `obligation`, `schedule`) while preserving StructuredFormats.plan + PlanGrounding step validation.",
+    "why": "Currently static/js/agent-engine.ts (lines 1680-1691) unconditionally fires a separate PlanManager.generate LLM call before the turn loop whenever PlanTracker.shouldReplan returns a reason (including every 5 turns on plan expiry), even during casual conversation. Planning should be a character-initiated mental action costing 1 free slot rather than an out-of-band harness cron call, while preserving typed step grounding so plans do not regress to ungrounded prose.",
+    "how": "1. Register VerbSpec(\"plan\", aliases=(\"replan\",), scope=\"internal\", target_schema=\"target\", cost_key=\"free\") in engine/action_verbs.py and regenerate static/js/agent/action-verbs.generated.js.\n2. Add a backend/route free-action handler in routes/action_handlers.py (and client execution hook in static/js/agent-engine.ts) so executing `plan` / `plan <intent>` spends 1 free turn slot, invokes PlanManager.generate(charName, intent) (preserving StructuredFormats.plan + PlanGrounding), updates PlanTracker.setPlan(...), and refreshes observeParts.plan for remaining action slots in the same turn.\n3. Replace the forced pre-turn PlanManager.generate() call in static/js/agent-engine.ts (lines 1680-1691) with a prompt cue in === YOUR PLAN === when PlanTracker.shouldReplan(...) is truthy (\"No active plan / plan interrupted - use free action `plan <intent>` to form a grounded multi-step plan, or act directly\"), while keeping PlanTracker.seedFromPlayer() for server-authored active_pursuit.\n4. Surface `plan` in contextual-actions.ts and PlanGrounding.PLAN_INTENT_ACTS, and add JS unit tests verifying both mental-verb planning and zero forced pre-turn LLM calls.",
+    "verify": "Run python tools/action_verbs_index.py --check, npm run build:ts, node tools/unit/run.cjs (test_plan_manager, test_plan_tracker, test_plan_grounding, test_turn_prompts), and pytest tests/test_action_verbs.py.",
+    "acceptance": [
+      {
+        "text": "plan (alias replan) is registered in engine/action_verbs.py as scope=\"internal\", target_schema=\"target\", cost_key=\"free\", and reflected in action-verbs.generated.js, PlanGrounding, and contextual-actions.ts.",
+        "done": false
+      },
+      {
+        "text": "AgentEngine.step no longer fires PlanManager.generate unconditionally before the turn loop; instead, === YOUR PLAN === cues the agent when no plan is active, a plan is blocked/expired, or a threat/critical need interrupts.",
+        "done": false
+      },
+      {
+        "text": "Executing plan / plan <intent> during a turn consumes 1 free mental slot, invokes PlanManager.generate(charName, intent) using StructuredFormats.plan + PlanGrounding, updates PlanTracker and observeParts.plan in-place for the remaining slots of that turn, and preserves server active_pursuit seeding.",
+        "done": false
+      },
+      {
+        "text": "JS unit tests verify mental-verb plan execution, grounding preservation, free-slot cost, and removal of the forced pre-turn LLM call.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "static/js/agent-engine.ts",
+      "static/js/agent/plan-manager.ts",
+      "static/js/agent/plan-tracker.ts",
+      "static/js/agent/prompt-builder/context-sections.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts",
+      "static/js/agent/plan-grounding.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Available Actions (free mental verbs) and === YOUR PLAN === prompt header in AgentEngine.\n\nCurrent availability: PlanManager.generate runs unconditionally before the multi-action turn loop in static/js/agent-engine.ts whenever PlanTracker.shouldReplan returns a reason.\n\nManual verification steps:\n1. Run an NPC turn with no active plan or an interrupted plan.\n   - expected: AgentEngine does not fire an out-of-band PlanManager LLM call before DECIDE; === YOUR PLAN === cues the agent to invoke free mental action `plan <intent>` if it chooses to form a multi-step plan.\n2. Have the agent execute `plan <intent>`.\n   - expected: StructuredFormats.plan + PlanGrounding run, 1 free slot is spent, and observeParts.plan updates in-place for subsequent actions in the same turn."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]",
+      "[[Commands]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

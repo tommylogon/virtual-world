@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "task-978",
+  "kind": "task",
+  "number": 978,
+  "title": "Commons Standalone Mode (SillyTavern-style): Use Viwo State toggle, session branching, and reset",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "commons",
+    "standalone",
+    "sillytavern",
+    "branching",
+    "session"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-979"
+    ],
+    "blocked_by": [
+      "task-976"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-935",
+      "task-936",
+      "task-974",
+      "task-975",
+      "task-980",
+      "task-981",
+      "bug-599"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a 'Use Viwo State' toggle to The Commons so users can switch between Connected mode (using live Viwo world.players, world.commons, scenario clock, and Viwo phone actions) and Standalone mode (treating /commons as a standalone SillyTavern-style chat app with isolated sessions, conversation branching, and reset).",
+    "why": "Users want to run late-night or standalone SillyTavern-style RP in /commons without needing an active Viwo map simulation or mutating canonical Viwo campaign state, while keeping Connected mode seamless when characters text from phones inside Viwo.",
+    "how": "1. Add a 'Use Viwo State' toggle in /commons header/settings (persisted per session/config).\n2. In Connected mode (ON): keep existing live coupling to world.players, world.commons, scenario clock, and Viwo phone actions (bug-599).\n3. In Standalone mode (OFF): run an isolated standalone CommonsSession store (loading character cards/personas from saved scenarios or character files without requiring a running map/turn queue), keeping standalone chat logs and dated memories separate from the active Viwo save.\n4. Add conversation Branch (fork channel/chat from a chosen message or current point, sharing the (branch_id, world_datetime) isolation model from docs/design/timeline-and-branching-vision.md) and Reset (clear/restart current standalone conversation cleanly) endpoints and UI controls.",
+    "verify": "Run pytest covering standalone vs connected Commons routes, branching, and reset; verify live in /commons that toggling Use Viwo State switches cleanly without corrupting Viwo scenario state.",
+    "acceptance": [
+      {
+        "text": "Toggling 'Use Viwo State' ON uses live Viwo world state, characters, and phone integration seamlessly.",
+        "done": false
+      },
+      {
+        "text": "Toggling 'Use Viwo State' OFF runs /commons as a standalone chat session without needing an active Viwo map/turn simulation and without mutating Viwo scenario saves.",
+        "done": false
+      },
+      {
+        "text": "Standalone mode supports branching from a message/conversation and resetting the session cleanly.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/commons.py",
+      "routes/commons.py",
+      "templates/commons.html",
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-api.ts",
+      "static/js/commons/commons-ui.ts",
+      "tests/test_commons.py"
+    ],
+    "browser_ui": "Intended UI home: /commons header / Quick Settings ('Use Viwo State' toggle, Branch, Reset controls).\n\nManual verification steps:\n1. Open /commons, switch 'Use Viwo State' OFF, pick characters, chat, branch from a message, and reset.\n2. Switch 'Use Viwo State' ON and confirm Viwo scenario state and messages remain untouched."
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]",
+      "[[Features/the-commons]]"
+    ],
+    "docs": [
+      "docs/virtualWorld/Gameplay/The Commons.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "acceptance": [
+      {
+        "text": "Toggling 'Use Viwo State' ON uses live Viwo world state, characters, and phone integration seamlessly.",
+        "done": false
+      },
+      {
+        "text": "Toggling 'Use Viwo State' OFF runs /commons as a standalone chat session without needing an active Viwo map/turn simulation and without mutating Viwo scenario saves.",
+        "done": false
+      },
+      {
+        "text": "Standalone mode supports branching from a message/conversation and resetting the session cleanly.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/commons.py",
+      "routes/commons.py",
+      "templates/commons.html",
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-api.ts",
+      "static/js/commons/commons-ui.ts",
+      "tests/test_commons.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: /commons header / Quick Settings ('Use Viwo State' toggle, Branch, Reset controls).\n\nManual verification steps:\n1. Open /commons, switch 'Use Viwo State' OFF, pick characters, chat, branch from a message, and reset.\n2. Switch 'Use Viwo State' ON and confirm Viwo scenario state and messages remain untouched."
+    }
+  }
+}

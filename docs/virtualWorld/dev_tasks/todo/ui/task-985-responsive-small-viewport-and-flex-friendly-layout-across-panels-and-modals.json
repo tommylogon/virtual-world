@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "task-985",
+  "kind": "task",
+  "number": 985,
+  "title": "Responsive small-viewport and flex-friendly layout across main panels, inspectors, and modals",
+  "status": "todo",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [
+    "ui",
+    "responsive",
+    "flexbox",
+    "viewport",
+    "layout"
+  ],
+  "created": "2026-11-18",
+  "updated": "2026-11-18",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-941",
+      "task-982",
+      "bug-574"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Audit and fix fixed-width/non-wrapping layouts across the main workspace, side panels, inspectors, and modals so VirtualWorld remains usable on small devices, high-DPI zoom viewports (e.g. 4K at 250% scaling), and narrow browser windows without clipped controls, overlapping sidebars, or horizontal overflow.",
+    "why": "Observed live in the browser UI: several views and toolbars are not small-device or flex-friendly when the viewport is narrow or zoomed in, causing side panels, toolbars, and modal controls to crowd or clip instead of wrapping, collapsing, or flexing gracefully.",
+    "how": "1. Inspect `templates/index.html` and `static/css/style.css` (plus modal/inspector styles in `static/js/inspector/`, `static/js/worldpainter/`, `static/js/ui/`, and `static/js/shared/diff-modal.ts`) at narrow/zoomed viewports (e.g. 1280x720, 1024x768, 768x900).\n2. Replace rigid pixel widths/heights and non-wrapping flex rows with fluid `clamp()`, `min()`, `max()`, `flex-wrap: wrap`, `min-width: 0`, and responsive media/container breakpoints.\n3. Ensure left/right sidebars, top toolbar, inspectors, and modals either collapse/toggle cleanly or stack/scroll without horizontal page overflow or inaccessible action buttons.\n4. Verify live in the browser at multiple viewport sizes and zooms with screenshots.",
+    "verify": "Verify live in browser at desktop (1440x900), zoomed/compact (1280x720), and small/narrow (768x900) viewports with zero horizontal overflow, zero clipped primary controls, and 0 console errors.",
+    "acceptance": [
+      {
+        "text": "Top toolbar, left/right sidebars, and main canvas/stream remain usable with zero clipped primary controls at compact/zoomed (1280x720) and narrow (768x900) viewports.",
+        "done": false
+      },
+      {
+        "text": "Inspectors, Scenario Manager, Settings, Human Turn Composer, and WorldPainter adapt via fluid CSS (`clamp()`, `min()`, `flex-wrap`, `min-width: 0`) instead of overflowing horizontally.",
+        "done": false
+      },
+      {
+        "text": "Verified visually via screenshots at both wide and narrow/zoomed viewports.",
+        "done": false
+      }
+    ],
+    "files": [
+      "templates/index.html",
+      "static/css/style.css",
+      "static/js/inspector/panel.ts",
+      "static/js/worldpainter/editor.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Main app shell, toolbars, side panels, inspectors, and modals on http://localhost:4444/ at compact/zoomed and narrow viewports.\n\nCurrent availability: Observed during live browser testing on 2026-11-18 that views are not small-device/flex-friendly when zoomed in.\n\nManual verification steps:\n1. Resize viewport to 1280x720 and 768x900 (or zoom in).\n2. Open toolbar dropdowns, inspectors, Scenario Manager, Turn Composer, and WorldPainter.\n   - expected: Controls wrap or scroll cleanly inside viewport bounds with no clipped buttons or horizontal overflow."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Rendering & UI Modules]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

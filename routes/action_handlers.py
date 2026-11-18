@@ -138,9 +138,9 @@ def _parse_activity_args(tokens, cmd):
 _VERBS_NEEDING_TARGET = frozenset({
     "go", "climb", "crawl", "enter", "exit", "swim", "dive",
     "examine", "look", "search", "read",
-    "take", "get", "grab", "pick", "drop", "release", "stow",
+    "take", "get", "grab", "pick", "drop", "throw", "toss", "release", "stow",
     "put", "place", "give", "steal", "lead", "hand",
-    "attack", "kill", "hit", "shoot",
+    "attack", "disarm", "kill", "hit", "shoot",
     "eat", "drink", "taste", "smell",
     "open", "close", "use", "toggle", "activate", "wear",
     "teach", "name", "wake", "sing", "talk", "speak",
@@ -296,6 +296,19 @@ def handle_autocomplete(app):
     return jsonify({"options": options, "verb": verb, "prefix": prefix})
 
 
+def _parse_throw_command(rest: str):
+    """Split ``<item> to/over/through/at/into <target>`` into ``(item, target)``."""
+    text = str(rest or "").strip()
+    if not text:
+        return "", ""
+    lower = text.lower()
+    for prep in (" over ", " through ", " into ", " to ", " at "):
+        idx = lower.find(prep)
+        if idx > 0:
+            return text[:idx].strip(), text[idx + len(prep):].strip()
+    return text, ""
+
+
 def validate_action_command(world, char_name, cmd):
     """Dry-run validation of a command string against live world invariants without mutating state."""
     if not cmd or not cmd.strip():
@@ -424,6 +437,30 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": False, "category": "not_found", "detail": f"Destination or target '{target_str}' not found in room exits or objects."}
 
     # 6. Item actions
+    if verb in ("throw", "toss"):
+        item_part, dest_part = _parse_throw_command(target_str)
+        matched_item = world._match_item_name(item_part) if item_part else None
+        if not matched_item:
+            return {"valid": False, "category": "not_found", "detail": f"Item '{item_part or target_str}' not found in room or inventory."}
+        if dest_part:
+            dest_lower = dest_part.lower()
+            dest_cleaned = re.sub(r'^(?:the|a|an)\s+', '', dest_lower).strip()
+            if dest_lower in compass_dirs or dest_lower in ("ground", "floor", "here"):
+                return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Throw '{matched_item}' toward '{dest_part}' verified"}
+            for _edge, way_node, handle, target_area in exits:
+                way_names = [str(handle).lower(), str(target_area).lower()]
+                if way_node:
+                    way_names.extend([str(getattr(way_node, 'name', '')).lower(), str(getattr(way_node, 'id', '')).lower()])
+                if any(dest_lower in wn or dest_cleaned in wn or wn in dest_lower for wn in way_names if wn):
+                    return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Throw '{matched_item}' toward '{handle}' verified"}
+            resolved_char, _ = world._match_character_name(dest_part)
+            if resolved_char:
+                return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Throw '{matched_item}' toward '{resolved_char}' verified"}
+            if world._match_item_name(dest_part):
+                return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Throw '{matched_item}' toward '{dest_part}' verified"}
+            return {"valid": False, "category": "not_found", "detail": f"Destination or target '{dest_part}' not found in room exits or surroundings."}
+        return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' verified"}
+
     if verb in ("take", "get", "grab", "drop", "put", "place", "give", "steal", "use", "use_on", "eat", "drink", "wear", "equip", "unequip", "open", "close"):
         matched_item = world._match_item_name(target_str)
         if matched_item:
@@ -448,8 +485,18 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": False, "category": "not_found", "detail": f"Character '{target_str}' not found in room."}
 
     # 8. Self-contained actions
-    if verb in ("wait", "look", "inventory", "inv", "i", "stats", "status", "listen", "stand", "rest", "sit", "lie", "fumble", "search", "meditate", "recall", "stop", "dress", "undress"):
+    if verb in ("wait", "look", "inventory", "inv", "i", "stats", "status", "listen", "stand", "rest", "sit", "lie", "fumble", "search", "meditate", "recall", "stop", "dress", "undress", "unhide", "reveal"):
         return {"valid": True, "category": "self", "detail": f"Action '{verb}' recognized."}
+
+    if verb in ("hide", "sneak", "conceal"):
+        from engine.triggers.behaviors import parse_hide_command, _resolve_hide_target_node, _is_hideable_node
+        _, prop_target = parse_hide_command(target_str)
+        if not prop_target:
+            return {"valid": True, "category": "self", "detail": f"Action '{verb}' recognized."}
+        node = _resolve_hide_target_node(world, char_name, prop_target, player=player_obj)
+        if node is not None and _is_hideable_node(node):
+            return {"valid": True, "category": "item", "resolved_target": node.name, "detail": f"Cover '{node.name}' verified"}
+        return {"valid": False, "category": "not_found", "detail": f"Hideable cover '{prop_target}' not found in room."}
 
     return {"valid": True, "category": "action", "detail": f"Action '{cmd}' recognized."}
 
@@ -591,6 +638,11 @@ def handle_take_action(app):
             _msg = call()
             add_output(_msg)
             if world.current_area and _prev != world.current_area.name:
+                try:
+                    from engine import fear as _fear
+                    _fear.react_in_area(world, world.current_area.name)
+                except Exception as e:
+                    logger.warning("[action] fear react_in_area: %s", e)
                 add_output(world.get_area_description())
 
         if world.current_area and cmd in [e.lower() for e in world.current_area.exits.keys()]:
@@ -617,6 +669,11 @@ def handle_take_action(app):
                     if _res.interrupted and _res.interrupt and _res.interrupt.get('detail'):
                         add_output(_res.interrupt['detail'])
                     if world.current_area and _prev != world.current_area.name:
+                        try:
+                            from engine import fear as _fear
+                            _fear.react_in_area(world, world.current_area.name)
+                        except Exception as e:
+                            logger.warning("[action] fear react_in_area: %s", e)
                         add_output(world.get_area_description())
             else:
                 _move_and_describe(lambda: world.move_to_area(direction))
@@ -851,6 +908,13 @@ def handle_take_action(app):
                         )
                         for out in trigger_outputs:
                             add_output(out)
+                from engine.triggers.behaviors import search_hidden_characters_in_area
+                spotted_chars = search_hidden_characters_in_area(
+                    world, world.active_player, area_id, total, success
+                )
+                for spotted_msg in spotted_chars:
+                    add_output(spotted_msg)
+                    hidden_found = True
                 if not hidden_found and not success:
                     add_output(
                         "You search the room thoroughly "
@@ -1022,6 +1086,15 @@ def handle_take_action(app):
         elif cmd.startswith("drop "):
             item_name = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             add_output(world.drop_item(item_name))
+        elif cmd.startswith("throw ") or cmd.startswith("toss "):
+            rest = cmd.split(None, 1)[1].strip() if " " in cmd else ""
+            item_name, target_ref = _parse_throw_command(rest)
+            if item_name and target_ref:
+                add_output(world.throw_item(item_name, target_ref))
+            elif rest:
+                add_output(f"Throw '{rest}' where? Use: throw <item> to/over <way|area>")
+            else:
+                add_output("Throw what? Use: throw <item> to/over <way|area>")
         elif cmd.startswith("stow "):
             # task-146: `stow <item>` = hand → carrying; `stow <item> in
             # <container>` mirrors put. (autocomplete already advertised stow.)
@@ -1323,6 +1396,19 @@ def handle_take_action(app):
             else:
                 add_output("You are not a ghost, or ghost mode is inactive.")
 
+        elif tokens and tokens[0] in ("unhide", "reveal"):
+            from engine.triggers.behaviors import unhide_character
+            add_output(unhide_character(world, world.active_player))
+
+        elif tokens and tokens[0] in ("hide", "sneak", "conceal"):
+            from engine.triggers.behaviors import hide_character, parse_hide_command
+            arg_str = cmd.split(" ", 1)[1].strip() if " " in cmd else ""
+            rel, target_ref = parse_hide_command(arg_str)
+            ok, msg = hide_character(world, world.active_player, target=target_ref, relation=rel)
+            if not ok:
+                failed = True
+            add_output(msg)
+
         elif cmd.startswith("toggle "):
             item_name = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             try:
@@ -1395,6 +1481,67 @@ def handle_take_action(app):
                 elif not ambiguous_target:
                     add_output(f"You don't see {target}.")
 
+        elif cmd.startswith("disarm "):
+            rest = ' '.join(tokens[1:]).strip() if len(tokens) > 1 else ""
+            item_name = None
+            target = rest
+            catch_item = False
+            if rest.endswith(" and catch"):
+                catch_item = True
+                rest = rest[:-10].strip()
+                target = rest
+            from_idx = rest.find(" from ")
+            if from_idx > 0:
+                item_name = rest[:from_idx].strip() or None
+                target = rest[from_idx + 6:].strip()
+            attacker = world.players.get(world.active_player)
+            if not attacker:
+                add_output("You can't do that.")
+            elif not target:
+                add_output("Disarm whom?")
+            else:
+                target_player = world.players.get(target)
+                resolved_target = target
+                ambiguous_target = False
+                if target_player is None:
+                    resolved, candidates = world._match_character_name(target)
+                    if resolved:
+                        resolved_target = resolved
+                        target_player = world.players[resolved]
+                    elif candidates:
+                        ambiguous_target = True
+                        note_ambiguity("disarm", candidates)
+                if target_player is None and not ambiguous_target and from_idx < 0 and " " in rest:
+                    parts = rest.split(" ", 1)
+                    cand_target = parts[0].strip()
+                    cand_item = parts[1].strip()
+                    tp = world.players.get(cand_target)
+                    if tp is not None:
+                        target_player = tp
+                        resolved_target = cand_target
+                        item_name = cand_item
+                    else:
+                        r2, c2 = world._match_character_name(cand_target)
+                        if r2:
+                            resolved_target = r2
+                            target_player = world.players[r2]
+                            item_name = cand_item
+                        elif c2:
+                            ambiguous_target = True
+                            note_ambiguity("disarm", c2)
+                if target_player:
+                    if resolved_target == world.active_player:
+                        add_output("You can't disarm yourself.")
+                    elif target_player.current_area == world.current_area.name:
+                        add_output(world._player_disarm(
+                            world.active_player, resolved_target,
+                            item_name=item_name, catch=catch_item,
+                        ))
+                    else:
+                        add_output(f"{resolved_target} isn't here.")
+                elif not ambiguous_target:
+                    add_output(f"You don't see {target}.")
+
         elif cmd.startswith("grab "):
             target = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             attacker = world.players.get(world.active_player)
@@ -1412,10 +1559,19 @@ def handle_take_action(app):
                     elif candidates:
                         note_ambiguity("grab", candidates)
                 if target_player:
+                    from engine.triggers.behaviors import is_character_hidden, reveal_if_hidden
                     if resolved_target == world.active_player:
                         add_output("You can't grab yourself.")
                     elif target_player.current_area == world.current_area.name:
-                        add_output(world._grapple_grab(world.active_player, resolved_target))
+                        if is_character_hidden(world, resolved_target, player=target_player) or (
+                            hasattr(world, "player_manager") and not world.player_manager.is_visible(resolved_target)
+                        ):
+                            add_output(f"You reach for {resolved_target} - but {resolved_target} is not there to grab.")
+                        else:
+                            rev_msg = reveal_if_hidden(world, world.active_player, reason=f"grabbing {resolved_target}", player=attacker)
+                            if rev_msg:
+                                add_output(rev_msg)
+                            add_output(world._grapple_grab(world.active_player, resolved_target))
                     else:
                         add_output(f"{resolved_target} isn't here.")
                 elif not candidates:
@@ -1842,6 +1998,11 @@ def handle_take_action(app):
                 else:
                     speech_level = "normal"
                 if speech:
+                    if speech_level in ("shout", "scream", "sing"):
+                        from engine.triggers.behaviors import reveal_if_hidden
+                        rev_msg = reveal_if_hidden(world, world.active_player, reason=speech_level)
+                        if rev_msg:
+                            add_output(rev_msg)
                     world.broadcast_speech(world.active_player, speech, speech_level=speech_level, whisper_target=whisper_target)
                     if speech_level == "whisper":
                         if whisper_target:
@@ -1898,33 +2059,13 @@ def handle_take_action(app):
                 failed = True
             else:
                 actor_name = world.active_player
-                # Check device requirement
-                p_id = world.player_manager._player_node_id(actor_name)
-                has_device = False
-                if p_id:
-                    from graph import EDGE_CARRYING
-                    for edge in world.graph.get_edges_for_target(p_id, EDGE_CARRYING) + world.graph.get_edges_for_target(p_id, EDGE_IN):
-                        node = world.graph.get_node(edge.source)
-                        if node and node.type == "item":
-                            tags = node.properties.get("tags", [])
-                            name = (node.name or "").lower()
-                            if "phone" in tags or "device" in tags or "communication" in tags or "phone" in name:
-                                has_device = True
-                                break
-                actor_player = world.player_manager.get_player(actor_name)
-                if not has_device and actor_player and actor_player.current_area:
-                    area_node_id = world._area_node_id(actor_player.current_area)
-                    if area_node_id:
-                        for edge in world.graph.get_edges_for_target(area_node_id, EDGE_IN):
-                            node = world.graph.get_node(edge.source)
-                            if node and node.type == "item":
-                                name = (node.name or "").lower()
-                                tags = node.properties.get("tags", [])
-                                if ("phone" in tags or "phone" in name) and (actor_name.lower() in name or node.properties.get("owner") == actor_name):
-                                    has_device = True
-                                    break
-                if not has_device:
+                from engine.long_distance_comms import deliver_dm_text, find_active_comms_device
+                active_device, any_device = find_active_comms_device(world, actor_name)
+                if not any_device:
                     add_output("You don't have a phone or communication device to send a message.")
+                    failed = True
+                elif not active_device:
+                    add_output(f"Your {any_device.name} is out of power or turned off.")
                     failed = True
                 else:
                     target_token, msg_text = raw_body.split(" ", 1)
@@ -1952,27 +2093,6 @@ def handle_take_action(app):
                             channel_id = new_ch["id"]
                         commons.post_message(author=actor_name, text=msg_text, tick=getattr(world, "time_ticks", 0), channel_id=channel_id)
                         add_output(f'You posted to #{channel_name}: "{msg_text}"')
-                        if actor_player:
-                            actor_player.add_memory(
-                                f'Posted to #{channel_name}: "{msg_text}"',
-                                tick=getattr(world, "time_ticks", 0),
-                                importance=3,
-                                tags=["text", "commons", channel_name],
-                                source="commons",
-                                location=getattr(actor_player, "current_area", "")
-                            )
-                        for member in commons.channels.get(channel_id, {}).get("members", []):
-                            if member != actor_name:
-                                recipient = world.player_manager.get_player(member)
-                                if recipient:
-                                    recipient.add_memory(
-                                        f'Saw message from {actor_name} in #{channel_name}: "{msg_text}"',
-                                        tick=getattr(world, "time_ticks", 0),
-                                        importance=4,
-                                        tags=["text", "commons", channel_name],
-                                        source="commons",
-                                        location=getattr(recipient, "current_area", "")
-                                    )
                     else:
                         matched_name, candidates = world._match_character_name(target_token, exclude_self=True)
                         if not matched_name:
@@ -1984,28 +2104,17 @@ def handle_take_action(app):
                             add_output(f"You cannot find contact '{target_token}'.")
                             failed = True
                         else:
-                            dm_ch = commons.create_dm(actor_name, matched_name)
-                            commons.post_message(author=actor_name, text=msg_text, tick=getattr(world, "time_ticks", 0), channel_id=dm_ch["id"])
-                            add_output(f'You texted {matched_name}: "{msg_text}"')
-                            recipient_player = world.player_manager.get_player(matched_name)
-                            if actor_player:
-                                actor_player.add_memory(
-                                    f'Texted {matched_name}: "{msg_text}"',
-                                    tick=getattr(world, "time_ticks", 0),
-                                    importance=3,
-                                    tags=["text", "commons", f"rel:{matched_name}"],
-                                    source="commons",
-                                    location=getattr(actor_player, "current_area", "")
-                                )
-                            if recipient_player:
-                                recipient_player.add_memory(
-                                    f'Received text from {actor_name}: "{msg_text}"',
-                                    tick=getattr(world, "time_ticks", 0),
-                                    importance=5,
-                                    tags=["text", "commons", f"rel:{actor_name}"],
-                                    source="commons",
-                                    location=getattr(recipient_player, "current_area", "")
-                                )
+                            dm_res = deliver_dm_text(
+                                world,
+                                actor_name,
+                                matched_name,
+                                msg_text,
+                                tick=getattr(world, "time_ticks", 0),
+                            )
+                            if dm_res["delivered"]:
+                                add_output(f'You texted {matched_name}: "{msg_text}"')
+                            else:
+                                add_output(f'You texted {matched_name}: "{msg_text}" (queued; recipient phone is off or unreachable)')
 
         elif cmd.startswith("do "):
             emote_text = cmd[3:].strip()

@@ -445,10 +445,10 @@ def handle_create_scope(app):
 
 
 def handle_set_scope_grid(app, scope_id):
-    """POST /api/world/scopes/<scope_id>/grid — create/resize the grid.
+    """POST /api/world/scopes/<scope_id>/grid - create/resize the grid.
 
-    Body: ``{w, h, mode?}``. A shrink prunes out-of-bounds paint and
-    placements (``engine/world_grid.ensure_grid``) rather than dangling them.
+    Body: ``{w, h, mode?, offset_x?, offset_y?, anchor_x?, anchor_y?, scale_factor?}``.
+    A shrink prunes out-of-bounds paint and placements rather than dangling them.
     """
     data = request.get_json(silent=True) or {}
     manifest = _load(app)
@@ -467,8 +467,30 @@ def handle_set_scope_grid(app, scope_id):
         return _error(f"unknown mode {mode!r}; expected one of {world_grid.MODES}")
 
     try:
+        offset_x = int(data.get("offset_x") or 0)
+        offset_y = int(data.get("offset_y") or 0)
+    except (TypeError, ValueError):
+        return _error("offset_x and offset_y must be integers")
+
+    scale_factor = data.get("scale_factor")
+    anchor_x = 0
+    anchor_y = 0
+    if scale_factor is not None:
+        try:
+            scale_factor = float(scale_factor)
+            anchor_x = int(data.get("anchor_x") or 0)
+            anchor_y = int(data.get("anchor_y") or 0)
+        except (TypeError, ValueError):
+            return _error("anchor_x, anchor_y must be integers and scale_factor must be a number")
+
+    try:
         _snapshot(app, label=f"set grid {record.get('name', scope_id)}")
-        world_grid.ensure_grid(record, w, h, mode=mode)
+        if scale_factor is not None:
+            world_grid.scale_grid(record, w, h, anchor_x, anchor_y, scale_factor, mode=mode)
+        elif offset_x != 0 or offset_y != 0:
+            world_grid.offset_grid(record, w, h, offset_x=offset_x, offset_y=offset_y, mode=mode)
+        else:
+            world_grid.ensure_grid(record, w, h, mode=mode)
         if "sibling_traversal" in data:
             world_grid.set_sibling_traversal(record, bool(data.get("sibling_traversal")))
     except (TypeError, ValueError) as exc:

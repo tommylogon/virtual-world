@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "bug-572",
+  "kind": "bug",
+  "number": 572,
+  "title": "WorldPainter area picker lost placed on grid and not placed grouping",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-541"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "When placing areas on a grid in WorldPainter, the area selector dropdown (`data-role=\"wp-area\"`) renders a single flat list of area names. It has lost the visual and structural distinction between areas that are already \"placed on grid\" vs \"not placed\" (or belonging to another scope).\n\nIn `static/js/worldpainter/grid-model.ts`, `areaGroups(payload, selectedId)` correctly segments candidate areas into up to three groups:\n1. `On this grid (${onGrid.length})` - areas already parked on the active grid with coordinates `placedHere: { x, y }`.\n2. `This scope, not placed (${mine.length})` - areas belonging to the scope that have not yet been placed on a cell.\n3. `Elsewhere in the world` - areas belonging to other scopes.\n\nHowever, `static/js/worldpainter/editor-palette.ts: _areaBar()` calls `ctx.GM().placeableAreas(p)`, which flattens all groups into a single array with `.reduce()`, discarding the groups. Furthermore, `editor-palette.ts` checks `${a.name}${a.placed ? ' (placed)' : ''}`, but the property in `grid-model.ts` is `a.placedHere`, not `a.placed` (which is `undefined`). As a result, the `<select>` element renders no `<optgroup>`s and no placed indicators, leaving the author unable to tell at a glance which areas are already placed on the grid.",
+    "why": "An author mapping out a scenario (such as The Valerious Case outdoor map or Millwood High) needs to see which rooms/areas are already placed on the map and which remaining rooms still need cell placement. A flat list creates authoring friction, duplicate placements, or accidental moving of already-positioned areas.",
+    "how": "1. In `static/js/worldpainter/editor-palette.ts` (`_areaBar`):\n   - Call `ctx.GM().areaGroups(p, ctx.state.selectedArea)` instead of discarding structure with `placeableAreas(p)`.\n   - Render `<optgroup>` elements for each group (`On this grid`, `This scope, not placed`, and `Elsewhere in the world`).\n   - For placed areas, render the cell coordinates or `(on (${a.x},${a.y}))` / `(placed)` in the option label.\n2. Recompile TypeScript: `python tools/ts_convert.py build`.",
+    "verify": "1. Open WorldPainter on a scenario with placed and unplaced areas and click the Area select element.\n   - expected: The select contains `<optgroup>` elements separating placed areas from unplaced areas.\n   - observed: Flat `<select>` with 0 `<optgroup>` elements; `a.placed` check evaluates to undefined so all options display bare names.\n2. Select an already-placed area and verify coordinates appear in the option label and the toolbar readout.\n   - expected: Coordinates or `(placed)` appear in the option text.\n3. Run the targeted tests for `grid-model`: `npm test` or `node tools/unit/run.cjs`.\n   - expected: All tests pass.",
+    "acceptance": [
+      {
+        "text": "WorldPainter `Area:` selector groups candidate areas into distinct `<optgroup>` elements (\"On this grid\", \"This scope, not placed\", \"Elsewhere in the world\").",
+        "done": false
+      },
+      {
+        "text": "Placed areas display their placed status or cell coordinates in the dropdown option label.",
+        "done": false
+      },
+      {
+        "text": "Unplaced areas for the current scope are clearly distinguished from placed areas and external scope areas.",
+        "done": false
+      },
+      {
+        "text": "No regression in area selection, placement click, or unplacing.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor-palette.ts",
+      "static/js/worldpainter/grid-model.ts",
+      "tools/unit/test_worldpainter_grid.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: WorldPainter editor toolbar -> Area dropdown (`[data-role=\"wp-area\"]`).\n\nCurrent availability: Present and reproducible in WorldPainter on `localhost:4444` (verified on The Valerious Case and Millwood scenarios). The dropdown currently renders a single flat list without optgroups or placed tags.\n\nLive steps when available:\n1. Open WorldPainter for a scenario with multiple areas (e.g. `valerious_case` outdoor map or `millwood_high_1f`).\n   - expected: WorldPainter canvas and top toolbar load with reference image and grid.\n2. Click the Area dropdown (`data-role=\"wp-area\"`).\n   - expected: The dropdown displays distinct `<optgroup>` sections: \"On this grid\", \"This scope, not placed\", and \"Elsewhere in the world\".\n3. Inspect the options under \"On this grid\".\n   - expected: Each already-placed area clearly indicates its placed status or cell coordinates (e.g. `Frozen Stream Crossing (44,14)` or `(placed)`).\n4. Inspect the options under \"This scope, not placed\".\n   - expected: Unplaced areas are grouped together so the author can immediately pick the next room to place.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Painter & Scope Editor]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/bug-572-worldpainter-area-picker-lost-placed-on-grid-grouping.md"
+  },
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-17T21:32:36Z"
+    }
+  ]
+}

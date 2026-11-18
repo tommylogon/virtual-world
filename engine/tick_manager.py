@@ -592,6 +592,13 @@ class TickManager:
             # co-presence read below is a lookup, not a scan.
             self._presence_sync(pname, p)
 
+            # bug-593: apply/release fear_tags reactions on every live turn.
+            try:
+                from engine import fear as _fear
+                _fear.react(self.gs, p)
+            except Exception as e:
+                logger.warning("[tick] fear react %s: %s", pname, e)
+
             # Whether this character was asleep when the tick began. The noise
             # wake below can end the sleep activity, and the sleep-regen block
             # runs later in the tick - capturing it here means a sleeper woken

@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "id": "task-977",
+  "kind": "task",
+  "number": 977,
+  "title": "Replace Day N with calendar date and phone-style timestamps across The Commons",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [
+    "ui",
+    "commons",
+    "time",
+    "dates"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-976"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-975",
+      "task-888"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace Day N labels (such as 'Day 1, 08:01') in The Commons message feed, inner drawer, backend character context, and Commons agent prompts with real calendar dates and phone-style timestamps (e.g. '23:02' with date dividers like 'Fri, Oct 14, 2016', and 'Fri Oct 14, 2016 23:02' in prompts).",
+    "why": "Having a phone chat app display 'Day 1, 08:01' looks like a board-game turn counter instead of a messaging app, breaking immersion in both connected Viwo texting and standalone Commons RP.",
+    "how": "1. Expose VirtualWorld's existing calendar date (game_year, game_month, game_day) in routes/commons.py world_clock and character_context.\n2. Update formatWorldTick in static/js/commons/commons-ui.ts (and shared time helper) to format phone-style timestamps using the world calendar or standalone anchored datetime, with date headers when days change and HH:MM on messages.\n3. Update routes/commons.py character_context world_time and read_chat sent_time formatting to emit calendar date + HH:MM instead of 'Day N'.\n4. Update static/js/commons/commons-agent.ts prompt clock and drawer turn history timestamps to match.\n5. Update tests/test_commons.py and tools/unit/test_commons_agent.js.",
+    "verify": "Run pytest tests/test_commons.py, npm run build:ts, and node tools/unit/run.cjs test_commons_agent; verify in browser on /commons that feed, drawer, and agent prompts show calendar date/time with zero 'Day N' strings.",
+    "acceptance": [
+      {
+        "text": "Commons feed messages and inner drawer timestamps render phone-style HH:MM and calendar dates instead of 'Day N'.",
+        "done": false
+      },
+      {
+        "text": "routes/commons.py world_time and read_chat sent_time use calendar dates instead of 'Day N'.",
+        "done": false
+      },
+      {
+        "text": "Zero 'Day N' counter strings remain in The Commons UI or agent prompts.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/commons/commons-ui.ts",
+      "static/js/commons/commons-agent.ts",
+      "routes/commons.py",
+      "tests/test_commons.py",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "browser_ui": "Intended UI home: /commons message feed, date dividers, and character inner drawer.\n\nManual verification steps:\n1. Open http://localhost:4444/commons and send a message / trigger a turn.\n2. Inspect message timestamps and the character inner drawer footer.\n   - expected: Shows HH:MM and calendar date (e.g. Oct 14, 2016 or Nov 16), never 'Day 1'."
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]",
+      "[[Features/the-commons]]"
+    ],
+    "docs": [
+      "docs/virtualWorld/Gameplay/The Commons.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "acceptance": [
+      {
+        "text": "Commons feed messages and inner drawer timestamps render phone-style HH:MM and calendar dates instead of 'Day N'.",
+        "done": false
+      },
+      {
+        "text": "routes/commons.py world_time and read_chat sent_time use calendar dates instead of 'Day N'.",
+        "done": false
+      },
+      {
+        "text": "Zero 'Day N' counter strings remain in The Commons UI or agent prompts.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/commons/commons-ui.ts",
+      "static/js/commons/commons-agent.ts",
+      "routes/commons.py",
+      "tests/test_commons.py",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: /commons message feed, date dividers, and character inner drawer.\n\nManual verification steps:\n1. Open http://localhost:4444/commons and send a message / trigger a turn.\n2. Inspect message timestamps and the character inner drawer footer.\n   - expected: Shows HH:MM and calendar date (e.g. Oct 14, 2016 or Nov 16), never 'Day 1'."
+    }
+  }
+}

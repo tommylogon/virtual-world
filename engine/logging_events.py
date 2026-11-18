@@ -77,6 +77,7 @@ class GameLogger:
         area_name: Optional[str] = None,
         tick: int = 0,
         turn: Optional[int] = None,
+        extra: Optional[dict] = None,
     ):
         """Record an event that happened during this turn.
 
@@ -95,6 +96,9 @@ class GameLogger:
             Current world time tick (from TickManager).
         turn:
             Current turn number.  Defaults to ``self.turn_number``.
+        extra:
+            Optional structured metadata merged into the event dict
+            (e.g. ``target``, ``item``, ``outcome`` for disarm).
         """
         current_turn = turn or self.turn_number
         # Deduplicate identical consecutive event for same actor and tick
@@ -112,6 +116,10 @@ class GameLogger:
             "description": description,
             "area": area_name,
         }
+        if extra:
+            for k, v in extra.items():
+                if k not in event:
+                    event[k] = v
         # Prune prior-turn events only when the turn actually changes. The old
         # code rebuilt the whole buffer on every append, which is O(n) per
         # event and O(n^2) over a headless run where the turn never advances

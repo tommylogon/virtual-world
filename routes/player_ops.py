@@ -1070,6 +1070,10 @@ def _apply_compiled(player, compiled, node=None, sections=None) -> None:
         "fear_tags": list(player.fear_tags or []),
         "traits": dict(props.get("traits") or getattr(player, "traits", None) or {}),
         "skills": dict(props.get("skills") or getattr(player, "skills", None) or {}),
+        "languages": ca.normalize_languages(
+            props.get("languages") if props.get("languages") is not None
+            else (getattr(player, "languages", None) or [])
+        ),
     }
     if node is not None and getattr(node, "properties", None) is not None:
         node.properties["_last_precompile_snapshot"] = snapshot
@@ -1080,6 +1084,7 @@ def _apply_compiled(player, compiled, node=None, sections=None) -> None:
     apply_tags = apply_all or "tags" in sections
     apply_traits = apply_all or "traits" in sections
     apply_skills = apply_all or "skills" in sections
+    apply_languages = apply_all or "languages" in sections
 
     if apply_base and (compiled.get("base_description") or "").strip():
         player.base_description = compiled["base_description"]
@@ -1115,6 +1120,17 @@ def _apply_compiled(player, compiled, node=None, sections=None) -> None:
         player.skills = current_skills
         if node is not None and getattr(node, "properties", None) is not None:
             node.properties["skills"] = dict(current_skills)
+    if apply_languages and "languages" in compiled:
+        c_langs = ca.normalize_languages(compiled.get("languages") or [])
+        player.languages = c_langs
+        if node is not None and getattr(node, "properties", None) is not None:
+            if c_langs:
+                node.properties["languages"] = [
+                    dict(x, known_words=list(x.get("known_words") or []))
+                    for x in c_langs
+                ]
+            else:
+                node.properties.pop("languages", None)
     if node is not None:
         (getattr(node, "properties", None) or {}).pop(
             ca.PROSE_STALE_KEY, None)
@@ -1207,6 +1223,17 @@ def handle_revert_compile_character_record(app, name):
     if "skills" in snapshot:
         player.skills = dict(snapshot["skills"])
         props["skills"] = dict(snapshot["skills"])
+    if "languages" in snapshot:
+        from engine import character_appearance as ca
+        reverted_langs = ca.normalize_languages(snapshot.get("languages") or [])
+        player.languages = reverted_langs
+        if reverted_langs:
+            props["languages"] = [
+                dict(x, known_words=list(x.get("known_words") or []))
+                for x in reverted_langs
+            ]
+        else:
+            props.pop("languages", None)
     return jsonify({
         "reverted": True,
         "snapshot": snapshot,

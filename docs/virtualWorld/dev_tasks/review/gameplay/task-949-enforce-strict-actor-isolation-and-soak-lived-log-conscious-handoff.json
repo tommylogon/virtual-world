@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-949",
+  "kind": "task",
+  "number": 949,
+  "title": "Enforce Strict Actor Isolation and soak lived_log conscious handoff",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "actor-isolation",
+    "soak",
+    "lived-log",
+    "prompt-pipeline"
+  ],
+  "created": "2026-11-13",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-948"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-943",
+      "task-944",
+      "bug-606",
+      "task-967"
+    ],
+    "parent": "task-947",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Remove raw stored memory lists and raw historical lived_log/observation transcripts from Actor and planning prompt builders, retire vestigial endOfTurnMemory and Reactor memory-creation paths, and route soak lived_log continuity through the Intermediator conscious handoff.",
+    "why": "Sub-slice 2 of task-947: ensures acting and planning models never consume raw DB memory rows or unfiltered past observations that leak raw context or degrade soak coherence.",
+    "how": "Update static/js/agent/prompt-builder/memory-context.ts, turn-prompts.ts, engine/soak.py, and engine/lived_log.py to pass only current observations plus the Intermediator conscious memory block, and remove legacy endOfTurnMemory prompts.",
+    "verify": "Run Actor prompt assembly and soak continuity tests with populated memory DB and lived_log history, asserting zero raw memory rows or raw historical observations appear in prompts.",
+    "acceptance": [
+      {
+        "text": "Actor and planning prompt builders emit zero raw stored memory records and zero raw historical lived_log transcripts",
+        "done": false
+      },
+      {
+        "text": "Vestigial endOfTurnMemory and Reactor memory-creation paths are retired once Intermediator handoff is wired",
+        "done": false
+      },
+      {
+        "text": "Soak runner uses the same Intermediator conscious synthesis and inner monologue handoff across turns without raw observation leakage",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "static/js/agent/prompt-builder/turn-prompts.ts",
+      "engine/soak.py",
+      "engine/lived_log.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Not applicable\n\nCurrent availability: Prompt builders in static/js/agent/prompt-builder/ and soak runner in engine/soak.py exist; strict isolation cutoff is planned under task-947.\n\nWhy no browser UI: Prompt assembly isolation and soak handoff are backend/agent prompt contracts verified via prompt inspection tests.\n\nAlternative verification steps:\n1. Run Actor prompt assembly and soak continuity pytest/vitest suites with seeded DB memories and lived_log rows.\n   - expected: Rendered Actor prompts exclude raw DB rows and historical observations while retaining Intermediator conscious summaries."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

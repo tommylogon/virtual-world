@@ -471,7 +471,6 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
     RV._renderRoomHeader = function(name: string, actualNodeId: string): TemplateResult {
         const actions = htmlTag`
             <button class="btn btn-sm btn-ghost" data-populate-area=${actualNodeId} @click=${() => RV.populateArea(actualNodeId)} title="Populate this area with fitting furniture and items from the library by its domain tags" style="font-size:10px;">🪄 Populate</button>
-            <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowserRef().saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
             <button class="btn btn-sm btn-ghost" @click=${() => graphManager._duplicateNode(actualNodeId)} title="Duplicate this area with its items, contents and triggers" style="font-size:10px;">📋 Duplicate</button>
         `;
         return InspectorComponents.InspectorNodeHeader({
@@ -1084,6 +1083,10 @@ Improve this area's description and environment settings. Make the description m
     if ((window as unknown as AreaViewWindow).InspectorTemplateSync) {
         (window as unknown as AreaViewWindow).InspectorTemplateSync.register('area', {
             title: 'Refresh Area from Library',
+            save(_nodeId: string, node: AreaViewGraphNode | null) {
+                const name = (node && node.name) || '';
+                if (name) return libraryBrowserRef().saveAreaByName(name);
+            },
             buildWorldPayload(nodeId: string, node: AreaViewGraphNode | null) {
                 const name = (node && node.name) || '';
                 if (!name) return null;
@@ -1247,6 +1250,7 @@ interface AreaViewTemplateSyncApi {
 /** The registration this view hands the template-sync pattern. */
 interface TemplateSyncSpec {
     title: string;
+    save?: (nodeId: string, node: AreaViewGraphNode | null) => unknown;
     buildWorldPayload(nodeId: string, node: AreaViewGraphNode | null): unknown;
     sections: Array<{ key: string; label: string }>;
 }

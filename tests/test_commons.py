@@ -243,7 +243,7 @@ def test_commons_context_projects_existing_player_identity_without_world_state()
     assert payload["traits"] == {"patient": True}
     assert payload["personality"] == "Careful and dry-witted."
     assert payload["description"] == "A quiet traveler."
-    assert "current_area" not in payload
+    assert payload["current_area"] == "Kitchen"
     assert "inventory" not in payload
     assert client.get("/api/commons/characters/Unknown").status_code == 404
 
@@ -638,3 +638,98 @@ def test_commons_mute_route_and_state_perspective():
         json={"actor": "Mira", "muted": True},
     )
     assert bad_channel.status_code == 404
+
+
+def test_commons_world_clock_and_optional_advance_tick():
+    app = _commons_app()
+    client = app.test_client()
+
+    st = client.get("/api/commons/state?as=Mira")
+    assert st.status_code == 200
+    st_data = st.get_json()
+    assert st_data["world_clock"]["time_ticks"] == 0
+
+    r1 = client.post("/api/commons/messages", json={
+        "author": "Mira",
+        "channel_id": "public",
+        "text": "Still at tick 0",
+    })
+    assert r1.status_code == 200
+    assert r1.get_json()["message"]["tick"] == 0
+
+    r2 = client.post("/api/commons/messages", json={
+        "author": "Mira",
+        "channel_id": "public",
+        "text": "Late night text",
+        "advance_tick": True,
+    })
+    assert r2.status_code == 200
+    assert r2.get_json()["message"]["tick"] == 1
+
+    st2 = client.get("/api/commons/state?as=Mira")
+    assert st2.get_json()["world_clock"]["time_ticks"] == 1
+
+
+def test_commons_anchored_clock_progression_and_standalone_isolation():
+    chat = Commons()
+    chat.set_anchored_clock("2016-10-14T23:00:00", now_epoch=1000.0)
+    assert chat.current_anchored_iso(now_epoch=1125.0) == "2016-10-14T23:02:05"
+    assert chat.format_iso_label("2016-10-14T23:02:05") == "Oct 14, 2016 23:02"
+
+    app = _commons_app()
+    client = app.test_client()
+    # Seed a connected message
+    client.post("/api/commons/messages", json={"author": "Mira", "text": "Connected msg"})
+    assert len(app.world.commons.messages) == 1
+
+    # Switch to Standalone mode
+    mode_res = client.post("/api/commons/mode", json={"use_viwo_state": False})
+    assert mode_res.status_code == 200
+    assert mode_res.get_json()["clock_mode"] == "standalone"
+
+    # Set 2016 Millwood anchor clock
+    clk_res = client.post("/api/commons/clock", json={"date": "2016-10-14", "time": "23:15"})
+    assert clk_res.status_code == 200
+    assert clk_res.get_json()["current_datetime"].startswith("2016-10-14T23:15")
+
+    # Post standalone message (does not touch live world.commons or world.time_ticks)
+    s_msg = client.post("/api/commons/messages", json={
+        "author": "Mira",
+        "text": "Standalone late night",
+        "advance_tick": True,
+    })
+    assert s_msg.status_code == 200
+    assert s_msg.get_json()["message"]["world_datetime"].startswith("2016-10-14T23:15")
+    assert len(app.world.commons.messages) == 1
+    assert app.world.time_ticks == 0
+
+    # Standalone memory does not mutate app.world.players["Mira"].memories
+    m_res = client.post("/api/commons/memories/Mira", json={"text": "Texted late in 2016"})
+    assert m_res.status_code == 201
+    assert m_res.get_json()["memory"]["world_datetime"].startswith("2016-10-14T23:15")
+    assert getattr(app.world.players["Mira"], "memories", []) == []
+
+    # Fork a branch, post on fork, switch back to main -> zero contamination
+    fork_res = client.post("/api/commons/branches", json={"name": "alt-night"})
+    assert fork_res.status_code == 201
+    fork_id = fork_res.get_json()["active_branch_id"]
+    client.post("/api/commons/messages", json={"author": "Lysa", "text": "Only on fork"})
+    fork_msgs = client.get("/api/commons/messages?channel_id=public&as=Mira").get_json()["messages"]
+    assert len(fork_msgs) == 2
+
+    sw_res = client.post("/api/commons/branches/switch", json={"branch_id": "main"})
+    assert sw_res.status_code == 200
+    main_msgs = client.get("/api/commons/messages?channel_id=public&as=Mira").get_json()["messages"]
+    assert len(main_msgs) == 1
+    assert main_msgs[0]["text"] == "Standalone late night"
+
+    # Reset standalone session cleanly without affecting live Viwo
+    rst = client.post("/api/commons/reset", json={})
+    assert rst.status_code == 200
+    assert len(client.get("/api/commons/messages?channel_id=public&as=Mira").get_json()["messages"]) == 0
+
+    client.post("/api/commons/mode", json={"use_viwo_state": True})
+    assert len(app.world.commons.messages) == 1
+    assert client.post("/api/commons/reset", json={}).status_code == 400
+
+

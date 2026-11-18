@@ -149,11 +149,11 @@ window.SaveLoadView = (() => {
 
         // Authoring templates store areas in `areas`; saved world states use
         // graph area nodes as the single source of truth.
-        function addArea(id: any, name: any) {
+        function addArea(id: any, name: any, dedupeByAliases: boolean) {
             var aliases = [id, name].filter(function(value) {
                 return value !== undefined && value !== null && String(value).trim();
             }).map(function(value) { return String(value).toLowerCase(); });
-            var alreadyCounted = aliases.some(function(alias) { return !!areaKeys[alias]; });
+            var alreadyCounted = dedupeByAliases && aliases.some(function(alias) { return !!areaKeys[alias]; });
             aliases.forEach(function(alias) { areaKeys[alias] = true; });
             if (!alreadyCounted) roomCount += 1;
         }
@@ -161,13 +161,29 @@ window.SaveLoadView = (() => {
         if (isTemplate) {
             Object.keys(areas).forEach(function(k) {
                 var area = areas[k] || {};
-                addArea(area.id || k, area.name);
+                addArea(area.id || k, area.name, true);
             });
         }
         Object.keys(nodes).forEach(function(id) {
             var node = nodes[id];
-            if (node && node.type === 'area') addArea(node.id || id, node.name);
+            if (node && node.type === 'area') addArea(node.id || id, node.name, isTemplate);
         });
+        if (!roomCount) {
+            if (!isTemplate) {
+                Object.keys(areas).forEach(function(k) {
+                    var area = areas[k] || {};
+                    addArea(area.id || k, area.name, true);
+                });
+            }
+            var manifest = data.world_manifest || data.scopes || {};
+            var manifestList = Array.isArray(manifest) ? manifest : Object.values(manifest);
+            manifestList.forEach(function(s: any) {
+                if (!s || typeof s !== 'object') return;
+                (s.area_placements || []).forEach(function(p: any) {
+                    addArea(p && (p.area_id || p.id), p && p.name, false);
+                });
+            });
+        }
         var itemCount = 0, wayCount = 0, playerNames = [];
 
         function countExits(exits: any) {
@@ -200,6 +216,14 @@ window.SaveLoadView = (() => {
                 else if (node.type === 'way') wayCount += 1;
             });
             Object.keys(data.players || {}).forEach(function(pname) { playerNames.push(pname); });
+            if (!playerNames.length) {
+                Object.keys(nodes).forEach(function(id) {
+                    var node = nodes[id];
+                    if (node && node.type === 'character') {
+                        playerNames.push(node.name || node.id || id);
+                    }
+                });
+            }
         }
         // Template items and exits still use the authoring `areas` shape.
         // World-state imports count graph nodes only.

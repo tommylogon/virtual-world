@@ -10,29 +10,42 @@
 (function () {
     'use strict';
     function _openGridDialog(ctx, p) {
-        const wrap = ctx.el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;' +
-            'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;');
+        if (ctx.state.body) {
+            const existing = ctx.state.body.querySelector("[data-role='wp-grid-dialog']");
+            if (existing) {
+                ctx.state.gridPreview = null;
+                if (ctx.redrawDecor)
+                    ctx.redrawDecor();
+                existing.remove();
+                return;
+            }
+        }
+        const wrap = ctx.el('div', 'display:flex;flex-direction:column;gap:8px;' +
+            'padding:10px;border:1px solid var(--border,#3a3a44);border-radius:8px;' +
+            'background:var(--bg-card,#23232b);margin-bottom:8px;max-width:620px;');
         const cur = p.grid || { w: 10, h: 10 };
         const modes = (ctx.GM().MODES || ['world', 'town', 'interior']);
-        wrap.appendChild(ctx.el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Width:'));
-        const wIn = ctx.el('input', 'width:50px;padding:3px 6px;border-radius:5px;' +
-            'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+        const inputStyle = 'width:54px;padding:3px 6px;border-radius:5px;' +
+            'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);';
+        const labelStyle = 'font-size:12px;color:var(--text-muted,#999);';
+        const row1 = ctx.el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;');
+        row1.appendChild(ctx.el('span', labelStyle, 'Width:'));
+        const wIn = ctx.el('input', inputStyle);
         wIn.type = 'number';
         wIn.min = '1';
-        wIn.max = '200';
+        wIn.max = '400';
         wIn.value = String(cur.w);
         wIn.setAttribute('data-role', 'wp-grid-w');
-        wrap.appendChild(wIn);
-        wrap.appendChild(ctx.el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Height:'));
-        const hIn = ctx.el('input', 'width:50px;padding:3px 6px;border-radius:5px;' +
-            'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+        row1.appendChild(wIn);
+        row1.appendChild(ctx.el('span', labelStyle, 'Height:'));
+        const hIn = ctx.el('input', inputStyle);
         hIn.type = 'number';
         hIn.min = '1';
-        hIn.max = '200';
+        hIn.max = '400';
         hIn.value = String(cur.h);
         hIn.setAttribute('data-role', 'wp-grid-h');
-        wrap.appendChild(hIn);
-        wrap.appendChild(ctx.el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Mode:'));
+        row1.appendChild(hIn);
+        row1.appendChild(ctx.el('span', labelStyle, 'Mode:'));
         const modeSel = ctx.el('select', 'padding:3px 6px;border-radius:5px;' +
             'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
         modeSel.setAttribute('data-role', 'wp-grid-mode');
@@ -44,41 +57,241 @@
                 opt.selected = true;
             modeSel.appendChild(opt);
         });
-        wrap.appendChild(modeSel);
+        row1.appendChild(modeSel);
+        wrap.appendChild(row1);
+        // Origin-anchored resolution scaling controls (task-931).
+        const scaleRow = ctx.el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;' +
+            'padding-top:6px;border-top:1px solid var(--border,#333);');
+        const scaleChk = document.createElement('input');
+        scaleChk.type = 'checkbox';
+        scaleChk.setAttribute('data-role', 'wp-grid-scale-enabled');
+        const scaleLbl = ctx.el('label', 'display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text,#ddd);cursor:pointer;');
+        scaleLbl.appendChild(scaleChk);
+        scaleLbl.appendChild(document.createTextNode('Scale from anchor'));
+        scaleRow.appendChild(scaleLbl);
+        scaleRow.appendChild(ctx.el('span', labelStyle, 'Scale:'));
+        const scaleIn = ctx.el('input', inputStyle);
+        scaleIn.type = 'number';
+        scaleIn.min = '0.25';
+        scaleIn.max = '4';
+        scaleIn.step = '0.05';
+        scaleIn.value = '1';
+        scaleIn.setAttribute('data-role', 'wp-grid-scale');
+        scaleRow.appendChild(scaleIn);
+        const defaultAnchor = ctx.state.gridAnchor || { x: Math.floor(cur.w / 2), y: Math.floor(cur.h / 2) };
+        scaleRow.appendChild(ctx.el('span', labelStyle, 'Anchor X:'));
+        const axIn = ctx.el('input', inputStyle);
+        axIn.type = 'number';
+        axIn.value = String(defaultAnchor.x);
+        axIn.setAttribute('data-role', 'wp-grid-anchor-x');
+        scaleRow.appendChild(axIn);
+        scaleRow.appendChild(ctx.el('span', labelStyle, 'Y:'));
+        const ayIn = ctx.el('input', inputStyle);
+        ayIn.type = 'number';
+        ayIn.value = String(defaultAnchor.y);
+        ayIn.setAttribute('data-role', 'wp-grid-anchor-y');
+        scaleRow.appendChild(ayIn);
+        scaleRow.appendChild(ctx.btn('Center', () => {
+            axIn.value = String(Math.floor(cur.w / 2));
+            ayIn.value = String(Math.floor(cur.h / 2));
+            scaleChk.checked = true;
+            updatePreview();
+        }, 'font-size:11px;padding:2px 6px;'));
+        scaleRow.appendChild(ctx.btn('Origin (0,0)', () => {
+            axIn.value = '0';
+            ayIn.value = '0';
+            scaleChk.checked = true;
+            updatePreview();
+        }, 'font-size:11px;padding:2px 6px;'));
+        wrap.appendChild(scaleRow);
+        // 4-way margin expansion controls (task-931).
+        const marginRow = ctx.el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;');
+        marginRow.appendChild(ctx.el('span', labelStyle, 'Margins (+N/S/E/W):'));
+        const mkMargin = (lbl, role) => {
+            marginRow.appendChild(ctx.el('span', labelStyle, lbl));
+            const inp = ctx.el('input', 'width:44px;padding:2px 4px;border-radius:5px;' +
+                'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+            inp.type = 'number';
+            inp.value = '0';
+            inp.setAttribute('data-role', role);
+            marginRow.appendChild(inp);
+            return inp;
+        };
+        const mNorth = mkMargin('N:', 'wp-grid-margin-n');
+        const mSouth = mkMargin('S:', 'wp-grid-margin-s');
+        const mEast = mkMargin('E:', 'wp-grid-margin-e');
+        const mWest = mkMargin('W:', 'wp-grid-margin-w');
+        wrap.appendChild(marginRow);
+        // Live preview canvas + summary (task-931).
+        const previewRow = ctx.el('div', 'display:flex;gap:10px;align-items:center;flex-wrap:wrap;');
+        const previewCanvas = document.createElement('canvas');
+        previewCanvas.width = 160;
+        previewCanvas.height = 100;
+        previewCanvas.style.cssText = 'border:1px solid var(--border,#444);border-radius:4px;background:#14161c;';
+        previewCanvas.setAttribute('data-role', 'wp-grid-preview-canvas');
+        previewRow.appendChild(previewCanvas);
+        const previewInfo = ctx.el('div', 'font-size:11px;color:var(--text-muted,#999);line-height:1.4;');
+        previewInfo.setAttribute('data-role', 'wp-grid-preview-info');
+        previewRow.appendChild(previewInfo);
+        wrap.appendChild(previewRow);
+        const getParams = () => {
+            const w = Math.max(1, Math.min(400, parseInt(wIn.value, 10) || cur.w));
+            const h = Math.max(1, Math.min(400, parseInt(hIn.value, 10) || cur.h));
+            const s = Math.max(0.1, Math.min(10, parseFloat(scaleIn.value) || 1));
+            const ax = parseInt(axIn.value, 10) || 0;
+            const ay = parseInt(ayIn.value, 10) || 0;
+            const north = parseInt(mNorth.value, 10) || 0;
+            const south = parseInt(mSouth.value, 10) || 0;
+            const east = parseInt(mEast.value, 10) || 0;
+            const west = parseInt(mWest.value, 10) || 0;
+            return { w, h, s, ax, ay, north, south, east, west, scaleOn: scaleChk.checked };
+        };
+        const renderMiniPreview = (pr, ghost) => {
+            const c2d = previewCanvas.getContext('2d');
+            if (!c2d)
+                return;
+            const cw = previewCanvas.width;
+            const ch = previewCanvas.height;
+            c2d.clearRect(0, 0, cw, ch);
+            const maxDim = Math.max(1, cur.w, cur.h, pr.w, pr.h);
+            const pad = 10;
+            const cellPx = Math.min((cw - pad * 2) / maxDim, (ch - pad * 2) / maxDim);
+            const ox = pad + (cw - pad * 2 - pr.w * cellPx) / 2;
+            const oy = pad + (ch - pad * 2 - pr.h * cellPx) / 2;
+            // Old grid outline.
+            c2d.strokeStyle = 'rgba(255,255,255,0.22)';
+            c2d.strokeRect(ox + pr.west * cellPx, oy + pr.north * cellPx, cur.w * cellPx, cur.h * cellPx);
+            // New grid outline.
+            c2d.strokeStyle = '#58a6ff';
+            c2d.fillStyle = 'rgba(88,166,255,0.10)';
+            c2d.fillRect(ox, oy, pr.w * cellPx, pr.h * cellPx);
+            c2d.strokeRect(ox, oy, pr.w * cellPx, pr.h * cellPx);
+            if (ghost) {
+                c2d.fillStyle = '#3fb950';
+                const drawPt = (item) => {
+                    if (!item || typeof item.x !== 'number' || typeof item.y !== 'number')
+                        return;
+                    c2d.fillRect(ox + item.x * cellPx, oy + item.y * cellPx, Math.max(2, cellPx), Math.max(2, cellPx));
+                };
+                (ghost.area_placements || []).forEach(drawPt);
+                (ghost.placements || []).forEach(drawPt);
+            }
+            if (pr.scaleOn) {
+                const px = ox + (pr.ax + 0.5) * cellPx;
+                const py = oy + (pr.ay + 0.5) * cellPx;
+                c2d.strokeStyle = '#ff9f43';
+                c2d.beginPath();
+                c2d.arc(px, py, 4, 0, Math.PI * 2);
+                c2d.stroke();
+            }
+        };
+        const updatePreview = () => {
+            const pr = getParams();
+            let ghost;
+            if (pr.scaleOn) {
+                ghost = ctx.GM().scaleGridWithAnchor(p, { x: pr.ax, y: pr.ay }, pr.s, { w: pr.w, h: pr.h });
+                ctx.state.gridPreview = {
+                    w: pr.w,
+                    h: pr.h,
+                    offsetX: 0,
+                    offsetY: 0,
+                    anchor: { x: pr.ax, y: pr.ay },
+                    scaleFactor: pr.s,
+                };
+                previewInfo.textContent = `Preview: ${pr.w}×${pr.h} · scale ${pr.s.toFixed(2)}× around (${pr.ax}, ${pr.ay})`;
+            }
+            else {
+                ghost = ctx.GM().expandGridMargins(p, {
+                    north: pr.north,
+                    south: pr.south,
+                    east: pr.east,
+                    west: pr.west,
+                });
+                ctx.state.gridPreview = {
+                    w: pr.w,
+                    h: pr.h,
+                    offsetX: pr.west,
+                    offsetY: pr.north,
+                    anchor: null,
+                    scaleFactor: 1,
+                };
+                const shift = (pr.west || pr.north) ? ` · shift (${pr.west >= 0 ? '+' : ''}${pr.west}, ${pr.north >= 0 ? '+' : ''}${pr.north})` : '';
+                previewInfo.textContent = `Preview: ${pr.w}×${pr.h}${shift}`;
+            }
+            renderMiniPreview(pr, ghost);
+            if (ctx.redrawDecor)
+                ctx.redrawDecor();
+        };
+        scaleIn.addEventListener('input', () => {
+            scaleChk.checked = true;
+            const s = Math.max(0.1, Math.min(10, parseFloat(scaleIn.value) || 1));
+            wIn.value = String(Math.max(1, Math.min(400, Math.round(cur.w * s))));
+            hIn.value = String(Math.max(1, Math.min(400, Math.round(cur.h * s))));
+            updatePreview();
+        });
+        [mNorth, mSouth, mEast, mWest].forEach((inp) => {
+            inp.addEventListener('input', () => {
+                scaleChk.checked = false;
+                const pr = getParams();
+                wIn.value = String(Math.max(1, Math.min(400, cur.w + pr.east + pr.west)));
+                hIn.value = String(Math.max(1, Math.min(400, cur.h + pr.north + pr.south)));
+                updatePreview();
+            });
+        });
+        [wIn, hIn, axIn, ayIn, scaleChk].forEach((inp) => {
+            inp.addEventListener('input', updatePreview);
+            inp.addEventListener('change', updatePreview);
+        });
+        const clearPreview = () => {
+            ctx.state.gridPreview = null;
+            if (ctx.redrawDecor)
+                ctx.redrawDecor();
+        };
         const actions = ctx.el('div', 'display:flex;gap:6px;');
         actions.appendChild(ctx.btn('Apply', async () => {
-            const w = Math.max(1, Math.min(200, parseInt(wIn.value, 10) || cur.w));
-            const h = Math.max(1, Math.min(200, parseInt(hIn.value, 10) || cur.h));
+            const pr = getParams();
             const mode = modeSel.value || p.mode;
-            const stranded = ctx.GM().strandedCount(p, w, h);
+            const hasMarginOffset = !pr.scaleOn && (pr.west !== 0 || pr.north !== 0);
+            const stranded = (pr.scaleOn || hasMarginOffset) ? 0 : ctx.GM().strandedCount(p, pr.w, pr.h);
             if (stranded > 0) {
                 const ok = await window.Dialog?.confirm?.({
                     title: 'Resize Grid',
-                    message: `Shrink to ${w}×${h}?\n\n${stranded} painted cell(s) or placement(s) outside it will be pruned. This cannot be undone.`,
+                    message: `Shrink to ${pr.w}×${pr.h}?\n\n${stranded} painted cell(s) or placement(s) outside it will be pruned. This cannot be undone.`,
                     danger: true
                 });
                 if (!ok)
                     return;
             }
+            const body = { w: pr.w, h: pr.h, mode };
+            if (pr.scaleOn) {
+                body.anchor_x = pr.ax;
+                body.anchor_y = pr.ay;
+                body.scale_factor = pr.s;
+                ctx.state.gridAnchor = { x: pr.ax, y: pr.ay };
+            }
+            else if (hasMarginOffset) {
+                body.offset_x = pr.west;
+                body.offset_y = pr.north;
+            }
+            clearPreview();
             try {
-                ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid`, { w, h, mode });
+                ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid`, body);
                 ctx.notify(true);
                 ctx.render();
-                ctx.status(`Grid set to ${w}×${h} (${mode})`
+                ctx.status(`Grid set to ${pr.w}×${pr.h} (${mode})`
                     + (stranded ? `, ${stranded} out-of-bounds cell(s) pruned` : '') + '.');
             }
             catch (e) {
                 ctx.status(`Grid save failed: ${ctx.errText(e)}`, true);
             }
         }, 'font-weight:600;'));
-        actions.appendChild(ctx.btn('Cancel', () => wrap.remove()));
+        actions.appendChild(ctx.btn('Cancel', () => {
+            clearPreview();
+            wrap.remove();
+        }));
         wrap.appendChild(actions);
+        updatePreview();
         if (ctx.state.body) {
-            const existing = ctx.state.body.querySelector("[data-role='wp-grid-dialog']");
-            if (existing) {
-                existing.remove();
-                return;
-            }
             wrap.setAttribute("data-role", "wp-grid-dialog");
             ctx.state.body.insertBefore(wrap, ctx.state.body.firstChild);
         }
@@ -194,6 +407,7 @@
             }
             try {
                 ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
+                ctx.state.paintCacheValid = false;
                 ctx.notify(true);
                 ctx.render();
                 wrap.remove();
@@ -350,6 +564,7 @@
         try {
             const res = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/interior`, { building: pick });
             ctx.state.payload = res;
+            ctx.state.paintCacheValid = false;
             const notes = (res.report && res.report.notes) || [];
             ctx.status(`Painted the ${pick} plan - edit the cells, then ⚙ Generate.`);
             for (let i = 0; i < Math.min(notes.length, 2); i += 1) {

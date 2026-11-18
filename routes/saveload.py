@@ -918,18 +918,56 @@ def register_saveload_routes(app):
             try:
                 with open(path, 'r', encoding='utf-8-sig') as f:
                     data = json.load(f)
-                entry["areas"] = len(data.get('areas') or {})
-                entry["players"] = len(data.get('players') or {}) or (1 if (data.get('player') or {}).get('name') else 0)
+                raw_nodes = (data.get('graph') or {}).get('nodes') or {}
+                if isinstance(raw_nodes, dict):
+                    node_list = list(raw_nodes.values())
+                    node_ids = set(raw_nodes.keys())
+                elif isinstance(raw_nodes, list):
+                    node_list = [n for n in raw_nodes if isinstance(n, dict)]
+                    node_ids = {n.get('id') for n in node_list if n.get('id') is not None}
+                else:
+                    node_list = []
+                    node_ids = set()
+
+                graph_areas = sum(
+                    1 for n in node_list
+                    if isinstance(n, dict) and n.get('type') == 'area'
+                )
+                graph_chars = sum(
+                    1 for n in node_list
+                    if isinstance(n, dict) and n.get('type') == 'character'
+                )
+                manifest = data.get('world_manifest') or data.get('scopes') or {}
+                if isinstance(manifest, dict):
+                    manifest_areas = sum(
+                        len(s.get('area_placements') or [])
+                        for s in manifest.values()
+                        if isinstance(s, dict)
+                    )
+                elif isinstance(manifest, list):
+                    manifest_areas = sum(
+                        len(s.get('area_placements') or [])
+                        for s in manifest
+                        if isinstance(s, dict)
+                    )
+                else:
+                    manifest_areas = 0
+
+                entry["areas"] = max(len(data.get('areas') or {}), graph_areas, manifest_areas)
+                entry["players"] = (
+                    len(data.get('players') or {})
+                    or (1 if (data.get('player') or {}).get('name') else 0)
+                    or graph_chars
+                )
                 # health scan (cheap, no world load)
                 h = entry["health"]
                 h["ok"] = True
                 graph_edges = (data.get('graph') or {}).get('edges') or []
-                graph_nodes = (data.get('graph') or {}).get('nodes') or {}
                 h["trigger_edges"] = sum(1 for e in graph_edges if e.get('type') == 'triggers')
                 for e in graph_edges:
-                    if e.get('type') == 'triggers' and e.get('target') not in graph_nodes:
+                    if e.get('type') == 'triggers' and e.get('target') not in node_ids:
                         h["dangling_trigger_targets"] += 1
-                for n in graph_nodes.values():
+                for n in node_list:
                     if not isinstance(n, dict):
                         continue
                     props = n.get('properties') or {}

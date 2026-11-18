@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "id": "task-981",
+  "kind": "task",
+  "number": 981,
+  "title": "Commons Mind Drawer: live causal turn trace and click-message inspection",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [
+    "commons",
+    "ui",
+    "mind-drawer",
+    "intermediator",
+    "observability"
+  ],
+  "created": "2026-11-17",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-935",
+      "task-936",
+      "task-947",
+      "task-975",
+      "task-888"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix the Commons Mind drawer appearing behind chat replies by streaming live turn-step updates into CommonsState as each step executes, and allow clicking any character message in #commons-feed to inspect the exact causal trace (Notification -> Tools/Recall -> Intermediator Summary -> Inner Monologue -> Decision) that produced that message.",
+    "why": "Currently receiveMessage() posts the reply mid-loop while recordTurn() waits until after storeMemory() at the end of actCharacter(), making it look like characters reply before thinking. Clicking a message also only shows the character's latest turn rather than the flow that produced that specific message.",
+    "how": "1. Add messageTraces (keyed by message_id), selectedDrawerMessageId, upsertLiveTurn(), and openDrawerForMessage() in static/js/commons/commons-state.ts.\n2. Emit incremental step trace updates in static/js/commons/commons-agent.ts (notification trigger -> read_chat/recall -> recalled memories + intermediator summary -> inner monologue -> tool decision + posted message_id) before storeMemory().\n3. Wire click-on-message in static/js/commons/commons-ui.ts to open the drawer for that message_id and render the ordered causal flow with a 'Latest' switch when viewing an older message.\n4. Add JS unit tests in tools/unit/test_commons_agent.js covering live pre-reply trace emission and message_id trace binding.",
+    "verify": "Run npm run build:ts and node tools/unit/run.cjs test_commons_agent; verify in /commons that clicking a character message opens its ordered causal trace and live turns update the drawer before/as the reply lands.",
+    "acceptance": [
+      {
+        "text": "CommonsState receives live turn-step updates before/as send_chat posts to #commons-feed, never waiting for storeMemory() at turn end.",
+        "done": false
+      },
+      {
+        "text": "Clicking any character message in #commons-feed opens the Mind drawer focused on that message's exact causal flow (Notification, Tools, Recall, Intermediator Summary, Inner Monologue, Decision).",
+        "done": false
+      },
+      {
+        "text": "JS unit tests verify ordered trace steps and message_id trace lookup.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-agent.ts",
+      "static/js/commons/commons-ui.ts",
+      "templates/commons.html",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "browser_ui": "Intended UI home: /commons message feed (click any character message) -> Mind drawer ordered Causal Flow.\n\nManual verification steps:\n1. Open http://localhost:4444/commons and trigger a character reply.\n2. Click the character's message bubble in #commons-feed.\n   - expected: Mind drawer opens showing the ordered causal flow for that message (Notification -> Tools/Recall -> Intermediator -> Inner Monologue -> Decision)."
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]",
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "acceptance": [
+      {
+        "text": "CommonsState receives live turn-step updates before/as send_chat posts to #commons-feed, never waiting for storeMemory() at turn end.",
+        "done": false
+      },
+      {
+        "text": "Clicking any character message in #commons-feed opens the Mind drawer focused on that message's exact causal flow (Notification, Tools, Recall, Intermediator Summary, Inner Monologue, Decision).",
+        "done": false
+      },
+      {
+        "text": "JS unit tests verify ordered trace steps and message_id trace lookup.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-agent.ts",
+      "static/js/commons/commons-ui.ts",
+      "templates/commons.html",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: /commons message feed (click any character message) -> Mind drawer ordered Causal Flow.\n\nManual verification steps:\n1. Open http://localhost:4444/commons and trigger a character reply.\n2. Click the character's message bubble in #commons-feed.\n   - expected: Mind drawer opens showing the ordered causal flow for that message (Notification -> Tools/Recall -> Intermediator -> Inner Monologue -> Decision)."
+    }
+  }
+}

@@ -201,17 +201,47 @@ def release_absent_fears(gs, player, sources=None) -> list:
     instances = list((getattr(player, "conditions", None) or {}).get("frightened") or [])
     if not instances:
         return []
+    fears = _normalise(getattr(player, "fear_tags", None))
+    player_area = getattr(player, "current_area", None)
+    players_map = getattr(gs, "players", None) or {}
     keep, released = [], []
     for inst in instances:
         source = inst.get("source")
-        if source and str(source) not in present:
-            released.append(str(source))
-        else:
+        stype = inst.get("source_type")
+        if not source or str(source) in present:
             keep.append(inst)
+            continue
+        # Non-fear_tags conditions (save_on traits like claustrophobic/agoraphobic/cowardly,
+        # or spells) must not be wiped out just because fear_tags did not list them.
+        if stype == "way":
+            keep.append(inst)
+            continue
+        if stype == "area" and not fears:
+            keep.append(inst)
+            continue
+        if stype == "character":
+            other = players_map.get(str(source))
+            if other is None:
+                for cand in players_map.values():
+                    if getattr(cand, "id", None) == source or getattr(cand, "name", None) == source:
+                        other = cand
+                        break
+            if (
+                other is not None
+                and getattr(other, "state", None) != "dead"
+                and getattr(other, "current_area", None) == player_area
+            ):
+                keep.append(inst)
+                continue
+        released.append(str(source))
     if not released:
         return []
     try:
         player.conditions["frightened"] = keep
+        if not keep:
+            player._fear_freeze_until_tick = None
+            if isinstance(getattr(player, "flags", None), dict):
+                player.flags.pop("frozen_by_fear", None)
     except Exception as e:
         logger.warning("[fear] could not release a stale fear for %s: %s",
                        getattr(player, "name", "?"), e)
@@ -228,3 +258,24 @@ def react(gs, player):
     sources = fear_sources(gs, player)
     release_absent_fears(gs, player, sources)
     return apply_frightening(gs, player, sources)
+
+
+def react_in_area(gs, area_name: str) -> list:
+    """Run :func:`react` for every living character in *area_name*.
+
+    Used on live area transitions so both the arriving character and any
+    co-located characters react (or release stale fears) immediately.
+    """
+    if gs is None or not area_name:
+        return []
+    players = getattr(gs, "players", None) or {}
+    applied = []
+    for player in list(players.values()):
+        if getattr(player, "state", None) == "dead":
+            continue
+        if getattr(player, "current_area", None) != area_name:
+            continue
+        source = react(gs, player)
+        if source is not None:
+            applied.append((player.name, source))
+    return applied

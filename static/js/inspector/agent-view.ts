@@ -1486,28 +1486,33 @@ type AVWin = { [key: string]: any };
         // task-787: the knowledge chips, the event timeline and conversation
         // memory moved into the Mind panel (Perception / Memories tabs).
 
-        // Save / Import to World
+        // Unified Library Sync (same shared InspectorTemplateSync pattern as way/area/item)
+        if (characterNode && characterNode[0] && (window as unknown as AVWin).InspectorTemplateSync) {
+            html += `<div class="inspector-section" style="border-top:1px solid var(--border);padding-top:12px;">
+                <h3>📚 Library Sync</h3>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                    ${(window as unknown as AVWin).InspectorTemplateSync.renderTemplateRow('character', characterNode[0], characterNode[1].properties || {})}
+                    <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._importCharacter()" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;" title="Load a character JSON file into the world (no library entry needed)">📤 Import JSON → World</button>
+                </div>
+            </div>`;
+        } else {
+            html += `<div class="inspector-section" style="border-top:1px solid var(--border);padding-top:12px;">
+                <h3>📚 Library Sync</h3>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn btn-sm btn-green" onclick="InspectorAgentView._saveCharacter('${escName}')">💾 Save to Library</button>
+                    <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._importCharacter()" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;" title="Load a character JSON file into the world (no library entry needed)">📤 Import JSON → World</button>
+                </div>
+            </div>`;
+        }
+
+        // Danger Zone (separated from Library Sync to match Area/Item/Way)
         html += `<div class="inspector-section" style="border-top:1px solid var(--border);padding-top:12px;">
-            <h3>💾 Library</h3>
+            <h3>⚠️ Danger Zone</h3>
             <div style="display:flex;gap:4px;">
-                <button class="btn btn-sm btn-green" onclick="InspectorAgentView._saveCharacter('${escName}')">💾 Save to Library</button>
-                <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._importCharacter()" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;" title="Load a character JSON file into the world (no library entry needed)">📤 Import JSON → World</button>
-            </div>
-            <div style="display:flex;gap:4px;margin-top:6px;">
                 <button class="btn btn-sm" style="background:#5a1a1a;border-color:#8a2a2a;color:#ff6b6b;" onclick="InspectorAgentView._killCharacter('${escName}')">💀 Kill</button>
                 <button class="btn btn-sm" style="background:#3a1a1a;border-color:#6a2a2a;color:#ff4444;" onclick="InspectorAgentView._removeCharacter('${escName}')">🗑️ Remove</button>
             </div>
         </div>`;
-
-        // Library template row (same pattern as item/way/area inspectors)
-        if (characterNode && characterNode[0] && (window as unknown as AVWin).InspectorTemplateSync) {
-            html += `<div class="inspector-section" style="border-top:1px solid var(--border);padding-top:12px;">
-                <h3>📚 Library Template</h3>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                    ${(window as unknown as AVWin).InspectorTemplateSync.renderTemplateRow('character', characterNode[0], characterNode[1].properties || {})}
-                </div>
-            </div>`;
-        }
 
         // Nudge
         html += `<div class="inspector-section" style="border-top:1px solid var(--border);padding-top:12px;">
@@ -3054,6 +3059,10 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
     if ((window as unknown as AVWin).InspectorTemplateSync) {
         (window as unknown as AVWin).InspectorTemplateSync.register('character', {
             title: 'Refresh Character from Library',
+            save(_nodeId: string, node: any) {
+                const name = (node && node.name) || '';
+                if (name) return AV._saveCharacter(name);
+            },
             buildWorldPayload(nodeId: string, node: any) {
                 const name = (node && node.name) || '';
                 const player = worldState.players[name];

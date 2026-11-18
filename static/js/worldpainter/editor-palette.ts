@@ -490,17 +490,28 @@
     function _areaBar(ctx: any, p: WpPayload): HTMLElement {
         const wrap = ctx.el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;');
         wrap.appendChild(ctx.el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Area:'));
-        const areas = ctx.GM().placeableAreas(p);
-        const sel = ctx.el('select', 'padding:3px;border-radius:5px;min-width:160px;');
+        const groups = ctx.GM().areaGroups(p, ctx.state.selectedArea);
+        const sel = ctx.el('select', 'padding:3px;border-radius:5px;min-width:200px;');
         sel.setAttribute('data-role', 'wp-area');
         const none = ctx.el('option', null, '- pick an area to place -');
         none.value = '';
         sel.appendChild(none);
-        areas.forEach((a: any) => {
-            const opt = ctx.el('option', null, `${a.name}${a.placed ? ' (placed)' : ''}`);
-            opt.value = a.id;
-            if (a.id === ctx.state.selectedArea) opt.selected = true;
-            sel.appendChild(opt);
+        groups.forEach((g: any) => {
+            const og = ctx.el('optgroup');
+            og.label = g.key === 'elsewhere'
+                ? `${g.label} - picking one moves it here`
+                : g.label;
+            og.setAttribute('label', og.label);
+            g.areas.forEach((a: any) => {
+                const where = a.placedHere
+                    ? ` (${a.placedHere.x},${a.placedHere.y})`
+                    : (a.x != null && a.y != null ? ` (${a.x},${a.y})` : (a.placed ? ' (placed)' : ''));
+                const opt = ctx.el('option', null, `${a.name}${where}`);
+                opt.value = a.id;
+                if (a.id === ctx.state.selectedArea) opt.selected = true;
+                og.appendChild(opt);
+            });
+            sel.appendChild(og);
         });
         sel.addEventListener('change', () => { ctx.state.selectedArea = sel.value || null; ctx.render(); });
         wrap.appendChild(sel);
@@ -746,6 +757,11 @@
             ctx.state.payload = await ctx.post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, {
                 edits: ctx.GM().PAINT_LAYERS.map((layer: any) => ({ layer, x, y, value: null })),
             });
+            if (ctx.patchPaintCache) {
+                ctx.patchPaintCache(ctx.state.payload, [{ x, y }]);
+            } else {
+                ctx.state.paintCacheValid = false;
+            }
             ctx.status(`Cleared the paint on (${x},${y}).`);
             ctx.notify(true);
             ctx.render();

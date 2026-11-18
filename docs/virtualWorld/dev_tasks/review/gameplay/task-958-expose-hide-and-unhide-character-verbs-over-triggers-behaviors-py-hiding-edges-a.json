@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "task-958",
+  "kind": "task",
+  "number": 958,
+  "title": "Expose hide and unhide character verbs over triggers/behaviors.py hiding edges and unify hidden state perception",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "stealth",
+    "hide",
+    "action-verbs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-597",
+      "bug-598",
+      "task-956",
+      "task-964"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expose hide and unhide (in/behind/under cover) as playable character verbs over the existing engine/triggers/behaviors.py hiding system and unify hidden checks across perception and combat.",
+    "why": "engine/triggers/behaviors.py (lines 307-366) already adds 'hidden' graph edges and toggles player.hidden, engine/serialization.py (line 695) persists p.hidden, and engine/combat.py (lines 231-239) respects hidden invisibility. Yet characters cannot invoke hide/unhide via action_verbs.py or /api/action, and examine_actions.py (line 531) checks player.state instead of player.hidden.",
+    "how": "1. Extract shared hide/unhide helper over engine/triggers/behaviors.py (lines 307-366) supporting both targeted cover (`hide_in`/`hide_behind`/`hide_under` when a `hideable` prop exists) and stealth posture hide in cover/shadows, plus `unhide`.\\n2. Register `hide` and `unhide` in engine/action_verbs.py, PlanGrounding.PLAN_INTENT_ACTS, routes/action_handlers.py, and contextual-actions.ts (surfacing hide when threat/danger or hideable cover exists, and unhide when `player.hidden` is true).\\n3. Reconcile `player.hidden` vs `player.state in ('hidden', 'stealthed')` in examine_actions.py (line 531), scene_snapshot.py, and `player_manager.is_visible` so hidden characters stay concealed from casual observation until spotted by Stealth/Perception or taking an overt breaking action.",
+    "verify": "1. Run pytest verifying hide/unhide commands set/clear player.hidden + hidden edges, mask hidden characters from casual room perception and combat targeting, and reveal via active search/Perception or overt attack.\\n2. Run npm run build:ts and node tools/unit/run.cjs covering PlanGrounding and contextual-actions hide/unhide surfacing.",
+    "acceptance": [
+      {
+        "text": "hide and unhide (with cover target options matching triggers/behaviors hide_in, hide_behind, hide_under and bare hide/sneak fallback) are registered in engine/action_verbs.py, PlanGrounding, contextual-actions.ts, and routes/action_handlers.py.",
+        "done": false
+      },
+      {
+        "text": "player.hidden and 'hidden' spatial edges are checked consistently across player_manager.is_visible, engine/items/examine_actions.py (line 531), engine/scene_snapshot.py, and room-context.ts perception.",
+        "done": false
+      },
+      {
+        "text": "Taking loud/violent action or failing a stealth contest against active searchers clears concealment and records clear feedback.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "routes/action_handlers.py",
+      "engine/triggers/behaviors.py",
+      "engine/items/examine_actions.py",
+      "engine/scene_snapshot.py",
+      "engine/combat.py",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Available Actions (`contextual-actions.ts`) and item action brackets on `hideable` furniture/cover.\\n\\nCurrent availability: engine/triggers/behaviors.py (lines 307-366) implements hide_in/hide_behind/hide_under/unhide and engine/combat.py (lines 231-239) respects hidden targets, but no hide/unhide player command exists.\\n\\nManual verification steps:\\n1. Place a character in an area containing a `hideable` prop and execute `hide behind <prop>` or `hide`, then check whether another character's room prompt lists them.\\n2. Execute `unhide` or take an overt action and verify concealment clears cleanly."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Character Spatial Position]]",
+      "[[Rules Engine/Combat System]]",
+      "[[Commands]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-17T21:31:49Z"
+    }
+  ]
+}

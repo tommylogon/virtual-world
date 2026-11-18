@@ -304,10 +304,10 @@ def test_reflect_structured_payload_stamps_provenance_and_rel_tags():
     name = _active_player(client)
     client.post(f'/api/players/{name}/memories/clear')
     resp = client.post(f'/api/players/{name}/memories/reflect', json={
-        'insights': [{'belief': 'Anna is probably lying about the cellar.',
+        'insights': [{'belief': 'Lyrie is probably lying about the cellar.',
                       'about': [], 'confidence': 0.71,
-                      'behavior': "Verify Anna's claims independently.",
-                      'relationship': {'who': 'Anna', 'dim': 'trust', 'delta': -2}}],
+                      'behavior': "Verify Lyrie's claims independently.",
+                      'relationship': {'who': 'Lyrie', 'dim': 'trust', 'delta': -2}}],
         'tick': 100,
     })
     assert resp.status_code == 200
@@ -320,14 +320,14 @@ def test_reflect_structured_payload_stamps_provenance_and_rel_tags():
     assert len(procedures) == 1
     assert len(socials) == 1
     tags = socials[0]['tags']
-    assert any(t == 'rel:Anna' for t in tags)
+    assert any(t == 'rel:Lyrie' for t in tags)
     assert any(t.startswith('trust:') for t in tags)
 
-    # the delta reaches the derived per-person profile (derive.py) — the same
+    # the delta reaches the derived per-person profile (derive.py) - the same
     # app instance, since the memory lives in THIS world
     from engine.derive import derive_person_profile
     player = app.world.players[name]
-    profile = derive_person_profile(player, 'Anna')
+    profile = derive_person_profile(player, 'Lyrie')
     assert profile['trust'] < 0
 
 
@@ -592,3 +592,80 @@ def test_millwood_gun_misunderstanding_observation_belief_contradiction():
     assert 'obs_disarm' in recalled_ids
     # Historical trace stays on Player.memories
     assert len(p.memories) == 3
+
+
+def test_dynamics_bug602_consolidate_and_unlink_scrub_contradicts_index_and_vectors(tmp_path):
+    from engine.vector_store import VectorStore
+
+    class _NamedStore:
+        def __init__(self, memories):
+            self.name = 'Lyrie'
+            self.id = 'player_lyrie'
+            self.memories = list(memories)
+            self.memory_index = {'subj_m0': 'm0', 'subj_keep': 'keep'}
+
+    stale = [
+        {
+            'id': f'm{i}',
+            'text': f'minor moment {i}',
+            'type': 'action',
+            'entity_ids': ['shop'],
+            'importance': 2,
+            'source': 'auto',
+            'tick': 10 + i,
+            'contradicts': ['keep'] if i == 0 else [],
+        }
+        for i in range(3)
+    ]
+    keep = {
+        'id': 'keep',
+        'text': 'the forge stayed intact',
+        'type': 'observation',
+        'entity_ids': ['shop'],
+        'importance': 8,
+        'source': 'auto',
+        'tick': 20,
+        'contradicts': ['m0', 'm1'],
+    }
+    nested = {
+        'id': 'nested_keep',
+        'observation': 'noted the latch',
+        'thought': 'seems fine',
+        'importance': 8,
+        'category': 'belief',
+        'when': {'sequence': 25},
+        'lifecycle': {'status': 'active', 'contradicts': ['m0']},
+    }
+    store_obj = _NamedStore(stale + [keep, nested])
+
+    vec_store = VectorStore(str(tmp_path))
+    vec_store.upsert(
+        [
+            {'key': 'Lyrie::m0', 'vector': [1.0, 0.0]},
+            {'key': 'player_lyrie::m1', 'vector': [0.8, 0.2]},
+            {'key': 'Lyrie::m2', 'vector': [0.5, 0.5]},
+            {'key': 'Lyrie::keep', 'vector': [0.0, 1.0]},
+        ],
+        model='test',
+        dims=2,
+    )
+
+    res = md.consolidate(store_obj, tick=500, data_dir=str(tmp_path))
+    assert res['folded'] == 3
+    assert keep['contradicts'] == []
+    assert nested['lifecycle']['contradicts'] == []
+    assert 'subj_m0' not in store_obj.memory_index
+    assert store_obj.memory_index.get('subj_keep') == 'keep'
+
+    remaining_keys = set(VectorStore(str(tmp_path)).known_keys())
+    assert 'Lyrie::m0' not in remaining_keys
+    assert 'player_lyrie::m1' not in remaining_keys
+    assert 'Lyrie::m2' not in remaining_keys
+    assert 'Lyrie::keep' in remaining_keys
+
+    # Direct unlink helper also drops remaining memory references and vectors
+    counts = md.unlink_memory_references(store_obj, 'keep', data_dir=str(tmp_path))
+    assert counts['index_removed'] == 1
+    assert counts['vectors_removed'] == 1
+    assert 'subj_keep' not in store_obj.memory_index
+    assert 'Lyrie::keep' not in VectorStore(str(tmp_path)).known_keys()

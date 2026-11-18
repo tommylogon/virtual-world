@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "task-968",
+  "kind": "task",
+  "number": 968,
+  "title": "Domain knowledge, explicit blind spots, and semantic school/life knowledge integration",
+  "status": "review",
+  "priority": "high",
+  "area": "characters",
+  "tags": [
+    "characters",
+    "knowledge",
+    "domains",
+    "prompting",
+    "memory"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-17",
+  "horizon": "next",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-969"
+    ],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-734",
+      "task-733",
+      "task-404",
+      "task-967",
+      "task-966"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add structured domain competence and explicit blind-spot modeling ({domain, level: ignorant|novice|familiar|expert, notes, jargon_terms}) unified with AgentMind semantic/procedural school, hobby, and parent-taught knowledge, and wire it into PromptBuilder, domain-gated item examination, jargon opacity, memory lifecycle dynamics, and the Persona editor.",
+    "why": "Right now PromptBuilder has 0 reads of player.skills, crafting_known, or player.get_knowledge_records(), causing agents to act uniformly omniscient (e.g. a legal specialist unpacking silicone curing physics or a skater casually discussing computer science). Representing whole English domain vocabularies per word would rot quickly, so domain proficiency plus explicit ignorance flags paired with optional specialist jargon terms, domain-gated examine layers, and semantic memory seeds makes asymmetrical knowledge real in simulation without unmaintainable word lists.",
+    "how": "1. Add structured domains schema ({domain, level: ignorant|novice|familiar|expert, notes, jargon_terms}) under character capabilities/knowledge in engine/character_appearance.py, engine/character_store.py, player.py, and engine/serialization.py, alongside tagged semantic backstory seeds (school, family, hobby, trade) in player.memories (extending AgentMind / task-734 instead of creating a parallel database).\n2. Wire PromptBuilder (CONTEXT_SECTIONS in static/js/agent/prompt-builder/context-sections.ts and character-state.ts) to render a concise knowledge & blind-spots section from player.domains, player.get_knowledge_records() (recipes/facts), and active skills so LLM agents stop operating at 0 knowledge visibility.\n3. Extend engine/items/examine_actions.py (next to skill_check) with optional domain_notes / domain_min_level inspection layers so experts perceive technical diagnostics while ignorant observers receive layperson sensory descriptions, plus optional jargon-term opacity in listener comprehension for ignorant listeners.\n4. Wire procedural disuse-decay tracking alongside non-decaying semantic school/life knowledge in engine/memory_dynamics.py and domain-tag boost in engine/memory_retrieval.py, plus Persona UI domain authoring controls in static/js/inspector/persona-view.ts.",
+    "verify": "1. Run pytest covering domain competence/ignorance serialization, memory_dynamics semantic vs procedural decay curves, memory_retrieval domain boosts, and domain-gated examine_actions output.\n2. Run npm run build:ts and JS unit tests verifying PromptBuilder CONTEXT_SECTIONS renders domains, explicit blind spots, and get_knowledge_records() without bloating prompts or breaking prose-only characters.",
+    "acceptance": [
+      {
+        "text": "Characters author and round-trip structured domain knowledge records ({domain, level, notes, jargon_terms}) including explicit ignorant blind spots across character_appearance.py, character_store.py, serialization.py, and Persona UI.",
+        "done": false
+      },
+      {
+        "text": "PromptBuilder CONTEXT_SECTIONS surfaces a compact knowledge & blind-spots fragment reading domain competence, active skills/recipes (player.get_knowledge_records()), and recalled semantic school/life/parent facts instead of leaving PromptBuilder at 0 readers.",
+        "done": false
+      },
+      {
+        "text": "Items support domain-gated examine layers in engine/items/examine_actions.py (experts see technical detail; ignorant observers see surface sensory fallback), and optional jargon_terms mask specialist terms for ignorant listeners.",
+        "done": false
+      },
+      {
+        "text": "engine/memory_dynamics.py completes task-734's semantic stability + procedural disuse-decay lifecycle for learned skills/recipes and school/parent knowledge.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/character_appearance.py",
+      "engine/character_store.py",
+      "engine/agent_memory.py",
+      "engine/memory_retrieval.py",
+      "engine/memory_dynamics.py",
+      "engine/items/examine_actions.py",
+      "player.py",
+      "static/js/agent/prompt-builder/context-sections.ts",
+      "static/js/agent/prompt-builder/character-state.ts",
+      "static/js/inspector/persona-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Character Inspector -> Mind -> Persona tab (Domains & Knowledge), Prompt Lens (CONTEXT_SECTIONS knowledge block), and examine action output.\n\nCurrent availability: PromptBuilder has 0 references to player.skills, crafting_known, or get_knowledge_records(); Persona has no domain competence/ignorance editor; examine_actions.py only gates on dice skill_check without domain blind-spot layers.\n\nManual verification steps:\n1. Open Zoe (diy_craft/silicone_molding=expert, sports=ignorant) and Kayla (law=expert, diy_craft=ignorant) in Mind -> Persona -> Capabilities/Knowledge and confirm domain rows round-trip across Save, Compile, and reload.\n2. Inspect Zoe's and Kayla's Prompt Lens context.\n   - expected: Each character's prompt includes their active domains, skills/recipes, school/parent semantic seeds, and explicit ignorant blind spots.\n3. Have both characters examine a two-part platinum silicone mold kit authored with domain_notes.\n   - expected: Zoe reads curing/sulfur-inhibition detail while Kayla sees a layperson surface description."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Persona]]",
+      "[[AI & Narration/Cognitive Memory & Active Mind]]",
+      "[[AI & Narration/Memory System]]",
+      "[[Characters/Skills System]]",
+      "[[Features/examine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-17T21:53:53Z"
+    }
+  ]
+}

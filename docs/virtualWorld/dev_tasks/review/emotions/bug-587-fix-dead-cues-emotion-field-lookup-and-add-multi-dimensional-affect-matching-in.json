@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "bug-587",
+  "kind": "bug",
+  "number": 587,
+  "title": "Fix dead cues.emotion field lookup and add multi-dimensional affect matching in memory retrieval",
+  "status": "review",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "emotions",
+    "memory",
+    "retrieval",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-948",
+      "bug-590",
+      "bug-596",
+      "task-957"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix the broken `player.emotion.label` vs `player.emotion.current` field mismatch in `memory-context.ts` that zeroes out emotional memory recall in live runs, and upgrade `engine/memory_retrieval.py` Channel 4 from a single scalar label to multi-dimensional and target-bound affect matching.",
+    "why": "`engine/serialization.py` serializes `player.emotion.current` and the 35-dimension `player.emotions` map, whereas `memory-context.ts` reads `player?.emotion?.label || player?.current_emotion || ''`, sending empty cues to `/memories/retrieve` so Channel 4 scores 0.0. Furthermore, crisis scenes evoke overlapping emotions simultaneously (e.g. terrified, guilty, protective/affectionate, angry) that a single scalar label flattens away.",
+    "how": "1. Fix `static/js/agent/prompt-builder/memory-context.ts` to read `player?.emotion?.current` (keeping `.label` as legacy fallback) and forward active above-baseline affect entries from `player.emotions` (computed via `engine/emotion.py`) along with dominant intensity (`0..1` normalized cleanly against retrieval expectations).\\n2. Extend `engine/memory_retrieval.py` (`extract_cues` and Channel 4 `score_memory`) to accept multi-dimensional `emotions` maps/lists alongside legacy scalar `emotion`, weighting congruency across co-occurring dimensions (`afraid`, `guilty`, `anxious`, `angry`, `affectionate`, etc.) and relational `who`/`why` targets stored in `memory.emotions`.",
+    "verify": "1. Run pytest retrieval tests confirming mixed-emotion states (`afraid` + `guilty` + `affectionate`) score non-zero Channel 4 matches on both `emotion.current` and secondary dimensions.\\n2. Run JS unit tests asserting `PromptBuilder.buildMemoryContext` emits `player.emotion.current` and active `player.emotions` dimensions in `retrievePlayerMemories` payloads, then run `npm run build:ts`.",
+    "acceptance": [
+      {
+        "text": "`static/js/agent/prompt-builder/memory-context.ts` reads `player?.emotion?.current` (plus `player?.emotions` active map), fixing the silent `\"\"` miss caused by reading nonexistent `emotion.label` / `current_emotion`.",
+        "done": false
+      },
+      {
+        "text": "`cues` sent to `/memories/retrieve` includes top deviant active dimensions from `player.emotions` (from `engine/emotion.py`) and optional relational affect (`who` / `why`) instead of collapsing mixed states to one scalar word.",
+        "done": false
+      },
+      {
+        "text": "`engine/memory_retrieval.py` Channel 4 (`Emotional Congruency`) scores multi-dimensional affect overlap and target-bound (`who`) emotion similarity against stored `emotion` and `memory_emotions` vectors.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/prompt-builder/memory-context.ts",
+      "engine/memory_retrieval.py",
+      "engine/emotion.py",
+      "engine/serialization.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Lens (`static/js/agent-lens.ts`) retrieval breakdown and Character Inspector Mind/Emotions display.\\n\\nCurrent availability: `engine/serialization.py` publishes `player.emotion.current` and `player.emotions`, while `memory-context.ts` reads `player?.emotion?.label || player?.current_emotion` (returning empty string in live sessions).\\n\\nWhy no standalone UI change needed: Fixes broken cue extraction between `/api/state` and `/memories/retrieve`; reflected directly in Agent Lens emotional channel scoring.\\n\\nManual verification steps:\\n1. Trigger a mixed high-stakes state (e.g. `afraid`, `guilty`, `affectionate` toward another character elevated simultaneously in `player.emotions`).\\n2. Inspect the `POST /api/players/<id>/memories/retrieve` request payload and `explain: true` breakdown in DevTools / Agent Lens.\\n   - expected: Request sends non-empty primary emotion plus active `emotions` map, and Channel 4 (`emotional`) scores non-zero matches across co-occurring affect dimensions."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Emotion & Affect System]]",
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

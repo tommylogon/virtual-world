@@ -455,7 +455,6 @@ window.InspectorAreaView = (() => {
     RV._renderRoomHeader = function (name, actualNodeId) {
         const actions = htmlTag `
             <button class="btn btn-sm btn-ghost" data-populate-area=${actualNodeId} @click=${() => RV.populateArea(actualNodeId)} title="Populate this area with fitting furniture and items from the library by its domain tags" style="font-size:10px;">🪄 Populate</button>
-            <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowserRef().saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
             <button class="btn btn-sm btn-ghost" @click=${() => graphManager._duplicateNode(actualNodeId)} title="Duplicate this area with its items, contents and triggers" style="font-size:10px;">📋 Duplicate</button>
         `;
         return InspectorComponents.InspectorNodeHeader({
@@ -1085,6 +1084,11 @@ Improve this area's description and environment settings. Make the description m
     if (window.InspectorTemplateSync) {
         window.InspectorTemplateSync.register('area', {
             title: 'Refresh Area from Library',
+            save(_nodeId, node) {
+                const name = (node && node.name) || '';
+                if (name)
+                    return libraryBrowserRef().saveAreaByName(name);
+            },
             buildWorldPayload(nodeId, node) {
                 const name = (node && node.name) || '';
                 if (!name)

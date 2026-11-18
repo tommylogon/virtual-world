@@ -54,13 +54,16 @@ window.PlanGrounding = (() => {
     const PLAN_INTENT_ACTS = [
         // movement & approach
         'go', 'dash', 'approach', 'crawl', 'climb', 'jump', 'fumble',
+        'hide', 'sneak', 'unhide',
         // world interaction
-        'take', 'drop', 'use', 'use_on', 'examine', 'search', 'look',
+        'take', 'drop', 'throw', 'toss', 'use', 'use_on', 'examine', 'search', 'look',
         'listen', 'read', 'open', 'close', 'put', 'craft', 'make',
         'combine', 'split', 'wear', 'remove', 'stow',
         'eat', 'drink',
         // people
-        'give', 'steal', 'grab', 'lead', 'attack', 'escape', 'struggle',
+        'give', 'steal', 'grab', 'disarm', 'lead', 'attack', 'escape', 'struggle',
+        // comms
+        'call', 'answer', 'hangup', 'text', 'message',
         // sustained / state
         'speak', 'perform', 'wait', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'relieve',
     ];
@@ -407,7 +410,8 @@ window.PlanGrounding = (() => {
                 return null;
             }
             case 'attack':
-            case 'grab': {
+            case 'grab':
+            case 'disarm': {
                 if (!String(item).trim() && !String(target).trim()) {
                     return `${act} needs an item or target`;
                 }
@@ -437,6 +441,37 @@ window.PlanGrounding = (() => {
                 if (!matchFact(target, facts.people)) {
                     return `no one called "${target}" here - people: ${facts.people.join(', ') || '(nobody)'}`;
                 }
+                return null;
+            }
+            case 'throw':
+            case 'toss': {
+                if (!String(item).trim() || !String(target).trim()) {
+                    return `${act} needs both item and target`;
+                }
+                if (!matchFact(item, facts.carried)) {
+                    return `you are not carrying "${item}" - carrying: ${facts.carried.join(', ') || '(nothing)'}`;
+                }
+                if (!matchFact(target, [...facts.exits, ...facts.knownAreas, ...everything])) {
+                    return `no path or target called "${target}" to ${act} toward - paths: ${facts.exits.join(', ') || '(none visible)'}`;
+                }
+                return null;
+            }
+            case 'hide':
+            case 'sneak': {
+                const rawRef = String(target || item || '').trim();
+                if (!rawRef)
+                    return null;
+                const cleaned = rawRef.replace(/^(?:inside|into|in|behind|underneath|beneath|under)\s+/i, '').trim();
+                const lower = cleaned.toLowerCase();
+                if (!cleaned || ['shadows', 'the shadows', 'shadow', 'darkness', 'the darkness', 'cover', 'the cover'].includes(lower)) {
+                    return null;
+                }
+                if (!matchFact(cleaned, [...facts.areaItems, ...facts.exits, areaName])) {
+                    return `no interactable cover "${cleaned}" here to ${act} - interactables here: ${facts.areaItems.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
+                }
+                return null;
+            }
+            case 'unhide': {
                 return null;
             }
             // speak/wait/look/listen/relieve/perform carry no world reference

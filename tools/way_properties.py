@@ -162,8 +162,12 @@ PROPERTIES: Tuple[WayProperty, ...] = (
             ("engine/barriers.py", 135, "declared_state, normalised"),
             ("engine/movement.py", 564, "whether a traverse is refused"),
             ("engine/barriers.py", 148, "outranked by see_through for light and sound"),
+            ("engine/items/take_drop_actions.py", 0, "throw passability: open passes; blocked/hidden refuse; closed/locked/broken require see_through, prevent_close, or climb/jump"),
         ),
-        notes="The passage ladder. Movement gates on THIS, never on see_through.",
+        notes="The passage ladder. Movement gates on THIS, never on see_through. "
+              "Item throwing allows 'open' ways, refuses 'hidden' and 'blocked', and "
+              "allows 'closed'/'locked'/'broken' only when see_through, prevent_close, "
+              "or requires='climb'/'jump' permits tossing through or over.",
     ),
     WayProperty(
         name="requires_item",
@@ -191,11 +195,13 @@ PROPERTIES: Tuple[WayProperty, ...] = (
         reads=(
             ("engine/movement.py", 1026, "character close is refused"),
             ("engine/world_compile.py", 411, "set on compiled outdoor ways"),
+            ("engine/items/take_drop_actions.py", 0, "allows throwing items over/across uncloseable outdoor boundaries"),
         ),
         notes="Author's call, not the compiler's default. The state can then only be "
               "changed by triggers. An outdoor way carries it because you cannot close "
               "a road into a forest by hand. `requires: crawl/climb/jump` is always "
-              "uncloseable independently of this.",
+              "uncloseable independently of this. For item throwing, prevent_close marks "
+              "an open-sky or outdoor boundary items can be thrown across (unless blocked/hidden).",
     ),
     WayProperty(
         name="needs_open",
@@ -213,9 +219,11 @@ PROPERTIES: Tuple[WayProperty, ...] = (
             ("engine/movement.py", 462, "verb gate; 'go' auto-converts to crawl"),
             ("engine/movement.py", 542, "Athletics roll against <requires>_dc"),
             ("engine/movement.py", 1021, "open/close refused - an open passage"),
+            ("engine/items/take_drop_actions.py", 0, "climb/jump barriers allow throwing items over unless blocked/hidden"),
         ),
         notes="crawl/climb/jump ways are always uncloseable. Failed climb and jump "
-              "rolls fire on_fail_climb / on_fail_jump triggers.",
+              "rolls fire on_fail_climb / on_fail_jump triggers. Items can be thrown "
+              "over climb/jump barriers (e.g. fences, low walls) without a climb roll.",
     ),
     WayProperty(
         name="climb_dc",
@@ -247,6 +255,7 @@ PROPERTIES: Tuple[WayProperty, ...] = (
             ("engine/area_description.py", 647, "peek-through text on examine"),
             ("engine/awareness.py", 159, "a quieter channel than open, louder than solid"),
             ("static/js/agent/turn-feed.js", 88, "a distinct sound cue"),
+            ("engine/items/take_drop_actions.py", 0, "allows throwing items through see-through openings unless blocked/hidden"),
         ),
         notes="The single transparency axis. Independent of current_state, which is why "
               "all four combinations of walkable/see-through are expressible: "
@@ -286,11 +295,15 @@ PROPERTIES: Tuple[WayProperty, ...] = (
         name="max_size",
         axis="size",
         values=("", "none", "tiny", "small", "normal", "huge", "giant", "titanic"),
-        reads=(("engine/movement.py", 469, "two tiers over is blocked; one over crawls"),),
+        reads=(
+            ("engine/movement.py", 469, "two tiers over is blocked; one over crawls"),
+            ("engine/items/take_drop_actions.py", 0, "refuses thrown items whose size tier exceeds max_size"),
+        ),
         notes="SIZE_TIERS is the whole model - engine/size.py:10 states there is no "
               "height or girth property. Carrying at >= 50% capacity adds one tier "
               "before the comparison (task-202), so a loaded character can be locked "
-              "out of a gap they walked through unloaded.",
+              "out of a gap they walked through unloaded. Thrown items whose size "
+              "tier (from item size or weight) exceeds max_size are refused.",
     ),
     WayProperty(
         name="size",

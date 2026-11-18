@@ -250,6 +250,11 @@ class BackgroundSimulation:
         a long sleep cannot leave a backlog to dump on waking.
         """
         from engine import action_tiers as _at
+        try:
+            from engine.background_social import run_fear_pass as _pre_fear_pass
+            _pre_fear_pass(self.gs)
+        except Exception as e:
+            logger.warning("[background] pre-move fear pass: %s", e)
         ordered_players = self.gs.get_turn_order() if hasattr(self.gs, "get_turn_order") else list(self.gs.players.values())
         for p in ordered_players:
             name = p.name
@@ -618,11 +623,12 @@ class BackgroundSimulation:
         # survival need, so a need pauses the approach and it resumes afterward.
         # Deliberately NOT added to `served`: several short steps can fit inside
         # one coarse timeframe.
-        from engine import background_plans as _plans
-        if getattr(p, "plan", None) or _plans.maybe_assign(self, p):
-            used = _plans.advance(self, p)
-            if used:
-                return used, "plan"
+        if not self._is_frozen_by_fear(p):
+            from engine import background_plans as _plans
+            if getattr(p, "plan", None) or _plans.maybe_assign(self, p):
+                used = _plans.advance(self, p)
+                if used:
+                    return used, "plan"
 
         # Preparation (task-426). At a service area with a moment to spare, make
         # supplies portable - fill a waterskin, pocket a ration - so a later need
@@ -810,6 +816,13 @@ class BackgroundSimulation:
                why=f"species:{species}", area=p.current_area,
                tags=["need", "species"])
 
+    def _is_frozen_by_fear(self, p) -> bool:
+        try:
+            from engine.background_social import is_frozen_by_fear
+            return is_frozen_by_fear(p, self.gs)
+        except Exception:
+            return False
+
     def _travel_to_privacy(self, p):
         """One hop towards the best place to relieve within reach (task-551).
 
@@ -824,6 +837,8 @@ class BackgroundSimulation:
         what makes this safe to call unconditionally: the caller then relieves
         where it is.
         """
+        if self._is_frozen_by_fear(p):
+            return False
         start = p.current_area
         if not start:
             return False
@@ -1261,12 +1276,20 @@ class BackgroundSimulation:
         remembered so the next turn routes around it, and one alternative hop is
         tried immediately as a detour.
         """
+        if self._is_frozen_by_fear(p):
+            return False
         from engine import traversal
         area = p.current_area
         why = f"{reason}:travel" if reason else f"needs:{need}"
         result = traversal.hop(self.gs, p, direction)
 
         if result.ok:
+            if getattr(p, "hidden", False):
+                try:
+                    from engine.background_social import _unhide_player
+                    _unhide_player(self.gs, p)
+                except Exception:
+                    p.hidden = False
             record(p, self.gs.time_ticks, "move",
                    f"travelled {direction} toward {target_name}",
                    why=why, area=p.current_area, tags=["travel"])
@@ -1300,6 +1323,8 @@ class BackgroundSimulation:
         return False
 
     def _travel_toward(self, p, tags, need):
+        if self._is_frozen_by_fear(p):
+            return False
         from engine import traversal
         step = self._target_step(p, tags, verb=self._verb_for_need(need),
                                  avoid=traversal.avoid(self.gs, p))
@@ -1318,7 +1343,7 @@ class BackgroundSimulation:
         area is reachable. Candidates rank by how many others are there, then by
         name for determinism; the first that routes wins.
         """
-        if not p.current_area:
+        if not p.current_area or self._is_frozen_by_fear(p):
             return False
         counts = {}
         for other in self.gs.players.values():
@@ -1351,6 +1376,8 @@ class BackgroundSimulation:
         direction returned is one ``movement.move_to_area`` accepts - a venue is
         never somewhere a character is routed that the player could not go.
         """
+        if self._is_frozen_by_fear(p):
+            return False
         from engine import venues
         spec = venues.venue(venue)
         if not spec or not p.current_area:
@@ -1377,6 +1404,8 @@ class BackgroundSimulation:
 
         Returns True when it did something, so `_act` stops for this decision.
         """
+        if self._is_frozen_by_fear(p):
+            return False
         from engine.schedule import BLOCKING_ACTIVITIES, current_step, minutes_of_day
         if not getattr(p, "schedule", None):
             return False
@@ -1400,6 +1429,8 @@ class BackgroundSimulation:
 
     def _travel_to_area(self, p, area_name, reason):
         """One hop toward a *named* area, reusing the need-travel path."""
+        if self._is_frozen_by_fear(p):
+            return False
         from engine import traversal
         step = self._target_step(p, None, areas={area_name},
                                  avoid=traversal.avoid(self.gs, p))

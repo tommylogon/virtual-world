@@ -9,9 +9,9 @@
 (function () {
     'use strict';
 
-    const F = window.SoakFormat;
-    const C = window.SoakCharts;
-    const P = window.SoakPresets;
+    const F = (window.SoakFormat as any);
+    const C = (window.SoakCharts as any);
+    const P = (window.SoakPresets as any);
     /**
      * globals.d.ts's `SoakStateApi` is the narrow stub soak-app.ts was written
      * against; soak-state.ts has since grown past it (getConfig, setConfig,
@@ -21,7 +21,7 @@
      * call sites.
      */
     const S = window.SoakState as any;
-    const ST = window.SoakSpacetime;
+    const ST = (window.SoakSpacetime as any);
     /**
      * Every element in the soak dashboard is reached through this one helper, and
      * the call sites read `.value` / `.checked` / `.innerHTML` / `.textContent`
@@ -33,7 +33,7 @@
     const el = (id: string): any => document.getElementById(id);
     const esc = F.esc;
 
-    const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown => {
+    const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => {
         if (window.Lit?.html) {
             return window.Lit.html(strings, ...values);
         }

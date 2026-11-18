@@ -7,28 +7,29 @@ tags: [system/ai, topic/reflection, topic/turns]
 
 ## What you can do
 
-The Agent Engine powers autonomous LLM-driven characters that observe the world, think, speak, and act - using the same `/api/action` endpoint as human players, so they live by the same rules. In reactive mode each turn splits into a think-decide phase (inner monologue plus a structured action, speech, and emote) and a react phase (responding to the outcome and writing a memory); non-reactive mode combines both into a single call. The engine handles turn ordering, rate limits, needs- and threat-driven replanning, and involuntary reactions like sneezes mid-speech.
-
-The Agent Engine drives LLM-powered character agents - autonomous NPCs that observe the world, think, speak, and act through the same `/api/action` endpoint as human players.
+The Agent Engine powers autonomous LLM-driven characters that observe the world, think, speak, and act - using the same `/api/action` endpoint as human players, so they live by the same rules. In reactive mode each turn splits into a think-decide phase (inner monologue plus a structured action, speech, emote, and affect impulses) and a react phase (responding to the outcome); non-reactive mode combines both into a single call. The engine handles turn ordering, rate limits, needs- and threat-driven replanning, memory intermediator synthesis, two-stage prose-to-action interpretation, and involuntary reactions like sneezes mid-speech. See [[Simulation Philosophy]] and [[Characters/Interiority & Subtext]] for the design principles behind actor isolation and internal state.
 
 ## Architecture
 
-The engine lives in `static/js/agent-engine.js` as the `AgentEngine` class (`window.VW.agent`, global `agent`). It coordinates several sub-modules:
+The engine lives in `static/js/agent-engine.ts` as the `AgentEngine` class (`window.VW.agent`, global `agent`). It coordinates several sub-modules:
 
 | Module | File | Role |
 |--------|------|------|
-| `AgentEngine` | `agent-engine.js` | Main loop, turn orchestration, action normalization |
-| `PromptBuilder` | `agent/prompt-builder/` (index) | Pure functions for building LLM prompts (split into submodules - see below) |
-| `TurnQueue` | `agent/turn-queue.js` | Turn ordering and advancement |
-| `AgentMemory` | `agent/memory-manager.js` | Memory storage + reflection (backend `Player.memories`) |
-| `PlanManager` | `agent/plan-manager.js` | Multi-step plan generation |
-| `RateLimiter` | `agent/rate-limiter.js` | API rate limiting |
-| `ContextWindowManager` | `static/js/context-window.js` | Token budget and context pruning |
-| `ResponseParser` | `agent/response-parser.js` | Parse/validate LLM JSON out, surface parse errors |
-| `ActionNormalizer` | `agent/action-normalizer.js` | Normalize structured actions into `/api/action` commands |
-| `ThreatDetector` | `agent/threat-detector.js` | Flag nearby threats for replanning |
-| `HumanTurnComposer` | `agent/human-turn-composer.js` | Human-turn (composer) drive path |
-| `TurnSceneView` | `agent/turn-scene-view.js` | Render current turn scene for the event stream |
+| `AgentEngine` | `agent-engine.ts` | Main loop, turn orchestration, affect dispatch, inner monologue persistence |
+| `PromptBuilder` | `agent/prompt-builder/` (`index.ts`) | Pure functions for building LLM prompts (plus async `memory-context.ts`) |
+| `TurnQueue` | `agent/turn-queue.ts` | Turn ordering, pause/inert filtering, and advancement |
+| `AgentMemory` | `agent/memory-manager.ts` | Memory storage + reflection (backend `Player.memories`) |
+| `PlanManager` | `agent/plan-manager.ts` | Typed multi-step plan generation, MOSIAC + GIMP goal wiring, repair |
+| `PlanTracker` | `agent/plan-tracker.ts` | Plan step progress, failure counts, pursuit seeding, replan triggers |
+| `PlanGrounding` | `agent/plan-grounding.ts` | Typed plan-step grounding validator (paths, items, people, areas) |
+| `RateLimiter` | `agent/rate-limiter.ts` | API rate limiting |
+| `ContextWindowManager` | `static/js/context-window.ts` | Token budget and context pruning |
+| `ResponseParser` | `agent/response-parser.ts` | Parse/validate LLM JSON output, normalize multi-emotion impulses |
+| `ActionNormalizer` | `agent/action-normalizer.ts` | Normalize structured actions into `/api/action` commands |
+| `ActionInterpreter` | `agent/action-interpreter.ts` | Two-stage cognition: translate creative prose into structured turn JSON |
+| `ThreatDetector` | `agent/threat-detector.ts` | Flag nearby threats for replanning |
+| `HumanTurnComposer` | `agent/human-turn-composer.ts` | Human-turn (composer) drive path |
+| `TurnSceneView` | `agent/turn-scene-view.ts` | Render current turn scene for the event stream |
 
 ## Agent Loop
 
@@ -37,30 +38,27 @@ The engine lives in `static/js/agent-engine.js` as the `AgentEngine` class (`win
 Each agent step processes one character's turn:
 
 1. **Rate limit check** - waits if RPM limit is exceeded
-2. **Turn queue** - determines whose turn it is (turn-based mode)
+2. **Turn queue** - determines whose turn it is (turn-based mode via `TurnQueue`, filtering dead and `paused`/`inert` characters and preferring server `turn_order_info` when present)
 3. **Simple NPC check** - skips LLM work for `simple_npc` characters (they act via backend `tick_turn` / `process_simple_npcs`). Simple NPCs are still **in the turn queue**; their turn just advances without an LLM call. NPC actions are logged to the event stream via `record_turn_event()`.
-4. **Rest/Sleep check** - skips if character is resting or unconscious
-5. **Reflection** - every 5 turns, triggers memory summarization (reactive mode)
-6. **Threat/needs-aware replan** - before think-decide, `PlanTracker.shouldReplan()` checks for new threats, blocked paths, or vitals crossing a critical threshold; if needed, regenerates the plan via `PlanManager.generate()`
-7. **Reactive mode** (2 LLM calls - the conversation-loop design, task-176):
-   - **Think-decide** (`buildReactionPrompt`): one call produces inner monologue + structured action + speech/volume + emote. This is a single combined call (no separate observe/decide prompts - those exports are dead).
-   - **Act**: execute the normalized action via `ApiClient.action()`, optional AI narration, then the emote (gated on the action not failing or being rejected). Invalid verbs become a natural in-world rejection ("You try to climb the ceiling, but you can't do that") that flows into the react phase instead of vanishing silently.
-   - **React** (`buildResultReactionPrompt`): character reacts to the action outcome with inner monologue, speech/volume, emote, and the **LLM-generated memory** field. The prompt makes clear only a moment has passed since the character's own action - others haven't had time to respond, so silence isn't a snub.
-8. **Non-reactive mode** (1 LLM call): single `buildReactionPrompt` with `includeMemory=true` produces everything in one response; action executed asynchronously.
-9. **Turn advancement** - advances the turn queue
+4. **Rest/Sleep/Unconscious check** - skips if character is busy/resting or unconscious
+5. **Reflection** - every 5 turns per character (`charTurnCount % 5 === 0`), triggers memory summarization (reactive mode)
+6. **Memory Intermediator synthesis** - `PromptBuilder.buildMemoryContext()` retrieves top scored memories and, when context cues change, synthesizes a single mood-congruent conscious thought (`=== I REMEMBER (CONSCIOUS THOUGHT) ===`) under Strict Actor Isolation
+7. **Threat/needs-aware replan** - before think-decide, `PlanTracker.seedFromPlayer()` seeds any server `player.plan` / `active_pursuit`, and `PlanTracker.shouldReplan()` checks for new threats, completed/aged-out plans, repeated step failures, or vitals crossing a critical threshold; if needed, regenerates the plan via `PlanManager.generate()`
+8. **Reactive mode** (multi-action loop up to `MAX_ACTIONS_PER_TURN = 5`, gated by turn slots):
+   - **Think-decide** (`buildReactionPrompt`): one call produces inner monologue + structured action + speech/volume + emote + optional `emotion` / `learned_names`. When `config.interpreterModelEnabled` is active, `ActionInterpreter.interpretProseToAction()` translates freeform prose into the canonical turn schema.
+   - **Act**: execute the normalized action via `ApiClient.action()`, optional AI narration, then the emote (gated on the action not failing or being rejected). Invalid verbs become a natural in-world rejection that flows into the react phase instead of vanishing silently. `PlanTracker.trackStep()` records step success or failure.
+   - **React** (`buildResultReactionPrompt`): character reacts to the action outcome with inner monologue, speech/volume, emote, and optional `emotion` / `learned_names`. The prompt makes clear only a moment has passed since the character's own action - others haven't had time to respond, so silence isn't a snub.
+9. **Non-reactive mode** (1 LLM call): single `buildReactionPrompt` produces everything in one response; action executed asynchronously.
+10. **Turn advancement** - advances the turn queue
 
-### Conversation history is retained across turns
+### Fresh per-turn context (no assistant replay across turns)
 
-`characterHistories[charName]` (agent-engine.js) persists per character and is **not** reset
-each turn - the think-decide and react phases both append to the same array. This prevents the
-agent from contradicting itself between phases (e.g. changing a favorite color). The
-`ContextWindowManager` prunes when over 30 messages / 9500 tokens (keeping system + last ~18
-messages). History is cleared only on `start()`/`reset()`.
+`step()` clears `characterHistories[charName]` at the start of each turn, and `think-decide`, `result-reaction`, and `combined` calls each send a fresh `[system, user]` message pair so stale assistant outputs are not replayed as active context. Continuity across phases and turns comes from `=== YOUR STATE ===`, `=== I REMEMBER (CONSCIOUS THOUGHT) ===`, `=== RECENTLY ===` / `=== WHAT HAPPENED ===`, and `events.getCharacterState()`.
 
 ## Character Control Modes & Autonomy (task-244)
 
 Every character resolves to a control mode via `events.getControlMode(charName)`
-(`event-stream.js`):
+(`event-stream.ts`):
 
 | Mode | Condition | Who drives |
 |------|-----------|------------|
@@ -70,7 +68,7 @@ Every character resolves to a control mode via `events.getControlMode(charName)`
 
 - The `autonomy` flag is **persisted on the player** in the backend graph, so a human stays
   human across reloads. Toggle it from the agent inspector.
-- A human-mode turn pauses only that character's progression (agent-engine.js ~301) - the rest
+- A human-mode turn pauses only that character's progression (`agent-engine.ts`) - the rest
   of the roster keeps cycling when it's their turn.
 
 ## Per-Turn State Tracking & Instincts
@@ -78,14 +76,14 @@ Every character resolves to a control mode via `events.getControlMode(charName)`
 - **Character state** - `events.getCharacterState(charName)` tracks `lastThought`,
   `lastSpeech`, `lastAction`, `actionHistory` (last 20 with tick + result), `currentArea`,
   `lastActionResult`. Consumers: plan manager (`lastThought`), prompt memory context
-  (`actionHistory` → recent-actions block), agent lens, inspector.
+  (`actionHistory` -> recent-actions block), agent lens, inspector.
 - **Needs/threat-driven replanning (task-92)** - `PlanTracker.shouldReplan()`
-  (`agent/plan-tracker.js`) regenerates the plan when vitals **cross** a critical threshold or
+  (`agent/plan-tracker.ts`) regenerates the plan when vitals **cross** a critical threshold or
   a new threat appears, re-nudging at most every 5 turns to avoid churn.
 - **Closeness gates behavior (task-94)** - `relationshipGuidance(closeness)`
-  (`prompt-builder/character-state.js`) turns each relationship score into a behavioral
-  directive on the People-here line ("you want them gone; refuse help…" at ≤ −50).
-- **Speech salience + conversation instinct** - `prompt-builder/conversation-context.js`
+  (`prompt-builder/character-state.ts`) turns each relationship score into a behavioral
+  directive on the People-here line ("you want them gone; refuse help..." at <= -50).
+- **Speech salience + conversation instinct** - `prompt-builder/conversation-context.ts`
   labels heard lines as *addressed to you* vs *overheard* (salience), and
   `buildConversationInstinct()` nudges characters to join ongoing conversations they're part of.
 - **Parse-error inspection (task-238)** - malformed LLM responses are stored in an EventBus
@@ -94,7 +92,7 @@ Every character resolves to a control mode via `events.getControlMode(charName)`
 
 ## Involuntary Reactions (task-166, task-534)
 
-`agent/involuntary.js` post-processes every speech line and emote an attended
+`agent/involuntary.ts` post-processes every speech line and emote an attended
 character emits, so a hiccup or a sneeze lands *inside* the line instead of
 replacing it. It is a LIVEGAME layer only: background NPCs and simple NPCs have
 no speech/emote emission path, so the cheap tier never pays for it, and the roll
@@ -160,7 +158,7 @@ The LLM emits a **structured action object** instead of free-text commands:
   **key**, never a value inside speech - `{"speech":"whisper psst"}` is explicitly wrong in
   the prompt. `speak`/`talk` normalize → `say`. Legacy top-level `say`/`whisper` keys still
   work as a fallback.
-- **`normalizeStructuredAction()`** (`agent/action-normalizer.js`) converts `{action, item,
+- **`normalizeStructuredAction()`** (`agent/action-normalizer.ts`) converts `{action, item,
   target, relation}` into a command string for `/api/action`:
   - `use rusty_key on front_door` (multi-word names stay whole)
   - `use create flame` (use ALONE for self-use items)
@@ -168,6 +166,15 @@ The LLM emits a **structured action object** instead of free-text commands:
   - `give rusty_key to Lyrie` (hand to a same-area character)
   - `steal key from Miki`, `go north`, `rest 30`, etc.
   - Free-text fallback for anything unsupported / legacy plain strings
+
+### Multi-emotion and multi-target affect updates
+
+Turns can declare multiple simultaneous feelings, each optionally directed at a specific person (see [[Characters/Interiority & Subtext]]):
+
+- **Schema (`StructuredFormats`)** - `static/js/shared/json-schemas.ts` defines `EMOTION` as `null`, a single `{label, intensity, toward}` object, or an array of `{label, intensity, toward}` items on both `agentAction` and `agentReact`. Prompt schemas request this via the `emotion_toward` fragment (`schema-fragments.ts`).
+- **Parsing (`ResponseParser`)** - `ResponseParser.extractEmotion()` (`agent/response-parser.ts`) normalizes both single objects and arrays, lowercasing `label`, clamping `intensity` to `1-10` (default `5`), and preserving `toward` (`string | null`).
+- **Two-stage interpretation (`ActionInterpreter`)** - When `config.interpreterModelEnabled` is enabled, `ActionInterpreter.interpretProseToAction()` (`agent/action-interpreter.ts`) translates creative character prose into the canonical turn schema using `ResponseParser.parseReaction()` and `normalizeEmotionPayload()` (supporting a string label, single object, or array of `{label, intensity, toward}`).
+- **Dispatch (`AgentEngine._applyFeltEmotion()`)** - `AgentEngine._applyFeltEmotion()` (`agent-engine.ts`) iterates over the single or array impulse list and dispatches `ApiClient.getPlayerEmotions(charName, body)` for each entry: when `toward` is present it forwards `toward` so the backend records a person-directed experience (`felt_toward`); otherwise it sends `delta: intensity * 1.5` as a global affect spike.
 
 ### A malformed action payload is recovered, not executed
 
@@ -202,7 +209,7 @@ blanket "You try to X, but you can't do that" let characters invent supernatural
 explain a bad JSON payload. A well-formed command the **world** refuses (a locked door) is a
 different path: that comes back from the backend as an action result, not as a skip.
 
-`rejectionText()` (`agent/action-normalizer.js`) holds this policy next to the classifier
+`rejectionText()` (`agent/action-normalizer.ts`) holds this policy next to the classifier
 that produces the category, so the two cannot drift.
 
 ### Action verbs the LLM is told about (ACTIONS table)
@@ -221,10 +228,27 @@ inventory, stats, look, fumble, relieve` - plus ghost-only `manifest`/`vanish`.
 
 ## Planning: typed steps, grounded against what exists
 
-A character plans in **typed steps** (`{"act": ..., "item": ..., "target": ...}`), not prose.
+A character plans in **typed steps** (`{"act", "item", "target", "text", "note", "area", "until", "duration"}`), not prose.
+`PlanManager.generate()` (`agent/plan-manager.ts`) enforces this shape with `StructuredFormats.plan` (`shared/json-schemas.ts`, `{"steps": [PLAN_STEP, ...]}`) and salvages complete step objects from truncated JSON responses via `_salvageTypedSteps()`.
 Before a plan is accepted, every step is validated against the facts the plan prompt was
-built from (`agent/plan-grounding.js`): the items in the room, the things the character
+built from (`agent/plan-grounding.ts`): the items in the room, the things the character
 carries, the people present, the visible paths, and the areas it knows.
+
+### MOSIAC and GIMP context in planning
+
+`PlanManager.generate()` wires subjective motivational state and active goals directly into the planning prompt:
+
+- **MOSIAC (`PromptBuilder.buildMosiacContext(player)`)** - `prompt-builder/character-state.ts` renders Motivation (`M`), Intention (`I`), Pending Offers and Active Obligations (`O`), Schedule (`S`), and Attention needs (`A`) without raw debug telemetry. `buildReactionPrompt` and `buildCommunicationPrompt` also include `mosiac` in `buildContextBlock`.
+- **GIMP goals (`_formatGoalsContext(player)`)** - `agent/plan-manager.ts` formats active, proposed, and blocked entries from `player.goals` (filtering out `reached` and `dropped`) into `=== YOUR GOALS ===`, including motivation (`why`) and deadlines (`due tick N`).
+- **Maslow critical-needs priority** - `PlanTracker.criticalNeeds(player.vitals)` prepends `=== CRITICAL NEEDS (MASLOW - address these FIRST) ===` when physiological vitals are critical (filtering out hunger/thirst/sleep for `is_slasher`, `undead`, or `ghost` characters).
+
+### Step completion, failure tracking, and replanning (`PlanTracker`)
+
+`PlanTracker` (`agent/plan-tracker.ts`) owns per-character `plans`, `planTick`, `planProgress`, `planFailures`, and `activePursuitId`:
+
+- **Step tracking (`trackStep()`)** - On `succeeded === false`, increments `planFailures[charName][idx]` and logs a blocked-step notice at 3 failures. On success, advances `planProgress[charName]` when the executed action matches the current step's non-stop-word tokens (requiring a target token match when the action is not bare-verb).
+- **Replan triggers (`shouldReplan()`)** - Returns a reason string (`'threat detected'`, critical need label on threshold crossing or every 5 turns, `'no plan'`, `'plan completed'`, `'plan aged out'` after 10 turns when no `activePursuitId` is set, or `'current step failed repeatedly'` at 3+ failures) or `null`.
+- **Server seeding (`seedFromPlayer()`)** - Seeds `PlanTracker` from `player.plan` or `player.active_pursuit` when present so server-assigned pursuits and plans are tracked in the same loop.
 
 ### Target types decide which fact list a step resolves against
 
@@ -267,12 +291,12 @@ plan-only verb: it names a sustained activity the world resolves when the step r
 
 ## Prompt Building
 
-All prompt construction lives in `static/js/agent/prompt-builder/` (pure functions, no side effects). Submodules: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`, `capture.js`.
+All prompt construction lives in `static/js/agent/prompt-builder/` (pure functions, plus async `memory-context.ts`). Submodules: `system-prompt.ts`, `turn-prompts.ts`, `character-state.ts`, `conversation-context.ts`, `memory-context.ts`, `context-sections.ts`, `schema-fragments.ts`, `helpers.ts`, `room-context.ts`, `contextual-actions.ts`, `capture.ts`, `index.ts`.
 
 ### Capturing a turn prompt (`captureTurnPrompt()`)
 
-`capture.js` assembles the exact system and user messages one character would
-receive on its next turn, using the same call sequence `agent-engine.js` uses
+`capture.ts` assembles the exact system and user messages one character would
+receive on its next turn, using the same call sequence `agent-engine.ts` uses
 at turn start: room parts, vitals, emotion, relationships, memory, system
 prompt, reaction prompt. The character's own room wins over the scene's active
 player, and the memory block is fetched in the live turn's mode (not the
@@ -302,7 +326,7 @@ All templates share the same **user-message layout** (assembled from `buildRoomC
 [Tick N]
 You are X. Personality: ...
 === YOUR STATE ===        ← vitals, emotion, insanity, traits, size, activity, grappled, ghost/dead
-=== I REMEMBER ===        ← own block, right after YOUR STATE
+=== I REMEMBER (CONSCIOUS THOUGHT) ===  ← synthesized recollection (Strict Actor Isolation)
 Your appearance / Carrying
 Room description → paths → items → People here (with inline relationship labels)
 === AVAILABLE ACTIONS ===
@@ -327,10 +351,10 @@ world date/time and environment state.
 
 - **Relationships are NOT in `=== YOUR STATE ===`** - each "People here" line carries an inline
   type label when known (`jake halloway - a close friend - (awake)`), no scores.
-- **Memory context is its own `=== I REMEMBER ===` block** right after YOUR STATE, not a state
+- **Memory context is its own `=== I REMEMBER (CONSCIOUS THOUGHT) ===` block** right after YOUR STATE, not a state
   fragment.
 - The react template keeps its minimal `[Tick N] You are still in ...` context, then
-  `=== YOUR STATE ===` → `=== I REMEMBER ===` → `=== WHAT HAPPENED ===`.
+  `=== YOUR STATE ===` -> `=== I REMEMBER (CONSCIOUS THOUGHT) ===` -> `=== WHAT HAPPENED ===`.
 
 ### Heard speech: delivery and who made the noise
 
@@ -375,10 +399,10 @@ vocabulary - but note those species tags are **not registered** in `data/library
 
 | Template | Phase | Memory field | Output |
 |----------|-------|--------------|--------|
-| `buildReactionPrompt` | Think-decide / combined | ❌ (reactive), ✅ (non-reactive) | `{"inner_monologue","action","item","target","speech","volume","emote"[,"memory"]}` |
-| `buildResultReactionPrompt` | React | ✅ | `{"inner_monologue","speech","volume","emote","memory":{"text","importance","tags"}}` |
+| `buildReactionPrompt` | Think-decide / combined | Retired (task-949) | `{"inner_monologue","action","item","target","speech","volume","emote"[,"emotion","learned_names"]}` |
+| `buildResultReactionPrompt` | React | Retired (task-949) | `{"inner_monologue","speech","volume","emote","emotion","learned_names"}` |
 
-`buildObservationPrompt`/`buildDecisionPrompt` are **dead exports** - defined and exported but never called. Not maintained.
+`buildObservationPrompt` and `buildDecisionPrompt` were removed from `turn-prompts.ts` (2026-09-20); `buildReactionPrompt` covers both think and decide.
 
 ### Room Context & the Attention List (`buildRoomContext()`)
 
@@ -404,16 +428,16 @@ Each person line can include a **position suffix** from `spatial_position` / `at
 - **Relationship labels** - met characters get an inline type label (`- a close friend -`) before
   `(state)`, from `buildRelationshipLabel()` (no `(65/100)` scores).
 - **Targeting** - combines appearance handle + location (`attack the man`, `go north`). Backend `_match_character_name()` also resolves description words in the same area.
-- **Physical actions walk you there** - open/go/give/grab/attack set position automatically; `examine room` steps back. See [[Gameplay/Character Spatial Position]] and `system-prompt.js` Rules.
+- **Physical actions walk you there** - open/go/give/grab/attack set position automatically; `examine room` steps back. See [[Gameplay/Character Spatial Position]] and `system-prompt.ts` Rules.
 
 ## Memory in the agent
 
-See [[AI & Narration/Memory System]]. Key points:
+See [[AI & Narration/Memory System]], [[Simulation Philosophy]], and [[Characters/Interiority & Subtext]]. Key points:
 
-- **One memory per turn** - the react phase's `memory` field (subjective takeaway, importance + tags chosen by the LLM).
-- `_extractMemory()` parses `{text, importance, tags}`; tags auto-register into the tag library.
-- `storeMemory()` POSTs to backend `/memories/entry` (with `entity_ids` = current area node).
-- Speech/emotes/thoughts are log-only, not memories.
+- **Intermediator synthesis + cue-change gating** - `PromptBuilder.buildMemoryContext()` (`prompt-builder/memory-context.ts`) scores and retrieves relevant traces, then computes a cue signature (`_computeCueSignature(areaId, actors, dialogue, emotion, needs, memories)`). `_synthesizeConsciousThought()` checks `config.memoryIntermediator !== false` and caches the result in `_intermediatorCache` keyed by character and cue signature; only when cues change does it call `memClient.chat()` (`label: 'intermediator'`, `reasoningEffort: 'low'`) to synthesize top traces (annotated with relative age, conflict, and uncertainty flags) into one brief first-person conscious thought (`2-4` sentences). Unless `skipPersist` or `commonsRecordMemories === false` applies, that thought is persisted as a `reflection` memory (`source: 'intermediator'`).
+- **Strict Actor Isolation (task-947 / task-949)** - `=== I REMEMBER (CONSCIOUS THOUGHT) ===` emits ONLY the synthesized conscious recollection (zero raw DB memory rows are dumped into the actor prompt).
+- **End-of-turn memory retired (task-949)** - `config.endOfTurnMemory` and Reactor `memory` creation are retired (`prompt-builder/turn-prompts.ts`). Instead, `AgentEngine._persistInnerMonologue()` (`agent-engine.ts`) persists the actor's `inner_monologue` as a `reflection` memory (`source: 'inner_monologue'`, deduplicated within +/- 1 tick).
+- Speech/emotes are log-only, not memories.
 
 ## Agent Configuration
 
@@ -435,7 +459,7 @@ Settings panel controls: API key/base/model/temperature, turn-based mode + order
 
 ## Difference Between LLM Agents and Simple NPCs
 
-- **LLM agents** (`simple_npc: false`): full LLM decision-making, retained conversation history, unified memory + reflection, multi-step plans, structured actions. 2 LLM calls/turn in reactive mode.
+- **LLM agents** (`simple_npc: false`): full LLM decision-making, fresh per-turn context with synthesized conscious memory and reflection, multi-step typed plans, structured actions. 2+ LLM calls/turn in reactive mode (plus intermediator synthesis when cues change, and optional `ActionInterpreter` pass).
 - **Simple NPCs** (`simple_npc: true`): no LLM calls, behavior driven by `behaviors[]` + `npc_behavior` pattern, controlled by backend `tick_turn`. Suitable for animals, minor NPCs, environmental entities.
 
 ## Reading the LLM trace
@@ -453,6 +477,8 @@ The display column `actor` is unchanged and still a label. `actor_id` is the tru
 
 ## Related
 
+- [[Simulation Philosophy]]
+- [[Characters/Interiority & Subtext]]
 - [[dev_tasks/done/prompting/task-160-parameterized-actions-in-prompts|task-160: Parameterized actions]]
 - [[dev_tasks/done/characters/task-178-unify-memory-systems|task-178: Unified memory]]
 - [[Rules Engine/Conditions System]]
@@ -472,21 +498,24 @@ The display column `actor` is unchanged and still a label. `actor_id` is the tru
 
 ## Where it lives
 
-- **`static/js/agent-engine.js`** (`AgentEngine`, `window.VW.agent`, `agent`) - main loop, turn orchestration, action normalization
-- **`static/js/agent/prompt-builder/`** - pure prompt functions: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`, `capture.js`
-- **`static/js/agent/turn-queue.js`** - turn ordering and advancement
-- **`static/js/agent/memory-manager.js`** (`AgentMemory`) - memory storage + reflection
-- **`static/js/agent/plan-manager.js`** - multi-step plan generation and the constrained plan repair
-- **`static/js/agent/plan-grounding.js`** - typed plan-step grounding validator (target types: paths, items, people, areas)
-- **`static/js/agent/rate-limiter.js`** - API rate limiting
-- **`static/js/context-window.js`** (`ContextWindowManager`) - token budget and context pruning
-- **`static/js/agent/response-parser.js`** - parse/validate LLM JSON output
-- **`static/js/agent/action-normalizer.js`** - normalize structured actions into `/api/action` commands
-- **`static/js/agent/threat-detector.js`** - flag nearby threats for replanning
-- **`static/js/agent/human-turn-composer.js`** - human-turn composer drive path
-- **`static/js/agent/turn-scene-view.js`** - render current turn scene for the event stream
-- **`static/js/agent/involuntary.js`** - involuntary reactions (hiccups, sneezes mid-speech)
-- **`static/js/agent/plan-tracker.js`** - `shouldReplan()` for needs/threat-driven replanning
+- **`static/js/agent-engine.ts`** (`AgentEngine`, `window.VW.agent`, `agent`) - main loop, turn orchestration, affect dispatch (`_applyFeltEmotion`), inner monologue persistence (`_persistInnerMonologue`)
+- **`static/js/agent/prompt-builder/`** - prompt builders: `system-prompt.ts`, `turn-prompts.ts`, `character-state.ts`, `conversation-context.ts`, `memory-context.ts`, `context-sections.ts`, `schema-fragments.ts`, `helpers.ts`, `room-context.ts`, `contextual-actions.ts`, `capture.ts`, `index.ts`
+- **`static/js/agent/turn-queue.ts`** - turn ordering, pause/inert filtering, and advancement
+- **`static/js/agent/memory-manager.ts`** (`AgentMemory`) - memory storage + reflection
+- **`static/js/agent/plan-manager.ts`** - typed multi-step plan generation, MOSIAC + GIMP goal wiring, and constrained plan repair
+- **`static/js/agent/plan-grounding.ts`** - typed plan-step grounding validator (target types: paths, items, people, areas)
+- **`static/js/agent/plan-tracker.ts`** - step progress, failure tracking, pursuit seeding, and `shouldReplan()`
+- **`static/js/agent/rate-limiter.ts`** - API rate limiting
+- **`static/js/context-window.ts`** (`ContextWindowManager`) - token budget and context pruning
+- **`static/js/agent/response-parser.ts`** - parse/validate LLM JSON output and multi-emotion impulses
+- **`static/js/agent/action-normalizer.ts`** - normalize structured actions into `/api/action` commands
+- **`static/js/agent/action-interpreter.ts`** (`ActionInterpreter`) - two-stage prose-to-action translation
+- **`static/js/agent/threat-detector.ts`** - flag nearby threats for replanning
+- **`static/js/agent/human-turn-composer.ts`** - human-turn composer drive path
+- **`static/js/agent/turn-scene-view.ts`** - render current turn scene for the event stream
+- **`static/js/agent/involuntary.ts`** - involuntary reactions (hiccups, sneezes mid-speech)
+- **`static/js/shared/json-schemas.ts`** (`StructuredFormats`) - strict JSON schemas (`agentAction`, `agentReact`, `plan`, `insights`, etc.)
+- **`static/js/agent/action-verbs.generated.js`** - generated executor verb registry (mirrored from `engine/action_verbs.py`)
 - **`routes/action.py`** - `/api/action` endpoint (agents use the same endpoint as humans)
 - **`engine/narration.py`** - `SPEECH_VERBS` for server-side hearing report
 - **`engine/speech.py`** - `speech_level` stamping on hearing entries

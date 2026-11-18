@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "task-953",
+  "kind": "task",
+  "number": 953,
+  "title": "Cross-area item throwing across ways, fences, and open boundaries",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "items",
+    "ways",
+    "actions",
+    "triggers"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-955"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Implement cross-area item throwing (`throw <item> to/over <way|area>`) across the engine, way barrier rules, action verbs registry, and agent/UI action menus so actors and triggers can throw held items over fences, onto adjacent roofs, or through open/transparent ways into neighboring areas.",
+    "why": "Right now `\"on_throw\"` exists in `engine/triggers/constants.py` and `trigger-types.ts`, while `engine/triggers/behaviors.py` (`action_type == \"throw\"`) only drops the item in the actor's current area. High-stakes scenes (such as tossing disarmed weapon parts over a fence onto a shed roof, throwing something away into woods, or tossing supplies/light across an opening) have no cross-area throw mechanic.",
+    "how": "1. Declare throw traversal rules on ways in `tools/way_properties.py` (reusing `current_state`, `see_through`, `max_size`, `prevent_close`, and `requires` climb/jump barriers so outdoor fences, low walls, and open/glazed openings share one canonical rule set).\\n2. Add a shared `throw_item(player_manager, item_name, target_ref)` helper in `engine/items/take_drop_actions.py` that validates portability, resolves `target_ref` to an adjacent way or connected area (plus optional in-room target fallthrough), checks barrier/size/weight passability, runs `on_unequip` + `on_throw`, moves the item's edge to `EDGE_IN` on the destination area, and records sound + `turn_event` entries in both origin and landing areas.\\n3. Update `engine/triggers/behaviors.py` (`action_type == \"throw\"`) to delegate to the shared helper instead of calling `drop_item()` in the origin area.\\n4. Register `throw` in `engine/action_verbs.py` (regenerate `action-verbs.generated.js`), `routes/action_handlers.py` (`_VERBS_NEEDING_TARGET`, `handle_validate_action`, command dispatch), `ActionNormalizer`, `PlanGrounding` (grounding `throw` on carried/held items and exits), `contextual-actions.ts`, `engine/triggers/ui.py`, and `TurnSceneView` item menus.",
+    "verify": "1. Run pytest unit/integration tests covering throwing carried/equipped items through open doorways, through see-through openings, over outdoor fences (`prevent_close` / climbable ways), and blocked refusal against sealed opaque walls, plus verifying `on_throw` triggers and destination sound propagation.\\n2. Run JS unit tests for `ActionNormalizer`, `PlanGrounding`, and `contextual-actions` verifying `throw <item> to <exit>` / `throw <item> over <way>`.\\n3. Run `python tools/way_property_index.py --check` and `npm run build:ts` cleanly.",
+    "acceptance": [
+      {
+        "text": "Carrying or wearing an item lets an actor throw it toward a valid way or adjacent area (`throw <item> to/over <way|area>`), moving its placement edge (`EDGE_IN`) cleanly from holder to the destination area while firing `on_unequip` (if equipped) and `on_throw` triggers.",
+        "done": false
+      },
+      {
+        "text": "Way throwing gates honor `tools/way_properties.py` semantics: open/see-through passages, climbable/jumpable outdoor barriers (such as chain-link fences or open-sky boundaries with `prevent_close`), and `max_size` item-fit checks allow throws (or gate high obstacles cleanly), while solid sealed/opaque ways refuse with natural feedback.",
+        "done": false
+      },
+      {
+        "text": "Landing items emit sound cues and turn_events in both source and destination areas so witnesses perceive the toss and arrival, and `engine/triggers/behaviors.py` (`action_type == \"throw\"`) delegates to this shared helper instead of dropping in-place.",
+        "done": false
+      },
+      {
+        "text": "`\"throw\"` is registered in `engine/action_verbs.py`, regenerated in `static/js/agent/action-verbs.generated.ts`, and supported across `routes/action_handlers.py`, `ActionNormalizer`, `PlanGrounding`, `contextual-actions.ts`, `engine/triggers/ui.py`, and `TurnSceneView` item menus.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/action_verbs.py",
+      "engine/items/take_drop_actions.py",
+      "engine/movement.py",
+      "engine/barriers.py",
+      "engine/triggers/behaviors.py",
+      "engine/triggers/ui.py",
+      "routes/action_handlers.py",
+      "tools/way_properties.py",
+      "static/js/agent/action-verbs.generated.ts",
+      "static/js/agent/action-normalizer.ts",
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts",
+      "static/js/agent/turn-scene-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Human Turn Composer and Turn Scene View (`static/js/agent/turn-scene-view.ts` item action menus) plus Inspector Way view (`static/js/inspector/way-view.ts`).\\n\\nCurrent availability: `\"on_throw\"` exists in trigger UI (`static/js/shared/trigger-types.ts`), while `TurnSceneView` item menus and command autocomplete currently omit a cross-area `throw` verb and destination-way picker.\\n\\nManual verification steps:\\n1. Start server and open an area connected by both an open/see-through or climbable outdoor way (`chain_link_fence`) and a sealed opaque door.\\n2. With a portable item carried/equipped, open the item's menu in Turn Scene View or enter `throw <item> over <way>` in the turn composer.\\n   - expected: Open/fence throws move the item node to the destination area's floor and log events in both areas; sealed opaque doors refuse cleanly without moving the item."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/Way Properties]]",
+      "[[Features/take-drop-give]]",
+      "[[Items & Inventory/Item & Action Model]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-17T21:53:36Z"
+    }
+  ]
+}

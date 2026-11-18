@@ -16,20 +16,24 @@
     'use strict';
 
     const VALID_VERBS = [
+    "answer",
     "approach",
     "attack",
     "bath",
     "bathe",
     "bind",
+    "call",
     "check",
     "climb",
     "close",
     "collect",
     "combine",
+    "conceal",
     "consume",
     "craft",
     "crawl",
     "dash",
+    "disarm",
     "disengage",
     "do",
     "dress",
@@ -57,6 +61,8 @@
     "grope",
     "guess",
     "hand",
+    "hangup",
+    "hide",
     "hit",
     "i",
     "ignite",
@@ -79,6 +85,7 @@
     "make",
     "manifest",
     "meditate",
+    "message",
     "move",
     "name",
     "nothing",
@@ -98,6 +105,7 @@
     "relieve",
     "remove",
     "rest",
+    "reveal",
     "say",
     "schedule",
     "scream",
@@ -107,6 +115,7 @@
     "sit",
     "sleep",
     "snatch",
+    "sneak",
     "speak",
     "split",
     "stand",
@@ -122,10 +131,14 @@
     "take",
     "talk",
     "teach",
+    "text",
+    "throw",
     "toggle",
+    "toss",
     "treat",
     "undress",
     "unequip",
+    "unhide",
     "unlock",
     "use",
     "use_on",
@@ -153,6 +166,7 @@
 ];
 
     const ALL_VERBS = [
+    "answer",
     "approach",
     "attack",
     "bath",
@@ -160,16 +174,19 @@
     "bind",
     "bite",
     "blow",
+    "call",
     "caress",
     "check",
     "climb",
     "close",
     "collect",
     "combine",
+    "conceal",
     "consume",
     "craft",
     "crawl",
     "dash",
+    "disarm",
     "disengage",
     "do",
     "dress",
@@ -197,6 +214,8 @@
     "grope",
     "guess",
     "hand",
+    "hangup",
+    "hide",
     "hit",
     "i",
     "ignite",
@@ -221,6 +240,7 @@
     "make",
     "manifest",
     "meditate",
+    "message",
     "move",
     "name",
     "nothing",
@@ -241,6 +261,7 @@
     "relieve",
     "remove",
     "rest",
+    "reveal",
     "say",
     "schedule",
     "scream",
@@ -250,6 +271,7 @@
     "sit",
     "sleep",
     "snatch",
+    "sneak",
     "speak",
     "split",
     "stand",
@@ -266,11 +288,15 @@
     "take",
     "talk",
     "teach",
+    "text",
+    "throw",
     "tickle",
     "toggle",
+    "toss",
     "treat",
     "undress",
     "unequip",
+    "unhide",
     "unlock",
     "use",
     "use_on",
@@ -451,6 +477,64 @@
         "scope": "movement",
         "target_schema": "none",
         "cost_key": "minor",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "hide": {
+        "id": "hide",
+        "aliases": [
+            "sneak",
+            "conceal"
+        ],
+        "scope": "movement,self",
+        "target_schema": "target",
+        "cost_key": "minor",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "sneak": {
+        "id": "hide",
+        "aliases": [
+            "sneak",
+            "conceal"
+        ],
+        "scope": "movement,self",
+        "target_schema": "target",
+        "cost_key": "minor",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "conceal": {
+        "id": "hide",
+        "aliases": [
+            "sneak",
+            "conceal"
+        ],
+        "scope": "movement,self",
+        "target_schema": "target",
+        "cost_key": "minor",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "unhide": {
+        "id": "unhide",
+        "aliases": [
+            "reveal"
+        ],
+        "scope": "movement,self",
+        "target_schema": "none",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "reveal": {
+        "id": "unhide",
+        "aliases": [
+            "reveal"
+        ],
+        "scope": "movement,self",
+        "target_schema": "none",
+        "cost_key": "free",
         "mature_gate": false,
         "bracket_order": null
     },
@@ -805,6 +889,28 @@
         "mature_gate": false,
         "bracket_order": 11
     },
+    "throw": {
+        "id": "throw",
+        "aliases": [
+            "toss"
+        ],
+        "scope": "item",
+        "target_schema": "item_target",
+        "cost_key": "major",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "toss": {
+        "id": "throw",
+        "aliases": [
+            "toss"
+        ],
+        "scope": "item",
+        "target_schema": "item_target",
+        "cost_key": "major",
+        "mature_gate": false,
+        "bracket_order": null
+    },
     "put": {
         "id": "put",
         "aliases": [
@@ -1125,6 +1231,55 @@
         "mature_gate": false,
         "bracket_order": null
     },
+    "call": {
+        "id": "call",
+        "aliases": [],
+        "scope": "social",
+        "target_schema": "target",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "answer": {
+        "id": "answer",
+        "aliases": [],
+        "scope": "social",
+        "target_schema": "none",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "hangup": {
+        "id": "hangup",
+        "aliases": [],
+        "scope": "social",
+        "target_schema": "none",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "text": {
+        "id": "text",
+        "aliases": [
+            "message"
+        ],
+        "scope": "social",
+        "target_schema": "target",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "message": {
+        "id": "text",
+        "aliases": [
+            "message"
+        ],
+        "scope": "social",
+        "target_schema": "target",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
     "give": {
         "id": "give",
         "aliases": [
@@ -1269,6 +1424,15 @@
             "strike",
             "punch"
         ],
+        "scope": "combat",
+        "target_schema": "target",
+        "cost_key": "major",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "disarm": {
+        "id": "disarm",
+        "aliases": [],
         "scope": "combat",
         "target_schema": "target",
         "cost_key": "major",

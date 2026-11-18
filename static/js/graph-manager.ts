@@ -259,6 +259,8 @@ class GraphManagerImpl {
             this._cardinalLayout = false;
         }
         this._syncMapSpacingButton();
+        this._syncEdgeLabelSizeInput();
+        this._bindStepperInputs();
         this._watchScopeChanges();
     }
 
@@ -788,9 +790,26 @@ class GraphManagerImpl {
      * wants 40px/cell on a 200-cell world has to keep 40px/cell through reloads
      * and scope switches. `setAutoMapSpacing(true)` hands the pitch back.
      */
-    async setMapSpacing(delta: number) {
-        const current = this._mapSpacingValue();
-        const next = Math.max(20, Math.min(1000, Math.round(current + Number(delta || 0))));
+    /**
+     * Adjust or set the map spacing (px per cell). When `isDelta` is true
+     * (default), `valueOrDelta` is added to the current spacing (for - / +
+     * buttons). When `isDelta` is false, `valueOrDelta` is applied directly as
+     * an absolute spacing value.
+     */
+    async setMapSpacing(valueOrDelta: number, isDelta: boolean = true) {
+        let raw: number;
+        if (isDelta) {
+            const current = this._mapSpacingValue();
+            raw = current + Number(valueOrDelta || 0);
+        } else {
+            const parsed = Number(valueOrDelta);
+            if (!Number.isFinite(parsed)) {
+                this._syncMapSpacingButton();
+                return;
+            }
+            raw = parsed;
+        }
+        const next = Math.max(20, Math.min(1000, Math.round(raw)));
         if (typeof config !== 'undefined' && config) {
             config.graphMapSpacing = next;
             config.graphMapSpacingAuto = false;
@@ -808,7 +827,7 @@ class GraphManagerImpl {
         await this.loadGraphData();
         // The art is positioned in px, so a pitch change must re-fit it. With a
         // scope selected that is `fitToPaintedGrid` (which also *saves* the fitted
-        // rect — what a deliberate nudge wants). In the whole-world view there is
+        // rect - what a deliberate nudge wants). In the whole-world view there is
         // no single grid for it to fit to, so every mounted reference is
         // re-derived from its own scope instead, without writing the world.
         if (this._cardinalLayout && window.GraphBackground) {
@@ -857,19 +876,71 @@ class GraphManagerImpl {
      * a first nudge on an already-chosen number.
      */
     _syncMapSpacingButton() {
-        const el = document.getElementById('map-spacing');
+        const el = document.getElementById('map-spacing') as HTMLInputElement | HTMLElement | null;
+        const val = String(this._mapSpacingValue());
         if (el) {
-            el.textContent = this._mapSpacingAuto
-                ? `${this._mapSpacingValue()} auto`
-                : String(this._mapSpacingValue());
+            if (el.tagName === 'INPUT' || 'value' in el) {
+                (el as HTMLInputElement).value = val;
+            } else {
+                el.textContent = this._mapSpacingAuto ? `${val} auto` : val;
+            }
+            el.title = this._mapSpacingAuto
+                ? `Auto pitch (${val}px). Type a number to override.`
+                : `Manual pitch (${val}px).`;
         }
         const autoBtn = document.getElementById('map-spacing-auto');
         if (autoBtn) {
             autoBtn.setAttribute('aria-pressed', this._mapSpacingAuto ? 'true' : 'false');
             autoBtn.title = this._mapSpacingAuto
-                ? 'Pitch is derived from the canvas size. Click to fix it and use − / +.'
+                ? 'Pitch is derived from the canvas size. Click to fix it and use - / +.'
                 : 'Pitch is yours. Click to derive it from the canvas size again.';
         }
+    }
+
+    /**
+     * Parse and commit a directly typed value from `#map-spacing`.
+     * Rejects empty or non-numeric strings gracefully by restoring the current value.
+     */
+    commitMapSpacingInput(raw: string): boolean {
+        const trimmed = String(raw ?? '').trim();
+        if (!trimmed || !/^-?\d+(\.\d+)?$/.test(trimmed)) {
+            this._syncMapSpacingButton();
+            return false;
+        }
+        const num = Number(trimmed);
+        if (!Number.isFinite(num)) {
+            this._syncMapSpacingButton();
+            return false;
+        }
+        void this.setMapSpacing(num, false);
+        return true;
+    }
+
+    /**
+     * Bind change and Enter key handlers on the `#map-spacing` and
+     * `#edge-label-size` stepper inputs for direct numeric entry.
+     */
+    _bindStepperInputs() {
+        const bind = (id: string, commit: (val: string) => boolean, sync: () => void) => {
+            const el = document.getElementById(id) as HTMLInputElement | null;
+            if (!el || (el.dataset && el.dataset.stepperBound === '1')) return;
+            if (el.dataset) el.dataset.stepperBound = '1';
+            el.addEventListener('change', () => {
+                commit(el.value);
+            });
+            el.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commit(el.value);
+                    if (typeof el.blur === 'function') el.blur();
+                } else if (e.key === 'Escape') {
+                    sync();
+                    if (typeof el.blur === 'function') el.blur();
+                }
+            });
+        };
+        bind('map-spacing', (v) => this.commitMapSpacingInput(v), () => this._syncMapSpacingButton());
+        bind('edge-label-size', (v) => this.commitEdgeLabelSizeInput(v), () => this._syncEdgeLabelSizeInput());
     }
 
     _buildTooltip(nodeData: any) { return GraphNetwork.buildTooltip(nodeData); }
@@ -1613,12 +1684,57 @@ class GraphManagerImpl {
         GraphNetwork.applyNodeLabelVisibility(true);
     }
 
-    setEdgeLabelSize(delta: number) {
-        this._edgeLabelSize = Math.max(4, Math.min(20, this._edgeLabelSize + delta));
-        const out = document.getElementById('edge-label-size');
-        if (out) out.textContent = String(this._edgeLabelSize);
+    /**
+     * Adjust or set the edge label font size (px). When `isDelta` is true
+     * (default), `valueOrDelta` is added to the current size. When false, it is
+     * applied directly as an absolute size.
+     */
+    setEdgeLabelSize(valueOrDelta: number, isDelta: boolean = true) {
+        let raw: number;
+        if (isDelta) {
+            raw = this._edgeLabelSize + Number(valueOrDelta || 0);
+        } else {
+            const parsed = Number(valueOrDelta);
+            if (!Number.isFinite(parsed)) {
+                this._syncEdgeLabelSizeInput();
+                return;
+            }
+            raw = parsed;
+        }
+        this._edgeLabelSize = Math.max(4, Math.min(20, Math.round(raw)));
+        this._syncEdgeLabelSizeInput();
         this._lastSig = '';
         this.loadGraphData();
+    }
+
+    _syncEdgeLabelSizeInput() {
+        const out = document.getElementById('edge-label-size') as HTMLInputElement | HTMLElement | null;
+        if (!out) return;
+        const val = String(this._edgeLabelSize);
+        if (out.tagName === 'INPUT' || 'value' in out) {
+            (out as HTMLInputElement).value = val;
+        } else {
+            out.textContent = val;
+        }
+    }
+
+    /**
+     * Parse and commit a directly typed value from `#edge-label-size`.
+     * Rejects empty or non-numeric strings gracefully by restoring the current value.
+     */
+    commitEdgeLabelSizeInput(raw: string): boolean {
+        const trimmed = String(raw ?? '').trim();
+        if (!trimmed || !/^-?\d+(\.\d+)?$/.test(trimmed)) {
+            this._syncEdgeLabelSizeInput();
+            return false;
+        }
+        const num = Number(trimmed);
+        if (!Number.isFinite(num)) {
+            this._syncEdgeLabelSizeInput();
+            return false;
+        }
+        this.setEdgeLabelSize(num, false);
+        return true;
     }
 
     // --- Storey (floor) filter ---

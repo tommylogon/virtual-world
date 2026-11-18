@@ -53,8 +53,8 @@ const StructuredFormats = (() => {
         required: ['fear', 'affection', 'disgust', 'anger', 'trust', 'envy', 'familiarity', 'respect', 'closeness']
     };
 
-    const EMOTION = {
-        type: ['object', 'null'],
+    const EMOTION_ITEM = {
+        type: 'object',
         additionalProperties: false,
         properties: {
             label: NULLABLE_STR,
@@ -62,6 +62,17 @@ const StructuredFormats = (() => {
             toward: NULLABLE_STR
         },
         required: ['label', 'intensity', 'toward']
+    };
+
+    const EMOTION = {
+        anyOf: [
+            { type: 'null' },
+            EMOTION_ITEM,
+            {
+                type: 'array',
+                items: EMOTION_ITEM
+            }
+        ]
     };
 
     const MEMORY = {
@@ -133,7 +144,24 @@ const StructuredFormats = (() => {
         }
     };
 
-    /** plan — strict schemas require an object root, hence the steps wrapper. */
+    /** Typed plan step (agent/plan-manager + agent/plan-grounding). */
+    const PLAN_STEP = {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+            act: { type: 'string' },
+            item: NULLABLE_STR,
+            target: NULLABLE_STR,
+            text: NULLABLE_STR,
+            note: NULLABLE_STR,
+            area: NULLABLE_STR,
+            until: NULLABLE_STR,
+            duration: { type: ['number', 'null'] }
+        },
+        required: ['act', 'item', 'target', 'text', 'note', 'area', 'until', 'duration']
+    };
+
+    /** plan - strict schemas require an object root, hence the steps wrapper. */
     const plan = {
         name: 'plan',
         strict: true,
@@ -141,7 +169,7 @@ const StructuredFormats = (() => {
             type: 'object',
             additionalProperties: false,
             properties: {
-                steps: { type: 'array', items: { type: 'string' } }
+                steps: { type: 'array', items: PLAN_STEP }
             },
             required: ['steps']
         }

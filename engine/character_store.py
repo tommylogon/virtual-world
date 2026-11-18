@@ -15,6 +15,8 @@ AUTHORED_DEFINITION_KEYS = (
     "base_description",
     "description",
     "traits",
+    "languages",
+    "domains",
     "tags",
     "interest_tags",
     "fear_tags",
@@ -35,6 +37,12 @@ def to_node_properties(player: Player, existing_props: Optional[Dict[str, Any]] 
             props[key] = val
     if getattr(player, "traits", None):
         props["traits"] = dict(player.traits)
+    if getattr(player, "languages", None):
+        from engine.character_appearance import normalize_languages
+        props["languages"] = normalize_languages(player.languages)
+    if getattr(player, "domains", None):
+        from engine.character_appearance import normalize_domains
+        props["domains"] = normalize_domains(player.domains)
     if getattr(player, "tags", None) is not None:
         props["tags"] = list(player.tags)
     if getattr(player, "interest_tags", None):
@@ -70,6 +78,24 @@ def apply_node_properties(
         player.traits = dict(props["traits"])
     elif pdata.get("traits"):
         player.traits = dict(pdata["traits"])
+
+    if props.get("languages") is not None:
+        from engine.character_appearance import normalize_languages
+        player.languages = normalize_languages(props["languages"])
+    elif pdata.get("languages") is not None:
+        from engine.character_appearance import normalize_languages
+        player.languages = normalize_languages(pdata["languages"])
+
+    persona_cap = (props.get("persona") or {}).get("capabilities") or {}
+    if props.get("domains") is not None:
+        from engine.character_appearance import normalize_domains
+        player.domains = normalize_domains(props["domains"])
+    elif pdata.get("domains") is not None:
+        from engine.character_appearance import normalize_domains
+        player.domains = normalize_domains(pdata["domains"])
+    elif persona_cap.get("domains") is not None:
+        from engine.character_appearance import normalize_domains
+        player.domains = normalize_domains(persona_cap["domains"])
 
     if props.get("tags") is not None:
         player.tags = list(props["tags"])
@@ -157,8 +183,40 @@ def apply_node_properties(
                     tags=["biography", stage],
                     source="backstory",
                     category="semantic",
+                    kind="semantic",
                 )
                 existing_texts.add(full_text)
+
+    # task-968: hydrate tagged semantic school/family/hobby/trade backstory seeds
+    knowledge_seeds = narrative.get("knowledge_seeds") or props.get("knowledge_seeds") or []
+    if isinstance(knowledge_seeds, list) and knowledge_seeds and hasattr(player, "add_memory") and hasattr(player, "memories"):
+        existing_texts = {m.get("text", "") for m in (player.memories or [])}
+        for seed in knowledge_seeds:
+            if isinstance(seed, dict):
+                text = str(seed.get("text") or "").strip()
+                raw_tags = list(seed.get("tags") or [])
+                if seed.get("source_kind"):
+                    raw_tags.append(str(seed["source_kind"]).strip().lower())
+                if seed.get("domain"):
+                    raw_tags.append(str(seed["domain"]).strip().lower())
+                tags = list(dict.fromkeys(["knowledge_seed"] + [str(t).strip().lower() for t in raw_tags if str(t).strip()]))
+                importance = int(seed.get("importance") or 5)
+            else:
+                text = str(seed or "").strip()
+                tags = ["knowledge_seed", "life"]
+                importance = 5
+            if text and text not in existing_texts:
+                player.add_memory(
+                    text=text,
+                    tick=0,
+                    importance=importance,
+                    memory_type="semantic",
+                    tags=tags,
+                    source="backstory",
+                    category="semantic",
+                    kind="semantic",
+                )
+                existing_texts.add(text)
 
     secrets = narrative.get("secrets") or {}
     if isinstance(secrets, dict) and hasattr(player, "add_memory") and hasattr(player, "memories"):

@@ -21,12 +21,24 @@
         static perspective = 'User';
         static selectedChannelId = 'public';
         static theme = 'live_social';
+        static useViwoState = true;
+        static clockMode = 'scenario';
+        static activeBranchId = 'main';
+        static branches = [];
+        static anchoredClock = null;
+        static currentDatetime = null;
+        static currentTimeLabel = null;
         static knownCharacters = [];
         static actingCharacter = null;
         static lastActed = null;
         static characterTurns = {};
+        static messageTraces = {};
         static selectedDrawerCharacter = null;
+        static selectedDrawerMessageId = null;
         static characterContextCache = {};
+        static worldClock = {
+            time_ticks: 0, time_per_tick_minutes: 5, clock_start_hour: 8, clock_start_minute: 0,
+        };
         static get isPaused() {
             return this.manualPaused || this.visibilityPaused;
         }
@@ -50,6 +62,24 @@
                 const data = await api.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
+                if (data.world_clock) {
+                    this.worldClock = data.world_clock;
+                }
+                if (typeof data.use_viwo_state === 'boolean') {
+                    this.useViwoState = data.use_viwo_state;
+                }
+                if (data.clock_mode === 'standalone' || data.clock_mode === 'scenario') {
+                    this.clockMode = data.clock_mode;
+                }
+                if (typeof data.active_branch_id === 'string') {
+                    this.activeBranchId = data.active_branch_id;
+                }
+                if (Array.isArray(data.branches)) {
+                    this.branches = data.branches;
+                }
+                this.anchoredClock = data.anchored_clock || null;
+                this.currentDatetime = data.current_datetime || null;
+                this.currentTimeLabel = data.current_time_label || null;
                 agent?.reconcileParticipants?.();
                 this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
                 this.knownCharacters = Array.isArray(data.known_characters) ? data.known_characters : [];
@@ -173,13 +203,57 @@
             this.messages.push(message);
             this.emit();
         }
-        static recordTurn(charName, turn) {
+        static _linkMessageTraces(record) {
+            const detail = record.detail;
+            const ids = Array.isArray(detail?.messageIds) ? detail.messageIds : [];
+            for (const id of ids) {
+                if (id !== undefined && id !== null && id !== '') {
+                    this.messageTraces[String(id)] = record;
+                }
+            }
+        }
+        static upsertLiveTurn(charName, turnId, turn) {
             if (!this.characterTurns[charName])
                 this.characterTurns[charName] = [];
-            const record = { ...turn, timestamp: Date.now() };
+            const tickVal = this.worldClock?.time_ticks;
+            const list = this.characterTurns[charName];
+            const existingIdx = list.findIndex((r) => r.turnId === turnId);
+            const record = {
+                ...(existingIdx >= 0 ? list[existingIdx] : {}),
+                ...turn,
+                turnId,
+                timestamp: existingIdx >= 0 ? list[existingIdx].timestamp : Date.now(),
+                worldTick: typeof tickVal === 'number' && Number.isFinite(tickVal) ? tickVal : (existingIdx >= 0 ? list[existingIdx].worldTick : undefined),
+            };
+            if (existingIdx >= 0) {
+                list[existingIdx] = record;
+            }
+            else {
+                list.unshift(record);
+                if (list.length > 25)
+                    list.pop();
+            }
+            this._linkMessageTraces(record);
+            this.lastActed = { charName, action: record.action, summary: record.summary, timestamp: Date.now() };
+            this.emit();
+        }
+        static recordTurn(charName, turn) {
+            if (turn.turnId) {
+                this.upsertLiveTurn(charName, turn.turnId, turn);
+                return;
+            }
+            if (!this.characterTurns[charName])
+                this.characterTurns[charName] = [];
+            const tickVal = this.worldClock?.time_ticks;
+            const record = {
+                ...turn,
+                timestamp: Date.now(),
+                worldTick: typeof tickVal === 'number' && Number.isFinite(tickVal) ? tickVal : undefined,
+            };
             this.characterTurns[charName].unshift(record);
             if (this.characterTurns[charName].length > 25)
                 this.characterTurns[charName].pop();
+            this._linkMessageTraces(record);
             this.lastActed = { charName, action: turn.action, summary: turn.summary, timestamp: Date.now() };
             this.emit();
         }
@@ -187,10 +261,19 @@
             if (!charName || charName === 'User')
                 return;
             this.selectedDrawerCharacter = charName;
+            this.selectedDrawerMessageId = null;
+            this.emit();
+        }
+        static openDrawerForMessage(charName, messageId) {
+            if (!charName || charName === 'User')
+                return;
+            this.selectedDrawerCharacter = charName;
+            this.selectedDrawerMessageId = messageId;
             this.emit();
         }
         static closeDrawer() {
             this.selectedDrawerCharacter = null;
+            this.selectedDrawerMessageId = null;
             this.emit();
         }
     }

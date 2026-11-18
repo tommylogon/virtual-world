@@ -84,11 +84,66 @@ const InspectorTemplateSync = (() => {
     const wasLinked = !libId && brokenFrom
       ? `<div style="flex-basis:100%;font-size:9px;color:var(--text-muted);">was linked to <code>${esc(brokenFrom)}</code> - this copy no longer syncs</div>`
       : '';
+    const cfg = CONFIG[type];
+    const saveBtn = (cfg && typeof cfg.save === 'function')
+      ? `<button class="btn btn-sm btn-yellow" onclick="InspectorTemplateSync.saveToLibrary('${type}','${esc(nodeId)}')" title="Save this ${esc(type)} to the library">💾 Save to Library</button>`
+      : '';
     return `<input id="${sid}" list="${sidList}" placeholder="Search or pick a library template..." value="${esc(libId)}" title="Library template this node syncs against - type to search" style="flex:1;min-width:140px;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" />
       <datalist id="${sidList}"></datalist>
       ${badges}
       <button class="btn btn-sm btn-green" onclick="InspectorTemplateSync.refreshFromLibrary('${type}','${esc(nodeId)}')">🔄 Refresh from Library</button>
+      ${saveBtn}
       ${breakBtn}${wasLinked}`;
+  }
+
+  /**
+   * Deduplicate library entries that share the same display name (e.g. legacy
+   * short alias 'kyrie' alongside canonical 'kyrie johansen'), preserving the
+   * currently linked `currentId` if present.
+   */
+  function dedupeLibraryEntries(
+    libData: Record<string, TemplateSyncLibraryEntry>,
+    currentId: string = ''
+  ): Array<[string, TemplateSyncLibraryEntry]> {
+    const byName = new Map<string, Array<[string, TemplateSyncLibraryEntry]>>();
+    for (const [id, entry] of Object.entries(libData || {})) {
+      const key = String(entry?.name || id).trim().toLowerCase();
+      if (!byName.has(key)) byName.set(key, []);
+      byName.get(key)!.push([id, entry]);
+    }
+    const result: Array<[string, TemplateSyncLibraryEntry]> = [];
+    for (const [nameKey, entries] of byName.entries()) {
+      if (entries.length === 1) {
+        result.push(entries[0]);
+        continue;
+      }
+      const normalizedUnderscore = nameKey.replace(/\s+/g, '_');
+      const ranked = [...entries].sort((a, b) => {
+        const aCur = a[0] === currentId ? 1 : 0;
+        const bCur = b[0] === currentId ? 1 : 0;
+        if (aCur !== bCur) return bCur - aCur;
+        const aExact = (a[0].toLowerCase() === nameKey || a[0].toLowerCase() === normalizedUnderscore) ? 1 : 0;
+        const bExact = (b[0].toLowerCase() === nameKey || b[0].toLowerCase() === normalizedUnderscore) ? 1 : 0;
+        if (aExact !== bExact) return bExact - aExact;
+        return b[0].length - a[0].length;
+      });
+      result.push(ranked[0]);
+      if (currentId && ranked[0][0] !== currentId) {
+        const curMatch = entries.find(([id]) => id === currentId);
+        if (curMatch) result.push(curMatch);
+      }
+    }
+    return result;
+  }
+
+  async function saveToLibrary(type: string, nodeId: string) {
+    const cfg = CONFIG[type];
+    if (!cfg || typeof cfg.save !== 'function') {
+      toastInfo(`Save to library is not wired for "${type}".`);
+      return;
+    }
+    const node = worldState.getNode(nodeId);
+    await cfg.save(nodeId, node);
   }
 
   /**
@@ -149,7 +204,7 @@ const InspectorTemplateSync = (() => {
     } catch (e) { /* ignore */ }
     if (list) {
       const opts: HTMLOptionElement[] = [];
-      for (const [id, entry] of Object.entries(libData)) {
+      for (const [id, entry] of dedupeLibraryEntries(libData, current)) {
         const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
         const opt = document.createElement('option');
         opt.value = id;
@@ -198,6 +253,7 @@ const InspectorTemplateSync = (() => {
       // so `to-world` direction protects world data from empty library values.
       direction: 'to-world'
     });
+    if (!result) return;
     const hasWhole = (result.sections && result.sections.length) > 0;
     const hasEntries = result.entries && Object.keys(result.entries).length > 0;
     if (!hasWhole && !hasEntries) return;
@@ -209,7 +265,7 @@ const InspectorTemplateSync = (() => {
     events.log(`Refreshed "${node.name}" from library: ${(data.applied || []).join(', ')}`, 'system-msg');
   }
 
-  return { register, renderTemplateRow, populateSelector, refreshFromLibrary, breakTemplateLink };
+  return { register, renderTemplateRow, populateSelector, refreshFromLibrary, saveToLibrary, breakTemplateLink, dedupeLibraryEntries };
 })();
 (window as unknown as { InspectorTemplateSync: typeof InspectorTemplateSync }).InspectorTemplateSync = InspectorTemplateSync;
 
@@ -230,6 +286,7 @@ interface TemplateSyncConfig {
     buildWorldPayload(nodeId: string, node: unknown): unknown;
     sections: Array<{ key: string; label: string }>;
     title?: string;
+    save?: (nodeId: string, node: unknown) => unknown;
 }
 
 /** The ApiClient endpoints this module needs beyond the declared shared shape. */

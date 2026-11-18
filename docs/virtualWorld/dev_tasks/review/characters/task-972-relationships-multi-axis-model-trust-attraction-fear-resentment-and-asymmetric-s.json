@@ -13,7 +13,7 @@
     "prompting"
   ],
   "created": "2026-11-16",
-  "updated": "2026-11-16",
+  "updated": "2026-11-17",
   "horizon": "",
   "effort": "medium",
   "goal": "Replace flat single-scalar closeness with multi-axis, asymmetric relationship state",
@@ -22,7 +22,8 @@
     "blocked_by": [],
     "depends_on": [],
     "related": [
-      "task-423"
+      "task-423",
+      "task-982"
     ],
     "parent": null,
     "children": [],

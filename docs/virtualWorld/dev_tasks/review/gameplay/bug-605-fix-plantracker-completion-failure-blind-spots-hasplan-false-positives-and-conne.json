@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "bug-605",
+  "kind": "bug",
+  "number": 605,
+  "title": "Fix PlanTracker completion/failure blind spots, hasPlan() false positives, and connect PlanManager.generate to Goals, Obligations, Schedule, and MOSIAC",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "planning",
+    "mosiac",
+    "goals",
+    "obligations",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-589",
+      "bug-590",
+      "bug-598",
+      "task-700"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix three planning/tracker disconnects: repeated step failures never triggering warnings/replans, completed plans failing to trigger replanning while hasPlan() stays true, and PlanManager.generate() omitting goals, mosiac (obligations/schedule/motivation), and relationships while double-reinforcing memories.",
+    "why": "In static/js/agent/plan-tracker.ts (lines 71-77), trackStep() resets planFailures[idx]=0 and increments planProgress on the 3rd failure, making shouldReplan()'s check `(planFailures[idx] || 0) >= 3` (lines 127-129) unreachable. Simultaneously character-state.ts buildPlanContext (line 654) filters `Number(stepIndex) < progress` (completed past steps) instead of `=== progress`. Meanwhile shouldReplan never checks `idx >= plan.length` and hasPlan() (helpers.ts line 268, plan-manager.ts line 470) ignores progress, keeping completed plans marked active. Finally, PlanManager.generate() (lines 216, 268-292) calls buildMemoryContext without { preview: true } (double-reinforcing memories) and omits player.goals, player.mosiac, and relationships completely.",
+    "how": "1. Fix PlanTracker.shouldReplan (static/js/agent/plan-tracker.ts lines 106-131) to return a replan reason when `progress >= plan.length` (all steps finished) and when active goals/obligations change cleanly.\n2. Update PromptBuilder.hasPlan (helpers.ts lines 265-269) and PlanManager.hasPlan (plan-manager.ts lines 469-471) to check `plan.length > 0 && progress < plan.length`, matching their JSDoc contracts so finished plans stop emitting active-plan guides.\n3. Align failure counting across trackStep (plan-tracker.ts lines 69-78), shouldReplan (lines 127-129), and buildPlanContext (character-state.ts lines 653-659): check `Number(stepIndex) === progress` in buildPlanContext and stop clearing `planFailures[idx]` before `shouldReplan` / prompt warning can inspect it.\n4. Inject `player.goals` (active GIMP goals), `player.mosiac` (`M`, `I`, active/offered obligations, `S` schedule), and `relationships` into `PlanManager.generate()` (plan-manager.ts lines 268-292), and pass `{ preview: true }` (or pre-fetched memory context) instead of mutating memory reinforcements during planning.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs covering PlanTracker.shouldReplan on finished plans and failed steps, buildPlanContext current-step failure warnings, hasPlan(progress >= length) === false, and PlanManager prompt inclusion of goals/mosiac/preview:true.",
+    "acceptance": [
+      {
+        "text": "PlanTracker.trackStep and shouldReplan preserve repeated-failure detection without resetting planFailures before shouldReplan reads it, and character-state.ts buildPlanContext checks stepIndex === progress so the stuck-step prompt warning actually triggers for the active step.",
+        "done": false
+      },
+      {
+        "text": "PlanTracker.shouldReplan triggers replanning when progress >= plan.length (all steps done), and PromptBuilder.hasPlan / PlanManager.hasPlan return false once all steps are completed.",
+        "done": false
+      },
+      {
+        "text": "PlanManager.generate injects active player.goals, player.mosiac (Motivation, Intention, Active Obligations, Pending Offers, Schedule), and relationships into the planning prompt, and calls PromptBuilder.buildMemoryContext(charName, { preview: true }) (or reuses turn-start memoryNL) without double-reinforcing memories.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/plan-tracker.ts",
+      "static/js/agent/plan-manager.ts",
+      "static/js/agent/prompt-builder/character-state.ts",
+      "static/js/agent/prompt-builder/helpers.ts",
+      "static/js/agent/prompt-builder/context-sections.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal Prompt Preview (`=== YOUR PLAN ===`, planning prompts) and Character Inspector -> Mind panel.\n\nCurrent availability: PlanTracker.trackStep resets planFailures[idx]=0 on fail 3 while advancing progress; buildPlanContext filters failures with < progress instead of === progress; shouldReplan ignores progress >= plan.length; PlanManager.generate ignores player.goals, mosiac, and relationships while mutating memory reinforcements via buildMemoryContext(charName).\n\nManual verification steps:\n1. Give an NPC an active GIMP goal, accepted obligation, schedule step, and a 2-step plan; complete step 1 and step 2 (or fail the current step twice/three times).\n2. Inspect the next turn's shouldReplan result, buildPlanGuide/buildPlanContext prompt block, and PlanManager prompt.\n   - expected: Completed plans immediately trigger replan and stop claiming an active plan; repeated failures surface on the active step; PlanManager prompt sees active goals, obligations, schedule, and mosiac motivation without double-reinforcing memories."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]",
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

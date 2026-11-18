@@ -47,4 +47,28 @@
         });
         assertTrue(brokenHtml.includes('was linked to <code>iron_dagger</code> - this copy no longer syncs'), 'displays broken provenance');
     });
+
+    test('InspectorTemplateSync dedupeLibraryEntries and unified Save button (task-983)', () => {
+        const deduped = TS.dedupeLibraryEntries({
+            kyrie: { name: 'kyrie johansen' },
+            'kyrie johansen': { name: 'kyrie johansen' },
+            zoe: { name: 'zoe mercer' },
+        });
+        assertEq(deduped.length, 2, 'collapses duplicate entries sharing same name');
+        assertEq(deduped[0][0], 'kyrie johansen', 'prefers canonical name key');
+
+        const keepCurrent = TS.dedupeLibraryEntries({
+            kyrie: { name: 'kyrie johansen' },
+            'kyrie johansen': { name: 'kyrie johansen' },
+        }, 'kyrie');
+        assertEq(keepCurrent[0][0], 'kyrie', 'preserves currently linked alias id');
+
+        TS.register('way', {
+            buildWorldPayload: () => ({}),
+            sections: [],
+            save: () => {},
+        });
+        const unifiedHtml = TS.renderTemplateRow('way', 'way_1', {});
+        assertTrue(unifiedHtml.includes('Save to Library'), 'renders unified Save to Library button when save handler is registered');
+    });
 })();

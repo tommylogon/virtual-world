@@ -13,6 +13,7 @@ from player import Player
 
 from engine.commons import (
     COMMONS_THEMES,
+    Commons,
     DEFAULT_COMMONS_THEME,
     ChatAuthorizationError,
     PUBLIC_CHANNEL_ID,
@@ -30,8 +31,30 @@ def register_commons_routes(app):
     def _unavailable_group():
         return jsonify({"error": "Group conversations are unavailable in town-board mode"}), 403
 
+    def _is_standalone():
+        return not bool(getattr(app, "_commons_use_viwo_state", True))
+
+    def _ensure_standalone_chat(world):
+        chat = getattr(app, "_commons_standalone_chat", None)
+        if chat is None:
+            chat = Commons()
+            seed_iso = None
+            if world is not None and getattr(world, "game_year", 1) > 1 and hasattr(world, "datetime_for_tick"):
+                try:
+                    seed_iso = world.datetime_for_tick(getattr(world, "time_ticks", 0))
+                except Exception:
+                    seed_iso = None
+            chat.set_anchored_clock(seed_iso)
+            app._commons_standalone_chat = chat
+        return chat
+
     def _world_chat():
         world = getattr(app, "world", None)
+        if _is_standalone():
+            chat = _ensure_standalone_chat(world)
+            for char_name in (getattr(world, "players", {}) or {}):
+                chat.set_participant(char_name)
+            return world, chat, None
         chat = getattr(world, "commons", None) if world else None
         if not world or chat is None:
             return None, None, (jsonify({"error": "The Commons is not initialized"}), 500)
@@ -63,12 +86,30 @@ def register_commons_routes(app):
         properties = node.properties if node is not None else {}
         ticks = int(getattr(world, "time_ticks", 0) or 0)
         mpt = float(getattr(world, "time_per_tick_minutes", 5) or 5)
-        start_min = int(getattr(world, "clock_start_hour", 8) or 8) * 60 + int(getattr(world, "clock_start_minute", 0) or 0)
-        total_min = int(round(start_min + ticks * mpt))
-        day_num = (total_min // 1440) + 1
-        hh = (total_min % 1440) // 60
-        mm = total_min % 60
-        world_time = f"Day {day_num}, {hh:02d}:{mm:02d} (tick {ticks})"
+        start_h = int(getattr(world, "clock_start_hour", 8) or 8)
+        start_m = int(getattr(world, "clock_start_minute", 0) or 0)
+        standalone = _is_standalone()
+        if standalone:
+            chat = _ensure_standalone_chat(world)
+            world_datetime = chat.current_anchored_iso()
+            world_time = chat.format_iso_label(world_datetime)
+            clock_mode = "standalone"
+        else:
+            clock_mode = "scenario"
+            world_datetime = world.datetime_for_tick(ticks) if hasattr(world, "datetime_for_tick") else None
+            if hasattr(world, "calendar_label_for_tick"):
+                world_time = world.calendar_label_for_tick(ticks)
+            else:
+                start_min = start_h * 60 + start_m
+                total_min = int(round(start_min + ticks * mpt))
+                hh = (total_min % 1440) // 60
+                mm = total_min % 60
+                world_time = f"{hh:02d}:{mm:02d}"
+        curr_area = getattr(player, "current_area", "") or ""
+        people_here = [
+            pname for pname, pother in (getattr(world, "players", {}) or {}).items()
+            if pname != name and getattr(pother, "current_area", "") == curr_area and curr_area
+        ]
         return jsonify({
             "name": name,
             "traits": getattr(player, "traits", {}) or {},
@@ -81,7 +122,18 @@ def register_commons_routes(app):
             "emotion_intensity": getattr(player, "emotion_intensity", 0) or 0,
             "conditions": getattr(player, "conditions", {}) or {},
             "relationships": getattr(player, "relationships", {}) or {},
+            "current_area": curr_area,
+            "people_here": people_here,
             "time_ticks": ticks,
+            "time_per_tick_minutes": mpt,
+            "clock_start_hour": start_h,
+            "clock_start_minute": start_m,
+            "game_day": int(getattr(world, "game_day", 1) or 1),
+            "game_month": int(getattr(world, "game_month", 1) or 1),
+            "game_year": int(getattr(world, "game_year", 1) or 1),
+            "calendar_config": dict(getattr(world, "calendar_config", {}) or {}),
+            "clock_mode": clock_mode,
+            "world_datetime": world_datetime,
             "world_time": world_time,
         })
 
@@ -118,14 +170,42 @@ def register_commons_routes(app):
                 "state": getattr(character, "state", "awake") if character is not None else "unavailable",
                 "muted_channels": list(row.get("muted_channels") or []),
             }
+        standalone = _is_standalone()
+        cur_dt = (
+            chat.current_anchored_iso()
+            if standalone
+            else (world.datetime_for_tick(getattr(world, "time_ticks", 0)) if world and hasattr(world, "datetime_for_tick") else None)
+        )
+        cur_label = (
+            chat.format_iso_label(cur_dt)
+            if cur_dt and hasattr(chat, "format_iso_label")
+            else (world.calendar_label_for_tick() if world and hasattr(world, "calendar_label_for_tick") else None)
+        )
         return jsonify({
             "perspective": perspective,
+            "use_viwo_state": not standalone,
+            "clock_mode": "standalone" if standalone else "scenario",
+            "active_branch_id": getattr(chat, "active_branch_id", "main"),
+            "branches": chat.list_branches() if hasattr(chat, "list_branches") else [],
+            "anchored_clock": getattr(chat, "anchored_clock", None),
+            "current_datetime": cur_dt,
+            "current_time_label": cur_label,
             "channels": [
                 channel for channel in chat.list_channels(perspective)
                 if _channel_allowed(_theme(world), channel)
             ],
             "participants": participant_data,
             "known_characters": known_characters,
+            "world_clock": {
+                "time_ticks": int(getattr(world, "time_ticks", 0) or 0),
+                "time_per_tick_minutes": float(getattr(world, "time_per_tick_minutes", 5) or 5),
+                "clock_start_hour": int(getattr(world, "clock_start_hour", 8) or 8),
+                "clock_start_minute": int(getattr(world, "clock_start_minute", 0) or 0),
+                "game_day": int(getattr(world, "game_day", 1) or 1),
+                "game_month": int(getattr(world, "game_month", 1) or 1),
+                "game_year": int(getattr(world, "game_year", 1) or 1),
+                "calendar_config": dict(getattr(world, "calendar_config", {}) or {}),
+            },
             "theme": _theme(world),
         })
 
@@ -264,16 +344,113 @@ def register_commons_routes(app):
                     "caption": str(att.get("caption") or "").strip(),
                 })
         try:
+            standalone = _is_standalone()
+            if not standalone and bool(data.get("advance_tick")):
+                world.time_ticks = int(getattr(world, "time_ticks", 0) or 0) + 1
+            msg_dt = (
+                chat.current_anchored_iso()
+                if standalone
+                else (world.datetime_for_tick(getattr(world, "time_ticks", 0)) if world and hasattr(world, "datetime_for_tick") else None)
+            )
             message = chat.post_message(
                 author=author,
                 text=text,
                 tick=getattr(world, 'time_ticks', 0),
                 channel_id=channel_id,
                 attachments=clean_attachments if clean_attachments else None,
+                world_datetime=msg_dt,
             )
         except (KeyError, ChatAuthorizationError) as exc:
             return _failure(exc)
         return jsonify({"message": message})
+
+    @app.route('/api/commons/mode', methods=['POST'])
+    def commons_set_mode():
+        world = getattr(app, "world", None)
+        data = request.get_json(silent=True) or {}
+        use_viwo = bool(data.get("use_viwo_state", True))
+        app._commons_use_viwo_state = use_viwo
+        if not use_viwo:
+            _ensure_standalone_chat(world)
+        return jsonify({"use_viwo_state": use_viwo, "clock_mode": "scenario" if use_viwo else "standalone"})
+
+    @app.route('/api/commons/clock', methods=['POST'])
+    def commons_set_clock():
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        data = request.get_json(silent=True) or {}
+        anchor = data.get("anchor_datetime")
+        if not anchor and (data.get("date") or data.get("time")):
+            cur = chat.current_anchored_iso()
+            d_part = str(data.get("date") or cur[:10]).strip()
+            t_part = str(data.get("time") or cur[11:16]).strip()
+            anchor = f"{d_part}T{t_part}:00" if len(t_part) == 5 else f"{d_part}T{t_part}"
+        try:
+            clk = chat.set_anchored_clock(anchor)
+        except ValueError as exc:
+            return jsonify({"error": f"Invalid datetime: {exc}"}), 400
+        cur_iso = chat.current_anchored_iso()
+        return jsonify({
+            "anchored_clock": clk,
+            "current_datetime": cur_iso,
+            "current_time_label": chat.format_iso_label(cur_iso),
+        })
+
+    @app.route('/api/commons/branches', methods=['POST'])
+    def commons_fork_branch():
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        data = request.get_json(silent=True) or {}
+        name = str(data.get("name") or "").strip()
+        from_msg_id = data.get("from_message_id")
+        branch = chat.fork_branch(name=name, from_message_id=int(from_msg_id) if from_msg_id is not None else None)
+        return jsonify({"branch": branch, "branches": chat.list_branches(), "active_branch_id": chat.active_branch_id}), 201
+
+    @app.route('/api/commons/branches/switch', methods=['POST'])
+    def commons_switch_branch():
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        data = request.get_json(silent=True) or {}
+        branch_id = str(data.get("branch_id") or "").strip()
+        try:
+            branch = chat.switch_branch(branch_id)
+        except KeyError as exc:
+            return _failure(exc)
+        return jsonify({"branch": branch, "branches": chat.list_branches(), "active_branch_id": chat.active_branch_id})
+
+    @app.route('/api/commons/reset', methods=['POST'])
+    def commons_reset():
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        data = request.get_json(silent=True) or {}
+        if not _is_standalone() and not bool(data.get("force")):
+            return jsonify({"error": "Refusing to reset live Viwo Commons without force=true; switch to Standalone mode first"}), 400
+        chat.reset_session(preserve_participants=True)
+        return jsonify({"reset": True, "active_branch_id": chat.active_branch_id})
+
+    @app.route('/api/commons/memories/<name>', methods=['GET', 'POST'])
+    def commons_standalone_memories(name):
+        world, chat, error = _world_chat()
+        if error:
+            return error
+        if not _known_member(world, name):
+            return jsonify({"error": "Character not found"}), 404
+        if request.method == 'GET':
+            mems = list(chat.standalone_memories.get(name, []))
+            return jsonify({"memories": mems})
+        data = request.get_json(silent=True) or {}
+        mem = chat.add_standalone_memory(name, {
+            "text": str(data.get("text") or "").strip(),
+            "importance": int(data.get("importance", 5) or 5),
+            "type": str(data.get("type") or "reflection"),
+            "tags": list(data.get("tags") or []),
+            "memory_emotions": data.get("memory_emotions"),
+        })
+        return jsonify({"memory": mem}), 201
 
     @app.route('/api/commons/messages/<int:message_id>', methods=['PATCH', 'DELETE'])
     def commons_message_detail(message_id):

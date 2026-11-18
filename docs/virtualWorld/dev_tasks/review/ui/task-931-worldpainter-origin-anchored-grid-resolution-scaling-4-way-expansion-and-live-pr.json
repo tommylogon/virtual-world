@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-931",
+  "kind": "task",
+  "number": 931,
+  "title": "WorldPainter origin-anchored grid resolution scaling, 4-way expansion, and live preview",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-540",
+      "bug-572",
+      "bug-573"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Overhaul the WorldPainter grid adjustment architecture to replace rigid top-left bounding box truncation with an **origin-anchored resolution scaling system**, 4-way margin expansion, and a live grid overlay preview before committing:\n\n1. **Origin-Anchored Resolution Scaling**:\n   - The author selects an anchor landmark cell `(x0, y0)` (or defaults to grid center/top-left).\n   - Adjusting cell size or grid density scales all placed area cells proportionally:\n     `x' = x0 + round((x - x0) * s)`\n     `y' = y0 + round((y - y0) * s)`\n   - Relative spatial distances between placed areas are preserved, keeping them visually aligned with landmarks on the underlying reference map image instead of sliding across the art.\n2. **4-Way Margin Expansion (West and North Handles)**:\n   - Add West (`w`) and North (`n`) edge handles to `gridHandlePoints()` in `static/js/worldpainter/grid-model.ts`.\n   - Dragging the West or North handle adds columns or rows on the left/top by `+dx` or `+dy`.\n   - Placed cells and painted layers offset by `(x + dx, y + dy)` so their visual screen positions relative to the background map image do not move.\n3. **Restore the Cell-Size Handle on Materialized Scopes**:\n   - In `editor-handles.ts: _cellCornerHandlePoint()`, remove the check `if (p.scope.state === 'materialized') return null;`.\n   - Keep the green cell-size adjust handle available for tuning cell density even after the scope has been compiled once.\n4. **Live Grid Ghost Preview**:\n   - When adjusting grid dimensions via dialog inputs or handle dragging, display a live semi-transparent grid overlay preview showing the new cell density, boundary, and projected cell positions before the author commits the change.",
+    "why": "Currently, adjusting grid size in WorldPainter only pulls the East and South edges, locking `(0, 0)` to the top-left corner. Changing grid dimensions leaves cell coordinates static while scaling the reference image, causing placed areas to desynchronize from their map landmarks or get pushed into the dark void outside the border. Furthermore, authors have no live preview of the new grid before committing, making resolution calibration guesswork.",
+    "how": "1. In `static/js/worldpainter/grid-model.ts`:\n   - Extend `gridHandlePoints()` to provide `nw`, `n`, `ne`, `w`, `e`, `sw`, `s`, `se` handle coordinates.\n   - Implement `scaleGridWithAnchor(payload, anchorCell, scaleFactor)` to re-index placed areas, features, and layer cells relative to the anchor.\n   - Implement `expandGridMargins(payload, { north, south, east, west })` to adjust dimensions and offset cell coordinates.\n2. In `static/js/worldpainter/editor-handles.ts`:\n   - Remove `if (p.scope.state === 'materialized') return null;` in `_cellCornerHandlePoint()`.\n   - Update `_gridMouseDown`, `_gridDragTo`, and `_gridMouseUp` to handle West and North drag operations.\n   - Render a live ghost grid preview during handle dragging and dialog input tuning.\n3. In `static/js/worldpainter/editor-dialogs.ts`:\n   - In `openGridDialog()`, add resolution scaling controls with anchor selection and a live canvas preview.\n4. In `routes/world_grid_ops.py` and `engine/world_grid.py`:\n   - Add support in `POST /grid` for margin expansion offsets (`offset_x`, `offset_y`) and anchor scaling so the server preserves cell data correctly.",
+    "verify": "1. npm run build:ts -> exited 0 (tsc -p tsconfig.json).\n2. node tools/unit/run.cjs tools/unit/test_worldpainter.js -> 69 passed, 0 failed.\n3. node tools/unit/run.cjs tools/unit/test_worldpainter_grid.js -> 4 passed, 0 failed (gridHandlePoints, gridHandleDragMargins, scaleGridWithAnchor, expandGridMargins).\n4. pytest tests/test_world_grid.py -q -> 47 passed (including offset_grid and scale_grid).",
+    "acceptance": [
+      {
+        "text": "WorldPainter Adjust mode provides 4-way resize handles (North, South, East, West) allowing margin expansion in any direction.",
+        "done": false
+      },
+      {
+        "text": "Origin-anchored resolution scaling keeps placed areas aligned with reference image landmarks when cell density changes.",
+        "done": false
+      },
+      {
+        "text": "Green cell-size handle remains accessible on materialized scopes.",
+        "done": false
+      },
+      {
+        "text": "Live ghost grid preview renders during handle drag or dialog adjustment before commit.",
+        "done": false
+      },
+      {
+        "text": "Expanding margins westward or northward automatically offsets cell coordinates without moving them visually.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/grid-model.ts",
+      "static/js/worldpainter/editor-handles.ts",
+      "static/js/worldpainter/editor-dialogs.ts",
+      "engine/world_grid.py",
+      "routes/world_grid_ops.py",
+      "tools/unit/test_worldpainter_grid.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: WorldPainter editor canvas -> Adjust Grid handles (`Adjust` toggle in toolbar) and Grid Dimensions Dialog (`Dimensions` button in HUD).\n\nCurrent availability: Prototype simulated in `grid_resolution_simulator.html` and architecture analyzed in `worldpainter_grid_resolution_and_anchoring.md`. Live editor currently supports only South/East resizing and has no live preview or anchor scaling.\n\nLive steps when available:\n1. Open WorldPainter on a scenario with placed areas (e.g. `valerious_case` outdoor map or `millwood_high_1f`).\n   - expected: Canvas loads with reference image and grid overlay.\n2. Toggle the **Adjust** button in the toolbar.\n   - expected: Resize handles appear around all 4 edges (North, South, East, West) and corners, including the green cell-corner handle even on materialized scopes.\n3. Click an area cell (e.g. The House) to designate it as the Origin Anchor.\n   - expected: Visual anchor badge or crosshair highlights the selected anchor cell.\n4. Drag the green cell-size handle or adjust resolution density slider.\n   - expected: A live ghost grid preview overlays the canvas; placed areas scale outward/inward from the anchor, maintaining their visual alignment over map landmarks.\n5. Drag the West handle to the left by 3 cells and commit.\n   - expected: 3 new columns appear on the left; all placed areas stay on their exact visual map landmarks with coordinates shifted by `x + 3`.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Painter & Scope Editor]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/task-931-worldpainter-origin-anchored-grid-resolution-and-live-preview.md"
+  }
+}

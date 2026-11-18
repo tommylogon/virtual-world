@@ -66,9 +66,7 @@ window.PlanTracker = (() => {
             planFailures[charName] = planFailures[charName] || {};
             const fails = (planFailures[charName][idx] || 0) + 1;
             planFailures[charName][idx] = fails;
-            if (fails >= 3) {
-                planProgress[charName] = idx + 1;
-                planFailures[charName][idx] = 0;
+            if (fails === 3) {
                 events.log(`🚫 ${charName} plan step blocked after ${fails} failures: "${step}"`, 'system-msg');
             }
             return;
@@ -118,11 +116,14 @@ window.PlanTracker = (() => {
             return null;
         }
         lastCriticalSet[charName] = '';
-        if (!plans[charName])
+        const plan = plans[charName];
+        if (!plan || !plan.length)
             return 'no plan';
+        const idx = planProgress[charName] || 0;
+        if (idx >= plan.length)
+            return 'plan completed';
         if (!activePursuitId[charName] && (turnNumber - (planTick[charName] || 0)) >= 10)
             return 'plan aged out';
-        const idx = planProgress[charName] || 0;
         const stepFails = (planFailures[charName] || {})[idx] || 0;
         if (stepFails >= 3)
             return 'current step failed repeatedly';

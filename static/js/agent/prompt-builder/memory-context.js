@@ -20,8 +20,29 @@ window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
     const _intermediatorCache = new Map();
+    /**
+     * Strip baked-in deictic prefixes (`[just now]`, `Earlier today (8:00 AM):`,
+     * `Today:`, `Just now:`) so persisted and formatted memories carry canonical
+     * content while dynamic relative labels render once from `currentTick - mem.tick`.
+     */
+    function normalizeMemoryText(raw) {
+        let text = String(raw ?? '').trim();
+        if (!text)
+            return '';
+        let prev = '';
+        while (text !== prev) {
+            prev = text;
+            text = text
+                .replace(/^\[[^\]]+\]\s*/, '')
+                .replace(/^(Earlier today|Just now|Today)\s*(\([^)]*\))?:\s*/i, '')
+                .trim();
+        }
+        return text;
+    }
     function _computeCueSignature(areaId, actors, dialogue, emotion, needs, memories) {
-        const memIds = memories.map(m => String(m.id || m.text || '').slice(0, 48)).sort();
+        const memIds = memories
+            .map(m => String(m.id || m.rawText || normalizeMemoryText(m.text) || '').slice(0, 64))
+            .sort();
         return JSON.stringify([
             areaId || '',
             [...actors].sort(),
@@ -31,7 +52,28 @@ window.PromptBuilder = window.PromptBuilder || {};
             memIds,
         ]);
     }
-    async function _synthesizeConsciousThought(charName, areaName, actors, dialogue, emotion, topMemories, cueSig, report) {
+    function _formatMemoryAgeLabel(memTick, currentTick, minutesPerTick) {
+        if (typeof memTick !== 'number' || !Number.isFinite(memTick))
+            return 'earlier';
+        const deltaTicks = Math.max(0, currentTick - memTick);
+        const mins = Math.round(deltaTicks * minutesPerTick);
+        if (mins <= 5)
+            return 'just now';
+        if (mins < 60)
+            return `${mins}m ago`;
+        const hours = Math.round(mins / 60);
+        if (hours < 24)
+            return `~${hours}h ago`;
+        const days = Math.round(hours / 24);
+        if (days < 30)
+            return `~${days}d ago`;
+        const months = Math.round(days / 30);
+        if (months < 12)
+            return `~${months}mo ago`;
+        const years = Math.max(1, Math.round(days / 365));
+        return `~${years}y ago`;
+    }
+    async function _synthesizeConsciousThought(charName, areaName, actors, dialogue, emotion, topMemories, cueSig, report, timeOpts) {
         if (!topMemories.length)
             return null;
         if (config?.memoryIntermediator === false)
@@ -45,31 +87,90 @@ window.PromptBuilder = window.PromptBuilder || {};
             : (typeof llmClient !== 'undefined' ? llmClient : null);
         if (!memClient || typeof memClient.chat !== 'function')
             return null;
+        const wsData = (typeof worldState !== 'undefined' ? worldState?.data : null) || {};
+        const currentTick = Number(timeOpts?.currentTick ?? wsData.time_ticks ?? 0) || 0;
+        const minutesPerTick = Number(timeOpts?.minutesPerTick ?? wsData.time_per_tick_minutes ?? 5) || 5;
+        const worldTime = timeOpts?.worldTime ? `Current time: ${timeOpts.worldTime}. ` : '';
         const traceLines = topMemories.map((m) => {
-            const flags = [];
+            const flags = [_formatMemoryAgeLabel(m.tick, currentTick, minutesPerTick)];
             if (Array.isArray(m.contradicts) && m.contradicts.length > 0)
                 flags.push('CONFLICTS');
             if (typeof m.confidence === 'number' && m.confidence < 0.5)
                 flags.push('uncertain');
-            const suffix = flags.length ? ` [${flags.join(', ')}]` : '';
-            return `- ${String(m.text || '').trim()}${suffix}`;
+            const body = normalizeMemoryText(m.rawText ?? m.text);
+            return `- [${flags.join(', ')}] ${body}`;
         });
         const prompt = [
             `You are the inner memory reconsolidator for "${charName}".`,
-            `Current location: ${areaName || 'unknown'}. Present: ${actors.join(', ') || 'alone'}. Current mood: ${emotion || 'neutral'}.`,
+            `${worldTime}Current location: ${areaName || 'unknown'}. Present: ${actors.join(', ') || 'alone'}. Current mood: ${emotion || 'neutral'}.`,
             dialogue.length ? `Recent words heard: ${dialogue.join(' | ')}` : '',
-            'Recalled memory traces:',
+            'Recalled memory traces (with relative age from right now):',
             ...traceLines,
             '',
             'Synthesize these recalled traces into ONE brief, mood-congruent first-person conscious thought (2-4 sentences) representing what naturally comes to mind right now.',
-            'Do not use bullet points, database IDs, or meta-labels. If traces conflict, express the uncertainty naturally.',
+            'Honor the relative ages strictly (do not call something from "just now" "last week", and do not treat years-ago memories as recent).',
+            'Do NOT bake transient deictic relative words ("today", "earlier today", "just now", "last week", "hours ago") into the synthesized thought unless explicitly anchored by an absolute clock or event context.',
+            'Do not use bullet points, emojis, database IDs, or meta-labels. If traces conflict, express the uncertainty naturally.',
+            'Return ONLY valid JSON: {"thought": "...", "importance": 1-10}',
         ].filter(Boolean).join('\n');
         try {
             const response = await memClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5, streaming: false, label: 'intermediator', reasoningEffort: 'low' });
-            const thought = String(response || '').trim();
+            const raw = String(response || '').trim();
+            if (!raw)
+                return null;
+            let thought = raw;
+            let importance = 6;
+            const jsonMatch = raw.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                try {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    if (typeof parsed.thought === 'string' && parsed.thought.trim()) {
+                        thought = parsed.thought.trim();
+                    }
+                    if (typeof parsed.importance === 'number' && Number.isFinite(parsed.importance)) {
+                        importance = Math.max(1, Math.min(10, Math.round(parsed.importance)));
+                    }
+                }
+                catch (_) { /* fallback to raw text */ }
+            }
+            thought = normalizeMemoryText(thought);
             if (!thought)
                 return null;
             _intermediatorCache.set(charName, { sig: cueSig, thought });
+            const inCommons = Boolean(timeOpts?.inCommons
+                || String(cueSig || '').startsWith('commons:')
+                || (typeof document !== 'undefined' && document.body?.classList?.contains?.('commons-body')));
+            const shouldSkipPersist = Boolean(timeOpts?.skipPersist
+                || (inCommons && config?.commonsRecordMemories === false));
+            const sourceIds = topMemories.map((m) => m?.id).filter(Boolean).map(String);
+            if (!shouldSkipPersist) {
+                if (typeof fetch === 'function') {
+                    try {
+                        void fetch(`/api/players/${encodeURIComponent(charName)}/memories/entry`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                text: thought,
+                                tick: currentTick,
+                                importance,
+                                type: 'reflection',
+                                category: 'reflection',
+                                reflection_depth: 1,
+                                source_memory_ids: sourceIds,
+                                source: 'intermediator',
+                                tags: ['intermediator', 'reflection'],
+                            }),
+                        }).catch(() => { });
+                    }
+                    catch (_) { /* persistence is best-effort */ }
+                }
+                const unreinforcedIds = topMemories
+                    .filter((m) => m?.id && m?.source === 'keyword')
+                    .map((m) => String(m.id));
+                if (unreinforcedIds.length > 0 && typeof ApiClient !== 'undefined' && typeof ApiClient.reinforcePlayerMemories === 'function') {
+                    ApiClient.reinforcePlayerMemories(charName, { ids: unreinforcedIds, tick: currentTick }).catch(() => { });
+                }
+            }
             if (report && typeof events?.log === 'function') {
                 events.log(`💭 [Intermediator] ${thought}`, 'system-msg', null, charName);
             }
@@ -220,7 +321,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             return list.length > 0;
         });
         const reason = firstWithEmotion
-            ? String(firstWithEmotion.text || '').replace(/^\[[^\]]*\]\s*/, '').trim()
+            ? normalizeMemoryText(firstWithEmotion.rawText ?? firstWithEmotion.text)
             : '';
         ApiClient.mapPlayerEmotions(charName, reason ? { mapped, reason } : { mapped }).catch(() => { });
     }
@@ -373,6 +474,9 @@ window.PromptBuilder = window.PromptBuilder || {};
                 // Semantic recall is best-effort
             }
         }
+        const wsData = (typeof worldState !== 'undefined' ? worldState?.data : null) || {};
+        const currentTick = Number(wsData.time_ticks ?? 0) || 0;
+        const minutesPerTick = Number(wsData.time_per_tick_minutes ?? 5) || 5;
         // Score memories from the unified backend store. `reinforce: !preview`
         // (task-686): retrieval reinforces what it recalls, but a preview must
         // never mutate the character.
@@ -396,13 +500,16 @@ window.PromptBuilder = window.PromptBuilder || {};
                 openQuestions = data.open_questions;
             }
             for (const mem of (data?.memories || [])) {
-                const memText = String((typeof mem === 'object' && mem?.text) || '').trim();
+                const memText = normalizeMemoryText(typeof mem === 'object' ? mem?.text : '');
                 if (!memText)
                     continue;
                 const backendScore = typeof mem.score === 'number' ? mem.score : null;
                 const icon = memIcon(mem.type);
+                const ageLabel = _formatMemoryAgeLabel(mem.tick, currentTick, minutesPerTick);
                 scored.push({
-                    text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`,
+                    id: mem.id,
+                    rawText: memText,
+                    text: `[${ageLabel}] ${icon} ${memText}`,
                     score: backendScore !== null ? backendScore : 1.0,
                     tick: mem.tick,
                     emotion: mem.emotion || null,
@@ -426,8 +533,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         const rawMemories = player?.memories || [];
         if (strategy === 'legacy') {
             for (const raw of rawMemories) {
-                const textContent = typeof raw === 'string' ? raw : raw.text || '';
-                const tickValue = typeof raw === 'object' ? raw.tick || 0 : 0;
+                const rawObj = typeof raw === 'object' && raw ? raw : null;
+                const rawContent = typeof raw === 'string' ? raw : rawObj?.text || '';
+                const textContent = normalizeMemoryText(rawContent);
+                const tickValue = rawObj ? (rawObj.tick ?? 0) : 0;
                 if (!textContent)
                     continue;
                 const textLower = textContent.toLowerCase();
@@ -437,7 +546,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                         overlap++;
                 }
                 const keywordScore = queryWords.size > 0 ? overlap / queryWords.size : 0;
-                const icon = memIcon(inferIcon(textContent));
+                const icon = memIcon(inferIcon(rawContent));
                 const STOPWORDS = new Set(['a', 'an', 'the', 'in', 'on', 'of', 'to', 'for', 'and', 'or', 'but', 'if', 'so', 'then', 'there', 'their', 'them', 'they', 'this', 'that', 'with', 'from', 'just', 'now', 'really', 'about', 'when', 'what', 'where', 'how', 'why', 'is', 'are', 'was', 'were', 'be', 'been', 'it', 'its', 'at', 'as', 'by', 'my', 'me', 'i', 'we', 'you', 'your', 'not', 'no', 'yes', 'oh', 'well', 'much', 'nice', 'very', 'too', 'will', 'would', 'can', 'could', 'shall', 'should', 'am', 'get', 'got', 'go', 'one', 'two', 'three', 'after', 'before']);
                 const matchedWords = [];
                 for (const word of queryWords) {
@@ -447,7 +556,19 @@ window.PromptBuilder = window.PromptBuilder || {};
                         matchedWords.push(word);
                 }
                 if (keywordScore > 0 || scored.length < 8) {
-                    scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: keywordScore, tick: tickValue, emotion: (typeof raw === 'object' && raw.emotion) || null, source: 'keyword', kb: keywordScore, matchedWords, memTags: ((typeof raw === 'object' && Array.isArray(raw.tags)) ? raw.tags : []) });
+                    const ageLabel = _formatMemoryAgeLabel(tickValue, currentTick, minutesPerTick);
+                    scored.push({
+                        id: rawObj?.id,
+                        rawText: textContent,
+                        text: `[${ageLabel}] ${icon} ${textContent}`,
+                        score: keywordScore,
+                        tick: tickValue,
+                        emotion: rawObj?.emotion || null,
+                        source: 'keyword',
+                        kb: keywordScore,
+                        matchedWords,
+                        memTags: Array.isArray(rawObj?.tags) ? rawObj.tags : [],
+                    });
                 }
             }
             if (!preview && window.EmbeddingClient?.configured()) {
@@ -460,16 +581,32 @@ window.PromptBuilder = window.PromptBuilder || {};
                             if (hit.score < 0.35)
                                 continue;
                             const memEntry = rawMemories.find((m) => (typeof m === 'object' && m.id === hit.memory_id));
-                            const textContent = typeof memEntry === 'object' ? (memEntry?.text || '') : '';
+                            const rawContent = typeof memEntry === 'object' ? (memEntry?.text || '') : '';
+                            const textContent = normalizeMemoryText(rawContent);
                             if (!textContent)
                                 continue;
                             hitIds.push(String(hit.memory_id));
-                            const tickValue = memEntry.tick || 0;
-                            const icon = memIcon(memEntry.type);
-                            scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: memEntry.emotion || null, source: 'vector', kb: hit.score, category: memEntry.category, type: memEntry.type, confidence: typeof memEntry.confidence === 'number' ? memEntry.confidence : undefined, contradicts: Array.isArray(memEntry.contradicts) ? memEntry.contradicts : [] });
+                            const memObj = memEntry;
+                            const tickValue = memObj.tick ?? 0;
+                            const icon = memIcon(memObj.type);
+                            const ageLabel = _formatMemoryAgeLabel(tickValue, currentTick, minutesPerTick);
+                            scored.push({
+                                id: hit.memory_id ?? memObj.id,
+                                rawText: textContent,
+                                text: `[${ageLabel}] ${icon} ${textContent}`,
+                                score: 2.0 * hit.score,
+                                tick: tickValue,
+                                emotion: memObj.emotion || null,
+                                source: 'vector',
+                                kb: hit.score,
+                                category: memObj.category,
+                                type: memObj.type,
+                                confidence: typeof memObj.confidence === 'number' ? memObj.confidence : undefined,
+                                contradicts: Array.isArray(memObj.contradicts) ? memObj.contradicts : [],
+                            });
                         }
                         if (hitIds.length > 0) {
-                            ApiClient.reinforcePlayerMemories(charName, { ids: hitIds, tick: worldState?.data?.time_ticks || 0 }).catch(() => { });
+                            ApiClient.reinforcePlayerMemories(charName, { ids: hitIds, tick: currentTick }).catch(() => { });
                         }
                     }
                 }
@@ -482,8 +619,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const seenText = new Set();
         const deduped = [];
         for (const entry of scored) {
-            const bare = String(entry.text || '')
-                .replace(/^\s*\[[^\]]*\]\s*/, '')
+            const bare = String(entry.rawText ?? normalizeMemoryText(entry.text))
                 .replace(/^[^A-Za-z0-9]+\s*/, '');
             const key = bare.replace(/\s+/g, ' ').toLowerCase();
             if (seenText.has(key))
@@ -578,80 +714,50 @@ window.PromptBuilder = window.PromptBuilder || {};
             for (const memoryEntry of topMemories) {
                 const cat = memoryEntry.category ? String(memoryEntry.category) : '';
                 if (cat === 'question') {
-                    const text = String(memoryEntry.text || '').replace(/^\s*\[[^\]]*\]\s*/, '').replace(/^[^A-Za-z0-9]+\s*/, '');
+                    const text = normalizeMemoryText(memoryEntry.rawText ?? memoryEntry.text).replace(/^[^A-Za-z0-9]+\s*/, '');
                     if (!openQuestions.some(q => q.question === text)) {
                         openQuestions.push({ question: text });
                     }
                 }
             }
+            const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const wsAny = wsData;
+            const dpm = Math.max(1, Math.floor(Number(wsAny.calendar_config?.days_per_month) || 30));
+            const dayOfMonth = ((Math.max(1, Number(wsData.game_day) || 1) - 1) % dpm) + 1;
+            const monthName = MONTHS[(Math.max(1, Number(wsAny.game_month) || 1) - 1) % 12];
+            const yearNum = Number(wsAny.game_year) || 1;
+            const hhmm = wsData.game_time ? String(wsData.game_time).slice(0, 5) : '';
+            const worldTime = wsAny.world_time
+                || (hhmm
+                    ? (yearNum > 1 || wsAny.calendar_config?.start_year
+                        ? `${monthName} ${dayOfMonth}, ${yearNum} ${hhmm}`
+                        : `${monthName} ${dayOfMonth}, ${hhmm}`)
+                    : undefined);
             const cueSig = _computeCueSignature(currentAreaId, sceneActors, dialogueLines, currentEmotion, needs, topMemories);
-            const synthesized = (!preview && !opts.skipIntermediator)
-                ? await _synthesizeConsciousThought(charName, currentArea || '', sceneActors, dialogueLines, currentEmotion, topMemories, cueSig, !!opts.report)
+            const synthesized = !opts.skipIntermediator
+                ? await _synthesizeConsciousThought(charName, currentArea || '', sceneActors, dialogueLines, currentEmotion, topMemories, cueSig, !preview && !!opts.report, {
+                    currentTick: worldState?.data?.time_ticks,
+                    minutesPerTick: worldState?.data?.time_per_tick_minutes,
+                    ...(preview ? { skipPersist: true } : {}),
+                    ...(worldTime ? { worldTime } : {}),
+                })
                 : null;
             parts.push('');
+            parts.push('=== I REMEMBER (CONSCIOUS THOUGHT) ===');
             if (synthesized) {
-                parts.push('=== I REMEMBER (CONSCIOUS THOUGHT) ===');
+                // Strict Actor Isolation (task-947 / task-949): emit ONLY the synthesized
+                // conscious recollection here - zero raw memory rows.
                 parts.push(synthesized);
             }
             else {
-                parts.push('=== I REMEMBER ===');
-                const categoryOf = (m) => {
-                    const cat = m.category ? String(m.category) : '';
-                    if (cat)
-                        return cat;
-                    if (String(m.type || '') === 'reflection')
-                        return 'belief';
-                    const tags = (m.memTags || []).map((t) => String(t).toLowerCase());
-                    if (tags.some((t) => t.startsWith('rel:')))
-                        return 'social';
-                    return 'episodic';
-                };
-                const certaintySuffix = (m) => {
-                    const flags = [];
-                    if (Array.isArray(m.contradicts) && m.contradicts.length > 0) {
-                        flags.push('⚡ this conflicts with another memory');
-                    }
-                    if (typeof m.confidence === 'number' && m.confidence < 0.5) {
-                        flags.push('you are not sure of this');
-                    }
-                    return flags.length > 0 ? ` (${flags.join('; ')})` : '';
-                };
-                const sections = [
-                    ['EVENTS - what happened', []],
-                    ['WHAT I BELIEVE', []],
-                    ['HOW I SEE PEOPLE', []],
-                    ['WHAT I EXPECT', []]
-                ];
-                for (const memoryEntry of topMemories) {
-                    const cat = categoryOf(memoryEntry);
-                    if (cat === 'question')
-                        continue;
-                    if (cat === 'belief' || cat === 'semantic')
-                        sections[1][1].push(memoryEntry);
-                    else if (cat === 'social')
-                        sections[2][1].push(memoryEntry);
-                    else if (cat === 'procedural')
-                        sections[3][1].push(memoryEntry);
-                    else
-                        sections[0][1].push(memoryEntry);
-                }
-                const hasModel = sections.slice(1).some(([, list]) => list.length > 0);
-                for (const [header, list] of sections) {
-                    if (list.length === 0)
-                        continue;
-                    if (hasModel)
-                        parts.push(header);
-                    for (const memoryEntry of list) {
-                        parts.push(memoryEntry.text + certaintySuffix(memoryEntry));
-                    }
-                }
+                parts.push("You don't remember anything relevant right now.");
             }
-            if (!preview)
+            if (!preview && synthesized)
                 _respikeFromMemories(charName, topMemories);
         }
         else {
             parts.push('');
-            parts.push('=== I REMEMBER ===');
+            parts.push('=== I REMEMBER (CONSCIOUS THOUGHT) ===');
             parts.push("You don't remember anything relevant right now.");
         }
         if (openQuestions.length > 0) {
@@ -662,131 +768,13 @@ window.PromptBuilder = window.PromptBuilder || {};
                 parts.push(`- ${q.question}${hyp}`);
             }
         }
-        // ── Parse action memories into investigation notes ──
-        const actionInfo = [];
-        const actionCounts = {};
-        for (const raw of rawMemories) {
-            const textContent = typeof raw === 'string' ? raw : raw.text || '';
-            if (!textContent)
-                continue;
-            // Try arrow first, then colon for backward compatibility
-            let separatorIdx = textContent.indexOf(' → ');
-            let separatorLen = 3;
-            if (separatorIdx === -1) {
-                separatorIdx = textContent.indexOf(':');
-                separatorLen = 1;
-            }
-            if (separatorIdx === -1)
-                continue;
-            // Strip leading emoji/icon from actionPart
-            const actionPart = textContent.substring(0, separatorIdx).replace(/^[^\w]+/, '').trim().toLowerCase();
-            const resultText = textContent.substring(separatorIdx + separatorLen).trim();
-            if (!resultText)
-                continue;
-            const knownVerbs = ['examine', 'use', 'take', 'open', 'close', 'read', 'drink', 'eat', 'light', 'go', 'approach'];
-            const verb = actionPart.split(/\s+/)[0];
-            const target = actionPart.substring(verb.length).trim();
-            if (!knownVerbs.includes(verb))
-                continue;
-            const key = actionPart.replace(/\s+/g, '_');
-            actionCounts[key] = (actionCounts[key] || 0) + 1;
-            const actionCount = actionCounts[key];
-            const failed = /can'?t|cannot|don'?t have|doesn'?t have|no purchase|purely decorative|nothing happens|isn'?t|not a|can'?t find|full|doesn'?t budge|part of the scenery|not valid|you look for|don'?t see it/.test(resultText.toLowerCase());
-            let fact = resultText.replace(/^(you\s+)?(use[d]?|examine[d]?|open[ed]?|close[d]?|rea[d]?|drink?|eat[en]?|light[ed]?|t[ao]ke?)\s+/i, '');
-            fact = fact.replace(/^you\s+/, '');
-            const dotIdx = fact.indexOf('.');
-            if (dotIdx > 15)
-                fact = fact.substring(0, dotIdx + 1);
-            else if (dotIdx === -1 && fact.length > 100)
-                fact = fact.substring(0, 100) + '...';
-            if (fact.trim()) {
-                actionInfo.push({ verb, target, fact: fact.trim(), count: actionCount, key, failed });
-            }
-        }
-        // ── Build Investigation Notes ──
-        if (actionInfo.length > 0) {
-            const findings = [];
-            const seenTargets = new Set();
-            // Examine findings grouped by unique target
-            for (const actionItem of actionInfo) {
-                if (actionItem.verb !== 'examine')
-                    continue;
-                if (seenTargets.has(actionItem.target))
-                    continue;
-                seenTargets.add(actionItem.target);
-                const repeatCount = actionItem.count;
-                const repeatNote = repeatCount >= 2 ? ` (examined ${repeatCount}x)` : '';
-                findings.push(`- ${actionItem.target}: ${actionItem.fact}${repeatNote}`);
-            }
-            // Way/movement findings
-            for (const actionItem of actionInfo) {
-                if (actionItem.verb === 'go' || actionItem.verb === 'open' || actionItem.verb === 'close') {
-                    if (actionItem.fact && !findings.some((finding) => finding.includes(actionItem.target))) {
-                        findings.push(`- ${actionItem.target}: ${actionItem.fact}`);
-                    }
-                }
-            }
-            // Repeat warnings  -  any verb, and failure-aware so impossible
-            // attempts (e.g. "use create flame on dry leaves") get flagged
-            // instead of re-attempted forever.
-            const repeatedFails = actionInfo.filter((actionItem) => actionItem.failed && actionItem.count >= 3);
-            if (repeatedFails.length > 0) {
-                const r = repeatedFails[0];
-                findings.push(`⚠️ You've tried "${r.key.replace(/_/g, ' ')}" ${r.count} times and it failed each time. Pick a different approach.`);
-            }
-            else {
-                const repeats = actionInfo.filter((actionItem) => actionItem.verb === 'examine' && actionItem.count >= 3);
-                if (repeats.length > 0) {
-                    findings.push(`⚠️ You've examined "${repeats[0].target}" ${repeats[0].count} times with no new information. Move on.`);
-                }
-            }
-            // What still needs doing
-            const doneKeys = new Set(actionInfo.map((actionItem) => actionItem.key));
-            const playerState = worldState.data?.players?.[charName];
-            const curRoom = playerState?.current_area;
-            const areaData = curRoom ? worldState.areas?.[curRoom] : null;
-            const areaItems = curRoom ? worldState.getItemsInArea(curRoom) : [];
-            const areaExits = areaData?.exits || {};
-            const suggestions = [];
-            const goTargets = actionInfo.filter((actionItem) => actionItem.verb === 'go').map((actionItem) => actionItem.target.toLowerCase().trim());
-            const examineTargets = actionInfo.filter((actionItem) => actionItem.verb === 'examine').map((actionItem) => actionItem.target.toLowerCase().trim());
-            for (const [dir, exitData] of Object.entries(areaExits)) {
-                if (exitData.hidden)
-                    continue;
-                const exitName = dir.replace(/_/g, ' ').toLowerCase();
-                const alreadyMoved = goTargets.some((goTarget) => goTarget === exitName || goTarget.includes(exitName) || exitName.includes(goTarget));
-                const alreadyExamined = examineTargets.some((examineTarget) => examineTarget === exitName || examineTarget.includes(exitName) || exitName.includes(examineTarget));
-                if (!alreadyMoved && !alreadyExamined) {
-                    suggestions.push(`Go through "${dir}"`);
-                }
-            }
-            for (const item of areaItems) {
-                const itemName = String(typeof item === 'string' ? item : (item.name || '')).toLowerCase();
-                if (itemName && !doneKeys.has(`examine_${itemName}`) && !doneKeys.has(`take_${itemName}`)) {
-                    suggestions.push(`Examine or take "${itemName}"`);
-                }
-            }
-            parts.push('=== MY INVESTIGATION NOTES ===');
-            parts.push(`Location: ${curRoom || 'Unknown'}`);
-            parts.push('');
-            if (findings.length > 0) {
-                parts.push('Findings:');
-                parts.push(...findings);
-                parts.push('');
-            }
-            if (suggestions.length > 0) {
-                parts.push("What I haven't done yet:");
-                parts.push(...suggestions.slice(0, 5).map((suggestion) => `  ❓ ${suggestion}`));
-                parts.push('');
-            }
-            parts.push('Decision: Pick ONE from the list above and do it now.');
-            parts.push('No more examining the same items  -  take action.');
-        }
         return parts.length > 0 ? '\n' + parts.join('\n') : '';
     }
     Object.assign(window.PromptBuilder, {
         buildMemoryContext,
         buildAlreadyKnownContext,
         synthesizeConsciousThought: _synthesizeConsciousThought,
+        normalizeMemoryText,
+        formatMemoryAgeLabel: _formatMemoryAgeLabel,
     });
 })();

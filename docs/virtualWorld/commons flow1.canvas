@@ -1,0 +1,38 @@
+{
+	"nodes":[
+		{"id":"f36949a855c426db","x":-960,"y":1640,"width":666,"height":380,"type":"group","label":"Tools"},
+		{"id":"d16ced54a1143e7c","x":-957,"y":1898,"width":250,"height":60,"type":"text","text":"**`edit_message`**"},
+		{"id":"5cdd29b364a27921","x":-940,"y":1654,"width":250,"height":60,"type":"text","text":"`send_chat`"},
+		{"id":"4be01bf6cccbdcd8","x":-940,"y":1731,"width":250,"height":60,"type":"text","text":"`read_chat`"},
+		{"id":"b156394a5e73ad3a","x":-940,"y":1820,"width":250,"height":60,"type":"text","text":"`start_dm`"},
+		{"id":"5c944c609795846f","x":-640,"y":1898,"width":250,"height":60,"type":"text","text":"**`delete_message`**"},
+		{"id":"f946948b5319bf0a","x":-640,"y":1654,"width":250,"height":60,"type":"text","text":"`start_group`"},
+		{"id":"74da4022566a8e90","x":-640,"y":1731,"width":250,"height":60,"type":"text","text":"`mute_chat`"},
+		{"id":"b3754e0f15aae23d","x":-640,"y":1820,"width":250,"height":60,"type":"text","text":"**`recall`**"},
+		{"id":"0752e85af34807a5","x":30,"y":1684,"width":323,"height":60,"type":"text","text":"Inner monolouge"},
+		{"id":"bb21a0eda8558245","x":453,"y":840,"width":327,"height":246,"type":"text","text":"## Memories"},
+		{"id":"fcf5e5280c79804a","x":405,"y":1290,"width":250,"height":110,"type":"text","text":"### Recall\nrecent + general chat memories"},
+		{"id":"71003a08a92ba6ba","x":405,"y":1594,"width":250,"height":60,"type":"text","text":"Memory summary"},
+		{"id":"936c823b538289b8","x":-463,"y":1086,"width":310,"height":100,"type":"text","text":"### Message notificatin \n_\"2 unread in #public\"_ or _\"DM from Jake\"_"},
+		{"id":"77c0f04dddc8b780","x":-102,"y":1086,"width":264,"height":100,"type":"text","text":"### Personality\n\"you are .....\""},
+		{"id":"447a6c4f242f4c65","x":0,"y":1851,"width":250,"height":60,"type":"text","text":"Decide what tool to use"},
+		{"id":"6bd2f1a7f2dcbc0d","x":-31,"y":2024,"width":250,"height":60,"type":"text","text":"Repeat"},
+		{"id":"422e62249209b89c","x":720,"y":1790,"width":250,"height":60,"type":"text","text":"write memory"},
+		{"id":"a18654f19ef4832e","x":-390,"y":1440,"width":250,"height":60,"type":"text","text":"CAll LLM"}
+	],
+	"edges":[
+		{"id":"57d8aeda36e8470d","fromNode":"936c823b538289b8","fromSide":"bottom","toNode":"a18654f19ef4832e","toSide":"top"},
+		{"id":"b1a9c1f521cb1925","fromNode":"77c0f04dddc8b780","fromSide":"bottom","toNode":"a18654f19ef4832e","toSide":"top"},
+		{"id":"9dfb1b8e663c951f","fromNode":"bb21a0eda8558245","fromSide":"bottom","toNode":"fcf5e5280c79804a","toSide":"top","label":"observations, events, thoughts and past memories recalled"},
+		{"id":"f0b94b445cc67e6c","fromNode":"fcf5e5280c79804a","fromSide":"bottom","toNode":"71003a08a92ba6ba","toSide":"top","label":"list of results gets sent to intermediator"},
+		{"id":"950d349c92203f3f","fromNode":"71003a08a92ba6ba","fromSide":"left","toNode":"a18654f19ef4832e","toSide":"top","label":"memory summary \ngets pushed to the llm"},
+		{"id":"9f3a2d144a22d1c3","fromNode":"f36949a855c426db","fromSide":"top","toNode":"a18654f19ef4832e","toSide":"top"},
+		{"id":"cf6069eb12b11c96","fromNode":"a18654f19ef4832e","fromSide":"bottom","toNode":"0752e85af34807a5","toSide":"top","label":"llm starts thinking \nabout wht to do"},
+		{"id":"6a2bad34819bf543","fromNode":"71003a08a92ba6ba","fromSide":"left","toNode":"0752e85af34807a5","toSide":"top"},
+		{"id":"43289d1102cf14b6","fromNode":"0752e85af34807a5","fromSide":"right","toNode":"422e62249209b89c","toSide":"left","label":"what was though\nturns into a new memory"},
+		{"id":"33d964d2fc0b7bfb","fromNode":"422e62249209b89c","fromSide":"top","toNode":"bb21a0eda8558245","toSide":"right","label":"memory gets stored"},
+		{"id":"3a26f0b308e94b21","fromNode":"71003a08a92ba6ba","fromSide":"right","toNode":"bb21a0eda8558245","toSide":"right"},
+		{"id":"262d7723783b4810","fromNode":"0752e85af34807a5","fromSide":"bottom","toNode":"447a6c4f242f4c65","toSide":"top"},
+		{"id":"9832d0d4cd391503","fromNode":"447a6c4f242f4c65","fromSide":"bottom","toNode":"6bd2f1a7f2dcbc0d","toSide":"top"}
+	]
+}

@@ -739,7 +739,12 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
                 const relLabel = PromptBuilder.buildRelationshipLabel(player, person.name);
                 const relPart = relLabel ? ` - ${relLabel} - ` : ' ';
                 const aliases = Array.isArray(person.aliases) && person.aliases.length ? ` [aka ${person.aliases.join(', ')}]` : '';
-                return `  - ${displayName}${aliases}${relPart}(${person.state})${actSuffix}${atSuffix}${descSuffix}`;
+                const canSeeGear = !isBlind && (hasDarkVision || (level !== 'pitch_black' && level !== 'dim'));
+                const wearingList = canSeeGear && Array.isArray(person.wearing) ? person.wearing.filter(Boolean) : [];
+                const holdingList = canSeeGear && Array.isArray(person.holding) ? person.holding.filter(Boolean) : [];
+                const wearingSuffix = wearingList.length ? ` [wearing: ${wearingList.join(', ')}]` : '';
+                const holdingSuffix = holdingList.length ? ` [holding: ${holdingList.join(', ')}]` : '';
+                return `  - ${displayName}${aliases}${relPart}(${person.state})${actSuffix}${atSuffix}${descSuffix}${wearingSuffix}${holdingSuffix}`;
             });
             peopleStr = '\nPeople here:\n' + peopleLines.join('\n');
         } else {
@@ -1145,6 +1150,8 @@ interface PromptState {
         activity?: string;
         state?: string;
         aliases?: string[];
+        holding?: string[];
+        wearing?: string[];
     }>;
     /** Per-area ledger of when each character entered, so events before you
      *  arrived are never witnessed. */

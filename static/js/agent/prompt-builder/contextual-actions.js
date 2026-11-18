@@ -138,6 +138,47 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return [...bySource.values()];
     }
+    /** Visibly held item nodes in a character's hand_left / hand_right slots. */
+    function heldItemNodes(targetName) {
+        const id = charNodeId(targetName);
+        const bySource = new Map();
+        const handIds = new Set();
+        const eq = worldState.data?.players?.[targetName]?.equipped;
+        if (eq) {
+            for (const slot of ['hand_right', 'hand_left']) {
+                for (const raw of eq[slot] || []) {
+                    if (!raw)
+                        continue;
+                    const s = String(raw);
+                    handIds.add(s.startsWith('__multi_slot_') ? s.slice('__multi_slot_'.length) : s);
+                }
+            }
+        }
+        for (const edge of worldState.graph?.edges || []) {
+            if (edge.target !== id || edge.type !== 'equipped')
+                continue;
+            const slot = edge.properties?.slot;
+            if (slot !== 'hand_right' && slot !== 'hand_left' && !handIds.has(edge.source))
+                continue;
+            const node = worldState.getNode(edge.source);
+            if (!node || node.type !== 'item')
+                continue;
+            if (node.properties?.concealed || isIntrinsicAbility(node.properties))
+                continue;
+            bySource.set(edge.source, { id: edge.source, name: node.name, properties: node.properties, equipped: true });
+        }
+        for (const itemId of handIds) {
+            if (bySource.has(itemId))
+                continue;
+            const node = worldState.getNode(itemId);
+            if (!node || node.type !== 'item')
+                continue;
+            if (node.properties?.concealed || isIntrinsicAbility(node.properties))
+                continue;
+            bySource.set(itemId, { id: itemId, name: node.name, properties: node.properties, equipped: true });
+        }
+        return [...bySource.values()];
+    }
     /** All ability/spell item nodes the character knows (EDGE_KNOWN). */
     function knownAbilityNodes(charName) {
         const id = charNodeId(charName);
@@ -183,6 +224,192 @@ window.PromptBuilder = window.PromptBuilder || {};
     function isIntrinsicAbility(props) {
         const tags = asArray(props?.tags || []).map(t => String(t).toLowerCase());
         return ['spell', 'ability', 'innate', 'intrinsic', 'power'].some(t => tags.includes(t));
+    }
+    /** True when an item node is a phone or long-distance comms device. */
+    function isPhoneOrCommsDevice(item) {
+        const props = item?.properties || {};
+        const tags = asArray(props.tags).map(t => t.toLowerCase());
+        const name = String(item?.name || '').toLowerCase();
+        return tags.includes('phone')
+            || tags.includes('communication')
+            || tags.includes('comms')
+            || tags.includes('radio')
+            || name.includes('phone');
+    }
+    /** Client mirror of engine/long_distance_comms.py:is_device_active. */
+    function isDeviceActive(item) {
+        if (!item)
+            return false;
+        const props = item.properties || {};
+        if (props.uses === 0)
+            return false;
+        const state = String(props.current_state || '').toLowerCase();
+        if (['unlit', 'off', 'dead', 'spent'].includes(state))
+            return false;
+        const tags = asArray(props.tags).map(t => t.toLowerCase());
+        let hasPowerSource = false;
+        for (const edge of worldState.graph?.edges || []) {
+            if (edge.type !== 'in' || String(edge.target) !== String(item.id))
+                continue;
+            const child = worldState.getNode(edge.source);
+            if (!child)
+                continue;
+            const cprops = child.properties || {};
+            const ctags = asArray(cprops.tags).map(t => t.toLowerCase());
+            if (ctags.includes('power_source') || ctags.includes('battery')) {
+                hasPowerSource = true;
+                const cstate = String(cprops.current_state || '').toLowerCase();
+                if (cprops.uses === 0 || ['unlit', 'off', 'dead', 'spent'].includes(cstate)) {
+                    return false;
+                }
+            }
+        }
+        if ((tags.includes('requires_battery') || props.requires_battery) && !hasPowerSource) {
+            return false;
+        }
+        return true;
+    }
+    /** Active phone/comms devices carried by or co-located with charName. */
+    function activePhoneNodes(charName, currentArea) {
+        const candidates = [...carriedItemNodes(charName)];
+        const seen = new Set(candidates.map(c => String(c.id)));
+        try {
+            const areaNode = currentArea?.name ? worldState.getNodeByIdentifier(currentArea.name) : null;
+            const areaId = areaNode ? areaNode.id : null;
+            if (areaId) {
+                for (const edge of worldState.graph?.edges || []) {
+                    if (edge.target !== areaId || edge.type !== 'in')
+                        continue;
+                    const node = worldState.getNode(edge.source);
+                    if (!node || node.type !== 'item' || seen.has(String(edge.source)))
+                        continue;
+                    seen.add(String(edge.source));
+                    candidates.push({ id: edge.source, name: node.name, properties: node.properties });
+                }
+            }
+        }
+        catch { /* area scan is best-effort */ }
+        return candidates.filter(item => isPhoneOrCommsDevice(item) && isDeviceActive(item));
+    }
+    /** True when an item node is hideable cover. */
+    function isHideableCover(item) {
+        if (!item)
+            return false;
+        const props = item.properties || {};
+        if (props.hideable === true)
+            return true;
+        const tags = asArray(props.tags).map(t => t.toLowerCase());
+        if (tags.includes('hideable') || tags.includes('cover'))
+            return true;
+        const actions = asArray(props.actions).map(a => a.toLowerCase());
+        return actions.includes('hide');
+    }
+    /** Hideable cover item nodes present in currentArea. */
+    function hideableCoverNodes(currentArea) {
+        const out = [];
+        const seen = new Set();
+        const pushIfCover = (node) => {
+            if (!node)
+                return;
+            const id = String(node.id || node.name || '');
+            if (!id || seen.has(id))
+                return;
+            const candidate = {
+                id,
+                name: node.name || id,
+                properties: node.properties || node,
+            };
+            if (isHideableCover(candidate)) {
+                seen.add(id);
+                out.push(candidate);
+            }
+        };
+        try {
+            if (currentArea?.name && typeof worldState.getItemsInArea === 'function') {
+                for (const item of worldState.getItemsInArea(currentArea.name) || []) {
+                    pushIfCover(item);
+                }
+            }
+        }
+        catch { /* optional */ }
+        try {
+            const areaNode = currentArea?.name
+                ? (typeof worldState.getNodeByIdentifier === 'function'
+                    ? worldState.getNodeByIdentifier(currentArea.name)
+                    : worldState.getNode?.(`area_${String(currentArea.name).toLowerCase().replace(/\s+/g, '_')}`))
+                : null;
+            const areaId = areaNode?.id || (currentArea?.name ? `area_${String(currentArea.name).toLowerCase().replace(/\s+/g, '_')}` : null);
+            if (areaId) {
+                for (const edge of worldState.graph?.edges || []) {
+                    if (edge.target !== areaId || (edge.type && edge.type !== 'in'))
+                        continue;
+                    const node = worldState.getNode?.(edge.source);
+                    if (node && node.type === 'item')
+                        pushIfCover(node);
+                }
+            }
+        }
+        catch { /* best-effort */ }
+        return out;
+    }
+    /** True when charName is currently concealed (player.hidden, state, or 'hidden' edge). */
+    function isCharacterHidden(charName, player) {
+        if (!player && !charName)
+            return false;
+        if (player?.hidden === true)
+            return true;
+        const st = String(player?.state || '').toLowerCase();
+        if (st === 'hidden' || st === 'stealthed')
+            return true;
+        const nodeId = charNodeId(charName).toLowerCase();
+        const nameLower = String(charName || '').toLowerCase();
+        for (const edge of worldState.graph?.edges || []) {
+            if (edge.type !== 'hidden')
+                continue;
+            const src = String(edge.source || '').toLowerCase();
+            if (src === nameLower || src === nodeId)
+                return true;
+        }
+        return false;
+    }
+    /** True when threat or danger exists in the character's current room context. */
+    function hasThreatOrDanger(state, charName, player, currentArea, others) {
+        try {
+            const td = window.ThreatDetector;
+            if (td && typeof td.getThreats === 'function') {
+                const threats = td.getThreats(charName, state?.turn_events, state);
+                if (Array.isArray(threats) && threats.length > 0)
+                    return true;
+            }
+        }
+        catch { /* optional */ }
+        if (player?.conditions?.frightened || player?.conditions?.terrified)
+            return true;
+        if (player?.recent_attackers && Object.keys(player.recent_attackers).length > 0)
+            return true;
+        if (currentArea?.danger || currentArea?.threat)
+            return true;
+        const turnEvents = state?.turn_events || worldState.data?.turn_events || [];
+        if (Array.isArray(turnEvents) && turnEvents.some((ev) => ['combat', 'attack', 'disarm'].includes(String(ev?.action || '').toLowerCase()))) {
+            return true;
+        }
+        for (const p of others) {
+            const pName = p.name || '';
+            const full = state.players?.[pName] || worldState.data?.players?.[pName] || p;
+            if (!full)
+                continue;
+            const ptags = asArray(full.tags).map(t => t.toLowerCase());
+            if (full.traits?.hostile || full.hostile === true || full.is_slasher === true)
+                return true;
+            if (ptags.includes('hostile') || ptags.includes('slasher') || ptags.includes('enemy'))
+                return true;
+            if (full.state === 'combat' || full.state === 'hostile')
+                return true;
+            const rel = full.relationships?.[charName]?.closeness;
+            if (typeof rel === 'number' && rel < -20)
+                return true;
+        }
+        return false;
     }
     /**
      * The allowed action verbs for an item node in the given context.
@@ -373,15 +600,37 @@ window.PromptBuilder = window.PromptBuilder || {};
             const target = names.join(', ');
             keep('attack', `attack  -  fight ${target}`);
             keep('grab', `grab  -  seize ${target}`);
+            const armedNames = others
+                .filter((p) => heldItemNodes(p.name || '').length > 0)
+                .map((p) => PromptBuilder.anonymousName(charName, p.name || '', worldState.data?.players?.[p.name || '']?.description || p.description || ''))
+                .filter(Boolean);
+            if (armedNames.length)
+                keep('disarm', `disarm  -  wrest a held item from ${armedNames.join(', ')}`);
             keep('lead', `lead  -  guide ${target}`);
             if (carried.length)
                 keep('give', `give  -  hand an item to ${target}`);
             keep('steal', `steal  -  take from ${target}`);
         }
+        if (carried.length && visibleExits.length) {
+            keep('throw', 'throw <item> to/over <way>  -  throw a carried item through an open/see-through way or over a barrier');
+        }
         if (player?.grappled_by)
             keep('escape', 'escape  -  break free (you are being held)');
         if ((player?.state === 'prone') || !!(player?.conditions?.prone))
             keep('stand', 'stand  -  get back up (you are prone)');
+        const coverNodes = hideableCoverNodes(currentArea);
+        if (isCharacterHidden(charName, player)) {
+            keep('unhide', 'unhide  -  step out of hiding');
+        }
+        else if (coverNodes.length > 0 || hasThreatOrDanger(state, charName, player, currentArea, others)) {
+            if (coverNodes.length > 0) {
+                const coverLabels = coverNodes.map(c => c.name || c.id).filter(Boolean).join(', ');
+                keep('hide', `hide  -  hide in/behind/under ${coverLabels}`);
+            }
+            else {
+                keep('hide', 'hide  -  hide in cover or shadows');
+            }
+        }
         const energy = vitals.Energy;
         if (energy !== undefined && energy < 50)
             keep('rest', 'rest  -  rest to recover energy (you are tired)');
@@ -392,6 +641,23 @@ window.PromptBuilder = window.PromptBuilder || {};
             keep('listen', 'listen  -  listen hard (you are blind)');
         if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim'))
             keep('fumble', 'fumble  -  blind search in the darkness');
+        const activePhones = activePhoneNodes(charName, currentArea);
+        if (activePhones.length) {
+            keep('call', 'call  -  call a contact by phone (call <contact>)');
+            keep('text', 'text  -  send a text message (text <contact|#channel> <message>)');
+            const incomingFrom = player?.incoming_call_from
+                || activePhones.map(p => p.properties?.incoming_call_from).find(Boolean);
+            const onCall = !!(player?.conditions?.on_a_call)
+                || !!(player?.call_partner)
+                || activePhones.some(p => p.properties?.call_state === 'connected' || p.properties?.call_state === 'calling');
+            if (incomingFrom) {
+                keep('answer', `answer  -  answer incoming call from ${incomingFrom}`);
+                keep('hangup', `hangup  -  dismiss incoming call from ${incomingFrom}`);
+            }
+            else if (onCall) {
+                keep('hangup', 'hangup  -  end the current phone call');
+            }
+        }
         if (currentArea?.name)
             keep('examine', `examine  -  examine ${currentArea.name}`);
         keep('look', 'look  -  look around');

@@ -293,10 +293,16 @@ class EventBus {
         const tpm = raw.time_per_tick_minutes ?? 5;
         const startH = raw.clock_start_hour ?? 8;
         const startM = raw.clock_start_minute ?? 0;
-        const total = tick * tpm + startH * 60 + startM;
-        const h = Math.floor(total / 60) % 24;
-        const m = total % 60;
-        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        const totalMinutes = tick * tpm + startH * 60 + startM;
+        const totalSeconds = ((Math.floor(totalMinutes * 60 + 1e-6) % 86400) + 86400) % 86400;
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        const hhmm = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        if (s > 0 || (tpm > 0 && tpm < 1)) {
+            return `${hhmm}:${String(s).padStart(2, '0')}`;
+        }
+        return hhmm;
     }
 
     _gameClock() {
@@ -362,10 +368,14 @@ class EventBus {
         const raw = VW?.state?.data || {};
         const currentTick = raw.time_ticks ?? 0;
         const tpm = raw.time_per_tick_minutes ?? 5;
-        const diffMinutes = Math.max(0, currentTick - tick) * tpm;
-        if (diffMinutes < 1) return 'just now';
-        if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
-        const hours = Math.floor(diffMinutes / 60);
+        const diffTicks = Math.max(0, currentTick - tick);
+        if (diffTicks === 0) return 'just now';
+        const diffSeconds = Math.floor(diffTicks * tpm * 60 + 1e-6);
+        if (diffSeconds <= 0) return 'just now';
+        if (diffSeconds < 60) return `${diffSeconds} second${diffSeconds === 1 ? '' : 's'} ago`;
+        const minutes = Math.floor(diffSeconds / 60);
+        if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+        const hours = Math.floor(minutes / 60);
         if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
         const days = Math.floor(hours / 24);
         return `${days} day${days === 1 ? '' : 's'} ago`;

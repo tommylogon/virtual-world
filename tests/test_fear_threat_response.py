@@ -396,3 +396,167 @@ class TestFearIsReleased:
 
         human = world.player_manager.get_player("Fen")
         assert not human.has_condition("frightened")
+
+
+# ── real simulation state mutations (bug-594) ─────────────────────────────
+
+class TestFearStateMutations:
+
+    def test_flee_moves_npc_through_open_exit_away_from_threat(self):
+        from graph import EDGE_IN
+        world = _world()
+        world.movement.connect_areas(CAMP, ELSEWHERE, "east", "west", state="open")
+        human = _character(world, "Fen", area=CAMP, fears=["goblin"])
+        _character(world, "Grit", area=CAMP, tags=["goblin"])
+
+        outcomes = run_fear_pass(world, tick=0, reaction="flee")
+
+        assert len(outcomes) == 1
+        assert outcomes[0]["reaction"] == "flee"
+        assert outcomes[0]["moved_to"] == ELSEWHERE
+        assert human.current_area == ELSEWHERE
+        pid = world._player_node_id("Fen")
+        in_targets = [e.target for e in world.graph.get_edges_for_source(pid, EDGE_IN)]
+        assert world.area_node_id(ELSEWHERE) in in_targets
+
+    def test_flee_prefers_safe_exit_over_area_with_another_threat(self):
+        world = _world()
+        SAFE_ROOM = "Quiet Alcove"
+        world.movement.add_area(Area(SAFE_ROOM, "A safe niche.", []))
+        world.movement.connect_areas(CAMP, ELSEWHERE, "north", "south", state="open")
+        world.movement.connect_areas(CAMP, SAFE_ROOM, "south", "north", state="open")
+        human = _character(world, "Fen", area=CAMP, fears=["goblin"])
+        _character(world, "Grit", area=CAMP, tags=["goblin"])
+        _character(world, "Snikk", area=ELSEWHERE, tags=["goblin"])
+
+        outcomes = run_fear_pass(world, tick=0, reaction="flee")
+
+        assert len(outcomes) == 1
+        assert human.current_area == SAFE_ROOM
+
+    def test_hide_places_npc_into_hidden_state_with_cover_edge(self):
+        from graph import Node, Edge, EDGE_IN
+        world = _world()
+        human = _character(world, "Fen", area=CAMP, fears=["goblin"])
+        _character(world, "Grit", area=CAMP, tags=["goblin"])
+
+        crate = Node(
+            id="item_supply_crate",
+            type="item",
+            name="Supply Crate",
+            properties={"tags": ["hideable", "furniture"], "description": "A wooden crate."},
+        )
+        world.graph.add_node(crate)
+        world.graph.add_edge(Edge(source=crate.id, target=world.area_node_id(CAMP), type=EDGE_IN))
+
+        assert human.hidden is False
+        outcomes = run_fear_pass(world, tick=0, reaction="hide")
+
+        assert len(outcomes) == 1
+        assert outcomes[0]["reaction"] == "hide"
+        assert outcomes[0]["cover"] == "item_supply_crate"
+        assert human.hidden is True
+        assert world.player_manager.is_visible("Fen") is False
+        pid = world._player_node_id("Fen")
+        hidden_edges = [
+            e for e in world.graph.edges
+            if e.type == "hidden" and e.target == "item_supply_crate" and e.source in (pid, "Fen")
+        ]
+        assert len(hidden_edges) == 1
+
+    def test_hide_without_cover_falls_back_to_flee_or_freeze(self):
+        from engine.background_social import is_frozen_by_fear
+        # Case 1: exposed room with an open exit -> falls back to flee
+        world = _world()
+        world.movement.connect_areas(CAMP, ELSEWHERE, "east", "west", state="open")
+        human = _character(world, "Fen", area=CAMP, fears=["goblin"])
+        _character(world, "Grit", area=CAMP, tags=["goblin"])
+
+        outcomes = run_fear_pass(world, tick=0, reaction="hide")
+        assert len(outcomes) == 1
+        assert outcomes[0]["reaction"] == "flee"
+        assert outcomes[0].get("fallback_from") == "hide"
+        assert human.current_area == ELSEWHERE
+        assert human.hidden is False
+
+        # Case 2: exposed room with no exits -> falls back to freeze
+        world2 = _world()
+        human2 = _character(world2, "Fen", area=CAMP, fears=["goblin"])
+        _character(world2, "Grit", area=CAMP, tags=["goblin"])
+
+        outcomes2 = run_fear_pass(world2, tick=0, reaction="hide")
+        assert len(outcomes2) == 1
+        assert outcomes2[0]["reaction"] == "freeze"
+        assert outcomes2[0].get("fallback_from") == "hide"
+        assert human2.hidden is False
+        assert is_frozen_by_fear(human2, world2, tick=0) is True
+
+    def test_freeze_pauses_schedule_and_travel_while_keeping_vitals_and_cooldown(self):
+        from engine.background_simulation import BackgroundSimulation
+        from engine.background_social import is_frozen_by_fear, FEAR_FREEZE_MINUTES
+
+        world = _world()
+        world.movement.connect_areas(CAMP, ELSEWHERE, "east", "west", state="open")
+        human = _character(world, "Fen", area=CAMP, fears=["goblin"])
+        human.schedule = [{"start": "00:00", "activity": "work", "area": ELSEWHERE}]
+        _character(world, "Grit", area=CAMP, tags=["goblin"])
+        social_before = human.vitals["Social"]
+
+        outcomes = run_fear_pass(world, tick=0, reaction="freeze")
+
+        assert len(outcomes) == 1
+        assert outcomes[0]["reaction"] == "freeze"
+        assert is_frozen_by_fear(human, world, tick=0) is True
+        assert human.flags.get("frozen_by_fear") is True
+        # Vitals and cooldown accounting stay intact
+        assert human.vitals["Social"] < social_before
+        assert getattr(human, "_fear_last_tick", None) == 0
+        assert human.has_condition("frightened")
+
+        # Schedule and travel are paused while frozen
+        sim = BackgroundSimulation(world)
+        assert sim._pursue_schedule(human) is False
+        assert sim.step_toward_area(human, ELSEWHERE) is False
+        sim.process_due()
+        assert human.current_area == CAMP
+
+        # Once the freeze duration expires and the threat is gone, schedule travel resumes
+        world.set_player_area("Grit", "Nowhere")
+        world.time_ticks = FEAR_FREEZE_MINUTES + 5
+        assert is_frozen_by_fear(human, world) is False
+        assert sim._pursue_schedule(human) is True
+        assert human.current_area == ELSEWHERE
+
+    def test_shout_emits_sound_and_notifies_adjacent_listeners(self):
+        world = _world()
+        world.movement.connect_areas(CAMP, ELSEWHERE, "east", "west", state="open")
+        _character(world, "Fen", area=CAMP, fears=["goblin"])
+        _character(world, "Grit", area=CAMP, tags=["goblin"])
+        ally = _character(world, "Tam", area=ELSEWHERE)
+
+        outcomes = run_fear_pass(world, tick=0, reaction="shout")
+
+        assert len(outcomes) == 1
+        assert outcomes[0]["reaction"] == "shout"
+        assert ELSEWHERE in outcomes[0].get("heard_in", [])
+        assert any(
+            h.get("speaker") == "Fen" and h.get("speech_level") == "shout"
+            for h in getattr(ally, "recent_hearing", [])
+        )
+
+    def test_background_soak_smoke_when_no_exits_or_hideable_items_exist(self):
+        from engine.background_simulation import BackgroundSimulation
+
+        world = _world()
+        for i in range(4):
+            _character(world, f"Human{i}", area=CAMP, fears=["goblin"])
+        _character(world, "Grit", area=CAMP, tags=["goblin"])
+
+        sim = BackgroundSimulation(world)
+        for reaction in FEAR_REACTIONS:
+            for p in world.player_manager.players.values():
+                p._fear_last_tick = None
+            rows = run_fear_pass(world, tick=world.time_ticks, reaction=reaction)
+            assert len(rows) == 4
+            sim.process_due()
+            world.time_ticks += 1

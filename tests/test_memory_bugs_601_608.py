@@ -187,24 +187,48 @@ def test_bug604_reflect_validates_rel_and_legacy_dynamics(app_and_client):
 def test_bug608_memories_context_respects_suppressions(app_and_client):
     app, client, p = app_and_client
     p.add_memory("Secret cellar key is under the rug.", tick=5, importance=8)
+    p.add_memory("Invalid cellar key rumor.", tick=5, importance=8)
+    p.add_memory("Superseded cellar key note.", tick=5, importance=8)
     p.add_memory("Visible cellar note on the table.", tick=6, importance=6)
     secret_id = p.memories[0]["id"]
+    invalid_id = p.memories[1]["id"]
+    superseded_id = p.memories[2]["id"]
+    visible_id = p.memories[3]["id"]
     p.suppress_memory(memory_id=secret_id, duration=0, current_tick=20)
+    p.memories[1]["invalid_at"] = 10
+    p.memories[2]["superseded_by"] = visible_id
+    before_recall = p.memories[3].get("recall_count", 0)
 
     res = client.post(
         "/api/players/Lyrie/memories/context",
         json={"query": "cellar key"},
     )
     assert res.status_code == 200
-    recalled_ids = {m["id"] for m in res.get_json()["recalled_memories"]}
+    recalled = res.get_json()["recalled_memories"]
+    recalled_ids = {m["id"] for m in recalled}
     assert secret_id not in recalled_ids
+    assert invalid_id not in recalled_ids
+    assert superseded_id not in recalled_ids
+    assert visible_id in recalled_ids
+    # Read-only preview must not reinforce recalled memories
+    assert p.memories[3].get("recall_count", 0) == before_recall
 
 
 def test_bug608_lived_log_same_tick_bridge_does_not_drop(app_and_client):
     _, _, p = app_and_client
+    # Tick 0 events must not be skipped on a fresh player
     p.lived_log = [
-        {"tick": 5, "kind": "death", "who": "Goblin", "area": "Foyer"},
+        {"tick": 0, "kind": "death", "who": "Rat", "area": "Foyer"},
     ]
+    assert lived_log_memory.bridge(p) == 1
+    p.lived_log.append(
+        {"tick": 0, "kind": "pursuit", "what": "chased Rat", "area": "Foyer"}
+    )
+    assert lived_log_memory.bridge(p) == 1
+
+    p.lived_log.append(
+        {"tick": 5, "kind": "death", "who": "Goblin", "area": "Foyer"}
+    )
     assert lived_log_memory.bridge(p) == 1
 
     # Second event appended later on the SAME tick 5
@@ -212,7 +236,9 @@ def test_bug608_lived_log_same_tick_bridge_does_not_drop(app_and_client):
         {"tick": 5, "kind": "pursuit", "what": "chased Anna to the Foyer", "area": "Foyer"}
     )
     assert lived_log_memory.bridge(p) == 1
-    assert len(p.memories) == 2
+    assert len(p.memories) == 4
+    # Repeated call with no new entries is idempotent
+    assert lived_log_memory.bridge(p) == 0
 
 
 def test_bug608_daily_reflection_unix_timestamp_and_entity_ids(app_and_client):
@@ -227,3 +253,19 @@ def test_bug608_daily_reflection_unix_timestamp_and_entity_ids(app_and_client):
     mem = [m for m in p.memories if m["id"] == res["memory_id"]][0]
     assert mem["timestamp"] >= before
     assert "Anna" in mem["entity_ids"] or getattr(app.world.players["Anna"], "id", "Anna") in mem["entity_ids"]
+
+
+def test_bug608_tick_manager_wires_daily_reflection_under_provider_guard(app_and_client):
+    app, _, p = app_and_client
+    calls = []
+
+    def _provider(ctx):
+        calls.append(ctx.get("character"))
+        return {"reflection": f"Anna watched {ctx.get('area')}."}
+
+    app.world.local_provider = _provider
+    app.world.tick_manager.tick_turn(skip_npcs=True)
+    assert len(calls) >= 1
+    refl_mems = [m for m in p.memories if m.get("source") == "daily_reflection"]
+    assert len(refl_mems) == 1
+    assert refl_mems[0]["timestamp"] >= time.time() - 10

@@ -87,12 +87,20 @@ def _make_world():
 
 class TestHoldingFilter:
     def test_intrinsic_abilities_hidden_from_holding(self):
-        """Create Flame (spell tag) never appears in the holding list."""
-        _, _, desc = _make_world()
+        """Create Flame (spell tag) and stowed EDGE_CARRYING items never appear in the holding list."""
+        graph, pm, desc = _make_world()
+        lantern = Node(
+            id="item_lantern",
+            type="item",
+            name="Lantern",
+            properties={"tags": ["light"]},
+        )
+        graph.add_node(lantern)
+        pm.players["Lyrie"].equipped["hand_right"] = [lantern.id]
         output = desc.get_area_description()
         assert "Create Flame" not in output
-        assert "Waterskin" in output
-        assert "[holding: Waterskin]" in output
+        assert "Waterskin" not in output
+        assert "[holding: Lantern]" in output
 
     def test_real_name_shown_after_meeting(self):
         """After LEARNING the name (task-339), the real name + full
@@ -127,37 +135,47 @@ class TestHoldingFilter:
         assert "Lyrie" in third
 
     def test_wearing_split_from_holding(self):
-        """Equipped items render as [wearing: ...], carried items as
-        [holding: ...], and an item on both edges only counts as worn."""
-        graph, _, desc = _make_world()
+        """Equipped outer items render as [wearing: ...], hand-slot items as
+        [holding: ...], and stowed EDGE_CARRYING items stay hidden."""
+        graph, pm, desc = _make_world()
         jumpsuit = Node(
             id="item_jumpsuit",
             type="item",
             name="Jumpsuit",
             properties={"tags": ["clothing"]},
         )
+        dagger = Node(
+            id="item_dagger",
+            type="item",
+            name="Dagger",
+            properties={"tags": ["weapon"]},
+        )
         graph.add_node(jumpsuit)
+        graph.add_node(dagger)
         graph.add_edge(Edge(
             source=jumpsuit.id,
             target="player_Lyrie",
             type="equipped",
             properties={"slot": "body"},
         ))
-        # Waterskin is on EDGE_CARRYING from the fixture.
+        pm.players["Lyrie"].equipped["body"] = [jumpsuit.id]
+        pm.players["Lyrie"].equipped["hand_right"] = [dagger.id]
+        # Waterskin is on EDGE_CARRYING from the fixture and must stay hidden.
         output = desc.get_area_description()
         assert "[wearing: Jumpsuit]" in output
-        assert "[holding: Waterskin]" in output
+        assert "[holding: Dagger]" in output
+        assert "Waterskin" not in output
         assert "Jumpsuit" not in output.replace("[wearing: Jumpsuit]", "")
 
     def test_stranger_shows_first_sentence_description(self):
-        """A stranger's first-sentence description is shown at a glance —
-        '<label> — A tall woman...' — not just the bare appearance label."""
+        """A stranger's first-sentence description is shown at a glance -
+        '<label> - A tall woman...' - not just the bare appearance label."""
         _, _, desc = _make_world()
         output = desc.get_area_description()
         assert "tall woman with long auburn hair and a green cloak" in output
         # The first-sentence description appears twice: once as the label
-        # itself, once as the glance suffix after the em-dash.
-        assert "— A tall woman with long auburn hair and a green cloak." in output
+        # itself, once as the glance suffix after the hyphen.
+        assert "- A tall woman with long auburn hair and a green cloak." in output
 
     def test_is_intrinsic_ability_string_tags(self):
         """_is_intrinsic_ability handles both list and comma-string tags."""

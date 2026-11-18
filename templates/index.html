@@ -275,7 +275,7 @@
                                 <button class="menu-toggle" id="btn-legend" aria-pressed="false" onclick="graphManager.toggleLegend()" title="Toggle legend">📖 Legend</button>
                                 <span class="stepper" title="Edge label size">
                                     <button class="stepper-btn" onclick="graphManager.setEdgeLabelSize(-1)" aria-label="Smaller edge labels">−</button>
-                                    <span id="edge-label-size" class="stepper-value">8</span>
+                                    <input type="number" id="edge-label-size" class="stepper-input" min="4" max="20" step="1" value="8" aria-label="Edge label size">
                                     <button class="stepper-btn" onclick="graphManager.setEdgeLabelSize(1)" aria-label="Larger edge labels">+</button>
                                 </span>
                             </div>
@@ -283,7 +283,7 @@
                             <div class="menu-grid">
                                 <span class="stepper" title="Map layout only  -  pixels per painted cell (the padding between areas). Auto derives it from the canvas size (about ten cells across); nudge to take it over. Marks and names are sized as fractions of the cell, so a place always fits its own cell.">
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(-20)" aria-label="Tighter map spacing">−</button>
-                                    <span id="map-spacing" class="stepper-value">40</span>
+                                    <input type="number" id="map-spacing" class="stepper-input" min="20" max="1000" step="20" value="40" aria-label="Map grid spacing">
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(20)" aria-label="Roomier map spacing">+</button>
                                     <button id="map-spacing-auto" class="stepper-btn" aria-pressed="true" onclick="graphManager.setAutoMapSpacing(this.getAttribute('aria-pressed') !== 'true')" aria-label="Derive the map pitch from the canvas size">A</button>
                                 </span>
@@ -729,7 +729,6 @@
                         <div class="settings-group-title"><span class="group-icon">&#9889;</span> Agent Execution Loop</div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-reactive-mode" data-config="reactiveMode" onchange="config.reactiveMode=this.checked;config.save();"> Reactive Mode</label><span class="toggle-desc">Thought -&gt; Act -&gt; React 3-phase turn execution</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-retry-invalid" data-config="autoRetryInvalid" onchange="config.autoRetryInvalid=this.checked;config.save();events.log('Invalid-action auto-retry '+(this.checked?'enabled':'disabled'),'system-msg');"> Auto-Retry Invalid Actions</label><span class="toggle-desc">Give agent one same-turn retry when an action fails (error fed back)</span></div>
-                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-end-of-turn-memory" data-config="endOfTurnMemory" onchange="config.endOfTurnMemory=this.checked;config.save();"> End-of-Turn Memories</label><span class="toggle-desc">Generate episodic memory reflections at turn boundaries</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="commons-auto-reply" data-config="commonsAutoReplyOnMessage" onchange="config.commonsAutoReplyOnMessage=this.checked;config.save();"> Commons: Auto-reply on message</label><span class="toggle-desc">Automatically trigger Act for active LLM recipients when a message is sent in The Commons (sequentially in group/public chats)</span></div>
                     </div>
                     <div class="settings-group">

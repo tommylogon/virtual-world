@@ -193,14 +193,65 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
     }
 
     /**
+     * Strip null/undefined fields from a strict-mode typed step object so
+     * PlanGrounding and render() see only populated attributes.
+     */
+    function _normalizeTypedStep(raw: Record<string, unknown>): Record<string, unknown> {
+        const out: Record<string, unknown> = {};
+        for (const [key, val] of Object.entries(raw)) {
+            if (val !== null && val !== undefined) out[key] = val;
+        }
+        return out;
+    }
+
+    /**
+     * Format a typed step object into a fallback one-line string when
+     * PlanGrounding is unavailable.
+     */
+    function _formatTypedStepFallback(step: Record<string, unknown>): string {
+        const act = String(step.act || '').trim();
+        if (!act) return '';
+        const text = String(step.text ?? step.note ?? '').trim();
+        const item = String(step.item ?? '').trim();
+        const target = String(step.target ?? '').trim();
+        if (act === 'speak' && text) return `speak: "${text}"`;
+        if (act === 'perform' && text) return `perform: ${text}`;
+        if (act === 'use_on' && item && target) return `use ${item} on ${target}`;
+        return `${act} ${item || target || ''}`.trim();
+    }
+
+    /**
+     * Format active/outstanding GIMP goals from player.goals for the planning prompt.
+     */
+    function _formatGoalsContext(player: any): string {
+        const rawGoals = Array.isArray(player?.goals) ? player.goals : [];
+        if (!rawGoals.length) return '';
+        const lines: string[] = [];
+        for (const g of rawGoals) {
+            if (!g || !g.what) continue;
+            const status = String(g.status || 'active').toLowerCase();
+            if (status === 'reached' || status === 'dropped') continue;
+            const why = String(g.why || g.motivation || '').trim();
+            const whyStr = why ? ` (why: ${why})` : '';
+            const dueStr = g.deadline != null ? ` [due tick ${g.deadline}]` : '';
+            const statusTag = (status === 'blocked' || status === 'proposed') ? ` [${status}]` : '';
+            lines.push(`- ${g.what}${whyStr}${dueStr}${statusTag}`);
+        }
+        if (!lines.length) return '';
+        return `\n=== YOUR GOALS ===\n${lines.join('\n')}`;
+    }
+
+    /**
      * Generate a multi-step plan for a character using the LLM.
      *
      * Builds a prompt from the character's current state, area context,
      * vitals, emotions, relationships, memories, and world knowledge.
-     * The LLM responds with a JSON array of 3-5 plan steps.
+     * The LLM responds with a JSON object of typed plan steps
+     * ({"steps": [{"act": ...}]}), which are grounded via PlanGrounding and
+     * rendered to canonical step strings (with legacy string-array fallback).
      *
      * @param {string} charName - Character name to generate a plan for
-     * @returns {Promise<string[]>} Array of up to 5 plan step strings, or empty on failure
+     * @returns {Promise<string[]>} Array of up to 5 grounded plan step strings, or empty on failure
      */
     async function generate(charName: string): Promise<string[]> {
         if (!charName || (!config.apiKey && _needsKey(config)) || !config.model) return [];
@@ -213,28 +264,48 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
             const roomContext = PromptBuilder.buildRoomContext(state, charName, player, currentArea, false);
             const vitals = PromptBuilder.describeVitals(player, state, charName);
             const emotion = PromptBuilder.buildEmotionContext(player);
-            const memories = await PromptBuilder.buildMemoryContext(charName);
+            const relationships = typeof PromptBuilder.buildRelationshipContext === 'function'
+                ? PromptBuilder.buildRelationshipContext(player, charName)
+                : '';
+            const mosiac = typeof PromptBuilder.buildMosiacContext === 'function'
+                ? PromptBuilder.buildMosiacContext(player)
+                : '';
+            const goals = _formatGoalsContext(player);
+            const memories = await PromptBuilder.buildMemoryContext(charName, { preview: true });
             const lastThought = events.getCharacterState(charName)?.lastThought || '';
             const lastActionResults = (config.lastActionResult || {}) as Record<string, string>;
             const lastResult = lastActionResults[charName] || '';
 
-            // Threat detection - check for hostile actors in the same room
-            const allPlyrs = state?.players || {};
-            const areaPlayers = state?.players_in_area || [];
-            const threatsInRoom = [];
-            for (const person of areaPlayers) {
-                if (person.name === charName) continue;
-                const other = allPlyrs[person.name];
-                if (!other) continue;
-                if (other.state === 'hidden' || other.state === 'stealthed') continue;
-                const rel = other.relationships?.[charName]?.closeness;
-                if (other.traits?.hostile || (rel !== undefined && rel < -20)) {
-                    threatsInRoom.push(person.name);
-                }
-            }
-            const threatNote = threatsInRoom.length > 0
-                ? `\n?? THREAT WARNING: ${threatsInRoom.join(', ')} ${threatsInRoom.length > 1 ? 'are' : 'is'} hostile to you and in this room. Your plan MUST address this threat first - flee, hide, fight, or warn others. Do NOT plan exploration or item examination while a threat is active.`
-                : '';
+            // Threat detection - delegate to ThreatDetector so plan generation and
+            // decide prompts share one target-, weapon-, and disarm-aware rule set.
+            const threatDetector = (window as unknown as {
+                ThreatDetector?: {
+                    getThreatAlert?: (
+                        charName: string,
+                        player?: unknown,
+                        currentArea?: unknown,
+                        turnEvents?: { actor?: string; action?: string }[] | null,
+                        stateData?: unknown,
+                    ) => string | null;
+                    getThreats?: (
+                        charName: string | undefined,
+                        turnEvents?: { actor?: string; action?: string }[] | null,
+                        stateData?: unknown,
+                    ) => string[];
+                };
+            }).ThreatDetector;
+            const turnEvents = state?.turn_events || [];
+            const threatAlert = typeof threatDetector?.getThreatAlert === 'function'
+                ? threatDetector.getThreatAlert(charName, player, currentArea, turnEvents, state)
+                : null;
+            const threatsInRoom = !threatAlert && typeof threatDetector?.getThreats === 'function'
+                ? threatDetector.getThreats(charName, turnEvents, state)
+                : [];
+            const threatNote = threatAlert
+                ? `\n${threatAlert}`
+                : (threatsInRoom.length > 0
+                    ? `\n⚠️ THREAT WARNING: ${threatsInRoom.join(', ')} ${threatsInRoom.length > 1 ? 'are' : 'is'} hostile to you and in this room. Your plan MUST address this threat first - flee, hide, fight, or warn others. Do NOT plan exploration or item examination while a threat is active.`
+                    : '');
 
             // task-92: critical vitals force the plan to address them first.
             // Maslow's hierarchy of needs: physiological needs (hunger, thirst,
@@ -268,7 +339,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
             const prompt = `${roomContext}
 
 === YOUR STATE ===
-${vitals || 'No urgent physical needs.'}${emotion}${threatNote}${maslowNote}
+${vitals || 'No urgent physical needs.'}${emotion}${relationships}${mosiac}${goals}${threatNote}${maslowNote}
 
 ${memories || ''}
 ${lastResult ? `\n=== RECENTLY ===\n${_summaryLine(lastResult)}` : ''}
@@ -276,7 +347,7 @@ ${lastResult ? `\n=== RECENTLY ===\n${_summaryLine(lastResult)}` : ''}
 ${lastThought ? `=== YOUR THOUGHTS ===\n${lastThought}\n\n` : ''}${_previousPlanIssues(charName)}
 
 Create a practical 3-5 step plan based only on the information above.
-- Every step is an object: {"act": "...", "item": ..., "target": ..., "text": ..., "note": ..., "area": ..., "until": ...}
+- Every step is an object: {"act": "...", "item": ..., "target": ..., "text": ..., "note": ..., "area": ..., "until": ..., "duration": ...}
 - "act" is one of: ${grounding ? [...grounding.ACTS].join(', ') : 'go, take, use, examine, speak, wait'}.
 - TARGET TYPES - every "item"/"target" must name a thing that exists, and the TYPE decides where it comes from:
   * PATHS (the doors/exits listed under "paths") are the target of go, dash, approach, open, close.
@@ -332,7 +403,9 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
 
                 // Legacy prose contract ({"steps": ["..."]}) - accepted as fallback.
                 const legacy = rawSteps.filter((s: unknown) => typeof s === 'string') as string[];
-                const typed = rawSteps.filter((s: unknown) => s && typeof s === 'object') as any[];
+                const typed = rawSteps
+                    .filter((s: unknown): s is Record<string, unknown> => Boolean(s && typeof s === 'object' && !Array.isArray(s)))
+                    .map(_normalizeTypedStep);
                 if (legacy.length && !typed.length) return legacy.slice(0, 5);
                 if (!typed.length) return [];
 
@@ -397,8 +470,15 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
         const steps = arr.filter((s: unknown) => typeof s === 'string').slice(0, 5);
         if (steps.length > 0) return steps as string[];
         if (typeof arr[0] === 'object' && arr[0] !== null) {
-            const objs = (arr as any[]).map((e: any) => e.examine || e.action || e.step || '').filter(Boolean).slice(0, 5);
-            if (objs.length) return objs as string[];
+            const objs = (arr as Record<string, unknown>[])
+                .map((e) => {
+                    const norm = _normalizeTypedStep(e);
+                    if (typeof norm.act === 'string') return _formatTypedStepFallback(norm);
+                    return String(norm.examine || norm.action || norm.step || '');
+                })
+                .filter(Boolean)
+                .slice(0, 5);
+            if (objs.length) return objs;
         }
         return [];
     }
@@ -467,7 +547,10 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
      * @returns True if a plan exists and has uncompleted steps
      */
     function hasPlan(charName: string): boolean {
-        return PlanTracker.getPlan(charName).length > 0;
+        const plan = PlanTracker.getPlan(charName);
+        if (!plan.length) return false;
+        const progress = typeof PlanTracker.getProgress === 'function' ? (PlanTracker.getProgress(charName) || 0) : 0;
+        return progress < plan.length;
     }
 
     return {

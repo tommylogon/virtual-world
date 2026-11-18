@@ -427,6 +427,57 @@ def has_grid(record: dict) -> bool:
     return bool(isinstance(grid, dict) and grid.get("w") and grid.get("h"))
 
 
+def _transform_grid_cells(record: dict, w: int, h: int, map_xy) -> dict:
+    """Re-index layers, names, placements, and area_placements in bounds."""
+    record.setdefault("layers", {})
+    record.setdefault("placements", {})
+
+    for layer, values in list(record["layers"].items()):
+        next_values = {}
+        for key, value in values.items():
+            pos = parse_cell_key(key)
+            if not pos:
+                continue
+            nx, ny = map_xy(pos[0], pos[1])
+            if 0 <= nx < w and 0 <= ny < h:
+                next_values[cell_key(nx, ny)] = value
+        if next_values:
+            record["layers"][layer] = next_values
+        else:
+            record["layers"].pop(layer)
+
+    if "names" in record and isinstance(record["names"], dict):
+        next_names = {}
+        for key, name in record["names"].items():
+            pos = parse_cell_key(key)
+            if not pos:
+                continue
+            nx, ny = map_xy(pos[0], pos[1])
+            if 0 <= nx < w and 0 <= ny < h:
+                next_names[cell_key(nx, ny)] = name
+        record["names"] = next_names
+
+    for field in ("placements", "area_placements"):
+        raw = record.get(field)
+        if not isinstance(raw, dict):
+            continue
+        next_map = {}
+        for key, pos in raw.items():
+            if not isinstance(pos, dict):
+                continue
+            x, y = _as_int(pos.get("x")), _as_int(pos.get("y"))
+            if x is None or y is None:
+                continue
+            nx, ny = map_xy(x, y)
+            if 0 <= nx < w and 0 <= ny < h:
+                entry = dict(pos)
+                entry["x"] = nx
+                entry["y"] = ny
+                next_map[key] = entry
+        record[field] = next_map
+    return record
+
+
 def ensure_grid(record: dict, w: int, h: int,
                 mode: Optional[str] = None) -> dict:
     """Create or resize a scope's grid. Resizing keeps paint that stays in bounds.
@@ -444,23 +495,57 @@ def ensure_grid(record: dict, w: int, h: int,
     record["grid"] = {"w": w, "h": h}
     if mode is not None:
         record["mode"] = mode
-    record.setdefault("layers", {})
-    record.setdefault("placements", {})
+    return _transform_grid_cells(record, w, h, lambda x, y: (x, y))
 
-    # Drop paint/placements that fall outside the new bounds, so a shrink can
-    # never leave a reference to a cell that no longer exists.
-    for layer, values in list(record["layers"].items()):
-        record["layers"][layer] = {
-            key: value for key, value in values.items()
-            if _key_in_bounds(key, w, h)
-        }
-        if not record["layers"][layer]:
-            record["layers"].pop(layer)
-    record["placements"] = {
-        child: pos for child, pos in record["placements"].items()
-        if 0 <= pos["x"] < w and 0 <= pos["y"] < h
-    }
-    return record
+
+def offset_grid(record: dict, w: int, h: int,
+                offset_x: int = 0, offset_y: int = 0,
+                mode: Optional[str] = None) -> dict:
+    """Resize a scope's grid and shift all cell coordinates by (offset_x, offset_y)."""
+    w, h = int(w), int(h)
+    dx, dy = int(offset_x), int(offset_y)
+    if w <= 0 or h <= 0:
+        raise ValueError("grid must be at least 1x1")
+    if mode == "town":
+        mode = "settlement"
+    if mode is not None and mode not in MODES:
+        raise ValueError(f"unknown mode {mode!r}; expected one of {MODES}")
+    record["grid"] = {"w": w, "h": h}
+    if mode is not None:
+        record["mode"] = mode
+    return _transform_grid_cells(record, w, h, lambda x, y: (x + dx, y + dy))
+
+
+def _round_half_up(value: float) -> int:
+    import math
+    return int(math.floor(value + 0.5))
+
+
+def scale_grid(record: dict, w: int, h: int,
+               anchor_x: int, anchor_y: int, scale_factor: float,
+               mode: Optional[str] = None) -> dict:
+    """Resize a scope's grid and re-index cells relative to (anchor_x, anchor_y)."""
+    w, h = int(w), int(h)
+    ax, ay = int(anchor_x), int(anchor_y)
+    s = float(scale_factor)
+    if w <= 0 or h <= 0:
+        raise ValueError("grid must be at least 1x1")
+    if not _finite(s) or s <= 0:
+        raise ValueError("scale_factor must be a positive finite number")
+    if mode == "town":
+        mode = "settlement"
+    if mode is not None and mode not in MODES:
+        raise ValueError(f"unknown mode {mode!r}; expected one of {MODES}")
+    record["grid"] = {"w": w, "h": h}
+    if mode is not None:
+        record["mode"] = mode
+    return _transform_grid_cells(
+        record, w, h,
+        lambda x, y: (
+            ax + _round_half_up((x - ax) * s),
+            ay + _round_half_up((y - ay) * s),
+        ),
+    )
 
 
 def in_bounds(record: dict, x: int, y: int) -> bool:

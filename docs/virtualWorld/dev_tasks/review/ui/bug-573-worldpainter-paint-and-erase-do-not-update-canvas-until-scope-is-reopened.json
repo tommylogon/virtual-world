@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "bug-573",
+  "kind": "bug",
+  "number": 573,
+  "title": "WorldPainter paint and erase do not update canvas until scope is reopened",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-17",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-540",
+      "bug-572"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Painting or erasing cells in WorldPainter does not visually update on the canvas. The newly painted or cleared colors only become visible after closing and reopening WorldPainter for that scope.\n\nThe underlying paint edits succeed on the server (`POST /grid/paint` or `POST /grid/paint_batch`), and the returned payload updates `ctx.state.payload.layers`. However, the rendering pipeline relies on an offscreen canvas cache:\n\n1. `_ensurePaintCache(p)` in `static/js/worldpainter/editor.ts` renders layers onto `state.paintCache` and sets `state.paintCacheValid = true`.\n2. `_drawPaint(ctx, p)` checks `_ensurePaintCache(p)`. If `state.paintCacheValid` is true, `_ensurePaintCache` returns immediately and `_drawPaint` draws `state.paintCache` onto the Konva canvas.\n3. Neither `paintAt()` nor `_commitStroke()` in `static/js/worldpainter/editor-canvas.ts` ever invalidates the cache (`state.paintCacheValid = false`) or calls the existing `_patchPaintCache(p, cells)` helper (which was passed into canvas context but never invoked).\n4. As a result, subsequent `softRender()` and `_redrawGrid()` calls continuously blit the stale cached canvas. Only `load(scopeId)` resets `state.paintCache = null; state.paintCacheValid = false;`, which explains why closing and reopening the scope is the only way painted or erased cells show up.",
+    "why": "An author painting biomes, roads, or floors, or erasing unwanted cells, needs immediate visual feedback on the canvas during single clicks and drag strokes. Delaying updates until scope reopen destroys the authoring workflow.",
+    "how": "1. In `static/js/worldpainter/editor-canvas.ts`:\n   - In `paintAt()`: after receiving the updated payload, call `ctx.patchPaintCache(ctx.state.payload, cells)` (or invalidate via `ctx.state.paintCacheValid = false`) before `ctx.render()`.\n   - In `_commitStroke()`: call `ctx.patchPaintCache(ctx.state.payload, edits)` (or invalidate `ctx.state.paintCacheValid = false`) before `ctx.softRender()`.\n   - In `_applyToSelection()`, `_nudge()`, and other cell edit handlers: ensure the cache is patched or invalidated.\n2. In `static/js/worldpainter/editor.ts`:\n   - Ensure `clearCell()` and any other cell-mutating helpers invalidate `state.paintCacheValid = false` or call `_patchPaintCache(p, [{x, y}])`.\n   - Ensure `_patchPaintCache` handles clearing pixels on erase (`ctx.clearRect(pos.x, pos.y, 1, 1)` or redrawing the cell across remaining layers).\n3. Recompile TypeScript: `python tools/ts_convert.py build`.",
+    "verify": "1. In WorldPainter, paint a cell with a distinct biome and observe the canvas immediately.\n   - expected: The cell displays the new layer color immediately.\n   - observed: Canvas does not update. The cell remains visually unchanged until the editor is closed and reopened.\n2. Erase the cell and observe the canvas immediately.\n   - expected: The cell visually clears immediately.\n   - observed: Canvas does not clear until scope reload.\n3. Run the targeted tests for WorldPainter canvas rendering: `node tools/unit/run.cjs`.\n   - expected: All unit tests pass.",
+    "acceptance": [
+      {
+        "text": "Single cell paint immediately updates the canvas in real time.",
+        "done": false
+      },
+      {
+        "text": "Stroke paint batch immediately updates the canvas on mouse release.",
+        "done": false
+      },
+      {
+        "text": "Erase immediately clears cells from the canvas in real time.",
+        "done": false
+      },
+      {
+        "text": "Cell modifications do not require closing and reopening the scope to become visible.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/worldpainter/editor-canvas.ts",
+      "static/js/worldpainter/editor.ts",
+      "tools/unit/test_worldpainter_grid.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: WorldPainter canvas tool palette -> Paint and Erase tools.\n\nCurrent availability: Reproducible on `localhost:4444`. Painting or erasing cells persists to the server payload but the canvas continues to draw the stale `paintCache` until scope reload.\n\nLive steps when available:\n1. Open WorldPainter for any scope with a grid (e.g. `valerious_case` or `millwood_high_1f`).\n   - expected: WorldPainter canvas loads with grid lines and existing painted layers.\n2. Select the **Paint** tool in the left tool rail, pick a biome or road layer value (e.g. `Dense Forest` or `Cobblestone`), and click an unpainted cell.\n   - expected: The clicked cell immediately renders with the chosen layer color on the canvas without reloading the scope.\n3. Drag across several cells with the Paint tool.\n   - expected: The stroke commits and all painted cells immediately display their colors upon mouse release.\n4. Select the **Erase** tool and click one of the painted cells.\n   - expected: The cell color immediately clears from the canvas without requiring WorldPainter to be closed and reopened.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[World Building/World Painter & Scope Editor]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/bug-573-worldpainter-paint-and-erase-stale-canvas-cache.md"
+  }
+}

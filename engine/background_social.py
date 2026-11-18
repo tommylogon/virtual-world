@@ -1218,6 +1218,13 @@ def run_theft_pass(gs, tick: Optional[int] = None) -> list:
 #: every tick of the condition.
 FEAR_COOLDOWN_MINUTES = 45
 
+#: Game minutes a `freeze` reaction pauses normal wander/schedule travel.
+FEAR_FREEZE_MINUTES = 15
+
+#: Item or area tags that offer concealment for a `hide` fear reaction.
+HIDE_COVER_TAGS = frozenset({"hideable", "cover", "concealment", "stealth"})
+AREA_COVER_TAGS = frozenset({"hideable", "cover", "concealment", "stealth", "undergrowth", "shadows"})
+
 #: How a frightened background character answers the thing it fears. This is the
 #: "does fear move anyone" question: fear has to produce an *action* with a
 #: ``threat:`` why, or it is a silent vital and the soak telemetry cannot tell
@@ -1287,6 +1294,377 @@ def _fear_off_cooldown(player, gs, tick: int) -> bool:
     return last is None or (int(tick) - int(last)) >= gap
 
 
+def is_frozen_by_fear(player, gs=None, tick: Optional[int] = None) -> bool:
+    """True while *player* is in a `freeze` reaction window and refuses to travel."""
+    if player is None:
+        return False
+    until = getattr(player, "_fear_freeze_until_tick", None)
+    if until is not None:
+        if tick is None and gs is not None:
+            tick = getattr(gs, "time_ticks", 0)
+        if tick is None:
+            tick = 0
+        try:
+            if int(tick) <= int(until):
+                return True
+        except (TypeError, ValueError):
+            pass
+        try:
+            player._fear_freeze_until_tick = None
+            if isinstance(getattr(player, "flags", None), dict):
+                player.flags.pop("frozen_by_fear", None)
+        except Exception:
+            pass
+        return False
+    flags = getattr(player, "flags", None)
+    if isinstance(flags, dict) and flags.get("frozen_by_fear"):
+        return True
+    return False
+
+
+def _clear_fear_freeze(player) -> None:
+    try:
+        player._fear_freeze_until_tick = None
+        if isinstance(getattr(player, "flags", None), dict):
+            player.flags.pop("frozen_by_fear", None)
+    except Exception:
+        pass
+
+
+def _unhide_player(gs, player) -> None:
+    """Clear mundane hidden state and any `hidden` cover edges for *player*."""
+    try:
+        player.hidden = False
+    except Exception:
+        pass
+    graph = getattr(gs, "graph", None)
+    if graph is None:
+        return
+    sources = {getattr(player, "name", "")}
+    try:
+        pid = gs._player_node_id(getattr(player, "name", ""))
+        if pid:
+            sources.add(pid)
+    except Exception:
+        pass
+    sources = {s.lower() for s in sources if s}
+    for edge in list(getattr(graph, "edges", ()) or ()):
+        if edge.type == "hidden" and str(edge.source).lower() in sources:
+            try:
+                graph.remove_edge(edge.source, edge.target, edge.type)
+            except Exception:
+                try:
+                    graph.edges.remove(edge)
+                except Exception:
+                    pass
+
+
+def _area_has_fear_for(gs, player, area_name: str) -> bool:
+    """True when *area_name* holds a feared character or area tag for *player*."""
+    if not area_name or gs is None:
+        return False
+    from engine import fear as fear_mod
+    fears = fear_mod._normalise(getattr(player, "fear_tags", None))
+    if not fears:
+        return False
+    self_tags = fear_mod.character_tags(gs, player)
+    exempt = self_tags | fear_mod._normalise(getattr(player, "fear_exempt_tags", None))
+    effective_fears = fears - exempt
+    if not effective_fears:
+        return False
+
+    graph = getattr(gs, "graph", None)
+    if graph is not None:
+        try:
+            area_id = gs.area_node_id(area_name)
+            area_node = graph.get_node(area_id) if area_id else None
+        except Exception:
+            area_node = None
+        if area_node is not None and (effective_fears & fear_mod._tags(area_node)):
+            return True
+
+    players = getattr(getattr(gs, "player_manager", None), "players", None) or getattr(gs, "players", None) or {}
+    for other in players.values():
+        if other is None or other is player:
+            continue
+        if getattr(other, "state", "") == "dead":
+            continue
+        if getattr(other, "current_area", None) != area_name:
+            continue
+        if effective_fears & fear_mod.character_tags(gs, other):
+            return True
+    return False
+
+
+def _flee_from_fear(gs, player, source_name: str, area_name: str, tick: int) -> Optional[str]:
+    """Move *player* through a safe open/passable adjacent exit away from *source_name*."""
+    if gs is None or not area_name:
+        return None
+    try:
+        exits = gs.build_exits_for_area(area_name, include_hidden=True) or {}
+    except Exception:
+        try:
+            exits = gs._build_exits_for_area(area_name) or {}
+        except Exception:
+            exits = {}
+    if not exits:
+        return None
+
+    from engine import traversal
+    try:
+        avoid = traversal.avoid(gs, player)
+    except Exception:
+        avoid = set()
+
+    discovered = getattr(player, "discovered_exits", None) or set()
+    known = set(getattr(player, "known", None) or ())
+
+    candidates = []
+    for direction, exit_data in exits.items():
+        if not isinstance(exit_data, dict):
+            continue
+        target = exit_data.get("target")
+        if not target or target == area_name:
+            continue
+        state = str(exit_data.get("state", "open") or "open").strip().lower()
+        if state in ("locked", "blocked", "broken"):
+            continue
+        way_id = exit_data.get("way_id") or ""
+        if state == "hidden" or exit_data.get("hidden"):
+            if (area_name, direction) not in discovered and way_id not in known:
+                continue
+        if _area_has_fear_for(gs, player, target):
+            continue
+        state_rank = 0 if state in ("open", "see_through") else 1
+        avoid_rank = 1 if traversal.avoid_key(area_name, direction) in avoid else 0
+        candidates.append((state_rank, avoid_rank, str(direction), str(target)))
+
+    if not candidates:
+        return None
+    candidates.sort()
+
+    _clear_fear_freeze(player)
+    if getattr(player, "hidden", False):
+        _unhide_player(gs, player)
+
+    for _state_rank, _avoid_rank, direction, target in candidates:
+        try:
+            res = traversal.hop(gs, player, direction, dest=target)
+        except Exception:
+            res = None
+        if res is not None and res.ok and getattr(player, "current_area", None) == target:
+            try:
+                gs.add_log_entry(f"[{player.name}] flees {direction} from {source_name} to {target}.")
+            except Exception:
+                pass
+            return target
+    return None
+
+
+def _find_hideable_cover(gs, area_name: str):
+    """Return ``(cover_node, has_cover)`` for *area_name*."""
+    if gs is None or not area_name:
+        return None, False
+    graph = getattr(gs, "graph", None)
+    if graph is None:
+        return None, False
+
+    area_id = None
+    try:
+        area_id = gs.area_node_id(area_name)
+    except Exception:
+        area_id = None
+    area_node = graph.get_node(area_id) if area_id else None
+    if area_node is None:
+        for node in graph.nodes.values():
+            if getattr(node, "type", "") == "area" and getattr(node, "name", "") == area_name:
+                area_node = node
+                area_id = node.id
+                break
+    if not area_id:
+        return None, False
+
+    try:
+        from engine.world_scopes import spatial_item_nodes
+        items = list(spatial_item_nodes(graph, area_id))
+    except Exception:
+        items = []
+
+    cover_items = []
+    for node in items:
+        if node is None or getattr(node, "type", "") != "item":
+            continue
+        props = getattr(node, "properties", None) or {}
+        if str(props.get("current_state", "")).strip().lower() == "hidden":
+            continue
+        tags = {str(t).strip().lower() for t in (props.get("tags") or [])}
+        if (tags & HIDE_COVER_TAGS) or props.get("hideable") or props.get("cover"):
+            cover_items.append(node)
+
+    if cover_items:
+        cover_items.sort(key=lambda n: (getattr(n, "id", ""), getattr(n, "name", "")))
+        return cover_items[0], True
+
+    if area_node is not None:
+        aprops = getattr(area_node, "properties", None) or {}
+        atags = {str(t).strip().lower() for t in (aprops.get("tags") or [])}
+        if (atags & AREA_COVER_TAGS) or aprops.get("hideable") or aprops.get("cover"):
+            return None, True
+
+    return None, False
+
+
+def _hide_from_fear(gs, player, cover_node) -> str:
+    """Mark *player* hidden and attach a ``hidden`` edge when *cover_node* is present."""
+    from graph import Edge, EDGE_BEHIND, EDGE_IN, EDGE_UNDER
+
+    _unhide_player(gs, player)
+    player.hidden = True
+    if cover_node is None or getattr(gs, "graph", None) is None:
+        return ""
+
+    props = getattr(cover_node, "properties", None) or {}
+    tags = {str(t).strip().lower() for t in (props.get("tags") or [])}
+    if "container" in tags or "inside" in tags:
+        relation = EDGE_IN
+    elif tags & {"under", "bed", "table"}:
+        relation = EDGE_UNDER
+    else:
+        relation = EDGE_BEHIND
+
+    try:
+        pid = gs._player_node_id(getattr(player, "name", ""))
+    except Exception:
+        pid = getattr(player, "name", "")
+    edge_source = pid or getattr(player, "name", "")
+    try:
+        gs.graph.add_edge(Edge(
+            source=edge_source,
+            target=cover_node.id,
+            type="hidden",
+            properties={"relation": relation},
+        ))
+    except Exception:
+        pass
+    try:
+        from engine.character_spatial import set_character_position
+        if pid:
+            set_character_position(gs.graph, pid, cover_node.id, relation)
+    except Exception:
+        pass
+    return cover_node.id
+
+
+def _freeze_from_fear(gs, player, tick: int) -> int:
+    """Stamp a brief freeze hesitation window on *player* that pauses travel/schedule."""
+    try:
+        minutes_per_tick = float(getattr(gs, "time_per_tick_minutes", 1) or 1)
+    except (TypeError, ValueError):
+        minutes_per_tick = 1.0
+    duration_ticks = max(1, int(round(FEAR_FREEZE_MINUTES / max(0.001, minutes_per_tick))))
+    until_tick = int(tick) + duration_ticks
+    try:
+        player._fear_freeze_until_tick = until_tick
+    except Exception:
+        pass
+    try:
+        if not isinstance(getattr(player, "flags", None), dict):
+            player.flags = {}
+        player.flags["frozen_by_fear"] = True
+    except Exception:
+        pass
+    return until_tick
+
+
+def _shout_from_fear(gs, player, source_name: str, line: str, area_name: str, tick: int) -> list:
+    """Emit a shout turn notification and propagate sound via ``engine.sound``."""
+    actor_name = getattr(player, "name", "")
+    shout_text = f"Help! {source_name}!"
+    try:
+        gs.record_turn_event(actor_name, "shout", f"{actor_name} {line}.", area_name=area_name)
+    except Exception:
+        pass
+    try:
+        gs.add_log_entry(f"[{actor_name}] {line}.")
+    except Exception:
+        pass
+
+    heard_areas = []
+    if gs is None or not area_name:
+        return heard_areas
+
+    event = {
+        "speaker": actor_name,
+        "text": shout_text,
+        "area": area_name,
+        "tick": int(tick),
+        "speech_level": "shout",
+    }
+
+    players = getattr(getattr(gs, "player_manager", None), "players", None) or getattr(gs, "players", None) or {}
+    for pname, other in players.items():
+        if other is player or getattr(other, "state", "") == "dead":
+            continue
+        if getattr(other, "current_area", None) != area_name:
+            continue
+        try:
+            if not hasattr(other, "recent_hearing") or other.recent_hearing is None:
+                other.recent_hearing = []
+            other.recent_hearing.append(dict(event))
+            if len(other.recent_hearing) > 20:
+                other.recent_hearing.pop(0)
+        except Exception:
+            pass
+
+    graph = getattr(gs, "graph", None)
+    if graph is None:
+        return heard_areas
+
+    try:
+        from engine.sound import get_areas_hearing_speech, format_heard_narration
+        areas_dict = {
+            node.id: node
+            for node in graph.nodes.values()
+            if getattr(node, "type", "") == "area"
+        }
+        origin_area_id = None
+        for aid, anode in areas_dict.items():
+            if anode.name == area_name:
+                origin_area_id = aid
+                break
+        if origin_area_id:
+            hearing = get_areas_hearing_speech(origin_area_id, "shout", graph, areas_dict)
+            for aid, (remaining_pen, direction) in hearing.items():
+                anode = areas_dict.get(aid)
+                if not anode:
+                    continue
+                heard_areas.append(anode.name)
+                narration = format_heard_narration(f'"{shout_text}"', direction, is_speech=True)
+                for pname, other in players.items():
+                    if getattr(other, "state", "") == "dead":
+                        continue
+                    if getattr(other, "current_area", None) != anode.name:
+                        continue
+                    try:
+                        if not hasattr(other, "recent_hearing") or other.recent_hearing is None:
+                            other.recent_hearing = []
+                        entry = dict(event)
+                        entry["heard_from"] = direction
+                        entry["distance"] = 3 - remaining_pen
+                        other.recent_hearing.append(entry)
+                        if len(other.recent_hearing) > 20:
+                            other.recent_hearing.pop(0)
+                    except Exception:
+                        pass
+                try:
+                    gs.add_log_entry(narration)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    return heard_areas
+
+
 def choose_fear_reaction(player, source_name: str, tick: int) -> str:
     """Pick how this character answers *source_name*, deterministically.
 
@@ -1308,10 +1686,36 @@ def choose_fear_reaction(player, source_name: str, tick: int) -> str:
 
 
 def _record_fear(gs, player, source_name, reaction, area_name, tick) -> dict:
-    """The visible half of a fear: a line, a trace, a memory, and the numbers."""
+    """Execute the fear reaction state change and record its trace, memory, and affect."""
     from engine.lived_log import record as _log
 
+    moved_to = None
+    cover_id = ""
+    freeze_until = None
+    heard_in = []
+    fallback_from = None
+
+    if reaction == "hide":
+        cover_node, has_cover = _find_hideable_cover(gs, area_name)
+        if has_cover:
+            cover_id = _hide_from_fear(gs, player, cover_node)
+        else:
+            fallback_from = "hide"
+            moved_to = _flee_from_fear(gs, player, source_name, area_name, tick)
+            if moved_to:
+                reaction = "flee"
+            else:
+                reaction = "freeze"
+                freeze_until = _freeze_from_fear(gs, player, tick)
+    elif reaction == "flee":
+        moved_to = _flee_from_fear(gs, player, source_name, area_name, tick)
+    elif reaction == "freeze":
+        freeze_until = _freeze_from_fear(gs, player, tick)
+
     line = FEAR_LINES[reaction].format(source=source_name)
+    if reaction == "shout":
+        heard_in = _shout_from_fear(gs, player, source_name, line, area_name, tick)
+
     vitals, afraid_delta = FEAR_COSTS[reaction]
     _apply_vitals(player, vitals)
     # The affect map, not just the legacy field: `afraid` there is what picks the
@@ -1360,14 +1764,26 @@ def _record_fear(gs, player, source_name, reaction, area_name, tick) -> dict:
     except Exception:
         pass
 
-    return {
+    result = {
         "actor": getattr(player, "name", ""), "source": source_name,
         "reaction": reaction, "action": reaction, "why": f"threat:{reaction}",
         "line": line, "area": area_name, "vitals": dict(vitals),
     }
+    if moved_to:
+        result["moved_to"] = moved_to
+    if cover_id:
+        result["cover"] = cover_id
+    if freeze_until is not None:
+        result["freeze_until_tick"] = freeze_until
+    if heard_in:
+        result["heard_in"] = heard_in
+    if fallback_from:
+        result["fallback_from"] = fallback_from
+    return result
 
 
-def run_fear_pass(gs, tick: Optional[int] = None) -> list:
+def run_fear_pass(gs, tick: Optional[int] = None,
+                  reaction: Optional[str] = None) -> list:
     """Every background character reacts to what *it* fears (task-552).
 
     Deliberately character-relative: a fear source is only a threat to someone
@@ -1407,9 +1823,9 @@ def run_fear_pass(gs, tick: Optional[int] = None) -> list:
             # the same flight on every tick it lasts.
             fear_mod.apply_frightening(gs, player, sources)
             continue
-        reaction = choose_fear_reaction(player, source_name, tick)
+        chosen = reaction if reaction in FEAR_REACTIONS else choose_fear_reaction(player, source_name, tick)
         fear_mod.apply_frightening(gs, player, sources)
         area_name = getattr(player, "current_area", None) or ""
-        outcomes.append(_record_fear(gs, player, source_name, reaction,
+        outcomes.append(_record_fear(gs, player, source_name, chosen,
                                      area_name, tick))
     return outcomes

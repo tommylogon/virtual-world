@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "bug-588",
+  "kind": "bug",
+  "number": 588,
+  "title": "Expose visible held and worn items on People here in room-context and get_players_in_area without leaking stowed inventory",
+  "status": "review",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [
+    "prompting",
+    "perception",
+    "equipment",
+    "items",
+    "people-here"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "bug-590",
+      "task-959"
+    ],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-516",
+      "task-950",
+      "task-955",
+      "bug-597",
+      "task-962",
+      "task-964",
+      "bug-607"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Expose visibly held hand-slot items (hand_left, hand_right) and outer worn clothing on People here in get_players_in_area() and room-context.ts by reusing get_visible_equipment(), while stopping engine/area_description.py from leaking stowed EDGE_CARRYING items to bystanders.",
+    "why": "Currently engine/player_manager.py get_players_in_area() omits equipped/held gear entirely and room-context.ts People here prints no held items, so entering a room where someone is holding a gun gives Actor prompts zero perception of the weapon. Conversely, engine/area_description.py loops over both EDGE_EQUIPPED and EDGE_CARRYING, treating held items as worn and leaking unequipped pocket items.",
+    "how": "1. Reuse engine/equipment.py:get_visible_equipment() (from task-516, which already filters concealed, worn layering, and current_state hidden) to split visible active hand slots (hand_left, hand_right) from outer worn items.\n2. Populate structured holding and wearing fields on each character entry returned by engine/player_manager.py get_players_in_area(), gated by area lighting/visibility.\n3. Update engine/area_description.py lines 495-574 so bystanders see only get_visible_equipment() items and never unequipped stowed EDGE_CARRYING inventory.\n4. Update static/js/agent/prompt-builder/room-context.ts People here formatter (lines 718-743) to render visible held items cleanly (distinct from relationship/appearance prose).",
+    "verify": "1. Run pytest checking get_players_in_area(), get_visible_equipment(), and engine/area_description.py when NPC B holds a hand_right item and carries stowed EDGE_CARRYING and concealed items across bright and dim lighting.\n2. Run JS unit tests for room-context.ts confirming People here surfaces held items and hides stowed inventory.",
+    "acceptance": [
+      {
+        "text": "get_players_in_area() reuses engine/equipment.py get_visible_equipment (or shared visibility helper) to expose visible hand-held items (hand_left/hand_right) and outer worn clothing while respecting concealed and hidden gating and never exposing unequipped stowed EDGE_CARRYING items.",
+        "done": false
+      },
+      {
+        "text": "room-context.ts People here formatting displays visible hand-held items under sufficient lighting so Actor prompts and ThreatDetector observe weapons or tools held by nearby characters.",
+        "done": false
+      },
+      {
+        "text": "engine/area_description.py aligns with task-516 visibility rules so unequipped stowed EDGE_CARRYING pocket/bag items of bystanders are not leaked in room prose.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/equipment.py",
+      "engine/player_manager.py",
+      "engine/area_description.py",
+      "static/js/agent/prompt-builder/room-context.ts",
+      "engine/serialization.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Prompt Preview and Agent Turn Modal context inspector (static/js/agent/prompt-builder/room-context.ts output).\n\nCurrent availability: Prompt Preview renders People here lines from players_in_area, omitting held weapons/tools while engine/area_description.py still exposes EDGE_CARRYING items alongside EDGE_EQUIPPED.\n\nManual verification steps:\n1. Place two characters in a lit area, with character B wielding an item (e.g. pistol) in hand_right and stowing a concealed or pocket item via EDGE_CARRYING.\n2. Inspect character A's Prompt Preview / People here section.\n   - expected: Character B's entry reports the held item and omits stowed pocket or concealed items."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]",
+      "[[Items & Inventory/Equipment & Paperdoll]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

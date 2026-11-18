@@ -101,6 +101,84 @@ def test_apply_entry_selection_dict():
     assert 'other' not in out
 
 
+def test_apply_entry_selection_per_axis_and_remove():
+    from routes.library_ops import _apply_entry_selection
+    cur_rels = {
+        'lulu ashford': {'closeness': 8, 'interaction_count': 15, 'label': 'close friend'},
+        'world_only_npc': {'closeness': 4, 'label': 'ally'},
+    }
+    src_rels = {
+        'lulu ashford': {'closeness': 5, 'interaction_count': 0, 'label': 'acquaintance', 'trust': 4, 'respect': 7},
+    }
+    out_rels = _apply_entry_selection(cur_rels, src_rels, {
+        'keys': [],
+        'axes': {'lulu ashford': ['trust', 'respect']},
+    })
+    assert out_rels['lulu ashford']['closeness'] == 8
+    assert out_rels['lulu ashford']['interaction_count'] == 15
+    assert out_rels['lulu ashford']['label'] == 'close friend'
+    assert out_rels['lulu ashford']['trust'] == 4
+    assert out_rels['lulu ashford']['respect'] == 7
+    assert out_rels['world_only_npc']['closeness'] == 4
+
+    cur_mems = [
+        {'id': 'seed_1', 'text': 'seed one', 'source': 'seed'},
+        {'id': 'seed_2', 'text': 'seed two', 'source': 'seed'},
+    ]
+    src_mems = [{'id': 'lib_1', 'text': 'from lib'}]
+    out_mems = _apply_entry_selection(cur_mems, src_mems, {
+        'keys': ['lib_1'],
+        'remove': ['seed_1'],
+    })
+    ids = [m['id'] for m in out_mems]
+    assert 'seed_1' not in ids
+    assert 'seed_2' in ids
+    assert 'lib_1' in ids
+
+
+def test_refresh_character_entries_without_section_key(tmp_path):
+    client, app, _ = _fresh_app(tmp_path)
+    card = {
+        'id': 'SmartChar', 'name': 'Smart Char',
+        'relationships': {
+            'lulu ashford': {'closeness': 5, 'interaction_count': 0, 'trust': 6, 'respect': 8},
+        },
+        'memories': [
+            {'id': 'm_lib', 'text': 'library memory'},
+        ],
+    }
+    r = client.post('/api/library/characters', json={'id': 'SmartChar', 'data': card})
+    assert r.status_code == 200, r.get_data(as_text=True)
+    r = client.post('/api/library/import/character/SmartChar', json={'active': True})
+    assert r.status_code == 200, r.get_data(as_text=True)
+    p = app.world.player_manager.players.get('Smart Char')
+    assert p is not None
+    node_id = _char_node_id(app, 'Smart Char')
+    p.relationships = {
+        'lulu ashford': {'closeness': 9, 'interaction_count': 20, 'label': 'best friend'},
+    }
+    p.memories = [
+        {'id': 'm_seed', 'text': 'world-only seed memory', 'source': 'seed'},
+    ]
+    # Simulate V3 DiffModal sending sections=[] and entries={relationships: {axes}, memories: ['m_lib']}
+    r = client.post('/api/library/refresh-to-world', json={
+        'node_id': node_id,
+        'template_id': 'SmartChar',
+        'sections': [],
+        'entries': {
+            'relationships': {'keys': [], 'axes': {'lulu ashford': ['trust', 'respect']}},
+            'memories': ['m_lib'],
+        },
+    })
+    assert r.status_code == 200, r.get_data(as_text=True)
+    assert p.relationships['lulu ashford']['closeness'] == 9
+    assert p.relationships['lulu ashford']['interaction_count'] == 20
+    assert p.relationships['lulu ashford']['trust'] == 6
+    assert p.relationships['lulu ashford']['respect'] == 8
+    mem_ids = {m.get('id') for m in p.memories}
+    assert mem_ids == {'m_seed', 'm_lib'}
+
+
 def test_hub_subscriber_cap_and_overflow(tmp_path):
     client, app, _ = _fresh_app(tmp_path)
     initial_subs = hub.subscribers_count()

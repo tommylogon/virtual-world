@@ -3,14 +3,428 @@
 Moved from engine/trigger_system.py.
 
 @module behaviors
-@contributes BehaviorMixin
+@contributes BehaviorMixin, is_character_hidden, clear_hidden_edges, hide_character, unhide_character, reveal_if_hidden, parse_hide_command, search_hidden_characters_in_area
 @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
 """
 
+import re
 import time
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
-from graph import EDGE_IN
+from graph import EDGE_IN, Edge
+
+
+_SHADOW_HIDE_TARGETS = frozenset({
+    "", "shadows", "the shadows", "shadow", "the shadow",
+    "darkness", "the darkness", "cover", "the cover",
+    "in shadows", "in the shadows", "in darkness", "in the darkness",
+    "in cover", "behind cover",
+})
+
+
+def _resolve_player_obj(game_state: Any, char_name: str, player: Any = None) -> Any:
+    if player is not None:
+        return player
+    if game_state is None or not char_name:
+        return None
+    players = getattr(game_state, "players", None)
+    if isinstance(players, dict) and char_name in players:
+        return players[char_name]
+    pm = getattr(game_state, "player_manager", None)
+    if pm is not None and isinstance(getattr(pm, "players", None), dict):
+        if char_name in pm.players:
+            return pm.players[char_name]
+        if hasattr(pm, "get_player"):
+            return pm.get_player(char_name)
+    if hasattr(game_state, "get_player"):
+        try:
+            return game_state.get_player(char_name)
+        except Exception:
+            return None
+    return None
+
+
+def _resolve_graph(game_state: Any, graph: Any = None) -> Any:
+    if graph is not None:
+        return graph
+    if game_state is None:
+        return None
+    g = getattr(game_state, "graph", None)
+    if g is not None:
+        return g
+    pm = getattr(game_state, "player_manager", None)
+    return getattr(pm, "graph", None) if pm is not None else None
+
+
+def _candidate_source_ids(game_state: Any, char_name: str) -> set:
+    if not char_name:
+        return set()
+    raw = str(char_name).strip()
+    slug = f"player_{raw.replace(' ', '_')}"
+    candidates = {raw.lower(), slug.lower()}
+    for holder in (game_state, getattr(game_state, "player_manager", None)):
+        if holder is None:
+            continue
+        getter = getattr(holder, "get_player_node_id", None) or getattr(holder, "_player_node_id", None)
+        if callable(getter):
+            try:
+                nid = getter(raw)
+                if nid:
+                    candidates.add(str(nid).lower())
+            except Exception:
+                pass
+    return candidates
+
+
+def is_character_hidden(
+    game_state: Any,
+    char_name: str,
+    graph: Any = None,
+    player: Any = None,
+) -> bool:
+    """Return True if *char_name* is concealed via player.hidden, state/conditions, or 'hidden' edges."""
+    p = _resolve_player_obj(game_state, char_name, player=player)
+    if p is not None:
+        if bool(getattr(p, "hidden", False)):
+            return True
+        if str(getattr(p, "state", "") or "").lower() in ("hidden", "stealthed"):
+            return True
+        if str(getattr(p, "npc_state", "") or "").lower() in ("hidden", "stealthed"):
+            return True
+        conds = getattr(p, "conditions", None)
+        if isinstance(conds, dict) and (conds.get("hidden") or conds.get("stealthed")):
+            return True
+    g = _resolve_graph(game_state, graph=graph)
+    if g is not None and char_name:
+        sources = _candidate_source_ids(game_state, char_name)
+        for edge in getattr(g, "edges", []) or []:
+            if getattr(edge, "type", "") == "hidden" and str(getattr(edge, "source", "")).lower() in sources:
+                return True
+    return False
+
+
+def clear_hidden_edges(graph: Any, char_name: str, game_state: Any = None) -> List[Edge]:
+    """Remove and return all 'hidden' edges originating from *char_name*."""
+    if graph is None or not char_name:
+        return []
+    sources = _candidate_source_ids(game_state, char_name)
+    edges_to_remove = [
+        e for e in list(getattr(graph, "edges", []) or [])
+        if getattr(e, "type", "") == "hidden" and str(getattr(e, "source", "")).lower() in sources
+    ]
+    for e in edges_to_remove:
+        try:
+            graph.remove_edge(e.source, e.target, e.type)
+        except Exception:
+            if e in graph.edges:
+                graph.edges.remove(e)
+    return edges_to_remove
+
+
+def _is_hideable_node(node: Any) -> bool:
+    if node is None or getattr(node, "type", "") != "item":
+        return False
+    props = getattr(node, "properties", None) or {}
+    if props.get("hideable"):
+        return True
+    tags = props.get("tags", []) or []
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",") if t.strip()]
+    lower_tags = {str(t).lower() for t in tags}
+    if "hideable" in lower_tags or "cover" in lower_tags:
+        return True
+    actions = props.get("actions", []) or []
+    if isinstance(actions, str):
+        actions = [a.strip() for a in actions.split(",") if a.strip()]
+    lower_actions = {str(a).lower() for a in actions}
+    return "hide" in lower_actions
+
+
+def _current_area_id_for_char(game_state: Any, char_name: str, player: Any = None) -> Optional[str]:
+    g = _resolve_graph(game_state)
+    p = _resolve_player_obj(game_state, char_name, player=player)
+    area_name = getattr(p, "current_area", None) if p is not None else None
+    if area_name and g is not None:
+        from engine.room_perception import resolve_area_node
+        area_node = resolve_area_node(g, area_name)
+        if area_node is not None:
+            return area_node.id
+        return f"area_{str(area_name).lower().replace(' ', '_')}"
+    if hasattr(game_state, "_get_current_area_id"):
+        try:
+            return game_state._get_current_area_id()
+        except Exception:
+            return None
+    return None
+
+
+def _area_item_nodes(game_state: Any, area_id: Optional[str]) -> List[Any]:
+    g = _resolve_graph(game_state)
+    if g is None or not area_id:
+        return []
+    seen = set()
+    out = []
+    for edge in g.get_edges_for_target(area_id, EDGE_IN):
+        node = g.get_node(edge.source)
+        if node is not None and getattr(node, "type", "") == "item" and node.id not in seen:
+            seen.add(node.id)
+            out.append(node)
+    return out
+
+
+def _resolve_hide_target_node(
+    game_state: Any,
+    char_name: str,
+    target_ref: str,
+    player: Any = None,
+) -> Any:
+    g = _resolve_graph(game_state)
+    if g is None or not target_ref:
+        return None
+    raw = str(target_ref).strip()
+    exact = g.get_node(raw)
+    if exact is not None and getattr(exact, "type", "") == "item":
+        return exact
+    cleaned = re.sub(r"^(?:the|a|an)\s+", "", raw, flags=re.IGNORECASE).strip()
+    norm_wanted = cleaned.lower().replace("_", " ").replace("-", " ")
+    area_id = _current_area_id_for_char(game_state, char_name, player=player)
+    candidates = _area_item_nodes(game_state, area_id)
+
+    for node in candidates:
+        n_id = str(getattr(node, "id", "")).lower()
+        n_name = str(getattr(node, "name", "")).lower().replace("_", " ").replace("-", " ")
+        if raw.lower() == n_id or cleaned.lower() == n_id or norm_wanted == n_name:
+            return node
+    # Substring match preferring hideable items first
+    for hideable_pass in (True, False):
+        for node in candidates:
+            if hideable_pass and not _is_hideable_node(node):
+                continue
+            n_name = str(getattr(node, "name", "")).lower().replace("_", " ").replace("-", " ")
+            if norm_wanted and (norm_wanted in n_name or n_name in norm_wanted):
+                return node
+    matcher = getattr(game_state, "_match_item_name", None)
+    if callable(matcher):
+        try:
+            matched_name = matcher(cleaned)
+            if matched_name:
+                for node in candidates:
+                    if node.name == matched_name or node.id == matched_name:
+                        return node
+        except Exception:
+            pass
+    return None
+
+
+def parse_hide_command(arg_text: str) -> Tuple[Optional[str], str]:
+    """Parse `<arg_text>` after `hide`/`sneak` into `(relation, target_str)`.
+
+    Examples:
+        "" -> (None, "")
+        "in the closet" -> ("in", "the closet")
+        "behind crate" -> ("behind", "crate")
+        "under bed" -> ("under", "bed")
+        "oak barrel" -> (None, "oak barrel")
+    """
+    rest = str(arg_text or "").strip()
+    if not rest or rest.lower() in _SHADOW_HIDE_TARGETS:
+        return None, ""
+    lowered = rest.lower()
+    for prefix, rel in (
+        ("inside ", "in"),
+        ("into ", "in"),
+        ("in ", "in"),
+        ("behind ", "behind"),
+        ("underneath ", "under"),
+        ("beneath ", "under"),
+        ("under ", "under"),
+    ):
+        if lowered.startswith(prefix):
+            tail = rest[len(prefix):].strip()
+            if not tail or tail.lower() in _SHADOW_HIDE_TARGETS:
+                return None, ""
+            return rel, tail
+    return None, rest
+
+
+def _prep_word_for_relation(relation: str) -> str:
+    if relation == "in":
+        return "inside"
+    if relation == "under":
+        return "under"
+    return "behind"
+
+
+def hide_character(
+    game_state: Any,
+    char_name: str,
+    target: Optional[str] = None,
+    relation: Optional[str] = None,
+    strict_target: bool = False,
+    player: Any = None,
+    graph: Any = None,
+) -> Tuple[bool, str]:
+    """Conceal *char_name* in/behind/under a hideable prop or in area cover/shadows.
+
+    Sets ``player.hidden = True`` and records a ``type="hidden"`` graph edge so
+    perception, scene snapshots, examination, and combat share one state.
+    """
+    p = _resolve_player_obj(game_state, char_name, player=player)
+    g = _resolve_graph(game_state, graph=graph)
+    target_str = str(target or "").strip()
+
+    if target_str and target_str.lower() not in _SHADOW_HIDE_TARGETS:
+        if strict_target and g is not None:
+            target_node = g.get_node(target_str)
+            if target_node is None:
+                target_node = _resolve_hide_target_node(game_state, char_name, target_str, player=p)
+        else:
+            target_node = _resolve_hide_target_node(game_state, char_name, target_str, player=p)
+
+        rel = relation
+        if not rel:
+            tags = [str(t).lower() for t in ((getattr(target_node, "properties", None) or {}).get("tags", []) or [])]
+            rel = "in" if "container" in tags else "behind"
+
+        if target_node is not None and _is_hideable_node(target_node):
+            if g is not None:
+                clear_hidden_edges(g, char_name, game_state=game_state)
+                g.add_edge(
+                    Edge(
+                        source=char_name,
+                        target=target_node.id,
+                        type="hidden",
+                        properties={"relation": rel},
+                    )
+                )
+            if p is not None:
+                p.hidden = True
+            prep = _prep_word_for_relation(rel)
+            return True, f"[{char_name}] hides {prep} {target_node.name}."
+        prep_err = relation or "in"
+        return False, f"[{char_name}] cannot hide {prep_err} '{target_str}' (not hideable)."
+
+    # Bare hide / stealth posture: prefer a hideable prop in the current area if
+    # one is present, otherwise conceal in the room's shadows/cover.
+    area_id = _current_area_id_for_char(game_state, char_name, player=p)
+    hideable_items = [n for n in _area_item_nodes(game_state, area_id) if _is_hideable_node(n)]
+    if hideable_items:
+        cover_node = hideable_items[0]
+        tags = [str(t).lower() for t in (cover_node.properties.get("tags", []) or [])]
+        rel = relation or ("in" if "container" in tags else "behind")
+        if g is not None:
+            clear_hidden_edges(g, char_name, game_state=game_state)
+            g.add_edge(
+                Edge(
+                    source=char_name,
+                    target=cover_node.id,
+                    type="hidden",
+                    properties={"relation": rel},
+                )
+            )
+        if p is not None:
+            p.hidden = True
+        prep = _prep_word_for_relation(rel)
+        return True, f"[{char_name}] hides {prep} {cover_node.name}."
+
+    edge_target = area_id or "shadows"
+    if g is not None:
+        clear_hidden_edges(g, char_name, game_state=game_state)
+        g.add_edge(
+            Edge(
+                source=char_name,
+                target=edge_target,
+                type="hidden",
+                properties={"relation": relation or "shadows"},
+            )
+        )
+    if p is not None:
+        p.hidden = True
+    return True, f"[{char_name}] slips into the shadows and hides."
+
+
+def unhide_character(
+    game_state: Any,
+    char_name: str,
+    player: Any = None,
+    graph: Any = None,
+    reason: Optional[str] = None,
+) -> str:
+    """Clear *char_name*'s hidden state and 'hidden' graph edges."""
+    p = _resolve_player_obj(game_state, char_name, player=player)
+    g = _resolve_graph(game_state, graph=graph)
+    clear_hidden_edges(g, char_name, game_state=game_state)
+    if p is not None:
+        p.hidden = False
+        if str(getattr(p, "npc_state", "") or "").lower() in ("hidden", "stealthed"):
+            p.npc_state = "idle"
+        conds = getattr(p, "conditions", None)
+        if isinstance(conds, dict):
+            conds.pop("hidden", None)
+            conds.pop("stealthed", None)
+            if not conds:
+                conds["awake"] = [{"duration": None, "source": None, "level": 0}]
+        p_dict = getattr(p, "__dict__", None)
+        if isinstance(p_dict, dict) and str(p_dict.get("state") or "").lower() in ("hidden", "stealthed"):
+            p_dict["state"] = "normal"
+    if reason:
+        return f"[{char_name}] steps out of hiding ({reason})."
+    return f"[{char_name}] steps out of hiding."
+
+
+def reveal_if_hidden(
+    game_state: Any,
+    char_name: str,
+    reason: str = "overt action",
+    player: Any = None,
+    graph: Any = None,
+) -> Optional[str]:
+    """If *char_name* is hidden, clear concealment and return a feedback line."""
+    if not is_character_hidden(game_state, char_name, graph=graph, player=player):
+        return None
+    unhide_character(game_state, char_name, player=player, graph=graph, reason=reason)
+    msg = f"[{char_name}] breaks concealment ({reason}) and is no longer hidden!"
+    logger_fn = getattr(game_state, "add_log_entry", None)
+    if callable(logger_fn):
+        try:
+            logger_fn(msg)
+        except Exception:
+            pass
+    return msg
+
+
+def search_hidden_characters_in_area(
+    game_state: Any,
+    searcher_name: str,
+    area_id: Optional[str],
+    perception_total: int,
+    perception_success: bool,
+) -> List[str]:
+    """Contest searcher's Perception against hidden characters in *area_id*."""
+    outputs: List[str] = []
+    pm = getattr(game_state, "player_manager", None) or game_state
+    players = getattr(pm, "players", None) or {}
+    g = _resolve_graph(game_state)
+    searcher = players.get(searcher_name)
+    searcher_area = getattr(searcher, "current_area", None) if searcher is not None else None
+
+    for key, p_obj in list(players.items()):
+        c_name = getattr(p_obj, "name", key)
+        if c_name == searcher_name or key == searcher_name:
+            continue
+        if searcher_area and getattr(p_obj, "current_area", None) != searcher_area:
+            continue
+        if not is_character_hidden(game_state, c_name, graph=g, player=p_obj):
+            continue
+        dex_val = int((getattr(p_obj, "stats", None) or {}).get("DEX", 10) or 10)
+        dex_mod = (dex_val - 10) // 2
+        skills_map = getattr(p_obj, "skills", None)
+        stealth_bonus = int(skills_map.get("Stealth", 0) or 0) if isinstance(skills_map, dict) else 0
+        stealth_dc = 10 + dex_mod + stealth_bonus
+        if perception_success and perception_total >= stealth_dc:
+            unhide_character(game_state, c_name, player=p_obj, graph=g, reason=f"spotted by {searcher_name}")
+            outputs.append(f"You spot {c_name} hiding nearby! [{c_name}] steps out of hiding.")
+    return outputs
 
 
 class BehaviorMixin:
@@ -306,64 +720,35 @@ class BehaviorMixin:
 
                 elif action_type == "hide_in":
                     target_id = action.get("target", "")
-                    target_node = game_state.graph.get_node(target_id)
-                    if target_node and "hideable" in (target_node.properties.get("tags", []) or []):
-                        game_state.graph.add_edge(
-                            Edge(
-                                source=char_name,
-                                target=target_id,
-                                type="hidden",
-                                properties={"relation": "in"},
-                            )
-                        )
-                        player.hidden = True
-                        outputs.append(f"[{char_name}] hides inside {target_node.name}.")
-                    else:
-                        outputs.append(f"[{char_name}] cannot hide in '{target_id}' (not hideable).")
+                    _, msg = hide_character(
+                        game_state, char_name, target=target_id, relation="in", strict_target=True, player=player
+                    )
+                    outputs.append(msg)
 
                 elif action_type == "hide_behind":
                     target_id = action.get("target", "")
-                    target_node = game_state.graph.get_node(target_id)
-                    if target_node and "hideable" in (target_node.properties.get("tags", []) or []):
-                        game_state.graph.add_edge(
-                            Edge(
-                                source=char_name,
-                                target=target_id,
-                                type="hidden",
-                                properties={"relation": "behind"},
-                            )
-                        )
-                        player.hidden = True
-                        outputs.append(f"[{char_name}] hides behind {target_node.name}.")
-                    else:
-                        outputs.append(f"[{char_name}] cannot hide behind '{target_id}' (not hideable).")
+                    _, msg = hide_character(
+                        game_state, char_name, target=target_id, relation="behind", strict_target=True, player=player
+                    )
+                    outputs.append(msg)
 
                 elif action_type == "hide_under":
                     target_id = action.get("target", "")
-                    target_node = game_state.graph.get_node(target_id)
-                    if target_node and "hideable" in (target_node.properties.get("tags", []) or []):
-                        game_state.graph.add_edge(
-                            Edge(
-                                source=char_name,
-                                target=target_id,
-                                type="hidden",
-                                properties={"relation": "under"},
-                            )
-                        )
-                        player.hidden = True
-                        outputs.append(f"[{char_name}] hides under {target_node.name}.")
-                    else:
-                        outputs.append(f"[{char_name}] cannot hide under '{target_id}' (not hideable).")
+                    _, msg = hide_character(
+                        game_state, char_name, target=target_id, relation="under", strict_target=True, player=player
+                    )
+                    outputs.append(msg)
+
+                elif action_type == "hide":
+                    target_id = action.get("target", "")
+                    rel = action.get("relation", None)
+                    _, msg = hide_character(
+                        game_state, char_name, target=target_id, relation=rel, player=player
+                    )
+                    outputs.append(msg)
 
                 elif action_type == "unhide":
-                    edges_to_remove = [
-                        e for e in game_state.graph.edges
-                        if e.source == char_name and e.type == "hidden"
-                    ]
-                    for e in edges_to_remove:
-                        game_state.graph.edges.remove(e)
-                    player.hidden = False
-                    outputs.append(f"[{char_name}] steps out of hiding.")
+                    outputs.append(unhide_character(game_state, char_name, player=player))
 
                 # ── Combat ──────────────────────────────────────────────
                 elif action_type == "attack":
@@ -387,13 +772,15 @@ class BehaviorMixin:
                             outputs.append(f"[{char_name}] attacks {target_name} - but something goes wrong.")
 
                 elif action_type == "throw":
-                    # task-NPC: throw item at target. Simplified: drop item in target's area.
                     item_name = action.get("item", "")
                     target_name = action.get("target", "")
                     if item_name and target_name:
                         try:
-                            result = game_state.drop_item(item_name)
-                            outputs.append(f"[{char_name}] throws {item_name} at {target_name}! {result}")
+                            if hasattr(game_state, "throw_item"):
+                                result = game_state.throw_item(item_name, target_name)
+                            else:
+                                result = game_state.item_actions.throw_item(game_state, item_name, target_name)
+                            outputs.append(f"[{char_name}] throws {item_name} toward {target_name}! {result}")
                         except Exception:
                             outputs.append(f"[{char_name}] fumbles the throw.")
 

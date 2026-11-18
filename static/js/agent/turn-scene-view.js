@@ -141,7 +141,7 @@ window.TurnSceneView = (() => {
         return 'blinding';
     }
     // ── menu builders ────────────────────────────────────────────────
-    function buildItemMenu(entry, dark = false, slotsOverride) {
+    function buildItemMenu(entry, dark = false, slotsOverride, scene) {
         const s = slotsOverride !== undefined ? slotsOverride : slotsOf();
         // Backend contract: TriggerSystem._get_available_actions entries
         // ({action,label,enabled,reason}) already encode state gates.
@@ -165,6 +165,28 @@ window.TurnSceneView = (() => {
         for (const a of actions) {
             if (a.action === 'examine')
                 continue;
+            if (a.action === 'throw') {
+                const ways = scene && Array.isArray(scene.ways) ? scene.ways : [];
+                if (ways.length) {
+                    menus.push(applyBudgetGate({
+                        label: a.label || 'Throw toward...',
+                        enabled: a.enabled !== false,
+                        reason: a.reason || '',
+                        sub: {
+                            title: `Throw ${entry.name} where?`,
+                            buttons: ways.slice(0, 20).map((w) => {
+                                const wayTarget = w.direction || w.name;
+                                const prep = w.requires && ['climb', 'jump'].includes(w.requires) ? 'over' : 'to';
+                                return applyBudgetGate({
+                                    label: `${w.name}${w.direction && w.direction !== w.name ? ` (${w.direction})` : ''}`,
+                                    run: () => draftParts({ action: `throw ${entry.name} ${prep}`, target: wayTarget }),
+                                }, 'throw', s);
+                            }),
+                        },
+                    }, 'throw', s));
+                    continue;
+                }
+            }
             menus.push(applyBudgetGate({
                 label: a.label || a.action,
                 enabled: a.enabled !== false,
@@ -670,7 +692,7 @@ window.TurnSceneView = (() => {
             itemChips.appendChild(el('span', 'tsv-hint', 'nothing of note.'));
         for (const item of scene.items) {
             const label = dark ? 'something' : item.name;
-            mkChip(itemChips, '', label, (e) => chipClick(e, item.name, buildItemMenu(item, dark)), () => lookLines(scene, 'item', item));
+            mkChip(itemChips, '', label, (e) => chipClick(e, item.name, buildItemMenu(item, dark, undefined, scene)), () => lookLines(scene, 'item', item));
         }
         // ways
         const wayChips = zone('Ways out');

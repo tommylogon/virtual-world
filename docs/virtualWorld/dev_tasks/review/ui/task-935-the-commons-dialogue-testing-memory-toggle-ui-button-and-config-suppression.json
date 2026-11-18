@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-935",
+  "kind": "task",
+  "number": 935,
+  "title": "The Commons dialogue testing memory toggle (UI button and config suppression)",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [],
+  "created": "2026-11-09",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-824",
+      "task-854",
+      "task-936"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a user-facing toggle button in The Commons interface to enable or disable memory generation when testing dialogue and chatting directly:\n\n1. **Commons Header Toggle Affordance**:\n   - In `static/js/commons/commons-ui.ts` (and `templates/index.html`), place a toggle button in the Commons chat drawer/header:\n     - Active state: `🧠 Memories: ON` (accent pill, default behavior).\n     - Suppressed state: `🧠 Memories: OFF` (muted pill, memory generation disabled).\n   - Backed by client configuration `config.commons_record_memories` and stored in localStorage.\n2. **API & Route Guarding**:\n   - Pass `record_memory` boolean flag in `POST /api/action` (when posting to channels or sending DMs via Commons) and in `POST /api/commons/messages`.\n   - In `routes/action_handlers.py` and `routes/commons.py`, check the flag before triggering any memory write path. When `record_memory` is false, completely suppress memory generation for both actor and recipients.\n3. **Clear Authoring Feedback**:\n   - When memory recording is toggled off, display a subtle hint in the chat composer placeholder: *\"Testing mode: messages will not generate character memories\"*.",
+    "why": "Currently, whenever an author or tester sends messages in The Commons to check character responsiveness, formatting, or dialogue tone, the engine automatically injects memory records into the sender and every recipient. Testing 15 lines of chat creates 30 memory records, quickly drowning out genuine narrative events with testing noise. Authors need a quick, accessible toggle to turn off memory logging while experimenting with dialogue.",
+    "how": "1. In `static/js/config.ts`:\n   - Add `commons_record_memories: boolean` defaulting to `true`, persisted via `storage`.\n2. In `static/js/commons/commons-ui.ts`:\n   - Render a toggle pill `#commons-memory-toggle` in the chat header actions bar.\n   - On click, toggle `config.commons_record_memories`, update button label and styles (`ON` vs `OFF`), and save state.\n   - Include `record_memory: config.commons_record_memories` in the message post payload.\n3. In `routes/action_handlers.py`:\n   - In the `#channel` post and `text <character>` branches, read `record_memory = data.get(\"record_memory\", True)`.\n   - Guard memory creation: only proceed if `record_memory` is true.\n4. In `routes/commons.py`:\n   - Read `record_memory` in `post_message` route and bypass memory hooks if false.",
+    "verify": "1. In browser UI, open The Commons drawer and inspect the header controls.\n   - expected: Shows `🧠 Memories: ON` toggle button.\n   - observed: No memory toggle exists in header.\n2. Toggle the button to OFF and send a message.\n   - expected: POST payload carries `record_memory: false`.\n   - observed: Message endpoint does not accept or pass memory suppression flags.\n3. Inspect character memories before and after sending a message in OFF mode.\n   - expected: Character memory count remains identical.\n   - observed: Memory count increases with hardcoded template entry.\n4. Run frontend tests: `node tools/unit/run.cjs`.\n   - expected: All unit tests pass.",
+    "acceptance": [
+      {
+        "text": "Commons header contains a clickable `🧠 Memories: ON / OFF` toggle pill.",
+        "done": false
+      },
+      {
+        "text": "Toggle state persists in client config and localStorage across page reloads.",
+        "done": false
+      },
+      {
+        "text": "When toggled OFF, posting messages in channels or DMs writes zero memories to any character.",
+        "done": false
+      },
+      {
+        "text": "When toggled ON, standard memory logging operates normally.",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes anywhere in task cards, code, or documentation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/config.ts",
+      "static/js/commons/commons-ui.ts",
+      "routes/action_handlers.py",
+      "routes/commons.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: The Commons drawer header (top action bar next to channel title and close button).\n\nCurrent availability: The Commons header has channel title, theme badges, and close button. No memory toggle button exists, and sending messages unconditionally records memories.\n\nLive steps when available:\n1. Open The Commons drawer in the browser UI (click the Commons icon in the navigation bar or top toolbar).\n   - expected: Commons drawer opens, and the header displays the memory toggle pill `🧠 Memories: ON`.\n2. Click the `🧠 Memories: ON` pill.\n   - expected: Label flips to `🧠 Memories: OFF` with muted styling. The message composer input placeholder updates to indicate testing mode.\n3. Type and send a test message into `#general` or a direct message to a character.\n   - expected: Message posts cleanly to the chat stream.\n4. Open the recipient character in Character Inspector -> Mind / Memories tab.\n   - expected: No memory record was added for the test message.\n5. Click the memory toggle pill again to switch back to `🧠 Memories: ON`, and send another message.\n   - expected: Toggle returns to active styling, and normal memory processing occurs for the new message.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/task-935-commons-dialogue-testing-memory-toggle.md"
+  }
+}

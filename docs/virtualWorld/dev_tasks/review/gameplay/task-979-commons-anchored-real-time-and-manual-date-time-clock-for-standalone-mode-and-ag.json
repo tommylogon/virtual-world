@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "id": "task-979",
+  "kind": "task",
+  "number": 979,
+  "title": "Commons Anchored Real-Time and Manual Date/Time Clock for Standalone Mode and Agent Prompts",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "commons",
+    "time",
+    "realtime",
+    "millwood",
+    "prompts",
+    "memory"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [
+      "task-976",
+      "task-978"
+    ],
+    "depends_on": [],
+    "related": [
+      "task-975",
+      "task-947",
+      "task-973"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "In Commons Standalone Mode (Use Viwo State OFF), run an anchored real-time clock (anchor_datetime + real_elapsed_seconds) with manual date and time controls (so a 2016 Millwood chat stays in 2016 while still ticking real elapsed time between messages), stamp messages and standalone memories with that exact datetime, and expose the active clock (scenario time vs anchored real time) to agents.",
+    "why": "Using raw Date.now() would overwrite manual era dates like Millwood 2016, while freezing world ticks makes every message look like 'just now'. An anchored real-time clock preserves both real elapsed gaps between messages and manual date/time control for dated memories and agent prompts.",
+    "how": "1. Add standalone clock state { anchor_datetime, anchor_real_epoch_ms } on standalone sessions (defaulting to current local time or seeding from VirtualWorld's existing game_year/game_month/game_day such as 2016-10-14, and advancing 1x with real elapsed wall time).\n2. Add UI controls in /commons to view and manually set the anchor date and time.\n3. Stamp standalone messages and standalone Memory records (from task-976) with the computed anchored ISO datetime so memories land in the exact timeframe.\n4. Update static/js/commons/commons-agent.ts and routes/commons.py read_chat so agents always see the active clock (Scenario time when connected, Anchored/Real time when standalone) and accurate sent_ago/sent_time gaps.",
+    "verify": "Run pytest and JS unit tests verifying anchored clock progression (e.g. 2016-10-14 + 125 real seconds = 2016-10-14 +2m5s), manual date/time override, dated standalone memories, and agent prompt clock output.",
+    "acceptance": [
+      {
+        "text": "Standalone mode tracks real elapsed time between messages relative to an editable anchor_datetime (supporting historical eras like 2016 Millwood as well as live local time).",
+        "done": false
+      },
+      {
+        "text": "Users can manually set/adjust the date and time in /commons without breaking real-time elapsed gaps on subsequent messages.",
+        "done": false
+      },
+      {
+        "text": "Standalone memories and agent prompts receive the active clock datetime and accurate elapsed time between messages.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/commons.py",
+      "routes/commons.py",
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-ui.ts",
+      "static/js/commons/commons-agent.ts",
+      "tests/test_commons.py",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "browser_ui": "Intended UI home: /commons clock display & manual date/time editor in Standalone Mode.\n\nManual verification steps:\n1. Toggle 'Use Viwo State' OFF, set anchor date/time to 2016-10-14 23:00.\n2. Wait 10 seconds, send a message, and inspect timestamp + agent prompt clock + created memory date.\n   - expected: Clock advances in real time from 2016-10-14 23:00 and memories record 2016-10-14."
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]",
+      "[[Features/the-commons]]"
+    ],
+    "docs": [
+      "docs/virtualWorld/Gameplay/The Commons.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "acceptance": [
+      {
+        "text": "Standalone mode tracks real elapsed time between messages relative to an editable anchor_datetime (supporting historical eras like 2016 Millwood as well as live local time).",
+        "done": false
+      },
+      {
+        "text": "Users can manually set/adjust the date and time in /commons without breaking real-time elapsed gaps on subsequent messages.",
+        "done": false
+      },
+      {
+        "text": "Standalone memories and agent prompts receive the active clock datetime and accurate elapsed time between messages.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/commons.py",
+      "routes/commons.py",
+      "static/js/commons/commons-state.ts",
+      "static/js/commons/commons-ui.ts",
+      "static/js/commons/commons-agent.ts",
+      "tests/test_commons.py",
+      "tools/unit/test_commons_agent.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: /commons clock display & manual date/time editor in Standalone Mode.\n\nManual verification steps:\n1. Toggle 'Use Viwo State' OFF, set anchor date/time to 2016-10-14 23:00.\n2. Wait 10 seconds, send a message, and inspect timestamp + agent prompt clock + created memory date.\n   - expected: Clock advances in real time from 2016-10-14 23:00 and memories record 2016-10-14."
+    }
+  }
+}

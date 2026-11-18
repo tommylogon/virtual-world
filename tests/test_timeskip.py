@@ -93,6 +93,38 @@ def test_threat_ignores_own_events():
     assert not iv.evaluate(here, here, events=events)
 
 
+def test_threat_fires_for_combat_and_disarm_actions():
+    here = _snap(name="Hero", area="Camp")
+    for action in ("combat", "disarm"):
+        events = [{"actor": "Goblin", "area": "Camp", "action": action,
+                   "description": "punches Hero in the torso"}]
+        reasons = iv.evaluate(here, here, events=events)
+        assert any(r.kind == "threat" for r in reasons), f"expected threat for {action}"
+
+
+def test_combat_record_turn_event_triggers_interrupt_evaluate():
+    w = _world()
+    players = list(w.players.values())
+    assert len(players) >= 2
+    attacker, target = players[0], players[1]
+    area = attacker.current_area
+    target.current_area = area
+    _safe(attacker)
+    _safe(target)
+
+    before = iv.snapshot(w, target)
+    w._player_attack(attacker.name, target.name)
+    after = iv.snapshot(w, target)
+    events = iv.events_since(w, before)
+
+    assert any(
+        isinstance(e, dict) and e.get("action") == "combat" and e.get("actor") == attacker.name
+        for e in events
+    )
+    reasons = iv.evaluate(before, after, events=events)
+    assert any(r.kind == "threat" for r in reasons)
+
+
 def test_interrupt_hostile_condition():
     reasons = iv.evaluate(_snap(), _snap(conditions={"grappled"}))
     assert any(r.why == "condition:grappled" for r in reasons)

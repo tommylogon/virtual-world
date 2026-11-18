@@ -73,3 +73,108 @@ test('InspectorPersonaView is exposed and wired (task-441)', () => {
     assertEq(PV._PERSONA_TONES, MV._PERSONA_TONES, 'PERSONA_TONES identity preserved');
     assertEq(PV._PERSONA_TEXTAREAS, MV._PERSONA_TEXTAREAS, 'PERSONA_TEXTAREAS identity preserved');
 });
+
+test('InspectorPersonaView structured languages normalize, render, and collect cleanly (task-966)', () => {
+    const PV = window.InspectorPersonaView;
+    assertTrue(typeof PV._normalizeLanguageEntry === 'function', '_normalizeLanguageEntry exists');
+    assertTrue(typeof PV._languageRowHtml === 'function', '_languageRowHtml exists');
+    assertTrue(typeof PV._collectPersona === 'function', '_collectPersona exists');
+
+    const legacy = PV._normalizeLanguageEntry('Common');
+    assertEq(legacy.language, 'common', 'legacy common slug');
+    assertEq(legacy.fluency, 'native', 'legacy common defaults to native');
+    assertEq(legacy.literate, true, 'legacy common defaults to literate');
+
+    const structured = PV._normalizeLanguageEntry({
+        language: 'English',
+        fluency: 'broken',
+        literate: false,
+        known_words: ['bathroom', 'wait', 'hungry'],
+    });
+    assertEq(structured.language, 'english', 'structured language slug');
+    assertEq(structured.fluency, 'broken', 'structured fluency');
+    assertEq(structured.literate, false, 'structured literate');
+    assertEq(structured.known_words.join(','), 'bathroom,wait,hungry', 'structured known_words');
+
+    const container = document.createElement('div');
+    const hostState = {
+        charName: 'Aoi',
+        escName: 'Aoi',
+        tab: 'persona',
+        persona: {
+            structured: true,
+            record: {
+                capabilities: {
+                    languages: [structured],
+                },
+            },
+            schema: {
+                properties: {
+                    capabilities: {
+                        properties: {
+                            languages: { type: 'array', description: 'known languages' },
+                        },
+                    },
+                },
+            },
+            hints: {},
+            suggestions: {},
+            dirty: false,
+            msg: '',
+            prose: '',
+            prose_stale: false,
+            warnings: [],
+            openSections: ['capabilities'],
+        },
+    };
+    PV.bind(hostState, null);
+    const html = PV.html();
+    assertTrue(html.includes('data-lang-list="capabilities.languages"'), 'renders language list container');
+    assertTrue(html.includes('data-lang-row'), 'renders language row');
+    assertTrue(html.includes('data-lang-field="language"'), 'renders language id input');
+    assertTrue(html.includes('value="english"'), 'renders normalized language value');
+    assertTrue(html.includes('data-lang-field="fluency"'), 'renders fluency select');
+    assertTrue(html.includes('<option value="broken" selected>broken</option>'), 'selects broken fluency');
+    assertTrue(html.includes('data-lang-field="literate"'), 'renders literate checkbox');
+    assertTrue(html.includes('data-chip-new="capabilities.languages.known_words"'), 'renders known_words chip input');
+    assertTrue(html.includes('bathroom') && html.includes('wait') && html.includes('hungry'), 'renders known_words chips');
+    assertTrue(html.includes('id="mind-persona-add-lang"'), 'renders add language button');
+
+    const mockRow = {
+        querySelector(sel) {
+            if (sel === '[data-lang-field="language"]') return { value: 'English' };
+            if (sel === '[data-lang-field="fluency"]') return { value: 'broken' };
+            if (sel === '[data-lang-field="literate"]') return { checked: false };
+            if (sel === '.pf-chips') {
+                return {
+                    querySelector(s) {
+                        if (s === 'input[type="hidden"]') return { value: 'bathroom\nwait\nhungry' };
+                        return null;
+                    },
+                };
+            }
+            return null;
+        },
+    };
+    const mockLangList = {
+        querySelectorAll(sel) {
+            return sel === '[data-lang-row]' ? [mockRow] : [];
+        },
+    };
+    const mockContainer = {
+        querySelector(sel) {
+            return sel === '[data-lang-list="capabilities.languages"]' ? mockLangList : null;
+        },
+        querySelectorAll() { return []; },
+    };
+    PV.bind(hostState, mockContainer);
+    const collected = PV._collectPersona();
+    assertTrue(Array.isArray(collected.capabilities?.languages), 'collected capabilities.languages is array');
+    assertEq(collected.capabilities.languages.length, 1, 'collected 1 language');
+    assertEq(collected.capabilities.languages[0].language, 'english', 'collected language');
+    assertEq(collected.capabilities.languages[0].fluency, 'broken', 'collected fluency');
+    assertEq(collected.capabilities.languages[0].literate, false, 'collected literate');
+    assertEq(collected.capabilities.languages[0].known_words.join(','), 'bathroom,wait,hungry', 'collected known_words');
+
+    PV.unbind();
+});

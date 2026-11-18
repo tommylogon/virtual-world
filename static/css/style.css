@@ -351,7 +351,22 @@ body.play-mode-active #top-bar {
     font-size: 12px; line-height: 1.2; padding: 0 4px; font-family: var(--font);
 }
 .stepper-btn:hover { color: var(--text); }
+.stepper-btn[aria-pressed="true"] { color: var(--accent); font-weight: 600; }
 .stepper-value { font-size: 10px; color: var(--text); min-width: 20px; text-align: center; }
+.stepper-input {
+    width: 36px; min-width: 24px; border: 0; background: transparent;
+    color: var(--text); font-size: 10px; font-family: var(--font);
+    text-align: center; padding: 0 2px; outline: none;
+    -moz-appearance: textfield; appearance: textfield;
+}
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+}
+.stepper-input:focus {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+}
 
 /* Legend: the panel can always be closed from inside (task-530 used to have no
  * close affordance and force-opened itself on every overlay change). */

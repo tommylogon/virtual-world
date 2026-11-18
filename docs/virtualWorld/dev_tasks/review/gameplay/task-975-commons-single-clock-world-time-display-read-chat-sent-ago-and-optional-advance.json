@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "task-975",
+  "kind": "task",
+  "number": 975,
+  "title": "Commons: Single-clock world-time display, read_chat sent_ago, and optional advance-clock toggle",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "commons",
+    "time",
+    "memories"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-16",
+  "horizon": "",
+  "effort": "small",
+  "goal": "Keep The Commons strictly on the single world.time_ticks clock while supporting standalone texting sessions via an optional clock-advance toggle",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-824",
+      "task-936",
+      "task-970",
+      "task-973"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Align Commons UI timestamps, read_chat message ages, and auto-timer gating with world.time_ticks, plus add an optional Advance world clock on reply toggle.",
+    "why": "Commons UI previously showed real-world wall-clock time while world.time_ticks stayed frozen, causing the LLM to hallucinate 'four days' of silence and spam unreturned messages.",
+    "how": "Include world clock metadata in /api/commons/state, format message.tick in commons-ui.ts, attach sent_time and sent_ago in read_chat, guard auto-timers against 0-unread/0-elapsed-tick spam, and add commonsAdvanceClockOnReply toggle.",
+    "verify": "pytest tests/test_commons.py -q and npm run build:ts",
+    "acceptance": [
+      {
+        "text": "Commons UI message bubbles format timestamps from message.tick into world time (Day D, HH:MM) matching the single world clock",
+        "done": false
+      },
+      {
+        "text": "read_chat returns sent_time and sent_ago on every message computed from world.time_ticks - message.tick",
+        "done": false
+      },
+      {
+        "text": "Unprompted auto-timers skip waking characters when there are zero unread messages and zero elapsed world ticks",
+        "done": false
+      },
+      {
+        "text": "Optional 'Advance world clock on reply' toggle (off by default) advances world.time_ticks by 1 per posted Commons message when enabled",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/commons.py",
+      "static/js/config.ts",
+      "static/js/commons/commons-api.ts",
+      "static/js/commons/commons-ui.ts",
+      "static/js/commons/commons-agent.ts",
+      "templates/commons.html",
+      "tests/test_commons.py"
+    ],
+    "custom": {
+      "browser_ui": "In /commons, messages show world time (e.g. Day 1, 08:05) instead of local wall-clock time; Characters & pacing includes an 'Advance world clock on reply' checkbox (off by default)."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Gameplay/The Commons.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

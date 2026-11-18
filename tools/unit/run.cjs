@@ -153,6 +153,7 @@ win.assertFalse = (value, label) => {
 
 // ── load production modules (browser-global style) ──
 load('static/js/shared/json-utils.js');
+load('static/js/shared/json-schemas.js');
 load('static/js/shared/item-containment.js');
 load('static/js/shared/scope-options.js');
 load('static/js/shared/trigger-suggest-ai.js');
@@ -211,6 +212,7 @@ load('static/js/inspector/agent-view.js');
 load('static/js/inspector/auto-dress-modal.js');
 load('static/js/inspector/entity-editor.js');
 load('static/js/agent/prompt-builder/helpers.js');
+load('static/js/agent/threat-detector.js');
 load('static/js/agent/prompt-builder/character-state.js');
 load('static/js/agent/prompt-builder/memory-context.js');
 load('static/js/agent/prompt-builder/context-sections.js');

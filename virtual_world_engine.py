@@ -659,6 +659,9 @@ class VirtualWorld:
     def drop_item(self, item_name: str) -> str:
         return self.item_actions.drop_item(self, item_name)
 
+    def throw_item(self, item_name: str, target_ref: str = "") -> str:
+        return self.item_actions.throw_item(self, item_name, target_ref)
+
     def put_item_in_container(self, item_name: str, container_name: str) -> str:
         return self.item_actions.put_item_in_container(self, item_name, container_name)
 
@@ -1039,6 +1042,10 @@ class VirtualWorld:
                        where=None) -> str:
         return self.combat.player_attack(attacker_name, target_name, weapon_node, where=where)
 
+    def _player_disarm(self, attacker_name: str, target_name: str, item_name: Optional[str] = None,
+                       catch: bool = False) -> str:
+        return self.combat.player_disarm(attacker_name, target_name, item_name=item_name, catch=catch)
+
     def _emit_save_on(self, player_name: str, event: str, context: dict = None) -> list:
         """Phase 3: emit a world event for the save_on trait resolver."""
         return self.save_on.emit(player_name, event, context)
@@ -1261,9 +1268,11 @@ class VirtualWorld:
     def add_log_entry(self, text):
         return self.game_logger.add_log_entry(text)
 
-    def record_turn_event(self, actor_name, action_type, description, area_name=None, tick=None):
+    def record_turn_event(self, actor_name, action_type, description, area_name=None, tick=None, extra=None):
         actual_tick = tick if tick is not None else getattr(self, "time_ticks", 0)
-        return self.game_logger.record_turn_event(actor_name, action_type, description, area_name, tick=actual_tick)
+        return self.game_logger.record_turn_event(
+            actor_name, action_type, description, area_name, tick=actual_tick, extra=extra
+        )
 
     def clear_turn_events(self):
         """Delegate to game_logger."""
@@ -1317,6 +1326,43 @@ class VirtualWorld:
         days_per_month = max(1, int(cfg.get("days_per_month", 30)))
         months_per_year = max(1, int(cfg.get("months_per_year", 12)))
         return ((self.game_day - 1) // (days_per_month * months_per_year)) + 1
+
+    def calendar_parts_for_tick(self, tick=None) -> dict:
+        """Compute (year, month, day, hour, minute) for any tick using calendar_config."""
+        t = getattr(self, "time_ticks", 0) or 0 if tick is None else float(tick)
+        per_tick = getattr(self, "time_per_tick_minutes", 5) or 5
+        start_h = getattr(self, "clock_start_hour", 8)
+        start_m = getattr(self, "clock_start_minute", 0)
+        total_min = t * per_tick + start_h * 60 + start_m
+        elapsed_days = int(total_min // 1440)
+        day_min = int(total_min) % 1440
+        hh, mm = day_min // 60, day_min % 60
+        cfg = getattr(self, "calendar_config", None) or {}
+        dpm = max(1, int(cfg.get("days_per_month", 30)))
+        mpy = max(1, int(cfg.get("months_per_year", 12)))
+        abs_day = self._base_calendar_day + elapsed_days + 1
+        year_idx = ((abs_day - 1) // (dpm * mpy)) + 1
+        month_idx = ((abs_day - 1) // dpm) % mpy + 1
+        day_idx = ((abs_day - 1) % dpm) + 1
+        return {
+            "year": year_idx,
+            "month": month_idx,
+            "day": day_idx,
+            "hour": hh,
+            "minute": mm,
+        }
+
+    def datetime_for_tick(self, tick=None) -> str:
+        """Return ISO-8601 world datetime (YYYY-MM-DDTHH:MM:00) for a given tick."""
+        p = self.calendar_parts_for_tick(tick)
+        return f"{p['year']:04d}-{p['month']:02d}-{p['day']:02d}T{p['hour']:02d}:{p['minute']:02d}:00"
+
+    def calendar_label_for_tick(self, tick=None) -> str:
+        """Return human calendar date + time label (e.g. 'Oct 14, 2016 08:01')."""
+        months = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+        p = self.calendar_parts_for_tick(tick)
+        mname = months[(p["month"] - 1) % 12]
+        return f"{mname} {p['day']}, {p['year']} {p['hour']:02d}:{p['minute']:02d}"
 
     def current_season(self) -> str:
         """The season this world is in (task-554).

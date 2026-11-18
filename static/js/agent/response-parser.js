@@ -56,17 +56,32 @@ window.ResponseParser = (() => {
             ? extract(raw)
             : String(raw || '').trim();
     }
-    /** Normalize an optional LLM-declared feeling: {label, intensity 1-10, toward?}. */
-    function extractEmotion(raw) {
-        if (!raw || typeof raw !== 'object')
+    /** Normalize a single LLM-declared feeling: {label, intensity 1-10, toward?}. */
+    function extractSingleEmotion(raw) {
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw))
             return null;
         const rec = raw;
         const label = String(rec.label || '').trim().toLowerCase();
-        const intensity = parseFloat(String(rec.intensity));
-        if (!label || !Number.isFinite(intensity))
+        if (!label)
             return null;
-        const toward = String(rec.toward || '').trim();
+        const rawInt = rec.intensity;
+        const intensity = (rawInt === null || rawInt === undefined || rawInt === '')
+            ? 5
+            : parseFloat(String(rawInt));
+        if (!Number.isFinite(intensity))
+            return null;
+        const toward = typeof rec.toward === 'string' ? rec.toward.trim() : '';
         return { label, intensity: Math.max(1, Math.min(10, intensity)), toward: toward || null };
+    }
+    /** Normalize an optional LLM-declared feeling (single object or array of impulses). */
+    function extractEmotion(raw) {
+        if (!raw)
+            return null;
+        if (Array.isArray(raw)) {
+            const list = raw.map(extractSingleEmotion).filter((e) => e !== null);
+            return list.length ? list : null;
+        }
+        return extractSingleEmotion(raw);
     }
     /** Normalize an optional list of names learned/confirmed this turn. */
     function extractLearnedNames(raw) {
@@ -268,6 +283,7 @@ window.ResponseParser = (() => {
         parseReaction,
         parseResultReaction,
         parseCommunication,
-        extractMemory
+        extractMemory,
+        extractEmotion
     };
 })();

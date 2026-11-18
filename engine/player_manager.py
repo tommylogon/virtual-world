@@ -526,10 +526,34 @@ class PlayerManager:
         p = self.players.get(player_name)
         if p is None:
             return False
-        if getattr(p, "hidden", False):
+        if getattr(p, "hidden", False) or getattr(p, "state", "") in ("hidden", "stealthed"):
+            return False
+        from engine.triggers.behaviors import is_character_hidden
+        if is_character_hidden(self, player_name, self.graph, player=p):
             return False
         if self.is_incorporeal(player_name) and not getattr(p, "manifested", False):
             return False
+        return True
+
+    def _can_see_equipment(self, target_area: str) -> bool:
+        """Return True when the active player can see held/worn gear in target_area."""
+        if self.graph is None:
+            return False
+        active = self.get_active_player_obj()
+        if active and getattr(active, "conditions", None) and active.conditions.get("blind"):
+            return False
+        lighting = getattr(self, "lighting", None)
+        if lighting is None:
+            from engine.lighting import LightingSystem
+            lighting = LightingSystem(self.graph)
+        if self.active_player and lighting.can_see_in_dark(self, self.active_player):
+            return True
+        from engine.room_perception import resolve_area_node
+        area_node = resolve_area_node(self.graph, target_area)
+        if area_node is not None:
+            ambient = lighting.get_ambient_light(area_node.id)
+            if lighting.light_to_level(ambient) in ("pitch_black", "dim"):
+                return False
         return True
 
     def get_players_in_area(self, area_name: str = None, include_ghosts: bool = False) -> List[dict]:
@@ -545,6 +569,9 @@ class PlayerManager:
         if not target_area:
             return []
 
+        from engine.equipment import split_visible_equipment
+        can_see_gear = self._can_see_equipment(target_area)
+
         players_here = []
         for key, player_obj in self.players.items():
             if key == self.active_player:
@@ -554,11 +581,17 @@ class PlayerManager:
                     continue
                 if not include_ghosts and not self.is_visible(key):
                     continue
+                if can_see_gear and self.graph is not None:
+                    holding, wearing = split_visible_equipment(self.graph, player_obj)
+                else:
+                    holding, wearing = [], []
                 players_here.append({
                     "name": getattr(player_obj, "name", key),
                     "state": player_obj.state,
                     "description": getattr(player_obj, 'description', '') or '',
                     "activity": getattr(player_obj, 'activity', None),
+                    "holding": holding,
+                    "wearing": wearing,
                     "at_way_id": get_character_at_way(self.graph, self.get_player_node_id(key)),
                     "spatial_position": get_spatial_position_data(
                         self.graph,

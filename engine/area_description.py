@@ -8,7 +8,7 @@
 from typing import Any, Dict, List, Optional
 
 from graph import EDGE_CONNECTION, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
-from engine.equipment import INTRINSIC_ABILITY_TAGS
+from engine.equipment import INTRINSIC_ABILITY_TAGS, split_visible_equipment
 from engine.equipment_bonuses import aggregate_bonuses, effective_temperature
 from engine.activities import activity_description
 from engine.beyond_visibility import build_beyond_suffix, normalize_visible_items
@@ -489,23 +489,16 @@ class AreaDescription:
             for pdata in players_here:
                 pname = pdata["name"]
                 pstate = pdata.get("state", "awake")
-                carried = []
-                worn = []
                 player_id = self.player_manager.player_node_id(pname)
-                for edge in self.graph.get_edges_for_target(player_id, EDGE_CARRYING):
-                    node = self.graph.get_node(edge.source)
-                    # Intrinsic abilities (spells, talents) never show as "holding"
-                    # to other characters (task-171 follow-up).
-                    if node and node.type == "item" and not _is_intrinsic_ability(node):
-                        carried.append(node.name)
-                for edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
-                    node = self.graph.get_node(edge.source)
-                    # Equipped items are worn, not held - shown as "wearing".
-                    # If an item is on both edges, only count it as worn.
-                    if node and node.type == "item" and not _is_intrinsic_ability(node):
-                        worn.append(node.name)
-                        if node.name in carried:
-                            carried.remove(node.name)
+                if not can_see_in_dark and light_level in ("pitch_black", "dim"):
+                    held = []
+                    worn = []
+                elif "holding" in pdata or "wearing" in pdata:
+                    held = list(pdata.get("holding") or [])
+                    worn = list(pdata.get("wearing") or [])
+                else:
+                    target_obj = self.player_manager.players.get(pname)
+                    held, worn = split_visible_equipment(self.graph, target_obj)
                 # Task-154: strangers are presented by appearance, not real name.
                 # Task-339: seeing someone again is RECOGNITION, not name
                 # knowledge - the name reveals only once heard spoken (or a
@@ -570,8 +563,8 @@ class AreaDescription:
                         line += f" - {masked}"
                 if worn:
                     line += f" [wearing: {', '.join(worn)}]"
-                if carried:
-                    line += f" [holding: {', '.join(carried)}]"
+                if held:
+                    line += f" [holding: {', '.join(held)}]"
                 from engine.character_spatial import spatial_position_phrase
                 area_name = self.player_manager.current_area.name if self.player_manager.current_area else ""
                 viewer = self.player_manager.active_player or ""

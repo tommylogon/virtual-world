@@ -161,3 +161,32 @@ def test_witnessable_lived_log_fans_out_to_turn_events():
         assert len(captured) == 2, "pursuit events must stay internal to the character"
     finally:
         T.set_turn_event_sink(prev_sink)
+
+
+def test_conscious_handoff_synthesizes_without_raw_log_syntax_and_caches_unchanged_cues():
+    p = Player("Sera")
+    p.current_area = "Kitchen"
+    T.record(p, 10, "act", "boiled kettle water", why="needs:thirst", area="Kitchen")
+    T.record(p, 11, "observe", "heard footsteps outside", why="sense:hear", area="Kitchen")
+
+    calls = []
+
+    def fake_synth(player, entries):
+        calls.append(len(entries))
+        return {"thought": "I boiled water and thought I heard footsteps outside the kitchen.", "importance": 7}
+
+    first = T.conscious_handoff(p, since_tick=0, synthesizer=fake_synth, tick=11)
+    assert first == "I boiled water and thought I heard footsteps outside the kitchen."
+    assert len(calls) == 1
+    assert p._last_inner_monologue == first
+    assert "t=10" not in first
+    assert "needs:thirst" not in first
+    assert any(
+        m.get("source") == "intermediator" and m.get("lane") == "palimpsest"
+        for m in p.memories
+    )
+
+    # Unchanged cues reuse cached thought without re-running synthesizer
+    second = T.conscious_handoff(p, since_tick=0, synthesizer=fake_synth, tick=11)
+    assert second == first
+    assert len(calls) == 1

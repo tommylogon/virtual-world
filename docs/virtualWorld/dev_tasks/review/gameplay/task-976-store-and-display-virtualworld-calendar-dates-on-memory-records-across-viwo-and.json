@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "task-976",
+  "kind": "task",
+  "number": 976,
+  "title": "Store and display VirtualWorld calendar dates on Memory records across Viwo and Commons",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "time",
+    "timeline",
+    "dates",
+    "millwood"
+  ],
+  "created": "2026-11-16",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "task-977",
+      "task-978",
+      "task-979"
+    ],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-947",
+      "task-973",
+      "task-975",
+      "bug-599"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Reuse VirtualWorld's existing calendar (game_year, game_month, game_day, calendar_config, get_current_time) to stamp an explicit ISO world_datetime field on Memory records alongside tick, and format real calendar dates + relative ages in Mind View, timelines, and agent recall.",
+    "why": "VirtualWorld already tracks calendar dates (e.g. Oct 14, 2016 in Millwood via world.game_day/game_month/game_year and World Sky Time & Date), while Memory records currently only store integer tick. Storing world_datetime from the existing calendar gives multi-day timelines, Mind View, and standalone Commons chats real calendar dates without inventing a second clock source.",
+    "how": "1. Add a shared helper that reads VirtualWorld's existing calendar (game_year, game_month, game_day, get_current_time / total_game_minutes) to produce an ISO world_datetime string (e.g. 2016-10-14T08:01:00).\n2. Stamp world_datetime on Memory creation paths (engine/player.py, engine/memory_dynamics.py, routes/memory.py) and derive it when reading older tick-only memories.\n3. Update Mind View / memory timeline formatting and prompt recall helpers to display calendar dates and relative age (e.g. Oct 14, 2016 08:01 - 2h ago) cleanly.\n4. Add pytest and JS unit tests covering dated memory creation, serialization, and timeline formatting.",
+    "verify": "Run pytest on memory/calendar tests and JS unit tests for mind-view/memory-context confirming world_datetime round-trip using VirtualWorld's existing calendar.",
+    "acceptance": [
+      {
+        "text": "Memory creation and serialization preserve an explicit ISO world_datetime field derived from VirtualWorld's existing calendar (game_year/game_month/game_day + clock time) alongside tick.",
+        "done": false
+      },
+      {
+        "text": "No duplicate start_date field is added; VirtualWorld's existing calendar_config / set_game_date remains the single source of truth.",
+        "done": false
+      },
+      {
+        "text": "Mind View, memory timelines, and agent recall format real calendar dates and relative ages instead of bare tick or Day N counters.",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py",
+      "engine/player.py",
+      "engine/memory_dynamics.py",
+      "routes/memory.py",
+      "static/js/inspector/mind-view.ts",
+      "static/js/agent/prompt-builder/memory-context.ts"
+    ],
+    "browser_ui": "Intended UI home: Mind View memory timeline (reading the date set in World Sky Time & Date).\n\nManual verification steps:\n1. Set date in World Sky (e.g. 14/10/2016) and create a memory.\n2. Open Character Inspector -> Mind -> Memories.\n   - expected: Memory displays Oct 14, 2016 and time/relative age."
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/The Commons]]",
+      "[[AI & Narration/Cognitive Memory & Active Mind]]",
+      "[[Features/time-weather]]",
+      "[[Environment/Weather Guide]]"
+    ],
+    "docs": [
+      "docs/virtualWorld/Environment/Weather Guide.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "acceptance": [
+      {
+        "text": "Memory creation and serialization preserve an explicit ISO world_datetime field derived from VirtualWorld's existing calendar (game_year/game_month/game_day + clock time) alongside tick.",
+        "done": false
+      },
+      {
+        "text": "No duplicate start_date field is added; VirtualWorld's existing calendar_config / set_game_date remains the single source of truth.",
+        "done": false
+      },
+      {
+        "text": "Mind View, memory timelines, and agent recall format real calendar dates and relative ages instead of bare tick or Day N counters.",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py",
+      "engine/player.py",
+      "engine/memory_dynamics.py",
+      "routes/memory.py",
+      "static/js/inspector/mind-view.ts",
+      "static/js/agent/prompt-builder/memory-context.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Mind View memory timeline (reading the date set in World Sky Time & Date).\n\nManual verification steps:\n1. Set date in World Sky (e.g. 14/10/2016) and create a memory.\n2. Open Character Inspector -> Mind -> Memories.\n   - expected: Memory displays Oct 14, 2016 and time/relative age."
+    }
+  }
+}

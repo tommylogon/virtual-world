@@ -190,6 +190,113 @@ def summarize_window(player, since_tick=0, limit=40) -> list:
     return lines
 
 
+def _cue_signature(player, entries: list) -> str:
+    """Compute a deterministic cue signature for lived_log Intermediator gating."""
+    area = str(getattr(player, "current_area", "") or "")
+    emo = getattr(player, "emotion", None)
+    emo_label = str(emo.get("label", "") if isinstance(emo, dict) else (emo or ""))
+    entry_keys = [
+        f"{_tick_of(e)}:{e.get('kind', '')}:{str(e.get('what', ''))[:64]}"
+        for e in entries
+    ]
+    return f"{area}|{emo_label}|{'|'.join(entry_keys)}"
+
+
+def _default_conscious_synthesis(player, entries: list) -> str:
+    """Build a bounded first-person conscious summary without raw log syntax."""
+    snippets = []
+    seen = set()
+    for e in entries[-5:]:
+        what = str(e.get("what") or "").strip()
+        if not what:
+            continue
+        norm = what.rstrip(".")
+        key = norm.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        snippets.append(norm)
+    if not snippets:
+        return ""
+    area = str(getattr(player, "current_area", "") or "").strip()
+    joined = "; ".join(snippets)
+    if area:
+        return f"Thinking back on what I just went through in {area}: {joined}."
+    return f"Thinking back on what I just went through: {joined}."
+
+
+def conscious_handoff(
+    player,
+    since_tick=0,
+    limit=40,
+    *,
+    synthesizer=None,
+    tick=None,
+    persist=True,
+):
+    """Synthesize a lived_log window into an Intermediator conscious handoff.
+
+    Uses cue-change gating on ``player._soak_conscious_cache`` so unchanged
+    cues reuse the cached thought. Persists a palimpsest reflection memory
+    (``source="intermediator"``) and updates ``player._last_inner_monologue``
+    without exposing raw ``t=... (why) @ area`` lived_log rows.
+    """
+    entries = since(player, since_tick)[-limit:]
+    if not entries:
+        return None
+
+    sig = _cue_signature(player, entries)
+    cache = getattr(player, "_soak_conscious_cache", None)
+    if isinstance(cache, dict) and cache.get("sig") == sig and cache.get("thought"):
+        return cache["thought"]
+
+    thought = ""
+    importance = 6
+    if callable(synthesizer):
+        try:
+            res = synthesizer(player, entries)
+            if isinstance(res, dict):
+                thought = str(res.get("thought") or "").strip()
+                if res.get("importance") is not None:
+                    importance = max(1, min(10, int(res["importance"])))
+            elif res is not None:
+                thought = str(res).strip()
+        except Exception:
+            thought = ""
+
+    if not thought:
+        thought = _default_conscious_synthesis(player, entries)
+    if not thought:
+        return None
+
+    resolved_tick = int(tick if tick is not None else _tick_of(entries[-1]))
+    source_ids = [
+        str(e.get("id") or f"lived_log:{_tick_of(e)}:{idx}")
+        for idx, e in enumerate(entries)
+    ]
+
+    if persist and hasattr(player, "add_memory"):
+        try:
+            from engine import lived_log_memory
+            lived_log_memory.synthesize_palimpsest_memory(
+                player,
+                thought,
+                resolved_tick,
+                source_memory_ids=source_ids,
+                importance=importance,
+                memory_type="reflection",
+                category="reflection",
+                tags=["intermediator", "reflection", "soak"],
+                source="intermediator",
+            )
+        except Exception:
+            pass
+
+    player._soak_conscious_cache = {"sig": sig, "thought": thought}
+    player._last_inner_monologue = thought
+    return thought
+
+
 def rollup(player, min_run=5) -> int:
     """Collapse long runs of identical routine entries into one summary.
 

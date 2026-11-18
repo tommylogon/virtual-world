@@ -125,3 +125,97 @@ test('the human turn composer defines structured result styles and expand toggle
     assertTrue(/htc-res-toggle-expand/.test(src), 'css includes htc-res-toggle-expand');
     assertTrue(/max-height:\s*160px/.test(src), 'htc-result has max-height clamp');
 });
+
+// -- bug-580: Fresh turn start renders full budget instead of 0 major / 0 minor / 0 free --
+
+test('HumanTurnComposer renders full budget pips on fresh turn start, updates on partial spend, and shows 0 when genuinely spent (bug-580)', () => {
+    function makeBudgetNode(id) {
+        return {
+            id,
+            children: [],
+            style: {},
+            textContent: '',
+            replaceChildren() {
+                this.children = [];
+                this.textContent = '';
+            },
+            appendChild(child) {
+                this.children.push(child);
+                return child;
+            },
+            append(...items) {
+                for (const it of items) {
+                    this.children.push(it);
+                }
+                this.textContent = this.children
+                    .map((c) => (typeof c === 'string' ? c : (c && c.textContent) || ''))
+                    .join('');
+            },
+        };
+    }
+
+    const pipsEl = makeBudgetNode('htc-pips');
+    const budgetEl = makeBudgetNode('htc-budgetlab');
+    const overlayEl = { id: 'htc-overlay', style: { display: 'none' } };
+    const origQS = document.querySelector;
+    const origGetById = document.getElementById;
+    const origRuntimePlayer = window.worldState && window.worldState.runtimePlayer;
+    let currentSlots = {};
+
+    document.querySelector = (sel) => {
+        if (sel === '#htc-pips') return pipsEl;
+        if (sel === '#htc-budgetlab') return budgetEl;
+        if (sel === '#htc-overlay') return overlayEl;
+        return origQS ? origQS.call(document, sel) : null;
+    };
+    document.getElementById = (id) => {
+        if (id === 'htc-pips') return pipsEl;
+        if (id === 'htc-budgetlab') return budgetEl;
+        if (id === 'htc-overlay') return overlayEl;
+        return origGetById ? origGetById.call(document, id) : null;
+    };
+    window.worldState = window.worldState || {};
+    window.worldState.runtimePlayer = () => ({ turn_slots: currentSlots });
+
+    try {
+        // 1. Fresh turn start: turn_slots is {} (uninitialized)
+        currentSlots = {};
+        HTC.open('jake halloway');
+        assertEq(budgetEl.textContent, '1 major · 1 minor · 3 free', 'fresh turn ({}) renders full budget text');
+        assertEq(pipsEl.children.length, 5, '5 pips rendered on fresh turn');
+        const freshSpentCount = pipsEl.children.filter((c) => /\bspent\b/.test(c.className || '')).length;
+        assertEq(freshSpentCount, 0, 'all 5 pips are unspent when turn_slots is {}');
+
+        // Also verify when turn_slots is undefined/absent
+        currentSlots = undefined;
+        HTC.open('jake halloway');
+        assertEq(budgetEl.textContent, '1 major · 1 minor · 3 free', 'absent turn_slots renders full budget text');
+        assertEq(pipsEl.children.filter((c) => /\bspent\b/.test(c.className || '')).length, 0, 'all 5 pips unspent when turn_slots is absent');
+
+        // 2. Partial spend: major spent, 1 minor and 2 free remaining
+        currentSlots = { major: 0, minor: 1, free: 2 };
+        HTC.open('jake halloway');
+        assertEq(budgetEl.textContent, '0 major · 1 minor · 2 free', 'partial spend updates budget label dynamically');
+        assertTrue(/\bspent\b/.test(pipsEl.children[0].className), 'major pip marked spent');
+        assertFalse(/\bspent\b/.test(pipsEl.children[1].className), 'minor pip remains unspent');
+        assertFalse(/\bspent\b/.test(pipsEl.children[2].className), 'free pip 1 remains unspent');
+        assertFalse(/\bspent\b/.test(pipsEl.children[3].className), 'free pip 2 remains unspent');
+        assertTrue(/\bspent\b/.test(pipsEl.children[4].className), 'free pip 3 marked spent');
+
+        // 3. All actions genuinely spent: turn_slots is { major: 0, minor: 0, free: 0 }
+        currentSlots = { major: 0, minor: 0, free: 0 };
+        HTC.open('jake halloway');
+        assertEq(budgetEl.textContent, '0 major · 0 minor · 0 free', 'exhausted budget renders 0 major · 0 minor · 0 free');
+        const allSpentCount = pipsEl.children.filter((c) => /\bspent\b/.test(c.className || '')).length;
+        assertEq(allSpentCount, 5, 'all 5 pips marked spent when budget is genuinely 0');
+    } finally {
+        HTC.closeTurn();
+        document.querySelector = origQS;
+        document.getElementById = origGetById;
+        if (origRuntimePlayer !== undefined) {
+            window.worldState.runtimePlayer = origRuntimePlayer;
+        } else {
+            delete window.worldState.runtimePlayer;
+        }
+    }
+});

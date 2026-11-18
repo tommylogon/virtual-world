@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "bug-591",
+  "kind": "bug",
+  "number": 591,
+  "title": "Fix fractional minute clock formatting (08:4.3) and sub-minute relative timestamps in event-stream.ts",
+  "status": "review",
+  "priority": "medium",
+  "area": "ui",
+  "tags": [
+    "ui",
+    "event-stream",
+    "time-formatting",
+    "sub-minute"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-954"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix tickToTime() emitting decimal minute strings like 08:4.3 on fractional time_per_tick_minutes and update tickToRelative() so distinct sub-minute turns do not collapse to just now.",
+    "why": "static/js/event-stream.ts line 295 computes const m = total % 60 without Math.floor, producing invalid strings such as 08:4.3 whenever time_per_tick_minutes is fractional (e.g. 0.25 or 0.1 for rapid confrontation beats). Meanwhile tickToRelative() (lines 360-372) treats every diffMin < 1 (including multi-turn seconds-apart exchanges) as 'just now', whereas engine/tick_manager.py (lines 450-463) already calculates HH:MM:SS cleanly for fractional tick durations.",
+    "how": "1. Update tickToTime() in static/js/event-stream.ts (lines 291-300) to match engine/tick_manager.py get_current_time() (lines 450-463): convert elapsed minutes cleanly into integer hours, floored integer minutes, and rounded/floored seconds (showing :SS only when fractional seconds exist or when formatted at sub-minute cadence).\n2. Update tickToRelative() in static/js/event-stream.ts (lines 360-372) so positive intervals < 1 minute report '<N> seconds ago' when sub-minute ticks are active instead of collapsing everything > 0 ticks to 'just now' (reserving 'just now' for diffTicks === 0).\n3. Rebuild TypeScript bundles (npm run build:ts) and add unit coverage for fractional tick formatting.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs with tests for tickToTime and tickToRelative under 0.25 and 0.1 minutes-per-tick settings.\n2. Verify fractional outputs align with engine/tick_manager.py get_current_time().",
+    "acceptance": [
+      {
+        "text": "tickToTime() in static/js/event-stream.ts floors minute values and formats sub-minute seconds (matching engine/tick_manager.py get_current_time() HH:MM[:SS] semantics) so fractional time_per_tick_minutes never emits strings like 08:4.3.",
+        "done": false
+      },
+      {
+        "text": "tickToRelative() distinguishes sub-minute offsets (seconds ago or exact second deltas) instead of flattening every non-zero interval under one minute to just now.",
+        "done": false
+      },
+      {
+        "text": "JS unit tests cover integer and fractional time_per_tick_minutes (for example 0.25 and 0.1 minutes per tick) across tickToTime and tickToRelative.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/event-stream.ts",
+      "engine/tick_manager.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Event Stream timestamps and Prompt I REMEMBER relative labels (static/js/event-stream.ts tickToTime and tickToRelative).\n\nCurrent availability: tickToTime computes const m = total % 60 without Math.floor, producing decimal minutes such as 08:4.3 on fractional tick durations, while tickToRelative collapses all sub-minute diffs (< 1 min) to just now.\n\nManual verification steps:\n1. Configure a scenario or setting with fractional time_per_tick_minutes (e.g. 0.25 = 15s per tick) and run several turns.\n2. Inspect Event Stream tick headers and I REMEMBER memory prefixes.\n   - expected: Timestamps display clean padded HH:MM or HH:MM:SS (e.g. 08:04:15), and distinct sub-minute events show distinct second offsets rather than identical just now labels."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[UI & Settings/Event Stream]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

@@ -396,3 +396,89 @@ class TestSafeSavePath:
         expected = os.path.join(str(tmp_path), 'Draghál_20260101_120000.json')
         assert _safe_save_path(str(tmp_path), 'Draghál_20260101_120000.json') == expected
 
+
+class TestListScenarios:
+    """bug-576: GET /api/scenarios counts areas from graph nodes and manifests."""
+
+    def _setup_scenarios_dir(self, app, tmp_path):
+        data_dir = tmp_path / 'data'
+        sdir = data_dir / 'scenarios'
+        sdir.mkdir(parents=True, exist_ok=True)
+        app.config['DATA_DIR'] = str(data_dir)
+        return sdir
+
+    def test_counts_graph_dict_areas_and_characters(self, app, client, tmp_path):
+        sdir = self._setup_scenarios_dir(app, tmp_path)
+        payload = {
+            "areas": {},
+            "players": {},
+            "graph": {
+                "nodes": {
+                    "a1": {"id": "a1", "type": "area", "properties": {"description": "Room 1"}},
+                    "a2": {"id": "a2", "type": "area", "properties": {"description": "Room 2"}},
+                    "c1": {"id": "c1", "type": "character", "name": "Hero"},
+                    "i1": {"id": "i1", "type": "item", "name": "Key"},
+                },
+                "edges": [],
+            },
+        }
+        (sdir / 'graph_dict.json').write_text(json.dumps(payload), encoding='utf-8')
+
+        resp = client.get('/api/scenarios')
+        assert resp.status_code == 200
+        rows = {r['name']: r for r in resp.get_json()}
+        assert rows['graph_dict']['areas'] == 2
+        assert rows['graph_dict']['players'] == 1
+        assert rows['graph_dict']['health']['ok'] is True
+
+    def test_counts_graph_list_areas_and_characters(self, app, client, tmp_path):
+        sdir = self._setup_scenarios_dir(app, tmp_path)
+        payload = {
+            "areas": {},
+            "players": {},
+            "graph": {
+                "nodes": [
+                    {"id": "a1", "type": "area", "properties": {"description": "Room 1"}},
+                    {"id": "a2", "type": "area", "properties": {}},
+                    {"id": "a3", "type": "area", "properties": {"description": "Room 3"}},
+                    {"id": "c1", "type": "character", "name": "NPC 1"},
+                    {"id": "c2", "type": "character", "name": "NPC 2"},
+                ],
+                "edges": [{"type": "triggers", "source": "a1", "target": "missing"}],
+            },
+        }
+        (sdir / 'graph_list.json').write_text(json.dumps(payload), encoding='utf-8')
+
+        resp = client.get('/api/scenarios')
+        assert resp.status_code == 200
+        rows = {r['name']: r for r in resp.get_json()}
+        assert rows['graph_list']['areas'] == 3
+        assert rows['graph_list']['players'] == 2
+        assert rows['graph_list']['health']['ok'] is True
+        assert rows['graph_list']['health']['dangling_trigger_targets'] == 1
+
+    def test_counts_manifest_area_placements(self, app, client, tmp_path):
+        sdir = self._setup_scenarios_dir(app, tmp_path)
+        manifest_payload = {
+            "areas": {},
+            "world_manifest": {
+                "town": {"area_placements": [{"area_id": "a1"}, {"area_id": "a2"}]},
+                "forest": {"area_placements": [{"area_id": "a3"}]},
+            },
+        }
+        scopes_payload = {
+            "areas": {},
+            "scopes": {
+                "keep": {"area_placements": [{"area_id": "k1"}, {"area_id": "k2"}]},
+            },
+        }
+        (sdir / 'manifest_world.json').write_text(json.dumps(manifest_payload), encoding='utf-8')
+        (sdir / 'scopes_world.json').write_text(json.dumps(scopes_payload), encoding='utf-8')
+
+        resp = client.get('/api/scenarios')
+        assert resp.status_code == 200
+        rows = {r['name']: r for r in resp.get_json()}
+        assert rows['manifest_world']['areas'] == 3
+        assert rows['scopes_world']['areas'] == 2
+
+

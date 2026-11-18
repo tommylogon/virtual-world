@@ -77,6 +77,13 @@ class UiMixin:
                     "enabled": True,
                 }
             )
+            result.append(
+                {
+                    "action": "throw",
+                    "label": "Throw toward...",
+                    "enabled": True,
+                }
+            )
 
         # task-473: a stackable item can be combined with a matching stack, and
         # a stack of more than one can be split. Neither verb was surfaced

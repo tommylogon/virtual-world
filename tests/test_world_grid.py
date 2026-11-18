@@ -633,3 +633,39 @@ def test_compute_visible_cells_peripheral_tall_landmark():
     vis_tall = wg.compute_visible_cells(rec_tall, origin=(10, 10), facing="east", arc_degrees=120.0, peripheral_range=2)
     assert (5, 10) in vis_tall
 
+
+def test_offset_grid_shifts_layers_names_and_placements():
+    rec = {
+        "grid": {"w": 6, "h": 5},
+        "layers": {"biome": {"0,0": "plains", "5,4": "hills"}},
+        "names": {"0,0": "Origin"},
+        "placements": {"town_1": {"x": 2, "y": 1}},
+        "area_placements": {"area_1": {"x": 1, "y": 3}},
+    }
+    wg.offset_grid(rec, 10, 8, offset_x=3, offset_y=2)
+    assert rec["grid"] == {"w": 10, "h": 8}
+    assert rec["layers"]["biome"] == {"3,2": "plains", "8,6": "hills"}
+    assert rec["names"] == {"3,2": "Origin"}
+    assert rec["placements"] == {"town_1": {"x": 5, "y": 3}}
+    assert rec["area_placements"] == {"area_1": {"x": 4, "y": 5}}
+
+
+def test_scale_grid_reindexes_cells_around_anchor():
+    rec = {
+        "grid": {"w": 10, "h": 10},
+        "layers": {"biome": {"5,5": "plains", "7,5": "sparse_forest"}},
+        "names": {"7,5": "East Woods"},
+        "placements": {"town_1": {"x": 3, "y": 5}},
+        "area_placements": {"house": {"x": 5, "y": 5}, "barn": {"x": 6, "y": 7}},
+    }
+    wg.scale_grid(rec, 20, 20, anchor_x=5, anchor_y=5, scale_factor=2.0)
+    assert rec["grid"] == {"w": 20, "h": 20}
+    assert rec["layers"]["biome"] == {"5,5": "plains", "9,5": "sparse_forest"}
+    assert rec["names"] == {"9,5": "East Woods"}
+    assert rec["placements"] == {"town_1": {"x": 1, "y": 5}}
+    assert rec["area_placements"] == {
+        "house": {"x": 5, "y": 5},
+        "barn": {"x": 7, "y": 9},
+    }
+
+

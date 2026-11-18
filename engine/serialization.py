@@ -351,6 +351,19 @@ class WorldSerializer:
             "grappled_by": self._grappled_by(pname),
             "state_timer": getattr(p, 'state_timer', 0),
             "traits": getattr(p, 'traits', {}),
+            "languages": [
+                dict(x, known_words=list(x.get("known_words") or []))
+                for x in (getattr(p, 'languages', []) or [])
+                if isinstance(x, dict)
+            ],
+            "domains": [
+                dict(x, jargon_terms=list(x.get("jargon_terms") or []))
+                for x in (getattr(p, 'domains', []) or [])
+                if isinstance(x, dict)
+            ],
+            "knowledge_records": (
+                p.get_knowledge_records() if hasattr(p, 'get_knowledge_records') else []
+            ),
             "trait_behavior": _trait_behavior(p),
             "personality": _props.get("personality") or getattr(p, 'personality', ''),
             "personality_dials": dict(getattr(p, 'personality_dials', {}) or {}),
@@ -483,6 +496,9 @@ class WorldSerializer:
             base.pop("dislike_tags", None)
             base.pop("conditions", None)
             base.pop("traits", None)
+            base.pop("languages", None)
+            base.pop("domains", None)
+            base.pop("knowledge_records", None)
             base.pop("personality_dials", None)
             base.pop("disposition", None)
             base.pop("flags", None)
@@ -691,6 +707,12 @@ class WorldSerializer:
                     instances.append({"duration": None, "source": None, "level": 0})
                 instances[0]["duration"] = legacy_timer
         p.traits = pdata.get("traits", {})
+        if "languages" in pdata:
+            from engine.character_appearance import normalize_languages
+            p.languages = normalize_languages(pdata.get("languages") or [])
+        if "domains" in pdata:
+            from engine.character_appearance import normalize_domains
+            p.domains = normalize_domains(pdata.get("domains") or [])
         p.personality_dials = normalize_dials(pdata.get("personality_dials", {}))
         p.tags = list(pdata.get("tags", []))
         p.sync_vitals_with_tags()
@@ -932,6 +954,9 @@ class WorldSerializer:
             pdata.pop("description", None)
             pdata.pop("tags", None)
             pdata.pop("traits", None)
+            pdata.pop("languages", None)
+            pdata.pop("domains", None)
+            pdata.pop("knowledge_records", None)
             # task-654: worn gear is authoritative on the EDGE_EQUIPPED edges
             # (each edge carries its slot). The live payload publishes the map
             # for the UI; a saved file must not carry a second copy of it in

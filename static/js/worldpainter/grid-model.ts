@@ -1087,26 +1087,176 @@ type Vocabulary = any;
     }
 
     /**
-     * The resize handles on the grid frame (task-597). The origin is fixed at
-     * (0,0) - moving it would re-key every painted cell - so only the far edges
-     * and the bottom-right corner can be dragged to grow or shrink the extent.
-     * The near edges are deliberately absent rather than present-and-broken.
+     * All 8 resize handles on the grid frame (nw, n, ne, w, e, sw, s, se).
+     * West and North handles expand or shrink margins by offsetting cell
+     * coordinates cleanly (task-931).
      */
     function gridHandlePoints(w: number, h: number): Record<string, Cell> {
         return {
+            nw: { x: 0, y: 0 },
+            n:  { x: w / 2, y: 0 },
+            ne: { x: w, y: 0 },
+            w:  { x: 0, y: h / 2 },
+            e:  { x: w, y: h / 2 },
+            sw: { x: 0, y: h },
+            s:  { x: w / 2, y: h },
             se: { x: w, y: h },
-            e: { x: w, y: h / 2 },
-            s: { x: w / 2, y: h },
         };
     }
 
-    /** Snap a dragged resize handle to whole cells, never below 1×1 (task-597). */
-    function gridHandleDrag(w: number, h: number, key: string, cell: Cell): { w: number; h: number } {
+    /**
+     * Snap a dragged resize handle to whole cells and compute any West/North
+     * coordinate offset (task-931). Never shrinks below 1x1.
+     */
+    function gridHandleDragMargins(w: number, h: number, key: string, cell: Cell):
+        { w: number; h: number; offsetX: number; offsetY: number } {
         let nw = w;
         let nh = h;
-        if (key === 'e' || key === 'se') nw = Math.max(1, Math.round(cell.x));
-        if (key === 's' || key === 'se') nh = Math.max(1, Math.round(cell.y));
-        return { w: nw, h: nh };
+        let offsetX = 0;
+        let offsetY = 0;
+        if (key.indexOf('e') !== -1) nw = Math.max(1, Math.round(cell.x));
+        if (key.indexOf('s') !== -1) nh = Math.max(1, Math.round(cell.y));
+        if (key.indexOf('w') !== -1) {
+            const x0 = Math.min(w - 1, Math.round(cell.x));
+            nw = Math.max(1, w - x0);
+            offsetX = -x0;
+        }
+        if (key.indexOf('n') !== -1) {
+            const y0 = Math.min(h - 1, Math.round(cell.y));
+            nh = Math.max(1, h - y0);
+            offsetY = -y0;
+        }
+        return { w: nw, h: nh, offsetX, offsetY };
+    }
+
+    /** Snap a dragged resize handle to whole cells, never below 1x1 (task-597). */
+    function gridHandleDrag(w: number, h: number, key: string, cell: Cell): { w: number; h: number } {
+        const res = gridHandleDragMargins(w, h, key, cell);
+        return { w: res.w, h: res.h };
+    }
+
+    function _reindexPayload(
+        payload: GridPayload,
+        newW: number,
+        newH: number,
+        mapXY: (x: number, y: number) => Cell,
+    ): GridPayload {
+        const w = Math.max(1, Math.round(newW));
+        const h = Math.max(1, Math.round(newH));
+        const inBounds = (x: number, y: number) => x >= 0 && x < w && y >= 0 && y < h;
+
+        const nextLayers: Record<string, Record<string, unknown>> = {};
+        const srcLayers = (payload && payload.layers) || {};
+        Object.keys(srcLayers).forEach((layer) => {
+            const out: Record<string, unknown> = {};
+            const src = srcLayers[layer] || {};
+            Object.keys(src).forEach((k) => {
+                const c = parseCellKey(k);
+                if (!c) return;
+                const mapped = mapXY(c.x, c.y);
+                if (inBounds(mapped.x, mapped.y)) {
+                    out[cellKey(mapped.x, mapped.y)] = src[k];
+                }
+            });
+            nextLayers[layer] = out;
+        });
+
+        const nextNames: Record<string, string> = {};
+        const srcNames = (payload && payload.names) || {};
+        Object.keys(srcNames).forEach((k) => {
+            const c = parseCellKey(k);
+            if (!c) return;
+            const mapped = mapXY(c.x, c.y);
+            if (inBounds(mapped.x, mapped.y)) {
+                nextNames[cellKey(mapped.x, mapped.y)] = srcNames[k];
+            }
+        });
+
+        const mapPlacementList = (list: any) => {
+            if (!Array.isArray(list)) return list;
+            const out: any[] = [];
+            list.forEach((item: any) => {
+                if (!item || typeof item.x !== 'number' || typeof item.y !== 'number') return;
+                const mapped = mapXY(item.x, item.y);
+                if (inBounds(mapped.x, mapped.y)) {
+                    out.push(Object.assign({}, item, { x: mapped.x, y: mapped.y }));
+                }
+            });
+            return out;
+        };
+
+        const next = Object.assign({}, payload || {}, {
+            grid: { w, h },
+            layers: nextLayers,
+            names: nextNames,
+        });
+        if (payload && Array.isArray(payload.placements)) {
+            next.placements = mapPlacementList(payload.placements);
+        }
+        if (payload && Array.isArray(payload.area_placements)) {
+            next.area_placements = mapPlacementList(payload.area_placements);
+        }
+        return next;
+    }
+
+    /**
+     * Re-index placed areas, features, names, and painted layers relative to an
+     * origin anchor cell (x0, y0) using x' = x0 + round((x - x0) * s) (task-931).
+     */
+    function scaleGridWithAnchor(
+        payload: GridPayload,
+        anchorCell: Cell | null | undefined,
+        scaleFactor: number,
+        newDims?: { w: number; h: number },
+    ): GridPayload {
+        const s = Number(scaleFactor);
+        const curW = (payload && payload.grid && payload.grid.w) || 1;
+        const curH = (payload && payload.grid && payload.grid.h) || 1;
+        if (!Number.isFinite(s) || s <= 0) {
+            return Object.assign({}, payload || {});
+        }
+        const x0 = anchorCell ? Math.round(Number(anchorCell.x) || 0) : 0;
+        const y0 = anchorCell ? Math.round(Number(anchorCell.y) || 0) : 0;
+        const newW = newDims ? Math.max(1, Math.round(newDims.w)) : Math.max(1, Math.round(curW * s));
+        const newH = newDims ? Math.max(1, Math.round(newDims.h)) : Math.max(1, Math.round(curH * s));
+        return _reindexPayload(payload, newW, newH, (x, y) => ({
+            x: x0 + Math.round((x - x0) * s),
+            y: y0 + Math.round((y - y0) * s),
+        }));
+    }
+
+    /**
+     * Expand or shrink grid margins in 4 directions ({ north, south, east, west }),
+     * offsetting all cell coordinates by (x + west, y + north) so placed areas
+     * and painted layers stay visually pinned (task-931).
+     */
+    function expandGridMargins(
+        payload: GridPayload,
+        margins: { north?: number; south?: number; east?: number; west?: number },
+    ): GridPayload {
+        const m = margins || {};
+        const north = Math.round(Number(m.north) || 0);
+        const south = Math.round(Number(m.south) || 0);
+        const east = Math.round(Number(m.east) || 0);
+        const west = Math.round(Number(m.west) || 0);
+        const curW = (payload && payload.grid && payload.grid.w) || 1;
+        const curH = (payload && payload.grid && payload.grid.h) || 1;
+        const newW = Math.max(1, curW + east + west);
+        const newH = Math.max(1, curH + north + south);
+        const next = _reindexPayload(payload, newW, newH, (x, y) => ({
+            x: x + west,
+            y: y + north,
+        }));
+        if (payload && payload.reference && payload.reference.rect && (west !== 0 || north !== 0)) {
+            const r = payload.reference.rect;
+            next.reference = Object.assign({}, payload.reference, {
+                rect: Object.assign({}, r, {
+                    x: (Number(r.x) || 0) + west,
+                    y: (Number(r.y) || 0) + north,
+                }),
+            });
+        }
+        return next;
     }
 
     /** How a painted cell is to movement, or null when it is a place (task-562). */
@@ -1730,7 +1880,8 @@ type Vocabulary = any;
         supercoverLine, tileHeight, tileObscurity, castSightRay, computeVisibleCells,
         isWaterCell, slopeToCurrentStrength, deriveWaterCurrent,
         cellValue, cellName, cellKind, cellEnter, cellNeighbours, featureAt, placementFor,
-        paintedBounds, gridHandlePoints, gridHandleDrag,
+        paintedBounds, gridHandlePoints, gridHandleDrag, gridHandleDragMargins,
+        scaleGridWithAnchor, expandGridMargins,
         buildRows, featureMap,
         pruneGrid, childrenAvailable,
         areaMap, areaAt, areaPlacementFor, placeableAreas, areaGroups, cellInfo,

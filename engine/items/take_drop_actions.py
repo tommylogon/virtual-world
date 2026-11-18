@@ -33,9 +33,12 @@ from engine.items.errors import AmbiguousItemError
 from engine.room_perception import (
     describe_item_quantity,
     normalize_name,
+    normalize_requires,
     pluralise,
     visible_area_items,
 )
+from engine.barriers import declared_state
+from engine.size import SIZE_DEFAULT, SIZE_TIER_INDEX, size_tier_from_name
 
 
 def _display_name(name):
@@ -953,6 +956,317 @@ class TakeDropActionsMixin:
         area_name = player_manager.current_area.name if player_manager.current_area else None
         player_manager.record_turn_event(player_manager.active_player, "drop", f"dropped the {_display_name(item_name)}", area_name=area_name)
         result = f"You drop the {_display_name(item_name)}."
+        if trigger_outputs:
+            result += "\n" + "\n".join(trigger_outputs)
+        return result
+
+    @staticmethod
+    def _item_size_tier(item_node) -> int:
+        """Resolve an item's size tier from its ``size`` property or weight."""
+        props = (item_node.properties or {}) if item_node else {}
+        explicit = str(props.get("size") or "").strip().lower()
+        if explicit in SIZE_TIER_INDEX:
+            return SIZE_TIER_INDEX[explicit]
+        try:
+            weight = float(props.get("weight", 0) or 0)
+        except (TypeError, ValueError):
+            weight = 0.0
+        if weight <= 0.5:
+            return SIZE_TIER_INDEX["tiny"]
+        if weight <= 3.0:
+            return SIZE_TIER_INDEX["small"]
+        if weight <= 15.0:
+            return SIZE_TIER_INDEX["normal"]
+        if weight <= 50.0:
+            return SIZE_TIER_INDEX["huge"]
+        return SIZE_TIER_INDEX["giant"]
+
+    def _resolve_throw_target(self, player_manager, origin_area_id: str, origin_area_name: str, target_ref: str):
+        """Resolve *target_ref* to ``('way', way_node, label, dest_area_node)`` or
+        ``('in_room', None, label, origin_area_node)`` or ``(None, None, '', None)``."""
+        ref = str(target_ref or "").strip()
+        if not ref:
+            return None, None, "", None
+
+        def _dest_for_way(way_node):
+            for conn in self.graph.get_edges_for_source(way_node.id, EDGE_CONNECTION):
+                if conn.target != origin_area_id:
+                    dest_node = self.graph.get_node(conn.target)
+                    if dest_node:
+                        return dest_node
+            return None
+
+        # 1. Standard exit matcher (handles, cardinals, way names, target area names)
+        matched_edge, way_node, matched_handle = self.matching.resolve_exit(origin_area_id, ref)
+        if not way_node and "_" in ref:
+            matched_edge, way_node, matched_handle = self.matching.resolve_exit(
+                origin_area_id, ref.replace("_", " ")
+            )
+        if way_node:
+            dest_node = _dest_for_way(way_node)
+            if dest_node:
+                return "way", way_node, matched_handle or way_node.name, dest_node
+
+        # 2. Direct id / slug match on connected ways or target areas
+        ref_lower = ref.lower()
+        ref_norm = ref_lower.replace("_", " ")
+        for _edge, wnode, handle, target_area_name in self.matching._collect_exits(origin_area_id):
+            dest_node = _dest_for_way(wnode)
+            if not dest_node:
+                continue
+            candidates = (
+                wnode.id.lower(),
+                (wnode.name or "").lower(),
+                (wnode.name or "").lower().replace("_", " "),
+                (handle or "").lower(),
+                (target_area_name or "").lower(),
+                dest_node.id.lower(),
+            )
+            if ref_lower in candidates or ref_norm in candidates:
+                return "way", wnode, handle or wnode.name, dest_node
+
+        # 3. Optional in-room target fallthrough (floor, character, or room item)
+        origin_node = self.graph.get_node(origin_area_id) or getattr(player_manager, "current_area", None)
+        if ref_lower in ("ground", "floor", "here", (origin_area_name or "").lower(), (origin_area_id or "").lower()):
+            return "in_room", None, ref, origin_node
+
+        match_char = getattr(player_manager, "_match_character_name", None)
+        if callable(match_char):
+            resolved_char, _ = match_char(ref)
+            if resolved_char:
+                target_p = player_manager.players.get(resolved_char)
+                if target_p and (target_p.current_area == origin_area_name or origin_area_name is None):
+                    return "in_room", None, resolved_char, origin_node
+
+        for node in visible_area_items(self.graph, origin_area_id):
+            if node.name.strip().lower() == ref_lower or node.id.lower() == ref_lower:
+                return "in_room", None, node.name, origin_node
+
+        return None, None, "", None
+
+    def _check_way_throw_passable(self, way_node, handle: str, item_node) -> None:
+        """Raise ValueError if *item_node* cannot be thrown through/over *way_node*."""
+        props = (way_node.properties or {}) if way_node else {}
+        disp = _display_name(item_node.name if item_node else "item")
+        state = declared_state(way_node)
+        see_through = bool(props.get("see_through"))
+        prevent_close = bool(props.get("prevent_close"))
+        requires = normalize_requires(props.get("requires", "")).lower()
+
+        if state == "hidden":
+            raise ValueError(
+                props.get("refusal_message") or f"You don't see any opening at '{handle}'."
+            )
+        if state == "blocked":
+            raise ValueError(
+                props.get("blocked_description")
+                or props.get("refusal_message")
+                or f"The {handle} is blocked; you can't throw the {disp} through it."
+            )
+        if state != "open" and not (see_through or prevent_close or requires in ("climb", "jump")):
+            raise ValueError(
+                props.get("refusal_message")
+                or f"The {handle} is {state}; you can't throw the {disp} through it."
+            )
+
+        max_size = str(props.get("max_size") or "").strip().lower()
+        if max_size and max_size != "none":
+            max_tier = size_tier_from_name(max_size)
+            item_tier = self._item_size_tier(item_node)
+            if item_tier > max_tier:
+                raise ValueError(
+                    f"The {disp} is too large to fit through the {handle} (max size: {max_size})."
+                )
+
+    def _emit_throw_sound(self, player_manager, item_node, disp_name: str, dest_area_id: str, dest_area_name: str) -> None:
+        """Propagate landing impact sound from *dest_area_id* to nearby listeners."""
+        try:
+            from engine.sound import get_areas_hearing_sound_source
+        except ImportError:
+            return
+        if not dest_area_id or not hasattr(self.graph, "nodes"):
+            return
+        props = (item_node.properties or {}) if item_node else {}
+        try:
+            weight = float(props.get("weight", 0) or 0)
+        except (TypeError, ValueError):
+            weight = 0.0
+        try:
+            sound_level = int(props.get("sound_level") or (2 if weight >= 2.0 else 1))
+        except (TypeError, ValueError):
+            sound_level = 1
+        sound_level = max(1, min(3, sound_level))
+        sound_pattern = props.get("sound_pattern") or f"the clatter of a {disp_name} landing"
+
+        areas = {
+            nid: node for nid, node in self.graph.nodes.items()
+            if getattr(node, "type", None) == "area"
+        }
+        if dest_area_id not in areas:
+            return
+
+        hearing_areas = get_areas_hearing_sound_source(dest_area_id, sound_level, self.graph, areas)
+        tick = getattr(player_manager, "time_ticks", 0)
+        players = getattr(player_manager, "players", {}) or {}
+        for pname, p in players.items():
+            if not p or getattr(p, "state", None) == "dead" or not getattr(p, "current_area", None):
+                continue
+            p_area_id = None
+            for aid, anode in areas.items():
+                if anode.name == p.current_area or aid == p.current_area:
+                    p_area_id = aid
+                    break
+            if not p_area_id:
+                continue
+            if p_area_id == dest_area_id:
+                direction = "here"
+                distance = 0
+            elif p_area_id in hearing_areas:
+                remaining_pen, direction = hearing_areas[p_area_id]
+                distance = max(1, int(round(sound_level - remaining_pen)))
+            else:
+                continue
+            if not hasattr(p, "recent_hearing") or p.recent_hearing is None:
+                p.recent_hearing = []
+            p.recent_hearing.append({
+                "type": "throw_impact",
+                "sound_pattern": sound_pattern,
+                "source_item": item_node.name if item_node else disp_name,
+                "source_area": dest_area_name or dest_area_id,
+                "heard_from": direction or "here",
+                "distance": distance,
+                "tick": tick,
+            })
+            if len(p.recent_hearing) > 20:
+                p.recent_hearing.pop(0)
+
+    def throw_item(self, player_manager, item_name: str, target_ref: str = "") -> str:
+        """Throw a carried or equipped item toward an adjacent way, connected area,
+        or in-room target. Validates portability, barrier/size/weight passability,
+        fires ``on_unequip`` (if equipped) and ``on_throw``, moves the item's edge
+        to ``EDGE_IN`` on the destination area, and records sound + turn_events in
+        both origin and landing areas.
+        """
+        ghost_block = self.ghost_system.check_ghost_action(player_manager, "throw", item_name)
+        if ghost_block:
+            raise ValueError(ghost_block)
+
+        if not player_manager.current_area or player_manager.player.state in ["sleeping", "unconscious", "bound"]:
+            raise ValueError(f"You can't throw items while {player_manager.player.state}.")
+        if player_manager.player.state == "dead" and not player_manager.ghost_mode:
+            raise ValueError("Your body lies still. You can do nothing.")
+
+        player_id = player_manager._player_node_id(player_manager.active_player)
+        item_node_id = None
+        for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
+            for edge in self.graph.get_edges_for_target(player_id, edge_type):
+                node = self.graph.get_node(edge.source)
+                if node and (node.name.strip().lower() == str(item_name).strip().lower() or node.id == item_name):
+                    item_node_id = node.id
+                    break
+            else:
+                continue
+            break
+        else:
+            raise ValueError(f"You aren't carrying '{item_name}'.")
+
+        item_node = self.graph.get_node(item_node_id)
+        disp_name = _display_name(item_node.name if item_node else item_name)
+
+        if item_node is not None and is_intrinsic_ability(item_node):
+            raise ValueError(f"Your {disp_name} is an intrinsic ability, not a thing you can throw.")
+        if item_node is not None and not is_portable(item_node):
+            raise ValueError(portable_refusal(self.graph, item_node, "throw it"))
+
+        try:
+            weight = float(((item_node.properties or {}) if item_node else {}).get("weight", 0) or 0)
+        except (TypeError, ValueError):
+            weight = 0.0
+        if weight > 25.0:
+            raise ValueError(f"The {disp_name} is too heavy to throw.")
+
+        origin_area_id = player_manager._get_current_area_id()
+        origin_area_name = player_manager.current_area.name if player_manager.current_area else None
+
+        if not str(target_ref or "").strip():
+            raise ValueError(f"Throw the {disp_name} where? Specify a way, direction, or target.")
+
+        kind, way_node, dest_label, dest_area_node = self._resolve_throw_target(
+            player_manager, origin_area_id, origin_area_name or "", target_ref
+        )
+        if not kind or not dest_area_node:
+            raise ValueError(f"You don't see '{target_ref}' to throw the {disp_name} toward.")
+
+        if kind == "way" and way_node is not None:
+            self._check_way_throw_passable(way_node, dest_label, item_node)
+
+        dest_area_id = dest_area_node.id
+        dest_area_name = getattr(dest_area_node, "name", None) or dest_area_id
+
+        # Unequip if currently equipped, firing on_unequip before on_throw
+        unequip_outputs = []
+        p = player_manager.players.get(player_manager.active_player)
+        if p:
+            for _slot, stack in list((p.equipped or {}).items()):
+                if item_node_id in stack:
+                    stack.remove(item_node_id)
+                    unequip_outputs = self._exec_triggers(item_node, "on_unequip") if item_node else []
+                    break
+
+        throw_outputs = self._exec_triggers(item_node, "on_throw") if item_node else []
+        trigger_outputs = unequip_outputs + throw_outputs
+
+        hold = (
+            self.graph.get_edges_for_source(item_node_id, EDGE_CARRYING)
+            + self.graph.get_edges_for_source(item_node_id, EDGE_EQUIPPED)
+        )
+        self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
+        if item_node and "last_relation" in (item_node.properties or {}):
+            item_node.properties.pop("last_relation", None)
+
+        merged = self.merge_stack_into(item_node, dest_area_id) if item_node else None
+        if not merged:
+            if hold:
+                self.graph.retarget_edge(hold[0], new_type=EDGE_IN, new_target=dest_area_id, properties={})
+                for e in hold[1:]:
+                    self.graph.remove_edge(e.source, e.target, e.type)
+            else:
+                self.graph.add_edge(Edge(source=item_node_id, target=dest_area_id, type=EDGE_IN))
+
+        p_check = player_manager.players.get(player_manager.active_player)
+        if not (p_check and p_check.state == "dead"):
+            player_manager.apply_action("throw", player=player_manager.player)
+
+        if kind == "way" and dest_area_id != origin_area_id:
+            player_manager.record_turn_event(
+                player_manager.active_player,
+                "throw",
+                f"threw the {disp_name} toward {dest_label}",
+                area_name=origin_area_name,
+                extra={"item": disp_name, "target": dest_label, "destination_area": dest_area_name},
+            )
+            player_manager.record_turn_event(
+                player_manager.active_player,
+                "throw",
+                f"a {disp_name} lands here, thrown from {origin_area_name or 'nearby'}",
+                area_name=dest_area_name,
+                extra={"item": disp_name, "origin_area": origin_area_name, "landing": True},
+            )
+            result = f"You throw the {disp_name} through {dest_label} into {dest_area_name}."
+            if way_node is not None and normalize_requires((way_node.properties or {}).get("requires", "")).lower() in ("climb", "jump"):
+                result = f"You throw the {disp_name} over {dest_label} into {dest_area_name}."
+        else:
+            player_manager.record_turn_event(
+                player_manager.active_player,
+                "throw",
+                f"threw the {disp_name} toward {dest_label}",
+                area_name=origin_area_name,
+                extra={"item": disp_name, "target": dest_label},
+            )
+            result = f"You throw the {disp_name} toward {dest_label}."
+
+        self._emit_throw_sound(player_manager, item_node, disp_name, dest_area_id, dest_area_name)
+
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
         return result

@@ -48,8 +48,71 @@ const InspectorPersonaView = (() => {
         'likes', 'dislikes', 'fears', 'interests', 'kinks', 'turn_ons',
         'turn_offs', 'traumas', 'boundaries', 'traits', 'aspirations',
         'quirks', 'habits', 'hard_limits', 'soft_limits',
-        'skills', 'languages', 'weaknesses',
+        'skills', 'weaknesses',
     ]);
+
+    const _LANGUAGE_FLUENCY_LEVELS: readonly string[] = [
+        'native', 'fluent', 'conversational', 'broken', 'none',
+    ];
+
+    const _DOMAIN_COMPETENCE_LEVELS: readonly string[] = [
+        'ignorant', 'novice', 'familiar', 'expert',
+    ];
+
+    interface LanguageEntry {
+        language: string;
+        fluency: string;
+        known_words: string[];
+        literate: boolean;
+    }
+
+    interface DomainEntry {
+        domain: string;
+        level: string;
+        notes: string;
+        jargon_terms: string[];
+    }
+
+    function _normalizeDomainEntry(entry: unknown): DomainEntry | null {
+        if (typeof entry === 'string') {
+            const slug = _normalizeSlug(entry);
+            if (!slug) return null;
+            return { domain: slug, level: 'familiar', notes: '', jargon_terms: [] };
+        }
+        if (typeof entry === 'object' && entry !== null) {
+            const obj = entry as Record<string, unknown>;
+            const slug = _normalizeSlug(String(obj.domain ?? obj.id ?? obj.name ?? ''));
+            const rawLevel = String(obj.level ?? 'familiar').trim().toLowerCase();
+            const level = _DOMAIN_COMPETENCE_LEVELS.includes(rawLevel) ? rawLevel : 'familiar';
+            const notes = String(obj.notes ?? '').trim();
+            const termsRaw = Array.isArray(obj.jargon_terms) ? obj.jargon_terms : [];
+            const jargon_terms = termsRaw.map((t) => String(t).trim()).filter((t) => t);
+            return { domain: slug, level, notes, jargon_terms };
+        }
+        return null;
+    }
+
+    function _normalizeLanguageEntry(entry: unknown): LanguageEntry | null {
+        if (typeof entry === 'string') {
+            const slug = _normalizeSlug(entry);
+            if (!slug) return null;
+            const fluency = slug === 'common' ? 'native' : 'fluent';
+            return { language: slug, fluency, known_words: [], literate: true };
+        }
+        if (typeof entry === 'object' && entry !== null) {
+            const obj = entry as Record<string, unknown>;
+            const slug = _normalizeSlug(String(obj.language ?? obj.id ?? obj.name ?? ''));
+            const rawFluency = String(obj.fluency ?? 'fluent').trim().toLowerCase();
+            const fluency = _LANGUAGE_FLUENCY_LEVELS.includes(rawFluency) ? rawFluency : 'fluent';
+            const wordsRaw = Array.isArray(obj.known_words) ? obj.known_words : [];
+            const known_words = wordsRaw.map((w) => String(w).trim()).filter((w) => w);
+            const literate = obj.literate !== undefined && obj.literate !== null
+                ? Boolean(obj.literate)
+                : (fluency === 'native' || fluency === 'fluent');
+            return { language: slug, fluency, known_words, literate };
+        }
+        return null;
+    }
 
     function _normalizeSlug(val: string): string {
         return (val || '')
@@ -234,6 +297,34 @@ const InspectorPersonaView = (() => {
             : '';
     }
 
+    function _languageRowHtml(entry?: LanguageEntry | null): string {
+        const norm = entry || { language: '', fluency: 'fluent', known_words: [], literate: true };
+        const fluencyOpts = _LANGUAGE_FLUENCY_LEVELS.map((lvl) =>
+            `<option value="${lvl}"${lvl === norm.fluency ? ' selected' : ''}>${lvl}</option>`
+        ).join('');
+        return `<div class="pf-lang-row" data-lang-row style="display:grid;grid-template-columns:1.5fr 1fr auto auto;gap:6px;align-items:center;margin-bottom:6px;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-inset);">
+            <input class="pf-in" data-lang-field="language" value="${esc(norm.language)}" placeholder="language id (e.g. common, english)">
+            <select class="pf-in" data-lang-field="fluency">${fluencyOpts}</select>
+            <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text-dim);white-space:nowrap;cursor:pointer;"><input type="checkbox" data-lang-field="literate"${norm.literate ? ' checked' : ''}> literate</label>
+            <button type="button" class="btn btn-sm" data-lang-del title="Remove" style="padding:2px 7px;">×</button>
+            <div style="grid-column:1/-1;"><div class="pf-sub">known_words</div>${_personaChipBox('capabilities.languages.known_words', norm.known_words, '')}</div>
+        </div>`;
+    }
+
+    function _domainRowHtml(entry?: DomainEntry | null): string {
+        const norm = entry || { domain: '', level: 'familiar', notes: '', jargon_terms: [] };
+        const levelOpts = _DOMAIN_COMPETENCE_LEVELS.map((lvl) =>
+            `<option value="${lvl}"${lvl === norm.level ? ' selected' : ''}>${lvl}</option>`
+        ).join('');
+        return `<div class="pf-domain-row" data-domain-row style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-inset);">
+            <input class="pf-in" data-domain-field="domain" value="${esc(norm.domain)}" placeholder="domain slug (e.g. silicone_molding, law, sports)">
+            <select class="pf-in" data-domain-field="level">${levelOpts}</select>
+            <button type="button" class="btn btn-sm" data-domain-del title="Remove" style="padding:2px 7px;">×</button>
+            <input class="pf-in" data-domain-field="notes" value="${esc(norm.notes)}" placeholder="competence notes or blind-spot details..." style="grid-column:1/-1;">
+            <div style="grid-column:1/-1;"><div class="pf-sub">jargon_terms</div>${_personaChipBox('capabilities.domains.jargon_terms', norm.jargon_terms, '')}</div>
+        </div>`;
+    }
+
     function _personaFieldHtml(section: string, field: string, decl: any): { html: string; wide: boolean } {
         const path = `${section}.${field}`;
         const hint = _state?.persona?.hints[path] || (decl && decl.description) || '';
@@ -293,6 +384,30 @@ const InspectorPersonaView = (() => {
                 ? `<datalist id="${esc(listId)}">${opts.map((o) => `<option value="${esc(o)}"></option>`).join('')}</datalist>`
                 : '';
             return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"${numeric ? ' inputmode="decimal"' : ''}${listAttrs}>${datalist}</div>`, wide: false };
+        }
+        if (path === 'capabilities.languages') {
+            const items = Array.isArray(val) ? val : [];
+            const rows = items
+                .map((item) => _normalizeLanguageEntry(item))
+                .filter((x): x is LanguageEntry => x !== null)
+                .map((x) => _languageRowHtml(x))
+                .join('');
+            return {
+                html: `<div class="pf-span">${label}<div data-lang-list="capabilities.languages">${rows}</div><button type="button" class="btn btn-sm" id="mind-persona-add-lang" style="font-size:11px;margin-top:2px;">+ add language</button></div>`,
+                wide: true,
+            };
+        }
+        if (path === 'capabilities.domains') {
+            const items = Array.isArray(val) ? val : [];
+            const rows = items
+                .map((item) => _normalizeDomainEntry(item))
+                .filter((x): x is DomainEntry => x !== null)
+                .map((x) => _domainRowHtml(x))
+                .join('');
+            return {
+                html: `<div class="pf-span">${label}<div data-domain-list="capabilities.domains">${rows}</div><button type="button" class="btn btn-sm" id="mind-persona-add-domain" style="font-size:11px;margin-top:2px;">+ add domain</button></div>`,
+                wide: true,
+            };
         }
         if (path === 'narrative.media') {
             const items = Array.isArray(val) ? val : [];
@@ -904,6 +1019,7 @@ const InspectorPersonaView = (() => {
         });
         const out: Record<string, any> = {};
         _container?.querySelectorAll<HTMLElement>('[data-persona-path]').forEach((el) => {
+            if (el.closest('[data-lang-row]')) return;
             const path = el.dataset.personaPath || '';
             const parts = path.split('.');
             if (parts.length < 2) return;
@@ -949,6 +1065,48 @@ const InspectorPersonaView = (() => {
             if (items.length) {
                 out.narrative = out.narrative || {};
                 out.narrative.media = items;
+            }
+        }
+        const langList = _container?.querySelector('[data-lang-list="capabilities.languages"]');
+        if (langList) {
+            const items: LanguageEntry[] = [];
+            langList.querySelectorAll('[data-lang-row]').forEach((row) => {
+                const langInput = row.querySelector('[data-lang-field="language"]') as HTMLInputElement | null;
+                const language = _normalizeSlug((langInput?.value || '').trim());
+                if (!language) return;
+                const fluencyEl = row.querySelector('[data-lang-field="fluency"]') as HTMLSelectElement | null;
+                const rawFluency = (fluencyEl?.value || 'fluent').trim().toLowerCase();
+                const fluency = _LANGUAGE_FLUENCY_LEVELS.includes(rawFluency) ? rawFluency : 'fluent';
+                const litEl = row.querySelector('[data-lang-field="literate"]') as HTMLInputElement | null;
+                const literate = Boolean(litEl?.checked);
+                const chipBox = row.querySelector('.pf-chips');
+                const known_words = chipBox ? _chipValues(chipBox) : [];
+                items.push({ language, fluency, known_words, literate });
+            });
+            if (items.length) {
+                out.capabilities = out.capabilities || {};
+                out.capabilities.languages = items;
+            }
+        }
+        const domainList = _container?.querySelector('[data-domain-list="capabilities.domains"]');
+        if (domainList) {
+            const items: DomainEntry[] = [];
+            domainList.querySelectorAll('[data-domain-row]').forEach((row) => {
+                const domInput = row.querySelector('[data-domain-field="domain"]') as HTMLInputElement | null;
+                const domain = _normalizeSlug((domInput?.value || '').trim());
+                if (!domain) return;
+                const levelEl = row.querySelector('[data-domain-field="level"]') as HTMLSelectElement | null;
+                const rawLevel = (levelEl?.value || 'familiar').trim().toLowerCase();
+                const level = _DOMAIN_COMPETENCE_LEVELS.includes(rawLevel) ? rawLevel : 'familiar';
+                const notesEl = row.querySelector('[data-domain-field="notes"]') as HTMLInputElement | null;
+                const notes = (notesEl?.value || '').trim();
+                const chipBox = row.querySelector('.pf-chips');
+                const jargon_terms = chipBox ? _chipValues(chipBox) : [];
+                items.push({ domain, level, notes, jargon_terms });
+            });
+            if (items.length) {
+                out.capabilities = out.capabilities || {};
+                out.capabilities.domains = items;
             }
         }
         return out;
@@ -1277,6 +1435,76 @@ STRUCTURED RECORD: ${JSON.stringify(rec)}`;
         reader.readAsText(file);
     }
 
+    function _wireChipScope(scope: Element): void {
+        scope.querySelectorAll('[data-chip-x]').forEach((el) => {
+            const xEl = el as HTMLElement & { _pfWired?: boolean };
+            if (xEl._pfWired) return;
+            xEl._pfWired = true;
+            xEl.addEventListener('click', () => {
+                const box = xEl.closest('.pf-chips');
+                if (!box) return;
+                const v = xEl.dataset.chipV || '';
+                _chipPaint(box, _chipValues(box).filter((x) => x !== v), true);
+            });
+        });
+        scope.querySelectorAll('.pf-chip-new').forEach((el) => {
+            const inputEl = el as HTMLInputElement & { _pfWired?: boolean };
+            if (inputEl._pfWired) return;
+            inputEl._pfWired = true;
+            inputEl.addEventListener('keydown', (ev: KeyboardEvent) => {
+                if (ev.key !== 'Enter' && ev.key !== ',') return;
+                ev.preventDefault();
+                _commitChipDraft(inputEl, true);
+            });
+            inputEl.addEventListener('blur', () => {
+                if (inputEl.value.trim()) _commitChipDraft(inputEl, false);
+            });
+            inputEl.addEventListener('input', () => {
+                if (inputEl.value.trim()) _personaDirty();
+            });
+        });
+    }
+
+    function _wireLanguageRow(row: Element): void {
+        const delBtn = row.querySelector('[data-lang-del]') as (HTMLElement & { _pfWired?: boolean }) | null;
+        if (delBtn && !delBtn._pfWired) {
+            delBtn._pfWired = true;
+            delBtn.addEventListener('click', () => {
+                row.remove();
+                _personaDirty();
+                _scheduleCodex();
+            });
+        }
+        row.querySelectorAll('[data-lang-field]').forEach((inp) => {
+            const el = inp as HTMLElement & { _pfWired?: boolean };
+            if (el._pfWired) return;
+            el._pfWired = true;
+            el.addEventListener('input', () => { _personaDirty(); _scheduleCodex(); });
+            el.addEventListener('change', () => { _personaDirty(); _scheduleCodex(); });
+        });
+        _wireChipScope(row);
+    }
+
+    function _wireDomainRow(row: Element): void {
+        const delBtn = row.querySelector('[data-domain-del]') as (HTMLElement & { _pfWired?: boolean }) | null;
+        if (delBtn && !delBtn._pfWired) {
+            delBtn._pfWired = true;
+            delBtn.addEventListener('click', () => {
+                row.remove();
+                _personaDirty();
+                _scheduleCodex();
+            });
+        }
+        row.querySelectorAll('[data-domain-field]').forEach((inp) => {
+            const el = inp as HTMLElement & { _pfWired?: boolean };
+            if (el._pfWired) return;
+            el._pfWired = true;
+            el.addEventListener('input', () => { _personaDirty(); _scheduleCodex(); });
+            el.addEventListener('change', () => { _personaDirty(); _scheduleCodex(); });
+        });
+        _wireChipScope(row);
+    }
+
     function _wirePersona(): void {
         if (!_container) return;
         const on = (sel: string, fn: () => void) => {
@@ -1293,6 +1521,34 @@ STRUCTURED RECORD: ${JSON.stringify(rec)}`;
             if (picker) picker.click();
         });
         on('#mind-persona-export', () => _exportPersona());
+        on('#mind-persona-add-lang', () => {
+            const list = _container?.querySelector('[data-lang-list="capabilities.languages"]');
+            if (!list) return;
+            const frag = document.createRange().createContextualFragment(_languageRowHtml());
+            const row = frag.firstElementChild;
+            list.appendChild(frag);
+            if (row) {
+                _wireLanguageRow(row);
+                (row.querySelector('[data-lang-field="language"]') as HTMLInputElement | null)?.focus();
+            }
+            _personaDirty();
+            _scheduleCodex();
+        });
+        _container.querySelectorAll('[data-lang-row]').forEach((row) => _wireLanguageRow(row));
+        on('#mind-persona-add-domain', () => {
+            const list = _container?.querySelector('[data-domain-list="capabilities.domains"]');
+            if (!list) return;
+            const frag = document.createRange().createContextualFragment(_domainRowHtml());
+            const row = frag.firstElementChild;
+            list.appendChild(frag);
+            if (row) {
+                _wireDomainRow(row);
+                (row.querySelector('[data-domain-field="domain"]') as HTMLInputElement | null)?.focus();
+            }
+            _personaDirty();
+            _scheduleCodex();
+        });
+        _container.querySelectorAll('[data-domain-row]').forEach((row) => _wireDomainRow(row));
         on('#mind-persona-add-media', () => {
             const list = _container?.querySelector('[data-media-list="narrative.media"]');
             if (!list) return;
@@ -1341,7 +1597,7 @@ STRUCTURED RECORD: ${JSON.stringify(rec)}`;
         on('#mind-persona-apply-selected', () => {
             const applyBase = (_container?.querySelector('#mind-persona-apply-base') as HTMLInputElement | null)?.checked;
             const applyPers = (_container?.querySelector('#mind-persona-apply-pers') as HTMLInputElement | null)?.checked;
-            const sections: string[] = ['tags', 'traits', 'skills'];
+            const sections: string[] = ['tags', 'traits', 'skills', 'languages'];
             if (applyBase) sections.push('base_description');
             if (applyPers) sections.push('personality');
             _compilePersona(true, sections, _readPreviewOverrides());
@@ -1387,28 +1643,7 @@ STRUCTURED RECORD: ${JSON.stringify(rec)}`;
             }
         });
         const pane = _container.querySelector('#mind-persona');
-        pane?.querySelectorAll('[data-chip-x]').forEach((el) => {
-            el.addEventListener('click', () => {
-                const box = (el as HTMLElement).closest('.pf-chips');
-                if (!box) return;
-                const v = (el as HTMLElement).dataset.chipV || '';
-                _chipPaint(box, _chipValues(box).filter((x) => x !== v), true);
-            });
-        });
-        pane?.querySelectorAll('.pf-chip-new').forEach((el) => {
-            const inputEl = el as HTMLInputElement;
-            inputEl.addEventListener('keydown', (ev: KeyboardEvent) => {
-                if (ev.key !== 'Enter' && ev.key !== ',') return;
-                ev.preventDefault();
-                _commitChipDraft(inputEl, true);
-            });
-            inputEl.addEventListener('blur', () => {
-                if (inputEl.value.trim()) _commitChipDraft(inputEl, false);
-            });
-            inputEl.addEventListener('input', () => {
-                if (inputEl.value.trim()) _personaDirty();
-            });
-        });
+        if (pane) _wireChipScope(pane);
         // Only sheet fields mark the block dirty. The chip draft box, the mark
         // draft box and the sensitivity sliders carry no data-persona-path
         // (sliders persist on their own through PUT /body).
@@ -1462,6 +1697,13 @@ STRUCTURED RECORD: ${JSON.stringify(rec)}`;
         _allMarks,
         _PERSONA_TEXTAREAS,
         _PERSONA_TONES,
+        _LANGUAGE_FLUENCY_LEVELS,
+        _normalizeLanguageEntry,
+        _languageRowHtml,
+        _DOMAIN_COMPETENCE_LEVELS,
+        _normalizeDomainEntry,
+        _domainRowHtml,
+        _collectPersona,
     };
 })();
 

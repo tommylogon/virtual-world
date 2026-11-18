@@ -9,8 +9,10 @@
 Character cognition and memory remain on Player and the standard agent path.
 This model stores communication state only.
 """
+import copy
 import time
 import uuid
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 
@@ -37,6 +39,177 @@ class Commons:
             }
         }
         self.next_message_id = 1
+        self.active_branch_id: str = "main"
+        self.branches: Dict[str, Dict[str, Any]] = {
+            "main": {
+                "id": "main",
+                "name": "main",
+                "parent_id": None,
+                "fork_message_id": None,
+                "snapshot": None,
+            }
+        }
+        self.anchored_clock: Optional[Dict[str, Any]] = None
+        self.standalone_memories: Dict[str, List[Dict[str, Any]]] = {}
+
+    def _capture_branch_snapshot(self) -> Dict[str, Any]:
+        return {
+            "messages": copy.deepcopy(self.messages),
+            "participants": copy.deepcopy(self.participants),
+            "channels": copy.deepcopy(self.channels),
+            "next_message_id": self.next_message_id,
+            "anchored_clock": copy.deepcopy(self.anchored_clock),
+            "standalone_memories": copy.deepcopy(self.standalone_memories),
+        }
+
+    def _restore_branch_snapshot(self, snap: Optional[Dict[str, Any]]) -> None:
+        if not snap:
+            return
+        self.messages = copy.deepcopy(snap.get("messages", []))
+        self.participants = copy.deepcopy(snap.get("participants", {}))
+        self.channels = copy.deepcopy(snap.get("channels", {
+            PUBLIC_CHANNEL_ID: {
+                "id": PUBLIC_CHANNEL_ID,
+                "kind": "public",
+                "name": "Public",
+                "members": [],
+                "created_by": "System",
+            }
+        }))
+        self.next_message_id = int(snap.get("next_message_id", 1) or 1)
+        self.anchored_clock = copy.deepcopy(snap.get("anchored_clock"))
+        self.standalone_memories = copy.deepcopy(snap.get("standalone_memories", {}))
+
+    def list_branches(self) -> List[Dict[str, Any]]:
+        return [
+            {
+                "id": bid,
+                "name": b.get("name", bid),
+                "parent_id": b.get("parent_id"),
+                "fork_message_id": b.get("fork_message_id"),
+                "active": bid == self.active_branch_id,
+            }
+            for bid, b in self.branches.items()
+        ]
+
+    def fork_branch(self, name: str = "", from_message_id: Optional[int] = None) -> Dict[str, Any]:
+        """Fork the active conversation into a new isolated branch."""
+        self.branches.setdefault(self.active_branch_id, {
+            "id": self.active_branch_id, "name": self.active_branch_id,
+            "parent_id": None, "fork_message_id": None, "snapshot": None,
+        })
+        self.branches[self.active_branch_id]["snapshot"] = self._capture_branch_snapshot()
+
+        snap = self._capture_branch_snapshot()
+        if from_message_id is not None:
+            cutoff = int(from_message_id)
+            snap["messages"] = [m for m in snap["messages"] if int(m.get("id", 0)) <= cutoff]
+            snap["next_message_id"] = max((int(m.get("id", 0)) for m in snap["messages"]), default=0) + 1
+            for p in snap["participants"].values():
+                cursors = p.get("last_read_message_ids") or {}
+                for cid, val in list(cursors.items()):
+                    if val is not None and int(val) > cutoff:
+                        cursors[cid] = cutoff
+        branch_id = f"branch_{uuid.uuid4().hex[:8]}"
+        label = str(name or "").strip()[:60] or f"branch-{len(self.branches)}"
+        self.branches[branch_id] = {
+            "id": branch_id,
+            "name": label,
+            "parent_id": self.active_branch_id,
+            "fork_message_id": from_message_id,
+            "snapshot": snap,
+        }
+        self.active_branch_id = branch_id
+        self._restore_branch_snapshot(snap)
+        return {
+            "id": branch_id,
+            "name": label,
+            "parent_id": self.branches[branch_id]["parent_id"],
+            "fork_message_id": from_message_id,
+            "active": True,
+        }
+
+    def switch_branch(self, branch_id: str) -> Dict[str, Any]:
+        bid = str(branch_id or "").strip()
+        if bid not in self.branches:
+            raise KeyError("Branch not found")
+        if bid == self.active_branch_id:
+            return {"id": bid, "name": self.branches[bid].get("name", bid), "active": True}
+        self.branches.setdefault(self.active_branch_id, {
+            "id": self.active_branch_id, "name": self.active_branch_id,
+            "parent_id": None, "fork_message_id": None, "snapshot": None,
+        })
+        self.branches[self.active_branch_id]["snapshot"] = self._capture_branch_snapshot()
+        self.active_branch_id = bid
+        self._restore_branch_snapshot(self.branches[bid].get("snapshot"))
+        return {"id": bid, "name": self.branches[bid].get("name", bid), "active": True}
+
+    def reset_session(self, preserve_participants: bool = True) -> None:
+        """Reset conversation messages/channels/memories on the active branch."""
+        kept_participants = {}
+        if preserve_participants:
+            for name, p in self.participants.items():
+                kept_participants[name] = {
+                    "active": bool(p.get("active", name != "User")),
+                    "blocked": bool(p.get("blocked", False)),
+                    "last_read_message_ids": {},
+                    "muted_channels": [],
+                }
+        self.messages = []
+        self.channels = {
+            PUBLIC_CHANNEL_ID: {
+                "id": PUBLIC_CHANNEL_ID,
+                "kind": "public",
+                "name": "Public",
+                "members": [],
+                "created_by": "System",
+            }
+        }
+        self.participants = kept_participants
+        self.next_message_id = 1
+        self.standalone_memories = {}
+
+    def set_anchored_clock(self, anchor_datetime: Optional[str] = None, now_epoch: Optional[float] = None) -> Dict[str, Any]:
+        """Set standalone anchored real-time clock: anchor_datetime + real elapsed seconds."""
+        epoch = float(time.time() if now_epoch is None else now_epoch)
+        if anchor_datetime:
+            raw = str(anchor_datetime).strip().replace(" ", "T")
+            if len(raw) == 16:
+                raw = f"{raw}:00"
+            dt = datetime.fromisoformat(raw[:19])
+        else:
+            dt = datetime.now().replace(microsecond=0)
+        self.anchored_clock = {
+            "anchor_datetime": dt.strftime("%Y-%m-%dT%H:%M:%S"),
+            "anchor_real_epoch": epoch,
+        }
+        return dict(self.anchored_clock)
+
+    def current_anchored_datetime(self, now_epoch: Optional[float] = None) -> datetime:
+        if not self.anchored_clock:
+            self.set_anchored_clock(now_epoch=now_epoch)
+        epoch = float(time.time() if now_epoch is None else now_epoch)
+        anchor_dt = datetime.fromisoformat(str(self.anchored_clock["anchor_datetime"])[:19])
+        elapsed = max(0.0, epoch - float(self.anchored_clock.get("anchor_real_epoch", epoch)))
+        return anchor_dt + timedelta(seconds=elapsed)
+
+    def current_anchored_iso(self, now_epoch: Optional[float] = None) -> str:
+        return self.current_anchored_datetime(now_epoch=now_epoch).strftime("%Y-%m-%dT%H:%M:%S")
+
+    @staticmethod
+    def format_iso_label(iso_dt: str) -> str:
+        months = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+        dt = datetime.fromisoformat(str(iso_dt)[:19])
+        return f"{months[dt.month - 1]} {dt.day}, {dt.year} {dt.strftime('%H:%M')}"
+
+    def add_standalone_memory(self, char_name: str, entry: Dict[str, Any], now_epoch: Optional[float] = None) -> Dict[str, Any]:
+        mem = dict(entry)
+        mem.setdefault("id", f"cmem_{uuid.uuid4().hex[:8]}")
+        mem.setdefault("world_datetime", self.current_anchored_iso(now_epoch=now_epoch))
+        mem.setdefault("branch_id", self.active_branch_id)
+        mem.setdefault("timestamp", time.time())
+        self.standalone_memories.setdefault(char_name, []).append(mem)
+        return mem
 
     def set_participant(self, name: str, active: Optional[bool] = None,
                         blocked: Optional[bool] = None):
@@ -198,7 +371,8 @@ class Commons:
 
     def post_message(self, author: str, text: str = "", tick: int = 0,
                      channel_id: str = PUBLIC_CHANNEL_ID,
-                     attachments: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+                     attachments: Optional[List[Dict[str, Any]]] = None,
+                     world_datetime: Optional[str] = None) -> Dict[str, Any]:
         self.require_access(author, channel_id)
         if not text and not attachments:
             raise ValueError("Message must have text or attachments")
@@ -209,7 +383,10 @@ class Commons:
             "text": text,
             "timestamp": time.time(),
             "tick": tick,
+            "branch_id": self.active_branch_id,
         }
+        if world_datetime:
+            message["world_datetime"] = str(world_datetime)
         if attachments:
             message["attachments"] = list(attachments)
         self.next_message_id += 1

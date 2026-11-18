@@ -45,7 +45,7 @@ HOSTILE_CONDITIONS = frozenset({
 })
 
 #: Turn-event action labels that are inherently hostile to the receiver.
-HOSTILE_ACTIONS = frozenset({"attack", "steal", "grapple", "stab", "hit", "kill"})
+HOSTILE_ACTIONS = frozenset({"attack", "combat", "disarm", "steal", "grapple", "stab", "hit", "kill"})
 
 #: Turn-event action the background social approach writes (engine/background_social).
 SOCIAL_APPROACH_ACTION = "social_approach"

@@ -42,6 +42,13 @@ interface ResponseParserWindowSurface {
         emotions?: { who: string; why: string; data: unknown } | null;
     }
 
+    /** Normalized affect impulse declared on a turn. */
+    interface ExtractedEmotion {
+        label: string;
+        intensity: number;
+        toward: string | null;
+    }
+
     /** The structured fields both parsers return. `action` only on parseReaction. */
     interface ParsedReaction {
         inner: string;
@@ -50,7 +57,7 @@ interface ResponseParserWindowSurface {
         target?: string | null;
         emote: string | null;
         memory: ExtractedMemory | null;
-        emotion: { label: string; intensity: number; toward: string | null } | null;
+        emotion: ExtractedEmotion | ExtractedEmotion[] | null;
         learnedNames: string[];
         parseError: string | null;
         action?: unknown;
@@ -106,15 +113,29 @@ interface ResponseParserWindowSurface {
             : String(raw || '').trim();
     }
 
-    /** Normalize an optional LLM-declared feeling: {label, intensity 1-10, toward?}. */
-    function extractEmotion(raw: unknown): { label: string; intensity: number; toward: string | null } | null {
-        if (!raw || typeof raw !== 'object') return null;
+    /** Normalize a single LLM-declared feeling: {label, intensity 1-10, toward?}. */
+    function extractSingleEmotion(raw: unknown): ExtractedEmotion | null {
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
         const rec = raw as Record<string, unknown>;
         const label = String(rec.label || '').trim().toLowerCase();
-        const intensity = parseFloat(String(rec.intensity));
-        if (!label || !Number.isFinite(intensity)) return null;
-        const toward = String(rec.toward || '').trim();
+        if (!label) return null;
+        const rawInt = rec.intensity;
+        const intensity = (rawInt === null || rawInt === undefined || rawInt === '')
+            ? 5
+            : parseFloat(String(rawInt));
+        if (!Number.isFinite(intensity)) return null;
+        const toward = typeof rec.toward === 'string' ? rec.toward.trim() : '';
         return { label, intensity: Math.max(1, Math.min(10, intensity)), toward: toward || null };
+    }
+
+    /** Normalize an optional LLM-declared feeling (single object or array of impulses). */
+    function extractEmotion(raw: unknown): ExtractedEmotion | ExtractedEmotion[] | null {
+        if (!raw) return null;
+        if (Array.isArray(raw)) {
+            const list = raw.map(extractSingleEmotion).filter((e): e is ExtractedEmotion => e !== null);
+            return list.length ? list : null;
+        }
+        return extractSingleEmotion(raw);
     }
 
     /** Normalize an optional list of names learned/confirmed this turn. */
@@ -305,6 +326,7 @@ interface ResponseParserWindowSurface {
         parseReaction,
         parseResultReaction,
         parseCommunication,
-        extractMemory
+        extractMemory,
+        extractEmotion
     };
 })();

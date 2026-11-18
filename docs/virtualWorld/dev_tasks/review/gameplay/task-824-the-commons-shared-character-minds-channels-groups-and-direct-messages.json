@@ -9,7 +9,7 @@
   "area": "gameplay",
   "tags": [],
   "created": "2026-10-14",
-  "updated": "2026-10-14",
+  "updated": "2026-11-16",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -22,7 +22,8 @@
       "task-727",
       "task-820",
       "task-825",
-      "task-827"
+      "task-827",
+      "task-975"
     ],
     "parent": null,
     "children": [

@@ -225,11 +225,22 @@ def _apparent_age_bracket(age: float) -> str:
     return "elderly"
 
 
-#: Capabilities fields (task-733): skills, languages, weaknesses.
-#: Project to player skills and traits.
+#: Valid fluency tiers for structured language competence (task-966).
+LANGUAGE_FLUENCY_LEVELS: tuple = (
+    "native", "fluent", "conversational", "broken", "none",
+)
+
+#: Valid competence tiers for structured domain knowledge (task-968).
+DOMAIN_COMPETENCE_LEVELS: tuple = (
+    "ignorant", "novice", "familiar", "expert",
+)
+
+#: Capabilities fields (task-733, task-966, task-968): skills, languages, domains, weaknesses.
+#: Project to player skills, languages, domains, and traits.
 CAPABILITIES_FIELDS: Dict[str, Any] = {
     "skills": ("idlist", None),
-    "languages": ("idlist", None),
+    "languages": ("languages", None),
+    "domains": ("domains", None),
     "weaknesses": ("idlist", None),
 }
 
@@ -542,17 +553,218 @@ def _clean_appearance(raw: Any) -> Dict[str, Any]:
     return out
 
 
+def normalize_language_entry(entry: Any) -> Dict[str, Any]:
+    """Normalize a single language entry into ``{language, fluency, known_words, literate}`` (task-966).
+
+    Legacy string tags like ``"common"`` normalize to ``fluency="native"`` and
+    ``literate=True``; other legacy string tags normalize to ``fluency="fluent"``
+    and ``literate=True``.
+    """
+    if isinstance(entry, str):
+        lang = normalize_slug(entry)
+        if not lang:
+            raise StructuredError("capabilities.languages entry cannot be empty")
+        fluency = "native" if lang == "common" else "fluent"
+        return {
+            "language": lang,
+            "fluency": fluency,
+            "known_words": [],
+            "literate": True,
+        }
+    if not isinstance(entry, dict):
+        raise StructuredError(
+            "capabilities.languages entries must be strings or {language, fluency, known_words, literate} objects"
+        )
+    raw_lang = entry.get("language")
+    if raw_lang is None:
+        raw_lang = entry.get("id") if entry.get("id") is not None else entry.get("name")
+    lang = normalize_slug(raw_lang)
+    if not lang:
+        raise StructuredError("capabilities.languages entry requires a non-empty language id")
+    raw_fluency = entry.get("fluency")
+    fluency = "fluent" if raw_fluency is None or str(raw_fluency).strip() == "" else str(raw_fluency).strip().lower()
+    if fluency not in LANGUAGE_FLUENCY_LEVELS:
+        raise StructuredError(
+            f"capabilities.languages[{lang}].fluency must be one of "
+            f"{', '.join(LANGUAGE_FLUENCY_LEVELS)}; got {fluency!r}"
+        )
+    if "literate" in entry and entry["literate"] is not None:
+        literate = bool(entry["literate"])
+    else:
+        literate = fluency in ("native", "fluent")
+    raw_words = entry.get("known_words")
+    words_out: List[str] = []
+    seen_words: set = set()
+    if raw_words is not None:
+        if isinstance(raw_words, str):
+            raw_iter = [w.strip() for w in raw_words.split(",") if w.strip()]
+        elif isinstance(raw_words, (list, tuple, set)):
+            raw_iter = [str(w).strip() for w in raw_words if str(w).strip()]
+        else:
+            raise StructuredError(
+                f"capabilities.languages[{lang}].known_words must be a list of strings"
+            )
+        for w in raw_iter:
+            if w and w not in seen_words:
+                seen_words.add(w)
+                words_out.append(w)
+    return {
+        "language": lang,
+        "fluency": fluency,
+        "known_words": words_out,
+        "literate": literate,
+    }
+
+
+def normalize_languages(raw: Any) -> List[Dict[str, Any]]:
+    """Normalize a capabilities.languages value into a deduplicated list of structured entries."""
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        items: List[Any] = [s.strip() for s in raw.split(",") if s.strip()]
+    elif isinstance(raw, dict):
+        items = []
+        for k, v in raw.items():
+            if isinstance(v, dict):
+                merged = dict(v)
+                merged.setdefault("language", k)
+                items.append(merged)
+            elif isinstance(v, str):
+                items.append({"language": k, "fluency": v})
+            else:
+                items.append({"language": k})
+    elif isinstance(raw, (list, tuple, set)):
+        items = list(raw)
+    else:
+        raise StructuredError("capabilities.languages must be a list or object")
+
+    by_lang: Dict[str, Dict[str, Any]] = {}
+    order: List[str] = []
+    for item in items:
+        if isinstance(item, str) and not item.strip():
+            continue
+        norm = normalize_language_entry(item)
+        lang = norm["language"]
+        if lang not in by_lang:
+            order.append(lang)
+        by_lang[lang] = norm
+    return [by_lang[lang] for lang in order]
+
+
+def normalize_domain_entry(entry: Any) -> Dict[str, Any]:
+    """Normalize one structured capabilities.domains entry (task-968).
+
+    Accepts a string slug (defaults to ``level='familiar'``) or a dict with
+    ``{domain, level, notes, jargon_terms}``.
+    """
+    if isinstance(entry, str):
+        dom = normalize_slug(entry)
+        if not dom:
+            raise StructuredError("capabilities.domains entry cannot be empty")
+        return {
+            "domain": dom,
+            "level": "familiar",
+            "notes": "",
+            "jargon_terms": [],
+        }
+    if not isinstance(entry, dict):
+        raise StructuredError(
+            "capabilities.domains entries must be strings or {domain, level, notes, jargon_terms} objects"
+        )
+    raw_dom = entry.get("domain")
+    if raw_dom is None:
+        raw_dom = entry.get("id") if entry.get("id") is not None else entry.get("name")
+    dom = normalize_slug(raw_dom)
+    if not dom:
+        raise StructuredError("capabilities.domains entry requires a non-empty domain id")
+    raw_level = entry.get("level")
+    level = "familiar" if raw_level is None or str(raw_level).strip() == "" else str(raw_level).strip().lower()
+    if level not in DOMAIN_COMPETENCE_LEVELS:
+        raise StructuredError(
+            f"capabilities.domains[{dom}].level must be one of "
+            f"{', '.join(DOMAIN_COMPETENCE_LEVELS)}; got {level!r}"
+        )
+    notes = str(entry.get("notes") or "").strip()
+    raw_terms = entry.get("jargon_terms")
+    terms_out: List[str] = []
+    seen_terms: set = set()
+    if raw_terms is not None:
+        if isinstance(raw_terms, str):
+            raw_iter = [t.strip() for t in raw_terms.split(",") if t.strip()]
+        elif isinstance(raw_terms, (list, tuple, set)):
+            raw_iter = [str(t).strip() for t in raw_terms if str(t).strip()]
+        else:
+            raise StructuredError(
+                f"capabilities.domains[{dom}].jargon_terms must be a list of strings"
+            )
+        for t in raw_iter:
+            if t and t not in seen_terms:
+                seen_terms.add(t)
+                terms_out.append(t)
+    return {
+        "domain": dom,
+        "level": level,
+        "notes": notes,
+        "jargon_terms": terms_out,
+    }
+
+
+def normalize_domains(raw: Any) -> List[Dict[str, Any]]:
+    """Normalize a capabilities.domains value into a deduplicated list of structured entries."""
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        items: List[Any] = [s.strip() for s in raw.split(",") if s.strip()]
+    elif isinstance(raw, dict):
+        items = []
+        for k, v in raw.items():
+            if isinstance(v, dict):
+                merged = dict(v)
+                merged.setdefault("domain", k)
+                items.append(merged)
+            elif isinstance(v, str):
+                items.append({"domain": k, "level": v})
+            else:
+                items.append({"domain": k})
+    elif isinstance(raw, (list, tuple, set)):
+        items = list(raw)
+    else:
+        raise StructuredError("capabilities.domains must be a list or object")
+
+    by_dom: Dict[str, Dict[str, Any]] = {}
+    order: List[str] = []
+    for item in items:
+        if isinstance(item, str) and not item.strip():
+            continue
+        norm = normalize_domain_entry(item)
+        dom = norm["domain"]
+        if dom not in by_dom:
+            order.append(dom)
+        by_dom[dom] = norm
+    return [by_dom[dom] for dom in order]
+
+
 def _clean_capabilities(raw: Any) -> Dict[str, Any]:
     if raw is None:
         return {}
     if not isinstance(raw, dict):
         raise StructuredError("capabilities must be an object")
     out: Dict[str, Any] = {}
-    for field in ("skills", "languages", "weaknesses"):
+    for field in ("skills", "languages", "domains", "weaknesses"):
         if field not in raw:
             continue
         val = raw[field]
         if val is None:
+            continue
+        if field == "languages":
+            langs = normalize_languages(val)
+            if langs:
+                out[field] = langs
+            continue
+        if field == "domains":
+            doms = normalize_domains(val)
+            if doms:
+                out[field] = doms
             continue
         if field == "skills":
             if isinstance(val, dict):
@@ -810,13 +1022,22 @@ def validate_before_compile(record: Any) -> Tuple[bool, List[str]]:
     if cap is not None and not isinstance(cap, dict):
         errors.append("capabilities section must be an object")
     elif isinstance(cap, dict):
-        for field in ("languages", "weaknesses"):
-            if field in cap and cap[field] is not None:
-                vals = cap[field]
-                if isinstance(vals, str):
-                    vals = [vals]
-                if not isinstance(vals, (list, tuple, set)):
-                    errors.append(f"capabilities.{field} must be a list")
+        if "weaknesses" in cap and cap["weaknesses"] is not None:
+            vals = cap["weaknesses"]
+            if isinstance(vals, str):
+                vals = [vals]
+            if not isinstance(vals, (list, tuple, set)):
+                errors.append("capabilities.weaknesses must be a list")
+        if "languages" in cap and cap["languages"] is not None:
+            try:
+                normalize_languages(cap["languages"])
+            except StructuredError as e:
+                errors.append(str(e))
+        if "domains" in cap and cap["domains"] is not None:
+            try:
+                normalize_domains(cap["domains"])
+            except StructuredError as e:
+                errors.append(str(e))
         if "skills" in cap and cap["skills"] is not None:
             vals = cap["skills"]
             if isinstance(vals, str):
@@ -1079,7 +1300,8 @@ CONSUMER_HINTS: Dict[str, str] = {
     "identity.birthday": "birth date (dd.mm.yyyy); used for lifecycle birth_tick & earliest memory gate",
     "identity.potential_storylines": "storyline hooks/ideas; authoring notes (currently unwired)",
     "capabilities.skills": f"canonical skills ({', '.join(CANONICAL_SKILLS)}); projected to skills",
-    "capabilities.languages": "comma-separated language tags (e.g. english, spanish); used for communication checks",
+    "capabilities.languages": "structured language competence ({language, fluency, known_words, literate}); compiled onto Player.languages",
+    "capabilities.domains": "structured domain competence and blind spots ({domain, level, notes, jargon_terms}); compiled onto Player.domains",
     "capabilities.weaknesses": "mechanical/situational liabilities (e.g. nearsighted, panic_freeze, peanut_allergy, clumsy); projected to traits",
     "narrative.media": "books, movies, bands, games (title, medium, when watched/read, opinion, familiarity); hydrated as lore memories & interest_tags",
     "appearance.overview": "1-2 sentence third-person summary of overall look/vibe; used for compiled prose",
@@ -1371,6 +1593,8 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
         "dislike_tags": sorted(set(pers.get("dislikes") or ())),
         "traits": all_traits,
         "skills": projected_skills,
+        "languages": normalize_languages(cap.get("languages") or []),
+        "domains": normalize_domains(cap.get("domains") or []),
     }
 
 
@@ -1567,8 +1791,31 @@ def schema_for_llm() -> Dict[str, Any]:
         },
         "languages": {
             "type": "array",
-            "items": {"type": "string"},
-            "description": "known languages (e.g. Common, Elvish, Goblin)",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "language": {"type": "string", "description": "canonical language slug (e.g. common, english, elvish)"},
+                    "fluency": {"type": "string", "enum": list(LANGUAGE_FLUENCY_LEVELS)},
+                    "known_words": {"type": "array", "items": {"type": "string"}},
+                    "literate": {"type": "boolean"},
+                },
+                "required": ["language", "fluency"],
+            },
+            "description": "known languages with fluency (native/fluent/conversational/broken/none), literacy, and exact known_words lexicon",
+        },
+        "domains": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "domain": {"type": "string", "description": "canonical domain slug (e.g. silicone_molding, law, computer_science, sports)"},
+                    "level": {"type": "string", "enum": list(DOMAIN_COMPETENCE_LEVELS)},
+                    "notes": {"type": "string", "description": "specific competence, blind-spot, or background note"},
+                    "jargon_terms": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["domain", "level"],
+            },
+            "description": "domain knowledge and explicit blind spots (ignorant/novice/familiar/expert), notes, and specialist jargon_terms",
         },
         "weaknesses": {
             "type": "array",

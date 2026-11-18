@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "bug-592",
+  "kind": "bug",
+  "number": 592,
+  "title": "Fix attack vs combat turn-event mismatch across ThreatDetector, character-state.ts, and interrupts.py",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "combat",
+    "threat-detector",
+    "interrupts",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-16",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [
+      "bug-590"
+    ],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "bug-590",
+      "task-955",
+      "task-959"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Fix the event-name mismatch where engine combat emits turn_events with action='combat' while ThreatDetector, _vitalsScene in character-state.ts, and engine/interrupts.py only scan for 'attack', and remove _vitalsScene's redundant third threat loop.",
+    "why": "engine/combat.py (lines 515-519, 576-580, 621-625) and routes/action_handlers.py (lines 1387, 1391) record combat turn events with action='combat'. However static/js/agent/threat-detector.ts (lines 50-55), static/js/agent/prompt-builder/character-state.ts (_vitalsScene, lines 389-407), and engine/interrupts.py (HOSTILE_ACTIONS, lines 42-48) check only 'attack'. As a result, live combat events never trigger ThreatDetector or interrupt checks at all, while _vitalsScene duplicates a third diverging threat scan.",
+    "how": "1. Update static/js/agent/threat-detector.ts (lines 50-55) to recognize normalized hostile/violent turn-event actions ('combat', 'attack', 'disarm') via a shared predicate helper.\\n2. Replace the independent duplicate threat loop inside _vitalsScene (static/js/agent/prompt-builder/character-state.ts lines 389-407) with a call to ThreatDetector so prompt status and replan/react danger cues never disagree.\\n3. Add 'combat' (and 'disarm') to HOSTILE_ACTIONS in engine/interrupts.py (lines 42-48).\\n4. Add unit tests covering combat.py -> record_turn_event(..., 'combat', ...) triggering ThreatDetector, _vitalsScene, and interrupts.evaluate().",
+    "verify": "1. Run pytest on tests covering engine/interrupts.py against combat.py record_turn_event('combat').\\n2. Run npm run build:ts and node tools/unit/run.cjs asserting ThreatDetector and _vitalsScene agree when turnEvents contain action: 'combat'.",
+    "acceptance": [
+      {
+        "text": "Violence event detection recognizes 'combat', 'attack', and 'disarm' uniformly in ThreatDetector instead of checking only action === 'attack'.",
+        "done": false
+      },
+      {
+        "text": "character-state.ts _vitalsScene delegates to ThreatDetector rather than running a third independent threat scan.",
+        "done": false
+      },
+      {
+        "text": "engine/interrupts.py HOSTILE_ACTIONS includes 'combat' (and 'disarm') so background interrupt evaluation catches real engine combat events.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/threat-detector.ts",
+      "static/js/agent/prompt-builder/character-state.ts",
+      "engine/interrupts.py",
+      "engine/combat.py",
+      "routes/action_handlers.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Agent Turn Modal prompt preview (ThreatDetector IMMEDIATE DANGER header and _vitalsScene status block).\\n\\nCurrent availability: engine/combat.py and routes/action_handlers.py emit turnEvent action 'combat', while threat-detector.ts, character-state.ts (_vitalsScene), and engine/interrupts.py (HOSTILE_ACTIONS) only match 'attack'.\\n\\nManual verification steps:\\n1. Trigger an unarmed or weapon attack between two characters via combat.py and inspect the bystander's DECIDE prompt preview.\\n   - expected: The normalized violence check detects the 'combat' turn event consistently in both ThreatDetector and _vitalsScene without contradictory alerts."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Rules Engine/Combat System]]",
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

@@ -11,10 +11,17 @@
             "id": "343fc113bb9ed229",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "canvas",
+              "state": {
+                "file": "memory flow.canvas",
+                "viewState": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 0
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "memory flow"
             }
           }
         ]
@@ -183,6 +190,20 @@
   },
   "active": "343fc113bb9ed229",
   "lastOpenFiles": [
+    "dev_tasks/review/ui/bug-574-map-grid-spacing-and-stepper-controls-prevent-direct-numeric-typing.json",
+    "dev_tasks/review/ui/bug-576-scenario-manager-reports-zero-areas-for-scenarios-storing-areas-in-graph-nodes.json",
+    "dev_tasks/review/prompting/bug-606-refresh-react-phase-vitals-emotion-relationship-memory-snapshots-post-action-and.json",
+    "dev_tasks/review/characters/task-968-domain-knowledge-explicit-blind-spots-and-semantic-school-life-knowledge-integra.json",
+    "dev_tasks/review/gameplay/task-953-cross-area-item-throwing-across-ways-fences-and-open-boundaries.json",
+    "dev_tasks/todo/gameplay/task-984-convert-plan-generation-from-forced-pre-turn-llm-call-into-free-mental-agent-ver.json",
+    "dev_tasks/review/ui/bug-572-worldpainter-area-picker-lost-placed-on-grid-and-not-placed-grouping.json",
+    "dev_tasks/review/gameplay/bug-594-make-background-social-py-fear-reactions-flee-hide-freeze-mutate-real-position-h.json",
+    "dev_tasks/review/ui/bug-580-human-turn-composer-renders-0-major-0-minor-0-free-on-fresh-turn-start.json",
+    "dev_tasks/review/gameplay/task-958-expose-hide-and-unhide-character-verbs-over-triggers-behaviors-py-hiding-edges-a.json",
+    "dev_tasks/review/gameplay/bug-590-make-threatdetector-target-weapon-and-disarm-aware-and-remove-duplicate-scan-in.json",
+    "commons flow1.canvas",
+    "memory flow.canvas",
+    "2026-11-17.md",
     "dev_tasks/review/characters/task-874-character-size-species-and-the-persona-block-survive-a-scenario-save-a-library-save-and-a-library-import.md",
     "dev_tasks/todo/characters/task-874-character-size-species-and-the-persona-block-survive-a-scenario-save-a-library-save-and-a-library-import.md",
     "dev_tasks/todo/characters/task-874-character-size-and-the-persona-block-survive-a-scenario-save-a-library-save-and-a-library-import.md",
@@ -207,18 +228,6 @@
     "dev_tasks/review/graph/bug-550-a-property-only-sync-re-seeds-node-x-y-and-snaps-a-dragged-node-back-to-its-stored-position.md",
     "Characters/GIMP.md",
     "Characters/MOSIAC.md",
-    "dev_tasks/review/docs/task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer.md",
-    "dev_tasks/todo/characters/task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans.md",
-    "dev_tasks/done/dev",
-    "Untitled.canvas",
-    "dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md.tmp.11928.1b3cb7021f85",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.2deae31d0cf1",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.81725a043b30",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.249daf4d17ce",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.609ba50e0771",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.991b036d8eda",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.a9465e8c8815",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.da2987f24fdf",
-    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.0ca7c6a1c3ca"
+    "Untitled.canvas"
   ]
 }

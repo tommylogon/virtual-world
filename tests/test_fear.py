@@ -268,3 +268,65 @@ def test_written_fear_tags_actually_reach_the_fear_engine():
     source = fear.react(app.world, hero)
     assert source and source["name"] == "Snarl"
     assert "frightened" in hero.conditions
+
+
+def test_tick_turn_invokes_fear_react_and_releases_absent_fears():
+    w = _world()
+    hero = _hero(w)
+    hero.fear_tags = ["goblin"]
+    snarl = _npc(w, "Snarl", hero.current_area, {"goblin": True})
+    assert not hero.has_condition("frightened")
+
+    w.tick_turn()
+    assert hero.has_condition("frightened")
+    assert hero.conditions["frightened"][0]["source"] == "Snarl"
+
+    other_area = next(a for a in w.areas if a != hero.current_area)
+    w.set_player_area("Snarl", other_area)
+    w.tick_turn()
+    assert not hero.has_condition("frightened")
+
+
+def test_live_action_arrival_invokes_fear_react_and_releases_on_exit():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    w = app.world
+    w.time_per_tick_minutes = 1
+    hero = _hero(w)
+    hero.fear_tags = ["goblin"]
+
+    start_area = hero.current_area
+    # Find an adjacent area reachable by an exit from start_area
+    area_node = w.graph.get_node(w.area_node_id(start_area))
+    exits = w.get_area(start_area).exits if hasattr(w, "get_area") else {}
+    if not exits:
+        # Fallback: inspect connection edges
+        from graph import EDGE_CONNECTION
+        edges = w.graph.get_edges_for_source(area_node.id, EDGE_CONNECTION)
+        assert edges, "Expected at least one exit from start area"
+        direction = edges[0].properties.get("direction")
+        way_id = edges[0].target
+        dest_edges = [e for e in w.graph.get_edges_for_source(way_id, EDGE_CONNECTION)]
+        dest_area = w.graph.get_node(dest_edges[0].target).name if dest_edges else None
+    else:
+        direction = next(iter(exits.keys()))
+        dest_area = exits[direction]
+
+    _npc(w, "Snarl", dest_area, {"goblin": True})
+    assert not hero.has_condition("frightened")
+
+    client = app.test_client()
+    resp = client.post("/api/action", json={"command": f"go {direction}"})
+    assert resp.status_code == 200
+    assert hero.current_area == dest_area
+    assert hero.has_condition("frightened")
+    assert hero.conditions["frightened"][0]["source"] == "Snarl"
+
+    # Moving back out to start_area releases the fear immediately
+    back_exits = w.get_area(dest_area).exits if hasattr(w, "get_area") else {}
+    back_dir = next((d for d, target in back_exits.items() if target == start_area), None)
+    if back_dir:
+        resp2 = client.post("/api/action", json={"command": f"go {back_dir}"})
+        assert resp2.status_code == 200
+        assert hero.current_area == start_area
+        assert not hero.has_condition("frightened")

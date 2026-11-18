@@ -21,7 +21,9 @@
     "blocks": [],
     "blocked_by": [],
     "depends_on": [],
-    "related": [],
+    "related": [
+      "task-975"
+    ],
     "parent": null,
     "children": [],
     "supersedes": [],

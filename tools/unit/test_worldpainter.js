@@ -418,7 +418,10 @@ test('grid resize handles snap to whole cells and never vanish (task-597)', () =
     assertEq(pts.e, { x: 10, y: 3 }, 'east edge mid');
     assertEq(pts.s, { x: 5, y: 6 }, 'south edge mid');
     // The origin is fixed, so there is no NW/N/W handle to offer.
-    assertEq(Object.keys(pts).sort(), ['e', 's', 'se'], 'only the far edges');
+    assertEq(pts.nw, { x: 0, y: 0 }, 'nw corner at origin');
+    assertEq(pts.n, { x: 5, y: 0 }, 'north edge mid');
+    assertEq(pts.w, { x: 0, y: 3 }, 'west edge mid');
+    assertEq(Object.keys(pts).sort(), ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'], 'all 8 handles');
 
     assertEq(GM.gridHandleDrag(10, 6, 'se', { x: 12.4, y: 7.6 }), { w: 12, h: 8 }, 'se snaps');
     assertEq(GM.gridHandleDrag(10, 6, 'e', { x: 3.1, y: 99 }), { w: 3, h: 6 }, 'e changes width only');
@@ -1116,3 +1119,114 @@ test('WorldPainter soft render, offscreen cache, actionable checklist, recents a
 
 
 
+
+test('paint, erase, stroke, and clearCell patch or invalidate paintCache before redraw (bug-573)', async () => {
+    if (!window.WorldPainterCanvas) {
+        (0, eval)(window.__readFile('static/js/worldpainter/editor-canvas.js'));
+    }
+    if (!window.WorldPainterPalette) {
+        (0, eval)(window.__readFile('static/js/worldpainter/editor-palette.js'));
+    }
+    const WPC = window.WorldPainterCanvas;
+    const WPP = window.WorldPainterPalette;
+
+    function makeCtx(tool, value) {
+        const patched = [];
+        const rendered = [];
+        const initialPayload = {
+            scope: { id: 'test_scope', has_grid: true },
+            grid: { w: 4, h: 4 },
+            layers: { biome: { '0,0': 'sparse_forest' } },
+        };
+        const ctx = {
+            state: {
+                tool,
+                layer: 'biome',
+                value,
+                payload: initialPayload,
+                paintCacheValid: true,
+                stroke: [{ x: 1, y: 1 }, { x: 2, y: 1 }],
+                strokeLayer: 'biome',
+                strokeValue: value,
+                selection: { test_scope: { '0,0': true } },
+            },
+            GM: () => GM,
+            brushCells: (_p, x, y) => [{ x, y }],
+            post: async (_url, body) => ({
+                scope: { id: 'test_scope', has_grid: true },
+                grid: { w: 4, h: 4 },
+                layers: { biome: body.value === null ? {} : { '0,0': 'dense_forest' } },
+            }),
+            patchPaintCache: (p, cells) => {
+                patched.push({ p, cells });
+            },
+            notify: () => {},
+            render: () => { rendered.push('render'); },
+            softRender: () => { rendered.push('softRender'); },
+            status: () => {},
+            errText: (e) => String(e),
+        };
+        return { ctx, patched, rendered };
+    }
+
+    // 1. Single-cell paintAt patches cache before render
+    {
+        const { ctx, patched, rendered } = makeCtx('paint', 'dense_forest');
+        await WPC.paintAt(ctx, ctx.state.payload, 0, 0);
+        assertEq(patched.length, 1, 'paintAt calls patchPaintCache');
+        assertEq(patched[0].cells, [{ x: 0, y: 0 }], 'paintAt patches the brushed cell');
+        assertEq(rendered, ['render'], 'paintAt renders after patching cache');
+    }
+
+    // 2. Single-cell erase via paintAt patches cache before render
+    {
+        const { ctx, patched, rendered } = makeCtx('erase', null);
+        await WPC.paintAt(ctx, ctx.state.payload, 0, 0);
+        assertEq(patched.length, 1, 'erase paintAt calls patchPaintCache');
+        assertEq(patched[0].cells, [{ x: 0, y: 0 }], 'erase paintAt patches the erased cell');
+        assertEq(rendered, ['render'], 'erase paintAt renders after patching cache');
+    }
+
+    // 3. Drag stroke commitStroke patches cache before softRender
+    {
+        const { ctx, patched, rendered } = makeCtx('paint', 'dense_forest');
+        await WPC.commitStroke(ctx, ctx.state.payload);
+        assertEq(patched.length, 1, 'commitStroke calls patchPaintCache');
+        assertEq(patched[0].cells.length, 2, 'commitStroke patches all stroke cells');
+        assertEq(rendered, ['softRender'], 'commitStroke softRenders after patching cache');
+    }
+
+    // 4. applyToSelection patches cache before softRender
+    {
+        const { ctx, patched, rendered } = makeCtx('erase', null);
+        await WPC.applyToSelection(ctx, ctx.state.payload);
+        assertEq(patched.length, 1, 'applyToSelection calls patchPaintCache');
+        assertEq(rendered, ['softRender'], 'applyToSelection softRenders after patching cache');
+    }
+
+    // 5. Fallback invalidation when patchPaintCache is absent
+    {
+        const { ctx } = makeCtx('paint', 'dense_forest');
+        delete ctx.patchPaintCache;
+        await WPC.paintAt(ctx, ctx.state.payload, 0, 0);
+        assertEq(ctx.state.paintCacheValid, false, 'paintAt invalidates paintCacheValid when patchPaintCache is absent');
+    }
+
+    // 6. clearCell in palette patches cache before render
+    {
+        const { ctx, patched, rendered } = makeCtx('inspect', null);
+        await WPP.clearCell(ctx, ctx.state.payload, 0, 0);
+        assertEq(patched.length, 1, 'clearCell calls patchPaintCache');
+        assertEq(patched[0].cells, [{ x: 0, y: 0 }], 'clearCell patches cleared cell');
+        assertEq(rendered, ['render'], 'clearCell renders after patching cache');
+    }
+
+    // 7. editor.js exposes patchPaintCache on canvasCtx and paletteCtx, and invalidates on reload
+    const editorSrc = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/canvasCtx\s*=\s*\(\)\s*=>\s*\(\{[\s\S]*?patchPaintCache:\s*_patchPaintCache/.test(editorSrc),
+        'editor canvasCtx exposes patchPaintCache');
+    assertTrue(/paletteCtx\s*=\s*\(\)\s*=>\s*\(\{[\s\S]*?patchPaintCache:\s*_patchPaintCache/.test(editorSrc),
+        'editor paletteCtx exposes patchPaintCache');
+    assertTrue(/function _reloadPayload\(\)[\s\S]*?state\.paintCacheValid\s*=\s*false/.test(editorSrc),
+        '_reloadPayload invalidates paintCacheValid');
+});

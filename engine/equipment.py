@@ -32,6 +32,105 @@ def is_intrinsic_ability(item_node: Optional[Node]) -> bool:
     return bool(INTRINSIC_ABILITY_TAGS.intersection(tags))
 
 
+HAND_SLOTS = ("hand_left", "hand_right")
+
+
+def _is_marker_id(item_id: Any) -> bool:
+    """Return True when an equipped stack entry is a multi-slot marker."""
+    return isinstance(item_id, str) and item_id.startswith("__")
+
+
+def _is_hidden_to_bystanders(node: Optional[Node]) -> bool:
+    """Return True when an equipped node is concealed, hidden, or an ability."""
+    if not node or is_intrinsic_ability(node):
+        return True
+    if node.properties.get("concealed"):
+        return True
+    if node.properties.get("current_state") == "hidden":
+        return True
+    return False
+
+
+def get_visible_equipment_for_player(graph, player) -> dict:
+    """Return the outermost visible item per slot for a player (what others see at a glance)."""
+    if not player or not graph:
+        return {}
+    visible = {}
+    for slot, stack in getattr(player, "equipped", {}).items():
+        if slot in HAND_SLOTS:
+            visible_items = [
+                graph.get_node(item_id) for item_id in stack
+                if item_id and not _is_marker_id(item_id)
+            ]
+            visible_items = [
+                n for n in visible_items
+                # task-516: concealed and hidden items are not part of what a
+                # viewer sees, even when technically equipped.
+                if not _is_hidden_to_bystanders(n)
+            ]
+            real = [n.name for n in visible_items]
+            if real:
+                visible[slot] = real[-1]
+            else:
+                markers = [
+                    item_id for item_id in stack
+                    if str(item_id).startswith("__multi_slot_")
+                ]
+                if markers:
+                    real_id = markers[-1].replace("__multi_slot_", "")
+                    real_node = graph.get_node(real_id)
+                    if real_node and not _is_hidden_to_bystanders(real_node):
+                        tags = real_node.properties.get("tags", [])
+                        if isinstance(tags, str):
+                            tags = [t.strip() for t in tags.split(",")]
+                        if "two_handed" in tags:
+                            visible[slot] = f"{real_node.name} (two-handed)"
+                        elif "equips_all_slots" in tags:
+                            visible[slot] = f"{real_node.name} (part of a full-body suit)"
+                        else:
+                            visible[slot] = real_node.name
+            continue
+        if not stack:
+            continue
+        real_nodes = [
+            graph.get_node(item_id) for item_id in stack
+            if item_id and not _is_marker_id(item_id)
+        ]
+        real_nodes = [
+            n for n in real_nodes
+            if not _is_hidden_to_bystanders(n)
+        ]
+        if real_nodes:
+            visible[slot] = real_nodes[-1].name
+    return visible
+
+
+def split_visible_equipment(graph, player) -> tuple[List[str], List[str]]:
+    """Split visible equipment into (holding, wearing) item name lists.
+
+    holding contains visible items in hand_left / hand_right.
+    wearing contains visible outermost items in all other slots.
+    Both lists are deduplicated while preserving slot order.
+    """
+    visible = get_visible_equipment_for_player(graph, player)
+    holding: List[str] = []
+    wearing: List[str] = []
+    seen_holding = set()
+    seen_wearing = set()
+    for slot, label in visible.items():
+        if slot in HAND_SLOTS:
+            name = label[:-len(" (two-handed)")] if label.endswith(" (two-handed)") else label
+            if name and name not in seen_holding:
+                seen_holding.add(name)
+                holding.append(name)
+        else:
+            name = label[:-len(" (part of a full-body suit)")] if label.endswith(" (part of a full-body suit)") else label
+            if name and name not in seen_wearing:
+                seen_wearing.add(name)
+                wearing.append(name)
+    return holding, wearing
+
+
 
 # task-210/486: conditions that are outwardly visible and therefore belong in an
 # appearance description. Keys are condition ids; values are phrases rendered as
@@ -602,59 +701,7 @@ class EquipmentSystem:
     def get_visible_equipment(self, player_name: str = None) -> dict:
         """Return the outermost item of each slot for a player (what others see at a glance)."""
         player = self.player_manager.get_player(player_name or self.player_manager.active_player)
-        if not player:
-            return {}
-        visible = {}
-        for slot, stack in player.equipped.items():
-            if slot in ("hand_left", "hand_right"):
-                visible_items = [
-                    self.graph.get_node(item_id) for item_id in stack
-                    if item_id and not self._is_marker(item_id)
-                ]
-                visible_items = [
-                    n for n in visible_items
-                    # task-516: a concealed item is not part of what a viewer
-                    # sees, even when it is technically equipped.
-                    if n and not self._is_intrinsic_ability(n)
-                    and not n.properties.get("concealed")
-                ]
-                real = [n.name for n in visible_items]
-                if real:
-                    visible[slot] = real[-1]
-                else:
-                    markers = [
-                        item_id for item_id in stack
-                        if str(item_id).startswith("__multi_slot_")
-                    ]
-                    if markers:
-                        real_id = markers[-1].replace("__multi_slot_", "")
-                        real_node = self.graph.get_node(real_id)
-                        if real_node:
-                            tags = real_node.properties.get("tags", [])
-                            if isinstance(tags, str):
-                                tags = [t.strip() for t in tags.split(",")]
-                            if "two_handed" in tags:
-                                visible[slot] = f"{real_node.name} (two-handed)"
-                            elif "equips_all_slots" in tags:
-                                visible[slot] = f"{real_node.name} (part of a full-body suit)"
-                            else:
-                                visible[slot] = real_node.name
-                continue
-            if not stack:
-                continue
-            real_nodes = [
-                self.graph.get_node(item_id) for item_id in stack
-                if item_id and not self._is_marker(item_id)
-            ]
-            real_nodes = [
-                n for n in real_nodes
-                if n and not self._is_intrinsic_ability(n)
-                # task-516: concealed items are owner-visible only.
-                and not n.properties.get("concealed")
-            ]
-            if real_nodes:
-                visible[slot] = real_nodes[-1].name
-        return visible
+        return get_visible_equipment_for_player(self.graph, player)
 
     @staticmethod
     def _is_intrinsic_ability(item_node: Optional[Node]) -> bool:

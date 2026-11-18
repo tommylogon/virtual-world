@@ -10,10 +10,13 @@ Handles player-vs-player attacks, weapon discovery, and combat resolution.
 import random
 import logging
 from typing import Optional, List
-from graph import Node, EDGE_CARRYING, EDGE_EQUIPPED
+from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_CONNECTION
 from engine.vitals import ceiling
 
 logger = logging.getLogger(__name__)
+
+#: Ticks during which a recent attacker counts as provoking self-defense.
+RECENT_ATTACK_WINDOW_TICKS = 5
 
 
 WEAPON_KEYWORDS = [
@@ -67,6 +70,87 @@ class CombatSystem:
         handle = self.skills
         world = getattr(handle, "world", None)
         return world if world is not None and hasattr(world, "players") else handle
+
+    def _can_frightened_self_defend(self, attacker, target) -> bool:
+        """True when *attacker* is cornered, grappling, or retaliating against *target*."""
+        if attacker.has_condition("grappled") or attacker.has_condition("restrained"):
+            return True
+        # Actively grappling or grappled by target
+        try:
+            from engine.character_spatial import _pm_get_player_node_id
+            attacker_node = _pm_get_player_node_id(self.skills, attacker.name)
+            target_node = _pm_get_player_node_id(self.skills, target.name)
+            if attacker_node and target_node:
+                for e in self.graph.get_edges_by_type("grappled"):
+                    if (e.source == attacker_node and e.target == target_node) or (
+                        e.source == target_node and e.target == attacker_node
+                    ):
+                        return True
+        except Exception:
+            pass
+        # Recently attacked by target
+        recent = getattr(attacker, "recent_attackers", None) or {}
+        if target.name in recent:
+            current_tick = getattr(self.skills, "time_ticks", 0) or 0
+            if current_tick - recent[target.name] <= RECENT_ATTACK_WINDOW_TICKS:
+                return True
+        # Cornered: no unblocked/unlocked exits out of current area
+        area_name = getattr(attacker, "current_area", None)
+        if area_name and hasattr(self.skills, "_area_node_id"):
+            try:
+                from engine.conditions import frightened_block
+                area_id = self.skills._area_node_id(area_name)
+                if area_id:
+                    edges = self.graph.get_edges_for_source(area_id, EDGE_CONNECTION)
+                    if not edges:
+                        return True
+                    has_escape = False
+                    for edge in edges:
+                        way_node = self.graph.get_node(edge.target)
+                        if way_node is None:
+                            continue
+                        if way_node.properties.get("locked"):
+                            continue
+                        if frightened_block(attacker, "way", source_id=way_node.id, source_name=way_node.name):
+                            continue
+                        has_escape = True
+                        break
+                    if not has_escape:
+                        return True
+            except Exception:
+                pass
+        return False
+
+    def _emit_combat_fear_hooks(self, attacker_name: str, target_name: str, target, area_name: Optional[str]) -> None:
+        """Emit pre-damage combat_threat (target) and witness_combat (bystanders)."""
+        gs = self._game_state()
+        emit = getattr(gs, "_emit_save_on", None)
+        if not callable(emit):
+            return
+        ctx = {"source": attacker_name, "source_type": "character"}
+        try:
+            if not target.has_condition("frightened"):
+                for line in emit(target_name, "combat_threat", ctx):
+                    self.skills.add_log_entry(line)
+        except Exception as e:
+            logger.warning("[combat] combat_threat %s: %s", target_name, e)
+        if not area_name:
+            return
+        players = getattr(self.skills, "players", None) or {}
+        for bname, bplayer in list(players.items()):
+            if bname in (attacker_name, target_name):
+                continue
+            if getattr(bplayer, "state", None) == "dead":
+                continue
+            if getattr(bplayer, "current_area", None) != area_name:
+                continue
+            if bplayer.has_condition("frightened"):
+                continue
+            try:
+                for line in emit(bname, "witness_combat", ctx):
+                    self.skills.add_log_entry(line)
+            except Exception as e:
+                logger.warning("[combat] witness_combat %s: %s", bname, e)
 
     def _wake_on_damage(self, target_name, source=None, source_type=None):
         """Damage interrupts activities (wakes sleepers). Returns wake message."""
@@ -228,15 +312,30 @@ class CombatSystem:
         if not attacker or not target:
             return ""
 
-        # task-309 (5e-aligned): you can only strike what you can see. An unseen
-        # target - mundane hidden, or an unmanifested ghost - can't be aimed at;
-        # a manifested ghost is solid and hittable like any other creature.
+        from engine.triggers.behaviors import is_character_hidden, reveal_if_hidden
+        gs_for_stealth = self._game_state()
+
+        # Violent action breaks the attacker's own concealment and records feedback.
+        reveal_note = reveal_if_hidden(
+            gs_for_stealth, attacker_name, reason=f"attacking {target_name}", player=attacker, graph=self.graph
+        )
+        if reveal_note:
+            self.skills.add_log_entry(f"[STEALTH] {reveal_note}")
+
+        # task-309 / task-958: you can only strike what you can see. An unseen
+        # target - mundane hidden (player.hidden, state in ('hidden', 'stealthed'),
+        # or 'hidden' graph edges), or an unmanifested ghost - can't be aimed at.
+        target_visible = True
         try:
-            if not self.skills.player_manager.is_visible(target.name):
-                return (f"{attacker_name} swings at {target_name} - and the blow passes "
-                        f"straight through empty air. {target_name} is not there to hit.")
+            if hasattr(self.skills, "player_manager") and self.skills.player_manager is not None:
+                target_visible = self.skills.player_manager.is_visible(target.name)
+            elif hasattr(self.skills, "is_visible"):
+                target_visible = self.skills.is_visible(target.name)
         except Exception:
             pass
+        if not target_visible or is_character_hidden(gs_for_stealth, target.name, graph=self.graph, player=target):
+            return (f"{attacker_name} swings at {target_name} - and the blow passes "
+                    f"straight through empty air. {target_name} is not there to hit.")
 
         # Resolve an AIMED body region up front (invalid/unknown → no region).
         # Un-aimed attacks stay None here; the location is rolled on a HIT so
@@ -255,13 +354,32 @@ class CombatSystem:
                 )
                 return f"{attacker_name} hesitates - they can't bring themselves to hurt {target_name}."
 
-        # Frightened (character source): can't attack the character they fear
+        # Frightened (character source): can't attack the character they fear,
+        # unless cornered, grappling/grappled by them, or recently attacked by them.
         if attacker.has_condition("frightened"):
             from engine.conditions import frightened_block
-            block = frightened_block(attacker, "character", source_name=target_name)
+            self_defense = self._can_frightened_self_defend(attacker, target)
+            block = frightened_block(
+                attacker, "character", source_name=target_name, self_defense=self_defense
+            )
             if block:
                 self.skills.add_log_entry(f"[COMBAT] {attacker_name} is too afraid to attack {target_name}.")
                 return f"{attacker_name} trembles - {block}"
+            if self_defense and frightened_block(attacker, "character", source_name=target_name):
+                self.skills.add_log_entry(
+                    f"[COMBAT] {attacker_name} fights back in desperation against {target_name} (frightened)."
+                )
+
+        # Record recent attack on target so a frightened defender can retaliate.
+        current_tick = getattr(self.skills, "time_ticks", 0) or 0
+        recent = getattr(target, "recent_attackers", None)
+        if not isinstance(recent, dict):
+            recent = {}
+            target.recent_attackers = recent
+        recent[attacker_name] = current_tick
+
+        # Pre-damage threat and witness fear hooks (e.g. cowardly trait).
+        self._emit_combat_fear_hooks(attacker_name, target_name, target, getattr(target, "current_area", None))
 
         # Decrease target's relationship toward the attacker - catches the "psychotic friend" betrayal case.
         # Through the one write path (task-420) so the cause is recorded: a
@@ -811,3 +929,314 @@ class CombatSystem:
                 best = node
                 best_score = score
         return best
+
+    # ─────────────────────────── Disarm ───────────────────────────
+
+    def _find_held_hand_items(self, target_name: str, target) -> list:
+        """Return list of ``(slot, Node)`` visibly held in target's hands."""
+        from engine.character_spatial import _pm_get_player_node_id
+        from engine.equipment import is_intrinsic_ability
+
+        target_id = _pm_get_player_node_id(self.skills, target_name)
+        found = []
+        seen_ids = set()
+
+        # Prefer hand_right then hand_left from graph EDGE_EQUIPPED
+        by_slot = {"hand_right": [], "hand_left": []}
+        for edge in self.graph.get_edges_for_target(target_id, EDGE_EQUIPPED):
+            slot = (edge.properties or {}).get("slot")
+            if slot in by_slot:
+                by_slot[slot].append(edge.source)
+
+        # Also include player.equipped stacks in case graph edges omit slot
+        equipped = getattr(target, "equipped", None) or {}
+        for slot in ("hand_right", "hand_left"):
+            for raw_id in list(equipped.get(slot) or []) + by_slot[slot]:
+                if not raw_id:
+                    continue
+                real_id = str(raw_id).replace("__multi_slot_", "") if str(raw_id).startswith("__multi_slot_") else raw_id
+                if real_id in seen_ids:
+                    continue
+                node = self.graph.get_node(real_id)
+                if not node or node.type != "item":
+                    continue
+                props = node.properties or {}
+                if props.get("concealed") or is_intrinsic_ability(node):
+                    continue
+                seen_ids.add(real_id)
+                found.append((slot, node))
+        return found
+
+    def _free_hand_slot(self, player_name: str, player) -> Optional[str]:
+        """Return an available hand slot (``hand_right`` or ``hand_left``), or None."""
+        from engine.character_spatial import _pm_get_player_node_id
+
+        disabled = set()
+        try:
+            from engine.traits import TraitSystem
+            disabled = set(TraitSystem.get_disabled_slots(player) or ())
+        except Exception:
+            pass
+
+        player_id = _pm_get_player_node_id(self.skills, player_name)
+        equipped = getattr(player, "equipped", None) or {}
+        graph_hand_slots = set()
+        for edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
+            slot = (edge.properties or {}).get("slot")
+            if slot in ("hand_right", "hand_left"):
+                graph_hand_slots.add(slot)
+
+        for slot in ("hand_right", "hand_left"):
+            if slot in disabled:
+                continue
+            if not (equipped.get(slot) or []) and slot not in graph_hand_slots:
+                return slot
+        return None
+
+    def _area_node_id(self, area_name: Optional[str]) -> Optional[str]:
+        """Resolve graph node id for an area name."""
+        if not area_name:
+            return None
+        candidate = f"area_{area_name.lower().replace(' ', '_')}"
+        node = self.graph.get_node(candidate)
+        if node:
+            return node.id
+        for node in self.graph.nodes.values():
+            if node.type == "area" and node.name == area_name:
+                return node.id
+        return None
+
+    def player_disarm(self, attacker_name: str, target_name: str,
+                      item_name: Optional[str] = None, catch: bool = False) -> str:
+        """Non-lethal contested disarm to wrest a visibly held item from target.
+
+        Resolves an opposed Athletics/STR/DEX check against the target's grip
+        (honoring weapon size, two-handed grip, prone/frightened modifiers, and
+        ``approach_character``). On success, moves the item off the target's
+        hand slot onto the disarmer (when ``catch=True`` and a hand is free) or
+        drops it to the area floor, firing ``on_unequip`` triggers without
+        dealing HP damage. Records a structured ``'disarm'`` turn_event.
+        """
+        from engine.checks import resolve as check_resolve
+
+        attacker = self.skills.get_player(attacker_name)
+        target = self.skills.get_player(target_name)
+        if not attacker or not target:
+            return ""
+        if attacker_name == target_name:
+            return f"{attacker_name} cannot disarm themselves."
+
+        from engine.triggers.behaviors import is_character_hidden, reveal_if_hidden
+        gs_for_stealth = self._game_state()
+        reveal_note = reveal_if_hidden(
+            gs_for_stealth, attacker_name, reason=f"disarming {target_name}", player=attacker, graph=self.graph
+        )
+        if reveal_note:
+            self.skills.add_log_entry(f"[STEALTH] {reveal_note}")
+
+        target_visible = True
+        try:
+            if hasattr(self.skills, "player_manager") and self.skills.player_manager is not None:
+                target_visible = self.skills.player_manager.is_visible(target.name)
+            elif hasattr(self.skills, "is_visible"):
+                target_visible = self.skills.is_visible(target.name)
+        except Exception:
+            pass
+        if not target_visible or is_character_hidden(gs_for_stealth, target.name, graph=self.graph, player=target):
+            return (f"{attacker_name} reaches to disarm {target_name} - "
+                    f"but {target_name} is not there to grab.")
+
+        from engine.character_spatial import approach_character, _pm_get_player_node_id
+        approach_character(self.graph, self.skills, target_name, actor_name=attacker_name)
+
+        # Charmed / Frightened blocks mirror player_attack
+        for inst in attacker.conditions.get("charmed", []):
+            if inst.get("source") == target_name:
+                self.skills.add_log_entry(
+                    f"[COMBAT] {attacker_name} can't bring themselves to disarm {target_name} (charmed)."
+                )
+                return f"{attacker_name} hesitates - they can't bring themselves to disarm {target_name}."
+
+        if attacker.has_condition("frightened"):
+            from engine.conditions import frightened_block
+            self_defense = self._can_frightened_self_defend(attacker, target)
+            block = frightened_block(
+                attacker, "character", source_name=target_name, self_defense=self_defense
+            )
+            if block:
+                self.skills.add_log_entry(f"[COMBAT] {attacker_name} is too afraid to disarm {target_name}.")
+                return f"{attacker_name} trembles - {block}"
+
+        held_items = self._find_held_hand_items(target_name, target)
+        if not held_items:
+            return f"{target_name} isn't holding anything to disarm."
+
+        chosen_slot = None
+        item_node = None
+        if item_name:
+            wanted = item_name.lower().replace("_", " ").replace("-", " ").strip()
+            for slot, node in held_items:
+                norm = (node.properties.get("name") or node.name).lower().replace("_", " ").replace("-", " ")
+                if wanted == norm:
+                    chosen_slot, item_node = slot, node
+                    break
+            if item_node is None:
+                for slot, node in held_items:
+                    norm = (node.properties.get("name") or node.name).lower().replace("_", " ").replace("-", " ")
+                    if wanted in norm:
+                        chosen_slot, item_node = slot, node
+                        break
+            if item_node is None:
+                return f"{target_name} isn't holding a '{item_name}' to disarm."
+        else:
+            chosen_slot, item_node = held_items[0]
+
+        item_label = item_node.properties.get("name") or item_node.name
+        props = item_node.properties or {}
+
+        # Mark recent hostility so frightened target can retaliate
+        current_tick = getattr(self.skills, "time_ticks", 0) or 0
+        recent = getattr(target, "recent_attackers", None)
+        if not isinstance(recent, dict):
+            recent = {}
+            target.recent_attackers = recent
+        recent[attacker_name] = current_tick
+
+        area_name = getattr(target, "current_area", None)
+        self._emit_combat_fear_hooks(attacker_name, target_name, target, area_name)
+
+        # Opposed check: Attacker (Athletics with STR or DEX, whichever is higher)
+        # vs Defender (best of Athletics / Acrobatics, with grip & size modifiers).
+        atk_str = (attacker.stats or {}).get("STR", 10)
+        atk_dex = (attacker.stats or {}).get("DEX", 10)
+        atk_ability = "DEX" if atk_dex > atk_str else "STR"
+
+        def_skills = target.skills or {}
+        def_kind = "Acrobatics" if def_skills.get("Acrobatics", 0) > def_skills.get("Athletics", 0) else "Athletics"
+
+        def_mods = []
+        tags = props.get("tags") or []
+        if isinstance(tags, str):
+            tags = [t.strip().lower() for t in tags.split(",")]
+        else:
+            tags = [str(t).lower() for t in tags]
+
+        equip_slots = props.get("equip_slots") or []
+        two_handed = bool(props.get("two_handed")) or "two_handed" in tags or (
+            isinstance(equip_slots, (list, tuple))
+            and "hand_left" in equip_slots and "hand_right" in equip_slots
+            and props.get("requires_both_hands", False)
+        )
+        # Also detect two-handed if marker exists in the opposite hand
+        marker = f"__multi_slot_{item_node.id}"
+        target_equipped = getattr(target, "equipped", None) or {}
+        if any(str(x) == marker for s in ("hand_left", "hand_right") for x in (target_equipped.get(s) or [])):
+            two_handed = True
+        if two_handed:
+            def_mods.append(("two-handed grip", 2))
+
+        size = str(props.get("size", "")).lower()
+        weight = float(props.get("weight", 1.0) or 1.0)
+        if size in ("large", "heavy") or weight >= 5.0:
+            def_mods.append(("heavy item", 2))
+        elif size in ("tiny", "small") or weight <= 0.5:
+            def_mods.append(("light item", -1))
+
+        atk_dis = attacker.has_condition("prone") or getattr(attacker, "state", "") == "prone" or attacker.has_condition("frightened")
+        def_dis = target.has_condition("prone") or getattr(target, "state", "") == "prone" or target.has_condition("frightened")
+
+        roll_fn = lambda: self.skills.roll_dice(1, 20)
+        atk_res = check_resolve(
+            attacker, kind="Athletics", ability=atk_ability,
+            disadvantage=atk_dis, roll_fn=roll_fn,
+        )
+        def_res = check_resolve(
+            target, kind=def_kind,
+            disadvantage=def_dis, extra_mods=def_mods, roll_fn=roll_fn,
+        )
+        success = (not atk_res.auto_fail) and (def_res.auto_fail or atk_res.total > def_res.total)
+
+        gs = self._game_state()
+        triggers = getattr(gs, "triggers", None) if gs else None
+        equip_sys = getattr(gs, "equipment", None) if gs else None
+        target_id = _pm_get_player_node_id(self.skills, target_name)
+        attacker_id = _pm_get_player_node_id(self.skills, attacker_name)
+
+        def _record_disarm_event(outcome_str: str, desc: str) -> None:
+            extra_meta = {
+                "target": target_name,
+                "item": item_label,
+                "outcome": outcome_str,
+            }
+            try:
+                self.skills.record_turn_event(
+                    attacker_name, "disarm", desc, area_name=area_name, extra=extra_meta
+                )
+            except TypeError:
+                self.skills.record_turn_event(
+                    attacker_name, "disarm", desc, area_name=area_name
+                )
+
+        if success:
+            # Remove from defender's equipped slots and graph edges
+            for s in list(target_equipped.keys()):
+                target_equipped[s] = [
+                    x for x in target_equipped[s]
+                    if x != item_node.id and str(x) != marker
+                ]
+            for edge in list(self.graph.get_edges_for_target(target_id, EDGE_EQUIPPED)):
+                if edge.source == item_node.id:
+                    self.graph.remove_edge(edge.source, edge.target, EDGE_EQUIPPED)
+            self.graph.remove_edge(item_node.id, target_id, EDGE_CARRYING)
+            self.graph.remove_edges_for_node(item_node.id, EDGE_CONNECTION)
+
+            if triggers is not None and hasattr(triggers, "_execute_triggers"):
+                triggers._execute_triggers(item_node, "on_unequip", game_state=gs)
+            if equip_sys is not None:
+                if hasattr(equip_sys, "_maybe_revoke_granted_ability"):
+                    equip_sys._maybe_revoke_granted_ability(target_name, item_node)
+                if hasattr(equip_sys, "_maybe_update_equipment_description"):
+                    equip_sys._maybe_update_equipment_description(target)
+
+            free_hand = self._free_hand_slot(attacker_name, attacker) if catch else None
+            if catch and free_hand:
+                self.graph.add_edge(Edge(
+                    source=item_node.id,
+                    target=attacker_id,
+                    type=EDGE_EQUIPPED,
+                    properties={"slot": free_hand, "layer": 1},
+                ))
+                if not isinstance(getattr(attacker, "equipped", None), dict):
+                    attacker.equipped = {}
+                attacker.equipped.setdefault(free_hand, []).append(item_node.id)
+                if triggers is not None and hasattr(triggers, "_execute_triggers"):
+                    triggers._execute_triggers(item_node, "on_equip", game_state=gs)
+                if equip_sys is not None and hasattr(equip_sys, "_maybe_update_equipment_description"):
+                    equip_sys._maybe_update_equipment_description(attacker)
+                where_text = f"catching it in their {free_hand.replace('_', ' ')}"
+            else:
+                area_id = self._area_node_id(area_name)
+                if area_id:
+                    self.graph.add_edge(Edge(source=item_node.id, target=area_id, type=EDGE_IN))
+                where_text = "knocking it to the ground"
+
+            self.skills.add_log_entry(
+                f"[COMBAT] {attacker_name} disarms {item_label} from {target_name}! "
+                f"({atk_res.total} vs {def_res.total}) - {where_text}."
+            )
+            _record_disarm_event("success", f"disarmed {item_label} from {target_name}, {where_text}")
+            return (
+                f"{attacker_name} wrests the {item_label} from {target_name}'s grip, {where_text}!\n"
+                f"  Disarm: {atk_res.total} vs {def_res.total} -> SUCCESS"
+            )
+        else:
+            self.skills.add_log_entry(
+                f"[COMBAT] {attacker_name} tries to disarm {item_label} from {target_name}, "
+                f"but {target_name} keeps their grip ({atk_res.total} vs {def_res.total})."
+            )
+            _record_disarm_event("failed", f"tried to disarm {item_label} from {target_name} and failed")
+            return (
+                f"{attacker_name} lunges for {target_name}'s {item_label}, "
+                f"but {target_name} keeps their grip!\n"
+                f"  Disarm: {atk_res.total} vs {def_res.total} -> FAIL"
+            )

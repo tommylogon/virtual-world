@@ -160,7 +160,8 @@ const InspectorMindView = (() => {
     function formatTickWithWorldTime(
         tick: number,
         worldStateData?: Record<string, any> | null,
-        playerAge?: number | null
+        playerAge?: number | null,
+        worldDatetime?: string | null
     ): string {
         const t = Number.isFinite(Number(tick)) ? Math.round(Number(tick)) : 0;
         const raw = worldStateData && typeof worldStateData === 'object' ? worldStateData : {};
@@ -172,16 +173,42 @@ const InspectorMindView = (() => {
         const startM = Number.isFinite(startMRaw) ? startMRaw : 0;
         const curTickRaw = Number(raw.time_ticks);
         const currentTick = Number.isFinite(curTickRaw) ? Math.round(curTickRaw) : 0;
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        let timeLabel: string;
-        if (t >= 0) {
+        let timeLabel: string = '';
+        if (typeof worldDatetime === 'string' && worldDatetime) {
+            const m = worldDatetime.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+            if (m) {
+                const yr = Number(m[1]);
+                const mo = Math.max(1, Number(m[2]));
+                const dy = Number(m[3]);
+                timeLabel = `${months[(mo - 1) % 12]} ${dy}, ${yr} ${m[4]}:${m[5]}`;
+            }
+        }
+        if (!timeLabel && t >= 0) {
             const totalMinutes = t * tpm + startH * 60 + startM;
             const day = Math.floor(totalMinutes / 1440) + 1;
             const dayMinutes = ((totalMinutes % 1440) + 1440) % 1440;
             const hh = String(Math.floor(dayMinutes / 60)).padStart(2, '0');
             const mm = String(Math.floor(dayMinutes % 60)).padStart(2, '0');
-            timeLabel = `Day ${day}, ${hh}:${mm}`;
-        } else {
+            const cfg = raw.calendar_config && typeof raw.calendar_config === 'object' ? raw.calendar_config : {};
+            const hasYear = Boolean(cfg.start_year || (Number(raw.game_year) || 1) > 1);
+            if (hasYear) {
+                const dpm = Math.max(1, Math.floor(Number(cfg.days_per_month) || 30));
+                const mpy = Math.max(1, Math.floor(Number(cfg.months_per_year) || 12));
+                const curElapsedDays = Math.floor((currentTick * tpm + startH * 60 + startM) / 1440);
+                const baseDay = cfg.start_year
+                    ? ((Number(cfg.start_year) - 1) * dpm * mpy + ((Number(cfg.start_month) || 1) - 1) * dpm + ((Number(cfg.start_day) || 1) - 1))
+                    : ((Number(raw.game_day) || 1) - curElapsedDays - 1);
+                const absDay = baseDay + (day - 1) + 1;
+                const yearIdx = Math.floor((absDay - 1) / (dpm * mpy)) + 1;
+                const monthIdx = (Math.floor((absDay - 1) / dpm) % mpy) + 1;
+                const dayIdx = ((absDay - 1) % dpm) + 1;
+                timeLabel = `${months[((monthIdx - 1) % 12 + 12) % 12]} ${dayIdx}, ${yearIdx} ${hh}:${mm}`;
+            } else {
+                timeLabel = `Day ${day}, ${hh}:${mm}`;
+            }
+        } else if (!timeLabel) {
             const refTick = Math.max(0, currentTick);
             const elapsedMinutes = Math.max(1, (refTick - t) * tpm);
             if (elapsedMinutes < 60) {
@@ -927,19 +954,160 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    function _whatISeeHtml(): string {
-        if (!_state) return '';
-        const p: any = worldState.players?.[_state.charName];
+    function _whatISeeHtml(charName?: string): string {
+        const cname = charName || (_state ? _state.charName : '');
+        if (!cname) return '';
+        const p: any = worldState.players?.[cname];
         if (!p) return '';
-        const area = worldState.areas?.[p.current_area];
+        const areaName = p.current_area;
+        const area = areaName ? worldState.areas?.[areaName] : null;
         let body: string;
         if (area) {
-            body = `<div>${area.description || ''}</div>`;
-            const items = (area.items || []).map((item: any) => item.name).filter(Boolean).join(', ');
-            if (items) body += `<div style="margin-top:4px;color:var(--text-dim);font-size:11px;">Items: ${items}</div>`;
-            const others = Object.entries(worldState.players || {} as Record<string, any>)
-                .filter(([name, q]: [string, any]) => name !== _state!.charName && q.current_area === p.current_area);
-            if (others.length) body += `<div style="margin-top:4px;color:var(--pink);font-size:11px;">Also: ${others.map(([name]) => name).join(', ')}</div>`;
+            body = `<div>${esc(area.description || '')}</div>`;
+
+            // Lighting / sensory parity with PromptBuilder / room-context.ts.
+            const light = area.ambient_light ?? area.environment?.light ?? 50;
+            const numLight = Number(light);
+            const level = (!Number.isNaN(numLight) && numLight <= 0)
+                ? 'pitch_black'
+                : (typeof PromptBuilder !== 'undefined' && typeof PromptBuilder.lightToLevel === 'function')
+                    ? PromptBuilder.lightToLevel(light)
+                    : (numLight <= 20 ? 'pitch_black' : numLight <= 40 ? 'dim' : 'normal');
+            const traits: Record<string, any> = p.traits || {};
+            const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
+            const isBlind = !!(p.conditions?.blind);
+
+            // Items: resolve from worldState.getItemsInArea when available, falling back
+            // to area.items when no graph is present; filter hidden items (unless authored
+            // in known) and apply blind / pitch_black / dim visibility rules.
+            const knownIds = new Set<string>(Array.isArray(p.known) ? p.known.map(String) : []);
+            const hasGraph = !!(worldState as any)?.data?.graph?.nodes;
+            let rawItems: any[] = [];
+            if (areaName && typeof (worldState as any)?.getItemsInArea === 'function') {
+                rawItems = (worldState as any).getItemsInArea(areaName) || [];
+            }
+            if (!rawItems.length && !hasGraph) {
+                if (Array.isArray(area.items)) {
+                    rawItems = area.items;
+                } else if (area.items && typeof area.items === 'object') {
+                    rawItems = Object.entries(area.items as Record<string, any>).map(([k, v]) => (
+                        v && typeof v === 'object'
+                            ? { id: v.id || k, name: v.name || k, ...v, properties: v.properties || v }
+                            : { id: k, name: k, properties: {} }
+                    ));
+                }
+            }
+
+            let visibleItems = rawItems.filter((item: any) => {
+                if (!item || !item.name) return false;
+                const itemState = String(item.properties?.current_state ?? item.current_state ?? item.state ?? '').toLowerCase();
+                const flaggedHidden = item.hidden === true || item.properties?.hidden === true || itemState === 'hidden';
+                if (!flaggedHidden) return true;
+                return !!(item.id != null && knownIds.has(String(item.id)));
+            });
+
+            if (isBlind) {
+                const memIdx: Record<string, any> = p.memory_index || {};
+                const knownItemNames = new Set<string>();
+                if (Array.isArray(p.memories)) {
+                    for (const m of p.memories) {
+                        if (m && m.kind === 'item' && m.name) knownItemNames.add(String(m.name).toLowerCase().trim());
+                    }
+                }
+                visibleItems = visibleItems.filter((item: any) =>
+                    (item.id && memIdx[String(item.id)]) || knownItemNames.has(String(item.name || '').toLowerCase().trim())
+                );
+            } else if (!hasDarkVision) {
+                if (level === 'pitch_black') {
+                    visibleItems = [];
+                } else if (level === 'dim') {
+                    visibleItems = visibleItems.filter((item: any) => {
+                        const w = Number(item.properties?.weight ?? item.weight ?? 1);
+                        return (Number.isNaN(w) ? 1 : w) >= 3;
+                    });
+                }
+            }
+
+            const itemsStr = visibleItems.map((item: any) => esc(String(item.name))).filter(Boolean).join(', ');
+            if (itemsStr) body += `<div style="margin-top:4px;color:var(--text-dim);font-size:11px;">Items: ${itemsStr}</div>`;
+
+            // People: prefer room visibility snapshot players_in_area when it matches
+            // this character's area, otherwise filter worldState.players in the same area.
+            // Always exclude hidden/stealthed actors and mask unmet strangers.
+            const allPlayers: Record<string, any> = worldState.players || {};
+            const wsData: any = (worldState as any)?.data;
+            const snapshotArea = wsData?.current_area ?? (worldState as any)?.current_area;
+            const snapshotPeople: any[] | null = Array.isArray((worldState as any)?.players_in_area)
+                ? (worldState as any).players_in_area
+                : (Array.isArray(wsData?.players_in_area) ? wsData.players_in_area : null);
+            const useSnapshot = Array.isArray(snapshotPeople) && (!snapshotArea || snapshotArea === areaName);
+
+            const rawPeople: any[] = useSnapshot
+                ? snapshotPeople!
+                : Object.entries(allPlayers)
+                    .filter(([, q]: [string, any]) => q && q.current_area === areaName)
+                    .map(([name, q]: [string, any]) => ({ name, ...(typeof q === 'object' ? q : {}) }));
+
+            const isActorHidden = (person: any): boolean => {
+                const targetName = person?.name;
+                const pData = (targetName && allPlayers[targetName]) || {};
+                const pState = String(person?.state ?? person?.current_state ?? '').toLowerCase();
+                const dState = String(pData?.state ?? pData?.current_state ?? '').toLowerCase();
+                return !!(
+                    person?.hidden === true
+                    || person?.stealthed === true
+                    || person?.conditions?.hidden
+                    || person?.conditions?.stealthed
+                    || pState === 'hidden'
+                    || pState === 'stealthed'
+                    || pData?.hidden === true
+                    || pData?.stealthed === true
+                    || pData?.conditions?.hidden
+                    || pData?.conditions?.stealthed
+                    || dState === 'hidden'
+                    || dState === 'stealthed'
+                );
+            };
+
+            const isKnown = (targetName: string): boolean => {
+                if (typeof PromptBuilder !== 'undefined' && typeof PromptBuilder.isKnownToViewer === 'function') {
+                    if (PromptBuilder.isKnownToViewer(cname, targetName)) return true;
+                }
+                if (typeof (worldState as any)?.hasMet === 'function' && (worldState as any).hasMet(cname, targetName)) {
+                    return true;
+                }
+                if (Array.isArray(p.met) && p.met.includes(targetName)) return true;
+                const targetSlug = String(targetName || '').toLowerCase().replace(/\s+/g, '_');
+                const knownLower = new Set(Array.from(knownIds).map(k => k.toLowerCase()));
+                return knownLower.has(String(targetName || '').toLowerCase())
+                    || knownLower.has('player_' + targetSlug)
+                    || knownLower.has('character_' + targetSlug);
+            };
+
+            const visibleOthers: string[] = [];
+            for (const person of rawPeople) {
+                if (!person) continue;
+                const targetName = String(person.name || '');
+                if (!targetName || targetName === cname) continue;
+                if (isActorHidden(person)) continue;
+                const pData = allPlayers[targetName] || {};
+                const rawDesc = String(person.description || pData.description || '').trim();
+                const firstSentence = rawDesc ? rawDesc.split(/[.!?]/)[0].trim() : '';
+                const desc = firstSentence ? firstSentence + (rawDesc.includes('.') ? '.' : '') : '';
+                let displayName: string;
+                if (isKnown(targetName)) {
+                    displayName = targetName;
+                } else if (typeof PromptBuilder !== 'undefined' && typeof PromptBuilder.anonymousName === 'function') {
+                    displayName = PromptBuilder.anonymousName(cname, targetName, desc);
+                } else {
+                    displayName = person.unknown_name || pData.unknown_name || person.unknown_display_name
+                        || (firstSentence ? `the ${firstSentence.toLowerCase()}` : 'the stranger');
+                }
+                if (displayName) visibleOthers.push(esc(displayName));
+            }
+            if (visibleOthers.length) {
+                body += `<div style="margin-top:4px;color:var(--pink);font-size:11px;">Also: ${visibleOthers.join(', ')}</div>`;
+            }
         } else {
             body = `<span style="color:var(--text-muted);">Unknown location</span>`;
         }
@@ -1989,6 +2157,7 @@ const InspectorMindView = (() => {
         _cardHtml,
         _rollupLivedLog,
         _historyHtml,
+        _whatISeeHtml,
         _onKeydown,
         _getState: () => _state,
         _getContainer: () => _container,

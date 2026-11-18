@@ -65,6 +65,7 @@ class AgentEngine {
         this._startleSeen = {};
         this._startleCache = {};
         this._startleCacheTurn = -1;
+        this._recentInnerMonologues = {};
     }
     get isPaused() { return this._paused; }
     getHistory(charName) {
@@ -347,30 +348,106 @@ class AgentEngine {
             extraProps.valid_at = memory.valid_at;
         if (memory.invalid_at !== undefined)
             extraProps.invalid_at = memory.invalid_at;
-        window.AgentMemory.storeMemory(charName, memory.text, memory.importance, 'reaction', tick, Array.from(entityIdsSet), memory.tags, feltEmotion, memory.emotions || null, location, extraProps);
+        const primaryEmotion = Array.isArray(feltEmotion) ? (feltEmotion[0] || null) : feltEmotion;
+        window.AgentMemory.storeMemory(charName, memory.text, memory.importance, 'reaction', tick, Array.from(entityIdsSet), memory.tags, primaryEmotion, memory.emotions || null, location, extraProps);
+    }
+    /**
+     * Persist Actor inner monologue as a reflection memory (task-948).
+     * Deduplicates identical text within +/- 1 tick so repeated inner phrases
+     * in the same turn are not written twice.
+     */
+    _persistInnerMonologue(charName, inner, feltEmotion = null) {
+        const rawText = String(inner || '').trim();
+        if (!charName || !rawText)
+            return;
+        const pb = window.PromptBuilder;
+        const am = window.AgentMemory;
+        const normalizer = am?.normalizeMemoryText || pb?.normalizeMemoryText;
+        const text = normalizer ? normalizer(rawText) : rawText.replace(/^\[[^\]]+\]\s*/, '').trim();
+        if (!text)
+            return;
+        const tick = worldState.runtimeData?.time_ticks ?? worldState.data?.time_ticks ?? 0;
+        const normalizedKey = text.toLowerCase();
+        const last = this._recentInnerMonologues?.[charName];
+        if (last && last.text === normalizedKey && Math.abs(last.tick - tick) <= 1)
+            return;
+        const player = worldState.runtimePlayer?.(charName) || worldState.data?.players?.[charName];
+        const duplicate = (player?.memories || []).some((existing) => {
+            const existingNorm = (normalizer ? normalizer(existing.text || '') : String(existing.text || '')).trim().toLowerCase();
+            const sameTick = Math.abs((existing.tick || 0) - tick) <= 1;
+            return existingNorm === normalizedKey && sameTick;
+        });
+        if (duplicate)
+            return;
+        if (!this._recentInnerMonologues)
+            this._recentInnerMonologues = {};
+        this._recentInnerMonologues[charName] = { text: normalizedKey, tick };
+        const entityId = this._currentAreaEntityId(charName);
+        const entityIds = entityId ? [entityId] : [];
+        const location = player?.current_area || entityId || '';
+        const primaryEmotion = Array.isArray(feltEmotion) ? (feltEmotion[0] || null) : feltEmotion;
+        const emoInt = Number(primaryEmotion?.intensity);
+        const importance = Number.isFinite(emoInt) ? Math.max(5, Math.min(8, Math.round(emoInt))) : 5;
+        if (typeof am?.storeMemory === 'function') {
+            am.storeMemory(charName, text, importance, 'reflection', tick, entityIds, ['inner_monologue', 'thought'], primaryEmotion || null, null, location, { source: 'inner_monologue', category: 'reflection' });
+            return;
+        }
+        if (typeof ApiClient !== 'undefined' && typeof ApiClient.addPlayerMemory === 'function') {
+            ApiClient.addPlayerMemory(charName, {
+                text,
+                tick,
+                importance,
+                type: 'reflection',
+                category: 'reflection',
+                source: 'inner_monologue',
+                entity_ids: entityIds,
+                tags: ['inner_monologue', 'thought'],
+                emotion: (primaryEmotion && typeof primaryEmotion === 'object')
+                    ? { label: primaryEmotion.label, intensity: primaryEmotion.intensity }
+                    : null,
+                location,
+                valid_at: tick,
+                invalid_at: null,
+            }).catch(() => { });
+        }
     }
     /**
      * Fire-and-forget spike of the character's affect map from an LLM-declared
-     * feeling (task-96). Silent no-op when absent/malformed or backend misses.
+     * feeling (task-96, bug-596). Silent no-op when absent/malformed or backend misses.
      */
     _applyFeltEmotion(charName, emotion) {
-        if (!emotion?.label || !worldState.players?.[charName])
+        if (!emotion || !worldState.players?.[charName])
             return null;
-        // task-350: when the feeling is TOWARD a specific person, pass `toward`
-        // so the backend records it as an experience (felt_toward) and so
-        // relationships/feelings can change toward that person. Otherwise it's
-        // a global affect spike (legacy).
-        const body = { emotion: emotion.label, intensity: Math.max(1, Math.min(10, emotion.intensity)) };
-        if (emotion.toward)
-            body.toward = emotion.toward;
-        else
-            body.delta = body.intensity * 1.5;
-        try {
-            return ApiClient.getPlayerEmotions(charName, body).catch(() => { });
-        }
-        catch (e) {
+        const impulses = (Array.isArray(emotion) ? emotion : [emotion]).filter((e) => Boolean(e && typeof e === 'object' && e.label));
+        if (!impulses.length)
             return null;
+        const dispatches = [];
+        for (const imp of impulses) {
+            const label = String(imp.label).trim();
+            if (!label)
+                continue;
+            const rawIntensity = Number(imp.intensity);
+            const intensity = Number.isFinite(rawIntensity) ? Math.max(1, Math.min(10, rawIntensity)) : 5;
+            // task-350: when the feeling is TOWARD a specific person, pass `toward`
+            // so the backend records it as an experience (felt_toward) and so
+            // relationships/feelings can change toward that person. Otherwise it's
+            // a global affect spike (legacy).
+            const body = { emotion: label, intensity };
+            if (imp.toward)
+                body.toward = String(imp.toward).trim();
+            else
+                body.delta = intensity * 1.5;
+            try {
+                const req = ApiClient.getPlayerEmotions(charName, body);
+                if (req && typeof req.catch === 'function') {
+                    dispatches.push(req.catch(() => { }));
+                }
+            }
+            catch (e) { /* ignore */ }
         }
+        if (!dispatches.length)
+            return null;
+        return dispatches.length === 1 ? dispatches[0] : Promise.all(dispatches);
     }
     /** task-350: record names the agent confirmed/deduced this turn (heard,
      *  name tag, sign, document, deduction). Fire-and-forget; engine validates
@@ -443,9 +520,10 @@ class AgentEngine {
                     events.trackPhase?.(charName, 'think', { thought: picked.inner });
                 }
                 if (picked.emotion) {
-                    const emoVal = typeof picked.emotion === 'object' && picked.emotion
-                        ? picked.emotion.label
-                        : String(picked.emotion);
+                    const firstEmo = Array.isArray(picked.emotion) ? picked.emotion[0] : picked.emotion;
+                    const emoVal = typeof firstEmo === 'object' && firstEmo
+                        ? firstEmo.label
+                        : (firstEmo ? String(firstEmo) : '');
                     if (emoVal) {
                         ApiClient.updateCharacter(charName, { emotion: emoVal }).catch(() => { });
                     }
@@ -500,9 +578,10 @@ class AgentEngine {
                         events.trackPhase?.(charName, 'think', { thought: reaction.inner });
                     }
                     if (reaction.emotion) {
-                        const emoVal = typeof reaction.emotion === 'object' && reaction.emotion
-                            ? reaction.emotion.label
-                            : String(reaction.emotion);
+                        const firstEmo = Array.isArray(reaction.emotion) ? reaction.emotion[0] : reaction.emotion;
+                        const emoVal = typeof firstEmo === 'object' && firstEmo
+                            ? firstEmo.label
+                            : (firstEmo ? String(firstEmo) : '');
                         if (emoVal) {
                             ApiClient.updateCharacter(charName, { emotion: emoVal }).catch(() => { });
                         }
@@ -828,8 +907,12 @@ class AgentEngine {
                 draftLines.push(`- EMOTE: ${currentDraft.emote}`);
             if (currentDraft.inner)
                 draftLines.push(`- THOUGHT: ${currentDraft.inner}`);
-            if (currentDraft.emotion)
-                draftLines.push(`- EMOTION: ${currentDraft.emotion}`);
+            if (currentDraft.emotion) {
+                const draftEmo = typeof currentDraft.emotion === 'string'
+                    ? currentDraft.emotion
+                    : JSON.stringify(currentDraft.emotion);
+                draftLines.push(`- EMOTION: ${draftEmo}`);
+            }
             if (currentDraft.memory)
                 draftLines.push(`- MEMORY: ${currentDraft.memory}`);
             if (draftLines.length > 0) {
@@ -910,7 +993,7 @@ class AgentEngine {
                 target: grounded.target,
                 emote: parsed.emote || null,
                 inner: parsed.inner || null,
-                emotion: typeof parsed.emotion === 'object' && parsed.emotion ? parsed.emotion.label : (parsed.emotion || null),
+                emotion: parsed.emotion || null,
                 memory: memVal,
             };
         }
@@ -938,23 +1021,11 @@ class AgentEngine {
         const win = window;
         let parsed = null;
         if (config.interpreterModelEnabled && win.ActionInterpreter && typeof win.ActionInterpreter.interpretProseToAction === 'function') {
-            const waysOut = [];
-            if (currentArea?.ways) {
-                for (const [wName, wObj] of Object.entries(currentArea.ways)) {
-                    waysOut.push({
-                        name: wName,
-                        destination: wObj.to || wObj.destination || '',
-                        direction: wObj.direction || ''
-                    });
-                }
-            }
-            const thingsVisible = Object.keys(currentArea?.items || {});
-            const peopleHere = Object.keys(state.players || {}).filter(p => p !== charName && state.players[p]?.current_area === player?.current_area);
-            const inventory = Object.keys(player?.inventory || {});
+            const context = this._buildInterpreterContext(charName, state, player, currentArea);
             const interpreted = await win.ActionInterpreter.interpretProseToAction({
                 prose: raw,
                 charName,
-                context: { waysOut, thingsVisible, peopleHere, inventory },
+                context,
                 directorNote: note
             });
             if (interpreted) {
@@ -992,9 +1063,116 @@ class AgentEngine {
             target: grounded.target,
             emote: parsed.emote || null,
             inner: parsed.inner || parsed.inner_monologue || null,
-            emotion: typeof parsed.emotion === 'object' && parsed.emotion ? parsed.emotion.label : (parsed.emotion || null),
+            emotion: parsed.emotion || null,
             memory: memVal,
         };
+    }
+    /**
+     * Build a visibility-aware context for ActionInterpreter (bug-597).
+     * Filters hidden items, respects dim/pitch_black light rules, excludes hidden
+     * characters, and masks unmet strangers via PromptBuilder.anonymousName.
+     */
+    _buildInterpreterContext(charName, state, player, currentArea) {
+        const waysOut = [];
+        if (currentArea?.ways) {
+            for (const [wName, wObj] of Object.entries(currentArea.ways)) {
+                waysOut.push({
+                    name: wName,
+                    destination: wObj.to || wObj.destination || '',
+                    direction: wObj.direction || ''
+                });
+            }
+        }
+        const areaName = currentArea?.name || player?.current_area || state?.current_area || '';
+        const light = currentArea?.ambient_light
+            ?? currentArea?.environment?.light ?? 50;
+        const level = typeof PromptBuilder?.lightToLevel === 'function'
+            ? PromptBuilder.lightToLevel(light)
+            : (Number(light) <= 20 ? 'pitch_black' : Number(light) <= 40 ? 'dim' : 'normal');
+        const traits = player?.traits || {};
+        const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
+        const isBlind = !!(player?.conditions?.blind);
+        const hasGraph = !!worldState?.data?.graph?.nodes;
+        let rawAreaItems = [];
+        if (areaName && typeof worldState?.getItemsInArea === 'function') {
+            rawAreaItems = worldState.getItemsInArea(areaName) || [];
+        }
+        if (!rawAreaItems.length && !hasGraph && currentArea?.items && typeof currentArea.items === 'object') {
+            rawAreaItems = Object.entries(currentArea.items).map(([k, v]) => {
+                if (v && typeof v === 'object') {
+                    return {
+                        id: v.id || k,
+                        name: v.name || k,
+                        properties: v.properties || v,
+                    };
+                }
+                return { id: k, name: k, properties: {} };
+            });
+        }
+        let visibleItems = rawAreaItems.filter(it => it && it.name && it.properties?.current_state !== 'hidden');
+        if (isBlind) {
+            const memIdx = player?.memory_index || {};
+            const knownItemNames = new Set();
+            if (Array.isArray(player?.memories)) {
+                for (const m of player.memories) {
+                    if (m && m.kind === 'item' && m.name)
+                        knownItemNames.add(String(m.name).toLowerCase().trim());
+                }
+            }
+            visibleItems = visibleItems.filter(it => (it.id && memIdx[String(it.id)]) || knownItemNames.has(String(it.name || '').toLowerCase().trim()));
+        }
+        else if (!hasDarkVision) {
+            if (level === 'pitch_black') {
+                visibleItems = [];
+            }
+            else if (level === 'dim') {
+                visibleItems = visibleItems.filter(it => ((it.properties?.weight || 1) >= 3));
+            }
+        }
+        const thingsVisible = visibleItems.map(it => String(it.name)).filter(Boolean);
+        const allPlayers = state?.players || {};
+        const rawPeople = Array.isArray(state?.players_in_area)
+            ? state.players_in_area
+            : Object.entries(allPlayers).map(([pName, pData]) => ({
+                name: pName,
+                ...(pData && typeof pData === 'object' ? pData : {}),
+            })).filter((p) => p.current_area === areaName);
+        const isPersonHidden = (person) => {
+            const pName = person?.name;
+            const pData = (pName && allPlayers[pName]) || {};
+            return !!(person?.hidden
+                || person?.conditions?.hidden
+                || person?.current_state === 'hidden'
+                || pData?.hidden
+                || pData?.conditions?.hidden
+                || pData?.current_state === 'hidden');
+        };
+        const peopleHere = [];
+        for (const person of rawPeople) {
+            if (!person)
+                continue;
+            const pName = person.name;
+            if (pName === charName)
+                continue;
+            if (isPersonHidden(person))
+                continue;
+            const rawDesc = String(person.description || (pName && allPlayers[pName]?.description) || '').trim();
+            const firstSentence = rawDesc ? rawDesc.split(/[.!?]/)[0].trim() : '';
+            const desc = firstSentence ? firstSentence + (rawDesc.includes('.') ? '.' : '') : '';
+            let displayName;
+            if (pName) {
+                displayName = typeof PromptBuilder?.anonymousName === 'function'
+                    ? PromptBuilder.anonymousName(charName, pName, desc)
+                    : (person.unknown_display_name || (firstSentence ? `the ${firstSentence.toLowerCase()}` : 'the stranger'));
+            }
+            else {
+                displayName = person.display_name || person.unknown_display_name || 'the stranger';
+            }
+            if (displayName)
+                peopleHere.push(displayName);
+        }
+        const inventory = Object.keys(player?.inventory || {});
+        return { waysOut, thingsVisible, peopleHere, inventory };
     }
     /**
      * Interpret raw creative character prose into a structured engine turn (task-943).
@@ -1009,29 +1187,12 @@ class AgentEngine {
         const state = worldState.runtimeData || worldState.data || {};
         const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
         const currentArea = state.areas?.[player?.current_area || state.current_area] || null;
-        // Build room context affordances for grounding
-        const waysOut = [];
-        if (currentArea?.ways) {
-            for (const [wName, wObj] of Object.entries(currentArea.ways)) {
-                waysOut.push({
-                    name: wName,
-                    destination: wObj.to || wObj.destination || '',
-                    direction: wObj.direction || ''
-                });
-            }
-        }
-        const thingsVisible = Object.keys(currentArea?.items || {});
-        const peopleHere = Object.keys(state.players || {}).filter(p => p !== charName && state.players[p]?.current_area === player?.current_area);
-        const inventory = Object.keys(player?.inventory || {});
+        // Build visibility-aware room context affordances for grounding
+        const context = this._buildInterpreterContext(charName, state, player, currentArea);
         const interpreted = await interpreter.interpretProseToAction({
             prose,
             charName,
-            context: {
-                waysOut,
-                thingsVisible,
-                peopleHere,
-                inventory
-            },
+            context,
             directorNote: opts?.directorNote
         });
         if (!interpreted)
@@ -1436,6 +1597,7 @@ class AgentEngine {
                     this._learnNames(charName, parsedDecide.learnedNames);
                     if (inner) {
                         events.logThought(charName, inner);
+                        this._persistInnerMonologue(charName, inner, parsedDecide.emotion);
                     }
                     events.trackAction(charName, inner, null, '', '');
                     if (!agentConfig.lastRoom[charName] && player.current_area)
@@ -1608,7 +1770,24 @@ class AgentEngine {
                                 : areaChanged
                                     ? `[Tick ${tickNum}] You just moved - you are now in ${areaName}. The full description of your new surroundings is in === WHAT HAPPENED === below.`
                                     : `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged.`;
-                            const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, vitalsNL, emotionNL, relationshipNL, inner, finalAction || '', actionResult, memoryNL, decisionSpeech);
+                            // bug-606: rebuild vitals/emotion/relationship snapshots from
+                            // post-action freshPlayer/freshState instead of stale turn-start strings,
+                            // and refresh memoryNL read-only when location or stimulus changed.
+                            const reactVitalsNL = PromptBuilder.describeVitals(freshPlayer, freshState, charName);
+                            const reactEmotionNL = PromptBuilder.buildEmotionContext(freshPlayer);
+                            const reactRelationshipNL = PromptBuilder.buildRelationshipContext(freshPlayer, charName);
+                            const freshAreaKey = freshPlayer?.current_area || freshState?.current_area || '';
+                            const preAreaKey = promptPlayer?.current_area || player?.current_area || '';
+                            const locationChanged = movedViaDash || areaChanged || (!!freshAreaKey && freshAreaKey !== preAreaKey);
+                            const stimulusChanged = Boolean(actionResult && actionResult !== loopLastResult);
+                            const reactMemoryNL = (locationChanged || stimulusChanged) && typeof PromptBuilder.buildMemoryContext === 'function'
+                                ? await PromptBuilder.buildMemoryContext(charName, {
+                                    preview: true,
+                                    area: freshPlayer?.current_area,
+                                    stimulus: actionResult,
+                                })
+                                : memoryNL;
+                            const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, reactVitalsNL, reactEmotionNL, reactRelationshipNL, inner, finalAction || '', actionResult, reactMemoryNL, decisionSpeech);
                             // task-XXX: dedicated minimal react call. The react phase cannot
                             // act, so replaying the full decide exchange (~2-3k of persona/
                             // room/plan/available-actions) plus the action-law system was
@@ -1651,9 +1830,10 @@ class AgentEngine {
                             if (!reactResponse || !String(reactResponse).trim()) {
                                 events.log(`⚠️ ${charName}: result-reaction returned empty - skipping react`, 'error-msg');
                             }
-                            const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote, memory: reactionMemory } = parsedReact;
+                            const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote } = parsedReact;
                             if (reactionInner) {
                                 events.logThought(charName, reactionInner);
+                                this._persistInnerMonologue(charName, reactionInner, parsedReact.emotion);
                             }
                             this._applyFeltEmotion(charName, parsedReact.emotion);
                             this._learnNames(charName, parsedReact.learnedNames);
@@ -1663,7 +1843,6 @@ class AgentEngine {
                             if (reactionEmote) {
                                 await this._performEmote(charName, reactionEmote);
                             }
-                            this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion, actionSucceeded, actionResult, finalAction);
                             events.trackAction(charName, reactionInner, reactionSpeech, null, '');
                         }
                         else {
@@ -1711,16 +1890,16 @@ class AgentEngine {
                 if (parsedNonReactive.parseError) {
                     events.logParseError(charName, 'combined', parsedNonReactive.parseError, reactionResponse);
                 }
-                let { inner, speech, speechVolume, action, emote: reactionEmote, memory: reactionMemory, target: speechTarget } = parsedNonReactive;
+                let { inner, speech, speechVolume, action, emote: reactionEmote, target: speechTarget } = parsedNonReactive;
                 if (inner) {
                     events.log(`[${player.name} inner] ${inner}`, "msg-thought");
+                    this._persistInnerMonologue(charName, inner, parsedNonReactive.emotion);
                 }
                 this._applyFeltEmotion(charName, parsedNonReactive.emotion);
                 this._learnNames(charName, parsedNonReactive.learnedNames);
                 if (speech) {
                     await this._speakLine(charName, player, speech, speechVolume, speechTarget);
                 }
-                this._storeReactionMemory(charName, reactionMemory, parsedNonReactive.emotion, true, '', action);
                 events.trackAction(charName, inner, speech, null, '');
                 if (!agentConfig.lastRoom[charName] && player.current_area)
                     agentConfig.lastRoom[charName] = player.current_area;
@@ -2197,6 +2376,7 @@ class AgentEngine {
         this._paused = false;
         this._pausedAt = null;
         this._resumeAfterVisibility = false;
+        this._recentInnerMonologues = {};
     }
     nudge(charName, text) {
         if (!text || !charName)

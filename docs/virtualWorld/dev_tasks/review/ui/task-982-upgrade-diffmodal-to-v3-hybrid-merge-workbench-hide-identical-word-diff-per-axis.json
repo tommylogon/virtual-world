@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "task-982",
+  "kind": "task",
+  "number": 982,
+  "title": "Upgrade DiffModal to V3 Hybrid Merge Workbench (hide identical, word-diff, per-axis merge, seed safety lock)",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [
+    "ui",
+    "diff-modal",
+    "library",
+    "merge"
+  ],
+  "created": "2026-11-17",
+  "updated": "2026-11-17",
+  "horizon": "now",
+  "effort": "l",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-972",
+      "task-973",
+      "task-983"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Upgrade static/js/shared/diff-modal.ts and routes/library_ops.py from the raw A -> A list modal into the V3 Hybrid Merge Workbench demonstrated in diff_modal_demo_v3_hybrid.html.",
+    "why": "The current DiffModal floods the screen with 20+ identical A -> A fields and memories, dumps raw JSON blobs for stats/skills/relationships, truncates memory text, and marks world-only seed memories as '-' removals without safety locks.",
+    "how": "1. Upgrade static/js/shared/diff-modal.ts to the V3 Hybrid Merge Workbench layout (fluid clamp/vh modal, KPI bucket strip for Conflicts / World-Only / New / Identical, side-by-side / inline word-diff for prose, full untruncated memory rows).\n2. Add per-axis Smart Merge support for relationships/stats/skills (e.g. keep live closeness/interaction_count/label while adopting missing multi-axis fields from library) and wire _apply_entry_selection in routes/library_ops.py.\n3. Protect world-only items (especially seed memories) as Keep Safe by default unless explicitly marked Delete (or Promote in World -> Library mode), and add bulk facet buttons (Keep all seed, filter by #tag).\n4. Add dry-run summary preview, clear direction banner (Library -> World vs World -> Library), and UndoHistory snapshot hook on Apply.",
+    "verify": "Run npm run build:ts, JS unit tests for DiffModal/template-sync, and pytest on routes/library_ops.py; verify live in Character Inspector Refresh from Library for kyrie johansen.",
+    "acceptance": [
+      {
+        "text": "DiffModal uses a fluid widescreen layout and hides identical (=) fields/memories/relationships by default with a toggle to inspect them.",
+        "done": false
+      },
+      {
+        "text": "Prose fields render inline word-level diffs (-old/+new), structured objects (relationships, stats, skills) support per-axis Smart Merge, and memories render full untruncated text.",
+        "done": false
+      },
+      {
+        "text": "World-only items (such as seed memories) are protected by default (Keep Safe) instead of silently queued for deletion, with bulk facet chips, bidirectional mode clarity, dry-run preview, and UndoHistory integration.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/shared/diff-modal.ts",
+      "static/js/shared/template-sync.ts",
+      "static/js/library-browser.ts",
+      "routes/library_ops.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Shared DiffModal (static/js/shared/diff-modal.ts) invoked from Refresh from Library and Save to Library.\\n\\nManual verification steps:\\n1. Open Character Inspector for kyrie johansen and click Refresh from Library.\\n   - expected: Full-screen V3 Hybrid Merge Workbench opens with identical items hidden by default, per-axis Smart Merge on lulu ashford, and seed memories protected as Keep Safe."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Library System/diff-modal]]"
+    ],
+    "docs": [
+      "docs/virtualWorld/Library System/diff-modal.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

@@ -28,6 +28,7 @@ import logging
 
 from engine import fear as fear_mod
 from engine import interrupts as interrupts_mod
+from engine import lived_log as lived_log_mod
 from engine import timeskip
 from engine.background_simulation import BackgroundSimulation
 
@@ -112,10 +113,35 @@ def apply_orders(gs) -> None:
 
 # ───────────────────────────── internals ──────────────────────────────────
 
+def _run_conscious_handoff(gs, player, order):
+    """Route lived_log continuity through the Intermediator conscious handoff."""
+    since_tick = int(order.get("last_handoff_tick", order.get("start_tick", 0)) or 0)
+    curr_tick = int(getattr(gs, "time_ticks", 0) or 0)
+    synthesizer = getattr(gs, "intermediator_fn", None)
+    try:
+        thought = lived_log_mod.conscious_handoff(
+            player,
+            since_tick=since_tick,
+            synthesizer=synthesizer,
+            tick=curr_tick,
+        )
+        if thought:
+            order["last_handoff_tick"] = curr_tick
+            order["last_conscious_thought"] = thought
+        return thought
+    except Exception as e:
+        logger.warning("[soak] conscious handoff: %s", e)
+        return None
+
+
 def _step_one(gs, sim, player, order) -> None:
     if getattr(player, "state", "") == "dead" and not getattr(gs, "ghost_mode", False):
         _finish(gs, player, order, ("death", "You died."))
         return
+
+    curr_tick = int(getattr(gs, "time_ticks", 0) or 0)
+    order.setdefault("start_tick", curr_tick)
+    order.setdefault("last_handoff_tick", curr_tick)
 
     per = timeskip.frame_minutes(gs)
     left = float(order.get("remaining_minutes", per))
@@ -137,8 +163,9 @@ def _step_one(gs, sim, player, order) -> None:
             target_type=order.get("target_type"), heading=order.get("heading"),
             remaining=min(per, left))
 
-    # 3. Spend the time.
+    # 3. Spend the time and route lived_log continuity through Intermediator.
     order["remaining_minutes"] = left - per
+    _run_conscious_handoff(gs, player, order)
 
     # 4. Anything that happened, arrived or was found this turn. A search that
     #    turned up its target is a discovery exactly like it is for a blocking
@@ -257,6 +284,7 @@ def _finish(gs, player, order, reason) -> None:
 
     player.soak_order = None
     _restore_mode(player)
+    _run_conscious_handoff(gs, player, order)
 
     if elapsed > 0 or reason:
         result = timeskip.TimeskipResult(

@@ -1375,3 +1375,97 @@ class TestPersonaSchemaCleanup:
         maren_secrets = [m for m in maren.memories if "signet ring" in m.get("text", "")]
         assert len(maren_secrets) == 1
         assert "shared_secret" in maren_secrets[0]["tags"]
+
+    def test_languages_schema_normalization_and_validation(self):
+        legacy = ca.normalize_languages(["Common", "Elvish"])
+        assert legacy == [
+            {"language": "common", "fluency": "native", "known_words": [], "literate": True},
+            {"language": "elvish", "fluency": "fluent", "known_words": [], "literate": True},
+        ]
+
+        cleaned = ca.validate({
+            "capabilities": {
+                "languages": [
+                    {
+                        "language": "Japanese",
+                        "fluency": "native",
+                        "literate": True,
+                    },
+                    {
+                        "language": "English",
+                        "fluency": "broken",
+                        "literate": False,
+                        "known_words": ["bathroom", "wait", "hungry", "wait"],
+                    },
+                ],
+            },
+        })
+        assert cleaned["capabilities"]["languages"] == [
+            {"language": "japanese", "fluency": "native", "known_words": [], "literate": True},
+            {
+                "language": "english",
+                "fluency": "broken",
+                "known_words": ["bathroom", "wait", "hungry"],
+                "literate": False,
+            },
+        ]
+
+        with pytest.raises(ca.StructuredError):
+            ca.validate({"capabilities": {"languages": [{"language": "goblin", "fluency": "expert"}]}})
+
+        ok, errs = ca.validate_before_compile({
+            "capabilities": {"languages": [{"language": "goblin", "fluency": "invalid_tier"}]},
+        })
+        assert not ok
+        assert any("fluency" in e for e in errs)
+
+    def test_languages_compile_record_and_route_apply_revert(self):
+        rec = {
+            "capabilities": {
+                "languages": [
+                    {"language": "common", "fluency": "native", "literate": True},
+                    {
+                        "language": "english",
+                        "fluency": "broken",
+                        "literate": False,
+                        "known_words": ["bathroom", "wait", "hungry"],
+                    },
+                ],
+            },
+        }
+        compiled = ca.compile_record(rec)
+        assert compiled["languages"] == [
+            {"language": "common", "fluency": "native", "known_words": [], "literate": True},
+            {
+                "language": "english",
+                "fluency": "broken",
+                "known_words": ["bathroom", "wait", "hungry"],
+                "literate": False,
+            },
+        ]
+
+        app = create_app({"TESTING": True})
+        client = app.test_client()
+        with app.app_context():
+            put_res = client.put("/api/players/Lyrie/record", json={
+                "record": {
+                    "identity": {"pronouns": "she/her", "age": 22},
+                    "capabilities": rec["capabilities"],
+                },
+                "compile": True,
+                "force": True,
+            })
+            assert put_res.status_code == 200
+            player = app.world.players["Lyrie"]
+            node = app.world.graph.nodes["player_Lyrie"]
+            assert len(player.languages) == 2
+            assert player.languages[1]["language"] == "english"
+            assert player.languages[1]["fluency"] == "broken"
+            assert player.languages[1]["literate"] is False
+            assert player.languages[1]["known_words"] == ["bathroom", "wait", "hungry"]
+            assert node.properties["languages"] == player.languages
+
+            rev_res = client.post("/api/players/Lyrie/record/revert_compile")
+            assert rev_res.status_code == 200
+            assert player.languages == []
+            assert "languages" not in node.properties

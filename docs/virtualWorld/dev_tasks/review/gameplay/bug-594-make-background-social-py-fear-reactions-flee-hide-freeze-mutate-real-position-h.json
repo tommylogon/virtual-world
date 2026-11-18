@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "bug-594",
+  "kind": "bug",
+  "number": 594,
+  "title": "Make background_social.py fear reactions (flee, hide, freeze) mutate real position, hidden, and pause state",
+  "status": "review",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [
+    "gameplay",
+    "background-sim",
+    "fear",
+    "bugs"
+  ],
+  "created": "2026-11-14",
+  "updated": "2026-11-17",
+  "horizon": "next",
+  "effort": "m",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-742",
+      "task-552"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Execute real simulation state changes in engine/background_social.py when choose_fear_reaction selects 'flee', 'hide', or 'freeze' instead of recording text memories and affect spikes only.",
+    "why": "engine/background_social.py defines FEAR_REACTIONS = ('flee', 'hide', 'freeze', 'shout') and run_fear_pass (called from engine/background_simulation.py:339), yet _record_fear only appends log entries, memories, Social drain, and emotion spikes. A background NPC logged as having 'fled' stays standing in the exact same room with the threat, 'hide' leaves them unhidden, and 'freeze' does not pause their schedule.",
+    "how": "1. Inspect _record_fear and run_fear_pass in engine/background_social.py (lines 1214-1415).\\n2. Implement actual state effects alongside memory/log recording:\\n   - 'flee': pick a safe open/passable adjacent exit away from the fear source and move the NPC there (updating area presence).\\n   - 'hide': find a hideable anchor in the area and mark hidden state / hidden edge (with fallbacks to flee/freeze if exposed).\\n   - 'freeze': record a brief freeze/hesitation cooldown/flag that skips normal wander/schedule travel during run_fear_pass.\\n   - 'shout': emit sound/turn notification consistent with engine/sound.py.\\n3. Add soak/pytest unit tests covering flee relocation, hide state activation, and freeze schedule pause.",
+    "verify": "1. Run pytest covering engine/background_social.py run_fear_pass for flee (verify current_area changes), hide (verify hidden state), and freeze (verify halted travel).\\n2. Verify background soak smoke test passes with zero crashes when no exits or hideable items exist.",
+    "acceptance": [
+      {
+        "text": "In engine/background_social.py, choosing 'flee' moves the background NPC through an available open adjacent way out of the threat area when one exists.",
+        "done": false
+      },
+      {
+        "text": "Choosing 'hide' places the background NPC into hidden state (when cover/hideable anchor is present) rather than only logging prose.",
+        "done": false
+      },
+      {
+        "text": "Choosing 'freeze' pauses the character's movement/schedule advancement for the reaction duration while keeping vitals/cooldown accounting intact.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/background_social.py",
+      "engine/background_simulation.py",
+      "engine/fear.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: World Graph / Event Stream during background simulation / soak advance.\\n\\nCurrent availability: engine/background_social.py (FEAR_REACTIONS, _record_fear, run_fear_pass) selects 'flee', 'hide', 'freeze', or 'shout' and writes memories/logs/affect without mutating character position, hidden state, or movement execution.\\n\\nManual verification steps:\\n1. Run a background simulation pass with a fearful NPC co-located with a fear source.\\n2. Check the NPC's current_area, hidden state, and Event Stream logs afterward.\\n   - expected: 'flee' actually relocates the NPC to an adjacent area, 'hide' toggles hidden concealment if cover exists, and 'freeze' halts schedule movement briefly."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Characters/Background Simulation]]",
+      "[[Characters/Animal Fear]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-17T21:32:21Z"
+    }
+  ]
+}

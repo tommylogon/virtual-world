@@ -266,8 +266,12 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     function hasPlan(charName) {
         // task-185: read via PlanTracker (the old read hit a replaced store).
-        const plan = window.PlanTracker?.getPlan(charName);
-        return !!plan && plan.length > 0;
+        const tracker = window.PlanTracker;
+        const plan = tracker?.getPlan(charName);
+        if (!Array.isArray(plan) || plan.length === 0)
+            return false;
+        const progress = typeof tracker?.getProgress === 'function' ? (tracker.getProgress(charName) || 0) : 0;
+        return progress < plan.length;
     }
     /**
      * Re-frame a third-person appearance description into second person so the

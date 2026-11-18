@@ -13,7 +13,7 @@
     "ux"
   ],
   "created": "2026-11-16",
-  "updated": "2026-11-16",
+  "updated": "2026-11-17",
   "horizon": "",
   "effort": "small",
   "goal": "Make memory timestamps human-readable and easy to author while keeping integer tick as the engine clock",
@@ -22,7 +22,9 @@
     "blocked_by": [],
     "depends_on": [],
     "related": [
-      "task-944"
+      "task-944",
+      "task-975",
+      "task-982"
     ],
     "parent": null,
     "children": [],
