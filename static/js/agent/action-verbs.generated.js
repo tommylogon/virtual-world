@@ -96,6 +96,7 @@
     "pick",
     "pickup",
     "place",
+    "plan",
     "punch",
     "put",
     "quaff",
@@ -104,6 +105,7 @@
     "release",
     "relieve",
     "remove",
+    "replan",
     "rest",
     "reveal",
     "say",
@@ -252,6 +254,7 @@
     "pickup",
     "pinch",
     "place",
+    "plan",
     "punch",
     "put",
     "quaff",
@@ -260,6 +263,7 @@
     "release",
     "relieve",
     "remove",
+    "replan",
     "rest",
     "reveal",
     "say",
@@ -1816,6 +1820,28 @@
     "schedule": {
         "id": "schedule",
         "aliases": [],
+        "scope": "internal",
+        "target_schema": "target",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "plan": {
+        "id": "plan",
+        "aliases": [
+            "replan"
+        ],
+        "scope": "internal",
+        "target_schema": "target",
+        "cost_key": "free",
+        "mature_gate": false,
+        "bracket_order": null
+    },
+    "replan": {
+        "id": "plan",
+        "aliases": [
+            "replan"
+        ],
         "scope": "internal",
         "target_schema": "target",
         "cost_key": "free",

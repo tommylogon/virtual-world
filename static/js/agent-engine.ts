@@ -1675,20 +1675,12 @@ class AgentEngine {
                 // task-185: shouldReplan now returns a REASON string (task-340
                 // crisis label) or null; setPlan records the turn clock.
                 // task-856: Seed PlanTracker from server active_pursuit if present
+                // task-984: Plan generation is an explicit free mental verb (`plan [intent]`),
+                // not a forced pre-turn LLM call. Seed authored active_pursuit if present and
+                // let === YOUR PLAN === cue the agent when no plan is active or replanning is needed.
                 PlanTracker.seedFromPlayer?.(charName, player, this.turnNumber);
                 const threatAlert = window.ThreatDetector.getThreatAlert(charName, player, currentArea, turnEvents);
-                const needsReplanReason = PlanTracker.shouldReplan(charName, this.turnNumber, threatAlert, player?.vitals);
-                if (needsReplanReason) {
-                    const plan = await window.PlanManager.generate(charName);
-                    if (plan && plan.length > 0) {
-                        PlanTracker.setPlan(charName, plan, this.turnNumber);
-                        events.log(`⚠️ ${charName} replanned - ${needsReplanReason}: ${plan.join(' → ')}`, 'msg-crisis');
-                        // task-185: the decide prompt reuses this snapshot - refresh
-                        // the plan part so a plan generated THIS turn is visible
-                        // THIS turn instead of next turn.
-                        observeParts.plan = PromptBuilder.buildPlanContext(charName);
-                    }
-                }
+                void PlanTracker.shouldReplan(charName, this.turnNumber, threatAlert, player?.vitals);
                 if (this._checkCancel()) return;
 
                 // ── Multi-action turn (task-352, 2026-10-08) ──
@@ -1829,6 +1821,16 @@ class AgentEngine {
                         }
                         actionResult = data?.output || '';
                         actionSucceeded = data?.success !== false;
+                        if (actionSucceeded && /^(?:plan|replan)(?:\s|$)/i.test(finalAction)) {
+                            const planIntent = finalAction.replace(/^(?:plan|replan)\s*/i, '').trim() || undefined;
+                            const generatedPlan = await window.PlanManager.generate(charName, planIntent);
+                            if (generatedPlan && generatedPlan.length > 0) {
+                                PlanTracker.setPlan(charName, generatedPlan, this.turnNumber);
+                                observeParts.plan = PromptBuilder.buildPlanContext(charName);
+                                events.log(`🧠 ${charName} planned: ${generatedPlan.join(' → ')}`, 'msg-thought', {}, charName);
+                                actionResult = `${actionResult ? actionResult + ' ' : ''}Plan formed: ${generatedPlan.join(' → ')}`.trim();
+                            }
+                        }
                         PlanTracker.trackStep(charName, finalAction, actionResult, actionSucceeded);
                         let outputText = actionResult;
                         const sysMsgs: string[] = Array.isArray(data?.system_messages) ? data.system_messages : [];

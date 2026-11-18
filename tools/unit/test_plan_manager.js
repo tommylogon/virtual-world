@@ -354,3 +354,33 @@ test('PlanManager.generate delegates threat detection to ThreatDetector includin
         assertFalse(capturedPrompt.includes('IMMEDIATE DANGER'), 'PlanManager prompt clears danger after weapon drop');
     });
 });
+
+test('PlanManager.generate honors mental-verb intent parameter and ActionVerbs registers plan as free (task-984)', async () => {
+    await withPlanManagerEnv(async () => {
+        let capturedPrompt = '';
+        globalThis.worldState = {
+            data: {
+                players: { Rikka: { name: 'Rikka', current_area: 'Camp', vitals: {} } },
+                areas: { Camp: { name: 'Camp', exits: {} } },
+            },
+        };
+        globalThis.PromptBuilder = {
+            buildRoomContext: () => 'Room: Camp',
+            describeVitals: () => '',
+            buildEmotionContext: () => '',
+            buildMemoryContext: async () => '',
+        };
+        globalThis.llmClient = {
+            chat: async (messages) => {
+                capturedPrompt = messages[0].content;
+                return JSON.stringify({ steps: ['wait'] });
+            },
+        };
+
+        const steps = await PlanManager.generate('Rikka', 'find the cellar key');
+        assertEq(steps.length, 1, 'generates plan with intent');
+        assertTrue(capturedPrompt.includes('Focus / intent for this plan: find the cellar key'), 'includes mental-verb intent in prompt');
+
+        assertTrue(PlanGrounding.ACTS.has('plan'), 'PlanGrounding.ACTS includes plan');
+    });
+});

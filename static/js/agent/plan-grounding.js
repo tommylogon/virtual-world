@@ -66,6 +66,8 @@ window.PlanGrounding = (() => {
         'call', 'answer', 'hangup', 'text', 'message',
         // sustained / state
         'speak', 'perform', 'wait', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'relieve',
+        // mental
+        'plan',
     ];
     const ACTS = (() => {
         const registry = window.ActionVerbs;

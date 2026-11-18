@@ -158,6 +158,7 @@ VERBS: Tuple[VerbSpec, ...] = (
     VerbSpec("obligation", aliases=(), scope="internal", target_schema="target", cost_key="free"),
     VerbSpec("offer", aliases=(), scope="social", target_schema="target", cost_key="free"),
     VerbSpec("schedule", aliases=(), scope="internal", target_schema="target", cost_key="free"),
+    VerbSpec("plan", aliases=("replan",), scope="internal", target_schema="target", cost_key="free"),
     VerbSpec("fear", aliases=(), scope="internal", target_schema="target", cost_key="free"),
     VerbSpec("interest", aliases=(), scope="internal", target_schema="target", cost_key="free"),
     VerbSpec("guess", aliases=(), scope="internal", target_schema="none", cost_key="free"),

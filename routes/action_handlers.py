@@ -1817,6 +1817,15 @@ def handle_take_action(app):
                 else:
                     add_output("Usage: goal [set <what> | complete <goal> | drop <goal>]")
 
+        elif cmd in ("plan", "replan") or cmd.startswith(("plan ", "replan ")):
+            # task-984: planning is a character-initiated free mental verb.
+            parts = cmd.split(None, 1)
+            intent = parts[1].strip() if len(parts) > 1 else ""
+            if intent:
+                add_output(f"You pause to gather your thoughts and plan: {intent}.")
+            else:
+                add_output("You pause to gather your thoughts and form a plan.")
+
         elif cmd == "schedule" or cmd.startswith("schedule "):
             # task-814: a schedule you cannot change is a script, not a life. The
             # character edits its own routine; the tick picks it up unchanged.

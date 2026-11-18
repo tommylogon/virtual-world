@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 984,
   "title": "Convert plan generation from forced pre-turn LLM call into free mental agent verb (plan)",
-  "status": "todo",
+  "status": "review",
   "priority": "medium",
   "area": "gameplay",
   "tags": [
@@ -14,7 +14,7 @@
     "mental-actions"
   ],
   "created": "2026-11-17",
-  "updated": "2026-11-17",
+  "updated": "2026-11-18",
   "horizon": "next",
   "effort": "m",
   "goal": "",
@@ -42,19 +42,19 @@
     "acceptance": [
       {
         "text": "plan (alias replan) is registered in engine/action_verbs.py as scope=\"internal\", target_schema=\"target\", cost_key=\"free\", and reflected in action-verbs.generated.js, PlanGrounding, and contextual-actions.ts.",
-        "done": false
+        "done": true
       },
       {
         "text": "AgentEngine.step no longer fires PlanManager.generate unconditionally before the turn loop; instead, === YOUR PLAN === cues the agent when no plan is active, a plan is blocked/expired, or a threat/critical need interrupts.",
-        "done": false
+        "done": true
       },
       {
         "text": "Executing plan / plan <intent> during a turn consumes 1 free mental slot, invokes PlanManager.generate(charName, intent) using StructuredFormats.plan + PlanGrounding, updates PlanTracker and observeParts.plan in-place for the remaining slots of that turn, and preserves server active_pursuit seeding.",
-        "done": false
+        "done": true
       },
       {
         "text": "JS unit tests verify mental-verb plan execution, grounding preservation, free-slot cost, and removal of the forced pre-turn LLM call.",
-        "done": false
+        "done": true
       }
     ],
     "files": [

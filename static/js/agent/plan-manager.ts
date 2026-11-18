@@ -253,7 +253,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
      * @param {string} charName - Character name to generate a plan for
      * @returns {Promise<string[]>} Array of up to 5 grounded plan step strings, or empty on failure
      */
-    async function generate(charName: string): Promise<string[]> {
+    async function generate(charName: string, intent?: string): Promise<string[]> {
         if (!charName || (!config.apiKey && _needsKey(config)) || !config.model) return [];
         try {
             const state = worldState?.data;
@@ -346,7 +346,7 @@ ${lastResult ? `\n=== RECENTLY ===\n${_summaryLine(lastResult)}` : ''}
 
 ${lastThought ? `=== YOUR THOUGHTS ===\n${lastThought}\n\n` : ''}${_previousPlanIssues(charName)}
 
-Create a practical 3-5 step plan based only on the information above.
+${(intent && intent.trim()) ? `Focus / intent for this plan: ${intent.trim()}\n\n` : ''}Create a practical 3-5 step plan based only on the information above.
 - Every step is an object: {"act": "...", "item": ..., "target": ..., "text": ..., "note": ..., "area": ..., "until": ..., "duration": ...}
 - "act" is one of: ${grounding ? [...grounding.ACTS].join(', ') : 'go, take, use, examine, speak, wait'}.
 - TARGET TYPES - every "item"/"target" must name a thing that exists, and the TYPE decides where it comes from:

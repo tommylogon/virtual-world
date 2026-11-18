@@ -606,11 +606,11 @@ window.PromptBuilder = window.PromptBuilder || {};
                 .map(([, count]) => count);
             const hasBlocked = blocked.length > 0 && blocked.some(c => c >= 3);
             if (hasBlocked && plan[progress]) {
-                out += `\n⚠️ Your current step "${plan[progress]}" has failed repeatedly - it may not be achievable. If so, move on to another goal.`;
+                out += `\n⚠️ Your current step "${plan[progress]}" has failed repeatedly - it may not be achievable. Use free action \`plan <intent>\` to pivot, or move on to another goal.`;
             }
             return out;
         }
-        return '';
+        return '\n=== YOUR PLAN ===\n(No active plan - use free action `plan <intent>` to form a grounded multi-step plan, or act directly.)';
     }
     function buildMosiacContext(player) {
         // task-812 / task-905: Subjective state of mind without raw telemetry or candidate action counts.

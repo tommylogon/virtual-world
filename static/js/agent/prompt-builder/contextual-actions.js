@@ -664,6 +664,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         keep('inventory', 'inventory  -  check your inventory');
         keep('stats', 'stats  -  check your stats');
         keep('schedule', 'schedule  -  check or update your daily schedule (free action)');
+        keep('plan', 'plan <intent>  -  form a grounded multi-step plan (free action)');
         // task-840: craftable-now recipes as guidance (backend resolves
         // leniently, so this only suggests  -  never gates).
         for (const line of craftableLines(charName, player, currentArea)) {

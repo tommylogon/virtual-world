@@ -260,6 +260,21 @@ def react(gs, player):
     return apply_frightening(gs, player, sources)
 
 
+def stamp_fear_freeze(player, until_tick: int) -> int:
+    """Set the bounded fear-freeze window on *player* (shared by combat shock and social freeze)."""
+    try:
+        player._fear_freeze_until_tick = int(until_tick)
+    except Exception:
+        pass
+    try:
+        if not isinstance(getattr(player, "flags", None), dict):
+            player.flags = {}
+        player.flags["frozen_by_fear"] = True
+    except Exception:
+        pass
+    return int(until_tick)
+
+
 def release_acute_shock_on_damage(player) -> bool:
     """Clear acute-shock freeze flags/conditions when *player* takes damage."""
     if player is None:
@@ -355,16 +370,7 @@ def trigger_acute_shock_freeze(
     per_tick = float(getattr(gs, "time_per_tick_minutes", 5) or 5) if gs is not None else 5.0
     one_turn_minutes = max(1, int(round(per_tick)))
 
-    try:
-        player._fear_freeze_until_tick = now_tick + 1
-    except Exception:
-        pass
-    try:
-        if not isinstance(getattr(player, "flags", None), dict):
-            player.flags = {}
-        player.flags["frozen_by_fear"] = True
-    except Exception:
-        pass
+    stamp_fear_freeze(player, now_tick + 1)
     try:
         if hasattr(player, "add_condition"):
             player.add_condition("stunned", duration=one_turn_minutes, source="acute_shock")

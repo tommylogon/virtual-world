@@ -1563,17 +1563,8 @@ def _freeze_from_fear(gs, player, tick: int) -> int:
         minutes_per_tick = 1.0
     duration_ticks = max(1, int(round(FEAR_FREEZE_MINUTES / max(0.001, minutes_per_tick))))
     until_tick = int(tick) + duration_ticks
-    try:
-        player._fear_freeze_until_tick = until_tick
-    except Exception:
-        pass
-    try:
-        if not isinstance(getattr(player, "flags", None), dict):
-            player.flags = {}
-        player.flags["frozen_by_fear"] = True
-    except Exception:
-        pass
-    return until_tick
+    from engine.fear import stamp_fear_freeze
+    return stamp_fear_freeze(player, until_tick)
 
 
 def _shout_from_fear(gs, player, source_name: str, line: str, area_name: str, tick: int) -> list:
