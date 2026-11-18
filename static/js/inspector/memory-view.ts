@@ -32,6 +32,22 @@ window.InspectorMemory = (() => {
      * Parse a natural-language relative time expression or tick string into a
      * simulation tick (task-730).
      */
+    M.extractInlineTimeExpr = function (prompt: string): string | null {
+        const s = String(prompt || '').trim();
+        if (!s) return null;
+        const whenAge = s.match(/\bwhen\s+(?:i|you|he|she|they)\s+(?:was|were)\s+(\d+(?:\.\d+)?)\b/i)
+            || s.match(/\b(?:at|around)\s+age\s+(\d+(?:\.\d+)?)\b/i)
+            || s.match(/\b(\d+(?:\.\d+)?)\s+years?\s+old\b/i);
+        if (whenAge) return `age ${whenAge[1]}`;
+        const preStart = s.match(/\b(\d+(?:\.\d+)?)\s+(turns?|ticks?)\s+before\s+start\b/i);
+        if (preStart) return `${preStart[1]} ${preStart[2].toLowerCase()} before start`;
+        const ago = s.match(/\b(\d+(?:\.\d+)?)\s+(years?|months?|weeks?|days?|hours?|minutes?|mins?|turns?|ticks?)\s+ago\b/i);
+        if (ago) return `${ago[1]} ${ago[2].toLowerCase()} ago`;
+        if (/\byesterday\b/i.test(s)) return 'yesterday';
+        if (/\blast\s+night\b/i.test(s)) return '1 day ago';
+        return null;
+    };
+
     M.parseRelativeTime = function (
         input: string,
         currentTick = 0,
@@ -276,6 +292,31 @@ window.InspectorMemory = (() => {
             memBlock.category || parsed.category || (relationship_deltas.length ? 'social' : (type === 'reflection' ? 'belief' : 'episodic'))
         ).trim();
 
+        const rawBundle = Array.isArray(parsed.bundle) ? parsed.bundle : (Array.isArray(memBlock.bundle) ? memBlock.bundle : []);
+        const bundle = rawBundle
+            .filter((b: any) => b && typeof b === 'object' && typeof b.text === 'string' && b.text.trim())
+            .map((b: any) => {
+                const bType = String(b.type || 'observation').trim();
+                const bCat = String(b.category || (bType === 'thought' ? 'belief' : 'episodic')).trim();
+                const bEmos = Array.isArray(b.memory_emotions)
+                    ? b.memory_emotions
+                        .filter((e: any) => e && typeof e.label === 'string' && e.label.trim())
+                        .map((e: any) => ({
+                            label: e.label.trim().toLowerCase(),
+                            intensity: Math.max(1, Math.min(10, parseInt(String(e.intensity ?? 5), 10) || 5))
+                        }))
+                    : [];
+                return {
+                    type: bType,
+                    category: bCat,
+                    text: M.stripEditorialLeakage(String(b.text).trim()),
+                    importance: Math.max(1, Math.min(10, parseInt(String(b.importance ?? importance), 10) || importance)),
+                    confidence: Math.max(0.1, Math.min(1.0, parseFloat(String(b.confidence ?? confidence)) || confidence)),
+                    memory_emotions: bEmos
+                };
+            })
+            .filter((b: any) => b.text && b.text.toLowerCase() !== cleanText.toLowerCase());
+
         return {
             character_reply: rawReply,
             text: cleanText,
@@ -291,7 +332,8 @@ window.InspectorMemory = (() => {
             memory_emotions: emotions,
             relationship_deltas,
             derived_expectation: String(memBlock.derived_expectation || parsed.derived_expectation || '').trim(),
-            counterpart_memory
+            counterpart_memory,
+            bundle
         };
     };
 
@@ -454,6 +496,10 @@ window.InspectorMemory = (() => {
                     <textarea id="mem-editor-content" rows="3" class="memedit-textarea" style="min-height:74px;" placeholder="First-person memory text stored on ${charName}...">${existing ? existing.text : ''}</textarea>
                     <textarea id="mem-gen-result" style="display:none;">${existing ? existing.text : ''}</textarea>
                     <div id="mem-editor-contra-preview" style="display:none;margin-top:6px;padding:6px 8px;background:#3d1a1a;border:1px solid #e05555;border-radius:6px;font-size:10.5px;color:#ff9b9b;"></div>
+                    <div id="mem-weaver-bundle-box" style="display:none;margin-top:8px;padding:8px;background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;">
+                        <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">🧩 Linked Bundle Memories (saved together at the same timestamp)</div>
+                        <div id="mem-weaver-bundle-rows" style="display:flex;flex-direction:column;gap:6px;"></div>
+                    </div>
                 </div>
 
                 <div class="memedit-section">
@@ -1305,6 +1351,39 @@ window.InspectorMemory = (() => {
             const id = (data && data.entry && data.entry.id) || (data && data.id) || entryId;
             if (id) M._embedForEntry(charName, id, content);
 
+            if (!entryId) {
+                const bundleRows = Array.from(document.querySelectorAll<HTMLElement>('.mem-weaver-bundle-row'));
+                for (const row of bundleRows) {
+                    const cb = row.querySelector<HTMLInputElement>('.mem-bundle-enable');
+                    const txtEl = row.querySelector<HTMLTextAreaElement>('.mem-bundle-text');
+                    if (!cb?.checked || !txtEl) continue;
+                    const compText = M.stripEditorialLeakage(txtEl.value.trim());
+                    if (!compText) continue;
+                    const compPayload: MemoryViewMemoryPayload = {
+                        text: compText,
+                        type: row.dataset.bundleType || 'observation',
+                        category: row.dataset.bundleCategory || 'episodic',
+                        importance: parseInt(row.dataset.bundleImportance || String(importance), 10) || importance,
+                        tick,
+                        location,
+                        source,
+                        tags,
+                        force: true,
+                        confidence: parseFloat(row.dataset.bundleConfidence || '0.8') || 0.8,
+                        source_memory_ids: id ? [id] : [],
+                        entity_ids: entity_ids.length ? entity_ids : undefined,
+                        simulate_age_decay: simulateAgeDecay || undefined,
+                    };
+                    try {
+                        const cRes = await (ApiClient as unknown as MemoryViewApiClient).addPlayerMemory(charName, compPayload) as { entry?: { id?: string }; id?: string };
+                        const cid = (cRes && cRes.entry && cRes.entry.id) || (cRes && cRes.id);
+                        if (cid) M._embedForEntry(charName, cid, compText);
+                    } catch (_e) {
+                        // Best-effort companion bundle write
+                    }
+                }
+            }
+
             if (!entryId && cpEnabled && cpDraft?.who && cpText) {
                 const cpPayload: MemoryViewMemoryPayload = {
                     text: M.stripEditorialLeakage(cpText),
@@ -1462,8 +1541,12 @@ window.InspectorMemory = (() => {
             + `    "relationship_deltas": [{"who": "<CharacterName>", "why": "<brief reason>", "data": {"trust": <-5..5>, "fear": <-5..5>, "attraction": <-5..5>, "respect": <-5..5>, "disgust": <-5..5>, "familiarity": <-5..5>}}],\n`
             + `    "derived_expectation": "<optional first-person procedural habit/rule learned, or empty string>"\n`
             + `  },\n`
+            + `  "bundle": [\n`
+            + `    {"type": "<observation|thought>", "category": "<episodic|belief|social>", "text": "<optional distinct companion perspective/belief from the same moment>", "importance": <1-10>, "confidence": <0.1-1.0>}\n`
+            + `  ],\n`
             + `  "counterpart_memory": null\n`
             + `}\n`
+            + `4) If the prompt describes a concrete event AND distinct sensory observations or a subjective belief/blame formed then, put the main beat in "memory" (type "event") and add 1-2 distinct companion cards in "bundle" (e.g. an "observation" and/or "thought" category "belief"). Leave "bundle": [] when one card suffices.\n`
             + `Use emotion labels from this vocabulary when one fits: ${vocabStr}.`;
     };
 
@@ -1575,12 +1658,18 @@ window.InspectorMemory = (() => {
                     expInput.value = parsed.derived_expectation;
                 }
 
-                // Backdate tick if user hasn't typed a manual relative time and the LLM inferred tick_offset_minutes
+                // Inline prompt time/age extraction + LLM tick_offset_minutes fallback
                 const relInput = container.querySelector('#mem-editor-reltime') as HTMLInputElement | null;
                 const tickInputEl = container.querySelector('#mem-editor-tick') as HTMLInputElement | null;
                 const preInputEl = container.querySelector('#mem-editor-prestart') as HTMLInputElement | null;
                 const relPreview = container.querySelector('#mem-editor-reltime-preview') as HTMLElement | null;
-                if (parsed.tick_offset_minutes !== null && (!relInput || !relInput.value.trim())) {
+                const inlineExpr = M.extractInlineTimeExpr(theme);
+                if (inlineExpr && (!relInput || !relInput.value.trim())) {
+                    if (relInput) {
+                        relInput.value = inlineExpr;
+                        relInput.dispatchEvent(new Event('input'));
+                    }
+                } else if (parsed.tick_offset_minutes !== null && (!relInput || !relInput.value.trim())) {
                     const curTick = bundle?.current_tick ?? (VW?.state?.tick ?? 0);
                     const mpt = Math.max(0.1, Number(worldState?.data?.time_per_tick_minutes || bundle?.time_per_tick_minutes || 5));
                     const deltaTicks = Math.round(parsed.tick_offset_minutes / mpt);
@@ -1646,6 +1735,49 @@ window.InspectorMemory = (() => {
                         M._gen!.counterpartDraft = null;
                         cpBox.style.display = 'none';
                         cpCheck.checked = false;
+                    }
+                }
+
+                // Render companion bundle cards (Event / Observation / Thought decomposition)
+                const bundleBox = container.querySelector('#mem-weaver-bundle-box') as HTMLElement | null;
+                const bundleRowsEl = container.querySelector('#mem-weaver-bundle-rows') as HTMLElement | null;
+                if (bundleBox && bundleRowsEl) {
+                    bundleRowsEl.replaceChildren();
+                    const bList = Array.isArray(parsed.bundle) ? parsed.bundle : [];
+                    if (bList.length) {
+                        bundleBox.style.display = 'block';
+                        for (const item of bList) {
+                            const row = document.createElement('div');
+                            row.className = 'mem-weaver-bundle-row';
+                            row.dataset.bundleType = item.type;
+                            row.dataset.bundleCategory = item.category;
+                            row.dataset.bundleImportance = String(item.importance);
+                            row.dataset.bundleConfidence = String(item.confidence);
+                            row.style.cssText = 'padding:6px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;';
+
+                            const hdr = document.createElement('label');
+                            hdr.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;color:var(--text);margin-bottom:4px;cursor:pointer;';
+                            const cb = document.createElement('input');
+                            cb.type = 'checkbox';
+                            cb.className = 'mem-bundle-enable';
+                            cb.checked = true;
+                            const badge = document.createElement('span');
+                            badge.textContent = `${item.type} (${item.category}) · imp ${item.importance}`;
+                            hdr.appendChild(cb);
+                            hdr.appendChild(badge);
+
+                            const ta = document.createElement('textarea');
+                            ta.rows = 2;
+                            ta.className = 'memedit-textarea mem-bundle-text';
+                            ta.style.cssText = 'min-height:42px;font-size:11px;';
+                            ta.value = item.text;
+
+                            row.appendChild(hdr);
+                            row.appendChild(ta);
+                            bundleRowsEl.appendChild(row);
+                        }
+                    } else {
+                        bundleBox.style.display = 'none';
                     }
                 }
 
@@ -1822,6 +1954,14 @@ interface MemoryViewWeaverDraft {
     relationship_deltas: MemoryViewRelationshipDelta[];
     derived_expectation: string;
     counterpart_memory: MemoryViewCounterpartDraft | null;
+    bundle?: Array<{
+        type: string;
+        category: string;
+        text: string;
+        importance: number;
+        confidence: number;
+        memory_emotions: MemoryViewEmotion[];
+    }>;
 }
 
 /** Options when opening the unified Memory Weaver & Editor modal. */
@@ -1843,6 +1983,7 @@ interface MemoryViewMemoryPayload {
     source: string;
     tags: string[];
     salience_override?: number;
+    source_memory_ids?: string[];
     force: boolean;
     entity_ids?: string[];
     memory_emotions?: MemoryViewEmotion[];
@@ -1890,6 +2031,7 @@ interface MemoryViewApi {
     saveMemory(charName: string, entryId: string): void;
     deleteMemory(charName: string, entryId: string): void;
     generateMemory(charName: string, opts?: MemoryViewEditorOptions): void;
+    extractInlineTimeExpr(prompt: string): string | null;
     parseRelativeTime(input: string, currentTick?: number, minutesPerTick?: number, birthTick?: number | null, currentAge?: number | null): MemoryViewRelativeTime | null;
     stripEditorialLeakage(memText: string, characterReply?: string): string;
     parseWeaverResponse(raw: string): MemoryViewWeaverDraft | null;

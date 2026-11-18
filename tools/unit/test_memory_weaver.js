@@ -156,3 +156,69 @@ test('InspectorMindView._recordAndEvidenceHtml renders underlying record fields 
         window.worldState.players = prevPlayers;
     }
 });
+
+test('InspectorMemory.extractInlineTimeExpr and parseWeaverResponse bundle parsing (task-986)', () => {
+    const MV = window.InspectorMemory;
+    assertEq(
+        MV.extractInlineTimeExpr('remember that time you almost skated right into traffic when you were 12 and Kyrie tackled you'),
+        'age 12',
+        'extracts inline "when you were 12" phrase'
+    );
+    assertEq(
+        MV.extractInlineTimeExpr('At age 16 she broke her wrist on the rail'),
+        'age 16',
+        'extracts inline "at age 16" phrase'
+    );
+    assertEq(
+        MV.extractInlineTimeExpr('3 days ago we argued in the diner'),
+        '3 days ago',
+        'extracts inline relative days phrase'
+    );
+
+    const parsedAge12 = MV.parseRelativeTime('age 12', 100, 5, -2000000, 17);
+    assertTrue(Boolean(parsedAge12 && parsedAge12.tick < 0), 'age 12 resolves to pre-scenario negative tick');
+
+    const parsed = MV.parseWeaverResponse(JSON.stringify({
+        character_reply: 'Ugh, don\'t remind me of that deck.',
+        memory: {
+            text: 'I nearly skated into traffic at 12 and Kyrie tackled me off the board.',
+            type: 'event',
+            category: 'episodic',
+            importance: 7,
+            confidence: 0.9,
+        },
+        bundle: [
+            {
+                type: 'observation',
+                category: 'episodic',
+                text: 'My skateboard snapped cleanly under us on the curb.',
+                importance: 6,
+                confidence: 0.9,
+            },
+            {
+                type: 'thought',
+                category: 'belief',
+                text: 'Kyrie ruined my board on purpose and owes me a new one.',
+                importance: 7,
+                confidence: 0.8,
+            },
+            {
+                type: 'event',
+                category: 'episodic',
+                text: 'I nearly skated into traffic at 12 and Kyrie tackled me off the board.',
+            }
+        ],
+        counterpart_memory: {
+            who: 'Kyrie',
+            text: 'I tackled them out of oncoming traffic at 12 and their board broke.',
+            importance: 7,
+        }
+    }));
+
+    assertEq(parsed.type, 'event', 'primary record is event');
+    assertEq(parsed.bundle.length, 2, 'parses 2 distinct companion bundle records (deduping identical text)');
+    assertEq(parsed.bundle[0].type, 'observation', 'first bundle item is observation');
+    assertEq(parsed.bundle[1].type, 'thought', 'second bundle item is thought');
+    assertEq(parsed.bundle[1].category, 'belief', 'second bundle item has belief category');
+    assertEq(parsed.counterpart_memory.who, 'Kyrie', 'preserves counterpart memory');
+});

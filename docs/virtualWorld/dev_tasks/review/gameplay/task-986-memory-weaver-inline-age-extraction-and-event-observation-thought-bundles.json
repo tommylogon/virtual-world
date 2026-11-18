@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 986,
   "title": "Memory Weaver: inline age/time extraction and multi-record Event, Observation, and Thought bundle authoring",
-  "status": "todo",
+  "status": "review",
   "priority": "medium",
   "area": "gameplay",
   "tags": [
@@ -44,15 +44,15 @@
     "acceptance": [
       {
         "text": "Typing a prompt containing an inline age phrase (e.g. `when you were 12`) automatically populates the resolved past tick and `world_datetime` while respecting `birth_tick` clamping.",
-        "done": false
+        "done": true
       },
       {
         "text": "Memory Weaver can generate and preview a linked `Event` + `Observation` + `Thought` bundle from one natural-language prompt, allowing individual cards to be edited or toggled before saving.",
-        "done": false
+        "done": true
       },
       {
         "text": "Saving writes the selected records to `Player.memories[]` (plus optional counterpart memory and `relationship_deltas`) with consistent historical timestamps and age decay.",
-        "done": false
+        "done": true
       }
     ],
     "files": [
