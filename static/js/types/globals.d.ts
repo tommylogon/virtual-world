@@ -350,7 +350,7 @@ declare const EmbeddingClient: any;    // shared/embedding-client.js (converted;
 declare const GraphProjector: any;     // graph/projector.js
 declare const GraphEventHandlers: any; // graph/event-handlers.js
 declare const NodeBadges: any;         // graph/node-badges.js
-declare const ActionVerbs: any;        // agent/action-verbs.generated.js
+declare const Actions: any;            // agent/actions.generated.js
 declare const ActionNormalizer: any;   // agent/action-normalizer.js
 declare const TurnQueue: any;          // agent/turn-queue.js
 declare const GraphContextMenu: any;   // graph/context-menu.js
@@ -449,7 +449,7 @@ declare const GraphLayoutEngine: {
 //
 // Sources: 123 names assigned to window across static/js.
 interface Window {
-    ActionVerbs: any;
+    Actions: any;
     ActionNormalizer: any;
     AgentMemory: any;
     AgentState: any;

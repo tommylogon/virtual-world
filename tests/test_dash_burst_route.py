@@ -34,7 +34,7 @@ def _setup():
 def _post(client, command):
     return client.post(
         "/api/action",
-        json={"character": "Dasher", "command": command, "enforce_slots": True},
+        json={"character": "Dasher", "action": command, "enforce_slots": True},
     ).get_json()
 
 

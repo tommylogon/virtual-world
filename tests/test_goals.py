@@ -139,14 +139,14 @@ def test_the_goal_action_is_wired_through_the_dispatcher():
     client = app.test_client()
     name = app.world.active_player
 
-    client.post("/api/action", json={"command": "goal set Become chief", "character": name})
+    client.post("/api/action", json={"action": "goal set Become chief", "character": name})
     assert app.world.get_player(name).goals == [
         {"id": "become_chief", "what": "Become chief", "status": "active"}]
 
-    client.post("/api/action", json={"command": "goal complete become_chief", "character": name})
+    client.post("/api/action", json={"action": "goal complete become_chief", "character": name})
     assert app.world.get_player(name).goals[0]["status"] == "reached"
 
-    client.post("/api/action", json={"command": "goal drop become_chief", "character": name})
+    client.post("/api/action", json={"action": "goal drop become_chief", "character": name})
     assert app.world.get_player(name).goals[0]["status"] == "dropped"
 
 
@@ -242,8 +242,8 @@ def test_the_goal_verb_records_history_with_ticks():
     client = app.test_client()
     name = app.world.active_player
 
-    client.post("/api/action", json={"command": "goal set Hold the gate", "character": name})
-    client.post("/api/action", json={"command": "goal complete hold_the_gate", "character": name})
+    client.post("/api/action", json={"action": "goal set Hold the gate", "character": name})
+    client.post("/api/action", json={"action": "goal complete hold_the_gate", "character": name})
 
     log = app.world.get_player(name).goal_log
     assert [e["status"] for e in log] == ["active", "reached"]
@@ -299,7 +299,7 @@ def test_the_obligation_verb_accepts_and_spawns_a_goal():
     name = app.world.active_player
     app.world.get_player(name).obligations = [
         {"id": "fetch_water", "charge": "Fetch water", "status": "offered"}]
-    client.post("/api/action", json={"command": "obligation accept fetch_water", "character": name})
+    client.post("/api/action", json={"action": "obligation accept fetch_water", "character": name})
     player = app.world.get_player(name)
     assert player.obligations[0]["status"] == "accepted"
     assert any(g["id"] == "fetch_water" for g in player.goals)
@@ -642,7 +642,7 @@ def test_offer_verb_is_wired_through_the_dispatcher():
     world.add_player(brek)
     world.set_active_player(name)
 
-    client.post("/api/action", json={"command": "offer Brek: Guard the gate due 99", "character": name})
+    client.post("/api/action", json={"action": "offer Brek: Guard the gate due 99", "character": name})
 
     assert [o["charge"] for o in brek.obligations] == ["Guard the gate"]
     assert brek.obligations[0]["due"] == 99
@@ -667,7 +667,7 @@ def test_obligation_exchange_scenario_fixture():
     assert brek is not None
 
     # Mara offers Brek an obligation
-    res = client.post('/api/action', json={'command': 'offer Brek: Deliver the sealed letter due 20', 'character': 'Elder Mara'})
+    res = client.post('/api/action', json={'action': 'offer Brek: Deliver the sealed letter due 20', 'character': 'Elder Mara'})
     assert res.status_code == 200
     assert len(brek.obligations) == 1
     obl = brek.obligations[0]
@@ -678,7 +678,7 @@ def test_obligation_exchange_scenario_fixture():
     assert obl['due'] == 20
 
     # Brek accepts the obligation
-    res2 = client.post('/api/action', json={'command': 'obligation accept deliver_the_sealed_letter', 'character': 'Brek'})
+    res2 = client.post('/api/action', json={'action': 'obligation accept deliver_the_sealed_letter', 'character': 'Brek'})
     assert res2.status_code == 200
     assert brek.obligations[0]['status'] == 'accepted'
     assert any(g.get('source') == 'obligation:deliver_the_sealed_letter' for g in brek.goals)

@@ -111,8 +111,8 @@ class ApiClientImpl {
             .catch(err => console.error('[apiPost] fetch error:', err));
     }
     /** Game actions */
-    static async action(command, charName, opts) {
-        const body = { command };
+    static async action(action, charName, opts) {
+        const body = { action };
         if (charName)
             body.character = charName;
         if (opts?.enforceSlots)
@@ -895,7 +895,7 @@ globals.api = ApiClientImpl;
 /** Run a game action and log the result to the event stream, then refresh state. */
 window.runAction =
     async function (cmd, charName, opts) {
-        const body = { command: cmd };
+        const body = { action: cmd };
         if (charName)
             body.character = charName;
         if (opts?.enforceSlots)

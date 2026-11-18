@@ -172,7 +172,7 @@ load('static/js/agent/turn-queue.js');
 const unitWorldStateStub = win.worldState;
 load('static/js/world-state.js');
 win.worldState = unitWorldStateStub;
-load('static/js/agent/action-verbs.generated.js');
+load('static/js/agent/actions.generated.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/turn-feed.js');

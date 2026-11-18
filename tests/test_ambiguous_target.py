@@ -44,7 +44,7 @@ def _app_with_two_violets():
 def test_ambiguous_attack_returns_a_chooser_not_a_pick():
     app, w, vkeys = _app_with_two_violets()
     body = app.test_client().post(
-        "/api/action", json={"character": "Attacker", "command": "attack violet"}
+        "/api/action", json={"character": "Attacker", "action": "attack violet"}
     ).get_json()
 
     assert "choices" in body, "an ambiguous target must offer a chooser"
@@ -73,7 +73,7 @@ def test_key_target_from_the_chooser_hits_exactly_that_character(monkeypatch):
 
     monkeypatch.setattr(w, "_player_attack", fake_attack)
     body = app.test_client().post(
-        "/api/action", json={"character": "Attacker", "command": f"attack key:{chosen}"}
+        "/api/action", json={"character": "Attacker", "action": f"attack key:{chosen}"}
     ).get_json()
 
     assert body.get("choices") is None, "a key target is unambiguous"
@@ -89,7 +89,7 @@ def test_ambiguous_lead_offers_the_chooser_instead_of_erroring():
     """
     app, w, vkeys = _app_with_two_violets()
     resp = app.test_client().post(
-        "/api/action", json={"character": "Attacker", "command": "lead violet"}
+        "/api/action", json={"character": "Attacker", "action": "lead violet"}
     )
     body = resp.get_json()
 
@@ -112,7 +112,7 @@ def test_lead_by_key_reaches_the_chosen_character(monkeypatch):
 
     monkeypatch.setattr(w.grapple, "lead", fake_lead)
     body = app.test_client().post(
-        "/api/action", json={"character": "Attacker", "command": f"lead key:{chosen}"}
+        "/api/action", json={"character": "Attacker", "action": f"lead key:{chosen}"}
     ).get_json()
 
     assert body.get("choices") is None

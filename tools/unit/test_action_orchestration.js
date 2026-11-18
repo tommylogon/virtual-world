@@ -97,12 +97,12 @@ test('a door is a PATH, so open/close ground against the exit list', () => {
     // The exact rejection from the mansion log: the prompt listed the door
     // under "paths", the validator only consulted the item pool.
     assertEq(
-        ORCH_PG.groundStep({ act: 'open', target: 'dining_room_door' }, ORCH_FACTS_FOYER, 'foyer'),
+        ORCH_PG.groundStep({ action: 'open', target: 'dining_room_door' }, ORCH_FACTS_FOYER, 'foyer'),
         null,
         'opening a listed door grounds',
     );
     assertEq(
-        ORCH_PG.groundStep({ act: 'close', target: 'front_door' }, ORCH_FACTS_FOYER, 'foyer'),
+        ORCH_PG.groundStep({ action: 'close', target: 'front_door' }, ORCH_FACTS_FOYER, 'foyer'),
         null,
         'closing a listed door grounds',
     );
@@ -111,33 +111,33 @@ test('a door is a PATH, so open/close ground against the exit list', () => {
 test('open still refuses a door that is not here', () => {
     // The matcher is deliberately lenient (it resolves "gold hoop" to "Gold
     // Hoop Earrings"), so the probe here shares NO word with a real path.
-    const reason = ORCH_PG.groundStep({ act: 'open', target: 'cellar_hatch' }, ORCH_FACTS_FOYER, 'foyer');
+    const reason = ORCH_PG.groundStep({ action: 'open', target: 'cellar_hatch' }, ORCH_FACTS_FOYER, 'foyer');
     assertTrue(reason !== null, 'an unlisted door is rejected');
     assertTrue(/paths from here/.test(reason), 'the rejection names the path list');
 });
 
 test('search needs a thing, and the reason teaches the go-then-look route', () => {
-    const reason = ORCH_PG.groundStep({ act: 'search', area: 'dining room door' }, ORCH_FACTS_FOYER, 'foyer');
+    const reason = ORCH_PG.groundStep({ action: 'search', area: 'dining room door' }, ORCH_FACTS_FOYER, 'foyer');
     assertTrue(reason !== null, 'a place is not a searchable thing');
     assertTrue(/go.*there first/i.test(reason), 'the reason teaches the correct route');
 });
 
 test('search still grounds on a real item', () => {
     assertEq(
-        ORCH_PG.groundStep({ act: 'search', item: 'coat_rack' }, ORCH_FACTS_FOYER, 'foyer'),
+        ORCH_PG.groundStep({ action: 'search', item: 'coat_rack' }, ORCH_FACTS_FOYER, 'foyer'),
         null,
         'searching a listed item grounds',
     );
 });
 
 test('room-description scenery stays unsearchable', () => {
-    const reason = ORCH_PG.groundStep({ act: 'search', item: 'dining table' }, ORCH_FACTS_FOYER, 'foyer');
+    const reason = ORCH_PG.groundStep({ action: 'search', item: 'dining table' }, ORCH_FACTS_FOYER, 'foyer');
     assertTrue(reason !== null, 'a described-but-unlisted table is rejected');
     assertTrue(/NOT interactable/i.test(reason), 'the reason states the rule');
 });
 
 test('take still refuses a path', () => {
-    const reason = ORCH_PG.groundStep({ act: 'take', item: 'front_door' }, ORCH_FACTS_FOYER, 'foyer');
+    const reason = ORCH_PG.groundStep({ action: 'take', item: 'front_door' }, ORCH_FACTS_FOYER, 'foyer');
     assertTrue(reason !== null, 'a door is not takeable');
 });
 
@@ -146,8 +146,8 @@ test('take still refuses a path', () => {
 test('ground reports the index of every step, so a repair can be positional', () => {
     const r = ORCH_PG.ground(
         [
-            { act: 'go', target: 'dining_room_door' },
-            { act: 'search', item: 'dining table' },
+            { action: 'go', target: 'dining_room_door' },
+            { action: 'search', item: 'dining table' },
         ],
         ORCH_FACTS_FOYER,
         'foyer',
@@ -160,10 +160,10 @@ test('ground reports the index of every step, so a repair can be positional', ()
 test('the plan verb list cannot drift from the executor registry', () => {
     // Every plan verb the executor does not know would be a command the
     // engine rejects at action time.
-    const registry = window.ActionVerbs;
+    const registry = window.Actions;
     if (!registry) return; // registry not loaded in this sandbox - nothing to compare
-    const known = registry.VALID_SET || new Set(registry.VALID_VERBS || []);
-    const drifting = [...ORCH_PG.ACTS].filter((v) => v !== 'perform' && !known.has(v));
+    const known = registry.VALID_SET || new Set(registry.VALID_ACTIONS || []);
+    const drifting = [...ORCH_PG.ACTIONS].filter((v) => v !== 'perform' && !known.has(v));
     assertEq(drifting.length, 0, 'plan verbs missing from the executor registry: ' + drifting.join(', '));
 });
 
@@ -172,8 +172,8 @@ test('a repair keeps the steps that already grounded', () => {
     // the table", the repair produced "take lighter / go west passage", and
     // the character abandoned a verified step.
     const original = [
-        { act: 'go', target: 'dining_room_door' },
-        { act: 'search', item: 'dining table' },
+        { action: 'go', target: 'dining_room_door' },
+        { action: 'search', item: 'dining table' },
     ];
     const originalResult = ORCH_PG.ground(original, ORCH_FACTS_FOYER, 'foyer');
     assertEq(originalResult.grounded.length, 1, 'one step grounds');
@@ -181,8 +181,8 @@ test('a repair keeps the steps that already grounded', () => {
 
     // A repair that ignores the contract and returns something else entirely.
     const repaired = [
-        { act: 'take', item: 'lighter' },
-        { act: 'go', target: 'front_door' },
+        { action: 'take', item: 'lighter' },
+        { action: 'go', target: 'front_door' },
     ];
     const repairedResult = ORCH_PG.ground(repaired, ORCH_FACTS_FOYER, 'foyer');
 
@@ -201,13 +201,13 @@ test('a repair keeps the steps that already grounded', () => {
 
 test('a repair fills a rejected position with a step that grounds', () => {
     const original = [
-        { act: 'go', target: 'dining_room_door' },
-        { act: 'search', item: 'dining table' },
+        { action: 'go', target: 'dining_room_door' },
+        { action: 'search', item: 'dining table' },
     ];
     const originalResult = ORCH_PG.ground(original, ORCH_FACTS_FOYER, 'foyer');
     const repaired = [
-        { act: 'go', target: 'dining_room_door' },
-        { act: 'examine', item: 'coat_rack' },
+        { action: 'go', target: 'dining_room_door' },
+        { action: 'examine', item: 'coat_rack' },
     ];
     const repairedResult = ORCH_PG.ground(repaired, ORCH_FACTS_FOYER, 'foyer');
     const merged = window.PlanManager._mergeWithPreserved(
@@ -226,14 +226,14 @@ test('a repair fills a rejected position with a step that grounds', () => {
 
 test('a repair cannot introduce a step that does not ground', () => {
     const original = [
-        { act: 'go', target: 'dining_room_door' },
-        { act: 'search', item: 'dining table' },
+        { action: 'go', target: 'dining_room_door' },
+        { action: 'search', item: 'dining table' },
     ];
     const originalResult = ORCH_PG.ground(original, ORCH_FACTS_FOYER, 'foyer');
     // The repair invents scenery again.
     const repaired = [
-        { act: 'go', target: 'dining_room_door' },
-        { act: 'search', item: 'dining table' },
+        { action: 'go', target: 'dining_room_door' },
+        { action: 'search', item: 'dining table' },
     ];
     const repairedResult = ORCH_PG.ground(repaired, ORCH_FACTS_FOYER, 'foyer');
     const merged = window.PlanManager._mergeWithPreserved(
@@ -251,8 +251,8 @@ test('a repair cannot introduce a step that does not ground', () => {
 
 test('the repair prompt shows the model which steps to keep', () => {
     const original = [
-        { act: 'go', target: 'dining_room_door' },
-        { act: 'search', item: 'dining table' },
+        { action: 'go', target: 'dining_room_door' },
+        { action: 'search', item: 'dining table' },
     ];
     const result = ORCH_PG.ground(original, ORCH_FACTS_FOYER, 'foyer');
     const prompt = window.PlanManager._buildRepairPrompt(

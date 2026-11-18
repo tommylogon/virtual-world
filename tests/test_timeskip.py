@@ -560,7 +560,7 @@ def test_mutating_routes_refuse_while_a_skip_runs():
     client = _client()
     timeskip._ACTIVE = True
     try:
-        assert client.post("/api/action", json={"command": "look"}).status_code == 409
+        assert client.post("/api/action", json={"action": "look"}).status_code == 409
         assert client.post("/api/turn/apply", json={}).status_code == 409
         assert client.post("/api/llm_respond", json={}).status_code == 409
     finally:

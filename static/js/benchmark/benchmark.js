@@ -72,6 +72,8 @@ window.BenchmarkApp = (() => {
         els.unloadCycleCb = document.getElementById('bench-unload-cycle');
         els.characterSelect = document.getElementById('bench-character');
         els.areaSelect = document.getElementById('bench-area');
+        els.preferredActionInput = document.getElementById('bench-preferred-action');
+        els.preferredActionList = document.getElementById('bench-preferred-action-list');
         els.temperatureInput = document.getElementById('bench-temperature');
         els.maxTokensInput = document.getElementById('bench-max-tokens');
         els.contextLengthInput = document.getElementById('bench-context-length');
@@ -268,6 +270,12 @@ window.BenchmarkApp = (() => {
             });
         }
 
+        if (els.preferredActionInput) {
+            els.preferredActionInput.addEventListener('input', () => {
+                reapplyPreferredActionScoring();
+            });
+        }
+
         els.runBtn.addEventListener('click', startBenchmark);
         els.cancelBtn.addEventListener('click', cancelBenchmark);
 
@@ -406,6 +414,7 @@ window.BenchmarkApp = (() => {
                 const simNote = state.selectedArea ? ` [Simulated in ${evalArea}, actual: ${actualArea}]` : '';
                 els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${evalArea}${simNote} | System: ${captured.systemPrompt.length} chars | User: ${captured.userPrompt.length} chars`;
             }
+            populatePreferredActionSuggestions(evalArea, player);
         } catch (err) {
             console.error('[Benchmark] Prompt capture failed:', err);
             state.currentPrompt = null;
@@ -415,6 +424,36 @@ window.BenchmarkApp = (() => {
             if (els.promptSummary) els.promptSummary.textContent = msg;
             if (els.statusText) els.statusText.textContent = msg;
         }
+    }
+
+    function populatePreferredActionSuggestions(evalArea, player) {
+        if (!els.preferredActionList || !state.worldData) return;
+        const suggestions = new Set();
+        const areaObj = state.worldData.areas?.[evalArea] || {};
+        const exits = areaObj.exits || {};
+        Object.keys(exits).forEach(ex => {
+            suggestions.add(`go ${ex}`);
+            suggestions.add(`approach ${ex}`);
+        });
+        if (evalArea) suggestions.add(`examine ${evalArea}`);
+        const areaItems = Array.isArray(areaObj.items) ? areaObj.items : [];
+        areaItems.forEach(it => {
+            const name = typeof it === 'string' ? it : it?.name;
+            if (name) {
+                suggestions.add(`examine ${name}`);
+                suggestions.add(`take ${name}`);
+                suggestions.add(`use ${name}`);
+            }
+        });
+        const inv = Array.isArray(player?.inventory) ? player.inventory : [];
+        inv.forEach(name => {
+            if (name) suggestions.add(`use ${name}`);
+        });
+        ['relieve', 'rest', 'look', 'search', 'wait', 'plan'].forEach(v => suggestions.add(v));
+        els.preferredActionList.innerHTML = Array.from(suggestions)
+            .slice(0, 60)
+            .map(s => `<option value="${escapeHtml(s)}"></option>`)
+            .join('');
     }
 
     async function refreshModels() {
@@ -871,6 +910,10 @@ window.BenchmarkApp = (() => {
                         <span class="bench-metric-val" id="metric-total-${id}">-</span>
                         <span class="bench-metric-lbl">Total</span>
                     </div>
+                    <div class="bench-metric" title="Validation score (JSON + Engine Action + Preferred Action)">
+                        <span class="bench-metric-val" id="metric-score-${id}">-</span>
+                        <span class="bench-metric-lbl">Score</span>
+                    </div>
                 </div>
             </div>
             <div class="bench-card-body">
@@ -1060,6 +1103,7 @@ window.BenchmarkApp = (() => {
         const tpsEl = document.getElementById(`metric-tps-${id}`);
         const tokensEl = document.getElementById(`metric-tokens-${id}`);
         const totalEl = document.getElementById(`metric-total-${id}`);
+        const scoreEl = document.getElementById(`metric-score-${id}`);
         const rawEl = document.getElementById(`raw-${id}`);
 
         if (ttftEl) ttftEl.textContent = (r.metrics?.ttft != null) ? `${r.metrics.ttft.toFixed(2)}s` : '-';
@@ -1073,6 +1117,13 @@ window.BenchmarkApp = (() => {
             }
         }
         if (totalEl) totalEl.textContent = (r.metrics?.total != null) ? `${r.metrics.total.toFixed(2)}s` : '-';
+        if (scoreEl) {
+            if (r.score && typeof r.score.earned === 'number' && typeof r.score.max === 'number') {
+                scoreEl.textContent = `${r.score.earned}/${r.score.max}`;
+            } else {
+                scoreEl.textContent = '-';
+            }
+        }
         if (proseEl) proseEl.textContent = r.prose || 'No prose';
         if (rawEl) {
             const rawContent = r.output || '';
@@ -1438,30 +1489,131 @@ window.BenchmarkApp = (() => {
         }
     }
 
+    function normalizeActionSpecForCompare(rawStr) {
+        return String(rawStr || '')
+            .toLowerCase()
+            .replace(/\b(?:the|a|an)\b/g, ' ')
+            .replace(/[_-]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function matchPreferredAction(preferredRaw, validatedActions) {
+        const prefInput = String(preferredRaw || '').trim();
+        if (!prefInput) return null;
+        const candidates = prefInput.split(',').map(s => s.trim()).filter(Boolean);
+        if (candidates.length === 0) return null;
+
+        for (const cand of candidates) {
+            const normCand = normalizeActionSpecForCompare(cand);
+            const candParts = normCand.split(' ');
+            const candVerb = candParts[0];
+            const candTarget = candParts.slice(1).join(' ');
+
+            for (const va of (validatedActions || [])) {
+                const normCmd = normalizeActionSpecForCompare(va.cmd);
+                const normVerb = normalizeActionSpecForCompare(va.verb);
+                const normTarget = normalizeActionSpecForCompare(va.target);
+                const normResolved = normalizeActionSpecForCompare(va.resolved_target || '');
+
+                if (normCmd === normCand) return { matched: true, candidate: cand, actual: va.cmd };
+                if (candVerb === normVerb) {
+                    if (!candTarget) {
+                        return { matched: true, candidate: cand, actual: va.cmd };
+                    }
+                    if (
+                        (normTarget && (normTarget.includes(candTarget) || candTarget.includes(normTarget))) ||
+                        (normResolved && (normResolved.includes(candTarget) || candTarget.includes(normResolved))) ||
+                        normCmd.includes(candTarget)
+                    ) {
+                        return { matched: true, candidate: cand, actual: va.cmd };
+                    }
+                }
+            }
+        }
+        return { matched: false, expected: candidates.join(' OR ') };
+    }
+
+    function computeScoreAndFlags(baseFlags, jsonValid, validatedActions) {
+        const flags = [...(baseFlags || [])];
+        if (!jsonValid) {
+            const prefRaw = els.preferredActionInput?.value?.trim() || '';
+            return { flags, score: { earned: 0, max: prefRaw ? 3 : 2, preferred_matched: false } };
+        }
+        const allActionsValid = (validatedActions || []).length > 0 && validatedActions.every(a => a.valid);
+        let earned = 1 + (allActionsValid ? 1 : 0);
+        let max = 2;
+        let preferredMatched = null;
+
+        const prefRaw = els.preferredActionInput?.value?.trim() || '';
+        const prefCheck = matchPreferredAction(prefRaw, validatedActions);
+        if (prefCheck) {
+            max = 3;
+            if (prefCheck.matched) {
+                earned += 1;
+                preferredMatched = true;
+                flags.push({ pass: true, is_preferred: true, text: `+1 Preferred Action Match: '${prefCheck.actual}' (matched '${prefCheck.candidate}')` });
+            } else {
+                preferredMatched = false;
+                flags.push({ pass: false, is_preferred: true, text: `Missed preferred action (expected: ${prefCheck.expected})` });
+            }
+        }
+        return {
+            flags,
+            score: { earned, max, preferred_matched: preferredMatched }
+        };
+    }
+
+    function reapplyPreferredActionScoring() {
+        Object.keys(state.results || {}).forEach(model => {
+            const r = state.results[model];
+            if (!r) return;
+            const baseFlags = (r.base_flags || (r.flags || []).filter(f => !f.is_preferred));
+            r.base_flags = baseFlags;
+            const { flags, score } = computeScoreAndFlags(baseFlags, r.json_valid, r.validated_actions || []);
+            r.flags = flags;
+            r.score = score;
+            renderCardData(model, r);
+        });
+    }
+
     async function evaluateModelOutput(model, text, metrics, reasoning = '') {
         const id = sanitizeId(model);
         const proseEl = document.getElementById(`prose-${id}`);
         const actionEl = document.getElementById(`action-${id}`);
         const flagsEl = document.getElementById(`flags-${id}`);
+        const scoreEl = document.getElementById(`metric-score-${id}`);
 
         let jsonValid = false;
         let parsed = null;
+        let repairedNote = null;
 
         const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
         try {
-            parsed = JSON.parse(cleaned);
-            jsonValid = true;
+            if (typeof window.repairJSON === 'function') {
+                const repaired = window.repairJSON(cleaned);
+                if (window.__repairStats?.repaired) {
+                    repairedNote = 'JSON repaired (truncated response)';
+                    window.__repairStats.repaired = false;
+                }
+                parsed = JSON.parse(repaired);
+                jsonValid = !!(parsed && typeof parsed === 'object');
+            } else {
+                parsed = JSON.parse(cleaned);
+                jsonValid = true;
+            }
         } catch (e) {
             const match = text.match(/\{[\s\S]*\}/);
             if (match) {
                 try {
-                    parsed = JSON.parse(match[0]);
-                    jsonValid = true;
+                    const candidate = typeof window.repairJSON === 'function' ? window.repairJSON(match[0]) : match[0];
+                    parsed = JSON.parse(candidate);
+                    jsonValid = !!(parsed && typeof parsed === 'object');
                 } catch (e2) {}
             }
         }
 
-        const flags = [];
+        const baseFlags = [];
 
         if (!jsonValid || !parsed) {
             if (proseEl) {
@@ -1476,8 +1628,20 @@ window.BenchmarkApp = (() => {
                 : 'Invalid JSON response';
             let failProse = '';
             if (proseEl) failProse = proseEl.textContent || '';
+            const { flags, score } = computeScoreAndFlags([{ pass: false, text: failMsg }], false, []);
             if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">❌ ${failMsg}</span>`;
-            state.results[model] = { json_valid: false, metrics, flags: [{ pass: false, text: failMsg }], output: text, reasoning: reasoning || '', prose: failProse };
+            if (scoreEl) scoreEl.textContent = `${score.earned}/${score.max}`;
+            state.results[model] = {
+                json_valid: false,
+                metrics,
+                base_flags: [{ pass: false, text: failMsg }],
+                flags,
+                score,
+                validated_actions: [],
+                output: text,
+                reasoning: reasoning || '',
+                prose: failProse
+            };
             archiveCurrentRoll(model);
             return;
         }
@@ -1488,40 +1652,59 @@ window.BenchmarkApp = (() => {
         const prose = `${monologue}${speech}${emote}`.trim() || 'No monologue or dialogue provided.';
         if (proseEl) proseEl.textContent = prose;
 
-        flags.push({ pass: true, text: 'Valid JSON output' });
+        baseFlags.push({ pass: true, text: repairedNote ? `Valid JSON output (${repairedNote})` : 'Valid JSON output' });
 
-        // Collect all actions (supports single action or multi-action array)
-        const actionsList = [];
+        // Collect all actions while preserving full structured payload (relation, where, intensity, amount, text)
+        const rawActions = [];
         if (Array.isArray(parsed.actions)) {
             parsed.actions.forEach(a => {
-                actionsList.push({ action: a.action || a.verb || 'wait', target: a.target || a.item || '', item: a.item });
+                if (a && typeof a === 'object') {
+                    rawActions.push({ ...a, action: a.action || a.verb || 'wait' });
+                }
             });
-        } else if (parsed.action) {
-            actionsList.push({ action: parsed.action, target: parsed.target || parsed.item || '', item: parsed.item });
+        } else if (parsed.action !== undefined && parsed.action !== null && parsed.action !== '') {
+            rawActions.push({ ...parsed });
         }
 
-        if (actionsList.length === 0) {
-            actionsList.push({ action: 'wait', target: '' });
+        if (rawActions.length === 0) {
+            rawActions.push({ action: 'wait' });
         }
 
-        if (actionEl) {
-            actionEl.innerHTML = actionsList.map(a => `
-                <div class="bench-action-chip">
-                    <span class="bench-action-chip-verb">${escapeHtml(a.action)}</span>
-                    ${a.target ? `<span class="bench-action-chip-target">${escapeHtml(a.target)}</span>` : ''}
-                </div>
-            `).join('');
-        }
+        const actionsList = [];
+        const validatedActions = [];
 
-        // Ground-truth validation using real engine validator (POST /api/action/validate)
-        for (const a of actionsList) {
+        // Ground-truth validation using ActionNormalizer + real engine validator (POST /api/action/validate)
+        for (const rawAct of rawActions) {
             let cmdStr = '';
             if (window.ActionNormalizer && typeof window.ActionNormalizer.normalizeStructuredAction === 'function') {
-                cmdStr = window.ActionNormalizer.normalizeStructuredAction(a);
+                cmdStr = window.ActionNormalizer.normalizeStructuredAction(rawAct);
             } else {
-                const v = String(a.action || 'wait').trim();
-                const t = String(a.target || a.item || '').trim();
+                const v = String(rawAct.action || 'wait').trim();
+                const t = String(rawAct.target || rawAct.item || '').trim();
                 cmdStr = t ? `${v} ${t}` : v;
+            }
+
+            const verbStr = typeof rawAct.action === 'string'
+                ? rawAct.action.trim()
+                : (cmdStr ? cmdStr.split(/\s+/)[0] : 'wait');
+            const displayTarget = cmdStr.length > verbStr.length && cmdStr.toLowerCase().startsWith(verbStr.toLowerCase() + ' ')
+                ? cmdStr.slice(verbStr.length + 1).trim()
+                : String(rawAct.target || rawAct.item || '').trim();
+
+            actionsList.push({
+                action: verbStr,
+                target: displayTarget,
+                item: rawAct.item || ''
+            });
+
+            if (window.ActionNormalizer && typeof window.ActionNormalizer.classifyAction === 'function') {
+                const verdict = window.ActionNormalizer.classifyAction(cmdStr, state.selectedChar);
+                if (!verdict.ok) {
+                    const msg = `Action '${cmdStr || verbStr}' rejected [${verdict.category}]: ${verdict.detail}`;
+                    baseFlags.push({ pass: false, text: msg });
+                    validatedActions.push({ cmd: cmdStr, verb: verbStr, target: displayTarget, valid: false, category: verdict.category, detail: verdict.detail });
+                    continue;
+                }
             }
 
             try {
@@ -1537,17 +1720,39 @@ window.BenchmarkApp = (() => {
                 if (valResp.ok) {
                     const valData = await valResp.json();
                     if (valData.valid) {
-                        flags.push({ pass: true, text: valData.detail || `Action '${cmdStr}' verified by engine` });
+                        baseFlags.push({ pass: true, text: valData.detail || `Action '${cmdStr}' verified by engine` });
                     } else {
-                        flags.push({ pass: false, text: valData.detail || `Action '${cmdStr}' rejected: ${valData.category || 'invalid'}` });
+                        baseFlags.push({ pass: false, text: valData.detail || `Action '${cmdStr}' rejected: ${valData.category || 'invalid'}` });
                     }
+                    validatedActions.push({
+                        cmd: cmdStr,
+                        verb: verbStr,
+                        target: displayTarget,
+                        resolved_target: valData.resolved_target || '',
+                        valid: !!valData.valid,
+                        category: valData.category || '',
+                        detail: valData.detail || ''
+                    });
                 } else {
-                    flags.push({ pass: false, text: `Engine validation error for '${cmdStr}'` });
+                    baseFlags.push({ pass: false, text: `Engine validation error for '${cmdStr}'` });
+                    validatedActions.push({ cmd: cmdStr, verb: verbStr, target: displayTarget, valid: false });
                 }
             } catch (vErr) {
-                flags.push({ pass: false, text: `Could not reach engine validator for '${cmdStr}'` });
+                baseFlags.push({ pass: false, text: `Could not reach engine validator for '${cmdStr}'` });
+                validatedActions.push({ cmd: cmdStr, verb: verbStr, target: displayTarget, valid: false });
             }
         }
+
+        if (actionEl) {
+            actionEl.innerHTML = actionsList.map(a => `
+                <div class="bench-action-chip">
+                    <span class="bench-action-chip-verb">${escapeHtml(a.action)}</span>
+                    ${a.target ? `<span class="bench-action-chip-target">${escapeHtml(a.target)}</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        const { flags, score } = computeScoreAndFlags(baseFlags, true, validatedActions);
 
         if (flagsEl) {
             flagsEl.innerHTML = flags.map(f => `
@@ -1556,14 +1761,20 @@ window.BenchmarkApp = (() => {
                 </span>
             `).join('');
         }
+        if (scoreEl) {
+            scoreEl.textContent = `${score.earned}/${score.max}`;
+        }
 
         state.results[model] = {
             json_valid: true,
             metrics,
             parsed,
+            base_flags: baseFlags,
             flags,
+            score,
+            validated_actions: validatedActions,
             prose,
-            actions_summary: actionsList.map(a => ({ verb: a.action, target: a.target, item: a.item })),
+            actions_summary: actionsList.map(a => ({ action: a.action, verb: a.action, target: a.target, item: a.item })),
             output: text,
             reasoning: reasoning || '',
         };
@@ -1592,6 +1803,7 @@ window.BenchmarkApp = (() => {
             exported_at: new Date().toISOString(),
             character: state.selectedChar || 'unknown',
             simulated_area: state.selectedArea || '(Actual Location)',
+            preferred_action: els.preferredActionInput?.value?.trim() || null,
             prompt: {
                 summary: els.promptSummary?.textContent?.trim() || '',
                 system: state.currentPrompt?.system || '',
@@ -1662,6 +1874,7 @@ window.BenchmarkApp = (() => {
                         content_tokens: r.metrics?.content_tokens ?? (r.metrics?.tokens ?? null)
                     },
                     json_valid: r.json_valid ?? false,
+                    score: r.score || null,
                     parsed_response: r.parsed ?? null,
                     actions: r.actions_summary || [],
                     validation_flags: r.flags || [],

@@ -29,7 +29,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
     // Canonical display order for item action brackets.
-    const _registryBO = window.ActionVerbs?.BRACKET_ORDER;
+    const _registryBO = window.Actions?.BRACKET_ORDER;
     const BRACKET_ORDER = _registryBO || ['take', 'use', 'use_on', 'open', 'close', 'eat', 'drink', 'read', 'wear', 'remove', 'toggle', 'drop', 'examine'];
     // Mirror of engine/item_actions.py:INVERSE_ACTIONS  -  an item that declares
     // one side of a pair is also credited with the other (take→drop, equip→
@@ -590,6 +590,10 @@ window.PromptBuilder = window.PromptBuilder || {};
                 keep('climb', `climb  -  climb the ${handle}`);
             else if (req === 'jump')
                 keep('jump', `jump  -  jump across the ${handle}`);
+            else if (req === 'swim')
+                keep('swim', `swim  -  swim through the ${handle}`);
+            else if (req === 'dive')
+                keep('dive', `dive  -  dive through the ${handle}`);
         }
         const others = (state.players_in_area || []).filter((p) => p && p.name && p.name !== charName);
         if (others.length) {
@@ -606,6 +610,16 @@ window.PromptBuilder = window.PromptBuilder || {};
                 .filter(Boolean);
             if (armedNames.length)
                 keep('disarm', `disarm  -  wrest a held item from ${armedNames.join(', ')}`);
+            const sleepingNames = others
+                .filter((p) => {
+                const st = String(worldState.data?.players?.[p.name || '']?.state || p.state || '').toLowerCase();
+                const conds = worldState.data?.players?.[p.name || '']?.conditions || p?.conditions || {};
+                return st === 'sleeping' || st === 'asleep' || st === 'unconscious' || Boolean(conds.unconscious || conds.sleeping);
+            })
+                .map((p) => PromptBuilder.anonymousName(charName, p.name || '', worldState.data?.players?.[p.name || '']?.description || p.description || ''))
+                .filter(Boolean);
+            if (sleepingNames.length)
+                keep('wake', `wake  -  rouse ${sleepingNames.join(', ')}`);
             keep('lead', `lead  -  guide ${target}`);
             if (carried.length)
                 keep('give', `give  -  hand an item to ${target}`);
@@ -619,10 +633,14 @@ window.PromptBuilder = window.PromptBuilder || {};
         if ((player?.state === 'prone') || !!(player?.conditions?.prone))
             keep('stand', 'stand  -  get back up (you are prone)');
         const coverNodes = hideableCoverNodes(currentArea);
+        const inDanger = hasThreatOrDanger(state, charName, player, currentArea, others);
+        if (inDanger) {
+            keep('flee', 'flee  -  disengage and retreat from danger');
+        }
         if (isCharacterHidden(charName, player)) {
             keep('unhide', 'unhide  -  step out of hiding');
         }
-        else if (coverNodes.length > 0 || hasThreatOrDanger(state, charName, player, currentArea, others)) {
+        else if (coverNodes.length > 0 || inDanger) {
             if (coverNodes.length > 0) {
                 const coverLabels = coverNodes.map(c => c.name || c.id).filter(Boolean).join(', ');
                 keep('hide', `hide  -  hide in/behind/under ${coverLabels}`);

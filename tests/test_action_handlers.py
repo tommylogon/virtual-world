@@ -37,7 +37,7 @@ def test_commons_text_dm_writes_ledger_without_template_memories():
     before_counts = {name: len(p.memories) for name, p in w.players.items()}
 
     resp = client.post("/api/action", json={
-        "command": f"text {other.name} Meet me at the lockers",
+        "action": f"text {other.name} Meet me at the lockers",
         "character": hero.name,
     })
     assert resp.status_code == 200
@@ -64,7 +64,7 @@ def test_commons_post_channel_writes_ledger_without_template_memories():
     before_counts = {name: len(p.memories) for name, p in w.players.items()}
 
     resp = client.post("/api/action", json={
-        "command": "text #hellmouth Who left the lantern burning?",
+        "action": "text #hellmouth Who left the lantern burning?",
         "character": hero.name,
     })
     assert resp.status_code == 200
@@ -91,9 +91,9 @@ def test_commons_message_alias_and_record_memory_flags_write_no_template_memorie
     before_counts = {name: len(p.memories) for name, p in w.players.items()}
 
     for payload in (
-        {"command": f"message {other.name} Checking in", "character": hero.name, "record_memory": True},
-        {"command": f"message {other.name} Testing mode", "character": hero.name, "record_memory": False},
-        {"command": "message #general Status update", "character": hero.name, "record_memory": False},
+        {"action": f"message {other.name} Checking in", "character": hero.name, "record_memory": True},
+        {"action": f"message {other.name} Testing mode", "character": hero.name, "record_memory": False},
+        {"action": "message #general Status update", "character": hero.name, "record_memory": False},
     ):
         resp = client.post("/api/action", json=payload)
         assert resp.status_code == 200
@@ -116,7 +116,7 @@ def test_commons_text_without_phone_fails_cleanly():
     before_msgs = len(w.commons.messages)
 
     resp = client.post("/api/action", json={
-        "command": "text Someone hey there",
+        "action": "text Someone hey there",
         "character": hero.name,
     })
     assert resp.status_code == 200

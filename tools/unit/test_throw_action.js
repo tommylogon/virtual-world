@@ -31,16 +31,16 @@ test('PlanGrounding grounds throw on carried items and exits', () => {
     };
     const facts = pg.collectFacts('Hero', state, state.players.Hero, 'Origin Room');
 
-    const ok = pg.groundStep({ act: 'throw', item: 'Knife', target: 'north' }, facts, 'Origin Room');
+    const ok = pg.groundStep({ action: 'throw', item: 'Knife', target: 'north' }, facts, 'Origin Room');
     assertEq(ok, null, 'throw carried item toward exit grounds cleanly');
 
-    const okArea = pg.groundStep({ act: 'throw', item: 'Knife', target: 'Yard' }, facts, 'Origin Room');
+    const okArea = pg.groundStep({ action: 'throw', item: 'Knife', target: 'Yard' }, facts, 'Origin Room');
     assertEq(okArea, null, 'throw carried item toward connected area grounds cleanly');
 
-    const notCarried = pg.groundStep({ act: 'throw', item: 'Crate', target: 'north' }, facts, 'Origin Room');
+    const notCarried = pg.groundStep({ action: 'throw', item: 'Crate', target: 'north' }, facts, 'Origin Room');
     assertTrue(notCarried && notCarried.includes('not carrying'), 'rejects throwing uncarried item');
 
-    const badTarget = pg.groundStep({ act: 'throw', item: 'Knife', target: 'Volcano' }, facts, 'Origin Room');
+    const badTarget = pg.groundStep({ action: 'throw', item: 'Knife', target: 'Volcano' }, facts, 'Origin Room');
     assertTrue(badTarget && badTarget.includes('no path or target'), 'rejects throwing toward unknown target');
 });
 

@@ -20,8 +20,8 @@
 const ActionNormalizerModule = (() => {
     'use strict';
 
-    const _registry = (window as unknown as { ActionVerbs?: { VALID_VERBS?: string[]; MATURE_VERBS?: string[]; VALID_SET?: Set<string>; MATURE_SET?: Set<string>; allVerbs?: (m: boolean) => Set<string> } }).ActionVerbs;
-    const VALID_VERBS = _registry?.VALID_SET || new Set(_registry?.VALID_VERBS || [
+    const _registry = (window as unknown as { Actions?: { VALID_ACTIONS?: string[]; MATURE_ACTIONS?: string[]; VALID_SET?: Set<string>; MATURE_SET?: Set<string>; allActions?: (m: boolean) => Set<string> } }).Actions;
+    const VALID_ACTIONS = _registry?.VALID_SET || new Set(_registry?.VALID_ACTIONS || [
         'do', 'go', 'dash', 'crawl', 'climb', 'jump', 'grab', 'escape', 'struggle',
         'open', 'close', 'take', 'get', 'pickup', 'drop', 'throw', 'toss', 'put', 'place', 'give', 'hand',
         'steal', 'use', 'eat', 'drink', 'examine', 'speak', 'say', 'look', 'inventory',
@@ -37,7 +37,7 @@ const ActionNormalizerModule = (() => {
 
     // task-211: intimacy verbs are only valid actions in mature worlds. Kept
     // out of the base set so non-mature scenarios never accept/emit them.
-    const MATURE_VERBS = _registry?.MATURE_SET || new Set(_registry?.MATURE_VERBS || ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle']);
+    const MATURE_ACTIONS = _registry?.MATURE_SET || new Set(_registry?.MATURE_ACTIONS || ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle']);
     const INTENSITY_ADVERBS: Record<string, string> = { light: 'gently', firm: 'firmly' };
 
     function matureEnabled() {
@@ -51,11 +51,11 @@ const ActionNormalizerModule = (() => {
 
     let _matureCache: Set<string> | null = null;
     function allVerbs() {
-        if (_registry && _registry.allVerbs) {
-            return _registry.allVerbs(matureEnabled());
+        if (_registry && _registry.allActions) {
+            return _registry.allActions(matureEnabled());
         }
-        if (!matureEnabled()) return VALID_VERBS;
-        if (!_matureCache) _matureCache = new Set([...VALID_VERBS, ...MATURE_VERBS]);
+        if (!matureEnabled()) return VALID_ACTIONS;
+        if (!_matureCache) _matureCache = new Set([...VALID_ACTIONS, ...MATURE_ACTIONS]);
         return _matureCache;
     }
 

@@ -4,7 +4,7 @@
   "kind": "bug",
   "number": 598,
   "title": "Sync PlanGrounding.PLAN_INTENT_ACTS and contextual-actions.ts with registered ActionVerbs",
-  "status": "todo",
+  "status": "review",
   "priority": "medium",
   "area": "gameplay",
   "tags": [
@@ -15,7 +15,7 @@
     "bugs"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-18",
   "horizon": "now",
   "effort": "s",
   "goal": "",
@@ -45,15 +45,15 @@
     "acceptance": [
       {
         "text": "PlanGrounding.PLAN_INTENT_ACTS in static/js/agent/plan-grounding.ts includes valid character verbs already registered in engine/action_verbs.py (flee, frisk, release, offer, wake, fix, whisper, shout, stop, sit, lie) while still excluding system/meta plumbing verbs.",
-        "done": false
+        "done": true
       },
       {
         "text": "contextual-actions.ts suggests contextually relevant survival/social verbs (such as flee when danger is present or others are co-located, and wake when someone is asleep/unconscious) within turn-slot budgets.",
-        "done": false
+        "done": true
       },
       {
         "text": "Unit tests cover PlanGrounding acceptance of those verbs and contextual suggestion output.",
-        "done": false
+        "done": true
       }
     ],
     "files": [

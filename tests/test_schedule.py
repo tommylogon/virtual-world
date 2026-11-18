@@ -252,10 +252,10 @@ def test_the_schedule_verb_adds_and_removes_a_step():
     client = app.test_client()
     name = app.world.active_player
 
-    client.post("/api/action", json={"command": "schedule add 08:00 patrol at Gate", "character": name})
+    client.post("/api/action", json={"action": "schedule add 08:00 patrol at Gate", "character": name})
     schedule = app.world.get_player(name).schedule
     assert schedule == [{"start": 480, "activity": "patrol",
                          "fallback": DEFAULT_ACTIVITY, "area": "Gate"}]
 
-    client.post("/api/action", json={"command": "schedule remove 08:00", "character": name})
+    client.post("/api/action", json={"action": "schedule remove 08:00", "character": name})
     assert app.world.get_player(name).schedule == []

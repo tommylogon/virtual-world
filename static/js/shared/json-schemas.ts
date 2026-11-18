@@ -149,7 +149,7 @@ const StructuredFormats = (() => {
         type: 'object',
         additionalProperties: false,
         properties: {
-            act: { type: 'string' },
+            action: { type: 'string' },
             item: NULLABLE_STR,
             target: NULLABLE_STR,
             text: NULLABLE_STR,
@@ -158,7 +158,7 @@ const StructuredFormats = (() => {
             until: NULLABLE_STR,
             duration: { type: ['number', 'null'] }
         },
-        required: ['act', 'item', 'target', 'text', 'note', 'area', 'until', 'duration']
+        required: ['action', 'item', 'target', 'text', 'note', 'area', 'until', 'duration']
     };
 
     /** plan - strict schemas require an object root, hence the steps wrapper. */

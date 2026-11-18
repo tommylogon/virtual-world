@@ -146,7 +146,7 @@ def run_playtest_session(
 
             # Dispatch action to engine
             action_resp = client.post("/api/action", json={
-                "command": cmd,
+                "action": cmd,
                 "player": char_name,
             })
             action_data = action_resp.get_json() if action_resp.status_code == 200 else {}
@@ -155,7 +155,7 @@ def run_playtest_session(
             turn_log = {
                 "character": char_name,
                 "area": area_name,
-                "command": cmd,
+                "action": cmd,
                 "feedback": feedback,
                 "emotion_primary": primary_emo,
             }

@@ -81,7 +81,7 @@ The "Items that catch your attention:" list is everything you can interact with 
 
     const ACTION_STRUCTURE = '';
 
-    const _regMatureList = (window as unknown as { ActionVerbs?: { MATURE_VERBS?: string[] } }).ActionVerbs?.MATURE_VERBS?.join(', ') || 'kiss, caress, lick, suck, bite, pinch, blow, tickle';
+    const _regMatureList = (window as unknown as { Actions?: { MATURE_ACTIONS?: string[] } }).Actions?.MATURE_ACTIONS?.join(', ') || 'kiss, caress, lick, suck, bite, pinch, blow, tickle';
     const MATURE_ACTIONS = `
 
 === INTIMACY (adult worlds only) ===

@@ -22,13 +22,13 @@ test('StructuredFormats.plan defines strict typed step object schema', () => {
     assertEq(itemSchema.type, 'object', 'steps.items must be object');
     assertEq(itemSchema.additionalProperties, false, 'steps.items must disallow additionalProperties');
 
-    const expectedFields = ['act', 'item', 'target', 'text', 'note', 'area', 'until', 'duration'];
+    const expectedFields = ['action', 'item', 'target', 'text', 'note', 'area', 'until', 'duration'];
     assertEq(
         JSON.stringify(itemSchema.required),
         JSON.stringify(expectedFields),
         'steps.items.required lists every typed step property',
     );
-    assertEq(itemSchema.properties.act.type, 'string', 'act is required string');
+    assertEq(itemSchema.properties.action.type, 'string', 'action is required string');
     for (const field of ['item', 'target', 'text', 'note', 'area', 'until']) {
         assertEq(
             JSON.stringify(itemSchema.properties[field].type),
@@ -134,7 +134,7 @@ test('PlanManager.generate sends StructuredFormats.plan and grounds strict typed
                 return JSON.stringify({
                     steps: [
                         {
-                            act: 'take',
+                            action: 'take',
                             item: 'dried meat',
                             target: null,
                             text: null,
@@ -144,7 +144,7 @@ test('PlanManager.generate sends StructuredFormats.plan and grounds strict typed
                             duration: null,
                         },
                         {
-                            act: 'go',
+                            action: 'go',
                             item: null,
                             target: 'west passage',
                             text: null,
@@ -154,7 +154,7 @@ test('PlanManager.generate sends StructuredFormats.plan and grounds strict typed
                             duration: null,
                         },
                         {
-                            act: 'perform',
+                            action: 'perform',
                             item: null,
                             target: null,
                             text: null,
@@ -199,7 +199,7 @@ test('PlanManager.generate formats strict typed steps when PlanGrounding is unav
             chat: async () => JSON.stringify({
                 steps: [
                     {
-                        act: 'take',
+                        action: 'take',
                         item: 'dried meat',
                         target: null,
                         text: null,
@@ -209,7 +209,7 @@ test('PlanManager.generate formats strict typed steps when PlanGrounding is unav
                         duration: null,
                     },
                     {
-                        act: 'speak',
+                        action: 'speak',
                         item: null,
                         target: null,
                         text: 'Hold on!',
@@ -263,7 +263,7 @@ test('PlanManager.generate injects goals, mosiac, relationships, and passes prev
             buildRelationshipContext: () => '\nRikka considers Mira their ally (60/100)',
             buildMosiacContext: (p) => {
                 const m = p.mosiac;
-                return `\n=== YOUR MIND ===\nMotivation: ${m.M}\nIntention: ${m.I}\nPending Offers:\n  - "${m.O[1].charge}" from ${m.O[1].from}\nActive Obligations: ${m.O[0].charge}\nSchedule: ${m.S.day} (current: ${m.S.step.activity} at ${m.S.step.area})`;
+                return `\n=== YOUR MIND ===\nMotivation: ${m.M}\nIntention: ${m.I}\nPending Offers:\n  - "${m.O[1].charge}" from ${m.O[1].from}\nActive Obligations: ${m.O[0].charge}\nSchedule: ${m.S.day} (current: ${m.S.step.actionivity} at ${m.S.step.area})`;
             },
             buildMemoryContext: async (_charName, opts) => {
                 capturedMemoryOpts = opts;
@@ -274,7 +274,7 @@ test('PlanManager.generate injects goals, mosiac, relationships, and passes prev
             chat: async (messages) => {
                 capturedPrompt = messages[0].content;
                 return JSON.stringify({
-                    steps: [{ act: 'take', item: 'dried meat', target: null, text: null, note: null, area: null, until: null, duration: null }],
+                    steps: [{ action: 'take', item: 'dried meat', target: null, text: null, note: null, area: null, until: null, duration: null }],
                 });
             },
         };
@@ -330,7 +330,7 @@ test('PlanManager.generate delegates threat detection to ThreatDetector includin
             chat: async (messages) => {
                 capturedPrompt = messages[0].content;
                 return JSON.stringify({
-                    steps: [{ act: 'go', item: null, target: 'west passage', text: null, note: null, area: null, until: null, duration: null }],
+                    steps: [{ action: 'go', item: null, target: 'west passage', text: null, note: null, area: null, until: null, duration: null }],
                 });
             },
         };
@@ -355,7 +355,7 @@ test('PlanManager.generate delegates threat detection to ThreatDetector includin
     });
 });
 
-test('PlanManager.generate honors mental-verb intent parameter and ActionVerbs registers plan as free (task-984)', async () => {
+test('PlanManager.generate honors mental-verb intent parameter and Actions registers plan as free (task-984)', async () => {
     await withPlanManagerEnv(async () => {
         let capturedPrompt = '';
         globalThis.worldState = {
@@ -381,6 +381,6 @@ test('PlanManager.generate honors mental-verb intent parameter and ActionVerbs r
         assertEq(steps.length, 1, 'generates plan with intent');
         assertTrue(capturedPrompt.includes('Focus / intent for this plan: find the cellar key'), 'includes mental-verb intent in prompt');
 
-        assertTrue(PlanGrounding.ACTS.has('plan'), 'PlanGrounding.ACTS includes plan');
+        assertTrue(PlanGrounding.ACTIONS.has('plan'), 'PlanGrounding.ACTIONS includes plan');
     });
 });

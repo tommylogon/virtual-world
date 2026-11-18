@@ -115,8 +115,8 @@ class ApiClientImpl {
     }
 
     /** Game actions */
-    static async action(command: string, charName?: string, opts?: { enforceSlots?: boolean }): Promise<ApiResult> {
-        const body: { command: string; character?: string; enforce_slots?: boolean } = { command };
+    static async action(action: string, charName?: string, opts?: { enforceSlots?: boolean }): Promise<ApiResult> {
+        const body: { action: string; character?: string; enforce_slots?: boolean } = { action };
         if (charName) body.character = charName;
         if (opts?.enforceSlots) body.enforce_slots = true;
         return this.post('/api/action', body);
@@ -1057,7 +1057,7 @@ globals.api = ApiClientImpl;
 /** Run a game action and log the result to the event stream, then refresh state. */
 (window as unknown as { runAction(cmd: string, charName?: string, opts?: { enforceSlots?: boolean }): Promise<void> }).runAction =
 async function(cmd: string, charName?: string, opts?: { enforceSlots?: boolean }) {
-    const body: { command: string; character?: string; enforce_slots?: boolean } = { command: cmd };
+    const body: { action: string; character?: string; enforce_slots?: boolean } = { action: cmd };
     if (charName) body.character = charName;
     if (opts?.enforceSlots) body.enforce_slots = true;
     const resp = await fetch('/api/action', {

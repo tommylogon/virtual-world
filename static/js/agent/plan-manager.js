@@ -181,7 +181,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
      * PlanGrounding is unavailable.
      */
     function _formatTypedStepFallback(step) {
-        const act = String(step.act || '').trim();
+        const act = String(step.action || '').trim();
         if (!act)
             return '';
         const text = String(step.text ?? step.note ?? '').trim();
@@ -308,8 +308,8 @@ ${lastResult ? `\n=== RECENTLY ===\n${_summaryLine(lastResult)}` : ''}
 ${lastThought ? `=== YOUR THOUGHTS ===\n${lastThought}\n\n` : ''}${_previousPlanIssues(charName)}
 
 ${(intent && intent.trim()) ? `Focus / intent for this plan: ${intent.trim()}\n\n` : ''}Create a practical 3-5 step plan based only on the information above.
-- Every step is an object: {"act": "...", "item": ..., "target": ..., "text": ..., "note": ..., "area": ..., "until": ..., "duration": ...}
-- "act" is one of: ${grounding ? [...grounding.ACTS].join(', ') : 'go, take, use, examine, speak, wait'}.
+- Every step is an object: {"action": "...", "item": ..., "target": ..., "text": ..., "note": ..., "area": ..., "until": ..., "duration": ...}
+- "action" is one of: ${grounding ? [...grounding.ACTIONS].join(', ') : 'go, take, use, examine, speak, wait'}.
 - TARGET TYPES - every "item"/"target" must name a thing that exists, and the TYPE decides where it comes from:
   * PATHS (the doors/exits listed under "paths") are the target of go, dash, approach, open, close.
   * ITEMS (the "Items that catch your attention" list) are the target of take, use, eat, drink, search, examine, drop.
@@ -321,7 +321,7 @@ ${(intent && intent.trim()) ? `Focus / intent for this plan: ${intent.trim()}\n\
 - Account for immediate survival needs, active threats in the room, and the character's current condition.
 - Plans are suggestions - if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
 
-Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"}, {"act": "go", "target": "west passage"}]}`;
+Respond ONLY with a JSON object: {"steps": [{"action": "take", "item": "dried meat"}, {"action": "go", "target": "west passage"}]}`;
             if (!grounding || !facts) {
                 // Grounding module unavailable - legacy prose contract as fallback.
                 const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, streaming: false, label: 'plan', max_tokens: Math.max(window.config?.maxTokens || 2048, 4096), reasoningEffort: 'low', responseFormat: _structuredFormats()?.plan, actor: charName, requestId: `plan-${charName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
@@ -437,9 +437,9 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
             const objs = arr
                 .map((e) => {
                 const norm = _normalizeTypedStep(e);
-                if (typeof norm.act === 'string')
+                if (typeof norm.action === 'string')
                     return _formatTypedStepFallback(norm);
-                return String(norm.examine || norm.action || norm.step || '');
+                return String(norm.examine || norm.step || '');
             })
                 .filter(Boolean)
                 .slice(0, 5);

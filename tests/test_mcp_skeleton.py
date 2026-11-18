@@ -60,7 +60,7 @@ def test_api_helper_success():
     mock_resp.status_code = 200
     mock_resp.json.return_value = {"output": "hello"}
     with patch.object(mcp_server.client, "request", return_value=mock_resp):
-        result = mcp_server._api("POST", "/api/action", {"command": "look"})
+        result = mcp_server._api("POST", "/api/action", {"action": "look"})
     assert result == {"output": "hello"}
 
 

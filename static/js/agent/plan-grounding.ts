@@ -52,39 +52,38 @@
      * ("mine until dusk") and the plan executor re-checks it against the
      * world when the step actually runs.
      */
-    const PLAN_INTENT_ACTS = [
+    const PLAN_INTENT_ACTIONS = [
         // movement & approach
-        'go', 'dash', 'approach', 'crawl', 'climb', 'jump', 'fumble',
-        'hide', 'sneak', 'unhide',
+        'go', 'dash', 'approach', 'crawl', 'climb', 'jump', 'swim', 'dive', 'fumble',
+        'mount', 'dismount', 'ride', 'saddle',
+        'flee', 'hide', 'sneak', 'unhide', 'stop',
         // world interaction
         'take', 'drop', 'throw', 'toss', 'use', 'use_on', 'examine', 'search', 'look',
-        'listen', 'read', 'open', 'close', 'put', 'craft', 'make',
+        'listen', 'read', 'open', 'close', 'put', 'craft', 'make', 'fix',
         'combine', 'split', 'wear', 'remove', 'stow',
         'eat', 'drink',
         // people
-        'give', 'steal', 'grab', 'disarm', 'lead', 'attack', 'escape', 'struggle',
-        // comms
-        'call', 'answer', 'hangup', 'text', 'message',
+        'give', 'steal', 'grab', 'release', 'disarm', 'frisk', 'wake', 'lead', 'attack', 'escape', 'struggle', 'offer',
+        // comms & speech
+        'call', 'answer', 'hangup', 'text', 'message', 'speak', 'whisper', 'shout',
         // sustained / state
-        'speak', 'perform', 'wait', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'relieve',
+        'perform', 'wait', 'stand', 'sit', 'lie', 'rest', 'sleep', 'meditate', 'bathe', 'relieve',
         // mental
-        'plan',
+        'plan', 'recall', 'guess',
     ];
 
-    const ACTS = (() => {
+    const ACTIONS = (() => {
         const registry = (window as unknown as {
-            ActionVerbs?: { VALID_SET?: Set<string>; VALID_VERBS?: string[] };
-        }).ActionVerbs;
+            Actions?: { VALID_SET?: Set<string>; VALID_ACTIONS?: string[] };
+        }).Actions;
         const source = registry?.VALID_SET
-            || (registry?.VALID_VERBS ? new Set(registry.VALID_VERBS) : null);
-        if (!source) return new Set(PLAN_INTENT_ACTS);
-        const acts = new Set<string>();
-        for (const act of PLAN_INTENT_ACTS) {
-            // "perform" is plan-only: it has no engine verb, the world
-            // resolves it when the step runs.
-            if (act === 'perform' || source.has(act)) acts.add(act);
+            || (registry?.VALID_ACTIONS ? new Set(registry.VALID_ACTIONS) : null);
+        if (!source) return new Set(PLAN_INTENT_ACTIONS);
+        const actions = new Set<string>();
+        for (const action of PLAN_INTENT_ACTIONS) {
+            if (action === 'perform' || source.has(action)) actions.add(action);
         }
-        return acts;
+        return actions;
     })();
 
     const STOP_WORDS = new Set([
@@ -293,9 +292,9 @@
      * see the following paths".
      */
     function groundStep(step: any, facts: ReturnType<typeof collectFacts>, areaName: string): string | null {
-        const act = String(step?.act || '').toLowerCase().trim();
-        if (!ACTS.has(act)) {
-            return `unknown act "${act || '(empty)'}" - use one of: ${[...ACTS].join(', ')}`;
+        const act = String(step?.action || '').toLowerCase().trim();
+        if (!ACTIONS.has(act)) {
+            return `unknown action "${act || '(empty)'}" - use one of: ${[...ACTIONS].join(', ')}`;
         }
         const item = step?.item ?? step?.target ?? '';
         const target = step?.target ?? '';
@@ -309,7 +308,9 @@
             case 'dash':
             case 'crawl':
             case 'climb':
-            case 'jump': {
+            case 'jump':
+            case 'swim':
+            case 'dive': {
                 const dest = target || item;
                 if (!String(dest).trim()) {
                     return `${act} needs a target - a path visible from here or a known area`;
@@ -361,7 +362,9 @@
             case 'eat':
             case 'drink':
             case 'craft':
-            case 'make': {
+            case 'make':
+            case 'fix':
+            case 'saddle': {
                 if (!String(item).trim()) return `${act} needs an item`;
                 if (!matchFact(item, itemOnly)) {
                     return `no interactable "${item}" to ${act} - carrying: ${facts.carried.join(', ') || '(nothing)'}; interactables here: ${facts.areaItems.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
@@ -406,7 +409,12 @@
             }
             case 'attack':
             case 'grab':
-            case 'disarm': {
+            case 'release':
+            case 'disarm':
+            case 'frisk':
+            case 'wake':
+            case 'mount':
+            case 'ride': {
                 if (!String(item).trim() && !String(target).trim()) {
                     return `${act} needs an item or target`;
                 }
@@ -478,7 +486,7 @@
 
     /** Canonical one-line rendering of a typed step, for PlanTracker storage. */
     function render(step: any): string {
-        const act = String(step?.act || '').toLowerCase().trim();
+        const act = String(step?.action || '').toLowerCase().trim();
         const item = String(step?.item ?? '').trim();
         const target = String(step?.target ?? '').trim();
         const text = String(step?.text ?? step?.note ?? '').trim();
@@ -523,6 +531,6 @@
         return { grounded, rejections };
     }
 
-    return { ACTS, collectFacts, groundStep, ground, render, matchFact };
+    return { ACTIONS, PLAN_INTENT_ACTIONS, collectFacts, groundStep, ground, render, matchFact };
 })();
 

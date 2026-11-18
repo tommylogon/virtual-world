@@ -97,7 +97,7 @@ class TestRelieveShame:
 
     def test_public_relieve_hits_sanity_alone(self):
         world, client, p, pname = self._world_with_public_area()
-        client.post("/api/action", json={"command": "relieve", "character": pname})
+        client.post("/api/action", json={"action": "relieve", "character": pname})
         assert p.vitals["Sanity"] == 98   # shame hit even with no witnesses
         assert p.vitals["Social"] == 100  # alone → no social penalty
         assert p.vitals["Bladder"] == 0
@@ -108,7 +108,7 @@ class TestRelieveShame:
         world.player_manager.players["Miki"].current_area = "Test Lobby"
         world.set_player_area("Miki", "Test Lobby")
         world.set_active_player(pname)
-        client.post("/api/action", json={"command": "relieve", "character": pname})
+        client.post("/api/action", json={"action": "relieve", "character": pname})
         assert p.vitals["Sanity"] == 98
         assert p.vitals["Social"] == 97  # 3-point social hit when someone sees it
 

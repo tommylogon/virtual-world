@@ -207,7 +207,7 @@ def test_fear_verb_via_http():
     _npc(app.world, "Snarl", hero.current_area, {"goblin": True})
     hero.fear_tags = []
     client = app.test_client()
-    resp = client.post("/api/action", json={"command": "fear Snarl"})
+    resp = client.post("/api/action", json={"action": "fear Snarl"})
     assert resp.status_code == 200
     assert "goblin" in hero.fear_tags
 
@@ -316,7 +316,7 @@ def test_live_action_arrival_invokes_fear_react_and_releases_on_exit():
     assert not hero.has_condition("frightened")
 
     client = app.test_client()
-    resp = client.post("/api/action", json={"command": f"go {direction}"})
+    resp = client.post("/api/action", json={"action": f"go {direction}"})
     assert resp.status_code == 200
     assert hero.current_area == dest_area
     assert hero.has_condition("frightened")
@@ -326,7 +326,7 @@ def test_live_action_arrival_invokes_fear_react_and_releases_on_exit():
     back_exits = w.get_area(dest_area).exits if hasattr(w, "get_area") else {}
     back_dir = next((d for d, target in back_exits.items() if target == start_area), None)
     if back_dir:
-        resp2 = client.post("/api/action", json={"command": f"go {back_dir}"})
+        resp2 = client.post("/api/action", json={"action": f"go {back_dir}"})
         assert resp2.status_code == 200
         assert hero.current_area == start_area
         assert not hero.has_condition("frightened")

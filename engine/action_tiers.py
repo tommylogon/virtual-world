@@ -231,8 +231,8 @@ def tier_of(verb: str, item_node=None) -> str:
     if verb in VERB_TIERS:
         return VERB_TIERS[verb]
     try:
-        from engine import action_verbs
-        spec = action_verbs.get_verb(verb)
+        from engine import actions
+        spec = actions.get_action(verb)
         if spec and spec.cost_key in VALID_TIERS:
             return spec.cost_key
     except Exception:

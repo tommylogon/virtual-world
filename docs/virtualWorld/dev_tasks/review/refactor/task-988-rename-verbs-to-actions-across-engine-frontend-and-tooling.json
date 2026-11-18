@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 988,
   "title": "Unify verb, command, and act into action / actions across engine, routes, frontend, and tests",
-  "status": "todo",
+  "status": "review",
   "priority": "medium",
   "area": "refactor",
   "tags": [
@@ -43,15 +43,15 @@
     "acceptance": [
       {
         "text": "Registry, spec types, generator script, and browser global use `engine/actions.py`, `ActionSpec`, `tools/actions_index.py`, `static/js/agent/actions.generated.js`, and `window.Actions` with zero remaining `action_verbs` / `VerbSpec` / `ActionVerbs` references.",
-        "done": false
+        "done": true
       },
       {
         "text": "`/api/action` callers and handlers use `action` instead of `command`, and typed plan steps use `action` / `PLAN_INTENT_ACTIONS` instead of `act` / `PLAN_INTENT_ACTS`.",
-        "done": false
+        "done": true
       },
       {
         "text": "`npm run build:ts`, `pytest tests/test_actions.py`, and JS unit tests pass.",
-        "done": false
+        "done": true
       }
     ],
     "files": [

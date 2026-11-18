@@ -153,9 +153,9 @@ def test_scripted_simple_npc_and_human_preconceived_knowledge(loaded_world):
 def test_flavor_trigger_item_and_grapple_prop(app, loaded_world):
     """Verifies item flavor triggers on examine and grapple prop can be targeted."""
     client = app.test_client()
-    res = client.post("/api/action", json={"character": "Explorer", "command": "examine ancient_relic"}).get_json()
+    res = client.post("/api/action", json={"character": "Explorer", "action": "examine ancient_relic"}).get_json()
     assert "The runes flare with azure light as faint whispers fill your mind." in res.get("output", "")
 
     # Sparring dummy can be targeted with grab
-    res_grab = client.post("/api/action", json={"character": "Explorer", "command": "grab sparring_dummy"}).get_json()
+    res_grab = client.post("/api/action", json={"character": "Explorer", "action": "grab sparring_dummy"}).get_json()
     assert "sparring_dummy" in res_grab.get("output", "")

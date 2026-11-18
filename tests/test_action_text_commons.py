@@ -38,7 +38,7 @@ def test_text_action_requires_phone():
 
     # Attempt to text without phone
     resp = client.post("/api/action", json={
-        "command": "text Someone hey there",
+        "action": "text Someone hey there",
         "character": hero.name,
     })
     assert resp.status_code == 200
@@ -66,7 +66,7 @@ def test_text_action_sends_dm_and_records_memories():
 
     # Send direct text to other
     resp = client.post("/api/action", json={
-        "command": f"text {other.name} Meet me at the lockers",
+        "action": f"text {other.name} Meet me at the lockers",
         "character": hero.name,
     })
     assert resp.status_code == 200
@@ -106,7 +106,7 @@ def test_text_action_posts_to_channel():
     w.graph.add_edge(Edge(phone_id, hero_node_id, EDGE_CARRYING))
 
     resp = client.post("/api/action", json={
-        "command": "text #hellmouth who is bringing the snacks?",
+        "action": "text #hellmouth who is bringing the snacks?",
         "character": hero.name,
     })
     assert resp.status_code == 200
@@ -138,7 +138,7 @@ def test_text_refuses_dead_or_powered_off_sender_phone():
 
     _give_phone(w, hero.name, "dead_phone_1", props={"tags": ["device", "phone"], "uses": 0})
     resp = client.post("/api/action", json={
-        "command": f"text {other.name} hello",
+        "action": f"text {other.name} hello",
         "character": hero.name,
     })
     assert resp.status_code == 200
@@ -151,7 +151,7 @@ def test_text_refuses_dead_or_powered_off_sender_phone():
     phone.properties["uses"] = 5
     phone.properties["current_state"] = "off"
     resp2 = client.post("/api/action", json={
-        "command": f"message {other.name} hello again",
+        "action": f"message {other.name} hello again",
         "character": hero.name,
     })
     assert resp2.status_code == 200
@@ -176,7 +176,7 @@ def test_dm_text_active_vs_silenced_vs_queued_recipient_phone():
     # 1. Recipient has NO phone -> queued, no notification event, no memory
     w.turn_events.clear()
     resp = client.post("/api/action", json={
-        "command": f"text {other.name} Are you there?",
+        "action": f"text {other.name} Are you there?",
         "character": hero.name,
     })
     assert resp.status_code == 200
@@ -200,7 +200,7 @@ def test_dm_text_active_vs_silenced_vs_queued_recipient_phone():
     w.turn_events.clear()
     recip_phone.properties["silenced"] = True
     resp2 = client.post("/api/action", json={
-        "command": f"text {other.name} Silent check",
+        "action": f"text {other.name} Silent check",
         "character": hero.name,
     })
     assert resp2.status_code == 200
@@ -213,7 +213,7 @@ def test_dm_text_active_vs_silenced_vs_queued_recipient_phone():
     recip_phone.properties["silenced"] = False
     recip_phone.properties["uses"] = 0
     resp3 = client.post("/api/action", json={
-        "command": f"text {other.name} Battery dead?",
+        "action": f"text {other.name} Battery dead?",
         "character": hero.name,
     })
     assert resp3.status_code == 200
@@ -232,28 +232,28 @@ def test_call_answer_hangup_action_handler_paths():
 
     # Dead sender phone -> call fails
     hero_phone = _give_phone(w, hero.name, "call_hero_phone", props={"tags": ["device", "phone"], "uses": 0})
-    resp_dead = client.post("/api/action", json={"command": f"call {other.name}", "character": hero.name})
+    resp_dead = client.post("/api/action", json={"action": f"call {other.name}", "character": hero.name})
     assert resp_dead.status_code == 200
     assert resp_dead.get_json().get("success") is False
 
     # Active sender phone, no recipient phone -> no answer
     hero_phone.properties["uses"] = 5
-    resp_no_ans = client.post("/api/action", json={"command": f"call {other.name}", "character": hero.name})
+    resp_no_ans = client.post("/api/action", json={"action": f"call {other.name}", "character": hero.name})
     assert resp_no_ans.status_code == 200
     assert "no answer" in resp_no_ans.get_json().get("output", "")
 
     # Active recipient phone -> call rings, answer connects, hangup ends
     _give_phone(w, other.name, "call_other_phone", props={"tags": ["device", "phone"], "uses": 5})
-    resp_call = client.post("/api/action", json={"command": f"call {other.name}", "character": hero.name})
+    resp_call = client.post("/api/action", json={"action": f"call {other.name}", "character": hero.name})
     assert resp_call.status_code == 200
     assert "ringing" in resp_call.get_json().get("output", "")
 
-    resp_ans = client.post("/api/action", json={"command": "answer", "character": other.name})
+    resp_ans = client.post("/api/action", json={"action": "answer", "character": other.name})
     assert resp_ans.status_code == 200
     assert "on a call" in resp_ans.get_json().get("output", "")
     assert other.has_condition("on_a_call")
 
-    resp_hangup = client.post("/api/action", json={"command": "hangup", "character": hero.name})
+    resp_hangup = client.post("/api/action", json={"action": "hangup", "character": hero.name})
     assert resp_hangup.status_code == 200
     assert "hang up" in resp_hangup.get_json().get("output", "")
     assert not other.has_condition("on_a_call")

@@ -42,7 +42,7 @@ def _api(method: str, path: str, body: dict = None) -> dict:
 
 def _action(command: str) -> str:
     """Send a text command to the game and return the output."""
-    data = _api("POST", "/api/action", {"command": command})
+    data = _api("POST", "/api/action", {"action": command})
     return data.get("output", "")
 
 

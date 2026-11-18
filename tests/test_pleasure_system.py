@@ -153,12 +153,12 @@ def test_intimacy_verb_dispatch_and_gate():
     _place_pair(w)
     w.mature_content = False
     client = test_app.test_client()
-    resp = client.post('/api/action', json={"command": "kiss lydia", "character": "Actor"})
+    resp = client.post('/api/action', json={"action": "kiss lydia", "character": "Actor"})
     assert "isn't part of this world" in resp.get_json()["output"]
 
     w.mature_content = True
     w.tick_turn()
-    resp = client.post('/api/action', json={"command": "firmly kiss lydia on neck", "character": "Actor"})
+    resp = client.post('/api/action', json={"action": "firmly kiss lydia on neck", "character": "Actor"})
     out = resp.get_json()["output"]
     assert "firmly kisses Lydia on the neck" in out
     target = w.players["Lydia"]

@@ -145,7 +145,7 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
             tags = [str(t).strip().lower() for t in tags]
         return tags
 
-    from engine.action_verbs import AUTOCOMPLETE_GROUPS
+    from engine.actions import AUTOCOMPLETE_GROUPS
 
     if verb in AUTOCOMPLETE_GROUPS['take']:
         for item in room_items:

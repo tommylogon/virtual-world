@@ -115,7 +115,7 @@ def test_bind_creates_trigger(app, client):
     area = _area(app)
     item = _item(app, "locket", area_id=area)
     resp = client.post("/api/action", json={
-        "command": "bind locket on_take:message",
+        "action": "bind locket on_take:message",
     })
     assert resp.status_code == 200
     result = resp.get_json()
@@ -135,7 +135,7 @@ def test_bind_rejects_unknown_trigger(app, client):
     area = _area(app)
     item = _item(app, "trinket", area_id=area)
     resp = client.post("/api/action", json={
-        "command": "bind trinket on_magic:destroy_self",
+        "action": "bind trinket on_magic:destroy_self",
     })
     assert resp.status_code == 200
     out = resp.get_json().get("output", "")
@@ -150,7 +150,7 @@ def test_bind_rejects_unsafe_effect(app, client):
     area = _area(app)
     item = _item(app, "bauble", area_id=area)
     resp = client.post("/api/action", json={
-        "command": "bind bauble on_use:consume_item",
+        "action": "bind bauble on_use:consume_item",
     })
     assert resp.status_code == 200
     out = resp.get_json().get("output", "")

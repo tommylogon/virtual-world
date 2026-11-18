@@ -4,7 +4,7 @@
   "kind": "bug",
   "number": 600,
   "title": "Register swim/dive in action_verbs.py and implement missing mount/dismount/ride handlers",
-  "status": "todo",
+  "status": "review",
   "priority": "medium",
   "area": "gameplay",
   "tags": [
@@ -14,7 +14,7 @@
     "bugs"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-18",
   "horizon": "next",
   "effort": "m",
   "goal": "",
@@ -42,11 +42,11 @@
     "acceptance": [
       {
         "text": "swim and dive are registered in engine/action_verbs.py, PlanGrounding, and contextual-actions way hints (matching routes/action_handlers.py lines 669-676 and engine/movement.py lines 1123-1129).",
-        "done": false
+        "done": true
       },
       {
         "text": "mount, dismount, ride, and saddle either execute real mounted state/movement behavior or fail with explicit informative errors rather than falling through to process_emote.",
-        "done": false
+        "done": true
       }
     ],
     "files": [

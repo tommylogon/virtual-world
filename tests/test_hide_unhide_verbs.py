@@ -10,7 +10,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app import create_app
-import engine.action_verbs as av
+import engine.actions as av
 from engine.scene_snapshot import build_scene
 from engine.triggers.behaviors import (
     hide_character,
@@ -61,14 +61,14 @@ def _setup_two_player_room():
     return app, w, hero, other, area_name, area_id
 
 
-def test_hide_and_unhide_registered_in_action_verbs():
-    assert av.is_valid_verb("hide")
-    assert av.is_valid_verb("sneak")
-    assert av.is_valid_verb("conceal")
-    assert av.is_valid_verb("unhide")
-    assert av.is_valid_verb("reveal")
-    assert av.get_verb("sneak").id == "hide"
-    assert av.get_verb("reveal").id == "unhide"
+def test_hide_and_unhide_registered_in_actions():
+    assert av.is_valid_action("hide")
+    assert av.is_valid_action("sneak")
+    assert av.is_valid_action("conceal")
+    assert av.is_valid_action("unhide")
+    assert av.is_valid_action("reveal")
+    assert av.get_action("sneak").id == "hide"
+    assert av.get_action("reveal").id == "unhide"
 
 
 def test_hide_and_unhide_commands_manage_edges_and_player_hidden():
@@ -76,7 +76,7 @@ def test_hide_and_unhide_commands_manage_edges_and_player_hidden():
     client = app.test_client()
 
     # Targeted hide behind a hideable prop
-    resp = client.post("/api/action", json={"command": "hide behind Oak Crate", "character": hero.name})
+    resp = client.post("/api/action", json={"action": "hide behind Oak Crate", "character": hero.name})
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["success"] is True
@@ -88,14 +88,14 @@ def test_hide_and_unhide_commands_manage_edges_and_player_hidden():
     assert hidden_edges[0].properties.get("relation") == "behind"
 
     # Switch to hide in / hide under
-    resp_in = client.post("/api/action", json={"command": "hide in Oak Crate", "character": hero.name})
+    resp_in = client.post("/api/action", json={"action": "hide in Oak Crate", "character": hero.name})
     assert resp_in.get_json()["success"] is True
     assert "hides inside Oak Crate" in resp_in.get_json()["output"]
     hidden_edges = [e for e in w.graph.edges if e.type == "hidden" and e.source == hero.name]
     assert len(hidden_edges) == 1
     assert hidden_edges[0].properties.get("relation") == "in"
 
-    resp_under = client.post("/api/action", json={"command": "hide under Oak Crate", "character": hero.name})
+    resp_under = client.post("/api/action", json={"action": "hide under Oak Crate", "character": hero.name})
     assert resp_under.get_json()["success"] is True
     assert "hides under Oak Crate" in resp_under.get_json()["output"]
     hidden_edges = [e for e in w.graph.edges if e.type == "hidden" and e.source == hero.name]
@@ -103,12 +103,12 @@ def test_hide_and_unhide_commands_manage_edges_and_player_hidden():
     assert hidden_edges[0].properties.get("relation") == "under"
 
     # Reject non-hideable prop
-    resp_bad = client.post("/api/action", json={"command": "hide behind Small Pebble", "character": hero.name})
+    resp_bad = client.post("/api/action", json={"action": "hide behind Small Pebble", "character": hero.name})
     assert resp_bad.get_json()["success"] is False
     assert "not hideable" in resp_bad.get_json()["output"]
 
     # Unhide clears player.hidden and removes hidden edges
-    resp_unhide = client.post("/api/action", json={"command": "unhide", "character": hero.name})
+    resp_unhide = client.post("/api/action", json={"action": "unhide", "character": hero.name})
     assert resp_unhide.get_json()["success"] is True
     assert "steps out of hiding" in resp_unhide.get_json()["output"]
     assert hero.hidden is False
@@ -122,7 +122,7 @@ def test_bare_hide_in_shadows_without_hideable_prop():
     w.graph.remove_edge("test_hideable_crate", area_id, EDGE_IN)
     w.graph.remove_node("test_hideable_crate")
 
-    resp = client.post("/api/action", json={"command": "hide", "character": hero.name})
+    resp = client.post("/api/action", json={"action": "hide", "character": hero.name})
     assert resp.status_code == 200
     assert resp.get_json()["success"] is True
     assert "shadows" in resp.get_json()["output"]
@@ -183,7 +183,7 @@ def test_hidden_character_masked_across_perception_scene_examine_and_combat():
     # 5. Overt attack by hidden character clears concealment and hidden edges
     hide_character(w, hero.name, target="Oak Crate", relation="behind", player=hero)
     assert hero.hidden is True
-    resp_atk = client.post("/api/action", json={"command": f"attack {other.name}", "character": hero.name})
+    resp_atk = client.post("/api/action", json={"action": f"attack {other.name}", "character": hero.name})
     assert resp_atk.status_code == 200
     assert hero.hidden is False
     assert hero.state != "stealthed"
@@ -204,7 +204,7 @@ def test_active_search_reveals_hidden_character_on_perception_success(monkeypatc
         "skill_check",
         lambda skill, dc, *a, **kw: (True, 18, "[Perception 18 vs DC 12: SUCCESS]"),
     )
-    resp = client.post("/api/action", json={"command": "search", "character": other.name})
+    resp = client.post("/api/action", json={"action": "search", "character": other.name})
     assert resp.status_code == 200
     out = resp.get_json()["output"]
     assert f"You spot {hero.name} hiding nearby" in out

@@ -76,7 +76,7 @@ You are dead. You can observe and move as a ghost, but cannot interact physicall
 === ITEMS vs FLAVOR ===
 The "Items that catch your attention:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible (see your "Wearing:" and "Carrying:" lines). Area descriptions may mention things that are NOT separate items - if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.`;
     const ACTION_STRUCTURE = '';
-    const _regMatureList = window.ActionVerbs?.MATURE_VERBS?.join(', ') || 'kiss, caress, lick, suck, bite, pinch, blow, tickle';
+    const _regMatureList = window.Actions?.MATURE_ACTIONS?.join(', ') || 'kiss, caress, lick, suck, bite, pinch, blow, tickle';
     const MATURE_ACTIONS = `
 
 === INTIMACY (adult worlds only) ===

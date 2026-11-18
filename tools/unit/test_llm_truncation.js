@@ -8,7 +8,7 @@
 
 test('chat-completions: finish_reason length is detected as truncation', () => {
     const c = llmClient;
-    const cut = { choices: [{ message: { content: '{"steps":[{"act":"go"' }, finish_reason: 'length' }] };
+    const cut = { choices: [{ message: { content: '{"steps":[{"action":"go"' }, finish_reason: 'length' }] };
     assertEq(c._truncationReason(cut, false), 'length', 'length stop is truncation');
 });
 
@@ -67,8 +67,8 @@ function stubFetch(responses) {
 
 test('chat() retries a truncated answer with a bigger budget instead of returning it', async () => {
     const c = llmClient;
-    const truncated = { choices: [{ message: { content: '{"steps":[{"act":"go","target":"we' }, finish_reason: 'length' }] };
-    const complete = { choices: [{ message: { content: '{"steps":[{"act":"go","target":"west passage"}]}' }, finish_reason: 'stop' }] };
+    const truncated = { choices: [{ message: { content: '{"steps":[{"action":"go","target":"we' }, finish_reason: 'length' }] };
+    const complete = { choices: [{ message: { content: '{"steps":[{"action":"go","target":"west passage"}]}' }, finish_reason: 'stop' }] };
     const realFetch = window.fetch;
     const calls = stubFetch([truncated, complete]);
     let out, err = null;
@@ -80,7 +80,7 @@ test('chat() retries a truncated answer with a bigger budget instead of returnin
     assertEq(calls.length, 2, 'the truncated response was re-requested');
     assertEq(calls[0].max_tokens, 300, 'first attempt honours the caller cap');
     assertEq(calls[1].max_tokens, 600, 'retry raises the cap');
-    assertEq(out, '{"steps":[{"act":"go","target":"west passage"}]}', 'the COMPLETE answer is what the caller gets');
+    assertEq(out, '{"steps":[{"action":"go","target":"west passage"}]}', 'the COMPLETE answer is what the caller gets');
 });
 
 test('an answer that never fits is reported, not silently returned', async () => {
