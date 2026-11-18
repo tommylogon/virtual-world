@@ -376,9 +376,13 @@ window.InspectorMemory = (() => {
      * Fetch the character's grounding & preview bundle from
      * `POST /api/players/<name>/memories/context`.
      */
-    M.fetchMemoryContext = async function (charName, query = '', candidate = null) {
+    M.fetchMemoryContext = async function (charName, query = '', candidate = null, seedMemoryIds) {
         try {
-            const data = await ApiClient.getPlayerMemoriesContext(charName, { query, candidate });
+            const payload = { query, candidate };
+            if (Array.isArray(seedMemoryIds) && seedMemoryIds.length) {
+                payload.seed_memory_ids = seedMemoryIds;
+            }
+            const data = await ApiClient.getPlayerMemoriesContext(charName, payload);
             if (data.error)
                 return null;
             return data;
@@ -644,7 +648,10 @@ window.InspectorMemory = (() => {
             : nothing}
                 </div>
             </div>
-            <div class="memedit-foot">
+            <div class="memedit-foot" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                ${!entryId
+            ? htmlTag `<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);cursor:pointer;margin-right:auto;" title="Immediately after saving, trigger Recall -> Intermediator -> Present-day Thought on this memory"><input type="checkbox" id="mem-trigger-intrusive-after-save"> ⚡ Trigger intrusive thought now</label>`
+            : nothing}
                 <button class="btn btn-sm btn-ghost" @click=${() => M._closeMemoryEditor()}>Cancel</button>
                 <button class="btn btn-sm btn-green" id="mem-gen-save" @click=${() => M.saveMemory(charName, entryId || '')}>💾 Save Memory</button>
             </div>
@@ -1203,6 +1210,303 @@ window.InspectorMemory = (() => {
         if (modal)
             modal.remove();
     };
+    M.runIntrusiveThoughtPipeline = async function (charName, cue, seedMemoryIds) {
+        const cleanCue = String(cue || '').trim();
+        const bundle = await M.fetchMemoryContext(charName, cleanCue, null, seedMemoryIds);
+        const currentTick = Number(bundle?.current_tick ?? VW?.state?.tick ?? worldState?.data?.time_ticks ?? 0) || 0;
+        const currentWorldDatetime = bundle?.current_world_datetime ? String(bundle.current_world_datetime) : null;
+        const minutesPerTick = Number(bundle?.time_per_tick_minutes ?? worldState?.data?.time_per_tick_minutes ?? 5) || 5;
+        // Stage 1: Strictly time-locked Recall (tick <= currentTick and world_datetime <= currentWorldDatetime)
+        const rawRecalled = Array.isArray(bundle?.recalled_memories) ? bundle.recalled_memories : [];
+        const recalledMemories = rawRecalled.filter((m) => {
+            if (!m || typeof m !== 'object')
+                return false;
+            const mtick = Number(m.tick ?? 0);
+            if (Number.isFinite(mtick) && mtick > currentTick)
+                return false;
+            if (currentWorldDatetime && m.world_datetime && String(m.world_datetime) > currentWorldDatetime) {
+                return false;
+            }
+            return true;
+        });
+        const sourceMemoryIds = recalledMemories
+            .map((m) => String(m.id || '').trim())
+            .filter(Boolean);
+        // Stage 2: Intermediator reconsolidation (using PromptBuilder.synthesizeConsciousThought with skipPersist: true)
+        const player = worldState?.players?.[charName];
+        const areaName = String(player?.current_area || worldState?.data?.current_area || '');
+        const emotionLabel = String(bundle?.current_emotion?.current || player?.emotion?.current || 'neutral');
+        let intermediatorSynthesis = '';
+        const synthFn = window.PromptBuilder?.synthesizeConsciousThought;
+        if (typeof synthFn === 'function' && recalledMemories.length > 0) {
+            try {
+                const scored = recalledMemories.map((m) => ({
+                    id: m.id,
+                    text: String(m.text || ''),
+                    rawText: String(m.text || ''),
+                    score: Number(m.score ?? 1.0) || 1.0,
+                    tick: Number(m.tick ?? 0) || 0,
+                    source: String(m.primary_signal || 'recall'),
+                    category: m.category,
+                    type: m.type,
+                    confidence: typeof m.confidence === 'number' ? m.confidence : 0.8,
+                    contradicts: Array.isArray(m.contradicts) ? m.contradicts : [],
+                }));
+                const synth = await synthFn(charName, areaName, [], cleanCue ? [cleanCue] : [], emotionLabel, scored, `intrusive:${charName}:${currentTick}:${cleanCue.slice(0, 64)}`, false, {
+                    currentTick,
+                    minutesPerTick,
+                    worldTime: currentWorldDatetime || undefined,
+                    skipPersist: true,
+                });
+                if (synth)
+                    intermediatorSynthesis = String(synth).trim();
+            }
+            catch (_e) {
+                // Fall back below
+            }
+        }
+        if (!intermediatorSynthesis) {
+            if (recalledMemories.length > 0) {
+                const topSnips = recalledMemories.slice(0, 3).map((m) => `"${String(m.text || '').trim()}"`).join('; ');
+                intermediatorSynthesis = `Recalling ${topSnips} in light of "${cleanCue || 'this sudden thought'}" (mood: ${emotionLabel}).`;
+            }
+            else {
+                intermediatorSynthesis = `An unprompted thought surfaces (${emotionLabel}): "${cleanCue}".`;
+            }
+        }
+        // Stage 3: Present-day Character Thought (stamped at currentTick)
+        let presentThought = '';
+        let importance = 6;
+        if (window.VW?.llm && typeof window.VW.llm.chat === 'function') {
+            try {
+                const traceBlock = recalledMemories.length
+                    ? recalledMemories.map((m) => `- [tick ${m.tick ?? 0}${m.world_datetime ? ', ' + m.world_datetime : ''} · ${m.type || 'memory'}/${m.category || 'episodic'}] ${m.text}`).join('\n')
+                    : '(no older memories matched)';
+                const prompt = [
+                    M._identityBlock(charName, bundle),
+                    '',
+                    `Intrusive thought / mental spark right now (tick ${currentTick}${currentWorldDatetime ? ', ' + currentWorldDatetime : ''}): "${cleanCue}"`,
+                    `Recalled traces (time-locked <= now):\n${traceBlock}`,
+                    `Intermediator working-memory synthesis: "${intermediatorSynthesis}"`,
+                    '',
+                    `Write ${charName}'s present-day inner realization or belief formed RIGHT NOW in first-person voice (1-2 sentences).`,
+                    'Return ONLY valid JSON: {"thought": "<first-person present-day thought>", "importance": <1-10>}',
+                ].join('\n');
+                const raw = await window.VW.llm.chat([{ role: 'user', content: prompt }], charName, 'intrusive-thought');
+                const text = String(raw || '').trim();
+                const jMatch = text.match(/\{[\s\S]*\}/);
+                if (jMatch) {
+                    const parsed = JSON.parse(jMatch[0]);
+                    if (typeof parsed.thought === 'string' && parsed.thought.trim()) {
+                        presentThought = M.stripEditorialLeakage(parsed.thought.trim());
+                    }
+                    if (typeof parsed.importance === 'number' && Number.isFinite(parsed.importance)) {
+                        importance = Math.max(1, Math.min(10, Math.round(parsed.importance)));
+                    }
+                }
+                else if (text) {
+                    presentThought = M.stripEditorialLeakage(text);
+                }
+            }
+            catch (_e) {
+                // Fall back below
+            }
+        }
+        if (!presentThought) {
+            presentThought = M.stripEditorialLeakage(intermediatorSynthesis);
+        }
+        // Check contradictions against existing beliefs without mutating state
+        const previewBundle = await M.fetchMemoryContext(charName, cleanCue, {
+            text: presentThought,
+            type: 'thought',
+            category: 'belief',
+            tick: currentTick,
+            importance,
+        });
+        const contradicts = Array.isArray(previewBundle?.contradictions_preview)
+            ? previewBundle.contradictions_preview.map((c) => String(c.id || '')).filter(Boolean)
+            : [];
+        const result = {
+            charName,
+            cue: cleanCue,
+            currentTick,
+            currentWorldDatetime,
+            recalledMemories,
+            intermediatorSynthesis,
+            presentThought,
+            importance,
+            sourceMemoryIds,
+            contradicts,
+        };
+        M._lastIntrusiveResult = result;
+        return result;
+    };
+    M.commitIntrusiveThought = async function (charName, overrideResult) {
+        const base = M._lastIntrusiveResult;
+        const modal = document.getElementById('mem-intrusive-modal');
+        const taVal = modal?.querySelector('#mem-intrusive-thought-text')?.value?.trim();
+        const impVal = parseInt(modal?.querySelector('#mem-intrusive-importance')?.value || '', 10);
+        const text = M.stripEditorialLeakage(String(overrideResult?.presentThought ?? taVal ?? base?.presentThought ?? '').trim());
+        if (!text)
+            return null;
+        const currentTick = Number(overrideResult?.currentTick ?? base?.currentTick ?? VW?.state?.tick ?? worldState?.data?.time_ticks ?? 0) || 0;
+        const importance = Math.max(1, Math.min(10, Number(overrideResult?.importance ?? (!isNaN(impVal) ? impVal : base?.importance) ?? 6) || 6));
+        const sourceMemoryIds = Array.isArray(overrideResult?.sourceMemoryIds)
+            ? overrideResult.sourceMemoryIds
+            : (Array.isArray(base?.sourceMemoryIds) ? base.sourceMemoryIds : []);
+        const contradicts = Array.isArray(overrideResult?.contradicts)
+            ? overrideResult.contradicts
+            : (Array.isArray(base?.contradicts) ? base.contradicts : []);
+        const payload = {
+            text,
+            type: 'thought',
+            category: 'belief',
+            importance,
+            tick: currentTick,
+            location: String(worldState?.players?.[charName]?.current_area || ''),
+            source: 'intrusive_thought',
+            tags: ['intrusive_thought', 'belief'],
+            force: true,
+            source_memory_ids: sourceMemoryIds,
+            contradicts: contradicts.length ? contradicts : undefined,
+        };
+        const res = await ApiClient.addPlayerMemory(charName, payload);
+        const newId = (res && res.entry && res.entry.id) || (res && res.id);
+        if (newId)
+            M._embedForEntry(charName, newId, text);
+        if (modal)
+            modal.remove();
+        await worldState.fetch();
+        if (window.VW?.inspector)
+            window.VW.inspector._reRender();
+        return res;
+    };
+    M.openIntrusiveThought = function (charName, opts) {
+        const existingModal = document.getElementById('mem-intrusive-modal');
+        if (existingModal)
+            existingModal.remove();
+        const container = document.createElement('div');
+        container.className = 'modal-overlay';
+        container.id = 'mem-intrusive-modal';
+        const seedIds = Array.isArray(opts?.seedMemoryIds) ? opts.seedMemoryIds : [];
+        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+        window.Lit.render(htmlTag `<div class="memedit-dialog" style="width:clamp(520px, 72vw, 880px);max-height:min(88vh, 860px);display:flex;flex-direction:column;">
+            <div class="memedit-head">
+                <div>
+                    <div class="memedit-title">⚡ Intrusive Thought -> Recall -> Intermediator -> Thought</div>
+                    <div class="memedit-sub">${charName} · triggers time-locked recall and working-memory reconsolidation at current tick</div>
+                </div>
+                <button class="memedit-close" @click=${() => container.remove()} title="Close">✕</button>
+            </div>
+            <div class="memedit-body" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;">
+                <div class="memedit-section">
+                    <div class="memedit-section-title">1. Intrusive Thought Cue (Internal Spark)</div>
+                    <textarea id="mem-intrusive-cue" rows="2" class="memedit-textarea" style="min-height:52px;" placeholder="e.g. Why did I blame Kyrie for my broken skateboard when I was 12?">${opts?.cue || ''}</textarea>
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                        <button type="button" class="btn btn-sm btn-blue" id="mem-intrusive-run">⚡ Run Recall -> Intermediator -> Thought</button>
+                        <span id="mem-intrusive-status" class="memedit-status" style="font-size:10.5px;">&nbsp;</span>
+                    </div>
+                </div>
+                <div class="memedit-section">
+                    <div class="memedit-section-title">2. Stage 1 - Time-Locked Recalled Traces (world_datetime &lt;= now)</div>
+                    <div id="mem-intrusive-recalled" style="font-size:11px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;">Run a cue above to inspect recalled traces.</div>
+                </div>
+                <div class="memedit-section">
+                    <div class="memedit-section-title">3. Stage 2 - Intermediator Reconsolidation</div>
+                    <div id="mem-intrusive-intermediator" style="font-size:11px;font-style:italic;color:var(--text);padding:6px 8px;background:var(--bg-inset);border-left:3px solid #58a6ff;border-radius:4px;">Waiting for recall...</div>
+                </div>
+                <div class="memedit-section">
+                    <div class="memedit-section-title">4. Stage 3 - Present-Day Character Thought (saved at current_tick)</div>
+                    <textarea id="mem-intrusive-thought-text" rows="3" class="memedit-textarea" style="min-height:64px;" placeholder="Present-day realization or belief formed right now..."></textarea>
+                    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+                        <label style="font-size:11px;color:var(--text-muted);">Importance (1-10): <input type="number" id="mem-intrusive-importance" min="1" max="10" value="6" style="width:56px;margin-left:4px;"></label>
+                        <span id="mem-intrusive-lineage" style="font-size:10.5px;color:var(--text-muted);"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="memedit-foot">
+                <button class="btn btn-sm btn-ghost" @click=${() => container.remove()}>Cancel</button>
+                <button class="btn btn-sm btn-green" id="mem-intrusive-commit" @click=${() => M.commitIntrusiveThought(charName)}>💾 Commit Present-Day Thought</button>
+            </div>
+        </div>`, container);
+        document.body.appendChild(container);
+        container.addEventListener('click', (ev) => { if (ev.target === container)
+            container.remove(); });
+        const runBtn = container.querySelector('#mem-intrusive-run');
+        const cueEl = container.querySelector('#mem-intrusive-cue');
+        const statusEl = container.querySelector('#mem-intrusive-status');
+        const recalledEl = container.querySelector('#mem-intrusive-recalled');
+        const intermedEl = container.querySelector('#mem-intrusive-intermediator');
+        const thoughtEl = container.querySelector('#mem-intrusive-thought-text');
+        const impEl = container.querySelector('#mem-intrusive-importance');
+        const lineageEl = container.querySelector('#mem-intrusive-lineage');
+        const execRun = async () => {
+            const cueText = cueEl?.value?.trim() || '';
+            if (!cueText && !seedIds.length) {
+                if (statusEl) {
+                    statusEl.textContent = 'Enter an intrusive thought cue first.';
+                    statusEl.style.color = '#e0a33c';
+                }
+                return;
+            }
+            if (runBtn)
+                runBtn.disabled = true;
+            if (statusEl) {
+                statusEl.textContent = 'running Recall -> Intermediator -> Thought...';
+                statusEl.style.color = '#9aa4b2';
+            }
+            try {
+                const res = await M.runIntrusiveThoughtPipeline(charName, cueText, seedIds);
+                if (recalledEl) {
+                    recalledEl.replaceChildren();
+                    if (!res.recalledMemories.length) {
+                        recalledEl.textContent = 'No prior memories matched (<= current time).';
+                    }
+                    else {
+                        for (const m of res.recalledMemories) {
+                            const row = document.createElement('div');
+                            row.style.cssText = 'padding:4px 6px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;';
+                            const dt = m.world_datetime ? ` · ${m.world_datetime}` : '';
+                            row.textContent = `[tick ${m.tick ?? 0}${dt} · ${m.type || 'memory'}/${m.category || 'episodic'}] ${m.text}`;
+                            recalledEl.appendChild(row);
+                        }
+                    }
+                }
+                if (intermedEl)
+                    intermedEl.textContent = res.intermediatorSynthesis;
+                if (thoughtEl)
+                    thoughtEl.value = res.presentThought;
+                if (impEl)
+                    impEl.value = String(res.importance);
+                if (lineageEl) {
+                    const parts = [`stamped at tick ${res.currentTick} (now)`];
+                    if (res.sourceMemoryIds.length)
+                        parts.push(`links ${res.sourceMemoryIds.length} source memory ID(s)`);
+                    if (res.contradicts.length)
+                        parts.push(`contradicts ${res.contradicts.length} prior belief(s)`);
+                    lineageEl.textContent = parts.join(' · ');
+                }
+                if (statusEl) {
+                    statusEl.textContent = '✓ pipeline complete';
+                    statusEl.style.color = '#4caf50';
+                }
+            }
+            catch (err) {
+                if (statusEl) {
+                    statusEl.textContent = `✗ ${err?.message || 'failed'}`;
+                    statusEl.style.color = '#e05555';
+                }
+            }
+            finally {
+                if (runBtn)
+                    runBtn.disabled = false;
+            }
+        };
+        runBtn?.addEventListener('click', execRun);
+        if (opts?.autoRun || (opts?.cue && opts.cue.trim())) {
+            void execRun();
+        }
+    };
     /**
      * Embed the given text and upsert the vector for <char>::<id>. Returns a
      * promise resolving true on success / false on failure or disabled.
@@ -1328,6 +1632,8 @@ window.InspectorMemory = (() => {
         const cpEnabled = !!document.getElementById('mem-editor-counterpart-enable')?.checked;
         const cpText = (document.getElementById('mem-editor-counterpart-text')?.value || '').trim();
         const cpDraft = M._gen?.counterpartDraft;
+        const triggerIntrusiveNow = !entryId && !!document.getElementById('mem-trigger-intrusive-after-save')?.checked;
+        const weaverPromptText = (document.getElementById('mem-gen-prompt')?.value || '').trim();
         const done = async (data) => {
             if (data && data.error) {
                 const statusEl = document.getElementById('mem-gen-status');
@@ -1345,6 +1651,7 @@ window.InspectorMemory = (() => {
             const id = (data && data.entry && data.entry.id) || (data && data.id) || entryId;
             if (id)
                 M._embedForEntry(charName, id, content);
+            const savedIds = id ? [String(id)] : [];
             if (!entryId) {
                 const bundleRows = Array.from(document.querySelectorAll('.mem-weaver-bundle-row'));
                 for (const row of bundleRows) {
@@ -1373,8 +1680,10 @@ window.InspectorMemory = (() => {
                     try {
                         const cRes = await ApiClient.addPlayerMemory(charName, compPayload);
                         const cid = (cRes && cRes.entry && cRes.entry.id) || (cRes && cRes.id);
-                        if (cid)
+                        if (cid) {
+                            savedIds.push(String(cid));
                             M._embedForEntry(charName, cid, compText);
+                        }
                     }
                     catch (_e) {
                         // Best-effort companion bundle write
@@ -1406,8 +1715,17 @@ window.InspectorMemory = (() => {
                 }
             }
             M._closeMemoryEditor();
-            worldState.fetch().then(() => { if (window.VW?.inspector)
-                window.VW.inspector._reRender(); });
+            worldState.fetch().then(() => {
+                if (window.VW?.inspector)
+                    window.VW.inspector._reRender();
+                if (triggerIntrusiveNow) {
+                    M.openIntrusiveThought(charName, {
+                        cue: weaverPromptText || content,
+                        seedMemoryIds: savedIds,
+                        autoRun: true,
+                    });
+                }
+            });
         };
         if (entryId) {
             ApiClient.updatePlayerMemory(charName, entryId, payload).then(done);

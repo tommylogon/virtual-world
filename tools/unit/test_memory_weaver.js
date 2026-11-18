@@ -222,3 +222,78 @@ test('InspectorMemory.extractInlineTimeExpr and parseWeaverResponse bundle parsi
     assertEq(parsed.bundle[1].category, 'belief', 'second bundle item has belief category');
     assertEq(parsed.counterpart_memory.who, 'Kyrie', 'preserves counterpart memory');
 });
+
+test('InspectorMemory.runIntrusiveThoughtPipeline and commitIntrusiveThought run time-locked Recall -> Intermediator -> Thought (task-987)', async () => {
+    const MV = window.InspectorMemory;
+    const prevApi = window.ApiClient;
+    const prevPB = window.PromptBuilder;
+    const prevLLM = window.VW.llm;
+    const prevFetch = window.worldState.fetch;
+    try {
+        let synthOpts = null;
+        let savedPayload = null;
+        window.ApiClient = {
+            ...prevApi,
+            getPlayerMemoriesContext: async (_charName, body) => {
+                if (body && body.candidate) {
+                    return {
+                        current_tick: 120,
+                        current_world_datetime: '2016-05-14T18:00:00',
+                        contradictions_preview: [{ id: 'mem_age12_belief' }],
+                    };
+                }
+                return {
+                    current_tick: 120,
+                    current_world_datetime: '2016-05-14T18:00:00',
+                    time_per_tick_minutes: 5,
+                    current_emotion: { current: 'reflective', intensity: 4 },
+                    recalled_memories: [
+                        { id: 'mem_age12_evt', text: 'Kyrie tackled me out of traffic at 12 and my board snapped.', tick: -525600, world_datetime: '2011-05-14T15:00:00', type: 'event', category: 'episodic' },
+                        { id: 'mem_age12_belief', text: 'Kyrie ruined my skateboard on purpose.', tick: -525600, world_datetime: '2011-05-14T15:00:00', type: 'thought', category: 'belief' },
+                        { id: 'mem_future_leak', text: 'Future 2024 memory that must be locked out.', tick: 999, world_datetime: '2024-01-01T00:00:00', type: 'event', category: 'episodic' },
+                    ],
+                };
+            },
+            addPlayerMemory: async (_charName, payload) => {
+                savedPayload = payload;
+                return { entry: { id: 'mem_now_thought' } };
+            },
+        };
+        window.PromptBuilder = {
+            ...(prevPB || {}),
+            synthesizeConsciousThought: async (_charName, _area, _actors, _dialogue, _emo, topMems, _sig, _rep, opts) => {
+                synthOpts = { count: topMems.length, skipPersist: opts?.skipPersist };
+                return 'Kyrie knocked me onto the pavement when I was 12; the deck broke, even though a truck was right there.';
+            },
+        };
+        window.VW.llm = {
+            chat: async () => JSON.stringify({
+                thought: 'She did not ruin my board out of spite - she saved me from oncoming traffic and I was too stubborn at 12 to admit it.',
+                importance: 8,
+            }),
+        };
+        window.worldState.fetch = async () => {};
+
+        const res = await MV.runIntrusiveThoughtPipeline('Vera', 'Why did I blame Kyrie for my broken skateboard?', ['mem_age12_evt', 'mem_age12_belief']);
+        assertEq(res.currentTick, 120, 'pipeline resolves currentTick');
+        assertEq(res.recalledMemories.length, 2, 'time-locks out future memories (tick 999 / 2024)');
+        assertEq(synthOpts.count, 2, 'Intermediator receives only time-locked memories');
+        assertEq(synthOpts.skipPersist, true, 'Intermediator runs with skipPersist:true during staging');
+        assertTrue(res.presentThought.includes('saved me from oncoming traffic'), 'captures present-day Character Thought');
+        assertEq(res.sourceMemoryIds.join(','), 'mem_age12_evt,mem_age12_belief', 'links recalled source memory IDs');
+        assertEq(res.contradicts.join(','), 'mem_age12_belief', 'detects contradiction against age-12 blame belief');
+
+        await MV.commitIntrusiveThought('Vera');
+        assertTrue(Boolean(savedPayload), 'commits present-day thought');
+        assertEq(savedPayload.type, 'thought', 'committed record is type thought');
+        assertEq(savedPayload.category, 'belief', 'committed record is category belief');
+        assertEq(savedPayload.tick, 120, 'committed record is stamped at current_tick (120), not age 12');
+        assertEq(savedPayload.source_memory_ids.join(','), 'mem_age12_evt,mem_age12_belief', 'preserves source_memory_ids lineage');
+        assertEq(savedPayload.contradicts.join(','), 'mem_age12_belief', 'preserves contradicts lineage');
+    } finally {
+        window.ApiClient = prevApi;
+        window.PromptBuilder = prevPB;
+        window.VW.llm = prevLLM;
+        window.worldState.fetch = prevFetch;
+    }
+});

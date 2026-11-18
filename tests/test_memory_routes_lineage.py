@@ -355,3 +355,44 @@ def test_bug601_per_memory_suppress_unblock_and_duration_ticks(tmp_path):
     assert r_un.get_json()["unblocked"] == [id_a]
     assert m_a["suppressions"] == []
     assert len(m_b["suppressions"]) == 1
+
+
+def test_memories_context_time_locks_seed_memory_ids_and_world_datetime(tmp_path):
+    app, client, world, sammy, _ = _make_world_app(tmp_path)
+    world.time_ticks = 20
+
+    sammy.memories = [
+        {
+            "id": "mem_past_12",
+            "text": "Kyrie tackled me off my skateboard at age 12.",
+            "tick": -5000,
+            "world_datetime": "2011-05-14T15:00:00",
+            "type": "event",
+            "category": "episodic",
+            "importance": 7,
+        },
+        {
+            "id": "mem_future_99",
+            "text": "Future memory that must not leak.",
+            "tick": 99,
+            "world_datetime": "2025-01-01T12:00:00",
+            "type": "event",
+            "category": "episodic",
+            "importance": 8,
+        },
+    ]
+
+    resp = client.post(
+        "/api/players/0610fd64/memories/context",
+        json={
+            "query": "skateboard",
+            "world_datetime": "2016-05-14T15:00:00",
+            "seed_memory_ids": ["mem_past_12", "mem_future_99"],
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["current_world_datetime"] == "2016-05-14T15:00:00"
+    recalled_ids = [m.get("id") for m in data["recalled_memories"]]
+    assert "mem_past_12" in recalled_ids
+    assert "mem_future_99" not in recalled_ids

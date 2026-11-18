@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 987,
   "title": "Intrusive Thought cue: trigger live Recall, Intermediator reconsolidation, and Character Thought to mint present-day realizations",
-  "status": "todo",
+  "status": "review",
   "priority": "medium",
   "area": "gameplay",
   "tags": [
@@ -47,15 +47,15 @@
     "acceptance": [
       {
         "text": "Author can inject an intrusive thought cue from the Mind panel or right after saving a Memory Weaver bundle.",
-        "done": false
+        "done": true
       },
       {
         "text": "The cue runs real time-locked Recall (`world_datetime <= T`) -> Intermediator reconsolidation -> in-character Thought and displays all three stages in the UI.",
-        "done": false
+        "done": true
       },
       {
         "text": "Committing the resulting realization saves a `type: thought` memory stamped at `current_tick` with `source_memory_ids` (and `contradicts[]` when applicable), never overwriting the historical `world_datetime` of past events.",
-        "done": false
+        "done": true
       }
     ],
     "files": [

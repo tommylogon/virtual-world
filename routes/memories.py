@@ -1412,11 +1412,10 @@ def register_memories_routes(app):
         world_dt = data.get("world_datetime")
         if not world_dt and hasattr(app.world, "datetime_for_tick"):
             try:
-                world_dt = app.world.datetime_for_tick(entry["tick"])
+                world_dt = app.world.datetime_for_tick(current_tick)
             except Exception:
                 world_dt = None
-        if world_dt:
-            entry["world_datetime"] = str(world_dt)
+        current_world_datetime = str(world_dt) if world_dt else None
         bounds = _character_birth_bounds(app, player, canon_name)
         contradictions_preview = []
         relationship_preview = []
@@ -1480,6 +1479,8 @@ def register_memories_routes(app):
                 "area_id": getattr(player, "current_area", "") or "",
             },
         }
+        if current_world_datetime:
+            retrieval_payload["world_datetime"] = current_world_datetime
         ret = memory_retrieval.retrieve_associative_memories(
             player,
             retrieval_payload,
@@ -1495,9 +1496,40 @@ def register_memories_routes(app):
             for m in (ret.get("memories") or [])
         ]
 
+        # task-987: Ensure explicit seed_memory_ids (e.g. just-planted bundle cards)
+        # are included in time-locked recall when tick <= current_tick and world_datetime <= T.
+        seed_ids = [
+            str(sid).strip()
+            for sid in (data.get("seed_memory_ids") or [])
+            if str(sid or "").strip()
+        ]
+        if seed_ids:
+            seen_rec_ids = {str(m.get("id")) for m in recalled_memories if isinstance(m, dict) and m.get("id")}
+            seeded_front = []
+            for m in (getattr(player, "memories", None) or []):
+                if not isinstance(m, dict):
+                    continue
+                mid = str(m.get("id") or "")
+                if mid not in seed_ids or mid in seen_rec_ids:
+                    continue
+                mtick = int(m.get("tick", 0) or 0)
+                if mtick > current_tick:
+                    continue
+                mdt = m.get("world_datetime")
+                if current_world_datetime and mdt and str(mdt) > current_world_datetime:
+                    continue
+                mc = ensure_memory_lineage(dict(m))
+                mc.setdefault("score", 1.0)
+                mc.setdefault("primary_signal", "seed_cue")
+                seeded_front.append(mc)
+                seen_rec_ids.add(mid)
+            if seeded_front:
+                recalled_memories = (seeded_front + recalled_memories)[:8]
+
         return jsonify({
             "character": canon_name,
             "current_tick": current_tick,
+            "current_world_datetime": current_world_datetime,
             "time_per_tick_minutes": minutes_per_tick,
             "birth_tick": bounds["birth_tick"],
             "birthday": bounds["birthday"],
