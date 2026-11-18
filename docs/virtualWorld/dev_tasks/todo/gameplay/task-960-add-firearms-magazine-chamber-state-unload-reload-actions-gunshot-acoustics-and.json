@@ -5,7 +5,7 @@
   "number": 960,
   "title": "Add firearms, magazine/chamber state, unload/reload actions, gunshot acoustics, and cross-way shooting",
   "status": "todo",
-  "priority": "high",
+  "priority": "low",
   "area": "gameplay",
   "tags": [
     "gameplay",
@@ -15,7 +15,7 @@
     "sightlines"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-18",
   "horizon": "next",
   "effort": "l",
   "goal": "",
