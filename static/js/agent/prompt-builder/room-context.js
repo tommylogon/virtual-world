@@ -24,6 +24,84 @@ window.PromptBuilder = window.PromptBuilder || {};
     // Rate-limited per character so repeated chatter doesn't endlessly stack.
     const _socialRecallGuard = {};
     /**
+     * Mask foreign-language speech outside a listener's competence (task-967).
+     * Mirrors `engine/language_barrier.py:mask_text_for_listener` so local
+     * `turn_events` and fallback `recent_hearing` rows never leak plaintext.
+     */
+    function maskSpeechForListener(text, lang, player, charName) {
+        if (!text || !lang || typeof lang !== 'string')
+            return text;
+        const normLang = lang.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        if (!normLang)
+            return text;
+        const rawLangs = Array.isArray(player?.appearance?.capabilities?.languages)
+            ? player.appearance.capabilities.languages
+            : (Array.isArray(player?.languages) ? player.languages : []);
+        if (!rawLangs.length)
+            return text;
+        const entry = rawLangs.find((e) => {
+            if (!e)
+                return false;
+            const slug = (typeof e === 'string' ? e : String(e.language || ''))
+                .trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            return slug === normLang;
+        });
+        const fluency = entry
+            ? (typeof entry === 'string' ? 'fluent' : String(entry.fluency || 'none').toLowerCase())
+            : 'none';
+        if (fluency === 'native' || fluency === 'fluent')
+            return text;
+        const singleWords = new Set();
+        const phrases = [];
+        const addVocab = (raw) => {
+            const norm = String(raw || '').trim().toLowerCase();
+            if (!norm)
+                return;
+            if (norm.includes(' ')) {
+                phrases.push(norm);
+            }
+            else {
+                const toks = norm.match(/[\p{L}\p{N}']+/gu);
+                if (toks)
+                    toks.forEach(t => singleWords.add(t));
+            }
+        };
+        if (entry && Array.isArray(entry.known_words)) {
+            entry.known_words.forEach(addVocab);
+        }
+        addVocab(charName);
+        const rels = player?.relationships;
+        if (rels && typeof rels === 'object') {
+            for (const [other, rel] of Object.entries(rels)) {
+                if (rel?.first_sighting === false)
+                    addVocab(other);
+            }
+        }
+        if (Array.isArray(player?.known_places)) {
+            player.known_places.forEach(addVocab);
+        }
+        const lower = text.toLowerCase();
+        const spans = [];
+        for (const phrase of phrases) {
+            let start = 0;
+            while (true) {
+                const idx = lower.indexOf(phrase, start);
+                if (idx === -1)
+                    break;
+                spans.push([idx, idx + phrase.length]);
+                start = idx + phrase.length;
+            }
+        }
+        return text.replace(/[\p{L}\p{N}']+/gu, (tok, offset) => {
+            if (/^\d+$/.test(tok))
+                return tok;
+            const end = offset + tok.length;
+            if (spans.some(([s, e]) => s <= offset && end <= e))
+                return tok;
+            return singleWords.has(tok.toLowerCase()) ? tok : '???';
+        });
+    }
+    /**
      * shared/emotion-mapper.js attaches EmotionMapper to window at its own load
      * time, which may be after this script runs, so it is resolved per call and
      * never cached. globals.d.ts does not declare it.
@@ -877,18 +955,26 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (evt.action === 'speak' && evt.description) {
                 const textMatch = evt.description.match(/said: "(.+)"/);
                 if (textMatch) {
-                    const spoken = textMatch[1].toLowerCase();
+                    const rawSpoken = textMatch[1];
+                    const maskedSpoken = maskSpeechForListener(rawSpoken, evt.lang, player, charName);
+                    if (maskedSpoken !== rawSpoken) {
+                        line = `[${anon}] said: "${maskedSpoken}"`;
+                    }
+                    const spoken = maskedSpoken.toLowerCase();
                     seenSpeechKeys.add(`${evt.actor}|${spoken}`);
                     seenSpeechTexts.push(spoken);
-                    line = PromptBuilder.markSpeechLine(line, textMatch[1], charName, player);
-                    socialSeeds.push({ speaker: evt.actor, text: textMatch[1] });
+                    line = PromptBuilder.markSpeechLine(line, maskedSpoken, charName, player);
+                    socialSeeds.push({ speaker: evt.actor, text: maskedSpoken });
                 }
             }
             witnessedLines.push(line);
         });
         // Heard speech from other rooms  -  skip any already shown as local events
         heardSpeech.forEach(h => {
-            const heardText = String(h.text || '');
+            const rawHeardText = String(h.text || '');
+            const heardText = h.comprehension_masked
+                ? rawHeardText
+                : maskSpeechForListener(rawHeardText, h.lang, player, charName);
             const dedupeKey = `${h.speaker}|${heardText.toLowerCase()}`;
             if (seenSpeechKeys.has(dedupeKey))
                 return;
@@ -908,10 +994,10 @@ window.PromptBuilder = window.PromptBuilder || {};
             // Delivery comes off the entry rather than being assumed: a scream read
             // as "said" taught the model it was conversation.
             const verb = PromptBuilder.speechVerb(h.speech_level);
-            let line = `[Heard] ${anon}${direction} ${verb}: "${h.text}"`;
-            line = PromptBuilder.markSpeechLine(line, h.text, charName, player);
+            let line = `[Heard] ${anon}${direction} ${verb}: "${heardText}"`;
+            line = PromptBuilder.markSpeechLine(line, heardText, charName, player);
             witnessedLines.push(line);
-            socialSeeds.push({ speaker: h.speaker, text: h.text });
+            socialSeeds.push({ speaker: h.speaker, text: heardText });
         });
         // Heard sound sources (alarms, ringing phones, etc.) from this or adjacent areas
         heardSounds.forEach(h => {

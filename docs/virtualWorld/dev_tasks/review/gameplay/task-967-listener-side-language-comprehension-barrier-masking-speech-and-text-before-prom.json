@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 967,
   "title": "Listener-side language comprehension barrier masking speech and text before prompt assembly",
-  "status": "todo",
+  "status": "review",
   "priority": "high",
   "area": "gameplay",
   "tags": [
@@ -15,7 +15,7 @@
     "prompting"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-18",
   "horizon": "next",
   "effort": "l",
   "goal": "",
@@ -48,19 +48,19 @@
     "acceptance": [
       {
         "text": "SpeechBroadcaster.broadcast_speech and speech turn_events carry a normalized lang field defaulted from the speaker or explicit command.",
-        "done": false
+        "done": true
       },
       {
         "text": "Listeners below fluent/native receive per-listener comprehension-masked speech in WITNESSED (preserving speech_level, emote, recognized known_words, and known proper names while masking unknown foreign words before LLM prompt assembly).",
-        "done": false
+        "done": true
       },
       {
         "text": "Written inscriptions on examine/read check listener literacy and language/known_words before returning plaintext.",
-        "done": false
+        "done": true
       },
       {
         "text": "Speaker prompt context surfaces active language, fluency, and known_words bounds without duplicating perception masking in PromptBuilder.",
-        "done": false
+        "done": true
       }
     ],
     "files": [

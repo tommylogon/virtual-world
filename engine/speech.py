@@ -248,6 +248,52 @@ class SpeechBroadcaster:
 
     # ──────────────────────── Broadcasting ─────────────────────────────
 
+    def _append_hearing_entry(
+        self,
+        player_obj,
+        event: dict,
+        *,
+        heard_from: Optional[str] = None,
+        distance: Optional[int] = None,
+        is_ghost_speech: bool = False,
+    ) -> dict:
+        """Append a listener-filtered hearing entry to *player_obj.recent_hearing*."""
+        if not hasattr(player_obj, "recent_hearing"):
+            player_obj.recent_hearing = []
+
+        hearing_entry = dict(event)
+        if heard_from is not None:
+            hearing_entry["heard_from"] = heard_from
+        if distance is not None:
+            hearing_entry["distance"] = distance
+        if is_ghost_speech and getattr(player_obj, "state", None) != "dead":
+            hearing_entry["is_ghost"] = True
+
+        utterance_lang = event.get("lang")
+        speaker_name = event.get("speaker")
+        if utterance_lang and getattr(player_obj, "name", None) != speaker_name:
+            from engine.language_barrier import (
+                extract_known_names_for_listener,
+                mask_text_for_listener,
+            )
+
+            known = extract_known_names_for_listener(player_obj)
+            masked_text, was_masked = mask_text_for_listener(
+                str(event.get("text", "")),
+                utterance_lang,
+                player_obj,
+                graph=self.graph,
+                known_names=known,
+            )
+            if was_masked:
+                hearing_entry["text"] = masked_text
+                hearing_entry["comprehension_masked"] = True
+
+        player_obj.recent_hearing.append(hearing_entry)
+        if len(player_obj.recent_hearing) > 20:
+            player_obj.recent_hearing.pop(0)
+        return hearing_entry
+
     def broadcast_speech(
         self,
         speaker_name: str,
@@ -255,6 +301,7 @@ class SpeechBroadcaster:
         area_name: Optional[str] = None,
         speech_level: str = "normal",
         whisper_target: Optional[str] = None,
+        lang: Optional[str] = None,
     ):
         """Broadcast a line of speech to everyone in hearing range.
 
@@ -308,6 +355,9 @@ class SpeechBroadcaster:
             if is_directed_whisper else None
         )
 
+        from engine.language_barrier import resolve_speaker_language
+
+        utterance_lang = resolve_speaker_language(speaker, explicit_lang=lang, graph=self.graph)
         is_ghost_speech = speaker and speaker.state == "dead"
 
         event = {
@@ -319,6 +369,8 @@ class SpeechBroadcaster:
             "ghost_speech": is_ghost_speech,
             "speech_level": speech_level,
         }
+        if utterance_lang:
+            event["lang"] = utterance_lang
         if is_directed_whisper:
             event["whisper_target"] = resolved_target
             event["whisper_audience"] = sorted(whisper_audience - {resolved_target})
@@ -371,18 +423,11 @@ class SpeechBroadcaster:
         for pname, player_obj in self.player_manager.players.items():
             if getattr(player_obj, "current_area", None) != target_area:
                 continue
-            if not hasattr(player_obj, "recent_hearing"):
-                player_obj.recent_hearing = []
             # Directed whisper: the words reach its audience (recipient + the
             # speaker's same-area friends); everyone else sees only the gesture.
             if is_directed_whisper and pname not in whisper_audience:
                 continue
-            hearing_entry = dict(event)
-            if is_ghost_speech and player_obj.state != "dead":
-                hearing_entry["is_ghost"] = True
-            player_obj.recent_hearing.append(hearing_entry)
-            if len(player_obj.recent_hearing) > 20:
-                player_obj.recent_hearing.pop(0)
+            self._append_hearing_entry(player_obj, event, is_ghost_speech=bool(is_ghost_speech))
 
         # Spoken-name learning (task-339): same-area listeners learn the
         # names of present characters that appear in the line. Never for a
@@ -427,16 +472,12 @@ class SpeechBroadcaster:
                         if getattr(player_obj, "current_area", None) != area_node.name:
                             continue
 
-                        # Add to their recent hearing
-                        if not hasattr(player_obj, "recent_hearing"):
-                            player_obj.recent_hearing = []
-
-                        hearing_entry = dict(event)
-                        hearing_entry["heard_from"] = direction
-                        hearing_entry["distance"] = 3 - remaining_pen  # rough distance indicator
-                        player_obj.recent_hearing.append(hearing_entry)
-                        if len(player_obj.recent_hearing) > 20:
-                            player_obj.recent_hearing.pop(0)
+                        self._append_hearing_entry(
+                            player_obj,
+                            event,
+                            heard_from=direction,
+                            distance=3 - remaining_pen,
+                        )
 
                         # Log narration for distant speech
                         narration = format_heard_narration(
@@ -460,7 +501,11 @@ class SpeechBroadcaster:
                 f'[{speaker_name}] says: "{speech_text}"'
             )
             self.logging_events.record_turn_event(
-                speaker_name, "speak", f'said: "{speech_text}"', area_name=target_area
+                speaker_name,
+                "speak",
+                f'said: "{speech_text}"',
+                area_name=target_area,
+                extra={"lang": utterance_lang} if utterance_lang else None,
             )
 
         # Long-distance comms relay (task-299): radios, walkie-talkies, phones.

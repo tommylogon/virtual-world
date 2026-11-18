@@ -1980,6 +1980,11 @@ def handle_take_action(app):
                         speech = cmd[len(_pfx):].strip()
                         break
                 # Human-typed quoted lines: unwrap ONLY when the whole line is wrapped
+                explicit_lang = None
+                lang_match = re.match(r'^\[lang:([^\]]+)\]\s*(.+)$', speech, re.IGNORECASE | re.DOTALL)
+                if lang_match:
+                    explicit_lang = lang_match.group(1).strip()
+                    speech = lang_match.group(2).strip()
                 if len(speech) >= 2 and ((speech[0] == '"' and speech[-1] == '"')
                                          or (speech[0] == "'" and speech[-1] == "'")):
                     speech = speech[1:-1].strip()
@@ -2003,7 +2008,13 @@ def handle_take_action(app):
                         rev_msg = reveal_if_hidden(world, world.active_player, reason=speech_level)
                         if rev_msg:
                             add_output(rev_msg)
-                    world.broadcast_speech(world.active_player, speech, speech_level=speech_level, whisper_target=whisper_target)
+                    world.broadcast_speech(
+                        world.active_player,
+                        speech,
+                        speech_level=speech_level,
+                        whisper_target=whisper_target,
+                        lang=explicit_lang,
+                    )
                     if speech_level == "whisper":
                         if whisper_target:
                             add_output(f'[{world.active_player}] whispers to {whisper_target}: "{speech}"')

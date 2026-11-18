@@ -215,10 +215,11 @@ class NarrationSystem:
         area_name: Optional[str] = None,
         speech_level: str = "normal",
         whisper_target: Optional[str] = None,
+        lang: Optional[str] = None,
     ):
         """@deprecated delegate - see engine/speech.py SpeechBroadcaster."""
         return self.speech.broadcast_speech(
-            speaker_name, speech_text, area_name, speech_level, whisper_target
+            speaker_name, speech_text, area_name, speech_level, whisper_target, lang=lang
         )
     # ──────────────────────── Fumble in darkness ──────────────────────
 

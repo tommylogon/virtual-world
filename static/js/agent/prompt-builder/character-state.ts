@@ -760,6 +760,9 @@ const foodish = areaItems.filter(it =>
         const lines: string[] = [];
         if (langParts.length) {
             lines.push(`Languages: ${langParts.join('; ')}.`);
+            if (typeof player.active_language === 'string' && player.active_language.trim()) {
+                lines.push(`Active speaking language: ${player.active_language.trim()}.`);
+            }
             lines.push('Language limit: You ONLY understand and speak the languages above at their stated fluency. Treat any other language or unknown foreign words as unfamiliar; do NOT silently translate them.');
         }
         if (lingoList.length) {

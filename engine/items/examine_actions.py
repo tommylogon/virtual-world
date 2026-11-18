@@ -447,10 +447,17 @@ class ExamineActionsMixin:
                     pass
                 desc = self._render_node_desc(item_node)
 
-                # task-433: surface structured inscriptions so `examine` (and
-                # `read`, which aliases it) shows what was written, by whom, when.
+                # task-433 / task-967: surface structured inscriptions gated on
+                # reader literacy and language competence.
                 inscriptions = item_node.properties.get("inscriptions")
                 if isinstance(inscriptions, list) and inscriptions:
+                    from engine.language_barrier import (
+                        extract_known_names_for_listener,
+                        mask_text_for_listener,
+                    )
+
+                    known_names = extract_known_names_for_listener(viewer_obj)
+                    default_lang = item_node.properties.get("lang")
                     lines = []
                     for record in inscriptions:
                         if not isinstance(record, dict):
@@ -458,10 +465,20 @@ class ExamineActionsMixin:
                         text = str(record.get("text", "")).strip()
                         if not text:
                             continue
+                        insc_lang = record.get("lang") or default_lang
+                        shown_text, was_masked = mask_text_for_listener(
+                            text,
+                            insc_lang,
+                            viewer_obj,
+                            graph=self.graph,
+                            known_names=known_names,
+                            for_reading=True,
+                        )
                         author = record.get("by") or "someone"
                         tick = record.get("tick")
                         stamp = f" (tick {tick})" if tick else ""
-                        lines.append(f"  {author}{stamp}: \"{text}\"")
+                        lang_note = f" [{insc_lang}]" if (was_masked and insc_lang) else ""
+                        lines.append(f"  {author}{stamp}{lang_note}: \"{shown_text}\"")
                     if lines:
                         desc += "\nWritten here:\n" + "\n".join(lines)
 
