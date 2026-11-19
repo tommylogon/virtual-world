@@ -52,6 +52,7 @@ TRIGGER_TYPES = [
     "on_night",
     "on_full_moon",
     "on_blood_moon",
+    "on_time",
     # task-823: goal reached event - fired when a character's goal reaches terminal success
     "on_goal_reached",
     "goal_reached",
@@ -117,6 +118,7 @@ EFFECT_TYPES = [
     # task-233: dynamic area statuses.
     "apply_area_status",
     "clear_area_status",
+    "emit_sound",
     # task-231: wet/dry clothing state.
     "set_wet",
     # task-391: Lyrie's spellbook. Durations are in ticks.
@@ -168,4 +170,5 @@ SAFE_EFFECT_TYPES = {
     "llm_respond",
     # task-716: activity start is a safe narrative/non-mutation effect.
     "start_activity",
+    "emit_sound",
 }

@@ -170,6 +170,9 @@ DEMO_PARAMS = {
                           "message": "[template:remove_persona_id] The interest fades."},
     "advance_age": {"years": 1, "target": "self",
                    "message": "[template:advance_age] A year passes over you."},
+    "emit_sound": {"text": "a crisp bell chimes across the halls",
+                   "muffled_text": "the muffled ring of a distant bell",
+                   "volume": 4},
 }
 
 
@@ -211,8 +214,9 @@ def main():
     written = []
     for effect_type in EFFECT_TYPES:
         path = os.path.join(OUT_DIR, f"template_{effect_type}.json")
-        with open(path, "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
             json.dump(build_effect(effect_type), f, indent=2, ensure_ascii=False)
+            f.write("\n")
         written.append(effect_type)
     print(f"Wrote {len(written)} template items to {OUT_DIR}")
     print("ids:", ", ".join(f"template_{e}" for e in written))

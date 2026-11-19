@@ -28,7 +28,9 @@ test('Extraction prompt emits canonical engine schema', () => {
 
     assertTrue(promptObj.systemPrompt.includes('inner_monologue'), 'Prompt must use canonical inner_monologue');
     assertTrue(promptObj.systemPrompt.includes('speech'), 'Prompt must use canonical speech');
-    assertTrue(promptObj.systemPrompt.includes('memory'), 'Prompt must include canonical memory');
+    assertTrue(promptObj.systemPrompt.includes('volume'), 'Prompt must include canonical volume');
+    assertTrue(promptObj.systemPrompt.includes('emote'), 'Prompt must include canonical emote');
+    assertTrue(promptObj.systemPrompt.includes('emotion'), 'Prompt must include canonical emotion');
     assertTrue(promptObj.systemPrompt.includes('item'), 'Prompt must include canonical item');
     assertTrue(promptObj.systemPrompt.includes('target'), 'Prompt must include canonical target');
 });

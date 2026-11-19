@@ -1239,7 +1239,7 @@ def handle_take_action(app):
                     )
                 world._add_entertainment_gain(5)
 
-        elif cmd.startswith("guess time"):
+        elif cmd == "guess" or cmd.startswith("guess time"):
             from engine.time_perception import resolve_guess_time
             for line in resolve_guess_time(world):
                 add_output(line)

@@ -194,3 +194,163 @@ def test_non_clock_character_goblin_and_cat_lenses():
     assert "09:30" not in reading
     assert is_timepiece_node(clock)
     assert natural_time_band(9) == "early morning"
+
+
+def test_on_time_school_bell_emits_sound_across_rooms_and_respects_broken_state():
+    from area import Area
+    from player import Player
+    from virtual_world_engine import VirtualWorld
+
+    world = VirtualWorld()
+    world.movement.add_area(Area("Hallway", "A long school hallway.", []))
+    world.movement.add_area(Area("Classroom", "A busy classroom.", []))
+    world.movement.add_area(Area("Deep Basement", "A thick-walled basement.", []))
+
+    # Connect Hallway <-> Classroom via a closed normal door (barrier 1)
+    hall_id = world._area_node_id("Hallway")
+    class_id = world._area_node_id("Classroom")
+    base_id = world._area_node_id("Deep Basement")
+    way_closed = Node(id="way_class_door", type="way", name="Classroom Door", properties={"current_state": "closed"})
+    way_heavy = Node(
+        id="way_vault_door",
+        type="way",
+        name="Heavy Vault Door",
+        properties={"current_state": "closed", "sound_barrier": 5},
+    )
+    world.graph.add_node(way_closed)
+    world.graph.add_node(way_heavy)
+    for src, dst, direction in [
+        (hall_id, way_closed.id, "north"),
+        (way_closed.id, class_id, "north"),
+        (class_id, way_closed.id, "south"),
+        (way_closed.id, hall_id, "south"),
+        (hall_id, way_heavy.id, "down"),
+        (way_heavy.id, base_id, "down"),
+    ]:
+        world.graph.add_edge(Edge(source=src, target=dst, type="connection", properties={"direction": direction}))
+
+    # Place 4 listeners: Hallway, Classroom, Deafened in Classroom, and Deep Basement
+    for pname, area_name in [
+        ("Alice", "Hallway"),
+        ("Bob", "Classroom"),
+        ("Cara", "Classroom"),
+        ("Goblin", "Deep Basement"),
+    ]:
+        world.player_manager.add_player(Player(name=pname))
+        world.name_matcher._set_player_area(pname, area_name)
+    world.player_manager.players["Cara"].conditions["deafened"] = True
+    world.active_player = "Alice"
+
+    bell = Node(
+        id="item_school_bell",
+        type="item",
+        name="School Bell",
+        properties={
+            "tags": ["bell"],
+            "current_state": "normal",
+            "triggers": [
+                {
+                    "id": "trig_school_bell",
+                    "trigger_type": "on_time",
+                    "times": ["08:00", "12:00"],
+                    "effects": [
+                        {
+                            "type": "emit_sound",
+                            "params": {
+                                "text": "the school bell rings sharply at {time_slot}",
+                                "muffled_text": "the muffled ring of a school bell",
+                                "volume": 2,
+                            },
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+    world.graph.add_node(bell)
+    world.graph.add_edge(Edge(source=bell.id, target=hall_id, type="in"))
+
+    # Set clock to 08:00 (default start is 08:00 at tick 0)
+    world.clock_start_hour = 8
+    world.clock_start_minute = 0
+    world.time_ticks = 0
+    world.time_per_tick_minutes = 5
+
+    world._fire_time_triggers()
+
+    alice_heard = world.player_manager.players["Alice"].recent_hearing
+    bob_heard = world.player_manager.players["Bob"].recent_hearing
+    cara_heard = world.player_manager.players["Cara"].recent_hearing
+    goblin_heard = world.player_manager.players["Goblin"].recent_hearing
+
+    assert len(alice_heard) == 1
+    assert "08:00" in alice_heard[0]["sound_pattern"]
+    assert alice_heard[0]["type"] == "sound_source"
+
+    # Bob in Classroom (remaining_pen = 2 - 1 = 1) hears muffled_text
+    assert len(bob_heard) == 1
+    assert "muffled ring of a school bell" in bob_heard[0]["sound_pattern"]
+
+    # Deafened Cara and thick-walled Basement Goblin hear nothing
+    assert len(cara_heard) == 0
+    assert len(goblin_heard) == 0
+
+    # Calling _fire_time_triggers again on same day/slot does not double-fire
+    world._fire_time_triggers()
+    assert len(world.player_manager.players["Alice"].recent_hearing) == 1
+
+    # Break the bell before 12:00 -> stays silent
+    bell.properties["current_state"] = "broken"
+    world.time_ticks = 48  # 48 * 5 = 240 min -> 12:00
+    world._fire_time_triggers()
+    assert len(world.player_manager.players["Alice"].recent_hearing) == 1
+
+
+def test_on_time_every_hour_church_bell_renders_hour_12():
+    from area import Area
+    from player import Player
+    from virtual_world_engine import VirtualWorld
+
+    world = VirtualWorld()
+    world.movement.add_area(Area("Square", "A cobbled square.", []))
+    sq_id = world._area_node_id("Square")
+    world.player_manager.add_player(Player(name="Monk"))
+    world.name_matcher._set_player_area("Monk", "Square")
+    world.active_player = "Monk"
+
+    tower_bell = Node(
+        id="item_church_bell",
+        type="item",
+        name="Church Bell",
+        properties={
+            "triggers": [
+                {
+                    "id": "trig_hourly",
+                    "trigger_type": "on_time",
+                    "every_hour": True,
+                    "effects": [
+                        {
+                            "type": "emit_sound",
+                            "params": {
+                                "text": "the church bell tolls {hour_12} times",
+                                "volume": 5,
+                            },
+                        }
+                    ],
+                }
+            ]
+        },
+    )
+    world.graph.add_node(tower_bell)
+    world.graph.add_edge(Edge(source=tower_bell.id, target=sq_id, type="in"))
+
+    world.clock_start_hour = 15
+    world.clock_start_minute = 0
+    world.time_ticks = 0
+    world.time_per_tick_minutes = 5
+
+    world._fire_time_triggers()
+    heard = world.player_manager.players["Monk"].recent_hearing
+    assert len(heard) == 1
+    assert "tolls 3 times" in heard[0]["sound_pattern"]
+

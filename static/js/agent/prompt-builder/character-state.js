@@ -1034,6 +1034,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         describeVital,
         describeVitals,
         buildPlanContext,
+        naturalTimeBand,
+        getTimePerceptionMode,
         describeScheduleHorizon,
         buildMosiacContext,
         buildLanguageAndLingoContext,

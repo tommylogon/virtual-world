@@ -1059,6 +1059,8 @@ const foodish = areaItems.filter(it =>
         describeVital,
         describeVitals,
         buildPlanContext,
+        naturalTimeBand,
+        getTimePerceptionMode,
         describeScheduleHorizon,
         buildMosiacContext,
         buildLanguageAndLingoContext,

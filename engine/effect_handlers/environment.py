@@ -310,10 +310,126 @@ def _mark_wet_current_state(nodes, wet: bool) -> None:
 
 
 
+def _resolve_sound_origin_area_id(graph, item_node, params, game_state):
+    """Resolve the area node id where an emitted sound originates."""
+    explicit = params.get("area_id") or params.get("area") or ""
+    if explicit:
+        node = graph.get_node(explicit)
+        if node is not None and node.type == "area":
+            return node.id
+        needle = str(explicit).strip().lower()
+        for n in graph.nodes.values():
+            if n.type == "area" and (n.id.lower() == needle or (n.name or "").lower() == needle):
+                return n.id
+
+    if item_node is not None:
+        if getattr(item_node, "type", None) == "area":
+            return item_node.id
+        from graph import EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
+        for edge in graph.get_edges_for_source(item_node.id):
+            if edge.type == EDGE_IN:
+                dest = graph.get_node(edge.target)
+                if dest is not None and dest.type == "area":
+                    return dest.id
+            if edge.type in (EDGE_CARRYING, EDGE_EQUIPPED):
+                holder = graph.get_node(edge.target)
+                if holder is not None:
+                    for he in graph.get_edges_for_source(holder.id):
+                        if he.type == EDGE_IN:
+                            dest = graph.get_node(he.target)
+                            if dest is not None and dest.type == "area":
+                                return dest.id
+
+    if game_state is not None and hasattr(game_state, "get_current_area_id"):
+        try:
+            return game_state.get_current_area_id()
+        except Exception:
+            return None
+    return None
+
+
+def handle_emit_sound(self, params, context, item_node=None, game_state=None):
+    """Propagate a one-shot sound event across areas via engine.sound.
+
+    Params:
+      text / sound_pattern / message - sound description heard nearby/clearly.
+      muffled_text                   - optional description when heard faintly through barriers.
+      volume / sound_level           - sound penetration (default 3, clamped 1..10).
+      area_id / area                 - optional origin area override.
+      source_name                    - optional label for recent_hearing.source_item.
+    """
+    from engine.sound import format_heard_narration, get_areas_hearing_sound_source
+
+    raw_text = params.get("text") or params.get("sound_pattern") or params.get("message") or ""
+    if not raw_text:
+        return []
+    render = getattr(self, "_render_template_fn", None)
+    clear_text = render(str(raw_text), context) if callable(render) else str(raw_text)
+    raw_muffled = params.get("muffled_text") or ""
+    muffled_text = (render(str(raw_muffled), context) if callable(render) else str(raw_muffled)) if raw_muffled else ""
+
+    try:
+        volume = int(params.get("volume", params.get("sound_level", 3)))
+    except (TypeError, ValueError):
+        volume = 3
+    volume = max(1, min(10, volume))
+
+    origin_area_id = _resolve_sound_origin_area_id(self.graph, item_node, params, game_state)
+    if not origin_area_id:
+        return [clear_text]
+
+    areas_dict = {n.id: n for n in self.graph.nodes.values() if n.type == "area"}
+    origin_area = areas_dict.get(origin_area_id)
+    if origin_area is None:
+        return [clear_text]
+
+    hearing_areas = get_areas_hearing_sound_source(
+        origin_area_id, volume, self.graph, areas_dict
+    )
+    hearing_areas[origin_area_id] = (volume, "")
+
+    source_name = params.get("source_name") or (item_node.name if item_node is not None else origin_area.name)
+    tick = getattr(game_state, "time_ticks", 0) if game_state is not None else 0
+    players = getattr(game_state, "players", None) or {}
+    active_player = getattr(game_state, "active_player", None) if game_state is not None else None
+
+    active_outputs = []
+    for hearing_area_id, (remaining_pen, direction) in hearing_areas.items():
+        hearing_area = areas_dict.get(hearing_area_id)
+        if hearing_area is None:
+            continue
+        is_muffled = hearing_area_id != origin_area_id and remaining_pen <= 1 and bool(muffled_text)
+        heard_text = muffled_text if is_muffled else clear_text
+        for pname, player_obj in players.items():
+            if getattr(player_obj, "current_area", None) != hearing_area.name:
+                continue
+            conds = getattr(player_obj, "conditions", None) or {}
+            if isinstance(conds, dict) and (conds.get("deaf") or conds.get("deafened")):
+                continue
+            if not hasattr(player_obj, "recent_hearing") or player_obj.recent_hearing is None:
+                player_obj.recent_hearing = []
+            player_obj.recent_hearing.append({
+                "type": "sound_source",
+                "sound_pattern": heard_text,
+                "source_item": source_name,
+                "source_area": origin_area.name,
+                "heard_from": direction,
+                "distance": max(0, volume - remaining_pen),
+                "tick": tick,
+            })
+            if len(player_obj.recent_hearing) > 20:
+                player_obj.recent_hearing.pop(0)
+            if pname == active_player:
+                active_outputs.append(format_heard_narration(heard_text, direction, is_speech=False))
+
+    return active_outputs
+
+
 HANDLERS = {
     "set_environment": handle_set_environment,
     "adjust_environment": handle_adjust_environment,
     "apply_area_status": handle_apply_area_status,
     "clear_area_status": handle_clear_area_status,
     "set_wet": handle_set_wet,
+    "emit_sound": handle_emit_sound,
 }

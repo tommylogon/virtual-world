@@ -105,7 +105,22 @@ window.PromptBuilder = window.PromptBuilder || {};
         const wsData = (typeof worldState !== 'undefined' ? (worldState as any)?.data : null) || {};
         const currentTick = Number(timeOpts?.currentTick ?? wsData.time_ticks ?? 0) || 0;
         const minutesPerTick = Number(timeOpts?.minutesPerTick ?? wsData.time_per_tick_minutes ?? 5) || 5;
-        const worldTime = timeOpts?.worldTime ? `Current time: ${timeOpts.worldTime}. ` : '';
+        const playerObj = wsData?.players?.[charName] || null;
+        let worldTime = '';
+        if (timeOpts?.worldTime) {
+            const timeMode = (typeof (PromptBuilder as any)?.getTimePerceptionMode === 'function' && playerObj)
+                ? (PromptBuilder as any).getTimePerceptionMode(playerObj)
+                : 'exact';
+            if (timeMode === 'exact') {
+                worldTime = `Current time: ${timeOpts.worldTime}. `;
+            } else if (timeMode === 'sky' && typeof (PromptBuilder as any)?.naturalTimeBand === 'function') {
+                const m = String(timeOpts.worldTime).match(/(\d{1,2}):(\d{2})/);
+                if (m) {
+                    const band = (PromptBuilder as any).naturalTimeBand(parseInt(m[1], 10));
+                    worldTime = `Time of day (from the sky): ${band}. `;
+                }
+            }
+        }
 
         const traceLines = topMemories.map((m: ScoredMemory) => {
             const flags: string[] = [_formatMemoryAgeLabel(m.tick, currentTick, minutesPerTick)];
@@ -115,7 +130,6 @@ window.PromptBuilder = window.PromptBuilder || {};
             return `- [${flags.join(', ')}] ${body}`;
         });
 
-        const playerObj = wsData?.players?.[charName] || null;
         const scheduleHorizon = (typeof (PromptBuilder as any)?.describeScheduleHorizon === 'function' && playerObj)
             ? (PromptBuilder as any).describeScheduleHorizon(playerObj)
             : '';

@@ -1458,10 +1458,59 @@ class VirtualWorld:
             except Exception as e:
                 logger.warning("[triggers] %s on %s: %s", trigger_type, source_id, e)
 
+    @staticmethod
+    def _parse_clock_slot_minutes(raw) -> Optional[int]:
+        """Parse 'HH:MM' or integer minutes into minute-of-day (0..1439)."""
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+            return int(raw) % 1440
+        text = str(raw or "").strip()
+        if not text:
+            return None
+        parts = text.split(":")
+        if len(parts) >= 2:
+            try:
+                h = int(parts[0])
+                m = int(parts[1])
+                if 0 <= h <= 23 and 0 <= m <= 59:
+                    return h * 60 + m
+            except ValueError:
+                return None
+        return None
+
+    @classmethod
+    def _on_time_due_slots(cls, trig_props: dict, now_min: int, step_min: int) -> List[int]:
+        """Return scheduled minute-of-day slots on *trig_props* due within this tick."""
+        slots: List[int] = []
+        if trig_props.get("every_hour"):
+            slots.extend(h * 60 for h in range(24))
+        raw_times = trig_props.get("times")
+        if isinstance(raw_times, str):
+            raw_times = [s.strip() for s in raw_times.split(",") if s.strip()]
+        if isinstance(raw_times, (list, tuple)):
+            for entry in raw_times:
+                parsed = cls._parse_clock_slot_minutes(entry)
+                if parsed is not None:
+                    slots.append(parsed)
+        if trig_props.get("at") is not None:
+            parsed = cls._parse_clock_slot_minutes(trig_props.get("at"))
+            if parsed is not None:
+                slots.append(parsed)
+        due: List[int] = []
+        seen = set()
+        for slot in slots:
+            if slot in seen:
+                continue
+            seen.add(slot)
+            delta = (now_min - slot) % 1440
+            if 0 <= delta < step_min:
+                due.append(slot)
+        return due
+
     def _fire_time_triggers(self):
         """task-234: one-shot time-of-day & moon triggers - on_dawn, on_dusk,
-        on_day, on_night, on_full_moon, on_blood_moon - fired on area/way/
-        character nodes. Each fires once per game-day transition (cache)."""
+        on_day, on_night, on_full_moon, on_blood_moon - plus clock-scheduled
+        ``on_time`` triggers (``times``, ``at``, or ``every_hour``). Each fires
+        once per game-day per slot (cache)."""
         hour = self.current_game_hour()
         moon = self.current_moon_phase()
         override = getattr(self, "forecast_override", None) or {}
@@ -1492,6 +1541,61 @@ class VirtualWorld:
                         self.add_log_entry(out)
                 except Exception as e:
                     logger.warning("[triggers] %s on %s: %s", trigger_type, source_id, e)
+
+        # Clock-scheduled on_time triggers (school bells, church bells, alarms, etc.)
+        now_min = int(self.total_game_minutes()) % 1440
+        step_min = max(1, int(round(getattr(self, "time_per_tick_minutes", 5) or 5)))
+        disabled_states = {"broken", "dead", "off", "unpowered", "destroyed", "shattered", "disabled"}
+        from graph import EDGE_TRIGGERS
+        for source_id in self.graph.get_trigger_sources("on_time"):
+            node = self.graph.get_node(source_id)
+            if node is None:
+                continue
+            nstate = str((node.properties or {}).get("current_state", "") or "").strip().lower()
+            if nstate in disabled_states:
+                continue
+            # Collect triggers in the same order as ExecutionMixin._execute_triggers
+            trig_entries = []
+            seen_tids = set()
+            prop_trigs = (node.properties or {}).get("triggers")
+            if isinstance(prop_trigs, list):
+                for t in prop_trigs:
+                    if isinstance(t, dict):
+                        tid = t.get("id")
+                        trig_entries.append((tid, t))
+                        if tid:
+                            seen_tids.add(tid)
+            for edge in self.graph.get_edges_for_source(node.id, EDGE_TRIGGERS):
+                if edge.target not in seen_tids:
+                    trig_entries.append((edge.target, edge.properties or {}))
+
+            for idx, (tid, tprops) in enumerate(trig_entries):
+                tt = tprops.get("trigger_type", "")
+                matches = ("on_time" in tt) if isinstance(tt, (list, tuple)) else (tt == "on_time")
+                if not matches:
+                    continue
+                effective_tid = tid or tprops.get("id") or f"idx_{idx}"
+                for slot_min in self._on_time_due_slots(tprops, now_min, step_min):
+                    key = (source_id, "on_time", effective_tid, slot_min)
+                    if cache.get(key) == bucket:
+                        continue
+                    cache[key] = bucket
+                    slot_h, slot_m = divmod(slot_min, 60)
+                    ctx = {
+                        "time_slot": f"{slot_h:02d}:{slot_m:02d}",
+                        "hour": str(slot_h),
+                        "hour_12": str((slot_h % 12) or 12),
+                        "_on_time_trigger_id": effective_tid,
+                    }
+                    try:
+                        outputs = self.triggers._execute_triggers(
+                            node, "on_time", context=ctx, game_state=self
+                        )
+                        for out in outputs:
+                            self.add_log_entry(out)
+                    except Exception as e:
+                        logger.warning("[triggers] on_time on %s: %s", source_id, e)
+
         if len(cache) > 400:
             for key in list(cache)[:len(cache) - 200]:
                 cache.pop(key, None)

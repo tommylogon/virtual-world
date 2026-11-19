@@ -412,7 +412,7 @@ class ExecutionMixin:
             context=context,
         )
 
-        for trigger_edge in triggers:
+        for edge_idx, trigger_edge in enumerate(triggers):
             trigger_types_on_edge = trigger_edge.properties.get("trigger_type", "")
 
             # ── Filter by trigger type ──
@@ -449,6 +449,12 @@ class ExecutionMixin:
                     trigger_types_on_edge.startswith("on_use_on")
                     and trigger_type == "on_use_on"
                 ):
+                    continue
+
+            # ── Filter by specific on_time trigger id when dispatched per-slot ──
+            if trigger_type == "on_time" and context.get("_on_time_trigger_id"):
+                edge_tid = trigger_edge.target or trigger_edge.properties.get("id") or f"idx_{edge_idx}"
+                if edge_tid != context.get("_on_time_trigger_id"):
                     continue
 
             # ── Filter by expected target state ──

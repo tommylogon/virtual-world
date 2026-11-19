@@ -24,7 +24,8 @@ const TriggerTypes = {
         'on_delayed', 'on_spoil',
         // task-234: engine-fired turn-cycle and time/moon triggers (areas/ways/characters).
         'on_turn_start', 'on_turn_end',
-        'on_dawn', 'on_dusk', 'on_day', 'on_night', 'on_full_moon', 'on_blood_moon'
+        'on_dawn', 'on_dusk', 'on_day', 'on_night', 'on_full_moon', 'on_blood_moon',
+        'on_time'
     ],
 
     CONDITION_TYPES: [
@@ -109,6 +110,7 @@ const TriggerTypes = {
         // task-233: dynamic area statuses.
         { value: 'apply_area_status', label: '🔥 Apply Area Status (on_fire...)', group: 'area' },
         { value: 'clear_area_status', label: '🧹 Clear Area Status', group: 'area' },
+        { value: 'emit_sound', label: '🔔 Emit Sound (propagate across rooms)', group: 'area' },
         // task-231: wet/dry clothing state.
         { value: 'set_wet', label: '💧 Set Wet (soak/dry items)', group: 'item' },
         // task-716: persistent activity and downstream movement for fishing slice.
