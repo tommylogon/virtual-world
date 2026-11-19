@@ -140,9 +140,6 @@ class VirtualWorld:
         # World lore: shared list of structured lore entries
         self.world_lore = []
 
-        # Current scene context (title, premise, tick_started)
-        self.scene_context = None
-
         # task-397: hierarchy manifest over the flat area/way/item graph.
         # {scope_id: {id, kind, name, parent_id, children, area_ids, state, generation}}
         # Optional: scenarios without a manifest behave exactly as before.

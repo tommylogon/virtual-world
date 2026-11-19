@@ -1070,13 +1070,7 @@ ${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessed
         const availableActions = PromptBuilder.buildAvailableActionsBlock(state, charName, player, currentArea, turnSlots(player));
         const itemsBlock = items ? `${itemHeader}\n` + items : noItemsLine;
         const roomBody = `${bodyDesc}${warn ? `\n${warn}` : ''}`;
-        const sceneCtx = state?.scene_context || window.worldState?.data?.scene_context;
-        const sceneEnabled = window.config?.sceneContext !== false && sceneCtx?.enabled !== false;
-        let extraNote = '';
-        if (sceneEnabled && sceneCtx && sceneCtx.premise) {
-            const title = sceneCtx.title ? ` (${sceneCtx.title})` : '';
-            extraNote = `=== CURRENT SITUATION${title} ===\n${String(sceneCtx.premise).trim()}`;
-        }
+        const extraNote = '';
         return {
             agentFraming: true,
             tickHead: `[Tick ${tickNum}]`,

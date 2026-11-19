@@ -25,14 +25,9 @@ def _hero(w):
     return p
 
 
-def test_timeskip_updates_scene_context_premise_and_cast_memories():
+def test_timeskip_records_cast_memories():
     w = _world()
     hero = _hero(w)
-    w.scene_context = {
-        "title": "First Period",
-        "premise": "Students are chatting before class.",
-        "enabled": True,
-    }
 
     # Identify another character in the world
     other = next(p for p in w.players.values() if p is not hero)
@@ -42,12 +37,7 @@ def test_timeskip_updates_scene_context_premise_and_cast_memories():
     assert res.ok is True
     assert res.elapsed_minutes > 0
 
-    # 1. Verify scene_context was updated
-    assert w.scene_context["premise"] != "Students are chatting before class."
-    assert "minutes elapsed" in w.scene_context["premise"]
-    assert hero.name in w.scene_context["premise"]
-
-    # 2. Verify other cast member received an episodic timeskip memory
+    # Verify other cast member received an episodic timeskip memory
     current_mem_count = len(getattr(other, "memories", []))
     assert current_mem_count > initial_mem_count
     recent_mem = other.memories[-1]

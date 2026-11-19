@@ -699,15 +699,6 @@ class ApiClientImpl {
 
     // --- World Lore API ---
 
-    static async getSceneContext(): Promise<ApiResult> {
-        const resp = await fetch('/api/world/scene_context');
-        return resp.json();
-    }
-
-    static async setSceneContext(context: unknown): Promise<ApiResult> {
-        return this.post('/api/world/scene_context', context);
-    }
-
     static async getWorldLore(): Promise<ApiResult> {
         const resp = await fetch('/api/world/lore');
         return resp.json();

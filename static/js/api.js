@@ -612,13 +612,6 @@ class ApiClientImpl {
         return this.post('/api/settings/auto_generate_descriptions', { auto_generate_descriptions: enabled });
     }
     // --- World Lore API ---
-    static async getSceneContext() {
-        const resp = await fetch('/api/world/scene_context');
-        return resp.json();
-    }
-    static async setSceneContext(context) {
-        return this.post('/api/world/scene_context', context);
-    }
     static async getWorldLore() {
         const resp = await fetch('/api/world/lore');
         return resp.json();

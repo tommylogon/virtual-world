@@ -1,0 +1,23 @@
+{
+  "id": "task-990",
+  "title": "Global scene_context (CURRENT SITUATION) prompt injection",
+  "status": "cancelled",
+  "priority": "low",
+  "area": "prompting",
+  "created_at": "2026-11-19",
+  "cancelled_at": "2026-11-19",
+  "origin_commit": "03b0b13b",
+  "reason": "Cancelled and removed completely from engine, routes, prompt builder, serialization, and scenarios. A global static CURRENT SITUATION premise injected into every character's prompt contradicts real world state (area, time of day, room occupancy, inventory) and causes characters to hallucinate locations, items, and companions that are not present. Simulation continuity belongs in lived room perception, memories, and character goals/motivations rather than a global static narrative blurb.",
+  "removed_from": [
+    "static/js/agent/prompt-builder/room-context.ts",
+    "static/js/api.ts",
+    "routes/world_lore.py",
+    "virtual_world_engine.py",
+    "engine/serialization.py",
+    "engine/timeskip.py",
+    "tools/unit/test_scene_context.js",
+    "data/scenarios/Millwood.json",
+    "world_template.json",
+    "data/scenarios/world_template.json"
+  ]
+}
