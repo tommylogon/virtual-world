@@ -670,6 +670,18 @@ window.worldState = new WorldState();
     function handleEvent(ev) {
         if (!ev)
             return;
+        if (ev.type === 'sse_open') {
+            const bus = window.appEvents;
+            if (bus)
+                bus.emit('sse:open', ev);
+            return;
+        }
+        if (ev.type === 'commons_changed') {
+            const bus = window.appEvents;
+            if (bus)
+                bus.emit('commons:changed', ev);
+            return;
+        }
         if (ev.type === 'resync_required') {
             refresh();
             return;
@@ -728,6 +740,9 @@ window.worldState = new WorldState();
     function startDirectStream() {
         try {
             const es = new EventSource('/api/events');
+            es.onopen = function () {
+                handleEvent({ type: 'sse_open' });
+            };
             es.onmessage = function (msg) {
                 let ev;
                 try {
@@ -748,6 +763,14 @@ window.worldState = new WorldState();
                 let es = null;
                 try {
                     es = new EventSource('/api/events');
+                    es.onopen = function () {
+                        const openEv = { type: 'sse_open' };
+                        try {
+                            channel.postMessage(openEv);
+                        }
+                        catch { }
+                        handleEvent(openEv);
+                    };
                     es.onmessage = function (msg) {
                         let ev;
                         try {

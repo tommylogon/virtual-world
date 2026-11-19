@@ -155,12 +155,45 @@ def create_app(config=None):
     app._state_revision = 0
     app._state_cache = {}
 
+    # Routes that never mutate or read app.world (external LLM/model proxies,
+    # benchmark logs, profiles, bug reports, SSE stream). Holding the global
+    # write lock across a 10-180s external HTTP call freezes every other tab.
+    _LOCK_FREE_PREFIXES = (
+        '/api/events',
+        '/api/bench/',
+        '/api/models',
+        '/api/llm/proxy',
+        '/api/profiles',
+        '/api/bugs',
+        '/api/client-version',
+        '/api/version',
+    )
+    _READ_ONLY_POST_PATHS = ('/api/autocomplete',)
+    _READ_ONLY_POST_SUFFIXES = ('/memories/context',)
+    # Mutating-method endpoints that do not modify world state (no state cache
+    # invalidation, no autosave/undo, no world_changed broadcast storm).
+    _NON_WORLD_PREFIXES = (
+        '/api/bugs',
+        '/api/bench/',
+        '/api/models',
+        '/api/llm/proxy',
+        '/api/profiles',
+        '/api/action/validate',
+        '/api/autocomplete',
+    )
+
     @app.before_request
     def _lock_requests():
         path = request.path
         if not path.startswith('/api/'):
             return
-        if path in ('/api/events', '/api/bench/chat'):
+        if path.startswith(_LOCK_FREE_PREFIXES):
+            return
+        if request.method == 'POST' and (
+            path in _READ_ONLY_POST_PATHS or path.endswith(_READ_ONLY_POST_SUFFIXES)
+        ):
+            app._vw_rwlock.acquire_read()
+            g._vw_read_locked = True
             return
         if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
             app._vw_rwlock.acquire_write()
@@ -191,7 +224,8 @@ def create_app(config=None):
         # best-effort (the undo stack is in-memory); explicit commit
         # still persists everything.
         _paint_burst = path.endswith(('/grid/paint', '/grid/paint_batch'))
-        if response.status_code and response.status_code < 400:
+        _read_only_player_post = path.endswith(('/memories/retrieve', '/memories/context')) or bool(g.get('no_broadcast'))
+        if response.status_code and response.status_code < 400 and not _read_only_player_post:
             if method in ('POST', 'PATCH', 'DELETE') and (
                 '/api/graph/' in path or '/api/players/' in path
                 or '/api/build/' in path or '/api/world/' in path
@@ -268,26 +302,33 @@ def create_app(config=None):
         # /api/state for a report that touched nothing.
         # task-753: invalidate the /api/state cache on every mutating call -
         # including /api/soak, which advances the world and so changes state.
-        if method in ('POST', 'PATCH', 'DELETE', 'PUT') and path.startswith('/api/'):
+        _is_non_world = (
+            path.startswith(_NON_WORLD_PREFIXES)
+            or path.endswith(('/memories/retrieve', '/memories/context'))
+            or bool(g.get('no_broadcast'))
+        )
+        _is_commons_only = path.startswith('/api/commons/') and not bool(g.get('commons_touched_world'))
+
+        # task-753: invalidate the /api/state cache only on real world mutations
+        # (including /api/soak, which advances the world, and Commons when it
+        # advances world.time_ticks; never on read-only/bench/proxy/retrieve calls).
+        if (method in ('POST', 'PATCH', 'DELETE', 'PUT')
+                and path.startswith('/api/')
+                and not _is_non_world
+                and not _is_commons_only):
             app._state_revision = getattr(app, '_state_revision', 0) + 1
 
         if (method in ('POST', 'PATCH', 'DELETE', 'PUT')
                 and path.startswith('/api/')
                 and not path.startswith('/api/soak')
-                and not path.startswith('/api/bugs')
-                # Read-only POSTs that change nothing (compile dry-run
-                # for the Persona tab's live preview) opt out via
-                # ``g.no_broadcast``: broadcasting would make every
-                # client refetch 2.48 MB of state for a preview that
-                # stored nothing - and worse, the re-render wipes the
-                # very form being previewed.
-                and not g.get('no_broadcast')):
+                and not _is_non_world):
             editor = request.headers.get('X-WV-Editor', 'app')
             delta = g.get('_event_delta')
             undo_label = g.get('_undo_label')
             from engine.world_events import hub
+            ev_type = 'commons_changed' if _is_commons_only else 'world_changed'
             ev_payload = {
-                'type': 'world_changed',
+                'type': ev_type,
                 'method': method,
                 'path': path,
                 'editor': editor,

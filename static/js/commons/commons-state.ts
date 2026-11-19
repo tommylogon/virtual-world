@@ -248,18 +248,89 @@ interface CommonsApiResponse {
             this.emit();
         }
 
+        static liveChannel: BroadcastChannel | null = null;
+        static liveReleaseLeader: (() => void) | null = null;
+
         static startLiveUpdates() {
-            if (this.visibilityPaused || this.liveEvents || typeof EventSource === 'undefined') return;
+            if (this.visibilityPaused || this.liveEvents || this.liveChannel || typeof EventSource === 'undefined') return;
+
+            const handleLiveEvent = (event: any) => {
+                if (!event) return;
+                if (event.type === 'sse_open' || event.type === 'resync_required' || event.type === 'commons_changed') {
+                    void this.sync();
+                    return;
+                }
+                if (event.type === 'world_changed' && String(event.path || '').startsWith('/api/commons/')) {
+                    void this.sync();
+                }
+            };
+
+            // Pool into the origin-wide SSE leader (world_events_sse_leader +
+            // BroadcastChannel('world_events')) so open Commons tabs never burn
+            // extra HTTP/1.1 sockets and trigger browser fetch deadlocks.
+            if (typeof BroadcastChannel !== 'undefined' && typeof navigator !== 'undefined' && navigator.locks) {
+                const channel = new BroadcastChannel('world_events');
+                this.liveChannel = channel;
+                channel.onmessage = (e: MessageEvent) => handleLiveEvent(e.data);
+                void this.sync();
+
+                let released = false;
+                let releaseFn: (() => void) | null = null;
+                this.liveReleaseLeader = () => {
+                    released = true;
+                    if (this.liveEvents) {
+                        this.liveEvents.close();
+                        this.liveEvents = null;
+                    }
+                    if (releaseFn) {
+                        releaseFn();
+                        releaseFn = null;
+                    }
+                };
+
+                navigator.locks.request('world_events_sse_leader', { mode: 'exclusive' }, async () => {
+                    if (released) return;
+                    return new Promise<void>((resolve) => {
+                        releaseFn = resolve;
+                        let source: EventSource | null = null;
+                        try {
+                            source = new EventSource('/api/events');
+                            this.liveEvents = source;
+                            source.onopen = () => {
+                                const openEv = { type: 'sse_open' };
+                                try { channel.postMessage(openEv); } catch {}
+                                handleLiveEvent(openEv);
+                            };
+                            source.onmessage = (message: MessageEvent) => {
+                                try {
+                                    const event = JSON.parse(message.data);
+                                    try { channel.postMessage(event); } catch {}
+                                    handleLiveEvent(event);
+                                } catch (error) {
+                                    console.warn('[CommonsState] Ignoring malformed live event:', error);
+                                }
+                            };
+                        } catch {
+                            resolve();
+                            return;
+                        }
+                        if (typeof window !== 'undefined') {
+                            window.addEventListener('beforeunload', () => {
+                                try { source?.close(); } catch {}
+                                resolve();
+                            }, { once: true });
+                        }
+                    });
+                }).catch(() => { /* fallback handled by sibling leader or next resume */ });
+                return;
+            }
+
             const source = new EventSource('/api/events');
             this.liveEvents = source;
-            // Re-sync after opening or reconnecting so changes made while this tab
-            // was disconnected are not lost.
             source.onopen = () => { void this.sync(); };
             source.onmessage = (message: MessageEvent) => {
                 try {
-                    const event = JSON.parse(message.data);
-                    if (event?.type === 'world_changed'
-                        && String(event.path || '').startsWith('/api/commons/')) void this.sync();
+                    handleLiveEvent(JSON.parse(message.data));
                 } catch (error) {
                     console.warn('[CommonsState] Ignoring malformed live event:', error);
                 }
@@ -267,6 +338,14 @@ interface CommonsApiResponse {
         }
 
         static stopLiveUpdates() {
+            if (this.liveReleaseLeader) {
+                this.liveReleaseLeader();
+                this.liveReleaseLeader = null;
+            }
+            if (this.liveChannel) {
+                this.liveChannel.close();
+                this.liveChannel = null;
+            }
             this.liveEvents?.close();
             this.liveEvents = null;
         }

@@ -339,10 +339,58 @@
         if (ws && typeof ws.on === 'function') {
             ws.on('update', (data) => scheduleRefresh(data));
         }
+        else if (typeof BroadcastChannel !== 'undefined' && typeof navigator !== 'undefined' && navigator.locks) {
+            const channel = new BroadcastChannel('world_events');
+            const onEv = (ev) => {
+                if (ev && (ev.type === 'world_changed' || ev.type === 'resync_required')) {
+                    scheduleRefresh();
+                }
+            };
+            channel.onmessage = (e) => onEv(e.data);
+            navigator.locks.request('world_events_sse_leader', { mode: 'exclusive' }, async () => {
+                return new Promise((resolve) => {
+                    let es = null;
+                    try {
+                        es = new EventSource('/api/events');
+                        es.onopen = () => {
+                            try {
+                                channel.postMessage({ type: 'sse_open' });
+                            }
+                            catch (_) { }
+                        };
+                        es.onmessage = (msg) => {
+                            try {
+                                const ev = JSON.parse(msg.data);
+                                try {
+                                    channel.postMessage(ev);
+                                }
+                                catch (_) { }
+                                onEv(ev);
+                            }
+                            catch (_) { }
+                        };
+                    }
+                    catch (_) {
+                        resolve();
+                        return;
+                    }
+                    window.addEventListener('beforeunload', () => {
+                        try {
+                            es?.close();
+                        }
+                        catch (_) { }
+                        try {
+                            channel.close();
+                        }
+                        catch (_) { }
+                        resolve();
+                    }, { once: true });
+                });
+            }).catch(() => { });
+        }
         else if (typeof EventSource !== 'undefined') {
             try {
                 const es = new EventSource('/api/events');
-                es.addEventListener('world_changed', () => scheduleRefresh());
                 es.onmessage = () => scheduleRefresh();
                 window.addEventListener('beforeunload', () => { try {
                     es.close();

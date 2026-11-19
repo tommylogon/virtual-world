@@ -63,10 +63,24 @@
             checkRunning = false;
         }
     }
-    window.setInterval(() => { void checkVersion(); }, 15000);
+    // Check on tab focus / visibility return and SSE reconnect (no idle polling).
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden)
             void checkVersion();
     });
     window.addEventListener('focus', () => { void checkVersion(); });
+    const bus = window.appEvents;
+    if (bus && typeof bus.on === 'function') {
+        bus.on('sse:open', () => { void checkVersion(); });
+    }
+    if (typeof BroadcastChannel !== 'undefined') {
+        try {
+            const ch = new BroadcastChannel('world_events');
+            ch.onmessage = (e) => {
+                if (e.data?.type === 'sse_open')
+                    void checkVersion();
+            };
+        }
+        catch (_) { /* ignore */ }
+    }
 })();

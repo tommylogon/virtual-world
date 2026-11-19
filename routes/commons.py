@@ -347,6 +347,8 @@ def register_commons_routes(app):
             standalone = _is_standalone()
             if not standalone and bool(data.get("advance_tick")):
                 world.time_ticks = int(getattr(world, "time_ticks", 0) or 0) + 1
+                from flask import g
+                g.commons_touched_world = True
             msg_dt = (
                 chat.current_anchored_iso()
                 if standalone
