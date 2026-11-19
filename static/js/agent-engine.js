@@ -1131,12 +1131,12 @@ class AgentEngine {
         }
         const thingsVisible = visibleItems.map(it => String(it.name)).filter(Boolean);
         const allPlayers = state?.players || {};
-        const rawPeople = Array.isArray(state?.players_in_area)
-            ? state.players_in_area
+        const rawPeople = (typeof window.PromptBuilder?.playersInAreaFor === 'function')
+            ? window.PromptBuilder.playersInAreaFor(state, charName, areaName)
             : Object.entries(allPlayers).map(([pName, pData]) => ({
                 name: pName,
                 ...(pData && typeof pData === 'object' ? pData : {}),
-            })).filter((p) => p.current_area === areaName);
+            })).filter((p) => p.current_area === areaName && p.name !== charName);
         const isPersonHidden = (person) => {
             const pName = person?.name;
             const pData = (pName && allPlayers[pName]) || {};

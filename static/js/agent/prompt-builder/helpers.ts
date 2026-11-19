@@ -346,49 +346,62 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /**
-     * Resolve the other characters actually standing in `areaName` for `charName`.
+     * Resolve the other characters actually standing in `areaName` for `charName`
+     * from the single canonical `state.players` map.
      *
-     * `state.players_in_area` is the server's single active-player view, so when
-     * building a prompt for any other character (or a simulated area in Benchmark
-     * Lab), reading `state.players_in_area` directly leaks the active player's
-     * roommates into a completely different room. Use `state.players_in_area`
-     * only when `charName` is the active player AND `areaName` matches
-     * `state.current_area`; otherwise derive the exact roster from `state.players`.
+     * Falls back to `state.players_in_area` ONLY when `state.players` has no
+     * entries (e.g. minimal unit-test fixtures that only stub `players_in_area`)
+     * AND `areaName` matches `state.current_area`.
      */
     function playersInAreaFor(state: any, charName: string, areaName?: string | null): any[] {
         if (!state) return [];
         const player = charName ? state.players?.[charName] : null;
         const targetArea = String(areaName || player?.current_area || state.current_area || '').trim();
+        const allPlayers = state.players || {};
+        const entries = Object.entries(allPlayers) as Array<[string, any]>;
+        const byName = new Map<string, any>();
+        if (entries.length > 0 && targetArea) {
+            for (const [pname, pdata] of entries) {
+                if (!pdata || pname === charName) continue;
+                if (String(pdata.current_area || '').trim() !== targetArea) continue;
+                if (pdata.is_visible === false) continue;
+                if (pdata.hidden || pdata.stealthed || pdata.current_state === 'hidden') continue;
+                if (pdata.state === 'dead' && state.ghost_mode) continue;
+                const entry = {
+                    name: pdata.name || pname,
+                    state: pdata.state || 'awake',
+                    activity: pdata.activity || null,
+                    description: pdata.description || '',
+                    aliases: pdata.aliases || [],
+                    wearing: pdata.wearing || [],
+                    holding: pdata.holding || [],
+                    at_way_id: pdata.at_way_id || null,
+                    spatial_position: pdata.spatial_position || null,
+                    position: pdata.position || null,
+                    near_node: pdata.near_node || null,
+                    near_label: pdata.near_label || null,
+                };
+                byName.set(String(entry.name), entry);
+            }
+        }
         const activePlayer = String(state.active_player || '').trim();
         const stateArea = String(state.current_area || '').trim();
         if (
             Array.isArray(state.players_in_area)
-            && targetArea
-            && targetArea === stateArea
+            && (!targetArea || !stateArea || targetArea === stateArea)
             && (!charName || !activePlayer || charName === activePlayer)
         ) {
-            return state.players_in_area.filter((p: any) => p && p.name && p.name !== charName);
+            for (const p of state.players_in_area) {
+                if (!p || !p.name || p.name === charName) continue;
+                const pData = allPlayers[p.name];
+                const pArea = pData?.current_area ? String(pData.current_area).trim() : '';
+                if (pArea && targetArea && pArea !== targetArea) continue;
+                if (!byName.has(String(p.name))) {
+                    byName.set(String(p.name), p);
+                }
+            }
         }
-        const allPlayers = state.players || {};
-        const out: any[] = [];
-        for (const [pname, pdata] of Object.entries(allPlayers) as Array<[string, any]>) {
-            if (!pdata || pname === charName) continue;
-            if (String(pdata.current_area || '').trim() !== targetArea) continue;
-            if (pdata.hidden || pdata.stealthed || pdata.current_state === 'hidden') continue;
-            out.push({
-                name: pname,
-                state: pdata.state || 'awake',
-                activity: pdata.activity || null,
-                description: pdata.description || '',
-                aliases: pdata.aliases || [],
-                wearing: pdata.wearing || [],
-                holding: pdata.holding || [],
-                position: pdata.position || null,
-                near_node: pdata.near_node || null,
-                near_label: pdata.near_label || null,
-            });
-        }
-        return out;
+        return Array.from(byName.values());
     }
 
     Object.assign(window.PromptBuilder, {

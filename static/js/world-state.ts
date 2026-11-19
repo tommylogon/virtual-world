@@ -368,7 +368,39 @@ class WorldState {
     get gameTime() { return this.data?.game_time || ''; }
     get graph() { return this.data?.graph || null; }
     get turnEvents() { return this.data?.turn_events || []; }
-    get playersInRoom() { return this.data?.players_in_area || []; }
+    get playersInRoom() { return this.getPlayersInArea(this.currentArea, this.activePlayer); }
+    getPlayersInArea(areaName?: string | null, excludeChar?: string | null): any[] {
+        const state = this.data;
+        if (!state) return [];
+        const targetArea = String(areaName || state.current_area || '').trim();
+        const allPlayers = state.players || {};
+        const playerEntries = Object.entries(allPlayers) as Array<[string, any]>;
+        if (playerEntries.length > 0 && targetArea) {
+            const out: any[] = [];
+            for (const [pname, pdata] of playerEntries) {
+                if (!pdata || (excludeChar && pname === excludeChar)) continue;
+                if (String(pdata.current_area || '').trim() !== targetArea) continue;
+                if (pdata.is_visible === false) continue;
+                if (pdata.hidden || pdata.stealthed || pdata.current_state === 'hidden') continue;
+                if (pdata.state === 'dead' && state.ghost_mode) continue;
+                out.push({
+                    name: pdata.name || pname,
+                    state: pdata.state || 'awake',
+                    activity: pdata.activity || null,
+                    description: pdata.description || '',
+                    aliases: pdata.aliases || [],
+                    wearing: pdata.wearing || [],
+                    holding: pdata.holding || [],
+                    at_way_id: pdata.at_way_id || null,
+                    spatial_position: pdata.spatial_position || null,
+                    position: pdata.position || null,
+                });
+            }
+            return out;
+        }
+        const fallback = Array.isArray(state.players_in_area) ? state.players_in_area : [];
+        return excludeChar ? fallback.filter((p: any) => p && p.name !== excludeChar) : fallback;
+    }
     get itemRegistry() { return this.data?.item_registry || {}; }
     get ways() { return this.data?.ways || {}; }
     get equipSlots() { return this._equipSlots || {}; }

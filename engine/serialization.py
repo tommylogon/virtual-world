@@ -465,6 +465,22 @@ class WorldSerializer:
                 self.player_manager.active_player or "",
             ),
         }
+        if not lite:
+            try:
+                base["is_visible"] = bool(self.player_manager.is_visible(pname))
+            except Exception:
+                base["is_visible"] = True
+            try:
+                from engine.equipment import split_visible_equipment
+                if self.graph is not None and p.current_area and self.player_manager._can_see_equipment(p.current_area):
+                    holding, wearing = split_visible_equipment(self.graph, p)
+                else:
+                    holding, wearing = [], []
+                base["holding"] = holding
+                base["wearing"] = wearing
+            except Exception:
+                base["holding"] = []
+                base["wearing"] = []
         if lite:
             # Strip heavy fields that the initial render does not need.
             # The UI can fetch full player state on demand.

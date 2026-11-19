@@ -342,10 +342,13 @@ const ThreatDetector = (() => {
     ): ThreatEvaluationResult {
         const wsData = typeof worldState !== 'undefined' ? (worldState.data as ThreatStateData | undefined) : undefined;
         const data: ThreatStateData = stateData || wsData || {};
-        const areaPlayers = data.players_in_area || [];
         const allPlayers = data.players || {};
-        const events: ThreatTurnEvent[] = turnEvents ?? data.turn_events ?? [];
         const observerPlayer = (charName ? allPlayers[charName] : undefined) || observerOverride || undefined;
+        const observerArea = (observerPlayer as any)?.current_area || (data as any).current_area || '';
+        const areaPlayers: ThreatStatePerson[] = (typeof (window as any)?.PromptBuilder?.playersInAreaFor === 'function')
+            ? (window as any).PromptBuilder.playersInAreaFor(data, charName || '', observerArea)
+            : (data.players_in_area || []);
+        const events: ThreatTurnEvent[] = turnEvents ?? data.turn_events ?? [];
 
         const knownNamesSet = new Set<string>();
         if (charName) knownNamesSet.add(charName);

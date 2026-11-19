@@ -1002,18 +1002,12 @@ const InspectorMindView = (() => {
             const itemsStr = visibleItems.map((item) => esc(String(item.name))).filter(Boolean).join(', ');
             if (itemsStr)
                 body += `<div style="margin-top:4px;color:var(--text-dim);font-size:11px;">Items: ${itemsStr}</div>`;
-            // People: prefer room visibility snapshot players_in_area when it matches
-            // this character's area, otherwise filter worldState.players in the same area.
-            // Always exclude hidden/stealthed actors and mask unmet strangers.
+            // People: derive directly from canonical worldState.players for this character's area
+            // (never leak active_player's players_in_area across rooms).
             const allPlayers = worldState.players || {};
             const wsData = worldState?.data;
-            const snapshotArea = wsData?.current_area ?? worldState?.current_area;
-            const snapshotPeople = Array.isArray(worldState?.players_in_area)
-                ? worldState.players_in_area
-                : (Array.isArray(wsData?.players_in_area) ? wsData.players_in_area : null);
-            const useSnapshot = Array.isArray(snapshotPeople) && (!snapshotArea || snapshotArea === areaName);
-            const rawPeople = useSnapshot
-                ? snapshotPeople
+            const rawPeople = (typeof window?.PromptBuilder?.playersInAreaFor === 'function' && wsData)
+                ? window.PromptBuilder.playersInAreaFor(wsData, charName, areaName)
                 : Object.entries(allPlayers)
                     .filter(([, q]) => q && q.current_area === areaName)
                     .map(([name, q]) => ({ name, ...(typeof q === 'object' ? q : {}) }));

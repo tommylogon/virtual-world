@@ -183,7 +183,9 @@
                 || knownLower.has('character_' + slug);
         };
 
-        const areaPlayers = (state?.players_in_area || []) as Array<{ name?: string; description?: string; aliases?: string[] }>;
+        const areaPlayers = (typeof (pb as any)?.playersInAreaFor === 'function'
+            ? (pb as any).playersInAreaFor(state, charName, player?.current_area || state?.current_area)
+            : (state?.players_in_area || [])) as Array<{ name?: string; description?: string; aliases?: string[] }>;
         for (const p of areaPlayers) {
             const pName = String(p.name || '').trim();
             if (!pName || pName === charName) continue;

@@ -262,10 +262,13 @@ const ThreatDetector = (() => {
     function evaluateRoom(charName, turnEvents, stateData, observerOverride) {
         const wsData = typeof worldState !== 'undefined' ? worldState.data : undefined;
         const data = stateData || wsData || {};
-        const areaPlayers = data.players_in_area || [];
         const allPlayers = data.players || {};
-        const events = turnEvents ?? data.turn_events ?? [];
         const observerPlayer = (charName ? allPlayers[charName] : undefined) || observerOverride || undefined;
+        const observerArea = observerPlayer?.current_area || data.current_area || '';
+        const areaPlayers = (typeof window?.PromptBuilder?.playersInAreaFor === 'function')
+            ? window.PromptBuilder.playersInAreaFor(data, charName || '', observerArea)
+            : (data.players_in_area || []);
+        const events = turnEvents ?? data.turn_events ?? [];
         const knownNamesSet = new Set();
         if (charName)
             knownNamesSet.add(charName);

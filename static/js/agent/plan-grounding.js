@@ -177,7 +177,9 @@ window.PlanGrounding = (() => {
                 || knownLower.has('player_' + slug)
                 || knownLower.has('character_' + slug);
         };
-        const areaPlayers = (state?.players_in_area || []);
+        const areaPlayers = (typeof pb?.playersInAreaFor === 'function'
+            ? pb.playersInAreaFor(state, charName, player?.current_area || state?.current_area)
+            : (state?.players_in_area || []));
         for (const p of areaPlayers) {
             const pName = String(p.name || '').trim();
             if (!pName || pName === charName)
