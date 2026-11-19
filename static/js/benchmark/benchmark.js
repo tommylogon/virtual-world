@@ -116,6 +116,9 @@ window.BenchmarkApp = (() => {
         els.metaClose = document.getElementById('bench-meta-close');
         els.metaCancel = document.getElementById('bench-meta-cancel');
         els.metaSave = document.getElementById('bench-meta-save');
+        els.sceneTruthTitle = document.getElementById('bench-scene-truth-title');
+        els.sceneTruthBody = document.getElementById('bench-scene-truth-body');
+        els.sceneClearHl = document.getElementById('bench-scene-clear-hl');
     }
 
     async function loadProfiles() {
@@ -432,6 +435,7 @@ window.BenchmarkApp = (() => {
                 const simNote = state.selectedArea ? ` [Simulated in ${evalArea}, actual: ${actualArea}]` : '';
                 els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${evalArea}${simNote} | System: ${captured.systemPrompt.length} chars | User: ${captured.userPrompt.length} chars`;
             }
+            renderSceneGroundTruth(simulatedState, state.selectedChar, evalArea, player);
             populatePreferredActionSuggestions(evalArea, player);
         } catch (err) {
             console.error('[Benchmark] Prompt capture failed:', err);
@@ -442,6 +446,145 @@ window.BenchmarkApp = (() => {
             if (els.promptSummary) els.promptSummary.textContent = msg;
             if (els.statusText) els.statusText.textContent = msg;
         }
+    }
+
+    let _activeHighlightTerm = '';
+
+    function applyEntityHighlight(term) {
+        _activeHighlightTerm = term || '';
+        if (els.sceneClearHl) {
+            els.sceneClearHl.style.display = _activeHighlightTerm ? 'inline-block' : 'none';
+        }
+        if (els.sceneTruthBody) {
+            els.sceneTruthBody.querySelectorAll('.bench-truth-chip').forEach(btn => {
+                btn.classList.toggle('is-active', !!_activeHighlightTerm && btn.dataset.hlTerm === _activeHighlightTerm);
+            });
+        }
+        const targets = document.querySelectorAll('#bench-cards-grid .bench-prose, #bench-cards-grid .bench-action-chip, #bench-prompt-user');
+        const escapedRe = _activeHighlightTerm
+            ? new RegExp(`(${_activeHighlightTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+            : null;
+        targets.forEach(el => {
+            if (el.dataset.rawText === undefined) {
+                el.dataset.rawText = el.textContent || '';
+            }
+            const raw = el.dataset.rawText;
+            if (!escapedRe) {
+                el.textContent = raw;
+            } else {
+                const safe = escapeHtml(raw);
+                const reSafe = new RegExp(`(${escapeHtml(_activeHighlightTerm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                el.innerHTML = safe.replace(reSafe, '<mark class="bench-entity-hit">$1</mark>');
+            }
+        });
+    }
+
+    function renderSceneGroundTruth(simulatedState, charName, evalArea, player) {
+        if (!els.sceneTruthBody) return;
+        const areaObj = simulatedState?.areas?.[evalArea] || {};
+        const areaNode = (window.worldState?.getNode && areaObj.id) ? window.worldState.getNode(areaObj.id) : null;
+        const areaTags = (Array.isArray(areaNode?.properties?.tags) ? areaNode.properties.tags : []).map(t => String(t).toLowerCase());
+        const isOutdoor = areaTags.includes('outdoor') || areaTags.includes('exterior') || areaNode?.properties?.is_exterior === true;
+        if (els.sceneTruthTitle) {
+            els.sceneTruthTitle.textContent = `Room Ground Truth · ${evalArea} (${isOutdoor ? 'Outdoor' : 'Indoor'})`;
+        }
+        if (els.sceneClearHl && !els.sceneClearHl.dataset.wired) {
+            els.sceneClearHl.dataset.wired = '1';
+            els.sceneClearHl.addEventListener('click', () => applyEntityHighlight(''));
+        }
+
+        const people = (window.PromptBuilder?.playersInAreaFor)
+            ? window.PromptBuilder.playersInAreaFor(simulatedState, charName, evalArea)
+            : [];
+
+        const rawItems = (window.worldState?.getItemsInArea)
+            ? (window.worldState.getItemsInArea(evalArea) || [])
+            : (Array.isArray(areaObj.items) ? areaObj.items : []);
+        const items = rawItems
+            .filter(it => it && it.properties?.current_state !== 'hidden')
+            .map(it => typeof it === 'string' ? it : (it.name || it.id || ''))
+            .filter(Boolean);
+
+        const exitsObj = areaObj.exits || {};
+        const exits = Object.entries(exitsObj)
+            .filter(([, ed]) => !ed?.hidden)
+            .map(([dir, ed]) => ({
+                label: ed?.destination ? `${dir} -> ${ed.destination}` : dir,
+                term: dir,
+                title: ed?.description || `Exit ${dir}`,
+            }));
+
+        const carried = (Array.isArray(player?.inventory) ? player.inventory : [])
+            .map(it => typeof it === 'string' ? it : (it?.name || ''))
+            .filter(Boolean);
+
+        els.sceneTruthBody.innerHTML = '';
+
+        const makeGroup = (title, chipClass, entries, emptyText) => {
+            const grp = document.createElement('div');
+            grp.className = 'bench-truth-group';
+            const lbl = document.createElement('div');
+            lbl.className = 'bench-truth-label';
+            lbl.textContent = `${title} (${entries.length})`;
+            grp.appendChild(lbl);
+
+            const wrap = document.createElement('div');
+            wrap.className = 'bench-truth-chips';
+            if (entries.length === 0) {
+                const emp = document.createElement('span');
+                emp.className = 'bench-truth-empty';
+                emp.textContent = emptyText;
+                wrap.appendChild(emp);
+            } else {
+                entries.forEach(entry => {
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = `bench-truth-chip ${chipClass}`;
+                    chip.textContent = entry.label;
+                    chip.dataset.hlTerm = entry.term;
+                    chip.title = `${entry.title || entry.label} (click to highlight in prompt & results)`;
+                    if (_activeHighlightTerm && _activeHighlightTerm === entry.term) {
+                        chip.classList.add('is-active');
+                    }
+                    chip.addEventListener('click', () => {
+                        const next = (_activeHighlightTerm === entry.term) ? '' : entry.term;
+                        applyEntityHighlight(next);
+                    });
+                    wrap.appendChild(chip);
+                });
+            }
+            grp.appendChild(wrap);
+            els.sceneTruthBody.appendChild(grp);
+        };
+
+        makeGroup(
+            'People here',
+            'bench-truth-chip-person',
+            people.map(p => ({
+                label: p.holding?.length ? `${p.name} [${p.holding.join(', ')}]` : p.name,
+                term: p.name,
+                title: `${p.name} (${p.state || 'awake'})`,
+            })),
+            'None (alone)'
+        );
+        makeGroup(
+            'Items here',
+            'bench-truth-chip-item',
+            items.map(name => ({ label: name, term: name, title: `Item: ${name}` })),
+            'No visible items'
+        );
+        makeGroup(
+            'Exits',
+            'bench-truth-chip-exit',
+            exits,
+            'No visible exits'
+        );
+        makeGroup(
+            'Carrying',
+            'bench-truth-chip-carry',
+            carried.map(name => ({ label: name, term: name, title: `Carried: ${name}` })),
+            'Nothing'
+        );
     }
 
     function populatePreferredActionSuggestions(evalArea, player) {
@@ -955,7 +1098,7 @@ window.BenchmarkApp = (() => {
                 if (els.characterSelect.value !== run.character) {
                     els.characterSelect.value = run.character;
                     state.selectedChar = run.character;
-                    capturePrompt();
+                    assembleCharacterPrompt();
                 }
             }
 
