@@ -613,7 +613,28 @@ window.PromptBuilder = window.PromptBuilder || {};
         const energy = vitals.Energy;
         if (energy !== undefined && energy < 50) keep('rest', 'rest  -  rest to recover energy (you are tired)');
         const bladder = vitals.Bladder;
-        if (bladder !== undefined && bladder >= 65) keep('relieve', 'relieve  -  relieve yourself (your bladder is full)');
+        if (bladder !== undefined && bladder >= 65) {
+            const RELIEF_RE = /\b(latrine|toilet|privy|restroom|bathroom|urinal|washroom)\b/i;
+            const areaRef = (currentArea as any)?.id || (currentArea as any)?.area_id || currentArea?.name || '';
+            const areaNode: any = areaRef ? worldState?.getNode?.(areaRef) : null;
+            const areaTags: string[] = Array.isArray(areaNode?.properties?.tags) ? areaNode.properties.tags : [];
+            const areaHasFixture = RELIEF_RE.test(String(currentArea?.name || ''))
+                || areaTags.some(t => RELIEF_RE.test(String(t)));
+            const areaItems: any[] = (areaRef && typeof worldState?.getItemsInArea === 'function')
+                ? (worldState.getItemsInArea(areaRef) || [])
+                : [];
+            const itemHasFixture = areaItems.some((it: any) => {
+                const itTags: string[] = Array.isArray(it?.properties?.tags) ? it.properties.tags : [];
+                return RELIEF_RE.test(String(it?.name || '')) || itTags.some(t => RELIEF_RE.test(String(t)));
+            });
+            if (areaHasFixture || itemHasFixture) {
+                keep('relieve', 'relieve  -  use the restroom/toilet here (your bladder is full)');
+            } else if ((others || []).length > 0) {
+                keep('relieve', 'relieve  -  pee right where you stand in front of others (NO toilet here - go to a restroom first unless desperate!)');
+            } else {
+                keep('relieve', 'relieve  -  pee right where you stand on the ground (NO toilet here - go to a restroom first if you can)');
+            }
+        }
         if (blind) keep('listen', 'listen  -  listen hard (you are blind)');
         if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim')) keep('fumble', 'fumble  -  blind search in the darkness');
 
