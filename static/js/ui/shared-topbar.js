@@ -108,32 +108,38 @@
         }
         catch (_) { /* ignore */ }
     }
-    async function refreshTopbar() {
+    function applyTopbarState(stRes, scRes) {
         const nameEl = document.getElementById('shared-scenario-name');
         const commitBtn = document.getElementById('shared-commit-btn');
         const timeEl = document.getElementById('shared-sky-time');
+        const scenName = scRes?.scenario_name || scRes?.name || stRes?.scenario_name;
+        if (nameEl && scenName)
+            nameEl.textContent = String(scenName);
+        if (commitBtn && scRes) {
+            const dirty = Boolean(scRes.dirty || scRes.has_changes || scRes.uncommitted_count);
+            commitBtn.textContent = dirty ? '📦 Commit ●' : '📦 Commit';
+        }
+        if (timeEl && stRes) {
+            const ticks = Number(stRes.time_ticks ?? 0);
+            const mpt = Number(stRes.time_per_tick_minutes ?? 5) || 5;
+            const startH = Number(stRes.clock_start_hour ?? 8);
+            const startM = Number(stRes.clock_start_minute ?? 0);
+            const total = Math.round(startH * 60 + startM + ticks * mpt);
+            const hh = String(Math.floor((total % 1440) / 60)).padStart(2, '0');
+            const mm = String(total % 60).padStart(2, '0');
+            timeEl.textContent = `🕐 ${hh}:${mm}`;
+        }
+    }
+    async function refreshTopbar(cachedState) {
         try {
+            const stPromise = cachedState
+                ? Promise.resolve(cachedState)
+                : fetch('/api/state').then(r => r.ok ? r.json() : null).catch(() => null);
             const [stRes, scRes] = await Promise.all([
-                fetch('/api/state').then(r => r.ok ? r.json() : null).catch(() => null),
+                stPromise,
                 fetch('/api/scenario/status').then(r => r.ok ? r.json() : null).catch(() => null),
             ]);
-            const scenName = scRes?.scenario_name || scRes?.name || stRes?.scenario_name;
-            if (nameEl && scenName)
-                nameEl.textContent = String(scenName);
-            if (commitBtn && scRes) {
-                const dirty = Boolean(scRes.dirty || scRes.has_changes || scRes.uncommitted_count);
-                commitBtn.textContent = dirty ? '📦 Commit ●' : '📦 Commit';
-            }
-            if (timeEl && stRes) {
-                const ticks = Number(stRes.time_ticks ?? 0);
-                const mpt = Number(stRes.time_per_tick_minutes ?? 5) || 5;
-                const startH = Number(stRes.clock_start_hour ?? 8);
-                const startM = Number(stRes.clock_start_minute ?? 0);
-                const total = Math.round(startH * 60 + startM + ticks * mpt);
-                const hh = String(Math.floor((total % 1440) / 60)).padStart(2, '0');
-                const mm = String(total % 60).padStart(2, '0');
-                timeEl.textContent = `🕐 ${hh}:${mm}`;
-            }
+            applyTopbarState(stRes, scRes);
         }
         catch (_) { /* best-effort */ }
     }
@@ -317,8 +323,34 @@
             });
         }
         initSharedSettingsModal();
-        void refreshTopbar();
-        window.setInterval(() => { void refreshTopbar(); }, 10000);
+        // Event-driven refresh instead of a 10s idle poll:
+        // reuse worldState updates when available, otherwise listen to /api/events SSE.
+        let refreshTimer = null;
+        const scheduleRefresh = (cachedState) => {
+            if (refreshTimer !== null)
+                window.clearTimeout(refreshTimer);
+            refreshTimer = window.setTimeout(() => {
+                refreshTimer = null;
+                void refreshTopbar(cachedState);
+            }, 350);
+        };
+        const ws = window.worldState;
+        void refreshTopbar(ws?.data || undefined);
+        if (ws && typeof ws.on === 'function') {
+            ws.on('update', (data) => scheduleRefresh(data));
+        }
+        else if (typeof EventSource !== 'undefined') {
+            try {
+                const es = new EventSource('/api/events');
+                es.addEventListener('world_changed', () => scheduleRefresh());
+                es.onmessage = () => scheduleRefresh();
+                window.addEventListener('beforeunload', () => { try {
+                    es.close();
+                }
+                catch (_) { } });
+            }
+            catch (_) { /* ignore SSE fallback errors */ }
+        }
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initSharedTopbar);
