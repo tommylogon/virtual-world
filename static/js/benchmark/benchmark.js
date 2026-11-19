@@ -33,6 +33,7 @@ window.BenchmarkApp = (() => {
     async function init() {
         cacheElements();
         attachEvents();
+        wireModelMetaModal();
         wireRuntime();
         await loadProfiles();
         if (Object.keys(state.profileMap).length === 0) {
@@ -98,6 +99,23 @@ window.BenchmarkApp = (() => {
         els.diffTitleB = document.getElementById('bench-diff-title-b');
         els.diffBoxA = document.getElementById('bench-diff-box-a');
         els.diffBoxB = document.getElementById('bench-diff-box-b');
+        els.metaOverlay = document.getElementById('bench-meta-overlay');
+        els.metaTitle = document.getElementById('bench-meta-title');
+        els.metaId = document.getElementById('bench-meta-id');
+        els.metaStatus = document.getElementById('bench-meta-status');
+        els.metaVision = document.getElementById('bench-meta-vision');
+        els.metaTools = document.getElementById('bench-meta-tools');
+        els.metaReasoning = document.getElementById('bench-meta-reasoning');
+        els.metaStructured = document.getElementById('bench-meta-structured');
+        els.metaFree = document.getElementById('bench-meta-free');
+        els.metaCtx = document.getElementById('bench-meta-ctx');
+        els.metaRatingSummary = document.getElementById('bench-meta-rating-summary');
+        els.metaStars = document.getElementById('bench-meta-stars');
+        els.metaNotes = document.getElementById('bench-meta-notes');
+        els.metaFeedback = document.getElementById('bench-meta-feedback');
+        els.metaClose = document.getElementById('bench-meta-close');
+        els.metaCancel = document.getElementById('bench-meta-cancel');
+        els.metaSave = document.getElementById('bench-meta-save');
     }
 
     async function loadProfiles() {
@@ -478,12 +496,7 @@ window.BenchmarkApp = (() => {
             }
 
             state.models = data.models || [];
-            if (state.selectedModels.size === 0 && state.models.length > 0) {
-                for (let i = 0; i < Math.min(3, state.models.length); i++) {
-                    const m = state.models[i];
-                    state.selectedModels.add(m.id || m.name || m);
-                }
-            }
+            if (els.selectAllModels) els.selectAllModels.checked = false;
             renderModelList();
         } catch (e) {
             els.modelList.innerHTML = `<div style="color:var(--b-red);padding:6px;">Network error: ${e.message}</div>`;
@@ -672,7 +685,42 @@ window.BenchmarkApp = (() => {
                 wrap.appendChild(tSpan);
             }
 
+            if (isBlocked) {
+                label.classList.add('is-blocked');
+            }
+
             label.appendChild(wrap);
+
+            const rowActions = document.createElement('span');
+            rowActions.className = 'bench-model-row-actions';
+
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'bench-model-icon-btn';
+            editBtn.textContent = '⚙';
+            editBtn.title = 'Edit status, capabilities, rating & notes';
+            editBtn.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                openModelMetaModal(m);
+            });
+            rowActions.appendChild(editBtn);
+
+            const toggleBanBtn = document.createElement('button');
+            toggleBanBtn.type = 'button';
+            toggleBanBtn.className = 'bench-model-icon-btn';
+            toggleBanBtn.textContent = isBlocked ? '↩' : '🚫';
+            toggleBanBtn.title = isBlocked ? 'Restore model to Active' : 'Quick-mark as Do Not Use';
+            toggleBanBtn.addEventListener('click', async (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const nextStatus = isBlocked ? 'active' : 'do_not_use';
+                const nextReason = isBlocked ? null : 'custom';
+                await saveModelRegistryPatch(m, { status: nextStatus, reason: nextReason });
+            });
+            rowActions.appendChild(toggleBanBtn);
+
+            label.appendChild(rowActions);
             els.modelList.appendChild(label);
         });
 
@@ -682,6 +730,152 @@ window.BenchmarkApp = (() => {
 
         if (visibleCount === 0) {
             els.modelList.innerHTML = '<div style="color:var(--b-dim);padding:8px;font-size:11px;">No models match filter or size slider.</div>';
+        }
+    }
+
+    let _metaEditingModel = null;
+    let _metaSelectedRating = 0;
+
+    async function saveModelRegistryPatch(mObj, patch) {
+        const modelId = mObj.id || mObj.name;
+        const payload = Object.assign({ model_id: modelId, display_name: mObj.name || modelId }, patch);
+        try {
+            const resp = await fetch('/api/bench/models/metadata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+            const saved = data.metadata || {};
+            Object.assign(mObj, {
+                status: saved.status ?? mObj.status,
+                reason: 'reason' in saved ? saved.reason : mObj.reason,
+                notes: 'notes' in saved ? saved.notes : mObj.notes,
+                is_free: 'is_free' in saved ? saved.is_free : mObj.is_free,
+                vision: 'vision' in saved ? saved.vision : mObj.vision,
+                tools: 'tools' in saved ? saved.tools : mObj.tools,
+                reasoning: 'reasoning' in saved ? saved.reasoning : mObj.reasoning,
+                structured_outputs: 'structured_outputs' in saved ? saved.structured_outputs : mObj.structured_outputs,
+                context_length: saved.context_length || mObj.context_length,
+                ratings: saved.ratings || mObj.ratings,
+            });
+            if (mObj.status === 'blocked' || mObj.status === 'do_not_use') {
+                state.selectedModels.delete(modelId);
+            }
+            renderModelList();
+            return true;
+        } catch (e) {
+            console.error('[Benchmark] Failed saving model metadata:', e);
+            return false;
+        }
+    }
+
+    function openModelMetaModal(mObj) {
+        if (!els.metaOverlay || !mObj) return;
+        _metaEditingModel = mObj;
+        _metaSelectedRating = 0;
+        const modelId = mObj.id || mObj.name;
+        if (els.metaTitle) els.metaTitle.textContent = mObj.name || modelId;
+        if (els.metaId) els.metaId.textContent = modelId;
+        if (els.metaStatus) {
+            if (mObj.status === 'blocked') {
+                els.metaStatus.value = 'blocked';
+            } else if (mObj.status === 'do_not_use') {
+                const candidate = `do_not_use:${mObj.reason || 'custom'}`;
+                const hasOpt = Array.from(els.metaStatus.options).some(o => o.value === candidate);
+                els.metaStatus.value = hasOpt ? candidate : 'do_not_use:custom';
+            } else {
+                els.metaStatus.value = 'active';
+            }
+        }
+        if (els.metaVision) els.metaVision.checked = !!mObj.vision;
+        if (els.metaTools) els.metaTools.checked = !!mObj.tools;
+        if (els.metaReasoning) els.metaReasoning.checked = !!mObj.reasoning;
+        if (els.metaStructured) els.metaStructured.checked = !!mObj.structured_outputs;
+        if (els.metaFree) els.metaFree.checked = !!mObj.is_free;
+        if (els.metaCtx) els.metaCtx.value = mObj.context_length || '';
+        if (els.metaNotes) els.metaNotes.value = mObj.notes || '';
+        if (els.metaFeedback) els.metaFeedback.textContent = '';
+
+        if (els.metaRatingSummary) {
+            if (mObj.ratings && mObj.ratings.total_reviews > 0) {
+                const tags = (mObj.ratings.common_tags || []).length ? ` · ${mObj.ratings.common_tags.join(', ')}` : '';
+                els.metaRatingSummary.textContent = `★ ${mObj.ratings.average_score} (${mObj.ratings.total_reviews} review${mObj.ratings.total_reviews === 1 ? '' : 's'})${tags}`;
+                els.metaRatingSummary.style.color = '#e3b341';
+            } else {
+                els.metaRatingSummary.textContent = 'No ratings yet (click a star to add one)';
+                els.metaRatingSummary.style.color = 'var(--b-dim)';
+            }
+        }
+        if (els.metaStars) {
+            els.metaStars.querySelectorAll('.bench-star-btn').forEach(btn => btn.classList.remove('active'));
+        }
+        els.metaOverlay.style.display = 'flex';
+    }
+
+    function closeModelMetaModal() {
+        if (els.metaOverlay) els.metaOverlay.style.display = 'none';
+        _metaEditingModel = null;
+        _metaSelectedRating = 0;
+    }
+
+    function wireModelMetaModal() {
+        if (els.metaClose) els.metaClose.addEventListener('click', closeModelMetaModal);
+        if (els.metaCancel) els.metaCancel.addEventListener('click', closeModelMetaModal);
+        if (els.metaOverlay) {
+            els.metaOverlay.addEventListener('click', (e) => {
+                if (e.target === els.metaOverlay) closeModelMetaModal();
+            });
+        }
+        if (els.metaStars) {
+            els.metaStars.querySelectorAll('.bench-star-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    _metaSelectedRating = parseInt(btn.dataset.star, 10) || 0;
+                    els.metaStars.querySelectorAll('.bench-star-btn').forEach(b => {
+                        b.classList.toggle('active', parseInt(b.dataset.star, 10) <= _metaSelectedRating);
+                    });
+                });
+            });
+        }
+        if (els.metaSave) {
+            els.metaSave.addEventListener('click', async () => {
+                if (!_metaEditingModel) return;
+                const rawStatus = els.metaStatus ? els.metaStatus.value : 'active';
+                let status = 'active';
+                let reason = null;
+                if (rawStatus === 'blocked') {
+                    status = 'blocked';
+                    reason = 'blocked';
+                } else if (rawStatus.startsWith('do_not_use:')) {
+                    status = 'do_not_use';
+                    reason = rawStatus.split(':')[1] || 'custom';
+                }
+                const patch = {
+                    status,
+                    reason,
+                    vision: !!(els.metaVision && els.metaVision.checked),
+                    tools: !!(els.metaTools && els.metaTools.checked),
+                    reasoning: !!(els.metaReasoning && els.metaReasoning.checked),
+                    structured_outputs: !!(els.metaStructured && els.metaStructured.checked),
+                    is_free: !!(els.metaFree && els.metaFree.checked),
+                    notes: els.metaNotes ? els.metaNotes.value.trim() : '',
+                };
+                if (els.metaCtx && els.metaCtx.value.trim()) {
+                    const ctxNum = parseInt(els.metaCtx.value.trim(), 10);
+                    if (!isNaN(ctxNum) && ctxNum > 0) patch.context_length = ctxNum;
+                }
+                if (_metaSelectedRating > 0) {
+                    patch.rating = _metaSelectedRating;
+                }
+                if (els.metaFeedback) els.metaFeedback.textContent = 'Saving...';
+                const ok = await saveModelRegistryPatch(_metaEditingModel, patch);
+                if (ok) {
+                    closeModelMetaModal();
+                } else if (els.metaFeedback) {
+                    els.metaFeedback.textContent = 'Failed to save.';
+                }
+            });
         }
     }
 

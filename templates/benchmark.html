@@ -203,6 +203,68 @@
     </div>
 </div>
 
+<!-- Model Registry & Capabilities Modal -->
+<div id="bench-meta-overlay" class="bench-diff-overlay" style="display:none;">
+    <div class="bench-meta-modal">
+        <div class="bench-diff-header">
+            <div>
+                <div class="bench-diff-title" id="bench-meta-title">Model Settings</div>
+                <div id="bench-meta-id" style="font-size:11px;color:var(--b-dim);font-family:monospace;"></div>
+            </div>
+            <button type="button" id="bench-meta-close" class="bench-btn" style="padding:4px 10px;">✕ Close</button>
+        </div>
+        <div class="bench-meta-body">
+            <div class="bench-field">
+                <label for="bench-meta-status">Operational Status</label>
+                <select id="bench-meta-status" class="bench-select">
+                    <option value="active">Active (Usable)</option>
+                    <option value="blocked">Blocked / OOM / No Credit</option>
+                    <option value="do_not_use:embeddings">Do Not Use: Embeddings</option>
+                    <option value="do_not_use:broken">Do Not Use: Broken Format</option>
+                    <option value="do_not_use:audio_video">Do Not Use: Audio/Video</option>
+                    <option value="do_not_use:custom">Do Not Use: Custom</option>
+                </select>
+            </div>
+            <div class="bench-field">
+                <label>Capabilities &amp; Tier Overrides</label>
+                <div class="bench-meta-caps-grid">
+                    <label class="bench-meta-cap-check"><input type="checkbox" id="bench-meta-vision"> 👁️ Vision</label>
+                    <label class="bench-meta-cap-check"><input type="checkbox" id="bench-meta-tools"> 🛠️ Tools</label>
+                    <label class="bench-meta-cap-check"><input type="checkbox" id="bench-meta-reasoning"> 🧠 Reasoning</label>
+                    <label class="bench-meta-cap-check"><input type="checkbox" id="bench-meta-structured"> 🧩 Structured JSON</label>
+                    <label class="bench-meta-cap-check"><input type="checkbox" id="bench-meta-free"> 💸 Free Tier</label>
+                </div>
+            </div>
+            <div class="bench-grid-2">
+                <div class="bench-field">
+                    <label for="bench-meta-ctx">Context Length (tokens)</label>
+                    <input type="number" id="bench-meta-ctx" class="bench-input" min="0" step="1024" placeholder="Auto">
+                </div>
+                <div class="bench-field">
+                    <label>Rating</label>
+                    <div id="bench-meta-rating-summary" style="font-size:11px;color:var(--b-dim);margin-bottom:4px;">No ratings yet</div>
+                    <div class="bench-stars-wrap" id="bench-meta-stars">
+                        <button type="button" class="bench-star-btn" data-star="1" title="1 Star">★</button>
+                        <button type="button" class="bench-star-btn" data-star="2" title="2 Stars">★</button>
+                        <button type="button" class="bench-star-btn" data-star="3" title="3 Stars">★</button>
+                        <button type="button" class="bench-star-btn" data-star="4" title="4 Stars">★</button>
+                        <button type="button" class="bench-star-btn" data-star="5" title="5 Stars">★</button>
+                    </div>
+                </div>
+            </div>
+            <div class="bench-field">
+                <label for="bench-meta-notes">Notes</label>
+                <textarea id="bench-meta-notes" class="bench-input" rows="3" placeholder="Why to use or avoid this model, quirks, pricing notes..."></textarea>
+            </div>
+        </div>
+        <div class="bench-meta-footer">
+            <span id="bench-meta-feedback" style="font-size:11px;color:var(--b-dim);margin-right:auto;"></span>
+            <button type="button" id="bench-meta-cancel" class="bench-btn">Cancel</button>
+            <button type="button" id="bench-meta-save" class="bench-btn bench-btn-primary">Save</button>
+        </div>
+    </div>
+</div>
+
 <!--
     Prompt runtime. The Benchmark Lab sends the SAME prompt the simulation
     sends, so this page needs the same singletons the turn does: worldState

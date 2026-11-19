@@ -109,6 +109,11 @@ def register_benchmark_routes(app):
                     model_dict['is_free'] = bool(entry['is_free'])
                 if 'ratings' in entry:
                     model_dict['ratings'] = entry['ratings']
+                for cap_key in ('vision', 'tools', 'reasoning', 'structured_outputs'):
+                    if cap_key in entry and entry[cap_key] is not None:
+                        model_dict[cap_key] = bool(entry[cap_key])
+                if 'context_length' in entry and entry['context_length']:
+                    model_dict['context_length'] = entry['context_length']
             else:
                 # Seed auto-detected flags into registry for cross-system awareness
                 cur_status = model_dict.get('status', 'active')
@@ -710,6 +715,28 @@ def register_benchmark_routes(app):
             entry['notes'] = payload['notes']
         if 'is_free' in payload:
             entry['is_free'] = bool(payload['is_free'])
+        for cap_key in ('vision', 'tools', 'reasoning', 'structured_outputs'):
+            if cap_key in payload and payload[cap_key] is not None:
+                entry[cap_key] = bool(payload[cap_key])
+        if 'context_length' in payload:
+            try:
+                ctx_val = int(payload['context_length']) if payload['context_length'] not in (None, '') else None
+                if ctx_val and ctx_val > 0:
+                    entry['context_length'] = ctx_val
+            except (ValueError, TypeError):
+                pass
+        if 'rating' in payload and payload['rating'] not in (None, ''):
+            try:
+                r_val = float(payload['rating'])
+                if 1.0 <= r_val <= 5.0:
+                    ratings_obj = entry.setdefault('ratings', {'total_reviews': 0, 'average_score': 0.0, 'common_tags': []})
+                    old_total = ratings_obj.get('total_reviews', 0)
+                    old_avg = ratings_obj.get('average_score', 0.0)
+                    new_total = old_total + 1
+                    ratings_obj['total_reviews'] = new_total
+                    ratings_obj['average_score'] = round(((old_avg * old_total) + r_val) / new_total, 2)
+            except (ValueError, TypeError):
+                pass
         if 'tags' in payload and isinstance(payload['tags'], list):
             entry['tags'] = payload['tags']
         entry['updated_at'] = datetime.now(timezone.utc).isoformat()

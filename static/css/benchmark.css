@@ -153,22 +153,93 @@ html.bench-doc, html.bench-doc body { height: auto; overflow: visible; }
 }
 .bench-model-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     padding: 6px 8px;
     border-radius: 4px;
     font-size: 12px;
     cursor: pointer;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 .bench-model-item:hover { background: var(--b-hover); }
-.bench-model-item input[type="checkbox"] { cursor: pointer; flex-shrink: 0; }
+.bench-model-item input[type="checkbox"] { cursor: pointer; flex-shrink: 0; margin-top: 2px; }
 .bench-model-label-wrap {
     display: flex;
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
     flex: 1 1 auto;
+    min-width: 0;
+}
+.bench-model-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    opacity: 0.45;
+    transition: opacity 0.15s ease;
+}
+.bench-model-item:hover .bench-model-row-actions,
+.bench-model-item.is-blocked .bench-model-row-actions {
+    opacity: 1;
+}
+.bench-model-icon-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--b-dim);
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-size: 11px;
+    line-height: 1.2;
+    cursor: pointer;
+}
+.bench-model-icon-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--b-border);
+    color: var(--b-text);
+}
+.bench-meta-modal {
+    width: clamp(440px, 48vw, 660px);
+    max-height: min(86vh, 720px);
+    background: var(--b-panel);
+    border: 1px solid var(--b-border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+}
+.bench-meta-body {
+    padding: 14px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.bench-meta-caps-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--b-border);
+    border-radius: 6px;
+}
+.bench-meta-cap-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--b-text);
+    cursor: pointer;
+}
+.bench-meta-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--b-border);
+    background: rgba(0, 0, 0, 0.18);
 }
 .bench-model-name {
     font-weight: 500;
