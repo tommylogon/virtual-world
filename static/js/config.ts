@@ -755,25 +755,28 @@ class ConfigManagerImpl {
         }
         const model = this.memoryModel || CONFIG_SCHEMA.memoryModel.default;
         const base = this.memoryApiBase || CONFIG_SCHEMA.memoryApiBase.default;
+        const apiKey = this.memoryApiKey || this.apiKey || 'not-needed';
         const format = this.memoryApiFormat || CONFIG_SCHEMA.memoryApiFormat.default;
         const win = window as any;
-        if (!win.memoryLLMClient || win._memoryLLMClientModel !== model || win._memoryLLMClientBase !== base || win._memoryLLMClientFormat !== format) {
+        if (!win.memoryLLMClient || win._memoryLLMClientModel !== model || win._memoryLLMClientBase !== base || win._memoryLLMClientKey !== apiKey || win._memoryLLMClientFormat !== format) {
             const LLMClientClass = win.LLMClient;
             if (typeof LLMClientClass === 'function') {
-                win.memoryLLMClient = new LLMClientClass({
-                    apiKey: this.memoryApiKey || this.apiKey || 'not-needed',
+                const inst = new LLMClientClass();
+                inst.configure({
+                    apiKey,
                     apiBase: base,
                     model: model,
                     provider: 'local',
                     streaming: false,
                     showLogs: this.showLogs,
                     apiFormat: format,
-                    reasoning: 'off',
                     thinking: false,
                     thinkingEffort: 'none'
                 });
+                win.memoryLLMClient = inst;
                 win._memoryLLMClientModel = model;
                 win._memoryLLMClientBase = base;
+                win._memoryLLMClientKey = apiKey;
                 win._memoryLLMClientFormat = format;
             }
         }
@@ -790,25 +793,28 @@ class ConfigManagerImpl {
         }
         const model = this.interpreterModel || CONFIG_SCHEMA.interpreterModel.default;
         const base = this.interpreterApiBase || CONFIG_SCHEMA.interpreterApiBase.default;
+        const apiKey = this.interpreterApiKey || this.apiKey || 'not-needed';
         const format = this.interpreterApiFormat || CONFIG_SCHEMA.interpreterApiFormat.default;
         const win = window as any;
-        if (!win.interpreterLLMClient || win._interpreterLLMClientModel !== model || win._interpreterLLMClientBase !== base || win._interpreterLLMClientFormat !== format) {
+        if (!win.interpreterLLMClient || win._interpreterLLMClientModel !== model || win._interpreterLLMClientBase !== base || win._interpreterLLMClientKey !== apiKey || win._interpreterLLMClientFormat !== format) {
             const LLMClientClass = win.LLMClient;
             if (typeof LLMClientClass === 'function') {
-                win.interpreterLLMClient = new LLMClientClass({
-                    apiKey: this.interpreterApiKey || this.apiKey || 'not-needed',
+                const inst = new LLMClientClass();
+                inst.configure({
+                    apiKey,
                     apiBase: base,
                     model: model,
                     provider: 'local',
                     streaming: false,
                     showLogs: this.showLogs,
                     apiFormat: format,
-                    reasoning: 'off',
                     thinking: false,
                     thinkingEffort: 'none'
                 });
+                win.interpreterLLMClient = inst;
                 win._interpreterLLMClientModel = model;
                 win._interpreterLLMClientBase = base;
+                win._interpreterLLMClientKey = apiKey;
                 win._interpreterLLMClientFormat = format;
             }
         }

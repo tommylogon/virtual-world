@@ -73,6 +73,9 @@ window.BenchmarkApp = (() => {
         els.unloadCycleCb = document.getElementById('bench-unload-cycle');
         els.characterSelect = document.getElementById('bench-character');
         els.areaSelect = document.getElementById('bench-area');
+        els.modeSelect = document.getElementById('bench-mode');
+        els.proseWrap = document.getElementById('bench-prose-wrap');
+        els.proseInput = document.getElementById('bench-prose-input');
         els.preferredActionInput = document.getElementById('bench-preferred-action');
         els.preferredActionList = document.getElementById('bench-preferred-action-list');
         els.temperatureInput = document.getElementById('bench-temperature');
@@ -303,6 +306,28 @@ window.BenchmarkApp = (() => {
         if (els.hideBlockedCb) els.hideBlockedCb.addEventListener('change', renderModelList);
         if (els.onlyFreeCb) els.onlyFreeCb.addEventListener('change', renderModelList);
         if (els.refreshRunsBtn) els.refreshRunsBtn.addEventListener('click', loadPastRuns);
+        if (els.modeSelect) {
+            els.modeSelect.addEventListener('change', () => {
+                const mode = els.modeSelect.value || 'direct';
+                if (els.proseWrap) {
+                    els.proseWrap.style.display = mode === 'interpreter' ? '' : 'none';
+                }
+                if (mode === 'interpreter' && els.proseInput && !els.proseInput.value.trim()) {
+                    const evalArea = state.selectedArea || state.worldData?.players?.[state.selectedChar]?.current_area || 'here';
+                    const exits = Object.keys(state.worldData?.areas?.[evalArea]?.exits || {});
+                    const firstExit = exits[0] ? ` and heads ${exits[0]}` : ' and takes a careful look around';
+                    els.proseInput.value = `"Hold on, let me check this out," ${state.selectedChar || 'they'} mutters, glancing over their shoulder${firstExit}.`;
+                }
+                assembleCharacterPrompt();
+            });
+        }
+        if (els.proseInput) {
+            els.proseInput.addEventListener('input', () => {
+                if ((els.modeSelect?.value || 'direct') === 'interpreter') {
+                    assembleCharacterPrompt();
+                }
+            });
+        }
         if (els.openDiffBtn) els.openDiffBtn.addEventListener('click', openDiffModal);
         if (els.exportJsonBtn) els.exportJsonBtn.addEventListener('click', exportResultsAsJson);
         if (els.diffClose) els.diffClose.addEventListener('click', () => { els.diffOverlay.style.display = 'none'; });
@@ -427,13 +452,35 @@ window.BenchmarkApp = (() => {
             const captured = await window.PromptBuilder.captureTurnPrompt(state.selectedChar, {
                 state: simulatedState
             });
-            state.currentPrompt = { system: captured.systemPrompt, user: captured.userPrompt, evalArea };
+            const mode = els.modeSelect?.value || 'direct';
+            const interpContext = buildRoomInterpreterContext(simulatedState, state.selectedChar, evalArea, player);
+            state.interpreterContext = interpContext;
 
-            if (els.promptSystem) els.promptSystem.textContent = captured.systemPrompt;
-            if (els.promptUser) els.promptUser.textContent = captured.userPrompt;
+            let finalSystem = captured.systemPrompt;
+            let finalUser = captured.userPrompt;
+            if (mode === 'interpreter' && window.ActionInterpreter?.buildExtractionPrompt) {
+                const sampleProse = (els.proseInput?.value || '').trim()
+                    || `${state.selectedChar} glances around ${evalArea} and pauses to get their bearings.`;
+                const ext = window.ActionInterpreter.buildExtractionPrompt({
+                    prose: sampleProse,
+                    charName: state.selectedChar,
+                    context: interpContext,
+                });
+                finalSystem = ext.systemPrompt;
+                finalUser = ext.userPrompt;
+            } else if (mode === 'e2e') {
+                finalSystem = `You are roleplaying as ${state.selectedChar} in a living virtual world. Write 2-4 sentences of natural in-character prose describing what ${state.selectedChar} thinks, says, and physically does next. Do NOT output JSON; a separate Action Interpreter will translate your prose into engine actions.`;
+                finalUser = captured.userPrompt.replace(/Respond with ONLY a single raw JSON object[\s\S]*$/i, 'Write your immediate in-character response as natural narrative prose (thoughts, dialogue, and physical action).');
+            }
+
+            state.currentPrompt = { system: finalSystem, user: finalUser, evalArea, mode };
+
+            if (els.promptSystem) els.promptSystem.textContent = finalSystem;
+            if (els.promptUser) els.promptUser.textContent = finalUser;
             if (els.promptSummary) {
                 const simNote = state.selectedArea ? ` [Simulated in ${evalArea}, actual: ${actualArea}]` : '';
-                els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${evalArea}${simNote} | System: ${captured.systemPrompt.length} chars | User: ${captured.userPrompt.length} chars`;
+                const modeLabel = mode === 'interpreter' ? ' | Mode: Interpreter Only' : (mode === 'e2e' ? ' | Mode: End-to-End' : '');
+                els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${evalArea}${simNote}${modeLabel} | System: ${finalSystem.length} chars | User: ${finalUser.length} chars`;
             }
             renderSceneGroundTruth(simulatedState, state.selectedChar, evalArea, player);
             populatePreferredActionSuggestions(evalArea, player);
@@ -446,6 +493,32 @@ window.BenchmarkApp = (() => {
             if (els.promptSummary) els.promptSummary.textContent = msg;
             if (els.statusText) els.statusText.textContent = msg;
         }
+    }
+
+    function buildRoomInterpreterContext(simulatedState, charName, evalArea, player) {
+        const areaObj = simulatedState?.areas?.[evalArea] || {};
+        const exitsObj = areaObj.exits || {};
+        const waysOut = Object.entries(exitsObj)
+            .filter(([, ed]) => !ed?.hidden)
+            .map(([dir, ed]) => ({
+                name: ed?.name || dir,
+                direction: dir,
+                destination: ed?.destination || dir,
+            }));
+        const rawItems = (window.worldState?.getItemsInArea)
+            ? (window.worldState.getItemsInArea(evalArea) || [])
+            : (Array.isArray(areaObj.items) ? areaObj.items : []);
+        const thingsVisible = rawItems
+            .filter(it => it && it.properties?.current_state !== 'hidden')
+            .map(it => typeof it === 'string' ? it : (it.name || it.id || ''))
+            .filter(Boolean);
+        const peopleHere = (window.PromptBuilder?.playersInAreaFor)
+            ? window.PromptBuilder.playersInAreaFor(simulatedState, charName, evalArea).map(p => p.name).filter(Boolean)
+            : [];
+        const inventory = (Array.isArray(player?.inventory) ? player.inventory : [])
+            .map(it => typeof it === 'string' ? it : (it?.name || ''))
+            .filter(Boolean);
+        return { waysOut, thingsVisible, peopleHere, inventory };
     }
 
     let _activeHighlightTerm = '';
@@ -1892,7 +1965,50 @@ window.BenchmarkApp = (() => {
                 };
                 return;
             }
-            await evaluateModelOutput(model, outputToEval, {
+            let evalInput = outputToEval;
+            if (state.currentPrompt?.mode === 'e2e' && outputToEval && window.ActionInterpreter?.buildExtractionPrompt) {
+                if (proseEl) proseEl.textContent = `${outputToEval}\n\n[Interpreting prose -> engine action...]`;
+                try {
+                    const ext = window.ActionInterpreter.buildExtractionPrompt({
+                        prose: outputToEval,
+                        charName: state.selectedChar,
+                        context: state.interpreterContext || undefined,
+                    });
+                    const useDedicated = !!(window.config?.interpreterModelEnabled && window.config?.interpreterModel);
+                    const interpBase = useDedicated ? window.config.interpreterApiBase : els.apiBaseInput.value.trim();
+                    const interpKey = useDedicated ? (window.config.interpreterApiKey || els.apiKeyInput.value.trim()) : els.apiKeyInput.value.trim();
+                    const interpModel = useDedicated ? window.config.interpreterModel : model;
+                    const interpResp = await fetch('/api/bench/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal,
+                        body: JSON.stringify({
+                            api_base: interpBase,
+                            api_key: interpKey,
+                            model: interpModel,
+                            temperature: 0.1,
+                            max_tokens: 512,
+                            reasoning_effort: 'none',
+                            messages: [
+                                { role: 'system', content: ext.systemPrompt },
+                                { role: 'user', content: ext.userPrompt },
+                            ],
+                            stream: false,
+                        }),
+                    });
+                    const interpData = await interpResp.json().catch(() => ({}));
+                    const interpText = interpData?.choices?.[0]?.message?.content || '';
+                    if (interpText.trim()) {
+                        evalInput = interpText.trim();
+                        if (rawEl) {
+                            rawEl.textContent = `=== MODEL PROSE ===\n${outputToEval}\n\n=== INTERPRETER (${interpModel}) ===\n${evalInput}`;
+                        }
+                    }
+                } catch (interpErr) {
+                    console.warn('[Benchmark] E2E interpreter step failed:', interpErr);
+                }
+            }
+            await evaluateModelOutput(model, evalInput, {
                 ttft: firstTokenTime ? (firstTokenTime - startTime) / 1000 : null,
                 total: totalSec,
                 tps: parseFloat(tps),

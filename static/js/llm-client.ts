@@ -113,7 +113,7 @@ class LLMClient {
     declare private _reasoningUnsupported: boolean;
     declare private _lmStudioReasoningUnsupported: boolean;
 
-    constructor() {
+    constructor(opts?: LLMConfigOptions) {
         this.apiKey = '';
         this.apiBase = 'http://localhost:1234/v1';
         this.model = 'qwen3.5-0.8b';
@@ -140,6 +140,7 @@ class LLMClient {
         // with sub-7B models does this - no error, model just emits free JSON).
         this._structuredLogged = new Set();
         this._schemaIgnoredWarned = new Set();
+        if (opts) this.configure(opts);
     }
 
     static normalizeBase(url: string | null | undefined): string {
@@ -1167,4 +1168,5 @@ class LLMClient {
 // `const` here. Publishing through `window` is equivalent for a classic script:
 // a bare `llmClient` reference in another file resolves through the global
 // object, exactly as it did when this was a top-level `const`.
+(window as unknown as { LLMClient: typeof LLMClient; llmClient: unknown }).LLMClient = LLMClient;
 (window as unknown as { llmClient: unknown }).llmClient = new LLMClient();

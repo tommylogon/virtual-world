@@ -97,6 +97,18 @@
         <section class="bench-panel">
             <h2 class="bench-panel-title">Turn Context</h2>
             <div class="bench-field">
+                <label for="bench-mode">Benchmark Mode</label>
+                <select id="bench-mode" class="bench-select">
+                    <option value="direct" selected>Direct Turn JSON (Standard)</option>
+                    <option value="interpreter">Action Interpreter Only (Prose -> JSON)</option>
+                    <option value="e2e">End-to-End (Prose -> Dedicated Interpreter)</option>
+                </select>
+            </div>
+            <div class="bench-field" id="bench-prose-wrap" style="display:none;">
+                <label for="bench-prose-input">Sample Character Prose (for Interpreter)</label>
+                <textarea id="bench-prose-input" class="bench-input" rows="3" placeholder="e.g. I shift uncomfortably, glance down the hall, and head east toward the main entrance..."></textarea>
+            </div>
+            <div class="bench-field">
                 <label for="bench-character">Character to Benchmark</label>
                 <select id="bench-character" class="bench-select"></select>
             </div>
@@ -322,6 +334,8 @@
 <script src="/static/js/agent/prompt-builder/index.js"></script>
 
 <!-- Benchmark controller -->
+<script src="/static/js/llm-client.js"></script>
+<script src="/static/js/agent/action-interpreter.js"></script>
 <script src="/static/js/shared/dataset-collector.js"></script>
 <script src="/static/js/ui/llm-inspector.js"></script>
 <script src="/static/js/ui/shared-topbar.js"></script>

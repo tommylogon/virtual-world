@@ -20,7 +20,7 @@ const MAX_TRUNCATION_RETRIES = 3;
  *  output length, so this only stops a pathological loop. */
 const MAX_TOKEN_CEILING = 32768;
 class LLMClient {
-    constructor() {
+    constructor(opts) {
         this.apiKey = '';
         this.apiBase = 'http://localhost:1234/v1';
         this.model = 'qwen3.5-0.8b';
@@ -47,6 +47,8 @@ class LLMClient {
         // with sub-7B models does this - no error, model just emits free JSON).
         this._structuredLogged = new Set();
         this._schemaIgnoredWarned = new Set();
+        if (opts)
+            this.configure(opts);
     }
     static normalizeBase(url) {
         let cleaned = (url || '').trim().replace(/\/+$/, '');
@@ -1148,4 +1150,5 @@ class LLMClient {
 // `const` here. Publishing through `window` is equivalent for a classic script:
 // a bare `llmClient` reference in another file resolves through the global
 // object, exactly as it did when this was a top-level `const`.
+window.LLMClient = LLMClient;
 window.llmClient = new LLMClient();
