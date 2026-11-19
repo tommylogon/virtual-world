@@ -383,8 +383,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // (median 147px, p90 258px). Measured on kraktooth_goblin_camp, 638 nodes.
         const gravity = GraphNetwork.centralGravityFor();
         const physicsBase = solver === 'barnesHut'
-            ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: gravity, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09 } }
-            : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -8, centralGravity: gravity, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.1, damping: cfg.graphDamping ?? 0.4 } };
+            ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: gravity, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09, avoidOverlap: 1 } }
+            : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -22, centralGravity: gravity, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.1, damping: cfg.graphDamping ?? 0.4, avoidOverlap: 1 } };
         return {
             physics: {
                 // The decision is the policy's (task-765), so the options the

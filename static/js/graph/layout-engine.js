@@ -278,7 +278,7 @@ window.GraphLayoutEngine = {
                     springLength: 300,
                     springConstant: 0.04,
                     damping: 0.45,
-                    avoidOverlap: 0.6
+                    avoidOverlap: 1
                 },
                 maxVelocity: 50,
                 minVelocity: 0.75,
@@ -302,7 +302,7 @@ window.GraphLayoutEngine = {
                         springLength: 300,
                         springConstant: 0.04,
                         damping: 0.45,
-                        avoidOverlap: 0.6
+                        avoidOverlap: 1
                     },
                     maxVelocity: 50,
                     minVelocity: 0.75,

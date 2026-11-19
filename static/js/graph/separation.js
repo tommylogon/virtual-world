@@ -28,7 +28,7 @@ const _GraphSeparation = {
     // target (its ring spot), applied only to nodes repulsion actually
     // displaced, so a spread-out node is reeled back rather than every room's
     // ring shrinking.
-    DEFAULTS: { min: 55, max: 220, strength: 0.6, iterations: 6, pull: 0.12 },
+    DEFAULTS: { min: 65, max: 260, strength: 0.7, iterations: 10, pull: 0.12 },
     /** The `config` singleton, or null in a bare test sandbox. */
     _config() {
         try {
@@ -76,9 +76,9 @@ const _GraphSeparation = {
      */
     radiusOf(node) {
         const type = (node && node.type) || 'item';
-        const base = { area: 46, character: 30, item: 24, way: 20 }[type] || 22;
+        const base = { area: 48, character: 52, item: 26, way: 22 }[type] || 24;
         const name = String((node && node.name) || (node && node.label) || '');
-        // The user's Node size (⚙ Tune → Look) grows the drawn shapes; the
+        // The user's Node size (⚙ Tune -> Look) grows the drawn shapes; the
         // guard's idea of how much space a node wants grows with them, or
         // bigger nodes would overlap inside the guard's own floor. Same clamp
         // as GraphNetwork.nodeSizeScale.
@@ -86,7 +86,7 @@ const _GraphSeparation = {
         if (!Number.isFinite(scale) || scale <= 0)
             scale = 1;
         scale = Math.max(0.5, Math.min(scale, 2));
-        return base * scale + Math.min(46, name.length * 1.7);
+        return base * scale + Math.min(70, name.length * 2.4);
     },
     /** Areas and ways are the world's anchors; a frozen node keeps its place. */
     _movable(node) {
