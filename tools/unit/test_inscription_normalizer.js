@@ -15,7 +15,7 @@ test('use_on with text emits quoted target and text', () => {
     );
 });
 
-test('write verb is an alias for the inscription form', () => {
+test('write action is an alias for the inscription form', () => {
     const an = window.ActionNormalizer;
     assertEq(
         an.normalizeStructuredAction({
@@ -45,7 +45,7 @@ test('use_on without text is unchanged', () => {
     );
 });
 
-test('write and inscribe are valid verbs', () => {
+test('write and inscribe are valid actions', () => {
     const an = window.ActionNormalizer;
     assertTrue(an.isValidAction('write'), 'write');
     assertTrue(an.isValidAction('inscribe'), 'inscribe');

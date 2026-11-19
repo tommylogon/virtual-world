@@ -25,7 +25,7 @@
  * loop (decide → act → react) without N modal round-trips.
  *
  * Say / emote / memory are EXPRESSION, unbudgeted (task-352): they never cost a
- * pip. Only the action charges `turn_slots`; `wait` and the free utility verbs
+ * pip. Only the action charges `turn_slots`; `wait` and the free utility actionNames
  * cost a free slot. The old `dash burst` phase and its narration regex are gone.
  *
  * Contract with agent-engine.js:
@@ -200,7 +200,7 @@ const HumanTurnComposerModule = (() => {
         return t.firstElementChild;
     }
     // ── typed one-box parsing ────────────────────────────────────────
-    const VERBS = [
+    const ACTIONS = [
         'look', 'go', 'approach', 'take', 'drop', 'place', 'put', 'give', 'use', 'examine',
         'attack', 'open', 'close', 'read', 'search', 'wear', 'equip', 'remove', 'unequip',
         'rest', 'sleep', 'wait', 'nothing', 'dash', 'crawl', 'climb', 'jump', 'grab',
@@ -211,7 +211,7 @@ const HumanTurnComposerModule = (() => {
         'text', 'message',
     ];
     const VOLUME_WORDS = ['scream', 'shout', 'whisper'];
-    /** Typed input → draft parts. Unknown verbs become speech. */
+    /** Typed input → draft parts. Unknown actionNames become speech. */
     function parseCmd(raw) {
         const t = (raw || '').trim();
         if (!t)
@@ -222,17 +222,17 @@ const HumanTurnComposerModule = (() => {
                 return { speech: t.slice(vol.length + 1).trim(), volume: vol };
             }
         }
-        const verb = lower.split(/\s+/)[0];
-        if (!VERBS.includes(verb))
+        const actionWord = lower.split(/\s+/)[0];
+        if (!ACTIONS.includes(actionWord))
             return { speech: t };
-        const rest = t.slice(verb.length).trim();
-        const out = { action: verb };
-        if (verb === 'give' || verb === 'steal' || verb === 'teach') {
+        const rest = t.slice(actionWord.length).trim();
+        const out = { action: actionWord };
+        if (actionWord === 'give' || actionWord === 'steal' || actionWord === 'teach') {
             const m = rest.split(/\s+(?:to|from)\s+/i);
             out.item = m[0] || '';
             out.target = m[1] || '';
         }
-        else if (verb === 'use') {
+        else if (actionWord === 'use') {
             const on = rest.split(/\s+on\s+/i);
             out.item = on[0] || '';
             out.target = on[1] || '';
@@ -259,7 +259,7 @@ const HumanTurnComposerModule = (() => {
         }
         const parsed = parseCmd(t);
         if (parsed.speech && !parsed.action) {
-            const verb = lower.split(/\s+/)[0];
+            const actionWord = lower.split(/\s+/)[0];
             const ALIASES = {
                 walk: 'go, approach',
                 run: 'dash, go',
@@ -279,7 +279,7 @@ const HumanTurnComposerModule = (() => {
                 talk: 'say (use say box)',
                 speak: 'say (use say box)',
             };
-            const suggest = ALIASES[verb] || VERBS.filter((v) => v.startsWith(verb.slice(0, 2))).slice(0, 3).join(', ');
+            const suggest = ALIASES[actionWord] || ACTIONS.filter((v) => v.startsWith(actionWord.slice(0, 2))).slice(0, 3).join(', ');
             return `"${t}" will be spoken aloud. (Did you mean: ${suggest || 'go, look, take, use, attack'}?)`;
         }
         return null;
@@ -984,9 +984,9 @@ const HumanTurnComposerModule = (() => {
         if (!stepResult.action && !stepResult.speech && !stepResult.emote && !stepResult.inner && !stepResult.emotion && !stepResult.memory)
             return;
         if (stepResult.action) {
-            const verb = stepResult.action.split(/\s+/)[0].toLowerCase();
+            const actionWord = stepResult.action.split(/\s+/)[0].toLowerCase();
             const at = actionTiers();
-            const tier = at && at.tierOf ? at.tierOf(verb) : 'major';
+            const tier = at && at.tierOf ? at.tierOf(actionWord) : 'major';
             const s = turnSlots();
             const order = ['free', 'minor', 'major'];
             const affordable = (tier === 'activity')
@@ -1382,7 +1382,7 @@ const HumanTurnComposerModule = (() => {
         commitStep,
         parseCmd,
         doHint,
-        VERBS,
+        ACTIONS,
         parseResultText,
     };
 })();

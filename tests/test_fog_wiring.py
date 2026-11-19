@@ -1,6 +1,6 @@
 """The fog gate's writers (task-499) and the authored route bridge (task-467).
 
-`engine/fog.py` shipped the reveal verbs and the `only_known` filter, but nothing
+`engine/fog.py` shipped the reveal actions and the `only_known` filter, but nothing
 called them: walking, examining and reading a charted map left `player.known`
 unchanged, so the gate had a key and no hand. These tests pin the call sites and
 the one place authored `known` entries become route knowledge.

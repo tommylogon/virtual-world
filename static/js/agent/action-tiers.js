@@ -10,7 +10,7 @@
  * engine's _slot_gate is the enforcement.
  *
  * @module agent/action-tiers - client mirror of the engine's free/minor/major/activity table
- * @contributes ActionTiers: ACTION_TIERS, VERB_TIERS, DEFAULT_BUDGET, VALID_TIERS, tierOf, canPay, canAfford
+ * @contributes ActionTiers: ACTION_TIERS, ACTION_TIERS, DEFAULT_BUDGET, VALID_TIERS, tierOf, canPay, canAfford
  * @powers the turn prompt - dropping brackets and available actions the remaining turn_slots cannot pay for
  * @relates mirrors engine/action_tiers.py; checked by tools/action_tiers_index.py --check
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
@@ -139,7 +139,6 @@ window.ActionTiers = (() => {
         "whisper": "free",
         "withdraw": "minor",
     };
-    const VERB_TIERS = ACTION_TIERS;
     const INTRINSIC_ABILITY_TAGS = [
         "ability",
         "innate",
@@ -159,11 +158,11 @@ window.ActionTiers = (() => {
     }
     /**
      * The tier an action costs for a given item, mirroring engine/action_tiers.py
-     * `tier_of`: per-item `action_costs[verb].tier` override, then the
+     * `tier_of`: per-item `action_costs[action].tier` override, then the
      * intrinsic-ability default of `minor`, then the table, then `major`.
      */
-    function tierOf(verb, props) {
-        const v = String(verb || '').trim().toLowerCase();
+    function tierOf(action, props) {
+        const v = String(action || '').trim().toLowerCase();
         const p = props || {};
         const override = (p.action_costs || {})[v] || {};
         const declared = override.tier;
@@ -193,11 +192,11 @@ window.ActionTiers = (() => {
         }
         return false;
     }
-    /** Convenience: can the character afford *verb* on *props* right now? */
-    function canAfford(verb, props, slots) {
+    /** Convenience: can the character afford *action* on *props* right now? */
+    function canAfford(action, props, slots) {
         if (!slots)
             return true; // no budget published: never hide (older saves)
-        return canPay(slots, tierOf(verb, props));
+        return canPay(slots, tierOf(action, props));
     }
-    return { ACTION_TIERS, VERB_TIERS, DEFAULT_BUDGET, VALID_TIERS, tierOf, canPay, canAfford };
+    return { ACTION_TIERS, DEFAULT_BUDGET, VALID_TIERS, tierOf, canPay, canAfford };
 })();

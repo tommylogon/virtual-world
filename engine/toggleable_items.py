@@ -70,10 +70,10 @@ class ToggleableItems:
 
         is_electric = any(t in tags for t in ["electric", "synthetic"])
         if new_status == "lit":
-            verb = "turn on" if is_electric else "light"
+            action = "turn on" if is_electric else "light"
         else:
-            verb = "turn off" if is_electric else "extinguish"
-        result = f"You {verb} the {item_name}."
+            action = "turn off" if is_electric else "extinguish"
+        result = f"You {action} the {item_name}."
 
         if new_status == "lit":
             trig_outputs = player_manager._execute_triggers(item_node, "on_toggle_on")

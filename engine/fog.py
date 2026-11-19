@@ -27,7 +27,7 @@ never assert. That is the honest bound: a character can be told less than the
 player knows, and never more.
 
 @module fog
-@contributes the per-character known set, reveal verbs, and map teaching
+@contributes the per-character known set, reveal actions, and map teaching
 @docs docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
 """
 
@@ -234,7 +234,7 @@ def _forms(candidate: Any) -> List[str]:
     return [v for v in dict.fromkeys(out) if v]
 
 
-# ── the reveal verbs ───────────────────────────────────────────────────────
+# ── the reveal actions ───────────────────────────────────────────────────────
 
 
 def reveal_area(player, area_node) -> List[str]:
@@ -249,7 +249,7 @@ def reveal_examined(player, target, *, graph=None, from_area_id=None) -> List[st
 
     A way teaches the area on the far side, because a way is only ever described
     in terms of where it goes. An area teaches itself. ``graph`` lets a caller
-    that already holds the graph (the examine verb) pass it in, so a way still
+    that already holds the graph (the examine action) pass it in, so a way still
     resolves its far area when the player object carries no graph back-reference.
     ``from_area_id`` is the room the viewer is examining *from*; without it a way
     with two area edges resolves to whichever edge came first, which can be the

@@ -6,7 +6,7 @@ from area import Area
 from graph import EDGE_CONNECTION, Edge, Node
 from player import Player
 from virtual_world_engine import VirtualWorld
-from engine.traversal import WAY_VERBS, way_kind
+from engine.traversal import WAY_ACTIONS, way_kind
 from tools.way_properties import PROPERTIES
 
 
@@ -83,9 +83,9 @@ def _setup_water_world():
     return w
 
 
-def test_way_verbs_and_properties_include_swim_and_dive():
-    assert "swim" in WAY_VERBS
-    assert "dive" in WAY_VERBS
+def test_way_actions_and_properties_include_swim_and_dive():
+    assert "swim" in WAY_ACTIONS
+    assert "dive" in WAY_ACTIONS
 
     req_prop = next(p for p in PROPERTIES if p.name == "requires")
     assert "swim" in req_prop.values

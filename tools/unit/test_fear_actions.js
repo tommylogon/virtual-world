@@ -1,5 +1,5 @@
 /**
- * Unit tests for the fear/interest verbs in the action normalizer (task-469).
+ * Unit tests for the fear/interest actions in the action normalizer (task-469).
  */
 
 test('fear normalizes to a bare command with its target', () => {
@@ -12,12 +12,12 @@ test('interest normalizes with its target from item or target', () => {
     assertEq(an.normalizeStructuredAction({ action: 'interest', item: 'old ruins' }), 'interest old ruins');
 });
 
-test('fear without a target degrades to the bare verb', () => {
+test('fear without a target degrades to the bare action', () => {
     const an = window.ActionNormalizer;
     assertEq(an.normalizeStructuredAction({ action: 'fear' }), 'fear');
 });
 
-test('fear and interest are valid verbs', () => {
+test('fear and interest are valid actions', () => {
     const an = window.ActionNormalizer;
     assertTrue(an.isValidAction('fear Snarl'), 'fear');
     assertTrue(an.isValidAction('interest ruins'), 'interest');

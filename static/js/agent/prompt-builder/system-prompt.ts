@@ -1,6 +1,6 @@
 /**
  * prompt-builder/system-prompt.js - Character system prompt (compact ACTIONS core
- * + rules). Per-verb availability is dynamic and lives in the per-turn context via
+ * + rules). Per-action availability is dynamic and lives in the per-turn context via
  * contextual-actions.js (=== AVAILABLE ACTIONS ===); this file holds only the
  * static instruction text.
  *
@@ -16,7 +16,7 @@
  * @module prompt-builder/system-prompt - the static character system prompt
  * @contributes buildCharacterSystemPrompt / buildReactSystemPrompt (+ shared _loreHeader/_brevityRule helpers)
  * @powers the standing rules every character is given (ACTIONS, emote voice, speech, JSON rules, lore)
- * @relates needs schema-fragments.js loaded first (EMOTE_RULES_SYSTEM); per-verb availability lives in contextual-actions.js
+ * @relates needs schema-fragments.js loaded first (EMOTE_RULES_SYSTEM); per-action availability lives in contextual-actions.js
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
@@ -29,7 +29,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
 === ACTIONS ===
 Emit ONE action per response as a structured object:
-- "action": a single verb word (go, dash, approach, crawl, climb, take, drop, use, use_on, eat, drink, examine, open, close, attack, grab, wait, rest, put, give, search, look, inventory, stats, relieve, stow, craft, make, ...).
+- "action": a single action word (go, dash, approach, crawl, climb, take, drop, use, use_on, eat, drink, examine, open, close, attack, grab, wait, rest, put, give, search, look, inventory, stats, relieve, stow, craft, make, ...).
 - "item" and "target": the full multi-word name of what you act on, never truncated (matched leniently by exact name, alias, or keywords).
 - If you wait, listen, or hold still, use "action": "wait".
 
@@ -85,7 +85,7 @@ The "Items that catch your attention:" list is everything you can interact with 
     const MATURE_ACTIONS = `
 
 === INTIMACY (adult worlds only) ===
-Intimate verbs are available: ${_regMatureList}. Schema: {"action":"kiss","target":"lydia","where":"neck","intensity":"light|normal|firm"} - "where" is the body part (neck, lips, left nipple, ...), "intensity" defaults to normal. These are interact-type actions: they never damage, they land through clothing (weaker), and the other character reacts on their own terms - consent matters; pushing someone who pulls away changes how they feel about you.
+Intimate actions are available: ${_regMatureList}. Schema: {"action":"kiss","target":"lydia","where":"neck","intensity":"light|normal|firm"} - "where" is the body part (neck, lips, left nipple, ...), "intensity" defaults to normal. These are interact-type actions: they never damage, they land through clothing (weaker), and the other character reacts on their own terms - consent matters; pushing someone who pulls away changes how they feel about you.
 - {"action":"kiss","target":"lydia","where":"lips"}             → a kiss
 - {"action":"pinch","target":"lydia","where":"left nipple","intensity":"firm"}  → sharp contact - can hurt
 `;

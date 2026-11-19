@@ -332,7 +332,7 @@ window.InspectorWayView = (() => {
                     <div class="section-hint">A locked way becomes closed when unlocked. Choose “closed” to leave it unlocked but shut; opening it is a separate action.</div>
                 </div>
                 <div class="field">
-                    <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('requires', wayView._getLockedFields(props), escapedId)} Required movement verb</label>
+                    <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('requires', wayView._getLockedFields(props), escapedId)} Required movement action</label>
                     <select id="way-passage-requires-${escapedId}">
                         <option value="" ?selected=${!props.requires || props.requires === 'none'}>None (walk through  -  go)</option>
                         <option value="crawl" ?selected=${props.requires === 'crawl'}>Crawl (go auto-crawls)</option>
@@ -518,7 +518,7 @@ window.InspectorWayView = (() => {
             <div data-tab="Behavior" style=${showTab('Behavior')}>
                 <div class="inspector-section">
                     <h3 style="display:flex;align-items:center;gap:4px;">🚪 Way Behavior</h3>
-                    <div class="section-hint" style="margin-bottom:8px;">Movement verb, state, and traverse narration live on the Passage tab.</div>
+                    <div class="section-hint" style="margin-bottom:8px;">Movement action, state, and traverse narration live on the Passage tab.</div>
                     <div class="field" style="display:flex;align-items:center;gap:8px;">
                         <input type="checkbox" id="way-needs-open-${nodeId}" ?checked=${!!props.needs_open?.enabled}
                             @change=${saveNeedsOpen}>

@@ -10,7 +10,7 @@ The model agreed in the task-299 discussion, implemented here:
   ``charge`` property on the base item;
 - depletion follows an existing pattern, and a part never detaches silently.
 
-And the two halves that were drifting: every verb that *moves* an item now
+And the two halves that were drifting: every action that *moves* an item now
 honours the action list (``take`` was the only one that did), and the client's
 item listing walks containment the way ``engine/item_reach`` does — any depth,
 sealed by container state — through one shared module.
@@ -142,7 +142,7 @@ def test_no_library_item_invents_a_device_charge_field():
         assert "charge_level" not in entry, f"{path.name} adds a `charge_level` field"
 
 
-# ── a part cannot be moved, by any verb (criterion 1) ───────────────────────
+# ── a part cannot be moved, by any action (criterion 1) ───────────────────────
 
 def test_a_part_cannot_be_taken():
     w = _world()
@@ -227,10 +227,10 @@ def test_a_part_cannot_be_put_away():
     player_id = w.player_manager.get_player_node_id(w.player_manager.active_player)
     w.graph.add_edge(Edge(source=battery.id, target=player_id, type=EDGE_CARRYING))
     w.graph.add_edge(Edge(source=box.id, target=player_id, type=EDGE_CARRYING))
-    for verb in (lambda: w.put_item_in_container("phone battery", "drawer"),
+    for action in (lambda: w.put_item_in_container("phone battery", "drawer"),
                  lambda: w.place_item("phone battery", "drawer", EDGE_IN)):
         try:
-            verb()
+            action()
         except ValueError as exc:
             assert "battery" in str(exc)
         else:
@@ -240,7 +240,7 @@ def test_a_part_cannot_be_put_away():
 
 
 def test_an_ordinary_item_is_still_put_and_taken():
-    """The gates must not have been bought at the price of normal verbs.
+    """The gates must not have been bought at the price of normal actions.
 
     Exercises put → take as its own path; the take → drop counterpart (the
     bug-509 shape, where `take` lands an item in a hand/`equipped` edge) is
@@ -355,8 +355,8 @@ class _NoTriggers:
     def _get_available_actions(self, node):
         return []
 
-    def _contextual_failure(self, verb, name, available):
-        return f"You can't {verb} the {name}."
+    def _contextual_failure(self, action, name, available):
+        return f"You can't {action} the {name}."
 
 
 # ── the worked example is really authored (criterion 5) ──────────────────────
@@ -372,7 +372,7 @@ def test_the_battery_names_no_take_or_drop():
 
 
 def test_the_battery_still_declares_what_it_does_do():
-    """Not takeable is not inert — a part states its own verbs, as the project
+    """Not takeable is not inert — a part states its own actions, as the project
     rule is that an item declares its valid actions."""
     actions = _lib("phone_battery").get("actions")
     assert "examine" in actions

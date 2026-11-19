@@ -1,10 +1,10 @@
-"""Use verbs (use / use on) for ItemActions.
+"""Use action_names (use / use on) for ItemActions.
 
 
 
 Moved verbatim from engine/item_actions.py as part of the task-314
 
-verb-family split. Methods hang off the ItemActions context (graph,
+action_word-family split. Methods hang off the ItemActions context (graph,
 
 matching, trigger_system, world) via the mixin.
 
@@ -277,25 +277,25 @@ class UseActionsMixin:
 
 
 
-        contextual_verb = "use"
+        contextual_action = "use"
 
         if trigger_type == "on_eat":
 
-            contextual_verb = "eat"
+            contextual_action = "eat"
 
         elif trigger_type == "on_drink":
 
-            contextual_verb = "drink"
+            contextual_action = "drink"
 
 
 
-        is_valid = contextual_verb == "use" and ("use" in item_actions or has_any_trigger)
+        is_valid = contextual_action == "use" and ("use" in item_actions or has_any_trigger)
 
         if not is_valid:
 
             available = self.trigger_system._get_available_actions(item_node)
 
-            raise ValueError(self.trigger_system._contextual_failure(contextual_verb, item_node.name, available))
+            raise ValueError(self.trigger_system._contextual_failure(contextual_action, item_node.name, available))
 
 
 
@@ -305,7 +305,7 @@ class UseActionsMixin:
 
         refusal = permission_refusal(item_node, player_manager.active_player,
 
-                                     f"{contextual_verb} it", player_manager)
+                                     f"{contextual_action} it", player_manager)
 
         if refusal:
 

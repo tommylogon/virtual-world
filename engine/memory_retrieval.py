@@ -50,7 +50,7 @@ _SPEECH_TOLD_RE = re.compile(
     r"told\s+([A-Za-z][A-Za-z0-9_' -]{0,40}?)\s*[:,\"]",
     re.IGNORECASE,
 )
-_SPEECH_VERB_RE = re.compile(
+_SPEECH_ACTION_RE = re.compile(
     r"^(?:\[[^\]]*\]\s*)*([A-Za-z][A-Za-z0-9_' -]{0,40}?)\s+"
     r"(?:said|says|whispered|murmured|asked|replied|shouted|yelled|snapped|muttered|spoke|answered)"
     r"\s*[:,\"]",
@@ -499,12 +499,12 @@ def _mem_dialogue_attribution(memory: Dict[str, Any]) -> Tuple[Set[str], Set[str
             if not tgt_raw and _collapse_ws(t_cand) not in _PRONOUN_SPEAKERS:
                 tgt_raw.append(t_cand)
         else:
-            m_verb = _SPEECH_VERB_RE.match(text) or _SPEECH_COLON_QUOTE_RE.match(text)
-            if m_verb and not spk_raw:
-                s_cand = m_verb.group(1).strip()
+            m_action = _SPEECH_ACTION_RE.match(text) or _SPEECH_COLON_QUOTE_RE.match(text)
+            if m_action and not spk_raw:
+                s_cand = m_action.group(1).strip()
                 if _collapse_ws(s_cand) not in _PRONOUN_SPEAKERS:
                     spk_raw.append(s_cand)
-            elif not m_verb:
+            elif not m_action:
                 m_trail = _SPEECH_TRAILING_RE.search(text)
                 if m_trail:
                     s_cand = m_trail.group(1).strip()

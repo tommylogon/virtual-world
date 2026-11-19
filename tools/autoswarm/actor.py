@@ -39,8 +39,8 @@ def clean_command(raw_text: str) -> str:
 
     # Valid game action prefixes
     lower = first_line.lower()
-    for verb in ("say ", "examine ", "take ", "drop ", "go ", "unlock ", "lock ", "open ", "close ", "use "):
-        if lower.startswith(verb):
+    for action in ("say ", "examine ", "take ", "drop ", "go ", "unlock ", "lock ", "open ", "close ", "use "):
+        if lower.startswith(action):
             return first_line
 
     if lower in ("wait", "look", "inventory"):

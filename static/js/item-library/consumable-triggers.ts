@@ -277,20 +277,20 @@
             effects.push({ type: 'set_state', params: { node_id: 'self', state: 'unlit', target: 'self' } });
             effects.push(msg(`The ${label} goes dark.`));
         } else if (CONSUME_TYPES.includes(type)) {
-            const verb = type === 'on_eat' ? 'eat' : 'drink';
+            const action = type === 'on_eat' ? 'eat' : 'drink';
             const cVital = consumeVital(type, cat, suspicious);
             effects.push({ type: 'adjust_vital', params: {
                 stat: cVital.stat,
                 amount: cVital.amount,
                 target: 'self',
-                success_message: `You ${verb} the ${label}.${taste ? ' ' + taste : ''}`,
+                success_message: `You ${action} the ${label}.${taste ? ' ' + taste : ''}`,
             } });
             if (suspicious) {
                 effects.push({ type: 'save', params: {
                     stat: 'CON',
                     dc: 12,
                     target: 'self',
-                    on_success: [msg(`You ${verb} the ${label} — it settles.`)],
+                    on_success: [msg(`You ${action} the ${label} — it settles.`)],
                     on_fail: [
                         { type: 'apply_condition', params: { condition: 'poisoned', duration: 6, target: 'self', source_type: 'item' } },
                         msg(`Your stomach lurches — the ${label} was wrong. You feel poisoned.`),

@@ -576,7 +576,7 @@ def _area_description(cell: Tuple[int, int], biome_id: Optional[str],
                 continue  # same family - not worth calling out
             # A road neighbour is already covered by the "track runs through it"
             # line above, and reading it as a biome would print "Road lies to
-            # the south". Phrased without a verb so plural names agree.
+            # the south". Phrased without a action so plural names agree.
             if nb in (biomes_mod.features() or {}):
                 continue
             nb_rec = biomes_mod.biome(nb) or {}
@@ -1134,15 +1134,15 @@ def _climb_step(record: Dict[str, dict], scope_id: str, cell, nb,
     road_here = str(cell_road(cell) or "")
     road_there = str(cell_road(nb) or "")
     provided_by = "road" if (road_here and road_there) else None
-    verb = "climb" if rising else "drop"
+    action = "climb" if rising else "drop"
     return {
         "storeys": step,
         "rising": rising,
         "provided_by": provided_by,
         # Said as a place, because that is what the description composes from.
-        "refusal": (f"The {verb} is {step} storeys of bare ground - you would need "
+        "refusal": (f"The {action} is {step} storeys of bare ground - you would need "
                     f"a path cut into it, or a way round."),
-        "message": (f"You {verb} {step} storeys by the path to {to_name}."),
+        "message": (f"You {action} {step} storeys by the path to {to_name}."),
     }
 
 

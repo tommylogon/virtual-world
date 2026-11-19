@@ -371,7 +371,7 @@ class TelemetryRecorder:
         (``plan:provision`` and ``plan:patrol`` both count as ``plan``).
 
         **Only decided records are ranked.** A record with no ``why`` - the
-        mechanical cost-application entry ``apply_action`` writes for every verb,
+        mechanical cost-application entry ``apply_action`` writes for every action,
         or a condition crossing - has no deciding rule, and counting it as one
         would drag every real rule's share down and make the distribution answer a
         question nobody asked. Those are reported separately as

@@ -86,7 +86,7 @@ class UiMixin:
             )
 
         # task-473: a stackable item can be combined with a matching stack, and
-        # a stack of more than one can be split. Neither verb was surfaced
+        # a stack of more than one can be split. Neither action was surfaced
         # before, so `combine`/`split` were reachable only by typing them.
         try:
             from engine.items.stacking import is_stackable
@@ -185,11 +185,11 @@ class UiMixin:
         return result
 
     def _contextual_failure(
-        self, verb: str, target_name: str, available_actions: List[dict]
+        self, action: str, target_name: str, available_actions: List[dict]
     ) -> str:
         """Generate a first-person contextual failure reason.
 
-        Explains why *verb* can't be performed on *target_name*, and
+        Explains why *action* can't be performed on *target_name*, and
         suggests available alternatives from the *available_actions* list.
         """
         reasons = {
@@ -201,7 +201,7 @@ class UiMixin:
             "close": "The {item} isn't something you can close.",
             "break": "I don't think breaking the {item} would accomplish anything.",
         }
-        msg = reasons.get(verb, "I try, but nothing useful happens.")
+        msg = reasons.get(action, "I try, but nothing useful happens.")
         msg = msg.format(item=target_name)
 
         valid = [a["label"] for a in available_actions if a["enabled"]]

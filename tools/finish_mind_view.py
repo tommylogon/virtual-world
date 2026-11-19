@@ -373,10 +373,10 @@ replacements = [
 """    function _actionsHtml(): string {
         if (!_state) return '';
         const p: Models.PlayerRuntimeModel | null = worldState.players?.[_state.charName] || null;
-        const actions: Array<{ verb: string; scores?: number[] }> = (p && p.disposition && Array.isArray((p.disposition as { actions?: unknown[] }).actions)) ? (p.disposition as { actions: Array<{ verb: string; scores?: number[] }> }).actions : [];
+        const actions: Array<{ action: string; scores?: number[] }> = (p && p.disposition && Array.isArray((p.disposition as { actions?: unknown[] }).actions)) ? (p.disposition as { actions: Array<{ action: string; scores?: number[] }> }).actions : [];
         if (!actions.length) return '';
         const gated = new Set<string>((((p.disposition as { gated?: string[] })?.gated) || []).map((g: string) => String(g).toLowerCase()));
-        const rows = actions.map((a: { verb: string; scores?: number[] }) => {"""
+        const rows = actions.map((a: { action: string; scores?: number[] }) => {"""
     ),
     (
 """            const injured = ((playerConditions.injured || []) as *FIX*[])

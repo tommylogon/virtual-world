@@ -34,10 +34,10 @@ _PRONOUN_PATTERNS = [
     r"\byour\b",
 ]
 
-#: Base-form verbs that arrive un-conjugated when the model writes in first
+#: Base-form actions that arrive un-conjugated when the model writes in first
 #: person ("I hug my knees" → "hug my knees"). After the narrator adds the
-#: name the leading verb must be third-person singular ("Lyrie hugs...").
-_BASE_VERBS = frozenset({
+#: name the leading action must be third-person singular ("Lyrie hugs...").
+_BASE_ACTIONS = frozenset({
     "hug", "shiver", "sink", "lean", "glance", "run", "reach", "sit", "stand",
     "smile", "sigh", "step", "pull", "tuck", "wrap", "fold", "breathe", "kick",
     "tap", "drum", "shake", "hold", "press", "stretch", "curl", "cry", "laugh",
@@ -51,10 +51,10 @@ _BASE_VERBS = frozenset({
 #: How a heard line names its delivery. ``speech_level`` is stamped on every
 #: hearing entry by ``speech.py``, so the ``listen`` report can state how a line
 #: was delivered instead of flattening every level to "said" - which told the
-#: model a scream was small talk. Mirrors ``PromptBuilder.speechVerb`` on the
+#: model a scream was small talk. Mirrors ``PromptBuilder.speechAction`` on the
 #: client; the turn-event description keeps its literal ``said:`` marker, which
 #: is a machine-parsed format rather than prose.
-SPEECH_VERBS = {
+SPEECH_ACTIONS = {
     "whisper": "whispered",
     "normal": "said",
     "say": "said",
@@ -71,7 +71,7 @@ def normalize_emote_person(text: str, pronouns: Optional[dict] = None) -> str:
     ``process_emote`` prints ``"{actor_name} {text}."``, so ``text`` must never
     carry first/second-person pronouns ("hugs yourself", "hug myself"). Rewrites
     them to the actor's pronoun set (from identity tags; neutral fallback) and
-    fixes an un-conjugated leading base-verb ("hug my knees" → "hugs her knees").
+    fixes an un-conjugated leading base-action ("hug my knees" → "hugs her knees").
     """
     if not text:
         return text
@@ -86,7 +86,7 @@ def normalize_emote_person(text: str, pronouns: Optional[dict] = None) -> str:
     for pattern, repl in zip(_PRONOUN_PATTERNS, values):
         out = re.sub(pattern, repl, out)
     match = re.match(r"^([A-Za-z]+)(\b.*)$", out)
-    if match and match.group(1).lower() in _BASE_VERBS:
+    if match and match.group(1).lower() in _BASE_ACTIONS:
         out = match.group(1) + "s" + match.group(2)
     return out
 
@@ -373,8 +373,8 @@ class NarrationSystem:
             # Delivery is stamped on the entry by speech.py, so report it instead of
             # calling everything "said": a scream read as conversation is a scream the
             # listener was told was small talk.
-            verb = SPEECH_VERBS.get(str(h.get("speech_level") or "").strip().lower(), "said")
-            lines.append(f"[Heard] {h.get('speaker')}{direction} {verb}: \"{h.get('text')}\"")
+            action = SPEECH_ACTIONS.get(str(h.get("speech_level") or "").strip().lower(), "said")
+            lines.append(f"[Heard] {h.get('speaker')}{direction} {action}: \"{h.get('text')}\"")
         for h in heard_sounds:
             clean_dir = str(h.get("heard_from") or "").replace("_", " ").strip()
             if clean_dir.endswith(" back"):
@@ -574,7 +574,7 @@ def resolve_action_message_precedence(
     item_props: Optional[dict] = None,
     human_override: Optional[str] = None,
     generated_narration: Optional[str] = None,
-    action_verb: Optional[str] = None,
+    action_name: Optional[str] = None,
 ) -> tuple[str, str]:
     """Resolve action narration precedence per task-692.
 
@@ -589,7 +589,7 @@ def resolve_action_message_precedence(
         return human_override, "human_override"
 
     triggers = item_props.get("triggers", []) if item_props else []
-    target_trigger = f"on_{action_verb.lower()}" if action_verb else None
+    target_trigger = f"on_{action_name.lower()}" if action_name else None
     if target_trigger:
         matching = [t for t in triggers if isinstance(t, dict) and t.get("trigger_type") == target_trigger]
         if matching:
@@ -646,12 +646,12 @@ def director_pass(
         narration = result_output
         source_kind = "mechanical"
     else:
-        verb = action.split()[0] if action else None
+        action = action.split()[0] if action else None
         text, source_kind = resolve_action_message_precedence(
             item_props=item_props or {},
             human_override=human_override,
             generated_narration=generated_narration,
-            action_verb=verb,
+            action_name=action,
         )
         narration = text if text else result_output
 

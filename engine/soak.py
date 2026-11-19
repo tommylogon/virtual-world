@@ -300,11 +300,11 @@ def _finish(gs, player, order, reason) -> None:
         except Exception as e:
             logger.warning("[soak] memory: %s", e)
 
-    verb = "interrupted" if reason else "finished"
+    action = "interrupted" if reason else "finished"
     detail = f": {reason[1]}" if reason else f" after {elapsed} min"
     try:
         gs.record_turn_event(player.name, "soak_end",
-                             f"{player.name} {verb} their soak{detail}",
+                             f"{player.name} {action} their soak{detail}",
                              area_name=getattr(player, "current_area", None))
     except Exception:
         pass

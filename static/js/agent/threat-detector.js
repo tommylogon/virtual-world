@@ -656,9 +656,9 @@ const ThreatDetector = (() => {
         // Only visibly armed posture (no direct attack yet and not trait_hostile/hostile affinity)
         if (directThreats.length === 0 && thirdPartyThreats.length === 0 && armedPostureThreats.length > 0) {
             const labels = armedPostureThreats.map(t => `${t.name} (holding ${t.weapons.join(', ')})`);
-            const verb = labels.length > 1 ? 'are' : 'is';
+            const action = labels.length > 1 ? 'are' : 'is';
             const directive = buildGradedThreatDirective(observerPlayer, threatDetails, stateData, 'armed_posture');
-            return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${verb} visibly armed in this room.${allyInline} ${directive}`;
+            return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${action} visibly armed in this room.${allyInline} ${directive}`;
         }
         // Direct hostility (or mixed direct + armed/third-party)
         const labels = threatDetails.map(t => {
@@ -668,9 +668,9 @@ const ThreatDetector = (() => {
             }
             return `${t.name}${wep}`;
         });
-        const verb = labels.length > 1 ? 'are' : 'is';
+        const action = labels.length > 1 ? 'are' : 'is';
         const directive = buildGradedThreatDirective(observerPlayer, threatDetails, stateData, 'direct');
-        return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${verb} in this room and hostile toward you.${allyInline} ${directive}`;
+        return `⚠️ IMMEDIATE DANGER: ${labels.join(', ')} ${action} in this room and hostile toward you.${allyInline} ${directive}`;
     }
     return {
         getThreatAlert,

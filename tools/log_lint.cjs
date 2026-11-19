@@ -19,7 +19,7 @@
  *   apostrophe-strip    "that s" / "i m" / "don t" in CONVERSATION (bug-28)
  *   double-attribution  same quoted speech twice in one WITNESSED block (bug-29)
  *   memory-dup          identical sentence twice in one I REMEMBER block (task-346)
- *   pronoun-stitch      verb + "your" where "you" is meant (G1)
+ *   pronoun-stitch      action + "your" where "you" is meant (G1)
  *   appearance-grammar  "you is" / "you was"              (task-345)
  */
 
@@ -108,7 +108,7 @@ const RULES = [
   {
     id: 'pronoun-stitch',
     scope: null,
-    why: 'verb + "your" where "you" is meant (pronoun stitching)',
+    why: 'action + "your" where "you" is meant (pronoun stitching)',
     test: (line) => /\b(hugs|holds|grabs|touches|kisses|pulls|pushes|drags|carries|leads|releases|lifts)\s+your\b/i.test(line),
   },
   {

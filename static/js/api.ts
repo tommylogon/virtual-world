@@ -122,9 +122,9 @@ class ApiClientImpl {
         return this.post('/api/action', body);
     }
 
-    /** Autocomplete candidate options for verb & prefix (task-6) */
-    static async getAutocomplete(verb: string, prefix = '', charName: string | null = null): Promise<ApiResult> {
-        const body: { verb: string; prefix: string; character?: string } = { verb, prefix };
+    /** Autocomplete candidate options for action & prefix (task-6) */
+    static async getAutocomplete(action: string, prefix = '', charName: string | null = null): Promise<ApiResult> {
+        const body: { action: string; prefix: string; character?: string } = { action, prefix };
         if (charName) body.character = charName;
         return this.post('/api/autocomplete', body);
     }

@@ -7,10 +7,10 @@
 
 from engine.items.take_drop_actions import _display_name
 from engine.equipment import is_intrinsic_ability
-"""Container / placement verbs for ItemActions.
+"""Container / placement action_names for ItemActions.
 
 Moved verbatim from engine/item_actions.py as part of the task-314
-verb-family split. Methods hang off the ItemActions context (graph,
+action_word-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, ghost_system) via the mixin.
 """
 
@@ -56,9 +56,9 @@ class PlaceActionsMixin:
             raise ValueError(f"Your {_display_name(item_node.name)} is an intrinsic ability, not a physical object you can place.")
         item_node_id = item_node.id
 
-        # task-493: a part does not move. Both put verbs reach items through
+        # task-493: a part does not move. Both put action_names reach items through
         # `find_reachable`, which is exactly how a battery inside a carried
-        # phone is found - so without this the one verb most likely to pick a
+        # phone is found - so without this the one action_word most likely to pick a
         # part up would be the one nobody gated.
         if not is_portable(item_node):
             raise ValueError(portable_refusal(self.graph, item_node, "put it away"))
@@ -126,8 +126,8 @@ class PlaceActionsMixin:
 
         area_name = player_manager.current_area.name if player_manager.current_area else None
         player_manager.record_turn_event(player_manager.active_player, "put", f"put {item_name} in {container_name}", area_name=area_name)
-        verb_past = "move" if moving_uncarried else "put"
-        result = f"You {verb_past} the {item_name} in the {container_name}."
+        action_past = "move" if moving_uncarried else "put"
+        result = f"You {action_past} the {item_name} in the {container_name}."
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
         return result
@@ -238,8 +238,8 @@ class PlaceActionsMixin:
         relation_prep = {"on": "on", "under": "under", "behind": "behind", "beside": "beside", "at": "at", "in": "in"}.get(relation, "on")
         area_name = player_manager.current_area.name if player_manager.current_area else None
         player_manager.record_turn_event(player_manager.active_player, "put", f"put {item_name} {relation_prep} {target_name}", area_name=area_name)
-        verb_past = "move" if moving_uncarried else "put"
-        result = f"You {verb_past} the {item_name} {relation_prep} the {target_name}."
+        action_past = "move" if moving_uncarried else "put"
+        result = f"You {action_past} the {item_name} {relation_prep} the {target_name}."
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
         return result

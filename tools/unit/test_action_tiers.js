@@ -1,26 +1,26 @@
 /**
- * task-352 — the client tier mirror (agent/action-tiers.js) must classify verbs
+ * task-352 — the client tier mirror (agent/action-tiers.js) must classify actions
  * the same way engine/action_tiers.py does, and `canPay` must reproduce
  * `spend_slot`'s downgrade (a higher slot pays for a lower action). The turn
- * prompt hides verbs `canAfford` rejects, so a wrong answer here hides a verb
+ * prompt hides actions `canAfford` rejects, so a wrong answer here hides a action
  * the character could still pay for (or shows one it cannot).
  *
  * The table itself is guarded against drift by tools/action_tiers_index.py
  * --check; these tests pin the *resolution logic* the generator hand-writes.
  */
 
-test('tierOf reads the table for ordinary verbs', () => {
+test('tierOf reads the table for ordinary actions', () => {
     assertEq(ActionTiers.tierOf('take'), 'major', 'take is major');
     assertEq(ActionTiers.tierOf('approach'), 'minor', 'approach is minor');
     assertEq(ActionTiers.tierOf('look'), 'free', 'look is free');
     assertEq(ActionTiers.tierOf('wait'), 'activity', 'wait is an activity');
-    assertEq(ActionTiers.tierOf('some unknown verb'), 'major', 'unknown defaults to major');
+    assertEq(ActionTiers.tierOf('some unknown action'), 'major', 'unknown defaults to major');
 });
 
 test('tierOf honours a per-item action_costs override', () => {
     const props = { action_costs: { use: { tier: 'free' } } };
     assertEq(ActionTiers.tierOf('use', props), 'free', 'override wins over the table');
-    assertEq(ActionTiers.tierOf('take', props), 'major', 'other verbs keep the table tier');
+    assertEq(ActionTiers.tierOf('take', props), 'major', 'other actions keep the table tier');
 });
 
 test('tierOf treats an intrinsic ability as minor (engine default)', () => {

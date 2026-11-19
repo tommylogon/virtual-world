@@ -167,7 +167,7 @@ class TestSizePassage:
 
     Ways can carry ``max_size`` (tight tunnel) and ``requires``
     (crawl|climb|jump) properties. ``go`` auto-crawls tight ways, crawl-only
-    ways convert to a crawl, climb/jump ways need the matching verb, and
+    ways convert to a crawl, climb/jump ways need the matching action, and
     failed climb/jump rolls fire the way's ``on_fail_*`` trigger.
     """
 
@@ -472,7 +472,7 @@ class TestGoToApproach:
         world.move_to_area("north door")
         assert world.player.current_area == "Room B"
 
-    def test_approach_verb_stops_at_item(self):
+    def test_approach_action_stops_at_item(self):
         world = VirtualWorld()
         world.movement.add_area(Area("Room A", "One table in it.", []))
         world.name_matcher._set_player_area(world.active_player, "Room A")
@@ -484,20 +484,20 @@ class TestGoToApproach:
         out = world.approach("the booth table")
         assert "Booth Table" in out
 
-    def test_approach_verb_stops_at_way(self):
+    def test_approach_action_stops_at_way(self):
         world = self._door_world()
         out = world.approach("the north")
         assert world.player.current_area == "Room A"
         assert "walk over to the north" in out.lower()
 
-    def test_approach_verb_slug_matches_named_door(self):
+    def test_approach_action_slug_matches_named_door(self):
         world = self._door_world()
         # "north door" phrasing on a way whose handle is "north" still resolves
         out = world.approach("the north door")
         assert world.player.current_area == "Room A"
         assert "walk over" in out.lower()
 
-    def test_approach_verb_dash_not_affected(self):
+    def test_approach_action_dash_not_affected(self):
         world = self._door_world()
         world.dash_to_area("north")
         assert world.player.current_area == "Room B"

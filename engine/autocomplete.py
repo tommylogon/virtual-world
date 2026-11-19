@@ -16,20 +16,20 @@ from typing import Optional, List
 from graph import EDGE_IN, EDGE_KNOWN
 
 
-def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: str = None) -> list:
-    """Get candidate target names for a given verb and prefix."""
+def get_autocomplete_options(vw, action: str, prefix: str = "", character_name: str = None) -> list:
+    """Get candidate target names for a given action and prefix."""
     player_name = character_name or vw.player_manager.active_player
     if not player_name or player_name not in vw.player_manager.players:
         return []
 
-    verb = (verb or "").strip().lower()
+    action = (action or "").strip().lower()
     raw_prefix = (prefix or "").strip().lower()
     prefix = raw_prefix
-    if not prefix and verb:
+    if not prefix and action:
         # A bare trailing marker ("belne on") is stripped above, which hides the
         # region branch. Re-attach it so the region list still opens.
         for marker in (" on ", " where ", " in the ", " in "):
-            if verb.endswith(marker.strip()):
+            if action.endswith(marker.strip()):
                 prefix = marker.strip() + " "
                 break
 
@@ -147,40 +147,40 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
 
     from engine.actions import AUTOCOMPLETE_GROUPS
 
-    if verb in AUTOCOMPLETE_GROUPS['take']:
+    if action in AUTOCOMPLETE_GROUPS['take']:
         for item in room_items:
             acts = _get_actions(item)
             takeable = item.properties.get('takeable', True)
-            if 'take' in acts or verb in acts or takeable:
+            if 'take' in acts or action in acts or takeable:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['examine']:
+    elif action in AUTOCOMPLETE_GROUPS['examine']:
         for item in room_items + carried_items + known_items + room_ways:
             _add(item.properties.get('name') or item.id)
         for cname in area_chars:
             _add(cname)
 
-    elif verb in AUTOCOMPLETE_GROUPS['use']:
+    elif action in AUTOCOMPLETE_GROUPS['use']:
         for item in carried_items + room_items + known_items:
             acts = _get_actions(item)
-            if 'use' in acts or verb in acts or item in carried_items or item in known_items:
+            if 'use' in acts or action in acts or item in carried_items or item in known_items:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['door']:
+    elif action in AUTOCOMPLETE_GROUPS['door']:
         for way in room_ways:
             _add(way.properties.get('name') or way.id)
         for d in way_directions:
             _add(d)
 
-    elif verb in AUTOCOMPLETE_GROUPS['drop']:
+    elif action in AUTOCOMPLETE_GROUPS['drop']:
         for item in carried_items:
             _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['combine']:
+    elif action in AUTOCOMPLETE_GROUPS['combine']:
         for item in carried_items:
             _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['split']:
+    elif action in AUTOCOMPLETE_GROUPS['split']:
         for item in carried_items:
             props = item.properties or {}
             attempts = 0
@@ -191,41 +191,41 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
             if attempts >= 2:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['craft']:
+    elif action in AUTOCOMPLETE_GROUPS['craft']:
         for recipe in vw._recipe_known_names(player_name):
             _add(recipe)
 
-    elif verb in AUTOCOMPLETE_GROUPS['consume']:
+    elif action in AUTOCOMPLETE_GROUPS['consume']:
         for item in carried_items + room_items + known_items:
             acts = _get_actions(item)
             tags = _get_tags(item)
-            if verb in acts or any(t in ('food', 'drink', 'consumable', 'edible') for t in tags):
+            if action in acts or any(t in ('food', 'drink', 'consumable', 'edible') for t in tags):
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['toggle']:
+    elif action in AUTOCOMPLETE_GROUPS['toggle']:
         for item in room_items + carried_items + known_items:
             acts = _get_actions(item)
             tags = _get_tags(item)
             if 'toggleable' in tags or 'toggle' in acts:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['char_target']:
+    elif action in AUTOCOMPLETE_GROUPS['char_target']:
         for cname in area_chars:
             _add(cname)
 
-    elif verb in AUTOCOMPLETE_GROUPS['name']:
+    elif action in AUTOCOMPLETE_GROUPS['name']:
         for cname in area_chars:
             _add(cname)
         for item in room_items + carried_items:
             _add(item.properties.get('name') or item.id)
 
-    elif verb in AUTOCOMPLETE_GROUPS['go']:
+    elif action in AUTOCOMPLETE_GROUPS['go']:
         for way in room_ways:
             _add(way.properties.get('name') or way.id)
         for d in way_directions:
             _add(d)
 
-    elif verb in AUTOCOMPLETE_GROUPS['find']:
+    elif action in AUTOCOMPLETE_GROUPS['find']:
         # `find <skill>` (task-471/483): suggest the search skills by name so the
         # affordance is discoverable, not something a player has to guess.
         from engine import foraging

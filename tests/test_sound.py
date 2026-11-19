@@ -378,7 +378,7 @@ class TestSpeechCommandParsing:
     """Regression tests for the alias-normalization fix.
 
     Previously ``whisper`` and ``shout`` were rewritten to ``say`` by the
-    verb alias map in routes/action.py, silently degrading them to normal
+    action alias map in routes/action.py, silently degrading them to normal
     speech. This mirrors the actual normalization + dispatch logic so the
     bug can't silently return.
     """

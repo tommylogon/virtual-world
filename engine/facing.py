@@ -3,7 +3,7 @@
 A character has no orientation of its own. What it has is **the heading of the
 last crossing**: stamp the way it came through and the cardinal it travelled,
 and that cardinal is its facing. Facing changes only by moving - there is no
-turn-in-place verb - which keeps the whole feature to one piece of state.
+turn-in-place action - which keeps the whole feature to one piece of state.
 
     coming from the south  -> travelling north -> facing north
     so "right" is east, "left" is west

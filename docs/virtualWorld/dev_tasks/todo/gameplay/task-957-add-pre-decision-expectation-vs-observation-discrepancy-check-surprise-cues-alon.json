@@ -15,14 +15,14 @@
     "emotions"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-19",
   "horizon": "next",
   "effort": "m",
   "goal": "",
   "relations": {
     "blocks": [],
     "blocked_by": [
-      "task-944"
+      "task-947"
     ],
     "depends_on": [],
     "related": [

@@ -241,10 +241,10 @@ class EventBus {
 
     /** task-448: a disambiguation chooser. Renders one button per candidate,
      *  each labelled with a distinguishing detail; clicking re-runs the action
-     *  against that candidate's identity key (`verb key`), which the matcher
+     *  against that candidate's identity key (`action key`), which the matcher
      *  accepts verbatim. Never auto-picks. */
-    logChoices(verb: string, options: { key: string; label: string; detail?: string }[], actor?: string): void {
-        if (!verb || !Array.isArray(options) || !options.length) return;
+    logChoices(action: string, options: { key: string; label: string; detail?: string }[], actor?: string): void {
+        if (!action || !Array.isArray(options) || !options.length) return;
         const text = 'Which one did you mean?';
         this.emit('log', { text, className: 'msg-choices', meta: {}, actor: actor || null });
         const streamEl = document.getElementById('event-stream');
@@ -267,7 +267,7 @@ class EventBus {
             btn.addEventListener('click', async () => {
                 btn.disabled = true;
                 try {
-                    const data = await (ApiClient as unknown as { action(verb: string, actor?: string): Promise<any> }).action(`${verb} key:${option.key}`, actor || undefined);
+                    const data = await (ApiClient as unknown as { action(action: string, actor?: string): Promise<any> }).action(`${action} key:${option.key}`, actor || undefined);
                     if (data?.output) {
                         this.log(data.output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
                     } else if (data?.error) {

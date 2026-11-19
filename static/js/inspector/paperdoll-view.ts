@@ -806,7 +806,7 @@ interface EquipmentTotals {
  * `declare function` helper would emit no runtime binding under that name and
  * the call would throw.
  */
-type RunActionFn = (verb: string, who: string) => Promise<unknown>;
+type RunActionFn = (action: string, who: string) => Promise<unknown>;
 
 /**
  * PRE-EXISTING BUG, deliberately preserved: `durabilityChip` is a `const`

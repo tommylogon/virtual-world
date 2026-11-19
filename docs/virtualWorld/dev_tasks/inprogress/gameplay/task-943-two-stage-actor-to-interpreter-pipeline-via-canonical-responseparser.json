@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "task-943",
+  "kind": "task",
+  "number": 943,
+  "title": "Two-Stage Actor-to-Interpreter Pipeline via Canonical ResponseParser",
+  "status": "inprogress",
+  "priority": "medium",
+  "area": "gameplay",
+  "tags": [],
+  "created": "",
+  "updated": "2026-11-19",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-949",
+      "bug-596",
+      "bug-597"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Decouple creative character prose from mechanical JSON extraction via ActionInterpreter (static/js/agent/action-interpreter.ts) delegating directly to ResponseParser.parseReaction().",
+    "why": "Small/local models suffer attention collapse when forced to write rich roleplay prose and emit strict engine JSON in one shot.",
+    "how": "Wire ActionInterpreter.interpretProseToAction into AgentEngine when config.interpreterModelEnabled is enabled, reusing ResponseParser.parseReaction() so zero intermediate dialects exist.",
+    "verify": "Run node tools/unit/run.cjs test_action_interpreter and verify prose-to-schema extraction preserves inner_monologue, action, item, target, speech, volume, emote, emotion, and memory.",
+    "acceptance": [
+      {
+        "text": "Can take freeform character prose and accurately output the canonical engine action schema (inner_monologue, action, item, target, speech, volume, emote, emotion, memory) without losing important details.",
+        "done": true
+      },
+      {
+        "text": "ActionInterpreter delegates directly to ResponseParser.parseReaction() and passes tools/unit/test_action_interpreter.js.",
+        "done": true
+      },
+      {
+        "text": "ActionInterpreter is wired into AgentEngine when config.interpreterModelEnabled is enabled.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/action-interpreter.ts",
+      "static/js/agent-engine.ts",
+      "static/js/config.ts",
+      "tools/unit/test_action_interpreter.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Settings -> Workers -> Dedicated Action Interpreter toggle, Human Turn Composer Director draft, and AgentEngine turn loop.\n\nCurrent availability: ActionInterpreter and Settings toggle are live and unit-tested; Human Turn Composer calls it; AgentEngine wiring pending.",
+      "1_context_motivation": "Current VirtualWorld cognition forces an LLM to be a novelist and an API transaction client at the same instant. Under this dual burden, small/local models (e.g. 8B) suffer attention collapse: defaulting to biological maintenance loops (`Attention: bladder` -> `action: relieve`) during high-stakes dramatic beats, dropping whisper targets, and emitting wooden dialogue.\n\nInstead of reinventing an ad-hoc intermediate format, this task decouples creative character roleplay from mechanical extraction by adding an **Action Interpreter** translation layer that outputs the **exact canonical schema defined by `ResponseParser.ts`**.\n\n---",
+      "2_architecture_pure_separation_of_concerns": "```\n┌──────────────────────────────────────────────────────────┐\n│ 1. Narrative Actor (Agent or Director)                   │\n│    • Inhabits character voice, immediate senses, beat    │\n│    • Emits 2-4 sentences of unconstrained prose          │\n│    • No JSON rules, no action schema in actor prompt     │\n└────────────────────────────┬─────────────────────────────┘\n                             │\n                             ▼ Raw Roleplay Prose\n┌──────────────────────────────────────────────────────────┐\n│ 2. Action Interpreter (Dedicated Fast Model)             │\n│    • Pluggable model (local e.g. lfm3-1.7b, or OpenRouter)│\n│    • Strictly transcribes prose into canonical schema    │\n│    • ZERO intermediate dialects - reuses ResponseParser  │\n└────────────────────────────┬─────────────────────────────┘\n                             │\n                             ▼ Canonical Engine Dictionary\n┌──────────────────────────────────────────────────────────┐\n│ 3. Canonical Parser & Grounding Engine                   │\n│    • ResponseParser.parseReaction() handles normalization│\n│    • Engine validates reach, budget, slots, entities     │\n│    • Executes world mutation through existing pipeline   │\n└──────────────────────────────────────────────────────────┘\n```\n\n---",
+      "3_the_canonical_engine_contract_no_ad_hoc_schemas": "The interpreter outputs the exact canonical fields that `ResponseParser` and `AgentEngine` already consume:\n\n```json\n{\n  \"inner_monologue\": \"string (what character privately thinks or feels) or null\",\n  \"action\": \"single verb from available affordances or null\",\n  \"item\": \"interacted item name or null\",\n  \"target\": \"target entity, exit, or person or null\",\n  \"speech\": \"spoken words without quotes or null\",\n  \"volume\": \"whisper | say | shout | scream\",\n  \"emote\": \"physical body language or null\",\n  \"memory\": \"what the character will personally remember or null\",\n  \"emotion\": \"emotion label (e.g. uneasy, determined, terrified) or null\"\n}\n```\n\nRules:\n1. **No invented schemas:** No `thought` instead of `inner_monologue`. No `say` instead of `speech`. No dropped `memory` or `item`/`target`.\n2. **Direct delegation:** The raw text from the interpreter LLM passes directly to `ResponseParser.parseReaction()`, ensuring all existing repair heuristics and normalization rules apply.\n3. **Model Selection:** Users can toggle a dedicated interpreter worker in Settings (e.g., fast local model like `lfm3-1.7b@q4_0` or OpenRouter `dots-studio/dots-3-note-preview:free`), or fall back to the active main profile.\n\n---",
+      "4_implementation_checklist": "- [x] Add `interpreterModelEnabled`, `interpreterApiBase`, `interpreterModel`, `interpreterApiKey`, `interpreterApiFormat` to `ConfigManager` and Settings modal.\n- [x] Create `static/js/agent/action-interpreter.ts` registered under `@module agent/action-interpreter`.\n- [x] Align extraction prompt to emit strictly canonical keys (`inner_monologue`, `speech`, `item`, `target`, `memory`).\n- [ ] Refactor `ActionInterpreter.interpretProseToAction` to delegate directly to `ResponseParser.parseReaction()`.\n- [ ] Update unit tests in `tools/unit/test_action_interpreter.js` to assert against canonical keys.\n- [ ] Connect interpreter into `AgentEngine.draftTurnForCharacter` when two-stage cognition toggle is enabled.\n- [ ] Verify zero em-dashes and clean TypeScript build."
+    }
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {
+    "inline_meta": {
+      "lane": "gameplay",
+      "created": "2026-11-10",
+      "updated": "2026-11-10",
+      "dependencies": "task-933, task-942"
+    },
+    "migrated_from": "docs/virtualWorld/dev_tasks/todo/gameplay/task-943-two-stage-actor-to-interpreter-pipeline.md"
+  },
+  "history": [
+    {
+      "from": "todo",
+      "to": "inprogress",
+      "at": "2026-11-19T20:01:25Z"
+    }
+  ]
+}

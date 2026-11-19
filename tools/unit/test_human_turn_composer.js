@@ -4,10 +4,10 @@
 
 const HTC = window.HumanTurnComposer;
 
-test('parseCmd parses known action verbs with items and targets', () => {
-    assertEq(HTC.parseCmd('look'), { action: 'look' }, 'simple verb');
-    assertEq(HTC.parseCmd('go north'), { action: 'go', item: 'north' }, 'verb + direction');
-    assertEq(HTC.parseCmd('take rusty sword'), { action: 'take', item: 'rusty sword' }, 'verb + item');
+test('parseCmd parses known action actions with items and targets', () => {
+    assertEq(HTC.parseCmd('look'), { action: 'look' }, 'simple action');
+    assertEq(HTC.parseCmd('go north'), { action: 'go', item: 'north' }, 'action + direction');
+    assertEq(HTC.parseCmd('take rusty sword'), { action: 'take', item: 'rusty sword' }, 'action + item');
     assertEq(HTC.parseCmd('give bread to Lyrie'), { action: 'give', item: 'bread', target: 'Lyrie' }, 'give item to target');
     assertEq(HTC.parseCmd('use key on door'), { action: 'use', item: 'key', target: 'door' }, 'use item on target');
 });
@@ -18,8 +18,8 @@ test('parseCmd treats volume prefixes as speech with volume', () => {
     assertEq(HTC.parseCmd('scream help!'), { speech: 'help!', volume: 'scream' }, 'scream');
 });
 
-test('parseCmd treats unknown verbs as speech', () => {
-    assertEq(HTC.parseCmd('walk over to the counter'), { speech: 'walk over to the counter' }, 'walk is not in VERBS');
+test('parseCmd treats unknown actions as speech', () => {
+    assertEq(HTC.parseCmd('walk over to the counter'), { speech: 'walk over to the counter' }, 'walk is not in ACTIONS');
     assertEq(HTC.parseCmd('hello friend'), { speech: 'hello friend' }, 'greetings are speech');
 });
 
@@ -35,7 +35,7 @@ test('doHint provides warning and suggestions when text in do field will be spok
     assertEq(HTC.doHint('shout behind you'), null, 'shout is deliberate speech');
     assertEq(HTC.doHint('scream'), null, 'bare volume word has no hint');
 
-    // Unknown verbs that will be spoken show warning and alias suggestions
+    // Unknown actions that will be spoken show warning and alias suggestions
     const walkHint = HTC.doHint('walk to the bar');
     assertTrue(walkHint !== null, 'walk shows a hint');
     assertTrue(walkHint.indexOf('will be spoken aloud') >= 0, 'hint warns that line will be spoken');

@@ -375,7 +375,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
 
     # Who this character currently has hold of (grabbed or led). Read through
     # the grapple system so the panel's Release affordance is gated on the
-    # same authoritative `grappled` edge the release verb itself uses.
+    # same authoritative `grappled` edge the release action itself uses.
     holding = []
     grapple = getattr(world, "grapple", None)
     if grapple is not None:

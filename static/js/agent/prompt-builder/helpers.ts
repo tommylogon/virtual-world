@@ -239,22 +239,22 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /**
-     * The verb a WITNESSED line uses for a spoken level.
+     * The action a WITNESSED line uses for a spoken level.
      *
      * `speech_level` rides on every hearing entry (speech.py stamps it), so a
-     * shouted or whispered line used to render as "said" purely because the verb
+     * shouted or whispered line used to render as "said" purely because the action
      * was a string literal — the model was told the wrong delivery and reacted to
      * a whisper as small talk and to a scream as conversation. The turn-event
      * description stays `said:` on purpose: that is a machine-parsed marker with
      * its own tests, and it is not what the character reads.
      */
-    const SPEECH_VERBS: Record<string, string> = {
+    const SPEECH_ACTIONS: Record<string, string> = {
         whisper: 'whispered', normal: 'said', say: 'said', speak: 'said',
         shout: 'shouted', scream: 'screamed', sing: 'sang',
     };
 
-    function speechVerb(level: unknown): string {
-        return SPEECH_VERBS[String(level || '').trim().toLowerCase()] || 'said';
+    function speechAction(level: unknown): string {
+        return SPEECH_ACTIONS[String(level || '').trim().toLowerCase()] || 'said';
     }
 
     /**
@@ -277,33 +277,33 @@ window.PromptBuilder = window.PromptBuilder || {};
      * Re-frame a third-person appearance description into second person so the
      * character reads about THEMSELVES ("You are a woman who stands... your
      * slender frame...") instead of a stranger ("A woman stands... her... ").
-     * Handles leading "A/An/The <noun> <verb>s", "She/He <verb>s", pronoun
-     * swaps (she/her/his/him → you/your), and verb agreement ("you stands").
+     * Handles leading "A/An/The <noun> <action>s", "She/He <action>s", pronoun
+     * swaps (she/her/his/him → you/your), and action agreement ("you stands").
      */
     function secondPersonDesc(desc: string): string {
         if (!desc) return '';
         let text = desc.trim();
-        const subjectVerbs = 'stands?|sits?|lies?|rests?|leans?|kneels?|looks?|stares?|moves?|walks?|hangs?|awaits?|seems?';
-        text = text.replace(new RegExp(`^(?:A|An|The)\\s+(.+?)\\s+(${subjectVerbs})\\b`, 'i'),
-            (match: string, noun: string, verb: string) => {
+        const subjectActions = 'stands?|sits?|lies?|rests?|leans?|kneels?|looks?|stares?|moves?|walks?|hangs?|awaits?|seems?';
+        text = text.replace(new RegExp(`^(?:A|An|The)\\s+(.+?)\\s+(${subjectActions})\\b`, 'i'),
+            (match: string, noun: string, action: string) => {
                 const article = match.startsWith('A ') ? 'a' : match.startsWith('An ') ? 'an' : match.startsWith('The ') ? 'the' : match.startsWith('a ') ? 'a' : match.startsWith('an ') ? 'an' : match.startsWith('the ') ? 'the' : '';
-                return `You are ${article} ${noun} who ${verb}`;
+                return `You are ${article} ${noun} who ${action}`;
             });
-        text = text.replace(new RegExp(`^(She|He)\\s+(${subjectVerbs})\\b`, 'i'),
-            (match: string, pronoun: string, verb: string) => `You ${verb.replace(/s$/, '')}`);
+        text = text.replace(new RegExp(`^(She|He)\\s+(${subjectActions})\\b`, 'i'),
+            (match: string, pronoun: string, action: string) => `You ${action.replace(/s$/, '')}`);
         text = text.replace(/\bshe\b/gi, 'you');
         text = text.replace(/\bher\b/gi, 'your');
         text = text.replace(/\bhers\b/gi, 'yours');
         text = text.replace(/\bhe\b/gi, 'you');
         text = text.replace(/\bhim\b/gi, 'you');
         text = text.replace(/\bhis\b/gi, 'your');
-        // fix verb agreement after "you" (preserving case): "You stands" → "You stand"
-        text = text.replace(new RegExp(`\\b(you)\\s+(${subjectVerbs})\\b`, 'gi'),
-            (match: string, pronoun: string, verb: string) => `${pronoun} ${verb.replace(/s$/, '')}`);
+        // fix action agreement after "you" (preserving case): "You stands" → "You stand"
+        text = text.replace(new RegExp(`\\b(you)\\s+(${subjectActions})\\b`, 'gi'),
+            (match: string, pronoun: string, action: string) => `${pronoun} ${action.replace(/s$/, '')}`);
         // fix plural possessive agreement: "your breasts rests" → "your breasts rest"
         // (nouns ending in s are treated as plural — regular plurals only)
         text = text.replace(/\byour\s+(\w+s)\s+(stands?|sits?|lies?|rests?|rises?|falls?|hangs?|looks?|moves?|seems?)\b/gi,
-            (match: string, noun: string, verb: string) => `your ${noun} ${verb.replace(/s$/, '')}`);
+            (match: string, noun: string, action: string) => `your ${noun} ${action.replace(/s$/, '')}`);
         return text;
     }
 
@@ -413,7 +413,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         isKnownToViewer,
         anonymousName,
         voiceLabel,
-        speechVerb,
+        speechAction,
         hasPlan,
         secondPersonDesc,
         describeActivity,

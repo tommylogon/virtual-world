@@ -17,12 +17,12 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.SetupChecklist = (() => {
     'use strict';
-    /** Prefill the command line with a partial verb — used by cast/hooks. */
-    function prefillCommand(verb) {
+    /** Prefill the command line with a partial action — used by cast/hooks. */
+    function prefillCommand(action) {
         const c = document.getElementById('command-input');
         if (c) {
             c.focus();
-            c.value = verb;
+            c.value = action;
         }
     }
     const STEPS = [

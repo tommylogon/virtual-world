@@ -132,7 +132,7 @@ def test_set_status_reports_an_unknown_goal():
 
 
 def test_the_goal_action_is_wired_through_the_dispatcher():
-    """The dispatched verb is the caller: `goal set/complete/drop` must write the
+    """The dispatched action is the caller: `goal set/complete/drop` must write the
     character's own goals, preserving the case the player typed."""
     from app import create_app
     app = create_app({"TESTING": True})
@@ -236,7 +236,7 @@ def test_a_goal_log_round_trips_through_a_scenario():
     ]
 
 
-def test_the_goal_verb_records_history_with_ticks():
+def test_the_goal_action_records_history_with_ticks():
     from app import create_app
     app = create_app({"TESTING": True})
     client = app.test_client()
@@ -292,7 +292,7 @@ def test_obligations_round_trip_through_a_scenario():
         {"id": "guard_the_gate", "charge": "Guard the gate", "status": "accepted", "from": "The chief"}]
 
 
-def test_the_obligation_verb_accepts_and_spawns_a_goal():
+def test_the_obligation_action_accepts_and_spawns_a_goal():
     from app import create_app
     app = create_app({"TESTING": True})
     client = app.test_client()
@@ -630,7 +630,7 @@ def test_issue_offer_refuses_self_stranger_and_absent_recipient():
     assert not b.obligations
 
 
-def test_offer_verb_is_wired_through_the_dispatcher():
+def test_offer_action_is_wired_through_the_dispatcher():
     from app import create_app
     app = create_app({"TESTING": True})
     client = app.test_client()

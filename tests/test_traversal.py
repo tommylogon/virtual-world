@@ -210,7 +210,7 @@ def test_hop_checks_the_way_it_crosses():
 
 # ───────────────────────────── hopping ────────────────────────────────────
 
-def test_hop_uses_the_verb_the_way_needs():
+def test_hop_uses_the_action_the_way_needs():
     w = _world()
     _area(w, "Bottom")
     _area(w, "Top")

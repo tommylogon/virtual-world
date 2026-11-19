@@ -279,7 +279,7 @@ def test_revived_character_can_act_without_wake():
     assert world.conditions.can_act(hero), (
         "hand-revive left a blocking condition, so the character still cannot act"
     )
-    # ...and so is the activity gate, for a verb that is NOT on the wake
+    # ...and so is the activity gate, for a action that is NOT on the wake
     # allow-list. `go` is gated; `look`/`wake` are not, so asserting on `go`
     # is what separates this from "the character can still look".
     from routes.action_handlers import _activity_gate

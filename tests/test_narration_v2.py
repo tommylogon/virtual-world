@@ -53,7 +53,7 @@ def test_protein_bar_distinct_message_precedence():
     chosen_msg, source = resolve_action_message_precedence(
         item_props=data,
         generated_narration="You take a bite of food.",
-        action_verb="eat",
+        action_name="eat",
     )
     assert source == "authored"
     assert chosen_msg == effect_param_msg

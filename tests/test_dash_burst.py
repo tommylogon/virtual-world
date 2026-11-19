@@ -66,13 +66,13 @@ def test_approach_does_not_finish_a_dash():
     assert err and burst == "none"
 
 
-def test_every_movement_verb_finishes_the_dash():
-    for verb in ("go", "dash", "climb", "crawl", "jump"):
+def test_every_movement_action_finishes_the_dash():
+    for action in ("go", "dash", "climb", "crawl", "jump"):
         slots = _slots()
         slots["major"] = 0
-        err, burst = at.apply_action_gate(slots, verb, 1)
-        assert err is None and burst == "clear", verb
-        assert slots["minor"] == 0, verb
+        err, burst = at.apply_action_gate(slots, action, 1)
+        assert err is None and burst == "clear", action
+        assert slots["minor"] == 0, action
 
 
 def test_wait_abandons_the_dash_without_spending_the_minor():

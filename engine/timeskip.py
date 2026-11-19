@@ -1052,9 +1052,9 @@ def travel_minutes(gs, from_area, to_area):
 
 
 def _move(gs, player, label):
-    """One hop, verb-aware and never fatal (task-475).
+    """One hop, action-aware and never fatal (task-475).
 
-    Uses the verb the way needs and rolls ordinary ground checks; a blocked or
+    Uses the action the way needs and rolls ordinary ground checks; a blocked or
     failed crossing costs the turn rather than raising out of the policy.
     Returns ``(moved, why, detail)`` so the refusal can be reported instead of
     vanishing into the log (task-671).

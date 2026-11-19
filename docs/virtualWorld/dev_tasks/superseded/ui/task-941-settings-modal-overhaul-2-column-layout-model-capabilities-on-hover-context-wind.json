@@ -4,12 +4,12 @@
   "kind": "task",
   "number": 941,
   "title": "Settings modal overhaul: 2-column layout, model capabilities on hover, context window limits, emoji entity fix, and graph tab retirement",
-  "status": "todo",
+  "status": "superseded",
   "priority": "medium",
   "area": "ui",
   "tags": [],
   "created": "2026-11-09",
-  "updated": "2026-11-09",
+  "updated": "2026-11-19",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -25,7 +25,9 @@
     "parent": null,
     "children": [],
     "supersedes": [],
-    "superseded_by": [],
+    "superseded_by": [
+      "task-945"
+    ],
     "invalidates": [],
     "invalidated_by": []
   },
@@ -89,7 +91,12 @@
     "urls": []
   },
   "evidence": [],
-  "invalidation": null,
+  "invalidation": {
+    "mode": "superseded",
+    "by": "task-945",
+    "reason": "Superseded by task-945 (done: full-viewport responsive Settings modal, SVG icons, unified Model Hub with context limits and token defaults).",
+    "at": "2026-11-19T19:59:11Z"
+  },
   "extra": {
     "migrated_from": "docs/virtualWorld/dev_tasks/todo/ui/task-941-settings-modal-overhaul-layout-model-capabilities-and-cleanup.md"
   }

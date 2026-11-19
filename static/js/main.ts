@@ -933,27 +933,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputField) {
         let autocompleteState = {
             active: false,
-            verb: '',
+            action: '',
             prefix: '',
             options: [],
             index: -1
         };
 
         const resetAutocomplete = () => {
-            autocompleteState = { active: false, verb: '', prefix: '', options: [], index: -1 };
+            autocompleteState = { active: false, action: '', prefix: '', options: [], index: -1 };
         };
 
         inputField.addEventListener('keydown', async function(e) {
             if (e.key === 'Tab') {
                 const val = this.value;
                 const match = val.match(/^(\S+)\s+(.*)$/);
-                if (!match) return; // Only trigger if verb + space typed
+                if (!match) return; // Only trigger if action + space typed
 
                 e.preventDefault();
-                const verb = match[1].toLowerCase();
+                const action = match[1].toLowerCase();
                 const typedPrefix = match[2];
 
-                if (autocompleteState.active && autocompleteState.verb === verb && autocompleteState.prefix === typedPrefix) {
+                if (autocompleteState.active && autocompleteState.action === action && autocompleteState.prefix === typedPrefix) {
                     if (autocompleteState.options.length === 0) return;
                     if (e.shiftKey) {
                         autocompleteState.index = (autocompleteState.index - 1 + autocompleteState.options.length) % autocompleteState.options.length;
@@ -961,7 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         autocompleteState.index = (autocompleteState.index + 1) % autocompleteState.options.length;
                     }
                     const selected = autocompleteState.options[autocompleteState.index];
-                    this.value = `${verb} ${selected}`;
+                    this.value = `${action} ${selected}`;
                     autocompleteState.prefix = selected;
                     return;
                 }
@@ -974,7 +974,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // selected agent is a product decision, not a typing one.
                 const uiSel = ui as unknown as { selectedAgent?: string };
                 const activeChar = (typeof ui !== 'undefined' && uiSel.selectedAgent) ? uiSel.selectedAgent : null;
-                const res = await (ApiClient as any).getAutocomplete(verb, typedPrefix, activeChar);
+                const res = await (ApiClient as any).getAutocomplete(action, typedPrefix, activeChar);
                 const opts = res?.options || [];
                 if (opts.length === 0) {
                     resetAutocomplete();
@@ -984,12 +984,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const firstOpt = opts[0];
                 autocompleteState = {
                     active: true,
-                    verb: verb,
+                    action: action,
                     prefix: firstOpt,
                     options: opts,
                     index: 0
                 };
-                this.value = `${verb} ${firstOpt}`;
+                this.value = `${action} ${firstOpt}`;
                 return;
             }
 

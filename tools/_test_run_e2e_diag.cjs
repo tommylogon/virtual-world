@@ -22,7 +22,7 @@
         });
         console.log('CHECK 1 (Library modal):', JSON.stringify(libResult));
 
-        // Check 3: Person menu exposes task-610 verbs & Check 5: no orphaned .tsv-scrim (task-612)
+        // Check 3: Person menu exposes task-610 actions & Check 5: no orphaned .tsv-scrim (task-612)
         const htcCheck = await page.evaluate(async () => {
             // Request turn for Explorer
             window.HumanTurnComposer.request('Explorer');
@@ -30,14 +30,14 @@
 
             // In htc_fixture, Explorer is in Courtyard where Doc Holliday also is!
             const personChips = [...document.querySelectorAll('#htc-scene-people .tsv-person-chip')];
-            let verbsFound = [];
+            let actionsFound = [];
             let chipClicked = false;
             if (personChips.length > 0) {
                 chipClicked = true;
                 personChips[0].click();
                 await new Promise(r => setTimeout(r, 300));
                 const menuItems = [...document.querySelectorAll('.tsv-person-menu button, .tsv-person-menu .dropdown-item')];
-                verbsFound = menuItems.map(b => b.innerText.trim());
+                actionsFound = menuItems.map(b => b.innerText.trim());
             }
 
             // Close the turn modal while menu is open
@@ -55,8 +55,8 @@
             return {
                 chipClicked,
                 personChipsCount: personChips.length,
-                verbsCount: verbsFound.length,
-                sampleVerbs: verbsFound.slice(0, 8),
+                actionsCount: actionsFound.length,
+                sampleActions: actionsFound.slice(0, 8),
                 visibleScrimsCount: visibleScrims.length
             };
         });

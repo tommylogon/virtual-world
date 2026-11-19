@@ -154,12 +154,12 @@ def _disposition_payload(player) -> dict:
         return {
             "weights": weights,
             "dials": dict(getattr(player, "personality_dials", {}) or {}),
-            "gated": sorted(disposition.gated_verbs(player)),
-            # The soak candidate verbs and the score each contributes (task-801),
+            "gated": sorted(disposition.gated_actions(player)),
+            # The soak candidate actions and the score each contributes (task-801),
             # so the panel can show what the character can choose and what it feeds.
             "actions": [
-                {"verb": verb, "scores": sorted(disposition.features_of(verb).keys())}
-                for verb in disposition.SOAK_VERBS
+                {"action": action, "scores": sorted(disposition.features_of(action).keys())}
+                for action in disposition.SOAK_ACTIONS
             ],
         }
     except Exception:

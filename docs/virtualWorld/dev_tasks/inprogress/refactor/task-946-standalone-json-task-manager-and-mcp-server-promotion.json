@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 946,
   "title": "Standalone JSON task manager and MCP server promotion",
-  "status": "todo",
+  "status": "inprogress",
   "priority": "high",
   "area": "refactor",
   "tags": [
@@ -15,7 +15,7 @@
     "repo-extraction"
   ],
   "created": "2026-11-12",
-  "updated": "2026-11-13",
+  "updated": "2026-11-19",
   "horizon": "next",
   "effort": "l",
   "goal": "",
@@ -97,5 +97,12 @@
   "invalidation": null,
   "extra": {
     "migrated_from": "docs/virtualWorld/dev_tasks/todo/refactor/task-946-standalone-json-task-manager-and-mcp-server-promotion.md"
-  }
+  },
+  "history": [
+    {
+      "from": "todo",
+      "to": "inprogress",
+      "at": "2026-11-19T14:28:01Z"
+    }
+  ]
 }

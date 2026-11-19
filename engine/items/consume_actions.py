@@ -1,7 +1,7 @@
-"""Consume verbs (eat / drink) for ItemActions.
+"""Consume action_names (eat / drink) for ItemActions.
 
 Moved verbatim from engine/item_actions.py as part of the task-314
-verb-family split. Methods hang off the ItemActions context (graph,
+action_word-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, ghost_system, world) via the mixin.
 
 @module consume_actions
@@ -32,7 +32,7 @@ def _is_valid_for(node, trigger_type: str) -> bool:
 
 
 def _pick_consumable(graph, player_manager, trigger_type: str):
-    """First reachable item valid for this consume verb - carried items
+    """First reachable item valid for this consume action_word - carried items
     come first via reachable_items' ordering; deterministic pick."""
     from engine.item_reach import reachable_items
     for node in reachable_items(graph, player_manager):
@@ -50,8 +50,8 @@ class ConsumeActionsMixin:
     def drink_item(self, player_manager, item_name: str) -> str:
         return self._consume_item(player_manager, item_name, "on_drink", "drink")
 
-    def _consume_item(self, player_manager, item_name: str, trigger_type: str, action_verb: str) -> str:
-        ghost_block = self.ghost_system.check_ghost_action(player_manager, action_verb, item_name)
+    def _consume_item(self, player_manager, item_name: str, trigger_type: str, action_name: str) -> str:
+        ghost_block = self.ghost_system.check_ghost_action(player_manager, action_name, item_name)
         if ghost_block:
             raise ValueError(ghost_block)
 
@@ -63,7 +63,7 @@ class ConsumeActionsMixin:
             # edible or not.
             item_node = _pick_consumable(self.graph, player_manager, trigger_type)
             if item_node is None:
-                raise ValueError(f"You have nothing to {action_verb}.")
+                raise ValueError(f"You have nothing to {action_name}.")
             item_name = item_node.name
         else:
             item_node = player_manager.find_item_node(item_name)
@@ -75,7 +75,7 @@ class ConsumeActionsMixin:
             if not item_node:
                 raise ValueError(f"You don't have '{item_name}'.")
         if player_manager.player.state in ["sleeping", "unconscious", "bound"]:
-            raise ValueError(f"You can't {action_verb} items while {player_manager.player.state}.")
+            raise ValueError(f"You can't {action_name} items while {player_manager.player.state}.")
         if player_manager.player.state == "dead" and not player_manager.ghost_mode:
             raise ValueError("Your body lies still. You can do nothing.")
 
@@ -92,7 +92,7 @@ class ConsumeActionsMixin:
 
         if not is_valid:
             available = self.trigger_system._get_available_actions(item_node)
-            raise ValueError(self.trigger_system._contextual_failure(action_verb, item_node.name, available))
+            raise ValueError(self.trigger_system._contextual_failure(action_name, item_node.name, available))
 
         # An emptied container is not a free refill (task-424): `uses` is
         # charges/durability, so at 0 the item is spent and must be refilled
@@ -100,7 +100,7 @@ class ConsumeActionsMixin:
         if item_node.properties.get("uses", -1) == 0:
             raise ValueError(f"The {item_name} is empty.")
 
-        result = f"You {action_verb} the {item_name}."
+        result = f"You {action_name} the {item_name}."
 
         if hasattr(player_manager.player, 'exhaustion_count') and player_manager.player.exhaustion_count > 0:
             player_manager.player.exhaustion_count = 0
@@ -127,17 +127,17 @@ class ConsumeActionsMixin:
             success, total, message = player_manager.skill_check(skill_name, dc)
             result += " " + message
             if not success:
-                result += f" You fail to {action_verb} the {item_name} properly."
+                result += f" You fail to {action_name} the {item_name} properly."
                 return result
 
         p_check = player_manager.players.get(player_manager.active_player)
         if not (p_check and p_check.state == "dead"):
-            item_cost = item_node.properties.get("action_costs", {}).get(action_verb, {})
-            player_manager.apply_action(action_verb, item_cost, player=player_manager.player)
+            item_cost = item_node.properties.get("action_costs", {}).get(action_name, {})
+            player_manager.apply_action(action_name, item_cost, player=player_manager.player)
 
         area_name = player_manager.current_area.name if player_manager.current_area else None
-        past_verb = "ate" if action_verb == "eat" else "drank"
-        player_manager.record_turn_event(player_manager.active_player, action_verb, f"{past_verb} the {item_name}", area_name=area_name)
+        past_action = "ate" if action_name == "eat" else "drank"
+        player_manager.record_turn_event(player_manager.active_player, action_name, f"{past_action} the {item_name}", area_name=area_name)
         return result
 
     def _spend_uses(self, item_node) -> None:

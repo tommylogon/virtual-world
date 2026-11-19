@@ -409,7 +409,7 @@ class BackgroundSimulation:
         opens, with this character swapped in as the actor. Returns
         ``(minutes, "cook")`` or None. Instant (untimed) recipes are
         skipped - ready food already ate above; cooking here is the
-        timed path. Never emits verbs: the Activity is the action.
+        timed path. Never emits actions: the Activity is the action.
         """
         try:
             known = self.gs.crafting.known_recipes(p.name)
@@ -1145,7 +1145,7 @@ class BackgroundSimulation:
                 return True
         return False
 
-    def _consume_via_authored(self, p, node, verb) -> bool:
+    def _consume_via_authored(self, p, node, action) -> bool:
         """Run the player consume path with *p* swapped into the active slot.
 
         This is the same trick `_travel_toward`/`_forage_check` use: the authored
@@ -1155,14 +1155,14 @@ class BackgroundSimulation:
         active = getattr(self.gs, "active_player", None)
         try:
             self.gs.active_player = getattr(p, "name", None)
-            if verb == "drink":
+            if action == "drink":
                 self.gs.item_actions.drink_item(self.gs, node.name)
             else:
                 self.gs.item_actions.eat_item(self.gs, node.name)
             return True
         except Exception as e:
             logger.warning("[background] authored %s failed for %s: %s",
-                           verb, getattr(p, "name", "?"), e)
+                           action, getattr(p, "name", "?"), e)
             return False
         finally:
             try:
@@ -1171,7 +1171,7 @@ class BackgroundSimulation:
                 pass
 
     def _consume_here(self, p, tags, kind):
-        node = self._find_consumable(p, tags, verb=self._verb_for_need(kind))
+        node = self._find_consumable(p, tags, action=self._action_for_need(kind))
         if not node:
             return False
         # Carried food is yours and open-area resources are plain maintenance;
@@ -1185,14 +1185,14 @@ class BackgroundSimulation:
                 f"[{p.name}] searches for {kind} but finds nothing.")
             return "failed"
 
-        verb = "drink" if kind == "drink" else "eat"
+        action = "drink" if kind == "drink" else "eat"
         trigger_type = "on_drink" if kind == "drink" else "on_eat"
         # One consumption path (task-424): an authored consumable resolves through
         # the player path, so its triggers fire and it depletes its own way. The
         # hardcoded count/uses/remove below stays only as a fallback for items that
         # author no consumption, and says so in the log.
         if self._has_authored_consume(node, trigger_type):
-            if self._consume_via_authored(p, node, verb):
+            if self._consume_via_authored(p, node, action):
                 self._areas_cache.clear()
                 self._record_consumption(p, node, kind, restore=False)
                 return True
@@ -1231,15 +1231,15 @@ class BackgroundSimulation:
             if restore:
                 p.vitals["Thirst"] = max(
                     0, p.vitals.get("Thirst", 0) - UNAUTHORED_DRINK_RESTORE)
-            verb = "drank"
+            action = "drank"
         else:
             if restore:
                 p.vitals["Hunger"] = max(
                     0, p.vitals.get("Hunger", 0) - UNAUTHORED_MEAL_RESTORE)
-            verb = "ate"
-        record(p, tick, "act", f"{verb} {node.name}", why=f"needs:{kind}",
+            action = "ate"
+        record(p, tick, "act", f"{action} {node.name}", why=f"needs:{kind}",
                area=p.current_area, tags=["need"])
-        self.gs.add_log_entry(f"[{p.name}] {verb} the {node.name}.")
+        self.gs.add_log_entry(f"[{p.name}] {action} the {node.name}.")
 
     def _sleep(self, p):
         from engine import venues
@@ -1259,7 +1259,7 @@ class BackgroundSimulation:
                               else f"[{p.name}] settles down to sleep.")
 
     @staticmethod
-    def _verb_for_need(need):
+    def _action_for_need(need):
         """The action a search is really for, so a drink is not counted as food.
 
         Accepts both vocabularies in use: needs are `thirst`/`hunger` and the
@@ -1271,7 +1271,7 @@ class BackgroundSimulation:
              reason=None, depth=0):
         """Cross one way toward *target_name* (task-475).
 
-        Uses the verb the way needs (crawl / climb / jump) and rolls ground that
+        Uses the action the way needs (crawl / climb / jump) and rolls ground that
         is genuinely risky. A refusal costs the turn and nothing more: the way is
         remembered so the next turn routes around it, and one alternative hop is
         tried immediately as a detour.
@@ -1312,7 +1312,7 @@ class BackgroundSimulation:
         # refused way is on the avoid list.
         if depth == 0:
             step = self._target_step(
-                p, tags, verb=self._verb_for_need(need) if need else None,
+                p, tags, action=self._action_for_need(need) if need else None,
                 areas={target_name} if not tags else None,
                 avoid=traversal.avoid(self.gs, p))
             if step:
@@ -1326,7 +1326,7 @@ class BackgroundSimulation:
         if self._is_frozen_by_fear(p):
             return False
         from engine import traversal
-        step = self._target_step(p, tags, verb=self._verb_for_need(need),
+        step = self._target_step(p, tags, action=self._action_for_need(need),
                                  avoid=traversal.avoid(self.gs, p))
         if not step:
             return False
@@ -1561,7 +1561,7 @@ class BackgroundSimulation:
             return TASK_MINUTES["take"]
         return None
 
-    def _find_consumable(self, p, tags, depth=1, verb=None):
+    def _find_consumable(self, p, tags, depth=1, action=None):
         """Nearest edible thing the character can actually reach.
 
         Carried first, then anything the area holds by a spatial relation, then
@@ -1578,21 +1578,21 @@ class BackgroundSimulation:
         for e in graph.edges:
             if e.type == EDGE_CARRYING and e.target == player_id:
                 node = graph.get_node(e.source)
-                if node and self._is_consumable(node, tags, verb):
+                if node and self._is_consumable(node, tags, action):
                     return node
         if not area_id:
             return None
         for node in self._spatial_items(area_id):
-            if self._is_consumable(node, tags, verb):
+            if self._is_consumable(node, tags, action):
                 return node
         if depth > 0:
             for holder in self._spatial_items(area_id):
                 for node in self._spatial_items(holder.id):
-                    if self._is_consumable(node, tags, verb):
+                    if self._is_consumable(node, tags, action):
                         return node
         return None
 
-    def _is_consumable(self, node, tags, verb=None):
+    def _is_consumable(self, node, tags, action=None):
         """Can this node satisfy the search?
 
         The tag branch is inherently intent-specific (FOOD_TAGS vs DRINK_TAGS).
@@ -1610,12 +1610,12 @@ class BackgroundSimulation:
         node_tags = {str(t).lower() for t in (props.get("tags", []) or [])}
         if set(tags) & node_tags:
             return True
-        if not verb:
+        if not action:
             return False
         actions = props.get("actions", [])
         if isinstance(actions, str):
             actions = [a.strip() for a in actions.split(",")]
-        return verb in {str(a).lower() for a in (actions or [])}
+        return action in {str(a).lower() for a in (actions or [])}
 
     # ── navigation ────────────────────────────────────────────────────────
     # Way edges in the scenario reference sanitized area ids (e.g.
@@ -1650,7 +1650,7 @@ class BackgroundSimulation:
             return node.id
         return self._norm_area_table().get(self._norm(area_id_or_name))
 
-    def _target_step(self, p, tags, verb=None, areas=None, avoid=None):
+    def _target_step(self, p, tags, action=None, areas=None, avoid=None):
         """Nearest area holding ``tags`` reachable from the character's area.
 
         Returns ``(area_name, exit_label)`` or None. BFS walks the engine's own
@@ -1664,7 +1664,7 @@ class BackgroundSimulation:
         ``(area, label)`` keys the character is routing around for now, so a way
         that just turned them back is not retried every turn (task-475).
         """
-        areas = set(areas) if areas else self._areas_with(tags, verb)
+        areas = set(areas) if areas else self._areas_with(tags, action)
         start = p.current_area
         if not start or not areas:
             return None
@@ -1700,14 +1700,14 @@ class BackgroundSimulation:
         ntags = {str(t).lower() for t in (node.properties.get("tags", []) or [])}
         return "water" in ntags
 
-    def _areas_with(self, tags, verb=None):
+    def _areas_with(self, tags, action=None):
         """Areas from which the character could satisfy this need.
 
         Reaches into containers exactly like `_find_consumable` does: a berry on
         a bush makes the forest a food area, otherwise nobody would ever travel
         to where the renewed supply actually is.
         """
-        key = (tuple(tags), verb)
+        key = (tuple(tags), action)
         if key in self._areas_cache:
             return self._areas_cache[key]
         areas = set()
@@ -1721,10 +1721,10 @@ class BackgroundSimulation:
                 areas.add(node.name)
                 continue
             for held in self._spatial_items(node.id):
-                if self._is_consumable(held, tags, verb):
+                if self._is_consumable(held, tags, action):
                     areas.add(node.name)
                     break
-                if any(self._is_consumable(inner, tags, verb)
+                if any(self._is_consumable(inner, tags, action)
                        for inner in self._spatial_items(held.id)):
                     areas.add(node.name)
                     break

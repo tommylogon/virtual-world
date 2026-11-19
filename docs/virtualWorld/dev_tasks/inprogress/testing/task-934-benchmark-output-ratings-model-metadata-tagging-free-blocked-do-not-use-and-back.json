@@ -4,12 +4,12 @@
   "kind": "task",
   "number": 934,
   "title": "Benchmark output ratings, model metadata tagging (Free, Blocked, Do Not Use), and backend registry persistence",
-  "status": "todo",
+  "status": "inprogress",
   "priority": "medium",
   "area": "testing",
   "tags": [],
   "created": "2026-11-09",
-  "updated": "2026-11-09",
+  "updated": "2026-11-19",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -38,19 +38,19 @@
     "acceptance": [
       {
         "text": "Backend endpoints `GET /api/bench/models/metadata` and `POST /api/bench/models/metadata` manage persistent model metadata in `data/model_bench/model_registry.json`.",
-        "done": false
+        "done": true
       },
       {
         "text": "Backend endpoint `POST /api/bench/runs/<run_id>/rate` persists output ratings and review notes to run records.",
-        "done": false
+        "done": true
       },
       {
         "text": "Benchmark Lab sidebar renders status badges (`FREE`, `BLOCKED`, `DO NOT USE`) and filter controls to exclude unusable models.",
-        "done": false
+        "done": true
       },
       {
         "text": "Benchmark comparison cards render interactive rating controls and quick status tagging affordances.",
-        "done": false
+        "done": true
       },
       {
         "text": "Simulation LLM router and AutoSwarm respect blocked/do-not-use flags to prevent failed requests.",
@@ -58,7 +58,7 @@
       },
       {
         "text": "Zero em-dashes anywhere in task cards, code, or documentation.",
-        "done": false
+        "done": true
       }
     ],
     "files": [
@@ -80,9 +80,18 @@
     "commits": [],
     "urls": []
   },
-  "evidence": [],
+  "evidence": [
+    "Verified live in routes/benchmark.py (lines 29-837: model_registry.json, GET/POST /api/bench/models/metadata, POST /api/bench/runs/<run_id>/rate) and static/js/benchmark/benchmark.js (lines 975, 1463, 1528). Only AutoSwarm/router blocked-model skip remains."
+  ],
   "invalidation": null,
   "extra": {
     "migrated_from": "docs/virtualWorld/dev_tasks/todo/testing/task-934-benchmark-output-ratings-and-model-metadata-tagging.md"
-  }
+  },
+  "history": [
+    {
+      "from": "todo",
+      "to": "inprogress",
+      "at": "2026-11-19T19:58:55Z"
+    }
+  ]
 }

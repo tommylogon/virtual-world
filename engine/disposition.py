@@ -35,7 +35,7 @@ action-side features (task-801), the character-side weights (task-802) and the
 value gates (task-803) read from here.
 
 @module disposition
-@contributes SCORE_KINDS, SCORES, DECISIONS, ACTION_FEATURES, TARGET_FEATURES, TRAIT_MODIFIERS, VALUE_GATES, by_name, validate_score, scores_for, features_of, trait_weights, character_weights, gated_verbs, filter_actions, resolve, whispers, check_registry
+@contributes SCORE_KINDS, SCORES, DECISIONS, ACTION_FEATURES, TARGET_FEATURES, TRAIT_MODIFIERS, VALUE_GATES, by_name, validate_score, scores_for, features_of, trait_weights, character_weights, gated_actions, filter_actions, resolve, whispers, check_registry
 @docs docs/virtualWorld/design/Character Pursuits.md
 """
 from __future__ import annotations
@@ -222,17 +222,17 @@ DECISIONS: Tuple[Decision, ...] = (
 )
 
 
-# ── the action side: what a verb contributes (task-801) ────────────────────────
+# ── the action side: what a action_word contributes (task-801) ────────────────────────
 # `score(action) = weights . features`. Without this table the trait weights
-# (task-802) multiply nothing. A value of 1.0 means "this verb exercises the
+# (task-802) multiply nothing. A value of 1.0 means "this action_word exercises the
 # channel"; how much a channel counts is a live read (task-802), so it is not a
 # constant here. Grounded in the real vocabularies the engine already uses:
 # engine/relief.py RELIEF_TAGS / PRIVATE_TAGS, engine/background_simulation.py
 # FOOD_TAGS / DRINK_TAGS.
-_SOCIAL_VERBS = ("chat", "joke", "compliment", "tease", "confide", "flirt",
+_SOCIAL_ACTIONS = ("chat", "joke", "compliment", "tease", "confide", "flirt",
                  "apologise", "bully")
 
-#: verb -> {declared score: contribution}. Every soak candidate verb appears.
+#: action_word -> {declared score: contribution}. Every soak candidate action_word appears.
 ACTION_FEATURES: Dict[str, Dict[str, float]] = {
     # need-satisfying actions: they address whatever is pressing
     "drink": {"survive.utility.need_relief": 1.0},
@@ -246,9 +246,9 @@ ACTION_FEATURES: Dict[str, Dict[str, float]] = {
     "go": {"survive.utility.need_relief": 1.0},
     "approach": {"survive.utility.need_relief": 1.0},
 }
-for _verb in _SOCIAL_VERBS:
-    # the verb IS the candidate whose weight is the score (social.weight.<verb>)
-    ACTION_FEATURES[_verb] = {f"social.weight.{_verb}": 1.0}
+for _action in _SOCIAL_ACTIONS:
+    # the action_word IS the candidate whose weight is the score (social.weight.<action_word>)
+    ACTION_FEATURES[_action] = {f"social.weight.{_action}": 1.0}
 
 #: target tag -> the declared score the target contributes by carrying it.
 TARGET_FEATURES: Dict[str, str] = {
@@ -271,22 +271,22 @@ TARGET_FEATURES: Dict[str, str] = {
     "isolated": "relief.private_bonus",
 }
 
-#: The verbs the background/soak tier chooses between per turn. Every one must
+#: The action_names the background/soak tier chooses between per turn. Every one must
 #: contribute to at least one declared score, or the feature table has a hole.
-SOAK_VERBS: Tuple[str, ...] = (
+SOAK_ACTIONS: Tuple[str, ...] = (
     "drink", "eat", "sleep", "rest", "relieve", "bathe", "go", "approach",
-) + _SOCIAL_VERBS
+) + _SOCIAL_ACTIONS
 
 
-def features_of(verb: str, target_tags=()) -> Dict[str, float]:
-    """The declared scores *verb*, and the target's tags, contribute to.
+def features_of(action_word: str, target_tags=()) -> Dict[str, float]:
+    """The declared scores *action_word*, and the target's tags, contribute to.
 
     The action-side half of ``score(action) = weights . features``. Amounts are
-    1.0: the verb declares *which channel* it exercises; how much a channel counts
+    1.0: the action_word declares *which channel* it exercises; how much a channel counts
     is a live read from state (task-802).
     """
     out: Dict[str, float] = dict(
-        ACTION_FEATURES.get((verb or "").strip().lower(), {}))
+        ACTION_FEATURES.get((action_word or "").strip().lower(), {}))
     for tag in target_tags or ():
         name = TARGET_FEATURES.get(str(tag).strip().lower())
         if name:
@@ -295,21 +295,21 @@ def features_of(verb: str, target_tags=()) -> Dict[str, float]:
 
 
 def check_features() -> List[str]:
-    """Feature-table problems: an undeclared score, or an uncovered soak verb."""
+    """Feature-table problems: an undeclared score, or an uncovered soak action_word."""
     problems: List[str] = []
     declared = {s.name for s in SCORES}
-    for verb, features in ACTION_FEATURES.items():
+    for action_word, features in ACTION_FEATURES.items():
         for name in features:
             if name not in declared:
                 problems.append(
-                    f"ACTION_FEATURES[{verb!r}] names undeclared score `{name}`")
+                    f"ACTION_FEATURES[{action_word!r}] names undeclared score `{name}`")
     for tag, name in TARGET_FEATURES.items():
         if name not in declared:
             problems.append(
                 f"TARGET_FEATURES[{tag!r}] names undeclared score `{name}`")
-    for verb in SOAK_VERBS:
-        if not features_of(verb):
-            problems.append(f"soak verb `{verb}` contributes to no declared score")
+    for action_word in SOAK_ACTIONS:
+        if not features_of(action_word):
+            problems.append(f"soak action_word `{action_word}` contributes to no declared score")
     return problems
 
 
@@ -541,10 +541,10 @@ def check_character() -> List[str]:
 # (budget, prerequisites, location), never as a score delta.
 @dataclass(frozen=True)
 class ValueGate:
-    """A trait id or authored moral flag -> the verb classes it excludes."""
+    """A trait id or authored moral flag -> the action_word classes it excludes."""
 
     flag: str
-    verbs: Tuple[str, ...]
+    action_names: Tuple[str, ...]
     notes: str = ""
 
 
@@ -568,36 +568,36 @@ def _flags(player) -> set:
     return flags
 
 
-def gated_verbs(player) -> set:
-    """Every verb the character's values exclude, whatever else is true."""
+def gated_actions(player) -> set:
+    """Every action_word the character's values exclude, whatever else is true."""
     flags = _flags(player)
     out: set = set()
     for gate in VALUE_GATES:
         if gate.flag in flags:
-            out |= {v.lower() for v in gate.verbs}
+            out |= {v.lower() for v in gate.action_names}
     return out
 
 
-def is_gated(player, verb: str) -> bool:
-    """True when the character's values exclude *verb*."""
-    return (verb or "").strip().lower() in gated_verbs(player)
+def is_gated(player, action_word: str) -> bool:
+    """True when the character's values exclude *action_word*."""
+    return (action_word or "").strip().lower() in gated_actions(player)
 
 
-def filter_actions(player, verbs) -> List[str]:
-    """*verbs* with every value-gated option removed.
+def filter_actions(player, action_names) -> List[str]:
+    """*action_names* with every value-gated option removed.
 
-    Subtracts only. It can never add a verb, so a gate cannot enable an action the
+    Subtracts only. It can never add a action_word, so a gate cannot enable an action the
     capability gate denied - the invariant the acceptance names.
     """
-    gated = gated_verbs(player)
-    return [v for v in verbs if str(v).strip().lower() not in gated]
+    gated = gated_actions(player)
+    return [v for v in action_names if str(v).strip().lower() not in gated]
 
 
 def check_gates() -> List[str]:
-    """A flag with no verbs is a dead entry; a verb in two flags is a note."""
+    """A flag with no action_names is a dead entry; a action_word in two flags is a note."""
     problems: List[str] = []
     for gate in VALUE_GATES:
-        if not gate.verbs:
+        if not gate.action_names:
             problems.append(f"VALUE_GATES[{gate.flag!r}] excludes nothing")
     return problems
 

@@ -1,4 +1,4 @@
-"""Tests for task-958: hide and unhide character verbs over triggers/behaviors.py
+"""Tests for task-958: hide and unhide character actions over triggers/behaviors.py
 hiding edges and unified hidden state perception across room perception,
 scene snapshot, examine_actions, and combat."""
 

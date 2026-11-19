@@ -174,7 +174,7 @@ def test_fear_tags_serialize():
     assert hero.to_dict().get("fear_tags") == ["goblin"]
 
 
-# ───────────────────────── deliberate verbs ───────────────────────────────
+# ───────────────────────── deliberate actions ───────────────────────────────
 
 def test_fear_target_action_tags_the_named_character():
     w = _world()
@@ -199,7 +199,7 @@ def test_interest_target_action_tags_a_named_item():
     assert "ruins" in hero.interest_tags
 
 
-def test_fear_verb_via_http():
+def test_fear_action_via_http():
     from app import create_app
     app = create_app({"TESTING": True})
     app.world.time_per_tick_minutes = 1

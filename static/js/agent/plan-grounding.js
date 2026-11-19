@@ -32,22 +32,22 @@
 window.PlanGrounding = (() => {
     'use strict';
     /**
-     * The plan-step verbs the contract allows.
+     * The plan-step actions the contract allows.
      *
      * ONE SOURCE OF TRUTH, TWO SCHEMAS. The executor's action list lives in
      * `window.Actions` (mirrored from engine/actions.py) and is what
      * `ActionNormalizer.isValidAction` checks. The planner needs a NARROWER
-     * list - verbs that mean something as a step in a plan - but it used to
+     * list - actions that mean something as a step in a plan - but it used to
      * keep that list by hand, and the two drifted: a plan could propose a
-     * verb the executor would reject as unknown, burning the character's turn
+     * action the executor would reject as unknown, burning the character's turn
      * on a command the engine could not run.
      *
      * So the plan list is now the INTERSECTION of the curated intent list and
-     * the executor's registry. A plan verb the engine does not implement can
+     * the executor's registry. A plan action the engine does not implement can
      * never be advertised, and the planner never offers engine plumbing
      * ("manifest", "do", "i") as a plan step.
      *
-     * `perform` is the one plan-only verb: it describes a sustained activity
+     * `perform` is the one plan-only action: it describes a sustained activity
      * ("mine until dusk") and the plan executor re-checks it against the
      * world when the step actually runs.
      */
@@ -304,7 +304,7 @@ window.PlanGrounding = (() => {
         const item = step?.item ?? step?.target ?? '';
         const target = step?.target ?? '';
         const everything = [...facts.areaItems, ...facts.carried, ...facts.people];
-        // A PATH is a valid target for the movement and door verbs.
+        // A PATH is a valid target for the movement and door actions.
         const pathOrItem = [...everything, ...facts.exits];
         const itemOnly = [...facts.areaItems, ...facts.carried];
         switch (act) {

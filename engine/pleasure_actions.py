@@ -1,18 +1,18 @@
 """Pleasure/intimacy action system (tasks 211 + 212).
 
 Everything here is gated behind ``world.mature_content``: the caller (the
-``/api/action`` dispatch) rejects intimacy verbs with a flavor message when
+``/api/action`` dispatch) rejects intimacy actions with a flavor message when
 the toggle is off, and the mechanical pipeline below is a no-op unless the
 target actually carries the pleasure vitals (Arousal/Stimulation/Pleasure,
 which only exist when the toggle is on - task-207).
 
 Pipeline (task-212):
-    VERB_BASE → x intensity modifier → x body-part sensitivity (body_state)
+    ACTION_BASE → x intensity modifier → x body-part sensitivity (body_state)
     → x trait body_part multiplier → Stimulation/Arousal/Pleasure gains,
     with pain_potential flipping into negative pleasure (overstimulation).
 
 @module pleasure_actions
-@contributes parse_intensity, body_part_multiplier, resolve_body_part, apply_stimulation, _reaction_line, _verb3
+@contributes parse_intensity, body_part_multiplier, resolve_body_part, apply_stimulation, _reaction_line, _action3
 @docs docs/virtualWorld/Gameplay/The Commons.md
 """
 
@@ -21,14 +21,14 @@ from __future__ import annotations
 from typing import Any, Dict, Optional, Tuple
 
 # ──────────────────────────────────────────────────────────────
-# Verb base table (task-212, design §Additions #1)
+# Action base table (task-212, design §Additions #1)
 # ──────────────────────────────────────────────────────────────
 
-#: verb → mechanical base properties. ``pressure`` is the raw intensity of
+#: action → mechanical base properties. ``pressure`` is the raw intensity of
 #: the contact, ``pleasure_mult`` scales sensitivity into stimulation,
-#: ``pain_potential`` is how easily the verb hurts (flips to negative
+#: ``pain_potential`` is how easily the action hurts (flips to negative
 #: pleasure), ``stim_type`` describes the rhythm for future use (LLM hints).
-VERB_BASE: Dict[str, Dict[str, Any]] = {
+ACTION_BASE: Dict[str, Dict[str, Any]] = {
     "kiss":   {"pressure": 2, "pleasure_mult": 1.0, "pain_potential": 0, "stim_type": "sustained"},
     "caress": {"pressure": 1, "pleasure_mult": 0.8, "pain_potential": 0, "stim_type": "sustained"},
     "lick":   {"pressure": 1, "pleasure_mult": 1.2, "pain_potential": 0, "stim_type": "sustained"},
@@ -39,10 +39,10 @@ VERB_BASE: Dict[str, Dict[str, Any]] = {
     "tickle": {"pressure": 1, "pleasure_mult": 0.7, "pain_potential": 0, "stim_type": "rhythmic"},
 }
 
-#: The verbs the /api/action dispatch routes here. Kept clear of every
-#: existing command verb (grab → grapple, grope/feel around → fumble,
+#: The actions the /api/action dispatch routes here. Kept clear of every
+#: existing command action (grab → grapple, grope/feel around → fumble,
 #: release → grapple release, strip/undress → self-only undress).
-INTIMACY_VERBS: Tuple[str, ...] = tuple(VERB_BASE.keys())
+INTIMACY_ACTIONS: Tuple[str, ...] = tuple(ACTION_BASE.keys())
 
 #: intensity word → multiplier
 INTENSITY_MODIFIERS: Dict[str, float] = {
@@ -55,7 +55,7 @@ INTENSITY_ADVERBS = {
     "firmly": "firm", "hard": "firm", "roughly": "firm", "tightly": "firm",
 }
 
-#: verb → body part used when the command carries no explicit ``where``
+#: action → body part used when the command carries no explicit ``where``
 DEFAULT_REGIONS = {
     "kiss": "lips", "lick": "neck", "suck": "neck", "bite": "neck",
     "caress": "torso", "pinch": "torso", "blow": "neck", "tickle": "torso",
@@ -122,7 +122,7 @@ def body_part_multiplier(target, region_id: str) -> float:
 
 
 def resolve_body_part(target, where_text: Optional[str], graph,
-                      verb: str = "") -> Dict[str, Any]:
+                      action: str = "") -> Dict[str, Any]:
     """task-211 ``_resolve_body_part``: resolve + accessibility-check a body part.
 
     Returns ``{region, covered, accessible, default}``. ``region`` is None when
@@ -135,7 +135,7 @@ def resolve_body_part(target, where_text: Optional[str], graph,
     region = resolve_region(where_text) if where_text else None
     default = False
     if region is None and not where_text:
-        region = resolve_region(DEFAULT_REGIONS.get(verb, "torso"))
+        region = resolve_region(DEFAULT_REGIONS.get(action, "torso"))
         default = True
     if region is None:
         return {"region": None, "covered": False, "accessible": False, "default": default}
@@ -143,7 +143,7 @@ def resolve_body_part(target, where_text: Optional[str], graph,
     return {"region": region, "covered": covered, "accessible": True, "default": default}
 
 
-def apply_stimulation(actor, target, verb: str, region_id: str,
+def apply_stimulation(actor, target, action: str, region_id: str,
                       intensity: str = "normal", covered: bool = False,
                       closeness: float = 0.0) -> Dict[str, Any]:
     """task-212 multiplier pipeline. Mutates the target's pleasure vitals when
@@ -152,7 +152,7 @@ def apply_stimulation(actor, target, verb: str, region_id: str,
     Never raises: a target without the vitals (mature toggle off) yields a
     zero-delta report so the action degrades to pure flavor.
     """
-    base = VERB_BASE.get(verb)
+    base = ACTION_BASE.get(action)
     if base is None:
         return {"stim": 0, "arousal": 0, "pleasure": 0, "pain": 0, "region": region_id}
     intensity_mod = INTENSITY_MODIFIERS.get(intensity, 1.0)
@@ -209,9 +209,9 @@ def apply_stimulation(actor, target, verb: str, region_id: str,
     # state is created.
     if getattr(target, "record_stimulation_path", None) and stim_gain > 0:
         path_key = target.stimulation_path_key(
-            region_id=region_id, verb=verb, source="interaction")
+            region_id=region_id, action=action, source="interaction")
         target.record_stimulation_path(path_key, stim_gain, region_id=region_id,
-                                       verb=verb)
+                                       action=action)
         report["path"] = path_key
 
     return report
@@ -227,19 +227,19 @@ def _reaction_line(target_name: str, stim_gain: int, pain: int) -> str:
     return random.choice(_REACTION_MILD).replace("{target}", name)
 
 
-def _verb3(verb: str) -> str:
+def _action3(action: str) -> str:
     """Third-person singular: kiss→kisses, pinch→pinches, lick→licks."""
-    if verb.endswith(("s", "x", "z", "ch", "sh")):
-        return verb + "es"
-    if verb.endswith("y") and len(verb) > 1 and verb[-2] not in "aeiou":
-        return verb[:-1] + "ies"
-    return verb + "s"
+    if action.endswith(("s", "x", "z", "ch", "sh")):
+        return action + "es"
+    if action.endswith("y") and len(action) > 1 and action[-2] not in "aeiou":
+        return action[:-1] + "ies"
+    return action + "s"
 
 
-def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
+def execute_intimacy_action(world, actor_name: str, action: str, target_name: str,
                             where_text: Optional[str] = None,
                             intensity: str = "normal") -> str:
-    """task-211 entry point: run one intimacy verb and return the output text.
+    """task-211 entry point: run one intimacy action and return the output text.
 
     Assumes the mature-content gate already passed (the dispatch checks it).
     """
@@ -249,7 +249,7 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
     if actor is None:
         return "You can't do that."
     if target_name == actor_name:
-        return f"You can't {verb} yourself."
+        return f"You can't {action} yourself."
 
     target = world.players.get(target_name)
     if target is None:
@@ -266,7 +266,7 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
     if getattr(target, "state", None) == "dead":
         return f"{target_name} doesn't react."
 
-    part = resolve_body_part(target, where_text, world.graph, verb)
+    part = resolve_body_part(target, where_text, world.graph, action)
     if not part["accessible"]:
         return f"You can't find that body part on {target_name}."
 
@@ -280,12 +280,12 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
     except (TypeError, ValueError):
         closeness = 0.0
 
-    report = apply_stimulation(actor, target, verb, part["region"],
+    report = apply_stimulation(actor, target, action, part["region"],
                                intensity=intensity, covered=part["covered"],
                                closeness=closeness)
 
     prefix = {"light": "gently ", "firm": "firmly "}.get(intensity, "")
-    line = f"{actor_name} {prefix}{_verb3(verb)} {target_name} on the {region_label}{through}."
+    line = f"{actor_name} {prefix}{_action3(action)} {target_name} on the {region_label}{through}."
     if report["stim"] > 0 or report["pain"] > 0:
         line += " " + _reaction_line(target_name, report["stim"], report["pain"])
     if report.get("overstimulated"):
@@ -294,7 +294,7 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
     try:
         watchers = world.npc_behaviors.process_bystander_reactions(
             actor_name, target_name, "intimacy",
-            {"verb": verb, "region": part["region"]})
+            {"action": action, "region": part["region"]})
     except Exception:
         watchers = []
     if watchers:
@@ -364,7 +364,7 @@ def apply_exhibitionism(world, target, target_name) -> str:
     if "Pleasure" in vitals and pleasure_gain:
         vitals["Pleasure"] = min(100, vitals.get("Pleasure", 0) + pleasure_gain)
 
-    # task-545: a sighting is not a path - no region, no verb. Filing it under its
+    # task-545: a sighting is not a path - no region, no action. Filing it under its
     # own source is what lets a path gate (task-488) tell "you were watched" from
     # "you were touched".
     if hasattr(target, "record_stimulation_path"):

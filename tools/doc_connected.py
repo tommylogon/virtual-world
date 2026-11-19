@@ -55,7 +55,7 @@ SECTION_REFS: tuple[tuple[str, str, str], ...] = (
     ("Narration System", "Agent Engine", "Prompt Building"),
     ("Memory Dynamics", "Agent Engine", "Structured Actions (task-160)"),
     ("Search & Forage", "Background Simulation", "The entry point"),
-    ("Background Simulation", "Search & Forage", "The verbs are three different things"),
+    ("Background Simulation", "Search & Forage", "The actions are three different things"),
     ("Per-Agent Knowledge (Fog of War)", "Background Simulation", "Wiring"),
     ("WorldPainter", "Grid to Graph", "The pipeline"),
     ("Grid to Graph", "WorldPainter", "Known constraints"),

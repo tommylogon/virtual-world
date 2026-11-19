@@ -561,7 +561,7 @@ class LibraryBrowser {
                     { key: 'description', label: 'Description', type: 'textarea', default: '' },
                     { key: 'current_state', label: 'Default State', type: 'select', options: ['open', 'closed', 'locked', 'blocked', 'broken', 'hidden'], default: 'closed' },
                     { key: 'pass_message', label: 'On Traverse Narration', type: 'textarea', default: '' },
-                    { key: 'requires', label: 'Required Movement Verb', type: 'select', options: ['', 'crawl', 'climb', 'jump'], default: '' },
+                    { key: 'requires', label: 'Required Movement Action', type: 'select', options: ['', 'crawl', 'climb', 'jump'], default: '' },
                     { key: 'max_size', label: 'Max Size Through', type: 'select', options: ['', 'tiny', 'small', 'normal', 'huge', 'giant', 'titanic'], default: '' },
                     { key: 'jump_dc', label: 'Jump DC', type: 'number', default: 12 },
                     { key: 'climb_dc', label: 'Climb DC', type: 'number', default: 12 },

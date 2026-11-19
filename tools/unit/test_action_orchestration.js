@@ -49,19 +49,19 @@ test('a nested action object keeps its own item and target', () => {
     assertEq(cmd, 'use lighter on candle', 'nested fields are used');
 });
 
-test('a nested action object with no verb yields no command at all', () => {
+test('a nested action object with no action yields no command at all', () => {
     const cmd = ORCH_AN.normalizeStructuredAction({ action: { item: 'lighter' } });
     assertEq(cmd, '', 'an unreadable action produces no command');
 });
 
-test('classifyAction separates a malformed payload from an unknown verb', () => {
+test('classifyAction separates a malformed payload from an unknown action', () => {
     const malformed = ORCH_AN.classifyAction('[object Object]');
     assertFalse(malformed.ok, 'a stringified object is not a valid action');
     assertEq(malformed.category, 'schema_invalid', 'malformed payload is its own category');
 
     const unknown = ORCH_AN.classifyAction('teleport to the moon');
-    assertFalse(unknown.ok, 'unknown verb is not valid');
-    assertEq(unknown.category, 'unknown_verb', 'unknown verb is its own category');
+    assertFalse(unknown.ok, 'unknown action is not valid');
+    assertEq(unknown.category, 'unknown_action', 'unknown action is its own category');
 
     const good = ORCH_AN.classifyAction('take lighter');
     assertTrue(good.ok, 'a real command is valid');
@@ -157,14 +157,14 @@ test('ground reports the index of every step, so a repair can be positional', ()
     assertEq(r.rejections[0].index, 1, 'the rejected step knows its position');
 });
 
-test('the plan verb list cannot drift from the executor registry', () => {
-    // Every plan verb the executor does not know would be a command the
+test('the plan action list cannot drift from the executor registry', () => {
+    // Every plan action the executor does not know would be a command the
     // engine rejects at action time.
     const registry = window.Actions;
     if (!registry) return; // registry not loaded in this sandbox - nothing to compare
     const known = registry.VALID_SET || new Set(registry.VALID_ACTIONS || []);
     const drifting = [...ORCH_PG.ACTIONS].filter((v) => v !== 'perform' && !known.has(v));
-    assertEq(drifting.length, 0, 'plan verbs missing from the executor registry: ' + drifting.join(', '));
+    assertEq(drifting.length, 0, 'plan actions missing from the executor registry: ' + drifting.join(', '));
 });
 
 test('a repair keeps the steps that already grounded', () => {
@@ -273,14 +273,14 @@ test('a malformed command is reported as a malformed command', () => {
     assertTrue(/never reached the world/i.test(text), 'the truth is that nothing happened');
 });
 
-test('an unknown verb is reported as an unknown verb', () => {
-    const text = ORCH_AN.rejectionText('unknown_verb', 'teleport to the moon');
-    assertTrue(/not something you know how to do/i.test(text), 'the verb is named as unknown');
+test('an unknown action is reported as an unknown action', () => {
+    const text = ORCH_AN.rejectionText('unknown_action', 'teleport to the moon');
+    assertTrue(/not something you know how to do/i.test(text), 'the action is named as unknown');
     assertFalse(/malformed/i.test(text), 'not confused with a malformed command');
 });
 
 test('the rejection text never invents a world obstruction', () => {
-    for (const cat of ['schema_invalid', 'unknown_verb']) {
+    for (const cat of ['schema_invalid', 'unknown_action']) {
         const text = ORCH_AN.rejectionText(cat, 'x');
         assertFalse(/blocked|barrier|forbid|won't let|cannot go through/i.test(text),
             'category ' + cat + ' must not read as a world obstruction');
@@ -288,7 +288,7 @@ test('the rejection text never invents a world obstruction', () => {
 });
 
 test('every failure category has a text', () => {
-    for (const cat of ['schema_invalid', 'unknown_verb', 'empty']) {
+    for (const cat of ['schema_invalid', 'unknown_action', 'empty']) {
         const text = ORCH_AN.rejectionText(cat, 'x');
         assertTrue(typeof text === 'string' && text.length > 0, 'category ' + cat + ' has text');
     }

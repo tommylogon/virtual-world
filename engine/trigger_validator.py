@@ -635,14 +635,14 @@ class TriggerValidator:
             if not missing:
                 return
             severity = "warning" if etype == "remove_item" else "error"
-            verb = {
+            action = {
                 "spawn_item": "Spawns",
                 "give_item": "Gives",
                 "remove_item": "Removes",
             }[etype]
             issues.append(self._issue(
                 severity, "missing_effect_item",
-                f"{verb} item '{item_id}' which is neither in the world graph "
+                f"{action} item '{item_id}' which is neither in the world graph "
                 f"nor the item library - "
                 f"{'nothing will be removed' if etype == 'remove_item' else 'the effect will no-op'}.",
                 source_node_id=source_id,

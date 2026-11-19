@@ -1,7 +1,7 @@
-"""Item verb facade.
+"""Item action facade.
 
-The verb families live in focused modules under ``engine/items/`` (task-314
-verb-family split); ``ItemActions`` composes them and owns the shared context
+The action families live in focused modules under ``engine/items/`` (task-314
+action-family split); ``ItemActions`` composes them and owns the shared context
 (graph, matching, trigger system, equipment, ghost system, world) plus the
 capacity plumbing. Public helpers (``normalize_item_actions``,
 carry-weight math, ``AmbiguousItemError``) are re-exported here so existing

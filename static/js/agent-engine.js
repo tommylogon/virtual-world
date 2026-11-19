@@ -10,9 +10,9 @@
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-const NOOP_VERBS = ['wait', 'nothing', 'pause', 'stay'];
+const NOOP_ACTIONS = ['wait', 'nothing', 'pause', 'stay'];
 // task-104: after a SUCCESSFUL action, the agent may chain ONE immediate
-// follow-up from the verb list (same-turn, like the original dash chain).
+// follow-up from the actionWord list (same-turn, like the original dash chain).
 // The LLM answers a quick decision prompt; invalid picks are discarded.
 const CHAIN_RULES = {
     dash: ['go', 'wait'],
@@ -214,7 +214,7 @@ class AgentEngine {
         return false;
     }
     _isNoopAction(action) {
-        return NOOP_VERBS.includes((action || '').split(' ')[0].toLowerCase());
+        return NOOP_ACTIONS.includes((action || '').split(' ')[0].toLowerCase());
     }
     async _speakLine(charName, player, speech, volume = 'say', target = null) {
         const spokenVolume = volume || 'say';
@@ -246,11 +246,11 @@ class AgentEngine {
                 events.log(`🔒 ${speakerName} → ${target}: "${speech}"`, "msg-whisper");
             }
             else {
-                events.log(`[${speakerName}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
+                events.log(`[${speakerName}] ${ActionNormalizer.volAction(spokenVolume)}: "${speech}"`, "msg-speech");
             }
         }
         catch (err) {
-            events.log(`[${speakerName}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
+            events.log(`[${speakerName}] ${ActionNormalizer.volAction(spokenVolume)}: "${speech}"`, "msg-speech");
         }
     }
     async _performEmote(charName, emote) {
@@ -855,20 +855,20 @@ class AgentEngine {
         const spaceIdx = act.search(/\s/);
         if (spaceIdx < 0)
             return { action: act, target: groundedTarget, speechVolume: groundedVolume };
-        const verb = act.slice(0, spaceIdx).toLowerCase();
+        const actionWord = act.slice(0, spaceIdx).toLowerCase();
         const rest = act.slice(spaceIdx + 1).trim();
         if (!rest)
             return { action: act, target: groundedTarget, speechVolume: groundedVolume };
-        if (verb === 'give' || verb === 'steal' || verb === 'teach') {
+        if (actionWord === 'give' || actionWord === 'steal' || actionWord === 'teach') {
             const m = rest.match(/^(.+?)\s+(to|from)\s+(.+)$/i);
             if (m) {
                 const itemGrounded = this._matchCanonicalEntity(m[1], allItems.length ? allItems : allEntities);
                 const prep = m[2].toLowerCase();
                 const targGrounded = this._matchCanonicalEntity(m[3], allPeople.length ? allPeople : allEntities);
-                return { action: `${verb} ${itemGrounded} ${prep} ${targGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
+                return { action: `${actionWord} ${itemGrounded} ${prep} ${targGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
             }
         }
-        if (verb === 'use') {
+        if (actionWord === 'use') {
             const m = rest.match(/^(.+?)\s+on\s+(.+)$/i);
             if (m) {
                 const itemGrounded = this._matchCanonicalEntity(m[1], allItems.length ? allItems : allEntities);
@@ -876,16 +876,16 @@ class AgentEngine {
                 return { action: `use ${itemGrounded} on ${targGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
             }
         }
-        if (verb === 'go' || verb === 'crawl' || verb === 'climb' || verb === 'jump' || verb === 'dash') {
+        if (actionWord === 'go' || actionWord === 'crawl' || actionWord === 'climb' || actionWord === 'jump' || actionWord === 'dash') {
             const wayGrounded = this._matchCanonicalEntity(rest, allWays.length ? allWays : allEntities);
-            return { action: `${verb} ${wayGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
+            return { action: `${actionWord} ${wayGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
         }
-        if (verb === 'approach' || verb === 'attack' || verb === 'lead' || verb === 'kiss' || verb === 'caress' || verb === 'follow') {
+        if (actionWord === 'approach' || actionWord === 'attack' || actionWord === 'lead' || actionWord === 'kiss' || actionWord === 'caress' || actionWord === 'follow') {
             const pool = [...allPeople, ...allItems, ...allWays];
-            return { action: `${verb} ${this._matchCanonicalEntity(rest, pool)}`, target: groundedTarget, speechVolume: groundedVolume };
+            return { action: `${actionWord} ${this._matchCanonicalEntity(rest, pool)}`, target: groundedTarget, speechVolume: groundedVolume };
         }
         const itemPool = [...allItems, ...allWays, ...allPeople];
-        return { action: `${verb} ${this._matchCanonicalEntity(rest, itemPool)}`, target: groundedTarget, speechVolume: groundedVolume };
+        return { action: `${actionWord} ${this._matchCanonicalEntity(rest, itemPool)}`, target: groundedTarget, speechVolume: groundedVolume };
     }
     /**
      * Build and inject the `[CURRENT DRAFT IN COMPOSER]` and
@@ -1269,7 +1269,7 @@ class AgentEngine {
                     // render it so a pick resolves to the identity key.
                     if (Array.isArray(data?.choices)) {
                         for (const group of data.choices) {
-                            events.logChoices(group.verb, group.options, charName);
+                            events.logChoices(group.actionWord, group.options, charName);
                         }
                     }
                     agentConfig.lastActionResult[charName] = output;
@@ -1510,7 +1510,7 @@ class AgentEngine {
                 // task-185: shouldReplan now returns a REASON string (task-340
                 // crisis label) or null; setPlan records the turn clock.
                 // task-856: Seed PlanTracker from server active_pursuit if present
-                // task-984: Plan generation is an explicit free mental verb (`plan [intent]`),
+                // task-984: Plan generation is an explicit free mental actionWord (`plan [intent]`),
                 // not a forced pre-turn LLM call. Seed authored active_pursuit if present and
                 // let === YOUR PLAN === cue the agent when no plan is active or replanning is needed.
                 PlanTracker.seedFromPlayer?.(charName, player, this.turnNumber);
@@ -1521,7 +1521,7 @@ class AgentEngine {
                 // ── Multi-action turn (task-352, 2026-10-08) ──
                 // A turn holds up to the tier budget (major 1 · minor 1 · free 3).
                 // This loops decide→act→react, rebuilding the prompt each pass from
-                // fresh state so spent slots hide the verbs the character can no
+                // fresh state so spent slots hide the actionNames the character can no
                 // longer afford (room-context feeds turn_slots to the brackets;
                 // `wait` is exempt, it is the turn's exit). The budget is a CEILING
                 // not a quota: the loop exits on "done" - wait, nothing worth doing,
@@ -1600,7 +1600,7 @@ class AgentEngine {
                         const verdict = ActionNormalizer.classifyAction(finalAction, charName);
                         if (!verdict.ok) {
                             // The category is part of the message on purpose: a
-                            // malformed payload and an unknown verb are ENGINE
+                            // malformed payload and an unknown actionWord are ENGINE
                             // failures, and a reader (or a filter) must be able to
                             // tell them apart from a world refusal.
                             events.log(`⚠️ ${charName} invalid action: "${finalAction}" - skipping [${verdict.category}: ${verdict.detail}]`, 'error-msg');
@@ -1733,13 +1733,13 @@ class AgentEngine {
                         }
                     }
                     // ── Chained follow-up (task-104) ──
-                    // Dash→go was the original; generalized to verb families:
+                    // Dash→go was the original; generalized to actionWord families:
                     // lead → go/approach/release, grab → approach/release.
                     if (finalAction && actionResult && actionSucceeded) {
-                        const chainVerb = finalAction.split(/\s+/)[0].toLowerCase();
-                        const allowed = CHAIN_RULES[chainVerb];
+                        const chainAction = finalAction.split(/\s+/)[0].toLowerCase();
+                        const allowed = CHAIN_RULES[chainAction];
                         if (allowed) {
-                            actionResult = await this._runChainFollowUp(charName, player, actionResult, history, chainVerb, allowed);
+                            actionResult = await this._runChainFollowUp(charName, player, actionResult, history, chainAction, allowed);
                         }
                     }
                     if (actionResult) {
@@ -2393,16 +2393,16 @@ class AgentEngine {
      * feedback, not something the character remembers.
      *
      * The wording is CATEGORY-SENSITIVE on purpose. A malformed command or an
-     * unknown verb is an engine-side refusal, and saying "you try to X, but
+     * unknown actionWord is an engine-side refusal, and saying "you try to X, but
      * you can't do that" made characters invent supernatural barriers to
      * explain a malformed JSON payload. The character is told what actually
      * happened: the command never reached the world.
      *
      * @param {string} charName - Character name
      * @param {string} rejectedAction - The rejected action text
-     * @param {string} category - 'schema_invalid' | 'unknown_verb' | 'empty'
+     * @param {string} category - 'schema_invalid' | 'unknown_action' | 'empty'
      */
-    _surfaceRejectedAction(charName, rejectedAction, category = 'unknown_verb') {
+    _surfaceRejectedAction(charName, rejectedAction, category = 'unknown_action') {
         const text = ActionNormalizer.rejectionText(category, rejectedAction);
         agentConfig.lastActionResult[charName] = text;
         return text;
@@ -2416,7 +2416,7 @@ class AgentEngine {
      * @param {string} charName - Character name
      * @param {Object} player - Player data object
      * @param {Array} history - Conversation history (mutated: retry prompt + response)
-     * @param {string} failedAction - The action string that failed ('' if verb-rejected)
+     * @param {string} failedAction - The action string that failed ('' if actionWord-rejected)
      * @param {string} failedResult - Result/error text from the failed action
      * @param {string} memoryNL - Memory context (parity with turn flow; unused here)
      * @returns {Promise<Object|null>} Retry outcome or null
@@ -2484,10 +2484,10 @@ class AgentEngine {
     /**
      * Chained follow-up (task-104 / task-104 generalization of dash→go):
      * after a successful action with a CHAIN_RULES entry, the agent gets one
-     * immediate decision to continue with an allowed verb (go/approach/
+     * immediate decision to continue with an allowed actionWord (go/approach/
      * release/wait). Returns the combined result text.
      */
-    async _runChainFollowUp(charName, player, resultText, history, sourceVerb, allowedVerbs) {
+    async _runChainFollowUp(charName, player, resultText, history, sourceAction, allowedActions) {
         await worldState.fetch();
         const freshState = worldState.data;
         if (!freshState)
@@ -2495,9 +2495,9 @@ class AgentEngine {
         const freshPlayer = freshState?.players?.[charName] || player;
         const currentArea = freshState.areas?.[freshPlayer?.current_area || freshState.current_area] || null;
         const roomContext = PromptBuilder.buildRoomContext(freshState, charName, freshPlayer, currentArea);
-        events.logPhase(charName, 'decide', `${sourceVerb} follow-up`);
+        events.logPhase(charName, 'decide', `${sourceAction} follow-up`);
         VW?.ui?.setStatus?.("Chain follow-up...", "info");
-        const prompt = PromptBuilder.buildChainFollowUpPrompt(charName, roomContext, resultText, sourceVerb, allowedVerbs);
+        const prompt = PromptBuilder.buildChainFollowUpPrompt(charName, roomContext, resultText, sourceAction, allowedActions);
         history.push({ role: 'user', content: prompt });
         const response = await this._callLLMMessages(history, 'chain-follow-up', charName);
         history.push({ role: 'assistant', content: response || '' });
@@ -2510,9 +2510,9 @@ class AgentEngine {
         const followAction = parsed?.action || '';
         if (!followAction || this._checkCancel())
             return resultText;
-        const verb = followAction.split(/\s+/)[0].toLowerCase();
+        const actionWord = followAction.split(/\s+/)[0].toLowerCase();
         const exitNames = Object.keys(currentArea?.exits || {}).map(e => e.toLowerCase());
-        const allowed = allowedVerbs.includes(verb);
+        const allowed = allowedActions.includes(actionWord);
         const isExitName = exitNames.includes(followAction.toLowerCase());
         if (!ActionNormalizer.isValidAction(followAction, charName) || (!allowed && !isExitName))
             return resultText;
@@ -2539,7 +2539,7 @@ class AgentEngine {
             return resultText + '\n' + followResult;
         }
         catch (err) {
-            events.log(`${sourceVerb} follow-up error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
+            events.log(`${sourceAction} follow-up error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
             return resultText;
         }
     }
@@ -2564,7 +2564,7 @@ class AgentEngine {
         // error does not: the model has to be told what the field must be,
         // or it reproduces the same malformed shape.
         if (isSchemaError) {
-            history.push({ role: 'user', content: 'Your previous reply was rejected: the "action" field must be a single verb string (for example "action": "take"), never an object and never a sentence. Respond again with the same schema, with "action" as a plain verb string.' });
+            history.push({ role: 'user', content: 'Your previous reply was rejected: the "action" field must be a single actionWord string (for example "action": "take"), never an object and never a sentence. Respond again with the same schema, with "action" as a plain actionWord string.' });
         }
         const retried = await this._callLLMMessages(history, stepName, charName);
         if (isSchemaError)

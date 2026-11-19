@@ -7,9 +7,9 @@ declares ``examine,use`` and never ``take``. No new edge type, no new
 
 That makes the item's declared actions the single authority on portability, and
 it has to be the *single* authority - not just for ``take``. Before this,
-``take`` was the only verb that read the list, so a part was untakeable but
+``take`` was the only action_word that read the list, so a part was untakeable but
 would still have been droppable, stealable and puttable had anything ever
-pointed a verb at it. Every verb that moves an item asks here.
+pointed a action_word at it. Every action_word that moves an item asks here.
 
 The reachability half is different on purpose: a part is not portable *and*
 must still be reachable and usable, which is what ``engine.item_reach`` is for.
@@ -24,7 +24,7 @@ from typing import Optional
 
 
 def item_actions(node) -> list:
-    """The verbs *node* declares, normalised from either a list or a
+    """The action_names *node* declares, normalised from either a list or a
     comma-separated string. Absent means "nothing declared"."""
     raw = (getattr(node, "properties", None) or {}).get("actions", [])
     if isinstance(raw, str):
@@ -40,7 +40,7 @@ def item_allows(action: str, node) -> bool:
 def is_portable(node) -> bool:
     """True when *node* may be picked up, moved, dropped, stolen or put away.
 
-    ``take`` is the load-bearing verb: the item declares what may be done
+    ``take`` is the load-bearing action_word: the item declares what may be done
     *with* it, and taking it away is the one that must be authorised first.
     Note ``normalize_item_actions`` auto-adds each action's inverse, so a part
     has to omit **both** ``take`` and ``drop`` - a lone ``drop`` would author
@@ -71,8 +71,8 @@ def parent_of(graph, node) -> Optional[object]:
     return None
 
 
-def portable_refusal(graph, node, verb: str) -> str:
-    """Why *verb* is refused on *node*, in the character's own terms.
+def portable_refusal(graph, node, action_word: str) -> str:
+    """Why *action_word* is refused on *node*, in the character's own terms.
 
     A part is not a loose thing you fumble with - it is a piece of something.
     Naming the device is more use to a player (and to an agent deciding what to
@@ -82,5 +82,5 @@ def portable_refusal(graph, node, verb: str) -> str:
     parent = parent_of(graph, node)
     if parent is not None:
         return (f"The {name} is part of the {parent.name} - it doesn't come "
-                f"loose to {verb}.")
-    return f"The {name} is fixed in place - you can't {verb} it."
+                f"loose to {action_word}.")
+    return f"The {name} is fixed in place - you can't {action_word} it."

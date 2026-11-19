@@ -161,7 +161,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) - all in ONE response. The action will be executed by the system and its result comes back in the next message - do not assume the outcome of your action in your inner monologue or speech.
 
 Follow the standing ACTION, SPEECH & VOLUME, and JSON rules in your system prompt.
-Your context's === AVAILABLE ACTIONS === lists verbs currently available beyond your surroundings.
+Your context's === AVAILABLE ACTIONS === lists actions currently available beyond your surroundings.
 
 Respond with ONLY a single raw JSON object matching this schema:
 ${PromptBuilder.buildJsonExample(schemaFields)}`;
@@ -239,18 +239,18 @@ If you have nothing to react with:
      * @param {string} charName - Character name
      * @param {string} roomContext - Pre-built area context string
      * @param {string} resultText - Result text of the source action
-     * @param {string} sourceVerb - The verb that just succeeded (dash/lead/grab)
-     * @param {string[]} allowedVerbs - Follow-up verbs the chain allows
+     * @param {string} sourceAction - The action that just succeeded (dash/lead/grab)
+     * @param {string[]} allowedActions - Follow-up actions the chain allows
      * @returns {string} Follow-up prompt string
      */
-    function buildChainFollowUpPrompt(charName: string, roomContext: string, resultText: string, sourceVerb: string, allowedVerbs: string[]) {
-        const verbs = (allowedVerbs && allowedVerbs.length) ? allowedVerbs.join(', ') : 'go';
+    function buildChainFollowUpPrompt(charName: string, roomContext: string, resultText: string, sourceAction: string, allowedActions: string[]) {
+        const actions = (allowedActions && allowedActions.length) ? allowedActions.join(', ') : 'go';
         return `${roomContext}
 
 === CHAIN FOLLOW-UP ===
-You just ${sourceVerb} - ${resultText}
+You just ${sourceAction} - ${resultText}
 
-You may chain ONE immediate follow-up action before your turn ends: ${verbs}.
+You may chain ONE immediate follow-up action before your turn ends: ${actions}.
 Pick an exit or target from the context above (go/approach), release a grapple, or respond with "wait".
 This is a quick decision - no speech, no emote, no memory.
 Respond ONLY raw JSON, every field shown (null what you don't need):
@@ -347,7 +347,7 @@ Use tool calls for all communication. Plain response text is your private, in-ch
             + `Attempted: "${failedAction}"\n`
             + `Reason: ${String(failedResult || '').trim()}\n\n`
             + 'Choose a different action instead. Do not repeat the failed action. '
-            + 'If the same goal is reachable through another verb or target, use that; '
+            + 'If the same goal is reachable through another action or target, use that; '
             + 'otherwise pick something else you can do right now. '
             + 'Keep the same JSON schema as a normal decision, with only action/item/target fields';
     }

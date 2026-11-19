@@ -407,7 +407,7 @@ class EquipmentSystem:
         """task-654: write an ``equipped`` mapping to BOTH truths, atomically.
 
         ``player.equipped`` and the graph's ``EDGE_EQUIPPED`` edges used to be
-        two independent stores, and every writer outside the equipment verbs -
+        two independent stores, and every writer outside the equipment actions -
         ``POST /api/players/<name>``, ``/api/players/import``, the library
         character loader - set only the first. Everything that actually *reads*
         equipment went the other way: ``combat._best_weapon_node`` (weapon
@@ -415,7 +415,7 @@ class EquipmentSystem:
         insulation, resistances) read the **edges**. So an API write returned 200,
         showed the item in the inspector's Equipment section, and did nothing at
         all in combat: a silent no-op in the only two places it mattered. The
-        in-world verb ``take`` writes both, which is why the same character could
+        in-world action ``take`` writes both, which is why the same character could
         be shown two contradictory states side by side.
 
         This is the single writer for that mapping, so a direct write can no

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-989",
+  "kind": "task",
+  "number": 989,
+  "title": "Align Benchmark Lab action validation with Viwo proper and add Preferred Action (+1) scoring",
+  "status": "review",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [
+    "benchmark",
+    "actions",
+    "validation",
+    "prompting",
+    "scoring"
+  ],
+  "created": "2026-11-18",
+  "updated": "2026-11-18",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-907",
+      "task-988"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Make Benchmark Lab (/bench) parse, normalize, and dry-run validate actions using the same ActionNormalizer + handle_take_action rules as Viwo proper, and add a Preferred Action (+1 Score) control to Turn Context.",
+    "why": "/bench was missing script tags for ActionNormalizer/ActionVerbs/json-utils, stripped structured action fields before normalizing, and called a validate_action_command implementation that checked _VERBS_NEEDING_TARGET before self-contained verbs (falsely rejecting bare relieve, look, and search), failed to bind active_player during item matching, did not split compound commands (use X on Y, put X in Y, give X to Y), and passed unknown verbs via a catch-all return. In addition, users had no way to specify a contextually preferred action for +1 scoring on a turn prompt.",
+    "how": "1. Load shared/json-utils.js, agent/action-verbs.generated.js, agent/action-normalizer.js, and agent/response-parser.js in templates/benchmark.html.\\n2. Update evaluateModelOutput in static/js/benchmark/benchmark.js to repair JSON, preserve full structured action objects (item, target, relation, where, intensity, amount, text) when calling ActionNormalizer.normalizeStructuredAction, run ActionNormalizer.classifyAction, and query POST /api/action/validate.\\n3. Update validate_action_command and handle_validate_action in routes/action_handlers.py to bind active_player to char_name, evaluate self-contained/optional-target verbs before _VERBS_NEEDING_TARGET, report toilet/latrine fixture presence on relieve, split compound preposition commands matching handle_take_action, and reject unregistered verbs against engine/action_verbs.py (with forward-compatible fallback to engine/actions.py for task-988).\\n4. Add Preferred Action (+1 Score) input + room-populated datalist in templates/benchmark.html and live re-scoring in static/js/benchmark/benchmark.js.",
+    "verify": "1. Run python -m pytest tests/test_benchmark_routes.py -v -> 16/16 passed.\\n2. Check zero em-dashes across modified files.",
+    "acceptance": [
+      {
+        "text": "templates/benchmark.html loads shared/json-utils.js, agent/action-verbs.generated.js, agent/action-normalizer.js, and agent/response-parser.js so /bench uses Viwo's real action normalization and classification pipeline",
+        "done": true
+      },
+      {
+        "text": "validate_action_command in routes/action_handlers.py temporarily binds active_player to char_name, evaluates self-contained and optional-target verbs (relieve, look, search, rest, sleep, flee, plan, schedule, goal, obligation, recall, find, hide, wake, release, fix) before _VERBS_NEEDING_TARGET, splits 2-target commands (use X on/in Y, put/place/stow X in/on/under/beside/behind/at Y, give X to Y, steal X from Y, teach X to Y, combine X with Y, attack/intimacy X on region), and rejects unknown verbs via the action verb registry",
+        "done": true
+      },
+      {
+        "text": "Benchmark Lab (/bench) Turn Context panel includes a Preferred Action (+1 Score) selector with room-grounded autocomplete suggestions and live re-scoring across model cards and exported JSON",
+        "done": true
+      },
+      {
+        "text": "pytest tests/test_benchmark_routes.py passes 16/16 with zero em-dashes",
+        "done": true
+      }
+    ],
+    "files": [
+      "routes/action_handlers.py",
+      "templates/benchmark.html",
+      "static/js/benchmark/benchmark.js",
+      "tests/test_benchmark_routes.py",
+      "docs/virtualWorld/AI & Narration/Agent Engine.md"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: /bench (Benchmark Lab Turn Context sidebar and Model Comparison cards)\\n\\nCurrent availability: Live in templates/benchmark.html, static/js/benchmark/benchmark.js, and routes/action_handlers.py.\\n\\nLive verification steps:\\n1. Open /bench and select a character and optional simulated area.\\n2. Enter or pick a Preferred Action (+1 Score) in Turn Context (e.g. go hallway, relieve, or examine desk).\\n3. Run or reroll models; verify self-contained actions (relieve, look, search) and compound actions (use X on Y, put X on Y, give X to Y) validate identically to Viwo proper via ActionNormalizer + POST /api/action/validate, and that matching the preferred action awards +1 in the card Score metric and validation flags."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

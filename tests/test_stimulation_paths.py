@@ -2,7 +2,7 @@
 `single_track` gate — the three that were blocked on each other.
 
 - **545** records *which path* raised `Stimulation`, so a release threshold can
-  read it. `apply_stimulation` already received `region_id`/`verb`/`intensity`
+  read it. `apply_stimulation` already received `region_id`/`action`/`intensity`
   and folded all of it into one integer.
 - **546** gives a build with no satisfying outcome somewhere to put the tension,
   as a condition (mirroring `sensitized`) rather than a vital.
@@ -51,10 +51,10 @@ def _add(world, name, mature=True):
     return p
 
 
-def _touch(p, verb="caress", region="genitals", intensity="normal"):
+def _touch(p, action="caress", region="genitals", intensity="normal"):
     """`apply_stimulation(actor, target, ...)`. The actor is unused by the
     multiplier pipeline; the target is who is affected."""
-    return apply_stimulation(None, p, verb, region, intensity)
+    return apply_stimulation(None, p, action, region, intensity)
 
 
 def _tick(world, p, times=1):
@@ -73,9 +73,9 @@ def test_an_interaction_records_the_region_as_the_path():
     assert p.stimulation_last_path == "genitals"
 
 
-def test_the_path_is_the_region_alone_not_the_verb():
+def test_the_path_is_the_region_alone_not_the_action():
     """The task's recommendation, and the reason it is the region: the trait
-    talks about a route, not a specific move, so two verbs on one region must
+    talks about a route, not a specific move, so two actions on one region must
     file under one key."""
     p = Player("Both")
     p.sync_pleasure_vitals(True)

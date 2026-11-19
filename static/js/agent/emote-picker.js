@@ -7,7 +7,7 @@
  * human turn composer (and available to lift into a standalone panel later —
  * anytime-emote / emote browser).
  *
- * Emotes are bare verb phrases, never including a character name (see
+ * Emotes are bare action phrases, never including a character name (see
  * schema-fragments.js EMOTE_RULES), so anything picked here is engine-valid.
  *
  * API:
@@ -22,7 +22,7 @@
  * @module agent/emote-picker — reusable emote quick-pick
  * @contributes EmotePicker.open/close/toggle + setCatalog (searchable chip grid)
  * @powers Character art — picking an emote in the human turn composer
- * @relates emits bare verb phrases per schema-fragments EMOTE_RULES; used by human-turn-composer
+ * @relates emits bare action phrases per schema-fragments EMOTE_RULES; used by human-turn-composer
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.

@@ -127,8 +127,8 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
     /**
      * task-352: the player's remaining per-turn budget (`turn_slots`), or
-     * undefined when none is published. Passed to the verb-bracket builders so
-     * the prompt hides verbs the turn can no longer afford (guidance only; the
+     * undefined when none is published. Passed to the action-bracket builders so
+     * the prompt hides actions the turn can no longer afford (guidance only; the
      * engine's `_slot_gate` enforces).
      */
     function turnSlots(player) {
@@ -137,7 +137,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             return undefined;
         // bug-544: an empty `turn_slots` (`{}`) is the "not started yet" sentinel
         // the engine lazily fills  -  NOT "all spent". Returning it would make the
-        // prompt hide every verb on the first turn of a fresh character.
+        // prompt hide every action on the first turn of a fresh character.
         return Object.keys(slots).length ? slots : undefined;
     }
     async function _matchMemory(memories, text, charName) {
@@ -603,15 +603,15 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const pSlots = turnSlots(player);
                 const canGo = !pSlots || typeof pSlots.major !== 'number' || pSlots.major > 0;
                 const canApproach = !pSlots || typeof pSlots.minor !== 'number' || pSlots.minor > 0;
-                const closedVerbs = [];
+                const closedActions = [];
                 if (canGo)
-                    closedVerbs.push('go through it');
+                    closedActions.push('go through it');
                 if (canApproach)
-                    closedVerbs.push('approach it');
+                    closedActions.push('approach it');
                 if (canGo)
-                    closedVerbs.push('dash');
-                closedVerbs.push('or open it');
-                let doorHint = ` (you can ${closedVerbs.join(', ')})`;
+                    closedActions.push('dash');
+                closedActions.push('or open it');
+                let doorHint = ` (you can ${closedActions.join(', ')})`;
                 if (forced)
                     doorHint = ' (you can force it open)';
                 else if (locked)
@@ -630,16 +630,16 @@ window.PromptBuilder = window.PromptBuilder || {};
                     const doorTags = (doorNode.properties?.tags || []).map((t) => String(t).toLowerCase().trim());
                     const openWord = doorTags.includes('outdoor') || doorTags.includes('exterior') ? 'is clear' : 'is open';
                     const closeHint = preventClose ? '' : ' or close it';
-                    const openVerbs = [];
+                    const openActions = [];
                     if (canGo)
-                        openVerbs.push('go through it');
+                        openActions.push('go through it');
                     if (canApproach)
-                        openVerbs.push('approach it');
+                        openActions.push('approach it');
                     if (canGo)
-                        openVerbs.push('dash');
+                        openActions.push('dash');
                     if (canGo)
-                        openVerbs.push('examine');
-                    const baseOpen = openVerbs.join(', ');
+                        openActions.push('examine');
+                    const baseOpen = openActions.join(', ');
                     const actionHint = baseOpen
                         ? ` (you can ${baseOpen}${closeHint})`
                         : (closeHint ? ` (you can${closeHint})` : '');
@@ -995,8 +995,8 @@ window.PromptBuilder = window.PromptBuilder || {};
             const direction = rawDir ? ` from the ${rawDir}` : '';
             // Delivery comes off the entry rather than being assumed: a scream read
             // as "said" taught the model it was conversation.
-            const verb = PromptBuilder.speechVerb(h.speech_level);
-            let line = `[Heard] ${anon}${direction} ${verb}: "${heardText}"`;
+            const action = PromptBuilder.speechAction(h.speech_level);
+            let line = `[Heard] ${anon}${direction} ${action}: "${heardText}"`;
             line = PromptBuilder.markSpeechLine(line, heardText, charName, player);
             witnessedLines.push(line);
             socialSeeds.push({ speaker: h.speaker, text: heardText });

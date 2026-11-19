@@ -119,8 +119,8 @@ class UIController {
             if (soak) {
                 const soakLabels = { idle: 'wait', leisure: 'mingle', search: 'search', explore: 'explore', travel: 'travel' };
                 const left = Math.round(soak.remaining_minutes || 0);
-                const verb = soakLabels[soak.intent] || soak.intent;
-                soakText = uiControllerHtmlTag `<span class="initiative-status" title="Soaking - ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
+                const action = soakLabels[soak.intent] || soak.intent;
+                soakText = uiControllerHtmlTag `<span class="initiative-status" title="Soaking - ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${action} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
             }
             if (!window.Lit)
                 return; // startup race: first state:updated can arrive before Lit bootstrap

@@ -896,7 +896,7 @@ def _areas_with_background(gs) -> list:
 
 
 #: Third-person phrasing for the approach event line.
-APPROACH_VERBS = {
+APPROACH_ACTIONS = {
     "chat": "strikes up a conversation with",
     "joke": "jokes with",
     "compliment": "compliments",
@@ -965,9 +965,9 @@ def run_social_approach(gs, tick: Optional[int] = None) -> list:
     if outcome is None:
         return []
     _record_meeting(gs, actor)
-    verb = APPROACH_VERBS.get(outcome.get("action", "chat"),
+    action = APPROACH_ACTIONS.get(outcome.get("action", "chat"),
                               f"{outcome.get('action', 'chat')}s")
-    line = f"{actor.name} {verb} {human.name}."
+    line = f"{actor.name} {action} {human.name}."
     try:
         gs.record_turn_event(actor.name, "social_approach", line, area_name=area_name)
     except Exception:
@@ -1238,7 +1238,7 @@ AREA_COVER_TAGS = frozenset({"hideable", "cover", "concealment", "stealth", "und
 FEAR_REACTIONS = ("flee", "hide", "freeze", "shout")
 
 #: Reaction -> the event line the log and the trace carry. Written in the
-#: module's third-person register, like APPROACH_VERBS below.
+#: module's third-person register, like APPROACH_ACTIONS below.
 FEAR_LINES = {
     "flee": "backs away from {source}, putting distance between them",
     "hide": "shrinks away from {source} and goes quiet",

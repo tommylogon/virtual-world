@@ -381,7 +381,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         for (const slot in eq) {
             add(eq[slot]);
         }
-        // available actions (verbs)
+        // available actions (actions)
         const aa = roomParts && roomParts.availableActions ? String(roomParts.availableActions) : '';
         aa.split(/[,/]\s*/).forEach(add);
         // exits
@@ -401,7 +401,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         if (parsed && typeof parsed === 'object') {
             const action = String(parsed.action ?? '').toLowerCase();
             if (action && action !== 'wait' && !known.has(action))
-                flags.push(`action "${parsed.action}" not in known verbs/entities`);
+                flags.push(`action "${parsed.action}" not in known actions/entities`);
             for (const f of ['item', 'target']) {
                 const v = parsed[f];
                 if (v && typeof v === 'string' && !known.has(String(v).toLowerCase()))

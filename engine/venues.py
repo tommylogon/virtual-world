@@ -50,7 +50,7 @@ from collections import deque
 from typing import Dict, List, Optional, Tuple
 
 #: A venue: what tags a place may carry to serve it, which kinds are *nicer*,
-#: the verb the character uses there, and the word for the log line.
+#: the action the character uses there, and the word for the log line.
 #:
 #: ``prefers`` is ordered best-first and holds either tags or building/room ids
 #: (whatever a generated area records in ``properties.building`` / ``biome``).
@@ -61,52 +61,52 @@ VENUES: Dict[str, dict] = {
         "tags": ("sleeps", "bed"),
         "prefers": ("inn", "guest_room", "bedroom", "cottage", "bunkroom",
                     "infirmary", "stable"),
-        "verb": "sleeping",
+        "action": "sleeping",
         "why": "is looking for a bed",
     },
     "meal": {
         "tags": ("food", "eats"),
         "prefers": ("dining_hall", "taproom", "mess_hall", "inn", "tavern",
                     "fast_food", "market", "kitchen"),
-        "verb": "eating",
+        "action": "eating",
         "why": "is looking for somewhere to eat",
     },
     "drink": {
         "tags": ("drink", "water"),
         "prefers": ("taproom", "tavern", "inn", "washroom", "bathroom"),
-        "verb": "drinking",
+        "action": "drinking",
         "why": "is looking for a drink",
     },
     "bath": {
         "tags": ("washroom", "bath", "hygiene"),
         "prefers": ("bathroom", "washroom", "bathhouse", "laundry"),
-        "verb": "washing",
+        "action": "washing",
         "why": "is looking for hot water",
     },
     "work": {
         "tags": ("craft", "forge", "trade", "workshop"),
         "prefers": ("smithy", "forge", "workshop", "mill", "bank", "shop",
                     "market", "library"),
-        "verb": "working",
+        "action": "working",
         "why": "is looking for somewhere to work",
     },
     "worship": {
         "tags": ("worship", "religious"),
         "prefers": ("temple", "shrine", "chapel", "oratory", "nave"),
-        "verb": "at worship",
+        "action": "at worship",
         "why": "is going to worship",
     },
     "care": {
         "tags": ("medical", "care", "infirmary"),
         "prefers": ("infirmary", "ward", "washroom", "cellar"),
-        "verb": "being tended",
+        "action": "being tended",
         "why": "is looking for a healer",
     },
     "buy": {
         "tags": ("shop", "market", "trade", "commercial"),
         "prefers": ("shop", "market", "bazaar", "stall", "trading_post",
                     "general_store", "store"),
-        "verb": "shopping",
+        "action": "shopping",
         "why": "is looking for a shop",
     },
 }

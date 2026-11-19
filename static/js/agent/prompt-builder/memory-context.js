@@ -205,7 +205,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * get stuck re-examining the same object. Sources:
      *   - player observation memories (kind === 'item'): items this character
      *     has already examined or taken (task-430).
-     *   - browser-side actionHistory (last 20 tracked actions): verb+target
+     *   - browser-side actionHistory (last 20 tracked actions): action+target
      *     counts so repeated attempts surface as explicit warnings.
      */
     function buildAlreadyKnownContext(charName) {
@@ -250,27 +250,27 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
             lines.push('');
         }
-        // Count repeated verb+target combos from the live action history.
+        // Count repeated action+target combos from the live action history.
         const counts = new Map();
         const normalizeTarget = (target) => String(target || '').toLowerCase().replace(/^the\s+/, '').replace(/[_\s]+/g, ' ').trim();
         for (const entry of actionHistory) {
             const words = String(entry.action).trim().split(/\s+/);
-            const verb = (words.shift() || '').toLowerCase();
-            if (words.length === 0 || !verb)
+            const action = (words.shift() || '').toLowerCase();
+            if (words.length === 0 || !action)
                 continue;
-            const key = `${verb}::${normalizeTarget(words.join(' '))}`;
+            const key = `${action}::${normalizeTarget(words.join(' '))}`;
             counts.set(key, (counts.get(key) || 0) + 1);
         }
-        const repeatableVerbs = new Set(['examine', 'read', 'search', 'look', 'take', 'use', 'use_on', 'open', 'close', 'wear']);
+        const repeatableActions = new Set(['examine', 'read', 'search', 'look', 'take', 'use', 'use_on', 'open', 'close', 'wear']);
         const repeats = [...counts.entries()]
-            .filter(([key, count]) => repeatableVerbs.has(key.split('::')[0]) && count >= 2)
+            .filter(([key, count]) => repeatableActions.has(key.split('::')[0]) && count >= 2)
             .sort((entryA, entryB) => entryB[1] - entryA[1]);
         if (repeats.length > 0) {
             const [key, count] = repeats[0];
-            const [verb, target] = key.split('::');
+            const [action, target] = key.split('::');
             const pastTense = { examine: 'examined', read: 'read', search: 'searched', look: 'looked at', take: 'taken', use: 'used', use_on: 'used', open: 'opened', close: 'closed', wear: 'worn' };
-            const pastTenseText = pastTense[verb] || (verb + 'd');
-            const nudge = verb === 'examine' || verb === 'read' || verb === 'search' || verb === 'look'
+            const pastTenseText = pastTense[action] || (action + 'd');
+            const nudge = action === 'examine' || action === 'read' || action === 'search' || action === 'look'
                 ? ' Stop examining  -  actually take, wear, or use the things here.'
                 : ' Pick a different action.';
             lines.push(`⚠️ You have ${pastTenseText} "${target}" ${count} times now and nothing changed.${nudge}`);

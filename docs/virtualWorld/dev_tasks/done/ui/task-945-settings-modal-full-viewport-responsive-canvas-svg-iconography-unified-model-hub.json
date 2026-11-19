@@ -9,7 +9,7 @@
   "area": "ui",
   "tags": [],
   "created": "2026-11-12",
-  "updated": "2026-11-12",
+  "updated": "2026-11-19",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -23,7 +23,9 @@
     ],
     "parent": null,
     "children": [],
-    "supersedes": [],
+    "supersedes": [
+      "task-941"
+    ],
     "superseded_by": [],
     "invalidates": [],
     "invalidated_by": []

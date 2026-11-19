@@ -17,7 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from engine.pleasure_actions import INTIMACY_VERBS
+from engine.pleasure_actions import INTIMACY_ACTIONS
 
 
 @dataclass(frozen=True)

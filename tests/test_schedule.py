@@ -247,7 +247,7 @@ def test_remove_step_by_time():
     assert missing
 
 
-def test_the_schedule_verb_adds_and_removes_a_step():
+def test_the_schedule_action_adds_and_removes_a_step():
     app = create_app({"TESTING": True})
     client = app.test_client()
     name = app.world.active_player

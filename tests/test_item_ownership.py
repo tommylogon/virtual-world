@@ -11,8 +11,8 @@ in ``engine/items/ownership.py`` and pinned here:
 - **A missing or incapacitated owner lifts the refusal.** A dead goblin's knife
   is not a sacred object.
 - **A Social or Intimidation check does NOT lift it.** ``steal`` is already a
-  roll; hiding a second one inside ``take`` would make an ordinary verb
-  unpredictable. So the normal verbs say no plainly and ``steal`` is the way
+  roll; hiding a second one inside ``take`` would make an ordinary action
+  unpredictable. So the normal actions say no plainly and ``steal`` is the way
   through — harder, but never blocked.
 """
 

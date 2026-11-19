@@ -74,7 +74,7 @@ class VirtualWorld:
         self.ghost_mode = False
 
         # Mature content toggle (task-206): when True, the pleasure/arousal
-        # subsystem (vitals, intimacy verbs, adult traits, NPC sexual
+        # subsystem (vitals, intimacy actions, adult traits, NPC sexual
         # perception) is fully gated behind this opt-in flag. Mirrors the
         # ghost_mode wiring: world attr + settings routes + frontend toggle.
         self.mature_content = False
@@ -554,8 +554,8 @@ class VirtualWorld:
     def _get_available_actions(self, item_node, carrying: bool = False) -> list:
         return self.triggers._get_available_actions(item_node, carrying=carrying)
 
-    def _contextual_failure(self, verb, target_name, available_actions):
-        return self.triggers._contextual_failure(verb, target_name, available_actions)
+    def _contextual_failure(self, action, target_name, available_actions):
+        return self.triggers._contextual_failure(action, target_name, available_actions)
 
 
     def _execute_triggers(self, item_node, trigger_type, target_name=None, context=None, expected_target_state=None, game_state=None):
@@ -751,7 +751,7 @@ class VirtualWorld:
             return {t for t in tags if t}, node.name
         return set(), name
 
-    def _apply_tagged_relation(self, target_name: str, field: str, verb: str) -> str:
+    def _apply_tagged_relation(self, target_name: str, field: str, action: str) -> str:
         player = self.get_active_player_obj()
         if player is None:
             raise ValueError("No active character.")
@@ -768,8 +768,8 @@ class VirtualWorld:
         for tag in added:
             current.append(tag)
         if not added:
-            return f"You already {verb} {label}."
-        if verb == "fear":
+            return f"You already {action} {label}."
+        if action == "fear":
             return f"You now fear {label} ({', '.join(added)})."
         return f"You take an interest in {label} ({', '.join(added)})."
 
@@ -899,8 +899,8 @@ class VirtualWorld:
     def drink_item(self, item_name: str) -> str:
         return self.item_actions.drink_item(self, item_name)
 
-    def _consume_item(self, item_name: str, trigger_type: str, action_verb: str) -> str:
-        return self.item_actions.consume_item(self, item_name, trigger_type, action_verb)
+    def _consume_item(self, item_name: str, trigger_type: str, action_name: str) -> str:
+        return self.item_actions.consume_item(self, item_name, trigger_type, action_name)
 
     def use_item(self, item_name: str, trigger_type: str = "on_use") -> str:
         return self.item_actions.use_item(self, item_name, trigger_type)
@@ -2186,7 +2186,7 @@ class VirtualWorld:
                 return node.id.lower()
         return None
 
-    def get_autocomplete_options(self, verb: str, prefix: str = "", character_name: str = None) -> list:
-        """Get candidate target names for a given verb and prefix (delegated)."""
+    def get_autocomplete_options(self, action: str, prefix: str = "", character_name: str = None) -> list:
+        """Get candidate target names for a given action and prefix (delegated)."""
         from engine.autocomplete import get_autocomplete_options as _options
-        return _options(self, verb, prefix, character_name)
+        return _options(self, action, prefix, character_name)

@@ -41,10 +41,10 @@ interface SetupChecklistWindowSurface {
   /** Per-scenario check state, keyed by step key. */
   type DoneMap = Record<string, boolean | undefined>;
 
-  /** Prefill the command line with a partial verb — used by cast/hooks. */
-  function prefillCommand(verb: string): void {
+  /** Prefill the command line with a partial action — used by cast/hooks. */
+  function prefillCommand(action: string): void {
     const c = document.getElementById('command-input') as HTMLInputElement | null;
-    if (c) { c.focus(); c.value = verb; }
+    if (c) { c.focus(); c.value = action; }
   }
 
   const STEPS: ChecklistStep[] = [

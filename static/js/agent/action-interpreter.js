@@ -27,7 +27,7 @@ RULES:
 2. Extract spoken dialogue into "speech". Set "volume" to "say", "whisper", "shout", or "scream" based on context.
 3. Extract bodily gestures or physical demeanor into "emote".
 4. Identify the ONE primary mechanical action ${charName} immediately attempts:
-   - "action": a single engine verb (e.g. "go", "take", "drop", "use", "use_on", "examine", "open", "close", "wait", "relieve", "attack", "rest").
+   - "action": a single engine action (e.g. "go", "take", "drop", "use", "use_on", "examine", "open", "close", "wait", "relieve", "attack", "rest").
    - "item": object or item used/held, or null.
    - "target": target entity, exit, or person acted on, or null.
    - If they only speak, think, or make gestures without moving or interacting with an object, set "action": null, "item": null, "target": null.
@@ -37,7 +37,7 @@ RULES:
 Output ONLY a valid JSON object matching the engine's canonical turn schema:
 {
   "inner_monologue": "private thoughts/feelings or null",
-  "action": "single verb or null",
+  "action": "single action or null",
   "item": "interacted item or null",
   "target": "target entity/exit/person or null",
   "speech": "spoken words without quotes or null",

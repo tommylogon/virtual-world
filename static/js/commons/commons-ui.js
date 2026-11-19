@@ -354,7 +354,7 @@
             setText('commons-perspective-label', townBoard ? 'Reading as' : 'Phone owner');
             setText('commons-inbox-eyebrow', townBoard ? 'TOWN BOARD' : 'INBOX');
             setText('commons-inbox-heading', townBoard ? 'Posts & letters' : 'Conversations');
-            setText('commons-composer-verb', townBoard ? 'Write as' : 'Message as');
+            setText('commons-composer-action', townBoard ? 'Write as' : 'Message as');
             setText('commons-dm-eyebrow', townBoard ? 'PRIVATE LETTER' : 'ONE TO ONE');
             setText('commons-dm-heading', townBoard ? 'Write a private letter' : 'Start a direct message');
             setText('commons-dm-recipient-label', townBoard ? 'Choose a recipient' : 'Choose a character');

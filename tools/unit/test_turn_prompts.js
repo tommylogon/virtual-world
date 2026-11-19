@@ -47,7 +47,7 @@ test('bug-517: room-context.ts does not call playerSpeak', () => {
     assertEq(src.includes('playerSpeak'), false, 'room-context must not invoke playerSpeak');
 });
 
-test('bug-559: available actions prompt block omits major verbs when major budget is 0', () => {
+test('bug-559: available actions prompt block omits major actions when major budget is 0', () => {
     const pb = window.PromptBuilder;
     const state = {
         players: {},
@@ -73,7 +73,7 @@ test('bug-559: available actions prompt block omits major verbs when major budge
     assertTrue(spentBothBlock.includes('wait  -  wait or hold still'), 'Wait should remain');
 });
 
-test('buildAvailableActionsBlock surfaces phone verbs only for active phone and call state (bug-599)', () => {
+test('buildAvailableActionsBlock surfaces phone actions only for active phone and call state (bug-599)', () => {
     const pb = window.PromptBuilder;
     const savedGraph = worldState.graph;
     const savedGetNode = worldState.getNode;

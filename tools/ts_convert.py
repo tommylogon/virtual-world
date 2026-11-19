@@ -531,7 +531,7 @@ def audit_window_guards() -> list[str]:
     `window.X` is undefined-safe; bare `X` throws ReferenceError when the
     module is absent. A converter silences the `Property 'X' does not exist on
     type 'Window'` error by deleting the prefix, which makes the type check pass
-    and the runtime fail — exactly how test_fear_verbs broke. A drop is not
+    and the runtime fail — exactly how test_fear_actions broke. A drop is not
     automatically a bug (it is fine when X is a binding this file declares), so
     this reports them for review rather than blanket-failing.
 
@@ -855,7 +855,7 @@ def cmd_check(args) -> int:
 
     # Behavioural regression guard, not a type check: `window.X` -> bare `X`
     # silences a type error and turns an undefined-safe guard into a
-    # ReferenceError. This is how test_fear_verbs broke, and it reached a browser
+    # ReferenceError. This is how test_fear_actions broke, and it reached a browser
     # before anything noticed.
     guard_findings = audit_window_guards()
     unreviewed = [f for f in guard_findings if "REVIEWED:" not in f]

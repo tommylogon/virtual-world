@@ -78,9 +78,9 @@ def analyze_file(fname):
             m_act = re.search(r"\*\*([^*]+)\*\*\s*-\s*act\s*.*?([a-zA-Z_]+)", line)
             if m_act:
                 char_name = m_act.group(1).strip().lower()
-                verb = m_act.group(2).strip().lower()
+                action = m_act.group(2).strip().lower()
                 characters.add(char_name)
-                actions[verb] = actions.get(verb, 0) + 1
+                actions[action] = actions.get(action, 0) + 1
             
             # Speech
             if "says:" in line or "whispers:" in line or "shouts:" in line or '"speech":' in line:

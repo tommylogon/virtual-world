@@ -134,7 +134,7 @@ def test_forgetting_a_place_removes_every_form():
     assert Known(agent).has("Room 0"), "the name entry is a separate entry"
 
 
-# ── the three reveal verbs ─────────────────────────────────────────────────
+# ── the three reveal actions ─────────────────────────────────────────────────
 
 
 def test_walking_in_reveals_the_room():

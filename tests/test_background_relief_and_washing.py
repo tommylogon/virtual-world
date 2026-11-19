@@ -385,7 +385,7 @@ def test_a_fixture_tagged_water_is_not_drunk_away():
     spot = _fixture(world, "item_wash2", "Wash Spot", ("bathing", "fixture"))
     sim = BackgroundSimulation(world)
     from engine.background_simulation import DRINK_TAGS
-    assert sim._find_consumable(p, DRINK_TAGS, verb="drink") is None
+    assert sim._find_consumable(p, DRINK_TAGS, action="drink") is None
     assert world.graph.get_node(spot.id) is not None
 
 

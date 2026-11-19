@@ -8,7 +8,7 @@ equipment read the graph:
     combat._best_weapon_node             -> EDGE_CARRYING + EDGE_EQUIPPED
     equipment_bonuses.get_equipment_nodes -> EDGE_EQUIPPED
 
-The in-world verb ``take`` writes both, which is how the same character ended up
+The in-world action ``take`` writes both, which is how the same character ended up
 with ``hand: [item_spear]`` (API write, inert) beside ``hand_right:
 [item_rusty_hatchet]`` (``take``, live).
 

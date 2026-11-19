@@ -15,7 +15,7 @@
     "fixtures"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-19",
   "horizon": "later",
   "effort": "m",
   "goal": "",
@@ -39,29 +39,28 @@
     "invalidated_by": []
   },
   "sections": {
-    "what": "Wire runtime learning of foreign vocabulary and domain knowledge into teach, speech context, and examine/read manuals, and author verified character/scenario fixtures exercising word-level language barriers (Goblin/Japanese exchange student) and asymmetrical Millwood domain expertise/ignorance (Sammy, Kayla, Zoe).",
+    "what": "Wire organic runtime acquisition of foreign vocabulary and domain knowledge as character memories (from conversational context, gestures, and reading educational materials/phrasebooks/manuals - not via CraftingSystem.teach) and author verified Goblin/Millwood knowledge-barrier fixtures.",
     "why": "Static competence sheets go stale quickly unless characters can learn words and craft/trade facts in play, and AGENTS.md rule 8 requires concrete authored fixtures alongside mechanism tests. Extending the existing CraftingSystem.teach command, examine/read grants, and _teach_* hooks avoids inventing new one-off subsystems while proving both target settings end-to-end.",
-    "how": "1. Extend CraftingSystem.teach() (engine/crafting.py lines 368-406) and routes/action_handlers.py (lines 1118-1127) to handle lang:<language>:<word_or_phrase> (requiring the teacher to know that language/word and adding it to the student's known_words) and domain:<id> (seeding semantic knowledge and nudging novice familiarity on co-located instruction).\n2. Add optional readable-manual / phrasebook grants in engine/items/examine_actions.py and contextual object-pointing word acquisition alongside _teach_names_from_speech/_teach_places_from_speech in engine/speech.py (bounded so strangers cannot bulk-dump whole dictionaries from one overheard monologue).\n3. Author concrete reference fixtures across Millwood (data/library/characters/sammy.json, kayla.json, zoe.json: Sammy skateboarding expert vs computing ignorant, Kayla law/language expert vs physics/DIY ignorant, Zoe silicone_molding/DIY expert vs sports ignorant, plus school/parent semantic seeds) and a Goblin/foreign-exchange barrier fixture (e.g. gribba.json plus automated scenario test proving asymmetrical speech masking and runtime word acquisition).",
+    "how": "1. Keep CraftingSystem.teach scoped to recipes/skills; do NOT add teach lang:<id>:<word> commands.\\n2. Treat language and domain knowledge as memory (per task-734): when a character reads educational materials (phrasebooks, manuals, textbooks) via examine/read, or encounters foreign words in clear conversational/gestural context, record semantic/episodic memory entries that unlock understood words/concepts organically.\\n3. Author concrete reference fixtures across Millwood (Sammy, Kayla, Zoe) and Goblin/bilingual exchange characters with asymmetrical domain competence, explicit blind spots, and partial vocabulary verified end-to-end by tests.",
     "verify": "1. Run pytest covering teach lang:<id>:<word>, teach domain:<id>, examine phrasebook/manual learning, and full Goblin/exchange-student speech masking plus Millwood Sammy/Kayla/Zoe domain asymmetry fixtures.\n2. Verify python tools/lint_library.py passes after updating character fixtures.",
     "acceptance": [
       {
-        "text": "teach command (CraftingSystem.teach / routes/action_handlers.py) supports teaching foreign known_words (lang:<id>:<word>) and semantic domain lessons between co-located characters.",
+        "text": "Foreign vocabulary and domain understanding are acquired through memory and lived context (conversational context, object pointing, or reading educational materials/phrasebooks/manuals), NOT via CraftingSystem.teach (which remains dedicated to recipes/skills)",
         "done": false
       },
       {
-        "text": "Examining/reading authored bilingual phrasebooks, manuals, or pointed single-word object lessons updates listener known_words or semantic memory cleanly.",
+        "text": "Reading/examining educational materials or experiencing contextual word usage creates semantic/episodic memories that update the character's understood vocabulary and persist across save/load",
         "done": false
       },
       {
-        "text": "Millwood character fixtures (Sammy, Kayla, Zoe) and Goblin/bilingual exchange fixtures carry concrete domain competence, explicit ignorant blind spots, and partial known_words verified end-to-end by tests.",
+        "text": "Millwood character fixtures (Sammy, Kayla, Zoe) and Goblin/bilingual exchange fixtures carry concrete domain competence, explicit ignorant blind spots, and partial known vocabulary verified end-to-end by tests",
         "done": false
       }
     ],
     "files": [
-      "engine/crafting.py",
-      "routes/action_handlers.py",
       "engine/speech.py",
       "engine/items/examine_actions.py",
+      "engine/memory_retrieval.py",
       "data/library/characters/sammy.json",
       "data/library/characters/kayla.json",
       "data/library/characters/zoe.json",

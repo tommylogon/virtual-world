@@ -142,7 +142,7 @@ window.ResponseParser = (() => {
      *   - `{"action": {"action":"take","item":"x"}}` - the action nested one
      *     level deep. Recoverable: the normalizer unwraps it.
      *   - `{"action": {"item":"x"}}` or `{"action": "[object Object]"}` - no
-     *     verb to recover. NOT recoverable, and it must never be executed.
+     *     action to recover. NOT recoverable, and it must never be executed.
      *
      * The second case returns a schema error so the caller's one-shot retry
      * fires, instead of the malformed payload reaching the world as a command.
@@ -155,15 +155,15 @@ window.ResponseParser = (() => {
             const nested = raw;
             if (typeof nested.action === 'string' && nested.action.trim())
                 return null;
-            return 'schema_invalid: "action" must be a verb string, but it was an object with no "action" field';
+            return 'schema_invalid: "action" must be a action string, but it was an object with no "action" field';
         }
         if (typeof raw === 'string') {
             if (ActionNormalizer.looksStringifiedObject(raw)) {
-                return 'schema_invalid: "action" was a stringified object instead of a verb';
+                return 'schema_invalid: "action" was a stringified object instead of a action';
             }
             return null;
         }
-        return 'schema_invalid: "action" must be a verb string';
+        return 'schema_invalid: "action" must be a action string';
     }
     /** Parse a reaction/decision response  -  returns full structured object with parseError on failure. */
     function parseReaction(r) {

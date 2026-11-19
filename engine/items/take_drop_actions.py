@@ -1,7 +1,7 @@
-"""Take / drop verbs and placement-memory helpers for ItemActions.
+"""Take / drop action_names and placement-memory helpers for ItemActions.
 
 Moved verbatim from engine/item_actions.py as part of the task-314
-verb-family split. Methods hang off the ItemActions context (graph,
+action_word-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, equipment, ghost_system, world) via the mixin.
 
 @module take_drop_actions
@@ -42,7 +42,7 @@ from engine.size import SIZE_DEFAULT, SIZE_TIER_INDEX, size_tier_from_name
 
 
 def _display_name(name):
-    """Strip a leading article so verb phrasings don't double up.
+    """Strip a leading article so action_word phrasings don't double up.
 
     e.g. "You pick up the {item_name}" with item_name="the iron key" would
     become "the the iron key" - this normalises the noun first. No-op when the
@@ -840,8 +840,8 @@ class TakeDropActionsMixin:
         else:
             result = f"You pick up the {_display_name(item_name)}{hand_text}{source}."
 
-        event_verb = "equipped" if hand_slots else "picked up"
-        player_manager.record_turn_event(player_manager.active_player, "take", f"{event_verb} the {_display_name(item_name)}{source}", area_name=area_name)
+        event_action = "equipped" if hand_slots else "picked up"
+        player_manager.record_turn_event(player_manager.active_player, "take", f"{event_action} the {_display_name(item_name)}{source}", area_name=area_name)
 
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
@@ -880,7 +880,7 @@ class TakeDropActionsMixin:
         for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
             for edge in self.graph.get_edges_for_target(player_id, edge_type):
                 node = self.graph.get_node(edge.source)
-                # task-633: case-insensitive. The verb handler hands us a
+                # task-633: case-insensitive. The action_word handler hands us a
                 # lowercased name, so `node.name == item_name` compared
                 # "Knife" against "knife" and never matched -- which is why
                 # drop failed even for a *carried* item.
@@ -900,7 +900,7 @@ class TakeDropActionsMixin:
 
         # task-493: a part is non-portable, so it is not droppable either.
         # Before this the action list was consulted by `take` alone, which left
-        # drop the one verb that would happily tear a battery out of a phone.
+        # drop the one action_word that would happily tear a battery out of a phone.
         if item_node is not None and not is_portable(item_node):
             raise ValueError(portable_refusal(self.graph, item_node, "drop it"))
 

@@ -2,7 +2,7 @@
 
 Covers:
 - get_autocomplete_options method on VirtualWorld
-- Verb-based item/target categorization (take, examine, use, open, drop, eat, attack, go)
+- Action-based item/target categorization (take, examine, use, open, drop, eat, attack, go)
 - Prefix filtering
 - /api/autocomplete HTTP endpoint
 """
@@ -148,10 +148,10 @@ def test_autocomplete_api_endpoint():
     client, app = _fresh_client()
     _setup_world(app)
 
-    res = client.post('/api/autocomplete', json={'verb': 'take', 'prefix': 'brass'})
+    res = client.post('/api/autocomplete', json={'action': 'take', 'prefix': 'brass'})
     assert res.status_code == 200
     data = res.get_json()
-    assert data['verb'] == 'take'
+    assert data['action'] == 'take'
     assert data['prefix'] == 'brass'
     assert data['options'] == ['Brass Key']
 

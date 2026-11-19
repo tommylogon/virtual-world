@@ -1,6 +1,6 @@
 // tools/test_contextual_actions.cjs
 // Regression test for task-293: the character system prompt is trimmed (no static
-// ACTIONS verb table) and the per-turn room context carries === AVAILABLE ACTIONS ===
+// ACTIONS action table) and the per-turn room context carries === AVAILABLE ACTIONS ===
 // plus per-item action brackets.
 //
 // World-state agnostic: it asserts structural invariants that hold regardless of which
@@ -75,9 +75,9 @@ async function waitForServer(url, maxWaitSec = 30) {
 
         if (!data.hasPlayer) { fail('Found an agent player to build prompts for', new Error('no non-simple_npc player in loaded world')); }
         else {
-            // 1. Static system prompt trimmed: no markdown verb-table rows remain.
-            const hasVerbTableRow = /\n\| (go|dash|crawl|climb|jump|take|drop|use) \|/i.test(data.sys);
-            if (hasVerbTableRow) fail('System prompt no longer contains the static ACTIONS verb table'); else pass('System prompt has no static ACTIONS verb table');
+            // 1. Static system prompt trimmed: no markdown action-table rows remain.
+            const hasActionTableRow = /\n\| (go|dash|crawl|climb|jump|take|drop|use) \|/i.test(data.sys);
+            if (hasActionTableRow) fail('System prompt no longer contains the static ACTIONS action table'); else pass('System prompt has no static ACTIONS action table');
 
             if (data.sys.includes('=== ACTIONS ===') && data.sys.includes('=== ACTION STRUCTURE ===')) pass('System prompt still has ACTIONS core + ACTION STRUCTURE safety net');
             else fail('System prompt keeps ACTIONS core + ACTION STRUCTURE safety net', new Error('missing sections'));

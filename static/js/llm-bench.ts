@@ -338,7 +338,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         for (const it of inv) { add(it); }
         const eq = player && player.equipped ? player.equipped : {};
         for (const slot in eq) { add(eq[slot]); }
-        // available actions (verbs)
+        // available actions (actions)
         const aa = roomParts && roomParts.availableActions ? String(roomParts.availableActions) : '';
         aa.split(/[,/]\s*/).forEach(add);
         // exits
@@ -358,7 +358,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         // structured: action/item/target
         if (parsed && typeof parsed === 'object') {
             const action = String(parsed.action ?? '').toLowerCase();
-            if (action && action !== 'wait' && !known.has(action)) flags.push(`action "${parsed.action}" not in known verbs/entities`);
+            if (action && action !== 'wait' && !known.has(action)) flags.push(`action "${parsed.action}" not in known actions/entities`);
             for (const f of ['item', 'target']) {
                 const v = parsed[f];
                 if (v && typeof v === 'string' && !known.has(String(v).toLowerCase())) flags.push(`${f} "${v}" not in known entities`);

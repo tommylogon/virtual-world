@@ -16,12 +16,14 @@
     "prompt-pipeline"
   ],
   "created": "2026-11-12",
-  "updated": "2026-11-16",
+  "updated": "2026-11-19",
   "horizon": "now",
   "effort": "l",
   "goal": "",
   "relations": {
-    "blocks": [],
+    "blocks": [
+      "task-957"
+    ],
     "blocked_by": [],
     "depends_on": [],
     "related": [
@@ -38,7 +40,9 @@
       "task-949",
       "task-950"
     ],
-    "supersedes": [],
+    "supersedes": [
+      "task-944"
+    ],
     "superseded_by": [],
     "invalidates": [],
     "invalidated_by": []

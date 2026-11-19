@@ -126,7 +126,7 @@ def run_checks(port: int, scenario_name: str, headless: bool = True) -> List[Tup
             results.append(("duplicate_character_import", False, f"Failed duplicate character import check: {exc}"))
 
         # -------------------------------------------------------------
-        # Check 3: HTC Person action menu exposes task-610 verbs
+        # Check 3: HTC Person action menu exposes task-610 actions
         # -------------------------------------------------------------
         try:
             page.evaluate("() => { void window.HumanTurnComposer.request('Explorer'); }")
@@ -143,7 +143,7 @@ def run_checks(port: int, scenario_name: str, headless: bool = True) -> List[Tup
             }""")
 
             if not clicked:
-                results.append(("person_menu_verbs", False, "No person chip found or clickable in HTC"))
+                results.append(("person_menu_actions", False, "No person chip found or clickable in HTC"))
             else:
                 page.wait_for_selector(".tsv-ctx", timeout=5000)
                 buttons = page.evaluate("""() => {
@@ -152,11 +152,11 @@ def run_checks(port: int, scenario_name: str, headless: bool = True) -> List[Tup
                 required_prefixes = ["Whisper to", "Say aloud", "Examine", "Attack", "Grab", "Lead", "Wake", "Give"]
                 missing = [p for p in required_prefixes if not any(b.startswith(p) for b in buttons)]
                 if not missing:
-                    results.append(("person_menu_verbs", True, f"Person menu exposed {len(buttons)} actions covering all required task-610 verbs: {buttons}"))
+                    results.append(("person_menu_actions", True, f"Person menu exposed {len(buttons)} actions covering all required task-610 actions: {buttons}"))
                 else:
-                    results.append(("person_menu_verbs", False, f"Person menu missing required verbs: {missing}. Present: {buttons}"))
+                    results.append(("person_menu_actions", False, f"Person menu missing required actions: {missing}. Present: {buttons}"))
         except Exception as exc:
-            results.append(("person_menu_verbs", False, f"Failed testing HTC person menu: {exc}"))
+            results.append(("person_menu_actions", False, f"Failed testing HTC person menu: {exc}"))
 
         # -------------------------------------------------------------
         # Check 4: Hidden way stays absent from WAYS OUT (bug-23 negative)

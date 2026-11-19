@@ -50,7 +50,7 @@ def test_normalize_emote_person_first_person_reflexive():
     assert normalize_emote_person("shivers and hugs myself") == "shivers and hugs themselves"
 
 
-def test_normalize_emote_person_leading_base_verb():
+def test_normalize_emote_person_leading_base_action():
     from engine.narration import normalize_emote_person
     assert normalize_emote_person("hug my knees and shiver") == "hugs their knees and shiver"
 

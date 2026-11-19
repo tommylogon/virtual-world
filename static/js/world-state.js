@@ -632,6 +632,13 @@ window.worldState = new WorldState();
         if (window.worldState._runtimeFocus?.length) {
             void window.worldState.fetchRuntime().catch((error) => {
                 const message = error instanceof Error ? error.message : String(error);
+                if (message.includes('no known owning world scope') || message.includes('not found')) {
+                    // Stale runtime focus after scenario reset/switch into an unscoped world:
+                    // clear focus and fall back to full state fetch instead of spamming errors.
+                    window.worldState._runtimeFocus = [];
+                    void window.worldState.fetch();
+                    return;
+                }
                 console.error('Focused runtime state refresh failed:', error);
                 if (typeof events !== 'undefined') {
                     events.log(`Focused runtime state refresh failed: ${message}`, 'error-msg');

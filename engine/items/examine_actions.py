@@ -1,7 +1,7 @@
-"""Examine / inventory verbs for ItemActions.
+"""Examine / inventory actions for ItemActions.
 
 Moved verbatim from engine/item_actions.py as part of the task-314
-verb-family split. Methods hang off the ItemActions context (graph,
+action-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, equipment, world) via the mixin.
 
 @module examine_actions

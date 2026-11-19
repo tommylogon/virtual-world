@@ -72,7 +72,7 @@ def test_food_on_the_floor_is_found():
     p, sim = _forager(world)
     # Identity, not id: the graph renames a node whose id/name already exists
     # elsewhere, so the id it ends up with is not the one we asked for.
-    assert sim._find_consumable(p, TEST_FOOD, verb="eat") is bread
+    assert sim._find_consumable(p, TEST_FOOD, action="eat") is bread
 
 
 def test_food_on_a_surface_behind_or_under_something_is_found():
@@ -84,7 +84,7 @@ def test_food_on_a_surface_behind_or_under_something_is_found():
         stew = _item(world, "item_stew", "Stew", TEST_FOOD, "eat")
         _hold(world, stew.id, table.id, relation)
         p, sim = _forager(world)
-        assert sim._find_consumable(p, TEST_FOOD, verb="eat") is stew, relation
+        assert sim._find_consumable(p, TEST_FOOD, action="eat") is stew, relation
 
 
 def test_food_inside_a_bush_is_found():
@@ -95,7 +95,7 @@ def test_food_inside_a_bush_is_found():
     berries = _item(world, "item_berries", "Berries", TEST_FOOD, "eat")
     _hold(world, berries.id, bush.id, "in")
     p, sim = _forager(world)
-    assert sim._find_consumable(p, TEST_FOOD, verb="eat") is berries
+    assert sim._find_consumable(p, TEST_FOOD, action="eat") is berries
 
 
 def test_the_bush_itself_is_not_food():
@@ -104,7 +104,7 @@ def test_the_bush_itself_is_not_food():
     bush = _item(world, "item_bush2", "Berry Bush", ["vegetation", "plant"])
     _hold(world, bush.id, world.area_node_id(AREA), "in")
     p, sim = _forager(world)
-    assert sim._find_consumable(p, TEST_FOOD, verb="eat") is None
+    assert sim._find_consumable(p, TEST_FOOD, action="eat") is None
 
 
 def test_a_carried_item_wins_over_the_room():
@@ -116,7 +116,7 @@ def test_a_carried_item_wins_over_the_room():
     world.graph.add_edge(Edge(source=held.id,
                               target=world._player_node_id(p.name),
                               type="carrying"))
-    assert sim._find_consumable(p, TEST_FOOD, verb="eat") is held
+    assert sim._find_consumable(p, TEST_FOOD, action="eat") is held
 
 
 # ── intent: food is not drink ────────────────────────────────────────────
@@ -128,8 +128,8 @@ def test_a_water_skin_is_not_food():
     _hold(world, _item(world, "item_skin", "Water Skin", ["container"],
                        "examine,drink,fill").id, world.area_node_id(AREA))
     p, sim = _forager(world)
-    assert sim._find_consumable(p, FOOD_TAGS, verb="eat") is None
-    assert sim._find_consumable(p, DRINK_TAGS, verb="drink").id == "item_skin"
+    assert sim._find_consumable(p, FOOD_TAGS, action="eat") is None
+    assert sim._find_consumable(p, DRINK_TAGS, action="drink").id == "item_skin"
 
 
 def test_a_meal_is_not_drink():
@@ -137,8 +137,8 @@ def test_a_meal_is_not_drink():
     stew = _item(world, "item_stew2", "Stew", TEST_FOOD, "examine,eat")
     _hold(world, stew.id, world.area_node_id(AREA))
     p, sim = _forager(world)
-    assert sim._find_consumable(p, DRINK_TAGS, verb="drink") is None
-    assert sim._find_consumable(p, TEST_FOOD, verb="eat") is stew
+    assert sim._find_consumable(p, DRINK_TAGS, action="drink") is None
+    assert sim._find_consumable(p, TEST_FOOD, action="eat") is stew
 
 
 # ── travel targeting ─────────────────────────────────────────────────────
@@ -152,7 +152,7 @@ def test_an_area_holding_food_in_a_container_counts_as_a_food_area():
     _hold(world, _item(world, "item_berries2", "Berries", TEST_FOOD, "eat").id,
           bush.id, "in")
     _forager(world)
-    assert AREA in BackgroundSimulation(world)._areas_with(TEST_FOOD, verb="eat")
+    assert AREA in BackgroundSimulation(world)._areas_with(TEST_FOOD, action="eat")
 
 
 def test_an_empty_forest_is_not_a_food_area():
@@ -160,4 +160,4 @@ def test_an_empty_forest_is_not_a_food_area():
     bush = _item(world, "item_bush4", "Berry Bush", ["vegetation", "plant"])
     _hold(world, bush.id, world.area_node_id(AREA), "in")
     _forager(world)
-    assert AREA not in BackgroundSimulation(world)._areas_with(TEST_FOOD, verb="eat")
+    assert AREA not in BackgroundSimulation(world)._areas_with(TEST_FOOD, action="eat")

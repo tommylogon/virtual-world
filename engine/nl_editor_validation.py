@@ -43,7 +43,7 @@ PLAYER_PATCH_KEYS = {"memories", "relationship", "remove_relationship", "emotion
 #: Registries the NL editor may write to (task-460).
 WRITABLE_REGISTRIES = {"items", "characters", "areas", "ways", "traits"}
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*$")
-#: Standard item actions (prompt rule 4) plus the auto-inverse verbs.
+#: Standard item actions (prompt rule 4) plus the auto-inverse actions.
 KNOWN_ITEM_ACTIONS = {
     "examine", "take", "use", "open", "close", "eat", "drink", "read",
     "light", "activate", "equip", "unequip", "throw", "break", "drop",
@@ -59,7 +59,7 @@ NPC_BEHAVIOUR_TRIGGERS = {
     "on_player_leave_area",
     "on_speech_heard",
 }
-#: Behaviour actions that are not effect types - the executor's own verbs
+#: Behaviour actions that are not effect types - the executor's own actions
 #: (`engine/triggers/behaviors.py`). An action type is valid if it is one of
 #: these OR a member of ``EFFECT_TYPES`` (the executor falls back to the effect
 #: registry, so the two vocabularies are one).

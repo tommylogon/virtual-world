@@ -135,8 +135,8 @@ def main() -> int:
             for ext in (".png", ".jpg", ".jpeg"):
                 renames[webp.stem + ext] = webp.name
         changed = rewrite_refs(renames, apply=args.apply)
-        verb = "Rewrote" if args.apply else "Would rewrite"
-        print(f"{verb} references in {changed} file(s) for {len(renames)} converted image(s).")
+        action = "Rewrote" if args.apply else "Would rewrite"
+        print(f"{action} references in {changed} file(s) for {len(renames)} converted image(s).")
         return 0
 
     dirs = args.paths or DEFAULT_DIRS
@@ -179,8 +179,8 @@ def main() -> int:
         print(f"Wrote {written} .webp file(s).")
     if args.update_refs:
         changed = rewrite_refs(renames, apply=args.apply)
-        verb = "Rewrote" if args.apply else "Would rewrite"
-        print(f"{verb} references in {changed} file(s).")
+        action = "Rewrote" if args.apply else "Would rewrite"
+        print(f"{action} references in {changed} file(s).")
     elif args.apply:
         print("NOTE: originals' paths in data/ still point at the old files. "
               "Re-run with --update-refs (and --delete-originals) to finish the migration.")

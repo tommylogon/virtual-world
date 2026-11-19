@@ -321,7 +321,7 @@ async function waitForServer(url, maxWaitSec = 30) {
         const r = await api({command:'sleep'});
         if (r.error && !r.output) console.log('  (sleep: '+r.error.substring(0,40)+')');
     });
-    await t('Nonexistent verb falls back to emote', async () => {
+    await t('Nonexistent action falls back to emote', async () => {
         const r = await api({command:'flibberflabber'});
         // Should either be treated as emote or return an error, not crash
         if (r.error && r.error.includes('Internal')) throw r.error;

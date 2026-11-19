@@ -1557,7 +1557,7 @@ class TickManager:
                 before_arousal = vitals.get("Arousal", 0)
                 vitals["Arousal"] = min(100, before_arousal + trickle)
                 # task-545: friction is not a *path*. It has no region and no
-                # verb, so it is filed under its own source key - which is what
+                # action, so it is filed under its own source key - which is what
                 # lets a path-gated effect (task-488) tell "you were touched
                 # somewhere else" apart from "nobody touched you, your clothes
                 # did it".

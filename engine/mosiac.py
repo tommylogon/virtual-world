@@ -84,17 +84,17 @@ def choices(player):
 
     Reads the same tier table the engine enforces against (`engine.action_tiers`)
     and the character's remaining budget (`Player.turn_slots`), so a spent major
-    slot drops the major verbs from the set. `free` is always offered - the
+    slot drops the major actions from the set. `free` is always offered - the
     always-available commands are the documented override.
     """
     slots = dict(getattr(player, "turn_slots", {}) or {}) or dict(action_tiers.DEFAULT_BUDGET)
     by_tier = {}
-    for verb in action_tiers.all_actions():
-        tier = action_tiers.tier_of(verb)
+    for action in action_tiers.all_actions():
+        tier = action_tiers.tier_of(action)
         if tier == action_tiers.FREE or slots.get(tier, 0) > 0:
-            by_tier.setdefault(tier, []).append(verb)
-    for verbs in by_tier.values():
-        verbs.sort()
+            by_tier.setdefault(tier, []).append(action)
+    for actions in by_tier.values():
+        actions.sort()
     return by_tier
 
 

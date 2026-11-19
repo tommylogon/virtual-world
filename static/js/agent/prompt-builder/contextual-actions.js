@@ -4,12 +4,12 @@
  *
  * Computes the === AVAILABLE ACTIONS === block: only the actions that aren't
  * already bracketed on doors/items/people in the room context (the universal
- * set: person interactions, conditional verbs, requirement passage verbs, and
+ * set: person interactions, conditional actionNames, requirement passage actionNames, and
  * the always-on examine-room/look/inventory/stats/wait). This is the
  * "contextual" replacement for the old static ACTIONS table.
  *
- * Gating is guidance, not enforcement  -  the backend still resolves verbs
- * leniently, so a missed gate only hides a verb from the prompt, never breaks
+ * Gating is guidance, not enforcement  -  the backend still resolves actionNames
+ * leniently, so a missed gate only hides a actionWord from the prompt, never breaks
  * resolution.
  *
  * Splits into window.PromptBuilder; see helpers.js header for the pattern.
@@ -20,7 +20,7 @@
  *
  * @module prompt-builder/contextual-actions  -  the "=== AVAILABLE ACTIONS ===" block
  * @contributes computeItemActions, buildAvailableActionsBlock, carriedItemNodes, useOnTargetName, gating helpers
- * @powers The human turn  -  per-turn verb availability  -  only verbs not already bracketed in the room context
+ * @powers The human turn  -  per-turn actionWord availability  -  only actionNames not already bracketed in the room context
  * @relates uses helpers.js; complements room-context.js; gates are guidance, the backend resolves leniently
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
@@ -65,18 +65,18 @@ window.PromptBuilder = window.PromptBuilder || {};
         return window.ActionTiers || null;
     }
     /**
-     * task-352: can the remaining turn slots pay for *verb* on *props*?
+     * task-352: can the remaining turn slots pay for *actionWord* on *props*?
      * Guidance only  -  the engine's `_slot_gate` is the enforcement. With no
      * budget published (older callers, no `turn_slots`) nothing is hidden, so
      * this degrades to the pre-budget rendering.
      */
-    function affordable(verb, props, slots) {
+    function affordable(actionWord, props, slots) {
         if (!slots)
             return true;
         const tiers = actionTiers();
         if (!tiers || typeof tiers.canAfford !== 'function')
             return true;
-        return tiers.canAfford(verb, props, slots);
+        return tiers.canAfford(actionWord, props, slots);
     }
     /** Chart the char node id for a character (matches world-state.js). */
     function charNodeId(charName) {
@@ -412,14 +412,14 @@ window.PromptBuilder = window.PromptBuilder || {};
         return false;
     }
     /**
-     * The allowed action verbs for an item node in the given context.
+     * The allowed action actionNames for an item node in the given context.
      * Mirrors engine/trigger_system.py:_get_available_actions, client-side.
      *
      * @param item  - { id, name, properties } (as returned by getItemsInArea)
      * @param player - Player data (memory_index, memories)
      * @param carry - { equipped } when the item is carried/equipped
-     * @param slots - remaining turn_slots; when present, verbs the budget cannot pay for are dropped
-     * @returns verbs in BRACKET_ORDER
+     * @param slots - remaining turn_slots; when present, actionNames the budget cannot pay for are dropped
+     * @returns actionNames in BRACKET_ORDER
      */
     function computeItemActions(item, player, carry, slots) {
         const props = item?.properties || {};
@@ -427,23 +427,23 @@ window.PromptBuilder = window.PromptBuilder || {};
         const tags = asArray(props.tags).map(s => s.toLowerCase());
         const state = String(props.current_state || '').toLowerCase();
         const triggerTypes = itemTriggerTypes(item.id);
-        const verbs = new Set();
+        const actionNames = new Set();
         if (actions.includes('take') && !carry)
-            verbs.add('take');
+            actionNames.add('take');
         if (actions.includes('use') || triggerTypes.includes('on_use') || triggerTypes.includes('on_use_progressive') || triggerTypes.includes('on_use_on'))
-            verbs.add('use');
+            actionNames.add('use');
         if (triggerTypes.includes('on_use_on'))
-            verbs.add('use_on');
+            actionNames.add('use_on');
         if (actions.includes('open') && ['closed', 'normal', ''].includes(state))
-            verbs.add('open');
+            actionNames.add('open');
         if (actions.includes('close') && state === 'open')
-            verbs.add('close');
+            actionNames.add('close');
         if (actions.includes('eat') || tags.includes('food'))
-            verbs.add('eat');
+            actionNames.add('eat');
         if (actions.includes('drink') || tags.includes('drink'))
-            verbs.add('drink');
+            actionNames.add('drink');
         if (actions.includes('read') || actions.includes('search') || tags.includes('readable') || tags.includes('read'))
-            verbs.add('read');
+            actionNames.add('read');
         // wear/remove are the prompt display names for the equip/unequip pair.
         // Equippable when the item declares the pair, is tagged wearable, OR has
         // non-empty equip_slots (the engine's gate  -  equipment.py equips anything
@@ -452,32 +452,32 @@ window.PromptBuilder = window.PromptBuilder || {};
         const equipSlots = Array.isArray(props.equip_slots) ? props.equip_slots : [];
         const equippable = !intrinsic && (actions.includes('equip') || actions.includes('unequip') || actions.includes('wear') || actions.includes('remove') || tags.includes('wearable') || equipSlots.length > 0);
         if (equippable && !(carry && carry.equipped))
-            verbs.add('wear');
+            actionNames.add('wear');
         if (!intrinsic && carry && carry.equipped && (actions.includes('unequip') || actions.includes('remove') || equipSlots.length > 0))
-            verbs.add('remove');
+            actionNames.add('remove');
         if (triggerTypes.includes('on_toggle_on') || triggerTypes.includes('on_toggle_off'))
-            verbs.add('toggle');
+            actionNames.add('toggle');
         if (carry && actions.includes('drop') && !isIntrinsicAbility(props))
-            verbs.add('drop');
+            actionNames.add('drop');
         // examine  -  shown unless the character has already examined/discovered it,
         // the item is an intrinsic ability the character always knows, or the item
         // is currently equipped/worn: the engine's item matcher only reaches
         // carrying + area items (matching._match_item_name), so an examine on
         // worn gear would always fail.
         if (!(carry && carry.equipped) && !isDiscovered(player, item?.name || '') && !isIntrinsicAbility(props))
-            verbs.add('examine');
-        const list = BRACKET_ORDER.filter(v => verbs.has(v));
-        // task-352: drop verbs the remaining turn_slots cannot pay for. Guidance
+            actionNames.add('examine');
+        const list = BRACKET_ORDER.filter(v => actionNames.has(v));
+        // task-352: drop actionNames the remaining turn_slots cannot pay for. Guidance
         // only  -  the engine's `_slot_gate` still enforces. No budget → no hide.
         if (!slots)
             return list;
         return list.filter(v => affordable(v, props, slots));
     }
-    /** "[take, use]" style bracket from a verb list; '' when empty. */
-    function formatActionBrackets(verbs) {
-        if (!verbs || !verbs.length)
+    /** "[take, use]" style bracket from a actionWord list; '' when empty. */
+    function formatActionBrackets(actionNames) {
+        if (!actionNames || !actionNames.length)
             return '';
-        return `[${verbs.join(', ')}]`;
+        return `[${actionNames.join(', ')}]`;
     }
     /**
      * Build the per-turn `=== AVAILABLE ACTIONS ===` block for a character.
@@ -485,15 +485,15 @@ window.PromptBuilder = window.PromptBuilder || {};
      * Only NON-redundant actions are listed. The room context already brackets
      * what you can do with each door, item, person, and carried/worn thing, so
      * this block covers only self/universal actions: interacting with people,
-     * per-turn conditional verbs (escape/stand/rest/relieve/listen/fumble),
-     * requirement-gated passage verbs (crawl/climb/jump), and the always-on
+     * per-turn conditional actionNames (escape/stand/rest/relieve/listen/fumble),
+     * requirement-gated passage actionNames (crawl/climb/jump), and the always-on
      * examine-room/look/inventory/stats/wait set.
      *
      * @param state - Full world state data (players / players_in_area / ...)
      * @param charName - Character name
      * @param player - Player data
      * @param currentArea - Current area data object (exits, name)
-     * @param slots - remaining turn_slots; when present, verbs the budget cannot pay for are dropped
+     * @param slots - remaining turn_slots; when present, actionNames the budget cannot pay for are dropped
      * @returns The block ('' if nothing would be listed  -  never happens)
      */
     /**
@@ -570,19 +570,19 @@ window.PromptBuilder = window.PromptBuilder || {};
             ? window.PromptBuilder.viewerExits(state, charName, currentArea)
             : (currentArea?.exits || {});
         const visibleExits = Object.entries(viewExits).filter(([, ed]) => !ed.hidden);
-        // task-352: `keep` drops a suggested verb the remaining turn_slots cannot
+        // task-352: `keep` drops a suggested actionWord the remaining turn_slots cannot
         // pay for (guidance only  -  the engine's `_slot_gate` enforces). No budget
         // published → nothing hidden. `wait` is exempt (see below): it is the
         // turn's exit.
-        const keep = (verb, line) => {
-            if (affordable(verb, null, slots))
+        const keep = (actionWord, line) => {
+            if (affordable(actionWord, null, slots))
                 lines.push(line);
         };
         for (const [dir, exitData] of visibleExits) {
             const doorNode = worldState.getNode(exitData.way_id);
             const handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name) || dir;
             const req = String(doorNode?.properties?.requires || '').toLowerCase();
-            // Requirement-gated passage verbs aren't in the door's standard
+            // Requirement-gated passage actionNames aren't in the door's standard
             // bracket list, so they live here to stay visible.
             if (req === 'crawl')
                 keep('crawl', `crawl  -  crawl through the ${handle}`);

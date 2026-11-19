@@ -828,7 +828,7 @@ test('tileDetail answers bridge vs road without another panel (task-596/759)', (
     const bridge = GM.tileDetail('road', { name: 'Bridge', descriptions: ['A span carries the road over the gap.'], biomes: ['river', 'ravine'], entry_phrase: 'cross the bridge' });
     const road = GM.tileDetail('road', { name: 'Road', descriptions: ['A worn track cut through the land.'], biomes: ['sparse_forest'] });
     assertTrue(bridge.indexOf('crosses river, ravine') >= 0, 'bridge crosses');
-    assertTrue(bridge.indexOf('cross the bridge') >= 0, 'arrival verb');
+    assertTrue(bridge.indexOf('cross the bridge') >= 0, 'arrival action');
     assertTrue(road.indexOf('A worn track') >= 0, 'road prose');
 });
 

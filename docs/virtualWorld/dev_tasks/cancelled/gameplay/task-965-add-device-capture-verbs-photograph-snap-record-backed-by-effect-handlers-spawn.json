@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 965,
   "title": "Add device capture verbs (photograph, snap, record) backed by effect_handlers/spawn.py sight and speech capture",
-  "status": "todo",
+  "status": "cancelled",
   "priority": "medium",
   "area": "gameplay",
   "tags": [
@@ -15,7 +15,7 @@
     "action-verbs"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-19",
   "horizon": "next",
   "effort": "m",
   "goal": "",
@@ -76,6 +76,11 @@
     "urls": []
   },
   "evidence": [],
-  "invalidation": null,
+  "invalidation": {
+    "mode": "cancelled",
+    "by": null,
+    "reason": "Duplicates existing engine/effect_handlers/spawn.py::_capture_recent (sight/speech capture from item triggers) and contradicts task-299 design decision ('Composition over verbs' - no per-device top-level actions).",
+    "at": "2026-11-19T20:00:59Z"
+  },
   "extra": {}
 }

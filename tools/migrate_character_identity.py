@@ -97,11 +97,11 @@ def main():
         if collapsed and args.write:
             save_json(path, data)
         if not args.json:
-            verb = "migrated" if (collapsed and args.write) else (
+            action = "migrated" if (collapsed and args.write) else (
                 "would migrate" if collapsed else "ok"
             )
             print(
-                f"{verb} {path}: {collapsed} collapsed, "
+                f"{action} {path}: {collapsed} collapsed, "
                 f"{report['edges_rewritten']} edges rewritten, "
                 f"{report['edges_deduped']} deduped, "
                 f"{report['known_rewritten']} known refs"

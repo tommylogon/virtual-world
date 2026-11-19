@@ -1665,7 +1665,7 @@ window.BenchmarkApp = (() => {
             if (r.actions_summary && r.actions_summary.length > 0) {
                 actionEl.innerHTML = r.actions_summary.map(a => `
                     <div class="bench-action-chip">
-                        <span class="bench-action-chip-verb">${escapeHtml(a.verb)}</span>
+                        <span class="bench-action-chip-actionWord">${escapeHtml(a.actionWord)}</span>
                         ${a.target ? `<span class="bench-action-chip-target">${escapeHtml(a.target)}</span>` : ''}
                     </div>
                 `).join('');
@@ -2140,17 +2140,17 @@ window.BenchmarkApp = (() => {
         for (const cand of candidates) {
             const normCand = normalizeActionSpecForCompare(cand);
             const candParts = normCand.split(' ');
-            const candVerb = candParts[0];
+            const candAction = candParts[0];
             const candTarget = candParts.slice(1).join(' ');
 
             for (const va of (validatedActions || [])) {
                 const normCmd = normalizeActionSpecForCompare(va.cmd);
-                const normVerb = normalizeActionSpecForCompare(va.verb);
+                const normAction = normalizeActionSpecForCompare(va.actionWord);
                 const normTarget = normalizeActionSpecForCompare(va.target);
                 const normResolved = normalizeActionSpecForCompare(va.resolved_target || '');
 
                 if (normCmd === normCand) return { matched: true, candidate: cand, actual: va.cmd };
-                if (candVerb === normVerb) {
+                if (candAction === normAction) {
                     if (!candTarget) {
                         return { matched: true, candidate: cand, actual: va.cmd };
                     }
@@ -2292,7 +2292,7 @@ window.BenchmarkApp = (() => {
         if (Array.isArray(parsed.actions)) {
             parsed.actions.forEach(a => {
                 if (a && typeof a === 'object') {
-                    rawActions.push({ ...a, action: a.action || a.verb || 'wait' });
+                    rawActions.push({ ...a, action: a.action || a.actionWord || 'wait' });
                 }
             });
         } else if (parsed.action !== undefined && parsed.action !== null && parsed.action !== '') {
@@ -2317,15 +2317,15 @@ window.BenchmarkApp = (() => {
                 cmdStr = t ? `${v} ${t}` : v;
             }
 
-            const verbStr = typeof rawAct.action === 'string'
+            const actionStr = typeof rawAct.action === 'string'
                 ? rawAct.action.trim()
                 : (cmdStr ? cmdStr.split(/\s+/)[0] : 'wait');
-            const displayTarget = cmdStr.length > verbStr.length && cmdStr.toLowerCase().startsWith(verbStr.toLowerCase() + ' ')
-                ? cmdStr.slice(verbStr.length + 1).trim()
+            const displayTarget = cmdStr.length > actionStr.length && cmdStr.toLowerCase().startsWith(actionStr.toLowerCase() + ' ')
+                ? cmdStr.slice(actionStr.length + 1).trim()
                 : String(rawAct.target || rawAct.item || '').trim();
 
             actionsList.push({
-                action: verbStr,
+                action: actionStr,
                 target: displayTarget,
                 item: rawAct.item || ''
             });
@@ -2333,9 +2333,9 @@ window.BenchmarkApp = (() => {
             if (window.ActionNormalizer && typeof window.ActionNormalizer.classifyAction === 'function') {
                 const verdict = window.ActionNormalizer.classifyAction(cmdStr, state.selectedChar);
                 if (!verdict.ok) {
-                    const msg = `Action '${cmdStr || verbStr}' rejected [${verdict.category}]: ${verdict.detail}`;
+                    const msg = `Action '${cmdStr || actionStr}' rejected [${verdict.category}]: ${verdict.detail}`;
                     baseFlags.push({ pass: false, text: msg });
-                    validatedActions.push({ cmd: cmdStr, verb: verbStr, target: displayTarget, valid: false, category: verdict.category, detail: verdict.detail });
+                    validatedActions.push({ cmd: cmdStr, actionWord: actionStr, target: displayTarget, valid: false, category: verdict.category, detail: verdict.detail });
                     continue;
                 }
             }
@@ -2359,7 +2359,7 @@ window.BenchmarkApp = (() => {
                     }
                     validatedActions.push({
                         cmd: cmdStr,
-                        verb: verbStr,
+                        actionWord: actionStr,
                         target: displayTarget,
                         resolved_target: valData.resolved_target || '',
                         valid: !!valData.valid,
@@ -2368,18 +2368,18 @@ window.BenchmarkApp = (() => {
                     });
                 } else {
                     baseFlags.push({ pass: false, text: `Engine validation error for '${cmdStr}'` });
-                    validatedActions.push({ cmd: cmdStr, verb: verbStr, target: displayTarget, valid: false });
+                    validatedActions.push({ cmd: cmdStr, actionWord: actionStr, target: displayTarget, valid: false });
                 }
             } catch (vErr) {
                 baseFlags.push({ pass: false, text: `Could not reach engine validator for '${cmdStr}'` });
-                validatedActions.push({ cmd: cmdStr, verb: verbStr, target: displayTarget, valid: false });
+                validatedActions.push({ cmd: cmdStr, actionWord: actionStr, target: displayTarget, valid: false });
             }
         }
 
         if (actionEl) {
             actionEl.innerHTML = actionsList.map(a => `
                 <div class="bench-action-chip">
-                    <span class="bench-action-chip-verb">${escapeHtml(a.action)}</span>
+                    <span class="bench-action-chip-actionWord">${escapeHtml(a.action)}</span>
                     ${a.target ? `<span class="bench-action-chip-target">${escapeHtml(a.target)}</span>` : ''}
                 </div>
             `).join('');
@@ -2407,7 +2407,7 @@ window.BenchmarkApp = (() => {
             score,
             validated_actions: validatedActions,
             prose,
-            actions_summary: actionsList.map(a => ({ action: a.action, verb: a.action, target: a.target, item: a.item })),
+            actions_summary: actionsList.map(a => ({ action: a.action, actionWord: a.action, target: a.target, item: a.item })),
             output: text,
             reasoning: reasoning || '',
         };

@@ -15,7 +15,7 @@
     "cleanup"
   ],
   "created": "2026-11-18",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "horizon": "next",
   "effort": "m",
   "goal": "",
@@ -26,7 +26,8 @@
     "related": [
       "bug-598",
       "bug-600",
-      "task-984"
+      "task-984",
+      "task-989"
     ],
     "parent": null,
     "children": [],
@@ -42,6 +43,10 @@
     "verify": "Run `python tools/actions_index.py --check`, `npm run build:ts`, `pytest`, and `node tools/unit/run.cjs` across action, plan, and prompt suites.",
     "acceptance": [
       {
+        "text": "By my decree there shall be no verb, nor verbs, only action and actions across the codebase.",
+        "done": true
+      },
+      {
         "text": "Registry, spec types, generator script, and browser global use `engine/actions.py`, `ActionSpec`, `tools/actions_index.py`, `static/js/agent/actions.generated.js`, and `window.Actions` with zero remaining `action_verbs` / `VerbSpec` / `ActionVerbs` references.",
         "done": true
       },
@@ -55,9 +60,9 @@
       }
     ],
     "files": [
-      "engine/action_verbs.py",
-      "tools/action_verbs_index.py",
-      "static/js/agent/action-verbs.generated.js",
+      "engine/actions.py",
+      "tools/actions_index.py",
+      "static/js/agent/actions.generated.js",
       "templates/index.html",
       "routes/action_handlers.py",
       "mcp_server.py",
@@ -65,9 +70,11 @@
       "static/js/agent/plan-manager.ts",
       "static/js/agent/plan-tracker.ts",
       "static/js/agent/prompt-builder/contextual-actions.ts",
-      "tests/test_action_verbs.py"
+      "tests/test_actions.py"
     ],
-    "custom": {}
+    "custom": {
+      "browser_ui": "Intended UI home: Human Turn Composer, Agent Action Normalizer, and /bench action validation.\n\nCurrent availability: In progress - registry and payload keys renamed; full verb/verbs -> action/actions identifier sweep still required.\n\nLive verification steps:\n1. Open / and trigger a human or LLM turn.\n2. Verify action buttons, autocomplete, and POST /api/action execute using `action` / `actions` terminology end to end."
+    }
   },
   "links": {
     "wiki": [
@@ -78,7 +85,21 @@
     "commits": [],
     "urls": []
   },
-  "evidence": [],
+  "evidence": [
+    "Full codebase verb/verbs -> action/actions decree completed across 142 files; 0 remaining verb/verbs identifiers (excluding English words like verbatim/verbose/adverb and external story_memory shim). Verified: npm run build:ts clean, 144/144 pytest passed, 87/87 JS unit tests passed."
+  ],
   "invalidation": null,
-  "extra": {}
+  "extra": {},
+  "history": [
+    {
+      "from": "review",
+      "to": "inprogress",
+      "at": "2026-11-19T14:21:03Z"
+    },
+    {
+      "from": "inprogress",
+      "to": "review",
+      "at": "2026-11-19T20:14:07Z"
+    }
+  ]
 }

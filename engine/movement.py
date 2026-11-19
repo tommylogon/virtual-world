@@ -573,7 +573,7 @@ class MovementSystem:
 
         ``kind`` is the movement mode - ``go`` (default), ``crawl``, ``climb``,
         or ``jump`` (task-187). Crawl-only or tight ways auto-convert ``go``
-        to a crawl; climb/jump ways require the matching verb.
+        to a crawl; climb/jump ways require the matching action.
         """
         if not self.gs.current_area:
             return "You are in an empty void."
@@ -630,7 +630,7 @@ class MovementSystem:
         # "go to the <doorway>" / "go toward <way>" - walk up to the way and
         # STOP (positioned at it) instead of crossing. Agents use this phrasing
         # to reach a door to examine/open/listen; a bare "go <way>" is the
-        # explicit crossing verb and keeps its old meaning.
+        # explicit crossing action and keeps its old meaning.
         if kind == "go" and _allow_approach:
             approach_msg = self._try_approach(area_id, direction)
             if approach_msg:
@@ -1000,7 +1000,7 @@ class MovementSystem:
 
         # Stamp the heading of travel (task-313). Coming from the south means
         # travelling north, so the character faces north and "right" is east.
-        # This is the ONLY place facing changes: there is no turn-in-place verb,
+        # This is the ONLY place facing changes: there is no turn-in-place action,
         # so standing still, examining and talking all leave it alone. The
         # cardinal comes off the connection edge rather than the typed word,
         # because the typed word may be narrative ("through the swinging door")

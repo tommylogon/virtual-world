@@ -153,7 +153,7 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         const menus: MenuButton[] = [];
         // In the dark the chip reads "something", so the menu must not hand
         // over the real name in its header  -  that made the masking theatre.
-        // The draft still carries the real name so the verb resolves.
+        // The draft still carries the real name so the actionWord resolves.
         if (dark) {
             menus.push(applyBudgetGate({
                 label: 'Feel around the shape',
@@ -240,16 +240,16 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
      * Check if an action's tier can be paid by the remaining turn slots (bug-562).
      * An unpublished budget (null or empty slots) disables nothing (bug-544).
      */
-    function gateByBudget(verb: string, slots: Record<string, number> | null | undefined): { enabled: boolean; reason?: string } {
+    function gateByBudget(actionWord: string, slots: Record<string, number> | null | undefined): { enabled: boolean; reason?: string } {
         if (!slots || !Object.keys(slots).length) return { enabled: true };
         const at = (window as unknown as {
             ActionTiers?: {
-                tierOf?: (verb: string, props?: Record<string, unknown> | null) => string;
+                tierOf?: (actionWord: string, props?: Record<string, unknown> | null) => string;
                 canPay?: (slots: Record<string, number>, tier: string) => boolean;
             };
         }).ActionTiers;
         if (!at || typeof at.tierOf !== 'function' || typeof at.canPay !== 'function') return { enabled: true };
-        const tier = at.tierOf(verb);
+        const tier = at.tierOf(actionWord);
         if (tier === 'free') return { enabled: true };
         if (!at.canPay(slots, tier)) {
             return { enabled: false, reason: `no ${tier} action left` };
@@ -257,9 +257,9 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         return { enabled: true };
     }
 
-    function applyBudgetGate(button: MenuButton, verb: string, slots: Record<string, number> | null | undefined): MenuButton {
+    function applyBudgetGate(button: MenuButton, actionWord: string, slots: Record<string, number> | null | undefined): MenuButton {
         if (button.enabled === false) return button;
-        const gate = gateByBudget(verb, slots);
+        const gate = gateByBudget(actionWord, slots);
         if (!gate.enabled) {
             button.enabled = false;
             button.reason = gate.reason;
@@ -332,14 +332,14 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         }
         // An open passage (a compiled outdoor way, an authored `prevent_close`) has
         // no door to swing: movement._open_passage_block refuses `close`, so
-        // offering Close is a verb that can only fail.
+        // offering Close is a actionWord that can only fail.
         if (!closed && !requires && !way.prevent_close) {
             menus.push(applyBudgetGate({ label: `Close ${shownName}`, run: () => draftParts({ action: 'close', item: way.name }) }, 'close', s));
         }
         return menus;
     }
 
-    // task-610: the backend dispatches ~23 character-to-character verbs but
+    // task-610: the backend dispatches ~23 character-to-character actionNames but
     // the person menu exposed only Talk / Examine / Attack. This mirrors the
     // full person-directed set. The menu is an affordance only  -  every entry
     // drafts text the server validates, exactly like the way menu. Entries
@@ -393,7 +393,7 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         menus.push(applyBudgetGate({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) }, 'lead', s));
         // Wake is only legal against someone with an activity  -  the engine
         // raises "isn't sleeping or busy" otherwise (Activities.wake). Offering
-        // it on a standing, idle person is a verb that can only fail.
+        // it on a standing, idle person is a actionWord that can only fail.
         if (person.activity) {
             menus.push(applyBudgetGate({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) }, 'wake', s));
         }
@@ -432,17 +432,17 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
                 },
             }, 'teach', s));
         }
-        // Intimacy verbs are only valid in mature worlds (task-211); offer the
+        // Intimacy actionNames are only valid in mature worlds (task-211); offer the
         // submenu behind the same toggle the engine gates on.
         if (mature) {
             menus.push(applyBudgetGate({
                 label: 'Intimacy…',
                 sub: {
                     title: `Intimacy with ${who}`,
-                    buttons: ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle'].map((verb) => applyBudgetGate({
-                        label: verb[0].toUpperCase() + verb.slice(1),
-                        run: () => draftParts({ action: verb, target: who }),
-                    }, verb, s)),
+                    buttons: ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle'].map((actionWord) => applyBudgetGate({
+                        label: actionWord[0].toUpperCase() + actionWord.slice(1),
+                        run: () => draftParts({ action: actionWord, target: who }),
+                    }, actionWord, s)),
                 },
             }, 'kiss', s));
         }

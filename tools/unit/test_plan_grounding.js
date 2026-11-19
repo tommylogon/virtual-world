@@ -136,18 +136,18 @@ test('drop resolves carried items', () => {
     assertTrue(/no interactable "war drum"/.test(PlanGrounding.groundStep({ action: 'drop', item: 'war drum' }, facts, 'Mine Access')), 'dropping scenery is rejected');
 });
 
-test('every engine verb is a legal act', () => {
-    const engineVerbs = ['go', 'dash', 'crawl', 'climb', 'jump', 'take', 'drop', 'use', 'use_on',
+test('every engine action is a legal act', () => {
+    const engineActions = ['go', 'dash', 'crawl', 'climb', 'jump', 'take', 'drop', 'use', 'use_on',
         'examine', 'open', 'close', 'attack', 'grab', 'lead', 'escape', 'struggle', 'read', 'search',
         'look', 'listen', 'fumble', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'wait', 'relieve',
         'stow', 'put', 'combine', 'split', 'craft', 'make', 'give', 'steal', 'speak', 'perform',
         'wear', 'remove', 'approach', 'eat', 'drink',
         'call', 'answer', 'hangup', 'text', 'message'];
-    const missing = engineVerbs.filter((v) => !PlanGrounding.ACTIONS.has(v));
-    assertEq(missing.length, 0, 'plan contract missing verbs: ' + missing.join(', '));
+    const missing = engineActions.filter((v) => !PlanGrounding.ACTIONS.has(v));
+    assertEq(missing.length, 0, 'plan contract missing actions: ' + missing.join(', '));
 });
 
-test('phone verbs (call, answer, hangup, text, message) ground as legal plan steps', () => {
+test('phone actions (call, answer, hangup, text, message) ground as legal plan steps', () => {
     assertEq(PlanGrounding.groundStep({ action: 'call', target: 'Bob' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'call grounds');
     assertEq(PlanGrounding.groundStep({ action: 'answer' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'answer grounds');
     assertEq(PlanGrounding.groundStep({ action: 'hangup' }, FACTS_MINE_ACCESS, 'Mine Access'), null, 'hangup grounds');

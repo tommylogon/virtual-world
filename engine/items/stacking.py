@@ -1,4 +1,4 @@
-"""Combine / split verbs for ItemActions (task-155 stackable instances).
+"""Combine / split actions for ItemActions (task-155 stackable instances).
 
 Two identical consumable copies (e.g. two breads) can be merged into one
 stack (uses + weight summed) or one stack can be split back into equal
@@ -43,7 +43,7 @@ _AUTO_SUFFIX = re.compile(r"_[0-9a-f]{6,8}$")
 
 
 def _display_name(name):
-    """Strip a leading article for verb phrasing (matches take_drop_actions)."""
+    """Strip a leading article for action phrasing (matches take_drop_actions)."""
     return re.sub(r'^(?:the|a|an)\s+', '', str(name or '').strip())
 
 

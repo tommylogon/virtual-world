@@ -8,7 +8,7 @@
  * `system` type, so "Scenario saved to foo" was already filtered. The rows that
  * escaped were the ones parseEntry re-labels as an action whenever
  * _tryParsePrefixedName matches - any operational line that happened to read
- * "<Name> <verb>". Filtering at the ring push closes the whole class.
+ * "<Name> <action>". Filtering at the ring push closes the whole class.
  *
  * The one system row that IS a turn row - an NPC doing nothing - must survive.
  */
@@ -56,7 +56,7 @@ test('real turn rows are unaffected', () => {
 
 test('an NPC line is attributed to its actor, not to You', () => {
     // record_turn_event stamps the actor on the event; parseEntry used to throw
-    // that away and re-derive it from a closed verb list, so an unlisted verb
+    // that away and re-derive it from a closed action list, so an unlisted action
     // ("unwraps") fell through to a null actor and rendered as "You".
     const parsed = TurnFeed.parseEntry({
         text: 'kyrie johansen unwraps the protein bar and takes a dry bite.',

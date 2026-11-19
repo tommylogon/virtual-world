@@ -1032,7 +1032,7 @@ class TestTakeAlreadyHeld:
 
 class TestConsumeItem:
     """eat/drink path  -  regression: _consume_item referenced an undefined
-    past_verb and crashed every eat/drink action (found while building a
+    past_action and crashed every eat/drink action (found while building a
     poison vial whose on_drink trigger applies the poisoned condition)."""
 
     def test_drink_item_returns_result(self, graph, player_manager, item_actions):
@@ -1302,7 +1302,7 @@ class TestDropItem:
                    for e in graph.edges)
 
     def test_drop_resolves_an_equipped_item_by_case_insensitive_name(self, graph, player_manager, item_actions):
-        """The verb handler lowercases the noun, so "Knife" must still match."""
+        """The action handler lowercases the noun, so "Knife" must still match."""
         add_player(graph, "Hero")
         knife = add_item(graph, "Knife", weight=0.5)
         graph.add_edge(Edge(source=knife.id, target="player_Hero", type=EDGE_EQUIPPED,

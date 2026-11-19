@@ -147,8 +147,8 @@ def score_pursuit_candidate(
     template_id = str(template.get("id") or "").lower()
 
     # 1. Check value gates
-    action_verb = "rest" if "sleep" in template_id else ("eat" if "meal" in template_id else "take")
-    if hasattr(disposition, "is_gated") and disposition.is_gated(player, action_verb):
+    action_name = "rest" if "sleep" in template_id else ("eat" if "meal" in template_id else "take")
+    if hasattr(disposition, "is_gated") and disposition.is_gated(player, action_name):
         return -float("inf")
 
     # 2. Base disposition score

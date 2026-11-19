@@ -1,12 +1,12 @@
 """Action tiers - the free / minor / major / activity classification (task-352).
 
-One verb, one tier, fixed slots. The tier table is shared vocabulary - the
+One action, one tier, fixed slots. The tier table is shared vocabulary - the
 composer, the agent turn, and the soak must all read the same data, and a second
 copy would be the same "two homes" bug the rest of the tree is full of
 (task-491, task-724).
 
 Resolution: `tier_of()` honours a per-item override
-(`item.properties.action_costs[verb].tier`), then the intrinsic-ability default
+(`item.properties.action_costs[action].tier`), then the intrinsic-ability default
 of `minor`, then the table. Budget and enforcement: `DEFAULT_BUDGET`,
 `reset_slots`, `spend_slot` (a higher slot pays for a lower action); the runtime
 budget is `Player.turn_slots`, charged by `routes/action_handlers.py:_slot_gate`.
@@ -19,7 +19,7 @@ gates free actions: `open` is free only for something you are *at* - reaching it
 costs `approach` (minor) or `go` (major).
 
 @module action_tiers
-@contributes ACTION_TIERS, VERB_TIERS, VALID_TIERS, DEFAULT_BUDGET, tier_of, reset_slots, spend_slot
+@contributes ACTION_TIERS, ACTION_TIERS, VALID_TIERS, DEFAULT_BUDGET, tier_of, reset_slots, spend_slot
 @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
@@ -47,13 +47,13 @@ DEFAULT_BUDGET = {MAJOR: 1, MINOR: 1, FREE: 3, ACTIVITY: 1}
 #: `routes/action_handlers.py:_slot_gate`, which every budgeted actor shares
 #: (humans and LLM agents); NPC paths that keep no budget dash as a plain hop.
 BURST_INITIATE = "dash"
-#: The verbs a dash's finish hop accepts - a movement across a way. `approach`
+#: The actions a dash's finish hop accepts - a movement across a way. `approach`
 #: is deliberately absent: it stops short of crossing, so it cannot complete a
 #: dash - and `wait` is the abort, not a finish.
-BURST_FINISH_VERBS = frozenset({"go", "dash", "climb", "crawl", "jump"})
-#: Verbs that abandon an unfinished dash: the character stops. Clears the armed
+BURST_FINISH_ACTIONS = frozenset({"go", "dash", "climb", "crawl", "jump"})
+#: Actions that abandon an unfinished dash: the character stops. Clears the armed
 #: burst without spending the minor, so a dead-end dash is never a soft-lock.
-BURST_ABORT_VERBS = frozenset({"wait", "nothing", "stop"})
+BURST_ABORT_ACTIONS = frozenset({"wait", "nothing", "stop"})
 
 
 def can_initiate_dash(slots: dict) -> bool:
@@ -61,8 +61,8 @@ def can_initiate_dash(slots: dict) -> bool:
     return slots.get(MAJOR, 0) > 0 and slots.get(MINOR, 0) > 0
 
 
-def apply_action_gate(slots: dict, verb: str, burst_pending: int = 0):
-    """Spend the slots *verb* costs, honouring the dash burst (task-784).
+def apply_action_gate(slots: dict, action: str, burst_pending: int = 0):
+    """Spend the slots *action* costs, honouring the dash burst (task-784).
 
     The one implementation of the action-economy rule, shared by every budgeted
     actor. Returns ``(error, burst)``: *error* is a message to refuse the action
@@ -76,23 +76,23 @@ def apply_action_gate(slots: dict, verb: str, burst_pending: int = 0):
     *slots* is mutated in place. The caller arms on success only, so a dash that
     is blocked (winded/encumbered/locked) is not left able to finish.
     """
-    verb = (verb or "").strip().lower()
+    action = (action or "").strip().lower()
     if burst_pending:
-        if verb in BURST_FINISH_VERBS:
+        if action in BURST_FINISH_ACTIONS:
             if spend_slot(slots, MINOR) is None:
                 return "You have no minor action left to finish the dash.", "none"
             return None, "clear"
-        if verb in BURST_ABORT_VERBS:
+        if action in BURST_ABORT_ACTIONS:
             return None, "clear"
         return ("Finish your dash first - go, dash, climb, crawl or jump - or wait.",
                 "none")
-    if verb == BURST_INITIATE:
+    if action == BURST_INITIATE:
         if not can_initiate_dash(slots):
             return ("A dash takes a major and a minor action; you are short.",
                     "none")
         spend_slot(slots, MAJOR)
         return None, "arm"
-    tier = tier_of(verb)
+    tier = tier_of(action)
     if spend_slot(slots, tier) is None:
         return f"You have no {tier} action left this turn.", "none"
     return None, "none"
@@ -224,29 +224,29 @@ def _is_ability(item_node) -> bool:
     return bool(INTRINSIC_ABILITY_TAGS.intersection(tags))
 
 
-def tier_of(verb: str, item_node=None) -> str:
-    """The tier a verb costs, honouring a per-item override and ability default.
+def tier_of(action: str, item_node=None) -> str:
+    """The tier a action costs, honouring a per-item override and ability default.
 
     Resolution order (task-352):
-      1. `item.properties.action_costs[verb].tier` - the declared override.
+      1. `item.properties.action_costs[action].tier` - the declared override.
       2. intrinsic ability (spell/ability/innate/intrinsic/power) → ``minor``.
-      3. the verb table.
-      4. ``major`` for an unknown verb (the coverage test should make this dead).
+      3. the action table.
+      4. ``major`` for an unknown action (the coverage test should make this dead).
     """
-    verb = (verb or "").strip().lower()
+    action = (action or "").strip().lower()
     if item_node is not None:
         props = getattr(item_node, "properties", None) or {}
-        override = (props.get("action_costs") or {}).get(verb) or {}
+        override = (props.get("action_costs") or {}).get(action) or {}
         declared = override.get("tier")
         if declared in VALID_TIERS:
             return declared
         if _is_ability(item_node):
             return MINOR
-    if verb in ACTION_TIERS:
-        return ACTION_TIERS[verb]
+    if action in ACTION_TIERS:
+        return ACTION_TIERS[action]
     try:
         from engine import actions
-        spec = actions.get_action(verb)
+        spec = actions.get_action(action)
         if spec and spec.cost_key in VALID_TIERS:
             return spec.cost_key
     except Exception:
@@ -255,7 +255,7 @@ def tier_of(verb: str, item_node=None) -> str:
 
 
 #: Legacy alias preserved for external callers.
-VERB_TIERS = ACTION_TIERS
+ACTION_TIERS = ACTION_TIERS
 
 
 def all_actions() -> list[str]:
@@ -264,7 +264,7 @@ def all_actions() -> list[str]:
 
 
 #: Legacy alias preserved for external callers.
-all_verbs = all_actions
+all_actions = all_actions
 
 
 #: Ascending by value: a higher tier may pay for a lower action (task-352).

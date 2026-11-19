@@ -4,12 +4,12 @@
   "kind": "task",
   "number": 944,
   "title": "Subjective Cognitive Memory and Active Mind Architecture",
-  "status": "todo",
+  "status": "superseded",
   "priority": "medium",
   "area": "gameplay",
   "tags": [],
   "created": "",
-  "updated": "2026-11-16",
+  "updated": "2026-11-19",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -28,7 +28,9 @@
     "parent": null,
     "children": [],
     "supersedes": [],
-    "superseded_by": [],
+    "superseded_by": [
+      "task-947"
+    ],
     "invalidates": [],
     "invalidated_by": []
   },
@@ -55,7 +57,12 @@
     "urls": []
   },
   "evidence": [],
-  "invalidation": null,
+  "invalidation": {
+    "mode": "superseded",
+    "by": "task-947",
+    "reason": "Superseded by task-947..950 and task-908 (relative timestamps, clean recall without [Match: N%], room echo suppression, somatic/sound cues, and Intermediator palimpsest). Remaining active_mind inquiry mechanic belongs with task-957.",
+    "at": "2026-11-19T19:59:42Z"
+  },
   "extra": {
     "inline_meta": {
       "lane": "gameplay",

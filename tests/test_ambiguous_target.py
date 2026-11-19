@@ -49,7 +49,7 @@ def test_ambiguous_attack_returns_a_chooser_not_a_pick():
 
     assert "choices" in body, "an ambiguous target must offer a chooser"
     group = body["choices"][0]
-    assert group["verb"] == "attack"
+    assert group["action"] == "attack"
     assert {o["key"] for o in group["options"]} == set(vkeys)
     # Both candidates are labelled "Violet" but must carry a distinguishing detail.
     assert all(o["label"] == "Violet" for o in group["options"])
@@ -81,7 +81,7 @@ def test_key_target_from_the_chooser_hits_exactly_that_character(monkeypatch):
 
 
 def test_ambiguous_lead_offers_the_chooser_instead_of_erroring():
-    """`lead` is a real verb; an ambiguous one must ask, not 500.
+    """`lead` is a real action; an ambiguous one must ask, not 500.
 
     Regression: the ambiguity branch left `target_player` None and then read
     `target_player.current_area`, so `lead violet` raised AttributeError and the
@@ -96,7 +96,7 @@ def test_ambiguous_lead_offers_the_chooser_instead_of_erroring():
     assert resp.status_code == 200, body
     assert "choices" in body
     group = body["choices"][0]
-    assert group["verb"] == "lead"
+    assert group["action"] == "lead"
     assert {o["key"] for o in group["options"]} == set(vkeys)
     assert "Do you mean" in body["output"]
 

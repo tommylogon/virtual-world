@@ -6,10 +6,10 @@
 """
 
 from engine.equipment import is_intrinsic_ability
-"""Transfer verbs (give / steal) for ItemActions.
+"""Transfer actions (give / steal) for ItemActions.
 
 Moved verbatim from engine/item_actions.py as part of the task-314
-verb-family split. Methods hang off the ItemActions context (graph,
+action-family split. Methods hang off the ItemActions context (graph,
 matching, trigger_system, world) via the mixin.
 """
 
@@ -189,7 +189,7 @@ class TransferActionsMixin:
         # task-493: a part does not come loose, from anyone. The roster scan
         # above only sees what is worn or carried, so a part is not reachable
         # here today - but "not reachable" is not the same as "refused", and
-        # this is the verb where a silent pass would hand over a battery.
+        # this is the action where a silent pass would hand over a battery.
         if not is_portable(item_node):
             raise ValueError(portable_refusal(self.graph, item_node, "steal it"))
 
@@ -246,7 +246,7 @@ class TransferActionsMixin:
     def search_character(self, player_manager, target_name: str) -> str:
         """Pat down another character for concealed items (task-516).
 
-        Perception-gated, exactly like the area `search` verb: a success clears
+        Perception-gated, exactly like the area `search` action: a success clears
         ``concealed`` on everything they carry or wear so the item becomes
         lootable/stealable; a failure reveals nothing. The flag is the discovery
         state - concealing it again is an authoring action.

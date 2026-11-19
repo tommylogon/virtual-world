@@ -72,7 +72,7 @@ def test_item_in_the_room_and_on_a_table_in_it_is_listed_once():
 def _system():
     """A real TriggerSystem over a real graph — _get_available_actions reads
     both the node's properties and its `triggers` edges, so a stub would skip
-    the mechanism that decides whether the toggle verb appears at all."""
+    the mechanism that decides whether the toggle action appears at all."""
     from engine.trigger_system import TriggerSystem
     g = WorldGraph()
     g.add_node(Node(id="area_room", type="area", name="Room",
@@ -124,14 +124,14 @@ def test_toggle_label_follows_the_lit_state_not_an_off_literal():
 
 def test_toggle_offers_nothing_when_the_engine_would_refuse_it():
     """toggle_item_status requires the `toggleable` tag. A trigger alone must
-    not render a verb the engine rejects."""
+    not render a action the engine rejects."""
     system, g = _system()
     node = _item(g, tags=("light_source",), state="unlit",
                  trigger_types=("on_toggle_off",))
     assert not any(l in ("Light", "Extinguish") for l in _labels(system, node))
 
 
-def test_on_light_alone_still_offers_the_verb():
+def test_on_light_alone_still_offers_the_action():
     system, g = _system()
     node = _item(g, tags=("toggleable",), state="unlit",
                  trigger_types=("on_light",))
@@ -139,7 +139,7 @@ def test_on_light_alone_still_offers_the_verb():
 
 
 def test_a_drop_only_item_on_the_floor_offers_nothing_extra():
-    """Negative case: gating drop must not also drop the other verbs."""
+    """Negative case: gating drop must not also drop the other actions."""
     system, g = _system()
     node = _item(g, "rock", actions="examine,drop")
     labels = _labels(system, node, carrying=False)

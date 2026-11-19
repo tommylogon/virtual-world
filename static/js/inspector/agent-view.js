@@ -1725,7 +1725,7 @@ ${isNewPack
         if (/\b(?:I|I'm|I've|I'll|my|me)\b/i.test(text))
             issues.push('first-person pronoun (I/my/me)');
         if (/\byou\s+is\b|\byou\s+was\b|\bbody\s+is\s+who\b/i.test(text))
-            issues.push('verb-agreement slip');
+            issues.push('action-agreement slip');
         return issues;
     };
     /**
@@ -1743,7 +1743,7 @@ ${isNewPack
                 { role: 'user', content: 'Fix this character appearance description.\n'
                         + 'Keep every content detail exactly as it is; correct only grammar and rewrite any '
                         + 'first-person or second-person wording ("I/my/me/you/your") into consistent THIRD person '
-                        + '(she/he/they + her/his/their). Subject-verb agreement must be exact.\n'
+                        + '(she/he/they + her/his/their). Subject-action agreement must be exact.\n'
                         + 'Output ONLY the corrected description - no commentary.\n\n'
                         + text }
             ], { temperature: 0.4, label: 'inspector/appearance-repair' });
@@ -1794,7 +1794,7 @@ ${isNewPack
             + `If they are nude, describe their body, posture, and how they carry themselves without flinching.\n`
             + `2-4 sentences total. No bullet points. No backstory. No personality. No internal thoughts. Only what can be seen.\n`
             + `Write in consistent third person (she/he/they + her/his/their). NEVER use "you", "your", or "I" - the character's own prompt converts this description to second person for them, so the stored text must stay third person.\n`
-            + `Grammar must be exact: no "you is", no "body is who", no "she have" - subject-verb agreement only.\n`
+            + `Grammar must be exact: no "you is", no "body is who", no "she have" - subject-action agreement only.\n`
             + `\nExamples:\n- "A wiry, olive-skinned woman with sharp cheekbones picks at her sleeve..."\n- "He is all lean bone and coltish angles at 171cm, self-conscious about his flat-chested frame."`;
         const textarea = document.getElementById('inspector-description');
         if (textarea)

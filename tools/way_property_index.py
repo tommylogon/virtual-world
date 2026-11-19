@@ -146,7 +146,7 @@ def build_page() -> str:
     a("These are independent of each other. Any combination is valid, which is why")
     a("`see_through` is not a kind of door - it is one axis among four.")
     a("")
-    for axis in ("passage", "transparency", "verb", "size"):
+    for axis in ("passage", "transparency", "action", "size"):
         a(f"- **{axis}** - {AXES[axis]}")
     a("")
     a("Everything else in this page is either naming and layout (`identity`) or editor")
@@ -157,7 +157,7 @@ def build_page() -> str:
     a("```")
     a("current_state   does NOT let you through unless it is open")
     a("see_through    does NOT let you through, and does NOT stop light or sight")
-    a("requires       which verb the passage demands (crawl / climb / jump)")
+    a("requires       which action the passage demands (crawl / climb / jump)")
     a("max_size       who fits, relative to the character's size")
     a("```")
     a("")

@@ -70,12 +70,12 @@ class Player:
     # ── Stimulation path record (task-545) ───────────────────────────────
 
     @staticmethod
-    def stimulation_path_key(region_id=None, verb=None, source="interaction") -> str:
+    def stimulation_path_key(region_id=None, action=None, source="interaction") -> str:
         """The path key a stimulation gain is filed under.
 
         **The region alone**, following the task's recommendation: `region_id`
         is already a resolved id from `engine/body_parts.py` and the trait talks
-        about a *route*, not about a specific move. A `region.verb` key would be
+        about a *route*, not about a specific move. A `region.action` key would be
         finer-grained than anything currently needs and would make "any touch to
         the same route counts" false.
 
@@ -90,7 +90,7 @@ class Player:
         return str(region_id or "unspecified")
 
     def record_stimulation_path(self, path_key, amount, *, region_id=None,
-                                verb=None):
+                                action=None):
         """Attribute *amount* of Stimulation to *path_key*. task-545.
 
         A non-positive amount is ignored rather than recorded as a negative
@@ -342,7 +342,7 @@ class Player:
         # ── Pleasure path record (task-545) ──
         # Which paths have contributed to `Stimulation` since the last release,
         # with how much each contributed. `apply_stimulation()` already receives
-        # the resolved `region_id` and `verb` and then folds both into one
+        # the resolved `region_id` and `action` and then folds both into one
         # integer on `vitals["Stimulation"]`, so nothing downstream could tell a
         # release threshold how the meter got there. A path-sensitive effect
         # (task-488's `single_track`) needs something to read.
@@ -391,7 +391,7 @@ class Player:
         self.current_area = None
         # task-313 relative facing. `facing` is the cardinal heading of the last
         # crossing and is the ONLY thing "left"/"right"/"forward"/"back" read;
-        # it changes only by moving, because there is no turn-in-place verb.
+        # it changes only by moving, because there is no turn-in-place action.
         # `entered_from_way` is the way that crossing used, kept so the heading
         # can be explained rather than merely asserted. Both are None for a
         # character that has never moved, which is what makes the relative words

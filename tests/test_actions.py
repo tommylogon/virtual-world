@@ -14,7 +14,7 @@ import pytest
 
 import engine.actions as act_reg
 from engine.action_tiers import ACTION_TIERS
-from engine.pleasure_actions import INTIMACY_VERBS
+from engine.pleasure_actions import INTIMACY_ACTIONS
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -37,9 +37,9 @@ def test_registry_uniqueness_and_canonical_specs():
 
 
 def test_mature_actions_match_intimacy_source():
-    """Mature actions must match INTIMACY_VERBS exactly."""
+    """Mature actions must match INTIMACY_ACTIONS exactly."""
     reg_mature = set(act_reg.mature_actions())
-    intimacy_set = set(INTIMACY_VERBS)
+    intimacy_set = set(INTIMACY_ACTIONS)
     assert reg_mature == intimacy_set, f"Mature actions mismatch: diff={reg_mature ^ intimacy_set}"
 
 
@@ -81,7 +81,7 @@ def test_scope_queries():
         assert required in way_actions, f"Required way action '{required}' missing from way scope"
 
     intimacy_actions = {s.id for s in act_reg.actions_for_scope("intimacy")}
-    assert intimacy_actions == set(INTIMACY_VERBS)
+    assert intimacy_actions == set(INTIMACY_ACTIONS)
 
 
 def test_alias_resolution():

@@ -5,13 +5,27 @@
   "number": 907,
   "title": "engine action validation dry run and benchmark reasoning effort control",
   "status": "review",
-  "area": "prompting",
   "priority": "high",
+  "area": "prompting",
+  "tags": [],
   "created": "2026-10-26",
-  "links": {
-    "wiki": [
-      "[[AI & Narration/Agent Engine]]"
-    ]
+  "updated": "2026-11-18",
+  "horizon": "",
+  "effort": "",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-989"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
   },
   "sections": {
     "what": "Replace benchmark.js ad-hoc validation with a read-only engine action validation endpoint, and add reasoning effort control to the Benchmark Lab UI and proxy.",
@@ -54,5 +68,16 @@
     "custom": {
       "browser_ui": "Intended UI home: /bench\n\nCurrent availability: benchmark lab is live, action validation endpoint and reasoning effort control in development\n\nLive steps when available:\n1. Open http://localhost:4444/bench\n   - expected: Benchmark Lab loads with new Reasoning Effort dropdown.\n2. Run a model that outputs examine library or examine bookshelf\n   - expected: Action is validated through /api/action/validate and passes ground-truth check.\n3. Change Reasoning Effort to low or high and verify payload sent to upstream\n   - expected: Reasoning Effort is sent in /api/bench/chat request and recorded in export JSON.\n\nThis section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available."
     }
-  }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/Agent Engine]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
 }

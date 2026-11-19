@@ -98,7 +98,7 @@ class LightingSystem:
         """Return ``(total, max_level)`` for lit items in/around ``area_id``.
 
         The max is the strongest single source - used as the brightness CEILING
-        so piling up dim/normal sources can never out-verb their own level
+        so piling up dim/normal sources can never out-action their own level
         (50 dim embers read as a warm glow, never a laser).
         """
         total = 0

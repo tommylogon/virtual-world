@@ -1,7 +1,7 @@
 """task-352 slice 1: the action-tier classification.
 
-The load-bearing test is `test_every_dispatched_verb_has_a_tier`: it derives the
-verb set from `routes/action_handlers.py` itself, so adding a command without a
+The load-bearing test is `test_every_dispatched_action_has_a_tier`: it derives the
+action set from `routes/action_handlers.py` itself, so adding a command without a
 tier fails here rather than silently defaulting to `major` at runtime.
 """
 
@@ -47,7 +47,7 @@ def _dispatched_tokens() -> set:
     return tokens
 
 
-def _leading_verb(token: str) -> str:
+def _leading_action(token: str) -> str:
     t = token.strip().lower()
     if t in _TOKEN_EXCEPTIONS:
         return _TOKEN_EXCEPTIONS[t]
@@ -55,17 +55,17 @@ def _leading_verb(token: str) -> str:
 
 
 def test_tier_values_are_valid():
-    for verb, tier in at.ACTION_TIERS.items():
-        assert tier in at.VALID_TIERS, f"{verb} has invalid tier {tier}"
+    for action, tier in at.ACTION_TIERS.items():
+        assert tier in at.VALID_TIERS, f"{action} has invalid tier {tier}"
 
 
-def test_every_dispatched_verb_has_a_tier():
+def test_every_dispatched_action_has_a_tier():
     missing = sorted(
-        {_leading_verb(tok) for tok in _dispatched_tokens()}
+        {_leading_action(tok) for tok in _dispatched_tokens()}
         - set(at.ACTION_TIERS)
     )
     assert not missing, (
-        "verbs dispatched by routes/action_handlers.py with no tier in "
+        "actions dispatched by routes/action_handlers.py with no tier in "
         f"engine/action_tiers.py: {missing}"
     )
 
@@ -89,7 +89,7 @@ def test_tier_of_honours_per_item_override():
 
     free_use = Node({"action_costs": {"use": {"tier": "free"}}})
     assert at.tier_of("use", free_use) == at.FREE
-    # no override -> falls through to the verb table
+    # no override -> falls through to the action table
     plain = Node({})
     assert at.tier_of("use", plain) == at.MAJOR
 

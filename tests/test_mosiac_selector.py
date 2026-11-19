@@ -3,7 +3,7 @@
 Verifies:
 - Goal priority ordering: priority 1 goal is active over priority 2.
 - Goal alignment: score bonus connects active goal achieve refs to pursuit selection.
-- Value gates: character traits and gated verbs remove invalid options.
+- Value gates: character traits and gated actions remove invalid options.
 - Grounded bindings: parameters resolve to real known world entities.
 - Rejection mechanics: declining a candidate is a choice without penalty, prevented from re-proposal in same cycle.
 - Conflicting needs: hungry & lonely goblin choosing meal vs rally based on active goal and traits.

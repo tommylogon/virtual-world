@@ -926,7 +926,7 @@ def sync_obligations(obligations, goals):
 
 
 def describe_obligations(obligations):
-    """A one-line summary, for the inspector and the `obligation` verb."""
+    """A one-line summary, for the inspector and the `obligation` action."""
     norm = normalize_obligations(obligations)
     if not norm:
         return "no obligations"

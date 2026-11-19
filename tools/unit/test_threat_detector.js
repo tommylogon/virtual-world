@@ -270,7 +270,7 @@ test('ThreatDetector post-disarm, drop, throw, and release de-escalation clears 
         };
 
         // 1. Ally Bob disarms Carl and drops/throws the pistol in the same round
-        for (const deescVerb of ['drop', 'throw', 'release']) {
+        for (const deescAction of ['drop', 'throw', 'release']) {
             const state = {
                 current_area: 'Bar',
                 players_in_area: [
@@ -281,21 +281,21 @@ test('ThreatDetector post-disarm, drop, throw, and release de-escalation clears 
                 players,
                 turn_events: [
                     { actor: 'Bob', action: 'disarm', target: 'Carl', item: 'pistol', outcome: 'success', description: 'disarmed pistol from Carl' },
-                    { actor: 'Bob', action: deescVerb, item: 'pistol', description: `${deescVerb}s the pistol` },
+                    { actor: 'Bob', action: deescAction, item: 'pistol', description: `${deescAction}s the pistol` },
                 ],
             };
             window.worldState = { data: state, hasMet: () => true, getItemsInArea: () => [] };
 
-            assertEq(window.ThreatDetector.getThreats('Alice', state.turn_events, state).length, 0, `no threats after disarm + ${deescVerb}`);
+            assertEq(window.ThreatDetector.getThreats('Alice', state.turn_events, state).length, 0, `no threats after disarm + ${deescAction}`);
             assertEq(
                 window.ThreatDetector.getThreatAlert('Alice', players.Alice, 'Bar', state.turn_events, state),
                 null,
-                `alert clears cleanly to null after disarm + ${deescVerb}`
+                `alert clears cleanly to null after disarm + ${deescAction}`
             );
         }
 
         // 2. Aggressor Carl drops or throws his own weapon
-        for (const deescVerb of ['drop', 'throw', 'release']) {
+        for (const deescAction of ['drop', 'throw', 'release']) {
             const state = {
                 current_area: 'Bar',
                 players_in_area: [
@@ -304,16 +304,16 @@ test('ThreatDetector post-disarm, drop, throw, and release de-escalation clears 
                 ],
                 players,
                 turn_events: [
-                    { actor: 'Carl', action: deescVerb, item: 'pistol', description: `dropped the pistol` },
+                    { actor: 'Carl', action: deescAction, item: 'pistol', description: `dropped the pistol` },
                 ],
             };
             window.worldState = { data: state, hasMet: () => true, getItemsInArea: () => [] };
 
-            assertEq(window.ThreatDetector.getThreats('Alice', state.turn_events, state).length, 0, `Carl de-escalates on ${deescVerb}`);
+            assertEq(window.ThreatDetector.getThreats('Alice', state.turn_events, state).length, 0, `Carl de-escalates on ${deescAction}`);
             assertEq(
                 window.ThreatDetector.getThreatAlert('Alice', players.Alice, 'Bar', state.turn_events, state),
                 null,
-                `alert clears when aggressor performs ${deescVerb}`
+                `alert clears when aggressor performs ${deescAction}`
             );
         }
 

@@ -355,7 +355,7 @@ test('PlanManager.generate delegates threat detection to ThreatDetector includin
     });
 });
 
-test('PlanManager.generate honors mental-verb intent parameter and Actions registers plan as free (task-984)', async () => {
+test('PlanManager.generate honors mental-action intent parameter and Actions registers plan as free (task-984)', async () => {
     await withPlanManagerEnv(async () => {
         let capturedPrompt = '';
         globalThis.worldState = {
@@ -379,7 +379,7 @@ test('PlanManager.generate honors mental-verb intent parameter and Actions regis
 
         const steps = await PlanManager.generate('Rikka', 'find the cellar key');
         assertEq(steps.length, 1, 'generates plan with intent');
-        assertTrue(capturedPrompt.includes('Focus / intent for this plan: find the cellar key'), 'includes mental-verb intent in prompt');
+        assertTrue(capturedPrompt.includes('Focus / intent for this plan: find the cellar key'), 'includes mental-action intent in prompt');
 
         assertTrue(PlanGrounding.ACTIONS.has('plan'), 'PlanGrounding.ACTIONS includes plan');
     });

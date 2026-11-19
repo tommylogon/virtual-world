@@ -119,9 +119,9 @@ class ApiClientImpl {
             body.enforce_slots = true;
         return this.post('/api/action', body);
     }
-    /** Autocomplete candidate options for verb & prefix (task-6) */
-    static async getAutocomplete(verb, prefix = '', charName = null) {
-        const body = { verb, prefix };
+    /** Autocomplete candidate options for action & prefix (task-6) */
+    static async getAutocomplete(action, prefix = '', charName = null) {
+        const body = { action, prefix };
         if (charName)
             body.character = charName;
         return this.post('/api/autocomplete', body);

@@ -1,7 +1,7 @@
 """Pleasure system tests (tasks 206/207/208/211/212/213/309).
 
 Everything mature-gated: with mature_content off, no pleasure vitals exist
-and intimacy verbs are rejected with a flavor message.
+and intimacy actions are rejected with a flavor message.
 """
 import sys
 from pathlib import Path
@@ -12,7 +12,7 @@ import pytest
 from player import Player
 from app import create_app
 from engine.pleasure_actions import (
-    VERB_BASE, INTIMACY_VERBS, parse_intensity, apply_stimulation,
+    ACTION_BASE, INTIMACY_ACTIONS, parse_intensity, apply_stimulation,
     resolve_body_part, body_part_multiplier, execute_intimacy_action,
 )
 
@@ -80,10 +80,10 @@ def test_toggling_off_strips_arousal_conditions():
     assert "Arousal" not in p.vitals
 
 
-# ── task-212: verb pipeline ─────────────────────────────────────────────
+# ── task-212: action pipeline ─────────────────────────────────────────────
 
-def test_verb_base_table_shape():
-    for verb, base in VERB_BASE.items():
+def test_action_base_table_shape():
+    for action, base in ACTION_BASE.items():
         assert {"pressure", "pleasure_mult", "pain_potential", "stim_type"} <= set(base)
 
 
@@ -145,9 +145,9 @@ def test_covered_contact_is_damped():
     assert part["covered"] is True
 
 
-# ── task-211: intimacy verbs ────────────────────────────────────────────
+# ── task-211: intimacy actions ────────────────────────────────────────────
 
-def test_intimacy_verb_dispatch_and_gate():
+def test_intimacy_action_dispatch_and_gate():
     test_app = create_app({"TESTING": True})
     w = test_app.world
     _place_pair(w)

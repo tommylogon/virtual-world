@@ -9,7 +9,7 @@
   "area": "characters",
   "tags": [],
   "created": "2026-11-09",
-  "updated": "2026-11-09",
+  "updated": "2026-11-19",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -29,29 +29,29 @@
     "invalidated_by": []
   },
   "sections": {
-    "what": "Extend the character body region model (`player.body_state[region]`) with optional per-bodypart image attachments, and establish clothing occlusion rules that realistic hide bare skin, wounds, sensitivity, and art beneath equipped layers:\n\n1. **Per-Bodypart Image Storage & Inspection**:\n   - Allow authors and players to attach optional image assets to individual body regions (e.g. detailed wound photo, scar, tattoo, cybernetic prosthetic, or anatomical illustration).\n   - Stored in `player.body_state[region].image` (or character node properties).\n   - In Persona View (`static/js/inspector/persona-view.ts`), clicking a bodypart on the interactive doll displays its image thumbnail alongside live sensitivity, markings, and injury levels.\n2. **Clothing Occlusion Mapping**:\n   - Establish a declarative mapping between equipment slots and covered anatomy regions:\n     - `torso` covers `chest`, `belly`, `back`.\n     - `legs` covers `groin`, `left_thigh`, `right_thigh`, `left_shin`, `right_shin`.\n     - `feet` covers `left_foot`, `right_foot`.\n     - `hands` covers `left_hand`, `right_hand`.\n     - `head` covers `head`, `hair`, `ears` (helmets/hoods).\n     - `arms` covers `left_arm`, `right_arm`.\n3. **In-World Perception & Examination Rules**:\n   - When an actor executes `examine <character>'s <bodypart>`:\n     - If the targeted bodypart is covered by one or more equipped garments, the observer receives: *\"Covered by [Outer Item Name]\"* (e.g. *\"Covered by Heavy Fur-Lined Coat\"*).\n     - Bare skin descriptions, scars, tattoos, sensitivity ratings, wound details, and bodypart image previews are completely occluded.\n     - If the character is unclothed/stripped on that slot, or if the action is self-examination in private (`examine my chest`), the full anatomical description, injury level, sensitivity, and bodypart image are displayed.",
+    "what": "Allow attaching close-up visual reference images to individual body regions (e.g. a hand, a scar on an arm, brow, nose, or nipple) so taking a closer look at an exposed bodypart shows what it actually looks like, gated by existing clothing occlusion in engine/body_parts.py.",
     "why": "Currently, `persona-view.ts` allows viewing and editing sensitivity and injuries on the paperdoll, but there is no way to attach visual depictions (such as prosthetics, scars, or tattoos) to specific bodyparts. More critically, the simulation lacks clothing occlusion: an external observer examining a character can read raw body state regardless of whether the character is wearing heavy plate armor or a thick winter coat. Physical reality dictates that clothing blocks direct observation of underlying anatomy and wounds unless the garment is removed or penetrated.",
     "how": "1. In `engine/equipment.py`:\n   - Declare `SLOT_OCCLUSION_MAP` mapping each equipment slot to the anatomical body regions it covers.\n   - Implement `is_body_region_covered(player, region_id) -> Tuple[bool, Optional[str]]` returning whether any equipped item covers that region and the topmost covering item's name.\n2. In `engine/items/examine_actions.py`:\n   - In character bodypart examine handler (`examine <character>'s <bodypart>`):\n     - Resolve the target bodypart token to a canonical region id.\n     - Check `is_body_region_covered()`. If covered and observer is not self, return `\"You cannot see <character>'s <region>, as it is covered by <item>.\"`\n     - If exposed, return the body description, visible markings, injury severity, and image URL.\n3. In `static/js/inspector/persona-view.ts`:\n   - In `renderRegionDetail()`, add an image preview container and upload/URL input for `bs.image`.\n   - Display a status badge: `🛡️ Covered by <Item>` (warning badge) or `🌿 Exposed` (neutral badge) based on `player.equipped`.",
     "verify": "1. In browser UI, click a bodypart in Persona View and check fields.\n   - expected: Shows image upload/URL field and clothing coverage indicator.\n   - observed: Only sensitivity slider and injury text exist.\n2. Equip a coat on a character and have another actor examine their torso.\n   - expected: Reports covered by coat; conceals underlying skin and wounds.\n   - observed: Raw body description or generic character look returned.\n3. Run test suite: `pytest tests/test_equipment.py` and `pytest tests/test_examine.py`.\n   - expected: All unit tests pass.",
     "acceptance": [
       {
-        "text": "Body regions in `player.body_state` accept an optional `image` asset reference.",
+        "text": "Body regions in player.body_state accept an optional close-up image asset reference representing what that specific part looks like on closer inspection (e.g. a hand, an arm scar, brow, nose, or nipple)",
         "done": false
       },
       {
-        "text": "Persona View renders image previews and allows setting art per body region.",
+        "text": "Persona View renders image previews and allows attaching close-up reference art per body region",
         "done": false
       },
       {
-        "text": "Equipment slots declaratively map to covered anatomical regions.",
+        "text": "Reuses existing engine/body_parts.py is_exposed() clothing occlusion so examining a covered bodypart reports the covering garment and hides bare skin, wounds, sensitivity, and the close-up bodypart image",
         "done": false
       },
       {
-        "text": "Examining a clothed character's covered bodypart reports the covering item and hides bare skin, wounds, sensitivity, and images.",
+        "text": "Examining an exposed bodypart surfaces its close-up visual image in the examine UI and (when vision is enabled) to vision-capable models as 'taking a closer look at X part'",
         "done": false
       },
       {
-        "text": "Zero em-dashes anywhere in task cards, code, or documentation.",
+        "text": "Zero em-dashes anywhere in task cards, code, or documentation",
         "done": false
       }
     ],

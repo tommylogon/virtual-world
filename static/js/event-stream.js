@@ -199,10 +199,10 @@ class EventBus {
     }
     /** task-448: a disambiguation chooser. Renders one button per candidate,
      *  each labelled with a distinguishing detail; clicking re-runs the action
-     *  against that candidate's identity key (`verb key`), which the matcher
+     *  against that candidate's identity key (`action key`), which the matcher
      *  accepts verbatim. Never auto-picks. */
-    logChoices(verb, options, actor) {
-        if (!verb || !Array.isArray(options) || !options.length)
+    logChoices(action, options, actor) {
+        if (!action || !Array.isArray(options) || !options.length)
             return;
         const text = 'Which one did you mean?';
         this.emit('log', { text, className: 'msg-choices', meta: {}, actor: actor || null });
@@ -227,7 +227,7 @@ class EventBus {
             btn.addEventListener('click', async () => {
                 btn.disabled = true;
                 try {
-                    const data = await ApiClient.action(`${verb} key:${option.key}`, actor || undefined);
+                    const data = await ApiClient.action(`${action} key:${option.key}`, actor || undefined);
                     if (data?.output) {
                         this.log(data.output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
                     }

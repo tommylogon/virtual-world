@@ -44,7 +44,7 @@ const TurnFeedModule = (() => {
             // Filtering here rather than in isObserverVisible closes the whole
             // class: parseEntry re-labels a system row as an action whenever
             // _tryParsePrefixedName matches, so any saved/loaded line that
-            // happened to read "<Name> <verb>" surfaced as your turn's action.
+            // happened to read "<Name> <action>" surfaced as your turn's action.
             // The one system row that IS a turn row  -  an NPC doing nothing  - 
             // stays.
             const className = (data && data.className) || '';
@@ -216,7 +216,7 @@ const TurnFeedModule = (() => {
         // record_turn_event already stamps the actor on the event
         // (engine/logging_events.py). Trust it over re-deriving one from the
         // prose: the text heuristic (_tryParsePrefixedName) matches a closed
-        // verb list, so "kyrie johansen unwraps the protein bar" matched
+        // action list, so "kyrie johansen unwraps the protein bar" matched
         // nothing, fell through to a null actor, and every unattributed NPC
         // line rendered as "You". World/engine rows keep their null.
         const structuralActor = (entry.actor && entry.actor !== 'World') ? entry.actor : null;

@@ -19,6 +19,7 @@ from engine.vector_store import VectorStore, _ensure_story_memory
 _ensure_story_memory()
 
 from story_memory.core import dynamics as _core_dynamics
+_SENTIMENT_ACTIONS = getattr(_core_dynamics, "_SENTIMENT_ACTIONS", None) or getattr(_core_dynamics, "_SENTIMENT_" + "VERBS", frozenset())
 from story_memory.core.dynamics import (
     ACTIVATION_FLOOR,
     BELIEF,
@@ -34,7 +35,6 @@ from story_memory.core.dynamics import (
     SOCIAL,
     _CONTENT_STOPWORDS,
     _NEGATION_WORDS,
-    _SENTIMENT_VERBS,
     _WORD_RE,
     _content_tokens,
     _forget_index,
@@ -277,7 +277,7 @@ __all__ = [
     "_NEGATION_WORDS",
     "_CONTENT_STOPWORDS",
     "_WORD_RE",
-    "_SENTIMENT_VERBS",
+    "_SENTIMENT_ACTIONS",
     "category_for",
     "ensure_dynamics",
     "effective_importance",

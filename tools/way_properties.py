@@ -34,7 +34,7 @@ Read = Tuple[str, int, str]
 AXES = {
     "passage": "Whether you can get through, and what stops you",
     "transparency": "Whether you can see or hear through",
-    "verb": "Which movement verb the passage demands",
+    "action": "Which movement action the passage demands",
     "size": "Who physically fits",
     "identity": "Naming, layout and rendering - no traversal effect",
     "authoring": "Editor-facing metadata that changes how something is authored",
@@ -213,10 +213,10 @@ PROPERTIES: Tuple[WayProperty, ...] = (
     ),
     WayProperty(
         name="requires",
-        axis="verb",
+        axis="action",
         values=("", "crawl", "climb", "jump", "swim", "dive"),
         reads=(
-            ("engine/movement.py", 462, "verb gate; 'go' auto-converts to crawl"),
+            ("engine/movement.py", 462, "action gate; 'go' auto-converts to crawl"),
             ("engine/movement.py", 542, "Athletics roll against <requires>_dc"),
             ("engine/movement.py", 1021, "open/close refused - an open passage"),
             ("engine/items/take_drop_actions.py", 0, "climb/jump barriers allow throwing items over unless blocked/hidden"),
@@ -227,12 +227,12 @@ PROPERTIES: Tuple[WayProperty, ...] = (
     ),
     WayProperty(
         name="climb_dc",
-        axis="verb",
+        axis="action",
         notes="Athletics DC when requires='climb'. Read as f'{requires}_dc', default 12.",
     ),
     WayProperty(
         name="jump_dc",
-        axis="verb",
+        axis="action",
         notes="Athletics DC when requires='jump'. Read as f'{requires}_dc', default 12.",
     ),
     WayProperty(

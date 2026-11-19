@@ -4,8 +4,8 @@ Routine ground **takes 10 and never rolls**: a character crossing an ordinary
 area keeps the soak tier free of dice, exactly like routine maintenance (eat,
 drink, sleep, wash) already does. Risky ground rolls:
 
-* a way that needs a verb (``crawl`` / ``climb`` / ``jump``) is used with that
-  verb instead of stalling on "you need to climb through the north";
+* a way that needs a action (``crawl`` / ``climb`` / ``jump``) is used with that
+  action instead of stalling on "you need to climb through the north";
 * entering a hazard-tagged area is a skill check - Survival for wild country,
   Athletics for climb/swim ground, Acrobatics for balance and squeeze, Stealth
   for watched ground;
@@ -50,7 +50,7 @@ HAZARD_SKILLS = {
 
 #: Soak action -> the skill that carries it, per task-475.
 #: ``SOAK_ACTIONS`` is the full mapping; the ones the soak policy can reach
-#: today are the traversal verbs (`climb`/`jump`/`crawl`) and ground hazards.
+#: today are the traversal actions (`climb`/`jump`/`crawl`) and ground hazards.
 #: The rest are the mapping for actions that need a policy hook first -
 #: calm/ride (task-476 roles), treat/diagnose, read_mood and identify_plant
 #: (task-478 tables), investigate (task-468 agendas).
@@ -112,8 +112,8 @@ CROSSING_HAZARD_SKILLS = {
 #: not rolled. A bridge over a river is not a ford.
 CROSSING_SAFE_TAGS = frozenset({"bridge"})
 
-#: Ways that need a movement verb rather than a plain walk.
-WAY_VERBS = ("crawl", "climb", "jump", "swim", "dive")
+#: Ways that need a movement action rather than a plain walk.
+WAY_ACTIONS = ("crawl", "climb", "jump", "swim", "dive")
 
 #: How long a refused hop is routed around, in game minutes.
 AVOID_MINUTES = 30
@@ -146,7 +146,7 @@ class HopResult:
 
 
 def way_kind(gs, way_id) -> str:
-    """The movement verb a way requires, or ``"go"`` for an ordinary walk."""
+    """The movement action a way requires, or ``"go"`` for an ordinary walk."""
     if not way_id:
         return "go"
     try:
@@ -158,7 +158,7 @@ def way_kind(gs, way_id) -> str:
     requires = str((node.properties or {}).get("requires", "") or "").strip().lower()
     if requires in ("", "none"):
         return "go"
-    return requires if requires in WAY_VERBS else "go"
+    return requires if requires in WAY_ACTIONS else "go"
 
 
 def _area_tags(gs, area_name) -> set:
@@ -249,7 +249,7 @@ def hop(gs, player, direction, *, dest: str = "", kind=None,
         roll_fn=None) -> HopResult:
     """Cross one way, never raising for a blocked passage.
 
-    Chooses the verb the way needs, runs the ground check, and moves the
+    Chooses the action the way needs, runs the ground check, and moves the
     character. Returns a :class:`HopResult` whose ``ok`` says whether the
     character actually ended up on the other side.
     """

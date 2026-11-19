@@ -67,7 +67,7 @@ test('ActionInterpreter extracts canonical fields via ResponseParser', async () 
         assertEq(draft.inner_monologue, 'Panicked, sensing someone watching from the dark.', 'Canonical inner_monologue extracted');
         assertEq(draft.speech, 'Someone help me!', 'Canonical speech extracted');
         assertEq(draft.speechVolume, 'scream', 'Canonical speech volume is scream');
-        assertEq(draft.action, 'go Willow Street Central to Willow Street East', 'Action verb and target normalized by ActionNormalizer');
+        assertEq(draft.action, 'go Willow Street Central to Willow Street East', 'Action action and target normalized by ActionNormalizer');
         assertEq(draft.target, 'Willow Street Central to Willow Street East', 'Target exit resolved');
         assertEq(draft.emotion, 'terrified', 'Emotion extracted');
         assertEq(draft.memory, 'Heard something in the shadows near Willow Street East', 'Memory extracted');

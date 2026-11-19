@@ -3,7 +3,7 @@
 A treasured object is not a tool: Gribba's Good Knife is not communal kitchen
 equipment, and "nobody else may touch it" should be true in the world rather
 than only in the fiction. So an item can say whose it is, and the ordinary
-verbs honour that.
+actions honour that.
 
 Two decisions this module makes, because the task left them open:
 
@@ -16,8 +16,8 @@ claim. An owner who is merely *elsewhere* keeps it.
 **A Social or Intimidation check does NOT lift the refusal.** The contested way
 to take someone's personal property is ``steal``, which is already a roll and
 already raises the stakes. A second roll hidden inside ``take`` would make an
-ordinary verb unpredictable, which is worse than a clear "no". So: the normal
-verbs say no plainly, and ``steal`` is the way through.
+ordinary action unpredictable, which is worse than a clear "no". So: the normal
+actions say no plainly, and ``steal`` is the way through.
 
 The marker is a node property, not an edge: ``owner`` (a character name or id)
 plus the informational ``personal`` tag. An item with no ``owner`` is nobody's
@@ -118,10 +118,10 @@ def is_owner(node, player_manager, actor_name: str = None) -> bool:
     return _norm(actor_name) == handle
 
 
-def permission_refusal(node, actor_name: str, verb: str, player_manager=None) -> Optional[str]:
-    """Why *actor_name* may not *verb* this item, or None when they may.
+def permission_refusal(node, actor_name: str, action: str, player_manager=None) -> Optional[str]:
+    """Why *actor_name* may not *action* this item, or None when they may.
 
-    `verb` is a past-tense phrase ("take it", "use it") so the message reads as
+    `action` is a past-tense phrase ("take it", "use it") so the message reads as
     a sentence rather than a rule.
     """
     handle = owner_of(node)
@@ -133,7 +133,7 @@ def permission_refusal(node, actor_name: str, verb: str, player_manager=None) ->
         return None
     name = getattr(node, "name", "") or "that"
     owner_name = owner_display_name(handle, player_manager)
-    return (f"The {name} is {owner_name}'s, and not yours to {verb}. "
+    return (f"The {name} is {owner_name}'s, and not yours to {action}. "
             f"You would have to take it.")
 
 

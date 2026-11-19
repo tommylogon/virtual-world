@@ -1645,7 +1645,7 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    // task-801 / 803: the soak candidate verbs, the score each contributes, and
+    // task-801 / 803: the soak candidate actions, the score each contributes, and
     // which the character's values exclude - the action side of the score model.
     function _actionsHtml(): string {
         if (!_state) return '';
@@ -1654,10 +1654,10 @@ const InspectorMindView = (() => {
         if (!actions.length) return '';
         const gated = new Set<string>(((p.disposition && p.disposition.gated) || []).map((g: string) => String(g).toLowerCase()));
         const rows = actions.map((a: any) => {
-            const off = gated.has(String(a.verb).toLowerCase());
+            const off = gated.has(String(a.action).toLowerCase());
             const scores = (a.scores || []).join(', ') || '-';
             return `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;${off ? 'opacity:.45;text-decoration:line-through;' : ''}">
-                <span style="color:var(--text-dim);min-width:64px;">${esc(a.verb)}</span>
+                <span style="color:var(--text-dim);min-width:64px;">${esc(a.action)}</span>
                 <span style="color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(scores)}</span>
             </div>`;
         }).join('');

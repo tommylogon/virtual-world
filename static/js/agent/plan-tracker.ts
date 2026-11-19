@@ -79,13 +79,13 @@
         const stepNorm = String(step ?? '').toLowerCase();
         const stepWords = stepNorm.split(/\s+/).filter((w: string) => w && !STOP_WORDS.has(w));
         const actionWords = actionNorm.split(/\s+/).filter((w: string) => w && !STOP_WORDS.has(w));
-        // task-185: an action WITH a target must match a non-verb step word too —
+        // task-185: an action WITH a target must match a non-action step word too —
         // "approach the order counter" must not complete "approach the round the
-        // corner to oak lane" on the shared verb alone. Bare-verb actions
-        // (look, wait, rest, ...) still advance on the verb match.
-        const verbOnlyAction = actionWords.length <= 1;
+        // corner to oak lane" on the shared action alone. Bare-action actions
+        // (look, wait, rest, ...) still advance on the action match.
+        const bareAction = actionWords.length <= 1;
         const overlap = stepNorm.includes(actionNorm) || actionNorm.includes(stepNorm)
-            || (verbOnlyAction
+            || (bareAction
                 ? actionWords.some((w: string) => stepWords.includes(w))
                 : actionWords.slice(1).some((w: string) => stepWords.includes(w)));
         if (overlap) {

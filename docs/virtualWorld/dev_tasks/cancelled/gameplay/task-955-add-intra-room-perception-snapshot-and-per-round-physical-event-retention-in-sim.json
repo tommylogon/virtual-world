@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 955,
   "title": "Add intra-room perception snapshot and per-round physical event retention in simultaneous turns",
-  "status": "todo",
+  "status": "cancelled",
   "priority": "medium",
   "area": "gameplay",
   "tags": [
@@ -15,7 +15,7 @@
     "pacing"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-14",
+  "updated": "2026-11-19",
   "horizon": "next",
   "effort": "l",
   "goal": "",
@@ -80,6 +80,11 @@
     "urls": []
   },
   "evidence": [],
-  "invalidation": null,
+  "invalidation": {
+    "mode": "cancelled",
+    "by": null,
+    "reason": "Already covered by existing world.turn_events, record_turn_event(), get_turn_events_for_area() in virtual_world_engine.py (lines 309, 1268, 2078) and engine/scene_snapshot.py (build_scene).",
+    "at": "2026-11-19T20:00:40Z"
+  },
   "extra": {}
 }

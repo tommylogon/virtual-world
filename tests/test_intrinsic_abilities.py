@@ -1,4 +1,4 @@
-"""Tests for intrinsic abilities (task-737): non-physical possession verbs and carrier grant/revoke."""
+"""Tests for intrinsic abilities (task-737): non-physical possession actions and carrier grant/revoke."""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -21,8 +21,8 @@ class MockTriggerSystem:
     def _get_available_actions(self, item_node):
         return ["use"]
 
-    def _contextual_failure(self, verb, name, available):
-        return f"Cannot {verb} {name}."
+    def _contextual_failure(self, action, name, available):
+        return f"Cannot {action} {name}."
 
 
 class Harness(TakeDropActionsMixin, PlaceActionsMixin, TransferActionsMixin):

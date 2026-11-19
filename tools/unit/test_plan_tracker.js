@@ -116,20 +116,20 @@ test('trackStep ignores stop words — "the" alone never completes a step', () =
     assertEq(PT.getProgress('Track3'), 1, 'real overlap advances');
 });
 
-test('trackStep — targeted actions need a target match, not just the verb', () => {
+test('trackStep — targeted actions need a target match, not just the action', () => {
     freshTracker('Track4');
     PT.setPlan('Track4', ['approach the round the corner to oak lane']);
     PT.trackStep('Track4', 'approach the order counter', 'You stop at the counter.', true);
-    assertEq(PT.getProgress('Track4'), 0, 'shared verb with different target does not advance');
+    assertEq(PT.getProgress('Track4'), 0, 'shared action with different target does not advance');
     PT.trackStep('Track4', 'approach the round the corner to oak lane', 'You stop at the corner.', true);
-    assertEq(PT.getProgress('Track4'), 1, 'same verb and target advances');
+    assertEq(PT.getProgress('Track4'), 1, 'same action and target advances');
 });
 
-test('trackStep — bare-verb actions still advance on the verb', () => {
+test('trackStep — bare-action actions still advance on the action', () => {
     freshTracker('Track5');
     PT.setPlan('Track5', ['look around to check for anyone nearby or threats in oak lane']);
     PT.trackStep('Track5', 'look', 'Bright light floods the area.', true);
-    assertEq(PT.getProgress('Track5'), 1, 'targetless verb advances on verb match');
+    assertEq(PT.getProgress('Track5'), 1, 'targetless action advances on action match');
 });
 
 test('shouldReplan returns a reason string for each trigger', () => {

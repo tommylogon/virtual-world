@@ -17,8 +17,8 @@ from engine.activities import (
 )
 from engine.vitals import format_vitals_readout, VITAL_POLARITY
 from routes.helpers import tokenize_command_detailed
-from engine.actions import mature_actions as _registry_mature_verbs
-_INTIMACY_VERBS = tuple(_registry_mature_verbs())
+from engine.actions import mature_actions as _registry_mature_actions
+_INTIMACY_ACTIONS = tuple(_registry_mature_actions())
 from engine.pleasure_actions import (
     INTENSITY_ADVERBS as _INTENSITY_ADVERBS,
 )
@@ -128,14 +128,14 @@ def _parse_activity_args(tokens, cmd):
     return minutes, target
 
 
-# task-629: verbs that cannot do anything without a target. The dispatch chain
+# task-629: action_names that cannot do anything without a target. The dispatch chain
 # tests `cmd.startswith("go ")`, so a bare `go` matched nothing and fell through
 # to the emote catch-all, which answered "player_human_explorer go." -- the
 # command echoed back with the actor's name glued to it. The intimacy branch
-# already answered "Attack whom?"; this gives the rest of the verbs the same
+# already answered "Attack whom?"; this gives the rest of the action_names the same
 # courtesy. A single word that is NOT one of these is still treated as an emote
 # ("smile", "shrug" are legitimate).
-_VERBS_NEEDING_TARGET = frozenset({
+_ACTIONS_NEEDING_TARGET = frozenset({
     "go", "climb", "crawl", "enter", "exit", "swim", "dive",
     "examine", "look", "search", "read",
     "take", "get", "grab", "pick", "drop", "throw", "toss", "release", "stow",
@@ -289,11 +289,11 @@ def handle_llm_respond_post(app):
 
 def handle_autocomplete(app):
     data = request.get_json() or {}
-    verb = data.get('verb', '')
+    action_word = data.get('action_word', '')
     prefix = data.get('prefix', '')
     character = data.get('character')
-    options = app.world.get_autocomplete_options(verb, prefix, character)
-    return jsonify({"options": options, "verb": verb, "prefix": prefix})
+    options = app.world.get_autocomplete_options(action_word, prefix, character)
+    return jsonify({"options": options, "action_word": action_word, "prefix": prefix})
 
 
 def _parse_throw_command(rest: str):
@@ -346,13 +346,13 @@ def validate_action_command(world, char_name, cmd):
     if not tokens:
         return {"valid": False, "category": "empty", "detail": "Empty command."}
 
-    # Strip leading intensity adverbs for intimacy verbs ("firmly kiss lydia")
-    if len(tokens) > 1 and tokens[0].lower() in _INTENSITY_ADVERBS and tokens[1].lower() in _INTIMACY_VERBS:
+    # Strip leading intensity adverbs for intimacy action_names ("firmly kiss lydia")
+    if len(tokens) > 1 and tokens[0].lower() in _INTENSITY_ADVERBS and tokens[1].lower() in _INTIMACY_ACTIONS:
         tokens = tokens[1:]
         token_quoted = token_quoted[1:]
         cmd = ' '.join(tokens)
 
-    verb = tokens[0].lower()
+    action_word = tokens[0].lower()
     target_str = ' '.join(tokens[1:]).strip() if len(tokens) > 1 else ""
     target_lower = target_str.lower()
     target_cleaned = re.sub(r'^(?:the|a|an)\s+', '', target_lower).strip()
@@ -423,9 +423,9 @@ def validate_action_command(world, char_name, cmd):
     if not target_str and (cmd in compass_dirs or any(cmd in (str(h).lower(), str(t).lower()) for _, _, h, t in exits)):
         return {"valid": True, "category": "exit", "resolved_target": cmd, "detail": f"Exit/direction '{cmd}'"}
 
-    # 3. Self-contained and optional-target actions (evaluated BEFORE _VERBS_NEEDING_TARGET,
+    # 3. Self-contained and optional-target actions (evaluated BEFORE _ACTIONS_NEEDING_TARGET,
     # matching handle_take_action dispatch order so bare 'relieve', 'look', 'search' succeed)
-    if verb == "relieve":
+    if action_word == "relieve":
         try:
             from engine import relief as _relief
             proper = _relief.has_fixture(world.graph, area_id, lambda aid: _reachable_items(world, aid)) if area_id else False
@@ -435,35 +435,35 @@ def validate_action_command(world, char_name, cmd):
         except Exception:
             return {"valid": True, "category": "self", "resolved_target": "relieve", "detail": "Action 'relieve' verified."}
 
-    if verb in ("wait", "nothing", "pause", "stay", "look", "l", "inventory", "inv", "i",
+    if action_word in ("wait", "nothing", "pause", "stay", "look", "l", "inventory", "inv", "i",
                 "stats", "status", "listen", "stand", "sit", "lie", "lay", "fumble", "grope", "feel",
                 "meditate", "stop", "dress", "undress", "strip", "unhide", "reveal",
                 "escape", "struggle", "manifest", "vanish", "answer", "hangup"):
-        return {"valid": True, "category": "self", "detail": f"Action '{verb}' recognized."}
+        return {"valid": True, "category": "self", "detail": f"Action '{action_word}' recognized."}
 
-    if verb in ("rest", "sleep", "bathe", "bath"):
+    if action_word in ("rest", "sleep", "bathe", "bath"):
         _, bed_target = _parse_activity_args(tokens, cmd)
         if bed_target:
             matched_bed = _resolve_item(bed_target)
             if not matched_bed:
                 return {"valid": False, "category": "not_found", "detail": f"Item '{bed_target}' not found in room."}
-            return {"valid": True, "category": "item", "resolved_target": matched_bed, "detail": f"Action '{verb}' on '{matched_bed}' verified"}
-        return {"valid": True, "category": "self", "detail": f"Action '{verb}' recognized."}
+            return {"valid": True, "category": "item", "resolved_target": matched_bed, "detail": f"Action '{action_word}' on '{matched_bed}' verified"}
+        return {"valid": True, "category": "self", "detail": f"Action '{action_word}' recognized."}
 
-    if verb in ("flee", "disengage", "withdraw", "recall", "plan", "replan", "schedule", "goal", "obligation", "find", "forage", "guess"):
-        return {"valid": True, "category": "self", "resolved_target": target_str or verb, "detail": f"Action '{cmd}' recognized."}
+    if action_word in ("flee", "disengage", "withdraw", "recall", "plan", "replan", "schedule", "goal", "obligation", "find", "forage", "guess"):
+        return {"valid": True, "category": "self", "resolved_target": target_str or action_word, "detail": f"Action '{cmd}' recognized."}
 
-    if verb in ("hide", "sneak", "conceal"):
+    if action_word in ("hide", "sneak", "conceal"):
         from engine.triggers.behaviors import parse_hide_command, _resolve_hide_target_node, _is_hideable_node
         _, prop_target = parse_hide_command(target_str)
         if not prop_target:
-            return {"valid": True, "category": "self", "detail": f"Action '{verb}' recognized."}
+            return {"valid": True, "category": "self", "detail": f"Action '{action_word}' recognized."}
         node = _resolve_hide_target_node(world, char_name, prop_target, player=player_obj)
         if node is not None and _is_hideable_node(node):
             return {"valid": True, "category": "item", "resolved_target": node.name, "detail": f"Cover '{node.name}' verified"}
         return {"valid": False, "category": "not_found", "detail": f"Hideable cover '{prop_target}' not found in room."}
 
-    if verb == "search":
+    if action_word == "search":
         if not target_str:
             return {"valid": True, "category": "self", "detail": "Action 'search' (room search) recognized."}
         resolved_char = _resolve_char_in_room(target_str)
@@ -472,27 +472,27 @@ def validate_action_command(world, char_name, cmd):
         matched_item = _resolve_item(target_str)
         if matched_item:
             return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Search item '{matched_item}' verified"}
-        verb = "examine"
+        action_word = "examine"
 
-    if verb in ("wake", "release", "fix", "treat") and not target_str:
-        return {"valid": True, "category": "self", "detail": f"Action '{verb}' recognized."}
+    if action_word in ("wake", "release", "fix", "treat") and not target_str:
+        return {"valid": True, "category": "self", "detail": f"Action '{action_word}' recognized."}
 
     # 4. Social / Conversation actions
-    if verb in ("speak", "say", "whisper", "shout", "scream", "sing", "do"):
-        if not target_str and verb in ("speak", "say", "whisper", "do"):
-            return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires text or a target."}
+    if action_word in ("speak", "say", "whisper", "shout", "scream", "sing", "do"):
+        if not target_str and action_word in ("speak", "say", "whisper", "do"):
+            return {"valid": False, "category": "missing_target", "detail": f"Action '{action_word}' requires text or a target."}
         return {"valid": True, "category": "speech", "detail": "Spoken/emote line verified."}
 
-    # 5. Check bare verbs that strictly require a target
-    if not target_str and verb in _VERBS_NEEDING_TARGET and verb not in ("examine", "x"):
-        return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires a target."}
+    # 5. Check bare action_names that strictly require a target
+    if not target_str and action_word in _ACTIONS_NEEDING_TARGET and action_word not in ("examine", "x"):
+        return {"valid": False, "category": "missing_target", "detail": f"Action '{action_word}' requires a target."}
 
     # 6. Examine resolution: bare examine -> current area; otherwise character -> area -> item -> exit/way
-    if verb in ("examine", "x"):
+    if action_word in ("examine", "x"):
         if not target_str:
             if current_area_node:
                 return {"valid": True, "category": "area", "resolved_target": current_area_node.name, "detail": f"Bare examine defaults to area '{current_area_node.name}'"}
-            return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires a target."}
+            return {"valid": False, "category": "missing_target", "detail": f"Action '{action_word}' requires a target."}
         resolved_char = _resolve_char_in_room(target_str, allow_self=True)
         if resolved_char:
             return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Character '{resolved_char}' in room"}
@@ -518,9 +518,9 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": False, "category": "not_found", "detail": f"Target '{target_str}' not found in room context, inventory, or exits."}
 
     # 7. Movement resolution
-    if verb in ("go", "enter", "exit", "approach", "dash", "crawl", "climb", "jump", "swim", "dive"):
+    if action_word in ("go", "enter", "exit", "approach", "dash", "crawl", "climb", "jump", "swim", "dive"):
         if not target_str:
-            return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires a destination."}
+            return {"valid": False, "category": "missing_target", "detail": f"Action '{action_word}' requires a destination."}
         matched_exit = _resolve_exit(target_str)
         if matched_exit:
             return {"valid": True, "category": "exit", "resolved_target": matched_exit, "detail": f"Exit '{matched_exit}' verified"}
@@ -536,7 +536,7 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": False, "category": "not_found", "detail": f"Destination or target '{target_str}' not found in room exits or objects."}
 
     # 8. Throw / toss resolution
-    if verb in ("throw", "toss"):
+    if action_word in ("throw", "toss"):
         item_part, dest_part = _parse_throw_command(target_str)
         matched_item = _resolve_item(item_part) if item_part else None
         if not matched_item:
@@ -557,7 +557,7 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' verified"}
 
     # 9. Use / use_on / write / inscribe (supports quantity and 'on'/'in' target split matching handle_take_action)
-    if verb in ("use", "use_on", "write", "inscribe"):
+    if action_word in ("use", "use_on", "write", "inscribe"):
         use_tokens = list(tokens)
         use_quoted = list(token_quoted)
         if len(use_tokens) > 1 and re.match(r'^\d+$', use_tokens[1]):
@@ -592,7 +592,7 @@ def validate_action_command(world, char_name, cmd):
             return {"valid": False, "category": "not_found", "detail": f"Item '{item_part or target_str}' not found in room or inventory."}
 
     # 10. Put / place / stow (splits on relation prepositions matching handle_take_action)
-    if verb in ("put", "place", "stow"):
+    if action_word in ("put", "place", "stow"):
         item_part = target_str
         surface_part = ""
         for prep in (" in ", " on ", " under ", " beside ", " behind ", " at "):
@@ -601,8 +601,8 @@ def validate_action_command(world, char_name, cmd):
                 item_part = target_str[:idx].strip()
                 surface_part = target_str[idx + len(prep):].strip()
                 break
-        if verb in ("put", "place") and not surface_part:
-            return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires a destination (e.g. '{verb} <item> on/in <target>')."}
+        if action_word in ("put", "place") and not surface_part:
+            return {"valid": False, "category": "missing_target", "detail": f"Action '{action_word}' requires a destination (e.g. '{action_word} <item> on/in <target>')."}
         matched_item = _resolve_item(item_part)
         if not matched_item:
             return {"valid": False, "category": "not_found", "detail": f"Item '{item_part}' not found in room or inventory."}
@@ -614,7 +614,7 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Stow '{matched_item}' verified"}
 
     # 11. Give / hand / steal / teach
-    if verb in ("give", "hand"):
+    if action_word in ("give", "hand"):
         to_idx = target_lower.find(" to ")
         if to_idx <= 0:
             return {"valid": False, "category": "missing_target", "detail": "Action 'give' requires a recipient ('give <item> to <character>')."}
@@ -628,7 +628,7 @@ def validate_action_command(world, char_name, cmd):
             return {"valid": False, "category": "not_found", "detail": f"Recipient '{recipient_part}' not found in room."}
         return {"valid": True, "category": "character", "resolved_target": f"{matched_item} to {resolved_char}", "detail": f"Give '{matched_item}' to '{resolved_char}' verified"}
 
-    if verb == "steal":
+    if action_word == "steal":
         from_idx = target_lower.find(" from ")
         if from_idx > 0:
             item_part = target_str[:from_idx].strip()
@@ -645,7 +645,7 @@ def validate_action_command(world, char_name, cmd):
             return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Steal '{matched_item}' verified"}
         return {"valid": False, "category": "not_found", "detail": f"Target '{target_str}' not found in room."}
 
-    if verb == "teach":
+    if action_word == "teach":
         to_idx = target_lower.find(" to ")
         if to_idx <= 0:
             return {"valid": False, "category": "missing_target", "detail": "Action 'teach' requires a recipient ('teach <subject> to <character>')."}
@@ -656,7 +656,7 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Teach '{resolved_char}' verified"}
 
     # 12. Combine / split / craft / make
-    if verb == "combine":
+    if action_word == "combine":
         with_idx = target_lower.find(" with ")
         if with_idx > 0:
             src_part = target_str[:with_idx].strip()
@@ -671,14 +671,14 @@ def validate_action_command(world, char_name, cmd):
             return {"valid": True, "category": "item", "resolved_target": f"{m1} + {m2}", "detail": f"Combine '{m1}' with '{m2}' verified"}
         return {"valid": False, "category": "not_found", "detail": f"Items to combine ('{target_str}') not found in room or inventory."}
 
-    if verb == "split":
+    if action_word == "split":
         item_part = re.sub(r'\s+into\s+\d+\s*$', '', target_str, flags=re.I).strip()
         matched_item = _resolve_item(item_part)
         if matched_item:
             return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Split '{matched_item}' verified"}
         return {"valid": False, "category": "not_found", "detail": f"Item '{item_part}' not found in room or inventory."}
 
-    if verb in ("craft", "make"):
+    if action_word in ("craft", "make"):
         crafting = getattr(world, "crafting", None)
         if crafting and hasattr(crafting, "_find_recipe"):
             entry = crafting._find_recipe(target_str)
@@ -688,34 +688,34 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": True, "category": "action", "resolved_target": target_str, "detail": f"Craft '{target_str}' recognized."}
 
     # 13. Single-item & door actions
-    if verb in ("take", "get", "pickup", "drop", "eat", "consume", "drink", "quaff", "wear", "equip", "remove", "unequip", "open", "close", "unlock", "lock", "toggle", "fix", "treat"):
+    if action_word in ("take", "get", "pickup", "drop", "eat", "consume", "drink", "quaff", "wear", "equip", "remove", "unequip", "open", "close", "unlock", "lock", "toggle", "fix", "treat"):
         item_query = target_str
-        if verb in ("take", "get", "pickup") and len(tokens) >= 3 and tokens[-1].isdigit():
+        if action_word in ("take", "get", "pickup") and len(tokens) >= 3 and tokens[-1].isdigit():
             item_query = ' '.join(tokens[1:-1]).strip()
-        elif verb in ("wear", "equip") and " under " in target_lower:
+        elif action_word in ("wear", "equip") and " under " in target_lower:
             item_query = target_str.split(" under ", 1)[0].strip()
-        elif verb in ("remove", "unequip") and hasattr(world, "EQUIP_SLOTS") and target_lower in world.EQUIP_SLOTS:
+        elif action_word in ("remove", "unequip") and hasattr(world, "EQUIP_SLOTS") and target_lower in world.EQUIP_SLOTS:
             return {"valid": True, "category": "item", "resolved_target": target_lower, "detail": f"Equipment slot '{target_lower}' verified"}
 
         matched_item = _resolve_item(item_query)
         if matched_item:
             return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' verified"}
-        if verb in ("open", "close", "unlock", "lock"):
+        if action_word in ("open", "close", "unlock", "lock"):
             matched_exit = _resolve_exit(target_str)
             if matched_exit:
                 return {"valid": True, "category": "exit", "resolved_target": matched_exit, "detail": f"Door/way '{matched_exit}' verified"}
-        if verb in ("fix", "treat"):
+        if action_word in ("fix", "treat"):
             resolved_char = _resolve_char_in_room(target_str, allow_self=True)
             if resolved_char:
                 return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Character '{resolved_char}' verified"}
         return {"valid": False, "category": "not_found", "detail": f"Item '{target_str}' not found in room or inventory."}
 
     # 14. Combat, grapple, social & intimacy character actions
-    if verb in ("attack", "kill", "hit", "disarm", "grab", "release", "lead", "wake", "frisk", "talk", "hug") or verb in _INTIMACY_VERBS:
-        if verb in _INTIMACY_VERBS and not getattr(world, "mature_content", False):
-            return {"valid": False, "category": "mature_disabled", "detail": f"Intimacy action '{verb}' is disabled when mature content is off."}
+    if action_word in ("attack", "kill", "hit", "disarm", "grab", "release", "lead", "wake", "frisk", "talk", "hug") or action_word in _INTIMACY_ACTIONS:
+        if action_word in _INTIMACY_ACTIONS and not getattr(world, "mature_content", False):
+            return {"valid": False, "category": "mature_disabled", "detail": f"Intimacy action '{action_word}' is disabled when mature content is off."}
         char_query = target_str
-        if verb in ("attack", "kill", "hit") or verb in _INTIMACY_VERBS:
+        if action_word in ("attack", "kill", "hit") or action_word in _INTIMACY_ACTIONS:
             for marker in (" on ", " where ", " in the ", " in ", " with "):
                 idx = char_query.lower().find(marker)
                 if idx > 0:
@@ -725,7 +725,7 @@ def validate_action_command(world, char_name, cmd):
                 _, char_query = parse_intensity(char_query)
             except Exception:
                 pass
-        elif verb == "disarm":
+        elif action_word == "disarm":
             if char_query.lower().endswith(" and catch"):
                 char_query = char_query[:-10].strip()
             from_idx = char_query.lower().find(" from ")
@@ -735,22 +735,22 @@ def validate_action_command(world, char_name, cmd):
         resolved_char = _resolve_char_in_room(char_query)
         if resolved_char:
             return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Character '{resolved_char}' verified"}
-        if verb == "grab":
+        if action_word == "grab":
             matched_item = _resolve_item(char_query)
             if matched_item:
                 return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' verified"}
         return {"valid": False, "category": "not_found", "detail": f"Character '{char_query}' not found in room."}
 
-    if verb in ("fear", "interest", "name", "label", "call", "text", "message", "offer", "bind", "enchant"):
+    if action_word in ("fear", "interest", "name", "label", "call", "text", "message", "offer", "bind", "enchant"):
         if not target_str:
-            return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires arguments."}
+            return {"valid": False, "category": "missing_target", "detail": f"Action '{action_word}' requires arguments."}
         return {"valid": True, "category": "action", "resolved_target": target_str, "detail": f"Action '{cmd}' recognized."}
 
     # 15. Final registry check: reject unknown/invented actions instead of silently passing them
     try:
         from engine.actions import is_valid_action as _is_valid_action
-        if not _is_valid_action(verb, mature=bool(getattr(world, "mature_content", False))):
-            return {"valid": False, "category": "unknown_verb", "detail": f"Unknown action '{verb}'."}
+        if not _is_valid_action(action_word, mature=bool(getattr(world, "mature_content", False))):
+            return {"valid": False, "category": "unknown_action", "detail": f"Unknown action '{action_word}'."}
     except Exception:
         pass
 
@@ -840,7 +840,7 @@ def handle_take_action(app):
         # candidate's identity key, which _match_character_name accepts verbatim.
         choice_groups = []
 
-        def note_ambiguity(verb, candidates):
+        def note_ambiguity(action_word, candidates):
             options = world.character_candidate_details(candidates)
             rendered = [
                 f"{o['label']} ({o['detail']})" if o.get('detail') else o['label']
@@ -848,7 +848,7 @@ def handle_take_action(app):
             ]
             add_output("You don't know exactly who that is. Do you mean: "
                        + "; ".join(rendered) + "?")
-            choice_groups.append({"verb": verb, "options": options})
+            choice_groups.append({"action_word": action_word, "options": options})
 
         gate_msg = _activity_gate(cmd, world, add_output)
         if gate_msg:
@@ -876,13 +876,13 @@ def handle_take_action(app):
             if not _slots:
                 _slot_player.turn_slots = _slots = {}
                 _at.reset_slots(_slots)
-            _verb = (cmd.split(" ", 1)[0] if cmd else "").lower()
+            _action = (cmd.split(" ", 1)[0] if cmd else "").lower()
             # task-784: one rule for every budgeted actor  -  a dash is a two-hop
             # burst (initiate major + finish minor); while it is armed the finish
             # is the only valid action; an abort (wait) clears it. See
             # engine.action_tiers.apply_action_gate.
             _err, _burst = _at.apply_action_gate(
-                _slots, _verb, getattr(_slot_player, "burst_pending", 0))
+                _slots, _action, getattr(_slot_player, "burst_pending", 0))
             if _err:
                 raise ValueError(_err)
             if _burst == "clear":
@@ -1004,12 +1004,12 @@ def handle_take_action(app):
                 add_output(f"You dismount from {mounted_on}.")
 
         elif cmd.startswith(("mount ", "ride ", "saddle ")):
-            verb_word = cmd.split(" ", 1)[0]
+            action_word = cmd.split(" ", 1)[0]
             target_ref = cmd.split(" ", 1)[1].strip()
             actor_obj = world.players.get(world.active_player)
             area_name = world.current_area.name if world.current_area else ""
             if not target_ref:
-                add_output(f"{verb_word.capitalize()} what?")
+                add_output(f"{action_word.capitalize()} what?")
                 failed = True
             else:
                 mount_tags = {"mount", "mountable", "rideable", "vehicle", "horse", "pony", "mule", "donkey", "camel", "worg", "wolf", "boar", "bear", "beast", "animal"}
@@ -1031,9 +1031,9 @@ def handle_take_action(app):
                             matched_mount = iname
                             break
                 if not matched_mount:
-                    add_output(f"There is no '{target_ref}' here that you can {verb_word}.")
+                    add_output(f"There is no '{target_ref}' here that you can {action_word}.")
                     failed = True
-                elif verb_word == "saddle":
+                elif action_word == "saddle":
                     if actor_obj is not None:
                         saddled = set(getattr(actor_obj, "saddled_mounts", None) or [])
                         saddled.add(matched_mount)
@@ -1043,8 +1043,8 @@ def handle_take_action(app):
                 else:
                     if actor_obj is not None:
                         actor_obj.mounted_on = matched_mount
-                    world.record_turn_event(world.active_player, verb_word, f"mounted {matched_mount}", area_name=area_name)
-                    add_output(f"You {verb_word} {matched_mount}.")
+                    world.record_turn_event(world.active_player, action_word, f"mounted {matched_mount}", area_name=area_name)
+                    add_output(f"You {action_word} {matched_mount}.")
 
         elif cmd in ("rest", "sleep", "wait", "meditate", "bathe", "bath",
                      "sit", "sit down", "lie", "lie down", "lay down"):
@@ -1430,7 +1430,7 @@ def handle_take_action(app):
                 add_output("Craft what? Use: craft <recipe name>")
             else:
                 # Task-840: timed recipes start a cooking Activity (same
-                # verb, three doors); untimed resolve instantly.
+                # action_word, three doors); untimed resolve instantly.
                 entry = world.crafting._find_recipe(recipe_name)
                 if entry is not None and int(entry.get("duration_min", 0) or 0) > 0:
                     try:
@@ -1831,10 +1831,10 @@ def handle_take_action(app):
                     except Exception as grab_err:
                         add_output(str(grab_err))
 
-        elif cmd.split(' ', 1)[0] in _INTIMACY_VERBS or (
+        elif cmd.split(' ', 1)[0] in _INTIMACY_ACTIONS or (
                 len(cmd.split()) > 1 and cmd.split()[0] in _INTENSITY_ADVERBS
-                and cmd.split()[1] in _INTIMACY_VERBS):
-            # task-211: intimacy verbs  -  interact-type (never damages),
+                and cmd.split()[1] in _INTIMACY_ACTIONS):
+            # task-211: intimacy action_names  -  interact-type (never damages),
             # body-part targeted, gated by the mature content toggle.
             from engine.pleasure_actions import parse_intensity, execute_intimacy_action, INTENSITY_ADVERBS
             if not getattr(world, "mature_content", False):
@@ -1843,18 +1843,18 @@ def handle_take_action(app):
                 words = cmd.split()
                 leading = None
                 if (len(words) > 1 and words[0] in INTENSITY_ADVERBS
-                        and words[1] in _INTIMACY_VERBS):
+                        and words[1] in _INTIMACY_ACTIONS):
                     # leading adverb ("firmly kiss lydia")  -  strip it here and
                     # carry the intensity through (parse_intensity only sees
                     # the tail below)
                     leading = INTENSITY_ADVERBS[words[0]]
                     cmd = ' '.join(words[1:])
-                # task-629: a bare intimate verb ("kiss") has no target, and the
+                # task-629: a bare intimate action_word ("kiss") has no target, and the
                 # unguarded split below raised a raw
                 # "not enough values to unpack (expected 2, got 1)" to the player.
                 if " " not in cmd.strip():
                     raise ValueError(f"{cmd.strip().capitalize()} whom?")
-                verb, rest = cmd.split(' ', 1)
+                action_word, rest = cmd.split(' ', 1)
                 intensity, rest = parse_intensity(rest)
                 if leading and intensity == "normal":
                     intensity = leading
@@ -1873,7 +1873,7 @@ def handle_take_action(app):
                     rest = rest[:marker_idx].strip()
                 target = rest.strip()
                 if not target:
-                    add_output(f"{verb.capitalize()} whom?")
+                    add_output(f"{action_word.capitalize()} whom?")
                 else:
                     attacker = world.players.get(world.active_player)
                     if not attacker:
@@ -1887,14 +1887,14 @@ def handle_take_action(app):
                                 resolved_target = resolved
                                 target_player = world.players[resolved]
                             elif candidates:
-                                note_ambiguity(verb, candidates)
+                                note_ambiguity(action_word, candidates)
                                 resolved_target = None
                         if resolved_target is not None:
                             if target_player and target_player.current_area == world.current_area.name:
                                 result = execute_intimacy_action(
-                                    world, world.active_player, verb,
+                                    world, world.active_player, action_word,
                                     resolved_target, where_text, intensity)
-                                world.record_turn_event(world.active_player, "interact", f"{verb} {resolved_target}: {result}", area_name=world.current_area.name if world.current_area else None)
+                                world.record_turn_event(world.active_player, "interact", f"{action_word} {resolved_target}: {result}", area_name=world.current_area.name if world.current_area else None)
                                 add_output(result)
                             else:
                                 add_output(f"{target} isn't here.")
@@ -2069,7 +2069,7 @@ def handle_take_action(app):
                     add_output("Usage: goal [set <what> | complete <goal> | drop <goal>]")
 
         elif cmd in ("plan", "replan") or cmd.startswith(("plan ", "replan ")):
-            # task-984: planning is a character-initiated free mental verb.
+            # task-984: planning is a character-initiated free mental action_word.
             parts = cmd.split(None, 1)
             intent = parts[1].strip() if len(parts) > 1 else ""
             if intent:
@@ -2396,9 +2396,9 @@ def handle_take_action(app):
                 add_output(result)
         else:
             bare = cmd.strip()
-            # task-629: a bare verb wants a target -- say so rather than
+            # task-629: a bare action_word wants a target -- say so rather than
             # emote-processing the word and echoing "player_human_explorer go."
-            if " " not in bare and bare.lower() in _VERBS_NEEDING_TARGET:
+            if " " not in bare and bare.lower() in _ACTIONS_NEEDING_TARGET:
                 add_output(f"{bare.capitalize()} what?")
                 failed = True
             elif bare:

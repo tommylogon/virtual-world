@@ -96,12 +96,12 @@ def test_gate_accepts_a_declared_score_reference(monkeypatch, tmp_path):
 
 # ── task-801: the action-side feature table ────────────────────────────────────
 
-def test_every_soak_verb_contributes_to_a_declared_score():
+def test_every_soak_action_contributes_to_a_declared_score():
     declared = {s.name for s in disposition.SCORES}
-    for verb in disposition.SOAK_VERBS:
-        features = disposition.features_of(verb)
-        assert features, f"soak verb {verb!r} contributes nothing"
-        assert set(features) <= declared, (verb, features)
+    for action in disposition.SOAK_ACTIONS:
+        features = disposition.features_of(action)
+        assert features, f"soak action {action!r} contributes nothing"
+        assert set(features) <= declared, (action, features)
 
 
 def test_feature_table_and_targets_reference_only_declared_scores():
@@ -119,9 +119,9 @@ def test_target_tags_contribute_by_the_real_vocabularies():
         "survive.utility.need_relief": 1.0}
 
 
-def test_features_merge_verb_and_target():
+def test_features_merge_action_and_target():
     merged = disposition.features_of("drink", ["water"])
-    # the verb's own channel plus the target's, summed
+    # the action's own channel plus the target's, summed
     assert merged["survive.utility.need_relief"] == 2.0
 
 
@@ -213,7 +213,7 @@ def test_a_value_gate_removes_the_option():
 
 def test_the_gate_is_trait_driven_not_global():
     plain = _FakePlayer()
-    assert disposition.gated_verbs(plain) == set()
+    assert disposition.gated_actions(plain) == set()
     assert disposition.filter_actions(plain, ["steal", "take"]) == ["steal", "take"]
 
 
@@ -225,10 +225,10 @@ def test_a_gate_only_subtracts_and_never_enables():
         _FakePlayer(morals={"loyal": True}),
         _FakePlayer(),
     ):
-        verbs = ["steal", "take", "attack", "look", "flirt"]
-        out = disposition.filter_actions(p, verbs)
-        assert set(out) <= set(verbs)
-        assert len(out) <= len(verbs)
+        actions = ["steal", "take", "attack", "look", "flirt"]
+        out = disposition.filter_actions(p, actions)
+        assert set(out) <= set(actions)
+        assert len(out) <= len(actions)
 
 
 def test_moral_flags_come_from_morals_not_only_traits():
@@ -372,7 +372,7 @@ def test_disposition_payload_wires_traits_needs_gates_and_dials():
     # dials and moral gates ride along
     assert payload["dials"] == {"cowardly": 0.9}
     assert "steal" in payload["gated"]
-    # the action side lists the soak verbs and what each contributes
-    assert any(a["verb"] == "drink" and "survive.utility.need_relief" in a["scores"]
+    # the action side lists the soak actions and what each contributes
+    assert any(a["action"] == "drink" and "survive.utility.need_relief" in a["scores"]
                for a in payload["actions"])
 
