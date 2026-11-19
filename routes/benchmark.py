@@ -557,7 +557,7 @@ def register_benchmark_routes(app):
 
                 if not upstream.ok:
                     return jsonify({
-                        'error': f'Provider returned HTTP {upstream.status_code}: {upstream.text[:200]}'
+                        'error': f'Provider returned HTTP {upstream.status_code}: {upstream.text}'
                     }), upstream.status_code
 
                 if not stream:
@@ -787,6 +787,17 @@ def register_benchmark_routes(app):
                                 res['tags'] = tags
                             updated_result = res
                     records.append(rec)
+
+            if not updated_result and records:
+                fallback_entry = {
+                    'model': model_id,
+                    'rating': rating_val,
+                    'feedback': feedback,
+                }
+                if tags:
+                    fallback_entry['tags'] = tags
+                records[0].setdefault('results', []).append(fallback_entry)
+                updated_result = fallback_entry
 
             if not updated_result:
                 return jsonify({'error': f'Model {model_id} not found in run'}), 404

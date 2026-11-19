@@ -1737,6 +1737,16 @@ window.BenchmarkApp = (() => {
                 if (proseEl) proseEl.textContent = msg;
                 if (rawEl) rawEl.textContent = msg;
                 if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">⚠️ ${escapeHtml(msg)}</span>`;
+                state.results[model] = {
+                    prose: msg,
+                    raw: msg,
+                    error: msg,
+                    finish_reason: finishReason,
+                    flags: [{ pass: false, label: msg }],
+                    score: 0,
+                    maxScore: 2,
+                    metrics: { ttft: null, total: totalSec, tps: 0, tokens: totalTokens },
+                };
                 return;
             }
             await evaluateModelOutput(model, outputToEval, {
@@ -1752,8 +1762,18 @@ window.BenchmarkApp = (() => {
             if (err.name === 'AbortError') {
                 if (proseEl) proseEl.textContent = 'Cancelled.';
             } else {
-                if (proseEl) proseEl.textContent = `Error: ${err.message}`;
+                const errMsg = `Error: ${err.message}`;
+                if (proseEl) proseEl.textContent = errMsg;
                 if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">❌ Failed: ${escapeHtml(err.message)}</span>`;
+                state.results[model] = {
+                    prose: errMsg,
+                    raw: errMsg,
+                    error: err.message,
+                    flags: [{ pass: false, label: `Failed: ${err.message}` }],
+                    score: 0,
+                    maxScore: 2,
+                    metrics: { ttft: null, total: (performance.now() - startTime) / 1000, tps: 0, tokens: 0 },
+                };
             }
         }
     }
