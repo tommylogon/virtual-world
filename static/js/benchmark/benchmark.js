@@ -925,6 +925,40 @@ window.BenchmarkApp = (() => {
             if (!resp.ok) return;
             const run = await resp.json();
 
+            // Sync provider, API base, API key, and character to match the loaded run
+            // so Reroll and Save Rating hit the right provider and run ID.
+            state.lastSavedRunId = run.run_id || runId;
+            if (run.provider || run.api_base) {
+                const normalizeUrl = (u) => String(u || '').trim().replace(/\/+$/, '').toLowerCase();
+                let matchedProfile = null;
+                if (run.provider && state.profileMap[run.provider]) {
+                    matchedProfile = run.provider;
+                } else if (run.api_base) {
+                    const wantBase = normalizeUrl(run.api_base);
+                    matchedProfile = Object.keys(state.profileMap || {}).find(
+                        k => normalizeUrl(state.profileMap[k]?.apiBase) === wantBase
+                    ) || null;
+                }
+                if (matchedProfile && els.providerSelect) {
+                    if (els.providerSelect.value !== matchedProfile) {
+                        els.providerSelect.value = matchedProfile;
+                        applySelectedProfile();
+                    }
+                } else if (run.api_base && els.apiBaseInput) {
+                    if (els.providerSelect && Array.from(els.providerSelect.options).some(o => o.value === '__custom__')) {
+                        els.providerSelect.value = '__custom__';
+                    }
+                    els.apiBaseInput.value = run.api_base;
+                }
+            }
+            if (run.character && els.characterSelect && state.characters.includes(run.character)) {
+                if (els.characterSelect.value !== run.character) {
+                    els.characterSelect.value = run.character;
+                    state.selectedChar = run.character;
+                    capturePrompt();
+                }
+            }
+
             state.results = {};
             els.cardsGrid.innerHTML = '';
             els.statusBadge.className = 'bench-status-badge bench-status-done';
@@ -1550,29 +1584,52 @@ window.BenchmarkApp = (() => {
         let reasoningText = '';
         let serverUsage = null;
         let finishReason = null;
+        const captureExchange = (reqPayload, respBody, respObj) => {
+            try {
+                if (!window.DatasetCollector?.captureRaw) return;
+                const safeBody = { ...reqPayload };
+                if (safeBody.api_key) safeBody.api_key = '[redacted]';
+                const responseHeaders = {};
+                try { respObj?.headers?.forEach?.((v, k) => { responseHeaders[k] = v; }); } catch (e) {}
+                window.DatasetCollector.captureRaw({
+                    label: `benchmark:${state.selectedChar || 'turn'}`,
+                    model: model,
+                    url: `${els.apiBaseInput.value.trim().replace(/\/+$/, '')}/chat/completions (via /api/bench/chat)`,
+                    requestHeaders: { 'content-type': 'application/json' },
+                    requestBody: safeBody,
+                    status: respObj?.status ?? null,
+                    statusText: respObj?.statusText || '',
+                    responseHeaders,
+                    body: respBody,
+                    durationMs: Math.round(performance.now() - startTime),
+                });
+            } catch (e) {}
+        };
+        const benchPayload = {
+            api_base: els.apiBaseInput.value.trim(),
+            api_key: els.apiKeyInput.value.trim(),
+            model: model,
+            temperature: parseFloat(els.temperatureInput.value) || 0.7,
+            max_tokens: parseInt(els.maxTokensInput.value, 10) || 1512,
+            reasoning_effort: els.reasoningEffortSelect?.value || 'default',
+            messages: [
+                { role: 'system', content: state.currentPrompt.system },
+                { role: 'user', content: state.currentPrompt.user },
+            ],
+            stream: true,
+        };
 
         try {
             const resp = await fetch('/api/bench/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 signal,
-                body: JSON.stringify({
-                    api_base: els.apiBaseInput.value.trim(),
-                    api_key: els.apiKeyInput.value.trim(),
-                    model: model,
-                    temperature: parseFloat(els.temperatureInput.value) || 0.7,
-                    max_tokens: parseInt(els.maxTokensInput.value, 10) || 1512,
-                    reasoning_effort: els.reasoningEffortSelect?.value || 'default',
-                    messages: [
-                        { role: 'system', content: state.currentPrompt.system },
-                        { role: 'user', content: state.currentPrompt.user },
-                    ],
-                    stream: true,
-                })
+                body: JSON.stringify(benchPayload)
             });
 
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
+                captureExchange(benchPayload, errData, resp);
                 throw new Error(errData.error || `HTTP ${resp.status}`);
             }
 
@@ -1668,6 +1725,13 @@ window.BenchmarkApp = (() => {
             }
 
             const outputToEval = contentText.trim() || reasoningText.trim();
+            captureExchange(benchPayload, {
+                streamed: true,
+                finish_reason: finishReason,
+                content: contentText,
+                reasoning: reasoningText || undefined,
+                usage: serverUsage || undefined,
+            }, resp);
             if (!outputToEval && finishReason && finishReason !== 'stop') {
                 const msg = `Blocked / stopped by provider (${finishReason}).`;
                 if (proseEl) proseEl.textContent = msg;
