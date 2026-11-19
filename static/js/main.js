@@ -872,9 +872,17 @@ document.addEventListener('DOMContentLoaded', () => {
         inspector.hide();
     // Restore event log from IndexedDB (survives refresh)
     await events.restoreLog();
-    // Configure LLM client from persisted config
+    // Configure LLM client from persisted config and keep it synced via config pub/sub
     llmClient.configure(config.toLLMConfig());
     llmClient._manualMode = !!config.manualMode;
+    config.on?.('change', () => {
+        llmClient.configure(config.toLLMConfig());
+        llmClient._manualMode = !!config.manualMode;
+        if (!llmClient._manualMode)
+            llmClient._manualResponse = null;
+        if (typeof GraphToolbar !== 'undefined' && GraphToolbar)
+            GraphToolbar.syncDisabled?.();
+    });
     // Sync filter checkboxes from persisted config
     const syncFilter = (id, val) => { const el = document.getElementById(id); if (el)
         el.checked = val; };

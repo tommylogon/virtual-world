@@ -39,7 +39,7 @@ def test_find_with_explicit_tag():
     app.world.graph.add_node(magic_orb)
     app.world.graph.add_edge(Edge(source=magic_orb.id, target=area_id, type=EDGE_IN))
 
-    resp = client.post('/api/action', json={'command': 'find magic'})
+    resp = client.post('/api/action', json={'action': 'find magic'})
     assert resp.status_code == 200
     data = resp.get_json()
     assert 'Magic Orb' in data['output']
@@ -77,7 +77,7 @@ def test_find_defaults_to_interest_tags():
         app.world.graph.add_node(node)
         app.world.graph.add_edge(Edge(source=node.id, target=area_id, type=EDGE_IN))
 
-    resp = client.post('/api/action', json={'command': 'find'})
+    resp = client.post('/api/action', json={'action': 'find'})
     assert resp.status_code == 200
     data = resp.get_json()
     assert 'Magic Orb' in data['output']
@@ -91,7 +91,7 @@ def test_find_without_interest_tags_prints_guidance():
     _set_active_player(app, 'Kaelen Voss')
     app.world.player_manager.players['Kaelen Voss'].interest_tags = []
 
-    resp = client.post('/api/action', json={'command': 'find'})
+    resp = client.post('/api/action', json={'action': 'find'})
     assert resp.status_code == 200
     data = resp.get_json()
     assert "what should I find" in data['output']
@@ -102,7 +102,7 @@ def test_find_no_matches():
     client, app = _fresh_client()
     _set_active_player(app, 'Kaelen Voss')
 
-    resp = client.post('/api/action', json={'command': 'find magic'})
+    resp = client.post('/api/action', json={'action': 'find magic'})
     assert resp.status_code == 200
     data = resp.get_json()
     assert "don't sense any items" in data['output']
@@ -124,7 +124,7 @@ def test_find_deduplicates_items_with_multiple_matching_tags():
     app.world.graph.add_node(magic_sword)
     app.world.graph.add_edge(Edge(source=magic_sword.id, target=area_id, type=EDGE_IN))
 
-    resp = client.post('/api/action', json={'command': 'find'})
+    resp = client.post('/api/action', json={'action': 'find'})
     assert resp.status_code == 200
     data = resp.get_json()
     assert data['output'].count('Ancient Magic Sword') == 1

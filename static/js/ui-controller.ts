@@ -1006,9 +1006,10 @@ class UIController {
             hubMaxTokens.max = String(maxAllowed);
             hubMaxTokens.value = String(config.maxTokens ?? 0);
             hubMaxTokens.onchange = () => {
-                const parsed = parseInt(hubMaxTokens.value, 10);
-                const val = (hubMaxTokens.value.trim() === '' || !Number.isFinite(parsed)) ? 0 : Math.max(0, parsed);
-                config.maxTokens = val;
+                const val = config.set
+                    ? config.set('maxTokens', hubMaxTokens.value, { save: true })
+                    : (config.maxTokens = Math.max(0, parseInt(hubMaxTokens.value, 10) || 0));
+                hubMaxTokens.value = String(val ?? 0);
                 persistAndApply();
             };
         }
@@ -1017,9 +1018,10 @@ class UIController {
             hubSoftMaxTokens.max = String(maxAllowed);
             hubSoftMaxTokens.value = String(config.softMaxTokens ?? 512);
             hubSoftMaxTokens.onchange = () => {
-                const parsed = parseInt(hubSoftMaxTokens.value, 10);
-                const val = (hubSoftMaxTokens.value.trim() === '' || !Number.isFinite(parsed)) ? 512 : Math.max(0, parsed);
-                config.softMaxTokens = val;
+                const val = config.set
+                    ? config.set('softMaxTokens', hubSoftMaxTokens.value, { save: true })
+                    : (config.softMaxTokens = Math.max(0, parseInt(hubSoftMaxTokens.value, 10) || 512));
+                hubSoftMaxTokens.value = String(val ?? 512);
                 persistAndApply();
             };
         }
@@ -1029,7 +1031,8 @@ class UIController {
             btnPreset4k.onclick = () => {
                 const tok = Math.min(4096, maxAllowed);
                 if (hubMaxTokens) hubMaxTokens.value = String(tok);
-                config.maxTokens = tok;
+                if (config.set) config.set('maxTokens', tok);
+                else config.maxTokens = tok;
                 persistAndApply();
                 events?.log?.(`Applied 4K token preset (${tok})`, 'system-msg');
             };
@@ -1038,7 +1041,8 @@ class UIController {
             btnPreset8k.onclick = () => {
                 const tok = Math.min(8192, maxAllowed);
                 if (hubMaxTokens) hubMaxTokens.value = String(tok);
-                config.maxTokens = tok;
+                if (config.set) config.set('maxTokens', tok);
+                else config.maxTokens = tok;
                 persistAndApply();
                 events?.log?.(`Applied 8K token preset (${tok})`, 'system-msg');
             };
@@ -1051,9 +1055,9 @@ class UIController {
                 btnPresetMax.onclick = () => {
                     const tok = m.max_output_tokens!;
                     if (hubMaxTokens) hubMaxTokens.value = String(tok);
-                    config.maxTokens = tok;
-                    config.save();
-                    VW?.llm?.configure?.((config as any).toLLMConfig?.());
+                    if (config.set) config.set('maxTokens', tok);
+                    else config.maxTokens = tok;
+                    persistAndApply();
                     events?.log?.(`Applied full model max token ceiling (${tok.toLocaleString()})`, 'system-msg');
                 };
             } else {

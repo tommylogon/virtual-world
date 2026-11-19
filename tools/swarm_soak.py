@@ -100,7 +100,7 @@ def run_swarm_soak(num_turns: int = 4, characters: List[str] = None):
                 continue
 
             # 1. Perception
-            res = client.post('/api/action', json={'command': 'look', 'character': char_name})
+            res = client.post('/api/action', json={'action': 'look', 'character': char_name})
             room_desc = res.get_json().get('output', '')
             # Shorten description to keep prompt focused
             room_summary = room_desc[:600] if len(room_desc) > 600 else room_desc
@@ -126,7 +126,7 @@ def run_swarm_soak(num_turns: int = 4, characters: List[str] = None):
             cmd = clean_command(raw_decision)
             
             # 4. Execute action in engine
-            action_res = client.post('/api/action', json={'command': cmd, 'character': char_name})
+            action_res = client.post('/api/action', json={'action': cmd, 'character': char_name})
             out = action_res.get_json().get('output', '')
             
             print(f"[{char_name.upper()}]:")

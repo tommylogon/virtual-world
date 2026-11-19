@@ -89,7 +89,7 @@ def choices(player):
     """
     slots = dict(getattr(player, "turn_slots", {}) or {}) or dict(action_tiers.DEFAULT_BUDGET)
     by_tier = {}
-    for verb in action_tiers.all_verbs():
+    for verb in action_tiers.all_actions():
         tier = action_tiers.tier_of(verb)
         if tier == action_tiers.FREE or slots.get(tier, 0) > 0:
             by_tier.setdefault(tier, []).append(verb)

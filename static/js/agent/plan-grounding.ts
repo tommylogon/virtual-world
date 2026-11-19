@@ -35,8 +35,8 @@
     /**
      * The plan-step verbs the contract allows.
      *
-     * ONE SOURCE OF TRUTH, TWO SCHEMAS. The executor's verb list lives in
-     * `window.ActionVerbs` (mirrored from engine/action_verbs.py) and is what
+     * ONE SOURCE OF TRUTH, TWO SCHEMAS. The executor's action list lives in
+     * `window.Actions` (mirrored from engine/actions.py) and is what
      * `ActionNormalizer.isValidAction` checks. The planner needs a NARROWER
      * list - verbs that mean something as a step in a plan - but it used to
      * keep that list by hand, and the two drifted: a plan could propose a

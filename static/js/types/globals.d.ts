@@ -126,6 +126,11 @@ declare const config: {
     getTalkativeness(name: string): number;
     save(immediate?: boolean): Promise<void> | void;
     saveFromForm?: () => Promise<void> | void;
+    on?: (event: string, cb: (payload?: any) => void) => () => void;
+    off?: (event: string, cb: (payload?: any) => void) => void;
+    coerce?: (key: string, raw: unknown) => any;
+    set?: (key: string, raw: unknown, opts?: { save?: boolean; immediate?: boolean; silent?: boolean }) => any;
+    applyPatch?: (patch: Record<string, unknown>, opts?: { save?: boolean; immediate?: boolean; silent?: boolean }) => string[];
     [key: string]: unknown;
 };
 

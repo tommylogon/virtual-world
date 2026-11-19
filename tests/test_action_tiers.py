@@ -25,6 +25,8 @@ _TOKEN_EXCEPTIONS = {
     "stop doing that": "stop",
     "stand up": "stand",
     "get up": "stand",
+    "hang up": "hangup",
+    "end call": "hangup",
 }
 
 
@@ -53,14 +55,14 @@ def _leading_verb(token: str) -> str:
 
 
 def test_tier_values_are_valid():
-    for verb, tier in at.VERB_TIERS.items():
+    for verb, tier in at.ACTION_TIERS.items():
         assert tier in at.VALID_TIERS, f"{verb} has invalid tier {tier}"
 
 
 def test_every_dispatched_verb_has_a_tier():
     missing = sorted(
         {_leading_verb(tok) for tok in _dispatched_tokens()}
-        - set(at.VERB_TIERS)
+        - set(at.ACTION_TIERS)
     )
     assert not missing, (
         "verbs dispatched by routes/action_handlers.py with no tier in "

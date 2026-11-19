@@ -19,7 +19,7 @@ gates free actions: `open` is free only for something you are *at* - reaching it
 costs `approach` (minor) or `go` (major).
 
 @module action_tiers
-@contributes VERB_TIERS, VALID_TIERS, DEFAULT_BUDGET, tier_of, reset_slots, spend_slot
+@contributes ACTION_TIERS, VERB_TIERS, VALID_TIERS, DEFAULT_BUDGET, tier_of, reset_slots, spend_slot
 @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
 """
 
@@ -97,10 +97,10 @@ def apply_action_gate(slots: dict, verb: str, burst_pending: int = 0):
         return f"You have no {tier} action left this turn.", "none"
     return None, "none"
 
-#: The classification. Every verb dispatched by `routes/action_handlers.py` must
+#: The classification. Every action dispatched by `routes/action_handlers.py` must
 #: appear here; `tests/test_action_tiers.py` derives the dispatched set from the
 #: source and fails when one is added without a tier.
-VERB_TIERS: dict[str, str] = {
+ACTION_TIERS: dict[str, str] = {
     # ---- free: the at-a-distance layer, what you can tell from where you stand
     "look": FREE,
     "listen": FREE,
@@ -115,6 +115,12 @@ VERB_TIERS: dict[str, str] = {
     "sing": FREE,
     "text": FREE,
     "message": FREE,
+    "call": FREE,
+    "answer": FREE,
+    "hangup": FREE,
+    "plan": FREE,
+    "replan": FREE,
+    "dismount": FREE,
     "do": FREE,
     "fear": FREE,
     "interest": FREE,
@@ -152,12 +158,20 @@ VERB_TIERS: dict[str, str] = {
     "withdraw": MINOR,
     "manifest": MINOR,
     "vanish": MINOR,
+    "mount": MINOR,
+    "ride": MINOR,
+    "saddle": MINOR,
     # ---- major: the significant action, one per turn by default
     "go": MAJOR,
+    "move_to": MAJOR,
+    "moveto": MAJOR,
     "dash": MAJOR,
     "crawl": MAJOR,
     "climb": MAJOR,
     "jump": MAJOR,
+    "swim": MAJOR,
+    "dive": MAJOR,
+    "disarm": MAJOR,
     "examine": MAJOR,
     "take": MAJOR,
     "get": MAJOR,
@@ -228,8 +242,8 @@ def tier_of(verb: str, item_node=None) -> str:
             return declared
         if _is_ability(item_node):
             return MINOR
-    if verb in VERB_TIERS:
-        return VERB_TIERS[verb]
+    if verb in ACTION_TIERS:
+        return ACTION_TIERS[verb]
     try:
         from engine import actions
         spec = actions.get_action(verb)
@@ -240,9 +254,17 @@ def tier_of(verb: str, item_node=None) -> str:
     return MAJOR
 
 
-def all_verbs() -> list[str]:
-    """Every classified verb, for the coverage test and future registries."""
-    return sorted(VERB_TIERS)
+#: Legacy alias preserved for external callers.
+VERB_TIERS = ACTION_TIERS
+
+
+def all_actions() -> list[str]:
+    """Every classified action, for the coverage test and future registries."""
+    return sorted(ACTION_TIERS)
+
+
+#: Legacy alias preserved for external callers.
+all_verbs = all_actions
 
 
 #: Ascending by value: a higher tier may pay for a lower action (task-352).

@@ -115,10 +115,15 @@ const SettingsView = (() => {
             if (input instanceof HTMLInputElement && input.type === 'checkbox') {
                 data[key] = input.checked;
             } else if (input.type === 'number' || (input instanceof HTMLInputElement && input.type === 'range')) {
-                const step = input.getAttribute('step');
-                const val = parseFloat(input.value);
-                if (!isNaN(val)) {
-                    data[key] = (step && step.includes('.')) ? val : parseInt(input.value, 10);
+                const rawVal = input.value.trim();
+                if (rawVal === '') {
+                    data[key] = '';
+                } else {
+                    const step = input.getAttribute('step');
+                    const val = parseFloat(rawVal);
+                    if (!isNaN(val)) {
+                        data[key] = (step && step.includes('.')) ? val : parseInt(rawVal, 10);
+                    }
                 }
             } else {
                 data[key] = input.value.trim();

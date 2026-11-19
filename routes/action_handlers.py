@@ -746,13 +746,10 @@ def validate_action_command(world, char_name, cmd):
             return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires arguments."}
         return {"valid": True, "category": "action", "resolved_target": target_str, "detail": f"Action '{cmd}' recognized."}
 
-    # 15. Final registry check: reject unknown/invented verbs instead of silently passing them
+    # 15. Final registry check: reject unknown/invented actions instead of silently passing them
     try:
-        try:
-            from engine.actions import is_valid_action as _is_valid_verb
-        except ImportError:
-            from engine.action_verbs import is_valid_verb as _is_valid_verb
-        if not _is_valid_verb(verb, mature=bool(getattr(world, "mature_content", False))):
+        from engine.actions import is_valid_action as _is_valid_action
+        if not _is_valid_action(verb, mature=bool(getattr(world, "mature_content", False))):
             return {"valid": False, "category": "unknown_verb", "detail": f"Unknown action '{verb}'."}
     except Exception:
         pass

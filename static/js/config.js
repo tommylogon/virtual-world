@@ -14,14 +14,17 @@ const CONFIG_SCHEMA = {
     apiKey: { storageKey: 'api_key', type: 'string', default: 'not-needed' },
     apiBase: { storageKey: 'api_base', type: 'string', default: 'http://localhost:1234/v1' },
     model: { storageKey: 'model', type: 'string', default: 'glm-4-9b-0414' },
+    provider: { storageKey: 'provider', type: 'string', default: 'openai' },
     temperature: { storageKey: 'temperature', type: 'string', default: '0.7' },
     topP: { storageKey: 'top_p', type: 'string', default: '0.95' },
-    maxTokens: { storageKey: 'max_tokens', type: 'number', default: 0 },
-    softMaxTokens: { storageKey: 'soft_max_tokens', type: 'number', default: 512 },
+    maxTokens: { storageKey: 'max_tokens', type: 'number', default: 0, min: 0, max: 1048576, integer: true },
+    softMaxTokens: { storageKey: 'soft_max_tokens', type: 'number', default: 512, min: 0, max: 1048576, integer: true },
     showLogs: { storageKey: 'show_logs', type: 'boolean', default: false },
     streaming: { storageKey: 'streaming', type: 'boolean', default: false },
     turnBased: { storageKey: 'turn_based', type: 'boolean', default: false },
     turnOrder: { storageKey: 'turn_order', type: 'string', default: 'sequential' },
+    frontendTemplate: { storageKey: 'frontend_template', type: 'string', default: 'index' },
+    lastProfile: { storageKey: 'last_profile', type: 'string', default: 'LM Studio (Local)' },
     reactiveMode: { storageKey: 'reactive_mode', type: 'boolean', default: true },
     ghostMode: { storageKey: 'ghost_mode', type: 'boolean', default: false },
     matureContent: { storageKey: 'mature_content', type: 'boolean', default: false },
@@ -36,8 +39,8 @@ const CONFIG_SCHEMA = {
     embedEnabled: { storageKey: 'embed_enabled', type: 'boolean', default: false },
     embedUrl: { storageKey: 'embed_url', type: 'string', default: 'http://localhost:1234/v1' },
     embedModel: { storageKey: 'embed_model', type: 'string', default: 'text-embedding-nomic-embed-text-v1.5' },
-    embedDims: { storageKey: 'embed_dims', type: 'number', default: 0 },
-    embedApiKey: { storageKey: 'embed_api_key', type: 'string', default: '' },
+    embedDims: { storageKey: 'embed_dims', type: 'number', default: 0, min: 0, integer: true },
+    embedApiKey: { storageKey: 'embed_api_key', type: 'string', default: '', allowEmpty: true },
     memoryModelEnabled: { storageKey: 'memory_model_enabled', type: 'boolean', default: true },
     memoryApiBase: { storageKey: 'memory_api_base', type: 'string', default: 'http://localhost:1234/v1' },
     memoryApiKey: { storageKey: 'memory_api_key', type: 'string', default: 'not-needed' },
@@ -53,36 +56,157 @@ const CONFIG_SCHEMA = {
     thinkingEffort: { storageKey: 'thinking_effort', type: 'string', default: 'high' },
     suppressLocalThinking: { storageKey: 'suppress_local_thinking', type: 'boolean', default: true },
     apiFormat: { storageKey: 'api_format', type: 'string', default: 'auto' },
-    rpmLimit: { storageKey: 'rpm_limit', type: 'number', default: 0 },
-    tpmLimit: { storageKey: 'tpm_limit', type: 'number', default: 0 },
-    graphSpringLength: { storageKey: 'graph_spring_length', type: 'number', default: 120 },
-    graphGravitationalConstant: { storageKey: 'graph_gravitational_constant', type: 'number', default: -8 },
-    graphDamping: { storageKey: 'graph_damping', type: 'number', default: 0.4 },
-    graphSpringConstant: { storageKey: 'graph_spring_constant', type: 'number', default: 0.1 },
-    graphItemEdgeLength: { storageKey: 'graph_item_edge_length', type: 'number', default: 60 },
+    rpmLimit: { storageKey: 'rpm_limit', type: 'number', default: 0, min: 0, integer: true },
+    tpmLimit: { storageKey: 'tpm_limit', type: 'number', default: 0, min: 0, integer: true },
+    filterThoughts: { storageKey: 'filter_thoughts', type: 'boolean', default: true },
+    filterSpeech: { storageKey: 'filter_speech', type: 'boolean', default: true },
+    filterActions: { storageKey: 'filter_actions', type: 'boolean', default: true },
+    filterSystem: { storageKey: 'filter_system', type: 'boolean', default: true },
+    filterRawLLM: { storageKey: 'filter_rawllm', type: 'boolean', default: true },
+    filterRecalls: { storageKey: 'filter_recalls', type: 'boolean', default: true },
+    filterNpc: { storageKey: 'filter_npc', type: 'boolean', default: true },
+    graphSpringLength: { storageKey: 'graph_spring_length', type: 'number', default: 120, min: 1, integer: true },
+    graphGravitationalConstant: { storageKey: 'graph_gravitational_constant', type: 'number', default: -8, integer: true },
+    graphDamping: { storageKey: 'graph_damping', type: 'number', default: 0.4, min: 0.01 },
+    graphSpringConstant: { storageKey: 'graph_spring_constant', type: 'number', default: 0.1, min: 0.001 },
+    graphItemEdgeLength: { storageKey: 'graph_item_edge_length', type: 'number', default: 60, min: 1, integer: true },
     graphSolver: { storageKey: 'graph_solver', type: 'string', default: 'forceAtlas2Based' },
-    graphPhysicsNodeLimit: { storageKey: 'graph_physics_node_limit', type: 'number', default: 8000 },
-    graphEdgeWidth: { storageKey: 'graph_edge_width', type: 'number', default: 1 },
+    graphPhysicsNodeLimit: { storageKey: 'graph_physics_node_limit', type: 'number', default: 8000, min: 1, integer: true },
+    graphEdgeWidth: { storageKey: 'graph_edge_width', type: 'number', default: 1, min: 1, integer: true },
     graphArrows: { storageKey: 'graph_arrows', type: 'boolean', default: true },
     graphImprovedLayout: { storageKey: 'graph_improved_layout', type: 'boolean', default: false },
     graphLayoutMode: { storageKey: 'graph_layout_mode', type: 'string', default: 'graph' },
     graphCardinalLayout: { storageKey: 'graph_cardinal_layout', type: 'boolean', default: false },
     graphRepelEnabled: { storageKey: 'graph_repel_enabled', type: 'boolean', default: true },
-    graphRepelMin: { storageKey: 'graph_repel_min', type: 'number', default: 55 },
-    graphRepelMax: { storageKey: 'graph_repel_max', type: 'number', default: 220 },
-    graphRepelStrength: { storageKey: 'graph_repel_strength', type: 'number', default: 0.6 },
-    graphRepelPull: { storageKey: 'graph_repel_pull', type: 'number', default: 0.12 },
-    graphNodeScale: { storageKey: 'graph_node_scale', type: 'number', default: 1.0 },
-    graphFocusZoom: { storageKey: 'graph_focus_zoom', type: 'number', default: 1.15 }
+    graphRepelMin: { storageKey: 'graph_repel_min', type: 'number', default: 55, min: 1, integer: true },
+    graphRepelMax: { storageKey: 'graph_repel_max', type: 'number', default: 220, min: 1, integer: true },
+    graphRepelStrength: { storageKey: 'graph_repel_strength', type: 'number', default: 0.6, min: 0 },
+    graphRepelPull: { storageKey: 'graph_repel_pull', type: 'number', default: 0.12, min: 0 },
+    graphNodeScale: { storageKey: 'graph_node_scale', type: 'number', default: 1.0, min: 0.1 },
+    graphFocusZoom: { storageKey: 'graph_focus_zoom', type: 'number', default: 1.15, min: 0.1 }
 };
 window.CONFIG_SCHEMA = CONFIG_SCHEMA;
 class ConfigManagerImpl {
     _savePromise = null;
     _saveRequested = false;
     _saveTimer = null;
+    _listeners = {};
     constructor() {
         this._ready = false;
         this._initPromise = this._init();
+    }
+    on(event, cb) {
+        if (!this._listeners[event])
+            this._listeners[event] = [];
+        this._listeners[event].push(cb);
+        return () => this.off(event, cb);
+    }
+    off(event, cb) {
+        const list = this._listeners[event];
+        if (!list)
+            return;
+        this._listeners[event] = list.filter((fn) => fn !== cb);
+    }
+    _emit(event, payload) {
+        const list = this._listeners[event];
+        if (!list || list.length === 0)
+            return;
+        for (const fn of list.slice()) {
+            try {
+                fn(payload);
+            }
+            catch (e) {
+                console.warn(`[config] listener for "${event}" failed:`, e);
+            }
+        }
+    }
+    /**
+     * Coerce a raw storage/form/profile value against CONFIG_SCHEMA.
+     * Preserves valid 0 and false values instead of clobbering them with || fallbacks.
+     */
+    coerce(key, raw) {
+        const def = CONFIG_SCHEMA[key];
+        if (!def)
+            return raw;
+        if (def.type === 'boolean') {
+            if (raw === null || raw === undefined || raw === '')
+                return Boolean(def.default);
+            if (typeof raw === 'boolean')
+                return raw;
+            if (typeof raw === 'string') {
+                const low = raw.trim().toLowerCase();
+                if (low === 'true' || low === '1')
+                    return true;
+                if (low === 'false' || low === '0')
+                    return false;
+                return Boolean(def.default);
+            }
+            return Boolean(raw);
+        }
+        if (def.type === 'number') {
+            if (raw === null || raw === undefined)
+                return def.default;
+            if (typeof raw === 'string' && raw.trim() === '')
+                return def.default;
+            let n = typeof raw === 'number'
+                ? (def.integer ? Math.trunc(raw) : raw)
+                : (def.integer ? parseInt(String(raw), 10) : parseFloat(String(raw)));
+            if (!Number.isFinite(n))
+                return def.default;
+            if (def.min !== undefined && n < def.min)
+                n = def.min;
+            if (def.max !== undefined && n > def.max)
+                n = def.max;
+            return n;
+        }
+        if (def.type === 'string') {
+            if (raw === null || raw === undefined)
+                return def.default;
+            const s = String(raw);
+            if (s === '' && !def.allowEmpty)
+                return def.default;
+            return s;
+        }
+        return raw;
+    }
+    set(key, raw, opts) {
+        const next = this.coerce(key, raw);
+        const prev = this[key];
+        this[key] = next;
+        const changed = !Object.is(prev, next);
+        if (changed && !opts?.silent) {
+            this._emit('change', { changed: { [key]: next }, keys: [key], prev: { [key]: prev } });
+        }
+        if (opts?.save) {
+            void this.save(Boolean(opts.immediate));
+        }
+        return next;
+    }
+    applyPatch(patch, opts) {
+        const changed = {};
+        const prevMap = {};
+        const keys = [];
+        for (const [key, raw] of Object.entries(patch || {})) {
+            if (raw === undefined)
+                continue;
+            if (raw === null && !(key in CONFIG_SCHEMA))
+                continue;
+            const next = this.coerce(key, raw);
+            const prev = this[key];
+            this[key] = next;
+            if (!Object.is(prev, next)) {
+                changed[key] = next;
+                prevMap[key] = prev;
+                keys.push(key);
+            }
+        }
+        if (keys.length > 0 && !opts?.silent) {
+            this._emit('change', { changed, keys, prev: prevMap });
+        }
+        if (opts?.save) {
+            void this.save(Boolean(opts.immediate));
+        }
+        return keys;
     }
     async _init() {
         await this._loadFromStorage();
@@ -90,31 +214,11 @@ class ConfigManagerImpl {
         this._ready = true;
     }
     async _loadFromStorage() {
-        // First-run defaults are LM Studio (local), not OpenAI: this app runs
-        // against a local server with no API key, so defaulting to
-        // api.openai.com with an empty key produced a dead "Generate" on a
-        // fresh profile. LM Studio speaks the OpenAI wire format, so the
-        // `provider` field stays 'openai' (llm-client keys its structured-
-        // output quirks off that); only the endpoint/key/model differ. The
-        // default model is glm-4-9b-0414, the GLM-4 9B build this repo targets.
-        this.apiKey = await storage.getConfig('api_key') || 'not-needed';
-        this.apiBase = await storage.getConfig('api_base') || 'http://localhost:1234/v1';
-        this.model = await storage.getConfig('model') || 'glm-4-9b-0414';
-        this.provider = await storage.getConfig('provider') || 'openai';
-        this.temperature = await storage.getConfig('temperature') || '0.7';
-        this.topP = await storage.getConfig('top_p') || '0.95';
-        const rawMaxTokens = await storage.getConfig('max_tokens');
-        this.maxTokens = (rawMaxTokens !== null && rawMaxTokens !== undefined && rawMaxTokens !== '' && Number.isFinite(parseInt(rawMaxTokens, 10)))
-            ? Math.max(0, parseInt(rawMaxTokens, 10))
-            : 0;
-        const rawSoftMax = await storage.getConfig('soft_max_tokens');
-        this.softMaxTokens = (rawSoftMax !== null && rawSoftMax !== undefined && rawSoftMax !== '' && Number.isFinite(parseInt(rawSoftMax, 10)))
-            ? Math.max(0, parseInt(rawSoftMax, 10))
-            : 512;
-        this.showLogs = (await storage.getConfig('show_logs')) === 'true';
-        this.streaming = (await storage.getConfig('streaming')) === 'true';
-        this.turnBased = (await storage.getConfig('turn_based')) === 'true';
-        this.turnOrder = await storage.getConfig('turn_order') || 'sequential';
+        // Load all schema-declared fields through the single coercion boundary.
+        for (const [key, def] of Object.entries(CONFIG_SCHEMA)) {
+            const raw = await storage.getConfig(def.storageKey);
+            this[key] = this.coerce(key, raw);
+        }
         const savedTalkativeness = await storage.getConfig('simultaneous_talkativeness');
         try {
             const parsed = JSON.parse(savedTalkativeness || '{}');
@@ -131,35 +235,11 @@ class ConfigManagerImpl {
         catch (e) {
             this.talkativenessByCharacter = {};
         }
-        this.frontendTemplate = await storage.getConfig('frontend_template') || 'index';
-        this.lastProfile = await storage.getConfig('last_profile') || 'LM Studio (Local)';
         // The app runs against local LM Studio; a lingering built-in OpenAI
-        // selection is a trap, not a choice, so land on LM Studio (Local)
-        // instead. A saved DeepSeek/Groq/custom profile is left as chosen.
+        // selection is a trap, not a choice, so land on LM Studio (Local).
         if (this.lastProfile === 'OpenAI (GPT-4.1-mini)' || this.lastProfile === 'OpenAI (GPT-4o)') {
             this.lastProfile = 'LM Studio (Local)';
         }
-        // Reactive mode: true = thought→act→react, false = combined single-step
-        this.reactiveMode = (await storage.getConfig('reactive_mode')) !== 'false';
-        // Graph visualization settings. The spring/repulsion numbers are the
-        // forceAtlas2Based balance measured with `centralGravity: 0`
-        // (graph/network-manager.js): repulsion is then the only thing pushing,
-        // and the old -40 / 0.02 let the graph run away  -  a cold load of
-        // kraktooth_goblin_camp (638 nodes) grew 4069px of width per 12s and left
-        // contents a median 888px from the room holding them. -8 / 0.10 / 120 puts
-        // them back beside their rooms (median 147px) and settles.
-        this.graphSpringLength = parseInt(await storage.getConfig('graph_spring_length')) || 120;
-        this.graphGravitationalConstant = parseInt(await storage.getConfig('graph_gravitational_constant')) || -8;
-        this.graphDamping = parseFloat(await storage.getConfig('graph_damping')) || 0.4;
-        this.graphSpringConstant = parseFloat(await storage.getConfig('graph_spring_constant')) || 0.1;
-        this.graphItemEdgeLength = parseInt(await storage.getConfig('graph_item_edge_length')) || 60;
-        this.graphSolver = await storage.getConfig('graph_solver') || 'forceAtlas2Based';
-        // Above this many nodes physics is suppressed (task-768). Adjustable so a
-        // big world can be re-enabled deliberately; default is a safety valve.
-        this.graphPhysicsNodeLimit = parseInt(await storage.getConfig('graph_physics_node_limit')) || 8000;
-        this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
-        this.graphArrows = (await storage.getConfig('graph_arrows')) !== 'false';
-        this.graphImprovedLayout = (await storage.getConfig('graph_improved_layout')) === 'true';
         // Graph layout mode (task-625): unified 'graph' | 'map' | 'levels'.
         const rawLayout = await storage.getConfig('graph_layout_mode');
         const rawCardinal = (await storage.getConfig('graph_cardinal_layout')) === 'true';
@@ -175,59 +255,14 @@ class ConfigManagerImpl {
             this.graphLayoutMode = 'graph';
             this.graphCardinalLayout = false;
         }
-        // Map-layout pitch (task-523 follow-up): px per painted cell, i.e. the
-        // padding between areas in Map mode. 40px = an area every 40px with the
-        // way at the midpoint; raise it to de-clutter a dense painted grid.
+        // Map-layout pitch (task-523 / task-526)
         const storedMapSpacing = parseInt(await storage.getConfig('graphMapSpacing'));
         this.graphMapSpacing = storedMapSpacing || 240;
-        // Whether that pitch is the *derived default* or the user's own choice
-        // (task-526). Auto derives the pitch from the painted extent on every load,
-        // so it has to be able to tell "the user has not chosen" from "the user
-        // chose exactly this". An explicit flag settles it once the user has
-        // touched the stepper; before that, a stored pitch that differs from the
-        // built-in 40 default *is* a choice  -  someone who dialled the map to
-        // 260px/cell by hand must not be re-derived over on their next load.
         const storedMapSpacingAuto = await storage.getConfig('graphMapSpacingAuto');
         this.graphMapSpacingAuto = storedMapSpacingAuto === '1'
             || (storedMapSpacingAuto !== '0'
                 && (!storedMapSpacing || storedMapSpacing === 240));
-        // Node separation (graph/separation.js): nearby item/character nodes
-        // push apart unless an edge already joins them. `min` is the distance
-        // under which they repel, `max` the distance beyond which a pair is
-        // ignored (and the grid cell size, so it bounds the cost).
-        this.graphRepelEnabled = (await storage.getConfig('graph_repel_enabled')) !== 'false';
-        this.graphRepelMin = parseInt(await storage.getConfig('graph_repel_min')) || 55;
-        this.graphRepelMax = parseInt(await storage.getConfig('graph_repel_max')) || 220;
-        this.graphRepelStrength = parseFloat(await storage.getConfig('graph_repel_strength')) || 0.6;
-        // Restoring pull toward the parent for nodes separation displaced, so a
-        // crowded room's contents do not drift outward. 0 = no pull.
-        this.graphRepelPull = parseFloat(await storage.getConfig('graph_repel_pull'));
-        if (!Number.isFinite(this.graphRepelPull))
-            this.graphRepelPull = 0.12;
-        // Multiplier on the drawn size of item/way/character nodes (areas are
-        // cards that size to their name). The separation pass reads the same
-        // value so bigger nodes get correspondingly more room.
-        this.graphNodeScale = parseFloat(await storage.getConfig('graph_node_scale')) || 1;
-        // Camera zoom (vis.js scale) when a node is focused from a list, the
-        // outline or a search hit  -  the old hardcoded 1.15 (graph-manager).
-        this.graphFocusZoom = parseFloat(await storage.getConfig('graph_focus_zoom')) || 1.15;
-        // Ghost mode: when true, dead characters can still act as ghosts
-        this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
-        // Mature content opt-in (task-206): gates the pleasure/arousal subsystem
-        this.matureContent = (await storage.getConfig('mature_content')) === 'true';
-        // Raw LLM exchange capture opt-in (task-405): feeds the LLM inspector
-        this.showRawLLM = (await storage.getConfig('show_raw_llm')) === 'true';
-        this.commonsAutoReplyOnMessage = (await storage.getConfig('commons_auto_reply_on_message')) === 'true';
-        this.commonsAdvanceClockOnReply = (await storage.getConfig('commons_advance_clock_on_reply')) === 'true';
-        this.commonsRecordMemories = (await storage.getConfig('commons_record_memories')) !== 'false';
-        this.manualMode = (await storage.getConfig('manual_mode')) === 'true';
-        // Invalid-action auto-retry (task-361): when an agent action fails, give
-        // it one same-turn retry with the error fed back (default off).
-        this.autoRetryInvalid = (await storage.getConfig('auto_retry_invalid')) === 'true';
-        // task-101: the turn mode dial owns the simultaneous variants; the
-        // legacy boolean setting is folded in so an old save keeps working.
-        // "simultaneous_room" resolves rooms independently with characters
-        // inside a room acting in order.
+        // task-101: fold legacy simultaneous_mode boolean into turnOrder
         const rawSimMode = await storage.getConfig('simultaneous_mode');
         const sim = window.VWSimultaneous;
         if (sim && typeof sim.normalizeMode === 'function') {
@@ -239,55 +274,6 @@ class ConfigManagerImpl {
         else if (rawSimMode === 'simultaneous' || rawSimMode === 'simultaneous_room') {
             this.turnOrder = rawSimMode;
         }
-        // Structured output: send response_format (json_schema / json_object)
-        // with every LLM call that expects JSON. Auto-degrades per session when
-        // the provider rejects the parameter (default on).
-        this.structuredOutput = (await storage.getConfig('structured_output')) !== 'false';
-        // Auto-generate equipment descriptions on equip/unequip (default on)
-        this.autoGenerateDescriptions = (await storage.getConfig('auto_generate_descriptions')) !== 'false';
-        // Embedding settings (task-91: OpenAI-compatible endpoint, browser-side
-        // calls; vectors stored server-side. Dims 0 = auto-detect from first call)
-        this.embedEnabled = (await storage.getConfig('embed_enabled')) === 'true';
-        this.embedUrl = await storage.getConfig('embed_url') || 'http://localhost:1234/v1';
-        this.embedModel = await storage.getConfig('embed_model') || 'text-embedding-nomic-embed-text-v1.5';
-        this.embedDims = parseInt(await storage.getConfig('embed_dims')) || 0;
-        this.embedApiKey = await storage.getConfig('embed_api_key') || '';
-        // Dedicated Memory Model settings (task-909) - default to localhost LM Studio
-        const storedMmEnabled = await storage.getConfig('memory_model_enabled');
-        this.memoryModelEnabled = storedMmEnabled !== null ? storedMmEnabled === 'true' : true;
-        this.memoryApiBase = await storage.getConfig('memory_api_base') || 'http://localhost:1234/v1';
-        this.memoryApiKey = await storage.getConfig('memory_api_key') || 'not-needed';
-        this.memoryModel = await storage.getConfig('memory_model') || 'lmstudio-community/lfm3-1.7b';
-        this.memoryApiFormat = await storage.getConfig('memory_api_format') || 'lmstudio';
-        // Dedicated Interpreter Model settings (task-943)
-        const storedIntEnabled = await storage.getConfig('interpreter_model_enabled');
-        this.interpreterModelEnabled = storedIntEnabled !== null ? storedIntEnabled === 'true' : false;
-        this.interpreterApiBase = await storage.getConfig('interpreter_api_base') || 'http://localhost:1234/v1';
-        this.interpreterApiKey = await storage.getConfig('interpreter_api_key') || 'not-needed';
-        this.interpreterModel = await storage.getConfig('interpreter_model') || 'lfm3-1.7b@q4_0';
-        this.interpreterApiFormat = await storage.getConfig('interpreter_api_format') || 'auto';
-        // Vision mode: enable sending image attachments to vision models
-        this.visionEnabled = (await storage.getConfig('vision_enabled')) === 'true';
-        // Thinking mode: sends reasoning_effort + thinking extra_body for reasoning models
-        this.thinking = (await storage.getConfig('thinking')) === 'true';
-        this.thinkingEffort = await storage.getConfig('thinking_effort') || 'high';
-        // Suppress local thinking: injects empty assistant message to bypass
-        // Qwen 3.5 reasoning block in LM Studio (workaround for API ignore)
-        this.suppressLocalThinking = (await storage.getConfig('suppress_local_thinking')) !== 'false';
-        // API format: auto | chat-completions | responses (auto resolves to chat-completions)
-        this.apiFormat = await storage.getConfig('api_format') || 'auto';
-        // Rate limiter (requests per minute  -  0 = disabled)
-        this.rpmLimit = parseInt(await storage.getConfig('rpm_limit')) || 0;
-        // Token rate limiter (tokens per minute  -  0 = disabled)
-        this.tpmLimit = parseInt(await storage.getConfig('tpm_limit')) || 0;
-        // Message filters: which types to show in event stream
-        this.filterThoughts = (await storage.getConfig('filter_thoughts')) !== 'false';
-        this.filterSpeech = (await storage.getConfig('filter_speech')) !== 'false';
-        this.filterActions = (await storage.getConfig('filter_actions')) !== 'false';
-        this.filterSystem = (await storage.getConfig('filter_system')) !== 'false';
-        this.filterRawLLM = (await storage.getConfig('filter_rawllm')) !== 'false';
-        this.filterRecalls = (await storage.getConfig('filter_recalls')) !== 'false';
-        this.filterNpc = (await storage.getConfig('filter_npc')) !== 'false';
         this.running = false;
         this.busy = false;
         this.maxSteps = 10;
@@ -403,79 +389,16 @@ class ConfigManagerImpl {
         }
     }
     async _persistStorage() {
-        await storage.setConfig('api_key', this.apiKey);
-        await storage.setConfig('api_base', this.apiBase);
-        await storage.setConfig('model', this.model);
-        await storage.setConfig('temperature', this.temperature);
-        await storage.setConfig('top_p', this.topP || '0.95');
-        await storage.setConfig('max_tokens', String(this.maxTokens));
-        await storage.setConfig('soft_max_tokens', String(this.softMaxTokens));
-        await storage.setConfig('show_logs', this.showLogs ? 'true' : 'false');
-        await storage.setConfig('streaming', this.streaming ? 'true' : 'false');
-        await storage.setConfig('turn_based', this.turnBased ? 'true' : 'false');
-        await storage.setConfig('turn_order', this.turnOrder);
-        await storage.setConfig('frontend_template', this.frontendTemplate);
-        await storage.setConfig('last_profile', this.lastProfile || '');
-        await storage.setConfig('reactive_mode', this.reactiveMode ? 'true' : 'false');
-        await storage.setConfig('ghost_mode', this.ghostMode ? 'true' : 'false');
-        await storage.setConfig('mature_content', this.matureContent ? 'true' : 'false');
-        await storage.setConfig('show_raw_llm', this.showRawLLM ? 'true' : 'false');
-        await storage.setConfig('commons_auto_reply_on_message', this.commonsAutoReplyOnMessage ? 'true' : 'false');
-        await storage.setConfig('commons_advance_clock_on_reply', this.commonsAdvanceClockOnReply ? 'true' : 'false');
-        await storage.setConfig('commons_record_memories', this.commonsRecordMemories !== false ? 'true' : 'false');
-        await storage.setConfig('rpm_limit', String(this.rpmLimit));
-        await storage.setConfig('tpm_limit', String(this.tpmLimit));
-        await storage.setConfig('filter_thoughts', this.filterThoughts ? 'true' : 'false');
-        await storage.setConfig('filter_speech', this.filterSpeech ? 'true' : 'false');
-        await storage.setConfig('filter_actions', this.filterActions ? 'true' : 'false');
-        await storage.setConfig('filter_system', this.filterSystem ? 'true' : 'false');
-        await storage.setConfig('filter_rawllm', this.filterRawLLM ? 'true' : 'false');
-        await storage.setConfig('filter_recalls', this.filterRecalls ? 'true' : 'false');
-        await storage.setConfig('filter_npc', this.filterNpc ? 'true' : 'false');
-        await storage.setConfig('manual_mode', this.manualMode ? 'true' : 'false');
-        await storage.setConfig('auto_retry_invalid', this.autoRetryInvalid ? 'true' : 'false');
-        await storage.setConfig('simultaneous_mode', this.simultaneousMode || 'false');
-        await storage.setConfig('structured_output', this.structuredOutput ? 'true' : 'false');
-        await storage.setConfig('auto_generate_descriptions', this.autoGenerateDescriptions ? 'true' : 'false');
-        await storage.setConfig('embed_enabled', this.embedEnabled ? 'true' : 'false');
-        await storage.setConfig('embed_url', this.embedUrl);
-        await storage.setConfig('embed_model', this.embedModel);
-        await storage.setConfig('embed_dims', String(this.embedDims));
-        await storage.setConfig('embed_api_key', this.embedApiKey);
-        await storage.setConfig('memory_model_enabled', this.memoryModelEnabled ? 'true' : 'false');
-        await storage.setConfig('memory_api_base', this.memoryApiBase);
-        await storage.setConfig('memory_api_key', this.memoryApiKey);
-        await storage.setConfig('memory_model', this.memoryModel);
-        await storage.setConfig('memory_api_format', this.memoryApiFormat);
-        await storage.setConfig('interpreter_model_enabled', this.interpreterModelEnabled ? 'true' : 'false');
-        await storage.setConfig('interpreter_api_base', this.interpreterApiBase);
-        await storage.setConfig('interpreter_api_key', this.interpreterApiKey);
-        await storage.setConfig('interpreter_model', this.interpreterModel);
-        await storage.setConfig('interpreter_api_format', this.interpreterApiFormat);
-        await storage.setConfig('vision_enabled', this.visionEnabled ? 'true' : 'false');
-        await storage.setConfig('thinking', this.thinking ? 'true' : 'false');
-        await storage.setConfig('thinking_effort', this.thinkingEffort);
-        await storage.setConfig('suppress_local_thinking', this.suppressLocalThinking ? 'true' : 'false');
-        await storage.setConfig('api_format', this.apiFormat);
-        await storage.setConfig('graph_spring_length', String(this.graphSpringLength));
-        await storage.setConfig('graph_gravitational_constant', String(this.graphGravitationalConstant));
-        await storage.setConfig('graph_damping', String(this.graphDamping));
-        await storage.setConfig('graph_spring_constant', String(this.graphSpringConstant));
-        await storage.setConfig('graph_item_edge_length', String(this.graphItemEdgeLength));
-        await storage.setConfig('graph_solver', this.graphSolver);
-        await storage.setConfig('graph_physics_node_limit', String(this.graphPhysicsNodeLimit));
-        await storage.setConfig('graph_edge_width', String(this.graphEdgeWidth));
-        await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');
-        await storage.setConfig('graph_improved_layout', this.graphImprovedLayout ? 'true' : 'false');
-        await storage.setConfig('graph_layout_mode', this.graphLayoutMode || 'graph');
+        for (const [key, def] of Object.entries(CONFIG_SCHEMA)) {
+            const val = this.coerce(key, this[key]);
+            this[key] = val;
+            const serialized = def.type === 'boolean'
+                ? (val ? 'true' : 'false')
+                : String(val ?? '');
+            await storage.setConfig(def.storageKey, serialized);
+        }
         await storage.setConfig('graph_cardinal_layout', this.graphLayoutMode === 'map' ? 'true' : 'false');
-        await storage.setConfig('graph_repel_enabled', this.graphRepelEnabled ? 'true' : 'false');
-        await storage.setConfig('graph_repel_min', String(this.graphRepelMin));
-        await storage.setConfig('graph_repel_max', String(this.graphRepelMax));
-        await storage.setConfig('graph_repel_strength', String(this.graphRepelStrength));
-        await storage.setConfig('graph_repel_pull', String(this.graphRepelPull));
-        await storage.setConfig('graph_node_scale', String(this.graphNodeScale));
-        await storage.setConfig('graph_focus_zoom', String(this.graphFocusZoom));
+        await storage.setConfig('simultaneous_mode', this.simultaneousMode || 'false');
         this._saveToCurrentProfile();
     }
     async _saveToCurrentProfile() {
@@ -502,78 +425,68 @@ class ConfigManagerImpl {
     async saveFromForm() {
         const win = window;
         if (win.SettingsView && typeof win.SettingsView.readForm === 'function') {
-            const formData = win.SettingsView.readForm();
-            for (const [key, val] of Object.entries(formData)) {
-                if (val !== undefined && val !== null) {
-                    this[key] = val;
-                }
-            }
+            this.applyPatch(win.SettingsView.readForm());
         }
         else {
-            this.apiKey = document.getElementById('api-key-input')?.value.trim() || CONFIG_SCHEMA.apiKey.default;
-            this.apiBase = (document.getElementById('api-base-input')?.value.trim() || document.getElementById('agent-api-base')?.value.trim() || 'http://localhost:1234/v1');
-            this.model = document.getElementById('agent-model')?.value.trim() || 'glm-4-9b-0414';
-            this.temperature = document.getElementById('hub-temperature')?.value || this.temperature;
-            const rawHubMax = document.getElementById('hub-max-tokens')?.value;
-            if (rawHubMax !== undefined) {
-                const pMax = parseInt(rawHubMax, 10);
-                this.maxTokens = (rawHubMax.trim() === '' || !Number.isFinite(pMax)) ? 0 : Math.max(0, pMax);
-            }
-            const rawHubSoft = document.getElementById('hub-soft-max-tokens')?.value;
-            if (rawHubSoft !== undefined) {
-                const pSoft = parseInt(rawHubSoft, 10);
-                this.softMaxTokens = (rawHubSoft.trim() === '' || !Number.isFinite(pSoft)) ? 512 : Math.max(0, pSoft);
-            }
-            this.turnBased = document.getElementById('agent-turn-based')?.checked || false;
-            const turnOrderEl = document.getElementById('agent-turn-order');
-            if (turnOrderEl) {
-                this.turnOrder = window.VWSimultaneous.normalizeMode(turnOrderEl.value, this.turnOrder);
-                // Simultaneous variants ignore the turn queue, so they imply turn-based off.
-                if (window.VWSimultaneous.isSimultaneous(this.turnOrder))
-                    this.turnBased = false;
-            }
-            this.showLogs = document.getElementById('agent-show-logs')?.checked || false;
-            this.streaming = document.getElementById('agent-streaming')?.checked || false;
-            this.reactiveMode = document.getElementById('agent-reactive-mode')?.checked ?? this.reactiveMode;
-            this.ghostMode = document.getElementById('agent-ghost-mode')?.checked ?? this.ghostMode;
-            this.matureContent = document.getElementById('agent-mature-content')?.checked ?? this.matureContent;
-            this.showRawLLM = document.getElementById('agent-show-raw-llm')?.checked ?? this.showRawLLM;
-            this.commonsAutoReplyOnMessage = document.getElementById('commons-auto-reply')?.checked ?? this.commonsAutoReplyOnMessage;
-            this.manualMode = document.getElementById('agent-manual-mode')?.checked ?? this.manualMode;
-            this.autoRetryInvalid = document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid;
-            this.structuredOutput = document.getElementById('agent-structured-output')?.checked ?? this.structuredOutput;
-            this.autoGenerateDescriptions = document.getElementById('agent-auto-generate-descriptions')?.checked ?? this.autoGenerateDescriptions;
-            this.embedEnabled = document.getElementById('embed-enabled')?.checked ?? this.embedEnabled;
-            this.embedUrl = document.getElementById('embed-url')?.value.trim() || this.embedUrl;
-            this.embedModel = document.getElementById('embed-model')?.value.trim() || this.embedModel;
-            this.embedDims = parseInt(document.getElementById('embed-dims')?.value) || 0;
-            this.embedApiKey = document.getElementById('embed-api-key')?.value.trim() ?? this.embedApiKey;
-            this.memoryModelEnabled = document.getElementById('memory-model-enabled')?.checked ?? this.memoryModelEnabled;
-            this.memoryApiBase = document.getElementById('memory-api-base')?.value.trim() || this.memoryApiBase || 'http://localhost:1234/v1';
-            this.memoryApiKey = document.getElementById('memory-api-key')?.value.trim() || this.memoryApiKey || 'not-needed';
-            this.memoryModel = document.getElementById('memory-model')?.value.trim() || this.memoryModel || 'lmstudio-community/lfm3-1.7b';
-            this.memoryApiFormat = document.getElementById('memory-api-format')?.value || this.memoryApiFormat || 'lmstudio';
-            this.interpreterModelEnabled = document.getElementById('interpreter-model-enabled')?.checked ?? this.interpreterModelEnabled;
-            this.interpreterApiBase = document.getElementById('interpreter-api-base')?.value.trim() || this.interpreterApiBase || 'http://localhost:1234/v1';
-            this.interpreterApiKey = document.getElementById('interpreter-api-key')?.value.trim() || this.interpreterApiKey || 'not-needed';
-            this.interpreterModel = document.getElementById('interpreter-model')?.value.trim() || this.interpreterModel || 'lfm3-1.7b@q4_0';
-            this.interpreterApiFormat = document.getElementById('interpreter-api-format')?.value || this.interpreterApiFormat || 'auto';
-            this.thinking = document.getElementById('hub-thinking')?.checked ?? this.thinking;
-            this.thinkingEffort = document.getElementById('hub-thinking-effort')?.value || this.thinkingEffort;
-            this.suppressLocalThinking = document.getElementById('hub-suppress-thinking')?.checked ?? this.suppressLocalThinking;
-            this.visionEnabled = document.getElementById('agent-vision-enabled')?.checked ?? this.visionEnabled;
-            this.apiFormat = document.getElementById('agent-api-format')?.value || this.apiFormat;
-            const rpmInput = document.getElementById('agent-rpm-limit');
-            if (rpmInput)
-                this.rpmLimit = parseInt(rpmInput.value) || 0;
-            const tpmInput = document.getElementById('agent-tpm-limit');
-            if (tpmInput)
-                this.tpmLimit = parseInt(tpmInput.value) || 0;
+            const rawTurnOrderEl = document.getElementById('agent-turn-order');
+            const simApi = window.VWSimultaneous;
+            const nextTurnOrder = rawTurnOrderEl && simApi
+                ? simApi.normalizeMode(rawTurnOrderEl.value, this.turnOrder)
+                : this.turnOrder;
+            const nextTurnBased = (rawTurnOrderEl && simApi?.isSimultaneous(nextTurnOrder))
+                ? false
+                : (document.getElementById('agent-turn-based')?.checked || false);
+            this.applyPatch({
+                apiKey: document.getElementById('api-key-input')?.value.trim(),
+                apiBase: document.getElementById('api-base-input')?.value.trim()
+                    || document.getElementById('agent-api-base')?.value.trim(),
+                model: document.getElementById('agent-model')?.value.trim(),
+                temperature: document.getElementById('hub-temperature')?.value ?? this.temperature,
+                maxTokens: document.getElementById('hub-max-tokens')?.value,
+                softMaxTokens: document.getElementById('hub-soft-max-tokens')?.value,
+                turnBased: nextTurnBased,
+                turnOrder: nextTurnOrder,
+                showLogs: document.getElementById('agent-show-logs')?.checked || false,
+                streaming: document.getElementById('agent-streaming')?.checked || false,
+                reactiveMode: document.getElementById('agent-reactive-mode')?.checked ?? this.reactiveMode,
+                ghostMode: document.getElementById('agent-ghost-mode')?.checked ?? this.ghostMode,
+                matureContent: document.getElementById('agent-mature-content')?.checked ?? this.matureContent,
+                showRawLLM: document.getElementById('agent-show-raw-llm')?.checked ?? this.showRawLLM,
+                commonsAutoReplyOnMessage: document.getElementById('commons-auto-reply')?.checked ?? this.commonsAutoReplyOnMessage,
+                manualMode: document.getElementById('agent-manual-mode')?.checked ?? this.manualMode,
+                autoRetryInvalid: document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid,
+                structuredOutput: document.getElementById('agent-structured-output')?.checked ?? this.structuredOutput,
+                autoGenerateDescriptions: document.getElementById('agent-auto-generate-descriptions')?.checked ?? this.autoGenerateDescriptions,
+                embedEnabled: document.getElementById('embed-enabled')?.checked ?? this.embedEnabled,
+                embedUrl: document.getElementById('embed-url')?.value.trim() || this.embedUrl,
+                embedModel: document.getElementById('embed-model')?.value.trim() || this.embedModel,
+                embedDims: document.getElementById('embed-dims')?.value,
+                embedApiKey: document.getElementById('embed-api-key')?.value.trim() ?? this.embedApiKey,
+                memoryModelEnabled: document.getElementById('memory-model-enabled')?.checked ?? this.memoryModelEnabled,
+                memoryApiBase: document.getElementById('memory-api-base')?.value.trim() || this.memoryApiBase,
+                memoryApiKey: document.getElementById('memory-api-key')?.value.trim() || this.memoryApiKey,
+                memoryModel: document.getElementById('memory-model')?.value.trim() || this.memoryModel,
+                memoryApiFormat: document.getElementById('memory-api-format')?.value || this.memoryApiFormat,
+                interpreterModelEnabled: document.getElementById('interpreter-model-enabled')?.checked ?? this.interpreterModelEnabled,
+                interpreterApiBase: document.getElementById('interpreter-api-base')?.value.trim() || this.interpreterApiBase,
+                interpreterApiKey: document.getElementById('interpreter-api-key')?.value.trim() || this.interpreterApiKey,
+                interpreterModel: document.getElementById('interpreter-model')?.value.trim() || this.interpreterModel,
+                interpreterApiFormat: document.getElementById('interpreter-api-format')?.value || this.interpreterApiFormat,
+                thinking: document.getElementById('hub-thinking')?.checked ?? this.thinking,
+                thinkingEffort: document.getElementById('hub-thinking-effort')?.value || this.thinkingEffort,
+                suppressLocalThinking: document.getElementById('hub-suppress-thinking')?.checked ?? this.suppressLocalThinking,
+                visionEnabled: document.getElementById('agent-vision-enabled')?.checked ?? this.visionEnabled,
+                apiFormat: document.getElementById('agent-api-format')?.value || this.apiFormat,
+                rpmLimit: document.getElementById('agent-rpm-limit')?.value,
+                tpmLimit: document.getElementById('agent-tpm-limit')?.value,
+            });
         }
         await this.save(true);
-        VW.llm._manualMode = !!this.manualMode;
-        if (!VW.llm._manualMode)
-            VW.llm._manualResponse = null;
+        if (VW?.llm) {
+            VW.llm._manualMode = !!this.manualMode;
+            if (!VW.llm._manualMode)
+                VW.llm._manualResponse = null;
+        }
         // "Paste Response" in the graph toolbar is only usable in Manual Response
         // Mode, so it is enabled/disabled from this one place (task-530).
         if (GraphToolbar)
@@ -760,17 +673,37 @@ class ConfigManagerImpl {
         const profile = await this.getProfile(name);
         if (!profile)
             return;
-        this.apiKey = profile.apiKey || 'not-needed';
-        this.apiBase = profile.apiBase || 'http://localhost:1234/v1';
-        this.model = profile.model || 'glm-4-9b-0414';
-        this.streaming = !!profile.streaming;
-        this.showLogs = !!profile.showLogs;
-        this.turnBased = !!profile.turnBased;
-        this.turnOrder = window.VWSimultaneous.normalizeMode(profile.simultaneousMode || profile.turnOrder, profile.turnOrder);
-        if (window.VWSimultaneous.isSimultaneous(this.turnOrder))
-            this.turnBased = false;
-        this.apiFormat = profile.apiFormat || 'auto';
-        this.lastProfile = name;
+        const simApi = window.VWSimultaneous;
+        const normalizedOrder = simApi.normalizeMode((profile.simultaneousMode || profile.turnOrder), profile.turnOrder || 'sequential');
+        const turnBased = simApi.isSimultaneous(normalizedOrder) ? false : Boolean(profile.turnBased);
+        const patch = {
+            apiKey: profile.apiKey || CONFIG_SCHEMA.apiKey.default,
+            apiBase: profile.apiBase || CONFIG_SCHEMA.apiBase.default,
+            model: profile.model || CONFIG_SCHEMA.model.default,
+            streaming: Boolean(profile.streaming),
+            showLogs: Boolean(profile.showLogs),
+            turnBased,
+            turnOrder: normalizedOrder,
+            apiFormat: profile.apiFormat || 'auto',
+            lastProfile: name,
+        };
+        if (profile.provider !== undefined)
+            patch.provider = profile.provider;
+        if (profile.temperature !== undefined)
+            patch.temperature = profile.temperature;
+        if (profile.topP !== undefined)
+            patch.topP = profile.topP;
+        if (profile.maxTokens !== undefined)
+            patch.maxTokens = profile.maxTokens;
+        if (profile.softMaxTokens !== undefined)
+            patch.softMaxTokens = profile.softMaxTokens;
+        if (profile.thinking !== undefined)
+            patch.thinking = profile.thinking;
+        if (profile.thinkingEffort !== undefined)
+            patch.thinkingEffort = profile.thinkingEffort;
+        if (profile.suppressLocalThinking !== undefined)
+            patch.suppressLocalThinking = profile.suppressLocalThinking;
+        this.applyPatch(patch);
         await this.save(true);
         VW?.llm?.configure(this.toLLMConfig());
         if (VW?.llm) {
@@ -784,81 +717,57 @@ class ConfigManagerImpl {
         (async () => {
             const modelSelect = document.getElementById('agent-model-select');
             if (modelSelect) {
-                await VW?.ui?.populateModelSelect(profile.apiBase);
+                await VW?.ui?.populateModelSelect(this.apiBase);
             }
         })();
         const setVal = (id, val) => { const el = document.getElementById(id); if (el)
             el.value = String(val ?? ''); };
-        setVal('agent-api-key', profile.apiKey);
-        setVal('api-key-input', profile.apiKey);
-        setVal('agent-api-base', profile.apiBase);
-        setVal('api-base-input', profile.apiBase);
-        setVal('agent-model', profile.model);
+        setVal('agent-api-key', this.apiKey);
+        setVal('api-key-input', this.apiKey);
+        setVal('agent-api-base', this.apiBase);
+        setVal('api-base-input', this.apiBase);
+        setVal('agent-model', this.model);
         setVal('agent-turn-order', this.turnOrder);
-        setVal('agent-api-format', profile.apiFormat || 'auto');
-        if (profile.temperature !== undefined) {
-            this.temperature = String(profile.temperature);
-            setVal('hub-temperature', profile.temperature);
-        }
-        if (profile.topP !== undefined) {
-            this.topP = String(profile.topP);
-            setVal('hub-top-p', profile.topP);
-        }
-        if (profile.maxTokens !== undefined) {
-            const pMax = parseInt(String(profile.maxTokens), 10);
-            this.maxTokens = Number.isFinite(pMax) ? Math.max(0, pMax) : 0;
+        setVal('agent-api-format', this.apiFormat);
+        if (profile.temperature !== undefined)
+            setVal('hub-temperature', this.temperature);
+        if (profile.topP !== undefined)
+            setVal('hub-top-p', this.topP);
+        if (profile.maxTokens !== undefined)
             setVal('hub-max-tokens', this.maxTokens);
-        }
-        if (profile.softMaxTokens !== undefined) {
-            const pSoft = parseInt(String(profile.softMaxTokens), 10);
-            this.softMaxTokens = Number.isFinite(pSoft) ? Math.max(0, pSoft) : 512;
+        if (profile.softMaxTokens !== undefined)
             setVal('hub-soft-max-tokens', this.softMaxTokens);
-        }
         if (profile.thinking !== undefined) {
-            this.thinking = !!profile.thinking;
             const el = document.getElementById('hub-thinking');
             if (el)
-                el.checked = !!profile.thinking;
+                el.checked = this.thinking;
         }
-        if (profile.thinkingEffort !== undefined) {
-            this.thinkingEffort = String(profile.thinkingEffort);
-            setVal('hub-thinking-effort', profile.thinkingEffort);
-        }
+        if (profile.thinkingEffort !== undefined)
+            setVal('hub-thinking-effort', this.thinkingEffort);
         if (profile.suppressLocalThinking !== undefined) {
-            this.suppressLocalThinking = !!profile.suppressLocalThinking;
             const el = document.getElementById('hub-suppress-thinking');
             if (el)
-                el.checked = !!profile.suppressLocalThinking;
+                el.checked = this.suppressLocalThinking;
         }
-        document.getElementById('agent-turn-based') && (document.getElementById('agent-turn-based').checked = !!profile.turnBased);
-        document.getElementById('agent-show-logs') && (document.getElementById('agent-show-logs').checked = !!profile.showLogs);
-        document.getElementById('agent-streaming') && (document.getElementById('agent-streaming').checked = !!profile.streaming);
+        document.getElementById('agent-turn-based') && (document.getElementById('agent-turn-based').checked = this.turnBased);
+        document.getElementById('agent-show-logs') && (document.getElementById('agent-show-logs').checked = this.showLogs);
+        document.getElementById('agent-streaming') && (document.getElementById('agent-streaming').checked = this.streaming);
         const turnSettings = document.getElementById('turn-settings');
         if (turnSettings)
-            turnSettings.style.display = profile.turnBased ? 'block' : 'none';
+            turnSettings.style.display = this.turnBased ? 'block' : 'none';
         events.log(`Switched to profile: ${name}`, 'system-msg');
     }
     getCurrentSettingsObject() {
+        const rawMax = document.getElementById('hub-max-tokens')?.value;
+        const rawSoft = document.getElementById('hub-soft-max-tokens')?.value;
         return {
             apiKey: document.getElementById('api-key-input')?.value.trim() || document.getElementById('agent-api-key')?.value.trim() || this.apiKey,
             apiBase: document.getElementById('api-base-input')?.value.trim() || document.getElementById('agent-api-base')?.value.trim() || this.apiBase,
             model: document.getElementById('agent-model')?.value.trim() || this.model,
             temperature: document.getElementById('hub-temperature')?.value || this.temperature,
             topP: document.getElementById('hub-top-p')?.value || this.topP,
-            maxTokens: (() => {
-                const raw = document.getElementById('hub-max-tokens')?.value;
-                if (raw === undefined)
-                    return this.maxTokens;
-                const p = parseInt(raw, 10);
-                return (raw.trim() === '' || !Number.isFinite(p)) ? 0 : Math.max(0, p);
-            })(),
-            softMaxTokens: (() => {
-                const raw = document.getElementById('hub-soft-max-tokens')?.value;
-                if (raw === undefined)
-                    return this.softMaxTokens;
-                const p = parseInt(raw, 10);
-                return (raw.trim() === '' || !Number.isFinite(p)) ? 512 : Math.max(0, p);
-            })(),
+            maxTokens: rawMax !== undefined ? this.coerce('maxTokens', rawMax) : this.maxTokens,
+            softMaxTokens: rawSoft !== undefined ? this.coerce('softMaxTokens', rawSoft) : this.softMaxTokens,
             thinking: document.getElementById('hub-thinking')?.checked ?? this.thinking,
             thinkingEffort: document.getElementById('hub-thinking-effort')?.value || this.thinkingEffort,
             suppressLocalThinking: document.getElementById('hub-suppress-thinking')?.checked ?? this.suppressLocalThinking,

@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 import engine.actions as act_reg
-from engine.action_tiers import VERB_TIERS
+from engine.action_tiers import ACTION_TIERS
 from engine.pleasure_actions import INTIMACY_VERBS
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -58,7 +58,7 @@ def test_bracket_order_matches_expected_sequence():
 def test_action_tiers_coverage():
     """Every action classified in engine/action_tiers.py must be registered in engine/actions.py."""
     registered_names = set(act_reg.all_actions(include_aliases=True, mature=True))
-    missing = set(VERB_TIERS.keys()) - registered_names
+    missing = set(ACTION_TIERS.keys()) - registered_names
     assert not missing, f"Actions in action_tiers missing from actions registry: {missing}"
 
 
