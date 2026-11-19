@@ -200,7 +200,9 @@ interface CharacterStateState {
      */
     function buildRelationshipContext(player: CharacterStatePlayer, charName: string) {
         if (!player?.relationships) return '';
-        const others = worldState?.data?.players_in_area?.filter((other: CharacterStatePerson) => other.name !== charName) || [];
+        const others: CharacterStatePerson[] = typeof (PromptBuilder as any).playersInAreaFor === 'function'
+            ? (PromptBuilder as any).playersInAreaFor(worldState?.data, charName, player?.current_area)
+            : (worldState?.data?.players_in_area?.filter((other: CharacterStatePerson) => other.name !== charName) || []);
         if (others.length === 0) return '';
         return '\n' + others.map((other: CharacterStatePerson) => {
             const relationshipObj = player.relationships![other.name];
@@ -340,8 +342,10 @@ interface CharacterStateState {
     function _vitalsScene(state: CharacterStateState | null | undefined, charName: string | undefined, player: CharacterStatePlayer): CharacterStateScene | null {
         if (!state) return null;
         const areaName = player?.current_area || state.current_area || '';
-        const others = (state.players_in_area || [])
-            .filter(p => p && p.name && String(p.name) !== String(charName));
+        const others: CharacterStatePerson[] = typeof (PromptBuilder as any).playersInAreaFor === 'function'
+            ? (PromptBuilder as any).playersInAreaFor(state, charName || '', areaName)
+            : (state.players_in_area || [])
+                .filter(p => p && p.name && String(p.name) !== String(charName));
         const present = new Set(others.map(o => String(o.name).toLowerCase()));
         const hearing = player?.recent_hearing || [];
         // Someone present has spoken to/near the character recently.

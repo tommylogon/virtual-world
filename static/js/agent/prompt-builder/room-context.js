@@ -858,7 +858,9 @@ window.PromptBuilder = window.PromptBuilder || {};
         const invStr = [wornStr, carryStr, knownStr].filter(Boolean).join('\n');
         const appearanceDesc = player?.description || '';
         const equipStr = appearanceDesc ? `Your appearance: ${PromptBuilder.secondPersonDesc(appearanceDesc)}` : '';
-        const others = state.players_in_area || [];
+        const others = typeof PromptBuilder.playersInAreaFor === 'function'
+            ? PromptBuilder.playersInAreaFor(state, charName, currentArea?.name || player?.current_area)
+            : (state.players_in_area || []).filter((p) => p && p.name && p.name !== charName);
         const allPlayers = state.players || {};
         let peopleStr = '';
         if (others.length > 0) {
@@ -1147,7 +1149,10 @@ ${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessed
         if (narrationMode && narrationMode !== 'none') {
             try {
                 const items = (currentArea?.name ? worldState.getItemsInArea(currentArea.name) : []);
-                const contextObject = { areaName: currentArea?.name || '', description: currentArea?.description || '', items: items.filter((item) => item.properties?.current_state !== 'hidden').map(item => item.name) || [], characters: state.players_in_area?.map(person => person.name).filter(name => name !== charName) || [], exits: Object.keys(viewerExitMap || {}).join(', ') };
+                const areaOthers = typeof PromptBuilder.playersInAreaFor === 'function'
+                    ? PromptBuilder.playersInAreaFor(state, charName, currentArea?.name || player?.current_area)
+                    : (state.players_in_area || []);
+                const contextObject = { areaName: currentArea?.name || '', description: currentArea?.description || '', items: items.filter((item) => item.properties?.current_state !== 'hidden').map(item => item.name) || [], characters: areaOthers.map((person) => person.name).filter((name) => name && name !== charName) || [], exits: Object.keys(viewerExitMap || {}).join(', ') };
                 const narratedDescription = await narrationUi().getNarratedRoomContext(contextObject, charName);
                 if (narratedDescription) {
                     contextString = contextString.replace(/^Description: .*/m, `Description: ${narratedDescription}`);

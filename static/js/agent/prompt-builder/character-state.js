@@ -104,7 +104,9 @@ window.PromptBuilder = window.PromptBuilder || {};
     function buildRelationshipContext(player, charName) {
         if (!player?.relationships)
             return '';
-        const others = worldState?.data?.players_in_area?.filter((other) => other.name !== charName) || [];
+        const others = typeof PromptBuilder.playersInAreaFor === 'function'
+            ? PromptBuilder.playersInAreaFor(worldState?.data, charName, player?.current_area)
+            : (worldState?.data?.players_in_area?.filter((other) => other.name !== charName) || []);
         if (others.length === 0)
             return '';
         return '\n' + others.map((other) => {
@@ -262,8 +264,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (!state)
             return null;
         const areaName = player?.current_area || state.current_area || '';
-        const others = (state.players_in_area || [])
-            .filter(p => p && p.name && String(p.name) !== String(charName));
+        const others = typeof PromptBuilder.playersInAreaFor === 'function'
+            ? PromptBuilder.playersInAreaFor(state, charName || '', areaName)
+            : (state.players_in_area || [])
+                .filter(p => p && p.name && String(p.name) !== String(charName));
         const present = new Set(others.map(o => String(o.name).toLowerCase()));
         const hearing = player?.recent_hearing || [];
         // Someone present has spoken to/near the character recently.

@@ -790,7 +790,9 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         const invStr = [wornStr, carryStr, knownStr].filter(Boolean).join('\n');
         const appearanceDesc = player?.description || '';
         const equipStr = appearanceDesc ? `Your appearance: ${PromptBuilder.secondPersonDesc(appearanceDesc)}` : '';
-        const others = state.players_in_area || [];
+        const others: Array<{ name: string; state?: string; activity?: any; description?: string; aliases?: string[]; wearing?: string[]; holding?: string[]; position?: any; near_node?: string; near_label?: string }> = typeof (PromptBuilder as any).playersInAreaFor === 'function'
+            ? (PromptBuilder as any).playersInAreaFor(state, charName, currentArea?.name || player?.current_area)
+            : (state.players_in_area || []).filter((p: any) => p && p.name && p.name !== charName);
         const allPlayers = state.players || {};
         let peopleStr = '';
         if (others.length > 0) {
@@ -1092,7 +1094,10 @@ return {
         if (narrationMode && narrationMode !== 'none') {
             try {
                 const items = (currentArea?.name ? worldState.getItemsInArea(currentArea.name) : []) as ItemNode[];
-                const contextObject = { areaName: currentArea?.name || '', description: currentArea?.description || '', items: items.filter((item: ItemNode) => item.properties?.current_state !== 'hidden').map(item => item.name as string) || [], characters: state.players_in_area?.map(person => person.name).filter(name => name !== charName) || [], exits: Object.keys(viewerExitMap || {}).join(', ') };
+                const areaOthers: any[] = typeof (PromptBuilder as any).playersInAreaFor === 'function'
+                    ? (PromptBuilder as any).playersInAreaFor(state, charName, currentArea?.name || player?.current_area)
+                    : (state.players_in_area || []);
+                const contextObject = { areaName: currentArea?.name || '', description: currentArea?.description || '', items: items.filter((item: ItemNode) => item.properties?.current_state !== 'hidden').map(item => item.name as string) || [], characters: areaOthers.map((person: any) => person.name).filter((name: any) => name && name !== charName) || [], exits: Object.keys(viewerExitMap || {}).join(', ') };
                 const narratedDescription = await narrationUi()!.getNarratedRoomContext(contextObject, charName);
                 if (narratedDescription) { contextString = contextString.replace(/^Description: .*/m, `Description: ${narratedDescription}`); }
             } catch(error) {}

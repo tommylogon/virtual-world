@@ -345,6 +345,52 @@ window.PromptBuilder = window.PromptBuilder || {};
             .replace(nameRe, 'you');
     }
 
+    /**
+     * Resolve the other characters actually standing in `areaName` for `charName`.
+     *
+     * `state.players_in_area` is the server's single active-player view, so when
+     * building a prompt for any other character (or a simulated area in Benchmark
+     * Lab), reading `state.players_in_area` directly leaks the active player's
+     * roommates into a completely different room. Use `state.players_in_area`
+     * only when `charName` is the active player AND `areaName` matches
+     * `state.current_area`; otherwise derive the exact roster from `state.players`.
+     */
+    function playersInAreaFor(state: any, charName: string, areaName?: string | null): any[] {
+        if (!state) return [];
+        const player = charName ? state.players?.[charName] : null;
+        const targetArea = String(areaName || player?.current_area || state.current_area || '').trim();
+        const activePlayer = String(state.active_player || '').trim();
+        const stateArea = String(state.current_area || '').trim();
+        if (
+            Array.isArray(state.players_in_area)
+            && targetArea
+            && targetArea === stateArea
+            && (!charName || !activePlayer || charName === activePlayer)
+        ) {
+            return state.players_in_area.filter((p: any) => p && p.name && p.name !== charName);
+        }
+        const allPlayers = state.players || {};
+        const out: any[] = [];
+        for (const [pname, pdata] of Object.entries(allPlayers) as Array<[string, any]>) {
+            if (!pdata || pname === charName) continue;
+            if (String(pdata.current_area || '').trim() !== targetArea) continue;
+            if (pdata.hidden || pdata.stealthed || pdata.current_state === 'hidden') continue;
+            out.push({
+                name: pname,
+                state: pdata.state || 'awake',
+                activity: pdata.activity || null,
+                description: pdata.description || '',
+                aliases: pdata.aliases || [],
+                wearing: pdata.wearing || [],
+                holding: pdata.holding || [],
+                position: pdata.position || null,
+                near_node: pdata.near_node || null,
+                near_label: pdata.near_label || null,
+            });
+        }
+        return out;
+    }
+
     Object.assign(window.PromptBuilder, {
         lightToLevel,
         stripLeadingArticle,
@@ -358,6 +404,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         hasPlan,
         secondPersonDesc,
         describeActivity,
-        frameSelfSpeech
+        frameSelfSpeech,
+        playersInAreaFor
     });
 })();

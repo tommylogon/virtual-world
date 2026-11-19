@@ -595,7 +595,9 @@ window.PromptBuilder = window.PromptBuilder || {};
             else if (req === 'dive')
                 keep('dive', `dive  -  dive through the ${handle}`);
         }
-        const others = (state.players_in_area || []).filter((p) => p && p.name && p.name !== charName);
+        const others = typeof PromptBuilder.playersInAreaFor === 'function'
+            ? PromptBuilder.playersInAreaFor(state, charName, currentArea?.name || player?.current_area)
+            : (state.players_in_area || []).filter((p) => p && p.name && p.name !== charName);
         if (others.length) {
             const names = others.map((p) => 
             // The filter above guarantees p.name; `|| ''` is that same
