@@ -80,6 +80,7 @@ window.BenchmarkApp = (() => {
         els.preferredActionList = document.getElementById('bench-preferred-action-list');
         els.temperatureInput = document.getElementById('bench-temperature');
         els.maxTokensInput = document.getElementById('bench-max-tokens');
+        els.softMaxTokensInput = document.getElementById('bench-soft-max-tokens');
         els.contextLengthInput = document.getElementById('bench-context-length');
         els.reasoningEffortSelect = document.getElementById('bench-reasoning-effort');
         els.runBtn = document.getElementById('bench-run-btn');
@@ -336,6 +337,9 @@ window.BenchmarkApp = (() => {
                 }
             });
         }
+        if (els.softMaxTokensInput) {
+            els.softMaxTokensInput.addEventListener('change', () => assembleCharacterPrompt());
+        }
         if (els.openDiffBtn) els.openDiffBtn.addEventListener('click', openDiffModal);
         if (els.exportJsonBtn) els.exportJsonBtn.addEventListener('click', exportResultsAsJson);
         if (els.diffClose) els.diffClose.addEventListener('click', () => { els.diffOverlay.style.display = 'none'; });
@@ -457,8 +461,10 @@ window.BenchmarkApp = (() => {
                 }
             };
 
+            const softMax = parseInt(els.softMaxTokensInput?.value, 10);
             const captured = await window.PromptBuilder.captureTurnPrompt(state.selectedChar, {
-                state: simulatedState
+                state: simulatedState,
+                softMaxTokens: (Number.isFinite(softMax) && softMax > 0) ? softMax : 512,
             });
             const mode = els.modeSelect?.value || 'direct';
             const interpContext = buildRoomInterpreterContext(simulatedState, state.selectedChar, evalArea, player);
@@ -1897,12 +1903,15 @@ window.BenchmarkApp = (() => {
                 });
             } catch (e) {}
         };
+        const rawMaxTokens = els.maxTokensInput?.value?.trim() || '';
+        const parsedMaxTokens = rawMaxTokens ? parseInt(rawMaxTokens, 10) : 0;
+        const hardMaxTokens = (Number.isFinite(parsedMaxTokens) && parsedMaxTokens > 0) ? parsedMaxTokens : null;
         const benchPayload = {
             api_base: els.apiBaseInput.value.trim(),
             api_key: els.apiKeyInput.value.trim(),
             model: model,
             temperature: parseFloat(els.temperatureInput.value) || 0.7,
-            max_tokens: parseInt(els.maxTokensInput.value, 10) || 1512,
+            ...(hardMaxTokens !== null ? { max_tokens: hardMaxTokens } : {}),
             reasoning_effort: els.reasoningEffortSelect?.value || 'default',
             messages: [
                 { role: 'system', content: state.currentPrompt.system },
@@ -2063,7 +2072,7 @@ window.BenchmarkApp = (() => {
                             api_key: interpKey,
                             model: interpModel,
                             temperature: 0.1,
-                            max_tokens: Math.max(1536, parseInt(els.maxTokensInput?.value, 10) || 1536),
+                            ...(hardMaxTokens !== null ? { max_tokens: hardMaxTokens } : {}),
                             reasoning_effort: 'none',
                             messages: [
                                 { role: 'system', content: ext.systemPrompt },
@@ -2437,7 +2446,11 @@ window.BenchmarkApp = (() => {
                 provider: els.providerSelect?.value || 'custom',
                 api_base: els.apiBaseInput?.value?.trim() || '',
                 temperature: parseFloat(els.temperatureInput?.value) || 0.7,
-                max_tokens: parseInt(els.maxTokensInput?.value, 10) || 1512,
+                max_tokens: (() => {
+                    const v = parseInt(els.maxTokensInput?.value, 10);
+                    return (Number.isFinite(v) && v > 0) ? v : null;
+                })(),
+                soft_max_tokens: parseInt(els.softMaxTokensInput?.value, 10) || 512,
                 reasoning_effort: els.reasoningEffortSelect?.value || 'default',
                 context_length: parseInt(els.contextLengthInput?.value, 10) || null
             },

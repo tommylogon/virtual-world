@@ -278,16 +278,22 @@ class LLMClient {
         // silently becomes no plan), so a length stop re-requests with a larger
         // budget instead of returning the fragment.
         // Centralized token budgeting:
-        const configuredMax = window?.config?.maxTokens
-            ? parseInt(String(window.config?.maxTokens), 10)
-            : 2048;
-        const requestedCap = options.max_tokens || configuredMax || 2048;
-        // Reasoning tokens count towards completion tokens in modern reasoning models.
-        // A tiny cap like 560 or 400 will starve the model before it emits any visible tokens.
-        // Guarantee a reasoning headroom floor of at least 4096 tokens when thinking is active.
+        // 0 / unset means "Auto (model max)" - omit max_tokens so the provider
+        // grants the model's real maximum completion tokens instead of starving
+        // reasoning models behind a small hard cap.
+        const rawConfigMax = window?.config?.maxTokens;
+        const parsedConfigMax = (rawConfigMax !== undefined && rawConfigMax !== null && String(rawConfigMax).trim() !== '')
+            ? parseInt(String(rawConfigMax), 10)
+            : 0;
+        const configuredMax = (Number.isFinite(parsedConfigMax) && parsedConfigMax > 0) ? parsedConfigMax : 0;
+        const explicitOptMax = (typeof options.max_tokens === 'number' && options.max_tokens > 0) ? options.max_tokens : 0;
+        const requestedCap = explicitOptMax || configuredMax || 0;
+        // When a hard cap IS configured and thinking is active, ensure a headroom floor.
         const isThinkingActive = (!this.thinking ? false : (this.thinkingEffort !== 'none')) || (!!options.reasoningEffort && options.reasoningEffort !== 'none');
         const minThinkingHeadroom = 4096;
-        const baseMaxTokens = (isThinkingActive && !options.max_tokens) ? Math.max(requestedCap, minThinkingHeadroom) : requestedCap;
+        const baseMaxTokens = requestedCap > 0
+            ? ((isThinkingActive && !explicitOptMax) ? Math.max(requestedCap, minThinkingHeadroom) : requestedCap)
+            : undefined;
         let effectiveMaxTokens = baseMaxTokens;
         let truncationRetries = 0;
         // Transport retries and truncation retries are SEPARATE budgets. Sharing

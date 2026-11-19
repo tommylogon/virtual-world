@@ -491,7 +491,15 @@ def register_benchmark_routes(app):
         model = data.get('model')
         messages = data.get('messages') or []
         temperature = data.get('temperature', 0.7)
-        max_tokens = data.get('max_tokens', 1512)
+        raw_max_tokens = data.get('max_tokens', None)
+        max_tokens = None
+        if raw_max_tokens not in (None, '', 0, '0'):
+            try:
+                parsed_max = int(raw_max_tokens)
+                if parsed_max > 0:
+                    max_tokens = parsed_max
+            except (TypeError, ValueError):
+                max_tokens = None
         stream = data.get('stream', True)
 
         if not model:
@@ -505,9 +513,10 @@ def register_benchmark_routes(app):
             'model': model,
             'messages': messages,
             'temperature': temperature,
-            'max_tokens': max_tokens,
             'stream': stream,
         }
+        if max_tokens is not None:
+            req_payload['max_tokens'] = max_tokens
         reasoning_effort = data.get('reasoning_effort')
         is_openrouter = 'openrouter.ai' in api_base
         is_local = 'localhost' in api_base or '127.0.0.1' in api_base

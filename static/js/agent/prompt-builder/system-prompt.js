@@ -116,7 +116,9 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
     }
     /** Brevity instruction; `tail` names the fields this phase is allowed to emit. */
     function _brevityRule(softMaxTokens, tail) {
-        const limit = softMaxTokens || Number(config.maxTokens) || 512;
+        const limit = (typeof softMaxTokens === 'number' && softMaxTokens > 0)
+            ? softMaxTokens
+            : ((typeof config !== 'undefined' && Number(config.softMaxTokens) > 0) ? Number(config.softMaxTokens) : 512);
         return `\n\n=== RESPONSE LENGTH ===\nKeep your response under ${limit} tokens. Be concise - ${tail}`;
     }
     /**

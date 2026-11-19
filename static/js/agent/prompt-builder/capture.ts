@@ -40,6 +40,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         includeFeelings?: boolean;
         /** Ask the model for a memory object (the live think-decide prompt does not). */
         includeMemory?: boolean;
+        /** Override soft token budget for the system prompt RESPONSE LENGTH hint. */
+        softMaxTokens?: number;
     }
 
     interface CaptureResult {
@@ -80,7 +82,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         const relationshipNL = PromptBuilder.buildRelationshipContext(player, name);
         const memoryNL = await PromptBuilder.buildMemoryContext(name, { report: true });
 
-        const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(name, player, config.softMaxTokens);
+        const softLimit = (typeof options.softMaxTokens === 'number' && options.softMaxTokens > 0)
+            ? options.softMaxTokens
+            : (config.softMaxTokens || 512);
+        const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(name, player, softLimit);
         const userPrompt = PromptBuilder.buildReactionPrompt(
             player,
             roomParts,

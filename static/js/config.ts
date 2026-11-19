@@ -28,8 +28,8 @@ const CONFIG_SCHEMA: Record<string, ConfigFieldDef> = {
     model: { storageKey: 'model', type: 'string', default: 'glm-4-9b-0414' },
     temperature: { storageKey: 'temperature', type: 'string', default: '0.7' },
     topP: { storageKey: 'top_p', type: 'string', default: '0.95' },
-    maxTokens: { storageKey: 'max_tokens', type: 'number', default: 2048 },
-    softMaxTokens: { storageKey: 'soft_max_tokens', type: 'number', default: 0 },
+    maxTokens: { storageKey: 'max_tokens', type: 'number', default: 0 },
+    softMaxTokens: { storageKey: 'soft_max_tokens', type: 'number', default: 512 },
     showLogs: { storageKey: 'show_logs', type: 'boolean', default: false },
     streaming: { storageKey: 'streaming', type: 'boolean', default: false },
     turnBased: { storageKey: 'turn_based', type: 'boolean', default: false },
@@ -226,8 +226,14 @@ class ConfigManagerImpl {
         this.provider = await storage.getConfig('provider') || 'openai';
         this.temperature = await storage.getConfig('temperature') || '0.7';
         this.topP = await storage.getConfig('top_p') || '0.95';
-        this.maxTokens = parseInt(await storage.getConfig('max_tokens')) || 2048;
-        this.softMaxTokens = parseInt(await storage.getConfig('soft_max_tokens')) || 0;
+        const rawMaxTokens = await storage.getConfig('max_tokens');
+        this.maxTokens = (rawMaxTokens !== null && rawMaxTokens !== undefined && rawMaxTokens !== '' && Number.isFinite(parseInt(rawMaxTokens, 10)))
+            ? Math.max(0, parseInt(rawMaxTokens, 10))
+            : 0;
+        const rawSoftMax = await storage.getConfig('soft_max_tokens');
+        this.softMaxTokens = (rawSoftMax !== null && rawSoftMax !== undefined && rawSoftMax !== '' && Number.isFinite(parseInt(rawSoftMax, 10)))
+            ? Math.max(0, parseInt(rawSoftMax, 10))
+            : 512;
         this.showLogs = (await storage.getConfig('show_logs')) === 'true';
         this.streaming = (await storage.getConfig('streaming')) === 'true';
         this.turnBased = (await storage.getConfig('turn_based')) === 'true';
@@ -646,8 +652,16 @@ class ConfigManagerImpl {
         this.apiBase = ((document.getElementById('api-base-input') as HTMLInputElement)?.value.trim() || (document.getElementById('agent-api-base') as HTMLInputElement)?.value.trim() || 'http://localhost:1234/v1');
         this.model = (document.getElementById('agent-model') as HTMLInputElement)?.value.trim() || 'glm-4-9b-0414';
         this.temperature = (document.getElementById('hub-temperature') as HTMLInputElement)?.value || this.temperature;
-        this.maxTokens = parseInt((document.getElementById('hub-max-tokens') as HTMLInputElement)?.value) || this.maxTokens;
-        this.softMaxTokens = parseInt((document.getElementById('hub-soft-max-tokens') as HTMLInputElement)?.value) || this.softMaxTokens;
+        const rawHubMax = (document.getElementById('hub-max-tokens') as HTMLInputElement)?.value;
+        if (rawHubMax !== undefined) {
+            const pMax = parseInt(rawHubMax, 10);
+            this.maxTokens = (rawHubMax.trim() === '' || !Number.isFinite(pMax)) ? 0 : Math.max(0, pMax);
+        }
+        const rawHubSoft = (document.getElementById('hub-soft-max-tokens') as HTMLInputElement)?.value;
+        if (rawHubSoft !== undefined) {
+            const pSoft = parseInt(rawHubSoft, 10);
+            this.softMaxTokens = (rawHubSoft.trim() === '' || !Number.isFinite(pSoft)) ? 512 : Math.max(0, pSoft);
+        }
         this.turnBased = (document.getElementById('agent-turn-based') as HTMLInputElement)?.checked || false;
         const turnOrderEl = (document.getElementById('agent-turn-order') as HTMLInputElement);
         if (turnOrderEl) {
@@ -935,12 +949,14 @@ class ConfigManagerImpl {
             setVal('hub-top-p', profile.topP);
         }
         if (profile.maxTokens !== undefined) {
-            this.maxTokens = parseInt(profile.maxTokens) || this.maxTokens;
-            setVal('hub-max-tokens', profile.maxTokens);
+            const pMax = parseInt(String(profile.maxTokens), 10);
+            this.maxTokens = Number.isFinite(pMax) ? Math.max(0, pMax) : 0;
+            setVal('hub-max-tokens', this.maxTokens);
         }
         if (profile.softMaxTokens !== undefined) {
-            this.softMaxTokens = parseInt(profile.softMaxTokens) || 0;
-            setVal('hub-soft-max-tokens', profile.softMaxTokens);
+            const pSoft = parseInt(String(profile.softMaxTokens), 10);
+            this.softMaxTokens = Number.isFinite(pSoft) ? Math.max(0, pSoft) : 512;
+            setVal('hub-soft-max-tokens', this.softMaxTokens);
         }
         if (profile.thinking !== undefined) {
             this.thinking = !!profile.thinking;
@@ -974,8 +990,18 @@ class ConfigManagerImpl {
             model: (document.getElementById('agent-model') as HTMLInputElement)?.value.trim() || this.model,
             temperature: (document.getElementById('hub-temperature') as HTMLInputElement)?.value || this.temperature,
             topP: (document.getElementById('hub-top-p') as HTMLInputElement)?.value || this.topP,
-            maxTokens: parseInt((document.getElementById('hub-max-tokens') as HTMLInputElement)?.value) || this.maxTokens,
-            softMaxTokens: parseInt((document.getElementById('hub-soft-max-tokens') as HTMLInputElement)?.value) || this.softMaxTokens,
+            maxTokens: (() => {
+                const raw = (document.getElementById('hub-max-tokens') as HTMLInputElement)?.value;
+                if (raw === undefined) return this.maxTokens;
+                const p = parseInt(raw, 10);
+                return (raw.trim() === '' || !Number.isFinite(p)) ? 0 : Math.max(0, p);
+            })(),
+            softMaxTokens: (() => {
+                const raw = (document.getElementById('hub-soft-max-tokens') as HTMLInputElement)?.value;
+                if (raw === undefined) return this.softMaxTokens;
+                const p = parseInt(raw, 10);
+                return (raw.trim() === '' || !Number.isFinite(p)) ? 512 : Math.max(0, p);
+            })(),
             thinking: (document.getElementById('hub-thinking') as HTMLInputElement)?.checked ?? this.thinking,
             thinkingEffort: (document.getElementById('hub-thinking-effort') as HTMLSelectElement)?.value || this.thinkingEffort,
             suppressLocalThinking: (document.getElementById('hub-suppress-thinking') as HTMLInputElement)?.checked ?? this.suppressLocalThinking,

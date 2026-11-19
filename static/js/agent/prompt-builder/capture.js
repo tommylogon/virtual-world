@@ -57,7 +57,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         const emotionNL = PromptBuilder.buildEmotionContext(player);
         const relationshipNL = PromptBuilder.buildRelationshipContext(player, name);
         const memoryNL = await PromptBuilder.buildMemoryContext(name, { report: true });
-        const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(name, player, config.softMaxTokens);
+        const softLimit = (typeof options.softMaxTokens === 'number' && options.softMaxTokens > 0)
+            ? options.softMaxTokens
+            : (config.softMaxTokens || 512);
+        const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(name, player, softLimit);
         const userPrompt = PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, options.lastResult || '', options.includeMemory === true, options.includeFeelings !== false);
         return { charName: name, player, currentArea, roomParts, systemPrompt, userPrompt };
     }
