@@ -40,6 +40,10 @@ body {
     font-size: 13px;
     line-height: 1.5;
 }
+body:has(#main-layout) {
+    display: flex;
+    flex-direction: column;
+}
 
 /* Skip-link for keyboard users */
 .skip-link { position: absolute; top: -40px; left: 8px; background: var(--accent); color: #000; padding: 4px 12px; border-radius: 4px; z-index: 9999; font-size: 12px; text-decoration: none; }
@@ -48,14 +52,17 @@ body {
 /* ===== Top Bar ===== */
 #top-bar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 4px 16px; height: 40px;
+    padding: 4px 14px; min-height: 40px; height: auto;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    position: relative;
+    z-index: 20;
 }
 .logo { font-weight: 700; font-size: 14px; color: var(--accent); letter-spacing: 0.5px; white-space: nowrap; }
-.top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.top-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
 #sky-time { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; cursor: pointer; }
 
 /* task-885: Play Mode active topbar highlight */
@@ -155,7 +162,7 @@ body.play-mode-active #top-bar {
 
 /* ===== Main Layout (3 columns) ===== */
 #main-layout {
-    display: flex; height: calc(100vh - 40px); overflow: hidden;
+    display: flex; flex: 1 1 auto; min-height: 0; overflow: hidden;
 }
 
 /* ===== Left Panel ===== */
@@ -2817,14 +2824,18 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 #library-modal ::-webkit-scrollbar-track { background: transparent; }
 
 @media (max-width: 1200px) {
-    #left-panel { width: 280px; min-width: 240px; }
-    #right-panel { width: 320px; min-width: 260px; }
+    #left-panel { width: clamp(195px, 24vw, 270px); min-width: 185px; }
+    #right-panel { width: clamp(220px, 26vw, 310px); min-width: 200px; }
+    #top-bar { padding: 4px 10px; gap: 4px 6px; }
+    #top-bar .btn { padding: 3px 8px; font-size: 11px; }
+    #graph-toolbar { padding: 4px 8px; gap: 4px; }
+    #graph-toolbar .btn { padding: 2px 7px; font-size: 11px; }
 }
 /* Graph toolbar, narrow windows (bug_18 / task-530 / task-532). The bar wraps
- * rather than overflowing, and the controls you need most  -  what is loaded and
- * the search  -  get a full row of their own before anything crowds them. Below
- * 900px the secondary controls move into More ▾ (see toolbar.js), so the
- * contextual scope bar is dropped rather than given a row of its own. */
+ * rather than overflowing, and the controls you need most - what is loaded and
+ * the search - compact cleanly before forcing an extra row. Below 640px the
+ * three-column layout stacks vertically (so docking DevTools on a desktop screen
+ * at 700-899px keeps the sidebar and graph canvas side by side). */
 @media (max-width: 1240px) {
     /* No room for a second row here, so the bar goes and the scope chip keeps
      * reporting what is loaded on its own. */
@@ -2832,12 +2843,12 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
     .scope-stats { display: inline; }
 }
 @media (max-width: 1000px) {
-    .toolbar-zone-where { flex: 1 1 100%; order: -1; }
-    .scope-chip { max-width: 240px; }
+    .scope-chip { max-width: 180px; }
     .toolbar-divider { display: none; }
+    #graph-search-input { min-width: 110px; max-width: 180px; }
 }
-@media (max-width: 900px) {
-    #main-layout { flex-direction: column; height: auto; }
+@media (max-width: 640px) {
+    #main-layout { flex-direction: column; height: auto; overflow-y: auto; }
     #left-panel, #center-viewport, #right-panel { width: 100%; min-width: 0; height: auto; }
     #right-panel { border-left: none; border-top: 1px solid var(--border); max-height: 300px; }
     .two-col { flex-direction: column; }
