@@ -616,11 +616,106 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return '\n=== YOUR PLAN ===\n(No active plan - use free action `plan <intent>` to form a grounded multi-step plan, or act directly.)';
     }
+    function naturalTimeBand(hour) {
+        const h = ((Math.floor(hour) % 24) + 24) % 24;
+        if (h <= 3)
+            return 'deep night';
+        if (h === 4)
+            return 'the small hours before dawn';
+        if (h <= 6)
+            return 'dawn';
+        if (h <= 9)
+            return 'early morning';
+        if (h <= 11)
+            return 'late morning';
+        if (h === 12)
+            return 'midday';
+        if (h <= 15)
+            return 'early afternoon';
+        if (h <= 17)
+            return 'late afternoon';
+        if (h === 18)
+            return 'dusk';
+        if (h <= 21)
+            return 'evening';
+        return 'late night';
+    }
+    function getTimePerceptionMode(player) {
+        const NON_CLOCK_TAGS = new Set([
+            'animal', 'beast', 'cat', 'dog', 'wolf', 'bird', 'monster', 'feral', 'wild', 'goblin', 'primitive',
+        ]);
+        const traits = (player && typeof player.traits === 'object' && player.traits) ? player.traits : {};
+        const pTags = Array.isArray(player?.tags)
+            ? player.tags.map((t) => String(t).toLowerCase().trim())
+            : [];
+        const species = String(player?.species || '').toLowerCase().trim();
+        const nonClock = traits.no_clock_time === true
+            || traits.animal === true
+            || String(traits.time_sense || '').toLowerCase() === 'natural'
+            || pTags.some(t => NON_CLOCK_TAGS.has(t))
+            || (species !== '' && NON_CLOCK_TAGS.has(species));
+        const curArea = String(player?.current_area || '').trim();
+        let isOutdoor = false;
+        let hasWorkingTimepiece = false;
+        try {
+            if (typeof worldState !== 'undefined' && worldState) {
+                const areaNode = curArea
+                    ? (typeof worldState.getNodeByIdentifier === 'function'
+                        ? worldState.getNodeByIdentifier(curArea)
+                        : worldState.getNode?.(curArea))
+                    : null;
+                const areaTags = Array.isArray(areaNode?.properties?.tags)
+                    ? areaNode.properties.tags.map((t) => String(t).toLowerCase().trim())
+                    : [];
+                isOutdoor = areaTags.includes('outdoor')
+                    || areaTags.includes('exterior')
+                    || areaNode?.properties?.is_exterior === true;
+                if (!nonClock) {
+                    const TIMEPIECE_TAGS = new Set([
+                        'timepiece', 'clock', 'watch', 'wristwatch', 'pocket_watch',
+                        'phone', 'smartphone', 'cellphone', 'sundial', 'horologium',
+                    ]);
+                    const BROKEN_STATES = new Set(['broken', 'dead', 'off', 'unpowered', 'shattered', 'destroyed', 'stopped']);
+                    const TIMEPIECE_RE = /\b(wall clock|grandfather clock|alarm clock|clock|pocket watch|wristwatch|watch|timepiece|smartphone|cellphone|phone|sundial|horologium)\b/i;
+                    const isWorking = (it) => {
+                        if (!it)
+                            return false;
+                        const props = it.properties || {};
+                        if (props.is_timepiece === false || props.powered === false || props.working === false)
+                            return false;
+                        const st = String(props.current_state || '').toLowerCase();
+                        if (st === 'hidden' || BROKEN_STATES.has(st))
+                            return false;
+                        if (props.is_timepiece === true)
+                            return true;
+                        const tags = Array.isArray(props.tags) ? props.tags.map((t) => String(t).toLowerCase()) : [];
+                        if (tags.some((t) => TIMEPIECE_TAGS.has(t)))
+                            return true;
+                        return TIMEPIECE_RE.test(String(it.name || ''));
+                    };
+                    const roomItems = (curArea && typeof worldState.getItemsInArea === 'function')
+                        ? (worldState.getItemsInArea(curArea) || [])
+                        : [];
+                    const carried = (player?.name && typeof PromptBuilder?.carriedItemNodes === 'function')
+                        ? (PromptBuilder.carriedItemNodes(player.name) || [])
+                        : [];
+                    hasWorkingTimepiece = [...carried, ...roomItems].some(isWorking);
+                }
+            }
+        }
+        catch { /* best-effort */ }
+        if (!nonClock && hasWorkingTimepiece)
+            return 'exact';
+        if (isOutdoor)
+            return 'sky';
+        return 'vague';
+    }
     /**
      * Subjective near-horizon routine framing: humans don't carry a 7-slot
      * semicolon cron table of their whole day in working memory. Surface ONLY
      * what is overdue right now or coming up within the next 60 minutes, written
-     * as lived awareness relative to the current clock and room.
+     * as lived awareness gated by the character's actual time perception
+     * (clock/phone vs. open sky vs. windowless indoors / non-clock lens).
      */
     function describeScheduleHorizon(player) {
         if (!player)
@@ -628,14 +723,16 @@ window.PromptBuilder = window.PromptBuilder || {};
         const wsData = (typeof worldState !== 'undefined' && worldState?.data) ? worldState.data : {};
         const rawTime = String(wsData.game_time || '').trim();
         let nowMin = null;
+        let nowHour = null;
         let hhmm = '';
         const timeMatch = rawTime.match(/(\d{1,2}):(\d{2})/);
         if (timeMatch) {
             const h = parseInt(timeMatch[1], 10);
             const m = parseInt(timeMatch[2], 10);
             if (Number.isFinite(h) && Number.isFinite(m)) {
-                nowMin = (h * 60 + m) % 1440;
-                hhmm = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                nowHour = ((h % 24) + 24) % 24;
+                nowMin = (nowHour * 60 + m) % 1440;
+                hhmm = `${String(nowHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             }
         }
         const curArea = String(player.current_area || '').trim();
@@ -670,29 +767,40 @@ window.PromptBuilder = window.PromptBuilder || {};
         else if (mStep) {
             activeStep = mStep;
         }
-        const timePrefix = hhmm ? `It is ${hhmm}` : 'Right now';
+        const mode = getTimePerceptionMode(player);
+        const band = nowHour !== null ? naturalTimeBand(nowHour) : '';
+        const timePrefix = mode === 'exact' && hhmm
+            ? `It is ${hhmm}`
+            : mode === 'sky' && band
+                ? `By the sky it feels like ${band}`
+                : 'Right now';
         const parts = [];
         if (activeStep) {
             const act = String(activeStep.activity || 'your routine').trim();
             const targetArea = String(activeStep.area || '').trim();
             if (targetArea && curAreaLower && targetArea.toLowerCase() !== curAreaLower) {
-                parts.push(`${timePrefix} - you're supposed to be at ${targetArea} (${act}) right now, and you aren't there yet.`);
+                parts.push(`${timePrefix} - you're supposed to be at ${targetArea} (${act}) around now, and you aren't there yet.`);
             }
             else if (targetArea) {
                 parts.push(`${timePrefix} - you're here at ${targetArea} for ${act}.`);
             }
             else {
-                parts.push(`${timePrefix} - right now is time for ${act}.`);
+                parts.push(`${timePrefix} - around now is time for ${act}.`);
             }
         }
         if (nextStep && nextDelta !== null && nextDelta > 0 && nextDelta <= 60) {
             const nextAct = String(nextStep.activity || 'your next routine').trim();
             const nextWhere = nextStep.area ? ` at ${nextStep.area}` : '';
+            const soonPhrase = mode === 'exact'
+                ? `in ${nextDelta} minutes`
+                : nextDelta <= 15
+                    ? 'very soon'
+                    : 'before long';
             if (parts.length > 0) {
-                parts.push(`Coming up in ${nextDelta} minutes: ${nextAct}${nextWhere} - you should start wrapping up or heading over soon.`);
+                parts.push(`Coming up ${soonPhrase}: ${nextAct}${nextWhere} - you should start wrapping up or heading over soon.`);
             }
             else {
-                parts.push(`${timePrefix} - you have ${nextAct}${nextWhere} coming up in ${nextDelta} minutes; you should probably get ready and head over soon or you'll be late.`);
+                parts.push(`${timePrefix} - you have ${nextAct}${nextWhere} coming up ${soonPhrase}; you should probably get ready and head over soon or you'll be late.`);
             }
         }
         return parts.join(' ');

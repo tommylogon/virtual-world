@@ -502,6 +502,17 @@ class ExamineActionsMixin:
                 if domain_note:
                     desc += f"\n{domain_note}"
 
+                try:
+                    from engine.time_perception import describe_timepiece_reading
+                    area_node_for_tp = self.graph.get_node(current_area_id) if current_area_id else None
+                    tp_reading = describe_timepiece_reading(
+                        player_manager, item_node, area_node=area_node_for_tp, viewer=viewer_obj
+                    )
+                    if tp_reading:
+                        desc += f"\n{tp_reading}"
+                except Exception:
+                    pass
+
                 trigger_outputs = self._exec_triggers(item_node, "on_examine")
                 if trigger_outputs:
                     desc += "\n" + "\n".join(trigger_outputs)

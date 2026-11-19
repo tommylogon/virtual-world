@@ -1240,72 +1240,9 @@ def handle_take_action(app):
                 world._add_entertainment_gain(5)
 
         elif cmd.startswith("guess time"):
-            area_id = world._get_current_area_id()
-            if not area_id:
-                add_output("You can't guess the time in an empty void.")
-            else:
-                area_node = world.graph.get_node(area_id)
-                env = (area_node.properties or {}).get("environment", {}) if area_node else {}
-                # The DC table lives in engine.weather_forecast so it cannot
-                # drift from WEATHER_STATES again  -  it had grown a second,
-                # private list that also knew "sunny" and "overcast"
-                # (task-559).
-                from engine.weather_forecast import (
-                    WEATHER_TIME_DC, WEATHER_TIME_DC_DEFAULT, normalize_weather)
-                weather = normalize_weather(env.get("weather", "clear"))
-                weather_dc = WEATHER_TIME_DC.get(weather, WEATHER_TIME_DC_DEFAULT)
-
-                skill = "Survival"
-                try:
-                    success, total, message = world.skills.skill_check(skill, weather_dc)
-                except Exception:
-                    success, total, message = False, 0, ""
-
-                hour = world.current_game_hour()
-                minute = int(world.total_game_minutes() % 60)
-                exact_time = f"{hour:02d}:{minute:02d}"
-
-                if total >= weather_dc + 10:
-                    if 5 <= hour < 19:
-                        add_output(f"The sun's position is clear to you. It's {exact_time}.")
-                    else:
-                        add_output(f"The stars and moon give it away. It's {exact_time}.")
-                elif success:
-                    if minute < 15:
-                        add_output(f"It's just after {hour:02d}:00.")
-                    elif minute < 45:
-                        add_output(f"It's around {exact_time}.")
-                    else:
-                        next_hour = (hour + 1) % 24
-                        add_output(f"It's almost {next_hour:02d}:00.")
-                    if hour >= 19 or hour < 5:
-                        try:
-                            moon = world.current_moon_phase()
-                            moon_name = moon.get("name", "")
-                            moon_icon = moon.get("icon", "")
-                            moon_labels = {
-                                "new_moon": "new moon",
-                                "crescent": "waxing crescent",
-                                "quarter": "first quarter",
-                                "gibbous": "waxing gibbous",
-                                "full_moon": "full moon",
-                                "waning": "waning",
-                                "blood_moon": "blood moon"
-                            }
-                            if moon_name and moon_icon:
-                                add_output(f"The moon is {moon_labels.get(moon_name, moon_name)} tonight. {moon_icon}")
-                        except Exception:
-                            pass
-                elif total >= max(1, weather_dc - 5):
-                    if 5 <= hour < 19:
-                        add_output(f"You squint at the sky and guess it's sometime around {exact_time}, but you're not certain.")
-                    else:
-                        add_output(f"You try to read the stars but the darkness confuses you. It's sometime around {exact_time}, maybe.")
-                else:
-                    if 5 <= hour < 19:
-                        add_output("It's daytime, you think. Probably around the middle of the day, but you can't be more specific than that.")
-                    else:
-                        add_output("It's night. Somewhere around the middle of the night, probably. You have no better idea.")
+            from engine.time_perception import resolve_guess_time
+            for line in resolve_guess_time(world):
+                add_output(line)
 
         elif cmd.startswith("find"):
             area_id = world._get_current_area_id()

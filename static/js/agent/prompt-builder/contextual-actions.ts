@@ -668,6 +668,47 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         if (currentArea?.name) keep('examine', `examine <target>  -  inspect something closely (e.g. examine ${currentArea.name})`);
 
+        // Context-aware guess time hint: offer when carrying/near a timepiece or when outdoors/windowed.
+        {
+            const TIMEPIECE_TAGS = new Set([
+                'timepiece', 'clock', 'watch', 'wristwatch', 'pocket_watch',
+                'phone', 'smartphone', 'cellphone', 'sundial', 'horologium',
+            ]);
+            const BROKEN_STATES = new Set(['broken', 'dead', 'off', 'unpowered', 'shattered', 'destroyed', 'stopped']);
+            const TIMEPIECE_RE = /\b(wall clock|grandfather clock|alarm clock|clock|pocket watch|wristwatch|watch|timepiece|smartphone|cellphone|phone|sundial|horologium)\b/i;
+            const isWorkingTimepiece = (it: any): boolean => {
+                if (!it) return false;
+                const props = it.properties || {};
+                if (props.is_timepiece === false || props.powered === false || props.working === false) return false;
+                const st = String(props.current_state || '').toLowerCase();
+                if (st === 'hidden' || BROKEN_STATES.has(st)) return false;
+                if (props.is_timepiece === true) return true;
+                const tags = asArray(props.tags).map(t => t.toLowerCase());
+                if (tags.some(t => TIMEPIECE_TAGS.has(t))) return true;
+                return TIMEPIECE_RE.test(String(it.name || ''));
+            };
+            const areaRef = (currentArea as any)?.id || (currentArea as any)?.area_id || currentArea?.name || '';
+            const areaNode: any = areaRef ? worldState?.getNode?.(areaRef) : null;
+            const areaTagsLower = asArray(areaNode?.properties?.tags).map(t => t.toLowerCase());
+            const isOutdoor = areaTagsLower.includes('outdoor')
+                || areaTagsLower.includes('exterior')
+                || areaNode?.properties?.is_exterior === true;
+            const hasWindow = areaTagsLower.includes('window')
+                || areaTagsLower.includes('windows')
+                || areaTagsLower.includes('skylight')
+                || areaNode?.properties?.has_window === true;
+            const carried = carriedItemNodes(charName);
+            const roomItems: any[] = (areaRef && typeof worldState?.getItemsInArea === 'function')
+                ? (worldState.getItemsInArea(areaRef) || [])
+                : [];
+            const tp = [...carried, ...roomItems].find(isWorkingTimepiece);
+            if (tp) {
+                keep('guess', `guess time  -  check the time on the ${tp.name || 'timepiece'} (free action)`);
+            } else if (isOutdoor || hasWindow) {
+                keep('guess', 'guess time  -  estimate the time from the sky (Survival check, free action)');
+            }
+        }
+
         keep('look', 'look  -  look around');
         keep('inventory', 'inventory  -  check your inventory');
         keep('stats', 'stats  -  check your stats');
