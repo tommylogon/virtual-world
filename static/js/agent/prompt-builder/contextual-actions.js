@@ -658,8 +658,9 @@ window.PromptBuilder = window.PromptBuilder || {};
             const areaRef = currentArea?.id || currentArea?.area_id || currentArea?.name || '';
             const areaNode = areaRef ? worldState?.getNode?.(areaRef) : null;
             const areaTags = Array.isArray(areaNode?.properties?.tags) ? areaNode.properties.tags : [];
+            const areaTagsLower = areaTags.map(t => String(t).toLowerCase());
             const areaHasFixture = RELIEF_RE.test(String(currentArea?.name || ''))
-                || areaTags.some(t => RELIEF_RE.test(String(t)));
+                || areaTagsLower.some(t => RELIEF_RE.test(t));
             const areaItems = (areaRef && typeof worldState?.getItemsInArea === 'function')
                 ? (worldState.getItemsInArea(areaRef) || [])
                 : [];
@@ -667,14 +668,24 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const itTags = Array.isArray(it?.properties?.tags) ? it.properties.tags : [];
                 return RELIEF_RE.test(String(it?.name || '')) || itTags.some(t => RELIEF_RE.test(String(t)));
             });
+            const isOutdoor = areaTagsLower.includes('outdoor')
+                || areaTagsLower.includes('exterior')
+                || areaNode?.properties?.is_exterior === true;
+            const hasOnlookers = (others || []).length > 0;
             if (areaHasFixture || itemHasFixture) {
                 keep('relieve', 'relieve  -  use the restroom/toilet here (your bladder is full)');
             }
-            else if ((others || []).length > 0) {
-                keep('relieve', 'relieve  -  pee right where you stand in front of others (NO toilet here - go to a restroom first unless desperate!)');
+            else if (isOutdoor && !hasOnlookers) {
+                keep('relieve', 'relieve  -  relieve yourself outdoors in the open here (no toilet here, though you are alone - find a restroom if one is nearby)');
+            }
+            else if (isOutdoor && hasOnlookers) {
+                keep('relieve', 'relieve  -  relieve yourself right where you stand outdoors in front of others (NO toilet here - move somewhere private or find a restroom first)');
+            }
+            else if (!isOutdoor && !hasOnlookers) {
+                keep('relieve', 'relieve  -  relieve yourself right on the indoor floor here (NO toilet here - leave and find a restroom first!)');
             }
             else {
-                keep('relieve', 'relieve  -  pee right where you stand on the ground (NO toilet here - go to a restroom first if you can)');
+                keep('relieve', 'relieve  -  relieve yourself right on the indoor floor in front of others (NO toilet here - leave and find a restroom first!)');
             }
         }
         if (blind)

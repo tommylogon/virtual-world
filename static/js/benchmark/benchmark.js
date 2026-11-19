@@ -1549,6 +1549,7 @@ window.BenchmarkApp = (() => {
         let contentText = '';
         let reasoningText = '';
         let serverUsage = null;
+        let finishReason = null;
 
         try {
             const resp = await fetch('/api/bench/chat', {
@@ -1597,6 +1598,9 @@ window.BenchmarkApp = (() => {
                         const parsedChunk = JSON.parse(jsonStr);
                         if (parsedChunk.usage) {
                             serverUsage = parsedChunk.usage;
+                        }
+                        if (parsedChunk.choices?.[0]?.finish_reason) {
+                            finishReason = parsedChunk.choices[0].finish_reason;
                         }
                         const delta = parsedChunk.choices?.[0]?.delta?.content || '';
                         const reasoningDelta = parsedChunk.choices?.[0]?.delta?.reasoning_content || parsedChunk.choices?.[0]?.delta?.thought || '';
@@ -1664,6 +1668,13 @@ window.BenchmarkApp = (() => {
             }
 
             const outputToEval = contentText.trim() || reasoningText.trim();
+            if (!outputToEval && finishReason && finishReason !== 'stop') {
+                const msg = `Blocked / stopped by provider (${finishReason}).`;
+                if (proseEl) proseEl.textContent = msg;
+                if (rawEl) rawEl.textContent = msg;
+                if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">⚠️ ${escapeHtml(msg)}</span>`;
+                return;
+            }
             await evaluateModelOutput(model, outputToEval, {
                 ttft: firstTokenTime ? (firstTokenTime - startTime) / 1000 : null,
                 total: totalSec,
