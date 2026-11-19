@@ -323,6 +323,61 @@ mark.bench-entity-hit {
     border-radius: 3px;
     padding: 0 2px;
 }
+
+/* Split structured card output: Thought / Speech / Emote / Emotion */
+.bench-prose-parts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.bench-prose-part {
+    padding: 5px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.025);
+    border-left: 3px solid var(--b-border);
+    font-style: normal;
+}
+.bench-prose-part-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--b-dim);
+    margin-bottom: 2px;
+}
+.bench-prose-part-body {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--b-text);
+    white-space: pre-wrap;
+}
+.bench-part-thought { border-left-color: #58a6ff; }
+.bench-part-thought .bench-prose-part-body { font-style: italic; color: #c9d1d9; }
+.bench-part-speech { border-left-color: #3fb950; }
+.bench-part-speech .bench-prose-part-body { color: #e6edf3; font-weight: 500; }
+.bench-part-emote { border-left-color: #bc8cff; }
+.bench-part-emote .bench-prose-part-body { color: #d2a8ff; }
+.bench-part-emotion { border-left-color: #f778ba; }
+.bench-emotion-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+}
+.bench-emotion-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    background: rgba(247, 120, 186, 0.14);
+    border: 1px solid rgba(247, 120, 186, 0.35);
+    color: #f7b6d8;
+}
 .bench-model-name {
     font-weight: 500;
     color: var(--b-text);

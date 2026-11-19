@@ -175,6 +175,14 @@ window.BenchmarkApp = (() => {
             } else if (profile.apiKey === 'not-needed') {
                 els.apiKeyInput.value = '';
             }
+            if (window.llmClient && typeof window.llmClient.configure === 'function') {
+                window.llmClient.configure({
+                    apiBase: profile.apiBase || els.apiBaseInput.value.trim(),
+                    apiKey: profile.apiKey || 'not-needed',
+                    model: profile.model || undefined,
+                    apiFormat: profile.apiFormat || 'auto',
+                });
+            }
             refreshModels();
         }
     }
@@ -470,7 +478,9 @@ window.BenchmarkApp = (() => {
                 finalUser = ext.userPrompt;
             } else if (mode === 'e2e') {
                 finalSystem = `You are roleplaying as ${state.selectedChar} in a living virtual world. Write 2-4 sentences of natural in-character prose describing what ${state.selectedChar} thinks, says, and physically does next. Do NOT output JSON; a separate Action Interpreter will translate your prose into engine actions.`;
-                finalUser = captured.userPrompt.replace(/Respond with ONLY a single raw JSON object[\s\S]*$/i, 'Write your immediate in-character response as natural narrative prose (thoughts, dialogue, and physical action).');
+                finalUser = captured.userPrompt
+                    .replace(/Follow the standing ACTION, SPEECH & VOLUME, and JSON rules in your system prompt\.\s*/gi, '')
+                    .replace(/Respond with ONLY a single raw JSON object[\s\S]*$/i, 'Write your immediate in-character response as natural narrative prose (thoughts, dialogue, and physical action). Do NOT output JSON.');
             }
 
             state.currentPrompt = { system: finalSystem, user: finalUser, evalArea, mode };
@@ -1537,6 +1547,72 @@ window.BenchmarkApp = (() => {
         els.cardsGrid.appendChild(card);
     }
 
+    function renderStructuredProse(proseEl, parsed, fallbackText) {
+        if (!proseEl) return;
+        delete proseEl.dataset.rawText;
+        if (!parsed || typeof parsed !== 'object') {
+            proseEl.textContent = fallbackText || 'No prose';
+            return;
+        }
+        const thought = (parsed.inner_monologue || parsed.monologue || parsed.thought || '').trim();
+        const speech = (parsed.speech || '').trim();
+        const volume = (parsed.volume || 'say').trim();
+        const emote = (parsed.emote || '').trim();
+        const emotions = Array.isArray(parsed.emotion)
+            ? parsed.emotion.filter(e => e && (e.label || typeof e === 'string'))
+            : (parsed.emotion && typeof parsed.emotion === 'object' && parsed.emotion.label ? [parsed.emotion] : []);
+
+        if (!thought && !speech && !emote && emotions.length === 0) {
+            proseEl.textContent = fallbackText || 'No monologue or dialogue provided.';
+            return;
+        }
+
+        const sections = [];
+        if (thought) {
+            sections.push(`
+                <div class="bench-prose-part bench-part-thought">
+                    <div class="bench-prose-part-head"><span>💭 Thought</span></div>
+                    <div class="bench-prose-part-body">${escapeHtml(thought)}</div>
+                </div>
+            `);
+        }
+        if (speech) {
+            const volBadge = volume && volume !== 'say'
+                ? `<span class="bench-tag bench-tag-ctx">${escapeHtml(volume)}</span>`
+                : `<span class="bench-tag bench-tag-ctx">say</span>`;
+            sections.push(`
+                <div class="bench-prose-part bench-part-speech">
+                    <div class="bench-prose-part-head"><span>💬 Speech</span>${volBadge}</div>
+                    <div class="bench-prose-part-body">"${escapeHtml(speech)}"</div>
+                </div>
+            `);
+        }
+        if (emote) {
+            sections.push(`
+                <div class="bench-prose-part bench-part-emote">
+                    <div class="bench-prose-part-head"><span>🎭 Emote</span></div>
+                    <div class="bench-prose-part-body">${escapeHtml(emote)}</div>
+                </div>
+            `);
+        }
+        if (emotions.length > 0) {
+            const pills = emotions.map(e => {
+                if (typeof e === 'string') return `<span class="bench-emotion-pill">${escapeHtml(e)}</span>`;
+                const lbl = escapeHtml(e.label || '');
+                const inten = e.intensity != null ? ` ${escapeHtml(String(e.intensity))}/10` : '';
+                const toward = e.toward ? ` -> ${escapeHtml(String(e.toward))}` : '';
+                return `<span class="bench-emotion-pill">${lbl}${inten}${toward}</span>`;
+            }).join('');
+            sections.push(`
+                <div class="bench-prose-part bench-part-emotion">
+                    <div class="bench-prose-part-head"><span>❤️ Emotion</span></div>
+                    <div class="bench-emotion-pills">${pills}</div>
+                </div>
+            `);
+        }
+        proseEl.innerHTML = `<div class="bench-prose-parts">${sections.join('')}</div>`;
+    }
+
     function renderCardData(model, r) {
         if (!r) return;
         const id = sanitizeId(model);
@@ -1568,7 +1644,7 @@ window.BenchmarkApp = (() => {
                 scoreEl.textContent = '-';
             }
         }
-        if (proseEl) proseEl.textContent = r.prose || 'No prose';
+        if (proseEl) renderStructuredProse(proseEl, r.parsed, r.prose || 'No prose');
         if (rawEl) {
             const rawContent = r.output || '';
             const rawReasoning = r.reasoning || '';
@@ -1987,7 +2063,7 @@ window.BenchmarkApp = (() => {
                             api_key: interpKey,
                             model: interpModel,
                             temperature: 0.1,
-                            max_tokens: 512,
+                            max_tokens: 1536,
                             reasoning_effort: 'none',
                             messages: [
                                 { role: 'system', content: ext.systemPrompt },
@@ -2198,7 +2274,7 @@ window.BenchmarkApp = (() => {
         const speech = parsed.speech ? `\n"${parsed.speech}"` : '';
         const emote = parsed.emote ? ` (${parsed.emote})` : '';
         const prose = `${monologue}${speech}${emote}`.trim() || 'No monologue or dialogue provided.';
-        if (proseEl) proseEl.textContent = prose;
+        if (proseEl) renderStructuredProse(proseEl, parsed, prose);
 
         baseFlags.push({ pass: true, text: repairedNote ? `Valid JSON output (${repairedNote})` : 'Valid JSON output' });
 
