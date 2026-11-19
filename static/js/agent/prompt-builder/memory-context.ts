@@ -115,9 +115,15 @@ window.PromptBuilder = window.PromptBuilder || {};
             return `- [${flags.join(', ')}] ${body}`;
         });
 
+        const playerObj = wsData?.players?.[charName] || null;
+        const scheduleHorizon = (typeof (PromptBuilder as any)?.describeScheduleHorizon === 'function' && playerObj)
+            ? (PromptBuilder as any).describeScheduleHorizon(playerObj)
+            : '';
+
         const prompt = [
             `You are the inner memory reconsolidator for "${charName}".`,
             `${worldTime}Current location: ${areaName || 'unknown'}. Present: ${actors.join(', ') || 'alone'}. Current mood: ${emotion || 'neutral'}.`,
+            scheduleHorizon ? `Imminent routine awareness: ${scheduleHorizon}` : '',
             dialogue.length ? `Recent words heard: ${dialogue.join(' | ')}` : '',
             'Recalled memory traces (with relative age from right now):',
             ...traceLines,

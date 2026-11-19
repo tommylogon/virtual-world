@@ -658,6 +658,88 @@ const foodish = areaItems.filter(it =>
         return '\n=== YOUR PLAN ===\n(No active plan - use free action `plan <intent>` to form a grounded multi-step plan, or act directly.)';
     }
 
+    /**
+     * Subjective near-horizon routine framing: humans don't carry a 7-slot
+     * semicolon cron table of their whole day in working memory. Surface ONLY
+     * what is overdue right now or coming up within the next 60 minutes, written
+     * as lived awareness relative to the current clock and room.
+     */
+    function describeScheduleHorizon(player: any): string {
+        if (!player) return '';
+        const wsData: any = (typeof worldState !== 'undefined' && worldState?.data) ? worldState.data : {};
+        const rawTime = String(wsData.game_time || '').trim();
+        let nowMin: number | null = null;
+        let hhmm = '';
+        const timeMatch = rawTime.match(/(\d{1,2}):(\d{2})/);
+        if (timeMatch) {
+            const h = parseInt(timeMatch[1], 10);
+            const m = parseInt(timeMatch[2], 10);
+            if (Number.isFinite(h) && Number.isFinite(m)) {
+                nowMin = (h * 60 + m) % 1440;
+                hhmm = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            }
+        }
+        const curArea = String(player.current_area || '').trim();
+        const curAreaLower = curArea.toLowerCase();
+        const rawSteps: any[] = Array.isArray(player.schedule) ? player.schedule : [];
+        const steps = rawSteps
+            .filter(s => s && typeof s.start === 'number')
+            .slice()
+            .sort((a, b) => a.start - b.start);
+
+        const mStep = player.mosiac?.S?.step || null;
+        let activeStep: any = null;
+        let nextStep: any = null;
+        let nextDelta: number | null = null;
+
+        if (nowMin !== null && steps.length > 0) {
+            for (const s of steps) {
+                if (s.start <= nowMin) activeStep = s;
+                else if (!nextStep) {
+                    nextStep = s;
+                    nextDelta = s.start - nowMin;
+                }
+            }
+            if (!nextStep && steps.length > 0) {
+                // Wrap to first slot next morning only if within 60 min of midnight
+                const wrapDelta = (1440 - nowMin) + steps[0].start;
+                if (wrapDelta <= 60) {
+                    nextStep = steps[0];
+                    nextDelta = wrapDelta;
+                }
+            }
+        } else if (mStep) {
+            activeStep = mStep;
+        }
+
+        const timePrefix = hhmm ? `It is ${hhmm}` : 'Right now';
+        const parts: string[] = [];
+
+        if (activeStep) {
+            const act = String(activeStep.activity || 'your routine').trim();
+            const targetArea = String(activeStep.area || '').trim();
+            if (targetArea && curAreaLower && targetArea.toLowerCase() !== curAreaLower) {
+                parts.push(`${timePrefix} - you're supposed to be at ${targetArea} (${act}) right now, and you aren't there yet.`);
+            } else if (targetArea) {
+                parts.push(`${timePrefix} - you're here at ${targetArea} for ${act}.`);
+            } else {
+                parts.push(`${timePrefix} - right now is time for ${act}.`);
+            }
+        }
+
+        if (nextStep && nextDelta !== null && nextDelta > 0 && nextDelta <= 60) {
+            const nextAct = String(nextStep.activity || 'your next routine').trim();
+            const nextWhere = nextStep.area ? ` at ${nextStep.area}` : '';
+            if (parts.length > 0) {
+                parts.push(`Coming up in ${nextDelta} minutes: ${nextAct}${nextWhere} - you should start wrapping up or heading over soon.`);
+            } else {
+                parts.push(`${timePrefix} - you have ${nextAct}${nextWhere} coming up in ${nextDelta} minutes; you should probably get ready and head over soon or you'll be late.`);
+            }
+        }
+
+        return parts.join(' ');
+    }
+
     function buildMosiacContext(player: any) {
         // task-812 / task-905: Subjective state of mind without raw telemetry or candidate action counts.
         const m = player && player.mosiac;
@@ -678,42 +760,20 @@ const foodish = areaItems.filter(it =>
             if (activeObs.length) {
                 lines.push(`Active Obligations: ${activeObs.map((o: any) => o.charge).join(', ')}`);
             }
-            if (m.S) {
-                const dayRoutine = (m.S.day && m.S.day !== 'no schedule') ? m.S.day : '';
-                if (m.S.step) {
-                    const where = m.S.step.area ? ` at ${m.S.step.area}` : '';
-                    const currentStr = `${m.S.step.activity}${where}`;
-                    if (dayRoutine) {
-                        lines.push(`Schedule: ${dayRoutine} (current: ${currentStr})`);
-                    } else {
-                        lines.push(`Schedule: ${currentStr}`);
-                    }
-                } else if (dayRoutine) {
-                    lines.push(`Schedule: ${dayRoutine}`);
-                } else {
-                    lines.push('Schedule: no schedule');
-                }
-                lines.push('Schedule actions: "schedule" to inspect, "schedule add HH:MM <activity> [at <area>]" to add or replace a step, "schedule remove HH:MM" to remove a step.');
+            const routineLine = describeScheduleHorizon(player);
+            if (routineLine) {
+                lines.push(`Routine: ${routineLine}`);
             }
             const needs = (m.A || []).map((n: any) => n.need).filter(Boolean);
             if (needs.length) lines.push(`Attention: ${needs.join(', ')}`);
         } else if (player && Array.isArray(player.schedule)) {
-            // Fallback when mosiac summary is not precomputed (task-814)
-            if (player.schedule.length > 0) {
-                const formatted = player.schedule.map((s: any) => {
-                    const h = Math.floor((s.start || 0) / 60).toString().padStart(2, '0');
-                    const min = ((s.start || 0) % 60).toString().padStart(2, '0');
-                    const where = s.area ? ` at ${s.area}` : '';
-                    return `${h}:${min} ${s.activity || 'wait'}${where}`;
-                }).join('; ');
-                lines.push(`Schedule: ${formatted}`);
-            } else {
-                lines.push('Schedule: no schedule');
+            const routineLine = describeScheduleHorizon(player);
+            if (routineLine) {
+                lines.push(`Routine: ${routineLine}`);
             }
-            lines.push('Schedule actions: "schedule" to inspect, "schedule add HH:MM <activity> [at <area>]" to add or replace a step, "schedule remove HH:MM" to remove a step.');
         }
         if (!lines.length) return '';
-        return '\n=== YOUR MIND ===\n' + lines.join('\n');
+        return '\n=== YOUR INTENTIONS & ROUTINE ===\n' + lines.join('\n');
     }
 
     /**
@@ -904,6 +964,7 @@ const foodish = areaItems.filter(it =>
         describeVital,
         describeVitals,
         buildPlanContext,
+        describeScheduleHorizon,
         buildMosiacContext,
         buildLanguageAndLingoContext,
         buildKnowledgeAndBlindSpotsContext

@@ -2063,7 +2063,7 @@ window.BenchmarkApp = (() => {
                             api_key: interpKey,
                             model: interpModel,
                             temperature: 0.1,
-                            max_tokens: 1536,
+                            max_tokens: Math.max(1536, parseInt(els.maxTokensInput?.value, 10) || 1536),
                             reasoning_effort: 'none',
                             messages: [
                                 { role: 'system', content: ext.systemPrompt },

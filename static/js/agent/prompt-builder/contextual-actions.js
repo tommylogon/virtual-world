@@ -712,11 +712,11 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
         }
         if (currentArea?.name)
-            keep('examine', `examine  -  examine ${currentArea.name}`);
+            keep('examine', `examine <target>  -  inspect something closely (e.g. examine ${currentArea.name})`);
         keep('look', 'look  -  look around');
         keep('inventory', 'inventory  -  check your inventory');
         keep('stats', 'stats  -  check your stats');
-        keep('schedule', 'schedule  -  check or update your daily schedule (free action)');
+        keep('schedule', 'schedule [add HH:MM <activity> [at <area>] | remove HH:MM]  -  check or update your daily routine (free action)');
         keep('plan', 'plan <intent>  -  form a grounded multi-step plan (free action)');
         // task-840: craftable-now recipes as guidance (backend resolves
         // leniently, so this only suggests  -  never gates).

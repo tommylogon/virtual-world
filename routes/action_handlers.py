@@ -484,12 +484,14 @@ def validate_action_command(world, char_name, cmd):
         return {"valid": True, "category": "speech", "detail": "Spoken/emote line verified."}
 
     # 5. Check bare verbs that strictly require a target
-    if not target_str and verb in _VERBS_NEEDING_TARGET:
+    if not target_str and verb in _VERBS_NEEDING_TARGET and verb not in ("examine", "x"):
         return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires a target."}
 
-    # 6. Examine resolution: character -> area -> item -> exit/way
+    # 6. Examine resolution: bare examine -> current area; otherwise character -> area -> item -> exit/way
     if verb in ("examine", "x"):
         if not target_str:
+            if current_area_node:
+                return {"valid": True, "category": "area", "resolved_target": current_area_node.name, "detail": f"Bare examine defaults to area '{current_area_node.name}'"}
             return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires a target."}
         resolved_char = _resolve_char_in_room(target_str, allow_self=True)
         if resolved_char:
