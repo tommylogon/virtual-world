@@ -525,13 +525,13 @@ def validate_action_command(world, char_name, cmd):
         if matched_exit:
             return {"valid": True, "category": "exit", "resolved_target": matched_exit, "detail": f"Exit '{matched_exit}' verified"}
 
-        matched_item = _resolve_item(target_str)
-        if matched_item:
-            return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' in room"}
-
         resolved_char = _resolve_char_in_room(target_str)
         if resolved_char:
             return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Character '{resolved_char}' in room"}
+
+        matched_item = _resolve_item(target_str)
+        if matched_item:
+            return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' in room"}
 
         return {"valid": False, "category": "not_found", "detail": f"Destination or target '{target_str}' not found in room exits or objects."}
 

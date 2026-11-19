@@ -461,9 +461,11 @@ class UIController {
             if (tempVal) tempVal.textContent = parseFloat((config.temperature as string) || '0.7').toFixed(2);
         }
 
-        // Restore max tokens from config
+        // Restore max tokens from config (0 = model max)
         const maxTokensInput = document.getElementById('hub-max-tokens') as HTMLInputElement | null;
-        if (maxTokensInput) maxTokensInput.value = (config.maxTokens || '512') as string;
+        if (maxTokensInput) maxTokensInput.value = String(config.maxTokens ?? 0);
+        const softMaxInput = document.getElementById('hub-soft-max-tokens') as HTMLInputElement | null;
+        if (softMaxInput) softMaxInput.value = String(config.softMaxTokens ?? 512);
 
         this.updateButtons();
         this.setStatus("Idle.", "info");
@@ -1002,9 +1004,10 @@ class UIController {
 
         if (hubMaxTokens) {
             hubMaxTokens.max = String(maxAllowed);
-            hubMaxTokens.value = String(config.maxTokens || 2048);
+            hubMaxTokens.value = String(config.maxTokens ?? 0);
             hubMaxTokens.onchange = () => {
-                const val = parseInt(hubMaxTokens.value, 10) || 2048;
+                const parsed = parseInt(hubMaxTokens.value, 10);
+                const val = (hubMaxTokens.value.trim() === '' || !Number.isFinite(parsed)) ? 0 : Math.max(0, parsed);
                 config.maxTokens = val;
                 persistAndApply();
             };
@@ -1012,9 +1015,10 @@ class UIController {
 
         if (hubSoftMaxTokens) {
             hubSoftMaxTokens.max = String(maxAllowed);
-            hubSoftMaxTokens.value = String(config.softMaxTokens || 0);
+            hubSoftMaxTokens.value = String(config.softMaxTokens ?? 512);
             hubSoftMaxTokens.onchange = () => {
-                const val = parseInt(hubSoftMaxTokens.value, 10) || 0;
+                const parsed = parseInt(hubSoftMaxTokens.value, 10);
+                const val = (hubSoftMaxTokens.value.trim() === '' || !Number.isFinite(parsed)) ? 512 : Math.max(0, parsed);
                 config.softMaxTokens = val;
                 persistAndApply();
             };

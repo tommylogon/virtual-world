@@ -427,7 +427,7 @@ class NameMatching:
         if area_id:
             for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
                 node = self.graph.get_node(edge.source)
-                if node:
+                if node and node.type == "item":
                     item_names.append(node.name)
             # Items inside containers in the area (unhidden after examine)
             for container_edge in self.graph.get_edges_for_target(area_id, EDGE_IN):

@@ -126,3 +126,15 @@ def test_commons_text_without_phone_fails_cleanly():
     assert len(w.commons.messages) == before_msgs
     for name, p in w.players.items():
         assert len(p.memories) == before_counts[name]
+
+
+def test_approach_character_is_not_classified_as_item():
+    from routes.action_handlers import validate_action_command
+
+    app, w, hero, other = _setup_app_with_phone()
+    w.name_matcher._set_player_area(other.name, hero.current_area)
+    assert w._match_item_name(other.name) is None
+    res = validate_action_command(w, hero.name, f"approach {other.name}")
+    assert res["valid"] is True, res
+    assert res["category"] == "character", res
+    assert "Character" in res["detail"] and "Item" not in res["detail"], res
