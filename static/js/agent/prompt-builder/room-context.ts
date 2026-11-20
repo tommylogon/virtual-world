@@ -448,14 +448,20 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         // natural trailing line.
         const interestTags = ((player as Record<string, any>)?.interest_tags || []).map((tag: unknown) => String(tag).toLowerCase().trim()).filter(Boolean);
         const memIdx: Record<string, any> = (player as Record<string, any>)?.memory_index || {};
+        const memById = new Map<string, any>();
         const knownItemNames = new Set<string>();
         if (Array.isArray(player?.memories)) {
             for (const m of player.memories) {
+                if (m && m.id) memById.set(String(m.id), m);
                 if (m && m.kind === 'item' && m.name) knownItemNames.add(String(m.name).toLowerCase().trim());
             }
         }
         const isItemSeen = (roomItem: ItemNode): boolean => {
-            if (roomItem.id && memIdx[String(roomItem.id)]) return true;
+            if (roomItem.id && memIdx[String(roomItem.id)]) {
+                const mem = memById.get(String(memIdx[String(roomItem.id)]));
+                if (mem && (mem.kind === 'area' || mem.data?.event === 'scene_observed')) return false;
+                return true;
+            }
             const nm = String(roomItem.name || '').toLowerCase().trim();
             return knownItemNames.has(nm);
         };

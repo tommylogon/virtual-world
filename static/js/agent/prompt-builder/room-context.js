@@ -464,16 +464,23 @@ window.PromptBuilder = window.PromptBuilder || {};
         // natural trailing line.
         const interestTags = (player?.interest_tags || []).map((tag) => String(tag).toLowerCase().trim()).filter(Boolean);
         const memIdx = player?.memory_index || {};
+        const memById = new Map();
         const knownItemNames = new Set();
         if (Array.isArray(player?.memories)) {
             for (const m of player.memories) {
+                if (m && m.id)
+                    memById.set(String(m.id), m);
                 if (m && m.kind === 'item' && m.name)
                     knownItemNames.add(String(m.name).toLowerCase().trim());
             }
         }
         const isItemSeen = (roomItem) => {
-            if (roomItem.id && memIdx[String(roomItem.id)])
+            if (roomItem.id && memIdx[String(roomItem.id)]) {
+                const mem = memById.get(String(memIdx[String(roomItem.id)]));
+                if (mem && (mem.kind === 'area' || mem.data?.event === 'scene_observed'))
+                    return false;
                 return true;
+            }
             const nm = String(roomItem.name || '').toLowerCase().trim();
             return knownItemNames.has(nm);
         };

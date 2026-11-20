@@ -1102,7 +1102,7 @@ class UIController {
         if (hubEffortSel) {
             while (hubEffortSel.firstChild) hubEffortSel.removeChild(hubEffortSel.firstChild);
             const allEfforts = ['none', 'minimal', 'low', 'medium', 'high', 'max'];
-            let supported = (m.reasoning_details?.supported_efforts && m.reasoning_details.supported_efforts.length > 0)
+            let supported = (m.reasoning_details?.supported_efforts && m.reasoning_details.supported_efforts.length > 1)
                 ? m.reasoning_details.supported_efforts
                 : allEfforts;
             if (isMandatory && supported.some(e => e !== 'none')) {
