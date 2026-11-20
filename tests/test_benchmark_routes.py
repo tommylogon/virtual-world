@@ -3,7 +3,11 @@ import json
 from app import create_app
 
 @pytest.fixture
-def client():
+def client(tmp_path, monkeypatch):
+    import routes.benchmark as bench_mod
+    monkeypatch.setattr(bench_mod, 'BENCH_DIR', tmp_path)
+    monkeypatch.setattr(bench_mod, 'RUNS_DIR', tmp_path / 'runs')
+    monkeypatch.setattr(bench_mod, 'REGISTRY_FILE', tmp_path / 'model_registry.json')
     app = create_app({'TESTING': True})
     with app.test_client() as client:
         yield client
@@ -31,15 +35,68 @@ def test_benchmark_save_and_get_run(client):
     save_resp = client.post('/api/bench/runs', json={
         'run_id': 'test_run_123',
         'character': 'Tester',
-        'results': [{'model': 'mock-model', 'metrics': {'tps': 25.0}}]
+        'provider': 'OpenRouter',
+        'area': 'Library',
+        'config': {
+            'temperature': 0.7,
+            'max_tokens': 4096,
+            'reasoning_effort': 'high',
+            'reasoning_max_tokens': 2048,
+            'preferred_action': 'examine desk',
+        },
+        'results': [
+            {'model': 'mock-model', 'score': 3, 'metrics': {'tps': 25.0}},
+            {'model': 'broken-model', 'error': 'HTTP 429'},
+        ]
     })
     assert save_resp.status_code == 200
+
+    list_resp = client.get('/api/bench/runs')
+    assert list_resp.status_code == 200
+    runs = json.loads(list_resp.data)['runs']
+    assert len(runs) == 1
+    assert runs[0]['completed_count'] == 1
+    assert runs[0]['failed_count'] == 1
+    assert runs[0]['area'] == 'Library'
+    assert runs[0]['config']['reasoning_max_tokens'] == 2048
+    assert runs[0]['top_model'] == {'model': 'mock-model', 'score': 3}
 
     get_resp = client.get('/api/bench/runs/test_run_123')
     assert get_resp.status_code == 200
     run_data = json.loads(get_resp.data)
     assert run_data.get('run_id') == 'test_run_123'
     assert run_data.get('character') == 'Tester'
+
+
+def test_benchmark_chat_forwards_reasoning_max_tokens(client, monkeypatch):
+    import requests
+    captured = []
+
+    class MockResp:
+        ok = True
+        status_code = 200
+        headers = {'Content-Type': 'application/json'}
+        text = '{}'
+        def json(self):
+            return {'choices': [{'message': {'content': 'ok'}}]}
+
+    def fake_post(url, headers=None, json=None, stream=False, timeout=None):
+        captured.append(json)
+        return MockResp()
+
+    monkeypatch.setattr(requests, 'post', fake_post)
+    resp = client.post('/api/bench/chat', json={
+        'api_base': 'https://openrouter.ai/api/v1',
+        'api_key': 'sk-test',
+        'model': 'anthropic/claude-sonnet',
+        'reasoning_effort': 'high',
+        'reasoning_max_tokens': 4096,
+        'messages': [{'role': 'user', 'content': 'hi'}],
+        'stream': False,
+    })
+    assert resp.status_code == 200
+    assert captured[0]['reasoning'] == {'max_tokens': 4096}
+    assert 'reasoning_effort' not in captured[0]
 
 def test_benchmark_unload_validation(client):
     response = client.post('/api/bench/unload', json={})
@@ -152,7 +209,7 @@ def test_benchmark_chat_retry_after(client, monkeypatch):
     assert data['choices'][0]['message']['content'] == 'Success after retry'
 
 def test_api_action_validate_missing_target(client):
-    resp = client.post('/api/action/validate', json={'action': 'examine'})
+    resp = client.post('/api/action/validate', json={'action': 'take'})
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert data['valid'] is False

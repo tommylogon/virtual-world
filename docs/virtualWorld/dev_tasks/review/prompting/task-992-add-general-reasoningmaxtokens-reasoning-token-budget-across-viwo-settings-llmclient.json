@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-992",
+  "kind": "task",
+  "number": 992,
+  "title": "Add general reasoningMaxTokens reasoning token budget across Viwo Settings, LLMClient, and Benchmark Lab",
+  "status": "todo",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [
+    "reasoning",
+    "tokens",
+    "llm-client",
+    "settings",
+    "benchmark"
+  ],
+  "created": "2026-11-20",
+  "updated": "2026-11-20",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-907",
+      "task-945"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a general reasoningMaxTokens parameter (0 = Auto) across CONFIG_SCHEMA, Settings -> Model Hub, LLMClient, and Benchmark Lab (/bench), routing provider-native numeric reasoning budgets when supported and auto-degrading cleanly on HTTP 400/422.",
+    "why": "llm-client.ts currently hardcodes reasoning.max_tokens = 2048 (1024 for plan) on OpenRouter with no user setting, and Benchmark Lab has no reasoning token budget control alongside reasoning_effort.",
+    "how": "1. Add reasoningMaxTokens (default 0 = Auto, min 0, integer) to CONFIG_SCHEMA and toLLMConfig() in static/js/config.ts.\n2. Expose Reasoning Token Budget input in Settings -> Model Hub (templates/index.html, ui-controller.ts, settings-view.ts) and Benchmark Lab sidebar (templates/benchmark.html, benchmark.js).\n3. Update static/js/llm-client.ts and routes/benchmark.py to forward provider-native numeric reasoning budgets when > 0, omit conflicting effort where required, drop the hardcoded 2048/1024 cap when 0, and preserve HTTP 400/422 auto-degrade.\n4. Add unit/route tests in tools/unit/test_config_schema.js and tests/test_benchmark_routes.py.",
+    "verify": "1. Run npm run build:ts and node tools/unit/run.cjs test_config_schema.\n2. Run python -m pytest tests/test_benchmark_routes.py -q verifying reasoning_max_tokens forwarding and Auto (0) omission.",
+    "acceptance": [
+      {
+        "text": "CONFIG_SCHEMA in static/js/config.ts includes reasoningMaxTokens (number, default 0 = Auto, min 0, integer) persisted and exposed in toLLMConfig()",
+        "done": false
+      },
+      {
+        "text": "Settings -> Model Hub and Benchmark Lab (/bench) sidebar both expose a Reasoning Token Budget input (0 = Auto) persisted and recorded in benchmark run configs/exports",
+        "done": false
+      },
+      {
+        "text": "static/js/llm-client.ts and routes/benchmark.py send provider-native numeric reasoning budgets when reasoningMaxTokens > 0 (e.g. reasoning.max_tokens on OpenRouter/local, thinking.budget_tokens on Anthropic-style), omit conflicting effort where required, remove the hardcoded 2048/1024 fallback when 0, and preserve HTTP 400/422 auto-degrade",
+        "done": false
+      },
+      {
+        "text": "npm run build:ts, node tools/unit/run.cjs test_config_schema, and pytest tests/test_benchmark_routes.py pass with zero em-dashes",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/config.ts",
+      "static/js/llm-client.ts",
+      "static/js/ui-controller.ts",
+      "static/js/ui/settings-view.ts",
+      "templates/index.html",
+      "routes/benchmark.py",
+      "templates/benchmark.html",
+      "static/js/benchmark/benchmark.js",
+      "tests/test_benchmark_routes.py",
+      "tools/unit/test_config_schema.js"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Settings -> Model Hub (beside Max Tokens / Thinking Effort) and /bench sidebar (beside Reasoning Effort).\n\nCurrent availability: Only binary thinking + reasoningEffort exist; llm-client.ts hardcodes max_tokens 2048/1024 on OpenRouter with no user control.\n\nLive verification steps:\n1. Open Settings -> Model Hub and set Reasoning Token Budget to 0 (Auto) or 4096; verify persistence across reload.\n2. Open /bench, set Reasoning Token Budget, run a model, and verify payload forwarding and Export JSON config."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[AI & Narration/LLM Providers]]",
+      "[[Developer Tooling]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

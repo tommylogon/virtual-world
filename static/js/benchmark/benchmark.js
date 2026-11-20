@@ -83,6 +83,8 @@ window.BenchmarkApp = (() => {
         els.softMaxTokensInput = document.getElementById('bench-soft-max-tokens');
         els.contextLengthInput = document.getElementById('bench-context-length');
         els.reasoningEffortSelect = document.getElementById('bench-reasoning-effort');
+        els.reasoningMaxTokensInput = document.getElementById('bench-reasoning-max-tokens');
+        els.resultFilterWrap = document.getElementById('bench-result-filter');
         els.runBtn = document.getElementById('bench-run-btn');
         els.cancelBtn = document.getElementById('bench-cancel-btn');
         els.statusBadge = document.getElementById('bench-status-badge');
@@ -315,6 +317,15 @@ window.BenchmarkApp = (() => {
         if (els.hideBlockedCb) els.hideBlockedCb.addEventListener('change', renderModelList);
         if (els.onlyFreeCb) els.onlyFreeCb.addEventListener('change', renderModelList);
         if (els.refreshRunsBtn) els.refreshRunsBtn.addEventListener('click', loadPastRuns);
+        if (els.resultFilterWrap) {
+            state.resultFilter = 'all';
+            els.resultFilterWrap.querySelectorAll('.bench-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.resultFilter = btn.dataset.filter || 'all';
+                    applyResultFilter();
+                });
+            });
+        }
         if (els.modeSelect) {
             els.modeSelect.addEventListener('change', () => {
                 const mode = els.modeSelect.value || 'direct';
@@ -1125,6 +1136,47 @@ window.BenchmarkApp = (() => {
         }
     }
 
+    function applyResultFilter() {
+        if (!els.resultFilterWrap) return;
+        const entries = Object.entries(state.results || {});
+        if (entries.length === 0) {
+            els.resultFilterWrap.style.display = 'none';
+            return;
+        }
+        let completed = 0;
+        let failed = 0;
+        const activeFilter = state.resultFilter || 'all';
+        entries.forEach(([model, data]) => {
+            const isFailed = Boolean(data?.error) || data?.status === 'error' || data?.status === 'failed';
+            if (isFailed) failed += 1;
+            else completed += 1;
+            const card = document.getElementById(`card-${sanitizeId(model)}`);
+            if (card) {
+                const show = activeFilter === 'all'
+                    || (activeFilter === 'completed' && !isFailed)
+                    || (activeFilter === 'failed' && isFailed);
+                card.style.display = show ? '' : 'none';
+            }
+        });
+        els.resultFilterWrap.style.display = 'flex';
+        els.resultFilterWrap.querySelectorAll('.bench-filter-btn').forEach(btn => {
+            const f = btn.dataset.filter;
+            btn.classList.toggle('active', f === activeFilter);
+            btn.style.borderColor = f === activeFilter ? 'var(--b-accent, #58a6ff)' : '';
+            if (f === 'all') btn.textContent = `All (${entries.length})`;
+            else if (f === 'completed') btn.textContent = `Completed (${completed})`;
+            else if (f === 'failed') btn.textContent = `Failed (${failed})`;
+        });
+    }
+
+    function _formatRunProvider(r) {
+        if (r.provider) return r.provider;
+        if (r.api_base) {
+            try { return new URL(r.api_base).host; } catch (_) { return r.api_base; }
+        }
+        return 'unknown';
+    }
+
     function renderPastRuns() {
         els.historyList.innerHTML = '';
         if (state.pastRuns.length === 0) {
@@ -1135,13 +1187,46 @@ window.BenchmarkApp = (() => {
         state.pastRuns.forEach(r => {
             const item = document.createElement('div');
             item.className = 'bench-history-item';
-            const dateStr = r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : r.run_id;
+            let dateStr = r.run_id;
+            if (r.timestamp) {
+                const d = new Date(r.timestamp);
+                if (!isNaN(d.getTime())) {
+                    dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                        + ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+                }
+            }
+            const prov = _formatRunProvider(r);
+            const total = r.model_count || 0;
+            const ok = typeof r.completed_count === 'number' ? r.completed_count : total;
+            const fail = typeof r.failed_count === 'number' ? r.failed_count : 0;
+            const countBadge = fail > 0
+                ? `<span style="color:var(--b-green,#3fb950);">${ok}/${total} ok</span> · <span style="color:var(--b-red,#f85149);">${fail} fail</span>`
+                : `<span>${total} ${total === 1 ? 'model' : 'models'}</span>`;
+            const locText = r.area || r.scenario || '';
+            const cfg = r.config || {};
+            const tooltipLines = [
+                `Run: ${r.run_id}`,
+                `Character: ${r.character || 'Character'}`,
+                `Provider: ${prov}${r.api_base ? ` (${r.api_base})` : ''}`,
+                locText ? `Location/Scenario: ${locText}` : '',
+                `Results: ${ok}/${total} completed${fail > 0 ? `, ${fail} failed` : ''}`,
+                cfg.temperature !== undefined ? `Temp: ${cfg.temperature}` : '',
+                `Max Tokens: ${cfg.max_tokens ? cfg.max_tokens : 'Auto'}`,
+                cfg.reasoning_effort ? `Reasoning Effort: ${cfg.reasoning_effort}` : '',
+                cfg.reasoning_max_tokens ? `Reasoning Budget: ${cfg.reasoning_max_tokens} tok` : '',
+                cfg.preferred_action ? `Preferred Action: ${cfg.preferred_action}` : '',
+                r.top_model?.model ? `Top Model: ${r.top_model.model} (score ${r.top_model.score})` : '',
+            ].filter(Boolean);
+            item.title = tooltipLines.join('\n');
             item.innerHTML = `
-                <div>
-                    <div class="bench-history-name">${escapeHtml(r.character || 'Character')} (${r.model_count || 0} models)</div>
-                    <div class="bench-history-meta">${escapeHtml(r.run_id)} · ${dateStr}</div>
+                <div style="min-width:0;">
+                    <div class="bench-history-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <span>${escapeHtml(r.character || 'Character')}</span>
+                        <span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(88,166,255,0.14);color:#79c0ff;">${escapeHtml(prov)}</span>
+                    </div>
+                    <div class="bench-history-meta">${dateStr} · ${countBadge}${locText ? ` · ${escapeHtml(locText)}` : ''}</div>
                 </div>
-                <button type="button" class="bench-btn" style="padding:2px 6px;font-size:10px;">Load</button>
+                <button type="button" class="bench-btn" style="padding:2px 6px;font-size:10px;flex-shrink:0;">Load</button>
             `;
             item.querySelector('button').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1913,6 +1998,11 @@ window.BenchmarkApp = (() => {
             temperature: parseFloat(els.temperatureInput.value) || 0.7,
             ...(hardMaxTokens !== null ? { max_tokens: hardMaxTokens } : {}),
             reasoning_effort: els.reasoningEffortSelect?.value || 'default',
+            ...(() => {
+                const rawRm = els.reasoningMaxTokensInput?.value?.trim() || '';
+                const parsedRm = parseInt(rawRm, 10);
+                return (rawRm !== '' && Number.isFinite(parsedRm) && parsedRm > 0) ? { reasoning_max_tokens: parsedRm } : {};
+            })(),
             messages: [
                 { role: 'system', content: state.currentPrompt.system },
                 { role: 'user', content: state.currentPrompt.user },
@@ -2415,6 +2505,7 @@ window.BenchmarkApp = (() => {
     }
 
     function checkEnableDiff() {
+        applyResultFilter();
         const completedModels = Object.keys(state.results);
         if (completedModels.length >= 1 && els.exportJsonBtn) {
             els.exportJsonBtn.style.display = 'inline-flex';
@@ -2607,6 +2698,22 @@ window.BenchmarkApp = (() => {
                     api_base: els.apiBaseInput.value,
                     character: state.selectedChar,
                     scenario: state.worldData?.meta?.name || 'unknown',
+                    area: els.areaSelect?.value || state.worldData?.players?.[state.selectedChar]?.current_area || '',
+                    config: {
+                        temperature: parseFloat(els.temperatureInput?.value) || 0.7,
+                        max_tokens: (() => {
+                            const v = parseInt(els.maxTokensInput?.value || '', 10);
+                            return Number.isFinite(v) && v > 0 ? v : null;
+                        })(),
+                        soft_max_tokens: parseInt(els.softMaxTokensInput?.value || '512', 10) || 512,
+                        reasoning_effort: els.reasoningEffortSelect?.value || 'default',
+                        reasoning_max_tokens: (() => {
+                            const v = parseInt(els.reasoningMaxTokensInput?.value || '', 10);
+                            return Number.isFinite(v) && v > 0 ? v : 0;
+                        })(),
+                        preferred_action: els.preferredActionInput?.value?.trim() || '',
+                        area: els.areaSelect?.value || state.worldData?.players?.[state.selectedChar]?.current_area || '',
+                    },
                     prompt_meta: {
                         system_chars: state.currentPrompt?.system?.length || 0,
                         user_chars: state.currentPrompt?.user?.length || 0,

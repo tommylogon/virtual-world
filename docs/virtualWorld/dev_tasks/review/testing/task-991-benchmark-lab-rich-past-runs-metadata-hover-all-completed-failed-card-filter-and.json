@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-991",
+  "kind": "task",
+  "number": 991,
+  "title": "Benchmark Lab: rich Past Runs metadata/hover, All/Completed/Failed card filter, and pytest run isolation",
+  "status": "todo",
+  "priority": "medium",
+  "area": "testing",
+  "tags": [
+    "benchmark",
+    "ui",
+    "ux",
+    "filtering"
+  ],
+  "created": "2026-11-20",
+  "updated": "2026-11-20",
+  "horizon": "now",
+  "effort": "s",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-934",
+      "task-989"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Upgrade /bench Past Benchmark Runs with full run metadata (date + time, provider, area, pass/fail counts) and hover config details, add an All/Completed/Failed filter to the results toolbar, and isolate pytest benchmark runs from data/model_bench/runs/.",
+    "why": "Past Benchmark Runs currently only shows character, model count, run_id, and time-of-day (plus leaked pytest fixtures like test_run_123), making it hard to tell runs apart, and large 20-60 model sweeps need a quick filter to isolate failed or completed cards.",
+    "how": "1. Extend GET /api/bench/runs in routes/benchmark.py to return date/time, provider host/profile, area/scenario, completed/failed counts, config snapshot, and top model summary.\\n2. Upgrade Past Benchmark Runs rendering in static/js/benchmark/benchmark.js with richer row metadata and hover tooltip/popover details.\\n3. Add an All / Completed / Failed status filter control with live counts to the results toolbar in templates/benchmark.html and benchmark.js.\\n4. Patch tests/test_benchmark_routes.py to isolate BENCH_DIR/RUNS_DIR into tmp_path and remove leaked test_run_123 / test_rate_run_999 files.",
+    "verify": "1. Run python -m pytest tests/test_benchmark_routes.py -q.\\n2. Verify /bench Past Runs metadata, hover tooltip, and All/Completed/Failed filter live in browser.",
+    "acceptance": [
+      {
+        "text": "Past Benchmark Runs list displays character, date + time, provider/host badge, completed/failed counts (e.g. 58/63 ok), and scenario/area name, with a hover tooltip/popover showing full run config (temperature, max_tokens, reasoning_effort, reasoning_max_tokens, preferred_action, top-scoring model)",
+        "done": false
+      },
+      {
+        "text": "Benchmark Lab results toolbar includes a live status filter (All / Completed / Failed) with counts to filter rendered model cards in place",
+        "done": false
+      },
+      {
+        "text": "tests/test_benchmark_routes.py isolates run storage in tmp_path so pytest never leaks test_run_* files into data/model_bench/runs/, and existing stray test run files are removed",
+        "done": false
+      },
+      {
+        "text": "Zero em-dashes and pytest tests/test_benchmark_routes.py passes",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/benchmark.py",
+      "templates/benchmark.html",
+      "static/js/benchmark/benchmark.js",
+      "tests/test_benchmark_routes.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: /bench (Past Benchmark Runs sidebar list and results toolbar beside Export JSON / Diff Compare).\\n\\nCurrent availability: Past Benchmark Runs only shows character, model count, run_id, and time; results grid has no All/Completed/Failed filter.\\n\\nLive verification steps:\\n1. Open /bench and inspect Past Benchmark Runs.\\n   - expected: Each row shows character, date + time, provider badge, pass/fail count, and area; hovering shows full config details.\\n2. Load a run with mixed completed and failed models and toggle All / Completed / Failed in the results toolbar.\\n   - expected: Card grid filters cleanly to matching cards with accurate counts."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Developer Tooling]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

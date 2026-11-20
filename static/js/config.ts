@@ -70,6 +70,7 @@ const CONFIG_SCHEMA: Record<string, ConfigFieldDef> = {
     visionEnabled: { storageKey: 'vision_enabled', type: 'boolean', default: false },
     thinking: { storageKey: 'thinking', type: 'boolean', default: false },
     thinkingEffort: { storageKey: 'thinking_effort', type: 'string', default: 'high' },
+    reasoningMaxTokens: { storageKey: 'reasoning_max_tokens', type: 'number', default: 0, min: 0, max: 1048576, integer: true },
     suppressLocalThinking: { storageKey: 'suppress_local_thinking', type: 'boolean', default: true },
     apiFormat: { storageKey: 'api_format', type: 'string', default: 'auto' },
     rpmLimit: { storageKey: 'rpm_limit', type: 'number', default: 0, min: 0, integer: true },
@@ -142,6 +143,7 @@ class ConfigManagerImpl {
     declare interpreterApiFormat: string;
     declare thinking: boolean;
     declare thinkingEffort: string;
+    declare reasoningMaxTokens: number;
     declare suppressLocalThinking: boolean;
     declare visionEnabled: boolean;
 
@@ -653,6 +655,7 @@ class ConfigManagerImpl {
             showLogs: this.showLogs,
             thinking: this.thinking,
             thinkingEffort: this.thinkingEffort,
+            reasoningMaxTokens: this.reasoningMaxTokens,
             suppressLocalThinking: this.suppressLocalThinking,
             visionEnabled: Boolean(this.visionEnabled),
             apiFormat: this.apiFormat

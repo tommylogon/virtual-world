@@ -639,6 +639,10 @@
                                                 <option value="max">Max</option>
                                             </select>
                                         </div>
+                                        <div class="settings-field" style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                                            <label for="hub-reasoning-max-tokens" style="width:110px;font-size:11px;" title="Optional numeric cap on reasoning/thinking tokens (0 = Auto / provider default). Sent when supported by provider.">Reasoning Budget</label>
+                                            <input type="number" id="hub-reasoning-max-tokens" data-config="reasoningMaxTokens" min="0" max="1048576" step="256" value="0" placeholder="0 (Auto)" style="flex:1;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+                                        </div>
                                         <div class="toggle-row" style="margin-top:4px;">
                                             <label class="toggle-label" title="Send reasoning: 'off' to bypass reasoning overhead on local models like Qwen">
                                                 <input type="checkbox" id="hub-suppress-thinking" data-config="suppressLocalThinking"> Bypass Local Reasoning (LM Studio)

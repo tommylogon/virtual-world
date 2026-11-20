@@ -28,6 +28,11 @@ test('CONFIG_SCHEMA: coerce preserves 0 and false and defaults blank or NaN', as
     assertEq(inst.coerce('softMaxTokens', 0), 0, 'explicit 0 preserved for softMaxTokens');
     assertEq(inst.coerce('softMaxTokens', -10), 0, 'negative clamped to 0 for softMaxTokens');
 
+    assertEq(inst.coerce('reasoningMaxTokens', ''), 0, 'blank string defaults to 0 (Auto) for reasoningMaxTokens');
+    assertEq(inst.coerce('reasoningMaxTokens', 0), 0, 'explicit 0 preserved for reasoningMaxTokens');
+    assertEq(inst.coerce('reasoningMaxTokens', -100), 0, 'negative clamped to 0 for reasoningMaxTokens');
+    assertEq(inst.coerce('reasoningMaxTokens', '4096'), 4096, 'positive integer parsed for reasoningMaxTokens');
+
     assertEq(inst.coerce('graphGravitationalConstant', -40), -40, 'negative repulsion preserved');
     assertEq(inst.coerce('graphRepelPull', 0), 0, '0 pull preserved');
     assertEq(inst.coerce('graphRepelPull', ''), 0.12, 'empty pull defaults to 0.12');

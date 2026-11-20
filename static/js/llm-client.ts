@@ -75,6 +75,7 @@ interface LLMConfigOptions {
     showLogs?: boolean;
     thinking?: boolean;
     thinkingEffort?: string;
+    reasoningMaxTokens?: number;
     suppressLocalThinking?: boolean;
     apiFormat?: string;
     visionEnabled?: boolean;
@@ -98,6 +99,7 @@ class LLMClient {
     declare private showLogs: boolean;
     declare private thinking: boolean;
     declare private thinkingEffort: string;
+    declare private reasoningMaxTokens: number;
     declare private suppressLocalThinking: boolean;
     declare private apiFormat: string;
     declare private visionEnabled: boolean;
@@ -123,6 +125,7 @@ class LLMClient {
         this.showLogs = false;
         this.thinking = false;
         this.thinkingEffort = 'high';
+        this.reasoningMaxTokens = 0;
         this.suppressLocalThinking = false;
         // API format: auto | chat-completions | responses.
         // auto currently routes to chat-completions (safest); manual opt-in to responses required.
@@ -169,6 +172,10 @@ class LLMClient {
         this.showLogs = config.showLogs !== undefined ? config.showLogs : this.showLogs;
         this.thinking = config.thinking !== undefined ? config.thinking : this.thinking;
         this.thinkingEffort = config.thinkingEffort || this.thinkingEffort;
+        if (config.reasoningMaxTokens !== undefined) {
+            const parsedBudget = Number(config.reasoningMaxTokens);
+            this.reasoningMaxTokens = Number.isFinite(parsedBudget) && parsedBudget > 0 ? Math.trunc(parsedBudget) : 0;
+        }
         this.suppressLocalThinking = config.suppressLocalThinking !== undefined ? config.suppressLocalThinking : this.suppressLocalThinking;
         this.apiFormat = config.apiFormat || this.apiFormat;
         if (config.visionEnabled !== undefined) this.visionEnabled = Boolean(config.visionEnabled);
@@ -435,17 +442,29 @@ class LLMClient {
                             if (!this._reasoningUnsupported) {
                                 if (!thinkingOff) {
                                     const phaseEffort = options.reasoningEffort || (options.label === 'plan' ? 'low' : (this.thinkingEffort || 'medium'));
-                                    if (supportsReasoningEffort) {
-                                        body.reasoning_effort = phaseEffort;
-                                    }
-                                    if (isLocal || isDeepSeek) {
-                                        body.extra_body = { thinking: { type: 'enabled' } };
-                                    }
-                                    if (isOpenRouter || isLocal) {
-                                        body.reasoning = {
-                                            effort: phaseEffort,
-                                            max_tokens: options.reasoningMaxTokens || (options.label === 'plan' ? 1024 : 2048)
-                                        };
+                                    const rawBudget = options.reasoningMaxTokens !== undefined
+                                        ? Number(options.reasoningMaxTokens)
+                                        : Number(this.reasoningMaxTokens || 0);
+                                    const effectiveBudget = Number.isFinite(rawBudget) && rawBudget > 0 ? Math.trunc(rawBudget) : 0;
+                                    if (effectiveBudget > 0) {
+                                        if (isOpenRouter || isLocal) {
+                                            body.reasoning = { max_tokens: effectiveBudget };
+                                        } else if (supportsReasoningEffort) {
+                                            body.reasoning_effort = phaseEffort;
+                                        }
+                                        if (isLocal || isDeepSeek) {
+                                            body.extra_body = { thinking: { type: 'enabled', budget_tokens: effectiveBudget } };
+                                        }
+                                    } else {
+                                        if (supportsReasoningEffort) {
+                                            body.reasoning_effort = phaseEffort;
+                                        }
+                                        if (isLocal || isDeepSeek) {
+                                            body.extra_body = { thinking: { type: 'enabled' } };
+                                        }
+                                        if (isOpenRouter || isLocal) {
+                                            body.reasoning = { effort: phaseEffort };
+                                        }
                                     }
                                 } else {
                                     if (isLocal || isDeepSeek) {

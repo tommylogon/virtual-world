@@ -154,9 +154,15 @@
                     </select>
                 </div>
             </div>
-            <div class="bench-field">
-                <label for="bench-context-length">Context Length (LM Studio)</label>
-                <input type="number" id="bench-context-length" class="bench-input" value="10240" step="1024" min="2048" max="1048576" placeholder="10240 (or blank for default)">
+            <div class="bench-grid-2">
+                <div class="bench-field">
+                    <label for="bench-reasoning-max-tokens" title="Optional numeric reasoning/thinking token budget (0 or blank = Auto / provider default).">Reasoning Budget</label>
+                    <input type="number" id="bench-reasoning-max-tokens" class="bench-input" value="" step="256" min="0" max="1048576" placeholder="0 (Auto)">
+                </div>
+                <div class="bench-field">
+                    <label for="bench-context-length">Context Length (LM Studio)</label>
+                    <input type="number" id="bench-context-length" class="bench-input" value="10240" step="1024" min="2048" max="1048576" placeholder="10240 (or blank for default)">
+                </div>
             </div>
             <div class="bench-prompt-summary" id="bench-prompt-summary">
                 Prompt not assembled.
@@ -192,6 +198,11 @@
             <span id="bench-status-badge" class="bench-status-badge bench-status-idle">Idle</span>
             <span id="bench-status-text" style="color:var(--b-text);font-size:12px;">Select models and click Run Benchmark to compare.</span>
             <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+                <div id="bench-result-filter" style="display:none;gap:4px;align-items:center;" title="Filter result cards by status">
+                    <button type="button" class="bench-btn bench-filter-btn active" data-filter="all" style="padding:3px 8px;font-size:11px;">All (0)</button>
+                    <button type="button" class="bench-btn bench-filter-btn" data-filter="completed" style="padding:3px 8px;font-size:11px;">Completed (0)</button>
+                    <button type="button" class="bench-btn bench-filter-btn" data-filter="failed" style="padding:3px 8px;font-size:11px;">Failed (0)</button>
+                </div>
                 <button type="button" id="bench-export-json" class="bench-btn" style="display:none;" title="Export benchmark results to JSON file">📥 Export JSON</button>
                 <button type="button" id="bench-open-diff" class="bench-btn" style="display:none;" title="Compare prose diff between two models">⚖️ Diff Compare</button>
             </div>

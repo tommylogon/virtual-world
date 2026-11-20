@@ -76,6 +76,7 @@ const SettingsView = (() => {
         'interpreter-api-format': 'interpreterApiFormat',
         'hub-thinking': 'thinking',
         'hub-thinking-effort': 'thinkingEffort',
+        'hub-reasoning-max-tokens': 'reasoningMaxTokens',
         'hub-suppress-thinking': 'suppressLocalThinking',
         'hub-top-p': 'topP',
         'agent-api-format': 'apiFormat',

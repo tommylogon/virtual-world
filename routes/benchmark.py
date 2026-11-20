@@ -518,24 +518,39 @@ def register_benchmark_routes(app):
         if max_tokens is not None:
             req_payload['max_tokens'] = max_tokens
         reasoning_effort = data.get('reasoning_effort')
+        raw_reasoning_max = data.get('reasoning_max_tokens')
+        reasoning_max_tokens = None
+        if raw_reasoning_max is not None and str(raw_reasoning_max).strip() != '':
+            try:
+                parsed_rm = int(raw_reasoning_max)
+                if parsed_rm > 0:
+                    reasoning_max_tokens = parsed_rm
+            except (TypeError, ValueError):
+                pass
         is_openrouter = 'openrouter.ai' in api_base
         is_local = 'localhost' in api_base or '127.0.0.1' in api_base
         is_deepseek = 'deepseek.com' in api_base
         supports_reasoning_effort = is_openrouter or is_local or is_deepseek or 'generativelanguage.googleapis.com' in api_base or 'api.openai.com' in api_base
-        if reasoning_effort and reasoning_effort != 'default':
-            if reasoning_effort == 'none':
-                if is_local or is_deepseek:
-                    req_payload['extra_body'] = {'thinking': {'type': 'disabled'}}
-                    req_payload['enable_thinking'] = False
-                if is_openrouter or is_local:
-                    req_payload['reasoning'] = {'exclude': True}
-            else:
-                if supports_reasoning_effort:
-                    req_payload['reasoning_effort'] = reasoning_effort
-                if is_local or is_deepseek:
-                    req_payload['extra_body'] = {'thinking': {'type': 'enabled'}}
-                if is_openrouter or is_local:
-                    req_payload['reasoning'] = {'effort': reasoning_effort}
+        if reasoning_effort == 'none':
+            if is_local or is_deepseek:
+                req_payload['extra_body'] = {'thinking': {'type': 'disabled'}}
+                req_payload['enable_thinking'] = False
+            if is_openrouter or is_local:
+                req_payload['reasoning'] = {'exclude': True}
+        elif reasoning_max_tokens is not None:
+            if is_openrouter or is_local:
+                req_payload['reasoning'] = {'max_tokens': reasoning_max_tokens}
+            elif supports_reasoning_effort and reasoning_effort and reasoning_effort != 'default':
+                req_payload['reasoning_effort'] = reasoning_effort
+            if is_local or is_deepseek:
+                req_payload['extra_body'] = {'thinking': {'type': 'enabled', 'budget_tokens': reasoning_max_tokens}}
+        elif reasoning_effort and reasoning_effort != 'default':
+            if supports_reasoning_effort:
+                req_payload['reasoning_effort'] = reasoning_effort
+            if is_local or is_deepseek:
+                req_payload['extra_body'] = {'thinking': {'type': 'enabled'}}
+            if is_openrouter or is_local:
+                req_payload['reasoning'] = {'effort': reasoning_effort}
 
         if stream:
             req_payload['stream_options'] = {'include_usage': True}
@@ -637,7 +652,7 @@ def register_benchmark_routes(app):
 
     @app.route('/api/bench/runs', methods=['GET'])
     def list_bench_runs():
-        """List previously saved benchmark runs."""
+        """List previously saved benchmark runs with rich summary metadata."""
         RUNS_DIR.mkdir(parents=True, exist_ok=True)
         runs = []
         for file in sorted(RUNS_DIR.glob('*.jsonl'), reverse=True):
@@ -646,13 +661,37 @@ def register_benchmark_routes(app):
                     first_line = f.readline()
                     if first_line:
                         rec = json.loads(first_line)
+                        results = rec.get('results') or []
+                        completed_count = 0
+                        failed_count = 0
+                        top_model = None
+                        top_score = -1
+                        for r in results:
+                            if not isinstance(r, dict):
+                                continue
+                            has_err = bool(r.get('error')) or r.get('status') in ('error', 'failed')
+                            if has_err:
+                                failed_count += 1
+                            else:
+                                completed_count += 1
+                                sc = r.get('score')
+                                if isinstance(sc, (int, float)) and sc > top_score:
+                                    top_score = sc
+                                    top_model = {'model': r.get('model'), 'score': sc}
+                        cfg = rec.get('config') if isinstance(rec.get('config'), dict) else {}
                         runs.append({
                             'run_id': rec.get('run_id', file.stem),
                             'timestamp': rec.get('timestamp'),
                             'character': rec.get('character'),
                             'scenario': rec.get('scenario'),
+                            'area': cfg.get('area') or rec.get('area'),
                             'provider': rec.get('provider'),
-                            'model_count': len(rec.get('results', [])),
+                            'api_base': rec.get('api_base'),
+                            'model_count': len(results),
+                            'completed_count': completed_count,
+                            'failed_count': failed_count,
+                            'config': cfg,
+                            'top_model': top_model,
                         })
             except Exception:
                 pass
@@ -673,6 +712,8 @@ def register_benchmark_routes(app):
             'api_base': payload.get('api_base'),
             'character': payload.get('character'),
             'scenario': payload.get('scenario'),
+            'area': payload.get('area'),
+            'config': payload.get('config', {}),
             'prompt_meta': payload.get('prompt_meta', {}),
             'results': payload.get('results', []),
         }
