@@ -104,6 +104,15 @@
                     <option value="e2e">End-to-End (Prose -> Dedicated Interpreter)</option>
                 </select>
             </div>
+            <div class="bench-field" id="bench-e2e-interpreter-wrap" style="display:none;">
+                <label for="bench-e2e-interpreter" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>E2E Interpreter Model</span>
+                    <a href="/?open=settings" style="font-size:10px;color:var(--b-accent);text-decoration:none;text-transform:none;letter-spacing:0;" title="Configure cross-provider interpreter in Settings -> Model Hub">Model Hub ↗</a>
+                </label>
+                <select id="bench-e2e-interpreter" class="bench-select">
+                    <option value="">Use Settings Interpreter (Auto)</option>
+                </select>
+            </div>
             <div class="bench-field" id="bench-prose-wrap" style="display:none;">
                 <label for="bench-prose-input">Sample Character Prose (for Interpreter)</label>
                 <textarea id="bench-prose-input" class="bench-input" rows="3" placeholder="e.g. I shift uncomfortably, glance down the hall, and head east toward the main entrance..."></textarea>

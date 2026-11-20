@@ -125,6 +125,36 @@ window.BenchmarkApp = (() => {
         els.sceneTruthTitle = document.getElementById('bench-scene-truth-title');
         els.sceneTruthBody = document.getElementById('bench-scene-truth-body');
         els.sceneClearHl = document.getElementById('bench-scene-clear-hl');
+        els.e2eInterpreterWrap = document.getElementById('bench-e2e-interpreter-wrap');
+        els.e2eInterpreterSelect = document.getElementById('bench-e2e-interpreter');
+    }
+
+    function populateE2EInterpreterSelect() {
+        const sel = els.e2eInterpreterSelect;
+        if (!sel) return;
+        const prev = sel.value;
+        const hasDedicated = !!(window.config?.interpreterModelEnabled && window.config?.interpreterModel);
+        const defaultLabel = hasDedicated
+            ? `Settings Interpreter (${window.config.interpreterModel})`
+            : 'Same as Candidate Model (Settings off)';
+        sel.innerHTML = '';
+        const defOpt = document.createElement('option');
+        defOpt.value = '';
+        defOpt.textContent = defaultLabel;
+        sel.appendChild(defOpt);
+        const seen = new Set();
+        (state.models || []).forEach(m => {
+            const id = typeof m === 'string' ? m : (m?.id || '');
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = id;
+            sel.appendChild(opt);
+        });
+        if (prev && seen.has(prev)) {
+            sel.value = prev;
+        }
     }
 
     async function loadProfiles() {
@@ -331,6 +361,10 @@ window.BenchmarkApp = (() => {
                 const mode = els.modeSelect.value || 'direct';
                 if (els.proseWrap) {
                     els.proseWrap.style.display = mode === 'interpreter' ? '' : 'none';
+                }
+                if (els.e2eInterpreterWrap) {
+                    els.e2eInterpreterWrap.style.display = mode === 'e2e' ? '' : 'none';
+                    if (mode === 'e2e') populateE2EInterpreterSelect();
                 }
                 if (mode === 'interpreter' && els.proseInput && !els.proseInput.value.trim()) {
                     const evalArea = state.selectedArea || state.worldData?.players?.[state.selectedChar]?.current_area || 'here';
@@ -741,6 +775,7 @@ window.BenchmarkApp = (() => {
             state.models = data.models || [];
             if (els.selectAllModels) els.selectAllModels.checked = false;
             renderModelList();
+            populateE2EInterpreterSelect();
         } catch (e) {
             els.modelList.innerHTML = `<div style="color:var(--b-red);padding:6px;">Network error: ${e.message}</div>`;
         }
@@ -2149,10 +2184,11 @@ window.BenchmarkApp = (() => {
                         charName: state.selectedChar,
                         context: state.interpreterContext || undefined,
                     });
-                    const useDedicated = !!(window.config?.interpreterModelEnabled && window.config?.interpreterModel);
+                    const overrideModel = els.e2eInterpreterSelect?.value?.trim() || '';
+                    const useDedicated = !overrideModel && !!(window.config?.interpreterModelEnabled && window.config?.interpreterModel);
                     const interpBase = useDedicated ? window.config.interpreterApiBase : els.apiBaseInput.value.trim();
                     const interpKey = useDedicated ? (window.config.interpreterApiKey || els.apiKeyInput.value.trim()) : els.apiKeyInput.value.trim();
-                    const interpModel = useDedicated ? window.config.interpreterModel : model;
+                    const interpModel = overrideModel || (useDedicated ? window.config.interpreterModel : model);
                     const interpResp = await fetch('/api/bench/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -2712,6 +2748,11 @@ window.BenchmarkApp = (() => {
                             return Number.isFinite(v) && v > 0 ? v : 0;
                         })(),
                         preferred_action: els.preferredActionInput?.value?.trim() || '',
+                        mode: els.modeSelect?.value || 'direct',
+                        e2e_interpreter: (els.modeSelect?.value === 'e2e')
+                            ? (els.e2eInterpreterSelect?.value?.trim()
+                                || (window.config?.interpreterModelEnabled && window.config?.interpreterModel ? window.config.interpreterModel : 'candidate'))
+                            : '',
                         area: els.areaSelect?.value || state.worldData?.players?.[state.selectedChar]?.current_area || '',
                     },
                     prompt_meta: {
