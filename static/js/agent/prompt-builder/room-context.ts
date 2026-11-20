@@ -477,18 +477,29 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         };
         const itemWeight = (roomItem: ItemNode): number => parseFloat(String(roomItem.properties?.weight)) || 0;
         const ATTENTION_MAX = 15;
-        // Build the attention list from unexamined, non-hidden items.
+        // Build the attention list from unexamined, non-hidden items, plus a
+        // compact name+[actions] line for already-examined items still in the
+        // room so the character never loses track of interactable objects.
         const buildAttention = (roomItems: ItemNode[], withDescriptions: boolean): string => {
             const unexamined = roomItems.filter((roomItem: ItemNode) => !isItemSeen(roomItem));
-            if (unexamined.length === 0) return '';
+            const examined = roomItems.filter((roomItem: ItemNode) => isItemSeen(roomItem));
+            if (unexamined.length === 0 && examined.length === 0) return '';
             const byAttention = (a: ItemNode, b: ItemNode) => attentionScore(b) - attentionScore(a) || itemWeight(b) - itemWeight(a);
-            const attention = [...unexamined].sort(byAttention).slice(0, ATTENTION_MAX);
-            const listLines = fmtItems(attention, withDescriptions);
-            const hasMore = unexamined.length > attention.length;
-            const trailer = hasMore
-                ? 'There are more items around that you can look for.'
-                : 'and nothing else catches your attention right now.';
-            return `${listLines}\n${trailer}`;
+            const parts: string[] = [];
+            if (unexamined.length > 0) {
+                const attention = [...unexamined].sort(byAttention).slice(0, ATTENTION_MAX);
+                const listLines = fmtItems(attention, withDescriptions);
+                const hasMore = unexamined.length > attention.length;
+                const trailer = hasMore
+                    ? 'There are more items around that you can look for.'
+                    : 'and nothing else catches your attention right now.';
+                parts.push(`${listLines}\n${trailer}`);
+            }
+            if (examined.length > 0) {
+                const compact = [...examined].sort(byAttention).slice(0, ATTENTION_MAX);
+                parts.push(`Also here (already examined): ${fmtItems(compact, false)}`);
+            }
+            return parts.join('\n');
         };
         if (isBlind) {
             warn = '⚠️ BLIND  -  It is pitch black to you no matter the light. You navigate by sound, smell, and touch. Fumble or search the area to locate things, listen to hear beyond your reach, and moving blind is risky without a cane or a guide.';
