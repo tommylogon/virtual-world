@@ -446,7 +446,11 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         // drop off the attention list entirely  -  their facts live in the
         // investigation notes. Capped at ATTENTION_MAX; no truncation, just a
         // natural trailing line.
-        const interestTags = ((player as Record<string, any>)?.interest_tags || []).map((tag: unknown) => String(tag).toLowerCase().trim()).filter(Boolean);
+        const normTagList = (raw: unknown): string[] =>
+            (Array.isArray(raw) ? raw : []).map((tag: unknown) => String(tag).toLowerCase().trim()).filter(Boolean);
+        const interestTags = normTagList((player as Record<string, any>)?.interest_tags);
+        const fearTags = normTagList((player as Record<string, any>)?.fear_tags);
+        const dislikeTags = normTagList((player as Record<string, any>)?.dislike_tags);
         const memIdx: Record<string, any> = (player as Record<string, any>)?.memory_index || {};
         const memById = new Map<string, any>();
         const knownItemNames = new Set<string>();
@@ -467,11 +471,19 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         };
         const attentionScore = (roomItem: ItemNode): number => {
             const name = String(roomItem.name || '').toLowerCase();
-            const itemTags = (roomItem.properties?.tags || []).map((tag: unknown) => String(tag).toLowerCase().trim());
+            const itemTags = normTagList(roomItem.properties?.tags);
             let score = 0;
+            for (const tag of fearTags) {
+                if (itemTags.includes(tag)) score += 3;
+                else if (name.includes(tag)) score += 2;
+            }
             for (const tag of interestTags) {
                 if (itemTags.includes(tag)) score += 2;
                 else if (name.includes(tag)) score += 1;
+            }
+            for (const tag of dislikeTags) {
+                if (itemTags.includes(tag)) score -= 2;
+                else if (name.includes(tag)) score -= 1;
             }
             return score;
         };

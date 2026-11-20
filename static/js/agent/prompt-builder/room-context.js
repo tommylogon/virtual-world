@@ -462,7 +462,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         // drop off the attention list entirely  -  their facts live in the
         // investigation notes. Capped at ATTENTION_MAX; no truncation, just a
         // natural trailing line.
-        const interestTags = (player?.interest_tags || []).map((tag) => String(tag).toLowerCase().trim()).filter(Boolean);
+        const normTagList = (raw) => (Array.isArray(raw) ? raw : []).map((tag) => String(tag).toLowerCase().trim()).filter(Boolean);
+        const interestTags = normTagList(player?.interest_tags);
+        const fearTags = normTagList(player?.fear_tags);
+        const dislikeTags = normTagList(player?.dislike_tags);
         const memIdx = player?.memory_index || {};
         const memById = new Map();
         const knownItemNames = new Set();
@@ -486,13 +489,25 @@ window.PromptBuilder = window.PromptBuilder || {};
         };
         const attentionScore = (roomItem) => {
             const name = String(roomItem.name || '').toLowerCase();
-            const itemTags = (roomItem.properties?.tags || []).map((tag) => String(tag).toLowerCase().trim());
+            const itemTags = normTagList(roomItem.properties?.tags);
             let score = 0;
+            for (const tag of fearTags) {
+                if (itemTags.includes(tag))
+                    score += 3;
+                else if (name.includes(tag))
+                    score += 2;
+            }
             for (const tag of interestTags) {
                 if (itemTags.includes(tag))
                     score += 2;
                 else if (name.includes(tag))
                     score += 1;
+            }
+            for (const tag of dislikeTags) {
+                if (itemTags.includes(tag))
+                    score -= 2;
+                else if (name.includes(tag))
+                    score -= 1;
             }
             return score;
         };
