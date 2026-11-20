@@ -463,9 +463,13 @@ window.PromptBuilder = window.PromptBuilder || {};
         // investigation notes. Capped at ATTENTION_MAX; no truncation, just a
         // natural trailing line.
         const normTagList = (raw) => (Array.isArray(raw) ? raw : []).map((tag) => String(tag).toLowerCase().trim()).filter(Boolean);
-        const interestTags = normTagList(player?.interest_tags);
-        const fearTags = normTagList(player?.fear_tags);
-        const dislikeTags = normTagList(player?.dislike_tags);
+        const charNode = (player?.id && typeof worldState.getNode === 'function' ? worldState.getNode(player.id) : null)
+            || (typeof worldState.getNodeByIdentifier === 'function' ? worldState.getNodeByIdentifier(charName) : null);
+        const pPers = (charNode?.properties?.persona?.personality || {});
+        const mergeTags = (...lists) => [...new Set(lists.flatMap(normTagList))];
+        const fearTags = mergeTags(player?.fear_tags, pPers.fears, pPers.traumas);
+        const interestTags = mergeTags(player?.interest_tags, pPers.interests, pPers.likes, pPers.turn_ons, pPers.kinks);
+        const dislikeTags = mergeTags(player?.dislike_tags, pPers.dislikes, pPers.turn_offs);
         const memIdx = player?.memory_index || {};
         const memById = new Map();
         const knownItemNames = new Set();

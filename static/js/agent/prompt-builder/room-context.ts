@@ -448,9 +448,13 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         // natural trailing line.
         const normTagList = (raw: unknown): string[] =>
             (Array.isArray(raw) ? raw : []).map((tag: unknown) => String(tag).toLowerCase().trim()).filter(Boolean);
-        const interestTags = normTagList((player as Record<string, any>)?.interest_tags);
-        const fearTags = normTagList((player as Record<string, any>)?.fear_tags);
-        const dislikeTags = normTagList((player as Record<string, any>)?.dislike_tags);
+        const charNode = (player?.id && typeof worldState.getNode === 'function' ? worldState.getNode(player.id) : null)
+            || (typeof worldState.getNodeByIdentifier === 'function' ? worldState.getNodeByIdentifier(charName) : null);
+        const pPers = (charNode?.properties?.persona?.personality || {}) as Record<string, unknown>;
+        const mergeTags = (...lists: unknown[]): string[] => [...new Set(lists.flatMap(normTagList))];
+        const fearTags = mergeTags((player as Record<string, any>)?.fear_tags, pPers.fears, pPers.traumas);
+        const interestTags = mergeTags((player as Record<string, any>)?.interest_tags, pPers.interests, pPers.likes, pPers.turn_ons, pPers.kinks);
+        const dislikeTags = mergeTags((player as Record<string, any>)?.dislike_tags, pPers.dislikes, pPers.turn_offs);
         const memIdx: Record<string, any> = (player as Record<string, any>)?.memory_index || {};
         const memById = new Map<string, any>();
         const knownItemNames = new Set<string>();
