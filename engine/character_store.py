@@ -45,12 +45,17 @@ def to_node_properties(player: Player, existing_props: Optional[Dict[str, Any]] 
         props["domains"] = normalize_domains(player.domains)
     if getattr(player, "tags", None) is not None:
         props["tags"] = list(player.tags)
-    if getattr(player, "interest_tags", None):
-        props["interest_tags"] = list(player.interest_tags)
-    if getattr(player, "fear_tags", None):
-        props["fear_tags"] = list(player.fear_tags)
-    if getattr(player, "dislike_tags", None):
-        props["dislike_tags"] = list(player.dislike_tags)
+    # task-993: persona.personality is the single persisted home for
+    # interests / fears / dislikes. Write there and strip legacy top-level keys.
+    for _attr, _pkey in (("interest_tags", "interests"), ("fear_tags", "fears"), ("dislike_tags", "dislikes")):
+        _val = getattr(player, _attr, None)
+        if _val:
+            _persona = dict(props.get("persona") or {})
+            _pers = dict(_persona.get("personality") or {})
+            _pers[_pkey] = list(_val)
+            _persona["personality"] = _pers
+            props["persona"] = _persona
+        props.pop(_attr, None)
     if getattr(player, "flags", None):
         props["flags"] = dict(player.flags)
     if getattr(player, "appearance", None):
@@ -104,20 +109,16 @@ def apply_node_properties(
         player.tags = list(pdata["tags"])
         player.sync_vitals_with_tags()
 
-    if props.get("interest_tags") is not None:
-        player.interest_tags = list(props["interest_tags"])
-    elif pdata.get("interest_tags") is not None:
-        player.interest_tags = list(pdata["interest_tags"])
-
-    if props.get("fear_tags") is not None:
-        player.fear_tags = list(props["fear_tags"])
-    elif pdata.get("fear_tags") is not None:
-        player.fear_tags = list(pdata["fear_tags"])
-
-    if props.get("dislike_tags") is not None:
-        player.dislike_tags = list(props["dislike_tags"])
-    elif pdata.get("dislike_tags") is not None:
-        player.dislike_tags = list(pdata["dislike_tags"])
+    # task-993: persona.personality is the single source of truth for
+    # interests / fears / dislikes; fall back to legacy *_tags for old saves.
+    persona_pers = (props.get("persona") or {}).get("personality") or {}
+    for _attr, _pkey in (("interest_tags", "interests"), ("fear_tags", "fears"), ("dislike_tags", "dislikes")):
+        if persona_pers.get(_pkey) is not None:
+            setattr(player, _attr, list(persona_pers[_pkey]))
+        elif props.get(_attr) is not None:
+            setattr(player, _attr, list(props[_attr]))
+        elif pdata.get(_attr) is not None:
+            setattr(player, _attr, list(pdata[_attr]))
 
     if props.get("flags") is not None:
         player.flags = dict(props["flags"])

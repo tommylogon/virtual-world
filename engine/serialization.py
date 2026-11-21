@@ -972,6 +972,10 @@ class WorldSerializer:
             pdata.pop("languages", None)
             pdata.pop("domains", None)
             pdata.pop("knowledge_records", None)
+            # task-993: interests / fears / dislikes live on node.properties.persona.personality
+            pdata.pop("interest_tags", None)
+            pdata.pop("fear_tags", None)
+            pdata.pop("dislike_tags", None)
             # task-654: worn gear is authoritative on the EDGE_EQUIPPED edges
             # (each edge carries its slot). The live payload publishes the map
             # for the UI; a saved file must not carry a second copy of it in

@@ -34,8 +34,10 @@ def test_to_node_properties_extracts_authored_definition():
     assert props["description"] == "A tall scout wearing a dark hooded cloak."
     assert props["traits"] == {"stealthy": {"level": 2}, "keen_eye": {"level": 1}}
     assert props["tags"] == ["scout", "agile", "alert"]
-    assert props["interest_tags"] == ["tracks", "weather"]
-    assert props["fear_tags"] == ["fire"]
+    assert props["persona"]["personality"]["interests"] == ["tracks", "weather"]
+    assert props["persona"]["personality"]["fears"] == ["fire"]
+    assert "interest_tags" not in props
+    assert "fear_tags" not in props
     assert props["flags"] == {"met_elder": True}
     assert props["triggers"] == [{"trigger_type": "on_examine", "effects": []}]
 

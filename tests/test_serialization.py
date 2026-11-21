@@ -202,7 +202,12 @@ def test_player_interest_tags_survive_save_load_roundtrip():
     world.player_manager.get_player(pname).interest_tags = ['magic', 'documents']
 
     data = world.to_scenario_dict()
-    assert data["players"][pname]["interest_tags"] == ["magic", "documents"]
+    assert "interest_tags" not in data["players"][pname]
+    char_node = next(
+        n for n in data["graph"]["nodes"].values()
+        if n.get("type") == "character" and n.get("name") == pname
+    )
+    assert char_node["properties"]["persona"]["personality"]["interests"] == ["magic", "documents"]
 
     world2 = VirtualWorld()
     world2.load_from_dict(data)

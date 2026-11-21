@@ -511,7 +511,12 @@ class TestRoutes:
         return create_app({"TESTING": True}).test_client()
 
     def test_get_reports_prose_only(self):
-        response = self._client().get("/api/players/Lyrie/record")
+        app = create_app({"TESTING": True})
+        # Clear any migrated persona on Lyrie to test a truly prose-only character
+        for n in app.world.graph.nodes.values():
+            if n.type == "character" and n.name == "Lyrie":
+                n.properties.pop("persona", None)
+        response = app.test_client().get("/api/players/Lyrie/record")
         assert response.status_code == 200
         body = response.get_json()
         assert body["structured"] is False
@@ -797,13 +802,14 @@ class TestCompileRoutes:
 
     def test_compile_dry_run_compiles_without_storing(self):
         client = self._client()
+        before = client.get("/api/players/Lyrie/record").get_json()["record"]
         body = client.post("/api/players/Lyrie/record/compile",
                            json={"record": RICH}).get_json()
         assert "mid-thirties" in body["compiled"]["base_description"]
         assert "smithing" in body["compiled"]["interest_tags"]
         assert body.get("applied") is not True
         assert client.get("/api/players/Lyrie/record").get_json() \
-            ["record"] == {}
+            ["record"] == before
 
     def test_compile_dry_run_rejects_bad_fields(self):
         client = self._client()

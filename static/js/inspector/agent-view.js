@@ -1155,24 +1155,31 @@ window.InspectorAgentView = (() => {
             </div>
 
             <div class="inspector-section" id="sec-tags-knowledge">
-                <h3>🎯 Interest &amp; Fear Tags</h3>
+                <h3>🎯 Persona Interest, Fear &amp; Dislike Tags</h3>
                 <div style="display:flex;flex-direction:column;gap:6px;">
+                    ${(() => {
+            const _cn = worldState.getNode(player.id || `char_${agentName.toLowerCase().replace(/\s+/g, '_')}`);
+            const _pp = (_cn?.properties?.persona?.personality || {});
+            const _interests = Array.isArray(_pp.interests) ? _pp.interests : (player.interest_tags || []);
+            const _fears = Array.isArray(_pp.fears) ? _pp.fears : (player.fear_tags || []);
+            const _dislikes = Array.isArray(_pp.dislikes) ? _pp.dislikes : (player.dislike_tags || []);
+            const _chips = (arr, bg, col = '') => arr.length > 0
+                ? arr.map((t) => `<span class="chip on" style="font-size:10px;padding:1px 6px;background:${bg};border:1px solid var(--border);border-radius:3px;${col}">${t}</span>`).join('')
+                : '<span style="font-size:10px;color:var(--text-muted);">none</span>';
+            return `
                     <div>
                         <span style="font-size:10px;font-weight:600;color:var(--text-muted);">INTERESTS:</span>
-                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">
-                            ${(player.interest_tags && player.interest_tags.length > 0)
-            ? player.interest_tags.map((t) => `<span class="chip on" style="font-size:10px;padding:1px 6px;background:rgba(88,166,255,0.15);border:1px solid var(--border);border-radius:3px;">${t}</span>`).join('')
-            : '<span style="font-size:10px;color:var(--text-muted);">none</span>'}
-                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${_chips(_interests, 'rgba(88,166,255,0.15)')}</div>
                     </div>
                     <div>
                         <span style="font-size:10px;font-weight:600;color:var(--text-muted);">FEARS:</span>
-                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">
-                            ${(player.fear_tags && player.fear_tags.length > 0)
-            ? player.fear_tags.map((t) => `<span class="chip on" style="font-size:10px;padding:1px 6px;background:rgba(248,81,73,0.15);border:1px solid var(--border);border-radius:3px;color:#f85149;">${t}</span>`).join('')
-            : '<span style="font-size:10px;color:var(--text-muted);">none</span>'}
-                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${_chips(_fears, 'rgba(248,81,73,0.15)', 'color:#f85149;')}</div>
                     </div>
+                    <div>
+                        <span style="font-size:10px;font-weight:600;color:var(--text-muted);">DISLIKES:</span>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${_chips(_dislikes, 'rgba(139,148,158,0.15)', 'color:var(--text-muted);')}</div>
+                    </div>`;
+        })()}
                 </div>
             </div>
 

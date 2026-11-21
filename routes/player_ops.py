@@ -678,6 +678,8 @@ def handle_update_player(app, name):
         player.interest_tags = data["interest_tags"]
     if "fear_tags" in data:
         player.fear_tags = data["fear_tags"]
+    if "dislike_tags" in data:
+        player.dislike_tags = data["dislike_tags"]
     # task-654: an `equipped` payload is written through the equipment system so
     # the graph edges are updated with the dict. Assigning `player.equipped`
     # directly left the item visible in the inspector and inert in combat, because
@@ -1097,6 +1099,9 @@ def _apply_compiled(player, compiled, node=None, sections=None) -> None:
     if apply_tags:
         player.interest_tags = list(compiled.get("interest_tags") or [])
         player.fear_tags = list(compiled.get("fear_tags") or [])
+        _pers_dislikes = ((node.properties.get("persona") or {}).get("personality") or {}).get("dislikes")
+        if _pers_dislikes is not None:
+            player.dislike_tags = list(_pers_dislikes)
     if apply_traits and compiled.get("traits"):
         current_traits = dict(getattr(player, "traits", None) or {})
         for t in compiled["traits"]:
