@@ -36,11 +36,11 @@
   "sections": {
     "what": "Expose a runtime conceal <item> character action to tuck portable items out of plain sight until frisked, searched, or drawn, closing the authoring-only gap noted in engine/items/transfer_actions.py:252.",
     "why": "engine/equipment.py (lines 260-263, 616-653) and engine/items/transfer_actions.py (lines 180-186, 247-305) already conceal items from casual view, auto-reveal on equip, and reveal on frisk/search. Yet transfer_actions.py:252 notes 'concealing it again is an authoring action' because characters lack any runtime conceal verb.",
-    "how": "1. Add conceal_item(world, actor_name, item_name) in engine/items/transfer_actions.py (or equipment.py): validate size/weight fit against worn concealing garment/container capacity, unequip from hand slot into carry if held, and set item_node.properties['concealed'] = True (the clean counterpart to transfer_actions.py:252).\\n2. Roll passive observer check against same-area witnesses so openly tucking away a weapon in plain view leaves a perception/turn event if noticed.\\n3. Register conceal in engine/action_verbs.py, routes/action_handlers.py, PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions item brackets.",
+    "how": "1. Add conceal_item(world, actor_name, item_name) in engine/items/transfer_actions.py (or equipment.py): validate size/weight fit against worn concealing garment/container capacity, unequip from hand slot into carry if held, and set item_node.properties['concealed'] = True (the clean counterpart to transfer_actions.py:252).\\n2. Roll passive observer check against same-area witnesses so openly tucking away a weapon in plain view leaves a perception/turn event if noticed.\\n3. Register conceal in engine/action_registry.py, routes/action_handlers.py, PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions item brackets.",
     "verify": "1. Run pytest covering conceal_item size gating, unequipping on conceal, frisk/search reveal parity, and draw/equip auto-reveal (engine/equipment.py:260-263).",
     "acceptance": [
       {
-        "text": "conceal is registered in engine/action_verbs.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts for carried items that fit concealed stowage.",
+        "text": "conceal is registered in engine/action_registry.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts for carried items that fit concealed stowage.",
         "done": false
       },
       {
@@ -53,7 +53,7 @@
       }
     ],
     "files": [
-      "engine/action_verbs.py",
+      "engine/action_registry.py",
       "routes/action_handlers.py",
       "engine/equipment.py",
       "engine/items/transfer_actions.py",

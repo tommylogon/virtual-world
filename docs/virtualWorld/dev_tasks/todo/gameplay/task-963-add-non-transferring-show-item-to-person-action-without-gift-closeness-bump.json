@@ -35,11 +35,11 @@
   "sections": {
     "what": "Add a non-transferring show <item> to <person> action so characters can display phone messages, photos, notes, badges, or objects without giving away ownership or triggering give_item's +5 gift closeness bonus.",
     "why": "engine/items/transfer_actions.py (give_item, lines 95-120) is the only way to hand someone an object and always transfers possession plus adds +5 mutual closeness, while engine/items/examine_actions.py only surfaces observations to the acting viewer. Characters cannot show someone a text message, photograph, ID card, or item in hand without handing over the object itself.",
-    "how": "1. Implement show_item(world, actor_name, item_name, target_name) sharing item readability/description extraction from examine_actions.py while keeping carry/equipped ownership untouched (never calling give_item's transfer or +5 closeness bump).\\n2. Mark the shown item as examined/seen for target (and optionally reveal if it was concealed), fire relevant on_examine/reveal hooks, and deliver a structured perception/hearing entry + turn_event to the recipient.\\n3. Register show in engine/action_verbs.py, routes/action_handlers.py, PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions.ts.",
+    "how": "1. Implement show_item(world, actor_name, item_name, target_name) sharing item readability/description extraction from examine_actions.py while keeping carry/equipped ownership untouched (never calling give_item's transfer or +5 closeness bump).\\n2. Mark the shown item as examined/seen for target (and optionally reveal if it was concealed), fire relevant on_examine/reveal hooks, and deliver a structured perception/hearing entry + turn_event to the recipient.\\n3. Register show in engine/action_registry.py, routes/action_handlers.py, PlanGrounding.PLAN_INTENT_ACTS, and contextual-actions.ts.",
     "verify": "1. Run pytest verifying show_item preserves ownership, skips give_item's +5 closeness bump, and delivers item description/contents to the target character's perception.",
     "acceptance": [
       {
-        "text": "show (show <item> to <person>) is registered in engine/action_verbs.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts.",
+        "text": "show (show <item> to <person>) is registered in engine/action_registry.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts.",
         "done": false
       },
       {
@@ -52,7 +52,7 @@
       }
     ],
     "files": [
-      "engine/action_verbs.py",
+      "engine/action_registry.py",
       "routes/action_handlers.py",
       "engine/items/transfer_actions.py",
       "engine/items/examine_actions.py",

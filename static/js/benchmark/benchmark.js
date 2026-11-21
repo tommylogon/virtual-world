@@ -648,7 +648,10 @@ window.BenchmarkApp = (() => {
                 title: ed?.description || `Exit ${dir}`,
             }));
 
-        const carried = (Array.isArray(player?.inventory) ? player.inventory : [])
+        const rawInv = (typeof window.worldState?.getInventory === 'function' && charName)
+            ? window.worldState.getInventory(charName)
+            : (Array.isArray(player?.inventory) ? player.inventory : []);
+        const carried = (Array.isArray(rawInv) ? rawInv : [])
             .map(it => typeof it === 'string' ? it : (it?.name || ''))
             .filter(Boolean);
 

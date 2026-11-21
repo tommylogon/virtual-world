@@ -22,7 +22,8 @@
   "relations": {
     "blocks": [],
     "blocked_by": [
-      "task-947"
+      "task-947",
+      "task-944"
     ],
     "depends_on": [],
     "related": [

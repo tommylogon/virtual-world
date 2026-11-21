@@ -37,11 +37,11 @@
   "sections": {
     "what": "Add intentional peek <way> and eavesdrop <way> reconnaissance actions built on engine/beyond_visibility.py and engine/sound.py so characters can scout through cracked doors/windows or listen closely at closed barriers without barging into an area.",
     "why": "engine/beyond_visibility.py (lines 55-260) and engine/sound.py (lines 69-165) only apply passive beyond-door sightlines on see_through/open ways and passive sound attenuation across closed barriers. Characters have no intentional stealth verb to check what is happening behind a closed door or corner before entering.",
-    "how": "1. Extend engine/beyond_visibility.py with a targeted peek_way(graph, player_manager, area_id, way_handle, actor) helper checking see_through/window/cracked/open door eligibility and resolving occupant notice checks.\\n2. Extend engine/sound.py / routes/action_handlers.py with eavesdrop_way(world, actor, way_handle) that focuses listening across that single barrier (temporarily attenuating get_way_barrier resistance by focus/Perception bonus against recent/ongoing speech and sound sources beyond the barrier).\\n3. Register peek and eavesdrop in engine/action_verbs.py, PlanGrounding.PLAN_INTENT_ACTS, routes/action_handlers.py, and contextual-actions.ts.",
+    "how": "1. Extend engine/beyond_visibility.py with a targeted peek_way(graph, player_manager, area_id, way_handle, actor) helper checking see_through/window/cracked/open door eligibility and resolving occupant notice checks.\\n2. Extend engine/sound.py / routes/action_handlers.py with eavesdrop_way(world, actor, way_handle) that focuses listening across that single barrier (temporarily attenuating get_way_barrier resistance by focus/Perception bonus against recent/ongoing speech and sound sources beyond the barrier).\\n3. Register peek and eavesdrop in engine/action_registry.py, PlanGrounding.PLAN_INTENT_ACTS, routes/action_handlers.py, and contextual-actions.ts.",
     "verify": "1. Run pytest verifying peek <way> respects sealed vs cracked/windowed barriers + stealth spotting, and eavesdrop <way> captures adjacent room speech/sounds while failing on soundproof barriers.",
     "acceptance": [
       {
-        "text": "peek <way> and eavesdrop <way> are registered in engine/action_verbs.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts for adjacent closed/crackable/windowed ways.",
+        "text": "peek <way> and eavesdrop <way> are registered in engine/action_registry.py, PlanGrounding, routes/action_handlers.py, and contextual-actions.ts for adjacent closed/crackable/windowed ways.",
         "done": false
       },
       {
@@ -54,7 +54,7 @@
       }
     ],
     "files": [
-      "engine/action_verbs.py",
+      "engine/action_registry.py",
       "routes/action_handlers.py",
       "engine/beyond_visibility.py",
       "engine/sound.py",

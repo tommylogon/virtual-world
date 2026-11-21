@@ -15,7 +15,7 @@
     "sightlines"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-18",
+  "updated": "2026-11-21",
   "horizon": "next",
   "effort": "l",
   "goal": "",
@@ -36,21 +36,25 @@
     "invalidated_by": []
   },
   "sections": {
-    "what": "Extend the bow-only ranged combat foundation (task-518) with firearm chamber/magazine state, explicit unload and reload actions, gunshot sound propagation via engine/sound.py, and cross-way shooting across open/see-through sightlines.",
-    "why": "task-518 implemented same-area bow shooting in engine/combat.py (lines 693-725) using loose 'ammo' nodes in inventory and explicitly deferred range/magazine semantics. For modern firearm encounters, a gun needs loaded chamber/magazine capacity, explicit unload (emptying a confiscated pistol) and reload actions, audible gunshots through engine/sound.py, and firing along open sightlines (engine/beyond_visibility.py).",
-    "how": "1. Extend engine/combat.py ranged model (preserving task-518 bow path untouched): distinguish chambered/magazine-fed firearms from draw-and-loose bows via loaded_ammo/capacity (or attached magazine child node), enforcing click/empty failure when loaded_ammo == 0.\\n2. Register reload and unload verbs in engine/action_verbs.py and routes/action_handlers.py so characters can clear chamber/eject magazines (e.g. removing bullets from a disarmed pistol) or chamber fresh ammo/magazines.\\n3. Connect firearm discharge in engine/combat.py to engine/sound.py (emitting a transient gunshot sound event with directional heard_from / sound_pattern across propagate_sound, unless suppressed).\\n4. Support ranged targeting along open/see_through ways returned by engine/beyond_visibility.py (sightline_run) with range/cover modifiers alongside same-area targets.",
-    "verify": "1. Run existing tests/test_ranged_combat.py plus new pytest suite testing firearm unload/reload, empty click failure, gunshot sound_source propagation to adjacent rooms, and cross-way sightline targeting.",
+    "what": "Extend Viwo's ranged combat (engine/combat.py) for firearms: weapon-held ammo (detachable magazine item via EDGE_IN container ops or internal gun uses), thin reload/unload verb sugar over existing container/uses ops, DEX-based non-approaching ranged rolls, cross-area targeting along engine/beyond_visibility.py sightline_run, and transient gunshot alerting built on engine/sound.py propagate_sound.",
+    "why": "task-518 implemented same-area bow firing in engine/combat.py (_is_ranged_weapon lines 835-843, _carried_ammo_node lines 845-861, _spend_ammo lines 863-892, check at lines 460-466) using loose carried ammo items, approach_character (line 371), and STR (line 476), while routes/action_handlers.py (line 1715) blocks cross-room attack targets. Meanwhile, put_item_in_container (engine/items/place_actions.py:34) and take_item (engine/items/take_drop_actions.py:395) already handle moving items into/out of containers (EDGE_IN), and engine/sound.py (propagate_sound, lines 136-223) is a pure Dijkstra query that returns {area_id: (remaining_pen, dir)} without emitting events or alerting NPCs.",
+    "how": "1. Weapon & ammo state (engine/combat.py): For firearms (e.g. firearm/gun tag alongside ranged), check ammo on the weapon itself rather than _carried_ammo_node: either an EDGE_IN magazine child item's uses (via place_actions.py container edges) or the gun's own uses/max_uses (with 0 = empty, not auto-destroyed). Fail cleanly with a firearm-appropriate empty message when 0.\n2. reload / unload verbs (engine/actions.py, routes/action_handlers.py, static/js/agent/plan-grounding.ts, static/js/agent/prompt-builder/contextual-actions.ts): For magazine-fed guns, reuse put_item_in_container (EDGE_IN) and take_item (EDGE_IN -> EDGE_CARRYING) rather than duplicating container logic in transfer_actions.py. For internal-magazine/cylinder guns, add a small uses-transfer helper from carried ammo into the gun's uses.\n3. Ranged attack mechanics (engine/combat.py, routes/action_handlers.py): Skip approach_character for ranged attacks; roll DEX instead of STR for ranged weapons; allow attack <target> in routes/action_handlers.py and validate_action_command to resolve targets in areas returned by engine/beyond_visibility.py (sightline_run) when wielding a ranged weapon (preserving task-518 bow behavior).\n4. Gunshot acoustics (engine/combat.py, engine/sound.py): Call propagate_sound (or get_areas_hearing_sound_source) on firearm discharge (unless suppressed) and deliver transient directional gunshot turn events / NPC alerts to the returned area_ids (rather than treating sound_source item scans as one-shot events).",
+    "verify": "1. Run pytest tests/test_ranged_combat.py plus new tests covering weapon-local magazine/uses reload & unload, empty-chamber click, DEX/no-approach ranged attack, sightline_run cross-area targeting, and propagate_sound gunshot alerting.",
     "acceptance": [
       {
-        "text": "Firearm items track loaded round capacity / detachable magazine state separate from abstract carried 'ammo', supporting explicit unload <weapon> and reload <weapon> character actions.",
+        "text": "Firearms read ammo from the weapon itself (an EDGE_IN magazine child item's uses or the gun's own uses/max_uses) rather than loose carried ammo, failing cleanly on empty without destroying the gun.",
         "done": false
       },
       {
-        "text": "Firing a firearm (or explosive) emits a transient high-penetration gunshot sound wave through engine/sound.py (propagate_sound) alerting nearby areas and bystanders rather than firing silently.",
+        "text": "Magazine-fed load/unload reuses existing container ops (put_item_in_container / take_item) with optional reload/unload verb sugar; internal-magazine guns transfer uses from carried ammo.",
         "done": false
       },
       {
-        "text": "Ranged attacks can resolve along clear open or see-through sightlines from engine/beyond_visibility.py (sightline_run) in addition to same-area targets while preserving bow/quiver behavior from task-518.",
+        "text": "Ranged attacks skip approach_character, roll DEX instead of STR, and resolve targets along engine/beyond_visibility.py sightline_run areas in routes/action_handlers.py while preserving task-518 bow/quiver behavior.",
+        "done": false
+      },
+      {
+        "text": "Firing an unsuppressed firearm queries engine/sound.py propagate_sound and delivers transient directional gunshot alerts/turn events to reachable areas and NPCs.",
         "done": false
       }
     ],
@@ -58,12 +62,16 @@
       "engine/combat.py",
       "engine/sound.py",
       "engine/beyond_visibility.py",
-      "engine/action_verbs.py",
+      "engine/items/place_actions.py",
+      "engine/items/take_drop_actions.py",
+      "engine/actions.py",
       "routes/action_handlers.py",
-      "engine/items/transfer_actions.py"
+      "static/js/agent/plan-grounding.ts",
+      "static/js/agent/prompt-builder/contextual-actions.ts",
+      "engine/action_registry.py"
     ],
     "custom": {
-      "browser_ui": "Intended UI home: Agent Turn Modal weapon action brackets (`reload`, `unload`), Inspector item properties, and Event Stream acoustic gunshot alerts.\\n\\nCurrent availability: task-518 implemented same-area bow firing in engine/combat.py (_is_ranged_weapon, _carried_ammo_node, _spend_ammo) with no unload/reload verbs, no gunshot sound propagation, and no cross-way sightline targeting.\\n\\nManual verification steps:\\n1. Equip a pistol/rifle with loaded ammo (and spare ammo/magazine) and run `unload <weapon>`, attempt attack while empty, then `reload <weapon>` and fire near an adjacent connected room.\\n   - expected: Empty chamber fails cleanly, reload loads carried ammo/mag into the weapon, unload ejects remaining round(s)/mag back to carried/item state, and firing broadcasts a loud gunshot sound wave to connected areas."
+      "browser_ui": "Intended UI home: Agent Turn Modal weapon action brackets (`reload`, `unload`), Inspector item properties, and Event Stream acoustic gunshot alerts.\n\nCurrent availability: task-518 implemented same-area bow firing in engine/combat.py (_is_ranged_weapon, _carried_ammo_node, _spend_ammo) with approach_character and STR rolls; put_item_in_container / take_item already handle container EDGE_IN moves; propagate_sound is query-only and routes/action_handlers.py blocks cross-area attack.\n\nManual verification steps:\n1. Equip a pistol/rifle with an EDGE_IN magazine (and spare magazine/ammo) and run `unload <weapon>` (or `take <mag>`), attempt attack while empty, then `reload <weapon>` (or `put <mag> in <weapon>`) and fire along an open sightline near an adjacent connected room.\n   - expected: Empty chamber fails cleanly, reload/unload moves the magazine or transfers uses, ranged attack rolls DEX without approaching, cross-way target resolves along sightline_run, and firing delivers directional gunshot alerts to reachable rooms."
     }
   },
   "links": {

@@ -7,7 +7,15 @@
   "status": "todo",
   "priority": "high",
   "area": "gameplay",
-  "tags": ["timeline", "branching", "memory", "timeskip", "soak", "ui", "epic"],
+  "tags": [
+    "timeline",
+    "branching",
+    "memory",
+    "timeskip",
+    "soak",
+    "ui",
+    "epic"
+  ],
   "created": "2026-11-17",
   "updated": "2026-11-17",
   "horizon": "next",
@@ -15,26 +23,44 @@
   "goal": "Implement the 14/11 2026 Timeline Vision Guide across engine, memory, simulation, and UI.",
   "relations": {
     "blocks": [],
-    "blocked_by": ["task-976", "task-977", "task-978", "task-979"],
+    "blocked_by": [],
     "depends_on": [],
-    "related": ["task-947", "task-973", "task-975"],
+    "related": [
+      "task-947",
+      "task-973",
+      "task-975"
+    ],
     "parent": null,
-    "children": ["task-976", "task-977", "task-978", "task-979"],
+    "children": [
+      "task-976",
+      "task-977",
+      "task-978",
+      "task-979"
+    ],
     "supersedes": [],
     "superseded_by": [],
     "invalidates": [],
     "invalidated_by": []
   },
   "sections": {
-    "what": "Build the full Timeline and Branching system from docs/design/timeline-and-branching-vision.md: select any point in time, track entity existence, incorporate edits and weather changes, lock memories by time (deny recall of future memories), support run_sim/soak/timeskip/PlayMode on branches, avoid cross-timeline contamination, save/load by default, and provide a zoomable/scrollable/searchable/filterable Timeline UI (evaluating replacing EventStream).",
+    "what": "Phases 1-2 (Commons calendar timestamps, branching/reset, future-memory recall locking in engine/memory_retrieval.py) are complete. Remaining epic scope (Phases 3-4): scenario-level branch graph, entity existence windows, timeline-aware run_sim/soak/timeskip/PlayMode, and multi-month Timeline UI.",
     "why": "Authors and players need to jump around scenario chronology (e.g., rewind 6 months to May or August), test alternate character decisions without destroying the main timeline, and guarantee characters cannot recall future events.",
     "how": "1. Phase 1 (task-976, task-977): Dated world_datetime memories, future-memory recall lock, and calendar/phone timestamps in Commons.\n2. Phase 2 (task-978, task-979): Commons standalone mode, branching/reset, and anchored real-time/manual date-time clock.\n3. Phase 3: Scenario branch graph (branch_id, parent_branch_id, fork_datetime), entity existence tracking, edit incorporation, and timeline-aware run_sim, soak, timeskip, and PlayMode with strict branch isolation and default save/load.\n4. Phase 4: Zoomable, scrollable, searchable, filterable multi-month Timeline UI with hover event inspection and EventStream unification/replacement.",
     "verify": "Verify branch isolation (no future memory leaks, no cross-branch contamination), save/load round-trip of timeline trees, and live UI scrubbing/forking/PlayMode entry."
   },
   "acceptance": [
-    {"text": "Jumping backward in time denies recall of memories dated after the active clock.", "done": false},
-    {"text": "Forking a branch at any point isolates subsequent edits, character decisions, entity existence, soak, and timeskip from sibling branches.", "done": false},
-    {"text": "Timeline tree saves and loads by default with scenarios and provides zoomable, scrollable, searchable, filterable navigation.", "done": false}
+    {
+      "text": "Jumping backward in time denies recall of memories dated after the active clock.",
+      "done": false
+    },
+    {
+      "text": "Forking a branch at any point isolates subsequent edits, character decisions, entity existence, soak, and timeskip from sibling branches.",
+      "done": false
+    },
+    {
+      "text": "Timeline tree saves and loads by default with scenarios and provides zoomable, scrollable, searchable, filterable navigation.",
+      "done": false
+    }
   ],
   "files": [
     "docs/design/timeline-and-branching-vision.md",
@@ -54,7 +80,9 @@
       "[[AI & Narration/Cognitive Memory & Active Mind]]",
       "[[Features/time-weather]]"
     ],
-    "docs": ["docs/design/timeline-and-branching-vision.md"],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
     "commits": [],
     "urls": []
   },

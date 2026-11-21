@@ -35,12 +35,12 @@
   },
   "sections": {
     "what": "Expose break (alias smash) as a character action verb backed by a shared break helper that fires existing on_break triggers and unifies the NPC-only break branch in engine/triggers/behaviors.py.",
-    "why": "engine/triggers/constants.py (line 29) defines 'on_break' and engine/equipment.py (line 956) fires 'on_break' on worn armor collapse, while engine/triggers/behaviors.py (lines 400-416) defines an NPC 'break' branch that sets uses=0 without firing 'on_break'. Players and LLM agents have no registered break/smash verb in engine/action_verbs.py or routes/action_handlers.py to intentionally destroy a phone, lock, bottle, or weapon.",
-    "how": "1. Extract a shared destroy/break_item helper executing breakable/strength checks, setting uses = 0 / broken tag, firing triggers._execute_triggers(node, 'on_break', ...) (matching equipment.py line 956), and emitting impact sound.\\n2. Update engine/triggers/behaviors.py (lines 400-416) to delegate to the shared helper instead of mutating uses = 0 alone.\\n3. Register break (alias smash) in engine/action_verbs.py, routes/action_handlers.py (_VERBS_NEEDING_TARGET + dispatcher), and PlanGrounding.PLAN_INTENT_ACTS.",
+    "why": "engine/triggers/constants.py (line 29) defines 'on_break' and engine/equipment.py (line 956) fires 'on_break' on worn armor collapse, while engine/triggers/behaviors.py (lines 400-416) defines an NPC 'break' branch that sets uses=0 without firing 'on_break'. Players and LLM agents have no registered break/smash verb in engine/action_registry.py or routes/action_handlers.py to intentionally destroy a phone, lock, bottle, or weapon.",
+    "how": "1. Extract a shared destroy/break_item helper executing breakable/strength checks, setting uses = 0 / broken tag, firing triggers._execute_triggers(node, 'on_break', ...) (matching equipment.py line 956), and emitting impact sound.\\n2. Update engine/triggers/behaviors.py (lines 400-416) to delegate to the shared helper instead of mutating uses = 0 alone.\\n3. Register break (alias smash) in engine/action_registry.py, routes/action_handlers.py (_VERBS_NEEDING_TARGET + dispatcher), and PlanGrounding.PLAN_INTENT_ACTS.",
     "verify": "1. Run pytest covering break/smash command execution on fragile/on_break items, unbreakable rejection, and shared behaviors.py parity.",
     "acceptance": [
       {
-        "text": "break (alias smash) is registered in engine/action_verbs.py, PlanGrounding, and routes/action_handlers.py for carried or same-area destructible items and breakable ways/containers.",
+        "text": "break (alias smash) is registered in engine/action_registry.py, PlanGrounding, and routes/action_handlers.py for carried or same-area destructible items and breakable ways/containers.",
         "done": false
       },
       {
@@ -53,7 +53,7 @@
       }
     ],
     "files": [
-      "engine/action_verbs.py",
+      "engine/action_registry.py",
       "routes/action_handlers.py",
       "engine/triggers/behaviors.py",
       "engine/equipment.py",

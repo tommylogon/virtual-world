@@ -21,10 +21,7 @@
   "goal": "",
   "relations": {
     "blocks": [],
-    "blocked_by": [
-      "task-967",
-      "task-968"
-    ],
+    "blocked_by": [],
     "depends_on": [],
     "related": [
       "task-197",
@@ -40,9 +37,9 @@
   },
   "sections": {
     "what": "Wire organic runtime acquisition of foreign vocabulary and domain knowledge as character memories (from conversational context, gestures, and reading educational materials/phrasebooks/manuals - not via CraftingSystem.teach) and author verified Goblin/Millwood knowledge-barrier fixtures.",
-    "why": "Static competence sheets go stale quickly unless characters can learn words and craft/trade facts in play, and AGENTS.md rule 8 requires concrete authored fixtures alongside mechanism tests. Extending the existing CraftingSystem.teach command, examine/read grants, and _teach_* hooks avoids inventing new one-off subsystems while proving both target settings end-to-end.",
+    "why": "Language and domain comprehension barriers are static unless characters can organically learn vocabulary and concepts through lived context, study materials, and memory formation.",
     "how": "1. Keep CraftingSystem.teach scoped to recipes/skills; do NOT add teach lang:<id>:<word> commands.\\n2. Treat language and domain knowledge as memory (per task-734): when a character reads educational materials (phrasebooks, manuals, textbooks) via examine/read, or encounters foreign words in clear conversational/gestural context, record semantic/episodic memory entries that unlock understood words/concepts organically.\\n3. Author concrete reference fixtures across Millwood (Sammy, Kayla, Zoe) and Goblin/bilingual exchange characters with asymmetrical domain competence, explicit blind spots, and partial vocabulary verified end-to-end by tests.",
-    "verify": "1. Run pytest covering teach lang:<id>:<word>, teach domain:<id>, examine phrasebook/manual learning, and full Goblin/exchange-student speech masking plus Millwood Sammy/Kayla/Zoe domain asymmetry fixtures.\n2. Verify python tools/lint_library.py passes after updating character fixtures.",
+    "verify": "1. Verify a character exposed to foreign words in context or study materials forms vocabulary memories and improves comprehension on subsequent turns.\n2. Load the Millwood/Goblin knowledge-barrier fixture and confirm Sammy/Kenji comprehension reflects their authored language and domain competence.",
     "acceptance": [
       {
         "text": "Foreign vocabulary and domain understanding are acquired through memory and lived context (conversational context, object pointing, or reading educational materials/phrasebooks/manuals), NOT via CraftingSystem.teach (which remains dedicated to recipes/skills)",
@@ -67,7 +64,7 @@
       "data/library/characters/gribba.json"
     ],
     "custom": {
-      "browser_ui": "Intended UI home: Human Turn / Agent Turn Composer (teach and read/examine actions), Character Inspector -> Mind -> Persona (Languages & Domains updates at runtime), and Prompt Lens.\n\nCurrent availability: CraftingSystem.teach in engine/crafting.py (lines 368-406) and routes/action_handlers.py (lines 1118-1127) only accept recipes and skill:<name>, and shipped characters in data/library/characters/ have 0 language lexicons or domain expertise/ignorance profiles.\n\nManual verification steps:\n1. Load Sammy, Kayla, Zoe, or a Goblin/exchange-student pair in a test scenario and inspect Persona Languages/Domains plus Prompt Lens before interaction.\n   - expected: Sammy shows skateboarding competence and computing ignorance; Kayla shows legal/language competence and DIY/physics ignorance; Zoe shows silicone_molding/DIY competence and sports ignorance; partial foreign speakers show initial known_words only.\n2. Execute 'teach lang:english:silicone to Kenji' (or have Zoe demonstrate/teach DIY curing to Kayla) when co-located.\n   - expected: Target character's live known_words or domain/semantic memory updates and persists across save/load, and subsequent WITNESSED speech or examine output reflects the newly learned term."
+      "browser_ui": "Inspect character Memories and Mind view after exposure to new vocabulary or study materials; verify comprehension updates without using CraftingSystem.teach."
     }
   },
   "links": {
