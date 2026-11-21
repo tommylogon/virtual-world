@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-993",
+  "kind": "task",
+  "number": 993,
+  "title": "Deduplicate interest_tags / fear_tags / dislike_tags into persona.personality as single source of truth",
+  "status": "todo",
+  "priority": "medium",
+  "area": "characters",
+  "tags": [
+    "persona",
+    "characters",
+    "dedup",
+    "architecture"
+  ],
+  "created": "2026-11-21",
+  "updated": "2026-11-21",
+  "horizon": "",
+  "effort": "medium",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-98"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Remove the duplicated `player.interest_tags`, `player.fear_tags`, and `player.dislike_tags` fields and make `node.properties.persona.personality` (`interests`, `fears`, `dislikes`, `likes`, `kinks`, `turn_ons`, `turn_offs`, `traumas`) the single source of truth across engine, serialization, prompts, and UI.",
+    "why": "Characters currently store and edit interests, fears, and dislikes in two places (`persona.personality.*` on the character node and `interest_tags`/`fear_tags`/`dislike_tags` on Player/node.properties). Editing in the Bio tab drifts out of sync with the Persona tab, `dislike_tags` is not projected during persona compile, and `to_scenario_dict()`/serialization carries redundant copies.",
+    "how": "1. Add a single read helper (e.g. `get_persona_tags(world_graph, char_name, field)` in `engine/character_appearance.py` or `engine/character_record.py`) that reads directly from `node.properties.persona.personality`.\n2. Migrate all backend readers (`engine/fear.py`, `engine/background_social.py`, `routes/action_handlers.py` `find`, `routes/memories.py`, `routes/player_ops.py`) to read from `persona.personality` instead of `player.interest_tags` / `fear_tags` / `dislike_tags`.\n3. In `engine/serialization.py`, add one-time load migration that folds any legacy `interest_tags` / `fear_tags` / `dislike_tags` into `node.properties.persona.personality` (`interests` / `fears` / `dislikes`) and stop persisting the legacy fields in `to_scenario_dict()` and `to_dict()`.\n4. Remove `interest_tags`, `fear_tags`, `dislike_tags` from `Player.__init__` and `routes/player_ops.py` persona-compile projection.\n5. Update `static/js/inspector/agent-view.ts` (Bio tab) so its tag editors read/write directly to `node.properties.persona.personality` instead of `player.interest_tags` / `fear_tags`.\n6. Simplify `static/js/agent/prompt-builder/room-context.ts` `buildAttention()` to read solely from `node.properties.persona.personality`.",
+    "verify": "1. Load a legacy scenario with `interest_tags`/`fear_tags` on players and verify they migrate cleanly into `persona.personality` on load.\n2. Edit interests/fears/dislikes in the Bio tab and confirm the Persona tab immediately reflects the same values (and vice versa).\n3. Run `find`, fear reactions, and `buildRoomContext()` attention sorting and verify all read from `persona.personality`.\n4. Run `pytest tests/test_serialization.py tests/test_find_command.py tests/test_fear.py`.",
+    "acceptance": [
+      {
+        "text": "Single source of truth: `node.properties.persona.personality` owns `interests`, `fears`, `dislikes` (alongside `likes`, `kinks`, `turn_ons`, `turn_offs`, `traumas`); `player.interest_tags`, `player.fear_tags`, `player.dislike_tags` are removed.",
+        "done": false
+      },
+      {
+        "text": "All backend callers (`engine/fear.py`, `engine/background_social.py`, `routes/action_handlers.py`, `routes/memories.py`, `routes/player_ops.py`) read from `persona.personality`.",
+        "done": false
+      },
+      {
+        "text": "Legacy scenarios with `interest_tags`/`fear_tags`/`dislike_tags` auto-migrate into `persona.personality` on load and no longer serialize the legacy keys.",
+        "done": false
+      },
+      {
+        "text": "Character Inspector Bio tab tag controls point directly at `persona.personality` instead of `player.*_tags`.",
+        "done": false
+      },
+      {
+        "text": "`room-context.ts` `buildAttention()` reads solely from `persona.personality`.",
+        "done": false
+      }
+    ],
+    "files": [
+      "player.py",
+      "engine/character_appearance.py",
+      "engine/character_record.py",
+      "engine/character_store.py",
+      "engine/serialization.py",
+      "engine/fear.py",
+      "engine/background_social.py",
+      "routes/action_handlers.py",
+      "routes/graph_ops.py",
+      "routes/library_ops.py",
+      "routes/memories.py",
+      "routes/player_ops.py",
+      "static/js/inspector/agent-view.ts",
+      "static/js/agent/prompt-builder/room-context.ts"
+    ],
+    "custom": {}
+  },
+  "links": {
+    "wiki": [],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null
+}
