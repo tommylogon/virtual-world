@@ -279,15 +279,24 @@
                                     <button class="stepper-btn" onclick="graphManager.setEdgeLabelSize(1)" aria-label="Larger edge labels">+</button>
                                 </span>
                             </div>
-                            <div class="menu-heading">Map grid</div>
+                            <div class="menu-heading">Area pitch (Map layout)</div>
                             <div class="menu-grid">
                                 <span class="stepper" title="Map layout only  -  pixels per painted cell (the padding between areas). Auto derives it from the canvas size (about ten cells across); nudge to take it over. Marks and names are sized as fractions of the cell, so a place always fits its own cell.">
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(-20)" aria-label="Tighter map spacing">−</button>
-                                    <input type="number" id="map-spacing" class="stepper-input" min="20" max="1000" step="20" value="40" aria-label="Map grid spacing">
+                                    <input type="number" id="map-spacing" class="stepper-input" min="20" max="1000" step="20" value="40" aria-label="Area pitch (Map layout)">
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(20)" aria-label="Roomier map spacing">+</button>
                                     <button id="map-spacing-auto" class="stepper-btn" aria-pressed="true" onclick="graphManager.setAutoMapSpacing(this.getAttribute('aria-pressed') !== 'true')" aria-label="Derive the map pitch from the canvas size">A</button>
                                 </span>
                                 <span class="menu-note">Only used by the 🗺️ Map layout.</span>
+                            </div>
+                            <div class="menu-heading">Item spread</div>
+                            <div class="menu-grid">
+                                <span class="stepper" title="Orbit distance for carried/contained items around characters and areas (updates Settings -> Graph -> Item Edge Length).">
+                                    <button class="stepper-btn" onclick="graphManager.setItemSpread(-15)" aria-label="Tighter item orbit">−</button>
+                                    <input type="number" id="item-spread" class="stepper-input" min="30" max="240" step="15" value="60" aria-label="Item spread distance" onchange="graphManager.setItemSpread(0, Number(this.value))">
+                                    <button class="stepper-btn" onclick="graphManager.setItemSpread(15)" aria-label="Roomier item orbit">+</button>
+                                </span>
+                                <span class="menu-note">Spaces character &amp; container item orbits.</span>
                             </div>
                         </div>
                     </div>

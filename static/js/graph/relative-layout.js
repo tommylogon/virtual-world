@@ -70,7 +70,7 @@ const _GraphRelativeLayout = {
         minRadius: 130,
         maxRadius: 320,
         spacing: 92,
-        nestedScale: 0.45,
+        nestedScale: 0.78,
         baseEdgeLength: 60,
         // Start at the top and go clockwise, so the first item clears the room's
         // own label instead of sitting on it.
@@ -474,27 +474,40 @@ const _GraphRelativeLayout = {
     orbitPosition(parentPos, index, count, node, depth, parentNode = {}) {
         const spec = this._parentSpec(parentNode);
         const nested = depth >= 2;
+        // bug-575: dynamic nested scale grows gently with child count so containers
+        // with 4+ items expand instead of squashing into a 58px knot.
+        const dynNestedScale = nested
+            ? Math.min(1.0, this.ORBIT.nestedScale + Math.max(0, count - 3) * 0.05)
+            : 1;
         const want = nested
-            ? this._childDistance(node, spec) * this.ORBIT.nestedScale
+            ? this._childDistance(node, spec) * dynNestedScale
             : this._childDistance(node, spec);
-        const spacing = nested ? spec.spacing * this.ORBIT.nestedScale : spec.spacing;
-        const needed = (Math.max(1, count) * spacing) / (2 * Math.PI);
-        // An explicitly requested distance is honoured even outside the comfort
-        // range: someone who says "90px" or "400px" means it (labels may overlap
-        // at 90 - that is what hugging means). The range only governs the
-        // automatic growth for a crowd.
+        const rawSpacing = nested ? spec.spacing * dynNestedScale : spec.spacing;
+        // bug-575: guarantee at least 65px center-to-center spacing for inherited orbits
+        // so 30px diamonds and their labels do not collide.
         const explicit = this._distanceIsExplicit(node, parentNode);
+        const spacing = explicit ? rawSpacing : Math.max(65, rawSpacing);
+        const needed = (Math.max(1, count) * spacing) / (2 * Math.PI);
         const floor = explicit
-            ? Math.min(nested ? spec.minRadius * this.ORBIT.nestedScale : spec.minRadius, want)
-            : (nested ? spec.minRadius * this.ORBIT.nestedScale : spec.minRadius);
+            ? Math.min(nested ? spec.minRadius * dynNestedScale : spec.minRadius, want)
+            : (nested ? spec.minRadius * dynNestedScale : spec.minRadius);
         const ceiling = explicit
-            ? Math.max(nested ? spec.maxRadius * this.ORBIT.nestedScale : spec.maxRadius, want)
-            : (nested ? spec.maxRadius * this.ORBIT.nestedScale : spec.maxRadius);
-        const radius = explicit
+            ? Math.max(nested ? spec.maxRadius * dynNestedScale : spec.maxRadius, want)
+            : (nested ? spec.maxRadius * dynNestedScale : spec.maxRadius);
+        let radius = explicit
             // An asked-for distance is exact: "80px away" means 80px, even if that
             // means labels touch. Automatic growth is only for inherited distances.
             ? Math.max(want, 0)
             : Math.max(floor, Math.min(Math.max(want, needed), ceiling));
+        // bug-575: push container hubs radially outward so their child orbit clears
+        // the carrier's primary equipment ring.
+        if (!explicit && !nested && node && node.id) {
+            const parents = this._parents(this._nodes(), this._edges());
+            const hasChildren = Object.values(parents).includes(node.id);
+            if (hasChildren) {
+                radius += 55;
+            }
+        }
         const angle = this.ORBIT.startAngle + (2 * Math.PI * index) / Math.max(1, count);
         return {
             x: parentPos.x + radius * Math.cos(angle),

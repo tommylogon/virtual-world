@@ -706,6 +706,29 @@ class GraphManagerImpl {
      * buttons). When `isDelta` is false, `valueOrDelta` is applied directly as
      * an absolute spacing value.
      */
+    /**
+     * Adjust or set the item orbit spread distance (`config.graphItemEdgeLength`)
+     * from the View menu stepper (bug-575).
+     */
+    setItemSpread(delta, explicitValue) {
+        const current = Number(config.graphItemEdgeLength) || 60;
+        const raw = Number.isFinite(explicitValue) && explicitValue !== undefined
+            ? Number(explicitValue)
+            : current + Number(delta || 0);
+        const clamped = Math.max(30, Math.min(240, Math.round(raw)));
+        config.graphItemEdgeLength = clamped;
+        if (typeof config.save === 'function')
+            config.save();
+        const input = document.getElementById('item-spread');
+        if (input)
+            input.value = String(clamped);
+        const rel = window.GraphRelativeLayout;
+        if (rel && typeof rel.reseed === 'function' && typeof rel.apply === 'function' && this.network) {
+            rel.reseed();
+            rel.apply(this.network);
+        }
+        return clamped;
+    }
     async setMapSpacing(valueOrDelta, isDelta = true) {
         let raw;
         if (isDelta) {

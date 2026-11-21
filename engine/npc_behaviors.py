@@ -106,16 +106,25 @@ class NPCBehaviorSystem:
     # ────────────────────── Simple NPC Processing ──────────────────────
 
     def process_npcs_on_combat(self, context: dict = None):
-        """task-214: bystander NPCs notice a fight and react.
+        """task-214 / bug-595: bystander NPCs notice a fight and react physically.
 
         Generic (non-sexual) stimulus, so it is always active. Combat passes
-        ``{"combat_actors": [attacker, target]}``.
+        ``{"combat_actors": [attacker, target]}``. Guarded against re-entrant
+        cascade recursion.
         """
+        if getattr(self, "_in_combat_bystander", False):
+            return []
         context = context or {}
         actors = context.get("combat_actors") or []
         if len(actors) < 2:
             return []
-        return self.process_bystander_reactions(actors[0], actors[1], "combat", context)
+        self._in_combat_bystander = True
+        try:
+            return self.process_bystander_reactions(
+                actors[0], actors[1], "combat", context, max_reactions=6
+            )
+        finally:
+            self._in_combat_bystander = False
 
     # ────────────────────── NPC Perception & Reaction (task-214) ──────────────────────
 
@@ -397,6 +406,11 @@ class NPCBehaviorSystem:
             npc = record["player"]
             if not getattr(npc, "simple_npc", False):
                 continue
+            if stimulus_type == "combat":
+                line = self._resolve_combat_bystander(npc, actor_name, target_name)
+                if line:
+                    lines.append(line)
+                continue
             reaction = self._reaction_type(npc, stimulus_type)
             if reaction == "ignore":
                 # They saw it and chose not to react. Still an observation --
@@ -406,6 +420,74 @@ class NPCBehaviorSystem:
             if line:
                 lines.append(line)
         return lines
+
+    def _resolve_combat_bystander(self, npc, attacker_name: str, target_name: str) -> Optional[str]:
+        """bug-595: disposition-driven physical response for a combat bystander."""
+        area = getattr(npc, "current_area", None)
+        traits = {str(k).lower() for k in (getattr(npc, "traits", None) or {}).keys()}
+        tags = {str(t).lower() for t in (getattr(npc, "tags", None) or [])}
+        disposition = str(getattr(npc, "disposition", "") or "").lower()
+        behavior = str(getattr(npc, "npc_behavior", "") or "").lower()
+        rels = getattr(npc, "relationships", None) or {}
+        target_rel = rels.get(target_name) or {}
+        target_closeness = float(target_rel.get("closeness", 0) or 0) if isinstance(target_rel, dict) else 0.0
+        emotions = getattr(npc, "emotions", None) or {}
+        fear_level = float((emotions.get("fear") or {}).get("intensity", 0) if isinstance(emotions.get("fear"), dict) else (emotions.get("fear") or 0))
+
+        is_fearful = (
+            behavior == "flee"
+            or bool(traits & {"cowardly", "timid", "fearful", "nervous", "skittish", "pacifist"})
+            or bool(tags & {"civilian", "timid", "cowardly"})
+            or fear_level >= 4.0
+        )
+        is_allied_or_brave = (
+            target_closeness >= 40.0
+            or disposition in ("hostile", "aggressive", "guard", "protective")
+            or bool(traits & {"brave", "protective", "aggressive", "loyal", "guard", "fighter"})
+            or bool(tags & {"guard", "soldier", "protector", "ally"})
+        )
+
+        # 1. Fearful bystanders flee through an open exit, or hide/take cover if cornered
+        if is_fearful and not is_allied_or_brave:
+            if area and hasattr(self.gs, "_build_exits_for_area") and hasattr(self.gs, "movement"):
+                exits = self.gs._build_exits_for_area(area)
+                open_exits = {d: ex for d, ex in exits.items() if ex.get("state") == "open"}
+                if open_exits:
+                    direction = random.choice(list(open_exits.keys()))
+                    old_active = self.gs.active_player
+                    self.gs.active_player = npc.name
+                    try:
+                        self.gs.movement.move_to_area(direction)
+                        msg = f"[NPC] {npc.name} flees {direction} from the fight!"
+                        self.gs.add_log_entry(msg)
+                        self.gs.record_turn_event(npc.name, "move", msg, area_name=npc.current_area)
+                        return msg
+                    except ValueError:
+                        pass
+                    finally:
+                        self.gs.active_player = old_active
+            npc.hidden = True
+            npc.npc_state = "hiding"
+            msg = f"[NPC] {npc.name} ducks out of sight to avoid the fight."
+            self.gs.add_log_entry(msg)
+            self.gs.record_turn_event(npc.name, "hide", msg, area_name=area)
+            return msg
+
+        # 2. Allied, brave, or hostile bystanders move to intervene / target the attacker
+        if is_allied_or_brave:
+            npc.npc_state = "alert"
+            npc.pack_target = attacker_name
+            msg = f"[NPC] {npc.name} steps in to confront {attacker_name}!"
+            self.gs.add_log_entry(msg)
+            self.gs.record_turn_event(npc.name, "alert", msg, area_name=area)
+            return msg
+
+        # 3. Default neutral witness: raises alarm / goes alert
+        npc.npc_state = "alert"
+        msg = f"[NPC] {npc.name} shouts in alarm at the fight between {attacker_name} and {target_name}!"
+        self.gs.add_log_entry(msg)
+        self.gs.record_turn_event(npc.name, "alert", msg, area_name=area)
+        return msg
 
     def _apply_pack_signal(self, pname: str, player, trigger_type: str) -> None:
         """Let a pack tell this character what a packmate is dealing with.
