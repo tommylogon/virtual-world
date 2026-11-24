@@ -269,3 +269,60 @@ def handle_nl_edit():
     client = LLMClient(_llm_config_from_payload(data))
     result = run_nl_edit(world, client, instruction)
     return jsonify(result)
+
+
+@agent_ops_bp.route("/api/agent/memory/synthesize", methods=["POST"])
+def handle_memory_synthesize():
+    """Synthesize recalled memory traces into a conscious thought in Python (Intermediator)."""
+    from engine.agent.memory_manager import MemoryManager
+
+    data = request.get_json(silent=True) or {}
+    world = _get_world()
+    char_name = str(data.get("character") or getattr(world, "active_player", "") or "")
+    if not char_name or char_name not in world.players:
+        return jsonify({"error": f"Unknown character: {char_name}"}), 404
+    player = world.players[char_name]
+    client = LLMClient(_llm_config_from_payload(data))
+    mm = getattr(current_app, "_agent_memory_manager", None)
+    if mm is None:
+        mm = MemoryManager()
+        current_app._agent_memory_manager = mm
+    thought = mm.synthesize_thought(
+        client,
+        player,
+        list(data.get("memories") or []),
+        recent_heard=list(data.get("recent_heard") or []),
+        area_name=str(data.get("area") or getattr(player, "current_area", "") or ""),
+    )
+    return jsonify({"ok": True, "character": char_name, "thought": thought})
+
+
+@agent_ops_bp.route("/api/agent/plan/generate", methods=["POST"])
+def handle_plan_generate():
+    """Generate a 3-5 step grounded plan in Python via PlanManager."""
+    from engine.agent.plan_manager import PlanManager
+
+    data = request.get_json(silent=True) or {}
+    world = _get_world()
+    char_name = str(data.get("character") or getattr(world, "active_player", "") or "")
+    if not char_name or char_name not in world.players:
+        return jsonify({"error": f"Unknown character: {char_name}"}), 404
+    client = LLMClient(_llm_config_from_payload(data))
+    pm = getattr(current_app, "_agent_plan_manager", None)
+    if pm is None:
+        pm = PlanManager()
+        current_app._agent_plan_manager = pm
+    msgs = build_think_decide_messages(
+        world,
+        char_name,
+        memory_thought=str(data.get("memory_thought") or ""),
+    )
+    context_prompt = msgs[1]["content"] if len(msgs) >= 2 else ""
+    steps = pm.generate(
+        client,
+        char_name,
+        context_prompt,
+        intent=str(data.get("intent") or ""),
+        turn_number=int(data.get("turn_number", 0) or 0),
+    )
+    return jsonify({"ok": True, "character": char_name, "steps": steps})

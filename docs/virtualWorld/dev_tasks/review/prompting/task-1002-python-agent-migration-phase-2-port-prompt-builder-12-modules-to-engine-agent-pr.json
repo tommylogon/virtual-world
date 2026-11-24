@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 1002,
   "title": "Python Agent Migration Phase 2: Port Prompt Builder (12 modules) to engine/agent/prompt_builder/",
-  "status": "todo",
+  "status": "review",
   "priority": "high",
   "area": "prompting",
   "tags": [
@@ -14,7 +14,7 @@
     "prompting"
   ],
   "created": "2026-11-22",
-  "updated": "2026-11-22",
+  "updated": "2026-11-24",
   "horizon": "next",
   "effort": "L",
   "goal": "",
@@ -69,5 +69,12 @@
   },
   "evidence": [],
   "invalidation": null,
-  "extra": {}
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T15:49:45Z"
+    }
+  ]
 }

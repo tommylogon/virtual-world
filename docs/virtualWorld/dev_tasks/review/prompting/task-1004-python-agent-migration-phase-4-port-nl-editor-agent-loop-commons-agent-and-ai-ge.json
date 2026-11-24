@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 1004,
   "title": "Python Agent Migration Phase 4: Port NL Editor Agent Loop, Commons Agent, and AI Generators",
-  "status": "inprogress",
+  "status": "review",
   "priority": "medium",
   "area": "prompting",
   "tags": [
@@ -14,7 +14,7 @@
     "commons"
   ],
   "created": "2026-11-22",
-  "updated": "2026-11-22",
+  "updated": "2026-11-24",
   "horizon": "later",
   "effort": "M",
   "goal": "",
@@ -75,6 +75,11 @@
       "from": "todo",
       "to": "inprogress",
       "at": "2026-11-22T18:36:48Z"
+    },
+    {
+      "from": "inprogress",
+      "to": "review",
+      "at": "2026-11-24T15:49:58Z"
     }
   ]
 }

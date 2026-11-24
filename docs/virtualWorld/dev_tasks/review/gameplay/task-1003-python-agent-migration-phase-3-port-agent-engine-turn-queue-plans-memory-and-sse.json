@@ -4,7 +4,7 @@
   "kind": "task",
   "number": 1003,
   "title": "Python Agent Migration Phase 3: Port Agent Engine, Turn Queue, Plans, Memory, and SSE Streaming",
-  "status": "todo",
+  "status": "review",
   "priority": "high",
   "area": "gameplay",
   "tags": [
@@ -15,7 +15,7 @@
     "sse"
   ],
   "created": "2026-11-22",
-  "updated": "2026-11-22",
+  "updated": "2026-11-24",
   "horizon": "next",
   "effort": "L",
   "goal": "",
@@ -72,5 +72,12 @@
   },
   "evidence": [],
   "invalidation": null,
-  "extra": {}
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T15:49:52Z"
+    }
+  ]
 }
