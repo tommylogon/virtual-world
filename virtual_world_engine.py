@@ -1410,6 +1410,16 @@ class VirtualWorld:
             month_idx = max(1, min(months_per_year, int(month)))
         if day is not None:
             day_idx = max(1, min(days_per_month, int(day)))
+        # At Tick 0 (scenario start), setting the date sets the calendar epoch
+        # rather than fast-forwarding time_ticks by thousands of years (which
+        # would instantly age every character to death).
+        if int(getattr(self, "time_ticks", 0) or 0) == 0:
+            if not isinstance(self.calendar_config, dict):
+                self.calendar_config = {}
+            self.calendar_config["start_year"] = year_idx
+            self.calendar_config["start_month"] = month_idx
+            self.calendar_config["start_day"] = day_idx
+            return True
         new_day = (year_idx - 1) * days_per_month * months_per_year \
             + (month_idx - 1) * days_per_month + day_idx
         cur_hour_min = int(self.total_game_minutes()) % 1440
