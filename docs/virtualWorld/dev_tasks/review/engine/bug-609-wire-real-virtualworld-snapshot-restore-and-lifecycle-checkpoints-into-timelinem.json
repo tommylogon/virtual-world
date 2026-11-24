@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "bug-609",
+  "kind": "bug",
+  "number": 609,
+  "title": "Wire real VirtualWorld snapshot/restore and lifecycle checkpoints into TimelineManager",
+  "status": "review",
+  "priority": "critical",
+  "area": "engine",
+  "tags": [
+    "timeline",
+    "branching",
+    "serialization",
+    "saveload"
+  ],
+  "created": "2026-11-24",
+  "updated": "2026-11-24",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Replace broken serialize_world/deserialize_world imports in routes/timeline_ops.py and routes/action.py with real VirtualWorld snapshot/restore on world.timeline_manager, seed Tick-0 checkpoints on load/reset, record checkpoints across turn/timeskip/date jumps, and round-trip timeline state through savegames without recursive snapshot bloat.",
+    "why": "routes/timeline_ops.py (_snapshot_world, _restore_world) and routes/action.py (apply_turn_decay) currently import non-existent serialize_world and deserialize_world from engine.serialization inside try/except blocks, silently saving {'time_ticks': N} stubs and returning restored: false on every branch switch or redo.",
+    "how": "Attach TimelineManager to VirtualWorld (virtual_world_engine.py) and expose compact snapshot_for_timeline(world) / restore_from_timeline(world, snapshot) helpers in engine/timeline.py using world.to_dict() (popping 'timeline', 'areas', 'rooms', 'areas_by_id') and world.load_from_dict() while preserving _scenario_source and _scenario_name. Seed Tick-0 checkpoint after load_from_dict and /api/reset (routes/saveload.py). Record checkpoints in routes/action.py (apply_turn_decay, world_advance), routes/timeskip_ops.py (handle_timeskip), and routes/settings.py (set_date). Load data['timeline'] in WorldSerializer.load_from_dict and include it in to_dict(include_timeline=True).",
+    "verify": "pytest tests/test_timeline.py tests/test_timeline_e2e.py -q",
+    "acceptance": [
+      {
+        "text": "VirtualWorld owns timeline_manager (TimelineManager) initialized with a Tick-0 checkpoint on boot, load_from_dict, and /api/reset",
+        "done": false
+      },
+      {
+        "text": "routes/timeline_ops.py _snapshot_world and _restore_world use world.to_dict() and world.load_from_dict() instead of missing serialize_world/deserialize_world symbols",
+        "done": false
+      },
+      {
+        "text": "Checkpoint snapshots strip nested timeline and derived area projections so snapshots never recursively bloat",
+        "done": false
+      },
+      {
+        "text": "Checkpoints are recorded on /api/turn/apply, /api/world/timeskip, /api/world/advance, and /api/settings/date, and round-trip through savegames",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py",
+      "engine/timeline.py",
+      "engine/serialization.py",
+      "routes/timeline_ops.py",
+      "routes/action.py",
+      "routes/timeskip_ops.py",
+      "routes/settings.py",
+      "routes/saveload.py"
+    ],
+    "custom": {
+      "browser_ui": "Clicking Checkpoint, + Fork, branch pills in #timeline-branch-bar, or Redo on a turn card restores real VirtualWorld positions, inventory, vitals, and clock state rather than returning restored: false."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T22:16:09Z"
+    }
+  ]
+}

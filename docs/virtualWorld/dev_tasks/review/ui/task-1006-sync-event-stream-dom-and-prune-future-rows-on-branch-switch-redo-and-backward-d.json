@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "task-1006",
+  "kind": "task",
+  "number": 1006,
+  "title": "Sync Event Stream DOM and prune future rows on branch switch, redo, and backward date jumps",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [
+    "timeline",
+    "event-stream",
+    "ui",
+    "branching"
+  ],
+  "created": "2026-11-24",
+  "updated": "2026-11-24",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "bug-609",
+      "task-1005"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Rebuild and prune #event-stream DOM whenever the active timeline branch changes, a turn is redone, or the game clock moves backward so visible rows and auto-persistence stay strictly aligned with (branch_id, time_ticks).",
+    "why": "timeline-bar.ts switchBranch(), timeline-view.ts Fork & Redo, event-stream.ts Redo, and sky-scape.ts _setExactDate currently leave stale future/other-branch DOM rows inside #event-stream, causing new past-tick turns to append below future turns and overwriting SQLite on the next auto-persist.",
+    "how": "Track active branch_id and fork_tick in StreamPersistence (static/js/stream/stream-persistence.ts) so persist() filters records to tick >= fork_tick on non-main branches and sends branch_id + from_tick to POST /api/stream/batch. Add syncToTimeline(branchId?, maxTick?) on StreamPersistence and pruneAfterTick(maxTick) on EventBus (static/js/event-stream.ts). Call syncToTimeline after /api/timeline/switch, /api/timeline/fork, and /api/timeline/redo in timeline-bar.ts, timeline-view.ts, and event-stream.ts, and call pruneAfterTick when _setExactDate in static/js/sky-scape.ts moves time_ticks backward.",
+    "verify": "npm run build:ts; pytest tests/test_timeline_e2e.py -q",
+    "acceptance": [
+      {
+        "text": "StreamPersistence.persist and restore pass active branch_id and only sync branch-owned rows after fork_tick",
+        "done": false
+      },
+      {
+        "text": "StreamPersistence.syncToTimeline(branchId, maxTick) reloads #event-stream from /api/stream?branch_id=...&tick_to=... (clearing DOM when empty) without triggering overwrite storms",
+        "done": false
+      },
+      {
+        "text": "EventBus.pruneAfterTick(maxTick) removes #event-stream turn cards and rows with tick > maxTick when rewinding clock date/time backward",
+        "done": false
+      },
+      {
+        "text": "Switching branches in timeline-bar.ts / timeline-view.ts, clicking Redo in event-stream.ts, and rewinding date in sky-scape.ts immediately update #event-stream to match current branch and tick",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/stream/stream-persistence.ts",
+      "static/js/event-stream.ts",
+      "static/js/stream/timeline-bar.ts",
+      "static/js/stream/timeline-view.ts",
+      "static/js/sky-scape.ts"
+    ],
+    "custom": {
+      "browser_ui": "Switching branches in #timeline-branch-bar, clicking Fork & Redo in #timeline-view or Redo on a turn card, or setting an earlier date in SkyScape immediately updates #event-stream so future/sibling-branch rows disappear and new actions append at the right tick."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T22:16:28Z"
+    }
+  ]
+}

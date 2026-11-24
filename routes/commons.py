@@ -313,12 +313,29 @@ def register_commons_routes(app):
             except (KeyError, ChatAuthorizationError) as exc:
                 return _failure(exc)
             since_id = request.args.get('since_id', type=int)
-            msgs = [
-                dict(message) for message in chat.messages
-                if message.get("channel_id", PUBLIC_CHANNEL_ID) == channel_id
-                and (since_id is None or message["id"] > since_id)
-                and not message.get("deleted")
-            ]
+            standalone = _is_standalone()
+            max_tick = int(getattr(world, "time_ticks", 0) or 0) if (not standalone and world is not None) else None
+            max_dt = (
+                world.datetime_for_tick(max_tick)
+                if (not standalone and world is not None and hasattr(world, "datetime_for_tick"))
+                else None
+            )
+            msgs = []
+            for message in chat.messages:
+                if message.get("channel_id", PUBLIC_CHANNEL_ID) != channel_id:
+                    continue
+                if since_id is not None and message["id"] <= since_id:
+                    continue
+                if message.get("deleted"):
+                    continue
+                if not standalone:
+                    m_tick = message.get("tick")
+                    if max_tick is not None and m_tick is not None and int(m_tick) > max_tick:
+                        continue
+                    m_dt = message.get("world_datetime")
+                    if max_dt and m_dt and str(m_dt) > str(max_dt):
+                        continue
+                msgs.append(dict(message))
             return jsonify({"messages": msgs})
 
         data = request.get_json() or {}

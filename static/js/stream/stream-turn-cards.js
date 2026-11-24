@@ -89,6 +89,12 @@ class StreamTurnCards {
                         window.VW?.ui?.setStatus?.(`Forked branch: ${label}`, 'info');
                         await window.TimelineBar?.refresh?.();
                         await window.worldState?.fetch?.();
+                        await window.events?.syncToTimeline?.({
+                            branchId: data?.active_branch_id,
+                            maxTick: typeof data?.tick === 'number' ? data.tick : atTick,
+                            forkTick: atTick,
+                            focusCharacter: character,
+                        });
                     }
                 }
                 finally {

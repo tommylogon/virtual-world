@@ -105,20 +105,23 @@ class StreamStore:
         request_id: Optional[str] = None,
         payload: Optional[Dict[str, Any]] = None,
         world_id: str = "default",
+        branch_id: str = "main",
     ) -> Dict[str, Any]:
         now = time.time()
         payload_dict = payload if isinstance(payload, dict) else {}
         payload_json = json.dumps(payload_dict, ensure_ascii=False)
         clean_actor = str(actor or "World").strip() or "World"
+        clean_branch = str(branch_id or "main").strip() or "main"
         with self._lock:
             cur = self._conn.execute(
                 """
                 INSERT INTO stream_events
-                    (world_id, tick, game_time, turn_id, actor, area, kind, phase, outcome, request_id, payload_json, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (world_id, branch_id, tick, game_time, turn_id, actor, area, kind, phase, outcome, request_id, payload_json, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     world_id,
+                    clean_branch,
                     int(tick or 0),
                     str(game_time or ""),
                     turn_id,
@@ -137,6 +140,7 @@ class StreamStore:
         return {
             "seq": seq,
             "world_id": world_id,
+            "branch_id": clean_branch,
             "tick": int(tick or 0),
             "game_time": str(game_time or ""),
             "turn_id": turn_id,
@@ -155,10 +159,12 @@ class StreamStore:
         events: List[Dict[str, Any]],
         *,
         world_id: str = "default",
+        branch_id: str = "main",
     ) -> List[Dict[str, Any]]:
         """Append multiple events in a single SQLite transaction."""
         out: List[Dict[str, Any]] = []
         now = time.time()
+        default_branch = str(branch_id or "main").strip() or "main"
         with self._lock:
             for item in events:
                 if not isinstance(item, dict) or not item.get("kind"):
@@ -167,14 +173,16 @@ class StreamStore:
                 payload_json = json.dumps(payload_dict, ensure_ascii=False)
                 clean_actor = str(item.get("actor") or "World").strip() or "World"
                 wid = str(item.get("world_id") or world_id)
+                bid = str(item.get("branch_id") or default_branch).strip() or default_branch
                 cur = self._conn.execute(
                     """
                     INSERT INTO stream_events
-                        (world_id, tick, game_time, turn_id, actor, area, kind, phase, outcome, request_id, payload_json, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        (world_id, branch_id, tick, game_time, turn_id, actor, area, kind, phase, outcome, request_id, payload_json, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         wid,
+                        bid,
                         int(item.get("tick", 0) or 0),
                         str(item.get("game_time") or ""),
                         item.get("turn_id"),
@@ -192,6 +200,7 @@ class StreamStore:
                     {
                         "seq": int(cur.lastrowid),
                         "world_id": wid,
+                        "branch_id": bid,
                         "tick": int(item.get("tick", 0) or 0),
                         "game_time": str(item.get("game_time") or ""),
                         "turn_id": item.get("turn_id"),
@@ -335,6 +344,116 @@ class StreamStore:
             ).fetchone()
         return dict(row) if row else None
 
+    def query_branch_lineage(
+        self,
+        *,
+        world_id: str = "default",
+        ancestry: List[Dict[str, Any]],
+        limit: int = 500,
+        before_seq: Optional[int] = None,
+        after_seq: Optional[int] = None,
+        actor: Optional[str] = None,
+        kind: Optional[str] = None,
+        area: Optional[str] = None,
+        tick_from: Optional[int] = None,
+        tick_to: Optional[int] = None,
+        search: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Query events walking root-to-leaf branch ancestry without sibling contamination."""
+        if not ancestry:
+            return self.query_events(
+                world_id=world_id,
+                branch_id="main",
+                limit=limit,
+                before_seq=before_seq,
+                after_seq=after_seq,
+                actor=actor,
+                kind=kind,
+                area=area,
+                tick_from=tick_from,
+                tick_to=tick_to,
+                search=search,
+            )
+        seg_clauses: List[str] = []
+        params: List[Any] = [world_id]
+        for seg in ancestry:
+            bid = str(seg.get("branch_id") or "main")
+            sub = ["branch_id = ?"]
+            params.append(bid)
+            if seg.get("max_tick") is not None:
+                sub.append("tick <= ?")
+                params.append(int(seg["max_tick"]))
+            if seg.get("max_seq") is not None:
+                sub.append("seq <= ?")
+                params.append(int(seg["max_seq"]))
+            seg_clauses.append("(" + " AND ".join(sub) + ")")
+
+        clauses = ["world_id = ?", "(" + " OR ".join(seg_clauses) + ")"]
+        if before_seq is not None:
+            clauses.append("seq < ?")
+            params.append(int(before_seq))
+        if after_seq is not None:
+            clauses.append("seq > ?")
+            params.append(int(after_seq))
+        if actor:
+            clauses.append("actor = ?")
+            params.append(actor)
+        if kind:
+            clauses.append("kind = ?")
+            params.append(kind)
+        if area:
+            clauses.append("area = ?")
+            params.append(area)
+        if tick_from is not None:
+            clauses.append("tick >= ?")
+            params.append(int(tick_from))
+        if tick_to is not None:
+            clauses.append("tick <= ?")
+            params.append(int(tick_to))
+        if search:
+            clauses.append("(payload_json LIKE ? OR actor LIKE ?)")
+            like = f"%{search}%"
+            params.extend([like, like])
+
+        where_sql = " AND ".join(clauses)
+        safe_limit = max(1, min(5000, int(limit or 500)))
+        sql = f"""
+            SELECT * FROM (
+                SELECT * FROM stream_events
+                WHERE {where_sql}
+                ORDER BY seq DESC
+                LIMIT ?
+            ) sub
+            ORDER BY seq ASC
+        """
+        params.append(safe_limit)
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
+        return [self._row_to_event(r) for r in rows]
+
+    def clear_branch(
+        self,
+        *,
+        world_id: str = "default",
+        branch_id: str = "main",
+        from_tick: Optional[int] = None,
+    ) -> int:
+        """Clear events belonging ONLY to ``branch_id`` (optionally from ``from_tick`` onward)."""
+        clean_branch = str(branch_id or "main").strip() or "main"
+        with self._lock:
+            if from_tick is not None:
+                cur = self._conn.execute(
+                    "DELETE FROM stream_events WHERE world_id = ? AND branch_id = ? AND tick >= ?",
+                    (world_id, clean_branch, int(from_tick)),
+                )
+            else:
+                cur = self._conn.execute(
+                    "DELETE FROM stream_events WHERE world_id = ? AND branch_id = ?",
+                    (world_id, clean_branch),
+                )
+            self._conn.commit()
+            return int(cur.rowcount)
+
     def clear_world(self, *, world_id: str = "default") -> int:
         with self._lock:
             cur = self._conn.execute("DELETE FROM stream_events WHERE world_id = ?", (world_id,))
@@ -355,6 +474,7 @@ class StreamStore:
         return {
             "seq": row["seq"],
             "world_id": row["world_id"],
+            "branch_id": row["branch_id"] if "branch_id" in row.keys() else "main",
             "tick": row["tick"],
             "game_time": row["game_time"],
             "turn_id": row["turn_id"],

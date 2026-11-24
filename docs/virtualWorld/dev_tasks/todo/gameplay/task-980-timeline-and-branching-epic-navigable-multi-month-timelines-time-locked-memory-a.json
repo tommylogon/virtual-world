@@ -17,7 +17,7 @@
     "epic"
   ],
   "created": "2026-11-17",
-  "updated": "2026-11-17",
+  "updated": "2026-11-24",
   "horizon": "next",
   "effort": "xl",
   "goal": "Implement the 14/11 2026 Timeline Vision Guide across engine, memory, simulation, and UI.",
@@ -35,7 +35,9 @@
       "task-976",
       "task-977",
       "task-978",
-      "task-979"
+      "task-979",
+      "task-1006",
+      "task-1007"
     ],
     "supersedes": [],
     "superseded_by": [],
@@ -46,33 +48,9 @@
     "what": "Phases 1-2 (Commons calendar timestamps, branching/reset, future-memory recall locking in engine/memory_retrieval.py) are complete. Remaining epic scope (Phases 3-4): scenario-level branch graph, entity existence windows, timeline-aware run_sim/soak/timeskip/PlayMode, and multi-month Timeline UI.",
     "why": "Authors and players need to jump around scenario chronology (e.g., rewind 6 months to May or August), test alternate character decisions without destroying the main timeline, and guarantee characters cannot recall future events.",
     "how": "1. Phase 1 (task-976, task-977): Dated world_datetime memories, future-memory recall lock, and calendar/phone timestamps in Commons.\n2. Phase 2 (task-978, task-979): Commons standalone mode, branching/reset, and anchored real-time/manual date-time clock.\n3. Phase 3: Scenario branch graph (branch_id, parent_branch_id, fork_datetime), entity existence tracking, edit incorporation, and timeline-aware run_sim, soak, timeskip, and PlayMode with strict branch isolation and default save/load.\n4. Phase 4: Zoomable, scrollable, searchable, filterable multi-month Timeline UI with hover event inspection and EventStream unification/replacement.",
-    "verify": "Verify branch isolation (no future memory leaks, no cross-branch contamination), save/load round-trip of timeline trees, and live UI scrubbing/forking/PlayMode entry."
-  },
-  "acceptance": [
-    {
-      "text": "Jumping backward in time denies recall of memories dated after the active clock.",
-      "done": false
-    },
-    {
-      "text": "Forking a branch at any point isolates subsequent edits, character decisions, entity existence, soak, and timeskip from sibling branches.",
-      "done": false
-    },
-    {
-      "text": "Timeline tree saves and loads by default with scenarios and provides zoomable, scrollable, searchable, filterable navigation.",
-      "done": false
-    }
-  ],
-  "files": [
-    "docs/design/timeline-and-branching-vision.md",
-    "virtual_world_engine.py",
-    "engine/timeskip.py",
-    "engine/soak_runner.py",
-    "engine/memory_retrieval.py",
-    "static/js/event-stream.ts",
-    "static/js/ui/play-mode.ts"
-  ],
-  "custom": {
-    "browser_ui": "Intended UI home: Interactive multi-month Timeline view (zoomable, scrollable, searchable, filterable, hover-to-reveal events, fork branch, enter PlayMode).\n\nManual verification steps:\n1. Load a multi-month scenario, scrub to an earlier date, fork a branch, and redo a character decision.\n2. Confirm future memories are locked and sibling branches remain uncontaminated."
+    "verify": "Verify branch isolation (no future memory leaks, no cross-branch contamination), save/load round-trip of timeline trees, and live UI scrubbing/forking/PlayMode entry.",
+    "acceptance": [],
+    "files": []
   },
   "links": {
     "wiki": [
@@ -87,5 +65,33 @@
     "urls": []
   },
   "evidence": [],
-  "invalidation": null
+  "invalidation": null,
+  "extra": {
+    "acceptance": [
+      {
+        "text": "Jumping backward in time denies recall of memories dated after the active clock.",
+        "done": false
+      },
+      {
+        "text": "Forking a branch at any point isolates subsequent edits, character decisions, entity existence, soak, and timeskip from sibling branches.",
+        "done": false
+      },
+      {
+        "text": "Timeline tree saves and loads by default with scenarios and provides zoomable, scrollable, searchable, filterable navigation.",
+        "done": false
+      }
+    ],
+    "files": [
+      "docs/design/timeline-and-branching-vision.md",
+      "virtual_world_engine.py",
+      "engine/timeskip.py",
+      "engine/soak_runner.py",
+      "engine/memory_retrieval.py",
+      "static/js/event-stream.ts",
+      "static/js/ui/play-mode.ts"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Interactive multi-month Timeline view (zoomable, scrollable, searchable, filterable, hover-to-reveal events, fork branch, enter PlayMode).\n\nManual verification steps:\n1. Load a multi-month scenario, scrub to an earlier date, fork a branch, and redo a character decision.\n2. Confirm future memories are locked and sibling branches remain uncontaminated."
+    }
+  }
 }

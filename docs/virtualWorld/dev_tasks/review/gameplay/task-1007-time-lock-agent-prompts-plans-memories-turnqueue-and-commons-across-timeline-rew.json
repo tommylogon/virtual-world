@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "task-1007",
+  "kind": "task",
+  "number": 1007,
+  "title": "Time-lock agent prompts, plans, memories, TurnQueue, and Commons across timeline rewinds and branches",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "timeline",
+    "agent",
+    "memory",
+    "commons",
+    "turn-queue"
+  ],
+  "created": "2026-11-24",
+  "updated": "2026-11-24",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "bug-609"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Enforce tick/datetime time-locking in Python prompt builders and Connected-mode Commons, clear server-side agent plan/memory caches on branch switches, and reset browser AgentEngine/PlanTracker/TurnQueue state on rewind or redo.",
+    "why": "Rewinding the clock or switching branches currently leaves future fallback memories in turn_prompts.py _build_memory_block, stale server-side MemoryManager/PlanManager caches, future Connected-mode Commons messages, and stale browser AgentEngine plans/turn queue slots.",
+    "how": "Pass max_tick=world.time_ticks into _build_memory_block (engine/agent/prompt_builder/turn_prompts.py) and filter recent_hearing/turn_events by tick <= current_tick in build_room_events_block (engine/agent/prompt_builder/room_context.py). Clear current_app._agent_memory_manager and _agent_plan_manager in routes/timeline_ops.py (switch_branch, redo_decision) and routes/saveload.py (load_world, reset_world). Time-lock Connected-mode Commons message reads when max_datetime is provided from world.datetime_for_tick(). Add AgentEngine.onTimelineSwitch({ branchId, tick, focusCharacter }) in static/js/agent-engine.ts to reset client histories, plans, and TurnQueue slot.",
+    "verify": "npm run build:ts; pytest tests/test_agent_python_loop.py tests/test_timeline_e2e.py -q",
+    "acceptance": [
+      {
+        "text": "turn_prompts.py _build_memory_block and room_context.py build_room_events_block filter out any memory or hearing/turn event with tick > world.time_ticks",
+        "done": false
+      },
+      {
+        "text": "Switching branches, redoing a decision, or resetting the world clears server-side _agent_memory_manager and _agent_plan_manager caches on current_app",
+        "done": false
+      },
+      {
+        "text": "Connected-mode Commons messages in engine/commons.py filter out messages with world_datetime > world.datetime_for_tick() when rewound",
+        "done": false
+      },
+      {
+        "text": "AgentEngine.onTimelineSwitch resets browser characterHistories, lastActionResult, PlanTracker plans, and TurnQueue slot/turnNumber (pointing currentTurnIndex to the target character on Redo)",
+        "done": false
+      }
+    ],
+    "files": [
+      "virtual_world_engine.py",
+      "engine/agent/prompt_builder/turn_prompts.py",
+      "engine/agent/prompt_builder/room_context.py",
+      "engine/commons.py",
+      "routes/timeline_ops.py",
+      "routes/saveload.py",
+      "static/js/agent-engine.ts"
+    ],
+    "custom": {
+      "browser_ui": "After rewinding or clicking Redo on a character's turn card, the Turn Order strip highlights that character at the rewound tick, Agent Lens shows zero future memories/speech, and Commons hides future messages."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T22:16:33Z"
+    }
+  ]
+}

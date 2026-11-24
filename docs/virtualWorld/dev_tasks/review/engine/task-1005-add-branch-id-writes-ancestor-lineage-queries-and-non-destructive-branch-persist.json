@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "id": "task-1005",
+  "kind": "task",
+  "number": 1005,
+  "title": "Add branch_id writes, ancestor lineage queries, and non-destructive branch persistence to StreamStore",
+  "status": "review",
+  "priority": "critical",
+  "area": "engine",
+  "tags": [
+    "timeline",
+    "event-stream",
+    "sqlite",
+    "branching"
+  ],
+  "created": "2026-11-24",
+  "updated": "2026-11-24",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Wire branch_id end-to-end through StreamStore writes, batch syncs, and lineage-aware reads so forked branches inherit parent events up to fork_tick/fork_seq while isolating post-fork events per branch.",
+    "why": "Although stream_events has a branch_id column in engine/stream_store.py, append_event and append_events_batch currently omit branch_id (writing every event to 'main'), query_events does not walk parent ancestry, and POST /api/stream/batch?replace=true wipes the entire world_id across all branches.",
+    "how": "Update StreamStore.append_event and append_events_batch in engine/stream_store.py to accept and insert branch_id (default 'main') and include branch_id in _row_to_event. Replace world-wide clear on branch batch sync with clear_branch(world_id, branch_id, from_tick=None) so syncing a branch DOM never wipes other branches. Add TimelineManager.get_ancestry(branch_id) in engine/timeline.py returning [(branch_id, min_tick, max_tick, max_seq), ...] and StreamStore.query_branch_lineage(...) wired into GET /api/stream in routes/stream_ops.py when branch_id is passed or active.",
+    "verify": "pytest tests/test_stream_store.py tests/test_timeline_e2e.py -q",
+    "acceptance": [
+      {
+        "text": "StreamStore.append_event and append_events_batch persist branch_id on every inserted row",
+        "done": false
+      },
+      {
+        "text": "POST /api/stream/batch with replace=true replaces only the active branch (or rows at/after fork_tick on that branch) and never deletes parent or sibling branch events",
+        "done": false
+      },
+      {
+        "text": "TimelineManager.get_ancestry(branch_id) returns ordered (branch_id, min_tick, max_tick) segments from root main to active branch",
+        "done": false
+      },
+      {
+        "text": "GET /api/stream?branch_id=<id>&tick_to=<tick> returns ancestor events up to each fork point plus active branch events after fork_tick without cross-branch contamination",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/stream_store.py",
+      "engine/timeline.py",
+      "routes/stream_ops.py"
+    ],
+    "custom": {
+      "browser_ui": "Timeline modal (#timeline-view) and #event-stream display inherited history prior to a fork plus only the selected branch's own events after the fork, keeping sibling branches intact in SQLite."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T22:16:14Z"
+    }
+  ]
+}

@@ -75,6 +75,42 @@ class AgentEngine {
         return this.characterHistories[charName];
     }
     getDisplayHistory(charName) { return this.getHistory(charName).slice(1); }
+    /** Reset transient browser agent state on timeline branch switch, rewind, or decision redo. */
+    onTimelineSwitch(opts = {}) {
+        this.characterHistories = {};
+        this._recentInnerMonologues = {};
+        if (agentConfig?.lastActionResult) {
+            for (const k of Object.keys(agentConfig.lastActionResult)) {
+                delete agentConfig.lastActionResult[k];
+            }
+        }
+        try {
+            window.PlanTracker?.clearAll?.();
+        }
+        catch { /* optional */ }
+        try {
+            window.TurnFeed?.clear?.();
+        }
+        catch { /* optional */ }
+        try {
+            window.HumanTurnComposer?.closeTurn?.();
+        }
+        catch { /* optional */ }
+        try {
+            TurnQueue.reconcile?.();
+            if (typeof opts.tick === 'number' && Number.isFinite(opts.tick)) {
+                this.turnNumber = Math.max(0, Math.floor(opts.tick));
+            }
+            if (opts.focusCharacter && Array.isArray(this.turnQueue)) {
+                const idx = this.turnQueue.indexOf(opts.focusCharacter);
+                if (idx >= 0) {
+                    this.currentTurnIndex = idx;
+                }
+            }
+            window.VW?.ui?.updateTurnOrder?.();
+        }
+        catch { /* optional */ }
+    }
     /** Fix 8: centralized controllingPlayer resolution - used by step, stepOnce, start */
     _resolveControllingPlayer() {
         return config.controllingPlayer

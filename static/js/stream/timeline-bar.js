@@ -121,8 +121,16 @@
             body: JSON.stringify({ branch_id: branchId, restore: true }),
         });
         if (resp.ok) {
+            const data = await resp.json();
             await refresh();
             await window.worldState?.fetch?.();
+            const restoredTick = typeof data?.tick === 'number' ? data.tick : undefined;
+            const forkTick = typeof data?.branch?.fork_tick === 'number' ? data.branch.fork_tick : 0;
+            await window.events?.syncToTimeline?.({
+                branchId: data?.active_branch_id || branchId,
+                maxTick: restoredTick,
+                forkTick,
+            });
         }
     }
     async function forkHere() {
@@ -136,7 +144,14 @@
             body: JSON.stringify({ label: label.trim(), fork_tick: curTick, switch: true }),
         });
         if (resp.ok) {
+            const data = await resp.json();
             await refresh();
+            await window.worldState?.fetch?.();
+            await window.events?.syncToTimeline?.({
+                branchId: data?.active_branch_id,
+                maxTick: typeof data?.tick === 'number' ? data.tick : curTick,
+                forkTick: curTick,
+            });
             window.VW?.ui?.setStatus?.(`Forked branch: ${label.trim() || `Tick ${curTick}`}`, 'info');
         }
     }

@@ -206,6 +206,9 @@ def register_saveload_routes(app):
             start = time.time()
             _push_undo_snapshot(app, label=f"load{' savegame' if '_save_metadata' in data else ' scenario'} <{data.get('_scenario_name') or data.get('name') or 'unnamed'}>")
             app.world.load_from_dict(data)
+            app._agent_memory_manager = None
+            app._agent_plan_manager = None
+            app.timeline_manager = getattr(app.world, "timeline_manager", None)
             # Replacing the world invalidates the Play Mode checkpoint. Keep
             # Stop from restoring the world that was open before this load.
             was_play_mode = bool(getattr(app, 'play_mode', False))
@@ -314,6 +317,14 @@ def register_saveload_routes(app):
             new_world.legacy_compat.game_log = list(new_world.game_logger.game_log)
 
             app.world = new_world
+            app._agent_memory_manager = None
+            app._agent_plan_manager = None
+            if hasattr(new_world, "timeline_manager") and new_world.timeline_manager is not None:
+                new_world.timeline_manager.reset_for_world(new_world)
+                app.timeline_manager = new_world.timeline_manager
+            if getattr(app, "stream_store", None) is not None:
+                wid = getattr(new_world, "_scenario_name", None) or "default"
+                app.stream_store.clear_world(world_id=str(wid).strip() or "default")
             from engine.world.store import configure_scope_store
             configure_scope_store(new_world, app.config['DATA_DIR'])
             # Delete autosave so restart is truly clean and next server start doesn't load stale state
@@ -548,6 +559,9 @@ def register_saveload_routes(app):
             if not is_play:
                 _push_undo_snapshot(app, label=f"load savegame <{filename}>")
             app.world.load_from_dict(data)
+            app._agent_memory_manager = None
+            app._agent_plan_manager = None
+            app.timeline_manager = getattr(app.world, "timeline_manager", None)
             _adopt_loaded_world(app, data, autosave=not is_play)
             if is_play:
                 app.world.is_play_mode = True

@@ -90,6 +90,12 @@ class StreamTurnCards {
                         (window as any).VW?.ui?.setStatus?.(`Forked branch: ${label}`, 'info');
                         await (window as any).TimelineBar?.refresh?.();
                         await (window as any).worldState?.fetch?.();
+                        await (window as any).events?.syncToTimeline?.({
+                            branchId: data?.active_branch_id,
+                            maxTick: typeof data?.tick === 'number' ? data.tick : atTick,
+                            forkTick: atTick,
+                            focusCharacter: character,
+                        });
                     }
                 } finally {
                     redoBtn.disabled = false;

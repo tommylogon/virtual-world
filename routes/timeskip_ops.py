@@ -201,6 +201,11 @@ def handle_timeskip(app):
     payload = result.to_dict()
     if not result.ok:
         return jsonify(payload), 400
+    try:
+        from engine.timeline import record_world_checkpoint
+        record_world_checkpoint(world)
+    except Exception:
+        pass
     return jsonify(payload)
 
 

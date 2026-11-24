@@ -767,6 +767,39 @@ class EventBus {
     clearAreaEvents() {
         this._areaEventLog = {};
     }
+    /** Synchronize #event-stream and AgentEngine to a timeline branch / tick. */
+    async syncToTimeline(opts = {}) {
+        this._cards.close();
+        this._areaEventLog = {};
+        this._characterState = {};
+        await this._persist.syncToTimeline?.(opts.branchId, opts.maxTick, opts.forkTick);
+        window.VW?.agent?.onTimelineSwitch?.({
+            branchId: opts.branchId,
+            tick: opts.maxTick,
+            focusCharacter: opts.focusCharacter,
+        });
+    }
+    /** Prune any #event-stream cards and rows strictly after maxTick (e.g. backward date jump). */
+    pruneAfterTick(maxTick) {
+        const streamEl = document.getElementById('event-stream');
+        if (!streamEl || !Number.isFinite(maxTick))
+            return;
+        this._cards.close();
+        for (const el of Array.from(streamEl.children)) {
+            const attrTick = el.getAttribute('data-tick');
+            if (attrTick !== null && Number(attrTick) > maxTick) {
+                el.remove();
+                continue;
+            }
+            const tickSpan = el.querySelector('.bubble-tick');
+            const m = tickSpan?.textContent?.match(/\[Tick\s+(\d+)/);
+            if (m && Number(m[1]) > maxTick) {
+                el.remove();
+            }
+        }
+        this._scrubber.scheduleRebuild();
+        void this._persist.persist();
+    }
     // --- Play Mode sandbox (task-885) ---
     /**
      * Park the authored stream and start a clean one for Play Mode, so a

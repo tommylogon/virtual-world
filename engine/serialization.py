@@ -1036,7 +1036,7 @@ class WorldSerializer:
         self.strip_redundant_exits(data)
         data["turn_order"] = getattr(self.legacy, "turn_order_mode", "sequential")
         tm = getattr(self.legacy, "timeline_manager", None)
-        if tm is not None and hasattr(tm, "serialize"):
+        if tm is not None and hasattr(tm, "serialize") and len(getattr(tm, "branches", {})) > 1:
             data["timeline"] = tm.serialize()
         return data
 
@@ -1273,6 +1273,17 @@ class WorldSerializer:
                 observe_area(p, self.legacy)
         except Exception as e:
             logger.warning("[observation] initial pass failed: %s", e)
+
+        # Restore persisted timeline branches (savegames / multi-branch scenarios),
+        # or seed a clean Tick-0 checkpoint when loading a fresh world.
+        if not getattr(self.legacy, "_restoring_timeline", False):
+            tm = getattr(self.legacy, "timeline_manager", None)
+            if tm is not None:
+                saved_tl = data.get("timeline")
+                if isinstance(saved_tl, dict) and saved_tl.get("branches"):
+                    tm.load(saved_tl)
+                elif hasattr(tm, "reset_for_world"):
+                    tm.reset_for_world(self.legacy)
 
     def _expand_hazards_to_triggers(self):
         from engine.hazards import expand_node_hazards

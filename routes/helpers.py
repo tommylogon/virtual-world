@@ -530,6 +530,9 @@ def _save_game(world, name=None, slot=None):
         path = os.path.join(saves_dir, filename)
         data = world.to_dict()
         is_auto_slot = slot and os.path.basename(slot) == os.path.basename(AUTOSAVE_SLOT)
+        tm = getattr(world, "timeline_manager", None)
+        if tm is not None and hasattr(tm, "serialize") and (not is_auto_slot or len(getattr(tm, "branches", {})) > 1):
+            data["timeline"] = tm.serialize()
         data['_save_metadata'] = {
             'name': name or scenario,
             'scenario': scenario,

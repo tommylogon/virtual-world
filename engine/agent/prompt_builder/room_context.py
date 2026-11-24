@@ -149,9 +149,16 @@ def build_room_context(
 def build_room_events_block(world: Any, player: Any, *, last_result: str = "") -> str:
     """Build === WHAT HAPPENED === combining room events, witnessed speech, and own last result."""
     lines: List[str] = []
+    cur_tick = int(getattr(world, "time_ticks", 0) or 0) if world is not None else None
 
-    # Heard speech (already masked & tone-perceived by engine/speech.py)
-    hearing = list(getattr(player, "recent_hearing", None) or [])[-6:]
+    # Heard speech (already masked & tone-perceived by engine/speech.py, time-locked to cur_tick)
+    raw_hearing = list(getattr(player, "recent_hearing", None) or [])
+    if cur_tick is not None:
+        raw_hearing = [
+            h for h in raw_hearing
+            if not isinstance(h, dict) or h.get("tick") is None or int(h["tick"]) <= cur_tick
+        ]
+    hearing = raw_hearing[-6:]
     player_low = str(getattr(player, "name", "") or "").lower()
     for h in hearing:
         spk = h.get("speaker") or "Someone"
@@ -178,6 +185,12 @@ def build_room_events_block(world: Any, player: Any, *, last_result: str = "") -
     seen_texts = set(lines)
     for ev in turn_events:
         if isinstance(ev, dict):
+            if cur_tick is not None and ev.get("tick") is not None:
+                try:
+                    if int(ev["tick"]) > cur_tick:
+                        continue
+                except (TypeError, ValueError):
+                    pass
             txt = str(ev.get("text") or ev.get("summary") or ev.get("result") or "").strip()
             actor = str(ev.get("actor") or "").strip()
             if not txt:

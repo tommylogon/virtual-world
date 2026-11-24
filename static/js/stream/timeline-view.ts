@@ -171,24 +171,42 @@
             };
 
             drawer.appendChild(mkBtn('⏱ Set / Jump World Clock Here', true, async () => {
-                await fetch('/api/time', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ hour: slot.hour, day: slot.dayNum }),
-                }).catch(() => {});
+                const prevTick = Number((window as any).worldState?.data?.time_ticks ?? 0) || 0;
+                const dParts = String(slot.iso || '').split('T')[0].split('-').map(Number);
+                if (dParts.length === 3 && !isNaN(dParts[0])) {
+                    await fetch('/api/settings/date', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ year: dParts[0], month: dParts[1], day: dParts[2] }),
+                    }).catch(() => {});
+                }
+                await (window as any).ApiClient?.setClockStart?.(slot.hour, 0).catch?.(() => {});
                 await (window as any).worldState?.fetch?.();
+                const newTick = Number((window as any).worldState?.data?.time_ticks ?? 0) || 0;
+                if (newTick < prevTick) {
+                    (window as any).events?.pruneAfterTick?.(newTick);
+                    (window as any).VW?.agent?.onTimelineSwitch?.({ tick: newTick });
+                }
                 (window as any).VW?.ui?.setStatus?.(`World clock moved to ${slot.label}`, 'info');
+                await renderGraph();
             }));
 
             drawer.appendChild(mkBtn('🌿 Fork New Branch Here', false, async () => {
                 const label = window.prompt('Branch name:', `Branch @ ${slot.label}`);
                 if (label === null) return;
-                await fetch('/api/timeline/fork', {
+                const fResp = await fetch('/api/timeline/fork', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ label: label.trim() || `Branch @ ${slot.label}`, fork_tick: targetTick, fork_datetime: slot.iso, switch: true }),
                 });
+                const fData = fResp.ok ? await fResp.json() : null;
                 await (window as any).TimelineBar?.refresh?.();
+                await (window as any).worldState?.fetch?.();
+                await (window as any).events?.syncToTimeline?.({
+                    branchId: fData?.active_branch_id,
+                    maxTick: typeof fData?.tick === 'number' ? fData.tick : targetTick,
+                    forkTick: targetTick,
+                });
                 await renderGraph();
             }));
 
@@ -216,13 +234,20 @@
                 redoBtn.textContent = `↺ Fork & Redo ${ev.actor}'s Decision`;
                 redoBtn.style.cssText = 'width:100%;padding:7px 10px;border-radius:5px;border:none;background:#1f6feb;color:#fff;font-size:12px;font-weight:600;cursor:pointer;';
                 redoBtn.addEventListener('click', async () => {
-                    await fetch('/api/timeline/redo', {
+                    const rResp = await fetch('/api/timeline/redo', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ character: ev.actor, at_tick: Number(ev.tick || 0), at_seq: ev.seq }),
                     });
+                    const rData = rResp.ok ? await rResp.json() : null;
                     await (window as any).TimelineBar?.refresh?.();
                     await (window as any).worldState?.fetch?.();
+                    await (window as any).events?.syncToTimeline?.({
+                        branchId: rData?.active_branch_id,
+                        maxTick: typeof rData?.tick === 'number' ? rData.tick : Number(ev.tick || 0),
+                        forkTick: Number(ev.tick || 0),
+                        focusCharacter: ev.actor,
+                    });
                     await renderGraph();
                 });
                 drawer.appendChild(redoBtn);

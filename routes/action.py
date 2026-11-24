@@ -118,10 +118,8 @@ def register_action_routes(app):
             return jsonify({"error": "A timeskip is running."}), 409
         res = handle_apply_turn_decay(app)
         try:
-            tm = getattr(app, "timeline_manager", None)
-            if tm is not None and getattr(app, "world", None) is not None:
-                from engine.serialization import serialize_world
-                tm.record_checkpoint(int(getattr(app.world, "time_ticks", 0) or 0), serialize_world(app.world))
+            from engine.timeline import record_world_checkpoint
+            record_world_checkpoint(getattr(app, "world", None))
         except Exception:
             pass
         return res
@@ -154,7 +152,13 @@ def register_action_routes(app):
     def world_advance():
         if _timeskip_busy():
             return jsonify({"error": "A timeskip is running."}), 409
-        return handle_world_advance(app)
+        res = handle_world_advance(app)
+        try:
+            from engine.timeline import record_world_checkpoint
+            record_world_checkpoint(getattr(app, "world", None))
+        except Exception:
+            pass
+        return res
 
     @app.route('/api/world/soak', methods=['POST'])
     def world_soak():

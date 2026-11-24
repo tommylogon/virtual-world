@@ -208,6 +208,33 @@ class AgentEngine {
     }
     getDisplayHistory(charName: string): AgentEngineMessage[] { return this.getHistory(charName).slice(1); }
 
+    /** Reset transient browser agent state on timeline branch switch, rewind, or decision redo. */
+    onTimelineSwitch(opts: { branchId?: string; tick?: number; focusCharacter?: string } = {}): void {
+        this.characterHistories = {};
+        this._recentInnerMonologues = {};
+        if (agentConfig?.lastActionResult) {
+            for (const k of Object.keys(agentConfig.lastActionResult)) {
+                delete agentConfig.lastActionResult[k];
+            }
+        }
+        try { (window as any).PlanTracker?.clearAll?.(); } catch { /* optional */ }
+        try { (window as any).TurnFeed?.clear?.(); } catch { /* optional */ }
+        try { (window as any).HumanTurnComposer?.closeTurn?.(); } catch { /* optional */ }
+        try {
+            TurnQueue.reconcile?.();
+            if (typeof opts.tick === 'number' && Number.isFinite(opts.tick)) {
+                this.turnNumber = Math.max(0, Math.floor(opts.tick));
+            }
+            if (opts.focusCharacter && Array.isArray(this.turnQueue)) {
+                const idx = this.turnQueue.indexOf(opts.focusCharacter);
+                if (idx >= 0) {
+                    this.currentTurnIndex = idx;
+                }
+            }
+            (window as any).VW?.ui?.updateTurnOrder?.();
+        } catch { /* optional */ }
+    }
+
     /** Fix 8: centralized controllingPlayer resolution - used by step, stepOnce, start */
     _resolveControllingPlayer(): string | undefined {
         return config.controllingPlayer

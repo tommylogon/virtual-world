@@ -261,10 +261,21 @@ def register_settings_routes(app):
         """task-228: set game calendar date (day, month, year - each optional)."""
         try:
             data = request.get_json() or {}
+            try:
+                from engine.timeline import record_world_checkpoint
+                record_world_checkpoint(app.world)
+            except Exception:
+                pass
             app.world.set_game_date(
                 day=data.get('day'), month=data.get('month'), year=data.get('year'))
+            try:
+                from engine.timeline import record_world_checkpoint
+                record_world_checkpoint(app.world)
+            except Exception:
+                pass
             return jsonify({
                 "status": "success",
+                "time_ticks": int(getattr(app.world, "time_ticks", 0) or 0),
                 "game_day": int(app.world.game_day),
                 "game_month": int(app.world.game_month),
                 "game_year": int(app.world.game_year),

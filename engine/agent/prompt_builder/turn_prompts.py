@@ -53,18 +53,25 @@ def _build_plan_block(player: Any, plan_steps: Optional[List[str]] = None) -> st
 _INTERNAL_MEM_PREFIXES = ("Observed ", "Secret fact:", "Deepest secret:", "Current situation:", "You have seen ")
 
 
-def _build_memory_block(player: Any, memory_thought: str) -> str:
+def _build_memory_block(player: Any, memory_thought: str, *, max_tick: Optional[int] = None) -> str:
     mem_clean = (memory_thought or "").strip()
     if mem_clean and "You don't remember anything relevant right now." not in mem_clean:
         if mem_clean.startswith("=== I REMEMBER") or "=== I REMEMBER" in mem_clean:
             return mem_clean
         return f"=== I REMEMBER (CONSCIOUS THOUGHT) ===\n{mem_clean}"
     # Fallback: pull up to 2 distinct, non-internal recent memories from Player
-    # (skipping snake_case metadata and near-duplicate inner_monologue echoes).
+    # strictly time-locked to tick <= max_tick so rewinds never leak future traces.
     raw_mems = list(getattr(player, "memories", None) or [])
     snippets: List[str] = []
     seen_heads: set = set()
-    for m in reversed(raw_mems[-12:]):
+    for m in reversed(raw_mems):
+        m_tick = getattr(m, "tick", None) if not isinstance(m, dict) else m.get("tick")
+        if max_tick is not None and m_tick is not None:
+            try:
+                if int(m_tick) > int(max_tick):
+                    continue
+            except (TypeError, ValueError):
+                pass
         txt = str(getattr(m, "text", None) or (m.get("text") if isinstance(m, dict) else "")).strip()
         if not txt or txt.startswith(_INTERNAL_MEM_PREFIXES):
             continue
@@ -167,7 +174,7 @@ def build_think_decide_messages(
     ap = _resolve_ap(player, action_points)
     state_block = build_character_state(player, world=world, action_points=ap)
     room_block = build_room_context(world, player, action_points=ap, include_witnessed=False)
-    mem_block = _build_memory_block(player, memory_thought)
+    mem_block = _build_memory_block(player, memory_thought, max_tick=tick)
     events_block = build_room_events_block(world, player, last_result=last_result)
     actions_block = _build_available_actions_block(ap)
     plan_block = _build_plan_block(player, plan_steps=plan_steps)
@@ -216,10 +223,11 @@ def build_result_reaction_messages(
     persona = getattr(player, "personality", "") or ""
     persona_line = f"You are {player.name}. Personality: {persona}" if persona else f"You are {player.name}."
 
+    tick = int(getattr(world, "time_ticks", 0) or 0)
     ap = _resolve_ap(player, action_points)
     state_block = build_character_state(player, world=world, action_points=ap)
     room_block = build_room_context(world, player, action_points=ap, include_witnessed=False)
-    mem_block = _build_memory_block(player, memory_thought)
+    mem_block = _build_memory_block(player, memory_thought, max_tick=tick)
     events_block = build_room_events_block(world, player, last_result=what_happened)
 
     schema_example = build_json_example(

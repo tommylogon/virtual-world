@@ -23,11 +23,17 @@ class StreamPersistence {
     _bus: PersistenceBus;
     CAP: number;
     _storedWorldKey: string;
+    _activeBranchId: string;
+    _forkTick: number;
+    _syncing: boolean;
 
     constructor(bus: PersistenceBus) {
         this._bus = bus;
         this.CAP = 2000;
         this._storedWorldKey = '';
+        this._activeBranchId = 'main';
+        this._forkTick = 0;
+        this._syncing = false;
     }
 
     /**
@@ -47,6 +53,7 @@ class StreamPersistence {
 
     /** Save current event log as structured records to IndexedDB */
     async persist(): Promise<void> {
+        if (this._syncing) return;
         const streamEl = document.getElementById('event-stream');
         if (!streamEl) return;
 
@@ -64,6 +71,8 @@ class StreamPersistence {
         const worldKey = this._worldKey();
         if (this._storedWorldKey && worldKey && this._storedWorldKey !== worldKey) {
             this._storedWorldKey = worldKey;
+            this._activeBranchId = 'main';
+            this._forkTick = 0;
             await storage.saveEventLog([]);
             await storage.setConfig('event_log_version', '2');
             await storage.setConfig('event_log_world', worldKey);
@@ -71,25 +80,39 @@ class StreamPersistence {
         }
         this._storedWorldKey = worldKey;
         const wid = worldKey || 'default';
+        const bid = this._activeBranchId || 'main';
+        const forkTick = this._forkTick || 0;
         const lastRec = records.length ? records[records.length - 1] : null;
-        const sig = `${wid}|${records.length}|${(lastRec as any)?.seq ?? ''}|${(lastRec as any)?.text ?? ''}`;
+        const sig = `${wid}|${bid}|${records.length}|${(lastRec as any)?.seq ?? ''}|${(lastRec as any)?.text ?? ''}`;
         if ((this as any)._lastPersistSig === sig) return;
         (this as any)._lastPersistSig = sig;
+
+        // On non-main branches, only persist events created at/after forkTick (and not tagged from an ancestor)
+        const branchRecords = bid === 'main'
+            ? records
+            : records.filter((r: any) => {
+                if (r?.branch_id && String(r.branch_id) !== bid) return false;
+                return Number(r?.tick ?? 0) >= forkTick;
+            });
+
         try {
             const resp = await fetch('/api/stream/batch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     world_id: wid,
+                    branch_id: bid,
                     replace: true,
-                    events: records.map((r: any) => ({
+                    from_tick: bid === 'main' ? undefined : forkTick,
+                    events: branchRecords.map((r: any) => ({
                         kind: String(r?.type || 'system'),
                         actor: String(r?.actor || 'World'),
                         tick: Number(r?.tick || 0),
                         area: r?.area || null,
                         phase: r?.phase || null,
                         outcome: r?.outcome || null,
-                        payload: r || {},
+                        branch_id: bid,
+                        payload: { ...(r || {}), branch_id: bid },
                     })),
                 }),
             });
@@ -98,6 +121,46 @@ class StreamPersistence {
         await storage.saveEventLog(records);
         await storage.setConfig('event_log_version', '2');
         if (worldKey) await storage.setConfig('event_log_world', worldKey);
+    }
+
+    /** Re-sync #event-stream strictly to a timeline branch and optional maxTick. */
+    async syncToTimeline(branchId?: string, maxTick?: number, forkTick?: number): Promise<void> {
+        if (!window.Lit) return;
+        const streamEl = document.getElementById('event-stream');
+        if (!streamEl) return;
+
+        this._syncing = true;
+        try {
+            if (branchId) this._activeBranchId = branchId;
+            if (typeof forkTick === 'number') this._forkTick = forkTick;
+            const wid = this._worldKey() || 'default';
+            const qs = new URLSearchParams({
+                world_id: wid,
+                branch_id: this._activeBranchId || 'main',
+                limit: String(this.CAP),
+            });
+            if (typeof maxTick === 'number' && Number.isFinite(maxTick)) {
+                qs.set('tick_to', String(Math.max(0, Math.floor(maxTick))));
+            }
+            const resp = await fetch(`/api/stream?${qs.toString()}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (data?.branch_id) this._activeBranchId = String(data.branch_id);
+            const rawEvents = Array.isArray(data?.events) ? data.events : [];
+            const entries = rawEvents.map((e: any) => {
+                const p = (e?.payload && typeof e.payload === 'object') ? { ...e.payload } : { ...e };
+                if (e?.branch_id) p.branch_id = e.branch_id;
+                if (e?.tick !== undefined && p.tick === undefined) p.tick = e.tick;
+                return p;
+            });
+            this._renderEntriesToDom(streamEl, entries);
+            const lastRec = entries.length ? entries[entries.length - 1] : null;
+            (this as any)._lastPersistSig = `${wid}|${this._activeBranchId}|${entries.length}|${lastRec?.seq ?? ''}|${lastRec?.text ?? ''}`;
+        } catch {
+            /* ignore network errors */
+        } finally {
+            this._syncing = false;
+        }
     }
 
     /** Restore event log from IndexedDB records */
@@ -115,8 +178,13 @@ class StreamPersistence {
             const resp = await fetch(`/api/stream?world_id=${encodeURIComponent(wid)}&limit=${this.CAP}`);
             if (resp.ok) {
                 const data = await resp.json();
+                if (data?.branch_id) this._activeBranchId = String(data.branch_id);
                 if (Array.isArray(data?.events) && data.events.length > 0) {
-                    entries = data.events.map((e: any) => (e?.payload && typeof e.payload === 'object' ? e.payload : e));
+                    entries = data.events.map((e: any) => {
+                        const p = (e?.payload && typeof e.payload === 'object') ? { ...e.payload } : { ...e };
+                        if (e?.branch_id) p.branch_id = e.branch_id;
+                        return p;
+                    });
                     loadedFromBackend = true;
                 }
             }
@@ -149,12 +217,18 @@ class StreamPersistence {
             }
         }
 
-        // Reconstruct stream DOM from structured records
+        this._renderEntriesToDom(streamEl, entries);
+    }
+
+    _renderEntriesToDom(streamEl: HTMLElement, entries: any[]): void {
+        // Reconstruct stream DOM from structured records (even when empty!)
         if (typeof streamEl.replaceChildren === 'function') {
             streamEl.replaceChildren();
         } else {
             while (streamEl.firstChild) streamEl.removeChild(streamEl.firstChild);
         }
+        (this._bus as any)._cards?.close?.();
+        this._bus._knownActors.clear();
 
         let currentCard: HTMLElement | null = null;
         let currentCardKey = '';
@@ -175,6 +249,8 @@ class StreamPersistence {
                     card.className = 'turn-card';
                     const cardActor = rec.card_actor || rec.actor;
                     card.setAttribute('data-actor', cardActor);
+                    card.setAttribute('data-tick', String(rec.tick ?? 0));
+                    if ((rec as any).branch_id) card.setAttribute('data-branch-id', String((rec as any).branch_id));
                     const collapsed = Boolean(rec.card_collapsed);
 
                     const header = document.createElement('div');
@@ -188,9 +264,15 @@ class StreamPersistence {
                     const tickSpan = document.createElement('span');
                     tickSpan.className = 'turn-card-tick';
                     tickSpan.textContent = `[Turn ${rec.turn}${rec.day ? ` | ${rec.day}` : ''}]`;
+                    const redoBtn = document.createElement('button');
+                    redoBtn.className = 'turn-card-redo';
+                    redoBtn.title = "Fork a timeline branch right before this turn and redo this character's decision";
+                    redoBtn.style.cssText = 'margin-left:auto;background:transparent;border:1px solid var(--border,#30363d);border-radius:3px;color:var(--text-muted,#8b949e);font-size:10px;padding:0 5px;cursor:pointer;';
+                    redoBtn.textContent = '↺ Redo';
                     header.appendChild(collapseSpan);
                     header.appendChild(actorSpan);
                     header.appendChild(tickSpan);
+                    header.appendChild(redoBtn);
 
                     const body = document.createElement('div');
                     body.className = 'turn-card-body';

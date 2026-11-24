@@ -599,7 +599,15 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (!isNaN(d)) body.day = d;
         if (!isNaN(m)) body.month = m;
         if (!isNaN(y)) body.year = y;
-        ApiClient.setGameDate(body).then(() => worldState?.fetch?.());
+        const prevTick = Number(_state()?.time_ticks ?? 0) || 0;
+        ApiClient.setGameDate(body).then(async () => {
+            await worldState?.fetch?.();
+            const newTick = Number(_state()?.time_ticks ?? 0) || 0;
+            if (newTick < prevTick) {
+                (window as any).events?.pruneAfterTick?.(newTick);
+                (window as any).VW?.agent?.onTimelineSwitch?.({ tick: newTick });
+            }
+        });
     }
 
     function _setOverride() {

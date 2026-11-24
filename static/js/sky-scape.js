@@ -602,7 +602,15 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             body.month = m;
         if (!isNaN(y))
             body.year = y;
-        ApiClient.setGameDate(body).then(() => worldState?.fetch?.());
+        const prevTick = Number(_state()?.time_ticks ?? 0) || 0;
+        ApiClient.setGameDate(body).then(async () => {
+            await worldState?.fetch?.();
+            const newTick = Number(_state()?.time_ticks ?? 0) || 0;
+            if (newTick < prevTick) {
+                window.events?.pruneAfterTick?.(newTick);
+                window.VW?.agent?.onTimelineSwitch?.({ tick: newTick });
+            }
+        });
     }
     function _setOverride() {
         const weather = document.getElementById('sky-override-weather')?.value || '';
