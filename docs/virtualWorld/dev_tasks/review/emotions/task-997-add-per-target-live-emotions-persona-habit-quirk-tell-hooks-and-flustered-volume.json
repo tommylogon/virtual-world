@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "task-997",
+  "kind": "task",
+  "number": 997,
+  "title": "Add per-target live emotions, persona habit/quirk tell hooks, and flustered volume slip to emotion prototypes",
+  "status": "review",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "emotions",
+    "prototypes",
+    "persona",
+    "involuntary"
+  ],
+  "created": "2026-11-21",
+  "updated": "2026-11-21",
+  "horizon": "now",
+  "effort": "M",
+  "goal": "Align the emotion prototypes with VirtualWorld's existing multi-target affect, persona habits/quirks, and involuntary speech layers before running multi-actor live proofs.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "task-995",
+      "task-996"
+    ],
+    "related": [
+      "bug-596",
+      "task-994"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Upgrade prototypes/emotions/ with per-target live emotions/episodes, character-specific involuntary tell hooks reading existing persona habits/quirks, and involuntary flustered volume slip (whisper -> normal) aligned with VirtualWorld's existing mind and involuntary layers.",
+    "why": "Three prototype gaps block realistic multi-character live stress tests: (1) CharacterEmotionState.families (prototypes/emotions/schema.py:703) is a single flat global map, whereas production player.py:828 (felt_toward) and bug-596 support multi-target feelings; (2) render_observer_tells (prototypes/emotions/autonomic.py:406-510) emits only generic human tells instead of reading existing persona.personality habits/quirks (engine/character_appearance.py:148-149); and (3) render_vocal_interruption (prototypes/emotions/autonomic.py:513-556) handles stutters/voice catches but not involuntary volume slips when a flustered character fails to keep their voice down.",
+    "how": "1. Add target_name: Optional[str] on EpisodeRecord and target_families: Dict[str, Dict[str, float]] on CharacterEmotionState in prototypes/emotions/schema.py (lines 670-713), updated by apply_matrix_step in prototypes/emotions/coupling.py and rendered into Track 1/Track 2 context (mirroring Player.felt_toward in player.py:828-865 and bug-596's multi-target schema).\n2. Extend render_own_body_prompt and render_observer_tells in prototypes/emotions/autonomic.py (lines 300-510) to read character habits and quirks from existing persona/player fields (engine/character_appearance.py PERSONALITY_FIELDS lines 148-149) so personal involuntary tells surface alongside generic autonomic cues when stress/fluster thresholds fire.\n3. Add a compute_involuntary_volume_slip helper in prototypes/emotions/autonomic.py alongside render_vocal_interruption (lines 513-556) to raise whisper -> normal when autonomic arousal exceeds regulation capacity on impulsive/nervous traits (reusing the NERVOUS_TRAITS vocabulary in static/js/agent/involuntary.ts:50).\n4. Add unit tests in prototypes/emotions/test_prototypes.py covering all three behaviors.",
+    "verify": "Run pytest prototypes/emotions/test_prototypes.py -v and verify multi-target contrasting emotions, personal habit/quirk tells, and flustered volume slip all pass cleanly.",
+    "acceptance": [
+      {
+        "text": "CharacterEmotionState in prototypes/emotions/schema.py tracks per-target live emotion overlays (target_families) and target_name on EpisodeRecord, updated in coupling.py and surfaced to Track 1/Track 2 prompts so contrasting emotions toward different people stay distinct per target rather than collapsing into one global axis.",
+        "done": true
+      },
+      {
+        "text": "render_own_body_prompt and render_observer_tells in prototypes/emotions/autonomic.py read character-specific habits/quirks from existing persona/player data (matching engine/character_appearance.py PERSONALITY_FIELDS) when autonomic stress/fluster thresholds fire.",
+        "done": true
+      },
+      {
+        "text": "A new compute_involuntary_volume_slip helper in prototypes/emotions/autonomic.py models flustered volume slips (whisper -> normal) when arousal/autonomic overload exceeds regulation capacity for impulsive/jittery traits (aligned with static/js/agent/involuntary.ts NERVOUS_TRAITS).",
+        "done": true
+      },
+      {
+        "text": "pytest prototypes/emotions/test_prototypes.py covers multi-target contrasting emotions, persona habit/quirk tell rendering, and flustered volume slip.",
+        "done": true
+      }
+    ],
+    "files": [
+      "prototypes/emotions/schema.py",
+      "prototypes/emotions/coupling.py",
+      "prototypes/emotions/autonomic.py",
+      "prototypes/emotions/proto_c_dual_mind.py",
+      "prototypes/emotions/proto_d_unified.py",
+      "prototypes/emotions/viwo_adapter.py",
+      "prototypes/emotions/lab_app.py",
+      "prototypes/emotions/test_prototypes.py",
+      "engine/character_appearance.py",
+      "player.py",
+      "static/js/agent/involuntary.ts"
+    ],
+    "custom": {
+      "browser_ui": "In prototypes/emotions/lab_app.py (Emotion Lab UI), display active per-target emotion badges alongside global families and show personal tell cues and any involuntary volume slip in the step trace panel. Manual check: trigger a multi-target event (protective fear for person A, guilt toward person B, anger at person C) and confirm each target displays distinct live emotions without flattening."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Characters/Emotion & Affect System.md",
+      "docs/virtualWorld/Characters/Interiority & Subtext.md"
+    ],
+    "docs": [
+      "docs/design/emotion-system-redesign.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "pytest tests/test_speech_tone.py tests/test_sound.py tests/test_spatial_invariants.py prototypes/emotions/test_prototypes.py: 100 passed in 8.93s (including test_task997_per_target_emotions_persona_tells_and_volume_slip).",
+    "prototypes/emotions/lab_app.py displays Per-Target Live Feelings alongside 13-Family Matrix and 8-Channel Autonomic Body."
+  ],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-21T20:08:41Z"
+    }
+  ]
+}

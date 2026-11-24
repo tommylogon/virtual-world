@@ -330,15 +330,66 @@ const ActionNormalizerModule = (() => {
         }
         return `You tried to ${rejectedAction}, but that is not something you know how to do. Nothing happened.`;
     }
-    /** Extract speech text + volume from a parsed response object. */
+    /** Canonical optional speech delivery tones (mirrors engine/speech_tone.py). */
+    const SPEECH_TONES = ['warm', 'teasing', 'sarcastic', 'cold', 'hostile', 'serious', 'apologetic', 'guarded'];
+    const TONE_ALIASES = {
+        warm: 'warm', warmly: 'warm', gentle: 'warm', gently: 'warm', kind: 'warm', soft: 'warm', affectionate: 'warm', reassuring: 'warm',
+        teasing: 'teasing', teasingly: 'teasing', playful: 'teasing', playfully: 'teasing', joking: 'teasing', banter: 'teasing',
+        sarcastic: 'sarcastic', sarcastically: 'sarcastic', ironic: 'sarcastic', dry: 'sarcastic', dryly: 'sarcastic', snarky: 'sarcastic', condescending: 'sarcastic', patronizing: 'sarcastic', mocking: 'sarcastic',
+        cold: 'cold', coldly: 'cold', flat: 'cold', flatly: 'cold', detached: 'cold', dismissive: 'cold', curt: 'cold', icy: 'cold',
+        hostile: 'hostile', sharp: 'hostile', sharply: 'hostile', harsh: 'hostile', snapping: 'hostile', aggressive: 'hostile', angry: 'hostile', bitter: 'hostile',
+        serious: 'serious', seriously: 'serious', grave: 'serious', earnest: 'serious', urgent: 'serious', firm: 'serious', stern: 'serious',
+        apologetic: 'apologetic', apologetically: 'apologetic', sorry: 'apologetic', contrite: 'apologetic', hesitant: 'apologetic', sheepish: 'apologetic',
+        guarded: 'guarded', guardedly: 'guarded', defensive: 'guarded', tense: 'guarded', wary: 'guarded', evasive: 'guarded',
+    };
+    const TONE_ADVERBS = {
+        warm: 'warmly',
+        teasing: 'teasingly',
+        sarcastic: 'sarcastically',
+        cold: 'coldly',
+        hostile: 'sharply',
+        serious: 'seriously',
+        apologetic: 'apologetically',
+        guarded: 'guardedly',
+        mocking: 'in a sharp, mocking tone',
+        strained: 'in a strained, forced tone',
+    };
+    function normalizeSpeechTone(raw) {
+        if (raw == null)
+            return null;
+        const s = String(raw).trim().toLowerCase();
+        if (!s || s === 'none' || s === 'null' || s === 'neutral' || s === 'plain' || s === 'normal' || s === 'default')
+            return null;
+        if (TONE_ALIASES[s])
+            return TONE_ALIASES[s];
+        const tokens = s.match(/[a-z]+/g) || [];
+        for (const tok of tokens) {
+            if (TONE_ALIASES[tok])
+                return TONE_ALIASES[tok];
+        }
+        return null;
+    }
+    /** Extract optional speech delivery tone from a parsed response object. */
+    function extractSpeechTone(p) {
+        if (!p)
+            return null;
+        return normalizeSpeechTone(p.tone ?? p.speech_tone ?? p.speechTone);
+    }
+    /** Perceived tone -> natural spoken delivery phrase for stream / room context. */
+    function toneAdverb(tone) {
+        if (!tone)
+            return '';
+        return TONE_ADVERBS[String(tone).trim().toLowerCase()] || '';
+    }
+    /** Extract speech text + volume + optional delivery tone from a parsed response object. */
     function extractSpeechVolume(p) {
         if (!p)
-            return { speech: null, volume: 'say' };
+            return { speech: null, volume: 'say', tone: null };
         let speech = null;
         let volume = 'say';
         const normVol = (v) => {
             const s = String(v || '').toLowerCase();
-            if (s === 'whisper' || s === 'shout' || s === 'scream')
+            if (s === 'whisper' || s === 'shout' || s === 'scream' || s === 'sing')
                 return s;
             if (s === 'speak' || s === 'talk')
                 return 'say';
@@ -364,21 +415,26 @@ const ActionNormalizerModule = (() => {
             speech = p.scream;
             volume = 'scream';
         }
-        return { speech, volume };
+        const tone = speech != null && speech !== '' ? extractSpeechTone(p) : null;
+        return { speech, volume, tone };
     }
     /** Volume → actionWord for event stream labels. */
     function volAction(volume) {
         return VOL_ACTIONS[volume || 'say'] || 'says';
     }
     return {
+        SPEECH_TONES,
         isValidAction,
         classifyAction,
         looksStringifiedObject,
         rejectionText,
         normalizeStructuredAction,
+        normalizeSpeechTone,
+        extractSpeechTone,
+        toneAdverb,
         extractSpeechVolume,
         volAction
     };
 })();
 window.ActionNormalizer = ActionNormalizerModule;
-const VOL_ACTIONS = { whisper: 'whispers', say: 'says', shout: 'shouts', scream: 'screams' };
+const VOL_ACTIONS = { whisper: 'whispers', say: 'says', sing: 'sings', shout: 'shouts', scream: 'screams' };

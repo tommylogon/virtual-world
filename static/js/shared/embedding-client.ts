@@ -40,8 +40,13 @@
      * @param input
      * @returns vector(s), null on failure/disabled
      */
+    let _backoffUntil = 0;
+    let _backoffKey = '';
+
     async function embed(input: string | string[]): Promise<number[] | number[][] | null> {
         if (!configured() || !input || (Array.isArray(input) && input.length === 0)) return null;
+        const cfgKey = `${config.embedUrl}|${config.embedModel}`;
+        if (_backoffKey === cfgKey && Date.now() < _backoffUntil) return null;
         const single = typeof input === 'string';
         const cacheKey = JSON.stringify(input);
         if (_cache.has(cacheKey)) return _cache.get(cacheKey) ?? null;
@@ -53,7 +58,14 @@
                 body: JSON.stringify({ model: config.embedModel, input }),
                 signal: AbortSignal.timeout(15000)
             });
-            if (!resp.ok) return null;
+            if (!resp.ok) {
+                if (resp.status >= 500 || resp.status === 404) {
+                    _backoffKey = cfgKey;
+                    _backoffUntil = Date.now() + 60_000;
+                }
+                return null;
+            }
+            _backoffUntil = 0;
             const data = (await resp.json()) as { data?: { embedding?: unknown }[] };
             const rows = (data.data || []).map(d => d.embedding).filter(Array.isArray) as number[][];
             if (rows.length === 0) return null;
@@ -79,6 +91,7 @@
      * @returns {Promise<{ok: boolean, dims?: number, error?: string}>}
      */
     async function test() {
+        _backoffUntil = 0;
         if (!config?.embedUrl || !config?.embedModel) {
             return { ok: false, error: 'URL and model required' };
         }

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "task-1003",
+  "kind": "task",
+  "number": 1003,
+  "title": "Python Agent Migration Phase 3: Port Agent Engine, Turn Queue, Plans, Memory, and SSE Streaming",
+  "status": "todo",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "python-agent",
+    "migration",
+    "agent-engine",
+    "turn-queue",
+    "sse"
+  ],
+  "created": "2026-11-22",
+  "updated": "2026-11-22",
+  "horizon": "next",
+  "effort": "L",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Port agent-engine.ts, turn-queue.ts, simultaneous.ts, plan-manager.ts, memory-manager.ts, involuntary.ts, object-responder.ts, and threat-detector.ts into engine/agent/, streaming tokens and turn events over SSE (/api/agent/stream) while HumanTurnComposer submits human turns via POST /api/agent/human-turn.",
+    "why": "Running the turn loop and LLM execution on the Python server enables true headless LLM playtests and soaks via pytest/CLI, eliminates browser-vs-server state sync bugs, and keeps the browser strictly as a thin UI.",
+    "how": "1. Port turn queue, simultaneous round coordinator, think/act/react loop, plan grounding/tracking, memory reconsolidation, and involuntary triggers into engine/agent/.\n2. Add SSE endpoint /api/agent/stream for live token/event streaming and POST /api/agent/human-turn for HumanTurnComposer.\n3. Thin out static/js/agent-engine.ts into an SSE subscriber + UI bridge and verify live play + headless pytest multi-actor turns.",
+    "verify": "Headless pytest multi-actor turn loop runs without a browser, and live Play Mode streams tokens and pauses cleanly for HumanTurnComposer.",
+    "acceptance": [
+      {
+        "text": "Python engine/agent/ runs full multi-actor think/act/react turns headlessly.",
+        "done": false
+      },
+      {
+        "text": "SSE stream delivers live tokens and turn events to the browser UI.",
+        "done": false
+      },
+      {
+        "text": "HumanTurnComposer submits human turns cleanly through the Python turn queue.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent-engine.ts",
+      "static/js/agent/turn-queue.ts",
+      "static/js/agent/plan-manager.ts",
+      "static/js/agent/memory-manager.ts",
+      "static/js/agent/human-turn-composer.ts"
+    ],
+    "custom": {
+      "browser_ui": "In Play Mode, verify streaming tokens, Turn Order panel, event-stream up-next strip, and HumanTurnComposer pause/resume/reroll work smoothly over SSE with zero console errors."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/AI & Narration/Agent Engine.md",
+      "docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

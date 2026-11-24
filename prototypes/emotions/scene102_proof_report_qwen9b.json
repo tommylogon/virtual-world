@@ -1,0 +1,2539 @@
+{
+  "meta": {
+    "model": "qwen/qwen3.5-9b",
+    "embed_model": "text-embedding-qwen3-embedding-0.6b",
+    "offline": false,
+    "turns_run": 6,
+    "areas": [
+      "Gravel Driveway by Gerald",
+      "Dessert Tables (Bay 2)"
+    ],
+    "millwood_reused": [
+      "zoe mercer",
+      "sammy lopez",
+      "kayla jenkins",
+      "kyrie johansen",
+      "jake halloway"
+    ],
+    "archive_added": [
+      "astrid lopez",
+      "maria lopez"
+    ]
+  },
+  "checks": {
+    "pre_scene_whispers_hidden_from_astrid": true,
+    "pre_scene_whispers_hidden_from_maria": true,
+    "astrid_zero_secret_leak_trust_or_tuesday": true,
+    "sammy_zoe_zero_leak_tuesday_confession": true,
+    "maria_zero_secret_leak": true,
+    "astrid_actually_overheard_driveway": true,
+    "any_volume_slip_fired": true,
+    "astrid_retained_emotional_momentum": true
+  },
+  "final_states": {
+    "zoe mercer": {
+      "families": {
+        "anger": 55.7,
+        "fear": 99.6,
+        "happiness": 16.2,
+        "love": 5.5,
+        "sadness": 99.3,
+        "shame": 99.7,
+        "guilt": 74.5,
+        "calm": 1.0,
+        "surprise": 21.6,
+        "arousal": 1.4
+      },
+      "target_families": {
+        "sammy lopez": {
+          "anger": 17.76,
+          "fear": 38.02,
+          "happiness": 12.24,
+          "love": 19.96,
+          "sadness": 23.69,
+          "shame": 56.56
+        },
+        "astrid lopez": {
+          "fear": 70.16,
+          "happiness": 0.96,
+          "sadness": 45.23,
+          "shame": 67.55,
+          "arousal": 1.12,
+          "anger": 22.89,
+          "guilt": 50.03
+        },
+        "kayla jenkins": {
+          "anger": 14.68,
+          "fear": 17.85,
+          "happiness": 3.84,
+          "sadness": 25.78,
+          "shame": 30.32,
+          "guilt": 17.76,
+          "arousal": 4.48
+        },
+        "kyrie johansen": {
+          "anger": 15.63,
+          "fear": 19.35,
+          "happiness": 1.92,
+          "sadness": 14.6,
+          "shame": 26.74,
+          "guilt": 18.88,
+          "arousal": 2.24
+        }
+      },
+      "autonomic": {
+        "heart_rate": 91.6,
+        "breathing": 86.5,
+        "muscle_tension": 90.2,
+        "vasomotor": 13.1,
+        "sweat_chills": 49.4,
+        "gut_throat": 83.2,
+        "motor_tone": -56.2,
+        "eyes_tears": 80.0
+      },
+      "active_episodes": 6
+    },
+    "sammy lopez": {
+      "families": {
+        "anger": 15.4,
+        "fear": 99.3,
+        "happiness": 16.2,
+        "love": 5.5,
+        "sadness": 99.3,
+        "shame": 99.7,
+        "guilt": 90.3,
+        "calm": 1.0,
+        "surprise": 90.4,
+        "arousal": 1.4
+      },
+      "target_families": {
+        "zoe mercer": {
+          "fear": 41.17,
+          "happiness": 6.72,
+          "sadness": 34.46,
+          "shame": 37.9,
+          "surprise": 21.52,
+          "arousal": 7.84
+        },
+        "maria lopez": {
+          "fear": 39.13,
+          "happiness": 5.76,
+          "love": 9.66,
+          "sadness": 33.98,
+          "shame": 64.14,
+          "guilt": 47.4,
+          "arousal": 6.72
+        },
+        "astrid lopez": {
+          "fear": 41.86,
+          "happiness": 0.96,
+          "sadness": 37.19,
+          "shame": 35.29,
+          "guilt": 31.15,
+          "surprise": 33.88,
+          "arousal": 1.12,
+          "anger": 15.63
+        },
+        "kayla jenkins": {
+          "happiness": 10.04,
+          "sadness": 13.24,
+          "arousal": 4.48
+        },
+        "kyrie johansen": {
+          "fear": 18.02,
+          "happiness": 1.92,
+          "sadness": 13.0,
+          "shame": 15.77,
+          "guilt": 13.06,
+          "arousal": 2.24
+        }
+      },
+      "autonomic": {
+        "heart_rate": 89.0,
+        "breathing": 80.5,
+        "muscle_tension": 77.9,
+        "sweat_chills": 49.7,
+        "gut_throat": 83.8,
+        "motor_tone": -54.4,
+        "eyes_tears": 79.3
+      },
+      "active_episodes": 6
+    },
+    "kayla jenkins": {
+      "families": {
+        "anger": 92.5,
+        "fear": 99.3,
+        "happiness": 1.2,
+        "love": 10.3,
+        "sadness": 88.2,
+        "shame": 99.7,
+        "calm": 1.0,
+        "arousal": 1.4
+      },
+      "target_families": {
+        "zoe mercer": {
+          "fear": 41.53,
+          "happiness": 26.6,
+          "shame": 23.0
+        },
+        "sammy lopez": {
+          "anger": 34.81,
+          "fear": 29.7,
+          "happiness": 5.76,
+          "love": 19.08,
+          "sadness": 25.32,
+          "shame": 56.72,
+          "arousal": 7.4
+        },
+        "astrid lopez": {
+          "fear": 35.66,
+          "happiness": 0.96,
+          "sadness": 45.3,
+          "shame": 45.31,
+          "anger": 28.84,
+          "arousal": 1.12
+        },
+        "kyrie johansen": {
+          "anger": 21.66,
+          "fear": 15.2,
+          "happiness": 1.92,
+          "sadness": 29.24,
+          "shame": 16.75,
+          "arousal": 2.24
+        }
+      },
+      "autonomic": {
+        "heart_rate": 91.5,
+        "breathing": 82.7,
+        "muscle_tension": 90.1,
+        "vasomotor": 12.1,
+        "sweat_chills": 48.6,
+        "gut_throat": 81.0,
+        "motor_tone": -49.5,
+        "eyes_tears": 77.8
+      },
+      "active_episodes": 6
+    },
+    "kyrie johansen": {
+      "families": {
+        "anger": 68.9,
+        "fear": 99.3,
+        "happiness": 1.2,
+        "love": 13.7,
+        "sadness": 53.8,
+        "shame": 99.7,
+        "calm": 1.0,
+        "surprise": 41.3,
+        "arousal": 1.4
+      },
+      "target_families": {
+        "zoe mercer": {
+          "fear": 37.71,
+          "happiness": 27.12,
+          "shame": 25.85
+        },
+        "sammy lopez": {
+          "anger": 33.74,
+          "fear": 43.35,
+          "happiness": 8.89,
+          "love": 19.17,
+          "sadness": 24.95,
+          "shame": 60.43,
+          "arousal": 7.65
+        },
+        "astrid lopez": {
+          "happiness": 0.96,
+          "arousal": 1.12,
+          "sadness": 27.82,
+          "anger": 24.69,
+          "fear": 19.8,
+          "shame": 19.97,
+          "surprise": 29.53
+        },
+        "kayla jenkins": {
+          "anger": 21.68,
+          "fear": 15.23,
+          "happiness": 8.31,
+          "sadness": 16.2,
+          "shame": 14.52,
+          "arousal": 6.63
+        }
+      },
+      "autonomic": {
+        "heart_rate": 89.9,
+        "breathing": 79.5,
+        "muscle_tension": 88.2,
+        "vasomotor": 10.4,
+        "sweat_chills": 50.2,
+        "gut_throat": 77.9,
+        "motor_tone": -36.3,
+        "eyes_tears": 55.2
+      },
+      "active_episodes": 6
+    },
+    "astrid lopez": {
+      "families": {
+        "anger": 72.2,
+        "fear": 85.5,
+        "happiness": 2.4,
+        "love": 13.2,
+        "sadness": 34.3,
+        "shame": 94.1,
+        "calm": 2.0,
+        "arousal": 2.8
+      },
+      "target_families": {
+        "sammy lopez": {
+          "anger": 35.96,
+          "fear": 41.39,
+          "happiness": 5.76,
+          "love": 17.97,
+          "sadness": 22.24,
+          "shame": 58.42
+        },
+        "kayla jenkins": {
+          "anger": 21.24,
+          "fear": 25.09,
+          "happiness": 21.28,
+          "shame": 29.77
+        },
+        "kyrie johansen": {
+          "anger": 20.45,
+          "fear": 28.64,
+          "happiness": 14.34,
+          "sadness": 14.09,
+          "shame": 17.48,
+          "arousal": 8.82
+        }
+      },
+      "autonomic": {
+        "heart_rate": 80.1,
+        "breathing": 64.5,
+        "muscle_tension": 77.8,
+        "sweat_chills": 40.7,
+        "gut_throat": 67.5,
+        "motor_tone": -27.6,
+        "eyes_tears": 32.8
+      },
+      "active_episodes": 6
+    },
+    "maria lopez": {
+      "families": {
+        "fear": 47.0,
+        "happiness": 24.6,
+        "shame": 20.4,
+        "calm": 12.5,
+        "surprise": 51.3,
+        "arousal": 7.0
+      },
+      "target_families": {
+        "astrid lopez": {
+          "fear": 46.36,
+          "happiness": 24.37,
+          "shame": 20.25,
+          "surprise": 50.31,
+          "arousal": 6.76
+        }
+      },
+      "autonomic": {
+        "heart_rate": 34.6,
+        "breathing": 28.5,
+        "muscle_tension": 28.1,
+        "vasomotor": -11.9,
+        "sweat_chills": 21.3,
+        "gut_throat": 24.1
+      },
+      "active_episodes": 4
+    }
+  },
+  "transcript": [
+    {
+      "turn": 0,
+      "tick": 21,
+      "speaker": "zoe mercer",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "There are four of us in Oklahoma and nobody actually has an answer for how this works later.",
+      "speech": "But we can't, can we?",
+      "emote": "stares down at her paper plate, twisting a silver ring around her thumb",
+      "intended_volume": "whisper",
+      "actual_volume": "whisper",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": "kayla jenkins",
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 0.0,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "",
+      "heard_by": [
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 17288.4,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 38.4,
+            "happiness": -44.3,
+            "sadness": 30.1,
+            "shame": 33.3,
+            "calm": -41.3,
+            "surprise": 24.4,
+            "arousal": -15.0
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 48.45,
+              "happiness": 0.0,
+              "sadness": 38.1,
+              "shame": 41.26,
+              "surprise": 39.44,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 49.9,
+            "breathing": 45.2,
+            "muscle_tension": 53.1,
+            "sweat_chills": 27.5,
+            "gut_throat": 36.6,
+            "motor_tone": -24.5,
+            "eyes_tears": 31.4
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [],
+          "observer_tell_seen_by_others": "chewing nervously at their bottom lip, jaw set tight and hands tense",
+          "recalled_memories_top2": [
+            "Saturday Nov 21: found Zoe asleep in Jake's bed, then found his 3 hidden notebooks (CAN I REALLY? in red ink, Book 3's self-hatred) and checked his Spotify after Violet's hint (Murphy's Law, Sometimes I Wanna Cry, ORAL HEX, I Don't Want Your Love).",
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt."
+          ],
+          "gut_appraisal": "Zoe's serious whisper about 'we can't' instantly shatters my fragile hope, making me feel exposed and terrified that my feelings for Jake are forbidden or doomed."
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 4987.3,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 7.0,
+            "fear": 38.8,
+            "happiness": -20.1,
+            "sadness": 1.1,
+            "shame": 18.4,
+            "calm": -38.2,
+            "surprise": 3.5,
+            "arousal": 7.9
+          },
+          "target_families": {
+            "zoe mercer": {
+              "anger": 15.0,
+              "fear": 48.81,
+              "happiness": 19.88,
+              "shame": 26.36,
+              "arousal": 22.91
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 56.8,
+            "breathing": 51.8,
+            "muscle_tension": 59.3,
+            "vasomotor": -19.8,
+            "sweat_chills": 39.1,
+            "gut_throat": 39.3,
+            "eyes_tears": 16.4
+          },
+          "overloaded": false,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Jake finally checked in — \"hey im her alie im alive!\" — still no explanation for handing Kyrie his phone. Zoe begged everyone to stop screaming in the chat. I told Jake to explain the phone situation and told Kyrie to hold onto it until he does.",
+            "Group chat: all four others confirmed alive. Jake's only contribution was \"hey im her alie im alive!\" — no answer on the phone. I gave him a multiple-choice (1 = explain phone, 2 = not explaining yet, 3 = doesn't remember) and told Kyrie to actually inspect the phone's last open app/screen time instead of just holding it. Sammy floated \"he's possessed\" and I told him to keep a priest on retainer, not speed dial."
+          ],
+          "gut_appraisal": "Zoe's serious whisper shatters my composure, confirming that our secret arrangement is about to be exposed and forcing me to drop my guard."
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 4990.4,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 7.0,
+            "fear": 35.0,
+            "happiness": -19.6,
+            "sadness": 1.7,
+            "shame": 21.2,
+            "calm": -35.3,
+            "surprise": 5.0,
+            "arousal": 8.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "anger": 15.0,
+              "fear": 44.99,
+              "happiness": 20.4,
+              "shame": 29.21,
+              "arousal": 23.41
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 43.6,
+            "breathing": 39.2,
+            "muscle_tension": 47.6,
+            "sweat_chills": 27.9,
+            "gut_throat": 29.1
+          },
+          "overloaded": false,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Told the group Jake's phone stays with me until he explains why he handed it over. Everyone's checked in alive now, but Jake's \"alie\" typo is bugging me — Sammy's right, he loses whole words, not letters. Staying planted until he answers Kayla's three questions.",
+            "Kayla gave Jake a one-digit ultimatum: 1 = handed phone on purpose and will say why, 2 = on purpose but won't say why, 3 = doesn't remember. She also told me to actually look at what Jake had open on the phone, not just hold it. I'm turning it over. Phone stays with me until he says it out loud."
+          ],
+          "gut_appraisal": "Zoe's serious whisper about our inability to proceed cuts through my practical focus, triggering a sudden spike in fear and a loss of my usual calm."
+        }
+      ]
+    },
+    {
+      "turn": 1,
+      "tick": 22,
+      "speaker": "sammy lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "Zoe is looking at me like I'm broken, and I can't let her see me shaking. I just need to say something stupid to cover this up.",
+      "speech": "Oh, come on, don't give me that pity look, we're fine, totally fine, I'm not the one who got caught sneaking into a guy's bedroom at midnight!",
+      "emote": "chew hard on bottom lip",
+      "intended_volume": "whisper",
+      "actual_volume": "normal",
+      "volume_slipped": true,
+      "volume_slip_reason": "flustered_volume_slip",
+      "whisper_target": null,
+      "intended_tone": "sarcastic",
+      "cover_lie": true,
+      "actor_latency_ms": 5340.7,
+      "speaker_self_track1": {
+        "dominant": "shame",
+        "applied_deltas": {
+          "anger": -8.0,
+          "disgust": -5.0,
+          "envy": -5.0,
+          "fear": 35.4,
+          "happiness": -14.9,
+          "jealousy": -5.7,
+          "love": -17.5,
+          "sadness": 29.1,
+          "shame": 58.9,
+          "guilt": 42.8,
+          "calm": -9.7,
+          "surprise": 16.6,
+          "arousal": -1.4
+        },
+        "target_families": {
+          "zoe mercer": {
+            "fear": 47.41,
+            "happiness": 0.96,
+            "sadness": 37.58,
+            "shame": 40.78,
+            "surprise": 36.88,
+            "arousal": 1.12
+          },
+          "maria lopez": {
+            "anger": 0.0,
+            "fear": 45.37,
+            "happiness": 0.0,
+            "love": 7.5,
+            "sadness": 37.1,
+            "shame": 67.02,
+            "guilt": 50.76,
+            "surprise": 31.57,
+            "arousal": 0.0
+          }
+        },
+        "secondary_triggered": []
+      },
+      "speaker_body_prompt": "You catch yourself chewing hard at your bottom lip, your heart hammers hard against your ribs, and your jaw clamps tight and your hands tremble slightly as they curl into fists. Right now your feelings split by person (toward zoe mercer: fear; toward maria lopez: shame). At the same time, every instinct wants you to shrink down, cover your face, or disappear from view, while every nerve wants to back away, freeze still, or get out of here. Holding your face and voice flat is taking real effort. Your thoughts scatter and it is hard to think clearly past the rush.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "sarcastic",
+          "perceived_tone": "sarcastic",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5302.7,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 16.0,
+            "disgust": 1.9,
+            "fear": 34.3,
+            "happiness": -33.5,
+            "love": -7.2,
+            "sadness": 18.8,
+            "shame": 51.4,
+            "calm": -42.9,
+            "surprise": 2.9,
+            "arousal": 4.9
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 24.0,
+              "fear": 44.26,
+              "happiness": 6.48,
+              "love": 17.8,
+              "sadness": 26.81,
+              "shame": 59.44
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 50.3,
+            "breathing": 45.9,
+            "muscle_tension": 46.4,
+            "sweat_chills": 33.9,
+            "gut_throat": 52.0,
+            "motor_tone": -39.3,
+            "eyes_tears": 37.7
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw set tight and hands tense, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Day 1, 08:01 — In \"Operation: Don't Die in This Stupid House,\" Kayla set survival rules (no wandering alone, leave before sunset) and demanded check-ins. Jake finally replied \"hey im her alie im alive!\" — clearly something's off with him. Kyrie says Jake silently handed her his phone ~2 min ago and won't explain why; she's holding it. I covered for him in the chat with a joke about \"alie\" and threatened to tell Kayla if he's in the basement."
+          ],
+          "gut_appraisal": "Sammy's sarcastic tone about sneaking into a bedroom makes me feel exposed and terrified that our secret is unraveling."
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "sarcastic",
+          "perceived_tone": "sarcastic",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5335.0,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 33.0,
+            "disgust": 3.1,
+            "fear": 25.9,
+            "happiness": -21.1,
+            "love": -8.1,
+            "sadness": 20.4,
+            "shame": 51.6,
+            "calm": -12.8,
+            "surprise": 3.2,
+            "arousal": -14.3
+          },
+          "target_families": {
+            "zoe mercer": {
+              "anger": 13.96,
+              "fear": 47.77,
+              "happiness": 20.84,
+              "shame": 25.88,
+              "arousal": 21.79
+            },
+            "sammy lopez": {
+              "anger": 41.05,
+              "fear": 35.94,
+              "happiness": 0.0,
+              "love": 16.92,
+              "sadness": 28.44,
+              "shame": 59.6,
+              "arousal": 0.68
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 86.2,
+            "breathing": 78.2,
+            "muscle_tension": 86.7,
+            "sweat_chills": 56.5,
+            "gut_throat": 70.3,
+            "motor_tone": -36.8,
+            "eyes_tears": 35.9
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Kyrie reported that Jake silently handed her his phone ~2 min ago without explanation — flagged it to the group as possible evidence he's recording/planning something. Sammy and Kyrie both checked in alive and unpossessed; Jake has not responded in the group chat. Set group rules: no one goes anywhere alone, leave before sundown."
+          ],
+          "gut_appraisal": "Sammy's sarcastic jab about sneaking into a bedroom shatters my composure and spikes my fear that he is hiding a dangerous secret or has been compromised."
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "sarcastic",
+          "perceived_tone": "sarcastic",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5378.7,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 32.0,
+            "disgust": 3.0,
+            "envy": 1.2,
+            "fear": 39.6,
+            "happiness": -21.6,
+            "love": -8.0,
+            "sadness": 20.1,
+            "shame": 55.3,
+            "calm": -15.7,
+            "surprise": 2.9,
+            "arousal": -14.1
+          },
+          "target_families": {
+            "zoe mercer": {
+              "anger": 13.96,
+              "fear": 43.95,
+              "happiness": 21.36,
+              "shame": 28.73,
+              "arousal": 22.29
+            },
+            "sammy lopez": {
+              "anger": 39.98,
+              "fear": 49.59,
+              "happiness": 3.13,
+              "love": 17.01,
+              "sadness": 28.07,
+              "shame": 63.31,
+              "arousal": 0.93
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 82.5,
+            "breathing": 74.7,
+            "muscle_tension": 83.4,
+            "sweat_chills": 53.3,
+            "gut_throat": 67.5,
+            "motor_tone": -37.3,
+            "eyes_tears": 34.8
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "flexing and unflexing their right hand tightly, jaw clamped hard and hands trembling slightly in clenched fists, breathing visibly quick and shallow",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Kayla gave Jake a one-digit ultimatum: 1 = handed phone on purpose and will say why, 2 = on purpose but won't say why, 3 = doesn't remember. She also told me to actually look at what Jake had open on the phone, not just hold it. I'm turning it over. Phone stays with me until he says it out loud."
+          ],
+          "gut_appraisal": "Sammy's sarcastic deflection of the midnight bedroom incident makes me realize we are in deep trouble and he is trying to hide the severity of the situation."
+        },
+        {
+          "listener": "astrid lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "sarcastic",
+          "perceived_tone": "sarcastic",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5771.5,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 34.2,
+            "disgust": 3.3,
+            "fear": 37.6,
+            "happiness": -52.0,
+            "love": -9.2,
+            "sadness": 17.4,
+            "shame": 53.3,
+            "calm": -40.8,
+            "surprise": 2.6,
+            "arousal": -11.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 42.2,
+              "fear": 47.63,
+              "happiness": 0.0,
+              "love": 15.81,
+              "sadness": 25.36,
+              "shame": 61.3,
+              "arousal": 3.57
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 54.0,
+            "breathing": 46.7,
+            "muscle_tension": 59.9,
+            "vasomotor": 23.1,
+            "sweat_chills": 31.1,
+            "gut_throat": 50.8,
+            "motor_tone": -30.6,
+            "eyes_tears": 28.2
+          },
+          "overloaded": false,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Sammy is sixteen: she still has a stuffed dolphin from Galveston on her bed and cried for two days last year when a friend stopped texting her back. And I have NEVER lied to Mama in my life - that is not a thing I do.",
+            "Small-town Millwood reality: if a 16-year-old girl gets pregnant here, Mrs. Arredondo at the pharmacy tells Miss Yolanda before the test dries, then church, then Miss Tillery's office, and it follows her forever. I know three girls who swore they were 'being careful'."
+          ],
+          "gut_appraisal": "Sammy's defensive sarcasm about sneaking into a bedroom instantly spikes my fear of her getting hurt in Millwood and makes me feel a surge of anger at her reckless behavior."
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "tick": 23,
+      "speaker": "astrid lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "I can't let her think I don't believe her, but I know she's lying to protect us both from Mrs. Arredondo's gossip.",
+      "speech": "Sammy, you're shaking like a leaf, and you sound like you're trying to convince me more than you're convincing yourself. Sit down before you pass out in front of Gerald's bumper.",
+      "emote": "rake a hand back through my hair to steady myself",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 5464.5,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "You rake a hand back through your hair to steady yourself, your pulse beats fast and tight in your throat, and your jaw and shoulders lock tight. Right now your feelings split by person (toward sammy lopez: shame). At the same time, every instinct wants you to shrink down, cover your face, or disappear from view, while every nerve wants to back away, freeze still, or get out of here. Holding your face and voice flat is taking real effort. The drop in your stomach makes it feel certain everyone sees right through you and wants you gone.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6129.4,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 38.6,
+            "happiness": -7.7,
+            "sadness": 24.1,
+            "shame": 20.6,
+            "calm": -8.1,
+            "surprise": 3.2,
+            "arousal": -18.5
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 22.96,
+              "fear": 43.22,
+              "happiness": 7.44,
+              "love": 18.16,
+              "sadness": 26.29,
+              "shame": 58.96
+            },
+            "astrid lopez": {
+              "fear": 48.58,
+              "happiness": 11.31,
+              "sadness": 32.09,
+              "shame": 28.62,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 84.4,
+            "breathing": 78.0,
+            "muscle_tension": 83.0,
+            "sweat_chills": 49.3,
+            "gut_throat": 76.5,
+            "motor_tone": -63.4,
+            "eyes_tears": 68.9
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "7th grade cafeteria: Veronika Gable dumped warm chocolate milk into my sketchbook backpack while her friends laughed; I still feel the wet cold dripping down my spine.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's serious observation of Sammy's shaking and the threat of passing out triggers my deep-seated fear of abandonment and the dread of being the fourth corner left behind in a crisis."
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6789.7,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 8.7,
+            "disgust": 1.0,
+            "fear": 14.2,
+            "happiness": -1.2,
+            "love": -2.2,
+            "sadness": 16.8,
+            "guilt": 19.5,
+            "calm": -1.0,
+            "surprise": 15.0,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 46.37,
+              "happiness": 1.92,
+              "sadness": 37.06,
+              "shame": 40.3,
+              "surprise": 34.32,
+              "arousal": 2.24
+            },
+            "maria lopez": {
+              "anger": 1.04,
+              "fear": 44.33,
+              "happiness": 0.96,
+              "love": 7.86,
+              "sadness": 36.58,
+              "shame": 66.54,
+              "guilt": 50.2,
+              "surprise": 29.01,
+              "arousal": 1.12
+            },
+            "astrid lopez": {
+              "anger": 16.67,
+              "fear": 24.17,
+              "happiness": 0.0,
+              "sadness": 24.84,
+              "shame": 19.17,
+              "guilt": 27.49,
+              "surprise": 29.96,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 90.3,
+            "breathing": 85.7,
+            "muscle_tension": 83.8,
+            "sweat_chills": 55.0,
+            "gut_throat": 84.7,
+            "motor_tone": -61.6,
+            "eyes_tears": 79.7
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "chewing nervously at their bottom lip, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's strained voice cuts through my panic, making me feel exposed and terrified that she knows I'm crumbling over the secret we're keeping."
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6068.5,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 7.0,
+            "fear": 10.7,
+            "happiness": -1.2,
+            "sadness": 6.2,
+            "shame": 16.0,
+            "calm": -1.0,
+            "surprise": 3.2,
+            "arousal": 6.6
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 46.73,
+              "happiness": 21.8,
+              "shame": 25.4,
+              "arousal": 20.67
+            },
+            "sammy lopez": {
+              "anger": 40.01,
+              "fear": 34.9,
+              "happiness": 0.96,
+              "love": 17.28,
+              "sadness": 27.92,
+              "shame": 59.12,
+              "arousal": 1.8
+            },
+            "astrid lopez": {
+              "anger": 15.0,
+              "fear": 20.72,
+              "happiness": 5.98,
+              "sadness": 14.23,
+              "shame": 24.0,
+              "arousal": 21.59
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 94.5,
+            "breathing": 86.1,
+            "muscle_tension": 94.3,
+            "vasomotor": 15.3,
+            "sweat_chills": 60.7,
+            "gut_throat": 79.5,
+            "motor_tone": -42.9,
+            "eyes_tears": 42.9
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear",
+            "sadness"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's serious observation of Sammy's physical collapse and her blunt, unfiltered assessment of his internal panic cut through my defensive composure, instantly validating the hidden distress I've been suppressing and deepening my fear that the secret is unraveling."
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5753.4,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": -7.8,
+            "fear": 8.1,
+            "happiness": -1.2,
+            "jealousy": -2.6,
+            "sadness": 3.7,
+            "shame": 5.5,
+            "calm": -1.0,
+            "surprise": 3.4,
+            "arousal": -8.2
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 42.91,
+              "happiness": 22.32,
+              "shame": 28.25,
+              "arousal": 21.17
+            },
+            "sammy lopez": {
+              "anger": 38.94,
+              "fear": 48.55,
+              "happiness": 4.09,
+              "love": 17.37,
+              "sadness": 27.55,
+              "shame": 62.83,
+              "arousal": 2.05
+            },
+            "astrid lopez": {
+              "anger": 0.17,
+              "fear": 18.06,
+              "happiness": 25.7,
+              "arousal": 6.77
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 93.4,
+            "breathing": 84.3,
+            "muscle_tension": 93.4,
+            "sweat_chills": 59.7,
+            "gut_throat": 78.4,
+            "motor_tone": -47.6,
+            "eyes_tears": 41.7
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear",
+            "sadness"
+          ],
+          "secondary": [],
+          "observer_tell_seen_by_others": "flexing and unflexing their right hand tightly, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Her serious observation of Sammy's physical collapse and the threat of passing out in front of the mechanic father instantly spikes my fear that the secret is about to be exposed, while her blunt assessment of the situation cuts through my panic and raises my calm."
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "tick": 24,
+      "speaker": "kayla jenkins",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "They think we're hiding something, but the real secret is that four of us are dating one guy and I'm the only one who knows how to keep it from blowing up in our faces.",
+      "speech": "We aren't doing anything wrong, Astrid, so stop acting like we're a crime scene and eat your cider before Maria sees you shaking.",
+      "emote": "smooths eyebrow scar with index finger while jaw clenches tight",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 5617.9,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "Your right index finger unconsciously smooths the arch of your scarred eyebrow, your heart hammers hard against your ribs, and your jaw clamps tight and your hands tremble slightly as they curl into fists. Right now your feelings split by person (toward zoe mercer: fear; toward sammy lopez: shame; toward astrid lopez: shame). At the same time, every nerve wants to back away, freeze still, or get out of here, while every instinct wants you to shrink down, cover your face, or disappear from view. Holding your face and voice flat is taking real effort. Your thoughts scatter and it is hard to think clearly past the rush.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6418.0,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 10.8,
+            "disgust": 1.3,
+            "fear": 6.6,
+            "happiness": -1.2,
+            "love": -2.7,
+            "sadness": 19.9,
+            "shame": 20.4,
+            "guilt": 12.0,
+            "calm": -1.0,
+            "surprise": 10.0,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 21.92,
+              "fear": 42.18,
+              "happiness": 8.4,
+              "love": 18.52,
+              "sadness": 25.77,
+              "shame": 58.48
+            },
+            "astrid lopez": {
+              "fear": 47.54,
+              "happiness": 12.27,
+              "sadness": 31.57,
+              "shame": 28.14,
+              "arousal": 1.12
+            },
+            "kayla jenkins": {
+              "anger": 18.84,
+              "fear": 22.01,
+              "happiness": 0.0,
+              "sadness": 27.86,
+              "shame": 32.24,
+              "guilt": 20.0,
+              "surprise": 25.0,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 94.0,
+            "breathing": 88.1,
+            "muscle_tension": 93.3,
+            "sweat_chills": 53.8,
+            "gut_throat": 84.0,
+            "motor_tone": -68.1,
+            "eyes_tears": 79.8
+          },
+          "overloaded": true,
+          "suppressed": [
+            "anger"
+          ],
+          "secondary": [
+            "fear->shame (public exposure)",
+            "anger->guilt (temperament/memories)"
+          ],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Day 1, 08:01 — In \"Operation: Don't Die in This Stupid House,\" Kayla set survival rules (no wandering alone, leave before sunset) and demanded check-ins. Jake finally replied \"hey im her alie im alive!\" — clearly something's off with him. Kyrie says Jake silently handed her his phone ~2 min ago and won't explain why; she's holding it. I covered for him in the chat with a joke about \"alie\" and threatened to tell Kayla if he's in the basement.",
+            "Monday Nov 16 behind the fieldhouse: wind howling through aluminum bleachers, wet mud and gun oil; I saw Jake standing over a crying Tyler with a stripped Glock 19, then Jake's knees gave out in the mud."
+          ],
+          "gut_appraisal": "I feel a fresh wave of fear and shame because Kayla's strained voice confirms my worst suspicion that she is hiding something terrible from us, making me feel like a fool for trusting her."
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5925.8,
+          "dominant": "shame",
+          "applied_deltas": {
+            "fear": 3.2,
+            "happiness": -1.2,
+            "sadness": 7.3,
+            "guilt": 5.9,
+            "calm": -1.0,
+            "surprise": 13.5,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 45.33,
+              "happiness": 2.88,
+              "sadness": 36.54,
+              "shame": 39.82,
+              "surprise": 31.76,
+              "arousal": 3.36
+            },
+            "maria lopez": {
+              "anger": 2.08,
+              "fear": 43.29,
+              "happiness": 1.92,
+              "love": 8.22,
+              "sadness": 36.06,
+              "shame": 66.06,
+              "guilt": 49.64,
+              "surprise": 26.45,
+              "arousal": 2.24
+            },
+            "astrid lopez": {
+              "anger": 15.63,
+              "fear": 23.13,
+              "happiness": 0.96,
+              "sadness": 24.32,
+              "shame": 18.69,
+              "guilt": 26.93,
+              "surprise": 27.4,
+              "arousal": 1.12
+            },
+            "kayla jenkins": {
+              "fear": 18.59,
+              "happiness": 6.2,
+              "sadness": 15.32,
+              "surprise": 28.5,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 95.6,
+            "breathing": 93.5,
+            "muscle_tension": 93.5,
+            "sweat_chills": 56.9,
+            "gut_throat": 87.9,
+            "motor_tone": -60.6,
+            "eyes_tears": 83.0
+          },
+          "overloaded": true,
+          "suppressed": [
+            "shame"
+          ],
+          "secondary": [],
+          "observer_tell_seen_by_others": "chewing nervously at their bottom lip, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "After our night together and the grease-rag fight in Keith's shop, I wiped the grease off his chin and agreed to the daylight treaty: no sneaking around, no lying.",
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt."
+          ],
+          "gut_appraisal": "Kayla's strained voice makes me feel like the secret is about to explode and that she's actually scared too."
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5995.9,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 17.8,
+            "disgust": 1.3,
+            "fear": 8.4,
+            "happiness": -1.2,
+            "love": -2.7,
+            "sadness": 10.3,
+            "shame": 8.4,
+            "calm": -1.0,
+            "surprise": 10.0,
+            "arousal": -2.5
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 41.87,
+              "happiness": 23.28,
+              "shame": 27.77,
+              "arousal": 20.05
+            },
+            "sammy lopez": {
+              "anger": 37.9,
+              "fear": 47.51,
+              "happiness": 5.05,
+              "love": 17.73,
+              "sadness": 27.03,
+              "shame": 62.35,
+              "arousal": 3.17
+            },
+            "astrid lopez": {
+              "anger": 1.21,
+              "fear": 17.02,
+              "happiness": 26.66,
+              "arousal": 7.89
+            },
+            "kayla jenkins": {
+              "anger": 25.84,
+              "fear": 19.39,
+              "happiness": 4.47,
+              "sadness": 18.28,
+              "shame": 16.44,
+              "surprise": 25.0,
+              "arousal": 2.15
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 96.5,
+            "breathing": 88.4,
+            "muscle_tension": 96.2,
+            "vasomotor": 15.9,
+            "sweat_chills": 60.8,
+            "gut_throat": 82.5,
+            "motor_tone": -46.2,
+            "eyes_tears": 49.7
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear",
+            "sadness"
+          ],
+          "secondary": [
+            "sadness->shame (composed/guarded trait)",
+            "sadness->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "flexing and unflexing their right hand tightly, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Kayla gave Jake a one-digit ultimatum: 1 = handed phone on purpose and will say why, 2 = on purpose but won't say why, 3 = doesn't remember. She also told me to actually look at what Jake had open on the phone, not just hold it. I'm turning it over. Phone stays with me until he says it out loud.",
+            "Kayla laid down house rules in the group chat: no wandering alone, buddy system for everything, out before sundown. Jake finally checked in with \"im her alie im alive\" and still hasn't explained why he handed me his phone. I told the group I'm keeping it until he does."
+          ],
+          "gut_appraisal": "Kayla's strained voice confirms she is terrified of the secret exploding, which makes my anger at her hiding the truth and my fear of the situation's fragility spike while my calm evaporates."
+        },
+        {
+          "listener": "astrid lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5740.8,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 17.4,
+            "disgust": 1.2,
+            "fear": 19.3,
+            "happiness": -4.2,
+            "love": -2.6,
+            "sadness": 5.7,
+            "shame": 23.7,
+            "calm": -11.2,
+            "surprise": 3.7,
+            "arousal": -4.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 40.12,
+              "fear": 45.55,
+              "happiness": 1.92,
+              "love": 16.53,
+              "sadness": 24.32,
+              "shame": 60.34,
+              "arousal": 5.81
+            },
+            "kayla jenkins": {
+              "anger": 25.4,
+              "fear": 29.25,
+              "happiness": 17.44,
+              "shame": 31.69
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 83.8,
+            "breathing": 71.7,
+            "muscle_tension": 84.9,
+            "vasomotor": 21.4,
+            "sweat_chills": 49.4,
+            "gut_throat": 71.4,
+            "motor_tone": -37.1,
+            "eyes_tears": 38.1
+          },
+          "overloaded": true,
+          "suppressed": [
+            "shame",
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "raking a hand back through their hair, expression flat, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Small-town Millwood reality: if a 16-year-old girl gets pregnant here, Mrs. Arredondo at the pharmacy tells Miss Yolanda before the test dries, then church, then Miss Tillery's office, and it follows her forever. I know three girls who swore they were 'being careful'.",
+            "Thanksgiving at Keith's shop: Maria genuinely believes Sammy and her three friends took a 'vow of sisterhood', which I immediately think is hilarious nonsense. I've been noticing Sammy glancing across the yard at Jake Halloway from Maple Street."
+          ],
+          "gut_appraisal": "Kayla's serious tone and direct command to stop treating us like criminals makes me feel more exposed and defensive, confirming my fear that they are hiding something dangerous."
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "tick": 25,
+      "speaker": "astrid lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "I can't let Mom see me shaking like this, not after I told her I was fine. I need to get Sammy inside before she actually collapses on Gerald's bumper.",
+      "speech": "Look, I didn't say you were a crime scene, I said you need to sit before you faint on Gerald's bumper. Mom's over there watching us like a hawk; if she sees you crying, she's going to drag Jake Halloway into this and ask him to move to Texas.",
+      "emote": "rake a hand back through my hair to steady myself, jaw clamps tight",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 6292.5,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "You rake a hand back through your hair to steady yourself, your heart hammers hard against your ribs, and your jaw clamps tight and your hands tremble slightly as they curl into fists. Right now your feelings split by person (toward sammy lopez: shame; toward kayla jenkins: shame). At the same time, every instinct wants you to shrink down, cover your face, or disappear from view, while every nerve wants to back away, freeze still, or get out of here. Holding your face and voice flat is taking real effort. Your thoughts scatter and it is hard to think clearly past the rush.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6380.3,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 9.7,
+            "disgust": 1.2,
+            "happiness": -1.2,
+            "love": -2.4,
+            "sadness": 8.4,
+            "guilt": 12.0,
+            "calm": -1.0,
+            "surprise": 3.6,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 20.88,
+              "fear": 41.14,
+              "happiness": 9.36,
+              "love": 18.88,
+              "sadness": 25.25,
+              "shame": 58.0
+            },
+            "astrid lopez": {
+              "fear": 59.12,
+              "happiness": 0.0,
+              "sadness": 39.45,
+              "shame": 49.17,
+              "arousal": 0.0,
+              "anger": 17.71,
+              "guilt": 20.0
+            },
+            "kayla jenkins": {
+              "anger": 17.8,
+              "fear": 20.97,
+              "happiness": 0.96,
+              "sadness": 27.34,
+              "shame": 31.76,
+              "guilt": 19.44,
+              "surprise": 22.44,
+              "arousal": 1.12
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 96.6,
+            "breathing": 91.4,
+            "muscle_tension": 96.2,
+            "sweat_chills": 55.5,
+            "gut_throat": 86.5,
+            "motor_tone": -66.8,
+            "eyes_tears": 83.1
+          },
+          "overloaded": true,
+          "suppressed": [
+            "anger"
+          ],
+          "secondary": [
+            "fear->shame (public exposure)",
+            "anger->guilt (temperament/memories)"
+          ],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Even when things feel warm and surreal at Table 4, my quiet dread is that there are four of us in Oklahoma and real life doesn't leave room for four - and I'm terrified of yelling or being the fourth corner left behind.",
+            "7th grade cafeteria: Veronika Gable dumped warm chocolate milk into my sketchbook backpack while her friends laughed; I still feel the wet cold dripping down my spine."
+          ],
+          "gut_appraisal": "Astrid's serious warning about my mother dragging Jake away and her implication that I am a 'crime scene' makes me feel terrified of abandonment and deeply ashamed of being seen as fragile or defective."
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6333.9,
+          "dominant": "shame",
+          "applied_deltas": {
+            "happiness": -1.2,
+            "sadness": 6.6,
+            "guilt": 6.5,
+            "calm": -1.0,
+            "surprise": 7.7,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 44.29,
+              "happiness": 3.84,
+              "sadness": 36.02,
+              "shame": 39.34,
+              "surprise": 29.2,
+              "arousal": 4.48
+            },
+            "maria lopez": {
+              "fear": 42.25,
+              "happiness": 2.88,
+              "love": 8.58,
+              "sadness": 35.54,
+              "shame": 65.58,
+              "guilt": 49.08,
+              "surprise": 23.89,
+              "arousal": 3.36
+            },
+            "astrid lopez": {
+              "anger": 14.59,
+              "fear": 32.92,
+              "happiness": 0.0,
+              "sadness": 30.44,
+              "shame": 26.6,
+              "guilt": 32.83,
+              "surprise": 32.54,
+              "arousal": 0.0
+            },
+            "kayla jenkins": {
+              "fear": 17.55,
+              "happiness": 7.16,
+              "sadness": 14.8,
+              "surprise": 25.94,
+              "arousal": 1.12
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 97.1,
+            "breathing": 95.7,
+            "muscle_tension": 96.2,
+            "sweat_chills": 57.4,
+            "gut_throat": 88.8,
+            "motor_tone": -60.3,
+            "eyes_tears": 83.8
+          },
+          "overloaded": true,
+          "suppressed": [
+            "shame"
+          ],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "chewing nervously at their bottom lip, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's strained voice and mention of my mom dragging Jake away makes my fear spike and my happiness vanish."
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5936.9,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 12.0,
+            "fear": 4.0,
+            "happiness": -2.4,
+            "love": -1.6,
+            "sadness": 20.3,
+            "shame": 7.1,
+            "calm": -2.0,
+            "surprise": 3.8,
+            "arousal": -14.7
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 44.65,
+              "happiness": 23.72,
+              "shame": 24.44
+            },
+            "sammy lopez": {
+              "anger": 37.93,
+              "fear": 32.82,
+              "happiness": 2.88,
+              "love": 18.0,
+              "sadness": 26.88,
+              "shame": 58.16,
+              "arousal": 4.04
+            },
+            "astrid lopez": {
+              "fear": 27.27,
+              "happiness": 0.0,
+              "sadness": 33.5,
+              "shame": 33.57,
+              "anger": 20.01,
+              "arousal": 0.34
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 95.1,
+            "breathing": 86.8,
+            "muscle_tension": 94.5,
+            "vasomotor": 16.4,
+            "sweat_chills": 57.4,
+            "gut_throat": 82.2,
+            "motor_tone": -44.0,
+            "eyes_tears": 59.1
+          },
+          "overloaded": true,
+          "suppressed": [
+            "shame",
+            "fear",
+            "sadness"
+          ],
+          "secondary": [
+            "sadness->shame (composed/guarded trait)",
+            "sadness->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's serious warning about my mother dragging Jake away and her casual dismissal of my distress as fainting spikes my fear and shame while crushing my already depleted calm."
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6111.8,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": -3.5,
+            "fear": -7.1,
+            "jealousy": -2.1,
+            "sadness": -14.0,
+            "shame": -2.6,
+            "calm": 13.0,
+            "surprise": 3.9,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 40.83,
+              "happiness": 24.24,
+              "shame": 27.29
+            },
+            "sammy lopez": {
+              "anger": 36.86,
+              "fear": 46.47,
+              "happiness": 6.01,
+              "love": 18.09,
+              "sadness": 26.51,
+              "shame": 61.87,
+              "arousal": 4.29
+            },
+            "astrid lopez": {
+              "happiness": 27.62,
+              "arousal": 2.01,
+              "sadness": 0.0
+            },
+            "kayla jenkins": {
+              "anger": 24.8,
+              "fear": 18.35,
+              "happiness": 5.43,
+              "sadness": 17.76,
+              "shame": 15.96,
+              "surprise": 22.44,
+              "arousal": 3.27
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 97.3,
+            "breathing": 89.1,
+            "muscle_tension": 97.0,
+            "vasomotor": 16.8,
+            "sweat_chills": 62.9,
+            "gut_throat": 82.5,
+            "motor_tone": -43.5,
+            "eyes_tears": 44.9
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [],
+          "observer_tell_seen_by_others": "flexing and unflexing their right hand tightly, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's serious warning about my mom dragging Jake away and her blunt assessment of my physical state cuts through my panic, forcing me to acknowledge the real stakes while I try to hide my crumbling composure."
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "tick": 26,
+      "speaker": "kyrie johansen",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "My heart is pounding so hard I think Gerald can feel it from his bumper, and I can't stop my hands from shaking even though I'm trying to look cool.",
+      "speech": "I'm not gonna let Maria see us crying, Astrid, so sit down before you faint on the pie. Just eat your cider and stop looking like we're planning a heist.",
+      "emote": "flexes right hand slowly, jaw clenches tight",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "guarded",
+      "cover_lie": false,
+      "actor_latency_ms": 5577.2,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "Your right hand flexes and unflexes slowly at your side, your heart hammers hard against your ribs, and your jaw clamps tight and your hands tremble slightly as they curl into fists. Right now your feelings split by person (toward zoe mercer: fear; toward sammy lopez: shame; toward kayla jenkins: anger). At the same time, every instinct wants you to shrink down, cover your face, or disappear from view, while every nerve wants to back away, freeze still, or get out of here. Holding your face and voice flat is taking real effort. Your thoughts scatter and it is hard to think clearly past the rush.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "guarded",
+          "perceived_tone": "guarded",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6349.3,
+          "dominant": "sadness",
+          "applied_deltas": {
+            "anger": 9.7,
+            "disgust": 1.2,
+            "happiness": -1.2,
+            "love": -2.4,
+            "sadness": 7.1,
+            "guilt": 12.0,
+            "calm": -1.0,
+            "surprise": 3.0,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 19.84,
+              "fear": 40.1,
+              "happiness": 10.32,
+              "love": 19.24,
+              "sadness": 24.73,
+              "shame": 57.52
+            },
+            "astrid lopez": {
+              "fear": 58.08,
+              "happiness": 0.96,
+              "sadness": 38.93,
+              "shame": 48.69,
+              "arousal": 1.12,
+              "anger": 16.67,
+              "guilt": 19.44
+            },
+            "kayla jenkins": {
+              "anger": 16.76,
+              "fear": 19.93,
+              "happiness": 1.92,
+              "sadness": 26.82,
+              "shame": 31.28,
+              "guilt": 18.88,
+              "arousal": 2.24
+            },
+            "kyrie johansen": {
+              "anger": 17.71,
+              "fear": 21.43,
+              "happiness": 0.0,
+              "sadness": 15.64,
+              "shame": 27.7,
+              "guilt": 20.0,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 97.4,
+            "breathing": 92.9,
+            "muscle_tension": 97.0,
+            "vasomotor": 15.0,
+            "sweat_chills": 56.3,
+            "gut_throat": 87.7,
+            "motor_tone": -63.9,
+            "eyes_tears": 84.3
+          },
+          "overloaded": true,
+          "suppressed": [
+            "anger"
+          ],
+          "secondary": [
+            "fear->shame (public exposure)",
+            "anger->guilt (temperament/memories)"
+          ],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Even when things feel warm and surreal at Table 4, my quiet dread is that there are four of us in Oklahoma and real life doesn't leave room for four - and I'm terrified of yelling or being the fourth corner left behind.",
+            "Day 1, 08:01 — I finally broke and DM'd Jake directly instead of joking it off: told him \"alie\" plus handing Kyrie his phone reads like a ransom note, and asked what's going on, warning him not to say \"nothing.\" Didn't mention the drawer or what I saw behind the fieldhouse — I still don't think I've earned that answer."
+          ],
+          "gut_appraisal": "Kyrie's guarded tone and the mention of crying trigger my deepest fear of abandonment and being the fourth corner left behind, making me feel exposed and terrified that something is wrong with Jake."
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "guarded",
+          "perceived_tone": "guarded",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6161.2,
+          "dominant": "sadness",
+          "applied_deltas": {
+            "happiness": 13.8,
+            "love": -2.1,
+            "sadness": 3.7,
+            "guilt": 6.2,
+            "calm": -1.0,
+            "surprise": 5.3,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 43.25,
+              "happiness": 4.8,
+              "sadness": 35.5,
+              "shame": 38.86,
+              "surprise": 26.64,
+              "arousal": 5.6
+            },
+            "maria lopez": {
+              "fear": 41.21,
+              "happiness": 3.84,
+              "love": 8.94,
+              "sadness": 35.02,
+              "shame": 65.1,
+              "guilt": 48.52,
+              "surprise": 21.33,
+              "arousal": 4.48
+            },
+            "astrid lopez": {
+              "anger": 13.55,
+              "fear": 31.88,
+              "happiness": 0.96,
+              "sadness": 29.92,
+              "shame": 26.12,
+              "guilt": 32.27,
+              "surprise": 29.98,
+              "arousal": 1.12
+            },
+            "kayla jenkins": {
+              "fear": 16.51,
+              "happiness": 8.12,
+              "sadness": 14.28,
+              "surprise": 23.38,
+              "arousal": 2.24
+            },
+            "kyrie johansen": {
+              "fear": 20.1,
+              "happiness": 0.0,
+              "sadness": 14.04,
+              "shame": 16.73,
+              "guilt": 14.18,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 95.2,
+            "breathing": 90.7,
+            "muscle_tension": 86.5,
+            "sweat_chills": 57.5,
+            "gut_throat": 89.1,
+            "motor_tone": -60.2,
+            "eyes_tears": 84.1
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "expression unusually blank and distant",
+          "recalled_memories_top2": [
+            "After our night together and the grease-rag fight in Keith's shop, I wiped the grease off his chin and agreed to the daylight treaty: no sneaking around, no lying.",
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt."
+          ],
+          "gut_appraisal": "Kyrie's guarded tone and warning about Maria seeing us crying makes me feel exposed and terrified that our secret is about to be blown."
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "guarded",
+          "perceived_tone": "guarded",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6472.0,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 15.7,
+            "disgust": 1.8,
+            "happiness": -1.2,
+            "love": -3.8,
+            "sadness": 22.3,
+            "calm": -1.0,
+            "surprise": 3.4,
+            "arousal": -1.7
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 43.61,
+              "happiness": 24.68,
+              "shame": 23.96
+            },
+            "sammy lopez": {
+              "anger": 36.89,
+              "fear": 31.78,
+              "happiness": 3.84,
+              "love": 18.36,
+              "sadness": 26.36,
+              "shame": 57.68,
+              "arousal": 5.16
+            },
+            "astrid lopez": {
+              "fear": 26.23,
+              "happiness": 0.96,
+              "sadness": 32.98,
+              "shame": 33.09,
+              "anger": 18.97,
+              "arousal": 1.46
+            },
+            "kyrie johansen": {
+              "anger": 23.74,
+              "fear": 17.28,
+              "happiness": 0.0,
+              "sadness": 30.28,
+              "shame": 17.71,
+              "arousal": 0.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 97.0,
+            "breathing": 90.6,
+            "muscle_tension": 96.5,
+            "vasomotor": 18.1,
+            "sweat_chills": 56.8,
+            "gut_throat": 85.6,
+            "motor_tone": -52.2,
+            "eyes_tears": 77.6
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear",
+            "sadness"
+          ],
+          "secondary": [
+            "sadness->shame (composed/guarded trait)",
+            "sadness->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Kyrie reported that Jake silently handed her his phone ~2 min ago without explanation — flagged it to the group as possible evidence he's recording/planning something. Sammy and Kyrie both checked in alive and unpossessed; Jake has not responded in the group chat. Set group rules: no one goes anywhere alone, leave before sundown.",
+            "Group chat: all four others confirmed alive. Jake's only contribution was \"hey im her alie im alive!\" — no answer on the phone. I gave him a multiple-choice (1 = explain phone, 2 = not explaining yet, 3 = doesn't remember) and told Kyrie to actually inspect the phone's last open app/screen time instead of just holding it. Sammy floated \"he's possessed\" and I told him to keep a priest on retainer, not speed dial."
+          ],
+          "gut_appraisal": "Kyrie's guarded tone and attempt to deflect our distress with a joke about a heist and pie makes me feel a surge of protective anger and fear that she is hiding something or pushing us away when we need support."
+        },
+        {
+          "listener": "astrid lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "guarded",
+          "perceived_tone": "guarded",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5457.4,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 14.5,
+            "disgust": 1.3,
+            "fear": 20.7,
+            "happiness": -2.4,
+            "love": -2.7,
+            "sadness": 7.1,
+            "shame": 10.4,
+            "calm": -2.0,
+            "surprise": 2.7,
+            "arousal": -4.8
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 38.04,
+              "fear": 43.47,
+              "happiness": 3.84,
+              "love": 17.25,
+              "sadness": 23.28,
+              "shame": 59.38,
+              "arousal": 8.05
+            },
+            "kayla jenkins": {
+              "anger": 23.32,
+              "fear": 27.17,
+              "happiness": 19.36,
+              "shame": 30.73
+            },
+            "kyrie johansen": {
+              "anger": 22.53,
+              "fear": 30.72,
+              "happiness": 12.42,
+              "sadness": 15.13,
+              "shame": 18.44,
+              "arousal": 6.58
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 92.1,
+            "breathing": 82.5,
+            "muscle_tension": 91.8,
+            "vasomotor": 19.9,
+            "sweat_chills": 56.7,
+            "gut_throat": 78.5,
+            "motor_tone": -37.5,
+            "eyes_tears": 42.8
+          },
+          "overloaded": true,
+          "suppressed": [
+            "shame",
+            "fear",
+            "sadness"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "raking a hand back through their hair, expression flat, jaw clamped hard and hands trembling slightly in clenched fists, eyes red-rimmed and blinking fast",
+          "recalled_memories_top2": [
+            "Small-town Millwood reality: if a 16-year-old girl gets pregnant here, Mrs. Arredondo at the pharmacy tells Miss Yolanda before the test dries, then church, then Miss Tillery's office, and it follows her forever. I know three girls who swore they were 'being careful'.",
+            "Thanksgiving at Keith's shop: Maria genuinely believes Sammy and her three friends took a 'vow of sisterhood', which I immediately think is hilarious nonsense. I've been noticing Sammy glancing across the yard at Jake Halloway from Maple Street."
+          ],
+          "gut_appraisal": "I feel a surge of protective fear and anger at Kyrie's guarded tone, realizing she is hiding the truth about Sammy's distress from my mother."
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "tick": 27,
+      "speaker": "astrid lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "God, why is my heart pounding so loud? I can't let Mom see us like this, especially not with Jake involved.",
+      "speech": "Sit. Down. Before I lose the nerve to tell Maria that Jake Halloway needs to pack a bag and leave town immediately.",
+      "emote": "rake hand back through hair and jaw clamps tight",
+      "intended_volume": "shout",
+      "actual_volume": "shout",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 4823.4,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "You rake a hand back through your hair to steady yourself, your heart hammers hard against your ribs, and your jaw clamps tight and your hands tremble slightly as they curl into fists. Right now your feelings split by person (toward sammy lopez: shame; toward kayla jenkins: shame; toward kyrie johansen: fear). At the same time, every instinct wants you to shrink down, cover your face, or disappear from view, while every nerve wants to back away, freeze still, or get out of here. Holding your face and voice flat is taking real effort. Your thoughts scatter and it is hard to think clearly past the rush.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6943.1,
+          "dominant": "sadness",
+          "applied_deltas": {
+            "anger": 8.3,
+            "disgust": 1.2,
+            "happiness": 13.8,
+            "love": -7.5,
+            "guilt": 31.7,
+            "calm": -1.0,
+            "surprise": 2.8,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 18.8,
+              "fear": 39.06,
+              "happiness": 11.28,
+              "love": 19.6,
+              "sadness": 24.21,
+              "shame": 57.04
+            },
+            "astrid lopez": {
+              "fear": 71.2,
+              "happiness": 0.0,
+              "sadness": 45.75,
+              "shame": 68.03,
+              "arousal": 0.0,
+              "anger": 23.93,
+              "guilt": 50.59
+            },
+            "kayla jenkins": {
+              "anger": 15.72,
+              "fear": 18.89,
+              "happiness": 2.88,
+              "sadness": 26.3,
+              "shame": 30.8,
+              "guilt": 18.32,
+              "arousal": 3.36
+            },
+            "kyrie johansen": {
+              "anger": 16.67,
+              "fear": 20.39,
+              "happiness": 0.96,
+              "sadness": 15.12,
+              "shame": 27.22,
+              "guilt": 19.44,
+              "arousal": 1.12
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 97.6,
+            "breathing": 95.5,
+            "muscle_tension": 97.2,
+            "vasomotor": 19.6,
+            "sweat_chills": 57.4,
+            "gut_throat": 88.7,
+            "motor_tone": -61.2,
+            "eyes_tears": 85.0
+          },
+          "overloaded": true,
+          "suppressed": [
+            "anger"
+          ],
+          "secondary": [
+            "fear->shame (public exposure)",
+            "anger->guilt (temperament/memories)"
+          ],
+          "observer_tell_seen_by_others": "expression unusually blank and distant",
+          "recalled_memories_top2": [
+            "Even when things feel warm and surreal at Table 4, my quiet dread is that there are four of us in Oklahoma and real life doesn't leave room for four - and I'm terrified of yelling or being the fourth corner left behind.",
+            "7th grade cafeteria: Veronika Gable dumped warm chocolate milk into my sketchbook backpack while her friends laughed; I still feel the wet cold dripping down my spine."
+          ],
+          "gut_appraisal": "The shout and the threat that Jake must leave town shatter my fragile hope, flooding me with terror that he is being taken away and that I am finally being exposed as the fourth corner left behind."
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6770.9,
+          "dominant": "sadness",
+          "applied_deltas": {
+            "anger": 8.7,
+            "disgust": 1.0,
+            "happiness": -1.2,
+            "guilt": 4.4,
+            "calm": -1.0,
+            "surprise": 9.0,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 42.21,
+              "happiness": 5.76,
+              "sadness": 34.98,
+              "shame": 38.38,
+              "surprise": 24.08,
+              "arousal": 6.72
+            },
+            "maria lopez": {
+              "fear": 40.17,
+              "happiness": 4.8,
+              "love": 9.3,
+              "sadness": 34.5,
+              "shame": 64.62,
+              "guilt": 47.96,
+              "arousal": 5.6
+            },
+            "astrid lopez": {
+              "fear": 42.9,
+              "happiness": 0.0,
+              "sadness": 37.71,
+              "shame": 35.77,
+              "guilt": 31.71,
+              "surprise": 36.44,
+              "arousal": 0.0,
+              "anger": 16.67
+            },
+            "kayla jenkins": {
+              "fear": 15.47,
+              "happiness": 9.08,
+              "sadness": 13.76,
+              "surprise": 20.82,
+              "arousal": 3.36
+            },
+            "kyrie johansen": {
+              "fear": 19.06,
+              "happiness": 0.96,
+              "sadness": 13.52,
+              "shame": 16.25,
+              "guilt": 13.62,
+              "arousal": 1.12
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 95.0,
+            "breathing": 89.5,
+            "muscle_tension": 84.9,
+            "sweat_chills": 57.7,
+            "gut_throat": 89.2,
+            "motor_tone": -59.4,
+            "eyes_tears": 84.3
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "expression unusually blank and distant",
+          "recalled_memories_top2": [
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's strained voice screaming that Jake has to leave town shatters my fragile hope and makes me feel like everything I tried to fix is about to explode."
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6400.3,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 12.0,
+            "disgust": 1.9,
+            "happiness": -1.2,
+            "love": -3.9,
+            "sadness": 13.4,
+            "calm": -1.0,
+            "surprise": 3.0,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 42.57,
+              "happiness": 25.64,
+              "shame": 23.48
+            },
+            "sammy lopez": {
+              "anger": 35.85,
+              "fear": 30.74,
+              "happiness": 4.8,
+              "love": 18.72,
+              "sadness": 25.84,
+              "shame": 57.2,
+              "arousal": 6.28
+            },
+            "astrid lopez": {
+              "fear": 36.7,
+              "happiness": 0.0,
+              "sadness": 45.82,
+              "shame": 45.79,
+              "anger": 29.88,
+              "arousal": 0.0
+            },
+            "kyrie johansen": {
+              "anger": 22.7,
+              "fear": 16.24,
+              "happiness": 0.96,
+              "sadness": 29.76,
+              "shame": 17.23,
+              "arousal": 1.12
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 97.5,
+            "breathing": 91.7,
+            "muscle_tension": 97.1,
+            "vasomotor": 18.6,
+            "sweat_chills": 56.6,
+            "gut_throat": 86.5,
+            "motor_tone": -54.5,
+            "eyes_tears": 82.8
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear",
+            "sadness"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's threat to expose our secret relationship to Maria and force Jake to leave shatters my composure, flooding me with panic about the family explosion and deepening my shame at being so careless with our future."
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 6660.0,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": 17.7,
+            "disgust": 1.6,
+            "fear": 9.3,
+            "happiness": -4.0,
+            "love": -3.3,
+            "sadness": 27.3,
+            "shame": 5.7,
+            "calm": -16.0,
+            "surprise": 17.1,
+            "arousal": -2.8
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 38.75,
+              "happiness": 26.16,
+              "shame": 26.33
+            },
+            "sammy lopez": {
+              "anger": 34.78,
+              "fear": 44.39,
+              "happiness": 7.93,
+              "love": 18.81,
+              "sadness": 25.47,
+              "shame": 60.91,
+              "arousal": 6.53
+            },
+            "astrid lopez": {
+              "happiness": 0.0,
+              "arousal": 0.0,
+              "sadness": 28.34,
+              "anger": 25.73,
+              "fear": 20.84,
+              "shame": 20.45,
+              "surprise": 32.09
+            },
+            "kayla jenkins": {
+              "anger": 22.72,
+              "fear": 16.27,
+              "happiness": 7.35,
+              "sadness": 16.72,
+              "shame": 15.0,
+              "arousal": 5.51
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 95.9,
+            "breathing": 88.5,
+            "muscle_tension": 95.2,
+            "vasomotor": 16.9,
+            "sweat_chills": 58.2,
+            "gut_throat": 83.4,
+            "motor_tone": -41.3,
+            "eyes_tears": 60.2
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear",
+            "sadness"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "flexing and unflexing their right hand tightly, jaw clamped hard and hands trembling slightly in clenched fists, eyes glossy with tears close to spilling",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "Astrid's threat to expose Jake and ruin the group's secret makes the immediate danger feel real and forces me to suppress my rising panic."
+        },
+        {
+          "listener": "maria lopez",
+          "area": "Dessert Tables (Bay 2)",
+          "same_area": false,
+          "distance": 2.75,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_abc_full",
+          "track1_latency_ms": 5710.7,
+          "dominant": "surprise",
+          "applied_deltas": {
+            "fear": 37.4,
+            "happiness": -16.6,
+            "shame": 12.7,
+            "calm": -38.5,
+            "surprise": 37.9,
+            "arousal": -9.4
+          },
+          "target_families": {
+            "astrid lopez": {
+              "fear": 47.4,
+              "happiness": 23.41,
+              "shame": 20.73,
+              "surprise": 52.87,
+              "arousal": 5.64
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 40.6,
+            "breathing": 37.5,
+            "muscle_tension": 35.1,
+            "vasomotor": -18.4,
+            "sweat_chills": 29.3,
+            "gut_throat": 29.6
+          },
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "brows shot up, pausing mid-motion in sudden surprise",
+          "recalled_memories_top2": [
+            "My daughter Sammy and her best friends Kayla, Kyrie, and Zoe are good girls who swore a vow of sisterhood to focus on school instead of boys. Astrid is home from Dallas and I brought my flan and paella to Keith's shop."
+          ],
+          "gut_appraisal": "I am shocked and terrified that my daughter Astrid is shouting at me to tell her mother that Jake must leave town, completely unaware that she is speaking about my own son."
+        }
+      ]
+    }
+  ]
+}

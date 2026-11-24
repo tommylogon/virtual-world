@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-1004",
+  "kind": "task",
+  "number": 1004,
+  "title": "Python Agent Migration Phase 4: Port NL Editor Agent Loop, Commons Agent, and AI Generators",
+  "status": "inprogress",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [
+    "python-agent",
+    "migration",
+    "nl-editor",
+    "commons"
+  ],
+  "created": "2026-11-22",
+  "updated": "2026-11-22",
+  "horizon": "later",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Port the remaining browser AI loops (nl-editor/agent-loop.ts, tools.ts, budget.ts, staging.ts, diff.ts, commons/commons-agent.ts, shared/ai-generator.ts, shared/embedding-client.ts) into Python using engine/agent/llm_client.py, leaving only UI components in TypeScript.",
+    "why": "Completes the separation of concerns so zero LLM orchestration or tool loops remain in browser TypeScript.",
+    "how": "1. Port NL Editor tool loop and staging/diff logic to Python behind Flask endpoints.\n2. Port Commons agent loop and AI generation helpers to engine/agent/.\n3. Keep nl-editor/ui.ts, ghosts.ts, and commons-ui.ts as thin browser views.",
+    "verify": "NL Editor staging/diff and Commons agent turns pass Python unit tests and work live in the browser UI.",
+    "acceptance": [
+      {
+        "text": "NL Editor tool loop and diffing run in Python.",
+        "done": false
+      },
+      {
+        "text": "Commons agent loop and AI generators run in Python via engine/agent/llm_client.py.",
+        "done": false
+      },
+      {
+        "text": "Browser retains only UI views and interaction handlers.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/nl-editor/agent-loop.ts",
+      "static/js/nl-editor/tools.ts",
+      "static/js/commons/commons-agent.ts",
+      "static/js/shared/ai-generator.ts"
+    ],
+    "custom": {
+      "browser_ui": "In the NL Editor and Commons UI, verify staged diffs, ghost previews, and generated content render and apply cleanly with zero console errors."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/AI & Narration/Agent Engine.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "inprogress",
+      "at": "2026-11-22T18:36:48Z"
+    }
+  ]
+}

@@ -354,13 +354,13 @@ class EventBus {
      *  the user sees is now one meaning of "Tick" across every row.
      */
     _tickLabel(bubble?: HTMLElement) {
-        // Tick (time_ticks) is separate from turn (turn_number). Do not mix.
-        // Running sequential tick: each event advances the stream's own counter
-        // so the tick label always counts up (0, 1, 2...) regardless of server state lag.
-        const tick = ++this._tickCounter;
-        if (bubble) bubble.setAttribute('data-seq', String(this._lineSeq++));
-        const time = this.tickToTime(tick);
-        return `Tick ${tick} | ${time}`;
+        // Show the real simulation tick and real world clock, never a fake
+        // per-bubble counter that advances the clock by 1 minute per row.
+        const worldTick = Number(VW?.state?.data?.time_ticks ?? VW?.state?.tick ?? 0) || 0;
+        const seq = this._lineSeq++;
+        if (bubble) bubble.setAttribute('data-seq', String(seq));
+        const time = (VW?.state?.data as any)?.current_time || this.tickToTime(worldTick);
+        return `Tick ${worldTick} | ${time}`;
     }
 
     tickToRelative(tick: number | null | undefined): string {
@@ -581,8 +581,6 @@ class EventBus {
 
         this._filters.noteActor(agentName);
 
-        const isAgentEvent = type !== 'system' && type !== 'error';
-
         const bubble = document.createElement('div');
         let classes = `msg-bubble msg-bubble-${type}`;
         if (type === 'phase' && meta.phaseClass) classes += ` phase-${meta.phaseClass}`;
@@ -618,7 +616,7 @@ class EventBus {
         window.Lit.render(eventStreamHtmlTag`<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._tickLabel(bubble)}]</span> <span class="bubble-actor bubble-${type}-actor">${agentName}</span> <span class="bubble-text bubble-${type}-text">${textSpan}</span>`, bubble);
 
         const body = this._cards.current?.querySelector('.turn-card-body');
-        if (body && isAgentEvent) {
+        if (body) {
             this._insertTimeGap(body);
             body.appendChild(bubble);
         } else {

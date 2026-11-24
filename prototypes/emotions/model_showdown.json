@@ -1,0 +1,47 @@
+{
+  "qwen3.5-4b": {
+    "model": "qwen3.5-4b",
+    "c_clean_json": "9/9",
+    "c_cold_ms": 7870.9,
+    "c_warm_median_ms": 2633.8,
+    "c_warm_min_ms": 2041.4,
+    "partner_crowd": "dom=sadness love=-29 hap=-60 sad=+42",
+    "stranger_alone": "dom=anger ang=+38",
+    "miki_t1": "dom=fear fear=+55 shame=+53 sec=2",
+    "miki_t2_reassure": "fear=-34 shame=-28 calm=+23",
+    "pot_s1": "shame=53 guilt=40 floors=['guilt>=+30']",
+    "pot_s3": "shame=25 calm=34",
+    "goblin": "skrit=envy(17.9ms tier_ab_fast) vex=jealousy",
+    "sarcasm": "dom=anger override=True hap=-46 ang=+32 shame=+29 | My all-night effort was dismissed as cute and taken over by someone who doesn't know me."
+  },
+  "google/gemma-4-e4b": {
+    "model": "google/gemma-4-e4b",
+    "c_clean_json": "9/9",
+    "c_cold_ms": 58278.6,
+    "c_warm_median_ms": 2061.9,
+    "c_warm_min_ms": 1109.7,
+    "partner_crowd": "dom=sadness love=-39 hap=-46 sad=+49",
+    "stranger_alone": "dom=anger ang=+41",
+    "miki_t1": "dom=fear fear=+42 shame=+28 sec=2",
+    "miki_t2_reassure": "fear=-19 shame=-19 calm=+27",
+    "pot_s1": "shame=58 guilt=40 floors=['guilt>=+30']",
+    "pot_s3": "shame=30 calm=18",
+    "goblin": "skrit=envy(16.6ms tier_ab_fast) vex=jealousy",
+    "sarcasm": "dom=sadness override=True hap=-56 ang=+32 shame=+26 | I feel a sudden, sharp deflation because my effort was dismissed as merely 'adorable.'"
+  },
+  "lfm3-1.7b@q4_0": {
+    "model": "lfm3-1.7b@q4_0",
+    "c_clean_json": "0/9",
+    "c_cold_ms": 28992.5,
+    "c_warm_median_ms": 16271.4,
+    "c_warm_min_ms": 15970.1,
+    "partner_crowd": "dom=sadness love=-30 hap=-62 sad=+54",
+    "stranger_alone": "dom=anger ang=+39",
+    "miki_t1": "dom=shame fear=+44 shame=+50 sec=2",
+    "miki_t2_reassure": "fear=-9 shame=-17 calm=+32",
+    "pot_s1": "shame=59 guilt=50 floors=[]",
+    "pot_s3": "shame=33 calm=34",
+    "goblin": "skrit=envy(51.4ms tier_ab_fast) vex=jealousy",
+    "sarcasm": "dom=love override=False hap=+27 ang=-8 shame=+12 | received warmth or kindness; old memories surfaced and pulled happiness back into the moment"
+  }
+}

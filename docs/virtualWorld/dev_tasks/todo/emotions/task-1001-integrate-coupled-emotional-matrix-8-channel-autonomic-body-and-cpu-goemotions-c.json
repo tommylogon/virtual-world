@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "task-1001",
+  "kind": "task",
+  "number": 1001,
+  "title": "Integrate Coupled Emotional Matrix, 8-channel autonomic body, and CPU GoEmotions classifier into production engine",
+  "status": "todo",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "emotions",
+    "autonomic",
+    "classifier",
+    "production",
+    "matrix"
+  ],
+  "created": "2026-11-22",
+  "updated": "2026-11-22",
+  "horizon": "next",
+  "effort": "L",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Port the validated emotion redesign from prototypes/emotions/ into the production engine: the 13-family Coupled Emotional Matrix projected onto the existing 36-dim Player._emotions map, per-target live emotion overlays, the 8-channel involuntary autonomic body with inertia, persona habit/quirk tell hooks, flustered volume slip, and an optional zero-VRAM CPU GoEmotions classifier module (engine/emotion_classifier.py using cirimus/modernbert-base-go-emotions, default off/'none').",
+    "why": "Prototype validation across 6 emotion scenarios, a 4-way CPU classifier benchmark (cirimus/modernbert-base-go-emotions scored 14/14 at 72-86 ms median on CPU with 0 VRAM), and live 6-character Millwood Scene 102 proof runs demonstrated 85x faster Track 1 appraisal, zero model-size numeric drift, realistic somatic inertia, per-target mixed feelings, and cross-area speech tone splits. Full evidence and architecture specs are documented in docs/design/emotion-prototype-research-report.md and docs/design/emotion-system-redesign.md.",
+    "how": "1. Port the 13-family Coupled Emotional Matrix, per-target overlays, secondary-emotion coupling, and 36-dim projection into engine/emotion.py, persisting state cleanly through player.py and engine/serialization.py.\n2. Port the 8-channel involuntary autonomic body (with dominant + diminishing-returns blending and half-life inertia), persona habit/quirk tell matching, and flustered volume slip into engine/emotion.py, engine/tick_manager.py, and engine/character_appearance.py.\n3. Add engine/emotion_classifier.py wrapping cirimus/modernbert-base-go-emotions on CPU (opt-in config defaulting to 'none' so headless/CI runs stay zero-dependency and fast).\n4. Wire observable tells, felt somatic state, and per-target feelings into static/js/agent/prompt-builder/room-context.ts, static/js/agent/involuntary.ts, and static/js/inspector/mind-view.ts.\n5. Keep production tests passing and add focused unit tests covering coupling, autonomic inertia, serialization round-trip, and optional classifier fallback.",
+    "verify": "pytest tests/ passes with zero regressions, save/load round-trips preserve coupled matrix and autonomic state, and a live Millwood Scene 102 run exercises somatic tells, per-target feelings, and optional CPU classifier appraisal.",
+    "acceptance": [
+      {
+        "text": "13-family Coupled Emotional Matrix and per-target overlays are wired into engine/emotion.py and projected onto existing 36-dim Player._emotions.",
+        "done": false
+      },
+      {
+        "text": "8-channel autonomic body with inertia, persona habit/quirk tells, and flustered volume slip run in production ticks and speech.",
+        "done": false
+      },
+      {
+        "text": "engine/emotion_classifier.py provides optional CPU cirimus/modernbert-base-go-emotions appraisal (default 'none', 0 VRAM).",
+        "done": false
+      },
+      {
+        "text": "State serializes and deserializes cleanly in engine/serialization.py.",
+        "done": false
+      },
+      {
+        "text": "Room context prompt builder, involuntary layer, and mind inspector render the new somatic tells and per-target feelings.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/emotion.py",
+      "player.py",
+      "engine/serialization.py",
+      "engine/tick_manager.py",
+      "engine/character_appearance.py",
+      "static/js/agent/prompt-builder/room-context.ts",
+      "static/js/agent/involuntary.ts",
+      "static/js/inspector/mind-view.ts",
+      "docs/design/emotion-system-redesign.md",
+      "docs/design/emotion-prototype-research-report.md"
+    ],
+    "custom": {
+      "browser_ui": "In the Character Inspector Mind tab (static/js/inspector/mind-view.ts), verify the 13-family coupled emotion state, per-target live overlays, and 8-channel autonomic body indicators render cleanly with fluid layout and zero console errors. In live gameplay, verify room-context somatic tells appear in character prompts without leaking internal numbers."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Characters/Emotions & Moods.md"
+    ],
+    "docs": [
+      "docs/design/emotion-system-redesign.md",
+      "docs/design/emotion-prototype-research-report.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

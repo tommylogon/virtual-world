@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "task-1000",
+  "kind": "task",
+  "number": 1000,
+  "title": "Add sarcastic banter option to zero-LLM background soak conversations",
+  "status": "todo",
+  "priority": "medium",
+  "area": "emotions",
+  "tags": [
+    "soak",
+    "emotions",
+    "speech"
+  ],
+  "created": "2026-11-22",
+  "updated": "2026-11-22",
+  "horizon": "now",
+  "effort": "S",
+  "goal": "Let zero-LLM background soak NPCs deliver sarcastic banter through the same speech-tone contract as LLM and human characters.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-994",
+      "task-996"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a sarcastic conversation/banter option to engine/background_social.py so background soak NPCs can express sarcasm without calling an LLM.",
+    "why": "Soak NPCs do not use LLMs for dialogue, so adding sarcastic banter directly onto engine/background_social.py ACTIONS (lines 135-197) keeps background social tone aligned with task-994's speech-tone contract at zero LLM cost.",
+    "how": "1. Add a sarcastic banter option (or tone metadata on tease/joke hostile_variant) in engine/background_social.py ACTIONS (lines 135-197) and BASE_WEIGHTS (lines 208-210).\n2. Route soak banter tone through engine/speech_tone.py perceive_speech_tone so listeners react subjectively by closeness, mood, and Insight without any LLM call.\n3. Add deterministic unit tests in tests/test_background_social.py.",
+    "verify": "Run pytest tests/test_background_social.py tests/test_speech_tone.py -v.",
+    "acceptance": [
+      {
+        "text": "engine/background_social.py ACTIONS supports sarcastic banter (or tone-tagged tease/joke delivery) so soak NPCs can deliver sarcastic remarks without an LLM.",
+        "done": false
+      },
+      {
+        "text": "Sarcastic soak interactions pass speech_tone='sarcastic' through engine/speech_tone.py subjective perception and apply appropriate affect/relationship deltas.",
+        "done": false
+      },
+      {
+        "text": "Unit tests in tests/test_background_social.py verify sarcastic soak banter shifts affect/relationships differently from warm teasing.",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/background_social.py",
+      "engine/speech_tone.py",
+      "tests/test_background_social.py"
+    ],
+    "custom": {
+      "browser_ui": "No new UI controls required. Verify in the Event Stream / Mind Inspector that background soak NPCs occasionally emit sarcastic banter and that listeners react appropriately without LLM calls."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Characters/Background Simulation.md",
+      "docs/virtualWorld/Characters/Emotion & Affect System.md"
+    ],
+    "docs": [
+      "docs/design/emotion-system-redesign.md",
+      "docs/design/emotion-prototype-research-report.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

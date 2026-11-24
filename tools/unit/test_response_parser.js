@@ -61,3 +61,12 @@ test('parseResultReaction has no action field', () => {
     assertEq(p.emote, 'winces');
     assertFalse('action' in p, 'react phase never carries an action');
 });
+
+test('parseReaction extracts and normalizes optional speech tone', () => {
+    const p1 = RP.parseReaction(JSON.stringify({ speech: 'Nice job.', volume: 'say', tone: 'sarcastic' }));
+    assertEq(p1.speechTone, 'sarcastic');
+    const p2 = RP.parseReaction(JSON.stringify({ speech: 'Watch it!', tone: 'playful' }));
+    assertEq(p2.speechTone, 'teasing');
+    const p3 = RP.parseReaction(JSON.stringify({ speech: 'Okay.', tone: 'plain' }));
+    assertEq(p3.speechTone, null);
+});

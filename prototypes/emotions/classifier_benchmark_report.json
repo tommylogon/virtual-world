@@ -1,0 +1,114 @@
+[
+  {
+    "label": "roberta-base-go_emotions (125M)",
+    "load_s": 15.1,
+    "score": "13/14",
+    "passed": 13,
+    "total": 14,
+    "median_ms": 56.5,
+    "p95_ms": 79.6,
+    "failed_checks": [
+      "scene102_astrid_pads_not_happy"
+    ],
+    "checks": {
+      "scen_d_partner_hurt_and_shame": true,
+      "scen_d_stranger_anger": true,
+      "scen_d_inward_shame": true,
+      "miki_fear_spike": true,
+      "miki_reassurance_calms": true,
+      "ws2a_shame_and_guilt_both": true,
+      "goblin_envy_not_jealousy": true,
+      "goblin_jealousy_not_envy": true,
+      "tone_teasing_warm": true,
+      "tone_teasing_mocking": true,
+      "tone_sarcastic_stings": true,
+      "tone_warm_strained_leaks": true,
+      "scene102_zoe_question_unease": true,
+      "scene102_astrid_pads_not_happy": false
+    }
+  },
+  {
+    "label": "modernbert-base-go-emotions (149M)",
+    "load_s": 1.44,
+    "score": "14/14",
+    "passed": 14,
+    "total": 14,
+    "median_ms": 81.0,
+    "p95_ms": 131.0,
+    "failed_checks": [],
+    "checks": {
+      "scen_d_partner_hurt_and_shame": true,
+      "scen_d_stranger_anger": true,
+      "scen_d_inward_shame": true,
+      "miki_fear_spike": true,
+      "miki_reassurance_calms": true,
+      "ws2a_shame_and_guilt_both": true,
+      "goblin_envy_not_jealousy": true,
+      "goblin_jealousy_not_envy": true,
+      "tone_teasing_warm": true,
+      "tone_teasing_mocking": true,
+      "tone_sarcastic_stings": true,
+      "tone_warm_strained_leaks": true,
+      "scene102_zoe_question_unease": true,
+      "scene102_astrid_pads_not_happy": true
+    }
+  },
+  {
+    "label": "gliclass-edge-v3.0 (33M zero-shot)",
+    "load_s": 1.77,
+    "score": "12/14",
+    "passed": 12,
+    "total": 14,
+    "median_ms": 23.3,
+    "p95_ms": 32.9,
+    "failed_checks": [
+      "tone_teasing_warm",
+      "tone_sarcastic_stings"
+    ],
+    "checks": {
+      "scen_d_partner_hurt_and_shame": true,
+      "scen_d_stranger_anger": true,
+      "scen_d_inward_shame": true,
+      "miki_fear_spike": true,
+      "miki_reassurance_calms": true,
+      "ws2a_shame_and_guilt_both": true,
+      "goblin_envy_not_jealousy": true,
+      "goblin_jealousy_not_envy": true,
+      "tone_teasing_warm": false,
+      "tone_teasing_mocking": true,
+      "tone_sarcastic_stings": false,
+      "tone_warm_strained_leaks": true,
+      "scene102_zoe_question_unease": true,
+      "scene102_astrid_pads_not_happy": true
+    }
+  },
+  {
+    "label": "gliclass-modern-base-v3.0 (151M zero-shot)",
+    "load_s": 15.79,
+    "score": "12/14",
+    "passed": 12,
+    "total": 14,
+    "median_ms": 97.3,
+    "p95_ms": 147.9,
+    "failed_checks": [
+      "tone_teasing_warm",
+      "tone_warm_strained_leaks"
+    ],
+    "checks": {
+      "scen_d_partner_hurt_and_shame": true,
+      "scen_d_stranger_anger": true,
+      "scen_d_inward_shame": true,
+      "miki_fear_spike": true,
+      "miki_reassurance_calms": true,
+      "ws2a_shame_and_guilt_both": true,
+      "goblin_envy_not_jealousy": true,
+      "goblin_jealousy_not_envy": true,
+      "tone_teasing_warm": false,
+      "tone_teasing_mocking": true,
+      "tone_sarcastic_stings": true,
+      "tone_warm_strained_leaks": false,
+      "scene102_zoe_question_unease": true,
+      "scene102_astrid_pads_not_happy": true
+    }
+  }
+]

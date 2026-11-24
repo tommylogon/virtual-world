@@ -289,9 +289,100 @@ class SpeechBroadcaster:
                 hearing_entry["text"] = masked_text
                 hearing_entry["comprehension_masked"] = True
 
+        # Subjective listener-side tone perception (task-994, task-996): filter speaker
+        # intended delivery through speaker body strain, listener mood, closeness,
+        # Insight, and spatial proximity (same_area, distance, intra-room hops).
+        intended_tone = event.get("tone")
+        if intended_tone and getattr(player_obj, "name", None) != speaker_name:
+            from engine.speech_tone import perceive_speech_tone
+
+            speaker_obj = self.player_manager.get_player(speaker_name) if speaker_name else None
+            same_area = distance is None
+            prox_hops = None
+            prox_checked = False
+            if same_area and self.graph and speaker_name and hasattr(self.player_manager, "get_player_node_id"):
+                try:
+                    from engine.character_spatial import proximity_hops
+                    from graph import EDGE_AT, EDGE_BEHIND, EDGE_BESIDE, EDGE_ON, EDGE_UNDER
+
+                    listener_nid = self.player_manager.get_player_node_id(getattr(player_obj, "name", None))
+                    speaker_nid = self.player_manager.get_player_node_id(speaker_name)
+                    if listener_nid and speaker_nid:
+                        spatial_edges = (EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT)
+                        has_anchor = any(
+                            e.type in spatial_edges
+                            for e in (
+                                list(self.graph.get_edges_for_source(listener_nid))
+                                + list(self.graph.get_edges_for_source(speaker_nid))
+                            )
+                        )
+                        if has_anchor:
+                            prox_checked = True
+                            prox_hops = proximity_hops(self.graph, listener_nid, speaker_nid)
+                except Exception:
+                    prox_hops = None
+                    prox_checked = False
+
+            tone_res = perceive_speech_tone(
+                intended_tone,
+                speaker=speaker_obj,
+                listener=player_obj,
+                speaker_name=speaker_name,
+                same_area=same_area,
+                distance=distance,
+                proximity_hops=prox_hops,
+                proximity_checked=prox_checked,
+            )
+            hearing_entry["intended_tone"] = tone_res["intended_tone"]
+            hearing_entry["perceived_tone"] = tone_res["perceived_tone"]
+            if tone_res["strained_leak"]:
+                hearing_entry["tone_strained"] = True
+            if tone_res["misread_reason"]:
+                hearing_entry["tone_misread_reason"] = tone_res["misread_reason"]
+            if tone_res["adverb"]:
+                hearing_entry["tone_adverb"] = tone_res["adverb"]
+
         player_obj.recent_hearing.append(hearing_entry)
         if len(player_obj.recent_hearing) > 20:
             player_obj.recent_hearing.pop(0)
+
+        # Live Coupled Emotional Matrix + optional CPU GoEmotions appraisal (task-1001).
+        # Runs for non-speaker listeners when the CPU classifier is enabled or the
+        # listener already has an active emotion matrix state.
+        if (
+            getattr(player_obj, "name", None) != speaker_name
+            and not hearing_entry.get("comprehension_masked")
+            and str(hearing_entry.get("text", "") or "").strip()
+        ):
+            try:
+                from engine.emotion_classifier import appraise_event, get_configured_backend
+                from engine.emotion_matrix.schema import EmotionEvent
+                from engine.relationships import get_relationship
+
+                backend = get_configured_backend()
+                if backend is not None or getattr(player_obj, "_emotion_matrix", None) is not None:
+                    rel = get_relationship(player_obj, speaker_name) if speaker_name else None
+                    mems = list(getattr(player_obj, "memories", []) or [])[-3:]
+                    ev = EmotionEvent(
+                        kind="speech",
+                        summary=f"{speaker_name or 'Someone'} spoke.",
+                        source_name=speaker_name,
+                        speech_text=str(hearing_entry.get("text", "")),
+                        speech_tone=intended_tone,
+                        perceived_tone=hearing_entry.get("perceived_tone") or intended_tone,
+                        tone_strained=bool(hearing_entry.get("tone_strained", False)),
+                        tick=int(hearing_entry.get("tick", 0) or 0),
+                    )
+                    appraise_event(
+                        player_obj,
+                        ev,
+                        recalled_memories=mems,
+                        rel_profile=rel,
+                        force_backend=backend,
+                    )
+            except Exception:
+                pass
+
         return hearing_entry
 
     def broadcast_speech(
@@ -302,6 +393,7 @@ class SpeechBroadcaster:
         speech_level: str = "normal",
         whisper_target: Optional[str] = None,
         lang: Optional[str] = None,
+        tone: Optional[str] = None,
     ):
         """Broadcast a line of speech to everyone in hearing range.
 
@@ -341,6 +433,23 @@ class SpeechBroadcaster:
         if not target_area:
             return
 
+        # Involuntary flustered volume slip (task-1001): when a speaker with an
+        # active emotion matrix tries to whisper while heavily flustered/aroused,
+        # their voice can accidentally come out at normal room volume.
+        volume_slipped = False
+        if speech_level == "whisper" and speaker is not None and getattr(speaker, "_emotion_matrix", None) is not None:
+            try:
+                from engine.emotion_matrix import compute_involuntary_volume_slip
+                st = speaker._emotion_matrix
+                slip = compute_involuntary_volume_slip(
+                    st.autonomic, st.families, intended_volume=speech_level, player=speaker
+                )
+                if slip.get("slipped") and slip.get("effective_volume"):
+                    speech_level = slip["effective_volume"]
+                    volume_slipped = True
+            except Exception:
+                pass
+
         resolved_target = None
         if speech_level == "whisper" and whisper_target:
             resolved_target = self._resolve_whisper_target(
@@ -356,8 +465,10 @@ class SpeechBroadcaster:
         )
 
         from engine.language_barrier import resolve_speaker_language
+        from engine.speech_tone import normalize_speech_tone
 
         utterance_lang = resolve_speaker_language(speaker, explicit_lang=lang, graph=self.graph)
+        normalized_tone = normalize_speech_tone(tone)
         is_ghost_speech = speaker and speaker.state == "dead"
 
         event = {
@@ -369,8 +480,12 @@ class SpeechBroadcaster:
             "ghost_speech": is_ghost_speech,
             "speech_level": speech_level,
         }
+        if volume_slipped:
+            event["volume_slipped"] = True
         if utterance_lang:
             event["lang"] = utterance_lang
+        if normalized_tone:
+            event["tone"] = normalized_tone
         if is_directed_whisper:
             event["whisper_target"] = resolved_target
             event["whisper_audience"] = sorted(whisper_audience - {resolved_target})
@@ -500,12 +615,17 @@ class SpeechBroadcaster:
             self.logging_events.add_log_entry(
                 f'[{speaker_name}] says: "{speech_text}"'
             )
+            turn_extra = {}
+            if utterance_lang:
+                turn_extra["lang"] = utterance_lang
+            if normalized_tone:
+                turn_extra["tone"] = normalized_tone
             self.logging_events.record_turn_event(
                 speaker_name,
                 "speak",
                 f'said: "{speech_text}"',
                 area_name=target_area,
-                extra={"lang": utterance_lang} if utterance_lang else None,
+                extra=turn_extra or None,
             )
 
         # Long-distance comms relay (task-299): radios, walkie-talkies, phones.

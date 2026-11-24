@@ -148,15 +148,19 @@ interface CharacterStateState {
      * @returns {string} Emotion description string or empty string
      */
     function buildEmotionContext(player: CharacterStatePlayer) {
-        // Task-96: multi-dimensional affect map - the backend renders the
-        // first-person band phrases (single source of truth in
-        // engine/emotion.py) and ships them as `emotions_description`.
+        // Task-96 + task-1001: multi-dimensional affect map + felt autonomic body
+        // cues (single source of truth in engine/emotion.py & engine/emotion_matrix).
+        const parts: string[] = [];
         if (typeof player?.emotions_description === 'string' && player.emotions_description) {
-            return `\nMood: ${player.emotions_description}`;
+            parts.push(`\nMood: ${player.emotions_description}`);
+        } else if (player?.emotion?.description && player.emotion.current !== 'neutral' && (player.emotion.intensity || 0) >= 0.1) {
+            parts.push(`\n${player.emotion.description}`);
         }
-        // Legacy single-slot fallback for old saves.
-        if (!player?.emotion?.description || player.emotion.current === 'neutral' || (player.emotion.intensity || 0) < 0.1) return '';
-        return `\n${player.emotion.description}`;
+        const somatic = (player as any)?.emotion_matrix?.somatic_description;
+        if (typeof somatic === 'string' && somatic.trim()) {
+            parts.push(`\nBody: ${somatic.trim()}`);
+        }
+        return parts.join('');
     }
 
     /**

@@ -83,11 +83,11 @@ def choices(player):
     """The actions available this turn, grouped by tier.
 
     Reads the same tier table the engine enforces against (`engine.action_tiers`)
-    and the character's remaining budget (`Player.turn_slots`), so a spent major
+    and the character's remaining budget (`Player.action_points`), so a spent major
     slot drops the major actions from the set. `free` is always offered - the
     always-available commands are the documented override.
     """
-    slots = dict(getattr(player, "turn_slots", {}) or {}) or dict(action_tiers.DEFAULT_BUDGET)
+    slots = dict(getattr(player, "action_points", {}) or {}) or dict(action_tiers.DEFAULT_BUDGET)
     by_tier = {}
     for action in action_tiers.all_actions():
         tier = action_tiers.tier_of(action)

@@ -9,7 +9,7 @@ Resolution: `tier_of()` honours a per-item override
 (`item.properties.action_costs[action].tier`), then the intrinsic-ability default
 of `minor`, then the table. Budget and enforcement: `DEFAULT_BUDGET`,
 `reset_slots`, `spend_slot` (a higher slot pays for a lower action); the runtime
-budget is `Player.turn_slots`, charged by `routes/action_handlers.py:_slot_gate`.
+budget is `Player.action_points`, charged by `routes/action_handlers.py:_slot_gate`.
 The browser reads a generated mirror (`static/js/agent/action-tiers.ts`, emitted
 by `tools/action_tiers_index.py`) so the turn prompt can hide what the budget
 cannot pay for.

@@ -879,6 +879,52 @@ class ApiClientImpl {
     static async appendScenario(data) {
         return this.post('/api/scenario/append', data);
     }
+    // === Python Agent Endpoints (task-1002 / task-1003) ===
+    static async getAgentPrompt(payload) {
+        return this.post('/api/agent/prompt', payload);
+    }
+    static async stepAgentPython(payload) {
+        return this.post('/api/agent/step', payload);
+    }
+    static async streamAgentPython(payload, onEvent) {
+        const resp = await fetch('/api/agent/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        if (!resp.ok || !resp.body) {
+            throw new Error(`Agent stream failed (${resp.status})`);
+        }
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let finalResult = null;
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done)
+                break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+                if (!line.startsWith('data:'))
+                    continue;
+                const raw = line.slice(5).trim();
+                if (!raw)
+                    continue;
+                try {
+                    const evt = JSON.parse(raw);
+                    if (onEvent)
+                        onEvent(evt);
+                    if (evt.type === 'done') {
+                        finalResult = { raw: String(evt.raw || ''), parsed: evt.parsed || null };
+                    }
+                }
+                catch { /* ignore partial chunk */ }
+            }
+        }
+        return finalResult;
+    }
 }
 // Singleton - published under both names consumers use. See the note on the
 // class declaration for why these are assignments rather than top-level consts.

@@ -138,7 +138,13 @@ class StreamFilters {
         if (!select)
             return;
         const current = select.value;
-        const sorted = [...this._bus._knownActors].sort();
+        const NON_ACTORS = new Set(['think-decide', 'result-reaction', 'intermediator', 'plan', 'plan-repair']);
+        const sorted = [...this._bus._knownActors]
+            .filter(a => a && !NON_ACTORS.has(a.toLowerCase()))
+            .sort();
+        // Clear any static placeholder <option> on first Lit render so "All actors" is never duplicated.
+        if (!select._$litPart$)
+            select.innerHTML = '';
         window.Lit.render(window.Lit.html `
             <option value="">All actors</option>
             ${sorted.map(a => window.Lit.html `<option value=${a} ?selected=${a === current}>${a}</option>`)}`, select);

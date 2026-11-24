@@ -24,7 +24,7 @@
  * loop (decide → act → react) without N modal round-trips.
  *
  * Say / emote / memory are EXPRESSION, unbudgeted (task-352): they never cost a
- * pip. Only the action charges `turn_slots`; `wait` and the free utility actionNames
+ * pip. Only the action charges `action_points`; `wait` and the free utility actionNames
  * cost a free slot. The old `dash burst` phase and its narration regex are gone.
  *
  * Contract with agent-engine.js:
@@ -301,6 +301,8 @@ const HumanTurnComposerModule = (() => {
         if (speech) {
             p.speech = speech;
             p.volume = parsed.volume || _volume;
+            const toneVal = ((q('#htc-tone') as HTMLSelectElement | null)?.value || '').trim();
+            if (toneVal) p.tone = toneVal;
             if (_pendingSpeechTarget && !p.target) p.target = _pendingSpeechTarget;
         }
         if (emote) p.emote = emote;
@@ -310,12 +312,13 @@ const HumanTurnComposerModule = (() => {
 
     /** Same normalization an agent reply goes through. */
     function normalizeReply(p: Record<string, any> | null | undefined): NormalizedReply {
-        if (!p || typeof p !== 'object') return { action: '', speech: null, speechVolume: 'say', emote: null, memory: null, target: null };
-        const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
+        if (!p || typeof p !== 'object') return { action: '', speech: null, speechVolume: 'say', speechTone: null, emote: null, memory: null, target: null };
+        const { speech, volume, tone } = ActionNormalizer.extractSpeechVolume(p);
         return {
             action: ActionNormalizer.normalizeStructuredAction(p),
             speech,
             speechVolume: volume,
+            speechTone: tone || null,
             target: (typeof p.target === 'string' && p.target.trim()) ? p.target.trim() : null,
             emote: typeof p.emote === 'string' ? p.emote : null,
             memory: ResponseParser.extractMemory(p.memory),
@@ -326,9 +329,9 @@ const HumanTurnComposerModule = (() => {
 
     function turnSlots(): Record<string, number> | null {
         const player = _charName ? worldState.runtimePlayer(_charName) : null;
-        const slots = player?.turn_slots;
+        const slots = player?.action_points;
         if (!slots || typeof slots !== 'object') return null;
-        // bug-544: `Player.turn_slots` starts as `{}` ("not started yet" -
+        // bug-544: `Player.action_points` starts as `{}` ("not started yet" -
         // player.py), and the engine's `_slot_gate` lazily fills an empty budget.
         // So an EMPTY object means "no budget published", NOT "all slots spent".
         // Reading `{}` as spent refused the first action of a fresh turn.
@@ -807,6 +810,17 @@ const HumanTurnComposerModule = (() => {
               <span class="lbl">🗨 say</span>
               <span id="htc-say-target" class="htc-say-target" style="display:none"></span>
               <input id="htc-speech" type="text" placeholder="what they say - free, stacks with the action" autocomplete="off">
+              <select id="htc-tone" title="Optional delivery tone (leave plain for neutral speech)">
+                <option value="">tone: plain</option>
+                <option value="warm">warm</option>
+                <option value="teasing">teasing</option>
+                <option value="sarcastic">sarcastic</option>
+                <option value="cold">cold</option>
+                <option value="hostile">hostile</option>
+                <option value="serious">serious</option>
+                <option value="apologetic">apologetic</option>
+                <option value="guarded">guarded</option>
+              </select>
               <div class="htc-volseg" id="htc-volseg"></div>
             </div>
             <div class="htc-crow">
@@ -815,9 +829,7 @@ const HumanTurnComposerModule = (() => {
               <button type="button" id="htc-emote-toggle" class="htc-chiptoggle" title="emote quick-pick">🎭</button>
             </div>
             <div id="htc-emote-palette" class="htc-emote-palette"></div>
-            <div class="htc-crow">
-              <span class="lbl">🧠 memory</span>
-              <input id="htc-memory" type="text" placeholder="optional - what you'll personally remember from this" autocomplete="off">
+            <div class="htc-crow" style="justify-content:flex-end;">
               <button type="button" id="htc-reroll-btn" class="htc-btn-primary" style="display:none;background:#6a4fb8;margin-right:6px;" title="Reroll this character's draft turn with the AI">🎲 Reroll</button>
               <button type="button" id="htc-reroll" style="display:none"></button>
               <button type="button" id="htc-act" class="htc-btn-primary">Act</button>
@@ -990,7 +1002,7 @@ const HumanTurnComposerModule = (() => {
         }
         const resolve = _activeResolve;
         _activeResolve = null;
-        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory', 'htc-thought', 'htc-emotion']) {
+        for (const id of ['htc-do', 'htc-speech', 'htc-tone', 'htc-emote', 'htc-memory', 'htc-thought', 'htc-emotion']) {
             const input = q('#' + id) as HTMLInputElement | HTMLSelectElement | null;
             if (input) input.value = '';
         }
@@ -1032,6 +1044,7 @@ const HumanTurnComposerModule = (() => {
             reply = {
                 speech: stepResult.speech,
                 volume: stepResult.speechVolume,
+                tone: stepResult.speechTone || null,
                 emote: stepResult.emote,
                 memory: stepResult.memory,
                 target: stepResult.target,
@@ -1068,7 +1081,7 @@ const HumanTurnComposerModule = (() => {
     }
 
     function resetRows() {
-        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory', 'htc-thought', 'htc-emotion']) {
+        for (const id of ['htc-do', 'htc-speech', 'htc-tone', 'htc-emote', 'htc-memory', 'htc-thought', 'htc-emotion']) {
             const input = q('#' + id) as HTMLInputElement | HTMLSelectElement | null;
             if (input) input.value = '';
         }
@@ -1093,6 +1106,10 @@ const HumanTurnComposerModule = (() => {
         if (prefill.speechVolume) {
             _volume = prefill.speechVolume;
             syncVolumeButtons();
+        }
+        if (prefill.speechTone !== undefined) {
+            const toneEl = q('#htc-tone') as HTMLSelectElement | null;
+            if (toneEl) toneEl.value = prefill.speechTone || '';
         }
         setSpeechTarget(prefill.target || null);
         if (prefill.emote !== undefined) {
@@ -1381,6 +1398,7 @@ interface TurnPayload {
     relation?: string;
     speech?: string;
     volume?: string;
+    tone?: string;
     emote?: string;
     memory?: string;
 }
@@ -1389,6 +1407,7 @@ interface TurnPrefill {
     action?: string;
     speech?: string | null;
     speechVolume?: string;
+    speechTone?: string | null;
     emote?: string | null;
     memory?: unknown;
     emotion?: string | null;
@@ -1400,6 +1419,7 @@ interface NormalizedReply {
     action: string;
     speech: string | null;
     speechVolume: string;
+    speechTone?: string | null;
     emote: string | null;
     memory: unknown;
     target: string | null;
@@ -1412,7 +1432,7 @@ type TurnResult = { step: NormalizedReply } | { endTurn: true } | { reroll: true
 
 /** What `react()` resolves with. */
 type ReactResult =
-    | { speech: string | null; volume: string; emote: string | null; memory: unknown; target: string | null; inner?: string | null; emotion?: string | null }
+    | { speech: string | null; volume: string; tone?: string | null; emote: string | null; memory: unknown; target: string | null; inner?: string | null; emotion?: string | null }
     | { endTurn: true };
 
 interface RequestOptions {

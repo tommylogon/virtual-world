@@ -180,6 +180,9 @@ def create_app(config=None):
         '/api/profiles',
         '/api/action/validate',
         '/api/autocomplete',
+        '/api/stream',
+        '/api/agent/prompt',
+        '/api/agent/generate',
     )
 
     @app.before_request
@@ -407,7 +410,13 @@ def register_routes(app):
     from routes.commons import register_commons_routes
     from routes.benchmark import register_benchmark_routes
     from routes.profiles import register_profiles_routes
+    from routes.agent_ops import agent_ops_bp
+    from routes.stream_ops import stream_ops_bp
+    from routes.timeline_ops import timeline_ops_bp
 
+    app.register_blueprint(agent_ops_bp)
+    app.register_blueprint(stream_ops_bp)
+    app.register_blueprint(timeline_ops_bp)
     register_benchmark_routes(app)
     register_profiles_routes(app)
     register_commons_routes(app)

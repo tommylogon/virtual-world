@@ -45,7 +45,7 @@ def test_to_node_properties_extracts_authored_definition():
     assert "vitals" not in props
     assert "memories" not in props
     assert "lived_log" not in props
-    assert "turn_slots" not in props
+    assert "action_points" not in props
 
 
 def test_apply_node_properties_hydrates_player_definition():

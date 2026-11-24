@@ -810,11 +810,40 @@ const InspectorMindView = (() => {
         const cause = lastFeeling
             ? `<div style="font-size:9.5px;color:var(--text-muted);margin-top:5px;line-height:1.45;">last felt in a memory: <span style="color:var(--text-dim);">"${esc(String(lastFeeling.text || '').slice(0, 110))}"</span> <span style="font-family:monospace;">t${esc(lastFeeling.tick ?? 0)}</span></div>`
             : '';
+        // task-1001: 8-channel autonomic body + per-target live feelings when present.
+        const em = p.emotion_matrix;
+        let matrixHtml = '';
+        if (em && typeof em === 'object') {
+            const somatic = typeof em.somatic_description === 'string' && em.somatic_description.trim()
+                ? `<div style="font-size:9.5px;color:var(--text-muted);margin-top:5px;line-height:1.45;"><b>Body:</b> ${esc(em.somatic_description)}</div>`
+                : '';
+            const autoEntries = em.autonomic && typeof em.autonomic === 'object'
+                ? Object.entries(em.autonomic)
+                : [];
+            const autoBars = autoEntries.length
+                ? `<div style="margin-top:6px;font-size:9.5px;color:var(--text-muted);"><b>Autonomic body:</b><div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:3px;">${autoEntries.map(([ch, v]) => {
+                    const n = Math.round(Number(v) || 0);
+                    const active = Math.abs(n) >= 5;
+                    return `<span style="color:${active ? 'var(--accent,#79c0ff)' : 'var(--text-dim)'};">${esc(ch.replace(/_/g, ' '))}: ${n}</span>`;
+                }).join('')}</div></div>`
+                : '';
+            const tfEntries = em.target_families && typeof em.target_families === 'object'
+                ? Object.entries(em.target_families).filter(([, f]) => f && typeof f === 'object' && Object.keys(f).length > 0)
+                : [];
+            const tfHtml = tfEntries.length
+                ? `<div style="margin-top:6px;font-size:9.5px;color:var(--text-muted);"><b>Toward others:</b> ${tfEntries.map(([tgt, f]) => {
+                    const top = Object.entries(f).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 2);
+                    return `${esc(tgt)} (${top.map(([k, v]) => `${esc(k)} ${Math.round(Number(v))}`).join(', ')})`;
+                }).join(' · ')}</div>`
+                : '';
+            matrixHtml = somatic + autoBars + tfHtml;
+        }
         return `<div style="margin-top:14px;">
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Feeling - their mood</div>
             <b style="font-size:11.5px;">${head}</b>
             ${desc}
             ${bars}
+            ${matrixHtml}
             ${cause}
         </div>`;
     }
@@ -1907,7 +1936,7 @@ const InspectorMindView = (() => {
         const KB = window.KnownBySection;
         const kbBox = _container.querySelector(`#mind-knowledge-chips-${_safeId()}`);
         if (KB && kbBox && _state)
-            kbBox.appendChild(KB.buildKnownChips(_state.charName));
+            kbBox.replaceChildren(KB.buildKnownChips(_state.charName));
         // task-729: the relationship editor reuses agent-view's binder (same
         // selectors, same store); the emotion control writes the same
         // `{ emotion: { current, intensity } }` payload as the header row.

@@ -70,7 +70,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         slots: (p) => {
             // task-352: show the remaining action budget so the agent plans
             // against it instead of discovering it by refusal.
-            const s = (p as { turn_slots?: Record<string, number> }).turn_slots;
+            const s = (p as { action_points?: Record<string, number> }).action_points;
             if (!s || !Object.keys(s).length) return '';
             return `\n=== ACTIONS LEFT THIS TURN ===\nmajor ${s.major ?? 0} · minor ${s.minor ?? 0} · free ${s.free ?? 0}`;
         },

@@ -2078,8 +2078,8 @@ class VirtualWorld:
     def get_turn_events_for_area(self, area_name, exclude_actor=None):
         return self.game_logger.get_turn_events_for_area(area_name, exclude_actor)
 
-    def broadcast_speech(self, speaker_name, speech_text, area_name=None, speech_level="normal", whisper_target=None):
-        self.narration.broadcast_speech(speaker_name, speech_text, area_name, speech_level, whisper_target)
+    def broadcast_speech(self, speaker_name, speech_text, area_name=None, speech_level="normal", whisper_target=None, lang=None, tone=None):
+        self.narration.broadcast_speech(speaker_name, speech_text, area_name, speech_level, whisper_target, lang=lang, tone=tone)
         # Fire on_speech triggers on the speaking area node (password doors,
         # magic words, NPC reactions). The speech + speaker are exposed in the
         # trigger context so speech_matches conditions / message templates can

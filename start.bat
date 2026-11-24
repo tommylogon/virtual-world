@@ -8,6 +8,7 @@ if errorlevel 1 (
   call npm run build:ts
   if errorlevel 1 echo WARNING: TypeScript build failed - static\js may be stale
 )
-echo Starting Virtual World on http://127.0.0.1:4444
+echo Starting Virtual World on http://127.0.0.1:4444 (debug auto-reload ON)
+set VW_DEBUG=1
 python app.py
 pause

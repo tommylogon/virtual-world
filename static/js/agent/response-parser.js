@@ -168,7 +168,7 @@ window.ResponseParser = (() => {
     /** Parse a reaction/decision response  -  returns full structured object with parseError on failure. */
     function parseReaction(r) {
         if (!r)
-            return { inner: '', speech: null, speechVolume: 'say', target: null, action: '', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
+            return { inner: '', speech: null, speechVolume: 'say', speechTone: null, target: null, action: '', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const repair = window.repairJSON;
             const c = repair(normalizeRawResponse(r));
@@ -178,12 +178,13 @@ window.ResponseParser = (() => {
             if (window.__repairStats)
                 window.__repairStats.repaired = false;
             const p = JSON.parse(c);
-            const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
+            const { speech, volume, tone } = ActionNormalizer.extractSpeechVolume(p);
             const schemaError = detectActionSchemaError(p);
             return {
                 inner: cleanProseField(p.inner_monologue) || '',
                 speech: cleanProseField(speech),
                 speechVolume: volume,
+                speechTone: tone || null,
                 target: extractSpeechTarget(p),
                 action: ActionNormalizer.normalizeStructuredAction(p),
                 emote: cleanProseField(p.emote),
@@ -196,7 +197,7 @@ window.ResponseParser = (() => {
         }
         catch (e) {
             return {
-                inner: '', speech: null, speechVolume: 'say', target: null, action: '', emote: null, memory: null, emotion: null, learnedNames: [],
+                inner: '', speech: null, speechVolume: 'say', speechTone: null, target: null, action: '', emote: null, memory: null, emotion: null, learnedNames: [],
                 parseError: `Failed to parse LLM response as JSON: ${e instanceof Error ? e.message : String(e)}`
             };
         }
@@ -204,16 +205,17 @@ window.ResponseParser = (() => {
     /** Parse a result-reaction response  -  same shape as parseReaction, no action field. */
     function parseResultReaction(r) {
         if (!r)
-            return { inner: '', speech: null, speechVolume: 'say', target: null, emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
+            return { inner: '', speech: null, speechVolume: 'say', speechTone: null, target: null, emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const repair = window.repairJSON;
             const c = repair(normalizeRawResponse(r));
             const p = JSON.parse(c);
-            const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
+            const { speech, volume, tone } = ActionNormalizer.extractSpeechVolume(p);
             return {
                 inner: cleanProseField(p.inner_monologue) || '',
                 speech: cleanProseField(speech),
                 speechVolume: volume,
+                speechTone: tone || null,
                 target: extractSpeechTarget(p),
                 emote: cleanProseField(p.emote),
                 memory: extractMemory(p.memory),
@@ -224,7 +226,7 @@ window.ResponseParser = (() => {
         }
         catch (e) {
             return {
-                inner: '', speech: null, speechVolume: 'say', target: null, emote: null, memory: null, emotion: null, learnedNames: [],
+                inner: '', speech: null, speechVolume: 'say', speechTone: null, target: null, emote: null, memory: null, emotion: null, learnedNames: [],
                 parseError: `Failed to parse LLM response as JSON: ${e instanceof Error ? e.message : String(e)}`
             };
         }

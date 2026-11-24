@@ -9,7 +9,7 @@
   "area": "testing",
   "tags": [],
   "created": "2026-11-09",
-  "updated": "2026-11-19",
+  "updated": "2026-11-20",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -21,7 +21,8 @@
       "task-845",
       "task-894",
       "task-906",
-      "task-907"
+      "task-907",
+      "task-991"
     ],
     "parent": null,
     "children": [],

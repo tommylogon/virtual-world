@@ -28,63 +28,8 @@ const StructuredFormats = (() => {
     'use strict';
     const NULLABLE_STR = { type: ['string', 'null'] };
     /** emotion.data — closed set of relationship deltas (engine/emotion.py). */
-    const EMOTION_DATA = {
-        type: ['object', 'null'],
-        additionalProperties: false,
-        properties: {
-            fear: { type: ['number', 'null'] },
-            affection: { type: ['number', 'null'] },
-            disgust: { type: ['number', 'null'] },
-            anger: { type: ['number', 'null'] },
-            trust: { type: ['number', 'null'] },
-            envy: { type: ['number', 'null'] },
-            familiarity: { type: ['number', 'null'] },
-            respect: { type: ['number', 'null'] },
-            closeness: { type: ['number', 'null'] }
-        },
-        required: ['fear', 'affection', 'disgust', 'anger', 'trust', 'envy', 'familiarity', 'respect', 'closeness']
-    };
-    const EMOTION_ITEM = {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-            label: NULLABLE_STR,
-            intensity: { type: ['number', 'null'] },
-            toward: NULLABLE_STR
-        },
-        required: ['label', 'intensity', 'toward']
-    };
-    const EMOTION = {
-        anyOf: [
-            { type: 'null' },
-            EMOTION_ITEM,
-            {
-                type: 'array',
-                items: EMOTION_ITEM
-            }
-        ]
-    };
-    const MEMORY = {
-        type: ['object', 'null'],
-        additionalProperties: false,
-        properties: {
-            text: NULLABLE_STR,
-            importance: { type: ['integer', 'null'] },
-            tags: { type: ['array', 'null'], items: { type: 'string' } },
-            emotions: {
-                anyOf: [
-                    { type: 'null' },
-                    {
-                        type: 'object',
-                        additionalProperties: false,
-                        properties: { who: NULLABLE_STR, why: NULLABLE_STR, data: EMOTION_DATA },
-                        required: ['who', 'why', 'data']
-                    }
-                ]
-            }
-        },
-        required: ['text', 'importance', 'tags', 'emotions']
-    };
+    // Legacy LLM-authored MEMORY / EMOTION schemas removed (task-949, task-1001);
+    // emotions are now driven by engine/emotion_matrix + CPU classifier.
     /** think-decide / combined / auto-retry / chain-follow-up — full action turn. */
     const agentAction = {
         name: 'agent_action',
@@ -103,12 +48,11 @@ const StructuredFormats = (() => {
                 text: NULLABLE_STR,
                 speech: NULLABLE_STR,
                 volume: NULLABLE_STR,
+                tone: NULLABLE_STR,
                 emote: NULLABLE_STR,
-                memory: MEMORY,
-                emotion: EMOTION,
                 learned_names: { type: ['array', 'null'], items: { type: 'string' } }
             },
-            required: ['inner_monologue', 'action', 'item', 'target', 'text', 'speech', 'volume', 'emote', 'memory', 'emotion', 'learned_names']
+            required: ['inner_monologue', 'action', 'item', 'target', 'text', 'speech', 'volume', 'tone', 'emote', 'learned_names']
         }
     };
     /** result-reaction — react phase, no action fields. */
@@ -122,12 +66,11 @@ const StructuredFormats = (() => {
                 inner_monologue: NULLABLE_STR,
                 speech: NULLABLE_STR,
                 volume: NULLABLE_STR,
+                tone: NULLABLE_STR,
                 emote: NULLABLE_STR,
-                memory: MEMORY,
-                emotion: EMOTION,
                 learned_names: { type: ['array', 'null'], items: { type: 'string' } }
             },
-            required: ['inner_monologue', 'speech', 'volume', 'emote', 'memory', 'emotion', 'learned_names']
+            required: ['inner_monologue', 'speech', 'volume', 'tone', 'emote', 'learned_names']
         }
     };
     /** Typed plan step (agent/plan-manager + agent/plan-grounding). */

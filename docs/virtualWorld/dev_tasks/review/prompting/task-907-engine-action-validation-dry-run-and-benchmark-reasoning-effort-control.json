@@ -9,7 +9,7 @@
   "area": "prompting",
   "tags": [],
   "created": "2026-10-26",
-  "updated": "2026-11-18",
+  "updated": "2026-11-20",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -18,7 +18,8 @@
     "blocked_by": [],
     "depends_on": [],
     "related": [
-      "task-989"
+      "task-989",
+      "task-993"
     ],
     "parent": null,
     "children": [],

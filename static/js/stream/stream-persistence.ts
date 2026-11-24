@@ -70,6 +70,31 @@ class StreamPersistence {
             return;
         }
         this._storedWorldKey = worldKey;
+        const wid = worldKey || 'default';
+        const lastRec = records.length ? records[records.length - 1] : null;
+        const sig = `${wid}|${records.length}|${(lastRec as any)?.seq ?? ''}|${(lastRec as any)?.text ?? ''}`;
+        if ((this as any)._lastPersistSig === sig) return;
+        (this as any)._lastPersistSig = sig;
+        try {
+            const resp = await fetch('/api/stream/batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    world_id: wid,
+                    replace: true,
+                    events: records.map((r: any) => ({
+                        kind: String(r?.type || 'system'),
+                        actor: String(r?.actor || 'World'),
+                        tick: Number(r?.tick || 0),
+                        area: r?.area || null,
+                        phase: r?.phase || null,
+                        outcome: r?.outcome || null,
+                        payload: r || {},
+                    })),
+                }),
+            });
+            if (resp.ok) return;
+        } catch { /* fallback to IndexedDB below */ }
         await storage.saveEventLog(records);
         await storage.setConfig('event_log_version', '2');
         if (worldKey) await storage.setConfig('event_log_world', worldKey);
@@ -83,28 +108,45 @@ class StreamPersistence {
 
         const worldKey = this._worldKey();
         this._storedWorldKey = worldKey;
-        let savedWorldKey = '';
-        try { savedWorldKey = await storage.getConfig('event_log_world') || ''; } catch (err) { savedWorldKey = ''; }
-        if (savedWorldKey && worldKey && savedWorldKey !== worldKey) {
-            await storage.saveEventLog([]);
-            await storage.setConfig('event_log_version', '2');
-            await storage.setConfig('event_log_world', worldKey);
-            return;
-        }
+        const wid = worldKey || 'default';
+        let entries: any[] = [];
+        let loadedFromBackend = false;
+        try {
+            const resp = await fetch(`/api/stream?world_id=${encodeURIComponent(wid)}&limit=${this.CAP}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (Array.isArray(data?.events) && data.events.length > 0) {
+                    entries = data.events.map((e: any) => (e?.payload && typeof e.payload === 'object' ? e.payload : e));
+                    loadedFromBackend = true;
+                }
+            }
+        } catch { /* fallback to IndexedDB */ }
 
-        const entries: any[] = await storage.loadEventLog();
+        if (!loadedFromBackend) {
+            let savedWorldKey = '';
+            try { savedWorldKey = await storage.getConfig('event_log_world') || ''; } catch (err) { savedWorldKey = ''; }
+            if (savedWorldKey && worldKey && savedWorldKey !== worldKey) {
+                await storage.saveEventLog([]);
+                await storage.setConfig('event_log_version', '2');
+                await storage.setConfig('event_log_world', worldKey);
+                return;
+            }
+            entries = await storage.loadEventLog();
+        }
         if (!entries || entries.length === 0) return;
 
-        let version = '';
-        try { version = await storage.getConfig('event_log_version') || ''; } catch (err) { version = ''; }
+        if (!loadedFromBackend) {
+            let version = '';
+            try { version = await storage.getConfig('event_log_version') || ''; } catch (err) { version = ''; }
 
-        // Clean drop for pre-v2 HTML format logs (task-779)
-        const hasLegacyHtml = entries.some(e => e && e.html !== undefined && e.type === undefined);
-        if (version !== '2' || hasLegacyHtml) {
-            console.info('Dropping pre-v2 HTML-format event log (migrated to structured records)');
-            await storage.saveEventLog([]);
-            await storage.setConfig('event_log_version', '2');
-            return;
+            // Clean drop for pre-v2 HTML format logs (task-779)
+            const hasLegacyHtml = entries.some(e => e && e.html !== undefined && e.type === undefined);
+            if (version !== '2' || hasLegacyHtml) {
+                console.info('Dropping pre-v2 HTML-format event log (migrated to structured records)');
+                await storage.saveEventLog([]);
+                await storage.setConfig('event_log_version', '2');
+                return;
+            }
         }
 
         // Reconstruct stream DOM from structured records

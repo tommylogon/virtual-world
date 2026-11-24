@@ -559,6 +559,7 @@ class AgentLens {
         const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
         const memoryNL = await PromptBuilder.buildMemoryContext(charName, {
             preview: true,
+            skipIntermediator: true,
             area: areaName as string,
             stimulus: this._stimulusText,
             needStimulus: this._needStimulus,

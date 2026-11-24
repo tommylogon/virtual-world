@@ -134,15 +134,15 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
     }
 
     /**
-     * task-352: the player's remaining per-turn budget (`turn_slots`), or
+     * task-352: the player's remaining per-turn budget (`action_points`), or
      * undefined when none is published. Passed to the action-bracket builders so
      * the prompt hides actions the turn can no longer afford (guidance only; the
      * engine's `_slot_gate` enforces).
      */
     function turnSlots(player: unknown): Record<string, number> | undefined {
-        const slots = (player as { turn_slots?: Record<string, number> } | null | undefined)?.turn_slots;
+        const slots = (player as { action_points?: Record<string, number> } | null | undefined)?.action_points;
         if (!slots || typeof slots !== 'object') return undefined;
-        // bug-544: an empty `turn_slots` (`{}`) is the "not started yet" sentinel
+        // bug-544: an empty `action_points` (`{}`) is the "not started yet" sentinel
         // the engine lazily fills  -  NOT "all spent". Returning it would make the
         // prompt hide every action on the first turn of a fresh character.
         return Object.keys(slots).length ? slots : undefined;
@@ -925,8 +925,20 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
                 if (textMatch) {
                     const rawSpoken = textMatch[1];
                     const maskedSpoken = maskSpeechForListener(rawSpoken, evt.lang, player as Record<string, any>, charName);
-                    if (maskedSpoken !== rawSpoken) {
-                        line = `[${anon}] said: "${maskedSpoken}"`;
+                    // Prefer listener's subjective perceived tone from recent_hearing when
+                    // available (handles strained leaks, mood misreads, and missed sarcasm).
+                    const matchingHearing = heardSpeech.find((h: HearingEntry) =>
+                        h.speaker === evt.actor && String(h.text || '').toLowerCase() === rawSpoken.toLowerCase()
+                    );
+                    let toneAdv = '';
+                    if (matchingHearing && ('perceived_tone' in matchingHearing || 'tone_adverb' in matchingHearing)) {
+                        toneAdv = String(matchingHearing.tone_adverb || (matchingHearing.perceived_tone ? (ActionNormalizer?.toneAdverb?.(String(matchingHearing.perceived_tone)) || '') : ''));
+                    } else if (evt.tone) {
+                        toneAdv = ActionNormalizer?.toneAdverb?.(String(evt.tone)) || '';
+                    }
+                    const toneSuffix = toneAdv ? ` (${toneAdv})` : '';
+                    if (maskedSpoken !== rawSpoken || toneSuffix) {
+                        line = `[${anon}] said${toneSuffix}: "${maskedSpoken}"`;
                     }
                     const spoken = maskedSpoken.toLowerCase();
                     seenSpeechKeys.add(`${evt.actor}|${spoken}`);
@@ -962,7 +974,9 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
             // Delivery comes off the entry rather than being assumed: a scream read
             // as "said" taught the model it was conversation.
             const action = PromptBuilder.speechAction(h.speech_level);
-            let line = `[Heard] ${anon}${direction} ${action}: "${heardText}"`;
+            const heardToneAdv = String(h.tone_adverb || (h.perceived_tone ? (ActionNormalizer?.toneAdverb?.(String(h.perceived_tone)) || '') : ''));
+            const heardToneSuffix = heardToneAdv ? ` (${heardToneAdv})` : '';
+            let line = `[Heard] ${anon}${direction} ${action}${heardToneSuffix}: "${heardText}"`;
             line = PromptBuilder.markSpeechLine(line, heardText, charName, player);
             witnessedLines.push(line);
             socialSeeds.push({ speaker: h.speaker, text: heardText });
@@ -1240,6 +1254,7 @@ interface TurnEvent {
     description?: string;
     tick?: number;
     lang?: string;
+    tone?: string;
     [key: string]: unknown;
 }
 
@@ -1250,6 +1265,9 @@ interface HearingEntry {
     text?: string;
     tick?: number;
     lang?: string;
+    tone?: string;
+    perceived_tone?: string | null;
+    tone_adverb?: string;
     comprehension_masked?: boolean;
     [key: string]: unknown;
 }

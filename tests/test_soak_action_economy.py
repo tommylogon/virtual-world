@@ -77,13 +77,13 @@ def test_a_soak_turn_is_bounded_by_the_action_budget():
     budget = at.DEFAULT_BUDGET
     # Two moves were paid (major + minor); the third call is refused and breaks
     # the loop. Without the cap this would be `minutes_in_turn` (15) steps.
-    assert p.turn_slots.get("major", 0) == 0, p.turn_slots
-    assert p.turn_slots.get("minor", 0) == 0, p.turn_slots
+    assert p.action_points.get("major", 0) == 0, p.action_points
+    assert p.action_points.get("minor", 0) == 0, p.action_points
     assert len(steps) < w.time_per_tick_minutes, f"took {len(steps)} steps at T=15"
     assert len(steps) == 3, f"took {len(steps)} steps (two paid, one refused)"
     # The free and activity slots are untouched by a move.
-    assert p.turn_slots.get("free", 0) == budget["free"]
-    assert p.turn_slots.get("activity", 0) == budget["activity"]
+    assert p.action_points.get("free", 0) == budget["free"]
+    assert p.action_points.get("activity", 0) == budget["activity"]
 
 
 def test_a_quiet_soak_character_still_spends_nothing():
@@ -96,4 +96,4 @@ def test_a_quiet_soak_character_still_spends_nothing():
     p = _bg_player(w, Thirst=5, Hunger=5, Energy=95)
     bgs = BackgroundSimulation(w)
     bgs.process_due()
-    assert p.turn_slots == at.DEFAULT_BUDGET, p.turn_slots
+    assert p.action_points == at.DEFAULT_BUDGET, p.action_points

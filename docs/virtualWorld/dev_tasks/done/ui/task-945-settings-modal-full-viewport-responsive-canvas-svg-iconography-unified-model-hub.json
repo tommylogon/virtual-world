@@ -9,7 +9,7 @@
   "area": "ui",
   "tags": [],
   "created": "2026-11-12",
-  "updated": "2026-11-19",
+  "updated": "2026-11-20",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -19,7 +19,8 @@
     "depends_on": [],
     "related": [
       "task-934",
-      "task-941"
+      "task-941",
+      "task-993"
     ],
     "parent": null,
     "children": [],

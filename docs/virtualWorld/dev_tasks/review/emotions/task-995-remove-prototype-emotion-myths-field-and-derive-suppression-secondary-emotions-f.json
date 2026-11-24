@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "task-995",
+  "kind": "task",
+  "number": 995,
+  "title": "Remove prototype emotion_myths field and derive suppression/secondary emotions from existing traits, memories, and witnesses",
+  "status": "review",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "emotions",
+    "prototypes",
+    "persona",
+    "cleanup"
+  ],
+  "created": "2026-11-21",
+  "updated": "2026-11-21",
+  "horizon": "now",
+  "effort": "S",
+  "goal": "Keep VirtualWorld's emotion design grounded strictly in existing persona traits, memories, and room audience with zero duplicate psychology properties.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Remove the prototype-only emotion_myths / EMOTION_MYTHS construct added in prototypes/emotions/ and docs/design/emotion-system-redesign.md, replacing it with suppression, calming-resistance, and secondary-emotion derivation from existing VirtualWorld persona traits, recalled memories, and witnesses.",
+    "why": "emotion_myths does not exist anywhere in VirtualWorld outside the prototype and redesign doc created today. Adding a separate myth-slug property duplicates psychology that already lives in engine/character_appearance.py PERSONALITY_FIELDS (lines 136-152: traits, fears, traumas), Player.memories, and room witnesses.",
+    "how": "1. Remove EMOTION_MYTHS (lines 591-645) and CharacterEmotionState.emotion_myths (line 708) from prototypes/emotions/schema.py and its export from prototypes/emotions/__init__.py (lines 15, 26).\n2. Replace the three state.emotion_myths loops in prototypes/emotions/coupling.py (lines 176-182, 237-250, 448-455) with derivation from existing ViWo fields: Player.traits / persona.personality.traits (e.g. stoic, composed, guarded, proud, stubborn, paranoid), recalled memories (e.g. honesty/abandonment/control wounds), and event.witnesses (public exposure driving suppression and secondary shame/anger).\n3. Remove emotion_myths references from prototypes/emotions/proto_c_dual_mind.py (line 259), prototypes/emotions/viwo_adapter.py (line 220), prototypes/emotions/scenarios.py, prototypes/emotions/lab_app.py (lines 27, 707), and prototypes/emotions/test_prototypes.py.\n4. Update docs/design/emotion-system-redesign.md (lines 168, 300, 393, 485, 554, 591) so no emotion_myths property is proposed for persona.personality.",
+    "verify": "Run pytest prototypes/emotions/test_prototypes.py -v and verify rg/Select-String finds zero occurrences of emotion_myths or EMOTION_MYTHS across prototypes/emotions/ and docs/design/emotion-system-redesign.md.",
+    "acceptance": [
+      {
+        "text": "EMOTION_MYTHS and CharacterEmotionState.emotion_myths are removed from prototypes/emotions/schema.py, __init__.py, coupling.py, proto_c_dual_mind.py, viwo_adapter.py, scenarios.py, lab_app.py, and test_prototypes.py.",
+        "done": true
+      },
+      {
+        "text": "Expression suppression, secondary emotions (e.g. fear -> shame/anger, lying -> guilt), and calming resistance in prototypes/emotions/coupling.py are derived purely from existing persona traits, recalled memories, and event.witnesses.",
+        "done": true
+      },
+      {
+        "text": "docs/design/emotion-system-redesign.md removes all emotion_myths schema proposals and documents trait + memory + audience secondary-emotion dynamics instead.",
+        "done": true
+      },
+      {
+        "text": "pytest prototypes/emotions/test_prototypes.py passes with zero references to emotion_myths anywhere in prototypes/emotions/ or docs/design/emotion-system-redesign.md.",
+        "done": true
+      }
+    ],
+    "files": [
+      "prototypes/emotions/schema.py",
+      "prototypes/emotions/coupling.py",
+      "prototypes/emotions/proto_c_dual_mind.py",
+      "prototypes/emotions/viwo_adapter.py",
+      "prototypes/emotions/scenarios.py",
+      "prototypes/emotions/lab_app.py",
+      "prototypes/emotions/test_prototypes.py",
+      "prototypes/emotions/__init__.py",
+      "docs/design/emotion-system-redesign.md"
+    ],
+    "custom": {
+      "browser_ui": "In prototypes/emotions/lab_app.py (Emotion Lab UI), remove the Emotion Myths selector/preset control (line 707) and drive the interactive controls from character traits, memories, and witnesses instead. Manual check: open the Emotion Lab UI, verify zero emotion-myth controls remain, and confirm stoic/composed traits + witnesses still trigger expression suppression and masked micro-tells."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Characters/Emotion & Affect System.md",
+      "docs/virtualWorld/Characters/Persona.md"
+    ],
+    "docs": [
+      "docs/design/emotion-system-redesign.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "pytest tests/test_speech_tone.py tests/test_sound.py tests/test_spatial_invariants.py prototypes/emotions/test_prototypes.py: 100 passed in 8.93s.",
+    "Select-String across prototypes/emotions/*.py and docs/design/emotion-system-redesign.md returned 0 occurrences of emotion_myths or EMOTION_MYTHS."
+  ],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-21T20:08:31Z"
+    }
+  ]
+}

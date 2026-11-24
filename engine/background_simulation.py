@@ -306,9 +306,9 @@ class BackgroundSimulation:
             # than a player. The budget is a ceiling, not a quota - a character
             # who is fine stops at the first `None`, exactly as before; it is the
             # composition of a *busy* turn that the tiers now bound.
-            slots = getattr(p, "turn_slots", None)
+            slots = getattr(p, "action_points", None)
             if not slots:
-                p.turn_slots = slots = {}
+                p.action_points = slots = {}
                 _at.reset_slots(slots)
             moves = 0
             while remaining > 0:

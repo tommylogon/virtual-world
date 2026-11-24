@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "id": "task-998",
+  "kind": "task",
+  "number": 998,
+  "title": "Build live multi-actor Millwood Scene 102 proof harness in prototypes/emotions/",
+  "status": "review",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "emotions",
+    "prototypes",
+    "testing",
+    "benchmark"
+  ],
+  "created": "2026-11-21",
+  "updated": "2026-11-21",
+  "horizon": "now",
+  "effort": "M",
+  "goal": "Prove (or expose failures in) the emotion, body, and speech-tone architecture under real unscripted multi-actor pressure matching Millwood Scene 102.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "task-995",
+      "task-996",
+      "task-997"
+    ],
+    "related": [
+      "task-994",
+      "bug-596"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Build and run an unscripted 6-character live multi-actor stress-test harness (prototypes/emotions/scene102_proof.py) for Millwood Scene 102 combining VirtualWorld's existing isolated memory/sound/tone pipeline with Track 1 (ProtoDUnifiedEngine) and Track 2 (Actor LLM) to prove whether the system reaches Scene 102's psychological fidelity.",
+    "why": "All prototype evaluations so far (prototypes/emotions/scenarios.py, run_compare.py) tested single characters against scripted events plus one single-turn dialogue call. A hands-off multi-actor closed loop is required to prove empirically whether emotional inertia, per-target feelings, personal tells, flustered volume slips, and distance-filtered tone actually produce realistic teenage/family drama without scripted steering.",
+    "how": "1. Create prototypes/emotions/scene102_proof.py using VirtualWorld's real WorldGraph (Driveway by Gerald connected via open outdoor way to Dessert Tables), SpeechBroadcaster (engine/speech.py), engine/sound.py, distance-aware engine/speech_tone.py, isolated per-character Player.memories + engine/memory_retrieval.py, ProtoDUnifiedEngine (Track 1), and local LM Studio Track 2 Actor (google/gemma-4-e4b with '{' JSON prefill).\n2. Seed Zoe, Sammy, Kayla, Kyrie, Astrid, and Maria strictly from their real millwood index profiles and Nov 26 timeline knowledge barriers (Kayla and Kyrie hold Tuesday/Wednesday memories; Sammy and Zoe do not; Astrid holds zero secrets plus Birch Lane/pharmacy/dolphin memories; Maria holds only the sisterhood cover).\n3. Inject only Zoe's opening cue (\"But we can't, can we?\"), then run 6-8 unscripted live turns where each speaker's actual propagated volume (including any flustered volume slip), distance-filtered perceived_tone per listener, and same-area observer tells feed the next speaker's turn.\n4. Write the complete untruncated transcript and per-turn Track 1 telemetry to prototypes/emotions/scene102_proof_report.json and report explicit pass/fail checks against Scene 102's psychological invariants.",
+    "verify": "Run python prototypes/emotions/scene102_proof.py --model google/gemma-4-e4b against local LM Studio and inspect prototypes/emotions/scene102_proof_report.json for epistemic isolation, multi-target emotion persistence, distance-filtered tone split, and unedited Track 2 dialogue quality.",
+    "acceptance": [
+      {
+        "text": "A reproducible multi-actor harness (prototypes/emotions/scene102_proof.py) runs 6 canon-seeded Millwood Scene 102 characters (Zoe, Sammy, Kayla, Kyrie, Astrid by Gerald; Maria 20 ft away at Dessert Tables) on VirtualWorld's real WorldGraph, SpeechBroadcaster, engine/sound.py, distance-aware engine/speech_tone.py, isolated Player.memories + engine/memory_retrieval.py, ProtoDUnifiedEngine (Track 1), and local LM Studio Track 2 Actor.",
+        "done": true
+      },
+      {
+        "text": "Starting strictly from Zoe's opening line (\"But we can't, can we?\") with hands off the steering wheel for 6-8 turns, Actor A's involuntary tells, flustered volume slip, and distance-filtered perceived tone directly feed Actor B's prompt without scripted emotional outcomes.",
+        "done": true
+      },
+      {
+        "text": "The full untruncated transcript and per-turn Track 1 trace (per-target emotions, autonomic channels, observer tells, volume slips, perceived tones, latencies) are saved to prototypes/emotions/scene102_proof_report.json with zero silent text truncation.",
+        "done": true
+      },
+      {
+        "text": "Automated assertions verify strict epistemic isolation (no leaked Tuesday/Wednesday or trust/notebook secrets into Astrid/Maria/Sammy/Zoe), Astrid's emotional inertia resisting 1-turn softening, and Maria vs close-range tone split on cover lines.",
+        "done": true
+      }
+    ],
+    "files": [
+      "prototypes/emotions/proto_d_unified.py",
+      "prototypes/emotions/viwo_adapter.py",
+      "prototypes/emotions/lab_app.py",
+      "engine/speech.py",
+      "engine/speech_tone.py",
+      "engine/sound.py",
+      "engine/memory_retrieval.py"
+    ],
+    "custom": {
+      "browser_ui": "Optional Lab view: add a Scene 102 Proof Replay tab or loader in prototypes/emotions/lab_app.py (or view prototypes/emotions/scene102_proof_report.json) showing the unedited multi-actor transcript alongside each character's per-turn Track 1 state, per-target emotions, and observer tells. Manual check: open the saved report and verify every character line is untruncated and every listener saw only what crossed the yard to them."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Characters/Emotion & Affect System.md",
+      "docs/virtualWorld/Characters/Interiority & Subtext.md"
+    ],
+    "docs": [
+      "docs/design/emotion-system-redesign.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "Live 6-turn Millwood Scene 102 proof run completed on google/gemma-4-e4b + text-embedding-qwen3-embedding-0.6b and saved untruncated to prototypes/emotions/scene102_proof_report.json.",
+    "Verified live unscripted split perception (Astrid teasing -> teasing on Sammy/Kyrie, mocking on Kayla/Zoe; Astrid sarcastic -> sarcastic on Sammy/Kayla, plain on Zoe/Kyrie), personal persona tells (eyebrow scar, sweater sleeves, lip biting, taped hand), zero secret leaks, and real sound isolation."
+  ],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "inprogress",
+      "at": "2026-11-21T20:08:47Z"
+    },
+    {
+      "from": "inprogress",
+      "to": "review",
+      "at": "2026-11-21T20:24:32Z"
+    }
+  ]
+}

@@ -462,6 +462,29 @@ For any non-trivial change:
 
 Do not start by adding code because a task says a capability is missing.
 
+### Before creating or updating a task
+
+A task card is a contract against the **actual** codebase, not a wish list
+written from memory. Before creating or rewriting any card under
+`docs/virtualWorld/dev_tasks/` (or via `taskweave`):
+
+1. **Search first with `codesearch`:** check whether the mechanic, helper,
+   verb, or UI control already exists (or partially exists under another name,
+   like `engine/body_parts.py` `is_exposed()` vs `equipment.py`, or
+   `place_actions.py` `put_item_in_container()` vs new `reload` logic).
+2. **Verify every reference:** every path in `files`, every line range, and
+   every `symbol()` cited in `what`/`why`/`how`/`verify` must be read in the
+   live file first. Do not cite a file, line range, or method name from memory.
+3. **Name the real gap:** state what the existing code actually does today
+   (with exact file + symbol), what blocks the desired behavior, and what
+   existing helpers/edges/verbs the task should reuse instead of duplicating.
+4. **Keep sections consistent:** when rewriting `what`/`how`/`acceptance` to
+   forbid or change an approach, update `why`, `verify`, and `custom.browser_ui`
+   in the same edit so the card never contradicts itself.
+5. **Run the audit:** execute `python tools/task_todo_audit.py --status todo`
+   after creating or updating cards to catch phantom files/symbols, stale
+   line references, self-contradictions, and banned em-dashes.
+
 ### Peer coordination
 
 This repo runs parallel lanes (`docs/design/worktree-parallelisation-plan.md`,

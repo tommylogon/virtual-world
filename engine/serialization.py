@@ -370,7 +370,7 @@ class WorldSerializer:
             "disposition": _disposition_payload(p),
             "base_description": _props.get("base_description") or getattr(p, 'base_description', ''),
             "description": getattr(p, 'description', '') or _props.get("description", ''),
-            "turn_slots": dict(getattr(p, 'turn_slots', {}) or {}),
+            "action_points": dict(getattr(p, 'action_points', {}) or {}),
             # task-784: a dash burst is armed and waiting for its finish hop; the
             # composer reads this to offer the finish (and only the finish).
             "burst_pending": int(getattr(p, 'burst_pending', 0) or 0),
@@ -421,6 +421,10 @@ class WorldSerializer:
             "emotions_description": (
                 p.emotions_description()
                 if hasattr(p, 'emotions_description') else ""
+            ),
+            "emotion_matrix": (
+                p.serialize_emotion_matrix()
+                if hasattr(p, 'serialize_emotion_matrix') else None
             ),
             "relationships": _normalize_relationships(getattr(p, 'relationships', {})),
             "activity": getattr(p, 'activity', None),
@@ -783,6 +787,8 @@ class WorldSerializer:
                 p.emotion_intensity = emotion_data.get("intensity", 0.0)
             except (TypeError, ValueError):
                 pass
+        if isinstance(pdata.get("emotion_matrix"), dict):
+            p.load_emotion_matrix(pdata["emotion_matrix"])
         rel_data = pdata.get("relationships", {})
         if isinstance(rel_data, dict):
             from engine.relationships import normalize_relationships as _normalize_relationships
@@ -987,7 +993,7 @@ class WorldSerializer:
             pdata.pop("current_area", None)
             pdata.pop("current_area_id", None)
             # task-352: a slot does not survive a turn, so it is never persisted.
-            pdata.pop("turn_slots", None)
+            pdata.pop("action_points", None)
             # task-784: nor does an armed dash burst.
             pdata.pop("burst_pending", None)
         # task-222, continued: a saved world is graph-only, so nothing here is
@@ -1029,6 +1035,9 @@ class WorldSerializer:
                 n["properties"].pop("_last_precompile_snapshot", None)
         self.strip_redundant_exits(data)
         data["turn_order"] = getattr(self.legacy, "turn_order_mode", "sequential")
+        tm = getattr(self.legacy, "timeline_manager", None)
+        if tm is not None and hasattr(tm, "serialize"):
+            data["timeline"] = tm.serialize()
         return data
 
     @staticmethod

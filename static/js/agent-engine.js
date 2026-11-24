@@ -216,9 +216,10 @@ class AgentEngine {
     _isNoopAction(action) {
         return NOOP_ACTIONS.includes((action || '').split(' ')[0].toLowerCase());
     }
-    async _speakLine(charName, player, speech, volume = 'say', target = null) {
+    async _speakLine(charName, player, speech, volume = 'say', target = null, tone = null) {
         const spokenVolume = volume || 'say';
-        events.trackPhase(charName, 'speech', { speech, volume: spokenVolume, target });
+        const spokenTone = tone ? (ActionNormalizer?.normalizeSpeechTone?.(tone) || null) : null;
+        events.trackPhase(charName, 'speech', { speech, volume: spokenVolume, target, tone: spokenTone });
         events.trackAction(charName, null, speech, null, '');
         // task-166: involuntary interruptions (hiccups, stutters, coughs) -
         // flavor only, never replaces the intended line. Runs BEFORE the text
@@ -230,9 +231,15 @@ class AgentEngine {
             speech = injected;
         // Directed whisper (task-248): "whisper to <name>: text" reaches only
         // the target; the rest of the room sees the gesture, not the words.
+        // Optional delivery tone (task-994) uses the same `[tone:<val>]` prefix convention as `[lang:<val>]`.
         const directed = spokenVolume === 'whisper' && target;
-        const command = directed ? `whisper to ${target}: ${speech}` : `${spokenVolume} ${speech}`;
+        const tonePrefix = spokenTone ? `[tone:${spokenTone}] ` : '';
+        const command = directed
+            ? `whisper to ${target}: ${tonePrefix}${speech}`
+            : `${spokenVolume} ${tonePrefix}${speech}`;
         const speakerName = player?.name || charName;
+        const toneAdv = spokenTone ? (ActionNormalizer?.toneAdverb?.(spokenTone) || '') : '';
+        const toneTag = toneAdv ? ` (${toneAdv})` : '';
         try {
             const data = await agentApi.action(command, charName);
             const output = (data && data.output) || '';
@@ -243,14 +250,14 @@ class AgentEngine {
             }
             else if (directed) {
                 // task-340: whispered lines get a distinct locked row in the stream.
-                events.log(`🔒 ${speakerName} → ${target}: "${speech}"`, "msg-whisper");
+                events.log(`🔒 ${speakerName} → ${target}${toneTag}: "${speech}"`, "msg-whisper");
             }
             else {
-                events.log(`[${speakerName}] ${ActionNormalizer.volAction(spokenVolume)}: "${speech}"`, "msg-speech");
+                events.log(`[${speakerName}] ${ActionNormalizer.volAction(spokenVolume)}${toneTag}: "${speech}"`, "msg-speech");
             }
         }
         catch (err) {
-            events.log(`[${speakerName}] ${ActionNormalizer.volAction(spokenVolume)}: "${speech}"`, "msg-speech");
+            events.log(`[${speakerName}] ${ActionNormalizer.volAction(spokenVolume)}${toneTag}: "${speech}"`, "msg-speech");
         }
     }
     async _performEmote(charName, emote) {
@@ -553,10 +560,10 @@ class AgentEngine {
                 if (res.success === false)
                     break;
                 // bug-544: break only on a PUBLISHED budget that is exhausted. An
-                // empty `turn_slots` (`{}`) is the "not started" sentinel the engine
+                // empty `action_points` (`{}`) is the "not started" sentinel the engine
                 // lazily fills; treating it as spent ended the human turn after one
                 // step and refused the next action.
-                const slots = worldState.runtimePlayer(charName)?.turn_slots;
+                const slots = worldState.runtimePlayer(charName)?.action_points;
                 const spentOut = !!slots && Object.keys(slots).length > 0
                     && !Object.values(slots).some((n) => n > 0);
                 if (spentOut)
@@ -588,7 +595,7 @@ class AgentEngine {
                         this._applyFeltEmotion(charName, reaction.emotion);
                     }
                     if (reaction.speech) {
-                        await this._speakLine(charName, currentPlayer, reaction.speech, reaction.volume, reaction.target);
+                        await this._speakLine(charName, currentPlayer, reaction.speech, reaction.volume, reaction.target, reaction.tone || reaction.speechTone || null);
                     }
                     if (reaction.emote) {
                         await this._performEmote(charName, reaction.emote);
@@ -1000,7 +1007,7 @@ class AgentEngine {
         let decidePrompt = '';
         if (typeof PromptBuilder?.buildDecidePrompt === 'function') {
             decidePrompt = PromptBuilder.buildDecidePrompt(charName, contextPrompt, '', {
-                turnSlots: this._turnSlots?.[charName] || player?.turn_slots || null,
+                turnSlots: this._turnSlots?.[charName] || player?.action_points || null,
             });
         }
         else if (typeof PromptBuilder?.buildReactionPrompt === 'function') {
@@ -1228,7 +1235,7 @@ class AgentEngine {
         // land in the bare stream above the next `act` phase marker.
         events.beginActorTurn(charName);
         if (reply.speech) {
-            await this._speakLine(charName, player, reply.speech, reply.speechVolume, reply.target);
+            await this._speakLine(charName, player, reply.speech, reply.speechVolume, reply.target, reply.speechTone || reply.tone || null);
         }
         // task-xxx: emote renders before the action result (consistent with the
         // agent decide phase) so the stream reads gesture → outcome.
@@ -1522,7 +1529,7 @@ class AgentEngine {
                 // A turn holds up to the tier budget (major 1 · minor 1 · free 3).
                 // This loops decide→act→react, rebuilding the prompt each pass from
                 // fresh state so spent slots hide the actionNames the character can no
-                // longer afford (room-context feeds turn_slots to the brackets;
+                // longer afford (room-context feeds action_points to the brackets;
                 // `wait` is exempt, it is the turn's exit). The budget is a CEILING
                 // not a quota: the loop exits on "done" - wait, nothing worth doing,
                 // or nothing left affordable - so a character who is fine takes one
@@ -1555,20 +1562,76 @@ class AgentEngine {
                         if (this._checkCancel())
                             return;
                     }
-                    // CONVERSATION-STYLE LOOP: think + decide in ONE call, and the
-                    // prompt + response are pushed into the per-character history
-                    // ([system, user, assistant, ...]) so the agent remembers its own
-                    // earlier words across phases and turns - no more self-contradiction
-                    // between decide and react (e.g. changing a favorite color).
-                    const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
-                    const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
-                    // Fix #6: each decide is a fresh system + user call; previous
-                    // assistant outputs are not replayed as active context.
-                    const decideHistory = [
-                        history[0], // system prompt (persistent rules)
-                        { role: 'user', content: combinedPrompt }
-                    ];
-                    let combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
+                    // Phase 2/3 Python Agent Stream (task-1002 / task-1003): prefer
+                    // server-side /api/agent/stream (prompt assembly + SSE LLM call in
+                    // Python), falling back to /api/agent/prompt + browser LLMClient.
+                    let decideHistory = [history[0], { role: 'user', content: '' }];
+                    let combinedResponse = null;
+                    const usePyStream = agentConfig?.usePythonAgentStream !== false
+                        && !threatAlert
+                        && typeof ApiClient?.streamAgentPython === 'function';
+                    if (usePyStream) {
+                        try {
+                            const llmCfg = {
+                                base_url: agentConfig?.apiUrl || 'http://127.0.0.1:1234/v1',
+                                api_key: agentConfig?.apiKey || '',
+                                model: agentConfig?.model || '',
+                                temperature: Number(agentConfig?.temperature ?? 0.7),
+                                max_tokens: Number(agentConfig?.maxTokens ?? 1024),
+                                suppress_local_thinking: Boolean(agentConfig?.suppressLocalThinking),
+                            };
+                            const streamRes = await ApiClient.streamAgentPython({
+                                character: charName,
+                                phase: 'think',
+                                last_result: loopLastResult || '',
+                                memory_thought: memoryNL || '',
+                                action_points: promptPlayer?.action_points || undefined,
+                                execute_side_effects: false,
+                                llm: llmCfg,
+                            }, (evt) => {
+                                if (evt?.type === 'token' && evt.delta && typeof events?.appendStreamChunk === 'function') {
+                                    events.appendStreamChunk(charName, 'think-decide', evt.delta);
+                                }
+                            });
+                            if (streamRes && typeof streamRes.raw === 'string' && streamRes.raw.trim()) {
+                                combinedResponse = streamRes.raw;
+                            }
+                        }
+                        catch {
+                            combinedResponse = null;
+                        }
+                    }
+                    if (combinedResponse === null) {
+                        try {
+                            const pyPrompt = await ApiClient.getAgentPrompt?.({
+                                character: charName,
+                                phase: 'think',
+                                last_result: loopLastResult || '',
+                                memory_thought: memoryNL || '',
+                                action_points: promptPlayer?.action_points || undefined,
+                            });
+                            if (pyPrompt && Array.isArray(pyPrompt.messages) && pyPrompt.messages.length >= 2) {
+                                const userContent = threatAlert
+                                    ? `${threatAlert}\n\n${pyPrompt.messages[1].content}`
+                                    : pyPrompt.messages[1].content;
+                                decideHistory = [
+                                    pyPrompt.messages[0],
+                                    { role: 'user', content: userContent },
+                                ];
+                            }
+                            else {
+                                const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
+                                const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
+                                decideHistory = [history[0], { role: 'user', content: combinedPrompt }];
+                            }
+                        }
+                        catch {
+                            const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
+                            const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
+                            decideHistory = [history[0], { role: 'user', content: combinedPrompt }];
+                        }
+                        combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
+                    }
                     // Do NOT replay the assistant output into persistent history.
                     // The react phase uses its own fresh messages; the next turn
                     // restarts with a clean [system, user] context.
@@ -1584,7 +1647,7 @@ class AgentEngine {
                     if (parsedDecide.parseError) {
                         events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
                     }
-                    let { inner, speech: decisionSpeech, speechVolume, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
+                    let { inner, speech: decisionSpeech, speechVolume, speechTone: decisionTone, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
                     this._applyFeltEmotion(charName, parsedDecide.emotion);
                     this._learnNames(charName, parsedDecide.learnedNames);
                     if (inner) {
@@ -1617,7 +1680,7 @@ class AgentEngine {
                         actionRejectCategory = 'schema_invalid';
                     }
                     if (decisionSpeech) {
-                        await this._speakLine(charName, player, decisionSpeech, speechVolume, decisionTarget);
+                        await this._speakLine(charName, player, decisionSpeech, speechVolume, decisionTarget, decisionTone || null);
                     }
                     // task-xxx: the act emote lands BEFORE the action's result so the
                     // stream reads gesture → outcome instead of outcome → gesture.
@@ -1720,6 +1783,7 @@ class AgentEngine {
                     const budgetExhausted = !actionSucceeded && /no major action left|major action budget exhausted/i.test(actionResult);
                     if (budgetExhausted) {
                         events.log(`↩️ ${charName}: budget exhausted - auto-substituting "wait"`, 'system-msg');
+                        finalAction = 'wait';
                         actionResult = 'You wait, watching and listening.';
                         actionSucceeded = true;
                         PlanTracker.trackStep(charName, 'wait', actionResult, true);
@@ -1789,19 +1853,35 @@ class AgentEngine {
                                     stimulus: actionResult,
                                 })
                                 : memoryNL;
-                            const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, reactVitalsNL, reactEmotionNL, reactRelationshipNL, inner, finalAction || '', actionResult, reactMemoryNL, decisionSpeech);
-                            // task-XXX: dedicated minimal react call. The react phase cannot
-                            // act, so replaying the full decide exchange (~2-3k of persona/
-                            // room/plan/available-actions) plus the action-law system was
-                            // pure weight - and the cached system even said "Emit ONE action"
-                            // while the react user message said the opposite. Fresh 2-message
-                            // conversation instead: react-specific system + ONE user message;
-                            // WHAT HAPPENED carries the outcome. The exchange is still
-                            // mirrored into `history` below for future-turn continuity.
-                            const reactMessages = [
-                                { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
-                                { role: 'user', content: reactPrompt },
-                            ];
+                            let reactMessages;
+                            try {
+                                const pyReact = await ApiClient.getAgentPrompt?.({
+                                    character: charName,
+                                    phase: 'react',
+                                    what_happened: actionResult || '',
+                                    memory_thought: reactMemoryNL || '',
+                                    action_points: freshPlayer?.action_points || undefined,
+                                    said_this_turn: decisionSpeech || '',
+                                });
+                                if (pyReact && Array.isArray(pyReact.messages) && pyReact.messages.length >= 2) {
+                                    reactMessages = [pyReact.messages[0], pyReact.messages[1]];
+                                }
+                                else {
+                                    const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, reactVitalsNL, reactEmotionNL, reactRelationshipNL, inner, finalAction || '', actionResult, reactMemoryNL, decisionSpeech);
+                                    reactMessages = [
+                                        { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
+                                        { role: 'user', content: reactPrompt },
+                                    ];
+                                }
+                            }
+                            catch {
+                                const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, reactVitalsNL, reactEmotionNL, reactRelationshipNL, inner, finalAction || '', actionResult, reactMemoryNL, decisionSpeech);
+                                reactMessages = [
+                                    { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
+                                    { role: 'user', content: reactPrompt },
+                                ];
+                            }
+                            const reactPrompt = reactMessages[1]?.content || '';
                             let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction', charName);
                             if (reactResponse === null) {
                                 abortOnLlmError('reaction phase');
@@ -1832,7 +1912,7 @@ class AgentEngine {
                             if (!reactResponse || !String(reactResponse).trim()) {
                                 events.log(`⚠️ ${charName}: result-reaction returned empty - skipping react`, 'error-msg');
                             }
-                            const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote } = parsedReact;
+                            const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, speechTone: reactionTone, emote: reactionEmote } = parsedReact;
                             if (reactionInner) {
                                 events.logThought(charName, reactionInner);
                                 this._persistInnerMonologue(charName, reactionInner, parsedReact.emotion);
@@ -1840,7 +1920,7 @@ class AgentEngine {
                             this._applyFeltEmotion(charName, parsedReact.emotion);
                             this._learnNames(charName, parsedReact.learnedNames);
                             if (reactionSpeech) {
-                                await this._speakLine(charName, player, reactionSpeech, reactionVolume);
+                                await this._speakLine(charName, player, reactionSpeech, reactionVolume, null, reactionTone || null);
                             }
                             if (reactionEmote) {
                                 await this._performEmote(charName, reactionEmote);
@@ -1862,7 +1942,7 @@ class AgentEngine {
                         // Any positive slot still buys at least a look, so the next
                         // prompt (which already hides what is unaffordable) is the
                         // real gate; this is only the "budget is empty" stop.
-                        const slotsNow = (worldState.data?.players?.[charName]?.turn_slots);
+                        const slotsNow = (worldState.data?.players?.[charName]?.action_points);
                         // bug-544: an empty `{}` is "no budget published" (the
                         // engine lazily fills it), not "budget empty" - only a
                         // published-and-spent budget ends the turn, otherwise a
@@ -1892,7 +1972,7 @@ class AgentEngine {
                 if (parsedNonReactive.parseError) {
                     events.logParseError(charName, 'combined', parsedNonReactive.parseError, reactionResponse);
                 }
-                let { inner, speech, speechVolume, action, emote: reactionEmote, target: speechTarget } = parsedNonReactive;
+                let { inner, speech, speechVolume, speechTone, action, emote: reactionEmote, target: speechTarget } = parsedNonReactive;
                 if (inner) {
                     events.log(`[${player.name} inner] ${inner}`, "msg-thought");
                     this._persistInnerMonologue(charName, inner, parsedNonReactive.emotion);
@@ -1900,7 +1980,7 @@ class AgentEngine {
                 this._applyFeltEmotion(charName, parsedNonReactive.emotion);
                 this._learnNames(charName, parsedNonReactive.learnedNames);
                 if (speech) {
-                    await this._speakLine(charName, player, speech, speechVolume, speechTarget);
+                    await this._speakLine(charName, player, speech, speechVolume, speechTarget, speechTone || null);
                 }
                 events.trackAction(charName, inner, speech, null, '');
                 if (!agentConfig.lastRoom[charName] && player.current_area)

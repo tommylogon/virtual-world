@@ -77,7 +77,7 @@ def test_motivation_and_intention_fall_back_to_the_moment():
 def test_choices_drop_a_spent_tier():
     """A major slot already spent removes the major actions from the set."""
     p = Player("Pip")
-    p.turn_slots = {"major": 0, "minor": 1, "free": 3, "activity": 1}
+    p.action_points = {"major": 0, "minor": 1, "free": 3, "activity": 1}
 
     choices = mosiac.choices(p)
 

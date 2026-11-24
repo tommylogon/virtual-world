@@ -26,13 +26,16 @@ class StreamScrubber {
         const streamEl = document.getElementById('event-stream');
         if (!streamEl)
             return null;
-        let bar = streamEl.querySelector('.timeline-scrubber');
+        const host = streamEl.parentElement || streamEl;
+        let bar = host.querySelector(':scope > .timeline-scrubber');
         if (!bar) {
             // A local, so the click/scroll closures below do not re-read the
             // `let` that is still null until the assignment at the end.
             const created = document.createElement('div');
             created.className = 'timeline-scrubber';
-            created.title = 'Session timeline — click to jump';
+            created.title = 'Session timeline - click to jump';
+            created.style.position = 'relative';
+            created.style.flexShrink = '0';
             const head = document.createElement('div');
             head.className = 'scrub-head';
             created.appendChild(head);
@@ -42,7 +45,12 @@ class StreamScrubber {
                 streamEl.scrollTop = ratio * streamEl.scrollHeight - 40;
             });
             streamEl.addEventListener('scroll', () => this._syncHead(created), { passive: true });
-            streamEl.insertBefore(created, streamEl.firstChild);
+            if (streamEl.parentElement) {
+                streamEl.parentElement.insertBefore(created, streamEl);
+            }
+            else {
+                streamEl.insertBefore(created, streamEl.firstChild);
+            }
             bar = created;
         }
         return bar;

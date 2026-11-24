@@ -308,6 +308,23 @@ to every model they compare. A hand-written approximation inside a benchmark
 measures the approximation, not the game, so there is exactly one capture
 path and the harnesses call it.
 
+On the output side, `/bench` loads `shared/json-utils.js`,
+`agent/action-verbs.generated.js`, `agent/action-normalizer.js`, and
+`agent/response-parser.js` so model responses pass through the same
+`repairJSON()` -> `ActionNormalizer.normalizeStructuredAction()` ->
+`ActionNormalizer.classifyAction()` pipeline as a live turn before calling
+`POST /api/action/validate` (`validate_action_command` in
+`routes/action_handlers.py`). The dry-run validator temporarily binds
+`active_player` to the benchmarked character (and simulated area when
+selected), resolves self-contained verbs (`relieve`, `look`, `search`, `rest`,
+`plan`, etc.) before target-required checks, splits compound preposition
+commands (`use X on/in Y`, `put/place/stow X in/on/... Y`, `give X to Y`,
+`steal X from Y`), and rejects unregistered verbs against the action verb
+registry. The **Turn Context** panel also provides an optional **Preferred
+Action (+1 Score)** field (with room-grounded autocomplete suggestions and
+comma-separated alternatives) that awards `+1` to a model card's validation
+score when the normalized command or engine `resolved_target` matches.
+
 ### System Prompt (`buildCharacterSystemPrompt()`)
 
 - World lore (common knowledge shared by all agents)

@@ -116,7 +116,15 @@ def register_action_routes(app):
     def apply_turn_decay():
         if _timeskip_busy():
             return jsonify({"error": "A timeskip is running."}), 409
-        return handle_apply_turn_decay(app)
+        res = handle_apply_turn_decay(app)
+        try:
+            tm = getattr(app, "timeline_manager", None)
+            if tm is not None and getattr(app, "world", None) is not None:
+                from engine.serialization import serialize_world
+                tm.record_checkpoint(int(getattr(app.world, "time_ticks", 0) or 0), serialize_world(app.world))
+        except Exception:
+            pass
+        return res
 
     @app.route('/api/turn/clear', methods=['POST'])
     def clear_turn_events():

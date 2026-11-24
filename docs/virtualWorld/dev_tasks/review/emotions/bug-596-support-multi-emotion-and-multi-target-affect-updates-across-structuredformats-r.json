@@ -15,7 +15,7 @@
     "bugs"
   ],
   "created": "2026-11-14",
-  "updated": "2026-11-17",
+  "updated": "2026-11-21",
   "horizon": "now",
   "effort": "m",
   "goal": "",
@@ -27,7 +27,9 @@
       "bug-587",
       "bug-585",
       "task-943",
-      "bug-606"
+      "bug-606",
+      "task-997",
+      "task-998"
     ],
     "parent": null,
     "children": [],

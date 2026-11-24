@@ -86,8 +86,9 @@ Intimate actions are available: ${_regMatureList}. Schema: {"action":"kiss","tar
 `;
     const SPEECH_VOLUME = `
 
-=== SPEECH & VOLUME ===
+=== SPEECH, VOLUME & TONE ===
 Put speech in the "speech" field and volume in the "volume" field - whisper | say | sing | shout | scream (default say). The volume word is the KEY name, never part of the speech text.
+OPTIONAL DELIVERY TONE: when your line is NOT plain/neutral, you may add "tone": "warm|teasing|sarcastic|cold|hostile|serious|apologetic|guarded" (omit "tone" for ordinary speech). Tone is how you TRY to deliver the line; listeners perceive it subjectively through their own mood and your body language.
 DIRECTED WHISPER: add "target":"<character name>" for a private aside - only that character hears it. A plain whisper (no target) is heard by the whole room.
 For a speech-only turn, omit "action". If you say nothing, set "speech": null. To do nothing, respond {"action":"wait"}.
 
@@ -161,7 +162,7 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
         let prompt = _loreHeader(player);
         const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and emote should be brief and natural.');
         const parts = [
-            `\n=== REACT MODE ===\nThis is the instant after your own action resolved. You cannot take new actions in this phase - respond only with inner_monologue, speech (rarely), emote, memory, and emotion.`,
+            `\n=== REACT MODE ===\nThis is the instant after your own action resolved. You cannot take new actions in this phase - respond only with inner_monologue, speech (rarely), volume, tone, emote, and learned_names.\n\n`,
             PromptBuilder.EMOTE_RULES_SYSTEM,
             SPEECH_VOLUME,
             brevityRule,

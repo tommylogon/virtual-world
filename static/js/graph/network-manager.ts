@@ -1156,42 +1156,50 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // If the edge set changed, compute added, updated, and removed edge configs
         // and apply them to edgesDS in place.
         if (edgeUpdatesNeeded) {
-            gm._graphEdgesArr = nextEdgesArr;
             const newVisEdges = GraphNetwork.buildEdgeConfigs(loaded, nextEdgesArr);
-            const nextEdgeMap = new Map<string, any>();
-            for (const edge of newVisEdges) {
-                nextEdgeMap.set(edge.id, edge);
-            }
-
             const currentEdgeIds: string[] = edgesDS.getIds() || [];
-            const toRemove: string[] = [];
-            const toUpdate: any[] = [];
-            const toAdd: any[] = [];
-
-            for (const id of currentEdgeIds) {
-                const nextEdge = nextEdgeMap.get(id);
-                if (!nextEdge) {
-                    toRemove.push(id);
-                } else {
-                    toUpdate.push(nextEdge);
+            // Guard against partial runtime snapshots (e.g. /api/state?lite=1 +
+            // /api/runtime/state) wiping out a scoped subgraph's edges and
+            // exploding physics when the payload only carries one room's edges.
+            const isPartialWipe = scoped
+                && currentEdgeIds.length >= 10
+                && newVisEdges.length < currentEdgeIds.length * 0.5;
+            if (!isPartialWipe) {
+                gm._graphEdgesArr = nextEdgesArr;
+                const nextEdgeMap = new Map<string, any>();
+                for (const edge of newVisEdges) {
+                    nextEdgeMap.set(edge.id, edge);
                 }
-            }
 
-            const currentIdSet = new Set(currentEdgeIds);
-            for (const [id, edge] of nextEdgeMap) {
-                if (!currentIdSet.has(id)) {
-                    toAdd.push(edge);
+                const toRemove: string[] = [];
+                const toUpdate: any[] = [];
+                const toAdd: any[] = [];
+
+                for (const id of currentEdgeIds) {
+                    const nextEdge = nextEdgeMap.get(id);
+                    if (!nextEdge) {
+                        toRemove.push(id);
+                    } else {
+                        toUpdate.push(nextEdge);
+                    }
                 }
-            }
 
-            if (toRemove.length > 0) {
-                edgesDS.remove(toRemove);
-            }
-            if (toUpdate.length > 0) {
-                edgesDS.update(toUpdate);
-            }
-            if (toAdd.length > 0) {
-                edgesDS.add(toAdd);
+                const currentIdSet = new Set(currentEdgeIds);
+                for (const [id, edge] of nextEdgeMap) {
+                    if (!currentIdSet.has(id)) {
+                        toAdd.push(edge);
+                    }
+                }
+
+                if (toRemove.length > 0) {
+                    edgesDS.remove(toRemove);
+                }
+                if (toUpdate.length > 0) {
+                    edgesDS.update(toUpdate);
+                }
+                if (toAdd.length > 0) {
+                    edgesDS.add(toAdd);
+                }
             }
         }
 
@@ -1588,8 +1596,11 @@ const renderedConnectionPairs = new Set<string>();
                 const len = (config || ({} as ConfigManager)).graphItemEdgeLength || 35;
                 edgeLength = len;
             }
+            const edgeFrom = (levelsPlan && levelsPlan.from) || edgeObj.source;
+            const edgeTo = (levelsPlan && levelsPlan.to) || edgeObj.target;
             visEdges.push({
-                from: (levelsPlan && levelsPlan.from) || edgeObj.source,
+                id: `${edgeFrom}|${edgeTo}|${edgeType}`,
+                from: edgeFrom,
                 to: (levelsPlan && levelsPlan.to) || edgeObj.target,
                 type: edgeType,
                 label: edgeLabel,

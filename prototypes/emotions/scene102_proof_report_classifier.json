@@ -1,0 +1,1517 @@
+{
+  "meta": {
+    "model": "qwen/qwen3.5-9b",
+    "embed_model": "SamLowe/roberta-base-go_emotions (CPU)",
+    "offline": false,
+    "turns_run": 6,
+    "areas": [
+      "Gravel Driveway by Gerald",
+      "Dessert Tables (Bay 2)"
+    ],
+    "millwood_reused": [
+      "zoe mercer",
+      "sammy lopez",
+      "kayla jenkins",
+      "kyrie johansen",
+      "jake halloway"
+    ],
+    "archive_added": [
+      "astrid lopez",
+      "maria lopez"
+    ]
+  },
+  "checks": {
+    "pre_scene_whispers_hidden_from_astrid": true,
+    "pre_scene_whispers_hidden_from_maria": true,
+    "astrid_zero_secret_leak_trust_or_tuesday": true,
+    "sammy_zoe_zero_leak_tuesday_confession": true,
+    "maria_zero_secret_leak": true,
+    "astrid_actually_overheard_driveway": true,
+    "any_volume_slip_fired": true,
+    "astrid_retained_emotional_momentum": false
+  },
+  "final_states": {
+    "zoe mercer": {
+      "families": {
+        "fear": 99.2,
+        "happiness": 1.2,
+        "sadness": 28.2,
+        "shame": 33.4,
+        "calm": 1.0,
+        "surprise": 21.8,
+        "arousal": 1.4
+      },
+      "target_families": {
+        "sammy lopez": {
+          "fear": 17.04,
+          "shame": 13.12
+        },
+        "astrid lopez": {
+          "fear": 64.66,
+          "happiness": 0.96,
+          "shame": 22.8,
+          "arousal": 1.12
+        },
+        "kayla jenkins": {
+          "happiness": 26.52,
+          "sadness": 14.05,
+          "arousal": 8.11
+        }
+      },
+      "autonomic": {
+        "heart_rate": 70.6,
+        "breathing": 61.5,
+        "muscle_tension": 61.4,
+        "vasomotor": -24.9,
+        "sweat_chills": 48.9,
+        "gut_throat": 59.3,
+        "motor_tone": -22.6,
+        "eyes_tears": 26.1
+      },
+      "active_episodes": 6
+    },
+    "sammy lopez": {
+      "families": {
+        "fear": 32.7,
+        "happiness": 35.5,
+        "sadness": 12.3,
+        "shame": 41.5,
+        "calm": 35.0,
+        "surprise": 21.8,
+        "arousal": 10.7
+      },
+      "target_families": {
+        "astrid lopez": {
+          "shame": 30.9,
+          "fear": 20.12,
+          "happiness": 32.43
+        },
+        "kayla jenkins": {
+          "fear": 18.32
+        }
+      },
+      "autonomic": {
+        "heart_rate": 23.7,
+        "breathing": 16.1,
+        "muscle_tension": 21.1,
+        "sweat_chills": 13.3,
+        "gut_throat": 29.4,
+        "motor_tone": -18.9,
+        "eyes_tears": 11.8
+      },
+      "active_episodes": 5
+    },
+    "kayla jenkins": {
+      "families": {
+        "anger": 27.4,
+        "fear": 77.1,
+        "happiness": 15.8,
+        "shame": 42.5,
+        "calm": 22.8,
+        "arousal": 6.7
+      },
+      "target_families": {
+        "zoe mercer": {
+          "fear": 21.12
+        },
+        "astrid lopez": {
+          "fear": 40.34,
+          "shame": 41.6,
+          "happiness": 27.36,
+          "anger": 13.96
+        }
+      },
+      "autonomic": {
+        "heart_rate": 81.8,
+        "breathing": 67.8,
+        "muscle_tension": 83.0,
+        "sweat_chills": 50.4,
+        "gut_throat": 56.7,
+        "motor_tone": -18.8,
+        "eyes_tears": 19.9
+      },
+      "active_episodes": 6
+    },
+    "kyrie johansen": {
+      "families": {
+        "anger": 19.3,
+        "fear": 44.3,
+        "happiness": 30.6,
+        "love": 29.6,
+        "shame": 31.4,
+        "calm": 34.5,
+        "surprise": 20.2,
+        "arousal": 8.9
+      },
+      "target_families": {
+        "astrid lopez": {
+          "fear": 27.73,
+          "shame": 19.52
+        },
+        "kayla jenkins": {
+          "fear": 19.55,
+          "shame": 19.04
+        }
+      },
+      "autonomic": {
+        "heart_rate": 45.8,
+        "breathing": 35.9,
+        "muscle_tension": 49.8,
+        "sweat_chills": 22.9,
+        "gut_throat": 28.1
+      },
+      "active_episodes": 6
+    },
+    "astrid lopez": {
+      "families": {
+        "fear": 17.4,
+        "happiness": 62.1,
+        "love": 38.1
+      },
+      "target_families": {
+        "sammy lopez": {
+          "happiness": 48.42
+        },
+        "kayla jenkins": {
+          "love": 34.57
+        }
+      },
+      "autonomic": {
+        "motor_tone": 11.7
+      },
+      "active_episodes": 2
+    },
+    "maria lopez": {
+      "families": {},
+      "target_families": {},
+      "autonomic": {},
+      "active_episodes": 0
+    }
+  },
+  "transcript": [
+    {
+      "turn": 0,
+      "tick": 21,
+      "speaker": "zoe mercer",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "There are four of us in Oklahoma and nobody actually has an answer for how this works later.",
+      "speech": "But we can't, can we?",
+      "emote": "stares down at her paper plate, twisting a silver ring around her thumb",
+      "intended_volume": "whisper",
+      "actual_volume": "whisper",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": "kayla jenkins",
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 0.0,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "",
+      "heard_by": [
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 11545.2,
+          "dominant": "happiness",
+          "applied_deltas": {
+            "fear": 4.1,
+            "happiness": -3.0,
+            "shame": 2.8,
+            "calm": -2.9,
+            "surprise": 2.9
+          },
+          "target_families": {},
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Saturday Nov 21: found Zoe asleep in Jake's bed, then found his 3 hidden notebooks (CAN I REALLY? in red ink, Book 3's self-hatred) and checked his Spotify after Violet's hint (Murphy's Law, Sometimes I Wanna Cry, ORAL HEX, I Don't Want Your Love).",
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.19, curiosity=0.08)"
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 53.7,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 8.8,
+            "happiness": -4.0,
+            "calm": -5.3,
+            "arousal": -2.2
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 18.82
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 18.0,
+            "breathing": 17.1,
+            "muscle_tension": 16.1,
+            "vasomotor": -15.2,
+            "sweat_chills": 15.2
+          },
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "posture slightly guarded, glancing around more than usual",
+          "recalled_memories_top2": [
+            "Jake finally checked in — \"hey im her alie im alive!\" — still no explanation for handing Kyrie his phone. Zoe begged everyone to stop screaming in the chat. I told Jake to explain the phone situation and told Kyrie to hold onto it until he does.",
+            "Group chat: all four others confirmed alive. Jake's only contribution was \"hey im her alie im alive!\" — no answer on the phone. I gave him a multiple-choice (1 = explain phone, 2 = not explaining yet, 3 = doesn't remember) and told Kyrie to actually inspect the phone's last open app/screen time instead of just holding it. Sammy floated \"he's possessed\" and I told him to keep a priest on retainer, not speed dial."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.08, curiosity=0.05)"
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 56.0,
+          "dominant": "neutral",
+          "applied_deltas": {
+            "anger": 2.5,
+            "happiness": -1.6,
+            "sadness": 1.8,
+            "calm": -1.8
+          },
+          "target_families": {},
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Told the group Jake's phone stays with me until he explains why he handed it over. Everyone's checked in alive now, but Jake's \"alie\" typo is bugging me — Sammy's right, he loses whole words, not letters. Staying planted until he answers Kayla's three questions.",
+            "Kayla gave Jake a one-digit ultimatum: 1 = handed phone on purpose and will say why, 2 = on purpose but won't say why, 3 = doesn't remember. She also told me to actually look at what Jake had open on the phone, not just hold it. I'm turning it over. Phone stays with me until he says it out loud."
+          ],
+          "gut_appraisal": "classifier read (annoyance=0.15, disappointment=0.10)"
+        }
+      ]
+    },
+    {
+      "turn": 1,
+      "tick": 22,
+      "speaker": "sammy lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "Kayla thinks Tobi is a golden goose but I think Jake is the only one who gets it, and my heart is hammering against my ribs like a trapped bird.",
+      "speech": "Tobi's some tech-bro nonsense, Kayla, but Jake's just... Jake. Look, we can't let them get married, right? Not when he's still figuring out who he is without us.",
+      "emote": "flicks a spoonful of flan onto the wooden crate with a sharp scowl",
+      "intended_volume": "whisper",
+      "actual_volume": "whisper",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": "kayla jenkins",
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 17960.0,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "You feel drawn to share the moment, stay with it, and be generous.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 72.9,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 13.3,
+            "happiness": -6.0,
+            "shame": 8.0,
+            "calm": -3.5,
+            "surprise": 1.5,
+            "arousal": -3.3
+          },
+          "target_families": {
+            "sammy lopez": {
+              "fear": 23.28,
+              "shame": 16.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 23.0,
+            "breathing": 22.7,
+            "muscle_tension": 20.7,
+            "sweat_chills": 16.6,
+            "gut_throat": 20.5,
+            "eyes_tears": 15.7
+          },
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "posture slightly guarded, glancing around more than usual",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Day 1, 08:01 — In \"Operation: Don't Die in This Stupid House,\" Kayla set survival rules (no wandering alone, leave before sunset) and demanded check-ins. Jake finally replied \"hey im her alie im alive!\" — clearly something's off with him. Kyrie says Jake silently handed her his phone ~2 min ago and won't explain why; she's holding it. I covered for him in the chat with a joke about \"alie\" and threatened to tell Kayla if he's in the basement."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.10, curiosity=0.04)"
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 71.8,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 4.4,
+            "happiness": -2.0,
+            "calm": -1.7,
+            "surprise": 1.5,
+            "arousal": -1.1
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 17.78
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 33.2,
+            "breathing": 29.6,
+            "muscle_tension": 37.4,
+            "vasomotor": -20.3,
+            "sweat_chills": 19.9,
+            "gut_throat": 19.2
+          },
+          "overloaded": false,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Kyrie reported that Jake silently handed her his phone ~2 min ago without explanation — flagged it to the group as possible evidence he's recording/planning something. Sammy and Kyrie both checked in alive and unpossessed; Jake has not responded in the group chat. Set group rules: no one goes anywhere alone, leave before sundown."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.10, curiosity=0.04)"
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 73.2,
+          "dominant": "neutral",
+          "applied_deltas": {
+            "surprise": 1.2
+          },
+          "target_families": {},
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Kayla gave Jake a one-digit ultimatum: 1 = handed phone on purpose and will say why, 2 = on purpose but won't say why, 3 = doesn't remember. She also told me to actually look at what Jake had open on the phone, not just hold it. I'm turning it over. Phone stays with me until he says it out loud.",
+            "Kayla laid down house rules in the group chat: no wandering alone, buddy system for everything, out before sundown. Jake finally checked in with \"im her alie im alive\" and still hasn't explained why he handed me his phone. I told the group I'm keeping it until he does."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.08, disapproval=0.07)"
+        },
+        {
+          "listener": "astrid lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 69.3,
+          "dominant": "happiness",
+          "applied_deltas": {
+            "anger": -6.7,
+            "fear": -1.2,
+            "happiness": 14.2,
+            "love": 5.0,
+            "sadness": -6.9,
+            "calm": 4.6,
+            "arousal": 2.8
+          },
+          "target_families": {
+            "sammy lopez": {
+              "anger": 1.28,
+              "happiness": 54.18,
+              "sadness": 1.14
+            }
+          },
+          "autonomic_top": {
+            "motor_tone": 21.7
+          },
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "easy warm smile, shoulders loose and relaxed, lively energy in how they move",
+          "recalled_memories_top2": [
+            "Thanksgiving at Keith's shop: Maria genuinely believes Sammy and her three friends took a 'vow of sisterhood', which I immediately think is hilarious nonsense. I've been noticing Sammy glancing across the yard at Jake Halloway from Maple Street.",
+            "Sammy is sixteen: she still has a stuffed dolphin from Galveston on her bed and cried for two days last year when a friend stopped texting her back. And I have NEVER lied to Mama in my life - that is not a thing I do."
+          ],
+          "gut_appraisal": "classifier read (amusement=0.89, curiosity=0.10)"
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "tick": 23,
+      "speaker": "astrid lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "Sammy's been looking at Jake for weeks, and the way she's holding that cup like it's a weapon tells me she's scared to death of ruining her life.",
+      "speech": "You really want to be the reason a kid in this town gets dragged through the mud over a relationship that's barely started?",
+      "emote": "set the cider cup down on Gerald's hood and step closer to Sammy",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 4742.0,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "Right now your feelings split by person (toward sammy lopez: happiness). You feel drawn to share the moment, stay with it, and be generous.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 72.4,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 3.8,
+            "fear": 32.0,
+            "happiness": -16.1,
+            "shame": 8.0,
+            "calm": -21.3,
+            "surprise": 1.5,
+            "arousal": -8.0
+          },
+          "target_families": {
+            "sammy lopez": {
+              "fear": 22.24,
+              "shame": 15.52
+            },
+            "astrid lopez": {
+              "fear": 42.0,
+              "happiness": 23.9,
+              "shame": 16.0,
+              "arousal": 7.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 56.5,
+            "breathing": 52.8,
+            "muscle_tension": 50.5,
+            "vasomotor": -30.8,
+            "sweat_chills": 42.9,
+            "gut_throat": 47.4,
+            "motor_tone": -20.1,
+            "eyes_tears": 23.0
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw set tight and hands tense",
+          "recalled_memories_top2": [
+            "Monday Nov 16 behind the fieldhouse: wind howling through aluminum bleachers, wet mud and gun oil; I saw Jake standing over a crying Tyler with a stripped Glock 19, then Jake's knees gave out in the mud.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "classifier read (curiosity=0.16, confusion=0.06)"
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 65.5,
+          "dominant": "happiness",
+          "applied_deltas": {
+            "fear": 2.3,
+            "shame": 3.3,
+            "calm": -2.0
+          },
+          "target_families": {},
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Five minutes ago by Bay 2, Kayla's Stanford brother Tobi grilled Jake on code, called him a 'golden goose', told Jake to email him tonight, and told Kayla to marry him ASAP. We've been teasing Kayla about it beside Gerald while eating Maria's flan and pie.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "classifier read (curiosity=0.10, confusion=0.03)"
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 63.5,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 7.0,
+            "fear": 13.9,
+            "happiness": -6.2,
+            "shame": 12.0,
+            "calm": -8.3,
+            "surprise": 1.4,
+            "arousal": -3.5
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 16.74
+            },
+            "astrid lopez": {
+              "anger": 15.0,
+              "fear": 23.86,
+              "happiness": 33.76,
+              "shame": 20.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 51.6,
+            "breathing": 45.7,
+            "muscle_tension": 56.4,
+            "vasomotor": -19.8,
+            "sweat_chills": 32.1,
+            "gut_throat": 32.5
+          },
+          "overloaded": false,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Yesterday Wednesday Nov 25 in my foyer at 808 Oakwood after talking Jake down at the park pavilion, a heavy uninvited 10-year thought flashed through my head: Future. Family. All of them. I shoved it down because Folake and church reputation would detonate if anyone guessed."
+          ],
+          "gut_appraisal": "classifier read (curiosity=0.16, confusion=0.07)"
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 63.8,
+          "dominant": "neutral",
+          "applied_deltas": {
+            "fear": 3.8,
+            "happiness": -1.7,
+            "calm": -2.3,
+            "surprise": 1.4
+          },
+          "target_families": {},
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Saturday Nov 21 at Zoe's: learned about Jake's 3 hidden notebooks (Book 3's dark self-loathing) and audited his Spotify Liked Songs (Murphy's Law, S3RL, I Don't Want Your Love). He redlines on projects to keep from sinking, and he's still a dork."
+          ],
+          "gut_appraisal": "classifier read (curiosity=0.16, confusion=0.07)"
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "tick": 24,
+      "speaker": "zoe mercer",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "They all expect me to say something normal, but my hands are shaking so bad I'm just going to hide them under the table. If I disappear into my sleeves, maybe I won't look like a freak.",
+      "speech": "I... I don't know what to say, Astrid.",
+      "emote": "pulls oversized band t-shirt sleeves down over hands and tucks them into the cuffs",
+      "intended_volume": "whisper",
+      "actual_volume": "normal",
+      "volume_slipped": true,
+      "volume_slip_reason": "flustered_volume_slip",
+      "whisper_target": null,
+      "intended_tone": "fear",
+      "cover_lie": false,
+      "actor_latency_ms": 5100.8,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "You pull your sleeves down over your knuckles and tuck inward, your pulse beats fast and tight in your throat, and your jaw and shoulders lock tight. Right now your feelings split by person (toward astrid lopez: fear). At the same time, every nerve wants to back away, freeze still, or get out of here, while every instinct wants you to shrink down, cover your face, or disappear from view. Your thoughts scatter and it is hard to think clearly past the rush.",
+      "heard_by": [
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": null,
+          "perceived_tone": null,
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 56.3,
+          "dominant": "happiness",
+          "applied_deltas": {
+            "fear": 1.4,
+            "happiness": -1.5,
+            "shame": 3.3,
+            "calm": -3.9,
+            "surprise": 5.8
+          },
+          "target_families": {},
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Saturday Nov 21: found Zoe asleep in Jake's bed, then found his 3 hidden notebooks (CAN I REALLY? in red ink, Book 3's self-hatred) and checked his Spotify after Violet's hint (Murphy's Law, Sometimes I Wanna Cry, ORAL HEX, I Don't Want Your Love).",
+            "Friday Nov 20, 4:00 PM: signed the custodial bank card papers in Arthur Mercer's basement for our $500/mo discretionary accounts."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.39, realization=0.05)"
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": null,
+          "perceived_tone": null,
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 55.3,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 9.6,
+            "happiness": -4.9,
+            "calm": -3.9,
+            "surprise": 2.7,
+            "arousal": -2.7
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 25.28
+            },
+            "astrid lopez": {
+              "anger": 13.96,
+              "fear": 22.82,
+              "happiness": 34.72,
+              "shame": 19.52
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 64.7,
+            "breathing": 57.7,
+            "muscle_tension": 68.8,
+            "vasomotor": -26.8,
+            "sweat_chills": 42.2,
+            "gut_throat": 42.5,
+            "eyes_tears": 16.6
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, breathing visibly quick and shallow",
+          "recalled_memories_top2": [
+            "Jake finally checked in — \"hey im her alie im alive!\" — still no explanation for handing Kyrie his phone. Zoe begged everyone to stop screaming in the chat. I told Jake to explain the phone situation and told Kyrie to hold onto it until he does.",
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.18, annoyance=0.05)"
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": null,
+          "perceived_tone": null,
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 59.0,
+          "dominant": "neutral",
+          "applied_deltas": {
+            "calm": -1.4,
+            "surprise": 2.3
+          },
+          "target_families": {},
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Kayla gave Jake a one-digit ultimatum: 1 = handed phone on purpose and will say why, 2 = on purpose but won't say why, 3 = doesn't remember. She also told me to actually look at what Jake had open on the phone, not just hold it. I'm turning it over. Phone stays with me until he says it out loud.",
+            "Saturday Nov 21 at Zoe's: learned about Jake's 3 hidden notebooks (Book 3's dark self-loathing) and audited his Spotify Liked Songs (Murphy's Law, S3RL, I Don't Want Your Love). He redlines on projects to keep from sinking, and he's still a dork."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.15, annoyance=0.02)"
+        },
+        {
+          "listener": "astrid lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": null,
+          "perceived_tone": null,
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 58.3,
+          "dominant": "happiness",
+          "applied_deltas": {
+            "fear": 5.8,
+            "happiness": -2.6,
+            "calm": -6.4,
+            "surprise": 8.8,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "happiness": 52.26,
+              "sadness": 2.18
+            },
+            "zoe mercer": {
+              "surprise": 23.8
+            }
+          },
+          "autonomic_top": {
+            "motor_tone": 22.7
+          },
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "slight softening around their eyes and mouth",
+          "recalled_memories_top2": [
+            "Small-town Millwood reality: if a 16-year-old girl gets pregnant here, Mrs. Arredondo at the pharmacy tells Miss Yolanda before the test dries, then church, then Miss Tillery's office, and it follows her forever. I know three girls who swore they were 'being careful'."
+          ],
+          "gut_appraisal": "classifier read (confusion=0.59, realization=0.03)"
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "tick": 25,
+      "speaker": "astrid lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "I can't let Zoe stay quiet on this; she's terrified of the gossip trail here and I've seen what it does to kids.",
+      "speech": "Zoe, listen to Sammy, but you don't have to carry this weight alone if we're going to stop it before it starts.",
+      "emote": "set your cider cup down on Gerald's bumper with a sharp clink",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 4244.3,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "You feel drawn to share the moment, stay with it, and be generous.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 63.6,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 2.2,
+            "fear": 19.9,
+            "happiness": -16.6,
+            "shame": 9.2,
+            "calm": -22.0,
+            "arousal": -7.9
+          },
+          "target_families": {
+            "sammy lopez": {
+              "fear": 20.16,
+              "shame": 14.56
+            },
+            "astrid lopez": {
+              "fear": 59.82,
+              "happiness": 9.24,
+              "shame": 24.24,
+              "arousal": 0.59
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 69.0,
+            "breathing": 62.8,
+            "muscle_tension": 61.3,
+            "vasomotor": -29.8,
+            "sweat_chills": 51.7,
+            "gut_throat": 58.0,
+            "motor_tone": -24.9,
+            "eyes_tears": 24.9
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw set tight and hands tense, breathing visibly quick and shallow",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Even when things feel warm and surreal at Table 4, my quiet dread is that there are four of us in Oklahoma and real life doesn't leave room for four - and I'm terrified of yelling or being the fourth corner left behind."
+          ],
+          "gut_appraisal": "classifier read (approval=0.04, realization=0.01)"
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 75.3,
+          "dominant": "shame",
+          "applied_deltas": {
+            "fear": 1.0,
+            "shame": 8.0,
+            "calm": -2.2
+          },
+          "target_families": {
+            "astrid lopez": {
+              "shame": 15.96
+            }
+          },
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt.",
+            "Five minutes ago by Bay 2, Kayla's Stanford brother Tobi grilled Jake on code, called him a 'golden goose', told Jake to email him tonight, and told Kayla to marry him ASAP. We've been teasing Kayla about it beside Gerald while eating Maria's flan and pie."
+          ],
+          "gut_appraisal": "classifier read (approval=0.07, realization=0.02)"
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 60.5,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 7.0,
+            "fear": 11.3,
+            "happiness": -7.0,
+            "shame": 12.0,
+            "calm": -9.4,
+            "arousal": -3.9
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 24.24
+            },
+            "astrid lopez": {
+              "fear": 33.1,
+              "shame": 31.04,
+              "anger": 15.0,
+              "happiness": 32.98
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 80.6,
+            "breathing": 71.8,
+            "muscle_tension": 83.5,
+            "vasomotor": -25.5,
+            "sweat_chills": 54.4,
+            "gut_throat": 55.7,
+            "motor_tone": -17.7,
+            "eyes_tears": 22.5
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, breathing visibly quick and shallow",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "classifier read (approval=0.04, realization=0.02)"
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 59.8,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 8.8,
+            "happiness": -4.0,
+            "calm": -5.3,
+            "arousal": -2.2
+          },
+          "target_families": {
+            "astrid lopez": {
+              "fear": 18.82
+            }
+          },
+          "autonomic_top": {},
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "classifier read (approval=0.04, realization=0.02)"
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "tick": 26,
+      "speaker": "kayla jenkins",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "My heart is hammering against my ribs and I need to stop touching my scar before Zoe sees me shaking. If the parents hear us arguing, they'll think we're just another drama queen couple.",
+      "speech": "Zoe, sit still and listen to Astrid; we aren't going anywhere tonight and neither is Jake. Eat your flan before you pass out from all this panic.",
+      "emote": "right index finger stops smoothing eyebrow and curls into a fist",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 5136.9,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "Your right index finger unconsciously smooths the arch of your scarred eyebrow, your heart hammers hard against your ribs, and your jaw clamps tight and your hands tremble slightly as they curl into fists. Right now your feelings split by person (toward zoe mercer: fear; toward astrid lopez: fear). At the same time, every nerve wants to back away, freeze still, or get out of here, while every instinct wants you to shrink down, cover your face, or disappear from view. Holding your face and voice flat is taking real effort. Your thoughts scatter and it is hard to think clearly past the rush.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 70.5,
+          "dominant": "fear",
+          "applied_deltas": {
+            "fear": 6.9,
+            "happiness": -6.1,
+            "love": 3.7,
+            "sadness": 7.1,
+            "calm": -7.2,
+            "surprise": 10.0,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "fear": 19.12,
+              "shame": 14.08
+            },
+            "astrid lopez": {
+              "fear": 58.78,
+              "happiness": 10.2,
+              "shame": 23.76,
+              "arousal": 1.71
+            },
+            "kayla jenkins": {
+              "fear": 16.9,
+              "happiness": 24.6,
+              "sadness": 15.09,
+              "surprise": 25.0,
+              "arousal": 5.87
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 74.8,
+            "breathing": 68.7,
+            "muscle_tension": 66.7,
+            "vasomotor": -32.2,
+            "sweat_chills": 55.6,
+            "gut_throat": 63.0,
+            "motor_tone": -25.7,
+            "eyes_tears": 29.6
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw set tight and hands tense, breathing visibly quick and shallow",
+          "recalled_memories_top2": [
+            "Monday Nov 16 behind the fieldhouse: wind howling through aluminum bleachers, wet mud and gun oil; I saw Jake standing over a crying Tyler with a stripped Glock 19, then Jake's knees gave out in the mud.",
+            "Day 1, 08:01 — I finally broke and DM'd Jake directly instead of joking it off: told him \"alie\" plus handing Kyrie his phone reads like a ransom note, and asked what's going on, warning him not to say \"nothing.\" Didn't mention the drawer or what I saw behind the fieldhouse — I still don't think I've earned that answer."
+          ],
+          "gut_appraisal": "classifier read (caring=0.19, fear=0.10); speaker tried to sound warm/composed, but their voice sounded tight and strained (concern/unease, not calm reassurance)"
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 67.5,
+          "dominant": "shame",
+          "applied_deltas": {
+            "anger": -1.9,
+            "fear": 10.4,
+            "happiness": -4.5,
+            "love": 3.5,
+            "sadness": 4.1,
+            "shame": 3.6,
+            "calm": -6.3,
+            "surprise": 10.0,
+            "arousal": -4.5
+          },
+          "target_families": {
+            "astrid lopez": {
+              "shame": 15.48
+            },
+            "kayla jenkins": {
+              "fear": 20.4,
+              "surprise": 25.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 16.1,
+            "gut_throat": 18.6
+          },
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "looking away slightly, posture pulled inward",
+          "recalled_memories_top2": [
+            "After our night together and the grease-rag fight in Keith's shop, I wiped the grease off his chin and agreed to the daylight treaty: no sneaking around, no lying.",
+            "Saturday Nov 21: found Zoe asleep in Jake's bed, then found his 3 hidden notebooks (CAN I REALLY? in red ink, Book 3's self-hatred) and checked his Spotify after Violet's hint (Murphy's Law, Sometimes I Wanna Cry, ORAL HEX, I Don't Want Your Love)."
+          ],
+          "gut_appraisal": "classifier read (caring=0.18, approval=0.11); speaker tried to sound warm/composed, but their voice sounded tight and strained (concern/unease, not calm reassurance)"
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "strained",
+          "tone_strained": true,
+          "misread_reason": "speaker_body_strain_leak",
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 63.3,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 6.2,
+            "fear": 11.6,
+            "happiness": -4.9,
+            "sadness": 4.9,
+            "shame": 12.0,
+            "calm": -8.0,
+            "surprise": 10.0,
+            "arousal": -4.9
+          },
+          "target_families": {
+            "astrid lopez": {
+              "fear": 17.78
+            },
+            "kayla jenkins": {
+              "anger": 14.19,
+              "fear": 21.63,
+              "shame": 20.0,
+              "surprise": 25.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 33.0,
+            "breathing": 28.7,
+            "muscle_tension": 37.4,
+            "sweat_chills": 18.4,
+            "gut_throat": 19.6
+          },
+          "overloaded": false,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "",
+          "recalled_memories_top2": [
+            "Kayla laid down house rules in the group chat: no wandering alone, buddy system for everything, out before sundown. Jake finally checked in with \"im her alie im alive\" and still hasn't explained why he handed me his phone. I told the group I'm keeping it until he does.",
+            "Kayla gave Jake a one-digit ultimatum: 1 = handed phone on purpose and will say why, 2 = on purpose but won't say why, 3 = doesn't remember. She also told me to actually look at what Jake had open on the phone, not just hold it. I'm turning it over. Phone stays with me until he says it out loud."
+          ],
+          "gut_appraisal": "classifier read (amusement=0.21, joy=0.04); speaker tried to sound warm/composed, but their voice sounded tight and strained (concern/unease, not calm reassurance)"
+        },
+        {
+          "listener": "astrid lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 68.7,
+          "dominant": "happiness",
+          "applied_deltas": {
+            "anger": -2.6,
+            "fear": 4.5,
+            "love": 10.3,
+            "calm": -2.3,
+            "arousal": 2.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "happiness": 50.34
+            },
+            "kayla jenkins": {
+              "love": 35.29
+            }
+          },
+          "autonomic_top": {
+            "motor_tone": 21.7
+          },
+          "overloaded": false,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "slight softening around their eyes and mouth",
+          "recalled_memories_top2": [
+            "Small-town Millwood reality: if a 16-year-old girl gets pregnant here, Mrs. Arredondo at the pharmacy tells Miss Yolanda before the test dries, then church, then Miss Tillery's office, and it follows her forever. I know three girls who swore they were 'being careful'.",
+            "Sammy is sixteen: she still has a stuffed dolphin from Galveston on her bed and cried for two days last year when a friend stopped texting her back. And I have NEVER lied to Mama in my life - that is not a thing I do."
+          ],
+          "gut_appraisal": "classifier read (caring=0.27, fear=0.09)"
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "tick": 27,
+      "speaker": "astrid lopez",
+      "area": "Gravel Driveway by Gerald",
+      "inner_monologue": "Zoe looks like they're about to hyperventilate, and I can't have them fainting near the dessert tables while Mama's listening. I've got the cider, so I'm going to push this conversation toward a concrete plan before the gossip starts.",
+      "speech": "Zoe, here, take a sip of this cider and breathe through the panic while I figure out how to keep us all from getting dragged into a mess before dinner's even over.",
+      "emote": "steps closer to Zoe and offers the paper cup of apple cider",
+      "intended_volume": "normal",
+      "actual_volume": "normal",
+      "volume_slipped": false,
+      "volume_slip_reason": "",
+      "whisper_target": null,
+      "intended_tone": "serious",
+      "cover_lie": false,
+      "actor_latency_ms": 5380.9,
+      "speaker_self_track1": null,
+      "speaker_body_prompt": "You feel drawn to share the moment, stay with it, and be generous.",
+      "heard_by": [
+        {
+          "listener": "zoe mercer",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 67.8,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 2.2,
+            "fear": 8.0,
+            "happiness": -1.2,
+            "shame": 2.0,
+            "calm": -1.0,
+            "arousal": -1.4
+          },
+          "target_families": {
+            "sammy lopez": {
+              "fear": 18.08,
+              "shame": 13.6
+            },
+            "astrid lopez": {
+              "fear": 65.7,
+              "happiness": 0.0,
+              "shame": 23.28,
+              "arousal": 0.0
+            },
+            "kayla jenkins": {
+              "fear": 15.86,
+              "happiness": 25.56,
+              "sadness": 14.57,
+              "surprise": 22.44,
+              "arousal": 6.99
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 76.6,
+            "breathing": 70.5,
+            "muscle_tension": 68.4,
+            "vasomotor": -31.4,
+            "sweat_chills": 56.9,
+            "gut_throat": 64.8,
+            "motor_tone": -27.6,
+            "eyes_tears": 31.1
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [],
+          "observer_tell_seen_by_others": "pulling their sleeves over their hands and hunching into their collar, jaw clamped hard and hands trembling slightly in clenched fists, breathing visibly quick and shallow",
+          "recalled_memories_top2": [
+            "Even when things feel warm and surreal at Table 4, my quiet dread is that there are four of us in Oklahoma and real life doesn't leave room for four - and I'm terrified of yelling or being the fourth corner left behind.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "classifier read (fear=0.78, nervousness=0.10)"
+        },
+        {
+          "listener": "sammy lopez",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 67.4,
+          "dominant": "shame",
+          "applied_deltas": {
+            "fear": 11.2,
+            "happiness": -8.5,
+            "sadness": 1.5,
+            "shame": 16.4,
+            "calm": -4.7,
+            "arousal": -2.6
+          },
+          "target_families": {
+            "astrid lopez": {
+              "shame": 31.38,
+              "fear": 21.16,
+              "happiness": 31.47
+            },
+            "kayla jenkins": {
+              "fear": 19.36,
+              "surprise": 22.44
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 29.7,
+            "breathing": 25.1,
+            "muscle_tension": 28.1,
+            "sweat_chills": 21.3,
+            "gut_throat": 34.9,
+            "motor_tone": -23.9,
+            "eyes_tears": 16.9
+          },
+          "overloaded": true,
+          "suppressed": [],
+          "secondary": [
+            "fear->shame (public exposure)"
+          ],
+          "observer_tell_seen_by_others": "chewing nervously at their bottom lip",
+          "recalled_memories_top2": [
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes.",
+            "Astrid always looked like an effortless 5'10 movie star while I felt boyish and flat in middle school. When she uses my full name 'Samantha' or treats me like a clueless kid, it makes me furious and defensive. I try not to think past senior year because you obviously can't marry four people and it makes my stomach hurt."
+          ],
+          "gut_appraisal": "classifier read (fear=0.09, nervousness=0.04)"
+        },
+        {
+          "listener": "kayla jenkins",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 64.9,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 7.0,
+            "fear": 10.4,
+            "happiness": -8.5,
+            "shame": 12.0,
+            "calm": -5.7,
+            "arousal": -4.7
+          },
+          "target_families": {
+            "zoe mercer": {
+              "fear": 22.16
+            },
+            "astrid lopez": {
+              "fear": 41.38,
+              "shame": 42.08,
+              "happiness": 26.4,
+              "anger": 15.0
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 87.8,
+            "breathing": 76.8,
+            "muscle_tension": 90.0,
+            "sweat_chills": 58.4,
+            "gut_throat": 62.2,
+            "motor_tone": -23.8,
+            "eyes_tears": 24.9
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "smoothing a finger slowly along their scarred eyebrow, jaw clamped hard and hands trembling slightly in clenched fists, breathing visibly quick and shallow",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "classifier read (fear=0.11, nervousness=0.05)"
+        },
+        {
+          "listener": "kyrie johansen",
+          "area": "Gravel Driveway by Gerald",
+          "same_area": true,
+          "distance": null,
+          "intended_tone": "serious",
+          "perceived_tone": "serious",
+          "tone_strained": false,
+          "misread_reason": null,
+          "track1_route": "tier_e_classifier_cpu",
+          "track1_latency_ms": 64.1,
+          "dominant": "fear",
+          "applied_deltas": {
+            "anger": 5.7,
+            "fear": 12.0,
+            "happiness": -4.1,
+            "love": 5.0,
+            "shame": 12.0,
+            "calm": -3.1,
+            "arousal": -3.1
+          },
+          "target_families": {
+            "astrid lopez": {
+              "fear": 28.77,
+              "shame": 20.0
+            },
+            "kayla jenkins": {
+              "anger": 13.15,
+              "fear": 20.59,
+              "shame": 19.52,
+              "surprise": 22.44
+            }
+          },
+          "autonomic_top": {
+            "heart_rate": 51.8,
+            "breathing": 44.9,
+            "muscle_tension": 56.8,
+            "sweat_chills": 30.9,
+            "gut_throat": 33.6
+          },
+          "overloaded": true,
+          "suppressed": [
+            "fear"
+          ],
+          "secondary": [
+            "fear->shame (composed/guarded trait)",
+            "fear->anger (composed/guarded trait)"
+          ],
+          "observer_tell_seen_by_others": "flexing and unflexing their right hand tightly, jaw set tight and hands tense",
+          "recalled_memories_top2": [
+            "Tuesday night Nov 24 on the dark sidewalk: Jake broke down and confessed to Kyrie about his compulsive dark intrusive wiring after a weekend scare despite therapy. Kyrie called Kayla immediately, and we deliberately kept Sammy and Zoe out of it so they wouldn't panic.",
+            "Thanksgiving Nov 26 at Keith's shop: All four of us (Kayla, Sammy, Kyrie, Zoe) are secretly dating Jake Halloway together. Maria Lopez thinks we took a vow of sisterhood; if our parents find out at Thanksgiving dinner twenty feet away, everything explodes."
+          ],
+          "gut_appraisal": "classifier read (fear=0.11, nervousness=0.05)"
+        }
+      ]
+    }
+  ]
+}

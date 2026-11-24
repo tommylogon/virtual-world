@@ -143,7 +143,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             /* Above .tmn-full (1500): the tip is a sibling of the overlay on <body>, so a
                lower z-index put it behind the overlay's opaque background and it
                rendered while remaining invisible. */
-            .tmn-tip { position:fixed; z-index:1600; max-width:320px; background:#0b0f14;
+            .tmn-tip { position:fixed; z-index:10050; max-width:320px; background:#0b0f14;
                        border:1px solid #333a45; border-radius:7px; padding:8px 10px;
                        box-shadow:0 10px 28px rgba(0,0,0,.7); pointer-events:none; display:none; }
             .tmn-tip h5 { margin:0 0 1px; font-size:12.5px; color:#e6edf3; }
@@ -158,7 +158,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
                                        color:#8b949e; }
             .tmn-tip .tmn-chips span.tmn-x { color:#f85149; border-color:#5c2226; }
             .tmn-tip .tmn-chips span.tmn-ok { color:#3fb950; border-color:#1f4a2c; }
-            .tmn-full { position:fixed; inset:0; z-index:1500; background:#010409; padding:20px;
+            .tmn-full { position:fixed; inset:0; z-index:10040; background:#010409; padding:20px;
                         display:flex; flex-direction:column; }
             .tmn-full .tmn-fullbar { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
         `;

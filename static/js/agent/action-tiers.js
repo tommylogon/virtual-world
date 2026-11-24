@@ -6,12 +6,12 @@
  * Single source of truth: engine/action_tiers.py; `tools/action_tiers_index.py
  * --check` fails when this file drifts from it. The browser needs the tier
  * table to drop actions a character can no longer pay for from its remaining
- * turn_slots when the turn prompt is rendered - the hide is guidance only, the
+ * action_points when the turn prompt is rendered - the hide is guidance only, the
  * engine's _slot_gate is the enforcement.
  *
  * @module agent/action-tiers - client mirror of the engine's free/minor/major/activity table
  * @contributes ActionTiers: ACTION_TIERS, ACTION_TIERS, DEFAULT_BUDGET, VALID_TIERS, tierOf, canPay, canAfford
- * @powers the turn prompt - dropping brackets and available actions the remaining turn_slots cannot pay for
+ * @powers the turn prompt - dropping brackets and available actions the remaining action_points cannot pay for
  * @relates mirrors engine/action_tiers.py; checked by tools/action_tiers_index.py --check
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */

@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "task-996",
+  "kind": "task",
+  "number": 996,
+  "title": "Add spatial proximity (same_area, distance, intra-room hops) to subjective speech tone perception",
+  "status": "review",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "speech",
+    "emotions",
+    "perception",
+    "spatial"
+  ],
+  "created": "2026-11-21",
+  "updated": "2026-11-22",
+  "horizon": "now",
+  "effort": "S",
+  "goal": "Make listener-side speech tone and vocal-strain perception physically grounded in spatial proximity (same area, cross-area distance, and intra-room hops).",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "task-994"
+    ],
+    "related": [
+      "task-994",
+      "task-1000"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Extend perceive_speech_tone() in engine/speech_tone.py and SpeechBroadcaster._append_hearing_entry() in engine/speech.py so subjective tone and vocal-strain detection accounts for same_area, cross-area sound distance, and intra-room proximity_hops.",
+    "why": "Currently perceive_speech_tone() (engine/speech_tone.py:275-374) filters delivery tone only through speaker strain, listener mood, closeness, and Insight (WIS), ignoring physical distance. A listener in an adjacent area (distance >= 1) catches subtle vocal tightness on a casual/warm cover line as easily as someone standing two feet away, even though SpeechBroadcaster._append_hearing_entry() (engine/speech.py:251-317, 457, 502-507) already has distance and engine/character_spatial.py already computes intra-room proximity_hops() (lines 261-295).",
+    "how": "1. Extend perceive_speech_tone() in engine/speech_tone.py (lines 275-374) with optional same_area: Optional[bool] = None, distance: Optional[int] = None, and proximity_hops: Optional[int] = None.\n2. Dampen subtle vocal-strain detection (_speaker_is_strained, lines 200-230) and subtle sarcasm detection when same_area is False (distance >= 1) or when same_area is True across the room (proximity_hops is None when spatial hops were checked): cross-area listeners ignore non-overloaded micro-strain and only catch speaker_overloaded strain at distance == 1 with high closeness/Insight; distant listeners are also more likely to miss subtle sarcasm.\n3. Update SpeechBroadcaster._append_hearing_entry() in engine/speech.py (lines 294-313) to compute same_area=(distance is None) and intra-room proximity_hops() via engine/character_spatial.py (lines 261-295) when both character node IDs exist in self.graph, forwarding them to perceive_speech_tone().\n4. Forward optional same_area/distance/proximity_hops in prototypes/emotions/viwo_adapter.py so prototype appraisals match production speech tone filtering.\n5. Add unit tests in tests/test_speech_tone.py covering same-area close vs across-room vs cross-area strain and sarcasm perception.",
+    "verify": "Run pytest tests/test_speech_tone.py tests/test_sound.py tests/test_spatial_invariants.py prototypes/emotions/test_prototypes.py -v and verify same-area close listeners catch strained cover lines while adjacent-area listeners perceive the casual/warm delivery.",
+    "acceptance": [
+      {
+        "text": "perceive_speech_tone() in engine/speech_tone.py accepts optional same_area, distance, and proximity_hops parameters with full backwards compatibility when omitted.",
+        "done": true
+      },
+      {
+        "text": "Cross-area listeners (same_area=False or distance >= 1) and across-the-room listeners (same_area=True, proximity_hops=None) require stronger overload/closeness/Insight thresholds to detect subtle vocal strain or sarcasm than close same-area listeners (proximity_hops in (1, 2)).",
+        "done": true
+      },
+      {
+        "text": "SpeechBroadcaster._append_hearing_entry() in engine/speech.py passes same_area, distance, and derived proximity_hops() from engine/character_spatial.py into perceive_speech_tone().",
+        "done": true
+      },
+      {
+        "text": "tests/test_speech_tone.py verifies that a strained warm/teasing cover line leaks as strained to a close same-area listener while landing unstrained as warm/teasing to an adjacent-area listener.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/speech_tone.py",
+      "engine/speech.py",
+      "engine/character_spatial.py",
+      "prototypes/emotions/viwo_adapter.py",
+      "tests/test_speech_tone.py"
+    ],
+    "custom": {
+      "browser_ui": "No new UI widgets required. Uses the existing #htc-tone selector (static/js/agent/human-turn-composer.ts) and witnessed/heard speech rendering in static/js/agent/prompt-builder/room-context.ts. Manual check: have a strained speaker deliver a warm or teasing cover line in one area while a close character stands beside them and another listener stands in an adjacent open area; verify the close listener prompt shows strained delivery while the distant listener prompt reads the intended casual/warm delivery."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Features/talk-speak.md",
+      "docs/virtualWorld/Features/whisper-shout.md"
+    ],
+    "docs": [
+      "docs/design/emotion-system-redesign.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "pytest tests/test_speech_tone.py tests/test_sound.py tests/test_spatial_invariants.py prototypes/emotions/test_prototypes.py: 100 passed in 8.93s (including test_perceive_speech_tone_spatial_proximity and test_broadcast_speech_cross_area_distance_dampens_strain)."
+  ],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-21T20:08:36Z"
+    }
+  ]
+}

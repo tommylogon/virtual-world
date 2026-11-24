@@ -52,6 +52,7 @@ CRITICAL: If your action was rejected or failed (the === WHAT HAPPENED === secti
         action_inscribe: '"action":"use_on","item":"ink pen","target":"parchment","text":"..."',
         speech: '"speech":"..."',
         volume: '"volume":"say"',
+        tone: '"tone":null',
         emote: '"emote":"..."',
         memory: '"memory":{"text":"...","importance":7,"tags":["..."]}',
         memory_emotions: '"memory":{"text":"...","importance":7,"emotions":{"who":"the man","why":"he blocked my way","data":{"fear":2,"affection":-4,"disgust":1,"anger":1}}}',
@@ -62,7 +63,7 @@ CRITICAL: If your action was rejected or failed (the === WHAT HAPPENED === secti
         dash_go: '"action":"go","target":"<exit name from the exits above>"',
         dash_wait: '"action":"wait"',
         silent_action: '"action":"wait"',
-        full_action: '"inner_monologue":"...","action":"...","item":null,"target":null,"text":null,"speech":null,"volume":"say","emote":null,"memory":null,"emotion":null,"learned_names":[]',
+        full_action: '"inner_monologue":"...","action":"...","item":null,"target":null,"text":null,"speech":null,"volume":"say","tone":null,"emote":null,"learned_names":[]',
     };
     /** Build a pretty-printed JSON example string from ordered JSON_FIELDS keys. */
     function buildJsonExample(fieldKeys) {

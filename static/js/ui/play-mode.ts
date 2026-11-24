@@ -62,14 +62,32 @@ const PlayMode = (() => {
         }
     }
 
+    let _prePlayBranchId = 'main';
+
     async function enter(): Promise<boolean> {
-        if (_busy) return _isPlaying;
+        if (_busy || _isPlaying) return _isPlaying;
         _busy = true;
         try {
             const data = (await ApiClient.enterPlayMode()) as PlayModeStatusResponse;
             if (data.error) throw new Error(data.error);
 
             updateUI(true);
+            // Fork a dedicated Timeline branch for this Play Mode run
+            try {
+                const brResp = await fetch('/api/timeline/branches');
+                if (brResp.ok) {
+                    const brData = await brResp.json();
+                    _prePlayBranchId = String(brData?.active_branch_id || 'main');
+                }
+                const curTick = Number((window as any).VW?.state?.tick ?? 0) || 0;
+                await fetch('/api/timeline/fork', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ label: `Play @ Tick ${curTick}`, fork_tick: curTick, switch: true }),
+                });
+                await (window as any).TimelineBar?.refresh?.();
+            } catch { /* timeline fork is best-effort */ }
+
             // Play Mode owns the event stream for the duration of the run: the
             // authored log is parked, so no transient row can survive Stop.
             const ev = (window as any).events;
@@ -97,7 +115,7 @@ const PlayMode = (() => {
     }
 
     async function stop(): Promise<boolean> {
-        if (_busy) return _isPlaying;
+        if (_busy || !_isPlaying) return _isPlaying;
         _busy = true;
         try {
             // If the autonomous agent loop is active, stop it first
@@ -110,6 +128,16 @@ const PlayMode = (() => {
             if (data.error) throw new Error(data.error);
 
             updateUI(false);
+
+            // Switch Timeline back to the pre-play branch (authored snapshot already restored)
+            try {
+                await fetch('/api/timeline/switch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ branch_id: _prePlayBranchId || 'main', restore: false }),
+                });
+                await (window as any).TimelineBar?.refresh?.();
+            } catch { /* best-effort */ }
 
             // Refresh live world state back to restored authored snapshot
             const ws = (window as any).worldState;

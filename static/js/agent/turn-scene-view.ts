@@ -223,15 +223,15 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
     function slotsOf(): Record<string, number> | null {
         const ws = (window as unknown as {
             worldState?: {
-                data?: { active_player?: string; players?: Record<string, { turn_slots?: Record<string, number> }> };
-                runtimeData?: { active_player?: string; players?: Record<string, { turn_slots?: Record<string, number> }> };
-                runtimePlayer?: (name: string) => { turn_slots?: Record<string, number> } | null;
+                data?: { active_player?: string; players?: Record<string, { action_points?: Record<string, number> }> };
+                runtimeData?: { active_player?: string; players?: Record<string, { action_points?: Record<string, number> }> };
+                runtimePlayer?: (name: string) => { action_points?: Record<string, number> } | null;
             };
         }).worldState;
         const d = ws && (ws.runtimeData || ws.data);
         const p = d && d.players && d.active_player
             ? (ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player]) : undefined;
-        const s = p ? p.turn_slots : null;
+        const s = p ? p.action_points : null;
         if (!s || typeof s !== 'object' || !Object.keys(s).length) return null;
         return s;
     }

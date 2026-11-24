@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "id": "task-994",
+  "kind": "task",
+  "number": 994,
+  "title": "Speech tone of delivery (intended tone to listener-perceived tone)",
+  "status": "review",
+  "priority": "high",
+  "area": "emotions",
+  "tags": [
+    "speech",
+    "emotions",
+    "perception",
+    "prompting",
+    "ui"
+  ],
+  "created": "2026-11-21",
+  "updated": "2026-11-22",
+  "horizon": "now",
+  "effort": "M",
+  "goal": "Add subjective speech delivery tone alongside speech volume so dialogue prosody shapes listener perception and emotion appraisal without telepathy.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [
+      "task-996",
+      "task-997",
+      "task-998",
+      "task-1000"
+    ],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add an optional speech delivery tone channel alongside existing speech volume (whisper/say/sing/shout/scream), split strictly into speaker intended_tone and per-listener subjective perceived_tone, and integrate it across both the VirtualWorld speech pipeline and all 4 emotion prototypes (A, B, C, D).",
+    "why": "Plain dialogue text strips vocal prosody: the same words (\"You're a bitch\" or \"Oh, you really tried your best\") mean opposite things when delivered teasingly vs sarcastically vs hostily, and human players currently cannot indicate delivery next to volume in HumanTurnComposer. Unlike physical volume, tone is subjective perception rather than telepathy, so filtering intended_tone through speaker involuntary body strain, listener moodiness, closeness, and Insight preserves actor isolation and prevents small models or bag-of-words rules from misreading banter and sarcasm.",
+    "how": "1. Create engine/speech_tone.py as the single source of truth for the optional 8-value delivery vocabulary (warm, teasing, sarcastic, cold, hostile, serious, apologetic, guarded), synonym normalization, natural adverb rendering, and subjective listener-side perceive_speech_tone() filtering (speaker overload/body leak -> strained; listener shame/anger/distance -> teasing misread as mocking; low-Insight stranger -> subtle sarcasm missed). 2. Wire optional tone (and fix missing lang forwarding in VirtualWorld.broadcast_speech) through routes/action_handlers.py ([tone:<val>] prefix alongside [lang:<val>]), virtual_world_engine.py, engine/narration.py, and engine/speech.py (per-listener perceived_tone on recent_hearing + tone metadata on turn_events). 3. Extend TS speech handling in system-prompt.ts (SPEECH_VOLUME), action-normalizer.ts (extractSpeechVolume / extractSpeechTone), response-parser.ts (ParsedReaction.speechTone), human-turn-composer.ts (#htc-tone selector), agent-engine.ts (_speakLine prefixing [tone:...] and subtle stream label), and room-context.ts (natural prosody phrasing on witnessed and heard speech). 4. Wire intended_tone -> perceived_tone into EmotionEvent, ViwoEmotionHarness, all 4 emotion prototypes (A, B, C, D), Lab UI, and a 4-case tone benchmark scenario, then verify with pytest, npm typecheck/build/unit, and live LM Studio 4-way testing.",
+    "verify": "Run pytest tests/test_speech_tone.py prototypes/emotions/test_prototypes.py -v, npm run typecheck, npm run build:ts, npm run unit, and python prototypes/emotions/run_compare.py --model google/gemma-4-e4b --track2. Verify teasing from a steady close friend lands warm, teasing to an ashamed listener mislands as mocking, sarcastic delivery is caught across A/B/C/D, and warm delivery from an overloaded speaker leaks as strained.",
+    "acceptance": [
+      {
+        "text": "engine/speech_tone.py defines the canonical optional 8-tone vocabulary (warm, teasing, sarcastic, cold, hostile, serious, apologetic, guarded), normalize_speech_tone(), perceive_speech_tone(), and format_tone_adverb().",
+        "done": true
+      },
+      {
+        "text": "routes/action_handlers.py parses optional [tone:<value>] prefixes (alongside [lang:<value>]) on say/speak/whisper/shout/scream/sing commands and forwards tone and lang through VirtualWorld.broadcast_speech -> NarrationSystem.broadcast_speech -> SpeechBroadcaster.broadcast_speech.",
+        "done": true
+      },
+      {
+        "text": "SpeechBroadcaster._append_hearing_entry computes subjective listener-side perceived_tone per hearer (accounting for speaker involuntary overload leak, listener prior moodiness, closeness, and Insight) instead of leaking raw omniscient speaker intent.",
+        "done": true
+      },
+      {
+        "text": "TS agent and human speech pipeline (system-prompt.ts, action-normalizer.ts, response-parser.ts, human-turn-composer.ts, agent-engine.ts, room-context.ts) supports optional speech tone end-to-end, compiles cleanly with npm run typecheck and npm run build:ts, and passes npm run unit.",
+        "done": true
+      },
+      {
+        "text": "All 4 emotion prototypes (A, B, C, D) and the Emotion Lab UI consume intended_tone -> perceived_tone and pass both pytest and the live 4-way LM Studio benchmark across teasing, mood-misread mocking, sarcastic, and strained-warmth cases.",
+        "done": true
+      }
+    ],
+    "files": [
+      "engine/speech_tone.py",
+      "engine/speech.py",
+      "engine/narration.py",
+      "virtual_world_engine.py",
+      "routes/action_handlers.py",
+      "static/js/agent/prompt-builder/system-prompt.ts",
+      "static/js/agent/action-normalizer.ts",
+      "static/js/agent/response-parser.ts",
+      "static/js/agent/human-turn-composer.ts",
+      "static/js/agent-engine.ts",
+      "static/js/agent/prompt-builder/room-context.ts",
+      "tests/test_speech_tone.py",
+      "prototypes/emotions/schema.py",
+      "prototypes/emotions/viwo_adapter.py",
+      "prototypes/emotions/proto_a_matrix.py",
+      "prototypes/emotions/proto_b_semantic.py",
+      "prototypes/emotions/proto_c_dual_mind.py",
+      "prototypes/emotions/proto_d_unified.py",
+      "prototypes/emotions/scenarios.py",
+      "prototypes/emotions/run_compare.py",
+      "prototypes/emotions/lab_app.py",
+      "prototypes/emotions/test_prototypes.py"
+    ],
+    "custom": {
+      "browser_ui": "In the Human Turn Composer (static/js/agent/human-turn-composer.ts), add a compact optional tone select (#htc-tone) inline in the say row next to #htc-volseg defaulting to plain (empty value -> null). In the Emotion Lab UI (prototypes/emotions/lab_app.py), add a matching Speech Tone dropdown and speaker-overloaded toggle with quick presets. Visually verify that plain speech omits tone tags while non-neutral delivery renders naturally in stream and room context."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Features/talk-speak.md",
+      "docs/virtualWorld/Features/whisper-shout.md"
+    ],
+    "docs": [
+      "docs/design/emotion-system-redesign.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [
+    "pytest tests/test_speech_tone.py prototypes/emotions/test_prototypes.py: 29 passed in 6.45s (all 4 prototypes A/B/C/D across all 6 scenarios including teasing, mood-misread mocking, sarcastic, and strained-warmth).",
+    "Regression tests: pytest tests/test_hearsay_places.py tests/test_speech_triggers.py tests/test_name_learning.py: 19 passed.",
+    "Frontend TS/JS: npm run typecheck (0 errors), npm run build:ts (0 errors), node tools/unit/run.cjs test_response_parser.js (8 passed, 0 failed).",
+    "Live 4-way LM Studio benchmark (google/gemma-4-e4b + text-embedding-nomic-embed-text-v1.5@q4_k_m on 127.0.0.1): A median 0.4ms (14/14), B median 28.2ms (14/14), C median 1567ms (13/14 LLM + 1 fallback), D median 1588ms (11 tier_abc_full + 3 tier_ab_fast, goblin Skrit 37.3ms 0 LLM). All 4 engines passed teasing->teasing, teasing->mocking, sarcastic->sarcastic, and warm->strained; D also suppressed C's spurious arousal=+20 on friendly teasing."
+  ],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "inprogress",
+      "at": "2026-11-21T17:40:40Z"
+    },
+    {
+      "from": "inprogress",
+      "to": "review",
+      "at": "2026-11-21T17:53:43Z"
+    }
+  ]
+}

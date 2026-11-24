@@ -61,10 +61,10 @@ class StreamRawLLM {
             bubble.setAttribute('data-phase', meta.phase);
         const header = document.createElement('div');
         header.className = 'rawllm-chip-header';
-        this._bus._tickLabel(bubble); // stamps data-seq
+        const tickLabel = this._bus._tickLabel(bubble); // stamps data-seq
         window.Lit.render(window.Lit.html `
             <span class="bubble-icon">${icon}</span>
-            <span class="bubble-tick">[Tick ${tick} | ${this._bus.tickToTime(tick)}]</span>
+            <span class="bubble-tick">[${tickLabel}]</span>
             <span class="bubble-actor bubble-rawllm-actor">${labelText}</span>
             <span class="rawllm-toggle">▸</span>`, header);
         const body = document.createElement('pre');

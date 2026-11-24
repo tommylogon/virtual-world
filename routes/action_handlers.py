@@ -872,9 +872,9 @@ def handle_take_action(app):
         _arm_dash = False
         if _slot_player is not None and data.get("enforce_slots"):
             from engine import action_tiers as _at
-            _slots = getattr(_slot_player, "turn_slots", None)
+            _slots = getattr(_slot_player, "action_points", None)
             if not _slots:
-                _slot_player.turn_slots = _slots = {}
+                _slot_player.action_points = _slots = {}
                 _at.reset_slots(_slots)
             _action = (cmd.split(" ", 1)[0] if cmd else "").lower()
             # task-784: one rule for every budgeted actor  -  a dash is a two-hop
@@ -2239,12 +2239,10 @@ def handle_take_action(app):
                     if cmd.startswith(_pfx):
                         speech = cmd[len(_pfx):].strip()
                         break
-                # Human-typed quoted lines: unwrap ONLY when the whole line is wrapped
-                explicit_lang = None
-                lang_match = re.match(r'^\[lang:([^\]]+)\]\s*(.+)$', speech, re.IGNORECASE | re.DOTALL)
-                if lang_match:
-                    explicit_lang = lang_match.group(1).strip()
-                    speech = lang_match.group(2).strip()
+                # Human-typed quoted lines & optional [lang:...]/[tone:...] prefixes (in any order).
+                from engine.speech_tone import format_tone_adverb, strip_speech_prefixes
+
+                speech, explicit_lang, explicit_tone = strip_speech_prefixes(speech)
                 if len(speech) >= 2 and ((speech[0] == '"' and speech[-1] == '"')
                                          or (speech[0] == "'" and speech[-1] == "'")):
                     speech = speech[1:-1].strip()
@@ -2254,6 +2252,12 @@ def handle_take_action(app):
                     if target_match:
                         whisper_target = target_match.group(1).strip()
                         speech = target_match.group(2).strip()
+                        # Allow `[tone:...]` / `[lang:...]` after `to <target>:` too.
+                        speech, post_lang, post_tone = strip_speech_prefixes(speech)
+                        if post_lang and not explicit_lang:
+                            explicit_lang = post_lang
+                        if post_tone and not explicit_tone:
+                            explicit_tone = post_tone
                 elif cmd.startswith("shout "):
                     speech_level = "shout"
                 elif cmd.startswith("scream "):
@@ -2274,20 +2278,23 @@ def handle_take_action(app):
                         speech_level=speech_level,
                         whisper_target=whisper_target,
                         lang=explicit_lang,
+                        tone=explicit_tone,
                     )
+                    tone_adv = format_tone_adverb(explicit_tone)
+                    tone_suffix = f" ({tone_adv})" if tone_adv else ""
                     if speech_level == "whisper":
                         if whisper_target:
-                            add_output(f'[{world.active_player}] whispers to {whisper_target}: "{speech}"')
+                            add_output(f'[{world.active_player}] whispers to {whisper_target}{tone_suffix}: "{speech}"')
                         else:
-                            add_output(f'[{world.active_player}] whispers: "{speech}"')
+                            add_output(f'[{world.active_player}] whispers{tone_suffix}: "{speech}"')
                     elif speech_level == "shout":
-                        add_output(f'[{world.active_player}] shouts: "{speech}"')
+                        add_output(f'[{world.active_player}] shouts{tone_suffix}: "{speech}"')
                     elif speech_level == "scream":
-                        add_output(f'[{world.active_player}] screams: "{speech}"')
+                        add_output(f'[{world.active_player}] screams{tone_suffix}: "{speech}"')
                     elif speech_level == "sing":
-                        add_output(f'[{world.active_player}] sings: "{speech}"')
+                        add_output(f'[{world.active_player}] sings{tone_suffix}: "{speech}"')
                     else:
-                        add_output(f'[{world.active_player}] says: "{speech}"')
+                        add_output(f'[{world.active_player}] says{tone_suffix}: "{speech}"')
                 else:
                     add_output("You try to speak, but nothing comes out.")
 

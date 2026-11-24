@@ -487,7 +487,9 @@ class LLMClient {
                     headers['Authorization'] = 'Bearer ' + this.apiKey;
                 }
                 let endpointUrl = base + (isResponses ? '/responses' : '/chat/completions');
-                if (isLMStudio) {
+                const nativeDisabledKey = `vw_lms_native_404_${base}`;
+                const nativeDisabled = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(nativeDisabledKey) === '1';
+                if (isLMStudio && !nativeDisabled) {
                     const hostBase = base.replace(/\/v1\/?$/, '');
                     endpointUrl = hostBase + '/api/v1/chat';
                 }
@@ -513,6 +515,15 @@ class LLMClient {
                             headers,
                             body: JSON.stringify(requestBody), signal
                         });
+                        if (isLMStudio && resp.status === 404 && endpointUrl.endsWith('/api/v1/chat')) {
+                            if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(nativeDisabledKey, '1');
+                            endpointUrl = base + '/chat/completions';
+                            resp = await fetch(endpointUrl, {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify(requestBody), signal
+                            });
+                        }
                     } catch (fetchErr: any) {
                         const isRemote = endpointUrl.startsWith('https://') && !endpointUrl.includes('localhost') && !endpointUrl.includes('127.0.0.1');
                         if (typeof window !== 'undefined' && isRemote && !signal?.aborted) {
@@ -531,8 +542,9 @@ class LLMClient {
                 if (!resp.ok) {
                     let errText = '';
                     let errBody = null;
-                    try { errBody = await resp.json(); errText = errBody.error?.metadata?.raw || errBody.error?.message || JSON.stringify(errBody); }
-                    catch (e) { errText = await resp.text(); errBody = { text: errText }; }
+                    const rawErr = await resp.text();
+                    try { errBody = JSON.parse(rawErr); errText = errBody.error?.metadata?.raw || errBody.error?.message || JSON.stringify(errBody); }
+                    catch (e) { errText = rawErr; errBody = { text: errText }; }
                     // Capture provider error shapes (400/429/500) too (task-405).
                     this._captureRawExchange(label, requestBody, errBody || { error: errText }, resp, startedAt, headers);
                     // Provider rejected structured output (unknown param, json

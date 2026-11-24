@@ -70,7 +70,7 @@ window.PromptBuilder = window.PromptBuilder || {};
     /**
      * task-352: can the remaining turn slots pay for *actionWord* on *props*?
      * Guidance only  -  the engine's `_slot_gate` is the enforcement. With no
-     * budget published (older callers, no `turn_slots`) nothing is hidden, so
+     * budget published (older callers, no `action_points`) nothing is hidden, so
      * this degrades to the pre-budget rendering.
      */
     function affordable(actionWord: string, props: ItemProps | null | undefined, slots: Record<string, number> | null | undefined): boolean {
@@ -385,7 +385,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param item  - { id, name, properties } (as returned by getItemsInArea)
      * @param player - Player data (memory_index, memories)
      * @param carry - { equipped } when the item is carried/equipped
-     * @param slots - remaining turn_slots; when present, actionNames the budget cannot pay for are dropped
+     * @param slots - remaining action_points; when present, actionNames the budget cannot pay for are dropped
      * @returns actionNames in BRACKET_ORDER
      */
     function computeItemActions(item: ContextualActionsItemNode, player: PlayerLike, carry?: CarryFlag | null, slots?: Record<string, number> | null): string[] {
@@ -430,7 +430,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (!(carry && carry.equipped) && !isDiscovered(player, item?.name || '') && !isIntrinsicAbility(props)) actionNames.add('examine');
 
         const list = BRACKET_ORDER.filter(v => actionNames.has(v));
-        // task-352: drop actionNames the remaining turn_slots cannot pay for. Guidance
+        // task-352: drop actionNames the remaining action_points cannot pay for. Guidance
         // only  -  the engine's `_slot_gate` still enforces. No budget → no hide.
         if (!slots) return list;
         return list.filter(v => affordable(v, props, slots));
@@ -456,7 +456,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param charName - Character name
      * @param player - Player data
      * @param currentArea - Current area data object (exits, name)
-     * @param slots - remaining turn_slots; when present, actionNames the budget cannot pay for are dropped
+     * @param slots - remaining action_points; when present, actionNames the budget cannot pay for are dropped
      * @returns The block ('' if nothing would be listed  -  never happens)
      */
     /**
@@ -535,7 +535,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             : (currentArea?.exits || {});
         const visibleExits = Object.entries(viewExits).filter(([, ed]) => !ed.hidden);
 
-        // task-352: `keep` drops a suggested actionWord the remaining turn_slots cannot
+        // task-352: `keep` drops a suggested actionWord the remaining action_points cannot
         // pay for (guidance only  -  the engine's `_slot_gate` enforces). No budget
         // published → nothing hidden. `wait` is exempt (see below): it is the
         // turn's exit.

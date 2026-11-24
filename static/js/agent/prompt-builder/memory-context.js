@@ -20,6 +20,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
     const _intermediatorCache = new Map();
+    const _INTERMEDIATOR_FAIL_COOLDOWN_MS = 30000;
     /**
      * Strip baked-in deictic prefixes (`[just now]`, `Earlier today (8:00 AM):`,
      * `Today:`, `Just now:`) so persisted and formatted memories carry canonical
@@ -79,8 +80,13 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (config?.memoryIntermediator === false)
             return null;
         const cached = _intermediatorCache.get(charName);
-        if (cached && cached.sig === cueSig && cached.thought) {
-            return cached.thought;
+        if (cached) {
+            if (cached.sig === cueSig && cached.thought) {
+                return cached.thought;
+            }
+            if (cached.thought === null && cached.failedAt && (Date.now() - cached.failedAt) < _INTERMEDIATOR_FAIL_COOLDOWN_MS) {
+                return null;
+            }
         }
         const memClient = (typeof config?.getMemoryLLMClient === 'function')
             ? config.getMemoryLLMClient()
@@ -136,8 +142,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         try {
             const response = await memClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5, streaming: false, label: 'intermediator', reasoningEffort: 'low' });
             const raw = String(response || '').trim();
-            if (!raw)
+            if (!raw) {
+                _intermediatorCache.set(charName, { sig: cueSig, thought: null, failedAt: Date.now() });
                 return null;
+            }
             let thought = raw;
             let importance = 6;
             const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -197,6 +205,8 @@ window.PromptBuilder = window.PromptBuilder || {};
             return thought;
         }
         catch (e) {
+            console.warn('[Intermediator] failed:', e);
+            _intermediatorCache.set(charName, { sig: cueSig, thought: null, failedAt: Date.now() });
             return null;
         }
     }

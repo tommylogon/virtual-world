@@ -28,12 +28,15 @@ class StreamTurnCards {
         this.close();
         const card = document.createElement('div');
         card.className = 'turn-card';
+        const curTick = Number(window.VW?.state?.tick ?? 0) || 0;
         card.setAttribute('data-actor', charName);
+        card.setAttribute('data-tick', String(curTick));
         window.Lit.render(window.Lit.html `
             <div class="turn-card-header">
                 <span class="turn-card-collapse">▾</span>
                 <span class="turn-card-actor">${charName}</span>
                 <span class="turn-card-tick">[${this._bus._turnLabel()}]</span>
+                <button class="turn-card-redo" title="Fork a timeline branch right before this turn and redo this character's decision" style="margin-left:auto;background:transparent;border:1px solid var(--border,#30363d);border-radius:3px;color:var(--text-muted,#8b949e);font-size:10px;padding:0 5px;cursor:pointer;">↺ Redo</button>
             </div>
             <div class="turn-card-body"></div>`, card);
         streamEl.appendChild(card);
@@ -64,6 +67,35 @@ class StreamTurnCards {
                     collapse.textContent = hidden ? '▾' : '▸';
             }
         });
+        const redoBtn = card.querySelector('.turn-card-redo');
+        if (redoBtn && !redoBtn.dataset.bound) {
+            redoBtn.dataset.bound = '1';
+            redoBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const character = card.getAttribute('data-actor') || '';
+                const atTick = Number(card.getAttribute('data-tick') || 0) || 0;
+                if (!character)
+                    return;
+                redoBtn.disabled = true;
+                try {
+                    const resp = await fetch('/api/timeline/redo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ character, at_tick: atTick }),
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        const label = data?.branch?.label || `Redo ${character}`;
+                        window.VW?.ui?.setStatus?.(`Forked branch: ${label}`, 'info');
+                        await window.TimelineBar?.refresh?.();
+                        await window.worldState?.fetch?.();
+                    }
+                }
+                finally {
+                    redoBtn.disabled = false;
+                }
+            });
+        }
     }
     /** Re-bind collapse handlers after IndexedDB restore. */
     rebindAll(streamEl) {

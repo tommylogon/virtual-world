@@ -216,7 +216,7 @@ window.TurnSceneView = (() => {
         const d = ws && (ws.runtimeData || ws.data);
         const p = d && d.players && d.active_player
             ? (ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player]) : undefined;
-        const s = p ? p.turn_slots : null;
+        const s = p ? p.action_points : null;
         if (!s || typeof s !== 'object' || !Object.keys(s).length)
             return null;
         return s;

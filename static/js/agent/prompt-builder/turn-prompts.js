@@ -110,10 +110,10 @@ window.PromptBuilder = window.PromptBuilder || {};
             : '\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?';
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'language', 'size', 'activity', 'grappled', 'slots', 'mosiac', 'ghost', 'dead']);
-        // End-of-turn memory and Reactor memory creation are retired (task-949).
-        const schemaFields = ['inner_monologue', 'action_use_on', 'speech', 'volume', 'emote'];
+        // End-of-turn memory and LLM-authored emotion numbers are retired (task-949, task-1001).
+        const schemaFields = ['inner_monologue', 'action_use_on', 'speech', 'volume', 'tone', 'emote'];
         if (includeFeelings || includeMemory)
-            schemaFields.push('emotion_toward', 'learned_names');
+            schemaFields.push('learned_names');
         // Fix #7: explicit budget guard in decide phase (includeFeelings=true)
         const isDecidePhase = includeFeelings;
         const budgetGuard = isDecidePhase
@@ -187,11 +187,11 @@ ${PromptBuilder.EMOTE_RULES_REACT}
 
 Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same key twice.
 If you speak:
-${PromptBuilder.buildJsonExample(['inner_monologue', 'speech', 'volume', 'emote', 'emotion_toward', 'learned_names'])}
+${PromptBuilder.buildJsonExample(['inner_monologue', 'speech', 'volume', 'tone', 'emote', 'learned_names'])}
 If you stay silent but emote:
-{"inner_monologue":"...","speech":null,"volume":null,"emote":"...","emotion":[{"label":"...","intensity":5,"toward":null}],"learned_names":[]}
+{"inner_monologue":"...","speech":null,"volume":null,"tone":null,"emote":"...","learned_names":[]}
 If you have nothing to react with:
-{"inner_monologue":"...","speech":null,"volume":null,"emote":null,"emotion":[],"learned_names":[]}`;
+{"inner_monologue":"...","speech":null,"volume":null,"tone":null,"emote":null,"learned_names":[]}`;
     }
     /**
      * Build the chained follow-up prompt after an action with a CHAIN_RULES

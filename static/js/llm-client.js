@@ -400,7 +400,9 @@ class LLMClient {
                     headers['Authorization'] = 'Bearer ' + this.apiKey;
                 }
                 let endpointUrl = base + (isResponses ? '/responses' : '/chat/completions');
-                if (isLMStudio) {
+                const nativeDisabledKey = `vw_lms_native_404_${base}`;
+                const nativeDisabled = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(nativeDisabledKey) === '1';
+                if (isLMStudio && !nativeDisabled) {
                     const hostBase = base.replace(/\/v1\/?$/, '');
                     endpointUrl = hostBase + '/api/v1/chat';
                 }
@@ -425,6 +427,16 @@ class LLMClient {
                             headers,
                             body: JSON.stringify(requestBody), signal
                         });
+                        if (isLMStudio && resp.status === 404 && endpointUrl.endsWith('/api/v1/chat')) {
+                            if (typeof sessionStorage !== 'undefined')
+                                sessionStorage.setItem(nativeDisabledKey, '1');
+                            endpointUrl = base + '/chat/completions';
+                            resp = await fetch(endpointUrl, {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify(requestBody), signal
+                            });
+                        }
                     }
                     catch (fetchErr) {
                         const isRemote = endpointUrl.startsWith('https://') && !endpointUrl.includes('localhost') && !endpointUrl.includes('127.0.0.1');
@@ -444,12 +456,13 @@ class LLMClient {
                 if (!resp.ok) {
                     let errText = '';
                     let errBody = null;
+                    const rawErr = await resp.text();
                     try {
-                        errBody = await resp.json();
+                        errBody = JSON.parse(rawErr);
                         errText = errBody.error?.metadata?.raw || errBody.error?.message || JSON.stringify(errBody);
                     }
                     catch (e) {
-                        errText = await resp.text();
+                        errText = rawErr;
                         errBody = { text: errText };
                     }
                     // Capture provider error shapes (400/429/500) too (task-405).

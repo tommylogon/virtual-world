@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "task-1002",
+  "kind": "task",
+  "number": 1002,
+  "title": "Python Agent Migration Phase 2: Port Prompt Builder (12 modules) to engine/agent/prompt_builder/",
+  "status": "todo",
+  "priority": "high",
+  "area": "prompting",
+  "tags": [
+    "python-agent",
+    "migration",
+    "prompt-builder",
+    "prompting"
+  ],
+  "created": "2026-11-22",
+  "updated": "2026-11-22",
+  "horizon": "next",
+  "effort": "L",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Port all 12 static/js/agent/prompt-builder/*.ts modules into engine/agent/prompt_builder/ reading Player, Graph, engine/language_barrier.py, engine/speech_tone.py, and engine/emotion_matrix/ directly, and expose POST /api/agent/prompt so the browser stops duplicating engine rules.",
+    "why": "Browser-side prompt assembly forces TypeScript to mirror Python engine rules (such as maskSpeechForListener duplicating engine/language_barrier.py) and prevents pytest from snapshot-testing real prompts directly.",
+    "how": "1. Port system_prompt, schema_fragments, character_state, room_context, conversation_context, memory_context, contextual_actions, context_sections, and turn_prompts into engine/agent/prompt_builder/.\n2. Expose POST /api/agent/prompt returning system + user prompt messages for think-decide and result-reaction phases.\n3. Switch browser PromptBuilder callers to fetch from /api/agent/prompt and add pytest prompt snapshot tests.",
+    "verify": "pytest tests/ covers prompt generation against real Millwood and Mansion fixtures with zero browser dependency, and live play in browser produces identical turn prompts.",
+    "acceptance": [
+      {
+        "text": "engine/agent/prompt_builder/ builds system, think-decide, and result-reaction prompts directly from Python Player and Graph state.",
+        "done": false
+      },
+      {
+        "text": "POST /api/agent/prompt serves assembled prompts to the browser.",
+        "done": false
+      },
+      {
+        "text": "Duplicate TypeScript language-barrier and affect-rendering mirrors are retired.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/agent/prompt-builder/room-context.ts",
+      "static/js/agent/prompt-builder/character-state.ts",
+      "static/js/agent/prompt-builder/turn-prompts.ts",
+      "static/js/agent/prompt-builder/system-prompt.ts"
+    ],
+    "custom": {
+      "browser_ui": "In live play mode, verify Agent Lens and the event stream raw-LLM drawer display the server-built prompts cleanly with zero console errors."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/AI & Narration/Agent Engine.md"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

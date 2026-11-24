@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "task-999",
+  "kind": "task",
+  "number": 999,
+  "title": "Use assistant '{' JSON prefill in LLMClient suppressLocalThinking for local thinking models",
+  "status": "todo",
+  "priority": "medium",
+  "area": "prompting",
+  "tags": [
+    "llm",
+    "prompting",
+    "performance"
+  ],
+  "created": "2026-11-21",
+  "updated": "2026-11-21",
+  "horizon": "now",
+  "effort": "S",
+  "goal": "Eliminate thinking-token leakage and speed up local LM Studio JSON calls across thinking models in production LLMClient.",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Upgrade suppressLocalThinking in static/js/llm-client.ts to use assistant '{' prefill on JSON-object calls so local thinking models emit clean JSON without leaking reasoning outlines into visible content.",
+    "why": "Live LM Studio testing proved that assistant ' ' prefill causes gemma-4-e4b to dump its reasoning outline into visible content, whereas assistant '{' prefill drops reasoning_content to 0 on both gemma-4-e4b and lfm3-1.7b (cutting lfm3-1.7b latency from 22.6s to 1.26s).",
+    "how": "1. In static/js/llm-client.ts, when suppressLocalThinking is true and the call expects a JSON object (responseFormat or json mode), append {role: 'assistant', content: '{'} instead of {role: 'assistant', content: ' '} and prepend '{' back to the completion before returning.\n2. Preserve existing behavior for non-JSON / free-text calls.\n3. Run npm run typecheck, npm run build:ts, and verify against LM Studio.",
+    "verify": "Run npm run typecheck, npm run build:ts, and verify clean JSON output on local LM Studio thinking models (gemma-4-e4b, lfm3-1.7b).",
+    "acceptance": [
+      {
+        "text": "static/js/llm-client.ts supports optional assistant '{' JSON prefill when suppressLocalThinking is enabled on JSON-mode calls, prepending '{' back onto the returned string before JSON parsing.",
+        "done": false
+      },
+      {
+        "text": "Tested against local LM Studio thinking models (e.g. gemma-4-e4b, lfm3-1.7b) with zero reasoning-outline leakage into visible content and clean JSON parsing.",
+        "done": false
+      },
+      {
+        "text": "npm run typecheck and npm run build:ts pass with 0 errors.",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/llm-client.ts"
+    ],
+    "custom": {
+      "browser_ui": "No new UI controls required; uses the existing Suppress Local Thinking toggle in LLM settings. Manual check: enable Suppress Local Thinking with a local thinking model in LM Studio and verify JSON turn responses parse cleanly without reasoning text leaking into content."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/AI & Narration/LLM Providers.md"
+    ],
+    "docs": [
+      "docs/virtualWorld/AI & Narration/LLM Providers.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

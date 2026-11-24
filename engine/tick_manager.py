@@ -473,9 +473,9 @@ class TickManager:
         try:
             from engine import action_tiers as _at
             for _p in self.player_manager.players.values():
-                if getattr(_p, "turn_slots", None) is None:
-                    _p.turn_slots = {}
-                _at.reset_slots(_p.turn_slots)
+                if getattr(_p, "action_points", None) is None:
+                    _p.action_points = {}
+                _at.reset_slots(_p.action_points)
                 # task-784: a dash burst does not survive its turn either.
                 _p.burst_pending = 0
         except Exception as e:

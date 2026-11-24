@@ -429,14 +429,14 @@ class Player:
         # turn, then {"major":1,"minor":1,"free":3,"activity":1}; reset at the turn
         # boundary (engine/tick_manager.tick_turn). Runtime only - never persisted,
         # because a slot does not survive a turn.
-        self.turn_slots = {}
+        self.action_points = {}
 
         # === ACTION ECONOMY (task-352): dash burst (task-784) ===
         # A dash is a two-hop burst: the initiate (`dash`, major) and the finish
         # hop the player/agent picks (go/dash/climb/crawl/jump, minor). While this
         # is set the finish is the ONLY valid action directly after a dash. Armed
         # by the dash handler once the first hop succeeds, cleared by the finish
-        # or at the turn boundary. Runtime only - like `turn_slots`.
+        # or at the turn boundary. Runtime only - like `action_points`.
         self.burst_pending = 0
 
         # === EMOTION SYSTEM ===
@@ -462,6 +462,9 @@ class Player:
         # 36 floats each for nothing. The derived properties below read `None` as
         # "at rest" without materialising it.
         self._emotions = None
+        # Coupled Emotional Matrix + 8-channel autonomic body (task-1001).
+        # Lazy like _emotions: None until an event or save materialises it.
+        self._emotion_matrix = None
 
         # === HIDE / SEEK SYSTEM (Phase 1 edge-based hiding) ===
         # Fast lookup flag: True when this character is hidden in/behind/under
@@ -864,10 +867,71 @@ class Player:
             self.spike_emotion(label, intensity)
         return True
 
+    def emotion_matrix_state(self):
+        """Return the lazy Coupled Emotional Matrix state (task-1001)."""
+        if self._emotion_matrix is None:
+            from engine.emotion_matrix import seed_state_from_emotions_map
+            self._emotion_matrix = seed_state_from_emotions_map(self._emotions)
+        return self._emotion_matrix
+
+    def somatic_description(self) -> str:
+        """First-person felt autonomic body cues ('' when untouched/at rest)."""
+        if self._emotion_matrix is None:
+            return ""
+        from engine.emotion_matrix import render_own_body_prompt
+        return render_own_body_prompt(
+            self._emotion_matrix,
+            self,
+            overloaded=bool(self._emotion_matrix.overload_streak > 0),
+            suppressed_families=[],
+        )
+
+    def observer_tells(self, light_level: str = "normal", observer_insight: int = 10) -> str:
+        """Observable physical tells for other characters in the room."""
+        if self._emotion_matrix is None:
+            return ""
+        from engine.emotion_matrix import render_observer_tells
+        return render_observer_tells(
+            self._emotion_matrix,
+            self,
+            lighting=light_level,
+            observer_insight=observer_insight,
+            overloaded=bool(self._emotion_matrix.overload_streak > 0),
+        )
+
+    def serialize_emotion_matrix(self):
+        """Serialize matrix + autonomic state plus rendered cues for API/saves."""
+        if self._emotion_matrix is None:
+            return None
+        from engine.emotion_matrix import serialize_matrix_state
+        data = serialize_matrix_state(self._emotion_matrix)
+        if data is None:
+            return None
+        data["somatic_description"] = self.somatic_description()
+        data["observer_tells"] = {
+            "normal": self.observer_tells("normal", 10),
+            "dim": self.observer_tells("dim", 10),
+            "insight": self.observer_tells("normal", 16),
+        }
+        return data
+
+    def load_emotion_matrix(self, data) -> None:
+        """Restore a stored Coupled Emotional Matrix state from a save dict."""
+        from engine.emotion_matrix import deserialize_matrix_state
+        self._emotion_matrix = deserialize_matrix_state(data)
+
     def decay_emotions(self) -> None:
         """Per-tick drift of all dimensions toward baseline (tick_manager hook)."""
         from engine import emotion as _emotion
-        if self._emotions is not None:
+        if self._emotion_matrix is not None:
+            from engine.emotion_matrix import apply_tick_decay
+            apply_tick_decay(self._emotion_matrix, self, ticks=1)
+            projected = self._emotion_matrix.to_36_dim_map()
+            emap = self.emotions_map()
+            for dim, val in projected.items():
+                if dim in emap:
+                    emap[dim] = round(float(val), 2)
+        elif self._emotions is not None:
             _emotion.decay(self._emotions)
 
     def emotions_description(self) -> str:
