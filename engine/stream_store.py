@@ -454,6 +454,22 @@ class StreamStore:
             self._conn.commit()
             return int(cur.rowcount)
 
+    def shift_ticks(self, *, world_id: str = "default", delta_ticks: int) -> int:
+        """Offset all stream_events and llm_traces ticks for ``world_id`` by ``delta_ticks``."""
+        if not delta_ticks:
+            return 0
+        with self._lock:
+            cur = self._conn.execute(
+                "UPDATE stream_events SET tick = tick + ? WHERE world_id = ?",
+                (int(delta_ticks), world_id),
+            )
+            self._conn.execute(
+                "UPDATE llm_traces SET tick = tick + ? WHERE world_id = ?",
+                (int(delta_ticks), world_id),
+            )
+            self._conn.commit()
+            return int(cur.rowcount)
+
     def clear_world(self, *, world_id: str = "default") -> int:
         with self._lock:
             cur = self._conn.execute("DELETE FROM stream_events WHERE world_id = ?", (world_id,))

@@ -181,12 +181,15 @@ def register_commons_routes(app):
             if cur_dt and hasattr(chat, "format_iso_label")
             else (world.calendar_label_for_tick() if world and hasattr(world, "calendar_label_for_tick") else None)
         )
+        tm = None if standalone else (getattr(world, "timeline_manager", None) if world is not None else None)
+        active_bid = tm.active_branch_id if tm is not None else getattr(chat, "active_branch_id", "main")
+        branch_list = tm.list_branches() if tm is not None else (chat.list_branches() if hasattr(chat, "list_branches") else [])
         return jsonify({
             "perspective": perspective,
             "use_viwo_state": not standalone,
             "clock_mode": "standalone" if standalone else "scenario",
-            "active_branch_id": getattr(chat, "active_branch_id", "main"),
-            "branches": chat.list_branches() if hasattr(chat, "list_branches") else [],
+            "active_branch_id": active_bid,
+            "branches": branch_list,
             "anchored_clock": getattr(chat, "anchored_clock", None),
             "current_datetime": cur_dt,
             "current_time_label": cur_label,
@@ -424,6 +427,20 @@ def register_commons_routes(app):
         data = request.get_json(silent=True) or {}
         name = str(data.get("name") or "").strip()
         from_msg_id = data.get("from_message_id")
+        if not _is_standalone() and world is not None and getattr(world, "timeline_manager", None) is not None:
+            from engine.timeline import snapshot_for_timeline
+            tm = world.timeline_manager
+            cur_tick = int(getattr(world, "time_ticks", 0) or 0)
+            snap = snapshot_for_timeline(world)
+            if snap:
+                tm.record_checkpoint(cur_tick, snap, branch_id=tm.active_branch_id)
+            branch = tm.fork_branch(
+                label=name or f"Commons Fork @ Tick {cur_tick}",
+                fork_tick=cur_tick,
+                snapshot=snap,
+                switch=True,
+            )
+            return jsonify({"branch": branch.to_summary(), "branches": tm.list_branches(), "active_branch_id": tm.active_branch_id}), 201
         branch = chat.fork_branch(name=name, from_message_id=int(from_msg_id) if from_msg_id is not None else None)
         return jsonify({"branch": branch, "branches": chat.list_branches(), "active_branch_id": chat.active_branch_id}), 201
 
@@ -434,6 +451,18 @@ def register_commons_routes(app):
             return error
         data = request.get_json(silent=True) or {}
         branch_id = str(data.get("branch_id") or "").strip()
+        if not _is_standalone() and world is not None and getattr(world, "timeline_manager", None) is not None:
+            from engine.timeline import restore_from_timeline, snapshot_for_timeline
+            tm = world.timeline_manager
+            if branch_id not in tm.branches:
+                return _failure(KeyError(f"Unknown branch: {branch_id}"))
+            if branch_id != tm.active_branch_id:
+                cur_snap = snapshot_for_timeline(world)
+                if cur_snap:
+                    tm.record_checkpoint(int(getattr(world, "time_ticks", 0) or 0), cur_snap, branch_id=tm.active_branch_id)
+            branch = tm.switch_branch(branch_id)
+            restored = restore_from_timeline(world, branch.snapshot) if branch.snapshot else False
+            return jsonify({"branch": branch.to_summary(), "branches": tm.list_branches(), "active_branch_id": tm.active_branch_id, "restored": restored})
         try:
             branch = chat.switch_branch(branch_id)
         except KeyError as exc:

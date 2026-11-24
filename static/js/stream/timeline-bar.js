@@ -11,6 +11,42 @@
     let _activeBranchId = 'main';
     let _branches = [];
     let _barEl = null;
+    let _viewMode = 'log';
+    let _dockedEl = null;
+    let _dockedHandle = null;
+    function _setViewMode(mode) {
+        _viewMode = mode;
+        const streamEl = document.getElementById('event-stream');
+        const parent = streamEl?.parentElement;
+        if (!streamEl || !parent)
+            return;
+        const scrubber = parent.querySelector(':scope > .timeline-scrubber');
+        if (mode === 'timeline') {
+            streamEl.style.display = 'none';
+            if (scrubber)
+                scrubber.style.display = 'none';
+            if (!_dockedEl || !parent.contains(_dockedEl)) {
+                _dockedEl = document.createElement('div');
+                _dockedEl.id = 'timeline-docked-host';
+                _dockedEl.style.cssText = 'flex:1;min-height:280px;display:flex;flex-direction:column;overflow:hidden;';
+                parent.insertBefore(_dockedEl, streamEl);
+            }
+            _dockedEl.style.display = 'flex';
+            if (typeof window.TimelineView?.mount === 'function') {
+                void window.TimelineView.mount(_dockedEl, { docked: true }).then((h) => {
+                    _dockedHandle = h;
+                });
+            }
+        }
+        else {
+            streamEl.style.display = '';
+            if (scrubber)
+                scrubber.style.display = '';
+            if (_dockedEl)
+                _dockedEl.style.display = 'none';
+        }
+        _render();
+    }
     function _ensureBar() {
         if (_barEl && document.body.contains(_barEl))
             return _barEl;
@@ -73,11 +109,32 @@
         const spacer = document.createElement('span');
         spacer.style.flex = '1';
         bar.appendChild(spacer);
+        // Log | Timeline inline docked switcher (task-1013)
+        const modeWrap = document.createElement('div');
+        modeWrap.style.cssText = 'display:inline-flex;border:1px solid var(--border,#30363d);border-radius:4px;overflow:hidden;';
+        ['log', 'timeline'].forEach((m) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = m === 'log' ? 'Log' : 'Timeline';
+            btn.style.cssText = [
+                'border:none',
+                'padding:1px 7px',
+                'font-size:10.5px',
+                'cursor:pointer',
+                _viewMode === m
+                    ? 'background:var(--accent,#1f6feb);color:#fff;font-weight:600'
+                    : 'background:transparent;color:var(--text-muted,#8b949e)',
+            ].join(';');
+            btn.addEventListener('click', () => { if (_viewMode !== m)
+                _setViewMode(m); });
+            modeWrap.appendChild(btn);
+        });
+        bar.appendChild(modeWrap);
         const viewBtn = document.createElement('button');
         viewBtn.type = 'button';
-        viewBtn.textContent = '📅 Timeline';
-        viewBtn.title = 'Open interactive Timeline & Branch Explorer';
-        viewBtn.style.cssText = 'padding:1px 7px;border-radius:4px;font-size:10.5px;cursor:pointer;background:transparent;color:var(--text,#c9d1d9);border:1px solid var(--border,#30363d);';
+        viewBtn.textContent = '⛶';
+        viewBtn.title = 'Open full-screen Interactive Timeline & Branch Explorer';
+        viewBtn.style.cssText = 'padding:1px 6px;border-radius:4px;font-size:10.5px;cursor:pointer;background:transparent;color:var(--text,#c9d1d9);border:1px solid var(--border,#30363d);';
         viewBtn.addEventListener('click', () => {
             if (typeof window.TimelineView?.open === 'function') {
                 void window.TimelineView.open();
@@ -111,6 +168,9 @@
             _activeBranchId = String(data?.active_branch_id || 'main');
             _branches = Array.isArray(data?.branches) ? data.branches : [];
             _render();
+            if (_viewMode === 'timeline' && _dockedHandle) {
+                void _dockedHandle.refresh();
+            }
         }
         catch { /* ignore when offline */ }
     }

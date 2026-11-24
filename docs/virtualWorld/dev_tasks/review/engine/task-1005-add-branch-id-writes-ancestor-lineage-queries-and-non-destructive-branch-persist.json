@@ -14,12 +14,15 @@
     "branching"
   ],
   "created": "2026-11-24",
-  "updated": "2026-11-24",
+  "updated": "2026-11-25",
   "horizon": "",
   "effort": "M",
   "goal": "",
   "relations": {
-    "blocks": [],
+    "blocks": [
+      "task-1010",
+      "task-1012"
+    ],
     "blocked_by": [],
     "depends_on": [],
     "related": [],

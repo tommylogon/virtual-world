@@ -634,6 +634,10 @@ class TickManager:
                 # system wakes at full Energy (regen applied below)
 
             from engine.traits import TraitSystem, MEMORY_DECAY_PER_TICK
+            # task-1009: characters outside their authored existence window do not tick/decay.
+            from engine.entity_existence import player_exists_now
+            if not player_exists_now(self.gs, pname, p):
+                continue
             # task-309: undead-ghost NPCs skip vitals processing entirely -
             # they don't hunger, tire, or freeze (same handling as slashers).
             if TraitSystem.has_effect(p, "is_slasher") or self.gs.is_undead_ghost(pname):

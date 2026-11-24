@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "task-1013",
+  "kind": "task",
+  "number": 1013,
+  "title": "Add docked Log | Timeline toggle inside #event-section and per-character swimlanes in TimelineView",
+  "status": "review",
+  "priority": "high",
+  "area": "ui",
+  "tags": [
+    "timeline",
+    "event-stream",
+    "ui",
+    "swimlanes"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "task-1006"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Support an inline docked Log | Timeline mode toggle right inside #event-section (in addition to the full-screen modal) and add per-character swimlanes to TimelineView.",
+    "why": "Phase 4 of the Timeline Vision calls for unified EventStream/Timeline navigation rather than forcing a separate modal overlay every time the user inspects scenario chronology.",
+    "how": "Refactor TimelineView (static/js/stream/timeline-view.ts) to expose mount(containerEl, opts) alongside open() modal, adding a Lanes: Branches | Characters swimlane mode toggle. Add a Log | Timeline segmented switcher in #timeline-branch-bar (static/js/stream/timeline-bar.ts) that toggles #event-stream visibility against a flex:1 docked #timeline-docked-host inside #event-section.",
+    "verify": "npm run build:ts",
+    "acceptance": [
+      {
+        "text": "#timeline-branch-bar includes a Log | Timeline segmented toggle switching #event-section cleanly between the vertical event log and an inline docked Timeline view",
+        "done": false
+      },
+      {
+        "text": "Docked and modal Timeline views support per-character swimlanes toggle (Branches vs Characters) with fluid responsive sizing, zoom, search, hover tooltips, and click-to-inspect/redo",
+        "done": false
+      }
+    ],
+    "files": [
+      "static/js/stream/timeline-bar.ts",
+      "static/js/stream/timeline-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Inside #event-section, clicking Timeline in the Log | Timeline toggle switches the pane inline to a fluid, scrollable Timeline with Branches/Characters swimlane modes, while clicking Log returns to the vertical stream."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T23:57:55Z"
+    }
+  ]
+}

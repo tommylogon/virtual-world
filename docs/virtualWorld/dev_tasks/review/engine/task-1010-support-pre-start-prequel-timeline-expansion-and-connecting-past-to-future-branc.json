@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-1010",
+  "kind": "task",
+  "number": 1010,
+  "title": "Support pre-start prequel timeline expansion and connecting past-to-future branches",
+  "status": "review",
+  "priority": "high",
+  "area": "engine",
+  "tags": [
+    "timeline",
+    "branching",
+    "prequel"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "bug-609",
+      "task-1005"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add pre-start timeline expansion (shifting calendar epoch earlier while preserving existing calendar dates via tick offset) and non-destructive past-to-future branch connection (propagating prequel memories/relationships/deaths onto a future branch).",
+    "why": "Authors currently cannot play or author a prequel before Tick 0 of an existing scenario or propagate prequel outcomes forward into an authored later branch.",
+    "how": "Add expand_timeline_earlier(world, delta_days, stream_store=None) and connect_branches(world, source_branch_id, target_branch_id, label='') in engine/timeline.py plus StreamStore.shift_ticks(world_id, delta_ticks) in engine/stream_store.py. Expose POST /api/timeline/expand-past and POST /api/timeline/connect in routes/timeline_ops.py.",
+    "verify": "pytest tests/test_timeline_vision_complete.py -q",
+    "acceptance": [
+      {
+        "text": "POST /api/timeline/expand-past shifts calendar_config start date earlier and offsets existing time_ticks, checkpoint ticks, memory ticks, and stream event ticks forward by delta_ticks so existing history stays pinned to its calendar date",
+        "done": false
+      },
+      {
+        "text": "POST /api/timeline/connect merges non-conflicting outcomes (memories, relationships, deaths) from an earlier prequel branch onto a target future branch checkpoint, creating a new connected branch without mutating either source branch",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/timeline.py",
+      "engine/stream_store.py",
+      "routes/timeline_ops.py",
+      "virtual_world_engine.py"
+    ],
+    "custom": {
+      "browser_ui": "Authors can expand a scenario earlier in time to play a May prequel before an October start, then connect prequel outcomes forward into the October branch without losing either branch."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T23:57:38Z"
+    }
+  ]
+}

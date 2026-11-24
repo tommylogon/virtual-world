@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "task-1009",
+  "kind": "task",
+  "number": 1009,
+  "title": "Add authored entity existence windows (exists_from / exists_until) across prompts, ticks, and /api/state",
+  "status": "review",
+  "priority": "high",
+  "area": "engine",
+  "tags": [
+    "timeline",
+    "entity-existence",
+    "engine"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "bug-609"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Support authored ISO-8601 existence windows (exists_from / exists_until) on characters, items, and ways so scrubbing earlier or later in scenario time automatically phases entities in and out.",
+    "why": "Without authored existence windows, jumping backward in time before a character arrived or an item was created still leaves them visible in room prompts and ticking vitals.",
+    "how": "Add engine/entity_existence.py with entity_exists_at(entity, current_datetime) supporting ISO-8601 exists_from, exists_until, spawn_datetime, despawn_datetime on Node.properties or Player. Filter items, ways, and players in build_room_context (engine/agent/prompt_builder/room_context.py), guard character vital/decay loops in engine/tick_manager.py, and annotate exists_now in handle_get_state (routes/action_handlers.py).",
+    "verify": "pytest tests/test_timeline_vision_complete.py -q",
+    "acceptance": [
+      {
+        "text": "engine/entity_existence.py evaluates exists_from / exists_until (and spawn_datetime / despawn_datetime) ISO-8601 bounds against world.datetime_for_tick()",
+        "done": false
+      },
+      {
+        "text": "engine/agent/prompt_builder/room_context.py hides items, ways, and people whose existence window excludes the active world_datetime",
+        "done": false
+      },
+      {
+        "text": "engine/tick_manager.py skips vital decay and autonomous ticking for characters outside their existence window",
+        "done": false
+      },
+      {
+        "text": "routes/action_handlers.py handle_get_state publishes exists_now on players and graph nodes for UI/graph visibility",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/entity_existence.py",
+      "engine/agent/prompt_builder/room_context.py",
+      "engine/tick_manager.py",
+      "routes/action_handlers.py",
+      "virtual_world_engine.py"
+    ],
+    "custom": {
+      "browser_ui": "When scrubbing to an earlier date before a character or item's exists_from (or after exists_until), they are omitted from agent room context, skipped by ticks, and marked exists_now: false in /api/state."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T23:57:34Z"
+    }
+  ]
+}

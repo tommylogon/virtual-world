@@ -85,6 +85,8 @@ def build_room_context(
                 get_node = graph.get_node if hasattr(graph, "get_node") else nodes_map.get
                 seen_exits = set()
                 seen_items = set()
+                from engine.entity_existence import entity_exists_at, world_current_datetime
+                cur_dt = world_current_datetime(world)
                 for edge in all_edges:
                     src = getattr(edge, "source", None)
                     tgt = getattr(edge, "target", None)
@@ -93,6 +95,8 @@ def build_room_context(
                         continue
                     onode = get_node(other_id)
                     if onode is None:
+                        continue
+                    if cur_dt and not entity_exists_at(onode, cur_dt):
                         continue
                     otype = getattr(onode, "type", None)
                     if otype == "way" and onode.name not in seen_exits:
@@ -114,10 +118,13 @@ def build_room_context(
     people_lines: List[str] = []
     players = getattr(world, "players", None) or {}
     listener_wis = int((getattr(player, "stats", None) or {}).get("WIS", 10) or 10)
+    from engine.entity_existence import player_exists_now
     for other_name, other in players.items():
         if other_name == player.name:
             continue
         if getattr(other, "current_area", None) != area_name:
+            continue
+        if not player_exists_now(world, other_name, other):
             continue
         rel_lbl = _relationship_label(player, other_name)
         rel_part = f" - {rel_lbl}" if rel_lbl else ""

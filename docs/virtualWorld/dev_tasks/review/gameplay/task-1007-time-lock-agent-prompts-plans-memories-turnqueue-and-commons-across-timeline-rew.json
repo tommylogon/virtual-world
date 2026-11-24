@@ -15,12 +15,14 @@
     "turn-queue"
   ],
   "created": "2026-11-24",
-  "updated": "2026-11-24",
+  "updated": "2026-11-25",
   "horizon": "",
   "effort": "M",
   "goal": "",
   "relations": {
-    "blocks": [],
+    "blocks": [
+      "task-1011"
+    ],
     "blocked_by": [],
     "depends_on": [
       "bug-609"

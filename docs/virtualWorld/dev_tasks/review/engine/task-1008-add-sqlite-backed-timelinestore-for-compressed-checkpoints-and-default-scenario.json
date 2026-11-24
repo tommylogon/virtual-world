@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "task-1008",
+  "kind": "task",
+  "number": 1008,
+  "title": "Add SQLite-backed TimelineStore for compressed checkpoints and default scenario timeline persistence",
+  "status": "review",
+  "priority": "high",
+  "area": "engine",
+  "tags": [
+    "timeline",
+    "sqlite",
+    "branching",
+    "saveload"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "bug-609"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Offload TimelineManager branch trees and compressed per-tick world checkpoints into a dedicated SQLite store (saves/timeline.db) so scenarios persist multi-month timelines by default without bloating JSON files.",
+    "why": "Keeping full world checkpoint dicts only in memory or inline inside scenario JSON files causes large JSON bloat on multi-month timelines and loses single-branch checkpoints across restarts.",
+    "how": "Create engine/timeline_store.py (SQLite WAL mode, timeline_branches + timeline_checkpoints tables with zlib-compressed JSON snapshots). Wire optional store + world_id into TimelineManager (engine/timeline.py) so record_checkpoint, fork_branch, switch_branch, and _find_checkpoint_at_or_before read/write through SQLite and hydrate cleanly on boot via routes/timeline_ops.py _get_timeline().",
+    "verify": "pytest tests/test_timeline.py tests/test_timeline_e2e.py tests/test_timeline_vision_complete.py -q",
+    "acceptance": [
+      {
+        "text": "engine/timeline_store.py stores branch metadata and gzip-compressed world checkpoints in SQLite (saves/timeline.db) keyed by (world_id, branch_id, tick)",
+        "done": false
+      },
+      {
+        "text": "TimelineManager persists and loads checkpoints through TimelineStore automatically when attached, surviving server restarts without bloating scenario JSON files",
+        "done": false
+      },
+      {
+        "text": "routes/timeline_ops.py attaches TimelineStore per active world_id and lazily hydrates checkpoints from SQLite on switch/fork/redo",
+        "done": false
+      }
+    ],
+    "files": [
+      "engine/timeline_store.py",
+      "engine/timeline.py",
+      "routes/timeline_ops.py"
+    ],
+    "custom": {
+      "browser_ui": "Multi-month timeline branches and checkpoints survive page reloads and server restarts automatically without slowing down Save Scenario or bloating scenario JSON files."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T23:57:30Z"
+    }
+  ]
+}

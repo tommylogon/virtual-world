@@ -227,6 +227,19 @@ def handle_get_state(app):
             state["forecast"] = dict(getattr(app.world, "forecast", {}) or getattr(app.world, "forecast_schedule", {}) or {})
             state["forecast_override"] = dict(getattr(app.world, "forecast_override", {}) or {}) \
                 if getattr(app.world, "forecast_override", None) else None
+            # task-1009: annotate entity existence at the active world_datetime
+            from engine.entity_existence import entity_exists_at, player_exists_now, world_current_datetime
+            cur_dt = world_current_datetime(app.world)
+            if cur_dt:
+                state["world_datetime"] = cur_dt
+                for pname, pdata in (state.get("players") or {}).items():
+                    if isinstance(pdata, dict):
+                        pdata["exists_now"] = player_exists_now(app.world, pname)
+                g_nodes = (state.get("graph") or {}).get("nodes")
+                if isinstance(g_nodes, dict):
+                    for ndata in g_nodes.values():
+                        if isinstance(ndata, dict):
+                            ndata["exists_now"] = entity_exists_at(ndata, cur_dt)
         except Exception:
             pass
         resp = jsonify(state)

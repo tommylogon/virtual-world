@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "task-1012",
+  "kind": "task",
+  "number": 1012,
+  "title": "Add Fork & Soak endpoint and Timeline UI action to simulate directly into an isolated branch",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "timeline",
+    "soak",
+    "timeskip",
+    "branching"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "bug-609",
+      "task-1005"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Allow running headless multi-day world soaks directly onto a forked Timeline branch with periodic checkpoints and branch-scoped StreamStore milestones.",
+    "why": "Soak Lab currently runs in a throwaway memory copy, so users cannot fork a branch, soak 7-30 days, and browse the resulting checkpoints and events on the Timeline.",
+    "how": "Add POST /api/timeline/fork-soak in routes/timeline_ops.py accepting {minutes|days|hours, checkpoint_every_minutes, label, fork_tick}: forks a branch via TimelineManager, runs timeskip.advance_world in chunks recording periodic checkpoints + StreamStore milestone events under the new branch_id, and returns branch summary + soak stats. Wire a Fork & Soak button into renderSlotDrawer in static/js/stream/timeline-view.ts.",
+    "verify": "npm run build:ts; pytest tests/test_timeline_vision_complete.py -q",
+    "acceptance": [
+      {
+        "text": "POST /api/timeline/fork-soak forks a new branch at fork_tick, advances the world in configurable chunks with periodic checkpoints, logs soak milestones into StreamStore under the new branch_id, and leaves the parent branch untouched",
+        "done": false
+      },
+      {
+        "text": "TimelineView slot drawer exposes a Fork & Soak action to simulate days/weeks on an isolated fork and inspect the resulting branch on the Timeline",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/timeline_ops.py",
+      "engine/timeline.py",
+      "static/js/stream/timeline-view.ts"
+    ],
+    "custom": {
+      "browser_ui": "Clicking Fork & Soak in the TimelineView slot drawer creates a new branch, runs headless multi-day simulation with checkpoints, and immediately displays the soaked branch on the Timeline."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/UI & Settings/Event Stream.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T23:57:51Z"
+    }
+  ]
+}

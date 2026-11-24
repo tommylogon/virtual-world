@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "task-1011",
+  "kind": "task",
+  "number": 1011,
+  "title": "Unify Connected-mode Commons branching with VirtualWorld TimelineManager",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "timeline",
+    "commons",
+    "branching"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "S",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [
+      "bug-609",
+      "task-1007"
+    ],
+    "related": [],
+    "parent": "task-980",
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Unify Connected-mode /commons branch listing, forking, and switching onto world.timeline_manager so Viwo and Connected Commons share one branch tree (Vision Principle 4).",
+    "why": "Connected-mode Commons currently maintains a separate commons.branches tree instead of sharing world.timeline_manager.branches with the scenario.",
+    "how": "Update commons_state, commons_fork_branch, and commons_switch_branch in routes/commons.py so when not _is_standalone(), branch listing, forking, and switching delegate to world.timeline_manager (using snapshot_for_timeline and restore_from_timeline) while Standalone mode continues using chat.fork_branch / chat.switch_branch.",
+    "verify": "pytest tests/test_commons.py tests/test_timeline_vision_complete.py -q",
+    "acceptance": [
+      {
+        "text": "In Connected mode (use_viwo_state=true), GET /api/commons/state returns world.timeline_manager active_branch_id and branches",
+        "done": false
+      },
+      {
+        "text": "In Connected mode, POST /api/commons/branches and POST /api/commons/branches/switch fork and switch world.timeline_manager directly (restoring world + world.commons together)",
+        "done": false
+      },
+      {
+        "text": "In Standalone mode (use_viwo_state=false), Commons keeps its own isolated commons.branches unchanged",
+        "done": false
+      }
+    ],
+    "files": [
+      "routes/commons.py",
+      "engine/timeline.py"
+    ],
+    "custom": {
+      "browser_ui": "When Use Viwo State is enabled in /commons, creating or switching a branch in Commons switches the shared Viwo scenario branch tree and restores both world and chat state together."
+    }
+  },
+  "links": {
+    "wiki": [
+      "docs/virtualWorld/Gameplay/The Commons.md"
+    ],
+    "docs": [
+      "docs/design/timeline-and-branching-vision.md"
+    ],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "todo",
+      "to": "review",
+      "at": "2026-11-24T23:57:47Z"
+    }
+  ]
+}
