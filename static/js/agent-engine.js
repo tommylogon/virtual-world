@@ -70,8 +70,7 @@ class AgentEngine {
     get isPaused() { return this._paused; }
     getHistory(charName) {
         if (!this.characterHistories[charName]) {
-            const player = worldState.data?.players?.[charName];
-            this.characterHistories[charName] = [{ role: 'system', content: PromptBuilder.buildCharacterSystemPrompt(charName, player, config.softMaxTokens) }];
+            this.characterHistories[charName] = [{ role: 'system', content: '' }];
         }
         return this.characterHistories[charName];
     }
@@ -625,34 +624,14 @@ class AgentEngine {
             worldState.setRuntimeFocusForCharacter(config.controllingPlayer || charName);
         }
     }
-    buildSystemPrompt(charName, opts) {
-        const state = worldState.runtimeData || worldState.data || {};
-        const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
-        if (opts?.phase === 'react' && typeof PromptBuilder?.buildReactSystemPrompt === 'function') {
-            return PromptBuilder.buildReactSystemPrompt(charName, player, config.softMaxTokens);
-        }
-        return PromptBuilder?.buildCharacterSystemPrompt
-            ? PromptBuilder.buildCharacterSystemPrompt(charName, player, config.softMaxTokens)
-            : '';
+    buildSystemPrompt(_charName, _opts) {
+        return '';
     }
-    buildContextPrompt(charName, opts) {
+    buildContextPrompt(charName, _opts) {
         const state = worldState.runtimeData || worldState.data || {};
         const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
-        const currentArea = state.areas?.[player?.current_area || state.current_area] || null;
-        if (opts?.includeActionMenu === false) {
-            return PromptBuilder?.buildRoomContext
-                ? PromptBuilder.buildRoomContext(state, charName, player, currentArea)
-                : '';
-        }
-        const roomParts = PromptBuilder?.buildRoomContextParts
-            ? PromptBuilder.buildRoomContextParts(state, charName, player, currentArea)
-            : {};
-        const vitalsNL = PromptBuilder?.describeVitals ? PromptBuilder.describeVitals(player, state, charName) : '';
-        const emotionNL = PromptBuilder?.buildEmotionContext ? PromptBuilder.buildEmotionContext(player) : '';
-        const relationshipNL = PromptBuilder?.buildRelationshipContext ? PromptBuilder.buildRelationshipContext(player, charName) : '';
-        return PromptBuilder?.buildReactionPrompt
-            ? PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, '', agentConfig.lastActionResult?.[charName] || '', false, true)
-            : '';
+        const area = player?.current_area || state.current_area || 'unknown';
+        return `You are ${charName} in ${area}.`;
     }
     async callLLM(systemPrompt, messages, charName, stepName) {
         return this._callLLMMessages([{ role: 'system', content: systemPrompt }, ...messages], stepName, charName);
@@ -956,31 +935,21 @@ class AgentEngine {
         const state = worldState.runtimeData || worldState.data || {};
         const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
         const currentArea = state.areas?.[player?.current_area || state.current_area] || null;
-        const systemPrompt = this.buildSystemPrompt(charName, opts);
-        const contextPrompt = this.buildContextPrompt(charName, { includeActionMenu: opts?.phase !== 'react' });
         const note = (opts?.directorNote || '').trim();
         const entities = this._collectCanonicalSceneEntities(charName, state, player, currentArea, opts?.scene);
-        const vitalsNL = PromptBuilder?.describeVitals ? PromptBuilder.describeVitals(player, state, charName) : '';
-        const emotionNL = PromptBuilder?.buildEmotionContext ? PromptBuilder.buildEmotionContext(player) : '';
-        const relationshipNL = PromptBuilder?.buildRelationshipContext ? PromptBuilder.buildRelationshipContext(player, charName) : '';
         const memoryNL = PromptBuilder?.buildMemoryContext ? await PromptBuilder.buildMemoryContext(charName, { report: false }) : '';
         if (opts?.phase === 'react') {
-            const areaName = currentArea?.name || player?.current_area || state.current_area || 'the area';
-            const tickNum = state.time_ticks ?? worldState.tick ?? 0;
-            const reactContext = `[Tick ${tickNum}] You are in ${areaName}.`;
-            let reactPrompt = '';
-            if (typeof PromptBuilder?.buildResultReactionPrompt === 'function') {
-                reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, player, reactContext, vitalsNL, emotionNL, relationshipNL, '', opts?.lastAction || 'act', opts?.actionResult || 'Nothing notable happened.', memoryNL, '');
-            }
-            else if (typeof PromptBuilder?.buildReactionPrompt === 'function') {
-                reactPrompt = PromptBuilder.buildReactionPrompt(charName, opts?.lastAction || 'act', opts?.actionResult || 'Nothing notable happened.', null);
-            }
-            else {
-                reactPrompt = opts?.actionResult || 'Nothing notable happened.';
-            }
+            const pyReact = await ApiClient.getAgentPrompt?.({
+                character: charName,
+                phase: 'react',
+                what_happened: opts?.actionResult || 'Nothing notable happened.',
+                memory_thought: memoryNL || '',
+                action_points: player?.action_points || undefined,
+            }).catch(() => null);
+            const systemPrompt = pyReact?.messages?.[0]?.content || '';
+            let reactPrompt = pyReact?.messages?.[1]?.content || opts?.actionResult || 'Nothing notable happened.';
             reactPrompt = this._injectDirectorSteering(reactPrompt, note, opts?.currentDraft, entities);
-            const userContent = contextPrompt ? `${contextPrompt}\n\n${reactPrompt}` : reactPrompt;
-            const raw = await this.callLLM(systemPrompt, [{ role: 'user', content: userContent }], charName, 'director-react');
+            const raw = await this.callLLM(systemPrompt, [{ role: 'user', content: reactPrompt }], charName, 'director-react');
             if (!raw)
                 return null;
             const parsed = (ResponseParser.parseReaction ? ResponseParser.parseReaction(raw) : ResponseParser.parseResultReaction?.(raw)) || {};
@@ -1004,20 +973,17 @@ class AgentEngine {
                 memory: memVal,
             };
         }
-        let decidePrompt = '';
-        if (typeof PromptBuilder?.buildDecidePrompt === 'function') {
-            decidePrompt = PromptBuilder.buildDecidePrompt(charName, contextPrompt, '', {
-                turnSlots: this._turnSlots?.[charName] || player?.action_points || null,
-            });
-        }
-        else if (typeof PromptBuilder?.buildReactionPrompt === 'function') {
-            const roomParts = PromptBuilder?.buildRoomContextParts
-                ? PromptBuilder.buildRoomContextParts(state, charName, player, currentArea)
-                : {};
-            decidePrompt = PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, opts?.actionResult || agentConfig.lastActionResult?.[charName] || '', false, true);
-        }
-        else {
-            decidePrompt = contextPrompt;
+        const pyThink = await ApiClient.getAgentPrompt?.({
+            character: charName,
+            phase: 'think',
+            last_result: opts?.actionResult || agentConfig.lastActionResult?.[charName] || '',
+            memory_thought: memoryNL || '',
+            action_points: this._turnSlots?.[charName] || player?.action_points || undefined,
+        }).catch(() => null);
+        const systemPrompt = pyThink?.messages?.[0]?.content || '';
+        let decidePrompt = pyThink?.messages?.[1]?.content || '';
+        if (!decidePrompt) {
+            decidePrompt = this.buildContextPrompt(charName);
         }
         decidePrompt = this._injectDirectorSteering(decidePrompt, note, opts?.currentDraft, entities);
         const raw = await this.callLLM(systemPrompt, [{ role: 'user', content: decidePrompt }], charName, 'director-draft');
@@ -1492,27 +1458,13 @@ class AgentEngine {
             if (charTurnCount % 5 === 0 && config.reactiveMode) {
                 window.AgentMemory.reflect(charName).catch(() => { });
             }
-            const roomParts = PromptBuilder.buildRoomContextParts(state, charName, player, currentArea);
-            const vitalsNL = PromptBuilder.describeVitals(player, state, charName);
-            const emotionNL = PromptBuilder.buildEmotionContext(player);
-            const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
-            const memoryNL = await PromptBuilder.buildMemoryContext(charName, { report: true });
+            const memoryNL = typeof PromptBuilder !== 'undefined' && typeof PromptBuilder.buildMemoryContext === 'function'
+                ? await PromptBuilder.buildMemoryContext(charName, { report: true })
+                : '';
             if (config.reactiveMode) {
                 events.logPhase(charName, 'think', 'observing');
                 VW?.ui?.setStatus("Thinking...", "info");
                 const turnEvents = state.turn_events || [];
-                // Threat check before OBSERVE - so the character naturally notices the threat
-                const preObserveThreat = window.ThreatDetector.getThreatAlert(charName, player, currentArea, turnEvents);
-                const threatNames = preObserveThreat
-                    ? (preObserveThreat.match(/⚠️ IMMEDIATE DANGER: ([^.]+)/)?.[1]?.trim() || '')
-                    : '';
-                const threatObservationNote = threatNames
-                    ? `\n⚠️ ${threatNames} - something about this person sets every instinct on edge. The blood, the emptiness in their eyes, the way they move. They are not here to help you.`
-                    : '';
-                // Observe uses the SAME full room context as decide/react, so the
-                // agent always sees items, people, exits, and a WITNESSED section
-                // (with fallback).
-                let observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
                 // Threat-aware replan check - before deciding so the plan is fresh.
                 // task-185: shouldReplan now returns a REASON string (task-340
                 // crisis label) or null; setPlan records the turn clock.
@@ -1556,9 +1508,6 @@ class AgentEngine {
                         const loopState = worldState.data || state;
                         const loopPlayer = loopState?.players?.[charName] || player;
                         promptPlayer = loopPlayer;
-                        const loopArea = loopState?.areas?.[loopPlayer?.current_area || loopState.current_area] || currentArea;
-                        const loopRoomParts = PromptBuilder.buildRoomContextParts(loopState, charName, loopPlayer, loopArea);
-                        observeParts = Object.assign({}, loopRoomParts, { plan: PromptBuilder.buildPlanContext(charName) });
                         if (this._checkCancel())
                             return;
                     }
@@ -1602,33 +1551,21 @@ class AgentEngine {
                         }
                     }
                     if (combinedResponse === null) {
-                        try {
-                            const pyPrompt = await ApiClient.getAgentPrompt?.({
-                                character: charName,
-                                phase: 'think',
-                                last_result: loopLastResult || '',
-                                memory_thought: memoryNL || '',
-                                action_points: promptPlayer?.action_points || undefined,
-                            });
-                            if (pyPrompt && Array.isArray(pyPrompt.messages) && pyPrompt.messages.length >= 2) {
-                                const userContent = threatAlert
-                                    ? `${threatAlert}\n\n${pyPrompt.messages[1].content}`
-                                    : pyPrompt.messages[1].content;
-                                decideHistory = [
-                                    pyPrompt.messages[0],
-                                    { role: 'user', content: userContent },
-                                ];
-                            }
-                            else {
-                                const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
-                                const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
-                                decideHistory = [history[0], { role: 'user', content: combinedPrompt }];
-                            }
-                        }
-                        catch {
-                            const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
-                            const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
-                            decideHistory = [history[0], { role: 'user', content: combinedPrompt }];
+                        const pyPrompt = await ApiClient.getAgentPrompt?.({
+                            character: charName,
+                            phase: 'think',
+                            last_result: loopLastResult || '',
+                            memory_thought: memoryNL || '',
+                            action_points: promptPlayer?.action_points || undefined,
+                        }).catch(() => null);
+                        if (pyPrompt && Array.isArray(pyPrompt.messages) && pyPrompt.messages.length >= 2) {
+                            const userContent = threatAlert
+                                ? `${threatAlert}\n\n${pyPrompt.messages[1].content}`
+                                : pyPrompt.messages[1].content;
+                            decideHistory = [
+                                pyPrompt.messages[0],
+                                { role: 'user', content: userContent },
+                            ];
                         }
                         combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
                     }
@@ -1732,7 +1669,7 @@ class AgentEngine {
                                     const generatedPlan = await window.PlanManager.generate(charName, planIntent);
                                     if (generatedPlan && generatedPlan.length > 0) {
                                         PlanTracker.setPlan(charName, generatedPlan, this.turnNumber);
-                                        observeParts.plan = PromptBuilder.buildPlanContext(charName);
+                                        // Refresh plan state after generation
                                         events.log(`🧠 ${charName} planned: ${generatedPlan.join(' → ')}`, 'msg-thought', {}, charName);
                                         actionResult = `${actionResult ? actionResult + ' ' : ''}Plan formed: ${generatedPlan.join(' → ')}`.trim();
                                     }
@@ -1823,7 +1760,6 @@ class AgentEngine {
                             events.logPhase(charName, 'react', 'reacting');
                             VW?.ui?.setStatus("Reacting...", "info");
                             const movedViaDash = finalAction.split(/\s+/)[0].toLowerCase() === 'dash';
-                            const tickNum = worldState.data?.time_ticks ?? 0;
                             const areaName = freshRoom?.name || freshPlayer?.current_area || freshState?.current_area || '';
                             // task-185: currentArea is the turn-start (pre-action) room -
                             // if it differs from the fresh room the character MOVED this
@@ -1831,56 +1767,28 @@ class AgentEngine {
                             // pointing the model at a stale observation of the old room.
                             const areaBefore = currentArea?.name || player?.current_area || '';
                             const areaChanged = !movedViaDash && !!areaName && areaName !== areaBefore;
-                            const reactContext = movedViaDash
-                                ? `[Tick ${tickNum}] You just sprinted and are now in ${areaName} - react to arriving here.`
-                                : areaChanged
-                                    ? `[Tick ${tickNum}] You just moved - you are now in ${areaName}. The full description of your new surroundings is in === WHAT HAPPENED === below.`
-                                    : `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged.`;
-                            // bug-606: rebuild vitals/emotion/relationship snapshots from
-                            // post-action freshPlayer/freshState instead of stale turn-start strings,
-                            // and refresh memoryNL read-only when location or stimulus changed.
-                            const reactVitalsNL = PromptBuilder.describeVitals(freshPlayer, freshState, charName);
-                            const reactEmotionNL = PromptBuilder.buildEmotionContext(freshPlayer);
-                            const reactRelationshipNL = PromptBuilder.buildRelationshipContext(freshPlayer, charName);
                             const freshAreaKey = freshPlayer?.current_area || freshState?.current_area || '';
                             const preAreaKey = promptPlayer?.current_area || player?.current_area || '';
                             const locationChanged = movedViaDash || areaChanged || (!!freshAreaKey && freshAreaKey !== preAreaKey);
                             const stimulusChanged = Boolean(actionResult && actionResult !== loopLastResult);
-                            const reactMemoryNL = (locationChanged || stimulusChanged) && typeof PromptBuilder.buildMemoryContext === 'function'
+                            const reactMemoryNL = (locationChanged || stimulusChanged) && typeof PromptBuilder !== 'undefined' && typeof PromptBuilder.buildMemoryContext === 'function'
                                 ? await PromptBuilder.buildMemoryContext(charName, {
                                     preview: true,
                                     area: freshPlayer?.current_area,
                                     stimulus: actionResult,
                                 })
                                 : memoryNL;
-                            let reactMessages;
-                            try {
-                                const pyReact = await ApiClient.getAgentPrompt?.({
-                                    character: charName,
-                                    phase: 'react',
-                                    what_happened: actionResult || '',
-                                    memory_thought: reactMemoryNL || '',
-                                    action_points: freshPlayer?.action_points || undefined,
-                                    said_this_turn: decisionSpeech || '',
-                                });
-                                if (pyReact && Array.isArray(pyReact.messages) && pyReact.messages.length >= 2) {
-                                    reactMessages = [pyReact.messages[0], pyReact.messages[1]];
-                                }
-                                else {
-                                    const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, reactVitalsNL, reactEmotionNL, reactRelationshipNL, inner, finalAction || '', actionResult, reactMemoryNL, decisionSpeech);
-                                    reactMessages = [
-                                        { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
-                                        { role: 'user', content: reactPrompt },
-                                    ];
-                                }
-                            }
-                            catch {
-                                const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, reactVitalsNL, reactEmotionNL, reactRelationshipNL, inner, finalAction || '', actionResult, reactMemoryNL, decisionSpeech);
-                                reactMessages = [
-                                    { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
-                                    { role: 'user', content: reactPrompt },
-                                ];
-                            }
+                            const pyReact = await ApiClient.getAgentPrompt?.({
+                                character: charName,
+                                phase: 'react',
+                                what_happened: actionResult || '',
+                                memory_thought: reactMemoryNL || '',
+                                action_points: freshPlayer?.action_points || undefined,
+                                said_this_turn: decisionSpeech || '',
+                            }).catch(() => null);
+                            const reactMessages = (pyReact && Array.isArray(pyReact.messages) && pyReact.messages.length >= 2)
+                                ? [pyReact.messages[0], pyReact.messages[1]]
+                                : [{ role: 'system', content: '' }, { role: 'user', content: actionResult || '' }];
                             const reactPrompt = reactMessages[1]?.content || '';
                             let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction', charName);
                             if (reactResponse === null) {
@@ -1957,12 +1865,16 @@ class AgentEngine {
             else {
                 // ── Non-reactive (combined) mode ──
                 VW?.ui?.setStatus("Thinking...", "info");
-                const reactionPrompt = PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, true);
-                // Fix #6: combined mode also uses fresh context, not accumulated history.
-                const combinedHistory = [
-                    history[0],
-                    { role: 'user', content: reactionPrompt }
-                ];
+                const pyCombined = await ApiClient.getAgentPrompt?.({
+                    character: charName,
+                    phase: 'think',
+                    last_result: lastResult || '',
+                    memory_thought: memoryNL || '',
+                    action_points: player?.action_points || undefined,
+                }).catch(() => null);
+                const combinedHistory = (pyCombined && Array.isArray(pyCombined.messages) && pyCombined.messages.length >= 2)
+                    ? [pyCombined.messages[0], pyCombined.messages[1]]
+                    : [history[0], { role: 'user', content: lastResult || '' }];
                 let reactionResponse = await this._callLLMMessages(combinedHistory, 'combined', charName);
                 if (reactionResponse === null) {
                     abortOnLlmError();
@@ -2508,7 +2420,7 @@ class AgentEngine {
         events.log(`↩️ ${charName}: auto-retry after failed action "${attempted}"`, 'system-msg');
         events.logPhase(charName, 'decide', 'auto-retry');
         VW?.ui?.setStatus?.('Retrying...', 'info');
-        const prompt = PromptBuilder.buildRetryPrompt(attempted, failedResult);
+        const prompt = `Your previous action "${attempted}" failed: ${failedResult}\nChoose a different valid action you can afford right now. Respond with ONLY raw JSON.`;
         history.push({ role: 'user', content: prompt });
         const response = await this._callLLMMessages(history, 'auto-retry', charName);
         if (response === null) {
@@ -2574,10 +2486,9 @@ class AgentEngine {
             return resultText;
         const freshPlayer = freshState?.players?.[charName] || player;
         const currentArea = freshState.areas?.[freshPlayer?.current_area || freshState.current_area] || null;
-        const roomContext = PromptBuilder.buildRoomContext(freshState, charName, freshPlayer, currentArea);
         events.logPhase(charName, 'decide', `${sourceAction} follow-up`);
         VW?.ui?.setStatus?.("Chain follow-up...", "info");
-        const prompt = PromptBuilder.buildChainFollowUpPrompt(charName, roomContext, resultText, sourceAction, allowedActions);
+        const prompt = `Your "${sourceAction}" succeeded: ${resultText}\nYou may immediately follow up with one of: ${allowedActions.join(', ')}. Respond with ONLY raw JSON.`;
         history.push({ role: 'user', content: prompt });
         const response = await this._callLLMMessages(history, 'chain-follow-up', charName);
         history.push({ role: 'assistant', content: response || '' });

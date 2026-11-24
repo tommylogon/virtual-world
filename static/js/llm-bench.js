@@ -320,10 +320,25 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
      * emotion/learned_names fields the live think-decide prompt asks for).
      */
     async function capturePrompt(charName) {
-        if (typeof PromptBuilder === 'undefined' || typeof PromptBuilder.captureTurnPrompt !== 'function') {
-            throw new Error('PromptBuilder.captureTurnPrompt is not available');
+        const name = String(charName);
+        const state = worldState?.data;
+        const player = state?.players?.[name];
+        const currentArea = player ? state?.areas?.[player.current_area] : null;
+        const res = await ApiClient.getAgentPrompt?.({
+            character: name,
+            phase: 'think',
+        });
+        if (!res || !Array.isArray(res.messages) || res.messages.length < 2) {
+            throw new Error(res?.error || 'Failed to capture prompt from /api/agent/prompt');
         }
-        return await PromptBuilder.captureTurnPrompt(String(charName));
+        return {
+            charName: name,
+            player,
+            currentArea,
+            roomParts: null,
+            systemPrompt: res.messages[0].content || '',
+            userPrompt: res.messages[1].content || '',
+        };
     }
     // ------------------------------------------------------------------ metrics / format / hallucination
     function approxTokens(s) { return Math.max(1, Math.round(String(s ?? '').length / APPROX_TOKENS_PER_CHAR)); }
@@ -450,8 +465,8 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
             $('#llmb-status').textContent = 'VW.llm not available.';
             return;
         }
-        if (typeof PromptBuilder === 'undefined') {
-            $('#llmb-status').textContent = 'PromptBuilder not loaded.';
+        if (typeof ApiClient === 'undefined' || typeof ApiClient.getAgentPrompt !== 'function') {
+            $('#llmb-status').textContent = 'ApiClient.getAgentPrompt not loaded.';
             return;
         }
         let captured;

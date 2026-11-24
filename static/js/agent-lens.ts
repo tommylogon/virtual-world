@@ -524,18 +524,17 @@ class AgentLens {
             return '<div class="agent-lens-empty">Could not build area preview for this location.</div>';
         }
 
-        const roomContext = PromptBuilder.buildRoomContext(lensState, charName, player, area, {
-            includePlan: !authoring,
-            agentFraming: !authoring,
-            preview: true,
-        });
+        const pyThink: any = charName
+            ? await (ApiClient as any).getAgentPrompt?.({ character: charName, phase: 'think' }).catch(() => null)
+            : null;
+        const roomContext = (pyThink?.messages?.[1]?.content as string) || `You are currently in ${areaName}.`;
         const sections = this._splitRoomContext(roomContext, { authoring });
         let html = '';
         if (focusItem) {
             html += `<div class="agent-lens-focus-item">📦 Lens focus: <strong>${this._esc(focusItem)}</strong> in this area</div>`;
         }
         if (authoring) {
-            html += `<div class="agent-lens-authoring-note">Room view for <strong>${this._esc(charName)}</strong> - no tick, personality, or inventory (those appear in Agent lens only).</div>`;
+            html += `<div class="agent-lens-authoring-note">Room view for <strong>${this._esc(charName)}</strong> - live Python prompt preview.</div>`;
         }
         html += sections.map(([title, body]) =>
             this._sectionHtml(title, body, title === 'Exits' || title === 'Items' || title === 'People' || title === 'Area description')
@@ -552,34 +551,31 @@ class AgentLens {
         }
 
         const reactive = !!config.reactiveMode;
-        const roomContext = PromptBuilder.buildRoomContext(lensState, charName, player, area, { preview: true });
-        const roomParts = PromptBuilder.buildRoomContextParts(lensState, charName, player, area, { preview: true });
-        const vitalsNL = PromptBuilder.describeVitals?.(player) || '';
-        const emotionNL = PromptBuilder.buildEmotionContext(player);
-        const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
-        const memoryNL = await PromptBuilder.buildMemoryContext(charName, {
-            preview: true,
-            skipIntermediator: true,
-            area: areaName as string,
-            stimulus: this._stimulusText,
-            needStimulus: this._needStimulus,
-            strategy: this._retrievalStrategy
-        });
+        const memoryNL = typeof PromptBuilder !== 'undefined' && typeof PromptBuilder.buildMemoryContext === 'function'
+            ? await PromptBuilder.buildMemoryContext(charName, {
+                preview: true,
+                skipIntermediator: true,
+                area: areaName as string,
+                stimulus: this._stimulusText,
+                needStimulus: this._needStimulus,
+                strategy: this._retrievalStrategy
+            })
+            : '';
         const turnCtx = this._getTurnContext(charName);
         const lastResult = turnCtx.lastResult;
-        const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(charName, player);
+
+        const pyThink: any = await (ApiClient as any).getAgentPrompt?.({
+            character: charName,
+            phase: 'think',
+            last_result: lastResult || '',
+            memory_thought: memoryNL || '',
+            action_points: (player as any)?.action_points || undefined,
+        }).catch(() => null);
+        const systemPrompt = (pyThink?.messages?.[0]?.content as string) || '(Python /api/agent/prompt unavailable)';
+        const thinkDecidePrompt = (pyThink?.messages?.[1]?.content as string) || '';
 
         let html = this._pipelineHtml(reactive);
         html += this._sectionHtml('System prompt', systemPrompt, false);
-        html += this._sectionHtml('Room context (observe / decide)', roomContext, true);
-
-        const ctxBlock = [
-            vitalsNL && `Vitals: ${vitalsNL}`,
-            emotionNL && `Emotion: ${emotionNL}`,
-            relationshipNL && `Relationships: ${relationshipNL}`,
-            memoryNL && `Memory:\n${memoryNL}`,
-        ].filter(Boolean).join('\n\n');
-        if (ctxBlock) html += this._sectionHtml('Character context', ctxBlock, false);
 
         const recallStats = (window as unknown as { _lastRecallStats?: any })._lastRecallStats;
         if (recallStats && Array.isArray(recallStats.memories)) {
@@ -593,43 +589,27 @@ class AgentLens {
             html += this._sectionHtml('Memory recall analysis', breakdown, false);
         }
 
-        if (reactive) {
-            const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(
-                player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult
-            );
-            html += this._sectionHtml('Think / decide prompt', thinkDecidePrompt, true);
+        html += this._sectionHtml('Think / decide prompt', thinkDecidePrompt, true);
 
-            const previewAction = turnCtx.lastAction || 'examine door';
+        if (reactive) {
             const previewResult = lastResult
                 || 'You examine the door. A heavy oak door with an iron handle. It is currently closed.';
-            const previewInner = turnCtx.inner
-                || '(Inner monologue from the think/decide response - run an agent step to populate)';
             const previewSpeech = turnCtx.lastSpeech || '';
-            const movedViaDash = previewAction.split(/\s+/)[0]?.toLowerCase() === 'dash';
-            const reactRoomContext = this._buildReactRoomContext(areaName as string, movedViaDash);
-
-            const reactPrompt = PromptBuilder.buildResultReactionPrompt(
-                charName, player, reactRoomContext,
-                vitalsNL, emotionNL, relationshipNL,
-                previewInner, previewAction, previewResult,
-                memoryNL, previewSpeech
-            );
-
+            const pyReact: any = await (ApiClient as any).getAgentPrompt?.({
+                character: charName,
+                phase: 'react',
+                what_happened: previewResult,
+                memory_thought: memoryNL || '',
+                action_points: (player as any)?.action_points || undefined,
+                said_this_turn: previewSpeech,
+            }).catch(() => null);
+            const reactPrompt = (pyReact?.messages?.[1]?.content as string) || '';
             const reactNote = turnCtx.hasTurnData
                 ? '📎 Preview uses this character\'s last turn (action, speech, result).'
                 : '📎 Placeholder action/result - run an agent step to populate real turn data.';
             html += this._sectionHtml(
                 'React prompt',
                 `${reactNote}\n\n${reactPrompt}`,
-                true
-            );
-        } else {
-            const combinedPrompt = PromptBuilder.buildReactionPrompt(
-                player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, true
-            );
-            html += this._sectionHtml(
-                'Combined reaction prompt (think + act + memory in one call)',
-                combinedPrompt,
                 true
             );
         }

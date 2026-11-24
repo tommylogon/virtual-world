@@ -261,17 +261,20 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
             if (!player) return [];
 
             const currentArea = state?.areas?.[player.current_area] || null;
-            const roomContext = PromptBuilder.buildRoomContext(state, charName, player, currentArea, false);
-            const vitals = PromptBuilder.describeVitals(player, state, charName);
-            const emotion = PromptBuilder.buildEmotionContext(player);
-            const relationships = typeof PromptBuilder.buildRelationshipContext === 'function'
-                ? PromptBuilder.buildRelationshipContext(player, charName)
+            const memories = typeof PromptBuilder !== 'undefined' && typeof PromptBuilder.buildMemoryContext === 'function'
+                ? await PromptBuilder.buildMemoryContext(charName, { preview: true })
                 : '';
-            const mosiac = typeof PromptBuilder.buildMosiacContext === 'function'
-                ? PromptBuilder.buildMosiacContext(player)
-                : '';
+            const pyPrompt: any = await (ApiClient as any).getAgentPrompt?.({
+                character: charName,
+                phase: 'think',
+                memory_thought: memories || '',
+            }).catch(() => null);
+            const roomContext = (pyPrompt?.messages?.[1]?.content as string) || `Current area: ${player.current_area || 'unknown'}`;
+            const vitals = '';
+            const emotion = '';
+            const relationships = '';
+            const mosiac = '';
             const goals = _formatGoalsContext(player);
-            const memories = await PromptBuilder.buildMemoryContext(charName, { preview: true });
             const lastThought = events.getCharacterState(charName)?.lastThought || '';
             const lastActionResults = (config.lastActionResult || {}) as Record<string, string>;
             const lastResult = lastActionResults[charName] || '';
