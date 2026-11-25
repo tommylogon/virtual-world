@@ -89,6 +89,8 @@ const contextMenuHtmlTag = (strings: TemplateStringsArray, ...values: unknown[])
 
             items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('place_on_map')}>📍 Place on Map…</div>`);
 
+            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('seed_observations')}>🌱 Seed Past Observations…</div>`);
+
         } else if (nodeData?.type === 'item') {
 
             items.push(contextMenuHtmlTag`<div class="context-menu-separator"></div>`);
@@ -180,6 +182,12 @@ const contextMenuHtmlTag = (strings: TemplateStringsArray, ...values: unknown[])
 
 
         switch (action) {
+
+            case 'seed_observations': {
+                const areaName = target.nodeData?.name || target.nodeId;
+                (window as any).SeedObservationsModal?.open?.({ areas: [areaName] });
+                break;
+            }
 
             case 'inspect': {
 

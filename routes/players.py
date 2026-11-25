@@ -36,6 +36,7 @@ from .player_ops import (
     handle_update_vital,
     handle_get_player_map,
     handle_mark_visited,
+    handle_seed_observations,
 )
 
 logger = logging.getLogger(__name__)
@@ -158,6 +159,12 @@ def register_players_routes(app):
         """task-677: seed the map with places a character has been, by writing
         the same observation row an arrival writes."""
         return handle_mark_visited(app, name)
+
+    @app.route('/api/world/seed-observations', methods=['POST'])
+    def api_seed_observations():
+        """task-1014: batch-seed past area/item/way observations (+ optional notes)
+        for 1..N players across selected areas or a full scope."""
+        return handle_seed_observations(app)
 
     @app.route('/api/abilities/curve', methods=['GET'])
     def api_ability_curve():

@@ -1964,6 +1964,132 @@ def handle_get_player_map(app, name):
     })
 
 
+def _safe_datetime_for_tick(world, tick: int) -> str:
+    if hasattr(world, "datetime_for_tick"):
+        try:
+            dt = world.datetime_for_tick(int(tick))
+            if dt:
+                return str(dt)
+        except Exception:
+            pass
+    return ""
+
+
+def _seed_area_for_player(
+    world,
+    player,
+    area_node,
+    tick: int,
+    *,
+    observe_items: bool = True,
+    observe_ways: bool = True,
+    include_hidden_ways: bool = False,
+) -> dict:
+    """Seed deterministic area, visible item (with tags), and connected way observations."""
+    from engine.observation import _item_tags
+    from engine.room_perception import visible_area_items
+    from graph import EDGE_CONNECTION
+
+    graph = world.graph
+    world_dt = _safe_datetime_for_tick(world, tick)
+    entity_ids = [area_node.id]
+
+    player.record_observation(
+        area_node.id,
+        "You have been to %s." % area_node.name,
+        tick,
+        kind="area",
+        location=area_node.name,
+        world_datetime=world_dt,
+    )
+
+    seeded_items = []
+    if observe_items:
+        for inode in visible_area_items(graph, area_node.id, player=player) or []:
+            player.record_observation(
+                inode.id,
+                "You have seen %s in %s." % (inode.name, area_node.name),
+                tick,
+                kind="item",
+                tags=_item_tags(inode),
+                location=area_node.name,
+                world_datetime=world_dt,
+            )
+            seeded_items.append(inode.name)
+            entity_ids.append(inode.id)
+
+    seeded_ways = []
+    if observe_ways:
+        seen_way_ids = set()
+        for edge in graph.get_edges_for_source(area_node.id, EDGE_CONNECTION) or []:
+            way_node = graph.get_node(edge.target)
+            if way_node is None or way_node.id in seen_way_ids:
+                continue
+            seen_way_ids.add(way_node.id)
+            wprops = getattr(way_node, "properties", None) or {}
+            if not include_hidden_ways and (wprops.get("hidden") or wprops.get("secret")):
+                continue
+            direction = str((edge.properties or {}).get("direction") or "").strip()
+            aspects = []
+            if wprops.get("locked"):
+                aspects.append("locked")
+            if wprops.get("blocked"):
+                aspects.append("blocked")
+            if wprops.get("requires_force") or wprops.get("jammed"):
+                aspects.append("needs_force")
+
+            if direction:
+                if aspects:
+                    for asp in aspects:
+                        player.learn_way_aspect(area_node.name, direction, asp)
+                else:
+                    player.known_way_aspects.setdefault((str(area_node.name), direction), set())
+
+            qualifiers = []
+            if direction:
+                qualifiers.append(direction)
+            qualifiers.extend(aspects)
+            qual_str = f" ({', '.join(qualifiers)})" if qualifiers else ""
+            way_tags = ["way"] + aspects + ([direction.lower()] if direction else [])
+            player.record_observation(
+                way_node.id,
+                f"You have seen {way_node.name}{qual_str} in {area_node.name}.",
+                tick,
+                kind="way",
+                tags=way_tags,
+                location=area_node.name,
+                world_datetime=world_dt,
+            )
+            seeded_ways.append({"id": way_node.id, "name": way_node.name, "direction": direction, "aspects": aspects})
+            entity_ids.append(way_node.id)
+
+    return {
+        "id": area_node.id,
+        "name": area_node.name,
+        "tick": tick,
+        "world_datetime": world_dt,
+        "items_seeded": seeded_items,
+        "ways_seeded": seeded_ways,
+        "entity_ids": entity_ids,
+    }
+
+
+def _areas_in_scope(graph, scope_id: str) -> list:
+    """Return all area nodes belonging to *scope_id*."""
+    target = str(scope_id or "").strip().lower()
+    if not target or graph is None:
+        return []
+    matched = []
+    for node in (getattr(graph, "nodes", None) or {}).values():
+        if getattr(node, "type", "") != "area":
+            continue
+        props = getattr(node, "properties", None) or {}
+        node_scope = str(props.get("scope") or props.get("scope_id") or "").strip().lower()
+        if node_scope == target:
+            matched.append(node)
+    return matched
+
+
 def handle_mark_visited(app, name):
     """Seed a character's map with places they have been.
 
@@ -1976,7 +2102,7 @@ def handle_mark_visited(app, name):
     not resolve is reported in ``unresolved`` rather than silently dropped: a
     typo in an author's list should be visible, not quietly shrink the map.
     """
-    from engine.room_perception import resolve_area_node, visible_area_items
+    from engine.room_perception import resolve_area_node
 
     world = app.world
     player = (getattr(world, "players", {}) or {}).get(name)
@@ -1994,6 +2120,8 @@ def handle_mark_visited(app, name):
     # second one for an area the character never entered asserts something the
     # author may not mean.
     observe = bool(data.get("observe"))
+    observe_ways = bool(data.get("observe_ways", False))
+    include_hidden_ways = bool(data.get("include_hidden_ways", False))
 
     graph = world.graph
     tick = data.get("tick")
@@ -2008,38 +2136,243 @@ def handle_mark_visited(app, name):
         if node is None:
             unresolved.append(label)
             continue
-        player.record_observation(
-            node.id,
-            "You have been to %s." % node.name,
+        res = _seed_area_for_player(
+            world,
+            player,
+            node,
             tick,
-            kind="area",
-            location=node.name,
+            observe_items=observe,
+            observe_ways=observe_ways,
+            include_hidden_ways=include_hidden_ways,
         )
-
-
-        seeded_items = []
-        if observe:
-            # Items go through the same perception an arrival uses, so a seeded
-            # area's tooltip reads like a walked one. Characters deliberately do
-            # NOT: engine/observation.py:96-105 excludes them because
-            # arrival-stamping people saturated camp Entertainment at 87/100.
-            # visible_area_items yields nodes, not ids.
-            for inode in visible_area_items(graph, node.id, player=player) or []:
-                player.record_observation(
-                    inode.id,
-                    "You have seen %s in %s." % (inode.name, node.name),
-                    tick,
-                    kind="item",
-                    location=node.name,
-                )
-                seeded_items.append(inode.name)
-
-        added.append({"id": node.id, "name": node.name, "items_seeded": seeded_items})
+        added.append({
+            "id": res["id"],
+            "name": res["name"],
+            "items_seeded": res["items_seeded"],
+            "ways_seeded": res["ways_seeded"],
+        })
 
     return jsonify({
         "player": name,
         "tick": tick,
         "added": added,
+        "unresolved": unresolved,
+    })
+
+
+def handle_seed_observations(app):
+    """Batch-seed past area/item/way observations (+ optional backstory notes) for 1..N players.
+
+    Supports selecting explicit areas and/or an entire scope (e.g. ``goblin_camp``),
+    selecting explicit players or ``"all"`` / ``"all_in_scope"``, and stamping either
+    a single past tick (``tick`` / ``offset_minutes``) or staggering observations
+    across the past ``spread_days`` days. Zero LLM calls.
+    """
+    import hashlib
+    from engine.room_perception import resolve_area_node
+
+    world = app.world
+    graph = world.graph
+    players_map = getattr(world, "players", {}) or {}
+    data = request.get_json(force=True) or {}
+
+    # 1. Resolve target areas (explicit list + optional scope expansion)
+    area_nodes = []
+    seen_area_ids = set()
+    unresolved = []
+
+    scope_id = str(data.get("scope") or data.get("scope_id") or "").strip()
+    if scope_id:
+        for anode in _areas_in_scope(graph, scope_id):
+            if anode.id not in seen_area_ids:
+                seen_area_ids.add(anode.id)
+                area_nodes.append(anode)
+
+    raw_areas = data.get("areas") or []
+    if isinstance(raw_areas, str):
+        raw_areas = [part.strip() for part in raw_areas.split(",")]
+    for entry in raw_areas:
+        label = str(entry or "").strip()
+        if not label:
+            continue
+        node = resolve_area_node(graph, label)
+        if node is None:
+            unresolved.append(label)
+            continue
+        if node.id not in seen_area_ids:
+            seen_area_ids.add(node.id)
+            area_nodes.append(node)
+
+    if not area_nodes:
+        return jsonify({"error": "No valid areas resolved", "unresolved": unresolved}), 400
+
+    # 2. Resolve target players
+    raw_players = data.get("players")
+    if raw_players is None and data.get("player"):
+        raw_players = [data.get("player")]
+
+    target_players = []
+    if raw_players == "all":
+        target_players = list(players_map.items())
+    elif raw_players == "all_in_scope":
+        area_names_lower = {n.name.lower() for n in area_nodes}
+        for pname, pobj in players_map.items():
+            cur = str(getattr(pobj, "current_area", "") or "").lower()
+            if cur in area_names_lower or (scope_id and str(getattr(pobj, "scope", "") or "").lower() == scope_id.lower()):
+                target_players.append((pname, pobj))
+        if not target_players:
+            target_players = list(players_map.items())
+    elif isinstance(raw_players, (list, tuple)):
+        for pname in raw_players:
+            pobj = players_map.get(pname)
+            if pobj is None:
+                # case-insensitive fallback
+                low = str(pname or "").lower()
+                for k, v in players_map.items():
+                    if k.lower() == low:
+                        pname, pobj = k, v
+                        break
+            if pobj is not None:
+                target_players.append((pname, pobj))
+
+    if not target_players:
+        return jsonify({"error": "No valid players resolved"}), 400
+
+    # 3. Resolve timing: explicit tick, offset_minutes, or spread_days
+    current_tick = int(getattr(world, "time_ticks", 0) or 0)
+    ticks_per_hour = 12  # 5 minutes per tick
+    ticks_per_day = ticks_per_hour * 24
+
+    base_tick = current_tick
+    if isinstance(data.get("tick"), (int, float)):
+        base_tick = int(data["tick"])
+    elif isinstance(data.get("offset_minutes"), (int, float)) and data["offset_minutes"] > 0:
+        base_tick = current_tick - max(1, int(round(float(data["offset_minutes"]) / 5.0)))
+    elif isinstance(data.get("offset_hours"), (int, float)) and data["offset_hours"] > 0:
+        base_tick = current_tick - max(1, int(round(float(data["offset_hours"]) * ticks_per_hour)))
+
+    spread_days = float(data.get("spread_days") or 0)
+    spread_ticks = int(round(spread_days * ticks_per_day)) if spread_days > 0 else 0
+
+    observe_items = bool(data.get("observe_items", True))
+    observe_ways = bool(data.get("observe_ways", True))
+    include_hidden_ways = bool(data.get("include_hidden_ways", False))
+    note_text = str(data.get("note") or "").strip()
+    note_importance = int(data.get("note_importance", 6) or 6)
+    per_player_notes = data.get("per_player_notes") or {}
+    add_milestone = bool(data.get("add_timeline_milestone", False))
+
+    total_items = 0
+    total_ways = 0
+    notes_added = 0
+    details = []
+
+    for pname, pobj in target_players:
+        p_areas = []
+        all_entity_ids = []
+        for idx, anode in enumerate(area_nodes):
+            if spread_ticks > 0:
+                # Deterministic pseudo-random stagger per (player, area) across [base_tick - spread_ticks, base_tick - 1]
+                h = int(hashlib.md5(f"{pname}::{anode.id}::{idx}".encode("utf-8")).hexdigest()[:8], 16)
+                offset = 1 + (h % max(1, spread_ticks))
+                area_tick = base_tick - offset
+            else:
+                area_tick = base_tick
+
+            res = _seed_area_for_player(
+                world,
+                pobj,
+                anode,
+                area_tick,
+                observe_items=observe_items,
+                observe_ways=observe_ways,
+                include_hidden_ways=include_hidden_ways,
+            )
+            p_areas.append(res)
+            total_items += len(res["items_seeded"])
+            total_ways += len(res["ways_seeded"])
+            for eid in res["entity_ids"]:
+                if eid not in all_entity_ids:
+                    all_entity_ids.append(eid)
+
+        # Optional backstory/event note (per-player woven draft takes precedence over shared note)
+        p_note_cfg = per_player_notes.get(pname) if isinstance(per_player_notes, dict) else None
+        final_note = ""
+        final_imp = note_importance
+        final_tags = ["backstory", "seeded"]
+        final_emotions = None
+        if isinstance(p_note_cfg, dict) and str(p_note_cfg.get("text") or "").strip():
+            final_note = str(p_note_cfg["text"]).strip()
+            final_imp = int(p_note_cfg.get("importance", note_importance) or note_importance)
+            if isinstance(p_note_cfg.get("tags"), list):
+                final_tags = list(dict.fromkeys(final_tags + [str(t) for t in p_note_cfg["tags"] if t]))
+            if isinstance(p_note_cfg.get("emotions"), list):
+                final_emotions = p_note_cfg["emotions"]
+        elif note_text:
+            final_note = note_text
+
+        if final_note:
+            primary_loc = area_nodes[0].name
+            note_dt = _safe_datetime_for_tick(world, base_tick)
+            mem = pobj.add_memory(
+                final_note,
+                base_tick,
+                importance=final_imp,
+                memory_type="event",
+                tags=final_tags,
+                source="manual",
+                entity_ids=all_entity_ids[:24],
+                location=primary_loc,
+                world_datetime=note_dt or None,
+            )
+            if final_emotions:
+                mem["emotions"] = final_emotions
+            notes_added += 1
+
+        details.append({
+            "player": pname,
+            "areas_count": len(p_areas),
+            "items_count": sum(len(a["items_seeded"]) for a in p_areas),
+            "ways_count": sum(len(a["ways_seeded"]) for a in p_areas),
+        })
+
+    milestone_added = False
+    if add_milestone:
+        try:
+            from engine.stream_store import get_stream_store
+            store = get_stream_store()
+            world_id = getattr(world, "scenario_name", None) or "default"
+            branch_id = "main"
+            if getattr(world, "timeline_manager", None) is not None:
+                branch_id = world.timeline_manager.active_branch_id or "main"
+            actor_label = ", ".join(p for p, _ in target_players[:4]) + ("..." if len(target_players) > 4 else "")
+            loc_label = area_nodes[0].name if len(area_nodes) == 1 else f"{scope_id or area_nodes[0].name} ({len(area_nodes)} areas)"
+            summary_txt = note_text or f"Observed {loc_label} ({len(target_players)} character(s))"
+            store.append_event(
+                world_id=world_id,
+                branch_id=branch_id,
+                tick=base_tick,
+                actor=actor_label,
+                area=area_nodes[0].name,
+                kind="milestone",
+                payload={"text": summary_txt, "seeded": True, "players": [p for p, _ in target_players], "areas": [a.name for a in area_nodes]},
+            )
+            milestone_added = True
+        except Exception:
+            milestone_added = False
+
+    return jsonify({
+        "ok": True,
+        "base_tick": base_tick,
+        "world_datetime": _safe_datetime_for_tick(world, base_tick),
+        "spread_days": spread_days,
+        "players_seeded": len(target_players),
+        "areas_seeded": len(area_nodes),
+        "items_seeded": total_items,
+        "ways_seeded": total_ways,
+        "notes_added": notes_added,
+        "milestone_added": milestone_added,
+        "details": details,
         "unresolved": unresolved,
     })
 

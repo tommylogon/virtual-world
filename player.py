@@ -1380,7 +1380,7 @@ class Player:
 
     def record_observation(self, subject_id: str, text: str, tick: int, kind: str = "",
                            tags=None, importance: int = 4, location: str = "",
-                           source: str = "observation") -> dict:
+                           source: str = "observation", world_datetime: str = "") -> dict:
         """Record seeing ``subject_id`` now, refreshing its live observation.
 
         ONE live observation per subject, updated in place: re-seeing the pantry
@@ -1398,6 +1398,8 @@ class Player:
             existing["timestamp"] = time.time()
             existing["location"] = location or existing.get("location", "")
             existing["visits"] = int(existing.get("visits", 1)) + 1
+            if world_datetime:
+                existing["world_datetime"] = str(world_datetime)
             if tags:
                 existing["tags"] = sorted(set(existing.get("tags") or []) | set(tags))
             if kind:
@@ -1409,6 +1411,7 @@ class Player:
                 text, tick, importance=importance, memory_type="observation",
                 tags=(["observed"] + ([kind] if kind else []) + list(tags or [])),
                 source=source, entity_ids=[subject_id], location=location,
+                world_datetime=world_datetime or None,
             )
             entry["kind"] = kind
             entry["visits"] = 1

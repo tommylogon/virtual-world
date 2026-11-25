@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "task-1014",
+  "kind": "task",
+  "number": 1014,
+  "title": "Add fast batch Past Observation and Event Seeder (areas, items, ways, scopes, time-spread, optional parallel LLM weave)",
+  "status": "review",
+  "priority": "high",
+  "area": "gameplay",
+  "tags": [
+    "memory",
+    "observations",
+    "timeline",
+    "authoring",
+    "sandbox",
+    "ui"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "M",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Add a fast, lightweight batch Past Observation & Event Seeder (backend + modal UI) that seeds areas, visible items (with tags), and connected ways/lock aspects for 1 or N characters across selected areas or whole scopes, at a past tick or staggered over past days, with optional custom note and parallel per-character LLM voice weaving.",
+    "why": "Authors placing characters mid-scene (e.g. Miki & Elena in the Mansion library after being locked in the foyer) or populating lived-in sandboxes (e.g. 23 goblins knowing all 18 areas of Kraktooth Camp over days) currently have no UI for handle_mark_visited, no way/lock aspect seeding, no batch/scope/time-spread mode, and no way to combine instant deterministic observations with optional multi-character backstory notes.",
+    "how": "1. Add optional world_datetime parameter to Player.record_observation in player.py so seeded and runtime observations carry exact ISO timestamps.\n2. Enhance handle_mark_visited in routes/player_ops.py (pass _item_tags on item observations, stamp world_datetime) and add handle_seed_observations (POST /api/world/seed-observations) supporting multi-player, scope-to-areas expansion, areas/items/ways+aspects seeding, single past tick or staggered spread over past N days, optional custom note, and optional StreamStore milestone.\n3. Build static/js/stream/seed-observations-modal.ts (modern fluid CSS modal) with multi-character chips (plus All in scope), Scope/Areas picker, time presets + spread-over-days toggle, deterministic checkboxes (Areas/Items/Ways/Timeline milestone), optional custom note, and optional parallel LLM voice-weave grounded in the seeded rooms/items/ways.\n4. Wire entry buttons into GraphContextMenu (area right-click) and TimelineView (slot drawer), load script in templates/index.html, compile TS, and add end-to-end pytest coverage in tests/test_seed_observations.py.",
+    "verify": "pytest tests/test_seed_observations.py tests/test_player_map.py -q and npm run build:ts (0 errors).",
+    "acceptance": [
+      {
+        "text": "Player.record_observation stamps world_datetime when provided or derivable, keeping time-locked recall and intermediator relative ages accurate.",
+        "done": false
+      },
+      {
+        "text": "POST /api/world/seed-observations seeds areas, visible items (with item tags), and visible connected ways + way aspects (locked/blocked/needs_force) for 1 or N characters across selected areas or an entire scope, with single past tick or staggered spread over past N days, zero LLM calls by default.",
+        "done": false
+      },
+      {
+        "text": "Optional custom note and optional parallel per-character LLM voice weaving (grounded in room items/ways/entity_ids) work alongside deterministic observation seeding.",
+        "done": false
+      },
+      {
+        "text": "Seed Past Observations modal is accessible from Graph area right-click menu and TimelineView, uses modern responsive layout, and updates worldState + TurnMinimap cleanly.",
+        "done": false
+      }
+    ],
+    "files": [
+      "player.py",
+      "routes/player_ops.py",
+      "routes/players.py",
+      "static/js/stream/seed-observations-modal.ts",
+      "static/js/stream/timeline-view.ts",
+      "static/js/graph/context-menu.ts",
+      "templates/index.html",
+      "tests/test_seed_observations.py"
+    ],
+    "custom": {
+      "browser_ui": "Intended UI home: Seed Past Observations modal opened from (1) right-clicking an area node in the graph ('Seed Past Observations...') and (2) TimelineView slot drawer ('Seed Past Observations / Event...').\n\nManual verification steps:\n1. Right-click foyer in Mansion -> Seed Past Observations -> select Miki & Elena, 15 min ago, Areas + Items + Ways + optional note -> Apply -> verify both have foyer + front door observations and locked way aspect.\n2. In Kraktooth Goblin Camp, open Seed Past Observations -> select scope goblin_camp + All in scope + Spread over past 3 days -> Apply -> verify all goblins have staggered past observations across all camp areas."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Gameplay/Per-Agent Knowledge (Fog of War)]]",
+      "[[AI & Narration/Cognitive Memory & Active Mind]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {},
+  "history": [
+    {
+      "from": "inprogress",
+      "to": "review",
+      "at": "2026-11-25T14:00:08Z"
+    }
+  ]
+}

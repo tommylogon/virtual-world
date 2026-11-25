@@ -236,6 +236,12 @@
                     await renderGraph();
                 }
             }));
+            drawer.appendChild(mkBtn('🌱 Seed Past Observations / Event...', false, async () => {
+                window.SeedObservationsModal?.open?.({
+                    tick: targetTick,
+                    onDone: () => { void renderGraph(); },
+                });
+            }));
             drawer.appendChild(mkBtn('▶ Enter Play Mode From Here', false, async () => {
                 opts.onClose?.();
                 await window.PlayMode?.enter?.();
