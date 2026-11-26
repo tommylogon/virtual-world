@@ -4,12 +4,12 @@
   "kind": "task",
   "number": 934,
   "title": "Benchmark output ratings, model metadata tagging (Free, Blocked, Do Not Use), and backend registry persistence",
-  "status": "inprogress",
+  "status": "review",
   "priority": "medium",
   "area": "testing",
   "tags": [],
   "created": "2026-11-09",
-  "updated": "2026-11-20",
+  "updated": "2026-11-26",
   "horizon": "",
   "effort": "",
   "goal": "",
@@ -93,6 +93,11 @@
       "from": "todo",
       "to": "inprogress",
       "at": "2026-11-19T19:58:55Z"
+    },
+    {
+      "from": "inprogress",
+      "to": "review",
+      "at": "2026-11-26T19:56:43Z"
     }
   ]
 }

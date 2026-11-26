@@ -131,7 +131,9 @@ win.window = win;
 vm.createContext(win);
 
 function load(relPath) {
-    const src = fs.readFileSync(path.join(ROOT, relPath), 'utf8');
+    const fullPath = path.join(ROOT, relPath);
+    if (!fs.existsSync(fullPath)) return;
+    const src = fs.readFileSync(fullPath, 'utf8');
     vm.runInContext(src, win, { filename: relPath });
 }
 

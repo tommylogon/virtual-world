@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "task-1015",
+  "kind": "task",
+  "number": 1015,
+  "title": "Modernize Virtual World MCP server (fix 55 FastMCP test failures, add Timeline/Seeder/Grid/Trigger/Memory tools, trim action bloat)",
+  "status": "todo",
+  "priority": "medium",
+  "area": "engine",
+  "tags": [
+    "mcp",
+    "api",
+    "timeline",
+    "observations",
+    "testing"
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "horizon": "",
+  "effort": "L",
+  "goal": "",
+  "relations": {
+    "blocks": [],
+    "blocked_by": [],
+    "depends_on": [],
+    "related": [],
+    "parent": null,
+    "children": [],
+    "supersedes": [],
+    "superseded_by": [],
+    "invalidates": [],
+    "invalidated_by": []
+  },
+  "sections": {
+    "what": "Audit and modernize mcp_server.py: fix the 55 broken FastMCP FunctionTool tests in tests/test_mcp*.py, add MCP tools for modern Viwo subsystems (Timelines, Past Observation Seeder, Player Map, World Grid/Scopes/Structures, Triggers, Scene Snapshot, associative memory retrieval, and full add_player_memory fields), and consolidate redundant /api/action one-liner wrappers.",
+    "why": "mcp_server.py currently covers only 54 of 260+ Flask routes (~21%), has 55 failing tests due to FastMCP's FunctionTool wrapper change, exposes stale parameters on add_player_memory, and lacks access to Timelines, Observation Seeding, World Grid/Scopes/Structures, Triggers, and Commons while spending ~18 of its 85 tools on redundant /api/action wrappers.",
+    "how": "1. Update tests/test_mcp*.py to unwrap FastMCP FunctionTool objects (e.g. helper _call(tool, *args, **kwargs) calling tool.fn if present) so all 69 existing MCP tests run and pass cleanly.\n2. Expand add_player_memory in mcp_server.py to forward location, tags, entity_ids, world_datetime, emotions, category, and source to POST /api/players/<name>/memories/entry.\n3. Add high-leverage MCP tools for:\n   - Timelines: timeline_state, timeline_fork, timeline_switch, timeline_redo, timeline_expand_past, timeline_connect, timeline_fork_soak\n   - Observations & Map: seed_observations (/api/world/seed-observations), get_player_map (/api/players/<name>/map)\n   - Associative Memory & Scene: retrieve_memories (/api/players/<name>/memories/retrieve), get_player_knowledge, get_scene_snapshot (/api/scene/<name>)\n   - World Building: world_grid, world_scopes, structures, triggers, and Commons state/post\n4. Consolidate redundant 1-line /api/action wrappers behind run_action(command) (keeping only the most essential shortcuts like look/go/speak) so tool context stays compact.\n5. Add unit/contract tests covering the new MCP tools against the Flask test client.",
+    "verify": "pytest tests/test_mcp*.py -q passes with 0 failures.",
+    "acceptance": [
+      {
+        "text": "All existing MCP test suites (tests/test_mcp*.py) pass against current FastMCP (fixing the 55 FunctionTool callability failures).",
+        "done": false
+      },
+      {
+        "text": "mcp_server.py exposes high-leverage modern engine tools: Timeline operations (state/fork/switch/redo/expand-past/connect/fork-soak), batch Past Observation Seeder (/api/world/seed-observations) & player map (/api/players/<name>/map), World Grid / Scopes / Structures, Triggers, Scene Snapshot, and associative memory retrieval.",
+        "done": false
+      },
+      {
+        "text": "add_player_memory accepts full modern parameters (location, tags, entity_ids, world_datetime, emotions, category, source).",
+        "done": false
+      },
+      {
+        "text": "Redundant one-line /api/action wrappers are consolidated or trimmed so total MCP tool count stays lean and agent-friendly, with pytest coverage for new tools.",
+        "done": false
+      }
+    ],
+    "files": [
+      "mcp_server.py",
+      "tests/test_mcp_commands.py",
+      "tests/test_mcp_editing.py",
+      "tests/test_mcp_integration.py",
+      "tests/test_mcp_misc.py",
+      "tests/test_mcp_state_players.py"
+    ],
+    "custom": {
+      "browser_ui": "N/A - backend MCP server (mcp_server.py) and pytest suites only; live edits made via MCP automatically appear in the browser UI via existing X-WV-Editor / /api/events SSE."
+    }
+  },
+  "links": {
+    "wiki": [
+      "[[Architecture/MCP Server]]",
+      "[[Gameplay/Per-Agent Knowledge (Fog of War)]]"
+    ],
+    "docs": [],
+    "commits": [],
+    "urls": []
+  },
+  "evidence": [],
+  "invalidation": null,
+  "extra": {}
+}

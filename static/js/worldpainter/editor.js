@@ -202,6 +202,7 @@
         // it, switching maps must not smuggle it across.
         selection: {}, // {scopeId: {'x,y': true}}
         marquee: null, // {anchor: {x, y}, to: {x, y}} while dragging
+        dragMove: null, // {kind, areaId, areaName, from, to, moved} while dragging (task-929)
         nudged: null, // last move offset, for the status line
         inspected: null, // {x, y} the cell the inspector panel is showing (task-540)
         cellInfoEl: null, // HUD hover readout for the cell under the pointer
@@ -1024,7 +1025,7 @@
         if (!state.stage)
             return;
         const toolOwnsDrag = _isPaintTool() || state.tool === 'select'
-            || state.tool === 'move';
+            || state.tool === 'move' || state.tool === 'area';
         state.stage.draggable(state.spaceDown
             || (!state.refEdit && !state.gridEdit && !toolOwnsDrag));
     }
@@ -1718,6 +1719,54 @@
                 dash: [4, 3], listening: false,
             }));
         }
+        // Visual drag-to-move ghost preview (task-929)
+        if (state.dragMove && state.dragMove.moved) {
+            const dm = state.dragMove;
+            if (dm.kind === 'area') {
+                layer.add(new K.Rect({
+                    x: dm.from.x * CELL + 1, y: dm.from.y * CELL + 1,
+                    width: CELL - 2, height: CELL - 2,
+                    fill: 'rgba(255,255,255,0.06)', stroke: '#8b949e', strokeWidth: 1,
+                    dash: [3, 3], listening: false,
+                }));
+                if (K.Line) {
+                    layer.add(new K.Line({
+                        points: [
+                            dm.from.x * CELL + CELL / 2, dm.from.y * CELL + CELL / 2,
+                            dm.to.x * CELL + CELL / 2, dm.to.y * CELL + CELL / 2,
+                        ],
+                        stroke: '#3fb950', strokeWidth: 1.5, dash: [4, 3], listening: false,
+                    }));
+                }
+                layer.add(new K.Rect({
+                    x: dm.to.x * CELL + 1, y: dm.to.y * CELL + 1,
+                    width: CELL - 2, height: CELL - 2,
+                    fill: 'rgba(63,185,80,0.28)', stroke: '#3fb950', strokeWidth: 2,
+                    dash: [4, 2], listening: false,
+                }));
+            }
+            else if (dm.kind === 'cells') {
+                const dx = dm.to.x - dm.from.x;
+                const dy = dm.to.y - dm.from.y;
+                const gw = p.grid?.w ?? 0;
+                const gh = p.grid?.h ?? 0;
+                keys.forEach((k) => {
+                    const c = GM().parseCellKey(k);
+                    if (!c)
+                        return;
+                    const nx = c.x + dx;
+                    const ny = c.y + dy;
+                    if (nx < 0 || ny < 0 || nx >= gw || ny >= gh)
+                        return;
+                    layer.add(new K.Rect({
+                        x: nx * CELL + 1, y: ny * CELL + 1,
+                        width: CELL - 2, height: CELL - 2,
+                        fill: 'rgba(63,185,80,0.24)', stroke: '#3fb950', strokeWidth: 1.5,
+                        dash: [3, 2], listening: false,
+                    }));
+                });
+            }
+        }
     }
     function _ensureRefImage(p) {
         if (window.WorldPainterHandles?.ensureRefImage) {
@@ -1896,7 +1945,7 @@
         // different tools, and which one is always the tool the author can see.
         // In reference-adjust mode the drag belongs to the picture, so only space
         // pans there.
-        const dragPaints = () => _isPaintTool() || state.tool === 'move';
+        const dragPaints = () => _isPaintTool() || state.tool === 'move' || state.tool === 'area';
         stage.draggable(state.spaceDown || (!state.refEdit && !state.gridEdit && !dragPaints()
             && state.tool !== 'select'));
         stage.on('dragstart', () => { dragged = true; });
@@ -1912,6 +1961,29 @@
             }
             if (e.evt && e.evt.button !== 0)
                 return;
+            if ((state.tool === 'area' || state.tool === 'move') && !state.spaceDown) {
+                const cell = _cellAtPointer(p);
+                if (!cell)
+                    return;
+                if (state.tool === 'move' && _selectedCells(p).length > 0) {
+                    state.dragMove = { kind: 'cells', from: cell, to: cell, moved: false };
+                    _redrawDecor();
+                    return;
+                }
+                const here = GM().areaAt(p, cell.x, cell.y);
+                if (here) {
+                    state.dragMove = {
+                        kind: 'area',
+                        areaId: here.id,
+                        areaName: here.name,
+                        from: cell,
+                        to: cell,
+                        moved: false,
+                    };
+                    _redrawDecor();
+                    return;
+                }
+            }
             if (state.tool === 'select' && !state.spaceDown) {
                 const cell = _cellAtPointer(p);
                 if (!cell)
@@ -1973,6 +2045,14 @@
                 if (!state.stage)
                     return;
                 const cell = _cellAtPointer(p);
+                if (state.dragMove && cell) {
+                    if (cell.x !== state.dragMove.to.x || cell.y !== state.dragMove.to.y) {
+                        state.dragMove.to = cell;
+                        state.dragMove.moved = (cell.x !== state.dragMove.from.x || cell.y !== state.dragMove.from.y);
+                        _redrawDecor();
+                    }
+                    return;
+                }
                 if (state.marquee && cell) {
                     if (cell.x !== state.marquee.to.x || cell.y !== state.marquee.to.y) {
                         state.marquee.to = cell;
@@ -2005,6 +2085,21 @@
             // left the frame.
             if (state.refEdit) {
                 _refMouseUp();
+                return;
+            }
+            if (state.dragMove) {
+                const dm = state.dragMove;
+                state.dragMove = null;
+                if (dm.moved) {
+                    dragged = true;
+                    if (dm.kind === 'area' && dm.areaId) {
+                        void window.WorldPainterCanvas?.placeArea?.(canvasCtx(), dm.areaId, dm.to.x, dm.to.y);
+                    }
+                    else if (dm.kind === 'cells') {
+                        void _nudge(p, dm.to.x - dm.from.x, dm.to.y - dm.from.y);
+                    }
+                }
+                _redrawDecor();
                 return;
             }
             if (state.marquee) {
